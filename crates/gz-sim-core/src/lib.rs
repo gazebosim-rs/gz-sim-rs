@@ -138,6 +138,10 @@ impl Simulation {
         self.elapsed
     }
 
+    pub fn step_duration(&self) -> Duration {
+        self.step_duration
+    }
+
     /// Runs all phases once. Paused ticks have zero dt and do not advance time.
     pub fn tick(&mut self) -> Result<UpdateInfo, StepError> {
         self.run_tick(self.paused)
@@ -146,6 +150,15 @@ impl Simulation {
     /// Advances exactly `count` steps, retaining the current pause setting.
     /// Overflow is checked for the whole request before any system runs.
     pub fn step_exact(&mut self, count: u64) -> Result<(), StepError> {
+        self.validate_steps(count)?;
+        for _ in 0..count {
+            self.run_tick(false)?;
+        }
+        Ok(())
+    }
+
+    /// Checks a complete future request without advancing or changing pause state.
+    pub fn validate_steps(&self, count: u64) -> Result<(), StepError> {
         let nanos = self
             .step_duration
             .as_nanos()
@@ -154,9 +167,6 @@ impl Simulation {
         let available = (Duration::MAX - self.elapsed).as_nanos();
         if nanos > available || self.iteration.checked_add(count).is_none() {
             return Err(StepError::Overflow);
-        }
-        for _ in 0..count {
-            self.run_tick(false)?;
         }
         Ok(())
     }

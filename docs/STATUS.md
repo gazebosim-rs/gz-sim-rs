@@ -23,6 +23,7 @@ the coordinator and the three available repository agents.
 | gz-sensors | Noise-free IMU specific force and relative orientation with f64 glam math | Rates, seeds/noise, frame configuration, publication and other sensor families |
 | gz-sim-scene | Atomic SDF loading, link/sensor ECS entities, physics snapshots, centered every-step IMU, initial orientation reference, reset synchronization | Full hierarchy/model entities, joints, offset/multiple shapes, sensor scheduling, external publication |
 | gz-sim-cli | Headless self-contained SDF input, integer step count/duration, sorted final state, actionable argument/load/overflow errors | Legacy command grammar, transport control, resource resolution, signal handling and packaging |
+| gz-sim-server | Bounded world-clock publication and polled pause/step controls, real C++ client conformance | Root clock election, reset/run-to controls, IMU/pose publication and full headless acceptance |
 
 The Rapier backend is an initial capability probe, not the final physics contract.
 Its rigid bodies live in an ECS resource, with link state copied into components
@@ -100,6 +101,16 @@ SDF agent reviewed scene frame/inertia use and identified initial IMU reference
 and floating-point identity issues. Both have regression tests and were re-reviewed.
 
 ## Next acceptance sequence
+
+The IO-01 clock/control increment is described in [HEADLESS.md](HEADLESS.md).
+Its real C++ client waits for a received clock, requests three steps of the Rust
+SDF/Rapier world and observes the exact 3 ms result. The required native client
+build checks source/configuration and library hashes; CI builds its own pinned
+reference. The local gate passes 38 Rust tests and nine gate tests, covering
+804/806 production lines and 1169/1186 regions. The new server covers 159/159
+lines and 224/227 regions. Every crate passes independently. Native source
+behavior is reviewed separately from this new conformance corpus; the increment
+does not retire original simulator tests or complete IO-01/P2.
 
 The current LOAD-01 integration task adopts reviewed sdformat-rs revision
 8109265 and its explicit non-frame pose validator. Owned files are the workspace

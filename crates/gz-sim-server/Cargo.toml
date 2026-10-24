@@ -1,0 +1,19 @@
+[package]
+name = "gz-sim-server"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+gz-msgs.workspace = true
+gz-transport.workspace = true
+gz-sim-core = { path = "../gz-sim-core" }
+thiserror.workspace = true
+
+[dev-dependencies]
+gz-sim-scene = { path = "../gz-sim-scene" }
+sdformat.workspace = true
+
+[lints]
+workspace = true

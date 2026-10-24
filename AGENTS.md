@@ -103,3 +103,15 @@ and use its `scripts/update-status.py` to publish only `gz-sim-rs` status. Keep
 local reports in ignored `artifacts/`. Repository agents own their own reports.
 Reviewed increments do not complete broad plan packets; coverage is not progress.
 The coordinator alone updates phase acceptance and individual system status.
+
+## Autonomous continuation
+
+The owner authorized continuing without check-ins. Prioritize the headless
+end-to-end milestone in PLAN.md; the coordinator owns simulator integration.
+Keep repository agents on concrete implementation or independent review tasks.
+When a reviewed change passes its strict staged gate, publish it and advance to
+the next task without another publication-only approval. Keep architectural
+changes and incomplete compatibility evidence visible. Do useful independent
+work while reviews or CI run, and repair actual failures without weakening gates.
+Update the dashboard when evidence changes. Notify the owner for significant
+milestones, failures needing attention or decisions that require their input.

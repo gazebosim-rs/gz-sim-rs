@@ -8,6 +8,12 @@ jobs:
         with:
           fetch-depth: 0
       - run: rustup toolchain install 1.95.0 --profile minimal --component clippy,rustfmt,llvm-tools-preview
+      - name: Install native client build dependencies
+        run: |
+          sudo apt-get update
+          python3 -c 'import json, subprocess; subprocess.run(["sudo", "apt-get", "install", "-y", *json.load(open("planning/transport-reference-lock.json"))["apt_dependencies"]], check=True)'
+      - run: python3 scripts/bootstrap-native.py --jobs 2
       - run: python3 scripts/verify.py
         env:
           GZ_COVERAGE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          GZ_REFERENCE_PREFIX: ${{ github.workspace }}/artifacts/native-reference/install

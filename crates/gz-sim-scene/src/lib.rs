@@ -148,6 +148,11 @@ fn build_model(
         let name = &link.scoped_name;
         require(link.plugins.is_empty(), name, "link plugins")?;
         require(
+            link.visuals.iter().all(|visual| visual.plugins.is_empty()),
+            name,
+            "visual plugins",
+        )?;
+        require(
             link.collisions.len() == 1,
             name,
             "collision count (expected one)",

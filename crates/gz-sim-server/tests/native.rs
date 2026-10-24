@@ -1,0 +1,130 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+use gz_sim_scene::{Name, WorldPose, load_world};
+use gz_sim_server::Server;
+use gz_transport::Config;
+use sdformat::NoResources;
+use std::{
+    net::UdpSocket,
+    num::NonZeroUsize,
+    path::Path,
+    process::{Child, Command, Stdio},
+    thread,
+    time::{Duration, Instant},
+};
+
+struct Peer(Child);
+impl Drop for Peer {
+    fn drop(&mut self) {
+        if self.0.try_wait().unwrap().is_none() {
+            let _ = self.0.kill();
+            let _ = self.0.wait();
+        }
+    }
+}
+
+#[test]
+fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let build = Command::new("python3")
+        .arg(root.join("scripts/native-peer.py"))
+        .output()
+        .unwrap();
+    assert!(
+        build.status.success(),
+        "{}",
+        String::from_utf8_lossy(&build.stderr)
+    );
+    let message = UdpSocket::bind("127.0.0.1:0").unwrap();
+    let service = UdpSocket::bind("127.0.0.1:0").unwrap();
+    let config = Config {
+        partition: format!("native-sim-{}", std::process::id()),
+        message_port: message.local_addr().unwrap().port(),
+        service_port: service.local_addr().unwrap().port(),
+        ..Config::default()
+    };
+    drop((message, service));
+    let simulation = load_world(
+        include_str!("../../gz-sim-scene/tests/fixtures/fall.sdf"),
+        "fall.sdf",
+        "default",
+        Duration::from_millis(1),
+        &NoResources,
+    )
+    .unwrap();
+    let mut server = Server::new(
+        simulation,
+        "default",
+        config.clone(),
+        NonZeroUsize::new(4).unwrap(),
+    )
+    .unwrap();
+    let prefix = std::env::var_os("GZ_REFERENCE_PREFIX")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
+    let mut peer = Peer(
+        Command::new(root.join("artifacts/native-peer/clock-client"))
+            .env("GZ_PARTITION", &config.partition)
+            .env("GZ_IP", config.interface.to_string())
+            .env("GZ_TRANSPORT_IMPLEMENTATION", "zeromq")
+            .env("GZ_TRANSPORT_TOPIC_STATISTICS", "0")
+            .env("GZ_DISCOVERY_MULTICAST_IP", config.multicast.to_string())
+            .env_remove("GZ_TRANSPORT_USERNAME")
+            .env_remove("GZ_TRANSPORT_PASSWORD")
+            .env_remove("GZ_RELAY")
+            .env("GZ_DISCOVERY_MSG_PORT", config.message_port.to_string())
+            .env("GZ_DISCOVERY_SRV_PORT", config.service_port.to_string())
+            .env("LD_LIBRARY_PATH", prefix.join("lib"))
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap(),
+    );
+    let deadline = Instant::now() + Duration::from_secs(20);
+    let status = loop {
+        if let Some(status) = peer.0.try_wait().unwrap() {
+            break status;
+        }
+        assert!(Instant::now() < deadline, "native client timed out");
+        server.tick().unwrap();
+        // Host pacing is outside the physics step and does not establish readiness.
+        thread::sleep(Duration::from_millis(1));
+    };
+    use std::io::Read;
+    let mut stdout = String::new();
+    let mut stderr = String::new();
+    peer.0
+        .stdout
+        .take()
+        .unwrap()
+        .read_to_string(&mut stdout)
+        .unwrap();
+    peer.0
+        .stderr
+        .take()
+        .unwrap()
+        .read_to_string(&mut stderr)
+        .unwrap();
+    assert!(
+        status.success(),
+        "status={status} stdout={stdout} stderr={stderr}"
+    );
+    assert!(stdout.starts_with("PASS native clock/control"));
+    assert!(stderr.is_empty(), "{stderr}");
+    assert_eq!(server.simulation().elapsed(), Duration::from_millis(3));
+    assert!(server.simulation().is_paused());
+    let body = server
+        .simulation()
+        .world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<Name>()
+                .is_some_and(|name| name.0 == "default::ball::body")
+        })
+        .unwrap();
+    assert!(body.get::<WorldPose>().unwrap().translation[2] < 5.0);
+    assert_eq!(server.counters().controls_accepted, 1);
+    assert_eq!(server.counters().controls_rejected, 1);
+    server.shutdown();
+}

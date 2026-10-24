@@ -233,6 +233,7 @@ def staged():
 
 
 def main():
+    os.environ.setdefault("GZ_REFERENCE_PREFIX", str(ROOT / "artifacts/native-reference/install"))
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--staged", action="store_true")
     parser.add_argument("--coverage-only", action="store_true")

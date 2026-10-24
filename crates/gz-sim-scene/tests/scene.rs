@@ -143,6 +143,11 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
             "link plugins",
         ),
         (
+            "<link name=\"body\">",
+            "<link name=\"body\"><visual name='v'><plugin name='x' filename='x'/></visual>",
+            "visual plugins",
+        ),
+        (
             "<collision name=\"shape\"><geometry><sphere><radius>0.5</radius></sphere></geometry></collision>",
             "",
             "collision count",
