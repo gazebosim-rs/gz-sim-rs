@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "inspected_date": "2026-10-24",
+  "timezone": "America/Los_Angeles",
+  "status": "owner_confirmed_main_branches_pinned_to_inspected_local_commits",
+  "repositories": [
+    {
+      "name": "sdformat",
+      "upstream_url": "https://github.com/gazebosim/sdformat",
+      "branch": "main",
+      "commit": "1249805d9fceeff94ca1fe63e26ab9c051cea24e",
+      "dirty": false
+    },
+    {
+      "name": "gz-fuel-tools",
+      "upstream_url": "https://github.com/gazebosim/gz-fuel-tools",
+      "branch": "main",
+      "commit": "6ac62b01d7d8af3ab23fd2239728a791704a3f09",
+      "dirty": false
+    },
+    {
+      "name": "gz-transport",
+      "upstream_url": "https://github.com/gazebosim/gz-transport",
+      "branch": "main",
+      "commit": "41913b9dfc3dbce33ac5464ddcb427cc82450f26",
+      "dirty": false
+    },
+    {
+      "name": "gz-msgs",
+      "upstream_url": "https://github.com/gazebosim/gz-msgs",
+      "branch": "main",
+      "commit": "89c0c3d1474f545cb889335daf930bfdab6ab852",
+      "dirty": false
+    },
+    {
+      "name": "gz-sim",
+      "upstream_url": "https://github.com/gazebosim/gz-sim",
+      "branch": "main",
+      "commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "dirty": false
+    },
+    {
+      "name": "gz-sensors",
+      "upstream_url": "https://github.com/gazebosim/gz-sensors",
+      "branch": "main",
+      "commit": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+      "dirty": false
+    },
+    {
+      "name": "gz-physics",
+      "upstream_url": "https://github.com/gazebosim/gz-physics",
+      "branch": "main",
+      "commit": "b44cd0d0ea6606b6c98320c0c87a5670d4fc6be6",
+      "dirty": false
+    },
+    {
+      "name": "gz-math",
+      "upstream_url": "https://github.com/gazebosim/gz-math",
+      "branch": "main",
+      "commit": "1316ed334f4d5bda7be59aae07cd6e8ff31cfe13",
+      "dirty": false
+    },
+    {
+      "name": "gz-common",
+      "upstream_url": "https://github.com/gazebosim/gz-common",
+      "branch": "main",
+      "commit": "4daa84f2e7e23eed296d6b997fac88e63b0a450d",
+      "dirty": false
+    },
+    {
+      "name": "gz-tools",
+      "upstream_url": "https://github.com/gazebosim/gz-tools",
+      "branch": "main",
+      "commit": "832ff554af2605667bfebbbe7b794741d00d9c2f",
+      "dirty": false
+    },
+    {
+      "name": "gz-utils",
+      "upstream_url": "https://github.com/gazebosim/gz-utils",
+      "branch": "main",
+      "commit": "eafd2035e344eeb28ccab03409093637b89bee35",
+      "dirty": false
+    },
+    {
+      "name": "gz-plugin",
+      "upstream_url": "https://github.com/gazebosim/gz-plugin",
+      "branch": "main",
+      "commit": "1667852f9063cd5ebd954e2beefcc932f9698f88",
+      "dirty": false
+    },
+    {
+      "name": "gz-rendering",
+      "upstream_url": "https://github.com/gazebosim/gz-rendering",
+      "branch": "main",
+      "commit": "fb8e38cee4dad491f95f205afe6697b6a5d0f5fa",
+      "dirty": false
+    },
+    {
+      "name": "gz-cmake",
+      "upstream_url": "https://github.com/gazebosim/gz-cmake",
+      "branch": "main",
+      "commit": "ca67ea8460fc03da062780805feb01cb20f4e0ba",
+      "dirty": false
+    },
+    {
+      "name": "gz-gui",
+      "upstream_url": "https://github.com/gazebosim/gz-gui",
+      "branch": "main",
+      "commit": "01d544faaedbf731637703405a9329c913494aaf",
+      "dirty": false
+    }
+  ],
+  "note": "Owner selected main branches. P0 verifies these local snapshots against upstream and records any reviewed update before reference runs."
+}

@@ -1,0 +1,553 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+  "note": "Work-family allocation only. Every upstream system remains in retained scope; none implemented by this plan. Enumerate individual behavioral/test contracts in P0.",
+  "systems": [
+    {
+      "name": "ackermann_steering",
+      "source": "src/systems/ackermann_steering",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "acoustic_comms",
+      "source": "src/systems/acoustic_comms",
+      "family": "SYS-COMMS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "advanced_lift_drag",
+      "source": "src/systems/advanced_lift_drag",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "air_pressure",
+      "source": "src/systems/air_pressure",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "air_speed",
+      "source": "src/systems/air_speed",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "altimeter",
+      "source": "src/systems/altimeter",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "apply_joint_force",
+      "source": "src/systems/apply_joint_force",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "apply_link_wrench",
+      "source": "src/systems/apply_link_wrench",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "battery_plugin",
+      "source": "src/systems/battery_plugin",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "breadcrumbs",
+      "source": "src/systems/breadcrumbs",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "buoyancy",
+      "source": "src/systems/buoyancy",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "buoyancy_engine",
+      "source": "src/systems/buoyancy_engine",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "camera_video_recorder",
+      "source": "src/systems/camera_video_recorder",
+      "family": "SYS-MEDIA",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "collada_world_exporter",
+      "source": "src/systems/collada_world_exporter",
+      "family": "SYS-MEDIA",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "comms_endpoint",
+      "source": "src/systems/comms_endpoint",
+      "family": "SYS-COMMS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "contact",
+      "source": "src/systems/contact",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "cpu_lidar",
+      "source": "src/systems/cpu_lidar",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "detachable_joint",
+      "source": "src/systems/detachable_joint",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "diff_drive",
+      "source": "src/systems/diff_drive",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "drive_to_pose_controller",
+      "source": "src/systems/drive_to_pose_controller",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "dvl",
+      "source": "src/systems/dvl",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "elevator",
+      "source": "src/systems/elevator",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "entity_semantics",
+      "source": "src/systems/entity_semantics",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "environment_preload",
+      "source": "src/systems/environment_preload",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "environmental_sensor_system",
+      "source": "src/systems/environmental_sensor_system",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "follow_actor",
+      "source": "src/systems/follow_actor",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "force_torque",
+      "source": "src/systems/force_torque",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "free_space_explorer",
+      "source": "src/systems/free_space_explorer",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "hydrodynamics",
+      "source": "src/systems/hydrodynamics",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "imu",
+      "source": "src/systems/imu",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "joint_controller",
+      "source": "src/systems/joint_controller",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "joint_position_controller",
+      "source": "src/systems/joint_position_controller",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "joint_state_publisher",
+      "source": "src/systems/joint_state_publisher",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "joint_traj_control",
+      "source": "src/systems/joint_traj_control",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "kinetic_energy_monitor",
+      "source": "src/systems/kinetic_energy_monitor",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "label",
+      "source": "src/systems/label",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "led_plugin",
+      "source": "src/systems/led_plugin",
+      "family": "SYS-MEDIA",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "lens_flare",
+      "source": "src/systems/lens_flare",
+      "family": "SYS-MEDIA",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "lift_drag",
+      "source": "src/systems/lift_drag",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "lighter_than_air_dynamics",
+      "source": "src/systems/lighter_than_air_dynamics",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "log",
+      "source": "src/systems/log",
+      "family": "SYS-MEDIA",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "log_video_recorder",
+      "source": "src/systems/log_video_recorder",
+      "family": "SYS-MEDIA",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "logical_audio_sensor_plugin",
+      "source": "src/systems/logical_audio_sensor_plugin",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "logical_camera",
+      "source": "src/systems/logical_camera",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "lookup_wheel_slip",
+      "source": "src/systems/lookup_wheel_slip",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "magnetometer",
+      "source": "src/systems/magnetometer",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "mecanum_drive",
+      "source": "src/systems/mecanum_drive",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "model_photo_shoot",
+      "source": "src/systems/model_photo_shoot",
+      "family": "SYS-MEDIA",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "multicopter_control",
+      "source": "src/systems/multicopter_control",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "multicopter_motor_model",
+      "source": "src/systems/multicopter_motor_model",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "navsat",
+      "source": "src/systems/navsat",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "odometry_publisher",
+      "source": "src/systems/odometry_publisher",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "optical_tactile_plugin",
+      "source": "src/systems/optical_tactile_plugin",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "particle_emitter",
+      "source": "src/systems/particle_emitter",
+      "family": "SYS-MEDIA",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "perfect_comms",
+      "source": "src/systems/perfect_comms",
+      "family": "SYS-COMMS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "performer_detector",
+      "source": "src/systems/performer_detector",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "physics",
+      "source": "src/systems/physics",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "pose_publisher",
+      "source": "src/systems/pose_publisher",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "python_system_loader",
+      "source": "src/systems/python_system_loader",
+      "family": "SYS-EXTENSION",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "rf_comms",
+      "source": "src/systems/rf_comms",
+      "family": "SYS-COMMS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "scene_broadcaster",
+      "source": "src/systems/scene_broadcaster",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "sensors",
+      "source": "src/systems/sensors",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "shader_param",
+      "source": "src/systems/shader_param",
+      "family": "SYS-MEDIA",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "spacecraft_thruster_model",
+      "source": "src/systems/spacecraft_thruster_model",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "swerve_drive",
+      "source": "src/systems/swerve_drive",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "thermal",
+      "source": "src/systems/thermal",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "thruster",
+      "source": "src/systems/thruster",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "timeline_publisher",
+      "source": "src/systems/timeline_publisher",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "touch_plugin",
+      "source": "src/systems/touch_plugin",
+      "family": "SYS-SENSOR",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "track_controller",
+      "source": "src/systems/track_controller",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "tracked_vehicle",
+      "source": "src/systems/tracked_vehicle",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "trajectory_follower",
+      "source": "src/systems/trajectory_follower",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "triggered_publisher",
+      "source": "src/systems/triggered_publisher",
+      "family": "SYS-COMMS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "user_commands",
+      "source": "src/systems/user_commands",
+      "family": "SYS-WORLD",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "velocity_control",
+      "source": "src/systems/velocity_control",
+      "family": "SYS-CONTROL",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "websocket_server",
+      "source": "src/systems/websocket_server",
+      "family": "SYS-COMMS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "wheel_slip",
+      "source": "src/systems/wheel_slip",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    },
+    {
+      "name": "wind_effects",
+      "source": "src/systems/wind_effects",
+      "family": "SYS-DYNAMICS",
+      "status": "not_migrated",
+      "test_mapping_status": "pending_runtime_inventory"
+    }
+  ]
+}
