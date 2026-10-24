@@ -11,6 +11,7 @@
 #include <gz/msgs/imu.pb.h>
 #include <gz/msgs/world_control.pb.h>
 #include <gz/transport/Node.hh>
+#include <gz/transport/TopicUtils.hh>
 
 struct Observations
 {
@@ -24,7 +25,7 @@ struct Observations
   int64_t target = 3000000;
 };
 
-int main(int argc, char **)
+int main(int argc, char **argv)
 {
   const bool withImu = argc > 1;
   auto observations = std::make_shared<Observations>();
@@ -84,7 +85,8 @@ int main(int argc, char **)
       observations->lastImu = header.stamp().nsec();
       observations->changed.notify_all();
     };
-  if (withImu && !node.Subscribe("/world/default/model/ball/link/body/sensor/imu/imu", imuCallback)) return 7;
+  if (withImu && !node.Subscribe(argc > 2 ? gz::transport::TopicUtils::AsValidTopic(argv[2]) :
+      "/world/default/model/ball/link/body/sensor/imu/imu", imuCallback)) return 7;
   auto waitFor = [&](bool Observations::*field)
   {
     std::unique_lock<std::mutex> lock(observations->mutex);

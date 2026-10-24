@@ -50,13 +50,15 @@ The native client has a second mode that establishes readiness through actual
 sampled warmup steps, then checks three additional steps and all IMU metadata and
 values. No initial sensor packet is fabricated. Tests cover invalid samples,
 oversized payloads, sequence wrapping, repeated timestamps across epochs and
-default/relative/absolute/nested topics. The full local gate passes 42 Rust tests
+default/relative/absolute/nested topics. The reviewed IMU increment passed 42 Rust tests
 and nine gate tests: 890/892 lines and 1273/1290 regions. Each crate exceeds 95%.
 
 Stream registration currently happens at server construction. Dynamic sensor
-registration/removal, explicit frame_id XML, topic-name repair, metrics and noisy
-covariances remain open. Invalid transport topics and requested metrics fail
-explicitly. Default and valid explicit topics are supported. Remote reset controls
+registration/removal, explicit frame_id XML, metrics and noisy covariances remain
+open. Requested topics retain their SDF text until the server applies the reviewed
+gz-transport native name-repair helper. A third C++ fixture repairs the same explicit
+topic with native TopicUtils before subscribing. Unrepairable topics and requested
+metrics fail explicitly. Remote reset controls
 remain rejected until the full world reset contract is implemented.
 
 Remaining first-milestone work includes entity hierarchy

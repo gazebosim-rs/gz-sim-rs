@@ -834,7 +834,7 @@ dependencies = [
 [[package]]
 name = "gz-transport"
 version = "0.1.0"
-source = "git+https://github.com/gazebosim-rs/gz-transport-rs?rev=1cf0867e382edcfdbbf8784dfb085a8d92cc96b7#1cf0867e382edcfdbbf8784dfb085a8d92cc96b7"
+source = "git+https://github.com/gazebosim-rs/gz-transport-rs?rev=c9ddc555cd60e7376b98a4110bdea8c79ef9f8c1#c9ddc555cd60e7376b98a4110bdea8c79ef9f8c1"
 dependencies = [
  "gz-msgs 0.1.0 (git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=e1800c3e8d058ce7358b393e5f7aba6dd912920f)",
  "nix",
@@ -1039,6 +1039,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
+name = "memoffset"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
+dependencies = [
+ "autocfg",
+]
+
+[[package]]
 name = "multimap"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1104,6 +1113,7 @@ dependencies = [
  "cfg-if",
  "cfg_aliases",
  "libc",
+ "memoffset",
 ]
 
 [[package]]

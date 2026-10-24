@@ -68,6 +68,7 @@ pub struct ImuSample {
 pub struct ImuPublication {
     pub entity_name: String,
     pub frame_id: String,
+    /// Requested topic; the transport boundary applies Gazebo name repair.
     pub topic: String,
 }
 
@@ -278,7 +279,7 @@ fn build_model(
                     link.name, sensor.name
                 )
             } else {
-                format!("/{}", sensor.topic.trim_start_matches('/'))
+                sensor.topic.clone()
             };
             sim.world_mut().spawn((
                 Name(name),

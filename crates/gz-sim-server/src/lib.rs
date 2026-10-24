@@ -173,7 +173,10 @@ impl Server {
                 imus.push(ImuStream {
                     entity: entity.id(),
                     metadata: metadata.clone(),
-                    publisher: node.advertise(&metadata.topic, "gz.msgs.IMU")?,
+                    publisher: node.advertise(
+                        &gz_transport::as_valid_topic(&metadata.topic),
+                        "gz.msgs.IMU",
+                    )?,
                     sequence: 0,
                     last_sample: None,
                 });

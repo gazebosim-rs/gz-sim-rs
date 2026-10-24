@@ -525,7 +525,7 @@ fn valid_imu_samples_are_queued_and_invalid_topics_fail_setup() {
     simulation.world_mut().spawn(ImuPublication {
         entity_name: "test".into(),
         frame_id: "test".into(),
-        topic: "bad topic".into(),
+        topic: "~@:=//".into(),
     });
     assert!(matches!(
         Server::new(simulation, "test", config(), NonZeroUsize::new(2).unwrap()),

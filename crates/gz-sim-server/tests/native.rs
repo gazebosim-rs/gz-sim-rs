@@ -25,11 +25,12 @@ impl Drop for Peer {
 
 #[test]
 fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
-    run_native_world(false);
-    run_native_world(true);
+    run_native_world(false, None);
+    run_native_world(true, None);
+    run_native_world(true, Some("robot ~imu//@:= sensor"));
 }
 
-fn run_native_world(with_imu: bool) {
+fn run_native_world(with_imu: bool, topic: Option<&str>) {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let build = Command::new("python3")
         .arg(root.join("scripts/native-peer.py"))
@@ -49,8 +50,15 @@ fn run_native_world(with_imu: bool) {
         ..Config::default()
     };
     drop((message, service));
+    let mut xml = include_str!("../../gz-sim-scene/tests/fixtures/fall.sdf").to_owned();
+    if let Some(topic) = topic {
+        xml = xml.replace(
+            "<always_on>true</always_on>",
+            &format!("<topic>{topic}</topic>"),
+        );
+    }
     let simulation = load_world(
-        include_str!("../../gz-sim-scene/tests/fixtures/fall.sdf"),
+        &xml,
         "fall.sdf",
         "default",
         Duration::from_millis(1),
@@ -70,6 +78,9 @@ fn run_native_world(with_imu: bool) {
     let mut command = Command::new(root.join("artifacts/native-peer/clock-client"));
     if with_imu {
         command.arg("--imu");
+        if let Some(topic) = topic {
+            command.arg(topic);
+        }
     }
     let mut peer = Peer(
         command

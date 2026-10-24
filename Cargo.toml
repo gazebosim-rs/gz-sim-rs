@@ -15,7 +15,7 @@ glam = "=0.33.12"
 clap = { version = "=4.6.7", features = ["derive"] }
 sdformat = { git = "https://github.com/gazebosim-rs/sdformat-rs", rev = "8109265aa8e70b23fcd6cb137c0531de8bb4e336" }
 gz-msgs = { git = "https://github.com/gazebosim-rs/gz-msgs-rs", rev = "2f744840c4e5bb986bcc2237a0ba3dae2f66c19b" }
-gz-transport = { git = "https://github.com/gazebosim-rs/gz-transport-rs", rev = "1cf0867e382edcfdbbf8784dfb085a8d92cc96b7" }
+gz-transport = { git = "https://github.com/gazebosim-rs/gz-transport-rs", rev = "c9ddc555cd60e7376b98a4110bdea8c79ef9f8c1" }
 rapier3d-f64 = { version = "=0.36.1", features = ["enhanced-determinism"] }
 
 [workspace.lints.rust]

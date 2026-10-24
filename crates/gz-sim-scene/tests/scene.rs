@@ -256,7 +256,7 @@ fn imu_publication_uses_structural_topics_and_worldless_names() {
                 .single(sim.world())
                 .unwrap()
                 .topic,
-            "/robot/imu"
+            topic
         );
     }
     let xml = WORLD
