@@ -2,8 +2,8 @@
 
 Read `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
 Confirmed owner decisions override proposals. Do not resolve an outstanding
-product decision by silently deleting behavior. This checkout currently contains
-planning artifacts only; proposed commands and gates are not implemented yet.
+product decision by silently deleting behavior. Read `docs/STATUS.md` to distinguish
+implemented behavior and checks from planned release requirements.
 
 ## Architecture
 

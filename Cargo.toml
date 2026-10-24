@@ -1,0 +1,21 @@
+[workspace]
+members = ["crates/gz-sim-core", "crates/gz-physics-rapier", "crates/gz-sensors"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+license = "Apache-2.0"
+
+[workspace.dependencies]
+bevy_ecs = { version = "=0.20.0", default-features = false, features = ["std", "multi_threaded"] }
+thiserror = "=2.0.18"
+glam = "=0.33.12"
+rapier3d-f64 = { version = "=0.36.1", features = ["enhanced-determinism"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+undocumented_unsafe_blocks = "deny"

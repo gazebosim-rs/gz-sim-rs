@@ -1,0 +1,16 @@
+[package]
+name = "gz-physics-rapier"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Full-f64 Rapier integration for the Gazebo Bevy runtime"
+
+[dependencies]
+bevy_ecs.workspace = true
+gz-sim-core = { path = "../gz-sim-core" }
+rapier3d-f64.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

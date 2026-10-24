@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: gz-sim-verify
+        name: Verify staged Rust implementation
+        entry: python3 scripts/verify.py --staged
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "status": "partial inventory; no upstream test retired",
+  "ports": [
+    {
+      "repository": "gz-sensors",
+      "upstream_commit": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+      "source": "test/integration/imu.cc",
+      "test": "ImuSensorTest.SensorReadings",
+      "rust_test": "crates/gz-sensors/tests/imu.rs::upstream_rest_and_upside_down_measurements",
+      "status": "partially_ported",
+      "retained_assertions": "Angular velocity, specific force and relative orientation for rest and inverted sensor, including original values and tolerances.",
+      "remaining_assertions": "Lifecycle, connection discovery, cached pre-update values, update rate, timestamp and transport message assertions.",
+      "reviewer": "/root/sdformat",
+      "review": "measurement subset approved; entire upstream test remains pending"
+    }
+  ],
+  "supplementary_tests": {
+    "crates/gz-sim-core/tests/schedule.rs": "New ECS phase, deferred-command, clock, pause, reset, independence and overflow contracts; reviewed by /root/msgs.",
+    "crates/gz-physics-rapier/tests/physics.rs": "Real backend precision, free fall, contact, reset/removal, duplicate registration and numeric boundary probes; reviewed by /root/msgs.",
+    "crates/gz-sensors/tests/imu.rs": "Free fall, rotated sensor and invalid finite/unit quaternion boundaries; reviewed by /root/sdformat."
+  },
+  "exclusions": [],
+  "retirements": []
+}

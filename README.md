@@ -1,8 +1,14 @@
 # Gazebo in Rust
 
-This repository holds the implementation plan for `gazebosim-rs/gz-sim-rs`.
-It is a planning repository today, not a working simulator. No migration tests,
-coverage results, or performance improvements are claimed yet.
+This repository contains the implementation plan and the first Rust building
+blocks for `gazebosim-rs/gz-sim-rs`: a Bevy ECS simulation clock and schedule,
+a full-f64 Rapier rigid-body probe, and a noise-free IMU measurement model.
+It is not yet a complete simulator. See [implementation status](docs/STATUS.md)
+for tested behavior, coverage, reference evidence, and remaining work.
+
+Run `python3 scripts/verify.py` for formatting, lint, tests, and strict per-crate
+coverage checks. Install the commit hook with `git config core.hooksPath .githooks`;
+it checks an isolated copy of the staged tree. Rust 1.95.0 is pinned.
 
 The design combines the responsibilities of `gz-sim`, `gz-sensors`, `gz-physics`,
 and the necessary parts of `gz-math` in one Cargo workspace. Bevy supplies the ECS
