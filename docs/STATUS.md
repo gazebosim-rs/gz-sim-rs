@@ -5,128 +5,78 @@ All 78 simulator system migrations remain pending. No speedup is claimed.
 
 ## Ownership and model routing
 
-The coordinating agent owns this monorepo and integration reviews. One agent owns
-each independent repository: `sdformat-rs` and `gz-transport-rs` use gpt-6.1-sol
-with high reasoning; `gz-msgs-rs` uses the same model with medium reasoning.
-The harder semantic and concurrency tasks receive more reasoning; routine schema
-and conversion work stays at medium. Agents receive bounded packets and share
-contracts, results, and review findings rather than entire source listings.
-Fuel remains with its existing independent agent. Four concurrent slots cover
-the coordinator and the three available repository agents.
+The coordinator owns this monorepo and integration. One agent owns each independent
+repository: sdformat-rs and gz-transport-rs use gpt-6.1-sol with high reasoning;
+gz-msgs-rs uses the same model with medium reasoning. Agents work on bounded
+packets and independently review one another's changes. Fuel remains with its
+existing agent. Four concurrent slots cover the coordinator and three repo agents.
 
-## Implemented and verified
+## Implemented scope
 
 | Crate | Behavior | Remaining boundary |
 | --- | --- | --- |
-| gz-sim-core | Bevy ECS phase order, deferred-command boundary, paused ticks, exact stepping, reset epochs, atomic overflow checks, independent worlds | Domain reset, command ingress, lifecycle IDs, hierarchy, persistence, publication |
-| gz-physics-rapier | Full-f64 sphere/box dynamics, full inertia tensors, static bodies, world impulses, Z-up gravity, stable local IDs, reset/removal, numeric validation | Articulations, forces, capabilities, DART/MuJoCo/TPE adapters |
-| gz-sensors | Noise-free IMU specific force and relative orientation with f64 glam math | Rates, seeds/noise, frame configuration, publication and other sensor families |
-| gz-sim-scene | Atomic SDF loading, link/sensor ECS entities, physics snapshots, centered every-step IMU, initial orientation reference, reset synchronization | Full hierarchy/model entities, joints, offset/multiple shapes, sensor scheduling, external publication |
-| gz-sim-cli | Headless self-contained SDF input, integer step count/duration, sorted final state, actionable argument/load/overflow errors | Legacy command grammar, transport control, resource resolution, signal handling and packaging |
-| gz-sim-server | Bounded clock/pose/IMU publication, polled pause/step controls, real C++ client conformance | Root clock election, reset/run-to controls, scene services, sensor lifecycle and full headless acceptance |
+| gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, isolated worlds | Full domain reset, persistence and complete lifecycle contract |
+| gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
+| gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
+| gz-sim-scene | Atomic SDF construction, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal | Full initial-scene reset, joints, offset/multiple shapes, asset resolution and scheduling |
+| gz-sim-cli | Self-contained SDF input, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, resource resolution, signal handling and packaging |
+| gz-sim-server | Bounded clock/pose/IMU publication, polled pause/step controls, real C++ clients | Root clock election, reset/run-to/remove controls, scene services and sensor lifecycle |
 
-The Rapier backend is an initial capability probe, not the final physics contract.
-Its rigid bodies live in an ECS resource, with link state copied into components
-at PhysicsCommit. Invalid source values and unrepresentable
-derived inertia or AABBs fail before insertion. This does not prove solver stability
-for arbitrary magnitudes or time steps. Removing a backend resource does not permit
-duplicate system registration; callers must preserve installed system resources.
-Simulation panics invalidate the run; state rollback is not provided.
+Rust 1.95.0, Bevy ECS 0.20.0, Rapier3d-f64 0.36.1 and glam 0.33.12 are pinned.
+Authoritative state and solver use f64. The submillimeter motion probe at world
+coordinate 10,000,000 m passes. The Linux normal dependency closure contains no
+Bevy renderer/window or wgpu/winit dependency. Rendering profiles remain pending.
 
-Rust 1.95.0, Bevy ECS 0.20.0, Rapier3d-f64 0.36.1 and glam 0.33.12 are pinned with
-Cargo.lock. Authoritative state and solver use f64; the submillimeter motion probe
-at world coordinate 10,000,000 m passes. Rendering has not been added.
+The backend is a capability probe, not the final physics interface. Invalid source
+values, derived inertia/AABBs and impulse velocities fail before mutation. This
+is not a solver-stability guarantee for arbitrary magnitudes or time steps. Direct
+ECS access must preserve installed resources and scene ownership invariants;
+system panics invalidate the run rather than rolling back state.
 
-## Evidence and gates
+## Current evidence
 
-`python3 scripts/verify.py` runs rustfmt, Clippy with warnings denied, Rust tests,
-doc tests, gate regression tests, and LLVM line/region coverage. Every owned
-production Rust source must be instrumented. Each crate must exceed 95% in both
-metrics; empty denominators and duplicate instrumentation fail. The staged hook
-exports the Git index and verifies that exact tree, then checks the index is unchanged.
-The GitHub workflow runs the same checks; a local pass is not a claim of a hosted run.
+The current local gate passes 59 Rust tests and nine gate tests, covering 1222/1232
+production lines and 1804/1840 regions. Every production crate exceeds 95% for
+both metrics. The removal increment covers 43/43 changed executable lines.
+Independent review and the exact staged hook are required before publication.
+[HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
-The initial three-crate run passed 15 Rust tests and four Python gate tests:
-core 124/125 lines and 139/144 regions; Rapier 126/126 and 189/190; sensors 26/26
-and 45/45. Fresh machine-readable counts, source hashes, toolchain identity,
-and test logs are emitted under `artifacts/coverage`. Counts are observations,
-not fixed targets. These gates are the current profile only: release feature
-matrices, native/shader coverage, fuzzing, benchmarks,
-and branch protection from TESTING.md remain pending. An owned build script
-requires gate support for forced execution and object collection before acceptance.
+Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
+The reviewed hierarchy/pose revision d3524f5 passed its staged gate with 54 Rust
+checks; its hosted run is tracked on the [dashboard](https://gazebosim-rs.github.io/rewrite-progress/).
+The C++ client verifies all three scenarios using actual clock, local-pose and
+IMU samples, exact-step controls, stable IDs, metadata and topic repair. Its
+native dependencies are rebuilt from the pinned reference lock in CI.
 
-The integrated four-crate run passes 23 Rust tests and four gate tests, with
-597/599 production lines and 867/880 regions covered. Every crate independently
-exceeds 95% in both metrics. The SDF dependency is pinned to an immutable reviewed
-Git revision; its own coverage and upstream-test obligations remain in that repo.
-Hosted CI passed the initial simulator implementation, run40106916944, and
-the integrated scene revision f0eeb2a, run40108767785. Subsequent commits need
-their own hosted results.
+`python3 scripts/verify.py` runs formatting, Clippy with warnings denied, Rust and
+gate tests, and LLVM line/region coverage. Every owned production source must be
+instrumented. Per-crate and changed executable-line coverage must exceed 95%;
+exactly 95%, empty denominators, missing/duplicate profiles and malformed mappings
+fail. The staged hook verifies the exported Git index and checks it is unchanged.
+Fresh counts, source hashes, toolchain and logs are written to artifacts/coverage.
+Independent repositories retain their own coverage and test obligations.
 
-The five-crate CLI run passes 28 Rust tests and nine gate tests, with 632/634
-production lines and 925/939 regions covered; each crate independently passes.
-A whole-request timestamp overflow test verifies rejection before execution.
-Coverage instrumentation now applies only to owned workspace crates, avoiding
-irrelevant dependency profile collisions. LLVM warnings are fatal. Independent
-repositories retain their own coverage obligations; this does not exclude any
-owned source or add a coverage exemption.
+Feature matrices, build-script input accounting, native/shader coverage, fuzzing,
+branch protection and performance qualification remain open under QLT-01 and
+TESTING.md. No test retirement or coverage exclusion is implied by these runs.
 
-Changed executable lines must also exceed 95% per crate. LCOV line counts are
-matched to added/changed lines in the exact staged diff; deleted and nonexecutable
-lines do not invent coverage. New untracked production files count in local runs.
-CI compares the full push or pull-request base, with full Git history available.
-Regression tests reject exactly 95%, cross-crate masking, missing/duplicate sources
-and line records, empty executable mappings and malformed hunks. The CLI currently covers all 33 changed executable lines.
+## Reference scope and next work
 
-The existing local C++ gz-math build passes all 188 CTest entries (including
-result wrappers and Python tests; these are not 188 distinct gtest cases).
-Original IMU tests pass: seven unit and three integration cases. The Rust IMU
-port covers only the measurement assertions within `ImuSensorTest.SensorReadings`,
-preserving the original tolerances; it does not retire the full test.
-The GCC simulator build encountered a dependent-template static_assert compiler
-issue. An isolated Clang build succeeds without changing upstream source. Its ten
-ServerConfig and fourteen SimulationRunner cases pass after required plugins are
-built. Binary/XML hashes and all34 selected simulator/sensor case IDs are recorded
-in `planning/reference-results.json`. Existing
-local native dependencies are not yet a reproducible reference container.
+The local C++ math build passes 188 CTest entries, including wrappers and Python
+tests. Seven original IMU unit and three integration cases pass. The Rust IMU
+measurement port retains assertions/tolerances from SensorReadings without retiring
+the full original case. An isolated Clang simulator build passes ten ServerConfig
+and fourteen SimulationRunner cases; its GCC build encountered an upstream
+compiler issue. Selected native case IDs and hashes are in
+planning/reference-results.json. These installed dependencies are not yet a
+complete reproducible reference environment.
 
-Independent review by the messages agent covered clock/scheduling and Rapier.
-It identified duplicate installation after resource removal and extreme derived
-numeric values; both were fixed and re-reviewed. Sensor assertion review is
-recorded in the test ledger. No test retirements or coverage exclusions are used.
+Additional native fall, nested/canonical-pose and remove/reset probes guide the
+headless work. Full reset restores removed initial logical entities with their
+original IDs; the current core reset only restores retained domain state. Remote
+reset remains explicitly rejected until that complete contract is implemented.
 
-The transport agent reviewed the inertia/impulse extension and identified derived
-velocity overflow; impulses now reject it before either velocity changes. The
-SDF agent reviewed scene frame/inertia use and identified initial IMU reference
-and floating-point identity issues. Both have regression tests and were re-reviewed.
-
-## Next acceptance sequence
-
-The IO-01 clock/control increment is described in [HEADLESS.md](HEADLESS.md).
-Its real C++ client waits for a received clock, requests three steps of the Rust
-SDF/Rapier world and observes the exact 3 ms result. The required native client
-build checks source/configuration and library hashes; CI builds its own pinned
-reference. The local gate passes 38 Rust tests and nine gate tests, covering
-804/806 production lines and 1169/1186 regions. The new server covers 159/159
-lines and 224/227 regions. Every crate passes independently. Native source
-behavior is reviewed separately from this new conformance corpus; the increment
-does not retire original simulator tests or complete IO-01/P2.
-
-The current LOAD-01 integration task adopts reviewed sdformat-rs revision
-8109265 and its explicit non-frame pose validator. Owned files are the workspace
-dependency pin/lock, scene loader and scene regression tests. DOM parsing may
-defer invalid collision/visual/sensor references; the simulator validates all
-non-frame poses before constructing ECS or physics state. The inertial reference
-check is an explicit simulator policy, not a claim about native ResolveInertial.
-All seven scene tests and the strict workspace gate pass: 30 Rust tests, nine
-gate tests, 633/635 lines and 928/942 regions. Each production crate exceeds 95%
-in both metrics. The SDF owner independently reviewed the pin and consumer
-semantics and reran all seven scene tests. These are new integration checks;
-no original upstream test is retired. Hosted results are reported separately.
-
-1. Finish reproducible reference execution and assertion inventories (P0/REF-01).
-2. Integrate typed SDF, ECS scene construction, physics, IMU, and transport into
-   one exact-step world with real legacy clients (SLICE-01).
-3. Finish every backend and sensor/system family against the plan's ledgers.
-4. Qualify Bevy rendering, plugin ABI, packaging, complete coverage matrices,
-   comparative performance and long-running tests. Only then claim rewrite parity.
+Next: finish remote lifecycle/reset, TPE, local/Fuel resources and sensor scheduling;
+record the equal-work reference comparison and performance report for P2. Then
+complete the retained backend, sensor/system, rendering, plugin, packaging and
+release matrices. CORE-02, full IO-01 and P2 are still open.

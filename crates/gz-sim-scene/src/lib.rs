@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
+mod lifecycle;
+pub use lifecycle::{RemoveError, remove_model};
+
 use bevy_ecs::prelude::*;
 use glam::{DQuat, DVec3};
 use gz_physics_rapier::{

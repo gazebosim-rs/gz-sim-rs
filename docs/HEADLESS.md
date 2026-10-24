@@ -89,6 +89,17 @@ production lines and 1702/1738 regions covered; every crate exceeds 95%.
 This covers the supported scene subset; dynamic_pose/info, full scene messages,
 lights and scene services are not implemented by this increment.
 
-Remaining first-milestone work includes reset/removal, joints and forces, TPE, local/Fuel resources,
+The scene API now removes a top-level model as one checked lifecycle transaction.
+It validates the target and every descendant physics binding before deleting any
+body, then uses Bevy's ownership relationship to remove the subtree and ID lookups.
+Missing IDs, non-world children and inconsistent/duplicate physics bindings fail
+without partial deletion. The local gate passes 59 Rust tests and nine gate tests,
+with 1222/1232 lines and 1804/1840 regions; every crate and all 43 changed
+executable lines pass the coverage policy. Tests verify retained models, retired IDs, removed IMU
+samples, recursive nested models and subsequent stepping without ghost bodies.
+Callers choose the lifecycle boundary; network remove services and full scene reset
+are still pending. The existing core reset keeps already removed models absent.
+
+Remaining first-milestone work includes remote reset/removal, joints and forces, TPE, local/Fuel resources,
 sensor scheduling/noise and the equal-work C++ comparison/performance report.
 The full simulator system and backend plans remain unchanged.
