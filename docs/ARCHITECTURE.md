@@ -174,9 +174,10 @@ supported features, not identical trajectories across different solvers.
 - **TPE:** preserve the upstream lightweight engine's tested motion/contact
   semantics. Reuse geometry/math primitives where equivalent. Do not quietly
   turn TPE into Rapier or promise articulated dynamics it did not provide.
-- **Rust backend:** evaluate Avian and Rapier as documented in DEPENDENCIES.md.
-  Current recommendation is a Rapier f64 engine integrated through a Bevy plugin
-  in this workspace. Source registration and scheduling remain native Bevy.
+- **Rust backend:** the owner requires a full-f64 solver and prioritizes Rapier,
+  subject to the probes in DEPENDENCIES.md. Integrate its f64 engine through a
+  Bevy plugin in this workspace. Source registration and scheduling remain native
+  Bevy. Avian 0.8's mixed-precision solver does not meet the selection gate.
 
 Each world owns its backend instance. Native objects stay on their documented
 thread; use a Bevy non-send resource or dedicated worker if needed. No blanket

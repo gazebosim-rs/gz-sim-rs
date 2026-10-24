@@ -27,15 +27,16 @@ Status as of 2026-10-24. `Confirmed` means the owner specified or answered it.
 | D19 | Proposed | Native DART/MuJoCo libraries are allowed behind Rust adapters; “rewrite in Rust” does not mean rewriting those third-party engines. |
 | D20 | Proposed | Performance budgets in PERFORMANCE.md are initial targets to ratify after baseline measurement. |
 | D21 | Confirmed | Balanced robotics is the primary performance workload: articulated robots, many entities, and camera/lidar sensors. Also benchmark batch/headless and large worlds. |
-| D22 | Open | Must the selected Rust backend use a full-f64 solver? Recommendation: yes, with Rapier f64; await owner choice before locking precision policy for that backend. |
+| D22 | Confirmed | The Rust physics backend must use a full-f64 solver. Prioritize Rapier f64 and validate its capabilities, integration, accuracy, and performance with probes. |
 
 ## Outstanding questions and decision triggers
 
 - Baseline: main is confirmed. Freeze one complete compatible set, not a
   different convenient release per repository. Changes need a reviewed diff.
-- Bevy backend: choose after f64, articulation, contact, determinism, and latency
-  probes. Candidate compatibility observed today: Bevy 0.20 / Avian 0.8. Do not
-  treat the most recent release as automatically the most mature choice.
+- Bevy backend: prioritize Rapier f64 after the owner's precision decision.
+  Validate articulation, contact, determinism, integration, and latency. Avian 0.8
+  does not satisfy the full-f64 solver gate; record that result without treating
+  it as a release candidate. Do not assume latest means most mature.
 - Runtime plugins: the C ABI requirement is confirmed. Freeze the descriptor,
   ownership, callback, threading, and lifecycle contracts during P1.
 - Test fidelity: assertion-preserving ports are confirmed. Do not build a universal

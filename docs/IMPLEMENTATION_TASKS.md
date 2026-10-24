@@ -17,7 +17,7 @@ The task author cannot independently retire tests or approve coverage exclusions
 | REF-01 | None | Verify all main-branch baseline SHAs, dependency compatibility, licenses, build flags, native versions; create immutable reference environment | Baseline lock and reproducible build/run instructions; clean source hashes |
 | REF-02 | REF-01 | Enumerate runtime tests across CTest/gtest/Ruby/Python/GPU/backend combinations; reconcile static inventory | Complete ledger schema and expanded entries; baseline results and blocked cases |
 | REF-03 | REF-01 | Capture balanced robotics benchmark suite and hardware/environment | Raw samples, variance, accuracy baselines, proposed budgets ratified |
-| PHY-00 | REF-01 | Evaluate Avian and Rapier using precision/capability probes | Reproducible comparison, exact versions/features, selected backend ADR; no invented performance conclusion |
+| PHY-00 | REF-01 | Record Avian/Rapier evaluation; enforce full-f64 gate and probe prioritized Rapier | Reproducible precision/capability evidence, exact versions/features, selected backend ADR; no invented performance conclusion |
 | API-01 | REF-02 | Freeze minimal IDs/time/frames/errors, SDF resolver, message/transport and Fuel integration contracts | Contract fixtures; independent repos compile without Bevy; no reverse dependency |
 | QLT-01 | REF-02 | Implement staged-tree pre-commit, profile matrix, CI, coverage accounting, ledger checks | Known-bad fixtures fail; exactly 95% fails; missing profile fails; no false success from empty code |
 | CORE-01 | API-01, QLT-01 | Create minimal Cargo workspace, f64 values, stable IDs, simulation epochs and clock | Unit/property tests >95%; no-render dependency closure; documented toolchain/Bevy pairing |

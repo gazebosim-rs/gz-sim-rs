@@ -16,9 +16,10 @@ for the same job unless a measured semantic or performance need justifies it.
 Evaluation date: 2026-10-24. The following is a source/documentation assessment;
 no comparative Gazebo benchmark has been run in this planning session.
 
-**Provisional recommendation: Rapier's full-f64 engine, integrated into the
-simulation's Bevy schedule through a workspace plugin.** Keep Avian in the P0
-comparison. Do not commit to maintaining both as release backends without a
+**Owner-approved direction: prioritize Rapier's full-f64 engine, integrated into
+the simulation's Bevy schedule through a workspace plugin, and validate it with
+probes.** The owner requires full solver precision. Avian remains in the documented
+comparison, but 0.8 fails that precision gate. Do not commit to maintaining both as release backends without a
 demonstrated need; DART, MuJoCo, and TPE already add substantial validation work.
 
 | Criterion | Avian | Rapier | Implication |
@@ -56,7 +57,11 @@ them in the release profile and test the application, not only the engine.
 
 ### Required selection probes
 
-Build the same Bevy harness with both candidates. Use identical physical scenes,
+Build the Bevy harness for candidates that pass the precision gate. Avian 0.8
+can be rejected from the release shortlist on its documented precision; any
+mixed-precision experiment is supplementary and cannot qualify it. A full-f64
+Avian alternative would first need a supported dependency/maintenance plan.
+Use identical physical scenes,
 canonical units, target accuracy, and step schedules. Record solver iterations,
 substeps, precision, thread count, and synchronization overhead separately.
 

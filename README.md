@@ -16,8 +16,16 @@ plan does not modify that work.
 
 The owner has confirmed behavioral, file-format, protocol, and test compatibility
 with new Rust APIs, and Linux first with headless and Bevy rendering support.
-Other outstanding choices and provisional recommendations are in
+Native runtime plugins use a versioned C ABI. The Rust physics backend must use
+a full-f64 solver; prioritize Rapier and validate it with probes. Balanced robotics
+is the primary performance workload. Remaining proposals and validation choices are in
 [the decision register](docs/DECISIONS.md). Review those before implementation.
+
+Public repositories: [gz-sim-rs](https://github.com/gazebosim-rs/gz-sim-rs),
+[sdformat-rs](https://github.com/gazebosim-rs/sdformat-rs),
+[gz-msgs-rs](https://github.com/gazebosim-rs/gz-msgs-rs),
+[gz-transport-rs](https://github.com/gazebosim-rs/gz-transport-rs), and the
+independently owned [gz-fuel-tools-rs](https://github.com/gazebosim-rs/gz-fuel-tools-rs).
 
 Start with [the implementation plan](docs/PLAN.md), then use these documents:
 
