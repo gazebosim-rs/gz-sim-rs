@@ -1,8 +1,9 @@
 # Headless integration
 
 IO-01 is in progress. The first bridge joins an SDF/Bevy/Rapier world to independent
-Rust message and transport libraries. It owns `/world/<name>/clock` and
-`/world/<name>/control`; root `/clock` publisher election remains open.
+Rust message and transport libraries. It owns `/world/<name>/clock`,
+`/world/<name>/control` and `/world/<name>/pose/info`; root `/clock` publisher
+election remains open.
 
 The coordinator owns the server crate, core preflight accessors, scene capability
 checks, native client, reference build and integration CI. Source contracts come
@@ -61,7 +62,33 @@ topic with native TopicUtils before subscribing. Unrepairable topics and request
 metrics fail explicitly. Remote reset controls
 remain rejected until the full world reset contract is implemented.
 
-Remaining first-milestone work includes entity hierarchy
-and pose publication, reset/removal, joints and forces, TPE, local/Fuel resources,
+World, model, link, collision, visual and sensor entities now use Bevy ChildOf and
+Children for ownership. SDF frame resolution remains separate. Each scene entity
+has an opaque, world-local nonzero public ID; IDs survive time resets and are never
+recycled. Bevy lifecycle hooks remove old lookup entries when an identity is
+removed, replaced or despawned. Moving identity components is unsupported and
+cannot redirect the original lookup. Direct ECS edits must preserve scene-owned
+backend and hierarchy invariants; a domain removal transaction remains open.
+
+Model world poses follow their canonical link, including nested models sharing a
+canonical link. Canonical-link selection is distinct from frame attachment: a
+static nested model may still provide its dynamic parent's canonical link. Empty
+dynamic hierarchies without a resolvable canonical link remain unsupported. Parent-relative local poses are updated separately; attached
+visual/collision/sensor poses follow their link. Static inheritance is retained.
+The CLI continues to list physical links. Tests cover explicit canonical links,
+secondary-link motion, rotated/nested frames, visual semantic frames and reset.
+
+Pose packets group models, links and visuals with leaf names, stable IDs and local
+poses. Only the top Pose_V header has the simulation stamp. The legacy uint32 ID
+field is checked; IDs are never truncated. Missing/invalid pose records reject the
+whole packet with an observable counter, and queue failures are counted separately.
+All three native C++ scenarios wait for real pose readiness, verify fields, names,
+unique/stable IDs and local coordinates, then observe the final exact-step stamp.
+The full local gate passes 54 Rust tests and nine gate tests, with 1176/1186
+production lines and 1702/1738 regions covered; every crate exceeds 95%.
+This covers the supported scene subset; dynamic_pose/info, full scene messages,
+lights and scene services are not implemented by this increment.
+
+Remaining first-milestone work includes reset/removal, joints and forces, TPE, local/Fuel resources,
 sensor scheduling/noise and the equal-work C++ comparison/performance report.
 The full simulator system and backend plans remain unchanged.

@@ -5,10 +5,13 @@
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <map>
+#include <set>
 #include <mutex>
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/clock.pb.h>
 #include <gz/msgs/imu.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/world_control.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/transport/TopicUtils.hh>
@@ -19,6 +22,9 @@ struct Observations
   std::condition_variable changed;
   bool initial = false;
   bool final = false;
+  bool initialPose = false;
+  int64_t lastPose = 0;
+  std::map<std::string, uint32_t> poseIds;
   bool invalid = false;
   int64_t lastClock = 0;
   int64_t lastImu = 0;
@@ -47,6 +53,42 @@ int main(int argc, char **argv)
       observations->changed.notify_all();
     };
   if (!node.Subscribe("/world/default/clock", callback)) return 2;
+  std::function<void(const gz::msgs::Pose_V &)> poseCallback =
+    [observations](const auto &poses)
+    {
+      std::lock_guard<std::mutex> lock(observations->mutex);
+      bool valid = poses.has_header() && poses.header().has_stamp() &&
+        poses.header().data_size() == 0 && poses.header().stamp().sec() == 0 &&
+        poses.header().stamp().nsec() >= 0 && poses.pose_size() == 4;
+      std::set<uint32_t> ids;
+      std::set<std::string> names;
+      for (const auto &pose : poses.pose())
+      {
+        valid = valid && !pose.has_header() && pose.id() != 0 &&
+          ids.insert(pose.id()).second && names.insert(pose.name()).second &&
+          pose.has_position() && pose.has_orientation() &&
+          !pose.position().has_header() && !pose.orientation().has_header();
+        const auto inserted = observations->poseIds.emplace(pose.name(), pose.id());
+        valid = valid && inserted.first->second == pose.id();
+        for (double value : {pose.position().x(), pose.position().y(),
+            pose.orientation().x(), pose.orientation().y(), pose.orientation().z(),
+            pose.orientation().w() - 1})
+          valid = valid && std::isfinite(value) && std::abs(value) < 1e-12;
+        const double z = pose.position().z();
+        valid = valid && std::isfinite(z);
+        if (pose.name() == "ball") valid = valid && z <= 5 && z > 4;
+        else if (pose.name() == "base") valid = valid && z == -0.5;
+        else if (pose.name() == "ground" || pose.name() == "body")
+          valid = valid && std::abs(z) < 1e-12;
+        else valid = false;
+      }
+      valid = valid && names == std::set<std::string>{"ground", "ball", "base", "body"};
+      observations->invalid = observations->invalid || !valid;
+      observations->lastPose = poses.header().stamp().nsec();
+      if (observations->lastPose == 0) observations->initialPose = true;
+      observations->changed.notify_all();
+    };
+  if (!node.Subscribe("/world/default/pose/info", poseCallback)) return 12;
   std::function<void(const gz::msgs::IMU &)> imuCallback =
     [observations](const auto &imu)
     {
@@ -95,7 +137,7 @@ int main(int argc, char **argv)
       !observations->invalid;
   };
   // A received packet proves the subscription works; registration alone does not.
-  if (!waitFor(&Observations::initial)) return 3;
+  if (!waitFor(&Observations::initial) || !waitFor(&Observations::initialPose)) return 3;
   gz::msgs::WorldControl request;
   gz::msgs::Boolean response;
   bool result = false;
@@ -136,10 +178,16 @@ int main(int argc, char **argv)
         { return observations->lastImu >= observations->target || observations->invalid; }) ||
         observations->invalid) return 11;
   }
+  {
+    std::unique_lock<std::mutex> lock(observations->mutex);
+    if (!observations->changed.wait_for(lock, std::chrono::seconds(8), [&]
+        { return observations->lastPose >= observations->target || observations->invalid; }) ||
+        observations->invalid) return 13;
+  }
   request.Clear();
   request.set_seed(42);
   if (!node.Request("/world/default/control", request, 7000, response, result) ||
       !result || response.data()) return 6;
   std::cout << "PASS native clock/control: baseline=" << warmup
-    << " final=" << warmup + 3 << " imu=" << withImu << "\n";
+    << " final=" << warmup + 3 << " imu=" << withImu << " poses=4\n";
 }

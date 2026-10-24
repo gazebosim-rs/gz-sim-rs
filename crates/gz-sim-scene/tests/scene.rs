@@ -107,7 +107,7 @@ fn static_parent_and_nested_frame_rotation_reach_ecs_and_sensor() {
     sim.step_exact(1).unwrap();
     let pose = sim
         .world_mut()
-        .query::<&WorldPose>()
+        .query_filtered::<&WorldPose, bevy_ecs::query::With<gz_sim_scene::BodyHandle>>()
         .single(sim.world())
         .unwrap();
     assert_eq!(pose.translation, [1.0, 2.0, 3.0]);

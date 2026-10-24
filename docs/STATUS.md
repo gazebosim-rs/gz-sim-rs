@@ -23,7 +23,7 @@ the coordinator and the three available repository agents.
 | gz-sensors | Noise-free IMU specific force and relative orientation with f64 glam math | Rates, seeds/noise, frame configuration, publication and other sensor families |
 | gz-sim-scene | Atomic SDF loading, link/sensor ECS entities, physics snapshots, centered every-step IMU, initial orientation reference, reset synchronization | Full hierarchy/model entities, joints, offset/multiple shapes, sensor scheduling, external publication |
 | gz-sim-cli | Headless self-contained SDF input, integer step count/duration, sorted final state, actionable argument/load/overflow errors | Legacy command grammar, transport control, resource resolution, signal handling and packaging |
-| gz-sim-server | Bounded clock/IMU publication, polled pause/step controls, real C++ client conformance | Root clock election, reset/run-to controls, pose publication, sensor lifecycle and full headless acceptance |
+| gz-sim-server | Bounded clock/pose/IMU publication, polled pause/step controls, real C++ client conformance | Root clock election, reset/run-to controls, scene services, sensor lifecycle and full headless acceptance |
 
 The Rapier backend is an initial capability probe, not the final physics contract.
 Its rigid bodies live in an ECS resource, with link state copied into components

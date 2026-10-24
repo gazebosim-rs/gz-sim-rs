@@ -130,6 +130,10 @@ fn run_native_world(with_imu: bool, topic: Option<&str>) {
         "status={status} stdout={stdout} stderr={stderr}"
     );
     assert!(stdout.starts_with("PASS native clock/control"));
+    assert!(stdout.contains("poses=4"));
+    assert!(server.counters().poses_queued > 0);
+    assert_eq!(server.counters().pose_failures, 0);
+    assert_eq!(server.counters().invalid_pose_frames, 0);
     assert!(stderr.is_empty(), "{stderr}");
     let final_steps: u64 = stdout
         .split_whitespace()

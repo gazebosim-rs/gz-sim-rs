@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Explicit simulation steps over a Bevy ECS world, independent of rendering.
 
+mod identity;
+pub use identity::{EntityId, IdentityError, assign_id, entity_by_id};
+
 use bevy_ecs::{prelude::*, schedule::ScheduleConfigs, system::ScheduleSystem};
 use std::{any::TypeId, collections::HashSet, time::Duration};
 

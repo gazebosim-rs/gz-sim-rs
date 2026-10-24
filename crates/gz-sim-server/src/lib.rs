@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Bounded world-clock publication and control around an explicitly stepped simulation.
 
+mod poses;
+
 use bevy_ecs::entity::Entity;
 use gz_msgs::{
     Clock, Time,
@@ -24,6 +26,10 @@ pub enum Error {
     Step(#[from] StepError),
     #[error("timestamp exceeds the signed protobuf seconds range")]
     TimeRange,
+    #[error("entity ID cannot be represented by the uint32 pose protocol")]
+    PoseIdRange,
+    #[error("pose entity lacks a name, identity or valid parent-relative transform")]
+    PoseData,
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -36,6 +42,9 @@ pub struct Counters {
     pub imus_queued: u64,
     pub imu_failures: u64,
     pub invalid_imu_samples: u64,
+    pub poses_queued: u64,
+    pub pose_failures: u64,
+    pub invalid_pose_frames: u64,
 }
 
 struct ImuStream {
@@ -141,6 +150,7 @@ pub struct Server {
     simulation: Simulation,
     node: Node,
     publisher: Publisher,
+    poses: Publisher,
     controls: Service,
     command_budget: NonZeroUsize,
     pending_steps: u64,
@@ -157,6 +167,7 @@ impl Server {
         command_budget: NonZeroUsize,
     ) -> Result<Self, Error> {
         time(simulation.elapsed().as_nanos() as i128)?;
+        poses::packet(simulation.world(), simulation.elapsed())?;
         if world_name.is_empty() || world_name.contains('/') {
             return Err(TransportError::InvalidName.into());
         }
@@ -167,6 +178,7 @@ impl Server {
             "gz.msgs.WorldControl",
             "gz.msgs.Boolean",
         )?;
+        let poses = node.advertise(&format!("/world/{world_name}/pose/info"), "gz.msgs.Pose_V")?;
         let mut imus = Vec::new();
         for entity in simulation.world().iter_entities() {
             if let Some(metadata) = entity.get::<ImuPublication>() {
@@ -186,6 +198,7 @@ impl Server {
             simulation,
             node,
             publisher,
+            poses,
             controls,
             command_budget,
             pending_steps: 0,
@@ -221,6 +234,16 @@ impl Server {
             self.counters.clocks_queued += 1;
         } else {
             self.counters.clock_failures += 1;
+        }
+        match poses::packet(self.simulation.world(), info.sim_time) {
+            Ok(packet) => {
+                if self.poses.publish(packet.encode_to_vec()).is_ok() {
+                    self.counters.poses_queued += 1;
+                } else {
+                    self.counters.pose_failures += 1;
+                }
+            }
+            Err(_) => self.counters.invalid_pose_frames += 1,
         }
         self.publish_imus();
         if !info.paused && self.pending_steps > 0 {

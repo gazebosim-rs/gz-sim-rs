@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use clap::Parser;
-use gz_sim_scene::{Name, WorldPose};
+use gz_sim_scene::{BodyHandle, Name, WorldPose};
 use std::{
     error::Error,
     io::{self, Write},
@@ -38,9 +38,9 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
     let elapsed = simulation.elapsed().as_nanos();
     let mut poses = simulation
         .world_mut()
-        .query::<(&Name, &WorldPose)>()
+        .query::<(&Name, &WorldPose, &BodyHandle)>()
         .iter(simulation.world())
-        .map(|(name, pose)| (name.0.clone(), pose.translation))
+        .map(|(name, pose, _)| (name.0.clone(), pose.translation))
         .collect::<Vec<_>>();
     poses.sort_by(|a, b| a.0.cmp(&b.0));
     let mut output = io::stdout().lock();

@@ -532,3 +532,40 @@ fn valid_imu_samples_are_queued_and_invalid_topics_fail_setup() {
         Err(Error::Transport(TransportError::InvalidName))
     ));
 }
+
+#[test]
+fn pose_publication_reports_invalid_frames_and_bounded_transport_failure() {
+    use gz_sim_scene::{EntityKind, LocalName};
+    let mut malformed = Simulation::new(Duration::from_millis(1)).unwrap();
+    malformed.world_mut().spawn(EntityKind::Model);
+    assert!(matches!(
+        Server::new(malformed, "test", config(), NonZeroUsize::new(2).unwrap()),
+        Err(Error::PoseData)
+    ));
+    let mut valid = imu_server(config());
+    valid.tick().unwrap();
+    assert_eq!(valid.counters().poses_queued, 1);
+    assert_eq!(valid.counters().pose_failures, 0);
+    let entity = valid
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|e| e.get::<EntityKind>() == Some(&EntityKind::Model))
+        .unwrap()
+        .id();
+    valid
+        .simulation
+        .world_mut()
+        .entity_mut(entity)
+        .remove::<LocalName>();
+    valid.tick().unwrap();
+    assert_eq!(valid.counters().invalid_pose_frames, 1);
+    assert_eq!(valid.counters().poses_queued, 1);
+    let mut bounded = imu_server(Config {
+        max_message_bytes: 1,
+        ..config()
+    });
+    bounded.tick().unwrap();
+    assert_eq!(bounded.counters().pose_failures, 1);
+    assert_eq!(bounded.counters().poses_queued, 0);
+}
