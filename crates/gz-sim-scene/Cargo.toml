@@ -1,0 +1,18 @@
+[package]
+name = "gz-sim-scene"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+bevy_ecs.workspace = true
+glam.workspace = true
+thiserror.workspace = true
+sdformat.workspace = true
+gz-sim-core = { path = "../gz-sim-core" }
+gz-physics-rapier = { path = "../gz-physics-rapier" }
+gz-sensors = { path = "../gz-sensors" }
+
+[lints]
+workspace = true

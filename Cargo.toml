@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/gz-sim-core", "crates/gz-physics-rapier", "crates/gz-sensors"]
+members = ["crates/gz-sim-core", "crates/gz-physics-rapier", "crates/gz-sensors", "crates/gz-sim-scene"]
 resolver = "3"
 
 [workspace.package]
@@ -12,6 +12,7 @@ license = "Apache-2.0"
 bevy_ecs = { version = "=0.20.0", default-features = false, features = ["std", "multi_threaded"] }
 thiserror = "=2.0.18"
 glam = "=0.33.12"
+sdformat = { git = "https://github.com/gazebosim-rs/sdformat-rs", rev = "7be2eec8e0f03af726f59a4fd0b17f543af51a6b" }
 rapier3d-f64 = { version = "=0.36.1", features = ["enhanced-determinism"] }
 
 [workspace.lints.rust]

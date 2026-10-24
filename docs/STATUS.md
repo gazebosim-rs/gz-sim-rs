@@ -19,12 +19,13 @@ the coordinator and the three available repository agents.
 | Crate | Behavior | Remaining boundary |
 | --- | --- | --- |
 | gz-sim-core | Bevy ECS phase order, deferred-command boundary, paused ticks, exact stepping, reset epochs, atomic overflow checks, independent worlds | Domain reset, command ingress, lifecycle IDs, hierarchy, persistence, publication |
-| gz-physics-rapier | Full-f64 sphere/box dynamics, static bodies, Z-up gravity, contact probe, stable local IDs, reset/removal, derived numeric validation | Articulations, forces, state exchange through ECS components, capabilities, DART/MuJoCo/TPE adapters |
+| gz-physics-rapier | Full-f64 sphere/box dynamics, full inertia tensors, static bodies, world impulses, Z-up gravity, stable local IDs, reset/removal, numeric validation | Articulations, forces, capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation with f64 glam math | Rates, seeds/noise, frame configuration, publication and other sensor families |
+| gz-sim-scene | Atomic SDF loading, link/sensor ECS entities, physics snapshots, centered every-step IMU, initial orientation reference, reset synchronization | Full hierarchy/model entities, joints, offset/multiple shapes, sensor scheduling, external publication |
 
 The Rapier backend is an initial capability probe, not the final physics contract.
-Its rigid bodies currently live in an ECS resource; scene entities and batched
-component synchronization are pending. Invalid source values and unrepresentable
+Its rigid bodies live in an ECS resource, with link state copied into components
+at PhysicsCommit. Invalid source values and unrepresentable
 derived inertia or AABBs fail before insertion. This does not prove solver stability
 for arbitrary magnitudes or time steps. Removing a backend resource does not permit
 duplicate system registration; callers must preserve installed system resources.
@@ -52,20 +53,34 @@ matrices, native/shader coverage, changed-line enforcement, fuzzing, benchmarks,
 and branch protection from TESTING.md remain pending. An owned build script
 requires gate support for forced execution and object collection before acceptance.
 
+The integrated four-crate run passes 23 Rust tests and four gate tests, with
+597/599 production lines and 867/880 regions covered. Every crate independently
+exceeds 95% in both metrics. The SDF dependency is pinned to an immutable reviewed
+Git revision; its own coverage and upstream-test obligations remain in that repo.
+Hosted CI passed the initial simulator implementation, run40106916944; subsequent
+commits need their own hosted results.
+
 The existing local C++ gz-math build passes all 188 CTest entries (including
 result wrappers and Python tests; these are not 188 distinct gtest cases).
 Original IMU tests pass: seven unit and three integration cases. The Rust IMU
 port covers only the measurement assertions within `ImuSensorTest.SensorReadings`,
 preserving the original tolerances; it does not retire the full test.
 The GCC simulator build encountered a dependent-template static_assert compiler
-issue. An isolated Clang build succeeds without changing upstream source. Native
-reference runs and any remaining failures are recorded separately. Existing
+issue. An isolated Clang build succeeds without changing upstream source. Its ten
+ServerConfig and fourteen SimulationRunner cases pass after required plugins are
+built. Binary/XML hashes and all34 selected simulator/sensor case IDs are recorded
+in `planning/reference-results.json`. Existing
 local native dependencies are not yet a reproducible reference container.
 
 Independent review by the messages agent covered clock/scheduling and Rapier.
 It identified duplicate installation after resource removal and extreme derived
 numeric values; both were fixed and re-reviewed. Sensor assertion review is
 recorded in the test ledger. No test retirements or coverage exclusions are used.
+
+The transport agent reviewed the inertia/impulse extension and identified derived
+velocity overflow; impulses now reject it before either velocity changes. The
+SDF agent reviewed scene frame/inertia use and identified initial IMU reference
+and floating-point identity issues. Both have regression tests and were re-reviewed.
 
 ## Next acceptance sequence
 

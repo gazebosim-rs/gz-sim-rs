@@ -191,3 +191,167 @@ fn removing_backend_resource_does_not_install_duplicate_systems() {
         Err(PhysicsError::AlreadyInstalled)
     );
 }
+
+#[test]
+fn explicit_inertia_and_rotation_control_impulse_response_and_reset() {
+    use gz_physics_rapier::{Inertia, RotationSpec};
+    let mut backend = RapierBackend::new([0.0; 3]).unwrap();
+    let inertia = Inertia {
+        center: [0.0; 3],
+        orientation: [0.0, 0.0, 0.0, 1.0],
+        tensor: [2.0, 3.0, 4.0, 0.0, 0.0, 0.0],
+    };
+    let s = std::f64::consts::FRAC_1_SQRT_2;
+    let rotational = RotationSpec {
+        orientation: [0.0, 0.0, s, s],
+        angular_velocity: [0.0; 3],
+    };
+    let id = backend
+        .spawn_link(
+            BodySpec {
+                mass: Some(2.0),
+                ..ball()
+            },
+            rotational,
+            Some(inertia),
+        )
+        .unwrap();
+    backend
+        .apply_impulse(id, [2.0, 0.0, 0.0], [3.0, 0.0, 0.0])
+        .unwrap();
+    let state = backend.state(id).unwrap();
+    assert_eq!(state.velocity, [1.0, 0.0, 0.0]);
+    assert!((state.angular_velocity[0] - 1.0).abs() < 1e-12);
+    assert!(state.angular_velocity[1].abs() < 1e-12);
+    assert_eq!(state.orientation, rotational.orientation);
+    backend.reset();
+    assert_eq!(backend.state(id).unwrap().angular_velocity, [0.0; 3]);
+    assert_eq!(
+        backend.state(id).unwrap().orientation,
+        rotational.orientation
+    );
+    // Rotating the inertial frame swaps the body's X/Y principal moments too.
+    let id2 = backend
+        .spawn_link(
+            ball(),
+            RotationSpec::default(),
+            Some(Inertia {
+                orientation: rotational.orientation,
+                ..inertia
+            }),
+        )
+        .unwrap();
+    backend
+        .apply_impulse(id2, [0.0; 3], [3.0, 0.0, 0.0])
+        .unwrap();
+    assert!((backend.state(id2).unwrap().angular_velocity[0] - 1.0).abs() < 1e-12);
+    assert!(backend.remove(id));
+    assert_eq!(
+        backend.apply_impulse(id, [0.0; 3], [0.0; 3]),
+        Err(PhysicsError::MissingBody)
+    );
+    assert!(!PhysicsError::MissingBody.to_string().is_empty());
+    assert_eq!(
+        backend.apply_impulse(id2, [f64::NAN; 3], [0.0; 3]),
+        Err(PhysicsError::InvalidValue)
+    );
+    assert_eq!(
+        backend.apply_impulse(id2, [0.0; 3], [f64::INFINITY; 3]),
+        Err(PhysicsError::InvalidValue)
+    );
+}
+
+#[test]
+fn invalid_inertia_and_rotations_are_rejected_before_insertion() {
+    use gz_physics_rapier::{Inertia, RotationSpec};
+    let mut backend = RapierBackend::new([0.0; 3]).unwrap();
+    for rotation in [
+        RotationSpec {
+            orientation: [0.0; 4],
+            ..RotationSpec::default()
+        },
+        RotationSpec {
+            orientation: [f64::NAN; 4],
+            ..RotationSpec::default()
+        },
+        RotationSpec {
+            angular_velocity: [f64::NAN; 3],
+            ..RotationSpec::default()
+        },
+    ] {
+        assert_eq!(
+            backend.spawn_link(ball(), rotation, None),
+            Err(PhysicsError::InvalidValue)
+        );
+    }
+    assert_eq!(
+        backend.spawn_link(
+            BodySpec {
+                mass: None,
+                ..ball()
+            },
+            RotationSpec {
+                angular_velocity: [1.0; 3],
+                ..RotationSpec::default()
+            },
+            None
+        ),
+        Err(PhysicsError::InvalidValue)
+    );
+    let inertia = Inertia {
+        center: [0.0; 3],
+        orientation: [0.0, 0.0, 0.0, 1.0],
+        tensor: [2.0, 3.0, 4.0, 0.0, 0.0, 0.0],
+    };
+    for invalid in [
+        Inertia {
+            center: [f64::NAN; 3],
+            ..inertia
+        },
+        Inertia {
+            orientation: [0.0; 4],
+            ..inertia
+        },
+        Inertia {
+            tensor: [f64::MAX; 6],
+            ..inertia
+        },
+        Inertia {
+            tensor: [f64::NAN; 6],
+            ..inertia
+        },
+        Inertia {
+            tensor: [-1.0, 1.0, 1.0, 0.0, 0.0, 0.0],
+            ..inertia
+        },
+        Inertia {
+            tensor: [10.0, 1.0, 1.0, 0.0, 0.0, 0.0],
+            ..inertia
+        },
+    ] {
+        assert_eq!(
+            backend.spawn_link(ball(), RotationSpec::default(), Some(invalid)),
+            Err(PhysicsError::InvalidValue)
+        );
+    }
+}
+
+#[test]
+fn overflow_impulses_leave_both_velocities_unchanged() {
+    let mut backend = RapierBackend::new([0.0; 3]).unwrap();
+    let id = backend.spawn(ball()).unwrap();
+    backend
+        .apply_impulse(id, [f64::MAX, 0.0, 0.0], [0.0; 3])
+        .unwrap();
+    let before = backend.state(id).unwrap();
+    assert_eq!(
+        backend.apply_impulse(id, [f64::MAX, 0.0, 0.0], [1.0; 3]),
+        Err(PhysicsError::InvalidValue)
+    );
+    assert_eq!(backend.state(id).unwrap(), before);
+    assert_eq!(
+        backend.apply_impulse(id, [0.0; 3], [f64::MAX, 0.0, 0.0]),
+        Err(PhysicsError::InvalidValue)
+    );
+    assert_eq!(backend.state(id).unwrap(), before);
+}

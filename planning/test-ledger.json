@@ -17,8 +17,9 @@
   ],
   "supplementary_tests": {
     "crates/gz-sim-core/tests/schedule.rs": "New ECS phase, deferred-command, clock, pause, reset, independence and overflow contracts; reviewed by /root/msgs.",
-    "crates/gz-physics-rapier/tests/physics.rs": "Real backend precision, free fall, contact, reset/removal, duplicate registration and numeric boundary probes; reviewed by /root/msgs.",
-    "crates/gz-sensors/tests/imu.rs": "Free fall, rotated sensor and invalid finite/unit quaternion boundaries; reviewed by /root/sdformat."
+    "crates/gz-physics-rapier/tests/physics.rs": "Real backend precision, free fall, contact, reset/removal, duplicate registration and numeric boundary probes; reviewed by /root/msgs. Full inertia/rotation and atomic impulse overflow reviewed by /root/transport.",
+    "crates/gz-sensors/tests/imu.rs": "Free fall, rotated sensor and invalid finite/unit quaternion boundaries; reviewed by /root/sdformat.",
+    "crates/gz-sim-scene/tests/scene.rs": "Integrated SDF/Bevy/Rapier/IMU subset, frames/inertia/orientation/pause/reset/failure isolation. Reviewed by /root/sdformat; full original simulator tests remain pending."
   },
   "exclusions": [],
   "retirements": []

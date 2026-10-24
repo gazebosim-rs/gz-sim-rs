@@ -1,0 +1,234 @@
+{
+  "scope": "Selected original native tests; existing local dependencies, not reproduced container",
+  "simulator_build": "Clang Release isolated under artifacts/reference/gz-sim-clang; original source unchanged",
+  "commands": [
+    "ctest --test-dir artifacts/reference/gz-sim-clang -R \"^(UNIT_SimulationRunner_TEST|UNIT_ServerConfig_TEST)$\" --output-on-failure --timeout 90",
+    "ctest --test-dir ../gz-sensors/build -R \"^(INTEGRATION_imu|UNIT_ImuSensor_TEST)$\" --output-on-failure --timeout 90",
+    "ctest --test-dir ../gz-math/build --output-on-failure --timeout 30 -j4"
+  ],
+  "results": [
+    {
+      "repository": "gz-sim",
+      "source_commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "target": "UNIT_ServerConfig_TEST",
+      "binary_sha256": "bf435e74ff85e7218c9fcf973563d0618dd6c5ad0280bc5bc801f66aa4495304",
+      "xml_sha256": "5465a4d05618f37234a1820a1cab52c5309731c0054d95c7bd691205494cd3de",
+      "tests": 10,
+      "failures": 0,
+      "disabled": 0,
+      "cases": [
+        {
+          "id": "ParsePluginsFromString.Valid",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ParsePluginsFromString.Invalid",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ParsePluginsFromFile.Valid",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ParsePluginsFromFile.Invalid",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ParsePluginsFromFile.DefaultConfig",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ParsePluginsFromFile.PlaybackConfig",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "LoadPluginInfo.FromEmptyEnv",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "LoadPluginInfo.FromValidEnv",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerConfig.GenerateRecordPlugin",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerConfig.SdfRoot",
+          "result": "completed",
+          "status": "run"
+        }
+      ]
+    },
+    {
+      "repository": "gz-sim",
+      "source_commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "target": "UNIT_SimulationRunner_TEST",
+      "binary_sha256": "986f5065c966d8636a25147a6db4fa58ad1bc11964c12a23500e4357656e14ed",
+      "xml_sha256": "3872f34ac351a1f3df0b965b4ae959aa9d8fc9319512aa6fc07f6cd7425e7b5e",
+      "tests": 14,
+      "failures": 0,
+      "disabled": 0,
+      "cases": [
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.CreateEntities/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.CreateLights/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.CreateJointEntities/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.Time/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.LoadPlugins/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.LoadServerNoPlugins/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.LoadServerConfigPlugins/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.LoadPluginsDefault/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.LoadPluginsEvent/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.LoadOnlyModelPlugin/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.GuiInfo/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.GenerateWorldSdf/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.GeneratedSdfHasNoSpuriousPlugins/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ServerRepeat/SimulationRunnerTest.ParallelPostUpdatesPolicy/0",
+          "result": "completed",
+          "status": "run"
+        }
+      ]
+    },
+    {
+      "repository": "gz-sensors",
+      "source_commit": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+      "target": "UNIT_ImuSensor_TEST",
+      "binary_sha256": "3c0553396fca057db478b7cc52e2e5889b2d05ddf1b83b89ecf9eedce05de015",
+      "xml_sha256": "28ef96d9af5db4549060ac2c6308d0a106c056808700f3950c0ea6e4f272bb10",
+      "tests": 7,
+      "failures": 0,
+      "disabled": 0,
+      "cases": [
+        {
+          "id": "ImuSensor_TEST.CreateImuSensor",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ImuSensor_TEST.ComputeNoise",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ImuSensor_TEST.Orientation",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ImuSensor_TEST.OrientationReference",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ImuSensor_TEST.CustomRpyParentFrame",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ImuSensor_TEST.NamedFrameOrientationReference",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ImuSensor_TEST.LocalizationTagInvalid",
+          "result": "completed",
+          "status": "run"
+        }
+      ]
+    },
+    {
+      "repository": "gz-sensors",
+      "source_commit": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+      "target": "INTEGRATION_imu",
+      "binary_sha256": "a8f593e3b476c4d24761936a4ea5584b058782d28c88031be36e546995755bb2",
+      "xml_sha256": "3e50e74cc52383b28b9c1ccbe570b29118dacea752432f1ae4332901c74c93f3",
+      "tests": 3,
+      "failures": 0,
+      "disabled": 0,
+      "cases": [
+        {
+          "id": "ImuSensorTest.CreateImu",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ImuSensorTest.SensorReadings",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "ImuSensorTest.Topic",
+          "result": "completed",
+          "status": "run"
+        }
+      ]
+    }
+  ],
+  "math_ctest": {
+    "passed": 188,
+    "total": 188,
+    "scope": "Includes XML result wrappers and Python entries; not a count of unique test cases"
+  }
+}
