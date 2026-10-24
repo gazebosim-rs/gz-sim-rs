@@ -25,6 +25,11 @@ impl Drop for Peer {
 
 #[test]
 fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
+    run_native_world(false);
+    run_native_world(true);
+}
+
+fn run_native_world(with_imu: bool) {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let build = Command::new("python3")
         .arg(root.join("scripts/native-peer.py"))
@@ -62,8 +67,12 @@ fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
     let prefix = std::env::var_os("GZ_REFERENCE_PREFIX")
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
+    let mut command = Command::new(root.join("artifacts/native-peer/clock-client"));
+    if with_imu {
+        command.arg("--imu");
+    }
     let mut peer = Peer(
-        Command::new(root.join("artifacts/native-peer/clock-client"))
+        command
             .env("GZ_PARTITION", &config.partition)
             .env("GZ_IP", config.interface.to_string())
             .env("GZ_TRANSPORT_IMPLEMENTATION", "zeromq")
@@ -111,7 +120,21 @@ fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
     );
     assert!(stdout.starts_with("PASS native clock/control"));
     assert!(stderr.is_empty(), "{stderr}");
-    assert_eq!(server.simulation().elapsed(), Duration::from_millis(3));
+    let final_steps: u64 = stdout
+        .split_whitespace()
+        .find_map(|word| word.strip_prefix("final="))
+        .unwrap()
+        .parse()
+        .unwrap();
+    if with_imu {
+        assert!(final_steps >= 4);
+    } else {
+        assert_eq!(final_steps, 3);
+    }
+    assert_eq!(
+        server.simulation().elapsed(),
+        Duration::from_millis(final_steps)
+    );
     assert!(server.simulation().is_paused());
     let body = server
         .simulation()
@@ -124,7 +147,9 @@ fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
         })
         .unwrap();
     assert!(body.get::<WorldPose>().unwrap().translation[2] < 5.0);
-    assert_eq!(server.counters().controls_accepted, 1);
+    assert_eq!(server.counters().controls_accepted, final_steps - 2);
     assert_eq!(server.counters().controls_rejected, 1);
+    assert_eq!(server.counters().imus_queued, final_steps);
+    assert_eq!(server.counters().imu_failures, 0);
     server.shutdown();
 }

@@ -394,3 +394,141 @@ fn shutdown_after_receipt_reports_reply_failure_without_waiting() {
     server.shutdown();
     assert!(result.join().unwrap().is_err());
 }
+
+fn imu_server(config: Config) -> Server {
+    let simulation = gz_sim_scene::load_world(
+        include_str!("../../../gz-sim-scene/tests/fixtures/fall.sdf"),
+        "fall.sdf",
+        "default",
+        Duration::from_millis(1),
+        &sdformat::NoResources,
+    )
+    .unwrap();
+    Server::new(simulation, "default", config, NonZeroUsize::new(2).unwrap()).unwrap()
+}
+
+#[test]
+fn imu_message_matches_native_metadata_presence_covariance_and_sequence() {
+    let metadata = ImuPublication {
+        entity_name: "robot::body::imu".into(),
+        frame_id: "robot::body::imu".into(),
+        topic: "/imu".into(),
+    };
+    let mut sample = ImuSample {
+        time: Duration::from_millis(1500),
+        epoch: 0,
+        reading: Ok(gz_sensors::ImuReading {
+            orientation: [0.0, 0.0, 0.0, 1.0],
+            specific_force: [0.0, 0.0, 9.81],
+            angular_velocity: [1.0, 2.0, 3.0],
+        }),
+    };
+    let packet = imu_packet(&metadata, &sample, u64::MAX).unwrap();
+    assert_eq!(packet.entity_name, "robot::body::imu");
+    let header = packet.header.unwrap();
+    assert_eq!(
+        header.stamp.unwrap(),
+        Time {
+            sec: 1,
+            nsec: 500_000_000
+        }
+    );
+    assert_eq!(header.data.len(), 2);
+    assert_eq!(
+        (&header.data[0].key[..], &header.data[0].value[..]),
+        ("frame_id", &["robot::body::imu".to_owned()][..])
+    );
+    assert_eq!(
+        (&header.data[1].key[..], &header.data[1].value[..]),
+        ("seq", &[u64::MAX.to_string()][..])
+    );
+    for covariance in [
+        packet.orientation_covariance,
+        packet.angular_velocity_covariance,
+        packet.linear_acceleration_covariance,
+    ] {
+        let covariance = covariance.unwrap();
+        assert!(covariance.header.is_none());
+        assert_eq!(covariance.data, vec![0.0f32; 9]);
+    }
+    assert_eq!(packet.orientation.unwrap().w, 1.0);
+    assert_eq!(packet.angular_velocity.unwrap().y, 2.0);
+    assert_eq!(packet.linear_acceleration.unwrap().z, 9.81);
+    sample.time = Duration::MAX;
+    assert!(imu_packet(&metadata, &sample, 0).is_none());
+    sample.reading = Err(gz_sensors::InvalidImuInput);
+    assert!(imu_packet(&metadata, &sample, 0).is_none());
+}
+
+#[test]
+fn imu_publication_tracks_new_samples_epochs_and_rejected_payloads() {
+    let mut server = imu_server(Config {
+        max_message_bytes: 1,
+        ..config()
+    });
+    server.tick().unwrap();
+    assert_eq!(
+        server.counters().imus_queued + server.counters().imu_failures,
+        0
+    );
+    assert!(server.apply_control(WorldControl {
+        pause: true,
+        multi_step: 3,
+        ..Default::default()
+    }));
+    for _ in 0..3 {
+        server.tick().unwrap();
+    }
+    assert_eq!(server.counters().imu_failures, 3);
+    assert_eq!(server.imus[0].sequence, 3);
+    server.tick().unwrap();
+    assert_eq!(server.counters().imu_failures, 3);
+    for _ in 0..2 {
+        server.simulation.reset().unwrap();
+        server.publish_imus();
+        server.simulation.step_exact(1).unwrap();
+        server.publish_imus();
+    }
+    assert_eq!(server.imus[0].sequence, 5);
+    server.imus[0].sequence = u64::MAX;
+    server.simulation.step_exact(1).unwrap();
+    server.publish_imus();
+    assert_eq!(server.imus[0].sequence, 0);
+    let entity = server.imus[0].entity;
+    server
+        .simulation
+        .world_mut()
+        .entity_mut(entity)
+        .insert(ImuSample {
+            time: Duration::ZERO,
+            epoch: 99,
+            reading: Err(gz_sensors::InvalidImuInput),
+        });
+    server.publish_imus();
+    server.publish_imus();
+    assert_eq!(server.counters().invalid_imu_samples, 1);
+    assert_eq!(server.imus[0].sequence, 0);
+}
+
+#[test]
+fn valid_imu_samples_are_queued_and_invalid_topics_fail_setup() {
+    let mut server = imu_server(config());
+    assert!(server.apply_control(WorldControl {
+        pause: true,
+        step: true,
+        ..Default::default()
+    }));
+    server.tick().unwrap();
+    assert_eq!(server.counters().imus_queued, 1);
+    assert_eq!(server.counters().imu_failures, 0);
+    let mut simulation = Simulation::new(Duration::from_millis(1)).unwrap();
+    simulation.world_mut().spawn(ImuPublication {
+        entity_name: "test".into(),
+        frame_id: "test".into(),
+        topic: "bad topic".into(),
+    });
+    assert!(matches!(
+        Server::new(simulation, "test", config(), NonZeroUsize::new(2).unwrap()),
+        Err(Error::Transport(TransportError::InvalidName))
+    ));
+}

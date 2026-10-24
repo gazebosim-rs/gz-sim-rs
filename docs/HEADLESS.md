@@ -37,7 +37,29 @@ Run `python3 scripts/bootstrap-native.py`, then `python3 scripts/verify.py`.
 An existing identical reference can be selected with GZ_REFERENCE_PREFIX; source
 configuration, library hashes, pkg-config prefix and dynamic linkage are checked.
 
-Remaining first-milestone work includes IMU metadata/publication, entity hierarchy
+The IMU bridge publishes actual noise-free samples from the scene's configured
+sensors. Names and default frame IDs omit the world scope; default topics retain
+the structural world/model/link/sensor path. Each packet includes the simulation
+stamp, frame_id and decimal seq entries, orientation, angular velocity, specific
+force and three present nine-element zero covariance arrays. Sequence numbers
+count publication attempts and wrap as native unsigned counters do. Paused ticks
+do not republish stale samples. Reset epochs distinguish repeated timestamps;
+an existing stream retains its sequence until the sensor instance is replaced.
+
+The native client has a second mode that establishes readiness through actual
+sampled warmup steps, then checks three additional steps and all IMU metadata and
+values. No initial sensor packet is fabricated. Tests cover invalid samples,
+oversized payloads, sequence wrapping, repeated timestamps across epochs and
+default/relative/absolute/nested topics. The full local gate passes 42 Rust tests
+and nine gate tests: 890/892 lines and 1273/1290 regions. Each crate exceeds 95%.
+
+Stream registration currently happens at server construction. Dynamic sensor
+registration/removal, explicit frame_id XML, topic-name repair, metrics and noisy
+covariances remain open. Invalid transport topics and requested metrics fail
+explicitly. Default and valid explicit topics are supported. Remote reset controls
+remain rejected until the full world reset contract is implemented.
+
+Remaining first-milestone work includes entity hierarchy
 and pose publication, reset/removal, joints and forces, TPE, local/Fuel resources,
 sensor scheduling/noise and the equal-work C++ comparison/performance report.
 The full simulator system and backend plans remain unchanged.

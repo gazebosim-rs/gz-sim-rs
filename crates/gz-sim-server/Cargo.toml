@@ -9,11 +9,13 @@ license.workspace = true
 gz-msgs.workspace = true
 gz-transport.workspace = true
 gz-sim-core = { path = "../gz-sim-core" }
+gz-sim-scene = { path = "../gz-sim-scene" }
+bevy_ecs.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
-gz-sim-scene = { path = "../gz-sim-scene" }
 sdformat.workspace = true
+gz-sensors = { path = "../gz-sensors" }
 
 [lints]
 workspace = true

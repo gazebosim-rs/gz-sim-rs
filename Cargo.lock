@@ -821,7 +821,9 @@ dependencies = [
 name = "gz-sim-server"
 version = "0.1.0"
 dependencies = [
+ "bevy_ecs",
  "gz-msgs 0.1.0 (git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=2f744840c4e5bb986bcc2237a0ba3dae2f66c19b)",
+ "gz-sensors",
  "gz-sim-core",
  "gz-sim-scene",
  "gz-transport",

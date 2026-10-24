@@ -188,6 +188,11 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
             "IMU noise",
         ),
         (
+            "<always_on>true</always_on>",
+            "<enable_metrics>true</enable_metrics>",
+            "sensor metrics",
+        ),
+        (
             "<link name=\"body\">",
             "<joint name='j' type='fixed'><parent>world</parent><child>body</child></joint><link name=\"body\">",
             "joints",
@@ -222,6 +227,55 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
     let error = load(&huge_shape).err().unwrap();
     assert!(matches!(error, LoadError::Physics(_)));
     assert!(error.to_string().contains("numeric"));
+}
+
+#[test]
+fn imu_publication_uses_structural_topics_and_worldless_names() {
+    use gz_sim_scene::ImuPublication;
+    let mut sim = load(WORLD).unwrap();
+    let metadata = sim
+        .world_mut()
+        .query::<&ImuPublication>()
+        .single(sim.world())
+        .unwrap();
+    assert_eq!(metadata.entity_name, "ball::body::imu");
+    assert_eq!(metadata.frame_id, "ball::body::imu");
+    assert_eq!(
+        metadata.topic,
+        "/world/default/model/ball/link/body/sensor/imu/imu"
+    );
+    for topic in ["robot/imu", "/robot/imu"] {
+        let xml = WORLD.replace(
+            "<always_on>true</always_on>",
+            &format!("<topic>{topic}</topic>"),
+        );
+        let mut sim = load(&xml).unwrap();
+        assert_eq!(
+            sim.world_mut()
+                .query::<&ImuPublication>()
+                .single(sim.world())
+                .unwrap()
+                .topic,
+            "/robot/imu"
+        );
+    }
+    let xml = WORLD
+        .replace(
+            "<model name=\"ball\">",
+            "<model name='parent'><model name=\"ball\">",
+        )
+        .replace("</world>", "</model></world>");
+    let mut sim = load(&xml).unwrap();
+    let metadata = sim
+        .world_mut()
+        .query::<&ImuPublication>()
+        .single(sim.world())
+        .unwrap();
+    assert_eq!(metadata.entity_name, "parent::ball::body::imu");
+    assert_eq!(
+        metadata.topic,
+        "/world/default/model/parent/model/ball/link/body/sensor/imu/imu"
+    );
 }
 
 #[test]

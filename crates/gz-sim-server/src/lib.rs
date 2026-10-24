@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Bounded world-clock publication and control around an explicitly stepped simulation.
 
+use bevy_ecs::entity::Entity;
 use gz_msgs::{
     Clock, Time,
     msgs::{Boolean, WorldControl},
     prost::Message,
 };
 use gz_sim_core::{Simulation, StepError, UpdateInfo};
+use gz_sim_scene::{ImuPublication, ImuSample};
 use gz_transport::{Config, Error as TransportError, Node, Publisher, Service, Statistics};
 use std::{
     num::NonZeroUsize,
@@ -31,6 +33,57 @@ pub struct Counters {
     pub controls_accepted: u64,
     pub controls_rejected: u64,
     pub response_failures: u64,
+    pub imus_queued: u64,
+    pub imu_failures: u64,
+    pub invalid_imu_samples: u64,
+}
+
+struct ImuStream {
+    entity: Entity,
+    metadata: ImuPublication,
+    publisher: Publisher,
+    sequence: u64,
+    last_sample: Option<(u64, Duration)>,
+}
+
+fn imu_packet(
+    metadata: &ImuPublication,
+    sample: &ImuSample,
+    sequence: u64,
+) -> Option<gz_msgs::msgs::Imu> {
+    use gz_msgs::{
+        msgs::{FloatV, Header, header::Map},
+        quaternion, vector3,
+    };
+    let reading = sample.reading.as_ref().ok()?;
+    let covariance = || {
+        Some(FloatV {
+            data: vec![0.0; 9],
+            ..Default::default()
+        })
+    };
+    Some(gz_msgs::msgs::Imu {
+        header: Some(Header {
+            stamp: Some(time(sample.time.as_nanos() as i128).ok()?),
+            data: vec![
+                Map {
+                    key: "frame_id".into(),
+                    value: vec![metadata.frame_id.clone()],
+                },
+                Map {
+                    key: "seq".into(),
+                    value: vec![sequence.to_string()],
+                },
+            ],
+        }),
+        entity_name: metadata.entity_name.clone(),
+        orientation: Some(quaternion(reading.orientation)),
+        orientation_covariance: covariance(),
+        angular_velocity: Some(vector3(reading.angular_velocity)),
+        angular_velocity_covariance: covariance(),
+        linear_acceleration: Some(vector3(reading.specific_force)),
+        linear_acceleration_covariance: covariance(),
+    })
 }
 
 #[derive(Default)]
@@ -93,6 +146,7 @@ pub struct Server {
     pending_steps: u64,
     active_time: ActiveTime,
     counters: Counters,
+    imus: Vec<ImuStream>,
 }
 
 impl Server {
@@ -113,6 +167,18 @@ impl Server {
             "gz.msgs.WorldControl",
             "gz.msgs.Boolean",
         )?;
+        let mut imus = Vec::new();
+        for entity in simulation.world().iter_entities() {
+            if let Some(metadata) = entity.get::<ImuPublication>() {
+                imus.push(ImuStream {
+                    entity: entity.id(),
+                    metadata: metadata.clone(),
+                    publisher: node.advertise(&metadata.topic, "gz.msgs.IMU")?,
+                    sequence: 0,
+                    last_sample: None,
+                });
+            }
+        }
         Ok(Self {
             simulation,
             node,
@@ -122,6 +188,7 @@ impl Server {
             pending_steps: 0,
             active_time: ActiveTime::default(),
             counters: Counters::default(),
+            imus,
         })
     }
 
@@ -152,6 +219,7 @@ impl Server {
         } else {
             self.counters.clock_failures += 1;
         }
+        self.publish_imus();
         if !info.paused && self.pending_steps > 0 {
             self.pending_steps -= 1;
             if self.pending_steps == 0 {
@@ -189,6 +257,30 @@ impl Server {
             .is_err()
         {
             self.counters.response_failures += 1;
+        }
+    }
+
+    fn publish_imus(&mut self) {
+        for stream in &mut self.imus {
+            let Some(sample) = self.simulation.world().get::<ImuSample>(stream.entity) else {
+                continue;
+            };
+            let key = (sample.epoch, sample.time);
+            if stream.last_sample == Some(key) {
+                continue;
+            }
+            stream.last_sample = Some(key);
+            let Some(message) = imu_packet(&stream.metadata, sample, stream.sequence) else {
+                self.counters.invalid_imu_samples += 1;
+                continue;
+            };
+            // Native Sensor::AddSequence counts attempts and wraps its unsigned counter.
+            stream.sequence = stream.sequence.wrapping_add(1);
+            if stream.publisher.publish(message.encode_to_vec()).is_ok() {
+                self.counters.imus_queued += 1;
+            } else {
+                self.counters.imu_failures += 1;
+            }
         }
     }
 

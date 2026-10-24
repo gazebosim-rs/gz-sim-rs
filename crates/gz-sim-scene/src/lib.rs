@@ -64,6 +64,18 @@ pub struct ImuSample {
     pub reading: Result<ImuReading, InvalidImuInput>,
 }
 
+#[derive(Component, Debug, Clone)]
+pub struct ImuPublication {
+    pub entity_name: String,
+    pub frame_id: String,
+    pub topic: String,
+}
+
+struct SceneContext<'a> {
+    world: &'a str,
+    step: Duration,
+}
+
 #[derive(Resource)]
 struct Gravity([f64; 3]);
 
@@ -114,8 +126,20 @@ pub fn load_world(
     require(world.plugins.is_empty(), world_name, "world plugins")?;
     let mut sim = Simulation::new(step)?;
     let mut backend = RapierBackend::new(world.gravity)?;
+    let context = SceneContext {
+        world: world_name,
+        step,
+    };
     for model in &world.models {
-        build_model(&sdf, model, world_name, false, step, &mut sim, &mut backend)?;
+        build_model(
+            &sdf,
+            model,
+            &context,
+            false,
+            &format!("/world/{world_name}"),
+            &mut sim,
+            &mut backend,
+        )?;
     }
     sim.world_mut().insert_resource(Gravity(world.gravity));
     gz_physics_rapier::install(&mut sim, backend)?;
@@ -131,9 +155,9 @@ pub fn load_world(
 fn build_model(
     sdf: &Sdf,
     model: &Model,
-    world_name: &str,
+    context: &SceneContext<'_>,
     parent_static: bool,
-    step: Duration,
+    parent_topic: &str,
     sim: &mut Simulation,
     backend: &mut RapierBackend,
 ) -> Result<(), LoadError> {
@@ -144,6 +168,7 @@ fn build_model(
         "model plugins",
     )?;
     let is_static = parent_static || model.is_static;
+    let model_topic = format!("{parent_topic}/model/{}", model.name);
     for link in &model.links {
         let name = &link.scoped_name;
         require(link.plugins.is_empty(), name, "link plugins")?;
@@ -172,7 +197,7 @@ fn build_model(
                 });
             }
         };
-        let pose = sdf.pose_of(name, world_name)?;
+        let pose = sdf.pose_of(name, context.world)?;
         let inertial_pose =
             sdf.resolve_pose(&link.inertial.pose, &model.scoped_name, name, name)?;
         require(
@@ -211,6 +236,7 @@ fn build_model(
         ));
         for sensor in &link.sensors {
             let name = format!("{}::{}", link.scoped_name, sensor.name);
+            require(!sensor.enable_metrics, &name, "sensor metrics")?;
             let config = &sensor.imu;
             require(
                 config
@@ -231,7 +257,7 @@ fn build_model(
             )?;
             require(
                 sensor.update_rate == 0.0
-                    || (sensor.update_rate * step.as_secs_f64() - 1.0).abs() < 1e-12,
+                    || (sensor.update_rate * context.step.as_secs_f64() - 1.0).abs() < 1e-12,
                 &name,
                 "sensor rate differing from physics rate",
             )?;
@@ -242,8 +268,25 @@ fn build_model(
                 &link.scoped_name,
             )?;
             require(centered(local.translation), &name, "offset IMU position")?;
+            let entity_name = name
+                .strip_prefix(&format!("{}::", context.world))
+                .expect("scene names include their world scope")
+                .to_owned();
+            let topic = if sensor.topic.is_empty() {
+                format!(
+                    "{model_topic}/link/{}/sensor/{}/imu",
+                    link.name, sensor.name
+                )
+            } else {
+                format!("/{}", sensor.topic.trim_start_matches('/'))
+            };
             sim.world_mut().spawn((
                 Name(name),
+                ImuPublication {
+                    frame_id: entity_name.clone(),
+                    entity_name,
+                    topic,
+                },
                 Imu {
                     body: id,
                     rotation: DQuat::from_array(local.rotation),
@@ -254,7 +297,7 @@ fn build_model(
         }
     }
     for child in &model.models {
-        build_model(sdf, child, world_name, is_static, step, sim, backend)?;
+        build_model(sdf, child, context, is_static, &model_topic, sim, backend)?;
     }
     Ok(())
 }
