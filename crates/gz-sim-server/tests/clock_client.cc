@@ -10,6 +10,7 @@
 #include <mutex>
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/clock.pb.h>
+#include <gz/msgs/entity.pb.h>
 #include <gz/msgs/imu.pb.h>
 #include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/world_control.pb.h>
@@ -23,6 +24,8 @@ struct Observations
   bool initial = false;
   bool final = false;
   bool initialPose = false;
+  bool allowRemoved = false;
+  bool removed = false;
   int64_t lastPose = 0;
   std::map<std::string, uint32_t> poseIds;
   bool invalid = false;
@@ -33,7 +36,8 @@ struct Observations
 
 int main(int argc, char **argv)
 {
-  const bool withImu = argc > 1;
+  const bool withImu = argc > 1 && std::string(argv[1]) == "--imu";
+  const bool remove = argc > 1 && std::string(argv[1]) == "--remove";
   auto observations = std::make_shared<Observations>();
   gz::transport::Node node;
   std::function<void(const gz::msgs::Clock &)> callback =
@@ -59,7 +63,8 @@ int main(int argc, char **argv)
       std::lock_guard<std::mutex> lock(observations->mutex);
       bool valid = poses.has_header() && poses.header().has_stamp() &&
         poses.header().data_size() == 0 && poses.header().stamp().sec() == 0 &&
-        poses.header().stamp().nsec() >= 0 && poses.pose_size() == 4;
+        poses.header().stamp().nsec() >= 0 && (poses.pose_size() == 4 ||
+          (observations->allowRemoved && poses.pose_size() == 2));
       std::set<uint32_t> ids;
       std::set<std::string> names;
       for (const auto &pose : poses.pose())
@@ -82,7 +87,11 @@ int main(int argc, char **argv)
           valid = valid && std::abs(z) < 1e-12;
         else valid = false;
       }
-      valid = valid && names == std::set<std::string>{"ground", "ball", "base", "body"};
+      const auto expected = poses.pose_size() == 2 ?
+        std::set<std::string>{"ground", "base"} :
+        std::set<std::string>{"ground", "ball", "base", "body"};
+      valid = valid && names == expected;
+      if (valid && poses.pose_size() == 2) observations->removed = true;
       observations->invalid = observations->invalid || !valid;
       observations->lastPose = poses.header().stamp().nsec();
       if (observations->lastPose == 0) observations->initialPose = true;
@@ -188,6 +197,29 @@ int main(int argc, char **argv)
   request.set_seed(42);
   if (!node.Request("/world/default/control", request, 7000, response, result) ||
       !result || response.data()) return 6;
+  if (remove)
+  {
+    gz::msgs::Entity entity;
+    {
+      std::lock_guard<std::mutex> lock(observations->mutex);
+      entity.set_id(observations->poseIds.at("body"));
+    }
+    if (!node.Request("/world/default/remove", entity, 7000, response, result) ||
+        !result || !response.data()) return 14;
+    if (!node.Request("/world/default/remove/blocking", entity, 7000, response, result) ||
+        !result || response.data()) return 15;
+    {
+      std::lock_guard<std::mutex> lock(observations->mutex);
+      observations->allowRemoved = true;
+      entity.set_id(observations->poseIds.at("ball"));
+    }
+    // A nonzero ID takes precedence over a contradictory name and type.
+    entity.set_name("ground");
+    entity.set_type(gz::msgs::Entity::LINK);
+    if (!node.Request("/world/default/remove/blocking", entity, 7000, response, result) ||
+        !result || !response.data()) return 16;
+    if (!waitFor(&Observations::removed)) return 17;
+  }
   std::cout << "PASS native clock/control: baseline=" << warmup
-    << " final=" << warmup + 3 << " imu=" << withImu << " poses=4\n";
+    << " final=" << warmup + 3 << " imu=" << withImu << " poses=4 removed=" << remove << '\n';
 }

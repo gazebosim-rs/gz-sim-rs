@@ -20,7 +20,7 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal | Full initial-scene reset, joints, offset/multiple shapes, asset resolution and scheduling |
 | gz-sim-cli | Self-contained SDF input, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, resource resolution, signal handling and packaging |
-| gz-sim-server | Bounded clock/pose/IMU publication, polled pause/step controls, real C++ clients | Root clock election, reset/run-to/remove controls, scene services and sensor lifecycle |
+| gz-sim-server | Bounded clock/pose/IMU publication, polled pause/step controls, deferred remove services, real C++ clients | Root clock election, reset/run-to controls, scene services and runtime sensor registration |
 
 Rust 1.95.0, Bevy ECS 0.20.0, Rapier3d-f64 0.36.1 and glam 0.33.12 are pinned.
 Authoritative state and solver use f64. The submillimeter motion probe at world
@@ -35,17 +35,18 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 59 Rust tests and nine gate tests, covering 1222/1232
-production lines and 1804/1840 regions. Every production crate exceeds 95% for
-both metrics. The removal increment covers 43/43 changed executable lines.
+The current local gate passes 66 Rust tests and nine gate tests, covering 1344/1355
+production lines and 1986/2026 regions. Every production crate exceeds 95% for
+both metrics. The remote-removal increment covers 117/118 changed executable lines.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
 Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
-The reviewed hierarchy/pose revision d3524f5 passed its staged gate with 54 Rust
-checks; its hosted run is tracked on the [dashboard](https://gazebosim-rs.github.io/rewrite-progress/).
-The C++ client verifies all three scenarios using actual clock, local-pose and
-IMU samples, exact-step controls, stable IDs, metadata and topic repair. Its
+The hierarchy/pose revision d3524f5 passed its exact hosted gate.
+[CORE-01 is accepted](acceptance/CORE-01.md); API-01, QLT-01 and the broader phases
+remain open. Local model removal is published at 5fd5e49. The C++ client now
+verifies four scenarios using actual clock, local-pose and IMU samples, exact-step
+controls, stable IDs, topic repair and deferred model removal. Its
 native dependencies are rebuilt from the pinned reference lock in CI.
 
 `python3 scripts/verify.py` runs formatting, Clippy with warnings denied, Rust and
@@ -71,12 +72,17 @@ compiler issue. Selected native case IDs and hashes are in
 planning/reference-results.json. These installed dependencies are not yet a
 complete reproducible reference environment.
 
+The untouched native UserCommandsTest.Remove case and all 18 parameterized
+ResetToWithAddedEntity/DeletedEntity cases pass. Their source/binary/output hashes
+and partial or pending Rust mappings are recorded in planning/reference-results.json.
+These use the same qualified installed dependency environment.
+
 Additional native fall, nested/canonical-pose and remove/reset probes guide the
 headless work. Full reset restores removed initial logical entities with their
 original IDs; the current core reset only restores retained domain state. Remote
 reset remains explicitly rejected until that complete contract is implemented.
 
-Next: finish remote lifecycle/reset, TPE, local/Fuel resources and sensor scheduling;
+Next: finish full initial-scene reset, TPE, local/Fuel resources and sensor scheduling;
 record the equal-work reference comparison and performance report for P2. Then
 complete the retained backend, sensor/system, rendering, plugin, packaging and
 release matrices. CORE-02, full IO-01 and P2 are still open.

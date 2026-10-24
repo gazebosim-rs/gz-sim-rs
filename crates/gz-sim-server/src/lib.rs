@@ -3,6 +3,7 @@
 //! Bounded world-clock publication and control around an explicitly stepped simulation.
 
 mod poses;
+mod removals;
 
 use bevy_ecs::entity::Entity;
 use gz_msgs::{
@@ -45,6 +46,10 @@ pub struct Counters {
     pub poses_queued: u64,
     pub pose_failures: u64,
     pub invalid_pose_frames: u64,
+    pub removals_queued: u64,
+    pub removals_rejected: u64,
+    pub removals_completed: u64,
+    pub removals_failed: u64,
 }
 
 struct ImuStream {
@@ -152,6 +157,7 @@ pub struct Server {
     publisher: Publisher,
     poses: Publisher,
     controls: Service,
+    removals: removals::Removals,
     command_budget: NonZeroUsize,
     pending_steps: u64,
     active_time: ActiveTime,
@@ -179,6 +185,7 @@ impl Server {
             "gz.msgs.Boolean",
         )?;
         let poses = node.advertise(&format!("/world/{world_name}/pose/info"), "gz.msgs.Pose_V")?;
+        let removals = removals::Removals::new(&node, world_name)?;
         let mut imus = Vec::new();
         for entity in simulation.world().iter_entities() {
             if let Some(metadata) = entity.get::<ImuPublication>() {
@@ -200,6 +207,7 @@ impl Server {
             publisher,
             poses,
             controls,
+            removals,
             command_budget,
             pending_steps: 0,
             active_time: ActiveTime::default(),
@@ -246,6 +254,14 @@ impl Server {
             Err(_) => self.counters.invalid_pose_frames += 1,
         }
         self.publish_imus();
+        self.removals
+            .execute(&mut self.simulation, &mut self.counters);
+        self.imus.retain(|stream| {
+            self.simulation
+                .world()
+                .get::<ImuPublication>(stream.entity)
+                .is_some()
+        });
         if !info.paused && self.pending_steps > 0 {
             self.pending_steps -= 1;
             if self.pending_steps == 0 {
@@ -260,6 +276,8 @@ impl Server {
             };
             self.respond(request);
         }
+        self.removals
+            .poll(self.command_budget, &mut self.counters)?;
         Ok(info)
     }
 

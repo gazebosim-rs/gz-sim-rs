@@ -1,105 +1,127 @@
 # Headless integration
 
-IO-01 is in progress. The first bridge joins an SDF/Bevy/Rapier world to independent
-Rust message and transport libraries. It owns `/world/<name>/clock`,
-`/world/<name>/control` and `/world/<name>/pose/info`; root `/clock` publisher
-election remains open.
+IO-01 and P2 remain in progress. The server joins an SDF/Bevy/Rapier world to
+independent Rust message and transport libraries. It owns these endpoints:
 
-The coordinator owns the server crate, core preflight accessors, scene capability
-checks, native client, reference build and integration CI. Source contracts come
-from pinned gz-sim SimulationRunner.cc (UpdateCurrentInfo, PublishStats,
-OnWorldControl and ProcessWorldControl). These are new conformance tests; no
-original simulator case is retired.
+| Endpoint under `/world/<name>` | Contract |
+| --- | --- |
+| `/clock` | gz.msgs.Clock with simulation, active real and system time |
+| `/control` | gz.msgs.WorldControl to gz.msgs.Boolean; pause and exact stepping |
+| `/pose/info` | gz.msgs.Pose_V with stable IDs and parent-relative poses |
+| `/remove` | gz.msgs.Entity to gz.msgs.Boolean; deferred command acceptance |
+| `/remove/blocking` | Same request; reply reports execution result |
 
-Clock packets contain simulation time, measured active real time excluding pauses,
-and the actual system epoch. Clock publication uses a bounded nonblocking queue.
-The server counts queued clocks and publication failures; transport exposes its
-own queue/native error counters. Queuing does not prove subscriber delivery.
+Root `/clock` election, complete scene messages/services and full reset are open.
+The coordinator owns this integration, native clients and reference build. Source
+contracts come from pinned gz-sim SimulationRunner, UserCommands, Util and the
+scene/sensor implementations. New conformance cases preserve the selected native
+semantics; no complete original simulator case is retired.
 
-Each tick advances at most one physics step, publishes, then polls a configured
-finite number of control requests. Pause is always applied. A nonzero multi_step
-overrides step; stepping adds pending iterations only when pause=true. Pending
-iterations pause the server when they reach zero. An intervening pause preserves
-pending iterations, matching the native control order. Requests are preflighted
-before changing state. Replies acknowledge acceptance, not execution completion.
+## Clock, control and bounded IO
 
-This initial control subset rejects seed changes, run_to_sim_time and nonempty
-reset requests with a successful service reply containing Boolean.data=false.
-Native support/ignored-field behavior for those requests remains a separate
-compatibility task; the bridge does not silently reinterpret them. Clock range,
-malformed messages, bounded polling, rejected requests and shutdown are tested.
+Each tick advances at most one physics step and publishes through bounded,
+nonblocking queues. Active real time excludes pauses; system time is the actual
+epoch. Queue acceptance does not prove subscriber delivery. Counters distinguish
+queued publications, invalid samples/frames, rejected commands and send failures.
+Transport also exposes queue and native error counters. Construction, host pacing,
+filesystem access and worker joining stay outside simulation steps.
 
-The C++ client waits for an actual clock packet before requesting three steps,
-checks the exact resulting timestamp and verifies unsupported-control rejection.
-Its Rust host loads the real fall.sdf fixture and checks that the body moves.
-Network setup, host pacing and worker joining happen outside simulation steps.
-Native client libraries are built from planning/transport-reference-lock.json.
+Control polling has a finite per-tick budget. Pause is always applied. Nonzero
+multi_step overrides step; pending iterations are added only when pause=true.
+They pause the server on completion; an intervening pause preserves the count.
+Overflow is checked before changing state. Replies acknowledge command acceptance.
+Seed changes, run_to_sim_time and nonempty reset requests currently return a
+successful service response with Boolean.data=false. They are explicit unsupported
+capabilities until their native contracts are implemented.
+
+## Entities, poses and IMU
+
+World, model, link, collision, visual and sensor ownership uses Bevy ChildOf and
+Children. SDF frame resolution is separate. Each scene entity has an opaque,
+world-local, nonzero public ID. New objects receive monotonically increasing IDs;
+lifecycle hooks clean the lookup on removal. Moving an identity component cannot
+redirect its original lookup. Direct ECS edits must preserve scene-owned resources
+and backend/hierarchy invariants.
+
+Dynamic model world poses follow their canonical link. Static nested models can
+provide a dynamic parent's canonical link: canonical selection differs from SDF
+frame attachment. Empty dynamic hierarchies without a resolvable canonical link
+are unsupported. Link local poses are derived separately; attached visual,
+collision and sensor world poses follow their link. Pose packets group models,
+links and visuals using leaf names and stable IDs. Only the Pose_V header carries
+the simulation stamp. Invalid records or IDs outside the legacy uint32 range
+reject the whole frame; IDs are never truncated. The CLI lists physical links.
+
+IMU packets contain actual noise-free samples, simulation stamp, frame_id and
+decimal seq entries, orientation, angular velocity, specific force and three
+present nine-element zero covariance arrays. Names and default frame IDs omit
+world scope. Default topics use the structural world/model/link/sensor path;
+explicit topics pass through the reviewed native transport name-repair helper.
+Invalid topics fail setup. Sequence numbers count publication attempts and wrap
+as unsigned native counters do. Paused ticks do not repeat stale samples; epochs
+distinguish equal timestamps after the current core reset.
+
+Sensor registration happens at construction; removed streams release their
+publisher leases without socket waits. Runtime registration, explicit frame_id
+XML, rates, metrics, noise and nonzero covariances remain open. Existing retained
+streams keep their sequence across core time resets; this is not a claim about
+full native world reset or sensor reconstruction.
+
+## Removal and reset boundaries
+
+The scene's remove_model API validates a world-direct model, every descendant
+body and retained-body aliases before mutation. It then removes backend bodies,
+the Bevy subtree and public-ID lookups. Missing, nested, wrong-kind and inconsistent
+targets fail without partial deletion. Removed IDs do not resolve, IMU samples
+disappear and subsequent steps have no ghost bodies.
+
+Remote removal has a separate bounded batch of at most command_budget commands.
+Polling alternates between the two removal endpoints and runs after publication.
+The accepted batch executes at the next tick's final boundary, after that tick's
+last old-scene pose and IMU packets have been queued. Removal also works while
+paused, without advancing time. Already queued packets may arrive after a blocking
+reply; receipt of that reply does not flush a subscriber's queue.
+
+The ordinary endpoint replies true for a decoded, queued request even if its
+target later proves invalid. The blocking endpoint replies with the execution
+result. Malformed payloads reply false. Both use transport success=true for a
+normal Boolean response. Client RPC timeout does not cancel an accepted command:
+the wire request carries no cancellation/deadline. Reply failures are counted.
+
+A nonzero ID overrides name and type. Otherwise MODEL type and a matching scoped
+name are required. Scope matching follows the actual ownership ancestry. Ambiguous
+model names are explicitly rejected; native unordered selection is not a stable
+target contract. Only world-direct models are supported here; lights await scene
+support. A whole batch resolves names before mutation, so duplicate requests for
+the same valid model succeed together. Ingress stops at the batch limit; the
+underlying finite service queues provide further backpressure.
+
+Full reset must restore removed initial logical objects with their original IDs
+and remove runtime additions. The current core reset only restores retained domain
+state and time, keeping already removed models absent. Remote reset stays rejected
+until initial-scene restoration, identity reservation and stream lifecycle are
+implemented together.
+
+## Reproduction and remaining work
+
 Run `python3 scripts/bootstrap-native.py`, then `python3 scripts/verify.py`.
-An existing identical reference can be selected with GZ_REFERENCE_PREFIX; source
-configuration, library hashes, pkg-config prefix and dynamic linkage are checked.
+Native libraries are built from planning/transport-reference-lock.json. An existing
+identical build may be selected with GZ_REFERENCE_PREFIX; source configuration,
+library hashes, pkg-config prefix and dynamic linkage are checked.
 
-The IMU bridge publishes actual noise-free samples from the scene's configured
-sensors. Names and default frame IDs omit the world scope; default topics retain
-the structural world/model/link/sensor path. Each packet includes the simulation
-stamp, frame_id and decimal seq entries, orientation, angular velocity, specific
-force and three present nine-element zero covariance arrays. Sequence numbers
-count publication attempts and wrap as native unsigned counters do. Paused ticks
-do not republish stale samples. Reset epochs distinguish repeated timestamps;
-an existing stream retains its sequence until the sensor instance is replaced.
+Four real C++ client scenarios verify clock/exact-step control, actual IMU samples,
+topic repair and removal. They wait for received clock/pose/sample packets rather
+than assuming readiness. Removal checks ordinary acceptance, blocking failure,
+ID precedence and disappearance of the ball while the ground keeps its IDs.
+Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
+identity checks, paused/running removal, batch limits, client timeouts, shutdown,
+sequence wrapping, invalid samples and publication failures.
 
-The native client has a second mode that establishes readiness through actual
-sampled warmup steps, then checks three additional steps and all IMU metadata and
-values. No initial sensor packet is fabricated. Tests cover invalid samples,
-oversized payloads, sequence wrapping, repeated timestamps across epochs and
-default/relative/absolute/nested topics. The reviewed IMU increment passed 42 Rust tests
-and nine gate tests: 890/892 lines and 1273/1290 regions. Each crate exceeds 95%.
+The current gate passes 66 Rust checks and nine gate tests: 1344/1355 production
+lines and 1986/2026 regions. Every production crate exceeds 95% for both metrics;
+117/118 changed executable lines are covered. Independent review and the exact
+staged gate are required before publishing this increment.
 
-Stream registration currently happens at server construction. Dynamic sensor
-registration/removal, explicit frame_id XML, metrics and noisy covariances remain
-open. Requested topics retain their SDF text until the server applies the reviewed
-gz-transport native name-repair helper. A third C++ fixture repairs the same explicit
-topic with native TopicUtils before subscribing. Unrepairable topics and requested
-metrics fail explicitly. Remote reset controls
-remain rejected until the full world reset contract is implemented.
-
-World, model, link, collision, visual and sensor entities now use Bevy ChildOf and
-Children for ownership. SDF frame resolution remains separate. Each scene entity
-has an opaque, world-local nonzero public ID; IDs survive time resets and are never
-recycled. Bevy lifecycle hooks remove old lookup entries when an identity is
-removed, replaced or despawned. Moving identity components is unsupported and
-cannot redirect the original lookup. Direct ECS edits must preserve scene-owned
-backend and hierarchy invariants; a domain removal transaction remains open.
-
-Model world poses follow their canonical link, including nested models sharing a
-canonical link. Canonical-link selection is distinct from frame attachment: a
-static nested model may still provide its dynamic parent's canonical link. Empty
-dynamic hierarchies without a resolvable canonical link remain unsupported. Parent-relative local poses are updated separately; attached
-visual/collision/sensor poses follow their link. Static inheritance is retained.
-The CLI continues to list physical links. Tests cover explicit canonical links,
-secondary-link motion, rotated/nested frames, visual semantic frames and reset.
-
-Pose packets group models, links and visuals with leaf names, stable IDs and local
-poses. Only the top Pose_V header has the simulation stamp. The legacy uint32 ID
-field is checked; IDs are never truncated. Missing/invalid pose records reject the
-whole packet with an observable counter, and queue failures are counted separately.
-All three native C++ scenarios wait for real pose readiness, verify fields, names,
-unique/stable IDs and local coordinates, then observe the final exact-step stamp.
-The full local gate passes 54 Rust tests and nine gate tests, with 1176/1186
-production lines and 1702/1738 regions covered; every crate exceeds 95%.
-This covers the supported scene subset; dynamic_pose/info, full scene messages,
-lights and scene services are not implemented by this increment.
-
-The scene API now removes a top-level model as one checked lifecycle transaction.
-It validates the target and every descendant physics binding before deleting any
-body, then uses Bevy's ownership relationship to remove the subtree and ID lookups.
-Missing IDs, non-world children and inconsistent/duplicate physics bindings fail
-without partial deletion. The local gate passes 59 Rust tests and nine gate tests,
-with 1222/1232 lines and 1804/1840 regions; every crate and all 43 changed
-executable lines pass the coverage policy. Tests verify retained models, retired IDs, removed IMU
-samples, recursive nested models and subsequent stepping without ghost bodies.
-Callers choose the lifecycle boundary; network remove services and full scene reset
-are still pending. The existing core reset keeps already removed models absent.
-
-Remaining first-milestone work includes remote reset/removal, joints and forces, TPE, local/Fuel resources,
-sensor scheduling/noise and the equal-work C++ comparison/performance report.
-The full simulator system and backend plans remain unchanged.
+Remaining P2 work includes full reset, TPE, local/Fuel resources, sensor scheduling
+and the equal-work C++ comparison/performance report. Joints, forces, the complete
+system/backend inventories, Bevy rendering and release qualification remain open.

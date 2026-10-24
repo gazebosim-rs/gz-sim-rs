@@ -569,3 +569,307 @@ fn pose_publication_reports_invalid_frames_and_bounded_transport_failure() {
     assert_eq!(bounded.counters().pose_failures, 1);
     assert_eq!(bounded.counters().poses_queued, 0);
 }
+
+fn public_id(server: &Server, name: &str) -> u64 {
+    server
+        .simulation()
+        .world()
+        .iter_entities()
+        .find(|e| e.get::<gz_sim_scene::Name>().is_some_and(|n| n.0 == name))
+        .unwrap()
+        .get::<gz_sim_core::EntityId>()
+        .unwrap()
+        .get()
+}
+
+fn removal_request(
+    config: Config,
+    blocking: bool,
+    bytes: Vec<u8>,
+) -> thread::JoinHandle<Result<(Vec<u8>, bool), TransportError>> {
+    thread::spawn(move || {
+        Node::new(config).unwrap().request(
+            if blocking {
+                "/world/default/remove/blocking"
+            } else {
+                "/world/default/remove"
+            },
+            "gz.msgs.Entity",
+            "gz.msgs.Boolean",
+            bytes,
+            Duration::from_secs(5),
+        )
+    })
+}
+
+fn poll_removals(server: &mut Server, count: u64) {
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while server.counters.removals_queued + server.counters.removals_rejected < count {
+        assert!(Instant::now() < deadline);
+        server
+            .removals
+            .poll(server.command_budget, &mut server.counters)
+            .unwrap();
+        thread::yield_now();
+    }
+}
+
+fn removal_result(request: thread::JoinHandle<Result<(Vec<u8>, bool), TransportError>>) -> bool {
+    let (bytes, success) = request.join().unwrap().unwrap();
+    assert!(success);
+    Boolean::decode(bytes.as_slice()).unwrap().data
+}
+
+#[test]
+fn queued_removal_preserves_final_publication_and_retires_sensor_streams() {
+    use gz_msgs::msgs::{Entity, entity::Type};
+    let config = config();
+    let mut server = imu_server(config.clone());
+    server.simulation.set_paused(false);
+    server.tick().unwrap();
+    let ball = public_id(&server, "default::ball");
+    let request = removal_request(
+        config,
+        false,
+        Entity {
+            name: "default::ball".into(),
+            r#type: Type::Model as i32,
+            ..Default::default()
+        }
+        .encode_to_vec(),
+    );
+    poll_removals(&mut server, 1);
+    assert!(removal_result(request));
+    assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_some());
+    let samples = server.counters.imus_queued;
+    let poses = server.counters.poses_queued;
+    server.tick().unwrap();
+    assert_eq!(server.simulation.elapsed(), Duration::from_millis(2));
+    assert_eq!(server.counters.imus_queued, samples + 1);
+    assert_eq!(server.counters.poses_queued, poses + 1);
+    assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_none());
+    assert!(server.imus.is_empty());
+    assert_eq!(server.counters.removals_completed, 1);
+    server.tick().unwrap();
+    assert_eq!(server.counters.imus_queued, samples + 1);
+    assert_eq!(
+        poses::packet(server.simulation.world(), server.simulation.elapsed())
+            .unwrap()
+            .pose
+            .len(),
+        2
+    );
+}
+
+#[test]
+fn blocking_removal_reports_execution_and_duplicates_resolve_before_deletion() {
+    use gz_msgs::msgs::{Entity, entity::Type};
+    let config = config();
+    let mut server = imu_server(config.clone());
+    let ball = public_id(&server, "default::ball");
+    let first = removal_request(
+        config.clone(),
+        true,
+        Entity {
+            id: ball,
+            name: "wrong".into(),
+            r#type: Type::Link as i32,
+            ..Default::default()
+        }
+        .encode_to_vec(),
+    );
+    let second = removal_request(
+        config,
+        true,
+        Entity {
+            name: "ball".into(),
+            r#type: Type::Model as i32,
+            ..Default::default()
+        }
+        .encode_to_vec(),
+    );
+    poll_removals(&mut server, 2);
+    assert!(!first.is_finished());
+    assert!(!second.is_finished());
+    assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_some());
+    server.tick().unwrap();
+    assert!(removal_result(first));
+    assert!(removal_result(second));
+    assert_eq!(server.counters.removals_completed, 2);
+    assert_eq!(server.simulation.elapsed(), Duration::ZERO);
+    assert!(server.simulation.is_paused());
+    assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_none());
+}
+
+#[test]
+fn malformed_and_invalid_removal_requests_preserve_acceptance_semantics() {
+    use gz_msgs::msgs::{Entity, entity::Type};
+    let config = config();
+    let mut server = imu_server(config.clone());
+    let body = public_id(&server, "default::ball::body");
+    let mut count = 0;
+    for blocking in [false, true] {
+        for bytes in [
+            vec![0x80],
+            Entity::default().encode_to_vec(),
+            Entity {
+                id: u64::MAX,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+            Entity {
+                id: body,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+            Entity {
+                name: "ball".into(),
+                ..Default::default()
+            }
+            .encode_to_vec(),
+            Entity {
+                name: "ball".into(),
+                r#type: Type::Link as i32,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+            Entity {
+                name: "missing".into(),
+                r#type: Type::Model as i32,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+        ] {
+            let malformed = bytes == [0x80];
+            let request = removal_request(config.clone(), blocking, bytes);
+            count += 1;
+            poll_removals(&mut server, count);
+            if !blocking || malformed {
+                assert_eq!(removal_result(request), !malformed);
+                server.tick().unwrap();
+            } else {
+                assert!(!request.is_finished());
+                server.tick().unwrap();
+                assert!(!removal_result(request));
+            }
+            assert!(gz_sim_core::entity_by_id(server.simulation.world(), body).is_some());
+        }
+    }
+    assert_eq!(server.counters.removals_rejected, 2);
+    assert_eq!(server.counters.removals_failed, 12);
+    assert_eq!(server.counters.removals_completed, 0);
+}
+
+#[test]
+fn removal_polling_is_bounded_and_shutdown_does_not_undo_accepted_execution() {
+    use gz_msgs::msgs::Entity;
+    let config = config();
+    let mut server = imu_server(config.clone());
+    server.command_budget = NonZeroUsize::new(1).unwrap();
+    let ball = public_id(&server, "default::ball");
+    let request = removal_request(
+        config,
+        true,
+        Entity {
+            id: ball,
+            ..Default::default()
+        }
+        .encode_to_vec(),
+    );
+    poll_removals(&mut server, 1);
+    for _ in 0..3 {
+        server
+            .removals
+            .poll(server.command_budget, &mut server.counters)
+            .unwrap();
+    }
+    assert_eq!(server.counters.removals_queued, 1);
+    server.node.cancel();
+    server
+        .removals
+        .execute(&mut server.simulation, &mut server.counters);
+    assert_eq!(server.counters.removals_completed, 1);
+    assert_eq!(server.counters.response_failures, 1);
+    assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_none());
+    server.shutdown();
+    assert!(request.join().unwrap().is_err());
+    assert!(
+        server
+            .removals
+            .poll(server.command_budget, &mut server.counters)
+            .is_err()
+    );
+}
+
+#[test]
+fn each_removal_batch_is_bounded_when_both_services_have_work() {
+    use gz_msgs::msgs::Entity;
+    let config = config();
+    let mut server = imu_server(config.clone());
+    server.command_budget = NonZeroUsize::new(1).unwrap();
+    let requests: Vec<_> = [false, true, false, true]
+        .into_iter()
+        .map(|blocking| {
+            removal_request(
+                config.clone(),
+                blocking,
+                Entity {
+                    id: u64::MAX,
+                    ..Default::default()
+                }
+                .encode_to_vec(),
+            )
+        })
+        .collect();
+    for count in 1..=4 {
+        poll_removals(&mut server, count);
+        assert_eq!(server.counters.removals_queued, count);
+        // Repeated ingress cannot exceed the one-command pending-batch limit.
+        for _ in 0..3 {
+            server
+                .removals
+                .poll(server.command_budget, &mut server.counters)
+                .unwrap();
+        }
+        assert_eq!(server.counters.removals_queued, count);
+        server
+            .removals
+            .execute(&mut server.simulation, &mut server.counters);
+        assert_eq!(server.counters.removals_failed, count);
+    }
+    for (request, blocking) in requests.into_iter().zip([false, true, false, true]) {
+        assert_eq!(removal_result(request), !blocking);
+    }
+    assert_eq!(server.simulation.elapsed(), Duration::ZERO);
+}
+
+#[test]
+fn client_timeout_does_not_cancel_an_accepted_removal() {
+    use gz_msgs::msgs::Entity;
+    let config = config();
+    let mut server = imu_server(config.clone());
+    let ball = public_id(&server, "default::ball");
+    let request = thread::spawn(move || {
+        Node::new(config).unwrap().request(
+            "/world/default/remove/blocking",
+            "gz.msgs.Entity",
+            "gz.msgs.Boolean",
+            Entity {
+                id: ball,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+            Duration::from_secs(2),
+        )
+    });
+    poll_removals(&mut server, 1);
+    assert!(matches!(
+        request.join().unwrap(),
+        Err(TransportError::Timeout)
+    ));
+    assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_some());
+    server.tick().unwrap();
+    assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_none());
+    assert_eq!(server.counters.removals_completed, 1);
+    assert!(server.imus.is_empty());
+}

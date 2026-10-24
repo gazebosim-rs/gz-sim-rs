@@ -13,6 +13,23 @@
       "remaining_assertions": "Lifecycle, connection discovery, cached pre-update values, update rate, timestamp and transport message assertions.",
       "reviewer": "/root/sdformat",
       "review": "measurement subset approved; entire upstream test remains pending"
+    },
+    {
+      "repository": "gz-sim",
+      "upstream_commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "source": "test/integration/user_commands.cc",
+      "test": "UserCommandsTest.Remove",
+      "rust_tests": [
+        "crates/gz-sim-server/tests/private/server.rs::queued_removal_preserves_final_publication_and_retires_sensor_streams",
+        "crates/gz-sim-server/tests/private/server.rs::blocking_removal_reports_execution_and_duplicates_resolve_before_deletion",
+        "crates/gz-sim-server/tests/private/server.rs::malformed_and_invalid_removal_requests_preserve_acceptance_semantics",
+        "crates/gz-sim-server/tests/native.rs::cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time"
+      ],
+      "status": "partially_ported",
+      "retained_assertions": "Ordinary request acceptance before deletion; model name/type and nonzero-ID precedence; wrong-kind/missing target leaves scene unchanged; model descendants disappear and retained model identities persist. Supplementary cases cover blocking completion, duplicates, finite ingress, timeout, physics/sensor cleanup and shutdown.",
+      "remaining_assertions": "Original full shapes fixture, light removal and every original entity-count assertion remain unmigrated.",
+      "reviewer": "/root/transport",
+      "review": "Supported remote-removal subset approved with independent 20-test and four real C++ scenario replay; untouched native original passes locally with installed dependency qualification. No original case retired."
     }
   ],
   "supplementary_tests": {

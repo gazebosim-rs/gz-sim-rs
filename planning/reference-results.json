@@ -224,6 +224,151 @@
           "status": "run"
         }
       ]
+    },
+    {
+      "repository": "gz-sim",
+      "source_commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "target": "INTEGRATION_user_commands",
+      "filter": "UserCommandsTest.Remove",
+      "binary_sha256": "11943d4a6ed08f9a650d1697308fe0ecef8d8943b57b253cd36d376c8238346c",
+      "xml_sha256": "8d4e8d012daeec878491e3414b2476d8c76002a9657ee7962094d1667fe87416",
+      "source_sha256": "746716ee1d515570898bed69cb1dc02c190cb108bbc35e2fd33d129d11f3b091",
+      "fixture_sha256": "38ac16bd976dde43e2ce3e1c9950f8416e61eee6ccd457309ab24cb8e1ea4459",
+      "server_config_sha256": "8f9d47c63a7c062636a51a31ca7a914212ecca1ac2de314a24bb385b722b4fe0",
+      "stdout_sha256": "0aeba29277cdc57a2cffd1a8a631be0d749b5b661177dd6bc93e6ea1621a9d5f",
+      "stderr_sha256": "cfec01cbba40c63cb42b448fa19e1022296cab03b45e84238f614fae9a83482d",
+      "tests": 1,
+      "failures": 0,
+      "disabled": 0,
+      "cases": [
+        {
+          "id": "UserCommandsTest.Remove",
+          "result": "completed",
+          "status": "run"
+        }
+      ],
+      "qualification": "Untouched pinned test and fixture; isolated Clang simulator with existing installed dependencies, not a complete reproduced reference environment. Expected invalid-target diagnostics and DART ellipsoid fallback warning appear on stderr.",
+      "rust_mapping": {
+        "state": "partial",
+        "checks": [
+          "queued_removal_preserves_final_publication_and_retires_sensor_streams",
+          "blocking_removal_reports_execution_and_duplicates_resolve_before_deletion",
+          "malformed_and_invalid_removal_requests_preserve_acceptance_semantics",
+          "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time"
+        ],
+        "remaining": "Original full shapes fixture, light removal and all original entity-count assertions remain unmigrated. No original test retired."
+      }
+    },
+    {
+      "repository": "gz-sim",
+      "source_commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "target": "UNIT_EntityComponentManager_TEST",
+      "filter": "*ResetToWithDeletedEntity*:*ResetToWithAddedEntity*",
+      "binary_sha256": "4b3207c4651a7b07c5837c18ecbcdfc7a816cf1c156824694eb663257e39110c",
+      "xml_sha256": "169cc2c7e8af3033fd12732e3ad1fdf0d7e67019cb4cf03449edbbfcd12f2dbb",
+      "source_sha256": "e27009b364f8adbfe6141c3edaecbd0ddb5788e6a61029d42a9c0b48c83d1797",
+      "stdout_sha256": "f81ff112e0fa2d09899df05063f9cacdab000cf0daa326517a1d917240258c50",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": 18,
+      "failures": 0,
+      "disabled": 0,
+      "cases": [
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithDeletedEntity/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithDeletedEntity/1",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithDeletedEntity/2",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithDeletedEntity/3",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithDeletedEntity/4",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithDeletedEntity/5",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithDeletedEntity/6",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithDeletedEntity/7",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithDeletedEntity/8",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithAddedEntity/0",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithAddedEntity/1",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithAddedEntity/2",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithAddedEntity/3",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithAddedEntity/4",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithAddedEntity/5",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithAddedEntity/6",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithAddedEntity/7",
+          "result": "completed",
+          "status": "run"
+        },
+        {
+          "id": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithAddedEntity/8",
+          "result": "completed",
+          "status": "run"
+        }
+      ],
+      "qualification": "Untouched pinned reset tests; isolated Clang simulator with existing installed dependencies, not a complete reproduced reference environment.",
+      "rust_mapping": {
+        "state": "pending",
+        "remaining": "Full initial-scene reset and reset-time added/removed entity observations are not implemented. No original case retired."
+      }
     }
   ],
   "math_ctest": {

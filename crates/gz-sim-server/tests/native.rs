@@ -25,12 +25,13 @@ impl Drop for Peer {
 
 #[test]
 fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
-    run_native_world(false, None);
-    run_native_world(true, None);
-    run_native_world(true, Some("robot ~imu//@:= sensor"));
+    run_native_world(false, None, false);
+    run_native_world(true, None, false);
+    run_native_world(true, Some("robot ~imu//@:= sensor"), false);
+    run_native_world(false, None, true);
 }
 
-fn run_native_world(with_imu: bool, topic: Option<&str>) {
+fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool) {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let build = Command::new("python3")
         .arg(root.join("scripts/native-peer.py"))
@@ -81,6 +82,8 @@ fn run_native_world(with_imu: bool, topic: Option<&str>) {
         if let Some(topic) = topic {
             command.arg(topic);
         }
+    } else if remove {
+        command.arg("--remove");
     }
     let mut peer = Peer(
         command
@@ -151,17 +154,20 @@ fn run_native_world(with_imu: bool, topic: Option<&str>) {
         Duration::from_millis(final_steps)
     );
     assert!(server.simulation().is_paused());
-    let body = server
-        .simulation()
-        .world()
-        .iter_entities()
-        .find(|entity| {
-            entity
-                .get::<Name>()
-                .is_some_and(|name| name.0 == "default::ball::body")
-        })
-        .unwrap();
-    assert!(body.get::<WorldPose>().unwrap().translation[2] < 5.0);
+    let body = server.simulation().world().iter_entities().find(|entity| {
+        entity
+            .get::<Name>()
+            .is_some_and(|name| name.0 == "default::ball::body")
+    });
+    if remove {
+        assert!(body.is_none());
+        assert!(stdout.contains("removed=1"));
+        assert_eq!(server.counters().removals_queued, 3);
+        assert_eq!(server.counters().removals_failed, 2);
+        assert_eq!(server.counters().removals_completed, 1);
+    } else {
+        assert!(body.unwrap().get::<WorldPose>().unwrap().translation[2] < 5.0);
+    }
     assert_eq!(server.counters().controls_accepted, final_steps - 2);
     assert_eq!(server.counters().controls_rejected, 1);
     assert_eq!(server.counters().imus_queued, final_steps);
