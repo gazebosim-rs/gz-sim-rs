@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
 use clap::Parser;
 use gz_sim_scene::{Name, WorldPose};
 use std::{

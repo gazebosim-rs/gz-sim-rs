@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
 use bevy_ecs::prelude::*;
 use gz_sim_core::{Phase, Simulation, StepError, UpdateInfo};
 use std::time::Duration;

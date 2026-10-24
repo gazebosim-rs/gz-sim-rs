@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
 //! Sensor measurement models. Scheduling and transport belong to the simulator.
 
 use glam::{DQuat, DVec3};

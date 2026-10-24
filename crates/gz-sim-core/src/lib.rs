@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
 //! Explicit simulation steps over a Bevy ECS world, independent of rendering.
 
 use bevy_ecs::{prelude::*, schedule::ScheduleConfigs, system::ScheduleSystem};

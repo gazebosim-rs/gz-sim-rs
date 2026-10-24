@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
 use glam::{DQuat, EulerRot};
 use gz_sensors::{ImuInput, InvalidImuInput, imu};
 
@@ -12,7 +14,7 @@ fn rest() -> ImuInput {
 }
 
 // Measurement assertions from gz-sensors test/integration/imu.cc SensorReadings.
-// Copyright Open Source Robotics Foundation. Apache-2.0; see LICENSE.
+// Copyright (C) 2019 Open Source Robotics Foundation. Apache-2.0; see LICENSE.
 #[test]
 #[allow(clippy::approx_constant)]
 fn upstream_rest_and_upside_down_measurements() {

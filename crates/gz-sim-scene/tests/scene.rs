@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
 use gz_sim_scene::{ImuSample, LoadError, Name, Velocity, WorldPose, load_world};
 use sdformat::NoResources;
 use std::time::Duration;

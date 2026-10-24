@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
 use gz_physics_rapier::{BodySpec, PhysicsError, RapierBackend, Shape, install};
 use gz_sim_core::Simulation;
 use std::time::Duration;

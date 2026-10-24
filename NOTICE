@@ -1,0 +1,8 @@
+Gazebo in Rust
+Copyright (C) 2026 Open Source Robotics Foundation
+
+This repository includes test assertions and reference material from Gazebo.
+Retained upstream material keeps its original copyright years and notices.
+Third-party dependencies retain their own copyright and license notices.
+
+Licensed under the Apache License, Version 2.0. See LICENSE.

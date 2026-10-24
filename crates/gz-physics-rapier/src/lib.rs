@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
 //! Full-f64 rigid bodies stepped by the simulator's explicit Bevy schedule.
 
 use bevy_ecs::prelude::*;

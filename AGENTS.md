@@ -57,6 +57,10 @@ implemented behavior and checks from planned release requirements.
 
 - License original project code and documentation under Apache-2.0. New crates
   inherit the workspace license. Preserve imported license and attribution notices.
+- New source files use `Copyright (C) YEAR Open Source Robotics Foundation` and
+  `SPDX-License-Identifier: Apache-2.0`, after any shebang. Use the creation year;
+  preserve original notices and years on imported material. Include LICENSE and
+  NOTICE in distributions.
 - Write ordinary, idiomatic Rust. Use concrete types and small cohesive modules.
   Add traits and indirection only for a real boundary or multiple implementations.
 - Use names that express units, frames, and ownership where ambiguity matters.
