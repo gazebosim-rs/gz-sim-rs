@@ -55,6 +55,8 @@ implemented behavior and checks from planned release requirements.
 
 ## Code and comments
 
+- License original project code and documentation under Apache-2.0. New crates
+  inherit the workspace license. Preserve imported license and attribution notices.
 - Write ordinary, idiomatic Rust. Use concrete types and small cohesive modules.
   Add traits and indirection only for a real boundary or multiple implementations.
 - Use names that express units, frames, and ownership where ambiguity matters.

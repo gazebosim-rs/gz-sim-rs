@@ -7,6 +7,9 @@ constructor for a limited set of shapes and sensor configurations.
 It is not yet a complete simulator. See [implementation status](docs/STATUS.md)
 for tested behavior, coverage, reference evidence, and remaining work.
 
+Licensed under [Apache License 2.0](LICENSE). Imported material retains its
+original license and attribution notices.
+
 Run `python3 scripts/verify.py` for formatting, lint, tests, and strict per-crate
 coverage checks. Install the commit hook with `git config core.hooksPath .githooks`;
 it checks an isolated copy of the staged tree. Rust 1.95.0 is pinned.
