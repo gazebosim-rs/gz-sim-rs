@@ -87,3 +87,13 @@ implemented behavior and checks from planned release requirements.
 
 Completion means the task's acceptance evidence exists and required checks pass;
 it does not mean only that the code compiles.
+
+## Live progress
+
+Update [the public tracker](https://gazebosim-rs.github.io/rewrite-progress/)
+when a bounded task starts, a reviewed slice is accepted, a blocker changes, or
+verification evidence changes. Follow the tracker repository's `status-contract.md`
+and use its `scripts/update-status.py` to publish only `gz-sim-rs` status. Keep
+local reports in ignored `artifacts/`. Repository agents own their own reports.
+Reviewed increments do not complete broad plan packets; coverage is not progress.
+The coordinator alone updates phase acceptance and individual system status.

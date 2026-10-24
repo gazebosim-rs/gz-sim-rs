@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -63,14 +64,113 @@ def production_sources():
     }
 
 
-def coverage():
+def changed_lines(diff):
+    result, path = {}, None
+    for line in diff.splitlines():
+        if line.startswith("+++ "):
+            name = line[4:].removesuffix("\t")
+            if name == "/dev/null":
+                path = None
+                continue
+            if not name.startswith("b/"):
+                raise ValueError("unsupported quoted diff path")
+            path = name[2:]
+        elif line.startswith("@@ "):
+            match = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", line)
+            if not match:
+                raise ValueError("invalid changed-line hunk")
+            start, count = int(match[1]), int(match[2] or 1)
+            if path is None and count == 0:
+                continue
+            if path is None:
+                raise ValueError("changed lines without a file")
+            result.setdefault(path, set()).update(range(start, start + count))
+    return result
+
+
+def changed_sources(sources, index=False):
+    files = {str(path.relative_to(ROOT)): path for paths in sources.values() for path in paths}
+    base = os.environ.get("GZ_COVERAGE_BASE") if not index else None
+    head = subprocess.run(["git", "rev-parse", "--verify", "HEAD"], cwd=ROOT, capture_output=True, text=True)
+    command = ["git", "-c", "core.quotepath=false", "diff", "--no-ext-diff", "--no-renames", "--unified=0"]
+    if index:
+        command += ["--cached", *(["HEAD"] if head.returncode == 0 else [])]
+    elif base:
+        if not re.fullmatch(r"[0-9a-f]{40}", base):
+            raise ValueError("invalid coverage base SHA")
+        if base == "0" * 40:
+            return {name: set(range(1, len(path.read_text().splitlines()) + 1)) for name, path in files.items()}
+        run(["git", "cat-file", "-e", f"{base}^{{commit}}"], capture_output=True)
+        command += [base, "HEAD"]
+    else:
+        if head.returncode != 0:
+            return {name: set(range(1, len(path.read_text().splitlines()) + 1)) for name, path in files.items()}
+        command += [head.stdout.strip()]
+    diff = run([*command, "--", "*.rs"], capture_output=True, text=True).stdout
+    changed = changed_lines(diff)
+    if not index and not base:
+        untracked = run(["git", "ls-files", "--others", "--exclude-standard", "-z"], capture_output=True, text=True).stdout.split("\0")
+        for name in set(untracked) & files.keys():
+            changed[name] = set(range(1, len(files[name].read_text().splitlines()) + 1))
+        if not changed:
+            # A clean checkout validates its latest commit; CI supplies the full push/PR base.
+            parent = subprocess.run(["git", "rev-parse", "--verify", "HEAD^"], cwd=ROOT, capture_output=True, text=True)
+            if parent.returncode == 0:
+                changed = changed_lines(run([*command[:-1], "HEAD^", "HEAD", "--", "*.rs"], capture_output=True, text=True).stdout)
+            else:
+                changed = {name: set(range(1, len(path.read_text().splitlines()) + 1)) for name, path in files.items()}
+    return changed
+
+
+def check_changed_coverage(lcov, changed, crates, executable_counts=None):
+    lines, source = {}, None
+    for line in lcov.splitlines():
+        if line.startswith("SF:"):
+            source = Path(line[3:]).resolve()
+            if source in lines:
+                raise ValueError(f"duplicate LCOV source: {source}")
+            lines[source] = {}
+        elif line.startswith("DA:"):
+            if source is None:
+                raise ValueError("LCOV count without source")
+            number, count, *_ = line[3:].split(",")
+            number, count = int(number), int(count)
+            if number <= 0 or count < 0 or number in lines[source]:
+                raise ValueError(f"invalid or duplicate LCOV line: {source}:{number}")
+            lines[source][number] = count
+    totals = {}
+    for crate, sources in crates.items():
+        covered, count = 0, 0
+        for path in sources:
+            if path not in lines:
+                raise ValueError(f"missing LCOV source: {path}")
+            if not lines[path] and (executable_counts is None or executable_counts[path] > 0):
+                raise ValueError(f"missing executable LCOV lines: {path}")
+            changed_in_file = set(changed.get(str(path.relative_to(ROOT)), []))
+            for number in changed_in_file & lines[path].keys():
+                count += 1
+                covered += lines[path][number] > 0
+        if count and covered * 100 <= count * 95:
+            raise ValueError(f"{crate}: changed executable lines {covered}/{count} must exceed 95%")
+        totals[crate] = [covered, count]
+    return totals
+
+
+def coverage(changed_file=None):
     out = ROOT / "artifacts/coverage"
     out.mkdir(parents=True, exist_ok=True)
     # A unique profile directory prevents previous source versions inflating coverage.
     with tempfile.TemporaryDirectory(prefix="raw-", dir=out) as directory:
         env = os.environ.copy()
         env["CARGO_TARGET_DIR"] = str(ROOT / "target/coverage")
-        env["RUSTFLAGS"] = "-C instrument-coverage"
+        env["RUSTFLAGS"] = ""
+        env.pop("CARGO_ENCODED_RUSTFLAGS", None)
+        wrapper = ROOT / "scripts/rustc-coverage.py"
+        digest = hashlib.sha256(wrapper.read_bytes()).hexdigest()
+        executable = out / f"rustc-coverage-{digest}"
+        executable.write_bytes(wrapper.read_bytes())
+        executable.chmod(0o755)
+        env["RUSTC_WORKSPACE_WRAPPER"] = str(executable)
         env["LLVM_PROFILE_FILE"] = directory + "/%p-%m.profraw"
         result = run(["cargo", "test", "--locked", "--workspace", "--all-targets", "--message-format=json"], env=env, capture_output=True, text=True)
         (out / "test-output.log").write_text(result.stdout + result.stderr)
@@ -93,21 +193,28 @@ def coverage():
             raise ValueError("no raw coverage profiles")
         merged = out / "merged.profdata"
         run([str(llvm / "llvm-profdata"), "merge", "-sparse", *map(str, raw), "-o", str(merged)])
-        command = [str(llvm / "llvm-cov"), "export", "-instr-profile=" + str(merged)]
+        command = [str(llvm / "llvm-cov"), "export", "--fatal-warnings", "-instr-profile=" + str(merged)]
         for binary in dict.fromkeys(objects):
             command += ["-object", binary]
         with (out / "coverage.json").open("w") as output:
             run(command, stdout=output)
+        lcov = run([*command, "-format=lcov"], capture_output=True, text=True).stdout
+        (out / "coverage.lcov").write_text(lcov)
     report = json.loads((out / "coverage.json").read_text())
     sources = production_sources()
     summaries = check_coverage(report, sources)
+    changed = json.loads(Path(changed_file).read_text()) if changed_file else changed_sources(sources)
+    executable_counts = {Path(file["filename"]).resolve(): file["summary"]["lines"]["count"]
+                         for data in report["data"] for file in data["files"]}
+    changed_totals = check_changed_coverage(lcov, changed, sources, executable_counts)
     (out / "summary.json").write_text(json.dumps(summaries, indent=2) + "\n")
-    evidence = {"rustc": version, "coverage": summaries, "sources": {
+    evidence = {"rustc": version, "coverage": summaries, "changed_lines": changed_totals, "sources": {
         str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
         for paths in sources.values() for path in paths
     }}
     (out / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n")
     print(json.dumps(summaries, indent=2))
+    print("Changed executable lines:", json.dumps(changed_totals))
 
 
 def staged():
@@ -115,7 +222,10 @@ def staged():
     with tempfile.TemporaryDirectory(prefix="gz-sim-index-") as directory:
         archive = run(["git", "archive", "--format=tar", tree], capture_output=True).stdout
         subprocess.run(["tar", "-xf", "-", "-C", directory], input=archive, check=True)
-        subprocess.run([sys.executable, str(Path(directory) / "scripts/verify.py")], cwd=directory, check=True)
+        changed = changed_sources({}, index=True)
+        manifest = Path(directory) / "changed-lines.json"
+        manifest.write_text(json.dumps({path: sorted(lines) for path, lines in changed.items()}))
+        subprocess.run([sys.executable, str(Path(directory) / "scripts/verify.py"), "--changed-lines", str(manifest)], cwd=directory, check=True)
         if run(["git", "write-tree"], capture_output=True, text=True).stdout.strip() != tree:
             raise ValueError("index changed during verification")
 
@@ -124,6 +234,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--staged", action="store_true")
     parser.add_argument("--coverage-only", action="store_true")
+    parser.add_argument("--changed-lines", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.staged:
         staged()
@@ -133,7 +244,7 @@ def main():
         run(["cargo", "clippy", "--locked", "--workspace", "--all-targets", "--", "-D", "warnings"])
         run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"])
         run(["cargo", "test", "--locked", "--workspace", "--doc"])
-    coverage()
+    coverage(args.changed_lines)
 
 
 if __name__ == "__main__":

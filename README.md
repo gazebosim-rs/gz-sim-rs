@@ -13,6 +13,18 @@ it checks an isolated copy of the staged tree. Rust 1.95.0 is pinned.
 The [scene contract](docs/SCENE.md) describes the working SDF-to-ECS path and its
 explicit limitations. Run `cargo test --locked -p gz-sim-scene` to exercise it.
 
+Run the headless scene example with:
+
+```sh
+cargo run --locked -p gz-sim-cli -- crates/gz-sim-scene/tests/fixtures/fall.sdf --iterations 100
+```
+
+The new `gz-sim-rs` command prints simulation time and sorted link positions.
+It is limited to the scene contract above; legacy CLI compatibility remains open.
+The [live progress dashboard](https://gazebosim-rs.github.io/rewrite-progress/)
+tracks accepted increments, current development, remaining scope and evidence
+across all five repositories. Repository agents publish their own updates.
+
 The design combines the responsibilities of `gz-sim`, `gz-sensors`, `gz-physics`,
 and the necessary parts of `gz-math` in one Cargo workspace. Bevy supplies the ECS
 and renderer. Existing Rust libraries replace general-purpose Gazebo utilities.

@@ -142,6 +142,11 @@ domain policies this project must implement.
 [quick-xml](https://docs.rs/quick-xml/latest/quick_xml/),
 [cxx](https://cxx.rs/), [libloading](https://docs.rs/libloading/latest/libloading/).
 
+The initial headless command uses [clap 4.6.7](https://docs.rs/clap/4.6.7/clap/)
+with derive support, pinned in Cargo.lock. It handles typed arguments, generated
+help/version and argument errors. No custom argument parser or command dispatch
+framework is introduced. Existing Gazebo command grammar remains CLI-01 work.
+
 ## Dependency controls
 
 P1 creates a compatibility manifest for Bevy, Rust/MSRV, native engines, protobuf

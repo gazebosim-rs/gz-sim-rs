@@ -22,6 +22,7 @@ the coordinator and the three available repository agents.
 | gz-physics-rapier | Full-f64 sphere/box dynamics, full inertia tensors, static bodies, world impulses, Z-up gravity, stable local IDs, reset/removal, numeric validation | Articulations, forces, capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation with f64 glam math | Rates, seeds/noise, frame configuration, publication and other sensor families |
 | gz-sim-scene | Atomic SDF loading, link/sensor ECS entities, physics snapshots, centered every-step IMU, initial orientation reference, reset synchronization | Full hierarchy/model entities, joints, offset/multiple shapes, sensor scheduling, external publication |
+| gz-sim-cli | Headless self-contained SDF input, integer step count/duration, sorted final state, actionable argument/load/overflow errors | Legacy command grammar, transport control, resource resolution, signal handling and packaging |
 
 The Rapier backend is an initial capability probe, not the final physics contract.
 Its rigid bodies live in an ECS resource, with link state copied into components
@@ -49,7 +50,7 @@ core 124/125 lines and 139/144 regions; Rapier 126/126 and 189/190; sensors 26/2
 and 45/45. Fresh machine-readable counts, source hashes, toolchain identity,
 and test logs are emitted under `artifacts/coverage`. Counts are observations,
 not fixed targets. These gates are the current profile only: release feature
-matrices, native/shader coverage, changed-line enforcement, fuzzing, benchmarks,
+matrices, native/shader coverage, fuzzing, benchmarks,
 and branch protection from TESTING.md remain pending. An owned build script
 requires gate support for forced execution and object collection before acceptance.
 
@@ -57,8 +58,24 @@ The integrated four-crate run passes 23 Rust tests and four gate tests, with
 597/599 production lines and 867/880 regions covered. Every crate independently
 exceeds 95% in both metrics. The SDF dependency is pinned to an immutable reviewed
 Git revision; its own coverage and upstream-test obligations remain in that repo.
-Hosted CI passed the initial simulator implementation, run40106916944; subsequent
-commits need their own hosted results.
+Hosted CI passed the initial simulator implementation, run40106916944, and
+the integrated scene revision f0eeb2a, run40108767785. Subsequent commits need
+their own hosted results.
+
+The five-crate CLI run passes 28 Rust tests and nine gate tests, with 632/634
+production lines and 925/939 regions covered; each crate independently passes.
+A whole-request timestamp overflow test verifies rejection before execution.
+Coverage instrumentation now applies only to owned workspace crates, avoiding
+irrelevant dependency profile collisions. LLVM warnings are fatal. Independent
+repositories retain their own coverage obligations; this does not exclude any
+owned source or add a coverage exemption.
+
+Changed executable lines must also exceed 95% per crate. LCOV line counts are
+matched to added/changed lines in the exact staged diff; deleted and nonexecutable
+lines do not invent coverage. New untracked production files count in local runs.
+CI compares the full push or pull-request base, with full Git history available.
+Regression tests reject exactly 95%, cross-crate masking, missing/duplicate sources
+and line records, empty executable mappings and malformed hunks. The CLI currently covers all 33 changed executable lines.
 
 The existing local C++ gz-math build passes all 188 CTest entries (including
 result wrappers and Python tests; these are not 188 distinct gtest cases).
