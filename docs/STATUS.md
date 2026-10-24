@@ -101,6 +101,18 @@ and floating-point identity issues. Both have regression tests and were re-revie
 
 ## Next acceptance sequence
 
+The current LOAD-01 integration task adopts reviewed sdformat-rs revision
+8109265 and its explicit non-frame pose validator. Owned files are the workspace
+dependency pin/lock, scene loader and scene regression tests. DOM parsing may
+defer invalid collision/visual/sensor references; the simulator validates all
+non-frame poses before constructing ECS or physics state. The inertial reference
+check is an explicit simulator policy, not a claim about native ResolveInertial.
+All seven scene tests and the strict workspace gate pass: 30 Rust tests, nine
+gate tests, 633/635 lines and 928/942 regions. Each production crate exceeds 95%
+in both metrics. The SDF owner independently reviewed the pin and consumer
+semantics and reran all seven scene tests. These are new integration checks;
+no original upstream test is retired. Hosted results are reported separately.
+
 1. Finish reproducible reference execution and assertion inventories (P0/REF-01).
 2. Integrate typed SDF, ECS scene construction, physics, IMU, and transport into
    one exact-step world with real legacy clients (SLICE-01).

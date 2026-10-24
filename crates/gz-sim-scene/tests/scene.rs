@@ -295,3 +295,67 @@ fn arbitrary_world_rotation_and_quaternion_sign_do_not_create_local_offsets() {
     assert!(glam::DQuat::from_array(reading.orientation).abs_diff_eq(glam::DQuat::IDENTITY, 1e-12));
     assert!(reading.specific_force.iter().all(|v| v.abs() < 1e-10));
 }
+
+#[test]
+fn deferred_sdf_pose_errors_are_rejected_before_scene_construction() {
+    let mut existing = load(WORLD).unwrap();
+    existing.step_exact(3).unwrap();
+    let missing = "<pose relative_to='missing'>0 0 0 0 0 0</pose>";
+    let cases = [
+        (
+            "<collision name=\"shape\">",
+            format!("<collision name=\"shape\">{missing}"),
+        ),
+        ("<always_on>true</always_on>", missing.to_owned()),
+        ("<mass>2</mass>", format!("<mass>2</mass>{missing}")),
+        (
+            "<link name=\"body\">",
+            format!("<link name=\"body\"><visual name='v'>{missing}</visual>"),
+        ),
+    ];
+    for (from, to) in cases {
+        let xml = WORLD.replace(from, &to);
+        // DOM loading accepts these; scene validation also checks inertial references,
+        // which native ResolveInertial currently ignores.
+        sdformat::load_str(&xml, "fall.sdf", &NoResources).unwrap();
+        let error = load(&xml).err().unwrap();
+        assert!(matches!(error, LoadError::Sdf(_)), "{error}");
+        assert!(error.to_string().contains("missing"), "{error}");
+    }
+    assert_eq!(existing.elapsed(), Duration::from_millis(3));
+    existing.step_exact(1).unwrap();
+    assert_eq!(existing.elapsed(), Duration::from_millis(4));
+}
+
+#[test]
+fn retained_legacy_sdf_worlds_reach_the_same_physics_and_sensor_state() {
+    for version in ["1.6", "1.7"] {
+        let xml = WORLD.replace("version=\"1.12\"", &format!("version=\"{version}\""));
+        assert_ne!(xml, WORLD);
+        let mut sim = load(&xml).unwrap();
+        sim.step_exact(100).unwrap();
+        let pose = sim
+            .world_mut()
+            .query::<(&Name, &WorldPose)>()
+            .iter(sim.world())
+            .find(|(name, _)| name.0 == "default::ball::body")
+            .unwrap()
+            .1;
+        assert!((pose.translation[2] - 4.95095).abs() < 0.001);
+        let sample = sim
+            .world_mut()
+            .query::<&ImuSample>()
+            .single(sim.world())
+            .unwrap();
+        assert_eq!(sample.time, Duration::from_millis(100));
+        assert!(
+            sample
+                .reading
+                .as_ref()
+                .unwrap()
+                .specific_force
+                .iter()
+                .all(|v| v.abs() < 1e-10)
+        );
+    }
+}

@@ -105,6 +105,7 @@ pub fn load_world(
     resolver: &dyn ResourceResolver,
 ) -> Result<Simulation, LoadError> {
     let sdf = sdformat::load_str(xml, source, resolver)?;
+    sdf.validate_non_frame_poses()?;
     let world = sdf
         .worlds
         .iter()
