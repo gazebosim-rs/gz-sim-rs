@@ -58,6 +58,7 @@ struct Node {
     attached: bool,
     imu: Option<Imu>,
     publication: Option<ImuPublication>,
+    visual: Option<VisualProperties>,
 }
 
 enum InitialPhysics {
@@ -112,6 +113,7 @@ pub(super) fn capture(sim: &mut Simulation) {
             attached: entity.contains::<AttachedPose>(),
             imu: entity.get::<Imu>().cloned(),
             publication: entity.get::<ImuPublication>().cloned(),
+            visual: entity.get::<VisualProperties>().cloned(),
         });
     }
     nodes.sort_by_key(|node| node.id.get());
@@ -274,6 +276,9 @@ pub fn reset_loaded_world<R>(
         }
         if let Some(imu) = &node.imu {
             entity.insert(imu.clone());
+        }
+        if let Some(visual) = &node.visual {
+            entity.insert(visual.clone());
         }
         if let Some(publication) = &node.publication {
             entity.insert(publication.clone());

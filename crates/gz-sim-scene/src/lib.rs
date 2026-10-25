@@ -52,6 +52,10 @@ pub enum EntityKind {
     Sensor,
 }
 
+/// Owned visual/lidar metadata. Rendering and lidar effects are separate systems.
+#[derive(Component, Debug, Clone)]
+pub struct VisualProperties(pub sdformat::VisualProperties);
+
 #[derive(Component, Debug)]
 pub struct LocalName(pub String);
 
@@ -421,15 +425,18 @@ fn build_model(
             .expect("loader assigned the link identity")
             .get();
         context.links.insert(name.clone(), link_id);
-        for (child_name, child_pose, kind) in link
+        for (child_name, child_pose, kind, visual) in link
             .collisions
             .iter()
-            .map(|child| (&child.name, &child.pose, EntityKind::Collision))
-            .chain(
-                link.visuals
-                    .iter()
-                    .map(|child| (&child.name, &child.pose, EntityKind::Visual)),
-            )
+            .map(|child| (&child.name, &child.pose, EntityKind::Collision, None))
+            .chain(link.visuals.iter().map(|child| {
+                (
+                    &child.name,
+                    &child.pose,
+                    EntityKind::Visual,
+                    Some(&child.properties),
+                )
+            }))
         {
             let local = sdf.resolve_pose(child_pose, &model.scoped_name, name, name)?;
             let world = sdf.resolve_pose(child_pose, &model.scoped_name, name, context.world)?;
@@ -442,6 +449,11 @@ fn build_model(
                 world,
             )?;
             sim.world_mut().entity_mut(entity).insert(AttachedPose);
+            if let Some(properties) = visual {
+                sim.world_mut()
+                    .entity_mut(entity)
+                    .insert(VisualProperties(properties.clone()));
+            }
         }
         for sensor in &link.sensors {
             let name = format!("{}::{}", link.scoped_name, sensor.name);

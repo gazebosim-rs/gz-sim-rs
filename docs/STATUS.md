@@ -37,11 +37,11 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 138 Rust checks and nine gate tests, including all
-seven actual C++ client scenarios. Coverage is 2186/2212 production lines and
-3373/3455 regions. Every production crate exceeds 95% for both metrics. The contact
-increment covers TPE 101/102 and scene 68/69 changed executable lines. TPE coverage
-is 187/188 lines and 277/278 regions; scene 851/875 and 1315/1379.
+The current local gate passes 139 Rust checks and nine gate tests, including all
+seven actual C++ client scenarios. Coverage is 2198/2225 production lines and
+3389/3475 regions. Every production crate exceeds 95% for both metrics. The SDF adoption
+increment covers all 19 changed executable scene lines. Scene coverage is 863/888
+lines and 1331/1399 regions; the prior contact gates remain required.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 

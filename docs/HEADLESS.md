@@ -135,7 +135,7 @@ and backend inventories, Bevy rendering and release qualification remain open.
 
 ## Reviewed producer integration
 
-The workspace pins SDF e59a674d, messages 195644d8 and transport c00de5e4.
+The workspace pins SDF 80b6c74a, messages 195644d8 and transport c00de5e4.
 SDF supplies canonical-link selection directly: the returned link is borrowed from
 that model's subtree, whose links are all constructed before the model anchor.
 The body lookup is consequently an internal construction invariant. No parallel
@@ -155,7 +155,7 @@ The transport pin rejects duplicate same-node publishers and orders withdrawal
 before immediate recreation. Surviving stream leases are retained during
 reset; recreation after removal has a native-tested producer contract.
 Consumer tests cover frame-field precedence, empty legacy IDs, topic defaults and
-XML whitespace, explicit unsupported surfaces and all six real C++ scenarios.
+XML whitespace, explicit unsupported surfaces and all seven real C++ scenarios.
 
 
 World-bound identity reservations now permit explicitly restoring an original
@@ -230,3 +230,13 @@ for the bounded kinematic TPE path described in [TPE_SCENE.md](TPE_SCENE.md).
 Default Rapier behavior is retained. The seventh real C++ scenario verifies TPE
 clock/pose/IMU/control/removal/reset interoperability; it does not close native
 TPE contacts, commands, nested models or the complete P2 comparison.
+
+The current SDF pin exposes reviewed pure model.config selection, merged-include
+and terrain metadata subsets. Collision geometry capability guards remain in the
+loader. Visual cast-shadows, transparency, visibility flags and optional laser
+retro metadata are now owned by ECS components and the loaded-reset blueprint;
+parsing them does not implement rendering or lidar effects. A removal/reset
+regression preserves nondefault values and distinguishes Some(0) laser retro.
+The config selector is preparation for a bounded filesystem/offline cache consumer;
+selecting a filename is not a resource lookup or a promise that its SDF version
+can be loaded. Local/offline resource resolution remains under implementation.
