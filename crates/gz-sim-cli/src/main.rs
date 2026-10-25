@@ -34,8 +34,9 @@ struct Args {
     world: String,
     #[arg(long, default_value_t = 1000)]
     iterations: u64,
-    #[arg(long, default_value = "1000000")]
-    step_ns: NonZeroU64,
+    /// Override the SDF physics step, in nanoseconds.
+    #[arg(long)]
+    step_ns: Option<NonZeroU64>,
 }
 
 fn parse_engine(value: &str) -> Result<PhysicsEngine, String> {
@@ -72,14 +73,24 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
     resolver.set_warning_limit(args.max_resource_warnings);
     let loaded = (|| -> Result<_, Box<dyn Error>> {
         let resource = resolver.read_path(&args.file)?;
-        Ok(gz_sim_scene::load_world_with_engine(
-            &resource.xml,
-            &resource.canonical_uri,
-            &args.world,
-            Duration::from_nanos(args.step_ns.get()),
-            &resolver,
-            args.physics_engine,
-        )?)
+        Ok(if let Some(step) = args.step_ns {
+            gz_sim_scene::load_world_with_engine(
+                &resource.xml,
+                &resource.canonical_uri,
+                &args.world,
+                Duration::from_nanos(step.get()),
+                &resolver,
+                args.physics_engine,
+            )?
+        } else {
+            gz_sim_scene::load_world_with_sdf_step(
+                &resource.xml,
+                &resource.canonical_uri,
+                &args.world,
+                &resolver,
+                args.physics_engine,
+            )?
+        })
     })();
     for warning in resolver.take_warnings()? {
         eprintln!("resource warning: {warning:?}");

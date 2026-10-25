@@ -318,3 +318,77 @@ fn offline_fuel_cache_override_and_environment_drive_both_headless_engines() {
             .contains("no usable cached Fuel model")
     );
 }
+
+#[test]
+fn sdf_first_profile_step_and_explicit_cli_override_have_clear_precedence() {
+    let temp = tempfile::TempDir::new().unwrap();
+    let path = temp.path().join("physics.sdf");
+    std::fs::write(&path, "<sdf version='1.12'><world name='default'><physics name='first' type='ode'><max_step_size>0.002</max_step_size><real_time_factor>0</real_time_factor></physics><physics name='marked' type='custom' default='true'><max_step_size>0.005</max_step_size></physics></world></sdf>").unwrap();
+    for engine in ["rapier", "tpe"] {
+        for (override_step, expected_ns) in [(None, 6_000_000), (Some("3000000"), 9_000_000)] {
+            let mut cmd = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"));
+            cmd.arg(&path)
+                .args(["--physics-engine", engine, "--iterations", "3"]);
+            if let Some(step) = override_step {
+                cmd.args(["--step-ns", step]);
+            }
+            let result = cmd.output().unwrap();
+            assert!(
+                result.status.success(),
+                "{}",
+                String::from_utf8_lossy(&result.stderr)
+            );
+            assert_eq!(
+                String::from_utf8(result.stdout).unwrap(),
+                format!("simulation_ns={expected_ns} iterations=3\n")
+            );
+            assert!(result.stderr.is_empty());
+        }
+    }
+    let invalid = "<sdf version='1.12'><world name='default'><physics name='zero' type='ode'><max_step_size>0</max_step_size></physics></world></sdf>";
+    std::fs::write(&path, invalid).unwrap();
+    let result = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
+        .arg(&path)
+        .output()
+        .unwrap();
+    assert_eq!(result.status.code(), Some(1));
+    assert!(result.stdout.is_empty());
+    assert!(
+        String::from_utf8(result.stderr)
+            .unwrap()
+            .contains("unrepresentable physics step")
+    );
+    let result = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
+        .arg(&path)
+        .args(["--step-ns", "3000000", "--iterations", "3"])
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert_eq!(
+        String::from_utf8(result.stdout).unwrap(),
+        "simulation_ns=9000000 iterations=3\n"
+    );
+    assert_eq!(std::fs::read_to_string(&path).unwrap(), invalid);
+    std::fs::write(&path, "<sdf version='1.12'><world name='default'><physics name='limited' type='ode'><max_contacts>1</max_contacts></physics></world></sdf>").unwrap();
+    for engine in ["rapier", "tpe"] {
+        for explicit_override in [false, true] {
+            let mut cmd = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"));
+            cmd.arg(&path).args(["--physics-engine", engine]);
+            if explicit_override {
+                cmd.args(["--step-ns", "3000000"]);
+            }
+            let result = cmd.output().unwrap();
+            assert_eq!(result.status.code(), Some(1));
+            assert!(result.stdout.is_empty());
+            assert!(
+                String::from_utf8(result.stderr)
+                    .unwrap()
+                    .contains("physics maximum contacts")
+            );
+        }
+    }
+}

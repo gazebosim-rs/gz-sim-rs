@@ -14,7 +14,7 @@ bevy_ecs = { version = "=0.20.0", default-features = false, features = ["std", "
 thiserror = "=2.0.18"
 glam = "=0.33.12"
 clap = { version = "=4.6.7", features = ["derive"] }
-sdformat = { git = "https://github.com/gazebosim-rs/sdformat-rs", rev = "80b6c74a5fc69574fdac592eeb10b1111f789871" }
+sdformat = { git = "https://github.com/gazebosim-rs/sdformat-rs", rev = "7ed5ad02ac12185e071d0ab358de1adad61418e8" }
 gz-msgs = { git = "https://github.com/gazebosim-rs/gz-msgs-rs", rev = "e2001a3bc5b54cb15ea1cc16deaefdf14719b2df" }
 gz-transport = { git = "https://github.com/gazebosim-rs/gz-transport-rs", rev = "2032012921d85cf40ca1b35d09bed617e1818802" }
 rapier3d-f64 = { version = "=0.36.1", features = ["enhanced-determinism"] }

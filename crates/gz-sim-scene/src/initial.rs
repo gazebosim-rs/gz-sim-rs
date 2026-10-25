@@ -70,6 +70,7 @@ struct Blueprint {
     nodes: Vec<Node>,
     physics: InitialPhysics,
     gravity: [f64; 3],
+    world_physics: Option<crate::WorldPhysics>,
 }
 
 #[derive(Resource)]
@@ -125,6 +126,7 @@ pub(super) fn capture(sim: &mut Simulation) {
             InitialPhysics::Tpe(world.resource::<tpe::TpeWorld>().0.clone())
         },
         gravity: world.resource::<Gravity>().0,
+        world_physics: world.get_resource::<crate::WorldPhysics>().cloned(),
     };
     sim.world_mut()
         .insert_resource(InitialScene(Arc::new(initial)));
@@ -311,6 +313,11 @@ pub fn reset_loaded_world<R>(
             .expect("exclusive transaction retained the preflighted backend");
     }
     world.insert_resource(Gravity(initial.gravity));
+    if let Some(metadata) = &initial.world_physics {
+        world.insert_resource(metadata.clone());
+    } else {
+        world.remove_resource::<crate::WorldPhysics>();
+    }
     removed_ids.sort_unstable();
     world.insert_resource(SceneResetInfo {
         previous_time,

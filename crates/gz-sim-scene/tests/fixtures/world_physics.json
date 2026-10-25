@@ -1,0 +1,29 @@
+[
+  {
+    "name": "implicit",
+    "xml": "<sdf version='1.12'><world name='default'/></sdf>",
+    "native": {
+      "time_ns": 3000000,
+      "dt_ns": 1000000,
+      "iterations": 3
+    }
+  },
+  {
+    "name": "first-not-marked",
+    "xml": "<sdf version='1.12'><world name='default'><physics name='first' type='ode'><max_step_size>0.002</max_step_size><real_time_factor>0</real_time_factor></physics><physics name='marked' type='ode' default='true'><max_step_size>0.005</max_step_size><real_time_factor>0</real_time_factor></physics></world></sdf>",
+    "native": {
+      "time_ns": 6000000,
+      "dt_ns": 2000000,
+      "iterations": 3
+    }
+  },
+  {
+    "name": "fractional-ns",
+    "xml": "<sdf version='1.12'><world name='default'><physics name='tiny' type='ode'><max_step_size>0.0000000019</max_step_size><real_time_factor>0</real_time_factor></physics></world></sdf>",
+    "native": {
+      "time_ns": 3,
+      "dt_ns": 1,
+      "iterations": 3
+    }
+  }
+]

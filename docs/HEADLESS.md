@@ -122,21 +122,24 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current full gate passes 163 Rust checks and twelve gate tests, including all
-nine real C++ scenarios: 2422/2450 production lines and 3789/3883 regions. Every
-production crate strictly exceeds 95% for both metrics. The sampling-cadence
-increment covers all 56 changed executable scene lines. Independent review and the
-exact staged gate remain required before publication.
+The current full gate passes 168 Rust checks and twelve gate tests, including all
+nine real C++ scenarios: 2477/2507 production lines and 3856/3951 regions. Every
+production crate strictly exceeds 95% for both metrics. The world-profile
+increment covers 49/49 changed executable scene lines and 16/16 CLI lines.
+Independent review and the exact staged gate remain required before publication.
 
-Remaining P2 work includes remaining TPE capabilities, full resource/download behavior, remaining sensor/noise contracts, the
-simple-joint variant and velocity/force input required by PLAN.md, plus the
-equal-work C++ comparison/performance report. The complete articulation, system
-and backend inventories, Bevy rendering and release qualification remain open.
+Remaining P2 work is the selected fixture's simple-joint variant and velocity/force
+input, plus its equal-work C++ comparison/performance report and exact retained
+assertions. Local resources and noise-free IMU are the current slice's supported
+scope. Full downloads, sensor noise and remaining TPE capabilities stay open in
+the wider plan; they are not added prerequisites for this selected P2 fixture.
+Complete articulations, system/backend inventories, Bevy rendering and release
+qualification also remain open.
 
 
 ## Reviewed producer integration
 
-The workspace pins SDF 80b6c74a, messages e2001a3b, transport 20320129 and Fuel 3747086e.
+The workspace pins SDF 7ed5ad02, messages e2001a3b, transport 20320129 and Fuel 3747086e.
 SDF supplies canonical-link selection directly: the returned link is borrowed from
 that model's subtree, whose links are all constructed before the model anchor.
 The body lookup is consequently an internal construction invariant. No parallel
@@ -264,3 +267,31 @@ continue every tick. The server publishes only a new (epoch, timestamp) sample;
 slow samples are not duplicated between acquisitions. Two additional real C++
 cases verify 10 Hz acquisition and reset sequences on Rapier and TPE; all seven
 previous cases remain. See SENSOR_SCHEDULING.md for controls and limitations.
+
+
+## World physics profile and timestep
+
+`load_world_with_sdf_step` parses once and selects the first declared physics
+profile, matching pinned `SimulationRunner.cc:168–178`. The DOM default flag does
+not change this choice. An absent declaration supplies the implicit 1 ms profile.
+The CLI now uses this step unless `--step-ns` overrides it; the existing explicit
+Duration constructors retain their override behavior.
+
+SDF seconds convert to integer Linux nanoseconds by truncation. Used steps below
+1 ns, nonfinite values and signed-nanosecond overflow fail before construction;
+no clamping or implicit fallback is performed. An explicit override can bypass
+an unused invalid metadata step. Nondefault maximum-contact limits are rejected
+until a backend capability implements them. Exact stepping remains unpaced;
+real-time factor and update-rate fields are metadata, with no wall-clock pacing
+or runtime profile-change claim.
+
+`WorldPhysics` owns all profiles and the optional override. Editing/removing this
+resource does not reconfigure a live clock or solver. Loaded reset restores the
+original metadata without rereading includes. Three fresh native Server controls
+(default, first-vs-marked profile and fractional-nanosecond truncation) match both
+Rust backends; `planning/reference/world-physics.json` records source, binary,
+fixture, compiler and loaded-library hashes. Native plugins were explicitly
+disabled: these controls establish clock selection, not physics/sensor parity or
+performance. Existing installed dependencies/build provenance remains qualified.
+New tests also cover metadata ownership, reset, single include resolution,
+invalid boundaries and CLI override precedence. No original test is retired.

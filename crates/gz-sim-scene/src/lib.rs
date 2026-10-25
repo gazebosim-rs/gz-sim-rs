@@ -56,6 +56,21 @@ pub enum EntityKind {
     Sensor,
 }
 
+/// Loaded profiles and the caller's explicit step override. Exact stepping is unpaced.
+/// Editing this metadata does not reconfigure the running backend or clock.
+#[derive(Resource, Debug, Clone)]
+pub struct WorldPhysics {
+    pub profiles: Vec<sdformat::Physics>,
+    pub step_override: Option<Duration>,
+}
+
+impl WorldPhysics {
+    /// Gazebo's runner uses the first declaration, independently of the DOM default flag.
+    pub fn selected(&self) -> Option<&sdformat::Physics> {
+        self.profiles.first()
+    }
+}
+
 /// Owned visual/lidar metadata. Rendering and lidar effects are separate systems.
 #[derive(Component, Debug, Clone)]
 pub struct VisualProperties(pub sdformat::VisualProperties);
@@ -227,6 +242,29 @@ pub fn load_world_with_engine(
     resolver: &dyn ResourceResolver,
     engine: PhysicsEngine,
 ) -> Result<Simulation, LoadError> {
+    load_world_configured(xml, source, world_name, Some(step), resolver, engine)
+}
+
+/// Uses the first SDF physics profile's step without adding wall-clock pacing.
+/// Nondefault contact limits require a backend capability not yet implemented.
+pub fn load_world_with_sdf_step(
+    xml: &str,
+    source: &str,
+    world_name: &str,
+    resolver: &dyn ResourceResolver,
+    engine: PhysicsEngine,
+) -> Result<Simulation, LoadError> {
+    load_world_configured(xml, source, world_name, None, resolver, engine)
+}
+
+fn load_world_configured(
+    xml: &str,
+    source: &str,
+    world_name: &str,
+    step_override: Option<Duration>,
+    resolver: &dyn ResourceResolver,
+    engine: PhysicsEngine,
+) -> Result<Simulation, LoadError> {
     let sdf = sdformat::load_str(xml, source, resolver)?;
     sdf.validate_non_frame_poses()?;
     let world = sdf
@@ -235,7 +273,34 @@ pub fn load_world_with_engine(
         .find(|world| world.name == world_name)
         .ok_or_else(|| LoadError::MissingWorld(world_name.into()))?;
     require(world.plugins.is_empty(), world_name, "world plugins")?;
+    // The pinned parser supplies an implicit profile when none is declared.
+    let profile = world
+        .physics
+        .first()
+        .expect("SDF supplies a physics profile");
+    let profile_name = format!("{world_name}::physics::{}", profile.name);
+    require(
+        profile.max_contacts == 20,
+        &profile_name,
+        "physics maximum contacts",
+    )?;
+    let step = match step_override {
+        Some(step) => step,
+        None => {
+            let nanoseconds = profile.max_step_size * 1_000_000_000.0;
+            require(
+                nanoseconds.is_finite() && nanoseconds >= 1.0 && nanoseconds < i64::MAX as f64,
+                &profile_name,
+                "unrepresentable physics step",
+            )?;
+            Duration::from_nanos(nanoseconds as u64)
+        }
+    };
     let mut sim = Simulation::new(step)?;
+    sim.world_mut().insert_resource(WorldPhysics {
+        profiles: world.physics.clone(),
+        step_override,
+    });
     let mut backend = match engine {
         PhysicsEngine::Rapier => Some(RapierBackend::new(world.gravity)?),
         PhysicsEngine::Tpe => None,

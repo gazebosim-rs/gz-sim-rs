@@ -38,13 +38,13 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 163 Rust checks and twelve gate tests, including all
-nine actual C++ client scenarios. Coverage is 2422/2450 production lines and
-3789/3883 regions. Every production crate exceeds 95% for both metrics. The
-sampling-cadence increment covers all 56 changed executable scene lines.
-Scene coverage is 913/938 lines and 1395/1463 regions. No coverage exclusions or
-thresholds changed. Final independent source/assertion review and the exact
-staged hook remain required before publication.
+The current local gate passes 168 Rust checks and twelve gate tests, including all
+nine actual C++ client scenarios. Coverage is 2477/2507 production lines and
+3856/3951 regions. Every production crate exceeds 95% for both metrics. The
+world-profile increment covers 49/49 changed executable scene lines and 16/16 CLI
+lines. Scene coverage is 960/987 lines and 1453/1522 regions. No coverage
+exclusions or thresholds changed. Final independent review and the exact staged
+hook remain required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
 Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
@@ -93,11 +93,12 @@ The separate core reset remains limited to retained domain state. Remote reset
 now composes control ordering, real time and stream reconstruction. SCENE_RESET.md
 and SERVER_RESET.md record supported boundaries, cancellation differences and ports.
 
-Next: integrate TPE, local/Fuel resources and sensor scheduling, and complete
-the first slice's simple-joint variant and velocity/force inputs. Record the
-equal-work reference comparison and performance report for P2. Then
-complete the retained backend, sensor/system, rendering, plugin, packaging and
-release matrices. CORE-02, full IO-01 and P2 are still open.
+Next: complete the first slice's simple-joint variant and velocity/force inputs,
+then its equal-work reference comparison/performance report and selected-fixture
+assertions for P2. Full downloads and sensor noise remain wider-plan work, rather
+than additional prerequisites for this local-resource, noise-free IMU fixture.
+Then complete the retained backend, sensor/system, rendering, plugin, packaging
+and release matrices. CORE-02, full IO-01 and P2 are still open.
 
 ## Offline Fuel integration
 
@@ -143,3 +144,14 @@ that previously failed because export-ignore hid a staged file now passes. A
 tracked changed-lines.json also survives unchanged; generated metadata stays
 outside the exported source. Checkout conversion and deliberate snapshot mutations
 fail closed. Simulator Rust and its native/coverage requirements are unchanged.
+
+
+## World physics configuration
+
+The CLI uses the first SDF physics profile's timestep when no explicit override
+is supplied. Existing Duration APIs remain explicit overrides. Owned WorldPhysics
+metadata survives loaded reset without IO. Three fresh native Server clock rows
+match both backends; plugins were disabled, so this is clock/configuration
+evidence only. Nondefault contact limits fail explicitly, and exact stepping
+remains unpaced. Runtime profile changes and backend-specific settings remain
+open. See HEADLESS.md and planning/reference/world-physics.json.
