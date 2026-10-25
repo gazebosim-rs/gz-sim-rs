@@ -127,7 +127,7 @@ lines and 2884/2932 regions. Every production crate exceeds 95% for both metrics
 The reported-fault increment covers all 57 changed executable lines. Independent review and the exact
 staged gate are required before publishing this increment.
 
-Remaining P2 work includes TPE, local/Fuel resources, sensor scheduling, the
+Remaining P2 work includes remaining TPE capabilities, offline Fuel resources, sensor scheduling, the
 simple-joint variant and velocity/force input required by PLAN.md, plus the
 equal-work C++ comparison/performance report. The complete articulation, system
 and backend inventories, Bevy rendering and release qualification remain open.
@@ -239,4 +239,10 @@ parsing them does not implement rendering or lidar effects. A removal/reset
 regression preserves nondefault values and distinguishes Some(0) laser retro.
 The config selector is preparation for a bounded filesystem/offline cache consumer;
 selecting a filename is not a resource lookup or a promise that its SDF version
-can be loaded. Local/offline resource resolution remains under implementation.
+can be loaded. Local files/configured includes are handled by [LOCAL_ASSETS.md](LOCAL_ASSETS.md);
+offline Fuel cache integration remains under implementation.
+
+The CLI's local loader supports `--resource-path`, `--max-xml-bytes` and
+`--max-resource-warnings`. Directory inputs must select a world; model directories
+are supported as include resources. No filesystem or network wait is added to a
+simulation step. SDK install paths and Fuel/cache lookup remain separate work.

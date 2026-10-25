@@ -11,8 +11,11 @@ path = "src/main.rs"
 
 [dependencies]
 clap.workspace = true
-sdformat.workspace = true
+gz-assets = { path = "../gz-assets" }
 gz-sim-scene = { path = "../gz-sim-scene" }
+
+[dev-dependencies]
+tempfile = "=3.25.0"
 
 [lints]
 workspace = true

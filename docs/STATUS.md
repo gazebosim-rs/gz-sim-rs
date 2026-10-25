@@ -15,13 +15,14 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 
 | Crate | Behavior | Remaining boundary |
 | --- | --- | --- |
+| gz-assets | Bounded local files/configured directories, native include lookup precedence, lossless source IDs and structured warnings | Offline Fuel, SDK/install/package policy and decoded resource caching |
 | gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, typed terminal fault diagnostics, world/allocator-bound reset reservations, isolated worlds | Persistence and complete lifecycle contract |
 | gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
 | gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation, model overlap contacts and typed faults | Remaining geometry/commands and D23 policy |
 | gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, asset resolution and scheduling |
-| gz-sim-cli | Self-contained SDF input, Rapier/TPE selection, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, resource resolution, signal handling and packaging |
+| gz-sim-cli | Local SDF/configured world input and include roots, Rapier/TPE selection, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, offline Fuel resources, signal handling and packaging |
 | gz-sim-server | Bounded clock/pose publication, shared-topic IMU streams, polled pause/step/reset controls, deferred remove services, real C++ clients | Root clock election, run-to controls, scene services and runtime sensor registration |
 
 Rust 1.95.0, Bevy ECS 0.20.0, Rapier3d-f64 0.36.1 and glam 0.33.12 are pinned.
@@ -37,11 +38,12 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 139 Rust checks and nine gate tests, including all
-seven actual C++ client scenarios. Coverage is 2198/2225 production lines and
-3389/3475 regions. Every production crate exceeds 95% for both metrics. The SDF adoption
-increment covers all 19 changed executable scene lines. Scene coverage is 863/888
-lines and 1331/1399 regions; the prior contact gates remain required.
+The current local gate passes 151 Rust checks and nine gate tests, including all
+seven actual C++ client scenarios. Coverage is 2352/2380 production lines and
+3677/3771 regions. Every production crate exceeds 95% for both metrics. The local-resource
+increment covers assets 124/125 and CLI 29/29 changed executable lines. Assets
+coverage is 132/133 lines and 245/250 regions; the prior physics/scene gates remain
+required.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 

@@ -31,6 +31,7 @@ fn help_version_and_argument_errors_are_actionable() {
     for args in [
         &[][..],
         &[fixture(), "--step-ns", "0"],
+        &[fixture(), "--max-xml-bytes", "0"],
         &[fixture(), "--iterations", "invalid"],
         &[fixture(), "--unknown"],
     ] {
@@ -149,4 +150,115 @@ fn tpe_selection_preserves_headless_output_and_rejects_unknown_engines() {
             .contains("expected rapier or tpe")
     );
     assert!(result.stdout.is_empty());
+}
+
+#[test]
+fn local_model_directory_includes_and_budgets_work_through_the_cli() {
+    let temp = tempfile::TempDir::new().unwrap();
+    let world = temp.path().join("world");
+    let models = temp.path().join("models");
+    let robot = models.join("local_fixture_robot");
+    std::fs::create_dir_all(&world).unwrap();
+    std::fs::create_dir_all(&robot).unwrap();
+    std::fs::write(world.join("model.config"),"<model><name>w</name><sdf version='1.12'>world.sdf</sdf><sdf version='9.0'>future.sdf</sdf></model>").unwrap();
+    std::fs::write(world.join("world.sdf"),"<sdf version='1.12'><world name='default'><include><uri>model://local_fixture_robot</uri></include></world></sdf>").unwrap();
+    std::fs::write(
+        robot.join("model.config"),
+        "<model><sdf version='1.12'>robot.sdf</sdf></model>",
+    )
+    .unwrap();
+    std::fs::write(robot.join("robot.sdf"),"<sdf version='1.12'><model name='robot'><link name='body'><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></sdf>").unwrap();
+    let result = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
+        .arg(&world)
+        .arg("--resource-path")
+        .arg(&models)
+        .args(["--physics-engine", "tpe", "--iterations", "3"])
+        .env_remove("SDF_PATH")
+        .env_remove("GZ_SIM_RESOURCE_PATH")
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert_eq!(
+        String::from_utf8(result.stdout).unwrap(),
+        "simulation_ns=3000000 iterations=3\ndefault::robot::body 0 0 0\n"
+    );
+    assert!(
+        String::from_utf8(result.stderr)
+            .unwrap()
+            .contains("NewerVersion")
+    );
+    let env_models = temp.path().join("env-models");
+    let env_robot = env_models.join("local_fixture_robot");
+    std::fs::create_dir_all(&env_robot).unwrap();
+    std::fs::copy(robot.join("model.config"), env_robot.join("model.config")).unwrap();
+    let xml = std::fs::read_to_string(robot.join("robot.sdf"))
+        .unwrap()
+        .replace(
+            "<model name='robot'>",
+            "<model name='robot'><pose>1 0 0 0 0 0</pose>",
+        );
+    std::fs::write(env_robot.join("robot.sdf"), xml).unwrap();
+    let from_env = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
+        .arg(&world)
+        .arg("--resource-path")
+        .arg(&env_models)
+        .arg("--resource-path")
+        .arg(&models)
+        .args(["--physics-engine", "tpe", "--iterations", "3"])
+        .env(
+            "SDF_PATH",
+            std::env::join_paths([&env_models, &env_models]).unwrap(),
+        )
+        .env(
+            "GZ_SIM_RESOURCE_PATH",
+            std::env::join_paths([&env_models, &models]).unwrap(),
+        )
+        .output()
+        .unwrap();
+    assert!(
+        from_env.status.success(),
+        "{}",
+        String::from_utf8_lossy(&from_env.stderr)
+    );
+    assert!(
+        String::from_utf8(from_env.stdout)
+            .unwrap()
+            .contains("default::robot::body 1 0 0")
+    );
+    let result = command(&[fixture(), "--max-xml-bytes", "1"]);
+    assert_eq!(result.status.code(), Some(1));
+    assert!(result.stdout.is_empty());
+    assert!(
+        String::from_utf8(result.stderr)
+            .unwrap()
+            .contains("byte limit")
+    );
+    let limited = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
+        .arg(&world)
+        .args(["--max-resource-warnings", "0"])
+        .output()
+        .unwrap();
+    assert_eq!(limited.status.code(), Some(1));
+    assert!(limited.stdout.is_empty());
+    assert!(
+        String::from_utf8(limited.stderr)
+            .unwrap()
+            .contains("diagnostic budget")
+    );
+    std::fs::remove_file(world.join("world.sdf")).unwrap();
+    let failed = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
+        .arg(&world)
+        .output()
+        .unwrap();
+    assert_eq!(failed.status.code(), Some(1));
+    assert!(failed.stdout.is_empty());
+    assert!(
+        String::from_utf8(failed.stderr)
+            .unwrap()
+            .contains("NewerVersion")
+    );
 }
