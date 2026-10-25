@@ -99,11 +99,12 @@ support. A whole batch resolves names before mutation, so duplicate requests for
 the same valid model succeed together. Ingress stops at the batch limit; the
 underlying finite service queues provide further backpressure.
 
-Full reset must restore removed initial logical objects with their original IDs
-and remove runtime additions. The current core reset only restores retained domain
-state and time, keeping already removed models absent. Remote reset stays rejected
-until initial-scene restoration, identity reservation and stream lifecycle are
-implemented together.
+The loaded-scene API now restores removed initial logical objects with their
+original IDs and retires runtime additions after reset observation. It preserves
+resources and registered Bevy infrastructure in the same World. The separate core
+reset still restores only retained domain state and time. Remote reset remains
+rejected until server command ordering and sensor instance/sequence reconstruction
+are integrated. See [SCENE_RESET.md](SCENE_RESET.md) for its bounded contract.
 
 ## Reproduction and remaining work
 
@@ -120,9 +121,9 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current gate passes 78 Rust checks and nine gate tests: 1455/1462 production
-lines and 2159/2194 regions. Every production crate exceeds 95% for both metrics;
-All 65 changed executable lines in the prepared physics reset increment are covered. Independent review and the exact
+The current gate passes 89 Rust checks and nine gate tests: 1641/1651 production
+lines and 2505/2550 regions. Every production crate exceeds 95% for both metrics;
+All 184 changed executable lines in the loaded-scene reset increment are covered. Independent review and the exact
 staged gate are required before publishing this increment.
 
 Remaining P2 work includes full reset, TPE, local/Fuel resources, sensor scheduling
@@ -155,8 +156,8 @@ World-bound identity reservations now permit explicitly restoring an original
 logical ID after its owner is gone. They also bind the allocator instance, so
 resource teardown cannot validate a stale reservation. Ordinary allocation remains
 monotonic within the intact allocator; restoration does not rewind its counter.
-See [IDENTITIES.md](IDENTITIES.md). These primitives do not implement the pending
-full scene reset, backend restoration, callback ordering or stream reconstruction.
+See [IDENTITIES.md](IDENTITIES.md). Loaded-scene reset composes these reservations
+with backend restoration; remote command ordering and stream reconstruction remain pending.
 
 
 Multiple IMUs may share a topic, including relative/absolute aliases under a
@@ -174,5 +175,14 @@ Prepared physics restoration now captures validated construction records and eng
 settings, builds an independent solver before domain mutation, and commits only to
 its owning backend. It revives initial body IDs, retires runtime bodies and retains
 all later allocation history. See [PHYSICS_STATE.md](PHYSICS_STATE.md). This API and
-the identity reservations still need to be composed with the loaded-scene blueprint,
-reset-time observations and stream reconstruction before remote reset is enabled.
+the identity reservations are composed with the loaded-scene blueprint and reset-time
+observations. Server command ordering and stream reconstruction remain pending.
+
+
+Loaded-scene reset preflights identities (including resources), infrastructure
+ownership and prepared backend state before mutation. New runtime handles retain
+original logical IDs. Pending additions remain queryable during Reset and the
+immutable observer, then retire. Global observers and registered systems survive;
+targeted observers retain Bevy's runtime-target lifetime. Conflicting infrastructure
+and initial-scene roles fail before reconstruction. The two original Name/reset
+assertion scenarios each run nine fresh worlds to preserve static-isolation intent.

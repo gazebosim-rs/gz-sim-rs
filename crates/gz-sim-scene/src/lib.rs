@@ -4,6 +4,8 @@
 
 mod lifecycle;
 pub use lifecycle::{RemoveError, remove_model};
+mod initial;
+pub use initial::{PendingResetRemoval, SceneResetError, SceneResetInfo, reset_loaded_world};
 
 use bevy_ecs::prelude::*;
 use glam::{DQuat, DVec3};
@@ -83,7 +85,7 @@ impl WorldPose {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 struct ModelAnchor {
     body: BodyId,
     link_to_model: WorldPose,
@@ -107,7 +109,7 @@ impl BodyHandle {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 struct Imu {
     body: BodyId,
     rotation: DQuat,
@@ -240,6 +242,7 @@ pub fn load_world(
             .chain()
             .after(PhysicsReset),
     );
+    initial::capture(&mut sim);
     Ok(sim)
 }
 
@@ -521,9 +524,11 @@ fn sync_models(backend: Res<RapierBackend>, mut models: Query<(&ModelAnchor, &mu
     }
 }
 
+type PoseUpdateFilter = (Without<AttachedPose>, Without<PendingResetRemoval>);
+
 fn sync_local_poses(
     parents: Query<&WorldPose>,
-    mut nodes: Query<(&ChildOf, &WorldPose, &mut LocalPose), Without<AttachedPose>>,
+    mut nodes: Query<(&ChildOf, &WorldPose, &mut LocalPose), PoseUpdateFilter>,
 ) {
     for (parent, world, mut local) in &mut nodes {
         local.0 = parents

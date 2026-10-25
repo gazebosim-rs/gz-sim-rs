@@ -15,10 +15,10 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 
 | Crate | Behavior | Remaining boundary |
 | --- | --- | --- |
-| gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, world/allocator-bound reset reservations, isolated worlds | Full domain reset, persistence and complete lifecycle contract |
+| gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, world/allocator-bound reset reservations, isolated worlds | Server reset composition, persistence and complete lifecycle contract |
 | gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
-| gz-sim-scene | Atomic SDF construction, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal | Full initial-scene reset, joints, offset/multiple shapes, asset resolution and scheduling |
+| gz-sim-scene | Atomic SDF construction, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal and loaded-scene restoration | Remote reset integration, joints, offset/multiple shapes, asset resolution and scheduling |
 | gz-sim-cli | Self-contained SDF input, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, resource resolution, signal handling and packaging |
 | gz-sim-server | Bounded clock/pose publication, shared-topic IMU streams, polled pause/step controls, deferred remove services, real C++ clients | Root clock election, reset/run-to controls, scene services and runtime sensor registration |
 
@@ -35,9 +35,9 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 78 Rust tests and nine gate tests, covering 1455/1462
-production lines and 2159/2194 regions. Every production crate exceeds 95% for
-both metrics. The prepared physics reset increment covers all 65 changed executable lines.
+The current local gate passes 89 Rust tests and nine gate tests, covering 1641/1651
+production lines and 2505/2550 regions. Every production crate exceeds 95% for
+both metrics. The loaded-scene reset increment covers all 184 changed executable lines.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
@@ -81,11 +81,13 @@ and partial or pending Rust mappings are recorded in planning/reference-results.
 These use the same qualified installed dependency environment.
 
 Additional native fall, nested/canonical-pose and remove/reset probes guide the
-headless work. Full reset restores removed initial logical entities with their
-original IDs; the current core reset only restores retained domain state. Remote
-reset remains explicitly rejected until that complete contract is implemented.
+headless work. Loaded-scene reset now restores initial logical IDs, nodes and prepared physics,
+with native reset-time removal observations and preserved Bevy infrastructure.
+The separate core reset remains limited to retained domain state. Remote reset
+is still rejected until command ordering, real time and stream reconstruction
+are integrated. SCENE_RESET.md records the supported boundary and original ports.
 
-Next: finish full initial-scene reset, TPE, local/Fuel resources and sensor scheduling;
+Next: integrate remote reset, TPE, local/Fuel resources and sensor scheduling;
 record the equal-work reference comparison and performance report for P2. Then
 complete the retained backend, sensor/system, rendering, plugin, packaging and
 release matrices. CORE-02, full IO-01 and P2 are still open.

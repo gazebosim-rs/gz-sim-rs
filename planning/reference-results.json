@@ -366,9 +366,67 @@
       ],
       "qualification": "Untouched pinned reset tests; isolated Clang simulator with existing installed dependencies, not a complete reproduced reference environment.",
       "rust_mapping": {
-        "state": "pending",
-        "remaining": "Full initial-scene reset and reset-time added/removed entity observations are not implemented. No original case retired."
+        "state": "selected-scenarios-ported",
+        "remaining": "The two selected Name/reset scenarios are faithfully ported with nine fresh worlds each and reset-time added/removed observations. Generic component snapshots and plugin reconstruction remain pending; this does not retire broader ECM coverage."
       }
+    },
+    {
+      "repository": "gz-sim",
+      "source_commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "target": "headless_reset_control_probe",
+      "tests": 5,
+      "failures": 0,
+      "disabled": 0,
+      "qualification": "Local native lifecycle evidence against pinned simulator; installed dependencies are qualified, not the complete reproduced reference baseline. No original case retired.",
+      "probe_sha256": "a63604f49d357206a41d327a2f4e8eea251d925ec9fb4afa8ca561a168c69323",
+      "binary_sha256": "51d30efab76661da7d742acf289991f1b5e33f35666db3ea7298f48bbdf27f2b",
+      "fixture_sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+      "server_config_sha256": "8f9d47c63a7c062636a51a31ca7a914212ecca1ac2de314a24bb385b722b4fe0",
+      "outputs_sha256": {
+        "ordinary.stdout": "7106a4a1a76218a57b9c684d08b3a1ec634eafb1b9be7c06d66daaf724e74298",
+        "ordinary.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "overwrite.stdout": "6352ec29b36329f3da9dd8bc08cc23123056c5e7bf21deabf3ade564cafc7e6d",
+        "overwrite.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model-only.stdout": "49841c80e25039420ac4c7e1215e53ba7b00eedf601ee0f7fd2c7ccf3a820094",
+        "model-only.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "time-only.stdout": "60d15a9741ce343b72dc7277fe9c63a5eb936396470dad5e42ffd7682af3d895",
+        "time-only.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "step-reset.stdout": "84d175a5795ce3fc8e10a82834bf55f0aa09f778b473c0ce825040c7944d6af6",
+        "step-reset.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "observations": [
+        "Queued ordinary model removal is discarded when reset reconstructs UserCommands; original ball ID7 survives.",
+        "Later ordinary world control overwrites earlier rewind; no reset occurs.",
+        "model_only reset is acknowledged and ignored; removed ball stays absent.",
+        "time_only restores removed initial model with original ID, like all reset.",
+        "reset plus multi_step3 consumes one pending iteration for the reset tick; only two physical milliseconds follow."
+      ],
+      "limitations": [
+        "No blocking request admission timing claim; blocking/reset cancellation still requires an explicit qualified error contract.",
+        "Initial paused Run harness timed out; final supported RunOnce(true) harness passes all five modes."
+      ],
+      "cases": [
+        {
+          "mode": "ordinary",
+          "exit_code": 0
+        },
+        {
+          "mode": "overwrite",
+          "exit_code": 0
+        },
+        {
+          "mode": "model-only",
+          "exit_code": 0
+        },
+        {
+          "mode": "time-only",
+          "exit_code": 0
+        },
+        {
+          "mode": "step-reset",
+          "exit_code": 0
+        }
+      ]
     }
   ],
   "math_ctest": {

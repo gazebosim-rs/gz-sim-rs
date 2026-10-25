@@ -135,3 +135,38 @@ fn initial_gravity_and_solver_settings_are_restored_and_retained_reset_keeps_set
     assert_eq!(backend.world.integration_parameters, settings);
     assert_eq!(backend.world.gravity.to_array(), [0.0, 0.0, -9.81]);
 }
+
+#[test]
+fn prepared_epoch_avoids_rebuilding_and_stale_epoch_does_not_skip_retained_reset() {
+    let mut backend = RapierBackend::new([0.0; 3]).unwrap();
+    let body = backend.spawn(sphere([0.0; 3])).unwrap();
+    let initial = backend.initial_state();
+    backend.step(Duration::from_millis(1));
+    backend
+        .apply_initial(backend.prepare_initial(&initial).unwrap())
+        .unwrap();
+    let mut sim = Simulation::new(Duration::from_millis(1)).unwrap();
+    install(&mut sim, backend).unwrap();
+    let epoch = sim.validate_reset().unwrap();
+    sim.world_mut().insert_resource(RestoredPhysics { epoch });
+    sim.world_mut()
+        .resource_mut::<RapierBackend>()
+        .apply_impulse(body, [2.0, 0.0, 0.0], [0.0; 3])
+        .unwrap();
+    let prepared = sim.world().resource::<RapierBackend>().state(body);
+    sim.reset().unwrap();
+    assert_eq!(
+        sim.world().resource::<RapierBackend>().state(body),
+        prepared
+    );
+    // Keeping an old marker cannot suppress the next epoch's retained-body reset.
+    sim.reset().unwrap();
+    assert_eq!(
+        sim.world()
+            .resource::<RapierBackend>()
+            .state(body)
+            .unwrap()
+            .velocity,
+        [1.0, 0.0, 0.0]
+    );
+}

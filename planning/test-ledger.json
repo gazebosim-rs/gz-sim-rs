@@ -30,6 +30,34 @@
       "remaining_assertions": "Original full shapes fixture, light removal and every original entity-count assertion remain unmigrated.",
       "reviewer": "/root/transport",
       "review": "Supported remote-removal subset approved with independent 20-test and four real C++ scenario replay; untouched native original passes locally with installed dependency qualification. No original case retired."
+    },
+    {
+      "repository": "gz-sim",
+      "upstream_commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "source": "src/EntityComponentManager_TEST.cc",
+      "test": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithDeletedEntity",
+      "expanded_cases": 9,
+      "rust_test": "crates/gz-sim-scene/tests/private/initial.rs::native_reset_to_deleted_entity_retains_the_two_new_name_observations",
+      "status": "ported_reviewed",
+      "retained_assertions": "Two initial Name entities; one removed; cleared new state is false; reset yields exactly two new Name observations with original IDs.",
+      "api_mapping": "Bevy Added<Name> and explicit PendingResetRemoval observation inside the reset callback replace ECM new/removed views. Each Rust case runs nine independent simulations, retaining the original static-global repetition intent. Original 2018 assertion attribution retained.",
+      "scope": "These specific Name/pose reset observations; no general component-cloning ECM API or broader lifecycle acceptance claimed.",
+      "reviewer": "/root/transport_recovery",
+      "review": "Independent source/assertion review, 56 core/scene/physics Rust checks and all 18 native repeat expansions passed. Main integration and strict staged gate required before publication."
+    },
+    {
+      "repository": "gz-sim",
+      "upstream_commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "source": "src/EntityComponentManager_TEST.cc",
+      "test": "EntityComponentManagerRepeat/EntityComponentManagerFixture.ResetToWithAddedEntity",
+      "expanded_cases": 9,
+      "rust_test": "crates/gz-sim-scene/tests/private/initial.rs::native_reset_to_added_entity_retains_the_one_removed_name_observation",
+      "status": "ported_reviewed",
+      "retained_assertions": "Two initial Name entities; third runtime Name entity; cleared new state is false; reset yields new observations and exactly one removed Name observation for the runtime identity.",
+      "api_mapping": "Bevy Added<Name> and explicit PendingResetRemoval observation inside the reset callback replace ECM new/removed views. Each Rust case runs nine independent simulations, retaining the original static-global repetition intent. Original 2018 assertion attribution retained.",
+      "scope": "These specific Name/pose reset observations; no general component-cloning ECM API or broader lifecycle acceptance claimed.",
+      "reviewer": "/root/transport_recovery",
+      "review": "Independent source/assertion review, 56 core/scene/physics Rust checks and all 18 native repeat expansions passed. Main integration and strict staged gate required before publication."
     }
   ],
   "supplementary_tests": {

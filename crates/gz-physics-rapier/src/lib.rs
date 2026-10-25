@@ -67,6 +67,13 @@ pub struct BodyState {
 #[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PhysicsReset;
 
+/// Marks physics already restored by a validated transaction for one reset epoch.
+/// The transaction removes this after Reset handlers finish. Other epochs rebuild.
+#[derive(Resource)]
+pub struct RestoredPhysics {
+    pub epoch: u64,
+}
+
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum PhysicsError {
     #[error("body or gravity contains an invalid numeric value")]
@@ -334,8 +341,12 @@ pub fn install(sim: &mut Simulation, backend: RapierBackend) -> Result<(), Physi
     );
     sim.add_systems(
         Phase::Reset,
-        (|mut backend: ResMut<RapierBackend>| {
-            backend.reset();
+        (|time: Res<UpdateInfo>,
+          restored: Option<Res<RestoredPhysics>>,
+          mut backend: ResMut<RapierBackend>| {
+            if restored.is_none_or(|state| state.epoch != time.epoch) {
+                backend.reset();
+            }
         })
         .in_set(PhysicsReset),
     );

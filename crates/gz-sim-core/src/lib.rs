@@ -204,7 +204,7 @@ impl Simulation {
 
     /// Starts a new epoch and invokes reset handlers without advancing physics.
     pub fn reset(&mut self) -> Result<(), StepError> {
-        let epoch = self.epoch.checked_add(1).ok_or(StepError::Overflow)?;
+        let epoch = self.validate_reset()?;
         self.elapsed = Duration::ZERO;
         self.iteration = 0;
         self.epoch = epoch;
@@ -218,6 +218,11 @@ impl Simulation {
         });
         self.reset_schedule.run(&mut self.world);
         Ok(())
+    }
+
+    /// Checks the next reset epoch before a domain transaction changes the world.
+    pub fn validate_reset(&self) -> Result<u64, StepError> {
+        self.epoch.checked_add(1).ok_or(StepError::Overflow)
     }
 }
 
