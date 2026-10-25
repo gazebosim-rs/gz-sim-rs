@@ -1,0 +1,962 @@
+[
+  {
+    "engine": "dartsim",
+    "frame": "identity",
+    "mode": "velocity",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 1,
+        "x": 0.01,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 1,
+        "x": 0.02,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 1,
+        "x": 0.03,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "identity",
+    "mode": "force",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0.01,
+        "x": 0.0001,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 0.01,
+        "x": 0.0002,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 0.01,
+        "x": 0.00030000000000000003,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "identity",
+    "mode": "angular",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "identity",
+    "mode": "torque",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0.002
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0.002
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0.002
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "identity",
+    "mode": "both",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 1.01,
+        "x": 0.0101,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 1.01,
+        "x": 0.0202,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 1.01,
+        "x": 0.0303,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "model90",
+    "mode": "velocity",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><pose>0 0 0 0 0 1.5707963267948966</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 1,
+        "x": 0.01,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 1,
+        "x": 0.02,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 1,
+        "x": 0.03,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "model90",
+    "mode": "force",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><pose>0 0 0 0 0 1.5707963267948966</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0.01,
+        "x": 0.0001,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 0.01,
+        "x": 0.0002,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 0.01,
+        "x": 0.00030000000000000003,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "model90",
+    "mode": "angular",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><pose>0 0 0 0 0 1.5707963267948966</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "model90",
+    "mode": "torque",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><pose>0 0 0 0 0 1.5707963267948966</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0.002
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0.002
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0.002
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "model90",
+    "mode": "both",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><pose>0 0 0 0 0 1.5707963267948966</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 1.01,
+        "x": 0.0101,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 1.01,
+        "x": 0.0202,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 1.01,
+        "x": 0.0303,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "link90",
+    "mode": "velocity",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><link name='body'><pose>0 0 0 0 0 1.5707963267948966</pose><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 1,
+        "x": 0.01,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 1,
+        "x": 0.02,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 1,
+        "x": 0.03,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "link90",
+    "mode": "force",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><link name='body'><pose>0 0 0 0 0 1.5707963267948966</pose><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0.01,
+        "x": 0.0001,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 0.01,
+        "x": 0.0002,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 0.01,
+        "x": 0.00030000000000000003,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "link90",
+    "mode": "angular",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><link name='body'><pose>0 0 0 0 0 1.5707963267948966</pose><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "link90",
+    "mode": "torque",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><link name='body'><pose>0 0 0 0 0 1.5707963267948966</pose><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0.002
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0.002
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0.002
+      }
+    ]
+  },
+  {
+    "engine": "dartsim",
+    "frame": "link90",
+    "mode": "both",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin><model name='robot'><link name='body'><pose>0 0 0 0 0 1.5707963267948966</pose><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 1.01,
+        "x": 0.0101,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 1.01,
+        "x": 0.0202,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 1.01,
+        "x": 0.0303,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "identity",
+    "mode": "velocity",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 1,
+        "x": 0.01,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 1,
+        "x": 0.02,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 1,
+        "x": 0.03,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "identity",
+    "mode": "force",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "identity",
+    "mode": "angular",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "identity",
+    "mode": "torque",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "identity",
+    "mode": "both",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 1,
+        "x": 0.01,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 1,
+        "x": 0.02,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 1,
+        "x": 0.03,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "model90",
+    "mode": "velocity",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><pose>0 0 0 0 0 1.5707963267948966</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": -1,
+        "x": 0.01,
+        "y": 0,
+        "vy": -4.440892098500626e-16,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": -1,
+        "x": 0.02,
+        "y": 0,
+        "vy": -4.440892098500626e-16,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": -1,
+        "x": 0.03,
+        "y": 0,
+        "vy": -4.440892098500626e-16,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "model90",
+    "mode": "force",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><pose>0 0 0 0 0 1.5707963267948966</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "model90",
+    "mode": "angular",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><pose>0 0 0 0 0 1.5707963267948966</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "model90",
+    "mode": "torque",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><pose>0 0 0 0 0 1.5707963267948966</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "model90",
+    "mode": "both",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><pose>0 0 0 0 0 1.5707963267948966</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": -1,
+        "x": 0.01,
+        "y": 0,
+        "vy": -4.440892098500626e-16,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": -1,
+        "x": 0.02,
+        "y": 0,
+        "vy": -4.440892098500626e-16,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": -1,
+        "x": 0.03,
+        "y": 0,
+        "vy": -4.440892098500626e-16,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "link90",
+    "mode": "velocity",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><link name='body'><pose>0 0 0 0 0 1.5707963267948966</pose><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 2.220446049250313e-16,
+        "x": 2.220446049250313e-18,
+        "y": -0.01,
+        "vy": -1,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 2.220446049250313e-16,
+        "x": 4.440892098500626e-18,
+        "y": -0.02,
+        "vy": -1,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 2.220446049250313e-16,
+        "x": 6.661338147750939e-18,
+        "y": -0.03,
+        "vy": -1,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "link90",
+    "mode": "force",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><link name='body'><pose>0 0 0 0 0 1.5707963267948966</pose><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "link90",
+    "mode": "angular",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><link name='body'><pose>0 0 0 0 0 1.5707963267948966</pose><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 1
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "link90",
+    "mode": "torque",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><link name='body'><pose>0 0 0 0 0 1.5707963267948966</pose><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 0,
+        "x": 0,
+        "y": 0,
+        "vy": 0,
+        "wz": 0
+      }
+    ]
+  },
+  {
+    "engine": "tpe",
+    "frame": "link90",
+    "mode": "both",
+    "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.01</max_step_size><real_time_factor>0</real_time_factor></physics><plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-tpe-plugin</filename></engine></plugin><model name='robot'><link name='body'><pose>0 0 0 0 0 1.5707963267948966</pose><inertial><mass>2</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></world></sdf>",
+    "native": [
+      {
+        "iteration": 1,
+        "vx": 2.220446049250313e-16,
+        "x": 2.220446049250313e-18,
+        "y": -0.01,
+        "vy": -1,
+        "wz": 0
+      },
+      {
+        "iteration": 2,
+        "vx": 2.220446049250313e-16,
+        "x": 4.440892098500626e-18,
+        "y": -0.02,
+        "vy": -1,
+        "wz": 0
+      },
+      {
+        "iteration": 3,
+        "vx": 2.220446049250313e-16,
+        "x": 6.661338147750939e-18,
+        "y": -0.03,
+        "vy": -1,
+        "wz": 0
+      }
+    ]
+  }
+]

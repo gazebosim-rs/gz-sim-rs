@@ -6,7 +6,10 @@ use bevy_ecs::prelude::*;
 use gz_sim_core::{Phase, Simulation, UpdateInfo};
 use rapier3d_f64::prelude::*;
 use std::sync::Arc;
-use std::{collections::BTreeMap, time::Duration};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    time::Duration,
+};
 
 mod initial;
 pub use initial::{InitialPhysicsState, PreparedPhysicsReset};
@@ -47,6 +50,7 @@ pub struct RapierBackend {
     world: PhysicsWorld,
     bodies: BTreeMap<BodyId, (RigidBodyHandle, BodySpec, RotationSpec, Option<Inertia>)>,
     next_id: u64,
+    pending_wrenches: BTreeSet<BodyId>,
 }
 
 fn rotation(value: [f64; 4]) -> Result<Rotation, PhysicsError> {
@@ -177,6 +181,7 @@ impl RapierBackend {
             },
             bodies: BTreeMap::new(),
             next_id: 0,
+            pending_wrenches: BTreeSet::new(),
         })
     }
 
@@ -215,6 +220,13 @@ impl RapierBackend {
         Ok(id)
     }
 
+    /// Whether a registered body has dynamic mass rather than a fixed solver body.
+    pub fn is_dynamic(&self, id: BodyId) -> Option<bool> {
+        self.bodies
+            .get(&id)
+            .map(|(_, spec, ..)| spec.mass.is_some())
+    }
+
     pub fn state(&self, id: BodyId) -> Option<BodyState> {
         let (handle, ..) = self.bodies.get(&id)?;
         let body = &self.world.bodies[*handle];
@@ -228,11 +240,57 @@ impl RapierBackend {
 
     pub fn remove(&mut self, id: BodyId) -> bool {
         if let Some((handle, ..)) = self.bodies.remove(&id) {
+            self.pending_wrenches.remove(&id);
             self.world.remove_body(handle);
             true
         } else {
             false
         }
+    }
+
+    /// Replaces world-frame velocities and wakes dynamic bodies. Fixed bodies stay fixed.
+    /// Invalid inputs leave both velocities unchanged. Reset keeps construction values.
+    pub fn set_world_velocity(
+        &mut self,
+        id: BodyId,
+        linear: [f64; 3],
+        angular: [f64; 3],
+    ) -> Result<(), PhysicsError> {
+        if !finite(linear) || !finite(angular) {
+            return Err(PhysicsError::InvalidValue);
+        }
+        let (handle, ..) = self.bodies.get(&id).ok_or(PhysicsError::MissingBody)?;
+        let body = &mut self.world.bodies[*handle];
+        body.set_linvel(Vector::from(linear), true);
+        body.set_angvel(Vector::from(angular), true);
+        Ok(())
+    }
+
+    /// Accumulates world force at the center of mass and world-frame torque.
+    /// The next unpaused step consumes them; fixed bodies remain fixed.
+    /// Nonfinite inputs/accumulation leave both force and torque unchanged.
+    pub fn add_world_wrench(
+        &mut self,
+        id: BodyId,
+        force: [f64; 3],
+        torque: [f64; 3],
+    ) -> Result<(), PhysicsError> {
+        if !finite(force) || !finite(torque) {
+            return Err(PhysicsError::InvalidValue);
+        }
+        let (handle, ..) = self.bodies.get(&id).ok_or(PhysicsError::MissingBody)?;
+        let body = &mut self.world.bodies[*handle];
+        let force = Vector::from(force);
+        let torque = Vector::from(torque);
+        if !finite((body.user_force() + force).to_array())
+            || !finite((body.user_torque() + torque).to_array())
+        {
+            return Err(PhysicsError::InvalidValue);
+        }
+        body.add_force(force, true);
+        body.add_torque(torque, true);
+        self.pending_wrenches.insert(id);
+        Ok(())
     }
 
     /// Applies linear and angular impulses in world axes. Fixed bodies remain fixed.
@@ -260,6 +318,7 @@ impl RapierBackend {
 
     /// Restores remaining bodies to their spawn state. Removed bodies stay removed.
     pub fn reset(&mut self) {
+        self.pending_wrenches.clear();
         self.world = PhysicsWorld {
             gravity: self.world.gravity,
             integration_parameters: self.world.integration_parameters,
@@ -274,6 +333,13 @@ impl RapierBackend {
         if !dt.is_zero() {
             self.world.integration_parameters.dt = dt.as_secs_f64();
             self.world.step();
+            for id in std::mem::take(&mut self.pending_wrenches) {
+                if let Some((handle, ..)) = self.bodies.get(&id) {
+                    let body = &mut self.world.bodies[*handle];
+                    body.reset_forces(false);
+                    body.reset_torques(false);
+                }
+            }
         }
     }
 }

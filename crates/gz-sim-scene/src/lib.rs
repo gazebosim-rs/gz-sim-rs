@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
+mod inputs;
+pub use inputs::{InputError, queue_link_world_velocity, queue_link_world_wrench};
+
 mod schedule;
 use schedule::{SampleSchedule, ScheduleError};
 
@@ -326,6 +329,7 @@ fn load_world_configured(
         build_model(&sdf, model, &mut context, &parent, &mut sim, &mut backend)?;
     }
     sim.world_mut().insert_resource(Gravity(world.gravity));
+    inputs::install(&mut sim);
     match backend {
         Some(backend) => {
             gz_physics_rapier::install(&mut sim, backend)?;

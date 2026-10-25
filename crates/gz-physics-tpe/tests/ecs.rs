@@ -114,3 +114,37 @@ fn invalid_construction_and_step_overflow_keep_typed_diagnostics() {
     assert!(std::error::Error::source(failure).is_some());
     assert_eq!(sim.reset(), Err(StepError::Faulted));
 }
+
+#[test]
+fn checked_world_velocity_updates_current_motion_and_preserves_initial_reset() {
+    let mut sim = Simulation::new(Duration::from_millis(10)).unwrap();
+    install(&mut sim).unwrap();
+    let initial = state();
+    let entity = sim.world_mut().spawn(Motion::new(initial).unwrap()).id();
+    {
+        let mut motion = sim.world_mut().get_mut::<Motion>(entity).unwrap();
+        motion
+            .set_world_velocity([1.0, 0.0, 0.0], [0.0; 3])
+            .unwrap();
+        let changed = *motion.state();
+        for (linear, angular) in [([f64::NAN; 3], [0.0; 3]), ([9.0; 3], [f64::INFINITY; 3])] {
+            assert_eq!(
+                motion.set_world_velocity(linear, angular),
+                Err(MotionError::InvalidState)
+            );
+            assert_eq!(*motion.state(), changed);
+        }
+    }
+    sim.tick().unwrap();
+    assert_eq!(
+        sim.world().get::<Motion>(entity).unwrap().state().position,
+        initial.position
+    );
+    sim.step_exact(1).unwrap();
+    let changed = sim.world().get::<Motion>(entity).unwrap().state();
+    assert!((changed.position[0] - 1.01).abs() < 1e-12);
+    assert_eq!(changed.position[1..], initial.position[1..]);
+    assert_eq!(changed.orientation, initial.orientation);
+    sim.reset().unwrap();
+    assert_eq!(*sim.world().get::<Motion>(entity).unwrap().state(), initial);
+}

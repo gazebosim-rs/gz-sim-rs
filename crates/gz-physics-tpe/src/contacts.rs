@@ -19,6 +19,11 @@ pub struct ModelBounds {
 }
 
 impl ModelBounds {
+    /// Whether this model is excluded from dynamic contact pairs.
+    pub fn is_static(&self) -> bool {
+        self.is_static
+    }
+
     pub fn new(
         min: [f64; 3],
         max: [f64; 3],

@@ -76,6 +76,20 @@ struct Blueprint {
 #[derive(Resource)]
 struct InitialScene(Arc<Blueprint>);
 
+pub(super) fn matches_physics_owner(world: &World) -> bool {
+    let Some(scene) = world.get_resource::<InitialScene>() else {
+        return false;
+    };
+    match &scene.0.physics {
+        InitialPhysics::Rapier(initial) => world
+            .get_resource::<RapierBackend>()
+            .is_some_and(|backend| backend.owns_initial_state(initial)),
+        InitialPhysics::Tpe(owner) => world
+            .get_resource::<tpe::TpeWorld>()
+            .is_some_and(|current| Arc::ptr_eq(owner, &current.0)),
+    }
+}
+
 pub(super) fn capture(sim: &mut Simulation) {
     let world = sim.world();
     let mut nodes = Vec::new();

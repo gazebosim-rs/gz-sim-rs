@@ -122,15 +122,18 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current full gate passes 168 Rust checks and twelve gate tests, including all
-nine real C++ scenarios: 2477/2507 production lines and 3856/3951 regions. Every
-production crate strictly exceeds 95% for both metrics. The world-profile
-increment covers 49/49 changed executable scene lines and 16/16 CLI lines.
-Independent review and the exact staged gate remain required before publication.
+The current full gate passes 182 Rust checks and twelve gate tests, including all
+nine real C++ scenarios: 2733/2767 production lines and 4288/4391 regions. Every
+production crate strictly exceeds 95% for both metrics. The input increment
+covers TPE15/15, Rapier56/56 and scene178/179 changed executable lines.
+Independent review and the exact staged gate remain required before this input
+increment is published.
 
-Remaining P2 work is the selected fixture's simple-joint variant and velocity/force
-input, plus its equal-work C++ comparison/performance report and exact retained
-assertions. Local resources and noise-free IMU are the current slice's supported
+Remaining P2 work is the selected fixture's simple-joint variant, equal-work C++
+comparison/performance report and exact retained assertions. Its bounded
+free-body inputs are provided locally; real C++ peer interoperability remains
+required. Native wrench/velocity transport systems remain wider retained work
+unless the selected fixture needs them. Local resources and noise-free IMU are the current slice's supported
 scope. Full downloads, sensor noise and remaining TPE capabilities stay open in
 the wider plan; they are not added prerequisites for this selected P2 fixture.
 Complete articulations, system/backend inventories, Bevy rendering and release
@@ -295,3 +298,13 @@ disabled: these controls establish clock selection, not physics/sensor parity or
 performance. Existing installed dependencies/build provenance remains qualified.
 New tests also cover metadata ownership, reset, single include resolution,
 invalid boundaries and CLI override precedence. No original test is retired.
+
+
+## Local physical inputs
+
+The loaded scene accepts queued world-frame velocity and one-step COM wrench
+inputs for supported top-level single-link bodies. Paused ticks retain them;
+reset/removal cancel them. TPE force/static/rotation limitations remain explicit.
+[PHYSICS_INPUTS.md](PHYSICS_INPUTS.md) records supported scope, native controls,
+analytic cross-engine accuracy and lifecycle/fault tests. This increment does
+not add transport command ingress or complete the P2 joint/performance report.

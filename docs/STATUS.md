@@ -6,8 +6,8 @@ All 78 simulator system migrations remain pending. No speedup is claimed.
 ## Ownership and model routing
 
 The coordinator owns this monorepo and integration. One agent owns each independent
-repository: sdformat-rs and gz-transport-rs use gpt-6.1-sol with high reasoning;
-gz-msgs-rs uses the same model with medium reasoning. Agents work on bounded
+repository. Current sdformat-rs, gz-transport-rs and gz-msgs-rs owners use
+gpt-6.1-sol with high reasoning for implementation and validation. Agents work on bounded
 packets and independently review one another's changes. Fuel remains with its
 existing agent. Four concurrent slots cover the coordinator and three repo agents.
 
@@ -19,7 +19,7 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 | gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, typed terminal fault diagnostics, world/allocator-bound reset reservations, isolated worlds | Persistence and complete lifecycle contract |
 | gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
 | gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation, model overlap contacts and typed faults | Remaining geometry/commands and D23 policy |
-| gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
+| gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, world velocity/COM wrench inputs, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, remaining force frames and common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Seeds/noise, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, phase-preserving IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, full resource policy and remaining sensor contracts |
 | gz-sim-cli | Local SDF/configured world input and include roots, Rapier/TPE selection, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, remote top-level resources, signal handling and packaging |
@@ -38,13 +38,13 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 168 Rust checks and twelve gate tests, including all
-nine actual C++ client scenarios. Coverage is 2477/2507 production lines and
-3856/3951 regions. Every production crate exceeds 95% for both metrics. The
-world-profile increment covers 49/49 changed executable scene lines and 16/16 CLI
-lines. Scene coverage is 960/987 lines and 1453/1522 regions. No coverage
-exclusions or thresholds changed. Final independent review and the exact staged
-hook remain required before publication.
+The current local gate passes 182 Rust checks and twelve gate tests, including all
+nine actual C++ client scenarios. Coverage is 2733/2767 production lines and
+4288/4391 regions. Every production crate exceeds 95% for both metrics. The
+input increment covers TPE15/15, Rapier56/56 and scene178/179 changed executable
+lines. Scene coverage is 1145/1176 lines and 1778/1854 regions. No coverage
+exclusions or thresholds changed. Independent review and the exact staged hook
+remain required before this input increment is published.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
 Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
@@ -155,3 +155,19 @@ match both backends; plugins were disabled, so this is clock/configuration
 evidence only. Nondefault contact limits fail explicitly, and exact stepping
 remains unpaced. Runtime profile changes and backend-specific settings remain
 open. See HEADLESS.md and planning/reference/world-physics.json.
+
+
+## Local physical input increment
+
+A private pending Bevy component per target link provides world-velocity
+replacement and one-step COM force/torque accumulation. The author gate passes
+182 Rust checks, twelve tooling checks and the existing nine actual C++ scenarios;
+2733/2767 production lines and 4288/4391 regions pass all per-crate gates.
+Thirty fresh native world-input controls qualify supported velocity/angular
+observations and explicit TPE gaps. Independent review and the normal staged hook
+remain required before publication. PHYSICS_INPUTS.md records the scope and
+analytic force-position accuracy bound. Simple joints and the complete selected-fixture assertions/reference/performance
+report remain P2 work. These local APIs cover its bounded free-body input
+capability when exercised by the selected fixture; native input transport systems
+remain wider retained work unless that fixture requires them. Real C++ peer
+interoperability remains required.

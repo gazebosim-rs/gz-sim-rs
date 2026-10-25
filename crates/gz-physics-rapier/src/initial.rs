@@ -24,6 +24,11 @@ pub struct PreparedPhysicsReset {
 }
 
 impl RapierBackend {
+    /// Tests backend ownership without constructing a replacement solver.
+    pub fn owns_initial_state(&self, initial: &InitialPhysicsState) -> bool {
+        Arc::ptr_eq(&self.owner, &initial.owner)
+    }
+
     pub fn initial_state(&self) -> InitialPhysicsState {
         InitialPhysicsState {
             owner: self.owner.clone(),
@@ -43,7 +48,7 @@ impl RapierBackend {
         &self,
         initial: &InitialPhysicsState,
     ) -> Result<PreparedPhysicsReset, PhysicsError> {
-        if !Arc::ptr_eq(&self.owner, &initial.owner) {
+        if !self.owns_initial_state(initial) {
             return Err(PhysicsError::ForeignInitialState);
         }
         let mut world = PhysicsWorld {
@@ -70,6 +75,7 @@ impl RapierBackend {
         if !Arc::ptr_eq(&self.owner, &prepared.owner) {
             return Err(PhysicsError::ForeignInitialState);
         }
+        self.pending_wrenches.clear();
         self.world = prepared.world;
         self.bodies = prepared.bodies;
         self.next_id = self.next_id.max(prepared.next_id);

@@ -25,6 +25,21 @@ impl Motion {
     pub fn state(&self) -> &BodyState {
         self.body.state()
     }
+
+    /// Replaces finite world velocities without changing the state restored by reset.
+    /// Hierarchy, static-body and link-frame command policy belongs to the scene adapter.
+    pub fn set_world_velocity(
+        &mut self,
+        linear: [f64; 3],
+        angular: [f64; 3],
+    ) -> Result<(), MotionError> {
+        self.body = Body::try_from(BodyState {
+            velocity: linear,
+            angular_velocity: angular,
+            ..*self.body.state()
+        })?;
+        Ok(())
+    }
 }
 
 #[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
