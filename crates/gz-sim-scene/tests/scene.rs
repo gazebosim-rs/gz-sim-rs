@@ -169,7 +169,7 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
         ),
         (
             "<update_rate>1000</update_rate>",
-            "<update_rate>10</update_rate>",
+            "<update_rate>1e-300</update_rate>",
             "sensor rate",
         ),
         (

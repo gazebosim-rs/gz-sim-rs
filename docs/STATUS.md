@@ -20,8 +20,8 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 | gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
 | gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation, model overlap contacts and typed faults | Remaining geometry/commands and D23 policy |
 | gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
-| gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
-| gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, asset resolution and scheduling |
+| gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Seeds/noise, complete frame configuration and remaining sensor families |
+| gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, phase-preserving IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, full resource policy and remaining sensor contracts |
 | gz-sim-cli | Local SDF/configured world input and include roots, Rapier/TPE selection, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, remote top-level resources, signal handling and packaging |
 | gz-sim-server | Bounded clock/pose publication, shared-topic IMU streams, polled pause/step/reset controls, deferred remove services, real C++ clients | Root clock election, run-to controls, scene services and runtime sensor registration |
 
@@ -38,15 +38,13 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 157 Rust checks and ten gate tests, including all
-seven actual C++ client scenarios. Coverage is 2372/2400 production lines and
-3725/3819 regions. Every production crate exceeds 95% for both metrics. The offline
-Fuel increment covers assets 15/15 and CLI 5/5 changed executable lines. Assets
-coverage is 147/148 lines and 282/287 regions. No coverage exclusions or thresholds
-changed. A separate fresh reviewer replay covers the cache API, both real engines,
-CLI fixtures and six installed-native cache controls; final manifest/evidence
-binding is required before publication.
-Independent review and the exact staged hook are required before publication.
+The current local gate passes 163 Rust checks and ten gate tests, including all
+nine actual C++ client scenarios. Coverage is 2422/2450 production lines and
+3789/3883 regions. Every production crate exceeds 95% for both metrics. The
+sampling-cadence increment covers all 56 changed executable scene lines.
+Scene coverage is 913/938 lines and 1395/1463 regions. No coverage exclusions or
+thresholds changed. Final independent source/assertion review and the exact
+staged hook remain required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
 Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
@@ -126,3 +124,13 @@ bytes, configuration, unstaged content and nonlocal settings are preserved. The
 original wrapper fails the new test on leaked keys; the fix passes. This is a
 verification-boundary correction; production Rust coverage and all seven native
 client scenarios remain required. No root repository corruption is claimed.
+
+## IMU acquisition rates
+
+The scene now supports native-phase sampling rates independently of the physics
+step, with checked time overflow, per-physics acceleration and pause/reset state.
+SENSOR_SCHEDULING.md records native clock controls, actual C++ cadence/reset
+observations and remaining scope. The former Rust-only 10 Hz rejection becomes a
+stronger supported-input test; the error table retains a genuinely unrepresentable
+1e-300 Hz period. That disposition requires independent assertion review; no
+upstream test is retired or numerical tolerance relaxed.

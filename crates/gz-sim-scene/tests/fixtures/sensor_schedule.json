@@ -1,0 +1,92 @@
+[
+  {
+    "name": "unlimited",
+    "rate_hz": 0,
+    "start_ns": 0,
+    "now_ns": 35000000,
+    "forced": false,
+    "sampled": true,
+    "next_ns": 0
+  },
+  {
+    "name": "negative-unlimited",
+    "rate_hz": -123,
+    "start_ns": 0,
+    "now_ns": 35000000,
+    "forced": false,
+    "sampled": true,
+    "next_ns": 0
+  },
+  {
+    "name": "off-grid",
+    "rate_hz": 100,
+    "start_ns": 0,
+    "now_ns": 35000000,
+    "forced": false,
+    "sampled": true,
+    "next_ns": 40000000
+  },
+  {
+    "name": "forced",
+    "rate_hz": 100,
+    "start_ns": 50000000,
+    "now_ns": 35000000,
+    "forced": true,
+    "sampled": true,
+    "next_ns": 50000000
+  },
+  {
+    "name": "not-due",
+    "rate_hz": 100,
+    "start_ns": 40000000,
+    "now_ns": 39000000,
+    "forced": false,
+    "sampled": false,
+    "next_ns": 40000000
+  },
+  {
+    "name": "sub-ms",
+    "rate_hz": 2000,
+    "start_ns": 0,
+    "now_ns": 0,
+    "forced": false,
+    "sampled": true,
+    "next_ns": 500000
+  },
+  {
+    "name": "sub-ns",
+    "rate_hz": 1000000000000.0,
+    "start_ns": 0,
+    "now_ns": 0,
+    "forced": false,
+    "sampled": true,
+    "next_ns": 1
+  },
+  {
+    "name": "fractional-phase",
+    "rate_hz": 60,
+    "start_ns": 16666666,
+    "now_ns": 17000000,
+    "forced": false,
+    "sampled": true,
+    "next_ns": 33333332
+  },
+  {
+    "name": "large-epoch",
+    "rate_hz": 100,
+    "start_ns": 0,
+    "now_ns": 1700000000000000000,
+    "forced": false,
+    "sampled": true,
+    "next_ns": 1700000000010000000
+  },
+  {
+    "name": "physics-cadence",
+    "rate_hz": 1000,
+    "start_ns": 0,
+    "now_ns": 1000000,
+    "forced": false,
+    "sampled": true,
+    "next_ns": 2000000
+  }
+]

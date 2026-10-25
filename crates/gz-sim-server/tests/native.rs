@@ -39,6 +39,8 @@ fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
     run_native_world(true, None, false, true, false, PhysicsEngine::Rapier);
     run_native_world(true, None, false, false, true, PhysicsEngine::Rapier);
     run_native_world(true, None, false, false, true, PhysicsEngine::Tpe);
+    run_native_schedule_world(PhysicsEngine::Rapier);
+    run_native_schedule_world(PhysicsEngine::Tpe);
 }
 
 fn run_native_world(
@@ -254,5 +256,129 @@ fn run_native_world(
         assert!(stdout.contains("shared=1"));
     }
     assert_eq!(server.counters().imu_failures, 0);
+    server.shutdown();
+}
+
+fn run_native_schedule_world(engine: PhysicsEngine) {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let build = Command::new("python3")
+        .arg(root.join("scripts/native-peer.py"))
+        .output()
+        .unwrap();
+    assert!(
+        build.status.success(),
+        "{}",
+        String::from_utf8_lossy(&build.stderr)
+    );
+    let message = UdpSocket::bind("127.0.0.1:0").unwrap();
+    let service = UdpSocket::bind("127.0.0.1:0").unwrap();
+    let config = Config {
+        partition: format!("native-schedule-{}", std::process::id()),
+        message_port: message.local_addr().unwrap().port(),
+        service_port: service.local_addr().unwrap().port(),
+        ..Config::default()
+    };
+    drop((message, service));
+    let xml = include_str!("../../gz-sim-scene/tests/fixtures/fall.sdf").replace(
+        "<update_rate>1000</update_rate>",
+        "<update_rate>10</update_rate>",
+    );
+    let simulation = load_world_with_engine(
+        &xml,
+        "schedule.sdf",
+        "default",
+        Duration::from_millis(1),
+        &NoResources,
+        engine,
+    )
+    .unwrap();
+    let mut server = Server::new(
+        simulation,
+        "default",
+        config.clone(),
+        NonZeroUsize::new(4).unwrap(),
+    )
+    .unwrap();
+    let prefix = std::env::var_os("GZ_REFERENCE_PREFIX")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
+    let mut peer = Peer(
+        Command::new(root.join("artifacts/native-peer/clock-client"))
+            .arg(if engine == PhysicsEngine::Tpe {
+                "--tpe-schedule"
+            } else {
+                "--schedule"
+            })
+            .env("GZ_PARTITION", &config.partition)
+            .env("GZ_IP", config.interface.to_string())
+            .env("GZ_TRANSPORT_IMPLEMENTATION", "zeromq")
+            .env("GZ_TRANSPORT_TOPIC_STATISTICS", "0")
+            .env("GZ_DISCOVERY_MULTICAST_IP", config.multicast.to_string())
+            .env_remove("GZ_TRANSPORT_USERNAME")
+            .env_remove("GZ_TRANSPORT_PASSWORD")
+            .env_remove("GZ_RELAY")
+            .env("GZ_DISCOVERY_MSG_PORT", config.message_port.to_string())
+            .env("GZ_DISCOVERY_SRV_PORT", config.service_port.to_string())
+            .env("LD_LIBRARY_PATH", prefix.join("lib"))
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap(),
+    );
+    let deadline = Instant::now() + Duration::from_secs(20);
+    let status = loop {
+        if let Some(status) = peer.0.try_wait().unwrap() {
+            break status;
+        }
+        assert!(
+            Instant::now() < deadline,
+            "native schedule client timed out"
+        );
+        server.tick().unwrap();
+        thread::sleep(Duration::from_millis(1));
+    };
+    use std::io::Read;
+    let mut stdout = String::new();
+    let mut stderr = String::new();
+    peer.0
+        .stdout
+        .take()
+        .unwrap()
+        .read_to_string(&mut stdout)
+        .unwrap();
+    peer.0
+        .stderr
+        .take()
+        .unwrap()
+        .read_to_string(&mut stderr)
+        .unwrap();
+    assert!(
+        status.success(),
+        "{engine:?} status={status} stdout={stdout} stderr={stderr}"
+    );
+    assert!(stderr.is_empty(), "{stderr}");
+    assert!(stdout.starts_with("PASS native schedule"));
+    let warmup: u64 = stdout
+        .split_whitespace()
+        .find_map(|word| word.strip_prefix("warmup="))
+        .unwrap()
+        .parse()
+        .unwrap();
+    assert!((1..=20).contains(&warmup));
+    assert_eq!(server.simulation().elapsed(), Duration::from_millis(1));
+    assert!(server.simulation().is_paused());
+    assert_eq!(
+        server
+            .simulation()
+            .world()
+            .resource::<gz_sim_core::UpdateInfo>()
+            .epoch,
+        2
+    );
+    assert_eq!(server.counters().controls_accepted, warmup + 6);
+    assert_eq!(server.counters().controls_rejected, 0);
+    assert_eq!(server.counters().imus_queued, warmup + 4);
+    assert_eq!(server.counters().imu_failures, 0);
+    assert_eq!(server.counters().invalid_imu_samples, 0);
     server.shutdown();
 }

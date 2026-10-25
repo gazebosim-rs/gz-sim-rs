@@ -1,0 +1,167 @@
+{
+  "scope": "Sampling clock only; installed dependencies qualified, not full sensor-stream/simulator parity.",
+  "revision": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+  "native_sources": {
+    "src/Sensor.cc": "5fb2ea0aaa27b960c463c82de3074ad0bb221341454fb999946eca9f5afff2a2",
+    "src/Sensor_TEST.cc": "4b135b31eb52555d9f89743fef2e4693ba33e142d22bcab53e6dec902d1f7605",
+    "include/gz/sensors/Sensor.hh": "5938859b63479e6bd872f5df6bc48070c9a733fa3f7a240da7bfa3adbde3156b"
+  },
+  "command": [
+    "c++",
+    "-std=c++17",
+    "-O2",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/crates/gz-sim-scene/tests/native_sensor_schedule.cc",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/sensors11",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/cmake6",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/math10",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/utils5",
+    "-I/usr/include/eigen3",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/common8",
+    "-I/usr/include/uuid",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/transport16",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/msgs13",
+    "-isystem",
+    "/usr/include/mit-krb5",
+    "-I/usr/include/pgm-5.3",
+    "-I/usr/include/libxml2",
+    "-I/usr/include/x86_64-linux-gnu",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/rendering11",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/plugin5",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/sdformat17",
+    "-std=c++17",
+    "-L/home/nkoenig/local/lib/pkgconfig/../../lib",
+    "-lgz-sensors",
+    "-lgz-transport",
+    "-lgz-rendering",
+    "-lgz-common",
+    "-luuid",
+    "-lgz-plugin",
+    "-lGL",
+    "-lgz-msgs",
+    "-lprotobuf",
+    "-lsdformat",
+    "-ltinyxml2",
+    "-lgz-math",
+    "-lgz-utils",
+    "-o",
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/sensor-scheduling/native-final/schedule"
+  ],
+  "source_sha256": "c67daa620e849d7321ff0ce5a73129a08374b74055686bd4f27c982705527d16",
+  "fixture_sha256": "f7465747d4f01acfb90d5047ff47e4822005f6bd585a69369a8faeb955abcfd5",
+  "binary_sha256": "d50601188a78387d22d4660a8cef1dfb364e561714796ccf9ba0e2c525efd64c",
+  "libraries": {
+    "/home/nkoenig/work/gazebo/rust/gz-sensors/build/lib/libgz-sensors.so.11": "3d12bbc482784363616d903290a2b958cf28904a97871b49da0b6c6e663d09ad",
+    "/lib/x86_64-linux-gnu/libstdc++.so.6": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+    "/lib/x86_64-linux-gnu/libgcc_s.so.1": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+    "/lib/x86_64-linux-gnu/libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+    "/home/nkoenig/local/lib/libgz-transport.so.16": "bc9b06e4337e638b4f15d2397c974d34dd99a33957a7756e2fc424f78f08309a",
+    "/home/nkoenig/local/lib/libsdformat.so.17": "bcc864bcee56b49c13081e29722051e26c036260e3dd037e7736aa2b8620358f",
+    "/home/nkoenig/local/lib/libgz-msgs.so.13": "0504be34705191623dce9654e7b659663d87cdb92a3b99c83db13a7f60f13659",
+    "/lib/x86_64-linux-gnu/libprotobuf.so.32": "53a2a625a30418d6ea84438b04c9196214dec51a30476596ee9be45ccadb0404",
+    "/home/nkoenig/local/lib/libgz-math.so.10": "288c6f52fac45359f5de67d97e0069b7f37420f5f78888e61406b8f565656c4f",
+    "/home/nkoenig/local/lib/libgz-common.so.8": "93d9c64716d8b5efdb5862630cc33e62da97785d55e401ed19e4571c9b03df8d",
+    "/lib/x86_64-linux-gnu/libm.so.6": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+    "/lib64/ld-linux-x86-64.so.2": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+    "/lib/x86_64-linux-gnu/libzmq.so.5": "c56acd8baaec3d869f7e23a194870302acef6d86384f1f0fe946fb81c7015a42",
+    "/lib/x86_64-linux-gnu/libuuid.so.1": "78d7f4d6f27b7dffc1c84dfe2f83e84aefa6f6ceeffc6ac4bc41f9fbc61cb84e",
+    "/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib/libzenohc.so": "de63c0072f4186cf55d325773962ea6621d391629c8b33edf276bb09062b68f5",
+    "/home/nkoenig/local/lib/libgz-utils.so.5": "2e91419fd59b6995ee8fada80e106dac5644d3d44cd2e8bc6655547433e51ae6",
+    "/lib/x86_64-linux-gnu/libtinyxml2.so.10": "f9e01d87fb78af744a426af8c992e94abf8cd3810a256e117bcc94cd84d2be6d",
+    "/opt/ros/jazzy/lib/x86_64-linux-gnu/liburdfdom_model.so.4.0": "b36c6a9cedb0c31ec2adb3075a13dd623edc41cc9b6ea4add0cf5b572ee37d8a",
+    "/lib/x86_64-linux-gnu/libz.so.1": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+    "/home/nkoenig/local/lib/libgz-utils-log.so.5": "9de1010066534024cb88512faf663bc6cf4362f08ed2865c9399e02aab8e51d4",
+    "/lib/x86_64-linux-gnu/libspdlog.so.1.12": "62bb2fbc92edc05b35888e624882b78f5b38c0aca6a3df7ab7db32bb9c2629b6",
+    "/lib/x86_64-linux-gnu/libbsd.so.0": "e86cd4f0019f42c2ba5e60602e0edc8694d2948377d98c3654d0f6bddb5254bb",
+    "/lib/x86_64-linux-gnu/libsodium.so.23": "fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5",
+    "/lib/x86_64-linux-gnu/libpgm-5.3.so.0": "46e1d5126ff73b9ba0c340b2cf0245d77620f85524c6fc967d533be6d19bdada",
+    "/lib/x86_64-linux-gnu/libnorm.so.1": "2543db995aa530bda8d145126b25c08d54cfe3348993e11eb75c30d6b43f5e72",
+    "/lib/x86_64-linux-gnu/libgssapi_krb5.so.2": "c7aa00cf51646f7c32f196d329a562bc873ff32906c9caf6554ca489dd657507",
+    "/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0": "bb9ced68ce1209c48b55ddcebe913542197dc745c71febd65205ff0a4d833651",
+    "/lib/x86_64-linux-gnu/libfmt.so.9": "da008b908b32e428eaa1c09e36d6894c8f88362e254b503c7c2c6112b4ec9ed0",
+    "/lib/x86_64-linux-gnu/libmd.so.0": "423e18586b6ea740f4465afd64f7a9a4cb7264ed979c8e7256f9085af5345fef",
+    "/lib/x86_64-linux-gnu/libkrb5.so.3": "fad617a72b5839d30143e7db03281279089def6f18788cbb0b7f86385301bf04",
+    "/lib/x86_64-linux-gnu/libk5crypto.so.3": "b37407fb2930939bf78b47267019cd201a8af1f4b6a3852249c849cf3a985798",
+    "/lib/x86_64-linux-gnu/libcom_err.so.2": "022943b3b11c860b049bce41342f1c2594941b7b401d95dfdf235521099fee08",
+    "/lib/x86_64-linux-gnu/libkrb5support.so.0": "936bae947a838bd47676a419dfcfb036d0163249215b58ec706ec7d46b7497aa",
+    "/lib/x86_64-linux-gnu/libkeyutils.so.1": "f48214417757f18793ed6e180cc14ee1d6f04252a518fc7270e8ca1d0b4260fe",
+    "/lib/x86_64-linux-gnu/libresolv.so.2": "1d730ea434da5a5595bc6a961d7a9ace83e03703205df9644044b3dca79c362f"
+  },
+  "observations": [
+    {
+      "name": "unlimited",
+      "native": {
+        "sampled": true,
+        "next_ns": 0
+      }
+    },
+    {
+      "name": "negative-unlimited",
+      "native": {
+        "sampled": true,
+        "next_ns": 0
+      }
+    },
+    {
+      "name": "off-grid",
+      "native": {
+        "sampled": true,
+        "next_ns": 40000000
+      }
+    },
+    {
+      "name": "forced",
+      "native": {
+        "sampled": true,
+        "next_ns": 50000000
+      }
+    },
+    {
+      "name": "not-due",
+      "native": {
+        "sampled": false,
+        "next_ns": 40000000
+      }
+    },
+    {
+      "name": "sub-ms",
+      "native": {
+        "sampled": true,
+        "next_ns": 500000
+      }
+    },
+    {
+      "name": "sub-ns",
+      "native": {
+        "sampled": true,
+        "next_ns": 1
+      }
+    },
+    {
+      "name": "fractional-phase",
+      "native": {
+        "sampled": true,
+        "next_ns": 33333332
+      }
+    },
+    {
+      "name": "large-epoch",
+      "native": {
+        "sampled": true,
+        "next_ns": 1700000000010000000
+      }
+    },
+    {
+      "name": "physics-cadence",
+      "native": {
+        "sampled": true,
+        "next_ns": 2000000
+      }
+    }
+  ],
+  "original_binary_sha256": "8588a2e10213bd461b94877b7ed882410a0b1ccc7ce7b5969d39ece3439c719f",
+  "original_tests": 1,
+  "original_failures": 0
+}

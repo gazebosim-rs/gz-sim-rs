@@ -12,18 +12,21 @@ eigendecomposition. Nonpositive/invalid inertia and derived overflow are rejecte
 The scene requires a centered center of mass. The backend itself also represents
 offset COM: `BodyState.position` is the body origin, while velocity is COM velocity.
 
-Link entities expose `Name`, `WorldPose`, `Velocity`, and a read-only `BodyHandle`
-for applying backend impulses. These are Bevy components. World/model hierarchy
-entities, externally stable scene IDs and editable entity lifecycle remain pending.
+Link entities expose `Name`, `WorldPose` and `Velocity`; Rapier links also carry a
+read-only `BodyHandle`. Bevy hierarchy and stable EntityId values describe loaded
+world/model ownership. Checked model-subtree removal and loaded reset preserve
+original public IDs; general scene editing remains pending.
 The scene owns body lifecycle: removing its backend or bodies while retaining
 these systems violates the current constructor contract.
 
 Sensor entities expose their scoped `Name` and, after acquisition, `ImuSample`.
 Only centered IMUs, no noise, default CUSTOM orientation configuration, and a
-rate equal to physics rate (or rate0) are supported. Unsupported configurations,
-jointed models, plugins, other shapes, offset or multiple collisions fail with
-an entity-specific error. Rendering, transport publication, topic subscription
-gating and metrics are pending.
+native-phase sampling rate independent of the physics rate are supported. Rate0
+samples each physics update; positive rates emit at most once per update and skip
+missed periods without losing phase. See SENSOR_SCHEDULING.md for bounds and reset.
+Unsupported configurations, jointed models, plugins, other shapes, offset or
+multiple collisions fail with an entity-specific error. Rendering, subscriber
+activation and metrics remain pending; HEADLESS.md describes server publication.
 
 Relative poses within1e-12m/quaternion components are treated as centered/identity
 to absorb semantic-transform roundoff; q and -q are equivalent. This tolerance is

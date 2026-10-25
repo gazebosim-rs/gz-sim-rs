@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
+mod schedule;
+use schedule::{SampleSchedule, ScheduleError};
+
 mod tpe;
 pub use tpe::PhysicsEngine;
 
@@ -20,7 +23,8 @@ use gz_physics_rapier::{
 };
 use gz_sensors::{ImuInput, ImuReading, InvalidImuInput};
 use gz_sim_core::{
-    EntityId, EntityLookup, IdentityError, Phase, Simulation, StepError, UpdateInfo, assign_id,
+    EntityId, EntityLookup, IdentityError, Phase, Simulation, StepError, StepFault, UpdateInfo,
+    assign_id,
 };
 use sdformat::{Geometry, Model, NoiseKind, ResourceResolver, Sdf, Transform};
 use std::{collections::BTreeMap, time::Duration};
@@ -127,6 +131,7 @@ struct Imu {
     rotation: DQuat,
     reference: DQuat,
     previous_velocity: DVec3,
+    schedule: SampleSchedule,
 }
 
 #[derive(Component, Debug)]
@@ -146,7 +151,6 @@ pub struct ImuPublication {
 
 struct SceneContext<'a> {
     world: &'a str,
-    step: Duration,
     links: BTreeMap<String, u64>,
 }
 
@@ -238,7 +242,6 @@ pub fn load_world_with_engine(
     };
     let mut context = SceneContext {
         world: world_name,
-        step,
         links: BTreeMap::new(),
     };
     let world_entity = spawn_node(
@@ -476,12 +479,11 @@ fn build_model(
                 &name,
                 "IMU orientation configuration",
             )?;
-            require(
-                sensor.update_rate == 0.0
-                    || (sensor.update_rate * context.step.as_secs_f64() - 1.0).abs() < 1e-12,
-                &name,
-                "sensor rate differing from physics rate",
-            )?;
+            let schedule =
+                SampleSchedule::new(sensor.update_rate).map_err(|_| LoadError::Unsupported {
+                    entity: name.clone(),
+                    feature: "unrepresentable sensor rate",
+                })?;
             let local = sdf.resolve_pose(
                 &sensor.pose,
                 &model.scoped_name,
@@ -534,6 +536,7 @@ fn build_model(
                     rotation: DQuat::from_array(local.rotation),
                     reference: DQuat::from_array(pose.rotation) * DQuat::from_array(local.rotation),
                     previous_velocity: DVec3::ZERO,
+                    schedule,
                 },
             ));
         }
@@ -657,8 +660,16 @@ fn sync_bodies(
     }
 }
 
+#[derive(Debug, thiserror::Error)]
+#[error("IMU {entity:?}: {source}")]
+struct SensorScheduleFault {
+    entity: Entity,
+    source: ScheduleError,
+}
+
 fn sample_imus(
     time: Res<UpdateInfo>,
+    fault: Res<StepFault>,
     gravity: Res<Gravity>,
     identities: EntityLookup,
     bodies: Query<(&WorldPose, &Velocity)>,
@@ -676,6 +687,14 @@ fn sample_imus(
         let velocity = DVec3::from_array(body_velocity.linear);
         let acceleration = (velocity - sensor.previous_velocity) / time.dt.as_secs_f64();
         sensor.previous_velocity = velocity;
+        match sensor.schedule.take_sample(time.sim_time, false) {
+            Ok(true) => {}
+            Ok(false) => continue,
+            Err(source) => {
+                fault.report(SensorScheduleFault { entity, source });
+                return;
+            }
+        }
         let rotation = DQuat::from_array(pose.rotation) * sensor.rotation;
         commands.entity(entity).insert(ImuSample {
             time: time.sim_time,
@@ -696,6 +715,7 @@ fn sample_imus(
 fn reset_imus(mut sensors: Query<(Entity, &mut Imu)>, mut commands: Commands) {
     for (entity, mut sensor) in &mut sensors {
         sensor.previous_velocity = DVec3::ZERO;
+        sensor.schedule.reset();
         commands.entity(entity).remove::<ImuSample>();
     }
 }

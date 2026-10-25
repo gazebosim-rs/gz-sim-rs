@@ -82,6 +82,18 @@
       "scope": "This complete original static-filter case only. Broader CheckCollisions and eight-corner helper assertions are not retired or counted complete.",
       "reviewer": "/root/transport_recovery",
       "review": "Independent source/assertion review, private 65 Rust checks plus the reviewer large-coordinate regression, 11 freshly regenerated native rows and unchanged native StaticFiltering XML 1/0 passed. Final metadata, exact staged gate and hosted evidence remain required."
+    },
+    {
+      "repository": "gz-sensors",
+      "upstream_commit": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+      "source": "src/Sensor_TEST.cc",
+      "test": "SensorUpdate.NextDataUpdateTime",
+      "rust_test": "crates/gz-sim-scene/tests/private/schedule.rs::original_next_data_update_time_assertions",
+      "status": "partially_ported",
+      "retained_assertions": "All original phase/due/forced/future/rephased/large-epoch/sub-millisecond value observations are reproduced through the private clock. Constructor/new-value setup replaces the C++ Sensor/SDF fixture; no general Sensor framework or mutation API is recreated. Ten additional fresh native controls and both-engine real scene/transport cases qualify integration.",
+      "remaining_assertions": "Timing observations only; whole Sensor active/trigger/metrics/failed-update, fixture and framework contracts remain unported. No full Sensor retirement.",
+      "review": "Independent /root/sdformat approved partial clock mapping and original assertion fidelity after fresh87scene/server checks including nine actual C++ scenarios, ten fresh native clock controls plus original1/0, four strengthened final private clock tests and36extra native/Rust controls. Native source/binary/header/sensor/library hashes match after reproducing the recorded ROS loader lineage; first differing indirect-URDFDOM proof retained. Final exact metadata rebind and normal staged/hosted gates remain required.",
+      "reviewer": "/root/sdformat"
     }
   ],
   "supplementary_tests": {
@@ -97,14 +109,24 @@
     "crates/gz-physics-tpe/tests/ecs.rs": "New Bevy-owned kinematic adapter checks: analytic50-step translation/rotation, zero-dt pause, reset ordering and constructor state, entity/component retirement, mutually exclusive installers including removed Rapier resource, invalid construction and typed terminal overflow/publication suppression. No SDF/static/link command policy, contact acceptance or original retirement.",
     "crates/gz-sim-scene/tests/tpe.rs": "Selectable TPE SDF construction, stationary gravity semantics/specific force, same-ID removal/reset, analytic rotated-model/offset-link Motion and IMU observations, two fresh native World/Model/Link fixture rows, explicit nested-model rejection and earlier typed nonfinite SDF rejection. No original retirement or static/link-velocity command policy.",
     "crates/gz-sim-scene/tests/private/tpe.rs": "Chosen-engine owner presence/identity/both-engine reset preflight, unsupported runtime bindings, corrupt model/link removal preflight and typed numeric/duplicate-install failures. Existing Rapier cases remain required.",
-    "crates/gz-sim-server/tests/native.rs": "Six existing actual C++ Rapier scenarios retained; seventh uses TPE with exact stationary model pose and 9.81 m/s^2 IMU specific force through controls/remove/reset/reconnect. Actual native transport client, not a native simulator/reference-engine equivalence claim.",
+    "crates/gz-sim-server/tests/native.rs": "Six existing actual C++ Rapier scenarios retained; seventh uses TPE with exact stationary model pose and 9.81 m/s^2 IMU specific force through controls/remove/reset/reconnect. Actual native transport client, not a native simulator/reference-engine equivalence claim. Two new native10Hz cases retain all old seven and check exact packets/sequences/covariances/readings and live reset; exact server counters catch duplicate acquisition/publication.",
     "crates/gz-physics-tpe/tests/contacts.rs": "Overlap/touch/separation/static/mask behavior, both shrink-envelope directions, current generational identity/removal/reset, finite1e308 overlap point, typed numeric overflow and bounded pair-budget failure retaining the last frame. Standard f64 midpoint fixes the independent reviewer counterexample; no prior assertions weakened.",
     "crates/gz-sim-scene/tests/tpe_contacts.rs": "Eleven pinned native contact rows through actual SDF TPE construction, including rotated sphere cube/merged model bounds and finite large coordinates. Loaded removal/reset rebuilds current Entity pairs with original public IDs; empty static models have no contacts. Custom Surface XML remains unsupported; low-level validated mask replacement is explicit.",
     "crates/gz-sim-scene/tests/visual_metadata.rs": "Consumer ownership of reviewed SDF visual metadata: false cast shadows, float32 transparency, visibility mask and present zero laser retro survive model removal/reconstruction. No renderer/lidar effect or upstream test retirement claimed. All previous physics/native assertions remain required.",
     "crates/gz-assets/tests/local.rs": "Local native-policy lookup/configuration, byte and warning budgets, lossless canonical resource/warning IDs, symlink aliases/cycles, stat fallback and explicit-read errors. New ungrounded stat-stop expectations were corrected using native source/probes; no original/published assertion was removed. No native helper family retired.",
     "crates/gz-sim-scene/tests/local_resources.rs": "Both engines construct a real configured model include, then step/reset after the resolver is dropped and model XML deleted; original pose restoration remains independent of filesystem IO. Offline Fuel includes exercise both engines after removing cache and resolver, retaining public EntityId and pose after reset. Raw Bevy entity allocation is intentionally not the public identity contract; the new mistaken raw-ID expectation was corrected, with first failure retained.",
-    "crates/gz-assets/tests/offline_fuel.rs": "Actual immutable Fuel374 cache API exact/tip/versionless/case selection, missing/invalid/metadata-only/symlink/error/XML-budget controls. Real loopback listeners detect requests on hits and misses. Producer Option failures remain typed CacheMiss; no complete native Fuel family retirement."
+    "crates/gz-assets/tests/offline_fuel.rs": "Actual immutable Fuel374 cache API exact/tip/versionless/case selection, missing/invalid/metadata-only/symlink/error/XML-budget controls. Real loopback listeners detect requests on hits and misses. Producer Option failures remain typed CacheMiss; no complete native Fuel family retirement.",
+    "crates/gz-sim-scene/tests/sensor_schedule.rs": "Both engines:0/10/60/1000/2000Hz exact phase, physics-cadence derivatives, pause/reset and typed terminal next-time overflow retaining last committed time. Initial new overflow expectation incorrectly inspected opaque StepError text; corrected to exact Faulted plus retained typed diagnostic, with first failure logged."
   },
   "exclusions": [],
-  "retirements": []
+  "retirements": [],
+  "rust_assertion_dispositions": [
+    {
+      "test": "crates/gz-sim-scene/tests/scene.rs::unsupported_features_are_errors_and_existing_simulations_are_untouched",
+      "old_case": "10 Hz is rejected because output and physics rates differ",
+      "new_case": "10 Hz positive tests check exact 1 ms/100 ms acquisition, per-physics acceleration, pause/reset and real C++ packets on both engines. Unsupported-input table instead uses finite1e-300 Hz unrepresentable period with unchanged error type/message assertions.",
+      "scope": "Rust-only initial capability rejection is superseded by implemented native behavior; no upstream assertion or original test is retired.",
+      "review": "Explicitly approved by independent /root/sdformat: obsolete Rust-only10Hz rejection replaced by stronger native-backed positive assertions; genuinely unsupported1e-300Hz error, existing atomicity checks, all previous seven C++ cases and tolerances retained. No upstream retirement."
+    }
+  ]
 }

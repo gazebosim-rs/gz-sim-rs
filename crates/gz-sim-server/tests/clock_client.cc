@@ -1,12 +1,14 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 #include <condition_variable>
+#include <functional>
 #include <charconv>
 #include <cmath>
 #include <iostream>
 #include <memory>
 #include <map>
 #include <set>
+#include <vector>
 #include <mutex>
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/clock.pb.h>
@@ -35,8 +37,131 @@ struct Observations
   int64_t target = 3000000;
 };
 
+struct SamplingObservations
+{
+  std::mutex mutex;
+  std::condition_variable changed;
+  int64_t clock = -1;
+  int64_t imu = -1;
+  bool collecting = false;
+  bool overflow = false;
+  std::vector<gz::msgs::IMU> frames;
+};
+
+int RunSamplingCase(bool tpe)
+{
+  auto observed = std::make_shared<SamplingObservations>();
+  gz::transport::Node node;
+  std::function<void(const gz::msgs::Clock &)> clockCallback = [observed](const auto &value)
+      {
+        std::lock_guard<std::mutex> lock(observed->mutex);
+        observed->clock = value.sim().sec() * 1000000000LL + value.sim().nsec();
+        observed->changed.notify_all();
+      };
+  if (!node.Subscribe("/world/default/clock", clockCallback)) return 31;
+  std::function<void(const gz::msgs::IMU &)> imuCallback = [observed](const auto &value)
+      {
+        std::lock_guard<std::mutex> lock(observed->mutex);
+        observed->imu = value.header().stamp().sec() * 1000000000LL + value.header().stamp().nsec();
+        if (observed->collecting)
+        {
+          if (observed->frames.size() == 256) observed->overflow = true;
+          else observed->frames.push_back(value);
+        }
+        observed->changed.notify_all();
+      };
+  if (!node.Subscribe("/world/default/model/ball/link/body/sensor/imu/imu", imuCallback)) return 32;
+  auto wait = [&](auto condition, std::chrono::milliseconds timeout = std::chrono::seconds(8))
+  {
+    std::unique_lock<std::mutex> lock(observed->mutex);
+    return observed->changed.wait_for(lock, timeout, [&] { return condition(*observed); });
+  };
+  auto control = [&](uint64_t steps, bool reset)
+  {
+    gz::msgs::WorldControl request;
+    request.set_pause(true);
+    if (reset) request.mutable_reset()->set_all(true);
+    else request.set_multi_step(steps);
+    gz::msgs::Boolean response;
+    bool result = false;
+    return node.Request("/world/default/control", request, 7000, response, result) && result && response.data();
+  };
+  if (!wait([](const auto &v) { return v.clock >= 0; })) return 33;
+  unsigned int warmup = 0;
+  bool ready = false;
+  for (; warmup < 20 && !ready;)
+  {
+    ++warmup;
+    const int64_t target = warmup * 100000000LL;
+    if (!control(100, false) || !wait([&](const auto &v) { return v.clock == target; })) return 34;
+    ready = wait([&](const auto &v) { return v.imu == target; }, std::chrono::milliseconds(50));
+  }
+  if (!ready) return 35;
+  auto reset = [&]
+  {
+    {
+      std::lock_guard<std::mutex> lock(observed->mutex);
+      observed->collecting = false;
+      observed->frames.clear();
+      observed->overflow = false;
+      observed->imu = -1;
+    }
+    if (!control(0, true) || !wait([](const auto &v) { return v.clock == 0; })) return false;
+    std::lock_guard<std::mutex> lock(observed->mutex);
+    observed->collecting = true;
+    return true;
+  };
+  auto step = [&](uint64_t steps, int64_t target)
+  {
+    return control(steps, false) && wait([&](const auto &v) { return v.clock == target; });
+  };
+  if (!reset() || !step(1, 1000000) ||
+      !wait([](const auto &v) { return v.imu == 1000000; }) ||
+      !step(98, 99000000) || !step(1, 100000000) ||
+      !wait([](const auto &v) { return v.imu == 100000000; })) return 36;
+  auto valid = [&](const gz::msgs::IMU &frame, int64_t stamp, unsigned int sequence)
+  {
+    const auto &header = frame.header();
+    if (frame.entity_name() != "ball::body::imu" || !header.has_stamp() ||
+        header.stamp().sec() != 0 || header.stamp().nsec() != stamp || header.data_size() != 2 ||
+        header.data(0).key() != "frame_id" || header.data(0).value_size() != 1 ||
+        header.data(0).value(0) != "ball::body::imu" || header.data(1).key() != "seq" ||
+        header.data(1).value_size() != 1 || header.data(1).value(0) != std::to_string(sequence) ||
+        !frame.has_orientation() || !frame.has_angular_velocity() || !frame.has_linear_acceleration() ||
+        !frame.has_orientation_covariance() || !frame.has_angular_velocity_covariance() ||
+        !frame.has_linear_acceleration_covariance()) return false;
+    for (const auto *covariance : {&frame.orientation_covariance(), &frame.angular_velocity_covariance(), &frame.linear_acceleration_covariance()})
+    {
+      if (covariance->has_header() || covariance->data_size() != 9) return false;
+      for (float value : covariance->data()) if (value != 0) return false;
+    }
+    for (double value : {frame.orientation().x(), frame.orientation().y(), frame.orientation().z(),
+        frame.orientation().w() - 1, frame.angular_velocity().x(), frame.angular_velocity().y(),
+        frame.angular_velocity().z(), frame.linear_acceleration().x(), frame.linear_acceleration().y(),
+        frame.linear_acceleration().z() - (tpe ? 9.81 : 0.0)})
+      if (!std::isfinite(value) || std::abs(value) >= 1e-9) return false;
+    return true;
+  };
+  {
+    std::lock_guard<std::mutex> lock(observed->mutex);
+    // Receipt of the last frame drains earlier frames on this same IMU stream.
+    if (observed->overflow || observed->frames.size() != 2 || !valid(observed->frames[0], 1000000, 0) ||
+        !valid(observed->frames[1], 100000000, 1)) return 37;
+  }
+  if (!reset() || !step(1, 1000000) ||
+      !wait([](const auto &v) { return v.imu == 1000000; })) return 38;
+  {
+    std::lock_guard<std::mutex> lock(observed->mutex);
+    if (observed->overflow || observed->frames.size() != 1 || !valid(observed->frames[0], 1000000, 0)) return 39;
+  }
+  std::cout << "PASS native schedule warmup=" << warmup << " final=1 samples=2 reset_sequence=0\n";
+  return 0;
+}
+
 int main(int argc, char **argv)
 {
+  if (argc > 1 && (std::string(argv[1]) == "--schedule" || std::string(argv[1]) == "--tpe-schedule"))
+    return RunSamplingCase(std::string(argv[1]) == "--tpe-schedule");
   const bool sharedImu = argc > 1 && std::string(argv[1]) == "--shared";
   const bool tpe = argc > 1 && std::string(argv[1]) == "--tpe-reset";
   const bool reset = tpe || (argc > 1 && std::string(argv[1]) == "--reset");

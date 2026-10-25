@@ -122,13 +122,13 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current full gate passes 157 Rust checks and ten gate tests, including all
-seven real C++ scenarios: 2372/2400 production lines and 3725/3819 regions. Every
-production crate strictly exceeds 95% for both metrics. The cache-only Fuel
-increment covers all 20 changed executable lines. Independent review and the
+The current full gate passes 163 Rust checks and ten gate tests, including all
+nine real C++ scenarios: 2422/2450 production lines and 3789/3883 regions. Every
+production crate strictly exceeds 95% for both metrics. The sampling-cadence
+increment covers all 56 changed executable scene lines. Independent review and the
 exact staged gate remain required before publication.
 
-Remaining P2 work includes remaining TPE capabilities, full resource/download behavior, sensor scheduling, the
+Remaining P2 work includes remaining TPE capabilities, full resource/download behavior, remaining sensor/noise contracts, the
 simple-joint variant and velocity/force input required by PLAN.md, plus the
 equal-work C++ comparison/performance report. The complete articulation, system
 and backend inventories, Bevy rendering and release qualification remain open.
@@ -256,3 +256,11 @@ download. Exact/tip/versionless cache selection belongs to Fuel; the cached
 directory uses the existing SDF configuration selector and XML/warning limits.
 Both engines restore loaded state after the cache is removed. LOCAL_ASSETS.md
 records reference hashes, errors, controls and remaining resource scope.
+
+## Sensor acquisition rates
+
+IMU acquisition rates retain native nanosecond phase while physics derivatives
+continue every tick. The server publishes only a new (epoch, timestamp) sample;
+slow samples are not duplicated between acquisitions. Two additional real C++
+cases verify 10 Hz acquisition and reset sequences on Rapier and TPE; all seven
+previous cases remain. See SENSOR_SCHEDULING.md for controls and limitations.
