@@ -419,6 +419,8 @@ fn imu_message_matches_native_metadata_presence_covariance_and_sequence() {
             orientation: [0.0, 0.0, 0.0, 1.0],
             specific_force: [0.0, 0.0, 9.81],
             angular_velocity: [1.0, 2.0, 3.0],
+            angular_velocity_covariance: [0.0; 3],
+            linear_acceleration_covariance: [0.0; 3],
         }),
     };
     let packet = imu_packet(&metadata, &sample, u64::MAX).unwrap();
@@ -1108,4 +1110,39 @@ fn invalid_pose_packet_does_not_consume_the_next_publication_slot() {
     server.tick().unwrap();
     assert_eq!(server.counters().poses_queued, 1);
     assert_eq!(server.counters().poses_throttled, 0);
+}
+
+#[test]
+fn noisy_covariance_uses_native_float_diagonals_and_zero_cross_terms() {
+    let metadata = ImuPublication {
+        entity_name: "robot::imu".into(),
+        frame_id: "imu".into(),
+        topic: "/imu".into(),
+    };
+    let mut reading = gz_sensors::imu(gz_sensors::ImuInput {
+        world_orientation: [0.0, 0.0, 0.0, 1.0],
+        reference_orientation: [0.0, 0.0, 0.0, 1.0],
+        acceleration_sensor: [0.0; 3],
+        angular_velocity_sensor: [0.0; 3],
+        gravity_world: [0.0, 0.0, -9.81],
+    })
+    .unwrap();
+    reading.angular_velocity_covariance = [0.01, 0.04, 0.09];
+    reading.linear_acceleration_covariance = [0.16, 0.25, 0.36];
+    let sample = ImuSample {
+        time: Duration::from_millis(1),
+        epoch: 0,
+        reading: Ok(reading),
+    };
+    let packet = imu_packet(&metadata, &sample, 0).unwrap();
+    assert_eq!(
+        packet.angular_velocity_covariance.unwrap().data,
+        [0.01f32, 0.0, 0.0, 0.0, 0.04, 0.0, 0.0, 0.0, 0.09]
+    );
+    assert_eq!(
+        packet.linear_acceleration_covariance.unwrap().data,
+        [0.16f32, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.36]
+    );
+    assert_eq!(packet.orientation_covariance.unwrap().data, [0.0; 9]);
+    assert_eq!(packet.linear_acceleration.unwrap().z, 9.81);
 }

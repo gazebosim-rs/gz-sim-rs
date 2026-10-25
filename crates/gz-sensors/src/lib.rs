@@ -19,6 +19,8 @@ pub struct ImuReading {
     pub orientation: [f64; 4],
     pub specific_force: [f64; 3],
     pub angular_velocity: [f64; 3],
+    pub angular_velocity_covariance: [f64; 3],
+    pub linear_acceleration_covariance: [f64; 3],
 }
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
@@ -53,5 +55,10 @@ pub fn imu(input: ImuInput) -> Result<ImuReading, InvalidImuInput> {
         orientation: (reference.inverse() * world).to_array(),
         specific_force: specific_force.to_array(),
         angular_velocity: angular_velocity.to_array(),
+        angular_velocity_covariance: [0.0; 3],
+        linear_acceleration_covariance: [0.0; 3],
     })
 }
+
+mod noise;
+pub use noise::{GaussianNoise, GaussianParameters, InvalidNoise, NoiseStream};

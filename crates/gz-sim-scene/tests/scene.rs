@@ -184,7 +184,7 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
         ),
         (
             "<always_on>true</always_on>",
-            "<imu><angular_velocity><x><noise type='gaussian'/></x></angular_velocity></imu>",
+            "<imu><angular_velocity><x><noise type='gaussian'><stddev>1e30</stddev></noise></x></angular_velocity></imu>",
             "IMU noise",
         ),
         (

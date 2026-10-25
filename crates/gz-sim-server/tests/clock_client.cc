@@ -73,7 +73,7 @@ struct SamplingObservations
   std::vector<gz::msgs::IMU> frames;
 };
 
-int RunSamplingCase(bool tpe)
+int RunSamplingCase(bool tpe, bool noisy = false)
 {
   auto observed = std::make_shared<SamplingObservations>();
   gz::transport::Node node;
@@ -155,6 +155,24 @@ int RunSamplingCase(bool tpe)
         !frame.has_orientation() || !frame.has_angular_velocity() || !frame.has_linear_acceleration() ||
         !frame.has_orientation_covariance() || !frame.has_angular_velocity_covariance() ||
         !frame.has_linear_acceleration_covariance()) return false;
+    if (noisy)
+    {
+      for (const auto *covariance : {&frame.orientation_covariance(), &frame.angular_velocity_covariance(), &frame.linear_acceleration_covariance()})
+      {
+        if (covariance->has_header() || covariance->data_size() != 9) return false;
+        for (int index = 0; index < 9; ++index)
+        {
+          const float expected = covariance == &frame.angular_velocity_covariance() && index == 8 ? 0.01f : 0.0f;
+          if (covariance->data(index) != expected) return false;
+        }
+      }
+      for (double value : {frame.orientation().x(), frame.orientation().y(), frame.orientation().z(),
+          frame.orientation().w() - 1, frame.angular_velocity().x() - 0.25, frame.angular_velocity().y() + 2.5,
+          frame.linear_acceleration().x(), frame.linear_acceleration().y(),
+          frame.linear_acceleration().z() - (tpe ? 9.81 : 0.0)})
+        if (!std::isfinite(value) || std::abs(value) >= 1e-9) return false;
+      return std::isfinite(frame.angular_velocity().z()) && frame.angular_velocity().z() != 0;
+    }
     for (const auto *covariance : {&frame.orientation_covariance(), &frame.angular_velocity_covariance(), &frame.linear_acceleration_covariance()})
     {
       if (covariance->has_header() || covariance->data_size() != 9) return false;
@@ -167,17 +185,25 @@ int RunSamplingCase(bool tpe)
       if (!std::isfinite(value) || std::abs(value) >= 1e-9) return false;
     return true;
   };
+  double firstNoisyZ = 0;
   {
     std::lock_guard<std::mutex> lock(observed->mutex);
     // Receipt of the last frame drains earlier frames on this same IMU stream.
     if (observed->overflow || observed->frames.size() != 2 || !valid(observed->frames[0], 1000000, 0) ||
         !valid(observed->frames[1], 100000000, 1)) return 37;
+    if (noisy) firstNoisyZ = observed->frames[0].angular_velocity().z();
   }
   if (!reset() || !step(1, 1000000) ||
       !wait([](const auto &v) { return v.imu == 1000000; })) return 38;
   {
     std::lock_guard<std::mutex> lock(observed->mutex);
     if (observed->overflow || observed->frames.size() != 1 || !valid(observed->frames[0], 1000000, 0)) return 39;
+    if (noisy && observed->frames[0].angular_velocity().z() != firstNoisyZ) return 40;
+  }
+  if (noisy)
+  {
+    std::cout << "PASS native noisy schedule warmup=" << warmup << " final=1 samples=2 reset_sequence=0\n";
+    return 0;
   }
   std::cout << "PASS native schedule warmup=" << warmup << " final=1 samples=2 reset_sequence=0\n";
   return 0;
@@ -185,6 +211,8 @@ int RunSamplingCase(bool tpe)
 
 int main(int argc, char **argv)
 {
+  if (argc > 1 && (std::string(argv[1]) == "--noisy-schedule" || std::string(argv[1]) == "--tpe-noisy-schedule"))
+    return RunSamplingCase(std::string(argv[1]) == "--tpe-noisy-schedule", true);
   if (argc > 1 && (std::string(argv[1]) == "--schedule" || std::string(argv[1]) == "--tpe-schedule"))
     return RunSamplingCase(std::string(argv[1]) == "--tpe-schedule");
   const bool sharedImu = argc > 1 && std::string(argv[1]) == "--shared";

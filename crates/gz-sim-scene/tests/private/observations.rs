@@ -46,6 +46,7 @@ fn observers_consume_committed_link_state_and_resolve_restored_public_ids() {
             reference: DQuat::from_array(pose.rotation) * sensor_rotation,
             previous_velocity: DVec3::ZERO,
             schedule: SampleSchedule::new(0.0).unwrap(),
+            noise: None,
         })
         .id();
     sim.add_systems(Phase::PhysicsCommit, sync_models);

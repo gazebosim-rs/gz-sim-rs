@@ -1,0 +1,82 @@
+{
+  "decision": "approved",
+  "author": "/root",
+  "reviewer": "/root/msgs_review_fallback",
+  "scope": "Bounded Gaussian and Gaussian-quantized IMU noise across six channels, per-sensor seeded replay, acquisition-time correlated bias, native float covariance, both physics engines and Rust Server C++ client observation. No complete SENSOR-01/P2 acceptance.",
+  "base_commit": "fb2e28fa48dcf680da369c94fa3448494630366e",
+  "staged_tree": "ceaee3c5710b1c4819d8e2968bcadf11f61ccf7a",
+  "staged_diff_sha256": "6657feedd99f94ba277a1fd6b62cc4c3b5bf57bd168938c3542f05936810d490",
+  "files": {
+    "Cargo.lock": "85e1db5089edeb2b67e3069d3026d894becf3dd5576b70fd38ebc7356833d005",
+    "crates/gz-sensors/Cargo.toml": "5c813d250af1a2ca04dfd3c10647a4512ae348f64670abeb6e695f1e287820f4",
+    "crates/gz-sensors/src/lib.rs": "98f926069a80295cdc1991cdc840f1b7cc8c7ca2b0710675d90f22fc19ff2800",
+    "crates/gz-sensors/src/noise.rs": "0432ae2dc0fc9d38e6abb5c162fae2a98887b4e950c361cc90fb938fba654529",
+    "crates/gz-sensors/tests/native_noise.cc": "99c13d211b4c7b0180e004307c29a8c4637a6119c53f3db1e4cef3550b5be93b",
+    "crates/gz-sensors/tests/noise.rs": "39e2b6093eadb3c479ebfc2cecc2f53dcef37d3361f5f4340d3ccf093174f826",
+    "crates/gz-sim-scene/src/lib.rs": "d8d6abe4505578595dfe619306cae709575eda7dec985a7319fc08c24bfa97fd",
+    "crates/gz-sim-scene/src/noise.rs": "e91bdbc704c955f992b297ea2e53db8c79cd23e2f7be5931b87d38724626918f",
+    "crates/gz-sim-scene/tests/imu_noise.rs": "b1218ad1445a727a4e8e39fed7186c94ee55eebb7c5b45970977cec3b14d7c3b",
+    "crates/gz-sim-scene/tests/private/observations.rs": "7cd4a2919c813ac9a6c98c9dea5cb260c82ae527953d9b79cbc6b83fc945d335",
+    "crates/gz-sim-scene/tests/scene.rs": "3211348ff3fee0f28168015bc1024a469fa74558baaae1191cb03f0e3dff4a2f",
+    "crates/gz-sim-server/src/lib.rs": "9a16723204a67a24cc10e3859cbf921d73d7761c1bee8ab339341b75f3547df6",
+    "crates/gz-sim-server/tests/clock_client.cc": "17c454f191722ad7619305f6ce12e90112494c206b5c71b35ed2b39a13303ca0",
+    "crates/gz-sim-server/tests/native.rs": "e28ad6fb77a0a335f55c07001b7742dddb0d3d60f8071da63662344310a40636",
+    "crates/gz-sim-server/tests/private/server.rs": "94960add9c173ae345aaeab64fcc183e74a209dda753481027ede48c3512dbb6",
+    "docs/IMU_NOISE.md": "2e6f6272937d6421b6dc8194260c505e2383781d2965e5c3742b5c6cf7e36fbd",
+    "docs/STATUS.md": "85584b829996647a2a7f332723a8a34ae2d4683507cfda7c677d64921149310a",
+    "planning/reference/noise.json": "7062ed2b2b2dd16f7e7281b0afbff891b6d5a5b4a1ce075a4c26e8b21f893174",
+    "planning/test-ledger.json": "d9e42bef4278f216ee22b831f53f69d345b90dd16dd9f4d50fca91fd88611b1e",
+    "scripts/probe-noise.py": "55e20d9aff265ba523922bc402baed22baf5a88dc8ee6fb821d9c9efa9b406c8"
+  },
+  "no_unstaged_diff": true,
+  "author_evidence": {
+    "proposal_v2_sha256": "c6486dae8058b23bad4b33d98b8df9b8dcb7f4ca4d16c2458b7947d327164539",
+    "exact_staged_gate_sha256": "381df81a6bc602d0b3ce5fb051ae389440d02867bba374e43f8d9a36468ad6a1",
+    "gate": "221 Rust, 16 tooling, all 11 actual C++ client scenarios; workspace3436/3472 lines and5255/5371 regions, every crate strictly above95%; changed sensors79/79, scene133/134, server15/15.",
+    "native_reference_sha256": "7062ed2b2b2dd16f7e7281b0afbff891b6d5a5b4a1ce075a4c26e8b21f893174",
+    "retired_rejection_failure_sha256": "d6438fb8bd0bb2bf6a789ee00e3f56468d553ca0d9aa41079351a4baa3d3af08",
+    "v1_superseded_gate_sha256": "ad27d68f6febd6600e0a7e7cc3ad12fdfb2c134a9cdb155d6ddcb10791b13a4b"
+  },
+  "reviewer_evidence": {
+    "raw_staged_export_all_20_hashes_match": true,
+    "native_report_sha256": "8e5f1bb339e7a026dc9720b44fa1ff2ad9ccc422a5b55472c097b874e13fabcb",
+    "native_success_log_sha256": "ebed034ead3a05b576e074ea395c1801789301327a85278b8eb892a4d981845a",
+    "native_first_missing_zenoh_library_setup_failure_sha256": "985025ba6d4a17dfcc2a04f965dd069b895b9a282769ababc0823c9d87bb1391",
+    "native_observations_source_binary_and_loaded_libraries_match_author": true,
+    "native_originals": "Seven unchanged NoiseTest names, seven passed, zero failed or disabled; fresh XML time bytes differ from author report.",
+    "private_sensors_test_log_sha256": "50c6f48f7da94ea0ed0b3343f36cbb057d7cd04bd3729d9bf64e00a4afc1ea54",
+    "private_scene_v2_test_log_sha256": "f1cb60e8a2b4208b679180b41c901fa54cc607aa92c2c48039b04f3361c985c0",
+    "private_server_cpp_v2_test_log_sha256": "5135392afcaf4af3f65cf4e6cadcf8eee4ad3af805b607e5c330d519717a2ce6",
+    "private_old_exact_payload_test_log_sha256": "c235631fa8ef09d1d5c74908bdc9397c8083848cc1829a2c2f23a0513f6d6d9d",
+    "private_tests": "Sensors7/0, V2 scene5/0 including tracked exact old Gaussian XML 100 samples on both engines, V2 Rust Server/actual C++ client selected1/0 across original9 plus two new noisy modes.",
+    "four_v2_mutants": {
+      "precision": {
+        "diff_sha256": "c0301a513999a7e3c497a64205c80d1134cca22151e7654632477b95f0739790",
+        "log_sha256": "30e75fe00e48565f5f0a5de8dbdfdeea5fbede7b0de3159859050f35835aa2e4",
+        "result": "exact selected Rust assertion failed"
+      },
+      "acquisition-dt": {
+        "diff_sha256": "4b7258c01a4efae68174dee9c88bc57c68042d1b2593b76f72f939dba54e3781",
+        "log_sha256": "35e041ef7e714caa8c2b12eef8f4dad19b9430a47f9f170e9641f0a25e233e8c",
+        "result": "exact selected Rust assertion failed"
+      },
+      "covariance": {
+        "diff_sha256": "bf61bc3c4db05b30b08f746ab56d57d6995d978a428e8aef7cdea0768ff07c27",
+        "log_sha256": "5cf7969106e923c71b360a7100e2d6f4f5e8029da7c4e0fcfbfbb7299e20d335",
+        "result": "exact selected Rust assertion failed"
+      },
+      "reset": {
+        "diff_sha256": "0b92e2c43e0d4f28bb3c015e4e0c03178d885b9abeb96ccc9a0c8ec5de416fcc",
+        "log_sha256": "11f305bee6213883746d98a3217a8409132844b90c5e118f8f0e27bcafb72920",
+        "result": "exact selected Rust assertion failed"
+      }
+    }
+  },
+  "checks": [
+    "Pinned gz-sensors/gz-math source commits, native scalar probe binary and loaded library hashes independently match the author reference. Six modes each returned 16 observations; six observation sequences matched byte-for-byte. Seven unchanged original native cases passed. First private missing-Zenoh library link attempt was setup-only and excluded.",
+    "V2 aligns channel initialization, application and reset draws with pinned ImuSensor acceleration X/Y/Z followed by gyro X/Y/Z; covariance slices follow that order. Gaussian scalar formula, mean/bias sign, quantization threshold and native integer-nanoseconds-to-float acquisition interval were source audited.",
+    "The retired Rust blanket Gaussian rejection retains its error and existing-world atomicity assertions using finite stddev1e30 with unrepresentable f32 covariance. The exact old full XML payload is now a tracked positive: 100 matching noise-free readings on both engines. No original native assertion retired or tolerance widened.",
+    "Separate private production mutations each failed the intended precision, acquisition interval, covariance or reset assertion. Production source was restored to all 20 frozen V2 hashes after each mutation."
+  ],
+  "limits": "Per-sensor ChaCha8 stream and reset-repeat policy are intentionally different from native process-global MT19937; no cross-language seeded sample identity. Native evidence is scalar NoiseModel plus original NoiseTest, not a complete noisy native Server stream. The C++ client observes Rust Server. Native negative-precision diagnostic, subscriber activation and other sensor families remain open. First V1 freeze superseded by V2; normal hook, public commit, hosted CI and broader SENSOR-01/P2 are pending."
+}

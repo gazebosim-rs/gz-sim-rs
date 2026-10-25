@@ -39,8 +39,10 @@ fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
     run_native_world(true, None, false, true, false, PhysicsEngine::Rapier);
     run_native_world(true, None, false, false, true, PhysicsEngine::Rapier);
     run_native_world(true, None, false, false, true, PhysicsEngine::Tpe);
-    run_native_schedule_world(PhysicsEngine::Rapier);
-    run_native_schedule_world(PhysicsEngine::Tpe);
+    run_native_schedule_world(PhysicsEngine::Rapier, false);
+    run_native_schedule_world(PhysicsEngine::Tpe, false);
+    run_native_schedule_world(PhysicsEngine::Rapier, true);
+    run_native_schedule_world(PhysicsEngine::Tpe, true);
 }
 
 fn run_native_world(
@@ -259,7 +261,7 @@ fn run_native_world(
     server.shutdown();
 }
 
-fn run_native_schedule_world(engine: PhysicsEngine) {
+fn run_native_schedule_world(engine: PhysicsEngine, noisy: bool) {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let build = Command::new("python3")
         .arg(root.join("scripts/native-peer.py"))
@@ -279,10 +281,13 @@ fn run_native_schedule_world(engine: PhysicsEngine) {
         ..Config::default()
     };
     drop((message, service));
-    let xml = include_str!("../../gz-sim-scene/tests/fixtures/fall.sdf").replace(
+    let mut xml = include_str!("../../gz-sim-scene/tests/fixtures/fall.sdf").replace(
         "<update_rate>1000</update_rate>",
         "<update_rate>10</update_rate>",
     );
+    if noisy {
+        xml = xml.replace("</sensor>", "<imu><angular_velocity><x><noise type='gaussian'><mean>0.25</mean></noise></x><y><noise type='gaussian_quantized'><mean>-2.25</mean><precision>0.5</precision></noise></y><z><noise type='gaussian'><stddev>0.1</stddev></noise></z></angular_velocity></imu></sensor>");
+    }
     let simulation = load_world_with_engine(
         &xml,
         "schedule.sdf",
@@ -304,10 +309,11 @@ fn run_native_schedule_world(engine: PhysicsEngine) {
         .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
     let mut peer = Peer(
         Command::new(root.join("artifacts/native-peer/clock-client"))
-            .arg(if engine == PhysicsEngine::Tpe {
-                "--tpe-schedule"
-            } else {
-                "--schedule"
+            .arg(match (engine, noisy) {
+                (PhysicsEngine::Tpe, true) => "--tpe-noisy-schedule",
+                (PhysicsEngine::Rapier, true) => "--noisy-schedule",
+                (PhysicsEngine::Tpe, false) => "--tpe-schedule",
+                (PhysicsEngine::Rapier, false) => "--schedule",
             })
             .env("GZ_PARTITION", &config.partition)
             .env("GZ_IP", config.interface.to_string())
@@ -357,7 +363,11 @@ fn run_native_schedule_world(engine: PhysicsEngine) {
         "{engine:?} status={status} stdout={stdout} stderr={stderr}"
     );
     assert!(stderr.is_empty(), "{stderr}");
-    assert!(stdout.starts_with("PASS native schedule"));
+    assert!(stdout.starts_with(if noisy {
+        "PASS native noisy schedule"
+    } else {
+        "PASS native schedule"
+    }));
     let warmup: u64 = stdout
         .split_whitespace()
         .find_map(|word| word.strip_prefix("warmup="))

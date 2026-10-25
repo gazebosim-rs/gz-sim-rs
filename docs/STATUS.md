@@ -21,7 +21,7 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 | gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
 | gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation, model overlap contacts and typed faults | Remaining geometry/commands and D23 policy |
 | gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, world velocity/COM wrench inputs, world-revolute constraints, backend reset/removal, prepared initial-state restoration and numeric validation | General articulations, remaining force frames and common capabilities, DART/MuJoCo/TPE adapters |
-| gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Seeds/noise, complete frame configuration and remaining sensor families |
+| gz-sensors | IMU specific force/relative orientation, seeded Gaussian/bias/quantization and native covariance using f64 math | Activation, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, phase-preserving IMU sampling, checked model-subtree removal and loaded-scene restoration | General joints, offset/multiple shapes, full resource policy and remaining sensor contracts |
 | gz-sim-cli | Local SDF/configured world input and include roots, Rapier/TPE selection, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, remote top-level resources, signal handling and packaging |
 | gz-sim-server | Bounded clock/pose publication, shared-topic IMU streams, polled pause/step/reset controls, deferred remove services, real C++ clients | Root clock election, run-to controls, scene services and runtime sensor registration |
@@ -38,6 +38,13 @@ ECS access must preserve installed resources and scene ownership invariants;
 system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
+
+Gaussian IMU noise passed independent source/native/assertion review and the
+exact staged gate: 221 Rust tests, sixteen tooling checks, eleven actual C++
+scenarios; coverage3436/3472 production lines and5255/5371 regions, every crate
+above95%. [IMU_NOISE.md](IMU_NOISE.md) records seeded/reset policy, native
+controls, preserved fixtures and remaining scope. Normal protected hook and
+exact hosted verification remain separate qualification requirements.
 
 Native default pose cadence passed independent source/native/assertion review
 and the exact staged gate: 208 Rust tests, sixteen tooling checks, nine actual

@@ -81,9 +81,19 @@ fn imu_packet(
         quaternion, vector3,
     };
     let reading = sample.reading.as_ref().ok()?;
-    let covariance = || {
+    let covariance = |diagonal: [f64; 3]| {
         Some(FloatV {
-            data: vec![0.0; 9],
+            data: vec![
+                diagonal[0] as f32,
+                0.0,
+                0.0,
+                0.0,
+                diagonal[1] as f32,
+                0.0,
+                0.0,
+                0.0,
+                diagonal[2] as f32,
+            ],
             ..Default::default()
         })
     };
@@ -103,11 +113,11 @@ fn imu_packet(
         }),
         entity_name: metadata.entity_name.clone(),
         orientation: Some(quaternion(reading.orientation)),
-        orientation_covariance: covariance(),
+        orientation_covariance: covariance([0.0; 3]),
         angular_velocity: Some(vector3(reading.angular_velocity)),
-        angular_velocity_covariance: covariance(),
+        angular_velocity_covariance: covariance(reading.angular_velocity_covariance),
         linear_acceleration: Some(vector3(reading.specific_force)),
-        linear_acceleration_covariance: covariance(),
+        linear_acceleration_covariance: covariance(reading.linear_acceleration_covariance),
     })
 }
 

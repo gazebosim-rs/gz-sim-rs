@@ -3,6 +3,7 @@
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
 mod joints;
+mod noise;
 pub use joints::{JointDefinition, JointHandle, JointSample};
 
 mod inputs;
@@ -32,7 +33,7 @@ use gz_sim_core::{
     EntityId, EntityLookup, IdentityError, Phase, Simulation, StepError, StepFault, UpdateInfo,
     assign_id,
 };
-use sdformat::{Geometry, Model, NoiseKind, ResourceResolver, Sdf, Transform};
+use sdformat::{Geometry, Model, ResourceResolver, Sdf, Transform};
 use std::{collections::BTreeMap, time::Duration};
 
 // Semantic frame composition introduces rounding even for coincident frames.
@@ -162,6 +163,7 @@ struct Imu {
     reference: DQuat,
     previous_velocity: DVec3,
     schedule: SampleSchedule,
+    noise: Option<Box<noise::ImuNoise>>,
 }
 
 #[derive(Component, Debug)]
@@ -182,6 +184,7 @@ pub struct ImuPublication {
 struct SceneContext<'a> {
     world: &'a str,
     links: BTreeMap<String, u64>,
+    noise_seed: [u8; 32],
 }
 
 struct ParentModel {
@@ -257,7 +260,15 @@ pub fn load_world_with_engine(
     resolver: &dyn ResourceResolver,
     engine: PhysicsEngine,
 ) -> Result<Simulation, LoadError> {
-    load_world_configured(xml, source, world_name, Some(step), resolver, engine)
+    load_world_configured(
+        xml,
+        source,
+        world_name,
+        Some(step),
+        resolver,
+        engine,
+        [0; 32],
+    )
 }
 
 /// Uses the first SDF physics profile's step without adding wall-clock pacing.
@@ -269,7 +280,22 @@ pub fn load_world_with_sdf_step(
     resolver: &dyn ResourceResolver,
     engine: PhysicsEngine,
 ) -> Result<Simulation, LoadError> {
-    load_world_configured(xml, source, world_name, None, resolver, engine)
+    load_world_configured(xml, source, world_name, None, resolver, engine, [0; 32])
+}
+
+/// Uses independent deterministic streams keyed by public sensor identity.
+/// Reset repeats each initial stream; omitted step uses the first SDF profile.
+/// Existing loader entry points use an all-zero noise seed.
+pub fn load_world_seeded(
+    xml: &str,
+    source: &str,
+    world_name: &str,
+    step: Option<Duration>,
+    resolver: &dyn ResourceResolver,
+    engine: PhysicsEngine,
+    seed: [u8; 32],
+) -> Result<Simulation, LoadError> {
+    load_world_configured(xml, source, world_name, step, resolver, engine, seed)
 }
 
 fn load_world_configured(
@@ -279,6 +305,7 @@ fn load_world_configured(
     step_override: Option<Duration>,
     resolver: &dyn ResourceResolver,
     engine: PhysicsEngine,
+    noise_seed: [u8; 32],
 ) -> Result<Simulation, LoadError> {
     let sdf = sdformat::load_str(xml, source, resolver)?;
     sdf.validate_non_frame_poses()?;
@@ -323,6 +350,7 @@ fn load_world_configured(
     let mut context = SceneContext {
         world: world_name,
         links: BTreeMap::new(),
+        noise_seed,
     };
     let world_entity = spawn_node(
         &mut sim,
@@ -565,15 +593,6 @@ fn build_model(
             require(!sensor.enable_metrics, &name, "sensor metrics")?;
             let config = &sensor.imu;
             require(
-                config
-                    .angular_velocity
-                    .iter()
-                    .chain(&config.linear_acceleration)
-                    .all(|noise| noise.kind == NoiseKind::None),
-                &name,
-                "IMU noise",
-            )?;
-            require(
                 config.enable_orientation
                     && config.localization == "CUSTOM"
                     && config.custom_rpy == [0.0; 3]
@@ -619,6 +638,18 @@ fn build_model(
                 local,
                 world,
             )?;
+            let identity = sim
+                .world()
+                .get::<EntityId>(sensor_entity)
+                .expect("spawned scene nodes own public identities")
+                .get();
+            let noise =
+                noise::ImuNoise::new(config, context.noise_seed, identity).map_err(|_| {
+                    LoadError::Unsupported {
+                        entity: name.clone(),
+                        feature: "unrepresentable IMU noise",
+                    }
+                })?;
             sim.world_mut().entity_mut(sensor_entity).insert((
                 AttachedPose,
                 ImuPublication {
@@ -639,6 +670,7 @@ fn build_model(
                     reference: DQuat::from_array(pose.rotation) * DQuat::from_array(local.rotation),
                     previous_velocity: DVec3::ZERO,
                     schedule,
+                    noise,
                 },
             ));
         }
@@ -772,6 +804,13 @@ struct SensorScheduleFault {
     source: ScheduleError,
 }
 
+#[derive(Debug, thiserror::Error)]
+#[error("IMU noise {entity:?}: {source}")]
+struct SensorNoiseFault {
+    entity: Entity,
+    source: gz_sensors::InvalidNoise,
+}
+
 fn sample_imus(
     time: Res<UpdateInfo>,
     fault: Res<StepFault>,
@@ -801,18 +840,26 @@ fn sample_imus(
             }
         }
         let rotation = DQuat::from_array(pose.rotation) * sensor.rotation;
+        let mut reading = gz_sensors::imu(ImuInput {
+            world_orientation: rotation.to_array(),
+            reference_orientation: sensor.reference.to_array(),
+            acceleration_sensor: (rotation.inverse() * acceleration).to_array(),
+            angular_velocity_sensor: (rotation.inverse()
+                * DVec3::from_array(body_velocity.angular))
+            .to_array(),
+            gravity_world: gravity.0,
+        });
+        if let Ok(reading) = &mut reading
+            && let Some(noise) = &mut sensor.noise
+            && let Err(source) = noise.apply(reading, time.sim_time)
+        {
+            fault.report(SensorNoiseFault { entity, source });
+            return;
+        }
         commands.entity(entity).insert(ImuSample {
             time: time.sim_time,
             epoch: time.epoch,
-            reading: gz_sensors::imu(ImuInput {
-                world_orientation: rotation.to_array(),
-                reference_orientation: sensor.reference.to_array(),
-                acceleration_sensor: (rotation.inverse() * acceleration).to_array(),
-                angular_velocity_sensor: (rotation.inverse()
-                    * DVec3::from_array(body_velocity.angular))
-                .to_array(),
-                gravity_world: gravity.0,
-            }),
+            reading,
         });
     }
 }
@@ -821,6 +868,9 @@ fn reset_imus(mut sensors: Query<(Entity, &mut Imu)>, mut commands: Commands) {
     for (entity, mut sensor) in &mut sensors {
         sensor.previous_velocity = DVec3::ZERO;
         sensor.schedule.reset();
+        if let Some(noise) = &mut sensor.noise {
+            noise.reset();
+        }
         commands.entity(entity).remove::<ImuSample>();
     }
 }
