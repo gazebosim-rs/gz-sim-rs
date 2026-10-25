@@ -8,7 +8,7 @@ fluid-added-mass, frame, IMU configuration and source-validation guards remain.
 
 The selected TPE path is kinematic. Gravity does not accelerate bodies; mass and
 inertia do not affect motion. Gravity still supplies IMU specific force. Collision
-shapes are validated, but contact reporting is not implemented in this slice.
+shapes supply model-level overlap points through [TPE_CONTACTS.md](TPE_CONTACTS.md).
 No collision response, joint, force or link-velocity command is implied. Full TPE
 capabilities, native test parity and the complete headless P2 milestone remain open.
 

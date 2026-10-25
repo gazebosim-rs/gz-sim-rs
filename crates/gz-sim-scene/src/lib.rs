@@ -176,6 +176,8 @@ pub enum LoadError {
     Tpe(#[from] gz_physics_tpe::MotionError),
     #[error(transparent)]
     TpeInstall(#[from] gz_physics_tpe::InstallError),
+    #[error(transparent)]
+    TpeContact(#[from] gz_physics_tpe::ContactError),
 }
 
 fn require(supported: bool, entity: &str, feature: &'static str) -> Result<(), LoadError> {
@@ -381,22 +383,24 @@ fn build_model(
             velocity: [0.0; 3],
             mass: (!is_static).then_some(link.inertial.mass),
         };
-        let id = if let Some(backend) = backend {
-            Some(backend.spawn_link(
-                spec,
-                RotationSpec {
-                    orientation: pose.rotation,
-                    ..Default::default()
-                },
-                Some(Inertia {
-                    center: inertial_pose.translation,
-                    orientation: inertial_pose.rotation,
-                    tensor: link.inertial.inertia,
-                }),
-            )?)
+        let (id, tpe_link) = if let Some(backend) = backend {
+            (
+                Some(backend.spawn_link(
+                    spec,
+                    RotationSpec {
+                        orientation: pose.rotation,
+                        ..Default::default()
+                    },
+                    Some(Inertia {
+                        center: inertial_pose.translation,
+                        orientation: inertial_pose.rotation,
+                        tensor: link.inertial.inertia,
+                    }),
+                )?),
+                None,
+            )
         } else {
-            tpe::validate_link(spec, pose)?;
-            None
+            (None, Some(tpe::validate_link(spec, pose)?))
         };
         let local = sdf.pose_of(name, &model.scoped_name)?;
         let link_entity = spawn_node(sim, Some(model_entity), name, EntityKind::Link, local, pose)?;
@@ -408,8 +412,8 @@ fn build_model(
             sim.world_mut()
                 .entity_mut(link_entity)
                 .insert(BodyHandle(id));
-        } else {
-            sim.world_mut().entity_mut(link_entity).insert(tpe::TpeLink);
+        } else if let Some(link) = tpe_link {
+            sim.world_mut().entity_mut(link_entity).insert(link);
         }
         let link_id = sim
             .world()
@@ -524,6 +528,9 @@ fn build_model(
     }
     for child in &model.models {
         build_model(sdf, child, context, &parent, sim, backend)?;
+    }
+    if backend.is_none() {
+        tpe::add_bounds(sim, model_entity, is_static)?;
     }
     if !is_static && backend.is_some() {
         let (canonical, _) = model.canonical_link_and_relative_name();

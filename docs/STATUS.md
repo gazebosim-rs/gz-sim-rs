@@ -17,7 +17,7 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 | --- | --- | --- |
 | gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, typed terminal fault diagnostics, world/allocator-bound reset reservations, isolated worlds | Persistence and complete lifecycle contract |
 | gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
-| gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation and typed arithmetic faults | Contact reporting, commands and D23 policy |
+| gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation, model overlap contacts and typed faults | Remaining geometry/commands and D23 policy |
 | gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, asset resolution and scheduling |
@@ -37,12 +37,11 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 127 Rust tests and nine gate tests, covering 2034/2057
-production lines and 3133/3206 regions. Every production crate exceeds 95% for
-both metrics. The TPE scene increment covers all 198 changed executable lines. Scene coverage
-is 805/827 lines and 1231/1287 regions; all prior assertions remain required.
-The final new regression checks and exact staged snapshot must re-establish these
-counts before publication.
+The current local gate passes 138 Rust checks and nine gate tests, including all
+seven actual C++ client scenarios. Coverage is 2186/2212 production lines and
+3373/3455 regions. Every production crate exceeds 95% for both metrics. The contact
+increment covers TPE 101/102 and scene 68/69 changed executable lines. TPE coverage
+is 187/188 lines and 277/278 regions; scene 851/875 and 1315/1379.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 

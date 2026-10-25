@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! TPE constant-velocity motion over validated shared f64 state.
 
+mod contacts;
+pub use contacts::{Contact, ContactError, ContactLimit, Contacts, ModelBounds};
+
 mod ecs;
 pub use ecs::{InstallError, Motion, MotionReset, StepFailure, install};
 

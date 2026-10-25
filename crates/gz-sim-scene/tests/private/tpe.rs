@@ -52,7 +52,12 @@ fn tpe_reset_preflights_owner_presence_and_runtime_bindings() {
     ));
     assert_eq!(remove_model(&mut sim, id), Err(RemoveError::InvalidPhysics));
     sim.world_mut().remove_resource::<RapierBackend>();
-    let extra = sim.world_mut().spawn(TpeLink).id();
+    let link = sim
+        .world()
+        .iter_entities()
+        .find_map(|e| e.get::<TpeLink>().cloned())
+        .unwrap();
+    let extra = sim.world_mut().spawn(link).id();
     assert!(matches!(
         reset_loaded_world(&mut sim, |_| ()),
         Err(SceneResetError::RuntimePhysics)
@@ -60,6 +65,17 @@ fn tpe_reset_preflights_owner_presence_and_runtime_bindings() {
     sim.world_mut().entity_mut(extra).despawn();
     let motion = sim.world().get::<Motion>(entity).unwrap().clone();
     let extra = sim.world_mut().spawn(motion).id();
+    assert!(matches!(
+        reset_loaded_world(&mut sim, |_| ()),
+        Err(SceneResetError::RuntimePhysics)
+    ));
+    sim.world_mut().entity_mut(extra).despawn();
+    let bounds = sim
+        .world()
+        .get::<gz_physics_tpe::ModelBounds>(entity)
+        .unwrap()
+        .clone();
+    let extra = sim.world_mut().spawn(bounds).id();
     assert!(matches!(
         reset_loaded_world(&mut sim, |_| ()),
         Err(SceneResetError::RuntimePhysics)
@@ -93,10 +109,10 @@ fn tpe_removal_rejects_corrupt_bindings_without_retiring_ids() {
         })
         .unwrap()
         .id();
-    sim.world_mut().entity_mut(link).remove::<TpeLink>();
+    let binding = sim.world_mut().entity_mut(link).take::<TpeLink>().unwrap();
     assert_eq!(remove_model(&mut sim, id), Err(RemoveError::InvalidPhysics));
     assert_eq!(ball(&sim), (entity, id));
-    sim.world_mut().entity_mut(link).insert(TpeLink);
+    sim.world_mut().entity_mut(link).insert(binding);
     assert!(remove_model(&mut sim, id).unwrap().contains(&id));
 }
 

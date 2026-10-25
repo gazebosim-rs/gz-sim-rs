@@ -54,6 +54,7 @@ pub fn install(sim: &mut Simulation) -> Result<(), InstallError> {
     }
     sim.add_systems(Phase::PhysicsStep, advance);
     sim.add_systems(Phase::Reset, reset.in_set(MotionReset));
+    crate::contacts::install(sim);
     Ok(())
 }
 

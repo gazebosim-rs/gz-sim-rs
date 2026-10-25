@@ -11,6 +11,7 @@ gz-sim-core = { path = "../gz-sim-core" }
 gz-physics = { path = "../gz-physics" }
 glam.workspace = true
 thiserror.workspace = true
+parry3d-f64 = "=0.31.1"
 
 [dev-dependencies]
 gz-physics-rapier = { path = "../gz-physics-rapier" }

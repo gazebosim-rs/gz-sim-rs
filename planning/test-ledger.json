@@ -70,6 +70,18 @@
       "remaining_assertions": "Original ID/name getters/setters, local/world pose equivalence, first-model motion and static flag assertions remain unmigrated; no full original retirement.",
       "reviewer": "/root/sdformat",
       "review": "Typed kernel source and9 Rust tests independently replayed; fresh native12-row fixture regeneration and original Model.BasicAPI passed. Final metadata, strict staged gate and hosted checks still required."
+    },
+    {
+      "repository": "gz-physics",
+      "upstream_commit": "b44cd0d0ea6606b6c98320c0c87a5670d4fc6be6",
+      "source": "tpe/lib/src/CollisionDetector_TEST.cc",
+      "test": "CollisionDetector.CheckStaticCollisionFiltering",
+      "rust_test": "crates/gz-physics-tpe/tests/contacts.rs::original_two_static_overlapping_boxes_produce_no_contacts",
+      "status": "ported_reviewed",
+      "retained_assertions": "Two static models, each with one 4x4x4 box; first pose(1,1,1), second zero; overlapping geometry produces an empty contact collection. Native hierarchy maps to Bevy Motion and validated model bounds; parry supplies geometry. Original 2020 Apache/OSRF attribution retained.",
+      "scope": "This complete original static-filter case only. Broader CheckCollisions and eight-corner helper assertions are not retired or counted complete.",
+      "reviewer": "/root/transport_recovery",
+      "review": "Independent source/assertion review, private 65 Rust checks plus the reviewer large-coordinate regression, 11 freshly regenerated native rows and unchanged native StaticFiltering XML 1/0 passed. Final metadata, exact staged gate and hosted evidence remain required."
     }
   ],
   "supplementary_tests": {
@@ -85,7 +97,9 @@
     "crates/gz-physics-tpe/tests/ecs.rs": "New Bevy-owned kinematic adapter checks: analytic50-step translation/rotation, zero-dt pause, reset ordering and constructor state, entity/component retirement, mutually exclusive installers including removed Rapier resource, invalid construction and typed terminal overflow/publication suppression. No SDF/static/link command policy, contact acceptance or original retirement.",
     "crates/gz-sim-scene/tests/tpe.rs": "Selectable TPE SDF construction, stationary gravity semantics/specific force, same-ID removal/reset, analytic rotated-model/offset-link Motion and IMU observations, two fresh native World/Model/Link fixture rows, explicit nested-model rejection and earlier typed nonfinite SDF rejection. No original retirement or static/link-velocity command policy.",
     "crates/gz-sim-scene/tests/private/tpe.rs": "Chosen-engine owner presence/identity/both-engine reset preflight, unsupported runtime bindings, corrupt model/link removal preflight and typed numeric/duplicate-install failures. Existing Rapier cases remain required.",
-    "crates/gz-sim-server/tests/native.rs": "Six existing actual C++ Rapier scenarios retained; seventh uses TPE with exact stationary model pose and 9.81 m/s^2 IMU specific force through controls/remove/reset/reconnect. Actual native transport client, not a native simulator/reference-engine equivalence claim."
+    "crates/gz-sim-server/tests/native.rs": "Six existing actual C++ Rapier scenarios retained; seventh uses TPE with exact stationary model pose and 9.81 m/s^2 IMU specific force through controls/remove/reset/reconnect. Actual native transport client, not a native simulator/reference-engine equivalence claim.",
+    "crates/gz-physics-tpe/tests/contacts.rs": "Overlap/touch/separation/static/mask behavior, both shrink-envelope directions, current generational identity/removal/reset, finite1e308 overlap point, typed numeric overflow and bounded pair-budget failure retaining the last frame. Standard f64 midpoint fixes the independent reviewer counterexample; no prior assertions weakened.",
+    "crates/gz-sim-scene/tests/tpe_contacts.rs": "Eleven pinned native contact rows through actual SDF TPE construction, including rotated sphere cube/merged model bounds and finite large coordinates. Loaded removal/reset rebuilds current Entity pairs with original public IDs; empty static models have no contacts. Custom Surface XML remains unsupported; low-level validated mask replacement is explicit."
   },
   "exclusions": [],
   "retirements": []

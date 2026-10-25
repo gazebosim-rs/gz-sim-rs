@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 use gz_physics_rapier::BodyState;
-use gz_physics_tpe::{Motion, MotionReset};
+use gz_physics_tpe::{ModelBounds, Motion, MotionReset};
+use parry3d_f64::{
+    bounding_volume::{Aabb, BoundingVolume},
+    math::{Pose, Rotation, Vector},
+};
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -14,8 +18,8 @@ pub enum PhysicsEngine {
 #[derive(Resource)]
 pub(super) struct TpeWorld(pub Arc<()>);
 
-#[derive(Component)]
-pub(super) struct TpeLink;
+#[derive(Component, Clone)]
+pub(super) struct TpeLink(Aabb);
 
 pub(super) fn add_model(
     sim: &mut Simulation,
@@ -32,7 +36,7 @@ pub(super) fn add_model(
     Ok(())
 }
 
-pub(super) fn validate_link(spec: BodySpec, pose: Transform) -> Result<(), LoadError> {
+pub(super) fn validate_link(spec: BodySpec, pose: Transform) -> Result<TpeLink, LoadError> {
     let valid_shape = match spec.shape {
         Shape::Sphere { radius } => radius.is_finite() && radius > 0.0,
         Shape::Box { half_extents } => half_extents.into_iter().all(|v| v.is_finite() && v > 0.0),
@@ -46,6 +50,53 @@ pub(super) fn validate_link(spec: BodySpec, pose: Transform) -> Result<(), LoadE
         velocity: [0.0; 3],
         angular_velocity: [0.0; 3],
     })?;
+    let half = match spec.shape {
+        Shape::Sphere { radius } => [radius; 3],
+        Shape::Box { half_extents } => half_extents,
+    };
+    Ok(TpeLink(Aabb::from_half_extents(
+        Vector::ZERO,
+        Vector::from_array(half),
+    )))
+}
+
+pub(super) fn add_bounds(
+    sim: &mut Simulation,
+    model: Entity,
+    is_static: bool,
+) -> Result<(), LoadError> {
+    let mut aggregate: Option<Aabb> = None;
+    if let Some(children) = sim.world().get::<Children>(model) {
+        for entity in children.iter() {
+            let Some(link) = sim.world().get::<TpeLink>(entity) else {
+                continue;
+            };
+            let local = sim
+                .world()
+                .get::<LocalPose>(entity)
+                .expect("loader owns link poses")
+                .0;
+            let q = local.rotation;
+            let pose = Pose::from_parts(
+                Vector::from_array(local.translation),
+                Rotation::from_xyzw(q[0], q[1], q[2], q[3]),
+            );
+            let bounds = link.0.transform_by(&pose);
+            match &mut aggregate {
+                Some(aggregate) => aggregate.merge(&bounds),
+                None => aggregate = Some(bounds),
+            }
+        }
+    }
+    if let Some(bounds) = aggregate {
+        let bounds = ModelBounds::new(
+            bounds.mins.to_array(),
+            bounds.maxs.to_array(),
+            is_static,
+            u16::MAX,
+        )?;
+        sim.world_mut().entity_mut(model).insert(bounds);
+    }
     Ok(())
 }
 

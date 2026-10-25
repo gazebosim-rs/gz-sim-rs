@@ -28,8 +28,8 @@ rows use 1e-12, and the tiny component is checked exactly. Names, identities,
 static flags and the rest of that original case remain unmigrated.
 
 The SDF loader defaults to Rapier and now offers an explicit TPE kinematic path;
-see [TPE_SCENE.md](TPE_SCENE.md). Contact queries, commands and the full original
-ledger remain open. D23 separately awaits the owner's decision on native static-model movement
+see [TPE_SCENE.md](TPE_SCENE.md). Model contact reporting is described in [TPE_CONTACTS.md](TPE_CONTACTS.md);
+commands and the full original ledger remain open. D23 separately awaits the owner's decision on native static-model movement
 and rotated-link velocity conversion; this kernel does not select those policies.
 The kernel acceptance gate passed 106 Rust checks and 9 tooling checks, retaining all six
 real C++ server scenarios. Motion coverage is 48/48 lines, 73/73 regions and 46/46

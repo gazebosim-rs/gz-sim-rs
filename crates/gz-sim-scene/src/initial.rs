@@ -51,7 +51,8 @@ struct Node {
     pose: WorldPose,
     body: Option<BodyId>,
     motion: Option<gz_physics_tpe::Motion>,
-    tpe_link: bool,
+    tpe_link: Option<tpe::TpeLink>,
+    tpe_bounds: Option<gz_physics_tpe::ModelBounds>,
     velocity: Option<Velocity>,
     anchor: Option<ModelAnchor>,
     attached: bool,
@@ -104,7 +105,8 @@ pub(super) fn capture(sim: &mut Simulation) {
                 .expect("loader provided world poses"),
             body: entity.get::<BodyHandle>().map(BodyHandle::id),
             motion: entity.get::<gz_physics_tpe::Motion>().cloned(),
-            tpe_link: entity.contains::<tpe::TpeLink>(),
+            tpe_link: entity.get::<tpe::TpeLink>().cloned(),
+            tpe_bounds: entity.get::<gz_physics_tpe::ModelBounds>().cloned(),
             velocity: entity.get::<Velocity>().copied(),
             anchor: entity.get::<ModelAnchor>().cloned(),
             attached: entity.contains::<AttachedPose>(),
@@ -188,6 +190,7 @@ pub fn reset_loaded_world<R>(
         if id.is_none_or(|id| !initial_ids.contains(&id)) {
             if entity.contains::<gz_physics_tpe::Motion>()
                 || entity.contains::<tpe::TpeLink>()
+                || entity.contains::<gz_physics_tpe::ModelBounds>()
                 || entity.contains::<BodyHandle>()
                 || entity.contains::<ModelAnchor>()
                 || entity.contains::<Imu>()
@@ -251,8 +254,11 @@ pub fn reset_loaded_world<R>(
         if let Some(motion) = &node.motion {
             entity.insert(motion.clone());
         }
-        if node.tpe_link {
-            entity.insert(tpe::TpeLink);
+        if let Some(link) = &node.tpe_link {
+            entity.insert(link.clone());
+        }
+        if let Some(bounds) = &node.tpe_bounds {
+            entity.insert(bounds.clone());
         }
         if let Some(body) = node.body {
             entity.insert(BodyHandle(body));
