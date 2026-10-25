@@ -5,7 +5,11 @@
 use bevy_ecs::prelude::*;
 use gz_sim_core::{Phase, Simulation, UpdateInfo};
 use rapier3d_f64::prelude::*;
+use std::sync::Arc;
 use std::{collections::BTreeMap, time::Duration};
+
+mod initial;
+pub use initial::{InitialPhysicsState, PreparedPhysicsReset};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Shape {
@@ -73,10 +77,13 @@ pub enum PhysicsError {
     AlreadyInstalled,
     #[error("body identifier is not present in this backend")]
     MissingBody,
+    #[error("initial physics state belongs to a different backend")]
+    ForeignInitialState,
 }
 
 #[derive(Resource)]
 pub struct RapierBackend {
+    owner: Arc<()>,
     world: PhysicsWorld,
     bodies: BTreeMap<BodyId, (RigidBodyHandle, BodySpec, RotationSpec, Option<Inertia>)>,
     next_id: u64,
@@ -203,6 +210,7 @@ impl RapierBackend {
             return Err(PhysicsError::InvalidValue);
         }
         Ok(Self {
+            owner: Arc::new(()),
             world: PhysicsWorld {
                 gravity: Vector::from(gravity),
                 ..PhysicsWorld::new()
@@ -294,23 +302,11 @@ impl RapierBackend {
     pub fn reset(&mut self) {
         self.world = PhysicsWorld {
             gravity: self.world.gravity,
+            integration_parameters: self.world.integration_parameters,
             ..PhysicsWorld::new()
         };
         for (handle, spec, rotational, inertia) in self.bodies.values_mut() {
-            // Specs are validated before insertion and remain private afterward.
-            *handle = insert(
-                &mut self.world,
-                *spec,
-                *rotational,
-                validated_collider(
-                    *spec,
-                    rotation(rotational.orientation).expect("validated rotation"),
-                )
-                .expect("validated shape"),
-                inertia.map(|value| {
-                    inertia_properties(value, spec.mass.unwrap_or(1.0)).expect("validated inertia")
-                }),
-            );
+            *handle = initial::insert_initial(&mut self.world, *spec, *rotational, *inertia);
         }
     }
 

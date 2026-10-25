@@ -16,7 +16,7 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 | Crate | Behavior | Remaining boundary |
 | --- | --- | --- |
 | gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, world/allocator-bound reset reservations, isolated worlds | Full domain reset, persistence and complete lifecycle contract |
-| gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
+| gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal | Full initial-scene reset, joints, offset/multiple shapes, asset resolution and scheduling |
 | gz-sim-cli | Self-contained SDF input, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, resource resolution, signal handling and packaging |
@@ -35,9 +35,9 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 74 Rust tests and nine gate tests, covering 1399/1406
-production lines and 2091/2126 regions. Every production crate exceeds 95% for
-both metrics. The shared IMU increment covers all 11 changed executable lines.
+The current local gate passes 78 Rust tests and nine gate tests, covering 1455/1462
+production lines and 2159/2194 regions. Every production crate exceeds 95% for
+both metrics. The prepared physics reset increment covers all 65 changed executable lines.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 

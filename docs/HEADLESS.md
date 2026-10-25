@@ -120,9 +120,9 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current gate passes 74 Rust checks and nine gate tests: 1399/1406 production
-lines and 2091/2126 regions. Every production crate exceeds 95% for both metrics;
-All 11 changed executable lines in the shared IMU endpoint increment are covered. Independent review and the exact
+The current gate passes 78 Rust checks and nine gate tests: 1455/1462 production
+lines and 2159/2194 regions. Every production crate exceeds 95% for both metrics;
+All 65 changed executable lines in the prepared physics reset increment are covered. Independent review and the exact
 staged gate are required before publishing this increment.
 
 Remaining P2 work includes full reset, TPE, local/Fuel resources, sensor scheduling
@@ -168,3 +168,11 @@ receives both frame IDs and independent sequences through the aliased endpoint.
 The world uses one logical publisher per shared topic; discovery publisher counts
 differ from native per-sensor Nodes. Full discovery/inspection parity remains
 separate NET work. No additional IO worker is created per sensor.
+
+
+Prepared physics restoration now captures validated construction records and engine
+settings, builds an independent solver before domain mutation, and commits only to
+its owning backend. It revives initial body IDs, retires runtime bodies and retains
+all later allocation history. See [PHYSICS_STATE.md](PHYSICS_STATE.md). This API and
+the identity reservations still need to be composed with the loaded-scene blueprint,
+reset-time observations and stream reconstruction before remote reset is enabled.
