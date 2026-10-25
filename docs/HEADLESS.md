@@ -120,9 +120,9 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current gate passes 69 Rust checks and nine gate tests: 1336/1343 production
-lines and 1979/2013 regions. Every production crate exceeds 95% for both metrics;
-All 21 changed executable lines in this producer integration are covered. Independent review and the exact
+The current gate passes 73 Rust checks and nine gate tests: 1390/1397 production
+lines and 2060/2094 regions. Every production crate exceeds 95% for both metrics;
+All 53 changed executable lines in the reset identity primitive are covered. Independent review and the exact
 staged gate are required before publishing this increment.
 
 Remaining P2 work includes full reset, TPE, local/Fuel resources, sensor scheduling
@@ -149,3 +149,11 @@ before immediate recreation. Surviving stream leases can be retained during the
 planned reset; recreation after removal has a native-tested producer contract.
 Consumer tests cover frame-field precedence, empty legacy IDs, topic defaults and
 XML whitespace, explicit unsupported surfaces and all four real C++ scenarios.
+
+
+World-bound identity reservations now permit explicitly restoring an original
+logical ID after its owner is gone. They also bind the allocator instance, so
+resource teardown cannot validate a stale reservation. Ordinary allocation remains
+monotonic within the intact allocator; restoration does not rewind its counter.
+See [IDENTITIES.md](IDENTITIES.md). These primitives do not implement the pending
+full scene reset, backend restoration, callback ordering or stream reconstruction.

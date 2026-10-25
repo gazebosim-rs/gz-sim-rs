@@ -3,7 +3,9 @@
 //! Explicit simulation steps over a Bevy ECS world, independent of rendering.
 
 mod identity;
-pub use identity::{EntityId, IdentityError, assign_id, entity_by_id};
+pub use identity::{
+    EntityId, IdentityError, ReservedId, assign_id, entity_by_id, reserve_id, restore_id,
+};
 
 use bevy_ecs::{prelude::*, schedule::ScheduleConfigs, system::ScheduleSystem};
 use std::{any::TypeId, collections::HashSet, time::Duration};

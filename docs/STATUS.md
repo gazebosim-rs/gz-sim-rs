@@ -15,7 +15,7 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 
 | Crate | Behavior | Remaining boundary |
 | --- | --- | --- |
-| gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, isolated worlds | Full domain reset, persistence and complete lifecycle contract |
+| gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, world/allocator-bound reset reservations, isolated worlds | Full domain reset, persistence and complete lifecycle contract |
 | gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal | Full initial-scene reset, joints, offset/multiple shapes, asset resolution and scheduling |
@@ -35,9 +35,9 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 69 Rust tests and nine gate tests, covering 1336/1343
-production lines and 1979/2013 regions. Every production crate exceeds 95% for
-both metrics. The producer integration covers all 21 changed executable lines.
+The current local gate passes 73 Rust tests and nine gate tests, covering 1390/1397
+production lines and 2060/2094 regions. Every production crate exceeds 95% for
+both metrics. The reset identity primitive covers all 53 changed executable lines.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 

@@ -1,7 +1,11 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use bevy_ecs::{lifecycle::HookContext, prelude::*, world::DeferredWorld};
-use std::collections::BTreeMap;
+use bevy_ecs::{
+    lifecycle::HookContext,
+    prelude::*,
+    world::{DeferredWorld, WorldId},
+};
+use std::{collections::BTreeMap, sync::Arc};
 
 /// A world-local public identity, independent of Bevy's entity generation.
 /// Assign with `assign_id`; do not transfer this component between entities.
@@ -17,6 +21,7 @@ impl EntityId {
 
 #[derive(Resource, Default)]
 struct IdIndex {
+    owner: Arc<()>,
     last: u64,
     entities: BTreeMap<u64, Entity>,
 }
@@ -29,9 +34,95 @@ pub enum IdentityError {
     Exhausted,
     #[error("entity identity was moved outside its owning world or entity")]
     MovedIdentity,
+    #[error("entity has no public identity")]
+    MissingIdentity,
+    #[error("identity reservation belongs to a different world")]
+    ForeignReservation,
+    #[error("identity allocator state no longer contains this reservation")]
+    InvalidReservation,
+    #[error("public entity {0} still has an owner")]
+    IdentityInUse(u64),
+    #[error("target already has a different or invalid identity")]
+    AlreadyIdentified,
 }
 
-/// Assigns one nonzero ID for the entity's lifetime. IDs are never recycled.
+/// Permission to restore an initial logical object's ID in its original world.
+/// Pair restored objects with the simulation epoch when retaining runtime handles.
+#[derive(Clone, Debug)]
+pub struct ReservedId {
+    world: WorldId,
+    allocator: Arc<()>,
+    id: u64,
+}
+
+impl ReservedId {
+    pub fn get(&self) -> u64 {
+        self.id
+    }
+
+    /// Checks origin and allocator continuity; the ID may still have a live owner.
+    pub fn validate(&self, world: &World) -> Result<(), IdentityError> {
+        if world.id() != self.world {
+            return Err(IdentityError::ForeignReservation);
+        }
+        if !world.get_resource::<IdIndex>().is_some_and(|index| {
+            Arc::ptr_eq(&index.owner, &self.allocator) && index.last >= self.id
+        }) {
+            return Err(IdentityError::InvalidReservation);
+        }
+        Ok(())
+    }
+}
+
+/// Captures an existing identity for explicit restoration during a scene reset.
+/// Ordinary assignment never allocates this ID to a different logical object.
+pub fn reserve_id(world: &World, entity: Entity) -> Result<ReservedId, IdentityError> {
+    let current = world
+        .get_entity(entity)
+        .map_err(|_| IdentityError::MissingEntity)?;
+    let id = current
+        .get::<EntityId>()
+        .ok_or(IdentityError::MissingIdentity)?
+        .get();
+    if entity_by_id(world, id) != Some(entity) {
+        return Err(IdentityError::MovedIdentity);
+    }
+    Ok(ReservedId {
+        world: world.id(),
+        allocator: world.resource::<IdIndex>().owner.clone(),
+        id,
+    })
+}
+
+/// Restores a reserved logical identity after its prior owner is gone.
+/// Repeated restoration to the same owner is harmless. All errors precede mutation.
+pub fn restore_id(
+    world: &mut World,
+    entity: Entity,
+    reserved: &ReservedId,
+) -> Result<u64, IdentityError> {
+    reserved.validate(world)?;
+    let current = world
+        .get_entity(entity)
+        .map_err(|_| IdentityError::MissingEntity)?;
+    if let Some(id) = current.get::<EntityId>() {
+        return if id.get() == reserved.id && entity_by_id(world, reserved.id) == Some(entity) {
+            Ok(reserved.id)
+        } else {
+            Err(IdentityError::AlreadyIdentified)
+        };
+    }
+    let mut index = world.resource_mut::<IdIndex>();
+    if index.entities.contains_key(&reserved.id) {
+        return Err(IdentityError::IdentityInUse(reserved.id));
+    }
+    index.entities.insert(reserved.id, entity);
+    world.entity_mut(entity).insert(EntityId(reserved.id));
+    Ok(reserved.id)
+}
+
+/// Assigns one nonzero ID for the entity's lifetime within an intact allocator.
+/// Clearing required world resources tears down the identity namespace.
 /// Repeated assignment returns its existing ID. Failure leaves the entity unchanged.
 pub fn assign_id(world: &mut World, entity: Entity) -> Result<u64, IdentityError> {
     let current = world
