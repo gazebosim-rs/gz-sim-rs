@@ -1,0 +1,43 @@
+{
+  "decision": "approved",
+  "author": "/root",
+  "reviewer": "/root/msgs_review_fallback",
+  "base": "a867617442985d5491c1a36d933f2e01a3b34a5a",
+  "tree": "742d60623deef83fb0db736104c4e64ab45e3dfb",
+  "diff_sha256": "12e6596748799e099930706a7c51b2d1ac853ea6046b775abd9c9a392fd46753",
+  "files": {
+    "Cargo.lock": "31983c7308a58f5d07f0c759605fc8177afba875e6e561c8d57158de607836c4",
+    "Cargo.toml": "653a0b11d1a22e23a8c81b1a84a2964226fd03819be6c20206bfd1fba0a17b18",
+    "crates/gz-sim-server/tests/native_lockstep_benchmark.cc": "89d9ed8e95b39f5ed867a626d1df53b6292d4da0a61a63420b3ca8364aef1c20",
+    "crates/gz-sim-server/tests/private/pipeline_benchmark.rs": "c281261f67dc057803aa1ba0178b03a097c045bb3d90f8ab64169ca02964e718",
+    "docs/FULL_SERVER_PERFORMANCE.md": "dd3e530da67906b3273f00086ac2be40ddce00fff209aeb3eb1b9d21e7ec6ce3",
+    "planning/benchmarks/full-server-48a.json": "3bafc6d58000ca1fd41ea0bfa3dc5711615d873a0f8a311b2f91a3231c0cd32d",
+    "planning/benchmarks/full-server-7ce.json": "2c7b64f9de5be4a093a911510f1737a76acd97d54fd0538ff1b89ebe40d01bae",
+    "planning/test-ledger.json": "3e11a99fc27a522e9dbadb668d87dcc844770f4dd2fdff420c419b70aaa380e7",
+    "scripts/benchmark-headless-pipeline.py": "9b26a172fe0744dc12cc08c5af703b3339dab08bdb5087a714470909de5a698f",
+    "tests/test_pipeline_benchmark.py": "a976404803314afe46a5e4cccac8bfcb0a63f5ea98c5aad830640dbb7f14633a"
+  },
+  "author_evidence": {
+    "matched_48a_report_sha256": "3bafc6d58000ca1fd41ea0bfa3dc5711615d873a0f8a311b2f91a3231c0cd32d",
+    "qualified_7ce_report_sha256": "2c7b64f9de5be4a093a911510f1737a76acd97d54fd0538ff1b89ebe40d01bae",
+    "failed_batch_log_sha256": "bb58abea589b8f9f74da8a19346b65dd102fc60dc26e1ec379c3d98b0115aeca",
+    "exact_staged_gate_log_sha256": "b1e65be6de7afdafc86b110b63cfda2c0ff6788c62242c34ad40d3ff67498519"
+  },
+  "reviewer_evidence": {
+    "matched-48a.json": "570f88965c8273067e320f5a33fd14375ed92f3b4d61cfe27d464d7a32bfc9e8",
+    "matched-48a.log": "70b665b42b212e18474926cd5586a3edb8efe4d20a14c0fe2a624ca2d8241d0a",
+    "matched-7ce.json": "68fafdba62245f69c33538b06a9ebcbb8f39cbc14ba075f1a5c8d36276e9ba48",
+    "matched-7ce.log": "b5a2d4a5c9cbfbd583869216f00b3ab8aade1c88d71ed5e9ae48f4cd2321bd67",
+    "mutant.log": "4313f0259b00c0a020883eecef18ef3e78492263908d42497c0c19b845e3e019",
+    "mutant.diff": "48b99875e77507cba6c678283aa6c27883f1a1b5cb9e1bf7300ab0b3051dff51"
+  },
+  "reviewer_checks": [
+    "Exact staged ten-file tree and all hashes verified; no unstaged changes. The new native lockstep probe differs from unchanged historical native probe only in replacing one timed batch Run/wait with per-step public Server.Run(true,1,false) and complete wait. Rust uses actual Server::tick and one decoded/checked IMU before each next step.",
+    "Private raw Git base plus exact frozen tree, exclusive Release target/native binary, CPU31: seven alternating matched native/Rust pairs plus warmup all pass. Reviewer medians native25.098 us and Rust27.962 us; every pair has 1000 exact 1ms readings, logical byte/time checks, zero warmup and complete source/fixture/probe/341 loaded-library provenance. Author medians native24.177 us and Rust28.403 us are directionally reproduced.",
+    "Second private raw source/target with only Cargo Transport revision restored to7ce and identical full-Server harness/production source/config uses the same native lockstep probe. Seven alternating pairs pass; Rust median1952.232 us vs reviewer48a27.962 us (~69.8x), native24.763 vs25.098 us. Separate shared-host batches limit causal precision.",
+    "Private production source mutant omits IMU publication at the 5ms sample; selected full-Server test fails at immediate per-step receive Timeout, exit101. Source restored to exact approved hash.",
+    "Pinned Transport48a public hosted run40208945327 completed success. Cargo.toml/lock diff changes only the Transport revision; canonical Msgs, Fuel and SDF pins and original native batch source remain unchanged. Author strict staged gate passes all production crate >95% line/region thresholds, workspace3182/3228 lines4941/5079 regions, zero production executable delta."
+  ],
+  "scope": "Selected 1000-step TPE/IMU full-Server step-to-observation latency with one complete checked process-local message per tick/Run, default bounded queues, exact SDF, decoded fields, covariance, sequence, time, motion, logical bytes and zero local Rust publication/transport errors. Within-Rust cross-pin observation is supported for this harness; native/Rust timing ratio remains contextual.",
+  "limits": "Native local fastpath and lack of requested pose publication differ from Rust encoded queues/extra pose and clock work; no identical internal-work or general server speedup claim. Timing is one CPU on shared host and does not qualify network, rendering, joints, balanced robotics, full fixture matrix or P2. The author7ce report has historical native batch timing; reviewer added a separate matched native lockstep baseline. Historical reports remain unchanged. Narrow stale STATUS/HEADLESS_PERFORMANCE wording must be corrected in metadata integration. Normal hook, publication and hosted CI of this candidate remain pending."
+}

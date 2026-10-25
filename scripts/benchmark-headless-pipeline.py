@@ -27,7 +27,7 @@ def cache_value(build, key):
                 if line.startswith(prefix))
 
 
-def decode(output, steps, fixture_sha256):
+def decode(output, steps, fixture_sha256, *, warmup_force_x=None):
     rows = [json.loads(line.split('PIPELINE ', 1)[1]) for line in output.splitlines()
             if 'PIPELINE ' in line]
     if len(rows) != 1:
@@ -43,6 +43,8 @@ def decode(output, steps, fixture_sha256):
         raise ValueError('physical motion checksum differs')
     if hashlib.sha256(bytes.fromhex(row['fixture_hex'])).hexdigest() != fixture_sha256:
         raise ValueError('application consumed a different SDF fixture')
+    if warmup_force_x is not None and (not math.isfinite(row['warmup_force_x']) or abs(row['warmup_force_x'] - warmup_force_x) >= 1e-9):
+        raise ValueError('velocity replacement warmup differs from native')
     return row
 
 
@@ -61,6 +63,7 @@ def main():
     parser.add_argument('--steps', type=int, default=1000)
     parser.add_argument('--samples', type=int, default=7)
     parser.add_argument('--cpu', type=int)
+    parser.add_argument('--path', choices=['direct', 'server'], default='direct')
     parser.add_argument('--executor', choices=['default', 'single', 'parallel'], default='default')
     args = parser.parse_args()
     if not 1 <= args.steps <= 1000 or args.samples < 7:
@@ -80,7 +83,7 @@ def main():
     lock = {item['name']: item['commit'] for item in
             json.loads((ROOT / 'planning/baseline.json').read_text())['repositories']}
     source_files = {
-        'sim': ['src/SimulationRunner.cc', 'src/systems/physics/Physics.cc', 'src/systems/imu/Imu.cc'],
+        'sim': ['src/Server.cc', 'src/ServerPrivate.cc', 'src/SimulationRunner.cc', 'src/systems/physics/Physics.cc', 'src/systems/imu/Imu.cc'],
         'physics': ['tpe/lib/src/Engine.cc', 'tpe/lib/src/CollisionDetector.cc', 'tpe/plugin/src/SimulationFeatures.cc'],
         'sensors': ['src/Sensor.cc', 'src/ImuSensor.cc'],
     }
@@ -107,7 +110,7 @@ def main():
     link = shlex.split((target / 'link.txt').read_text())
     libraries = [str((builds['sim'] / 'src' / item).resolve()) if item.startswith('../') else item
                  for item in link[link.index('-o') + 2:] if 'gtest' not in item]
-    source = ROOT / 'crates/gz-sim-server/tests/native_pipeline_benchmark.cc'
+    source = ROOT / ('crates/gz-sim-server/tests/native_lockstep_benchmark.cc' if args.path == 'server' else 'crates/gz-sim-server/tests/native_pipeline_benchmark.cc')
     native = work / 'native-pipeline'
     command = [link[0], '-std=c++17', '-O3', '-DNDEBUG', '-Wall', '-Wextra', '-Werror',
                *includes, str(source), '-o', str(native), *libraries]
@@ -137,6 +140,7 @@ def main():
                     GZ_SIM_SYSTEM_PLUGIN_PATH=str(builds['sim'] / 'lib'),
                     GZ_SIM_PHYSICS_ENGINE_PATH=str(builds['physics'] / 'lib'),
                     GZ_TRANSPORT_IMPLEMENTATION='zeromq', GZ_TRANSPORT_TOPIC_STATISTICS='0',
+                    GZ_TRANSPORT_RCVHWM='1000', GZ_TRANSPORT_SNDHWM='1000',
                     GZ_DISCOVERY_MSG_PORT='10317', GZ_DISCOVERY_SRV_PORT='10318',
                     GZ_PIPELINE_STEPS=str(args.steps), GZ_PIPELINE_EXECUTOR=args.executor)
     required = {
@@ -156,7 +160,7 @@ def main():
         for kind in (['native', 'rust'] if index % 2 == 0 else ['rust', 'native']):
             maps = work / f'native-{index}.maps'
             run_command = ([str(native), str(fixture), str(maps), str(args.steps)] if kind == 'native' else
-                           [str(rust), 'pipeline_benchmark::tpe_imu_process_local_pipeline',
+                           [str(rust), ('pipeline_benchmark::tpe_imu_full_server_pipeline' if args.path == 'server' else 'pipeline_benchmark::tpe_imu_process_local_pipeline'),
                             '--exact', '--nocapture', '--test-threads=1'])
             env = dict(base_env, GZ_PARTITION=f'pipeline-{os.getpid()}-{index}-{kind}')
             result = subprocess.run(['taskset', '-c', str(cpu), *run_command],
@@ -165,7 +169,7 @@ def main():
             (work / f'{kind}-{index}.stderr').write_text(result.stderr)
             if result.returncode or result.stderr:
                 raise ValueError(f'{kind} sample {index} failed: {result.returncode} {result.stderr}')
-            pair[kind] = decode(result.stdout, args.steps, digest(fixture))
+            pair[kind] = decode(result.stdout, args.steps, digest(fixture), warmup_force_x=0.0 if args.path == 'server' else None)
             if kind == 'native':
                 loaded = loaded_libraries(maps)
                 for name, directory in required.items():
@@ -187,10 +191,12 @@ def main():
     model = next((line.split(':', 1)[1].strip() for line in Path('/proc/cpuinfo').read_text().splitlines()
                   if line.startswith('model name')), 'unknown')
     report = dict(
-        scope='Two-model TPE physics with one constant1m/s free body + one1000Hz noise-free IMU + complete decoded process-local message delivery. One received warmup frame excluded per process; N further exact1ms/unpaced steps. Not network throughput, joints, rendering, balanced robotics or whole-server speedup.',
+        scope=('Actual Rust Server::tick including clock/poses, controls/removals and IMU publication vs actual native Server+Physics+Imu+builtin clock. Rust unobserved pose work retained. ' if args.path == 'server' else 'Rust direct IMU publisher harness vs native full Server; native ratio is contextual only. ') + 'Two-model TPE physics with one constant1m/s free body + one1000Hz noise-free IMU + complete decoded process-local message delivery. One received warmup frame excluded per process; N further exact1ms/unpaced steps. Not network throughput, joints, rendering, balanced robotics or whole-server speedup.',
         qualification='Shared host CPU-pinned alternating samples. Native local transport may bypass serialization; Rust currently uses encoded queues. Requested delivered messages/settings match, not internal instructions. Other installed dependencies/build provenance remain qualified; no P2 acceptance inferred.',
         hardware=dict(cpu_model=model, machine=platform.machine(), cpu_affinity=cpu),
-        steps=args.steps, rust_executor=args.executor, warmup_pairs=1, measured_pairs=args.samples, samples=observations,
+        observation_protocol=('Rust receives/checks each IMU after its Server tick before admitting the next; native calls Server.Run(true,1,false), checks its callback and waits for complete receipt before admitting another step. Both include complete receipt and checking inside timing.' if args.path == 'server' else 'Historical direct publisher batch pipeline'),
+        queue_settings=dict(rust_capacity=1000, rust_send_hwm=1000, rust_receive_hwm=1000, native_explicit_hwm=1000),
+        steps=args.steps, rust_path=args.path, rust_executor=args.executor, warmup_pairs=1, measured_pairs=args.samples, samples=observations,
         ns_per_step=dict(medians=medians, min={k:min(v) for k,v in values.items()},
                          max={k:max(v) for k,v in values.items()}, native_over_rust=medians['native']/medians['rust']),
         builds=build_settings, native_revisions={name:lock['gz-'+name] for name in builds}, native_sources=native_sources, native_command=command,

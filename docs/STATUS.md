@@ -38,14 +38,14 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-At this review, the executor/control packet passes 198 Rust tests, fourteen
-tooling checks and all nine actual C++ client scenarios in the strict staged
-gate. Coverage is 3169/3215 production lines and 4922/5057 regions; every crate
-exceeds 95% on both metrics, with 7/7 changed core lines. Independent replay
-approved the within-Rust scheduler result, not a native full-server speedup or
-P2 acceptance. Published base d9e1133 and its native client repair are hosted-green.
-This packet still requires its normal commit hook and hosted qualification.
-No test, tolerance, coverage exclusion or threshold changed.
+Published a867617 passed the normal hook and exact hosted CI 40210013522:
+201 Rust tests, fourteen tooling checks and all nine actual C++ client scenarios.
+Coverage is 3182/3228 production lines and 4941/5079 regions; every crate exceeds
+95% on both metrics, with 12/12 changed scene lines. The reviewed full-server
+increment passes its strict staged gate with 202 Rust tests and fifteen tooling
+checks, unchanged production coverage and all nine C++ scenarios; its normal
+hook and hosted qualification remain pending. No test, tolerance, coverage
+exclusion or threshold was weakened. Full P2 acceptance remains open.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
 Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
@@ -219,9 +219,10 @@ backend/query parallelism and phase/fault/deferred semantics are retained. The
 same release binary improved this isolated Rust pipeline from 54.244 to 4.630 us
 per step; independent CPU31 replay reproduced the result. Native full-server
 numbers are context only because publication/bookkeeping paths differ. The
-warmup command/IMU acceleration mismatch remains a separate SENSOR-01/P2 task.
-HEADLESS_PERFORMANCE.md records raw data, qualifications and remaining full-server
-comparison work; this does not establish P2 or rewrite-wide performance acceptance.
+warmup command/IMU acceleration mismatch was repaired in published a867617,
+with native force controls and hosted CI 40210013522 success.
+HEADLESS_PERFORMANCE.md retains the historical direct-pipeline data;
+FULL_SERVER_PERFORMANCE.md records the new per-step server comparison; this does not establish P2 or rewrite-wide performance acceptance.
 
 
 ## Velocity replacement and IMU history
@@ -233,6 +234,21 @@ commands, invalid input, failed execution and reset/removal lifetimes are checke
 INPUT_IMU.md records the changed benchmark warmup assertion and historical-report
 limits. Independent native/Rust/mutation review approved the exact source and warmup
 assertion correction. The strict staged gate passes201 Rust/14 tooling/nine actual
-C++ scenarios:3182/3228 lines,4941/5079 regions, all crates >95% and scene12/12
-changed lines. Normal-hook publication and hosted qualification remain required;
-P2 stays open.
+C++ scenarios:3182/3228 lines, 4941/5079 regions, all crates >95% and scene12/12
+changed lines. Published a867617 passed its normal hook and exact hosted
+CI 40210013522. P2 stays open.
+
+
+## Full-server step-to-observation increment
+
+The Rust harness now invokes actual Server::tick and receives/checks each IMU
+before another step. The native control likewise invokes actual Server.Run for
+one step and waits for complete receipt. Default bounded queues and all decoded
+field, byte-count, timestamp and body-motion checks remain. Independent replay
+reproduced Rust 27.962µs/native 25.098µs medians; author values are 28.403/24.177µs.
+Native/Rust ratios remain contextual because unobserved publication and local
+delivery paths differ. A separate same-harness Transport 7ce→48a replay reproduced
+a large within-Rust improvement; it does not isolate command wakeup as the sole
+cause. Missing-IMU mutation fails. FULL_SERVER_PERFORMANCE.md records limits and
+the rejected overloaded batch; planning/reviews/full-server-pipeline.json binds
+the approved source. The selected-fixture lifecycle matrix remains required.

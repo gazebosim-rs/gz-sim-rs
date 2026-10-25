@@ -33,3 +33,14 @@ class PipelineEvidence(unittest.TestCase):
         for output in ['', 'PIPELINE {}\nPIPELINE {}']:
             with self.subTest(output=output), self.assertRaises(ValueError):
                 pipeline.decode(output, 2, expected)
+
+    def test_full_server_requires_native_warmup(self):
+        row = self.row()
+        row['warmup_force_x'] = 0.0
+        fixture_hash = hashlib.sha256(b'fixture').hexdigest()
+        row['fixture_hex'] = b'fixture'.hex()
+        pipeline.decode('PIPELINE ' + json.dumps(row), 2, fixture_hash, warmup_force_x=0.0)
+        for wrong in [1000.0, float('nan'), float('inf'), -float('inf'), 1e-9]:
+            row['warmup_force_x'] = wrong
+            with self.subTest(wrong=wrong), self.assertRaises(ValueError):
+                pipeline.decode('PIPELINE ' + json.dumps(row), 2, fixture_hash, warmup_force_x=0.0)

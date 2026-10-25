@@ -74,7 +74,7 @@ the within-Rust conclusion and these qualifications. The strict staged gate
 passes 198 Rust tests, fourteen tooling checks and all nine C++ scenarios:
 3169/3215 lines and 4922/5057 regions, every crate above 95%; core changed lines
 are 7/7. The receipt is planning/reviews/headless-executor.json. Normal-hook
-publication and hosted qualification remain required.
+publication 84aef01 and exact hosted CI 40208808832 succeeded.
 
 Reproduce the control by building native simulator Physics/Imu targets, native
 TPE and sensor IMU libraries in separate Release directories. Build the Rust
@@ -92,7 +92,9 @@ python3 scripts/benchmark-headless-pipeline.py --sim-build /path/to/sim-release 
   --work-dir artifacts/pipeline-run --output artifacts/pipeline-report.json
 ```
 
-The next native comparison must use matching full-server publication paths.
+FULL_SERVER_PERFORMANCE.md records the subsequent actual-server per-step
+comparison and its remaining internal-path qualifications. These historical
+direct-pipeline reports remain unchanged.
 Use `--executor parallel` for the within-Rust counter. Select an available CPU and preserve
 all raw logs, including failed attempts. No native source, test tolerance,
 coverage exclusion or threshold is changed by this control.
