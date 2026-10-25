@@ -785,6 +785,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "gz-physics-tpe"
+version = "0.1.0"
+dependencies = [
+ "glam 0.33.12",
+ "gz-physics",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "gz-sensors"
 version = "0.1.0"
 dependencies = [

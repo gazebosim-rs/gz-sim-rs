@@ -122,9 +122,9 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current gate passes 97 Rust checks and nine gate tests: 1759/1769 production
-lines and 2694/2742 regions. Every production crate exceeds 95% for both metrics;
-All six changed executable lines in the shared physics-value increment are covered. Independent review and the exact
+The current gate passes 106 Rust checks and nine gate tests: 1807/1817 production
+lines and 2767/2815 regions. Every production crate exceeds 95% for both metrics;
+The TPE motion kernel changed-line gate is recorded in TPE_MOTION.md. Independent review and the exact
 staged gate are required before publishing this increment.
 
 Remaining P2 work includes TPE, local/Fuel resources, sensor scheduling, the
@@ -199,3 +199,9 @@ construction, inertial, rotation and state values. Rapier reexports preserve its
 existing Rust paths. Handles, ownership, errors and schedules remain in the real
 adapter. The values moved unchanged as the first TPE integration prerequisite;
 this extraction adds no engine behavior or performance claim.
+
+
+A separate TPE motion kernel now operates on validated shared f64 state. Its
+native corpus, numeric contracts and narrow equal-work measurement are recorded
+in [TPE_MOTION.md](TPE_MOTION.md). The server still installs Rapier; TPE world
+integration and full headless acceptance remain open.

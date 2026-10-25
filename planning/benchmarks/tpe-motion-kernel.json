@@ -1,0 +1,319 @@
+{
+  "operation": "1000 centered model poses x 1000 updates at 1 ms; setup outside timing",
+  "platform": "x86_64",
+  "cpu_model": "AMD Ryzen 9 5950X 16-Core Processor",
+  "cpu_affinity": 0,
+  "warmup_samples": 1,
+  "measured_samples": 7,
+  "samples": [
+    {
+      "native": {
+        "nanos": 26509797,
+        "checksum": 8232.050982155039,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332486218,
+          0.09941768664972436,
+          0.1491265299745865,
+          0.9825509821553117
+        ]
+      },
+      "rust": {
+        "nanos": 22730298,
+        "checksum": 8232.050982155035,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332485962,
+          0.09941768664971927,
+          0.1491265299745786,
+          0.982550982155261
+        ]
+      }
+    },
+    {
+      "rust": {
+        "nanos": 22731209,
+        "checksum": 8232.050982155035,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332485962,
+          0.09941768664971927,
+          0.1491265299745786,
+          0.982550982155261
+        ]
+      },
+      "native": {
+        "nanos": 26357421,
+        "checksum": 8232.050982155039,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332486218,
+          0.09941768664972436,
+          0.1491265299745865,
+          0.9825509821553117
+        ]
+      }
+    },
+    {
+      "native": {
+        "nanos": 26713498,
+        "checksum": 8232.050982155039,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332486218,
+          0.09941768664972436,
+          0.1491265299745865,
+          0.9825509821553117
+        ]
+      },
+      "rust": {
+        "nanos": 22709509,
+        "checksum": 8232.050982155035,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332485962,
+          0.09941768664971927,
+          0.1491265299745786,
+          0.982550982155261
+        ]
+      }
+    },
+    {
+      "rust": {
+        "nanos": 22698417,
+        "checksum": 8232.050982155035,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332485962,
+          0.09941768664971927,
+          0.1491265299745786,
+          0.982550982155261
+        ]
+      },
+      "native": {
+        "nanos": 27045641,
+        "checksum": 8232.050982155039,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332486218,
+          0.09941768664972436,
+          0.1491265299745865,
+          0.9825509821553117
+        ]
+      }
+    },
+    {
+      "native": {
+        "nanos": 26639190,
+        "checksum": 8232.050982155039,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332486218,
+          0.09941768664972436,
+          0.1491265299745865,
+          0.9825509821553117
+        ]
+      },
+      "rust": {
+        "nanos": 22781293,
+        "checksum": 8232.050982155035,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332485962,
+          0.09941768664971927,
+          0.1491265299745786,
+          0.982550982155261
+        ]
+      }
+    },
+    {
+      "rust": {
+        "nanos": 22712494,
+        "checksum": 8232.050982155035,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332485962,
+          0.09941768664971927,
+          0.1491265299745786,
+          0.982550982155261
+        ]
+      },
+      "native": {
+        "nanos": 26552898,
+        "checksum": 8232.050982155039,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332486218,
+          0.09941768664972436,
+          0.1491265299745865,
+          0.9825509821553117
+        ]
+      }
+    },
+    {
+      "native": {
+        "nanos": 26686608,
+        "checksum": 8232.050982155039,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332486218,
+          0.09941768664972436,
+          0.1491265299745865,
+          0.9825509821553117
+        ]
+      },
+      "rust": {
+        "nanos": 22715089,
+        "checksum": 8232.050982155035,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332485962,
+          0.09941768664971927,
+          0.1491265299745786,
+          0.982550982155261
+        ]
+      }
+    },
+    {
+      "rust": {
+        "nanos": 22713176,
+        "checksum": 8232.050982155035,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332485962,
+          0.09941768664971927,
+          0.1491265299745786,
+          0.982550982155261
+        ]
+      },
+      "native": {
+        "nanos": 26393719,
+        "checksum": 8232.050982155039,
+        "position": [
+          1.0000000000000007,
+          2.500000000000167,
+          3.2499999999998614
+        ],
+        "orientation": [
+          0.04970884332486218,
+          0.09941768664972436,
+          0.1491265299745865,
+          0.9825509821553117
+        ]
+      }
+    }
+  ],
+  "median_ns_per_body_step": {
+    "native": 26.63919,
+    "rust": 22.713176
+  },
+  "native_over_rust": 1.172851828383666,
+  "source_sha256": {
+    "crates/gz-physics-tpe/src/lib.rs": "ec548deda5877319fa5527c30a0e8cef7e92c762a0d91b52fcac874a41c018d6",
+    "crates/gz-physics-tpe/examples/motion_benchmark.rs": "98b6e4bf6a393e01c0e1df0d8a171dfb3dc6c14cb7d5d6cf8a012ec02fd43222",
+    "crates/gz-physics-tpe/tests/native_motion_benchmark.cc": "1beb8314cf199453ef7822e913dd26adb20cef0a86f68437ce7645724fbb2509",
+    "scripts/benchmark-tpe-motion.py": "31352eb991458d4411e12fc214c47fc436f39109aa66258ecbe431eb931e8832"
+  },
+  "binary_sha256": {
+    "native": "ed89d9e44e1bca684dcf6b0fb15f63a62c8308157b4ca6fbfedaeb4b69d02e9c",
+    "rust": "0fe140b8f4313776fb7b5b2c40261a7ec82cab36488b2aa129dd4a31ff5b32c4"
+  },
+  "linked_libraries_sha256": {
+    "libgz-physics-tpelib.so.10": "909c1e4f4f4081270cac14d78aea184390016e6dc9abb399af8cc819b7011dcf",
+    "libstdc++.so.6": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+    "libgcc_s.so.1": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+    "libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+    "libgz-common-graphics.so.8": "092dc2f86ca64905722d5fb2775934b696e20e0d64b2d0578ba097ccf025c41a",
+    "libgz-common.so.8": "93d9c64716d8b5efdb5862630cc33e62da97785d55e401ed19e4571c9b03df8d",
+    "libgz-math.so.10": "288c6f52fac45359f5de67d97e0069b7f37420f5f78888e61406b8f565656c4f",
+    "libm.so.6": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+    "ld-linux-x86-64.so.2": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+    "libassimp.so.5": "f5524225032201d129cac2adf305af9c7ffcf612d8662f3c87a2d891d5cd3d18",
+    "libtinyxml2.so.10": "f9e01d87fb78af744a426af8c992e94abf8cd3810a256e117bcc94cd84d2be6d",
+    "libuuid.so.1": "78d7f4d6f27b7dffc1c84dfe2f83e84aefa6f6ceeffc6ac4bc41f9fbc61cb84e",
+    "libgz-utils-log.so.5": "9de1010066534024cb88512faf663bc6cf4362f08ed2865c9399e02aab8e51d4",
+    "libspdlog.so.1.12": "62bb2fbc92edc05b35888e624882b78f5b38c0aca6a3df7ab7db32bb9c2629b6",
+    "libz.so.1": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+    "libdraco.so.8": "b368d354f2778606b2553037fc8a3212719ee76a82711c60f7c72de49818e781",
+    "libminizip.so.1": "7397458805900a67287673a7d469d1ff207525ae7694ed885e8603d0164828bf",
+    "libpugixml.so.1": "b5493d9c8c6e36e3b72e38564b7e287ad925ab717577ded997465f9ac9da1c9e",
+    "libfmt.so.9": "da008b908b32e428eaa1c09e36d6894c8f88362e254b503c7c2c6112b4ec9ed0"
+  },
+  "qualification": "Exploratory CPU-pinned alternating samples on a shared host. Native Release shared-library and Rust release static packaging/compilers differ. Rust validates construction, preserves error atomicity and bounds unit drift. No ECS, contacts, sensors, transport or whole-simulator speedup/P2 acceptance.",
+  "build": {
+    "native_compiler": "c++ (Ubuntu 11.5.0-1ubuntu1~24.04.1) 11.5.0",
+    "native_library_flags": "-O3 -DNDEBUG  -Wall -Wextra -Wno-long-long -Wno-unused-value -Wfloat-equal -Wshadow -Winit-self -Wswitch-default -Wmissing-include-dirs -pedantic  -std=c++17 -fPIC -fvisibility=hidden -msse -msse2 -mfpmath=sse -msse3 -mssse3 -msse4.1 -msse4.2 -I/usr/include/uuid",
+    "native_program_flags": [
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-Wextra",
+      "-Werror"
+    ],
+    "native_program_header_source": "Pinned source plus fresh generated Export.hh; only gz-math/gz-utils dependency pkg-config flags. No installed TPE SDK required.",
+    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)\nbinary: rustc\ncommit-hash: 59807616e1fa2540724bfbac14d7976d7e4a3860\ncommit-date: 2026-04-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.95.0\nLLVM version: 22.1.2\n",
+    "rust_profile": "release; Cargo default target CPU/features",
+    "rustflags": "",
+    "cargo_encoded_rustflags": ""
+  }
+}

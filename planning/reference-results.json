@@ -437,6 +437,25 @@
         ],
         "qualification": "Five selected native observations are covered by the loaded-scene server profile. Blocking reset cancellation replies false as an explicit new Rust API boundary; it is not a native blocking admission/destruction parity claim. Unpolled requests and queued publications are not flushed. Full CORE-02/IO-01 and P2 remain open."
       }
+    },
+    {
+      "repository": "gz-physics",
+      "source_commit": "b44cd0d0ea6606b6c98320c0c87a5670d4fc6be6",
+      "target": "TPE Model.UpdatePose motion corpus",
+      "qualification": "Fresh pinned TPE Release library with hashed installed dependencies; not a complete reproduced baseline. Model/Link motion operation only. Static and rotated-link adapter behavior remain separate. Original Model.BasicAPI motion inputs are retained; its API/identity/static assertions remain unmigrated.",
+      "generator": "crates/gz-physics-tpe/tests/native_motion.cc",
+      "generator_sha256": "113ac45d2f25b717658ccc97b05d58f37a01db247a20ed7db9da3c6c04d5cad6",
+      "fixture": "crates/gz-physics-tpe/tests/fixtures/model_motion.json",
+      "fixture_sha256": "37a181363f7cfffc0b95afae9e6e56808729e8441a59b1ed0afba19ec282386e",
+      "binary_sha256": "630bd31d9215a80527ad99f395368fdb2ebeea67dfbba4ee0f78453a47134e65",
+      "tpe_library_sha256": "909c1e4f4f4081270cac14d78aea184390016e6dc9abb399af8cc819b7011dcf",
+      "rust_mapping": {
+        "state": "motion-kernel-subset",
+        "remaining": "Actual TPE Bevy adapter, contacts, lifecycle, commands, full original mappings and D23 static/rotated-link policy remain open."
+      },
+      "native_observations": 12,
+      "generator_exit_code": 0,
+      "rust_matches": 12
     }
   ],
   "math_ctest": {
