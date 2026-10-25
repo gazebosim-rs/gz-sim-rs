@@ -154,7 +154,7 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
         ),
         (
             "<sphere><radius>0.5</radius></sphere>",
-            "<cylinder/>",
+            "<plane/>",
             "collision geometry",
         ),
         (

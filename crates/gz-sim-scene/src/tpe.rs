@@ -39,6 +39,12 @@ pub(super) fn add_model(
 pub(super) fn validate_link(spec: BodySpec, pose: Transform) -> Result<TpeLink, LoadError> {
     let valid_shape = match spec.shape {
         Shape::Sphere { radius } => radius.is_finite() && radius > 0.0,
+        Shape::Cylinder {
+            radius,
+            half_height,
+        } => [radius, half_height]
+            .into_iter()
+            .all(|v| v.is_finite() && v > 0.0),
         Shape::Box { half_extents } => half_extents.into_iter().all(|v| v.is_finite() && v > 0.0),
     };
     if !valid_shape {
@@ -52,6 +58,10 @@ pub(super) fn validate_link(spec: BodySpec, pose: Transform) -> Result<TpeLink, 
     })?;
     let half = match spec.shape {
         Shape::Sphere { radius } => [radius; 3],
+        Shape::Cylinder {
+            radius,
+            half_height,
+        } => [radius, radius, half_height],
         Shape::Box { half_extents } => half_extents,
     };
     Ok(TpeLink(Aabb::from_half_extents(

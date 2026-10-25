@@ -525,6 +525,10 @@ fn build_model(
         require(identity(local), name, "offset collision pose")?;
         let shape = match collision.geometry {
             Geometry::Sphere { radius } => Shape::Sphere { radius },
+            Geometry::Cylinder { radius, length } => Shape::Cylinder {
+                radius,
+                half_height: length * 0.5,
+            },
             Geometry::Box { size } => Shape::Box {
                 half_extents: size.map(|v| v * 0.5),
             },

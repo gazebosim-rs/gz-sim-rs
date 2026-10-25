@@ -1,0 +1,133 @@
+{
+  "decision": "approved",
+  "reviewer": "/root/sdformat_owner_fallback",
+  "author": "/root",
+  "proposal": "artifacts/cylinder-geometry/proposal.json",
+  "proposal_sha256": "2d46492fb2faa3d774371a91187a147dd9217a5011f439c7ae2007f4e6776adb",
+  "base": "05c9291d1856186db0125b15a3c034daeac2b9f2",
+  "tree": "19527ae38125ec53631a39e73b66338405962a74",
+  "diff_sha256": "b85178dc50383c0ef3d31b041486fa6a69202b1637fca794f9622e232e9590bc",
+  "files_sha256": {
+    "crates/gz-physics-rapier/src/lib.rs": "eccc92b22aba35d307216b6572d4b68fa7a91f9cc10280dc6780614e0bd238de",
+    "crates/gz-physics-rapier/tests/cylinder.rs": "a372bfcdd0653dcd76385ee243ebdea7b75eb74b5da9a54b350ea58ef3d11b8c",
+    "crates/gz-physics/src/lib.rs": "c0309db219b783b7f5200bf3f7f9d0e44cc4db03a19399aa22643749c18d732a",
+    "crates/gz-sim-scene/src/lib.rs": "a12f8e5a1a73b4ab0ec96594f74756a25a0b05b9d65f3ca62fab5392a1c64554",
+    "crates/gz-sim-scene/src/tpe.rs": "7e7aa090f76ea40c66b32d87e999a0b870a5560f0ae4f080f290f4c599c58fd5",
+    "crates/gz-sim-scene/tests/cylinder.rs": "ad6287c9b2f2a5e8fa3fce1e550481c3e26ffe368ac68a713b4760992aed56b7",
+    "crates/gz-sim-scene/tests/native_cylinder.cc": "7df3d3ce284fbbc4b7cbba869d5df999730120bc1176526d0339059d23f243e5",
+    "crates/gz-sim-scene/tests/private/tpe.rs": "9f1b00d605ef6ca93dda12fe17318927719b2fb28b3c8c4b433c775c02d3de6f",
+    "crates/gz-sim-scene/tests/scene.rs": "8f26734338f552883ec369f471111a5126a89430ffd4a2434a30d604b20612f2",
+    "docs/CYLINDERS.md": "55cc131d19713766c69f5d734c6ee47b6073f5753e52182860587433afff6ed5",
+    "docs/STATUS.md": "53ab64957ab198f698a0a4ceab3c50a93ab8f2f6142a259eac0e702b0abeca1d",
+    "planning/reference/cylinder.json": "7d303f8e1e6e03fb123ef4a7c15ac063467a4ff1d70d3ce76fc33fdd10faacf2",
+    "planning/test-ledger.json": "9265a99fd466148ca5bac0596ccf80ed5e871a80a72e82dc93be22f59c908468",
+    "scripts/probe-cylinder.py": "7dba17d428cfa1a530147a14793f2657f2ccc2af6280dd3f1e0d13d26426ba94"
+  },
+  "parent_blobs_preserved": 238,
+  "source_review": "Exact 14-file staged path set, all file SHA-256 values and Git tree/diff bound; 238 other parent blobs byte-identical. Rapier local +X quarter-turn maps its Y cylinder onto Gazebo Z; mass-derived inertia and world AABB include local collider rotation. TPE model AABB uses radius,radius,length/2 with transforms. No producer pin, other source or existing numeric tolerance changed.",
+  "native": {
+    "scope": "Pinned native CylinderShape original is PARTIAL: positive dimensions and X/Y radius versus Z half-length bounds plus eight supplemental model contacts. Empty default box and mutable SetRadius/SetLength value API remain unported.",
+    "source_sha256": {
+      "tpe/lib/src/Shape.cc": "81344a138848147842541022cc3e9a85afd0b19c952d00337b4f781d30b9566b",
+      "tpe/lib/src/Shape.hh": "e692610c2cd619ef4590c844f5e9cc33daeabf592c7e3f81e57ced4354f8cc99",
+      "tpe/lib/src/Shape_TEST.cc": "d96c5ee065368e616f2d2d11813359406a546ea826db0f590aaa95c2deb157ef",
+      "tpe/lib/src/World.cc": "43834d8eb1b5376134657c37734fdb03f1e2d5443a8a92fb0987d078e4d17fef",
+      "tpe/lib/src/Model.cc": "4c3a12ed741e296e71608ce5a7e9d956ecfa0ea712ba6f0c51073fea861cdee8",
+      "tpe/lib/src/Link.cc": "34ddf4278a9e5d863c549711a1d43de33eab222e19db4df80e7295c625bb8282",
+      "tpe/lib/src/Collision.cc": "7ceced9e4ca247c9470737ff8c6496e171b7b62c31336e89ef2fa9c4461bf7a3",
+      "tpe/lib/src/CollisionDetector.cc": "47c7b7ca424ff31dddf2a13b778a3880bf27b510e940797d9ea0e3a15220206b"
+    },
+    "probe_sha256": "7df3d3ce284fbbc4b7cbba869d5df999730120bc1176526d0339059d23f243e5",
+    "runner_sha256": "7dba17d428cfa1a530147a14793f2657f2ccc2af6280dd3f1e0d13d26426ba94",
+    "probe_binary_sha256": "9f4b5405cbfb3be369f839c15e6b1ee1ae0575a29062525b8e3f20ab5c61f1c9",
+    "original_binary_sha256": "ba9bf6f5012acb38c321a9f2c6065791dede8aca162040114b021ed6cb8a4592",
+    "cmake_cache_sha256": "a1d567db4624593bec4589d0c85ccae476dad3e718780bbb76dfea4cf0723f54",
+    "loaded_library_count": 19,
+    "fresh_report_sha256": "4fdd9fd8473b988b358a8a8077c7beab7738bcabb341998e71103aebb363a9d1",
+    "fresh_controls_stdout_sha256": "a5fd218ff6617dc098cb94d4b302214541f0e638fe0cd4e7e8171130edaf0aa2",
+    "controls_equal_frozen_reference": true,
+    "original_result": "Fresh unchanged Shape.CylinderShape 1/0, no disabled or skipped tests; original XML is parsed semantically because its timestamp makes its file hash run-specific.",
+    "stderr_empty": true,
+    "library_hashes_equal_frozen_reference": true,
+    "probe_binary_equal_frozen_reference": true,
+    "cmake_cache_equal_frozen_reference": true
+  },
+  "private_rust_selected": [
+    {
+      "case": "Rapier cylinder inertia/contact/invalid",
+      "passed": 3,
+      "failed": 0,
+      "log_sha256": "eacce8703b2fa37e11c7493f58a02dd64a992656af5130a8ee541c8f47d063ec"
+    },
+    {
+      "case": "Scene cylinder loaded reset/native contacts",
+      "passed": 2,
+      "failed": 0,
+      "log_sha256": "92459a60531d683bb69bb3c4ba2fe3047f2fe5b590329a334d87efc7f77fdeec"
+    },
+    {
+      "case": "Unchanged scene suite including unsupported-plane atomicity",
+      "passed": 12,
+      "failed": 0,
+      "log_sha256": "6bf10948ffabefbcc12eb5254b4f5a454296bff38b8505547265030dc7f5313f"
+    },
+    {
+      "case": "Private TPE invalid dimensions",
+      "passed": 1,
+      "failed": 0,
+      "log_sha256": "accc552793531a991a88aab587e72309b07266a3c522c48e3f5144665fd036c4"
+    }
+  ],
+  "mutants": [
+    {
+      "change": "Remove Rapier collider-local quarter-turn",
+      "result": "Compiled; inertia original assertion fails angular velocity within 1e-12 (0/1).",
+      "log_sha256": "18e20aa2786edbb62262c037a9541c5fc2123edfc669da040a252ae30e19e3ce"
+    },
+    {
+      "change": "Swap TPE cylinder Y and Z half-extents",
+      "result": "Compiled; exact mode3 native contact count fails 0 versus 1 (0/1).",
+      "log_sha256": "60fc52e91ddecc8ea1d68cf12e40c19854bdec4de327304a67c7067e895d01ab"
+    }
+  ],
+  "staged_gate": {
+    "log_sha256": "cd54518039ffbb76e39a818b3c35ebaf094537c6a753075408543bf590200782",
+    "stage_result_sha256": "4fae018b69283ead527d4a082e84be49e21d29a295f91cd40205d213a78cc257",
+    "test_output_sha256": "38ae3d3912c75e5678fcd81c380ce559daa25db95044a28e4869173a977805ce",
+    "evidence_sha256": "42529117d6043e4ae3cdcfde447de2fa10660cb9bc50b239d110a21b3355cf6e",
+    "summary_sha256": "9f748d6174aeaba8fe1ca965ea32f5b27468106c0a708ec6824b74836cd3f2c6",
+    "checks_state": "passed",
+    "evidence_state": "complete",
+    "rust_passed_from_raw_log": 238,
+    "tooling_passed_from_gate_log": 24,
+    "cpp_scenarios": "Unchanged native server test statically calls 7 world, 4 schedule-world and 4 schedule-case paths (15); its retained Rust harness case passed in the full staged run.",
+    "workspace_coverage": {
+      "lines": [
+        3535,
+        3572
+      ],
+      "regions": [
+        5395,
+        5514
+      ]
+    },
+    "changed_production_lines": {
+      "gz-physics-rapier": [
+        9,
+        9
+      ],
+      "gz-sim-scene": [
+        12,
+        12
+      ]
+    },
+    "all_production_crates_strictly_above_95": true
+  },
+  "dispositions": {
+    "old_cylinder_negative": "APPROVED. Prior <cylinder/> rejection was a Rust-only capability limit; the exact old input is now positive in both loaded engines with IMU/reset/ID checks. Unsupported <plane/> retains the existing error type/message and atomicity assertions; no upstream original or tolerance is retired.",
+    "initial_floor_assumption": "APPROVED. Original author test assumed upright stationary cylinder after 2s and failed on measured physical rocking. Corrected test uses exact transformed-cylinder lowest support and contact-normal velocity at the unchanged 0.01 bounds; no previous accepted assertion was weakened.",
+    "shape_original": "PARTIAL only. Do not retire Shape.CylinderShape as a complete mutable/default Shape API port."
+  },
+  "limits": "Centered single collision only; TPE uses native AABB contact approximation, Rapier and native TPE are not same-solver trajectory parity. Offset/multiple shapes, DART/MuJoCo, full LOAD/PHY packets, performance budget and P2 remain open. Installed native dependency/build provenance remains qualified. Normal protected hook, publication and hosted qualification remain pending.",
+  "scope": "Bounded source/native/assertion review and two explicit test dispositions on frozen cylinder tree only; not final publication or broad phase acceptance."
+}

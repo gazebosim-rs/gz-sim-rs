@@ -21,6 +21,18 @@ and regions, workspace3516/3552lines5369/5486regions and changed scene2/2,server
 See IMU_ORIENTATION.md and planning/reviews/imu-orientation.json. Runtime toggling
 and full SENSOR01/P2 remain open.
 
+## Cylinder geometry
+
+Centered Z-axis cylinder loading, Rapier dynamics and native TPE AABB contacts
+passed independent source/native/assertion review and exact staged checks:
+238 Rust tests, 24 tooling checks and the unchanged fifteen C++ scenarios.
+Workspace coverage is 3535/3572 lines and 5395/5514 regions; every production
+crate exceeds 95%, with changed Rapier9/9 and scene12/12 covered.
+[CYLINDERS.md](CYLINDERS.md) records the bounded contract and native controls;
+planning/reviews/cylinder.json records the review and test dispositions. Normal
+protected commit and exact hosted verification remain separate requirements.
+Broader LOAD/PHY packets and P2 remain open.
+
 ## Implemented scope
 
 | Crate | Behavior | Remaining boundary |
@@ -29,7 +41,7 @@ and full SENSOR01/P2 remain open.
 | gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, typed terminal fault diagnostics, world/allocator-bound reset reservations, isolated worlds | Persistence and complete lifecycle contract |
 | gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
 | gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation, model overlap contacts and typed faults | Remaining geometry/commands and D23 policy |
-| gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, world velocity/COM wrench inputs, world-revolute constraints, backend reset/removal, prepared initial-state restoration and numeric validation | General articulations, remaining force frames and common capabilities, DART/MuJoCo/TPE adapters |
+| gz-physics-rapier | Full-f64 sphere/box/cylinder dynamics, inertia tensors, static bodies, world impulses, gravity, world velocity/COM wrench inputs, world-revolute constraints, backend reset/removal, prepared initial-state restoration and numeric validation | General articulations, remaining force frames and common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | IMU specific force/relative orientation, seeded Gaussian/bias/quantization and native covariance using f64 math | Activation, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, phase-preserving IMU sampling, checked model-subtree removal and loaded-scene restoration | General joints, offset/multiple shapes, full resource policy and remaining sensor contracts |
 | gz-sim-cli | Local SDF/configured world input and include roots, Rapier/TPE selection, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, remote top-level resources, signal handling and packaging |

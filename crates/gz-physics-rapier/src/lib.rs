@@ -114,6 +114,17 @@ fn collider(shape: Shape) -> Result<ColliderBuilder, PhysicsError> {
         Shape::Sphere { radius } if radius.is_finite() && radius > 0.0 => {
             Ok(ColliderBuilder::ball(radius))
         }
+        Shape::Cylinder {
+            radius,
+            half_height,
+        } if [radius, half_height]
+            .into_iter()
+            .all(|v| v.is_finite() && v > 0.0) =>
+        {
+            // Rapier's cylinder axis is Y; the body and inertial frames stay Z-up.
+            Ok(ColliderBuilder::cylinder(half_height, radius)
+                .rotation(Vector::X * std::f64::consts::FRAC_PI_2))
+        }
         Shape::Box {
             half_extents: [x, y, z],
         } if [x, y, z].into_iter().all(|v| v.is_finite() && v > 0.0) => {
@@ -126,9 +137,9 @@ fn collider(shape: Shape) -> Result<ColliderBuilder, PhysicsError> {
 fn validated_collider(spec: BodySpec, orientation: Rotation) -> Result<Collider, PhysicsError> {
     let shape = collider(spec.shape)?.mass(spec.mass.unwrap_or(1.0)).build();
     let mass = shape.mass_properties();
-    let aabb = shape
-        .shape()
-        .compute_aabb(&Pose::from_parts(Vector::from(spec.position), orientation));
+    let aabb = shape.shape().compute_aabb(
+        &(Pose::from_parts(Vector::from(spec.position), orientation) * *shape.position()),
+    );
     let positive = |v: f64| v.is_normal() && v > 0.0;
     if !positive(mass.inv_mass)
         || !mass

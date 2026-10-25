@@ -94,6 +94,20 @@
       "remaining_assertions": "Timing observations only; whole Sensor active/trigger/metrics/failed-update, fixture and framework contracts remain unported. No full Sensor retirement.",
       "review": "Independent /root/sdformat approved partial clock mapping and original assertion fidelity after fresh87scene/server checks including nine actual C++ scenarios, ten fresh native clock controls plus original1/0, four strengthened final private clock tests and36extra native/Rust controls. Native source/binary/header/sensor/library hashes match after reproducing the recorded ROS loader lineage; first differing indirect-URDFDOM proof retained. Final exact metadata rebind and normal staged/hosted gates remain required.",
       "reviewer": "/root/sdformat"
+    },
+    {
+      "repository": "gz-physics",
+      "upstream_commit": "b44cd0d0ea6606b6c98320c0c87a5670d4fc6be6",
+      "source": "tpe/lib/src/Shape_TEST.cc",
+      "test": "Shape.CylinderShape",
+      "rust_tests": [
+        "crates/gz-sim-scene/tests/cylinder.rs",
+        "crates/gz-physics-rapier/tests/cylinder.rs"
+      ],
+      "status": "partially_ported",
+      "retained_assertions": "Positive radius, full length and X/Y radius versus Z half-length bounds in native reference; eight additional model-contact controls compare actual native outputs through loaded reset. Rust tests cover supported physical construction, analytic inertia and loaded IMU/reset.",
+      "remaining_assertions": "Complete mutable Shape default, SetRadius/SetLength and constructor value API is not ported. Native original passes unchanged; no complete-case credit.",
+      "review": "Independent /root/sdformat_owner_fallback approved source, fresh native original1/0 and eight contact controls, private Rust18/0, axis-removal and bounds-swap failing mutants; exact staged238 Rust/24 tools/unchanged15 C++ scenarios pass. Receipt planning/reviews/cylinder.json. Shape.CylinderShape remains partial; no original retirement."
     }
   ],
   "supplementary_tests": {
@@ -191,6 +205,15 @@
       "native_reference": "planning/reference/imu-orientation.json",
       "scope": "Rust-only capability restriction superseded; no upstream retirement, assertion weakening or numeric tolerance change. Immutable publication policy only; native runtime toggling/property retention remains pending.",
       "review": "Approved by independent /root/msgs_review_fallback: exact14file raw staged export, fresh four-mode native Server replay, private scene/server1/0 each and all15 actual C++ scenarios. Always-quaternion and loader-hardcode-true mutants fail exact new assertions. Receipt planning/reviews/imu-orientation.json. No upstream retirement, runtime-toggle/property claim or broad acceptance."
+    },
+    {
+      "id": "LOAD01-cylinder-capability",
+      "status": "approved",
+      "test": "crates/gz-sim-scene/tests/scene.rs::unsupported_features_are_errors_and_existing_simulations_are_untouched",
+      "old_case": "Default <cylinder/> geometry rejected.",
+      "new_case": "Exact old input positive on both engines through loaded reset; unsupported plane retains the prior error type/message and existing-simulation atomicity assertions.",
+      "scope": "Rust-only capability restriction superseded; no upstream retirement or tolerance change. Initial unaccepted cylinder floor test assumed upright stationary state; corrected to analytic transformed support height/contact-normal velocity at the same .01 bounds after retained rolling-state counterexample.",
+      "review": "Independent /root/sdformat_owner_fallback approved exact old XML positive and plane error/atomicity replacement; corrected unaccepted rolling support/contact test retains .01 bounds and analytic geometry. Private native/Rust replay and two geometry mutants verified; receipt planning/reviews/cylinder.json."
     }
   ]
 }

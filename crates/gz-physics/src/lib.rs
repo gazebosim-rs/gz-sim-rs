@@ -4,8 +4,17 @@
 
 #[derive(Debug, Clone, Copy)]
 pub enum Shape {
-    Sphere { radius: f64 },
-    Box { half_extents: [f64; 3] },
+    Sphere {
+        radius: f64,
+    },
+    /// Radius in X/Y and half-height along Gazebo Z.
+    Cylinder {
+        radius: f64,
+        half_height: f64,
+    },
+    Box {
+        half_extents: [f64; 3],
+    },
 }
 
 /// Initial state, in meters, kilograms, and meters per second. `None` mass is fixed.

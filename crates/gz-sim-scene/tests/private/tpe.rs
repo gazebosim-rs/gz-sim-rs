@@ -163,3 +163,32 @@ fn tpe_construction_rejects_invalid_shapes_and_numeric_poses() {
     install(&mut sim).unwrap();
     assert!(matches!(install(&mut sim), Err(LoadError::TpeInstall(_))));
 }
+
+#[test]
+fn cylinder_tpe_bounds_reject_invalid_dimensions() {
+    for invalid in [0.0, -1.0, f64::NAN, f64::INFINITY] {
+        for shape in [
+            Shape::Cylinder {
+                radius: invalid,
+                half_height: 1.4,
+            },
+            Shape::Cylinder {
+                radius: 0.6,
+                half_height: invalid,
+            },
+        ] {
+            assert!(matches!(
+                validate_link(
+                    BodySpec {
+                        shape,
+                        position: [0.0; 3],
+                        velocity: [0.0; 3],
+                        mass: None
+                    },
+                    Transform::default()
+                ),
+                Err(LoadError::Physics(PhysicsError::InvalidValue))
+            ));
+        }
+    }
+}
