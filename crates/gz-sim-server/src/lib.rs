@@ -126,7 +126,9 @@ fn imu_packet(
             ],
         }),
         entity_name: metadata.entity_name.clone(),
-        orientation: Some(quaternion(reading.orientation)),
+        orientation: metadata
+            .enable_orientation
+            .then(|| quaternion(reading.orientation)),
         orientation_covariance: covariance([0.0; 3]),
         angular_velocity: Some(vector3(reading.angular_velocity)),
         angular_velocity_covariance: covariance(reading.angular_velocity_covariance),

@@ -73,7 +73,7 @@ struct SamplingObservations
   std::vector<gz::msgs::IMU> frames;
 };
 
-int RunSamplingCase(bool tpe, bool noisy = false)
+int RunSamplingCase(bool tpe, bool noisy = false, bool orientation = true)
 {
   auto observed = std::make_shared<SamplingObservations>();
   gz::transport::Node node;
@@ -152,7 +152,7 @@ int RunSamplingCase(bool tpe, bool noisy = false)
         header.data(0).key() != "frame_id" || header.data(0).value_size() != 1 ||
         header.data(0).value(0) != "ball::body::imu" || header.data(1).key() != "seq" ||
         header.data(1).value_size() != 1 || header.data(1).value(0) != std::to_string(sequence) ||
-        !frame.has_orientation() || !frame.has_angular_velocity() || !frame.has_linear_acceleration() ||
+        frame.has_orientation() != orientation || !frame.has_angular_velocity() || !frame.has_linear_acceleration() ||
         !frame.has_orientation_covariance() || !frame.has_angular_velocity_covariance() ||
         !frame.has_linear_acceleration_covariance()) return false;
     if (noisy)
@@ -167,7 +167,7 @@ int RunSamplingCase(bool tpe, bool noisy = false)
         }
       }
       for (double value : {frame.orientation().x(), frame.orientation().y(), frame.orientation().z(),
-          frame.orientation().w() - 1, frame.angular_velocity().x() - 0.25, frame.angular_velocity().y() + 2.5,
+          frame.orientation().w() - (orientation ? 1 : 0), frame.angular_velocity().x() - 0.25, frame.angular_velocity().y() + 2.5,
           frame.linear_acceleration().x(), frame.linear_acceleration().y(),
           frame.linear_acceleration().z() - (tpe ? 9.81 : 0.0)})
         if (!std::isfinite(value) || std::abs(value) >= 1e-9) return false;
@@ -179,7 +179,7 @@ int RunSamplingCase(bool tpe, bool noisy = false)
       for (float value : covariance->data()) if (value != 0) return false;
     }
     for (double value : {frame.orientation().x(), frame.orientation().y(), frame.orientation().z(),
-        frame.orientation().w() - 1, frame.angular_velocity().x(), frame.angular_velocity().y(),
+        frame.orientation().w() - (orientation ? 1 : 0), frame.angular_velocity().x(), frame.angular_velocity().y(),
         frame.angular_velocity().z(), frame.linear_acceleration().x(), frame.linear_acceleration().y(),
         frame.linear_acceleration().z() - (tpe ? 9.81 : 0.0)})
       if (!std::isfinite(value) || std::abs(value) >= 1e-9) return false;
@@ -211,6 +211,13 @@ int RunSamplingCase(bool tpe, bool noisy = false)
 
 int main(int argc, char **argv)
 {
+  if (argc > 1)
+  {
+    const std::string mode = argv[1];
+    if (mode == "--disabled-schedule" || mode == "--tpe-disabled-schedule" ||
+        mode == "--disabled-noisy-schedule" || mode == "--tpe-disabled-noisy-schedule")
+      return RunSamplingCase(mode.find("--tpe-") == 0, mode.find("noisy") != std::string::npos, false);
+  }
   if (argc > 1 && (std::string(argv[1]) == "--noisy-schedule" || std::string(argv[1]) == "--tpe-noisy-schedule"))
     return RunSamplingCase(std::string(argv[1]) == "--tpe-noisy-schedule", true);
   if (argc > 1 && (std::string(argv[1]) == "--schedule" || std::string(argv[1]) == "--tpe-schedule"))

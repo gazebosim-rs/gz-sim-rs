@@ -12,6 +12,15 @@ gpt-6-sol with high reasoning for implementation and validation. Agents work on 
 packets and independently review one another's changes. Fuel remains with its
 existing agent. Four concurrent slots cover the coordinator and three repo agents.
 
+## Disabled IMU orientation
+
+Independent source/native/assertion review approved the bounded loaded field-
+presence policy: four actual native Server controls and all fifteen real C++
+client scenarios pass. Exact staged checks pass with every crate above95% lines
+and regions, workspace3516/3552lines5369/5486regions and changed scene2/2,server3/3.
+See IMU_ORIENTATION.md and planning/reviews/imu-orientation.json. Runtime toggling
+and full SENSOR01/P2 remain open.
+
 ## Implemented scope
 
 | Crate | Behavior | Remaining boundary |

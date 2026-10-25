@@ -410,6 +410,7 @@ fn imu_server(config: Config) -> Server {
 #[test]
 fn imu_message_matches_native_metadata_presence_covariance_and_sequence() {
     let metadata = ImuPublication {
+        enable_orientation: true,
         entity_name: "robot::body::imu".into(),
         frame_id: "robot::body::imu".into(),
         topic: "/imu".into(),
@@ -525,6 +526,7 @@ fn valid_imu_samples_are_queued_and_invalid_topics_fail_setup() {
     assert_eq!(server.counters().imu_failures, 0);
     let mut simulation = Simulation::new(Duration::from_millis(1)).unwrap();
     simulation.world_mut().spawn(ImuPublication {
+        enable_orientation: true,
         entity_name: "test".into(),
         frame_id: "test".into(),
         topic: "~@:=//".into(),
@@ -1117,6 +1119,7 @@ fn invalid_pose_packet_does_not_consume_the_next_publication_slot() {
 #[test]
 fn noisy_covariance_uses_native_float_diagonals_and_zero_cross_terms() {
     let metadata = ImuPublication {
+        enable_orientation: true,
         entity_name: "robot::imu".into(),
         frame_id: "imu".into(),
         topic: "/imu".into(),
@@ -1151,3 +1154,34 @@ fn noisy_covariance_uses_native_float_diagonals_and_zero_cross_terms() {
 
 #[path = "interest.rs"]
 mod interest_tests;
+
+#[test]
+fn disabled_orientation_omits_only_the_quaternion_field() {
+    let mut metadata = ImuPublication {
+        enable_orientation: true,
+        entity_name: "robot::imu".into(),
+        frame_id: "imu_frame".into(),
+        topic: "/imu".into(),
+    };
+    let sample = ImuSample {
+        time: Duration::from_nanos(1_234_567_890),
+        epoch: 7,
+        reading: gz_sensors::imu(gz_sensors::ImuInput {
+            world_orientation: [0.0, 0.0, 0.0, 1.0],
+            reference_orientation: [0.0, 0.0, 0.0, 1.0],
+            acceleration_sensor: [1.0, 2.0, 3.0],
+            angular_velocity_sensor: [4.0, 5.0, 6.0],
+            gravity_world: [0.0, 0.0, -9.81],
+        }),
+    };
+    let mut expected = imu_packet(&metadata, &sample, 42).unwrap();
+    assert!(expected.orientation.take().is_some());
+    metadata.enable_orientation = false;
+    let actual = imu_packet(&metadata, &sample, 42).unwrap();
+    assert!(actual.orientation.is_none());
+    assert_eq!(
+        actual.orientation_covariance.as_ref().unwrap().data,
+        [0.0; 9]
+    );
+    assert_eq!(actual, expected);
+}

@@ -43,6 +43,11 @@ fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
     run_native_schedule_world(PhysicsEngine::Tpe, false);
     run_native_schedule_world(PhysicsEngine::Rapier, true);
     run_native_schedule_world(PhysicsEngine::Tpe, true);
+    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+        for noisy in [false, true] {
+            run_native_schedule_case(engine, noisy, false);
+        }
+    }
 }
 
 fn run_native_world(
@@ -266,6 +271,10 @@ fn run_native_world(
 }
 
 fn run_native_schedule_world(engine: PhysicsEngine, noisy: bool) {
+    run_native_schedule_case(engine, noisy, true);
+}
+
+fn run_native_schedule_case(engine: PhysicsEngine, noisy: bool, orientation: bool) {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let build = Command::new("python3")
         .arg(root.join("scripts/native-peer.py"))
@@ -292,6 +301,19 @@ fn run_native_schedule_world(engine: PhysicsEngine, noisy: bool) {
     if noisy {
         xml = xml.replace("</sensor>", "<imu><angular_velocity><x><noise type='gaussian'><mean>0.25</mean></noise></x><y><noise type='gaussian_quantized'><mean>-2.25</mean><precision>0.5</precision></noise></y><z><noise type='gaussian'><stddev>0.1</stddev></noise></z></angular_velocity></imu></sensor>");
     }
+    if !orientation {
+        xml = if noisy {
+            xml.replace(
+                "</imu>",
+                "<enable_orientation>false</enable_orientation></imu>",
+            )
+        } else {
+            xml.replace(
+                "</sensor>",
+                "<imu><enable_orientation>false</enable_orientation></imu></sensor>",
+            )
+        };
+    }
     let simulation = load_world_with_engine(
         &xml,
         "schedule.sdf",
@@ -313,11 +335,15 @@ fn run_native_schedule_world(engine: PhysicsEngine, noisy: bool) {
         .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
     let mut peer = Peer(
         Command::new(root.join("artifacts/native-peer/clock-client"))
-            .arg(match (engine, noisy) {
-                (PhysicsEngine::Tpe, true) => "--tpe-noisy-schedule",
-                (PhysicsEngine::Rapier, true) => "--noisy-schedule",
-                (PhysicsEngine::Tpe, false) => "--tpe-schedule",
-                (PhysicsEngine::Rapier, false) => "--schedule",
+            .arg(match (engine, noisy, orientation) {
+                (PhysicsEngine::Tpe, true, false) => "--tpe-disabled-noisy-schedule",
+                (PhysicsEngine::Rapier, true, false) => "--disabled-noisy-schedule",
+                (PhysicsEngine::Tpe, false, false) => "--tpe-disabled-schedule",
+                (PhysicsEngine::Rapier, false, false) => "--disabled-schedule",
+                (PhysicsEngine::Tpe, true, true) => "--tpe-noisy-schedule",
+                (PhysicsEngine::Rapier, true, true) => "--noisy-schedule",
+                (PhysicsEngine::Tpe, false, true) => "--tpe-schedule",
+                (PhysicsEngine::Rapier, false, true) => "--schedule",
             })
             .env("GZ_PARTITION", &config.partition)
             .env("GZ_IP", config.interface.to_string())

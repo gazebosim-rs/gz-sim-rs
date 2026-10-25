@@ -1,0 +1,47 @@
+{
+  "author": "/root",
+  "chronology": [
+    "First author native runner NameError and compile missing reset observer are retained setup failures, excluded as positive evidence.",
+    "Private raw export initially lacked ignored native environment metadata; explicit pinned GZ_REFERENCE_PREFIX remedied setup without source change."
+  ],
+  "decision": "approved",
+  "private_evidence": {
+    "cpp_client": "Old 11 plus new 4 real C++ client scenarios pass with explicit pinned reference prefix; log sha256 ffb366a276a2c491fd4f40d8148269e161b239c9510a1b1f95577e2f0c7ea4fb",
+    "exact_gate": "EXIT0, all crates >95%; workspace 3516/3552 lines and 5369/5486 regions, changed scene 2/2 and server 3/3",
+    "exact_staged_gate_sha256": "1c00ca1979488a62a4b7ac93f1cb9aa56a3aa095c7258595471e4075be5c4364",
+    "mutants": {
+      "always_publish_quaternion": "Fails actual.orientation.is_none(); log sha256 b5c69c2441fb5d3d310f1403e9d0566f8b015bac552bf5db30435e7b0640bdff",
+      "loader_hardcode_true": "Fails exact false XML assertion; log sha256 29c84d9ade8bfcf78861c6701aba70fa42eed9b65bbd1a03bd3e2e0750be7e42"
+    },
+    "native": "Fresh separate actual TPE Server four-mode two-sample probe matches tracked native-packet observations and source/binary/loaded-library hashes.",
+    "native_report_sha256": "855d308a18d7f8050c779d4d523d8336d9ec103f41e27e33b448fc05ae8feca5",
+    "raw_export": "All 14 staged hashes, exact tree/diff, no unstaged diff verified in separate raw source.",
+    "scene_positive": "1/0, log sha256 2e2259b0c34f9e39aa1216fa9cf3e7a59b16a7c306d214fabbfa12751fa2c0a1",
+    "server_packet": "1/0, log sha256 bf642227d8cb98416f0fec1369ad031169e56011a335efe4bc9116e712b771e2"
+  },
+  "reviewer": "/root/msgs_review_fallback",
+  "scope": "Loaded SDF enable_orientation=false controls IMU message orientation-field presence. Angular/linear channels, covariances, timestamps, sequences and motion continue. Orientation covariance remains present and zero. This is a publication-only option; no runtime toggle, native reset parity, broad SENSOR-01 or P2 acceptance.",
+  "source_and_disposition": "Pinned gz-sim Imu.cc passes SDF OrientationEnabled to sensor; pinned gz-sensors ImuSensor.cc fills covariance and motion independent of orientation field. Scene loader carries the loaded bool into ImuPublication and server packet conditionally omits only quaternion. Original exact false XML moved from unsupported negative to tracked positive with both-engine/reset coverage; NED localization replacement remains a negative with same error and atomicity assertions. No old C++ modes removed.",
+  "source_freeze": {
+    "base": "d029884bfc8f1e0938134a7fb193202c21ab0a7d",
+    "diff_sha256": "e1d3eb95f39c3ef4b98caf29660627413adb245c35e19662930e3718ec9713c0",
+    "files_sha256": {
+      "crates/gz-sim-scene/src/lib.rs": "0d6a0fd95ec0a7acf4382f46c855504400ef903e948c7787224f2477d132f2da",
+      "crates/gz-sim-scene/tests/imu_orientation.rs": "579e00628534fa25622ae9fedbd03eab7fa7e04ed6b5656ce903d278ff0478ca",
+      "crates/gz-sim-scene/tests/scene.rs": "0408efb8170a02b68e3870138daf803737f9737f4967aeeb6057e9ce5f5e45fa",
+      "crates/gz-sim-server/src/lib.rs": "ce4cd52ff776aaacd1be6bb7b83db92b1c4c40e35c5bc4e748245fdb8a4301da",
+      "crates/gz-sim-server/tests/clock_client.cc": "a0297fd50f0e22760867309003814cb812f401f3e5dda26ca27f530eef6d34d8",
+      "crates/gz-sim-server/tests/native.rs": "f8fe499d478e7b81350a0f8cd440d23d40e4a5efa9f3428d74d18d25bec7c0f9",
+      "crates/gz-sim-server/tests/native_imu_orientation.cc": "6d569be0e31f5fb54f6c354a5f4033042ec5112ff4f2249125656af7fa907211",
+      "crates/gz-sim-server/tests/private/reset.rs": "437ac48b159b30d91134203bf12d9594e3ca01ba7e998aa90a4438c711c75eae",
+      "crates/gz-sim-server/tests/private/server.rs": "a39d56e19a8a027f171b25a6d60a35472cc7d8dd28b1e9d65f057b8c2a843d85",
+      "docs/IMU_ORIENTATION.md": "66cd122a8f7b2c568bb620c274086775729735801f606ac95f5b6617eed82264",
+      "docs/STATUS.md": "1734bd8bc07252bec96e1b5cb8c7181cff37eab514a48188981e8f9ed3883234",
+      "planning/reference/imu-orientation.json": "e470dc1dfce5dd5f6feba0a06798bf99e8b1bac249e714a7e6e694b83bc1a4d9",
+      "planning/test-ledger.json": "2ff6f09d7fe18c70a367f2d47748f791076243b0d611e2f1ce3ff5311e84ef27",
+      "scripts/probe-imu-orientation.py": "cc96f5de1eaf99a582a00c7db9200746d6cb567240900d403234cd825667bae7"
+    },
+    "tree": "4e3f47241deb9fc2dbe112223e267cbccc12f2f2",
+    "unstaged_diff_empty": true
+  }
+}

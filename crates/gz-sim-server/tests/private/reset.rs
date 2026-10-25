@@ -387,6 +387,7 @@ fn reset_stream_reconciliation_preserves_shared_publishers_and_retires_additions
     let endpoint = Arc::clone(&server.imus[0].publisher);
     // A pending runtime-only stream is excluded from reconstructed instances.
     server.simulation.world_mut().spawn(ImuPublication {
+        enable_orientation: true,
         topic: "/runtime".into(),
         frame_id: "runtime".into(),
         entity_name: "runtime".into(),

@@ -179,7 +179,7 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
         ),
         (
             "<always_on>true</always_on>",
-            "<imu><enable_orientation>false</enable_orientation></imu>",
+            "<imu><orientation_reference_frame><localization>NED</localization></orientation_reference_frame></imu>",
             "IMU orientation",
         ),
         (

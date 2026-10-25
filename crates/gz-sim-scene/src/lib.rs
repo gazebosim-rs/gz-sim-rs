@@ -175,6 +175,8 @@ pub struct ImuSample {
 
 #[derive(Component, Debug, Clone)]
 pub struct ImuPublication {
+    /// Include the orientation field; covariances and motion channels remain present.
+    pub enable_orientation: bool,
     pub entity_name: String,
     pub frame_id: String,
     /// Requested topic; the transport boundary applies Gazebo name repair.
@@ -625,8 +627,7 @@ fn build_model(
                 feature: "non-IMU sensors",
             })?;
             require(
-                config.enable_orientation
-                    && config.localization == "CUSTOM"
+                config.localization == "CUSTOM"
                     && config.custom_rpy == [0.0; 3]
                     && config.custom_rpy_parent_frame.is_empty(),
                 &name,
@@ -685,6 +686,7 @@ fn build_model(
             sim.world_mut().entity_mut(sensor_entity).insert((
                 AttachedPose,
                 ImuPublication {
+                    enable_orientation: config.enable_orientation,
                     frame_id: if sensor.frame_id.is_empty() {
                         sensor
                             .gz_frame_id
