@@ -418,3 +418,96 @@ fn retained_legacy_sdf_worlds_reach_the_same_physics_and_sensor_state() {
         );
     }
 }
+
+#[test]
+fn imu_frame_fields_follow_native_precedence_after_scoped_naming() {
+    use gz_sim_scene::ImuPublication;
+    for (fields, expected) in [
+        ("", "ball::body::imu"),
+        ("<frame_id> body frame </frame_id>", "body frame"),
+        ("<gz_frame_id> legacy </gz_frame_id>", "legacy"),
+        (
+            "<frame_id>main</frame_id><gz_frame_id>ignored</gz_frame_id>",
+            "main",
+        ),
+        ("<frame_id></frame_id><gz_frame_id></gz_frame_id>", ""),
+        ("<frame_id>__default__</frame_id>", "__default__"),
+    ] {
+        let xml = include_str!("fixtures/fall.sdf").replace("<always_on>true</always_on>", fields);
+        let sim = load_world(
+            &xml,
+            "frames.sdf",
+            "default",
+            Duration::from_millis(1),
+            &NoResources,
+        )
+        .unwrap();
+        let metadata = sim
+            .world()
+            .iter_entities()
+            .find_map(|e| e.get::<ImuPublication>())
+            .unwrap();
+        assert_eq!(metadata.entity_name, "ball::body::imu");
+        assert_eq!(metadata.frame_id, expected);
+    }
+}
+
+#[test]
+fn native_default_topic_and_xml_whitespace_reach_the_transport_boundary() {
+    use gz_sim_scene::ImuPublication;
+    for (topic, expected) in [
+        (
+            "__default__",
+            "/world/default/model/ball/link/body/sensor/imu/imu",
+        ),
+        ("  robot\t\n imu  ", "robot imu"),
+        ("\u{a0}imu\u{a0}", "\u{a0}imu\u{a0}"),
+    ] {
+        let xml = include_str!("fixtures/fall.sdf").replace(
+            "<always_on>true</always_on>",
+            &format!("<topic>{topic}</topic>"),
+        );
+        let sim = load_world(
+            &xml,
+            "topics.sdf",
+            "default",
+            Duration::from_millis(1),
+            &NoResources,
+        )
+        .unwrap();
+        let metadata = sim
+            .world()
+            .iter_entities()
+            .find_map(|e| e.get::<ImuPublication>())
+            .unwrap();
+        assert_eq!(metadata.topic, expected);
+    }
+}
+
+#[test]
+fn explicit_surface_metadata_is_rejected_until_physics_mapping_exists() {
+    for surface in [
+        "<surface/>",
+        "<surface><friction><ode><mu>0.2</mu></ode></friction></surface>",
+        "<surface><contact><collide_bitmask>2</collide_bitmask></contact></surface>",
+    ] {
+        let xml = include_str!("fixtures/fall.sdf").replace(
+            "</geometry></collision>",
+            &format!("</geometry>{surface}</collision>"),
+        );
+        let result = load_world(
+            &xml,
+            "surface.sdf",
+            "default",
+            Duration::from_millis(1),
+            &NoResources,
+        );
+        assert!(matches!(
+            result,
+            Err(LoadError::Unsupported {
+                feature: "collision surface parameters",
+                ..
+            })
+        ));
+    }
+}

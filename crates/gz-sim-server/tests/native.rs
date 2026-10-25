@@ -55,7 +55,7 @@ fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool) {
     if let Some(topic) = topic {
         xml = xml.replace(
             "<always_on>true</always_on>",
-            &format!("<topic>{topic}</topic>"),
+            &format!("<topic>{topic}</topic><frame_id>sensor_frame</frame_id><gz_frame_id>ignored</gz_frame_id>"),
         );
     }
     let simulation = load_world(
@@ -80,7 +80,7 @@ fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool) {
     if with_imu {
         command.arg("--imu");
         if let Some(topic) = topic {
-            command.arg(topic);
+            command.arg(topic).arg("sensor_frame");
         }
     } else if remove {
         command.arg("--remove");

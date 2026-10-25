@@ -743,14 +743,14 @@ dependencies = [
 [[package]]
 name = "gz-msgs"
 version = "0.1.0"
-source = "git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=2f744840c4e5bb986bcc2237a0ba3dae2f66c19b#2f744840c4e5bb986bcc2237a0ba3dae2f66c19b"
+source = "git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=195644d8daeb1fa17ed8830e885a36f25ba71871#195644d8daeb1fa17ed8830e885a36f25ba71871"
 dependencies = [
  "bytemuck",
  "heck",
  "prost",
  "prost-build",
- "prost-derive 0.14.4 (git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=2f744840c4e5bb986bcc2237a0ba3dae2f66c19b)",
- "prost-reflect 0.16.5 (git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=2f744840c4e5bb986bcc2237a0ba3dae2f66c19b)",
+ "prost-derive 0.14.4 (git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=195644d8daeb1fa17ed8830e885a36f25ba71871)",
+ "prost-reflect 0.16.5 (git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=195644d8daeb1fa17ed8830e885a36f25ba71871)",
  "prost-types",
  "serde_json",
 ]
@@ -822,7 +822,7 @@ name = "gz-sim-server"
 version = "0.1.0"
 dependencies = [
  "bevy_ecs",
- "gz-msgs 0.1.0 (git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=2f744840c4e5bb986bcc2237a0ba3dae2f66c19b)",
+ "gz-msgs 0.1.0 (git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=195644d8daeb1fa17ed8830e885a36f25ba71871)",
  "gz-sensors",
  "gz-sim-core",
  "gz-sim-scene",
@@ -834,7 +834,7 @@ dependencies = [
 [[package]]
 name = "gz-transport"
 version = "0.1.0"
-source = "git+https://github.com/gazebosim-rs/gz-transport-rs?rev=c9ddc555cd60e7376b98a4110bdea8c79ef9f8c1#c9ddc555cd60e7376b98a4110bdea8c79ef9f8c1"
+source = "git+https://github.com/gazebosim-rs/gz-transport-rs?rev=c00de5e4a33a884336dba4952547d3167ec74709#c00de5e4a33a884336dba4952547d3167ec74709"
 dependencies = [
  "gz-msgs 0.1.0 (git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=e1800c3e8d058ce7358b393e5f7aba6dd912920f)",
  "nix",
@@ -1368,7 +1368,7 @@ dependencies = [
 [[package]]
 name = "prost-derive"
 version = "0.14.4"
-source = "git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=2f744840c4e5bb986bcc2237a0ba3dae2f66c19b#2f744840c4e5bb986bcc2237a0ba3dae2f66c19b"
+source = "git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=195644d8daeb1fa17ed8830e885a36f25ba71871#195644d8daeb1fa17ed8830e885a36f25ba71871"
 dependencies = [
  "anyhow",
  "itertools",
@@ -1392,7 +1392,7 @@ dependencies = [
 [[package]]
 name = "prost-reflect"
 version = "0.16.5"
-source = "git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=2f744840c4e5bb986bcc2237a0ba3dae2f66c19b#2f744840c4e5bb986bcc2237a0ba3dae2f66c19b"
+source = "git+https://github.com/gazebosim-rs/gz-msgs-rs?rev=195644d8daeb1fa17ed8830e885a36f25ba71871#195644d8daeb1fa17ed8830e885a36f25ba71871"
 dependencies = [
  "base64",
  "logos",
@@ -1588,9 +1588,11 @@ dependencies = [
 [[package]]
 name = "sdformat"
 version = "0.1.0"
-source = "git+https://github.com/gazebosim-rs/sdformat-rs?rev=8109265aa8e70b23fcd6cb137c0531de8bb4e336#8109265aa8e70b23fcd6cb137c0531de8bb4e336"
+source = "git+https://github.com/gazebosim-rs/sdformat-rs?rev=6740618086d541054e13945b2ecb9a8cbc6fbfb6#6740618086d541054e13945b2ecb9a8cbc6fbfb6"
 dependencies = [
+ "errno",
  "glam 0.30.9",
+ "libc",
  "petgraph",
  "quick-xml",
  "xmlparser",

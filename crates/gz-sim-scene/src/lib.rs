@@ -293,6 +293,11 @@ fn build_model(
             "collision count (expected one)",
         )?;
         let collision = &link.collisions[0];
+        require(
+            collision.surface.source.is_none(),
+            name,
+            "collision surface parameters",
+        )?;
         let local = sdf.resolve_pose(&collision.pose, &model.scoped_name, name, name)?;
         require(identity(local), name, "offset collision pose")?;
         let shape = match collision.geometry {
@@ -427,7 +432,14 @@ fn build_model(
             sim.world_mut().entity_mut(sensor_entity).insert((
                 AttachedPose,
                 ImuPublication {
-                    frame_id: entity_name.clone(),
+                    frame_id: if sensor.frame_id.is_empty() {
+                        sensor
+                            .gz_frame_id
+                            .clone()
+                            .unwrap_or_else(|| entity_name.clone())
+                    } else {
+                        sensor.frame_id.clone()
+                    },
                     entity_name,
                     topic,
                 },
@@ -444,17 +456,18 @@ fn build_model(
         build_model(sdf, child, context, &parent, sim, backend)?;
     }
     if !is_static {
-        let canonical = canonical_link(sdf, model)?;
-        let body =
-            context
-                .bodies
-                .get(&canonical)
-                .copied()
-                .ok_or_else(|| LoadError::Unsupported {
-                    entity: model.scoped_name.clone(),
-                    feature: "canonical link outside the model",
-                })?;
-        let model_to_link = WorldPose::from(sdf.pose_of(&canonical, &model.scoped_name)?);
+        let (canonical, _) = model.canonical_link_and_relative_name();
+        let canonical = canonical.ok_or_else(|| LoadError::Unsupported {
+            entity: model.scoped_name.clone(),
+            feature: "dynamic model without a canonical link",
+        })?;
+        let body = context
+            .bodies
+            .get(&canonical.scoped_name)
+            .copied()
+            .expect("scene constructs every canonical link before its model anchor");
+        let model_to_link =
+            WorldPose::from(sdf.pose_of(&canonical.scoped_name, &model.scoped_name)?);
         sim.world_mut()
             .entity_mut(model_entity)
             .insert(ModelAnchor {
@@ -463,29 +476,6 @@ fn build_model(
             });
     }
     Ok(())
-}
-
-// Canonical-link selection differs from attachment to world for static children.
-fn canonical_link(sdf: &Sdf, model: &Model) -> Result<String, LoadError> {
-    if !model.canonical_link.is_empty() {
-        let name = sdf.resolve_name(&model.scoped_name, &model.canonical_link)?;
-        require(
-            name.starts_with(&format!("{}::", model.scoped_name)),
-            &model.scoped_name,
-            "canonical link outside the model",
-        )?;
-        return Ok(name);
-    }
-    if let Some(link) = model.links.first() {
-        return Ok(link.scoped_name.clone());
-    }
-    if let Some(nested) = model.models.first() {
-        return canonical_link(sdf, nested);
-    }
-    Err(LoadError::Unsupported {
-        entity: model.scoped_name.clone(),
-        feature: "dynamic model without a canonical link",
-    })
 }
 
 fn spawn_node(

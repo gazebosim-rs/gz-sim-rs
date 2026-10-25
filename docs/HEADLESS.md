@@ -62,8 +62,11 @@ as unsigned native counters do. Paused ticks do not repeat stale samples; epochs
 distinguish equal timestamps after the current core reset.
 
 Sensor registration happens at construction; removed streams release their
-publisher leases without socket waits. Runtime registration, explicit frame_id
-XML, rates, metrics, noise and nonzero covariances remain open. Existing retained
+publisher leases without socket waits. Runtime registration, rates, metrics, noise and nonzero covariances remain open.
+Frame metadata chooses a nonempty canonical frame_id, then a present legacy
+gz_frame_id even when empty, then the effective worldless sensor name. Native XML
+string normalization and the __default__ topic sentinel are handled by SDF before
+transport name repair. Existing retained
 streams keep their sequence across core time resets; this is not a claim about
 full native world reset or sensor reconstruction.
 
@@ -117,11 +120,32 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current gate passes 66 Rust checks and nine gate tests: 1344/1355 production
-lines and 1986/2026 regions. Every production crate exceeds 95% for both metrics;
-117/118 changed executable lines are covered. Independent review and the exact
+The current gate passes 69 Rust checks and nine gate tests: 1336/1343 production
+lines and 1979/2013 regions. Every production crate exceeds 95% for both metrics;
+All 21 changed executable lines in this producer integration are covered. Independent review and the exact
 staged gate are required before publishing this increment.
 
 Remaining P2 work includes full reset, TPE, local/Fuel resources, sensor scheduling
 and the equal-work C++ comparison/performance report. Joints, forces, the complete
 system/backend inventories, Bevy rendering and release qualification remain open.
+
+
+## Reviewed producer integration
+
+The workspace pins SDF 67406180, messages 195644d8 and transport c00de5e4.
+SDF supplies canonical-link selection directly: the returned link is borrowed from
+that model's subtree, whose links are all constructed before the model anchor.
+The body lookup is consequently an internal construction invariant. No parallel
+canonical-selection implementation remains in this workspace.
+
+SDF also retains contact/friction metadata and uses its audited Linux GNU scalar
+conversion boundary. The scene rejects every explicit surface, including an empty
+one, until backend parameter mapping exists. It never silently accepts ignored
+friction or collision filters. Parser conversion and resolver IO happen during
+loading, outside stepping; Linux GNU qualification remains explicit.
+
+The transport pin rejects duplicate same-node publishers and orders withdrawal
+before immediate recreation. Surviving stream leases can be retained during the
+planned reset; recreation after removal has a native-tested producer contract.
+Consumer tests cover frame-field precedence, empty legacy IDs, topic defaults and
+XML whitespace, explicit unsupported surfaces and all four real C++ scenarios.

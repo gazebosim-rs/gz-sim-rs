@@ -99,7 +99,7 @@ int main(int argc, char **argv)
     };
   if (!node.Subscribe("/world/default/pose/info", poseCallback)) return 12;
   std::function<void(const gz::msgs::IMU &)> imuCallback =
-    [observations](const auto &imu)
+    [observations, frame = std::string(argc > 3 ? argv[3] : "ball::body::imu")](const auto &imu)
     {
       std::lock_guard<std::mutex> lock(observations->mutex);
       bool valid = imu.entity_name() == "ball::body::imu" && imu.has_header() &&
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
       const auto &header = imu.header();
       valid = valid && header.data_size() == 2 &&
         header.data(0).key() == "frame_id" && header.data(0).value_size() == 1 &&
-        header.data(0).value(0) == "ball::body::imu" &&
+        header.data(0).value(0) == frame &&
         header.data(1).key() == "seq" && header.data(1).value_size() == 1;
       if (valid)
       {

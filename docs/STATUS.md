@@ -35,16 +35,19 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 66 Rust tests and nine gate tests, covering 1344/1355
-production lines and 1986/2026 regions. Every production crate exceeds 95% for
-both metrics. The remote-removal increment covers 117/118 changed executable lines.
+The current local gate passes 69 Rust tests and nine gate tests, covering 1336/1343
+production lines and 1979/2013 regions. Every production crate exceeds 95% for
+both metrics. The producer integration covers all 21 changed executable lines.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
 Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
 The hierarchy/pose revision d3524f5 passed its exact hosted gate.
 [CORE-01 is accepted](acceptance/CORE-01.md); API-01, QLT-01 and the broader phases
-remain open. Local model removal is published at 5fd5e49. The C++ client now
+remain open. Local model removal is published at 5fd5e49 and remote removal at b39ea419.
+The consumer now uses reviewed SDF frame/topic/canonical helpers and rejects
+explicit Surface physics until implemented; transport includes native publisher
+recreation ordering. Producer pins and tests are detailed in HEADLESS.md. The C++ client now
 verifies four scenarios using actual clock, local-pose and IMU samples, exact-step
 controls, stable IDs, topic repair and deferred model removal. Its
 native dependencies are rebuilt from the pinned reference lock in CI.
