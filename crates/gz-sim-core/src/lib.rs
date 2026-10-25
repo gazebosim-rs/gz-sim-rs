@@ -4,7 +4,8 @@
 
 mod identity;
 pub use identity::{
-    EntityId, IdentityError, ReservedId, assign_id, entity_by_id, reserve_id, restore_id,
+    EntityId, EntityLookup, IdentityError, ReservedId, assign_id, entity_by_id, reserve_id,
+    restore_id,
 };
 
 use bevy_ecs::{prelude::*, schedule::ScheduleConfigs, system::ScheduleSystem};

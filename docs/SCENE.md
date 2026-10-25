@@ -43,3 +43,11 @@ relative orientation under body spin, pause/reset/epoch order, unsupported input
 and failure isolation. These are integration tests for this subset, not a completed
 port of an original whole-world simulator test. Full performance and same-backend
 C++ comparisons remain required before SLICE-01 acceptance.
+
+
+Model anchors and IMUs retain public link IDs. Their scheduled systems resolve
+those IDs through a read-only view of the existing core index and consume the
+committed link WorldPose/Velocity. Backend synchronization runs first. This keeps
+observations independent of solver handles and allows original logical links to
+use replacement Bevy Entity handles after reconstruction. Sensor-relative frames,
+velocity history and pause/reset rules are unchanged.

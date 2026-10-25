@@ -94,3 +94,59 @@ fn exhaustion_is_checked_before_assignment_and_removed_ids_stay_retired() {
     assert!(world.get::<EntityId>(rejected).is_none());
     assert!(world.resource::<IdIndex>().entities.is_empty());
 }
+
+fn scheduled_lookup(world: &mut World, id: u64) -> Option<Entity> {
+    use bevy_ecs::system::RunSystemOnce;
+    world
+        .run_system_once(move |lookup: EntityLookup| lookup.get(id))
+        .unwrap()
+}
+
+#[test]
+fn scheduled_lookup_tracks_live_moved_retired_and_restored_owners() {
+    let mut world = World::new();
+    assert_eq!(scheduled_lookup(&mut world, 0), None);
+    let original = world.spawn_empty().id();
+    let id = assign_id(&mut world, original).unwrap();
+    let reserved = reserve_id(&world, original).unwrap();
+    assert_eq!(scheduled_lookup(&mut world, id), Some(original));
+    assert_eq!(scheduled_lookup(&mut world, u64::MAX), None);
+    let moved = world.entity_mut(original).take::<EntityId>().unwrap();
+    let orphan = world.spawn(moved).id();
+    assert_eq!(scheduled_lookup(&mut world, id), None);
+    world.despawn(orphan);
+    let restored = world.spawn_empty().id();
+    restore_id(&mut world, restored, &reserved).unwrap();
+    assert_eq!(scheduled_lookup(&mut world, id), Some(restored));
+    world.despawn(restored);
+    assert_eq!(scheduled_lookup(&mut world, id), None);
+    let fresh = world.spawn_empty().id();
+    assert!(assign_id(&mut world, fresh).unwrap() > id);
+}
+
+#[test]
+fn scheduled_lookup_validates_index_entries_against_live_identity_components() {
+    let mut world = World::new();
+    let first = world.spawn_empty().id();
+    let first_id = assign_id(&mut world, first).unwrap();
+    let second = world.spawn_empty().id();
+    let second_id = assign_id(&mut world, second).unwrap();
+    world
+        .resource_mut::<IdIndex>()
+        .entities
+        .insert(first_id, second);
+    assert_eq!(scheduled_lookup(&mut world, first_id), None);
+    assert_eq!(scheduled_lookup(&mut world, second_id), Some(second));
+    world
+        .resource_mut::<IdIndex>()
+        .entities
+        .insert(first_id, first);
+    assert_eq!(scheduled_lookup(&mut world, first_id), Some(first));
+    world.despawn(first);
+    world
+        .resource_mut::<IdIndex>()
+        .entities
+        .insert(first_id, first);
+    assert_eq!(scheduled_lookup(&mut world, first_id), None);
+    assert_eq!(scheduled_lookup(&mut world, second_id), Some(second));
+}

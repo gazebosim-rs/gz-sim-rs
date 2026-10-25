@@ -20,7 +20,7 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 | gz-physics-tpe | Validated constant-velocity Body, native stationary/tiny-angle semantics and atomic numeric errors | Bevy adapter, contacts, lifecycle/commands and D23 policy |
 | gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
-| gz-sim-scene | Atomic SDF construction, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, asset resolution and scheduling |
+| gz-sim-scene | Atomic SDF construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, asset resolution and scheduling |
 | gz-sim-cli | Self-contained SDF input, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, resource resolution, signal handling and packaging |
 | gz-sim-server | Bounded clock/pose publication, shared-topic IMU streams, polled pause/step/reset controls, deferred remove services, real C++ clients | Root clock election, run-to controls, scene services and runtime sensor registration |
 
@@ -37,10 +37,10 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 106 Rust tests and nine gate tests, covering 1807/1817
-production lines and 2767/2815 regions. Every production crate exceeds 95% for
-both metrics. The TPE motion crate covers 48/48 lines and 73/73 regions; all 46 changed
-executable lines are covered.
+The current local gate passes 109 Rust tests and nine gate tests, covering 1821/1831
+production lines and 2802/2850 regions. Every production crate exceeds 95% for
+both metrics. The ECS observation increment covers all 36 changed executable lines; core
+coverage is 228/228 lines and 322/325 regions, scene 681/690 and 1040/1070.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 

@@ -3,6 +3,7 @@
 use bevy_ecs::{
     lifecycle::HookContext,
     prelude::*,
+    system::SystemParam,
     world::{DeferredWorld, WorldId},
 };
 use std::{collections::BTreeMap, sync::Arc};
@@ -24,6 +25,20 @@ struct IdIndex {
     owner: Arc<()>,
     last: u64,
     entities: BTreeMap<u64, Entity>,
+}
+
+/// Read-only public-ID resolution for scheduled systems, checking the live owner.
+#[derive(SystemParam)]
+pub struct EntityLookup<'w, 's> {
+    index: Option<Res<'w, IdIndex>>,
+    identities: Query<'w, 's, &'static EntityId>,
+}
+
+impl EntityLookup<'_, '_> {
+    pub fn get(&self, id: u64) -> Option<Entity> {
+        let entity = *self.index.as_ref()?.entities.get(&id)?;
+        (self.identities.get(entity).ok()?.get() == id).then_some(entity)
+    }
 }
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]

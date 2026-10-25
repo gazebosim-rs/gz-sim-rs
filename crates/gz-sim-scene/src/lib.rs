@@ -16,7 +16,9 @@ use gz_physics_rapier::{
     BodyId, BodySpec, Inertia, PhysicsError, PhysicsReset, RapierBackend, RotationSpec, Shape,
 };
 use gz_sensors::{ImuInput, ImuReading, InvalidImuInput};
-use gz_sim_core::{IdentityError, Phase, Simulation, StepError, UpdateInfo, assign_id};
+use gz_sim_core::{
+    EntityId, EntityLookup, IdentityError, Phase, Simulation, StepError, UpdateInfo, assign_id,
+};
 use sdformat::{Geometry, Model, NoiseKind, ResourceResolver, Sdf, Transform};
 use std::{collections::BTreeMap, time::Duration};
 
@@ -90,7 +92,7 @@ impl WorldPose {
 
 #[derive(Component, Clone)]
 struct ModelAnchor {
-    body: BodyId,
+    link: u64,
     link_to_model: WorldPose,
 }
 
@@ -114,7 +116,7 @@ impl BodyHandle {
 
 #[derive(Component, Clone)]
 struct Imu {
-    body: BodyId,
+    link: u64,
     rotation: DQuat,
     reference: DQuat,
     previous_velocity: DVec3,
@@ -138,7 +140,7 @@ pub struct ImuPublication {
 struct SceneContext<'a> {
     world: &'a str,
     step: Duration,
-    bodies: BTreeMap<String, BodyId>,
+    links: BTreeMap<String, u64>,
 }
 
 struct ParentModel {
@@ -202,7 +204,7 @@ pub fn load_world(
     let mut context = SceneContext {
         world: world_name,
         step,
-        bodies: BTreeMap::new(),
+        links: BTreeMap::new(),
     };
     let world_entity = spawn_node(
         &mut sim,
@@ -348,7 +350,6 @@ fn build_model(
                 tensor: link.inertial.inertia,
             }),
         )?;
-        context.bodies.insert(name.clone(), id);
         let local = sdf.pose_of(name, &model.scoped_name)?;
         let link_entity = spawn_node(sim, Some(model_entity), name, EntityKind::Link, local, pose)?;
         sim.world_mut().entity_mut(link_entity).insert((
@@ -358,6 +359,12 @@ fn build_model(
                 angular: [0.0; 3],
             },
         ));
+        let link_id = sim
+            .world()
+            .get::<EntityId>(link_entity)
+            .expect("loader assigned the link identity")
+            .get();
+        context.links.insert(name.clone(), link_id);
         for (child_name, child_pose, kind) in link
             .collisions
             .iter()
@@ -455,7 +462,7 @@ fn build_model(
                     topic,
                 },
                 Imu {
-                    body: id,
+                    link: link_id,
                     rotation: DQuat::from_array(local.rotation),
                     reference: DQuat::from_array(pose.rotation) * DQuat::from_array(local.rotation),
                     previous_velocity: DVec3::ZERO,
@@ -472,8 +479,8 @@ fn build_model(
             entity: model.scoped_name.clone(),
             feature: "dynamic model without a canonical link",
         })?;
-        let body = context
-            .bodies
+        let link = context
+            .links
             .get(&canonical.scoped_name)
             .copied()
             .expect("scene constructs every canonical link before its model anchor");
@@ -482,7 +489,7 @@ fn build_model(
         sim.world_mut()
             .entity_mut(model_entity)
             .insert(ModelAnchor {
-                body,
+                link,
                 link_to_model: model_to_link.inverse(),
             });
     }
@@ -519,16 +526,19 @@ fn spawn_node(
     Ok(entity)
 }
 
-fn sync_models(backend: Res<RapierBackend>, mut models: Query<(&ModelAnchor, &mut WorldPose)>) {
+fn sync_models(
+    identities: EntityLookup,
+    links: Query<&WorldPose, Without<ModelAnchor>>,
+    mut models: Query<(&ModelAnchor, &mut WorldPose)>,
+) {
     for (anchor, mut pose) in &mut models {
-        let state = backend
-            .state(anchor.body)
-            .expect("scene owns canonical link lifecycle");
-        *pose = WorldPose {
-            translation: state.position,
-            rotation: state.orientation,
-        }
-        .compose(anchor.link_to_model);
+        let entity = identities
+            .get(anchor.link)
+            .expect("scene owns canonical link identity");
+        *pose = links
+            .get(entity)
+            .expect("scene owns canonical link pose")
+            .compose(anchor.link_to_model);
     }
 }
 
@@ -575,7 +585,8 @@ fn sync_bodies(
 fn sample_imus(
     time: Res<UpdateInfo>,
     gravity: Res<Gravity>,
-    backend: Res<RapierBackend>,
+    identities: EntityLookup,
+    bodies: Query<(&WorldPose, &Velocity)>,
     mut sensors: Query<(Entity, &mut Imu)>,
     mut commands: Commands,
 ) {
@@ -583,13 +594,14 @@ fn sample_imus(
         return;
     }
     for (entity, mut sensor) in &mut sensors {
-        let state = backend
-            .state(sensor.body)
-            .expect("scene owns body lifecycle");
-        let velocity = DVec3::from_array(state.velocity);
+        let body = identities
+            .get(sensor.link)
+            .expect("scene owns IMU link identity");
+        let (pose, body_velocity) = bodies.get(body).expect("scene owns IMU link state");
+        let velocity = DVec3::from_array(body_velocity.linear);
         let acceleration = (velocity - sensor.previous_velocity) / time.dt.as_secs_f64();
         sensor.previous_velocity = velocity;
-        let rotation = DQuat::from_array(state.orientation) * sensor.rotation;
+        let rotation = DQuat::from_array(pose.rotation) * sensor.rotation;
         commands.entity(entity).insert(ImuSample {
             time: time.sim_time,
             epoch: time.epoch,
@@ -598,7 +610,7 @@ fn sample_imus(
                 reference_orientation: sensor.reference.to_array(),
                 acceleration_sensor: (rotation.inverse() * acceleration).to_array(),
                 angular_velocity_sensor: (rotation.inverse()
-                    * DVec3::from_array(state.angular_velocity))
+                    * DVec3::from_array(body_velocity.angular))
                 .to_array(),
                 gravity_world: gravity.0,
             }),
@@ -612,3 +624,7 @@ fn reset_imus(mut sensors: Query<(Entity, &mut Imu)>, mut commands: Commands) {
         commands.entity(entity).remove::<ImuSample>();
     }
 }
+
+#[cfg(test)]
+#[path = "../tests/private/observations.rs"]
+mod observation_tests;

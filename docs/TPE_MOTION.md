@@ -31,10 +31,11 @@ The simulator still selects Rapier. Bevy body ownership, TPE installation, conta
 queries, removal/reset integration, commands and the full original ledger remain
 open. D23 separately awaits the owner's decision on native static-model movement
 and rotated-link velocity conversion; this kernel does not select those policies.
-The strict gate passes 106 Rust checks and 9 tooling checks, retaining all six
+The kernel acceptance gate passed 106 Rust checks and 9 tooling checks, retaining all six
 real C++ server scenarios. Motion coverage is 48/48 lines, 73/73 regions and 46/46
-changed executable lines. Independent source/assertion/fixture review and the
-exact staged/hosted gates remain required. PHY-01, PHY-02 and P2 are not complete.
+changed executable lines. Independent source/assertion/fixture review and the exact staged/hosted gates
+passed at [2962f1d](https://github.com/gazebosim-rs/gz-sim-rs/commit/2962f1d07b09d4b6abf0ae8be143b5eb1cff7d28).
+PHY-01, PHY-02 and P2 are not complete.
 
 ## Measured operation
 

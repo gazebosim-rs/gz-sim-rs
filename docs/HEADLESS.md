@@ -122,9 +122,9 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current gate passes 106 Rust checks and nine gate tests: 1807/1817 production
-lines and 2767/2815 regions. Every production crate exceeds 95% for both metrics;
-The TPE motion kernel changed-line gate is recorded in TPE_MOTION.md. Independent review and the exact
+The current gate passes 109 Rust checks and nine gate tests: 1821/1831 production
+lines and 2802/2850 regions. Every production crate exceeds 95% for both metrics;
+The ECS observation increment covers all 36 changed executable lines. Independent review and the exact
 staged gate are required before publishing this increment.
 
 Remaining P2 work includes TPE, local/Fuel resources, sensor scheduling, the
@@ -205,3 +205,13 @@ A separate TPE motion kernel now operates on validated shared f64 state. Its
 native corpus, numeric contracts and narrow equal-work measurement are recorded
 in [TPE_MOTION.md](TPE_MOTION.md). The server still installs Rapier; TPE world
 integration and full headless acceptance remain open.
+
+
+Canonical model anchoring and IMU sampling now read committed Bevy link
+WorldPose/Velocity through stable public link IDs. EntityLookup is a read-only
+system parameter over the existing identity index and validates the live owner.
+Backend synchronization remains first in PhysicsCommit and Reset; observation
+systems no longer fetch Rapier state themselves. Analytic tests without a physics
+backend cover frame projection, pause/reset and replacement runtime link handles.
+All six existing native client scenarios retain their assertions. This prepares
+another backend; it does not install TPE or decide D23 behavior.
