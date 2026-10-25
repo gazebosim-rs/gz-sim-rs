@@ -770,10 +770,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gz-physics"
+version = "0.1.0"
+
+[[package]]
 name = "gz-physics-rapier"
 version = "0.1.0"
 dependencies = [
  "bevy_ecs",
+ "gz-physics",
  "gz-sim-core",
  "rapier3d-f64",
  "thiserror",

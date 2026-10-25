@@ -124,7 +124,7 @@ sequence wrapping, invalid samples and publication failures.
 
 The current gate passes 97 Rust checks and nine gate tests: 1759/1769 production
 lines and 2694/2742 regions. Every production crate exceeds 95% for both metrics;
-All four changed executable lines in the SDF consumer increment are covered. Independent review and the exact
+All six changed executable lines in the shared physics-value increment are covered. Independent review and the exact
 staged gate are required before publishing this increment.
 
 Remaining P2 work includes TPE, local/Fuel resources, sensor scheduling, the
@@ -192,3 +192,10 @@ immutable observer, then retire. Global observers and registered systems survive
 targeted observers retain Bevy's runtime-target lifetime. Conflicting infrastructure
 and initial-scene roles fail before reconstruction. The two original Name/reset
 assertion scenarios each run nine fresh worlds to preserve static-isolation intent.
+
+
+The dependency-free gz-physics workspace crate owns the shared f64 shape,
+construction, inertial, rotation and state values. Rapier reexports preserve its
+existing Rust paths. Handles, ownership, errors and schedules remain in the real
+adapter. The values moved unchanged as the first TPE integration prerequisite;
+this extraction adds no engine behavior or performance claim.

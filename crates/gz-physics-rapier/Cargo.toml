@@ -7,6 +7,7 @@ license.workspace = true
 description = "Full-f64 Rapier integration for the Gazebo Bevy runtime"
 
 [dependencies]
+gz-physics = { path = "../gz-physics" }
 bevy_ecs.workspace = true
 gz-sim-core = { path = "../gz-sim-core" }
 rapier3d-f64.workspace = true
