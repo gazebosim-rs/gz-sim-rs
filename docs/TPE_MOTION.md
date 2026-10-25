@@ -27,15 +27,47 @@ source/generator/library/header/binary hashes. Original Model.BasicAPI permits
 rows use 1e-12, and the tiny component is checked exactly. Names, identities,
 static flags and the rest of that original case remain unmigrated.
 
-The simulator still selects Rapier. Bevy body ownership, TPE installation, contact
-queries, removal/reset integration, commands and the full original ledger remain
-open. D23 separately awaits the owner's decision on native static-model movement
+The SDF loader still selects Rapier. TPE SDF construction, contact queries,
+loaded-scene restoration, commands and the full original ledger remain open. D23 separately awaits the owner's decision on native static-model movement
 and rotated-link velocity conversion; this kernel does not select those policies.
 The kernel acceptance gate passed 106 Rust checks and 9 tooling checks, retaining all six
 real C++ server scenarios. Motion coverage is 48/48 lines, 73/73 regions and 46/46
 changed executable lines. Independent source/assertion/fixture review and the exact staged/hosted gates
 passed at [2962f1d](https://github.com/gazebosim-rs/gz-sim-rs/commit/2962f1d07b09d4b6abf0ae8be143b5eb1cff7d28).
 PHY-01, PHY-02 and P2 are not complete.
+
+## Bevy motion adapter
+
+`install` registers the real TPE motion system in PhysicsStep and constructor-state
+restoration in Reset. `Motion::new` validates finite f64 state once. Bevy owns each
+component and its lifetime; no separate body registry or entity allocator is used.
+The readonly state accessor prevents bypassing numeric invariants. Replacing a
+Motion component deliberately creates a new constructor/reset state.
+
+Paused ticks do no motion work. Exact stepping follows the kernel semantics;
+`MotionReset` lets observers run after restoration. Core reset restores surviving
+components; it does not reconstruct removed entities. The loaded-scene blueprint
+will supply that separate responsibility when TPE is selectable in the loader.
+
+Both Rapier and TPE claim one shared installation identity in the simulation's
+existing extension registry. A second installation fails, including after mutable
+backend resources are removed. No general backend trait or second scheduler is
+introduced. Direct resource/component edits still require preserving installed
+system invariants.
+
+An arithmetic failure reports a concrete `StepFailure` containing the Bevy entity
+and source MotionError through StepFault. The run becomes terminal and later
+registered phases do not publish a successful step. The failed body's numeric
+state is unchanged; earlier body advances and other effects are not rolled back.
+This adapter defines no static flag, hierarchy, collider or link-command policy,
+and does not resolve D23.
+
+Three supplementary integration checks cover analytic translation/rotation across
+50 steps, pause, reset ordering, entity/component removal, mutual installation,
+invalid construction and typed overflow/publication suppression. The full author
+gate passes 118 Rust checks, nine tooling checks and all six C++ server scenarios;
+TPE coverage is 81/81 lines and 121/121 regions. Independent review and the exact
+staged/hosted gates remain required before acceptance. No original case is retired.
 
 ## Measured operation
 

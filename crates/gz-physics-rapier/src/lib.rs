@@ -33,7 +33,7 @@ pub enum PhysicsError {
     InvalidValue,
     #[error("body identifier space exhausted")]
     IdOverflow,
-    #[error("Rapier is already installed in this world")]
+    #[error("a physics backend is already installed in this world")]
     AlreadyInstalled,
     #[error("body identifier is not present in this backend")]
     MissingBody,
@@ -281,7 +281,7 @@ impl RapierBackend {
 /// Installs one backend into the simulation's physics and reset phases.
 pub fn install(sim: &mut Simulation, backend: RapierBackend) -> Result<(), PhysicsError> {
     if sim.world().contains_resource::<RapierBackend>()
-        || !sim.register_extension::<RapierBackend>()
+        || !sim.register_extension::<gz_physics::PhysicsInstallation>()
     {
         return Err(PhysicsError::AlreadyInstalled);
     }

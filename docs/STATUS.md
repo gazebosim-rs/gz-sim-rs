@@ -16,8 +16,8 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 | Crate | Behavior | Remaining boundary |
 | --- | --- | --- |
 | gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, typed terminal fault diagnostics, world/allocator-bound reset reservations, isolated worlds | Persistence and complete lifecycle contract |
-| gz-physics | Shared f64 body construction, inertial, rotation and state values | Shared backend capability contract and TPE integration |
-| gz-physics-tpe | Validated constant-velocity Body, native stationary/tiny-angle semantics and atomic numeric errors | Bevy adapter, contacts, lifecycle/commands and D23 policy |
+| gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
+| gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation and typed arithmetic faults | SDF selection/restoration, contacts, commands and D23 policy |
 | gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, asset resolution and scheduling |
@@ -37,11 +37,10 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 115 Rust tests and nine gate tests, covering 1870/1880
-production lines and 2884/2932 regions. Every production crate exceeds 95% for
-both metrics. The reported-fault increment covers all 57 changed executable lines. Core
-coverage is 264/264 lines and 380/384 regions; scene 683/692 and 1043/1073;
-server 521/522 and 822/834.
+The current local gate passes 118 Rust tests and nine gate tests, covering 1903/1913
+production lines and 2933/2980 regions. Every production crate exceeds 95% for
+both metrics. The TPE adapter increment covers all 34 changed executable lines. TPE coverage
+is 81/81 lines and 121/121 regions; all prior assertions remain required.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 

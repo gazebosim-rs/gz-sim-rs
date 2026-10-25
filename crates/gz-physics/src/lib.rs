@@ -50,3 +50,8 @@ pub struct BodyState {
     pub orientation: [f64; 4],
     pub angular_velocity: [f64; 3],
 }
+
+/// Extension identity shared by simulator physics installers.
+/// Claimed outside mutable ECS resources so removing a resource cannot reinstall
+/// a second stepping system in the same simulation.
+pub struct PhysicsInstallation;

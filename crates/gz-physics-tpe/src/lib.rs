@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! TPE constant-velocity motion over validated shared f64 state.
 
+mod ecs;
+pub use ecs::{InstallError, Motion, MotionReset, StepFailure, install};
+
 use glam::{DQuat, DVec3};
 use gz_physics::BodyState;
 use std::time::Duration;

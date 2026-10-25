@@ -788,8 +788,11 @@ dependencies = [
 name = "gz-physics-tpe"
 version = "0.1.0"
 dependencies = [
+ "bevy_ecs",
  "glam 0.33.12",
  "gz-physics",
+ "gz-physics-rapier",
+ "gz-sim-core",
  "serde",
  "serde_json",
  "thiserror",
