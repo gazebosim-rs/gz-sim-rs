@@ -85,6 +85,7 @@ impl Simulation {
             paused: true,
         });
         let mut schedule = Schedule::default();
+        schedule.set_executor(bevy_ecs::schedule::SingleThreadedExecutor::new());
         schedule.configure_sets(
             (
                 Phase::Ingress,
@@ -111,6 +112,16 @@ impl Simulation {
             extensions: HashSet::new(),
             faulted: false,
         })
+    }
+
+    /// Selects Bevy's executor for ticks; reset handlers keep their own schedule.
+    /// The default avoids worker handoffs in the ordered headless pipeline.
+    /// Backend-internal and query parallelism are independent of this choice.
+    pub fn set_step_executor(
+        &mut self,
+        executor: impl bevy_ecs::schedule::SystemExecutor + 'static,
+    ) {
+        self.schedule.set_executor(executor);
     }
 
     /// Claims a system extension once, independently of mutable ECS resources.

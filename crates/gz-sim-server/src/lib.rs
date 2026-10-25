@@ -436,3 +436,7 @@ impl Server {
 #[cfg(test)]
 #[path = "../tests/private/server.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/pipeline_benchmark.rs"]
+mod pipeline_benchmark;

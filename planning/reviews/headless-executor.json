@@ -1,0 +1,79 @@
+{
+  "decision": "approved",
+  "author": "/root",
+  "reviewer": "/root/msgs_review_fallback",
+  "base": "d9e1133b89ac511313d555c721d55ba1fe1afa04",
+  "source_tree": "4ead1a0ad3799c329490003d8d2cb2e4c04831c0",
+  "source_diff_sha256": "239a00ccc95f52e4dd649f8870fceed7392d05ac5621428c64b5f8157024736c",
+  "tree": "7beb560f4843b17499dcbf3ea204c59f5cbbe389",
+  "diff_sha256": "9dde7817393352df09b7c3fa0974c104fbf4c84a49031f0ab3e6aad580f2e4d8",
+  "files": {
+    "crates/gz-sim-core/src/lib.rs": "66ec70f11c263c0c08ae31470beaf5befed9f7dfdaa47a9d9c76459ba971439f",
+    "crates/gz-sim-core/tests/executor.rs": "affc2d6e361dbdd09f06eb2592f7e889817dd9d0e90f7d8e790463409d8a2420",
+    "crates/gz-sim-server/src/lib.rs": "19df3d4e570fd8c0fe0ff41ad13b747367330b6fa502675e0fb80b27ee470829",
+    "crates/gz-sim-server/tests/native_pipeline_benchmark.cc": "d690bde967668251c9aad8bea14e5506958648a3f91c1dcc96dcbcbd02314426",
+    "crates/gz-sim-server/tests/private/pipeline_benchmark.rs": "ae832f68f0f16519a19c97c7a61789e599bd29a1649c7f6b5bb216b0984227f3",
+    "docs/HEADLESS_PERFORMANCE.md": "b31887ae3fe22e266f2023a68fe3b367e653dfe2afa36a4cd7016b03a0b5d0ef",
+    "planning/benchmarks/headless-parallel.json": "c2dbdd7932d4f19741b4e54f043fe388d6addaecdf3dd5511f51229c30e12c46",
+    "planning/benchmarks/headless-single.json": "67ce52adb2405ecc95d5d2a8004fd5763eb959173536c7df89cd1f9b91ff8665",
+    "planning/test-ledger.json": "1b7533eccdaac3655087578ce232bcf3582df5e696650d4ef1faf6e538b7849d",
+    "scripts/benchmark-headless-pipeline.py": "3c042d48200e1c6b86d8b6cfd25fd1b05d556bd2042466681e5e4fb7f4be5664",
+    "tests/test_pipeline_benchmark.py": "9330a45adeb09f6bba7bbde7e1a69ba8ce49dbc064a24c4792f6eff0b9bef046"
+  },
+  "scope": "Approve default SingleThreaded Bevy step executor with public set_step_executor override, preserving separate reset schedule, backend/query parallelism and typed fault/deferred/local-state/time barriers. Approve bounded same-release-binary within-Rust policy observation for the two-model TPE/IMU/process-local decoded-delivery harness: seven alternating measured CPU31 pairs after one warmup pair; 54.244 us parallel versus 4.630 us default median per step (11.72x in this harness).",
+  "source_audit": "All eleven frozen hashes and exact tree/diff checked; only four report/scope/ledger files changed after source tree. No dependency, unsafe, protocol, upstream retirement, source fixture, test tolerance, exclusion or coverage-threshold change. New core executable lines 7/7 in strict gate.",
+  "evidence": {
+    "staged_gate_log_sha256": "9d6b9f267d443164673151eedf03ea6e1ab3956d338e839e4da855b901f26987",
+    "staged_gate": "EXIT0 on source-equivalent tree; production workspace3169/3215 lines,4922/5057 regions, core changed7/7. Qualified freeze only alters docs/report qualification/ledger wording.",
+    "author_reports": {
+      "single": {
+        "sha256": "67ce52adb2405ecc95d5d2a8004fd5763eb959173536c7df89cd1f9b91ff8665",
+        "native_rust_binary_sha256": {
+          "native": "93b2bc004363518e449cd3477cca90e127d9567500dd6c3c06912c2c5ea9162a",
+          "rust": "e40d4794a168a1518e36a97b153e65d91991b95e6497a8118696048b30d3e39e"
+        }
+      },
+      "parallel": {
+        "sha256": "c2dbdd7932d4f19741b4e54f043fe388d6addaecdf3dd5511f51229c30e12c46",
+        "native_rust_binary_sha256": {
+          "native": "93b2bc004363518e449cd3477cca90e127d9567500dd6c3c06912c2c5ea9162a",
+          "rust": "e40d4794a168a1518e36a97b153e65d91991b95e6497a8118696048b30d3e39e"
+        }
+      }
+    },
+    "reviewer_replays": {
+      "single": {
+        "report_sha256": "e2323aee24ab2a13364f1937ac09e27e29969b5a706504f504a693bb824a2386",
+        "log_sha256": "ebcc856cf9e2db4fc9a356daefcf0e4c28d7503a035db324afe5b03f29fc6432",
+        "ns_per_step_medians": {
+          "native": 24449.817,
+          "rust": 4654.037
+        },
+        "pairs": 7,
+        "warmup_pair": 1,
+        "binary_source_fixture_library_hashes_match_author": true
+      },
+      "parallel": {
+        "report_sha256": "71c388c08a33d68ce5e1733f816abd128f58c440e5f25826252593da82297ec0",
+        "log_sha256": "9fa439bc56505b55bebe27d0726da164af3c68c9c5cade3d767c3dc6d8ff6fa3",
+        "ns_per_step_medians": {
+          "native": 23541.847,
+          "rust": 54056.425
+        },
+        "pairs": 7,
+        "warmup_pair": 1,
+        "binary_source_fixture_library_hashes_match_author": true
+      }
+    },
+    "native_provenance": "Independently matched eight selected native source files to pinned Git bytes; both author/reviewer reports bind identical required actual Release SDK library hashes, same SDF SHA256 2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07, Rust/native release binaries and same Rust production source/Cargo lock hashes.",
+    "sample_validation": "Every measured IMU decoded field, header frame/sequence/time, all orientation/angular/specific-force components and covariances, per-step physical position, total logical bytes and complete 1000-message receipt checked. Independent reports reproduce this; no byte-for-byte cross-implementation wire comparison claimed.",
+    "initial_failure": "First native sample with missing physics plugin was rejected despite sensor output; corrected engine path plus loaded TPE/Physics/IMU library identity and per-step motion checks retained."
+  },
+  "limits": [
+    "Native timing is contextual only: full C++ Server/Physics/Imu/plugin and bookkeeping versus Rust direct Simulation stepping plus production converter/manual publication are not equal-work server pipelines. No native/Rust speedup, whole-server or P2 performance acceptance.",
+    "Native process-local transport can bypass wire serialization; Rust uses encoded queued delivery. Network throughput, clock/pose services, joints, rendering and balanced robotics are not measured.",
+    "The warmup velocity-reset IMU x acceleration differs: native 0 versus Rust 1000 m/s^2. It is excluded from measured interval but remains a SENSOR-01/P2 correctness gap.",
+    "Installed dependency provenance and complete full-server reference environment remain qualified; normal hook, public publication and hosted CI pending."
+  ],
+  "findings": []
+}

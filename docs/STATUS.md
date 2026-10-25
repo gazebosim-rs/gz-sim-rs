@@ -38,14 +38,14 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current joint slice passes 194 Rust checks, twelve tooling checks and all
-nine actual C++ client scenarios in the working and exact staged gates. Coverage
-is 3162/3208 production lines and 4914/5049 regions; every crate exceeds 95% on
-both metrics. Backend changed lines are 197/197; scene changed lines are 211/216.
-Independent review approved 139 replayed checks, all nine C++ cases, three fresh
-native joint controls and three additional reviewer controls. The normal commit
-hook and hosted qualification remain required for publication. No test, tolerance,
-coverage exclusion or threshold was weakened. See [JOINTS.md](JOINTS.md).
+At this review, the executor/control packet passes 198 Rust tests, fourteen
+tooling checks and all nine actual C++ client scenarios in the strict staged
+gate. Coverage is 3169/3215 production lines and 4922/5057 regions; every crate
+exceeds 95% on both metrics, with 7/7 changed core lines. Independent replay
+approved the within-Rust scheduler result, not a native full-server speedup or
+P2 acceptance. Published base d9e1133 and its native client repair are hosted-green.
+This packet still requires its normal commit hook and hosted qualification.
+No test, tolerance, coverage exclusion or threshold changed.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
 Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
@@ -209,3 +209,16 @@ exact adopted 195-test/nine-C++ gate pass. Native installed-build provenance
 remains qualified; HEADLESS_REFERENCE.md records scope and the earlier client
 cleanup failure repaired by published 94814ee. Normal-hook publication/hosted
 qualification and the full P2 assertion/performance report remain required.
+
+
+## Bevy step executor control
+
+The ordered headless pipeline defaults to Bevy's single-threaded executor;
+set_step_executor accepts Bevy's parallel executor explicitly. Reset scheduling,
+backend/query parallelism and phase/fault/deferred semantics are retained. The
+same release binary improved this isolated Rust pipeline from 54.244 to 4.630 us
+per step; independent CPU31 replay reproduced the result. Native full-server
+numbers are context only because publication/bookkeeping paths differ. The
+warmup command/IMU acceleration mismatch remains a separate SENSOR-01/P2 task.
+HEADLESS_PERFORMANCE.md records raw data, qualifications and remaining full-server
+comparison work; this does not establish P2 or rewrite-wide performance acceptance.
