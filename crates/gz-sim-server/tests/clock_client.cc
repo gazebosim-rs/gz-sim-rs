@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <condition_variable>
 #include <functional>
+#include <future>
+#include <utility>
 #include <charconv>
 #include <cmath>
 #include <iostream>
@@ -18,6 +20,29 @@
 #include <gz/msgs/world_control.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/transport/TopicUtils.hh>
+
+// Native blocking Request races its waiter-side removal against response cleanup.
+// Async Request leaves removal to the response thread; shared state survives timeout.
+template<class Request, class Reply>
+bool request_with_reply(gz::transport::Node &node, const std::string &topic,
+    const Request &request, unsigned int timeout, Reply &response, bool &result)
+{
+  using Outcome = std::pair<Reply, bool>;
+  auto completion = std::make_shared<std::promise<Outcome>>();
+  auto pending = completion->get_future();
+  std::function<void(const Reply &, bool)> callback =
+      [completion](const Reply &reply, bool accepted)
+      {
+        completion->set_value(Outcome{reply, accepted});
+      };
+  if (!node.Request(topic, request, callback) ||
+      pending.wait_for(std::chrono::milliseconds(timeout)) != std::future_status::ready)
+    return false;
+  auto outcome = pending.get();
+  response = std::move(outcome.first);
+  result = outcome.second;
+  return true;
+}
 
 struct Observations
 {
@@ -84,7 +109,7 @@ int RunSamplingCase(bool tpe)
     else request.set_multi_step(steps);
     gz::msgs::Boolean response;
     bool result = false;
-    return node.Request("/world/default/control", request, 7000, response, result) && result && response.data();
+    return request_with_reply(node, "/world/default/control", request, 7000, response, result) && result && response.data();
   };
   if (!wait([](const auto &v) { return v.clock >= 0; })) return 33;
   unsigned int warmup = 0;
@@ -296,7 +321,7 @@ int main(int argc, char **argv)
       ++warmup;
       request.set_pause(true);
       request.set_step(true);
-      if (!node.Request("/world/default/control", request, 7000, response, result) ||
+      if (!request_with_reply(node, "/world/default/control", request, 7000, response, result) ||
           !result || !response.data()) return 8;
       std::unique_lock<std::mutex> lock(observations->mutex);
       const int64_t stamp = warmup * 1000000;
@@ -317,7 +342,7 @@ int main(int argc, char **argv)
   request.set_pause(true);
   request.set_step(true);
   request.set_multi_step(3);
-  if (!node.Request("/world/default/control", request, 7000, response, result) ||
+  if (!request_with_reply(node, "/world/default/control", request, 7000, response, result) ||
       !result || !response.data()) return 4;
   if (!waitFor(&Observations::final)) return 5;
   if (withImu)
@@ -338,7 +363,7 @@ int main(int argc, char **argv)
   }
   request.Clear();
   request.set_seed(42);
-  if (!node.Request("/world/default/control", request, 7000, response, result) ||
+  if (!request_with_reply(node, "/world/default/control", request, 7000, response, result) ||
       !result || response.data()) return 6;
   if (remove || reset)
   {
@@ -347,9 +372,9 @@ int main(int argc, char **argv)
       std::lock_guard<std::mutex> lock(observations->mutex);
       entity.set_id(observations->poseIds.at("body"));
     }
-    if (!node.Request("/world/default/remove", entity, 7000, response, result) ||
+    if (!request_with_reply(node, "/world/default/remove", entity, 7000, response, result) ||
         !result || !response.data()) return 14;
-    if (!node.Request("/world/default/remove/blocking", entity, 7000, response, result) ||
+    if (!request_with_reply(node, "/world/default/remove/blocking", entity, 7000, response, result) ||
         !result || response.data()) return 15;
     {
       std::lock_guard<std::mutex> lock(observations->mutex);
@@ -359,7 +384,7 @@ int main(int argc, char **argv)
     // A nonzero ID takes precedence over a contradictory name and type.
     entity.set_name("ground");
     entity.set_type(gz::msgs::Entity::LINK);
-    if (!node.Request("/world/default/remove/blocking", entity, 7000, response, result) ||
+    if (!request_with_reply(node, "/world/default/remove/blocking", entity, 7000, response, result) ||
         !result || !response.data()) return 16;
     if (!waitFor(&Observations::removed)) return 17;
   }
@@ -375,7 +400,7 @@ int main(int argc, char **argv)
     request.Clear();
     request.set_pause(true);
     request.mutable_reset()->set_all(true);
-    if (!node.Request("/world/default/control", request, 7000, response, result) ||
+    if (!request_with_reply(node, "/world/default/control", request, 7000, response, result) ||
         !result || !response.data()) return 18;
     if (!waitFor(&Observations::initial) || !waitFor(&Observations::initialPose)) return 19;
     // Removal retired the endpoint. Prove the recreated sensor connection with
@@ -386,7 +411,7 @@ int main(int argc, char **argv)
       request.Clear();
       request.set_pause(true);
       request.set_step(true);
-      if (!node.Request("/world/default/control", request, 7000, response, result) ||
+      if (!request_with_reply(node, "/world/default/control", request, 7000, response, result) ||
           !result || !response.data()) return 23;
       std::unique_lock<std::mutex> lock(observations->mutex);
       const int64_t stamp = reconnect * 1000000;
@@ -408,13 +433,13 @@ int main(int argc, char **argv)
     request.Clear();
     request.set_pause(true);
     request.mutable_reset()->set_time_only(true);
-    if (!node.Request("/world/default/control", request, 7000, response, result) ||
+    if (!request_with_reply(node, "/world/default/control", request, 7000, response, result) ||
         !result || !response.data()) return 26;
     if (!waitFor(&Observations::initial) || !waitFor(&Observations::initialPose)) return 27;
     request.Clear();
     request.set_pause(true);
     request.set_step(true);
-    if (!node.Request("/world/default/control", request, 7000, response, result) ||
+    if (!request_with_reply(node, "/world/default/control", request, 7000, response, result) ||
         !result || !response.data()) return 20;
     if (!waitFor(&Observations::final)) return 21;
     std::unique_lock<std::mutex> lock(observations->mutex);

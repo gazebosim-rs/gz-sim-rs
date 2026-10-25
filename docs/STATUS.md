@@ -185,3 +185,15 @@ normal staged hook and hosted CI 40188844686. The joint slice now consumes
 pre-Contact SDF 4ed690b (derived Clone only); later sensor enum changes remain
 unadopted.
 PRODUCER_METADATA.md records graph, scope and the unadopted Contact enum boundary.
+
+
+## Native client request lifecycle
+
+A strict shared-IMU gate exposed a pinned native blocking-request cleanup race.
+The test client uses the public asynchronous API with the same bounded wait,
+leaving request removal to the response thread. All original payloads, result
+checks, timeouts and empty-stderr assertions remain unchanged. Independent native
+replay and the full 194-Rust/nine-C++ staged gate pass with unchanged coverage.
+NATIVE_CLIENT_REQUESTS.md records source/lifetime proof and the terminating-client
+limitation. Normal-hook publication and hosted qualification remain required.
+The shared-IMU packet remains held until it adopts this fix and passes its checks.

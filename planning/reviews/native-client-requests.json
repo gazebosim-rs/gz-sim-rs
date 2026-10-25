@@ -1,0 +1,37 @@
+{
+  "decision": "approved",
+  "review_scope": "semantic and assertion integrity of the frozen two-file proposal; strict staged/normal hook/hosted gates remain separate",
+  "author": "/root",
+  "reviewer": "/root/msgs_review_fallback",
+  "base": "b83fc1fe36fdbaa7edb05a697453676ad72e4db6",
+  "tree": "d9a353a991d299d4bbba0690f70c06a8cf53636e",
+  "diff_sha256": "2d07fc927165626ed03acb34b84523be0403d0fcd6b79f64186defc16cb295e4",
+  "files": {
+    "crates/gz-sim-server/tests/clock_client.cc": "2a4992edb40c74fa7c6820c6d1ec4a32758d26e7123999e38ba183ef0fb5cf0a",
+    "docs/NATIVE_CLIENT_REQUESTS.md": "bcc6fa0ad39daed14893e89d0eee66d9e882a6d7ae1827b5c4d017bdec0f7acf"
+  },
+  "source_freeze_tree": "22ff36234c20cbea0ab40d972efcf83fedfe27af",
+  "findings": [],
+  "source_review": {
+    "pinned_native_transport": "41913b9dfc3dbce33ac5464ddcb427cc82450f26",
+    "installed_detail_node_header_sha256": "52bd1522d025338ed26ab26684f020f892c003facd7ef7960928115de8a37ab1",
+    "installed_header_equals_pinned_raw_source": true,
+    "race": "Blocking Node::Request WaitUntil then RemoveHandler races NodeShared::RecvSrvResponse NotifyResult outside shared mutex then its RemoveHandler; async callback path has no waiter-side removal.",
+    "lifetime": "ReqHandler::SetMessage copies the request. Callback owns shared promise by value and copies Reply/result into future, including synchronous local reply and late response after timeout.",
+    "reverse_proof": "Removing only two includes and helper and reversing all 11 call names reconstructs baseline clock_client.cc byte-for-byte.",
+    "baseline_sha256": "66f90c927de58d478cfce23fa1df4ed678c170c486fc65a7943070a4f902d594",
+    "assertions": "All original 7000ms deadlines, request payloads, success/rejection and response value assertions, nine native scenarios, and strict empty-stderr assertion remain unchanged; no retry, sleep, SDK patch or coverage waiver."
+  },
+  "independent_replay": {
+    "source": "raw Git archive of frozen source tree, /tmp/sim-native-race-review-9czouh2a/source",
+    "target": "/tmp/sim-native-race-review-9czouh2a/target",
+    "command": "GZ_REFERENCE_PREFIX=/home/nkoenig/work/gazebo/rust/gz-transport-rs/artifacts/reference/install CARGO_TARGET_DIR=/tmp/sim-native-race-review-9czouh2a/target cargo test --locked -p gz-sim-server --test native cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time -- --exact",
+    "result": "exit 0; 1 selected test passed; all 9 scenarios; 0 failed; 26.84s",
+    "private_client_source_sha256": "2a4992edb40c74fa7c6820c6d1ec4a32758d26e7123999e38ba183ef0fb5cf0a",
+    "private_client_binary_sha256": "ec207027b81441d1b099498ceb6fcb7fddf914f60316566983b35bd2a23bc95f",
+    "private_provenance_sha256": "507f850c7b276ef2049691bba33c16469831d3a53fd9798c91ea300b483cb041",
+    "native_library_hashes_checked": 24,
+    "initial_attempt": "Default sandbox denied UDP bind at native.rs:64 with EPERM before assertions; network-enabled replay passed."
+  },
+  "limits": "Test-only terminating client: an unanswered async handler may remain registered until process exit. No production Rust, pinned SDK, or native library source change. This approval does not constitute a passing strict staged gate or hosted qualification."
+}
