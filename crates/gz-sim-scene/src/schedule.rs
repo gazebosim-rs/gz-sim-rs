@@ -41,6 +41,10 @@ impl SampleSchedule {
         })
     }
 
+    pub(super) fn is_due(&self, now: Duration) -> bool {
+        self.period.is_none() || now >= self.next
+    }
+
     pub(super) fn take_sample(
         &mut self,
         now: Duration,

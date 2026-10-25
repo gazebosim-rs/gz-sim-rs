@@ -39,6 +39,14 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
+Subscriber-driven pose/IMU work passed independent native/source/assertion review
+and the exact staged gate:227 Rust tests, sixteen tooling checks and eleven actual
+C++ scenarios; coverage3505/3541 lines5353/5470 regions, every crate above95%,
+changed scene/server33/33 each. [SUBSCRIBER_DEMAND.md](SUBSCRIBER_DEMAND.md)
+records the global native rule, atomic-only transport pin and preserved workload
+policies. Normal protected hook and exact hosted qualification are separate
+requirements; broad IO-01/SENSOR-01/P2 remain open.
+
 Gaussian IMU noise passed independent source/native/assertion review and the
 exact staged gate: 221 Rust tests, sixteen tooling checks, eleven actual C++
 scenarios; coverage3436/3472 production lines and5255/5371 regions, every crate

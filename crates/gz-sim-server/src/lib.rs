@@ -40,6 +40,16 @@ pub enum Error {
     PoseData,
 }
 
+/// Whether publication and loaded IMU acquisition follow known subscriber interest.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub enum InterestPolicy {
+    /// Native behavior; registration hints do not guarantee delivery readiness.
+    #[default]
+    Subscribers,
+    /// Explicit local acquisition/publication, including without subscribers.
+    Always,
+}
+
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Counters {
     pub clocks_queued: u64,
@@ -53,6 +63,10 @@ pub struct Counters {
     pub poses_queued: u64,
     /// Ticks intentionally omitted by the configured wall-time pose publication period.
     pub poses_throttled: u64,
+    /// Ticks with pose work omitted because no matching registration is known.
+    pub poses_unobserved: u64,
+    /// Failed atomic registration reads; a shared endpoint may be read per sensor.
+    pub interest_failures: u64,
     pub pose_failures: u64,
     pub invalid_pose_frames: u64,
     pub removals_queued: u64,
@@ -178,6 +192,7 @@ pub struct Server {
     publisher: Publisher,
     poses: Publisher,
     pose_rate: poses::PublicationRate,
+    interest_policy: InterestPolicy,
     controls: Service,
     removals: removals::Removals,
     command_budget: NonZeroUsize,
@@ -244,6 +259,7 @@ impl Server {
             publisher,
             poses,
             pose_rate: poses::PublicationRate::default(),
+            interest_policy: InterestPolicy::default(),
             controls,
             removals,
             command_budget,
@@ -267,6 +283,16 @@ impl Server {
     /// A policy change makes the next frame eligible; simulation resets retain the wall timer.
     pub fn set_pose_publication_period(&mut self, period: Duration) {
         self.pose_rate.set_period(period);
+    }
+
+    /// Selects subscriber-driven native behavior or explicit local acquisition.
+    /// Changing interest does not reset sampling phase, noise or the pose wall timer.
+    pub fn set_interest_policy(&mut self, policy: InterestPolicy) {
+        self.interest_policy = policy;
+    }
+
+    pub fn interest_policy(&self) -> InterestPolicy {
+        self.interest_policy
     }
 
     pub fn simulation(&self) -> &Simulation {
@@ -294,6 +320,7 @@ impl Server {
         let now = Instant::now();
         self.active_time
             .set_running(!self.simulation.is_paused(), now);
+        self.refresh_imu_interest();
         let resetting = self.pending_reset;
         let info = if resetting {
             self.reset_scene()?
@@ -363,7 +390,41 @@ impl Server {
         }
     }
 
+    fn refresh_imu_interest(&mut self) {
+        if self.interest_policy == InterestPolicy::Always {
+            gz_sim_scene::clear_imu_interest(&mut self.simulation);
+            return;
+        }
+        let counters = &mut self.counters;
+        gz_sim_scene::set_imu_interest(
+            &mut self.simulation,
+            self.imus
+                .iter()
+                .filter_map(|stream| match stream.publisher.connection_snapshot() {
+                    Ok(true) => Some(stream.entity),
+                    Ok(false) => None,
+                    Err(_) => {
+                        counters.interest_failures += 1;
+                        None
+                    }
+                }),
+        );
+    }
+
     fn publish_poses(&mut self, time: Duration) {
+        if self.interest_policy == InterestPolicy::Subscribers {
+            match self.poses.connection_snapshot() {
+                Ok(true) => {}
+                Ok(false) => {
+                    self.counters.poses_unobserved += 1;
+                    return;
+                }
+                Err(_) => {
+                    self.counters.interest_failures += 1;
+                    return;
+                }
+            }
+        }
         if !self.pose_rate.ready(Instant::now()) {
             self.counters.poses_throttled += 1;
             return;

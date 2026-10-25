@@ -100,3 +100,87 @@ fn unrepresentable_next_sample_is_a_terminal_fault_without_a_new_sample() {
     assert_eq!(sim.elapsed(), Duration::ZERO);
     assert_eq!(sim.step_exact(1), Err(StepError::Faulted));
 }
+
+#[test]
+fn zero_rate_follows_interest_and_explicit_local_acquisition() {
+    let fixture = include_str!("fixtures/fall.sdf");
+    let xml = fixture.replace(
+        "<update_rate>1000</update_rate>",
+        "<update_rate>0</update_rate>",
+    );
+    let mut sim = load_world_with_engine(
+        &xml,
+        "interest.sdf",
+        "default",
+        Duration::from_millis(1),
+        &NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let sensor = sim
+        .world()
+        .iter_entities()
+        .find(|e| e.contains::<gz_sim_scene::ImuPublication>())
+        .unwrap()
+        .id();
+    let unrelated = sim.world_mut().spawn_empty().id();
+    gz_sim_scene::set_imu_interest(&mut sim, [unrelated]);
+    sim.step_exact(5).unwrap();
+    assert!(sample(&sim).is_none());
+    gz_sim_scene::set_imu_interest(&mut sim, [sensor, sensor, unrelated]);
+    sim.step_exact(1).unwrap();
+    assert_eq!(sample(&sim).unwrap().0, Duration::from_millis(6));
+    gz_sim_scene::set_imu_interest(&mut sim, []);
+    sim.step_exact(2).unwrap();
+    assert_eq!(sample(&sim).unwrap().0, Duration::from_millis(6));
+    gz_sim_scene::clear_imu_interest(&mut sim);
+    sim.step_exact(1).unwrap();
+    assert_eq!(sample(&sim).unwrap().0, Duration::from_millis(9));
+    let negative = fixture.replace(
+        "<update_rate>1000</update_rate>",
+        "<update_rate>-1</update_rate>",
+    );
+    assert!(matches!(
+        load_world_with_engine(
+            &negative,
+            "negative.sdf",
+            "default",
+            Duration::from_millis(1),
+            &NoResources,
+            PhysicsEngine::Tpe
+        ),
+        Err(gz_sim_scene::LoadError::Sdf(_))
+    ));
+}
+
+#[test]
+fn inactive_acquisition_retains_per_physics_acceleration_history() {
+    let mut sim = load_world_with_engine(
+        include_str!("fixtures/fall.sdf"),
+        "inactive.sdf",
+        "default",
+        Duration::from_millis(1),
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let sensor = sim
+        .world()
+        .iter_entities()
+        .find(|e| e.contains::<gz_sim_scene::ImuPublication>())
+        .unwrap()
+        .id();
+    gz_sim_scene::set_imu_interest(&mut sim, []);
+    sim.step_exact(50).unwrap();
+    assert!(sample(&sim).is_none());
+    gz_sim_scene::set_imu_interest(&mut sim, [sensor]);
+    sim.step_exact(1).unwrap();
+    let (time, _, reading) = sample(&sim).unwrap();
+    assert_eq!(time, Duration::from_millis(51));
+    assert!(
+        reading
+            .specific_force
+            .iter()
+            .all(|value| value.abs() < 1e-10)
+    );
+}

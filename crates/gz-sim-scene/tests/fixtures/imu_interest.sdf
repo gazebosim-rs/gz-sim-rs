@@ -1,0 +1,21 @@
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="exact" type="ode"><max_step_size>0.001</max_step_size><real_time_factor>0</real_time_factor></physics>
+    <model name="ground">
+      <static>true</static>
+      <link name="base">
+        <pose>0 0 -0.5 0 0 0</pose>
+        <collision name="shape"><geometry><box><size>20 20 1</size></box></geometry></collision>
+      </link>
+    </model>
+    <model name="ball">
+      <pose>0 0 5 0 0 0</pose>
+      <link name="body">
+        <inertial><mass>2</mass><inertia><ixx>0.2</ixx><iyy>0.2</iyy><izz>0.2</izz></inertia></inertial>
+        <collision name="shape"><geometry><sphere><radius>0.5</radius></sphere></geometry></collision>
+        <sensor name='slow' type='imu'><always_on>true</always_on><topic>/activation/slow</topic><update_rate>10</update_rate></sensor><sensor name='fast' type='imu'><always_on>true</always_on><topic>/activation/fast</topic><update_rate>1000</update_rate></sensor>
+      </link>
+    </model>
+  </world>
+</sdf>

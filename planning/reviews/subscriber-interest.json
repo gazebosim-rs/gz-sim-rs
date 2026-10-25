@@ -1,0 +1,66 @@
+{
+  "author": "/root",
+  "base_commit": "da08c97d1438bbb4bacf1986077bd5251acc4a70",
+  "decision": "approved",
+  "files": {
+    "Cargo.lock": "fd6e3b81e189dcaf436bf819e5426285ecb11145e5d30181116f010d7e09c526",
+    "Cargo.toml": "ad59e028a53356cdea78fd5b8708eb2b75f5a5322c2d148ba5d3cfae3f91f832",
+    "crates/gz-sim-scene/src/lib.rs": "c2a7232e40eafb7d5f92c56b338362d0e3536c0edc96d64a5aaafc97d98447c7",
+    "crates/gz-sim-scene/src/schedule.rs": "9db2b408ff395be510495b996894ac1e888e33cbc6a72ccee7e541fdad9dfd24",
+    "crates/gz-sim-scene/tests/fixtures/imu_interest.sdf": "40e183bc5352f259b37e3307da6a63753a72aeeec8a2f0aa9c9441fc8ef83c72",
+    "crates/gz-sim-scene/tests/sensor_schedule.rs": "c0e70080cf45376773b37c9005d04811dfbf499d376e895c9ce296b31e0418a3",
+    "crates/gz-sim-server/src/lib.rs": "b7c424030905a2ca34f386f985ebf095db81484482aec65a273c383c8f34d1ab",
+    "crates/gz-sim-server/tests/native.rs": "2a10728621d098691a7f111c4cc963805b436861ab67853d5b7e8b02e7c5d44c",
+    "crates/gz-sim-server/tests/native_imu_interest.cc": "9627308c67e5d07aa0cba8675a86412a0f44fba38b035cb61984c133ebb1c929",
+    "crates/gz-sim-server/tests/private/interest.rs": "e2f971ac57fd2a6ed5c19d27e268af5427356e5b5b13eb12d6dcfa71743ce07d",
+    "crates/gz-sim-server/tests/private/pipeline_benchmark.rs": "e56ca28f114cdfb99f246c95b6e576018af09ada53e762fab6b364f998363a79",
+    "crates/gz-sim-server/tests/private/server.rs": "7ad76d27d0be016ebe2fd9a547cbc8e9d0d46e370f36dd9e8a9c6a07d002aea7",
+    "docs/FULL_SERVER_PERFORMANCE.md": "467adfecc3483c36913e97dea9c6de7a57cf6b487866babe4d19a0f318dbcd07",
+    "docs/IMU_NOISE.md": "152f157d0d8e4dc502cc97567ee069a344d97186041f4b534af0ba85b21621e6",
+    "docs/POSE_CADENCE.md": "bf52d0950df8018e26ee54b6aa8a5dc3df427bdd1d9035c7ed735895d087cd9a",
+    "docs/SENSOR_SCHEDULING.md": "672839d27c715e16b45886f9b1f959b45f194c070947524739a12f9a6cece0f1",
+    "docs/STATUS.md": "73602fc6931ff3c3576e0e9b548ca5501053b0cbc1b1fc7951010b7ad0431035",
+    "docs/SUBSCRIBER_DEMAND.md": "49c509f773a79c96e5a9b5c81d226073b985ac708c94bffa62524249a090fa0a",
+    "planning/reference/imu-interest.json": "5a86608ecf5babb419a3eaaf9665579100233bfb930332d4f5b4698d9ea07986",
+    "planning/test-ledger.json": "2ad7fa222fc2ae581715007c46801e058aa5fa2f6e3b1cbbc94081ebebe59d33",
+    "scripts/probe-imu-interest.py": "73ffde2803caa06b4e3d53499ffd895252b46f40c21519e8529270b6c74d4ba3"
+  },
+  "review": {
+    "disposition": "Existing packet, tolerance and count assertions retained. Historical private helper, benchmark and two subscriber-less C++ scenarios explicitly select Always for their old local acquisition expectations; native default remains Subscribers.",
+    "excluded_setup": [
+      "per-sensor-gate.log selected zero tests because an incomplete exact filter was used",
+      "pose-slot.log used a nonexistent test target",
+      "pose-slot-corrected.log failed at sandbox socket denial before the intended assertion"
+    ],
+    "independent_source": "Raw staged Git export, all 21 SHA-256 hashes independently verified; exclusive Cargo target and native workdir; no producer source edits.",
+    "limits": "Rust immediate hints are for same-Node registrations used by server.node; separate Rust Nodes and remote registrations require actual-frame readiness. Native process-wide NodeShared is broader. Delivery acknowledgements, complete disconnect detection, runtime sensor activation, full IO-01/SENSOR-01/P2 and performance parity remain open.",
+    "mutants": [
+      {
+        "diff_sha256": "15e2144483bc86bb42e6385dbe8af0c18a4c2aef28fc304bc49061355382d5b0",
+        "log_sha256": "c992f9a8c40007699f97bd810b13e760b08427b10ce17c4c31c9531f0e15e860",
+        "name": "per_sensor_gate",
+        "result": "Selected shared-slow test fails 2 versus 4 samples."
+      },
+      {
+        "diff_sha256": "e3cb6adbe8e84724b51338fbc5c46fc54d59662e74264a896a6945b8f0d430eb",
+        "log_sha256": "3dce678c44d4051c222b9851766b4ed0bc8813e3e95a8617aff4a5e6a2ee188a",
+        "name": "inactive_velocity_history",
+        "result": "Selected first active force test fails after velocity history stops advancing."
+      },
+      {
+        "diff_sha256": "12554c3f54c45125e7e8edfa1c7e0d92e82cc31d0a5cf4a234faeedb16b7ff93",
+        "log_sha256": "90b83b2cdcb519161ae19deda39721d5e6616599b218dcdbba5fcf8dd9c792d5",
+        "name": "pose_slot_consumed_without_interest",
+        "result": "Selected first interested pose test times out after uninterested ticks consume wall slot."
+      }
+    ],
+    "native": "Fresh pinned TPE Server+Physics+Imu two-mode native replay passed. The report observations, fixture/source/binary and loaded-library provenance match the tracked reference; 51/62 ms late fast and 1/100 ms shared slow with fast 1/100/101/112 ms semantics.",
+    "native_replay_report_sha256": "e831b9c4c6f40dc2c5347ba6bb686d6e5c44aba72a3798ba76c55dd685cdb162",
+    "rust": "Private baseline server interest tests 4/0 and scene sensor_schedule tests 4/0. Exact author staged gate 227 Rust, 16 tools, 11 C++ passed; workspace 3505/3541 lines and 5353/5470 regions, changed scene/server 33/33 each.",
+    "staged_gate_log_sha256": "962f9dba1d135758e35ff723414b43842e7e2a7da299f0e72fd481d485e3228d"
+  },
+  "reviewer": "/root/msgs_review_fallback",
+  "scope": "Subscriber-driven pose construction and world-wide IMU acquisition for loaded sensors using the hosted-green Transport atomic interest snapshot; exact late and shared-interest native TPE observations; explicit Always disposition for unchanged historical local-workload assertions. Selected IO-01/SENSOR-01 evidence only.",
+  "staged_diff_sha256": "c8ff54a27daf720412fd6c2588bd6a396aaec59a5f389e5520a29d223f3e72ca",
+  "staged_tree": "8c9ac25dcbdd538b6f00d36fc4c5d5ad55d63ff3"
+}

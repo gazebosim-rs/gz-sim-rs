@@ -105,6 +105,10 @@ fn run_native_world(
         NonZeroUsize::new(4).unwrap(),
     )
     .unwrap();
+    if !with_imu {
+        // Preserve the original unobserved-acquisition counter workload.
+        server.set_interest_policy(gz_sim_server::InterestPolicy::Always);
+    }
     let prefix = std::env::var_os("GZ_REFERENCE_PREFIX")
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| root.join("artifacts/native-reference/install"));

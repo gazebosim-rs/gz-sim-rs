@@ -228,6 +228,7 @@ fn tpe_imu_full_server_pipeline() {
     .unwrap();
     // Preserve the historical unpaced workload, including an unobserved pose each tick.
     server.set_pose_publication_period(Duration::ZERO);
+    server.set_interest_policy(InterestPolicy::Always);
     let subscription = server
         .node
         .subscribe(&metadata.topic, "gz.msgs.IMU")

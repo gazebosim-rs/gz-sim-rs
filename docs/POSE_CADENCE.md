@@ -59,11 +59,11 @@ are separate publication requirements.
 
 ## Remaining IO-01 scope
 
-Native avoids pose work without subscribers. Rust still attempts eligible packets
-without subscribers: the current Transport interest query waits on its worker and
-cannot run inside tick. A reviewed nonblocking interest snapshot is a separate
-producer task. Root clock election, other controls/services, ordering/backpressure
-and the full IO-01 packet remain open. This change is not formal P2 acceptance.
+[SUBSCRIBER_DEMAND.md](SUBSCRIBER_DEMAND.md) records the subsequent atomic
+interest policy: no pose construction or timer consumption without known
+subscribers, with an explicit local Always override. Root clock election,
+dynamic_pose/info, other controls/services, ordering/backpressure and the full
+IO-01 packet remain open. This change is not formal P2 acceptance.
 
 Reproduce with `python3 scripts/probe-pose-rate.py --help`, using the pinned native
 sources, existing Release simulator build and dependency prefix. Native networking

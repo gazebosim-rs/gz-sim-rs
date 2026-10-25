@@ -1,5 +1,11 @@
 # Full-server step-to-observation measurement
 
+The subsequent subscriber-driven server defaults are recorded in
+[SUBSCRIBER_DEMAND.md](SUBSCRIBER_DEMAND.md). The historical harness explicitly
+selects Always interest and zero pose interval to retain its unobserved-pose
+workload. Historical reports and numerical results remain unchanged.
+
+
 The full-server variant invokes `Server::tick`, including clock and pose
 publication, IMU conversion/sequence, control polling and removal polling. It
 receives and checks each IMU before admitting another step. The native control

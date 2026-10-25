@@ -41,6 +41,9 @@ python3 scripts/probe-sensor-schedule.py --dependency-prefix "$DEPENDENCY_PREFIX
 ```
 
 The source and built native test are required; linked SDK dependencies remain
-qualified. This is clock evidence, not full sensor or simulator parity. Subscriber
-activation, runtime registration, trigger modes, metrics, noise, other sensor
-families and the complete SENSOR-01/P2 contracts remain open. No speedup is claimed.
+qualified. This is clock evidence, not full sensor or simulator parity.
+[SUBSCRIBER_DEMAND.md](SUBSCRIBER_DEMAND.md) records the subsequent native
+world-wide subscriber gate and explicit local acquisition override.
+[IMU_NOISE.md](IMU_NOISE.md) records Gaussian sampling and acquisition gaps.
+Runtime activation/registration, trigger modes, metrics, other sensor families
+and the complete SENSOR-01/P2 contracts remain open. No speedup is claimed.

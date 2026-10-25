@@ -75,8 +75,11 @@ eleven actual C++ scenarios. Workspace coverage is 3436/3472 production lines
 and 5255/5371 regions; every crate exceeds 95% on both. Changed executable
 coverage is sensors79/79, scene133/134 and server15/15. Normal protected hook,
 publication/hosted verification and Gaussian-workload performance qualification
-remain separate requirements. Activation/subscriber interest, runtime
-registration, trigger modes, custom noise callbacks, image noise, other sensor
+remain separate requirements.
+
+[SUBSCRIBER_DEMAND.md](SUBSCRIBER_DEMAND.md) records subsequent subscriber
+interest and inactive acquisition gaps. Runtime activation/registration, trigger
+modes, custom noise callbacks, image noise, other sensor
 families and the broad SENSOR-01/P2 contracts remain open.
 
 Reproduce native evidence with `python3 scripts/probe-noise.py --help`; supply

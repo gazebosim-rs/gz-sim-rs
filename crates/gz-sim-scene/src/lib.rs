@@ -193,6 +193,35 @@ struct ParentModel {
     topic: String,
 }
 
+#[derive(Resource, Default)]
+struct ImuInterest(Vec<u64>);
+
+/// Selects transport interest for this world's loaded IMUs. Any due connected
+/// sensor enables all due sensors, matching native Imu::PostUpdate.
+/// Handles are scoped to this simulation; despawned or identity-less handles
+/// contribute no interest. Its public IDs preserve the selection across reset.
+pub fn set_imu_interest(sim: &mut Simulation, connected: impl IntoIterator<Item = Entity>) {
+    let world = sim.world_mut();
+    world.init_resource::<ImuInterest>();
+    world.resource_scope(|world, mut interest: Mut<ImuInterest>| {
+        interest.0.clear();
+        let connected = connected.into_iter();
+        if let Some(limit) = connected.size_hint().1 {
+            interest.0.reserve(limit);
+        }
+        interest.0.extend(
+            connected.filter_map(|entity| world.get::<EntityId>(entity).map(EntityId::get)),
+        );
+        interest.0.sort_unstable();
+        interest.0.dedup();
+    });
+}
+
+/// Restores local acquisition independent of transport subscribers.
+pub fn clear_imu_interest(sim: &mut Simulation) {
+    sim.world_mut().remove_resource::<ImuInterest>();
+}
+
 #[derive(Resource)]
 struct Gravity([f64; 3]);
 
@@ -812,18 +841,24 @@ struct SensorNoiseFault {
 }
 
 fn sample_imus(
-    time: Res<UpdateInfo>,
+    (time, interest): (Res<UpdateInfo>, Option<Res<ImuInterest>>),
     fault: Res<StepFault>,
     gravity: Res<Gravity>,
     identities: EntityLookup,
     bodies: Query<(&WorldPose, &Velocity)>,
-    mut sensors: Query<(Entity, &mut Imu)>,
+    mut sensors: Query<(Entity, Option<&EntityId>, &mut Imu)>,
     mut commands: Commands,
 ) {
     if time.dt.is_zero() {
         return;
     }
-    for (entity, mut sensor) in &mut sensors {
+    let needed = interest.as_ref().is_none_or(|interest| {
+        sensors.iter().any(|(_, id, sensor)| {
+            id.is_some_and(|id| interest.0.binary_search(&id.get()).is_ok())
+                && sensor.schedule.is_due(time.sim_time)
+        })
+    });
+    for (entity, _, mut sensor) in &mut sensors {
         let body = identities
             .get(sensor.link)
             .expect("scene owns IMU link identity");
@@ -831,6 +866,9 @@ fn sample_imus(
         let velocity = DVec3::from_array(body_velocity.linear);
         let acceleration = (velocity - sensor.previous_velocity) / time.dt.as_secs_f64();
         sensor.previous_velocity = velocity;
+        if !needed {
+            continue;
+        }
         match sensor.schedule.take_sample(time.sim_time, false) {
             Ok(true) => {}
             Ok(false) => continue,

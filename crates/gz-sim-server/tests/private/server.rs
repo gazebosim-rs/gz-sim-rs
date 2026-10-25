@@ -33,6 +33,7 @@ fn server(config: Config, step: Duration) -> Server {
     )
     .unwrap();
     server.set_pose_publication_period(Duration::ZERO);
+    server.set_interest_policy(InterestPolicy::Always);
     server
 }
 
@@ -402,6 +403,7 @@ fn imu_server(config: Config) -> Server {
     let mut server =
         Server::new(simulation, "default", config, NonZeroUsize::new(2).unwrap()).unwrap();
     server.set_pose_publication_period(Duration::ZERO);
+    server.set_interest_policy(InterestPolicy::Always);
     server
 }
 
@@ -1146,3 +1148,6 @@ fn noisy_covariance_uses_native_float_diagonals_and_zero_cross_terms() {
     assert_eq!(packet.orientation_covariance.unwrap().data, [0.0; 9]);
     assert_eq!(packet.linear_acceleration.unwrap().z, 9.81);
 }
+
+#[path = "interest.rs"]
+mod interest_tests;
