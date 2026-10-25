@@ -39,13 +39,11 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-Published 5f96723 passed the normal hook and exact hosted CI 40213637926:
-203 Rust tests, fifteen tooling checks and all nine actual C++ client scenarios.
+Published d4c73ee passed the normal hook and exact hosted CI 40219319485:
+204 Rust tests, sixteen tooling checks and all nine actual C++ client scenarios.
 Coverage is 3193/3228 production lines and 4964/5079 regions; every production
-crate exceeds 95% on both metrics. The reviewed complete-stream observation
-increment passes its exact source gate with 204 Rust tests and sixteen tooling
-checks, unchanged production coverage and all nine C++ scenarios. Its normal
-hook and hosted qualification remain pending. No existing test, tolerance,
+crate exceeds 95% on both metrics. The complete-stream observation increment is independently reviewed and hosted
+green, with unchanged production coverage and all nine C++ scenarios. No existing test, tolerance,
 exclusion or threshold was weakened. Full P2 acceptance remains open.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
@@ -279,3 +277,14 @@ experiment remains a failed reference, and current Rust default pose-rate parity
 is not claimed. Independent full 128-step/seven-pair replay and missing-pose/report
 mutants validate the scoped protocol. STREAM_OBSERVATIONS.md records all fields,
 opaque ID-byte accounting, large timing outliers and the remaining P2 matrix.
+
+
+## Selected milestone and formal prerequisite audit
+
+Independent review accepts the selected headless integration evidence across
+fifteen qualified contract rows and 85 hashed source/reference files. It does not
+accept formal P2 or SLICE-01: P0 image/inventory and named LOAD/PHY/SENSOR/IO
+prerequisites remain open, including default pose cadence and noise/activation.
+docs/acceptance/P2.md records the concrete gaps and unchanged task DAG.
+Implementation continues through those requirements; phase/packet states stay
+in progress. Publication and hosted checks for the audit metadata remain pending.

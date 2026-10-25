@@ -1,7 +1,7 @@
 # Planning manifests
 
-These files record the source inspection performed on 2026-10-24. They contain
-no passing test claims or implementation completion claims.
+The original inspection manifests below record source inspection on 2026-10-24.
+Those manifests contain no passing-test or implementation-completion claims.
 
 - `baseline.json`: repository, selected branch, inspected commit, and source
   cleanliness. The owner selected main. Verify any newer upstream commits before
@@ -26,3 +26,11 @@ features are tracked separately in the implementation task plan.
 P0 must generate the executable case-level ledger described in TESTING.md. Do
 not use this source inventory as that ledger, a coverage denominator, or a count
 of tests that have passed.
+
+Reference-results and reference/ record scoped actual native runs, with their
+source/build/provenance limits. Benchmarks/ retain raw scoped measurements and
+rejected-comparison qualifications; reviews/ bind independently checked source.
+Test-ledger.json distinguishes original ports/partial cases from supplementary
+controls. Acceptance/ records selected integration matrices and explicit status;
+a candidate file does not accept a phase until independent exit review and
+required exact-tree checks complete.

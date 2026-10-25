@@ -1,0 +1,71 @@
+{
+  "reviewer": "/root/msgs_review_fallback",
+  "author": "/root",
+  "selected_headless_integration_evidence": "approved_with_recorded_limits",
+  "formal_P2_exit": "not_accepted",
+  "formal_SLICE_01_exit": "not_accepted",
+  "candidate_base_commit": "d4c73eeda89dc912e8225e0a665055e928e8b9e6",
+  "candidate_staged_tree": "0097346b5634baae821aa8afb5fcb1f9751b0250",
+  "candidate_staged_diff_sha256": "3a2c45b20f680d97712d5c0dab87cb918148193ff4da314417b6279a56c843d4",
+  "matrix_sha256": "38879a8d14617f347bf3fadd3a86d06e90c798f8a3e8ee1672f0d09a637413bc",
+  "p2_doc_sha256": "95643f1113f1f82e81be28723d48ab16a5e63290a775cb61ced116b432bad731",
+  "frozen_file_hashes_verified": 85,
+  "contract_rows_verified": 15,
+  "no_unstaged_diff": true,
+  "dependency_closure": {
+    "command": [
+      "cargo",
+      "tree",
+      "--locked",
+      "--offline",
+      "--workspace",
+      "-e",
+      "normal",
+      "--target",
+      "x86_64-unknown-linux-gnu",
+      "--prefix",
+      "none"
+    ],
+    "normalization": "Replace the absolute frozen worktree prefix with <workspace> in the complete cargo tree output; preserve line order and duplicate lines.",
+    "normalized_sha256": "12b333df6d3251fcb5bd83a3caa63680a7ec464db24596308c3356c1bf15b54e",
+    "package_version_pairs": 253,
+    "forbidden_renderer_window_gpu_packages_found": []
+  },
+  "published_implementation": {
+    "commit": "d4c73eeda89dc912e8225e0a665055e928e8b9e6",
+    "normal_hook_log_sha256": "e5a4a35fe720bb0216058d37c64926d445b97fe63866e28a893f6f054a559866",
+    "hosted_run": 40219319485,
+    "hosted_conclusion": "success",
+    "rust_tests": 204,
+    "tooling_tests": 16,
+    "real_cpp_scenarios": 9,
+    "workspace_lines": [
+      3193,
+      3228
+    ],
+    "workspace_regions": [
+      4964,
+      5079
+    ]
+  },
+  "direct_source_checks": [
+    "Scene load uses sdformat::load_str, frame/pose resolution and backend-specific Bevy construction with typed unsupported boundaries.",
+    "Shared native DART/TPE acquisition and Rust scene tests compare 100 IMU samples per engine with the declared physical bound.",
+    "Native C++ client exercises nine real process scenarios on Rapier/TPE; Rust server test checks exact clock, pose structure/identity and IMU fields.",
+    "Complete-stream benchmark checks each requested clock, four-role pose and IMU at prospective >=20 ms post-observation pacing on actual servers; private full 128-step/seven-pair replay and mutants were reviewed in the earlier receipt.",
+    "All 85 matrix evidence hashes match; original ledger remains only three reviewed ports and four partial cases."
+  ],
+  "qualified_selected_result": "The 15 rows support a selected Linux x86_64, no-renderer, shared-SDF TPE/Rapier headless integration milestone and first measured requested-observation report. They do not establish native default pose cadence, unpaced throughput, full same-engine DART, broad sensor/physics/resource/transport parity, or release readiness.",
+  "formal_exit_blockers": [
+    "PLAN.md P0 exit still lacks an immutable reproducible native reference image and expanded executable original-test inventory; phase sequence cannot be declared complete.",
+    "IMPLEMENTATION_TASKS.md makes SLICE-01 depend on LOAD-01, PHY-02, PHY-03 or PHY-05, SENSOR-01 and IO-01. The selected subsets do not close the full named dependencies.",
+    "IO-01 default Rust pose/info cadence is unthrottled while native SceneBroadcaster defaults to 60 wall-Hz; the selected >=20 ms contract does not test that default boundary. Broader command/service, backpressure and shutdown behavior remains open.",
+    "SENSOR-01 selected noise-free IMU is evidenced, but noise/seed/activation/runtime sensor behavior in the named packet remains open.",
+    "PHY-02 selected TPE motion/contact is evidenced, but remaining geometry/commands and D23 static/rotated policy remain open; LOAD-01 broader original fixtures/resources remain incomplete."
+  ],
+  "not_required_for_this_selected_milestone": [
+    "DART and MuJoCo adapters, rendering/GPU sensors, all 78 systems, plugin ABI, broad CLI/release matrix are later or separate packet obligations and are not inferred complete."
+  ],
+  "metadata_followup": "State the exact cargo-tree <workspace> normalization recipe in tracked dependency proof; keep candidate status and formal P2/SLICE-01 in progress. Correct stale published-stream status text during final metadata integration.",
+  "producer_source_edits": false
+}
