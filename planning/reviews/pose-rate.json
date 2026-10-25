@@ -1,0 +1,47 @@
+{
+  "assertion_disposition": "Existing private server helpers and the historical full-server IMU-only harness explicitly select Duration::ZERO so every old assertion, payload, tolerance, queue limit and per-tick workload remains. The three-stream harness keeps its 20 ms requested observation spacing. Initial before-policy 65-pose and invalid-frame failures are retained as red setup for this correction; no original case retired.",
+  "author": "/root",
+  "base": "e45333441cc0790e5b16942de49b3516e3a72494",
+  "decision": "approved",
+  "diff_sha256": "3f117b484cf24750b0c468b257c05f43cd4e8e3209147de3159296ec5b3707c7",
+  "files_sha256": {
+    "crates/gz-sim-server/src/lib.rs": "0bb18cc0307b3e4da149b22fb1154f6009986030b6587500dcb2717bdd93bdc6",
+    "crates/gz-sim-server/src/poses.rs": "a1f1bc0d43dfd04d1f148470f4948efb748cb4b8468305e84f57b5e65c1b78ac",
+    "crates/gz-sim-server/tests/native_pose_rate.cc": "bdd3fd6ed2341e6c0167e4203dac549cf11c2ad3c0654d96eaa9ecfb7dfcc35f",
+    "crates/gz-sim-server/tests/private/pipeline_benchmark.rs": "0255fdc1347b3f92218c04434a86fa73c86a3c79b1f82e6c944f72fb37ab6649",
+    "crates/gz-sim-server/tests/private/poses.rs": "878c383f368c7a339fc775a0ee10022882432b3c32ca6b32739a5b693f24b63d",
+    "crates/gz-sim-server/tests/private/server.rs": "d6101c19e9ce482c84b11ab426941a41edaff68c71392eab0bd5509bed998273",
+    "docs/POSE_CADENCE.md": "cece1ecf2920479c575335032764d2b3523cf0046a6f3f515ff9a7ffd279f6e6",
+    "docs/STATUS.md": "b3d8f0ef163275d0ad442be647dd5ce838fac61c0d3f8adc752523e75c352404",
+    "docs/STREAM_OBSERVATIONS.md": "4260bbacded3216e54c4aeaa1df927e39d133050041362099c2758f49c0f45a3",
+    "planning/reference/pose-rate.json": "bce99cff6c696824a5bbc94655807959503a63ff4b8616dcbd409952645a2854",
+    "planning/test-ledger.json": "b4aa5d92b4473ae831adab4396a1c81d20b51afc9d40a5a7565946b5b1fa526a",
+    "scripts/probe-pose-rate.py": "4214196244ab6aeec38e49285e4862ef73d98adcd944e813a1e699ce0cc89cdc"
+  },
+  "independent_evidence": {
+    "author_exact_staged_gate_sha256": "d86b722f40ff0ee13af7718cb5d12bc1783606e7e4468720e30fac0ce990c852",
+    "author_gate": "208 Rust, 16 tooling, nine actual C++ scenarios; workspace 3229/3264 lines and 5007/5122 regions; all production crates >95%; changed server executable 43/43.",
+    "guard_removal_mutant": {
+      "log_sha256": "5e38ebed1c74e3d7b03a6123b641f57509cbf078592f53d55973e6fdf3f7063e",
+      "patch_sha256": "3732797e39bae8a21420940bf15c83eab3f6e9b901c8029b131b4dafc5948310",
+      "result": "Exact selected test fails on an unexpected second pose receipt; earlier 0-test command excluded."
+    },
+    "native_five_controls": "5/5 pass with [0,99] received; caller injected zenoh/stats/relay/auth while runner pinned zeromq/stats0/no relay/auth",
+    "private_native_probe_binary_sha256": "420d23547df89a85751b76d7133e7f93d3b801164202ec3a590440a8158a85b2",
+    "private_native_report_sha256": "6185c73d99cad9e3b7d40a9431e13471db35f2f714e57b66e202bc0a585f3718",
+    "private_native_runner_sha256": "4214196244ab6aeec38e49285e4862ef73d98adcd944e813a1e699ce0cc89cdc",
+    "private_server_lib_log_sha256": "ed8ccee8310a8f9456e32721dbaaeae5a70beda40873764f3404340f69baa5d2",
+    "private_server_lib_tests": "38/38 pass",
+    "raw_export_all_12_hashes_match": true,
+    "reset_timer_clearing_mutant": {
+      "log_sha256": "4a2d969aaf8e5c102fb39edecb49fec89025ac20f58798ea29920ac502ad38e8",
+      "patch_sha256": "30c0b23751ca43168de7149663be5464b1b307d258742d423cda65799a250f47",
+      "result": "Exact selected test fails at poses_queued 2 versus 1 after reset."
+    }
+  },
+  "limits": "Native runtime probe exercises the actual pinned Transport publisher with unchanged SceneBroadcaster fixed-60 source, not a complete native Server reset. SceneBroadcaster publisher reuse on reset is source-backed. Rust lacks native no-subscriber pose work suppression; full IO-01 and formal P2 remain open. No performance claim; normal hook and hosted qualification pending.",
+  "proposal_v2_sha256": "4bb27f755ee9b1260b31ffdcbef8d173afb72d9e301c2c37caf39fb136f8a4f9",
+  "reviewer": "/root/msgs_review_fallback",
+  "scope": "Default server pose/info wall-time admission period 16,666,667 ns; explicit zero period preserves old every-tick Rust tests and historical unpaced harness. No clock, physics, or IMU cadence change.",
+  "tree": "197e00826f711a9c52a811d0b0552caa5a6aa49d"
+}

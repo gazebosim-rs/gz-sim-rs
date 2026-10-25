@@ -8,7 +8,42 @@ use gz_msgs::{
 };
 use gz_sim_core::{EntityId, entity_by_id};
 use gz_sim_scene::{EntityKind, LocalName, LocalPose, WorldPose};
-use std::time::Duration;
+use std::time::{Duration, Instant};
+
+pub(super) struct PublicationRate {
+    period: Duration,
+    last_attempt: Option<Instant>,
+}
+
+impl Default for PublicationRate {
+    fn default() -> Self {
+        // Native compares integer elapsed ns against double 1e9/60, requiring this ceiling.
+        Self {
+            period: Duration::from_nanos(16_666_667),
+            last_attempt: None,
+        }
+    }
+}
+
+impl PublicationRate {
+    pub(super) fn period(&self) -> Duration {
+        self.period
+    }
+
+    pub(super) fn set_period(&mut self, period: Duration) {
+        self.period = period;
+        self.last_attempt = None;
+    }
+
+    pub(super) fn ready(&self, now: Instant) -> bool {
+        self.last_attempt
+            .is_none_or(|last| now.saturating_duration_since(last) >= self.period)
+    }
+
+    pub(super) fn attempted(&mut self, now: Instant) {
+        self.last_attempt = Some(now);
+    }
+}
 
 fn record(id: u64, name: &str, pose: WorldPose) -> Result<Pose, Error> {
     let id = u32::try_from(id).map_err(|_| Error::PoseIdRange)?;

@@ -39,6 +39,14 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
+Native default pose cadence passed independent source/native/assertion review
+and the exact staged gate: 208 Rust tests, sixteen tooling checks, nine actual
+C++ scenarios, 3229/3264 production lines and 5007/5122 regions; every crate
+exceeds 95%, with 43/43 changed server lines covered.
+[POSE_CADENCE.md](POSE_CADENCE.md) records native controls, explicit old-policy
+test dispositions and remaining IO-01 scope. Normal commit/publication and exact
+hosted evidence remain separate requirements.
+
 Published d4c73ee passed the normal hook and exact hosted CI 40219319485:
 204 Rust tests, sixteen tooling checks and all nine actual C++ client scenarios.
 Coverage is 3193/3228 production lines and 4964/5079 regions; every production

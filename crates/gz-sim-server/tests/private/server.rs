@@ -25,13 +25,15 @@ fn config() -> Config {
 }
 
 fn server(config: Config, step: Duration) -> Server {
-    Server::new(
+    let mut server = Server::new(
         Simulation::new(step).unwrap(),
         "test",
         config,
         NonZeroUsize::new(2).unwrap(),
     )
-    .unwrap()
+    .unwrap();
+    server.set_pose_publication_period(Duration::ZERO);
+    server
 }
 
 #[test]
@@ -397,7 +399,10 @@ fn imu_server(config: Config) -> Server {
         &sdformat::NoResources,
     )
     .unwrap();
-    Server::new(simulation, "default", config, NonZeroUsize::new(2).unwrap()).unwrap()
+    let mut server =
+        Server::new(simulation, "default", config, NonZeroUsize::new(2).unwrap()).unwrap();
+    server.set_pose_publication_period(Duration::ZERO);
+    server
 }
 
 #[test]
@@ -957,3 +962,150 @@ fn shared_imu_topic_preserves_each_source_and_retires_only_the_last_publisher() 
 
 #[path = "reset.rs"]
 mod reset_tests;
+
+#[test]
+fn native_default_pose_period_does_not_pace_clock_imu_or_reset_the_wall_gate() {
+    let mut default = Server::new(
+        Simulation::new(Duration::from_millis(1)).unwrap(),
+        "test",
+        config(),
+        NonZeroUsize::new(2).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        default.pose_publication_period(),
+        Duration::from_nanos(16_666_667)
+    );
+    default.shutdown();
+
+    let mut server = imu_server(config());
+    // A long explicit period makes the integration boundary independent of host scheduling.
+    server.set_pose_publication_period(Duration::from_secs(86_400));
+    let poses = server
+        .node
+        .subscribe("/world/default/pose/info", "gz.msgs.Pose_V")
+        .unwrap();
+    let clocks = server
+        .node
+        .subscribe("/world/default/clock", "gz.msgs.Clock")
+        .unwrap();
+    let imus = server
+        .node
+        .subscribe(&server.imus[0].metadata.topic, "gz.msgs.IMU")
+        .unwrap();
+    assert!(server.apply_control(WorldControl {
+        pause: false,
+        ..Default::default()
+    }));
+    for step in 1..=3 {
+        assert_eq!(server.tick().unwrap().sim_time, Duration::from_millis(step));
+        let message = clocks.recv_timeout(Duration::from_secs(5)).unwrap();
+        assert_eq!(
+            Clock::decode(message.data.as_slice())
+                .unwrap()
+                .sim
+                .unwrap()
+                .nsec,
+            step as i32 * 1_000_000
+        );
+        let message = imus.recv_timeout(Duration::from_secs(5)).unwrap();
+        assert_eq!(
+            gz_msgs::msgs::Imu::decode(message.data.as_slice())
+                .unwrap()
+                .header
+                .unwrap()
+                .stamp
+                .unwrap()
+                .nsec,
+            step as i32 * 1_000_000
+        );
+    }
+    let message = poses.recv_timeout(Duration::from_secs(5)).unwrap();
+    assert_eq!(
+        gz_msgs::msgs::PoseV::decode(message.data.as_slice())
+            .unwrap()
+            .header
+            .unwrap()
+            .stamp
+            .unwrap()
+            .nsec,
+        1_000_000
+    );
+    assert!(matches!(
+        poses.recv_timeout(Duration::from_millis(1)),
+        Err(TransportError::Timeout)
+    ));
+    assert_eq!(server.counters().poses_queued, 1);
+    assert_eq!(server.counters().poses_throttled, 2);
+    assert_eq!(server.counters().pose_failures, 0);
+    assert!(server.apply_control(WorldControl {
+        pause: true,
+        reset: Some(gz_msgs::msgs::WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    assert_eq!(server.tick().unwrap().sim_time, Duration::ZERO);
+    assert_eq!(server.counters().poses_queued, 1);
+    assert_eq!(server.counters().poses_throttled, 3);
+    server.set_pose_publication_period(Duration::ZERO);
+    server.tick().unwrap();
+    let message = poses.recv_timeout(Duration::from_secs(5)).unwrap();
+    assert_eq!(
+        gz_msgs::msgs::PoseV::decode(message.data.as_slice())
+            .unwrap()
+            .header
+            .unwrap()
+            .stamp
+            .unwrap()
+            .nsec,
+        0
+    );
+    assert_eq!(server.counters().poses_queued, 2);
+    assert_eq!(server.pose_publication_period(), Duration::ZERO);
+}
+
+#[test]
+fn failed_pose_enqueue_consumes_its_wall_publication_slot() {
+    let mut config = config();
+    config.max_message_bytes = 1;
+    let mut server = imu_server(config);
+    server.set_pose_publication_period(Duration::from_secs(86_400));
+    server.tick().unwrap();
+    server.tick().unwrap();
+    assert_eq!(server.counters().pose_failures, 1);
+    assert_eq!(server.counters().poses_throttled, 1);
+    assert_eq!(server.counters().poses_queued, 0);
+}
+
+#[test]
+fn invalid_pose_packet_does_not_consume_the_next_publication_slot() {
+    use gz_sim_scene::{EntityKind, LocalName};
+    let mut server = imu_server(config());
+    server.set_pose_publication_period(Duration::from_secs(86_400));
+    let entity = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|e| e.get::<EntityKind>() == Some(&EntityKind::Model))
+        .unwrap()
+        .id();
+    let name = server
+        .simulation
+        .world_mut()
+        .entity_mut(entity)
+        .take::<LocalName>()
+        .unwrap();
+    server.tick().unwrap();
+    assert_eq!(server.counters().invalid_pose_frames, 1);
+    assert_eq!(server.counters().poses_queued, 0);
+    server
+        .simulation
+        .world_mut()
+        .entity_mut(entity)
+        .insert(name);
+    server.tick().unwrap();
+    assert_eq!(server.counters().poses_queued, 1);
+    assert_eq!(server.counters().poses_throttled, 0);
+}

@@ -119,3 +119,25 @@ fn invalid_pose_data_and_legacy_id_overflow_reject_the_whole_packet() {
     world.despawn(foreign);
     assert!(packet(&world, Duration::ZERO).unwrap().pose.is_empty());
 }
+
+#[test]
+fn native_wall_rate_ceiling_first_frame_and_explicit_policy_boundaries() {
+    let mut rate = PublicationRate::default();
+    let now = Instant::now();
+    let period = Duration::from_nanos(16_666_667);
+    assert_eq!(rate.period(), period);
+    assert!(rate.ready(now));
+    rate.attempted(now);
+    assert!(!rate.ready(now));
+    assert!(!rate.ready(now + period - Duration::from_nanos(1)));
+    assert!(rate.ready(now + period));
+    assert!(!rate.ready(now - Duration::from_nanos(1)));
+    rate.set_period(Duration::ZERO);
+    assert!(rate.ready(now));
+    rate.attempted(now);
+    assert!(rate.ready(now));
+    rate.set_period(Duration::MAX);
+    assert!(rate.ready(now));
+    rate.attempted(now);
+    assert!(!rate.ready(now + Duration::from_secs(1)));
+}

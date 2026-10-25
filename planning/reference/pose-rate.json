@@ -1,0 +1,198 @@
+{
+  "scope": "Actual pinned native Transport publisher at the unchanged SceneBroadcaster fixed60 setting; source-backed reset timer reuse. Five independent processes, first-frame and shared-copy suppression, success-return and next eligibility controls. Not a full Server reset/cadence test or performance measurement. Installed dependency/build provenance qualified.",
+  "revisions": {
+    "gz-sim": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+    "gz-transport": "41913b9dfc3dbce33ac5464ddcb427cc82450f26"
+  },
+  "sources": {
+    "gz-sim": {
+      "src/systems/scene_broadcaster/SceneBroadcaster.cc": "9b108bfcd0160e7627ad8a72952e003a164fbd17f1678ca2c50495c1d9b4d2b5"
+    },
+    "gz-transport": {
+      "src/Node.cc": "a5e2981e3c9e5f60e574b09a70e12115417371bff38e6d0d49e7a88c88bbdd1d",
+      "src/Node_TEST.cc": "4635b52dfc7297dbd04ddfa6e5e24692ddb673ea08d6b832d093d118f8e05a44"
+    }
+  },
+  "source_sha256": "bdd3fd6ed2341e6c0167e4203dac549cf11c2ad3c0654d96eaa9ecfb7dfcc35f",
+  "runner_sha256": "4214196244ab6aeec38e49285e4862ef73d98adcd944e813a1e699ce0cc89cdc",
+  "transport_environment": {
+    "implementation": "zeromq",
+    "statistics": false,
+    "relay": false,
+    "authentication": false
+  },
+  "binary_sha256": "420d23547df89a85751b76d7133e7f93d3b801164202ec3a590440a8158a85b2",
+  "cmake_cache_sha256": "126125e4c953bd16ac6177025baa833938ce22242ece11b9efd1f722fb402b68",
+  "command": [
+    "/usr/bin/clang++",
+    "-std=c++17",
+    "-O2",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-I/home/nkoenig/work/gazebo/rust/gz-sim/include",
+    "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/include",
+    "-I/home/nkoenig/work/gazebo/rust/gz-sim/test",
+    "-I/home/nkoenig/work/gazebo/rust/gz-sim",
+    "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang",
+    "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/core/include",
+    "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/src",
+    "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/gz_msgs_gen",
+    "-I/home/nkoenig/work/gazebo/rust/gz-sim/vendor/backward-cpp",
+    "-isystem",
+    "/home/nkoenig/local/include/gz/math10",
+    "-isystem",
+    "/home/nkoenig/local/include/gz/utils5",
+    "-isystem",
+    "/home/nkoenig/local/include/gz/plugin5",
+    "-isystem",
+    "/home/nkoenig/local/include/gz/common8",
+    "-isystem",
+    "/usr/include/uuid",
+    "-isystem",
+    "/home/nkoenig/local/include/gz/fuel_tools12",
+    "-isystem",
+    "/home/nkoenig/local/include/gz/msgs13",
+    "-isystem",
+    "/home/nkoenig/local/include/gz/physics10",
+    "-isystem",
+    "/usr/include/eigen3",
+    "-isystem",
+    "/home/nkoenig/local/include/gz/rendering11",
+    "-isystem",
+    "/home/nkoenig/local/include/gz/transport16",
+    "-isystem",
+    "/home/nkoenig/local/include/gz/sdformat17",
+    "-isystem",
+    "/home/nkoenig/local/include/gz/gui11",
+    "-isystem",
+    "/usr/include/x86_64-linux-gnu/qt6/QtCore",
+    "-isystem",
+    "/usr/include/x86_64-linux-gnu/qt6",
+    "-isystem",
+    "/usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++",
+    "-isystem",
+    "/usr/include/x86_64-linux-gnu/qt6/QtQml",
+    "-isystem",
+    "/usr/include/x86_64-linux-gnu/qt6/QtQmlIntegration",
+    "-isystem",
+    "/usr/include/x86_64-linux-gnu/qt6/QtNetwork",
+    "-isystem",
+    "/usr/include/x86_64-linux-gnu/qt6/QtQuick",
+    "-isystem",
+    "/usr/include/x86_64-linux-gnu/qt6/QtGui",
+    "-isystem",
+    "/usr/include/x86_64-linux-gnu/qt6/QtQmlModels",
+    "-isystem",
+    "/usr/include/x86_64-linux-gnu/qt6/QtOpenGL",
+    "-isystem",
+    "/usr/include/x86_64-linux-gnu/qt6/QtQuickControls2",
+    "-isystem",
+    "/usr/include/x86_64-linux-gnu/qt6/QtWidgets",
+    "-isystem",
+    "/home/nkoenig/work/gazebo/rust/gz-sim/test/gtest_vendor/include",
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/pose-cadence/prototype/crates/gz-sim-server/tests/native_pose_rate.cc",
+    "-o",
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/pose-cadence/native-pinned-env/native-pose-rate",
+    "-L/home/nkoenig/local/lib",
+    "-lgz-transport",
+    "-lgz-msgs",
+    "-lprotobuf",
+    "-lpthread"
+  ],
+  "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin\n",
+  "loaded_libraries": {
+    "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2": "0504be34705191623dce9654e7b659663d87cdb92a3b99c83db13a7f60f13659",
+    "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2": "bc9b06e4337e638b4f15d2397c974d34dd99a33957a7756e2fc424f78f08309a",
+    "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2": "2e91419fd59b6995ee8fada80e106dac5644d3d44cd2e8bc6655547433e51ae6",
+    "/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib/libzenohc.so": "de63c0072f4186cf55d325773962ea6621d391629c8b33edf276bb09062b68f5",
+    "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+    "/usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1": "e86cd4f0019f42c2ba5e60602e0edc8694d2948377d98c3654d0f6bddb5254bb",
+    "/usr/lib/x86_64-linux-gnu/libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+    "/usr/lib/x86_64-linux-gnu/libcom_err.so.2.1": "022943b3b11c860b049bce41342f1c2594941b7b401d95dfdf235521099fee08",
+    "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+    "/usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2.2": "c7aa00cf51646f7c32f196d329a562bc873ff32906c9caf6554ca489dd657507",
+    "/usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1": "b37407fb2930939bf78b47267019cd201a8af1f4b6a3852249c849cf3a985798",
+    "/usr/lib/x86_64-linux-gnu/libkeyutils.so.1.10": "f48214417757f18793ed6e180cc14ee1d6f04252a518fc7270e8ca1d0b4260fe",
+    "/usr/lib/x86_64-linux-gnu/libkrb5.so.3.3": "fad617a72b5839d30143e7db03281279089def6f18788cbb0b7f86385301bf04",
+    "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1": "936bae947a838bd47676a419dfcfb036d0163249215b58ec706ec7d46b7497aa",
+    "/usr/lib/x86_64-linux-gnu/libm.so.6": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+    "/usr/lib/x86_64-linux-gnu/libmd.so.0.1.0": "423e18586b6ea740f4465afd64f7a9a4cb7264ed979c8e7256f9085af5345fef",
+    "/usr/lib/x86_64-linux-gnu/libnorm.so.1": "2543db995aa530bda8d145126b25c08d54cfe3348993e11eb75c30d6b43f5e72",
+    "/usr/lib/x86_64-linux-gnu/libpgm-5.3.so.0.0.128": "46e1d5126ff73b9ba0c340b2cf0245d77620f85524c6fc967d533be6d19bdada",
+    "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12": "53a2a625a30418d6ea84438b04c9196214dec51a30476596ee9be45ccadb0404",
+    "/usr/lib/x86_64-linux-gnu/libresolv.so.2": "1d730ea434da5a5595bc6a961d7a9ace83e03703205df9644044b3dca79c362f",
+    "/usr/lib/x86_64-linux-gnu/libsodium.so.23.3.0": "fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5",
+    "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+    "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0": "78d7f4d6f27b7dffc1c84dfe2f83e84aefa6f6ceeffc6ac4bc41f9fbc61cb84e",
+    "/usr/lib/x86_64-linux-gnu/libz.so.1.3": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+    "/usr/lib/x86_64-linux-gnu/libzmq.so.5.2.5": "c56acd8baaec3d869f7e23a194870302acef6d86384f1f0fe946fb81c7015a42"
+  },
+  "observations": [
+    {
+      "hz": 60,
+      "minimum_integer_period_ns": 16666667,
+      "offers": 6,
+      "received": [
+        0,
+        99
+      ],
+      "suppressed_publish_returns_true": true,
+      "shared_publisher_timer": true,
+      "burst_ns": 30447,
+      "next_ready_ns": 16668991
+    },
+    {
+      "hz": 60,
+      "minimum_integer_period_ns": 16666667,
+      "offers": 6,
+      "received": [
+        0,
+        99
+      ],
+      "suppressed_publish_returns_true": true,
+      "shared_publisher_timer": true,
+      "burst_ns": 27942,
+      "next_ready_ns": 16668740
+    },
+    {
+      "hz": 60,
+      "minimum_integer_period_ns": 16666667,
+      "offers": 6,
+      "received": [
+        0,
+        99
+      ],
+      "suppressed_publish_returns_true": true,
+      "shared_publisher_timer": true,
+      "burst_ns": 32731,
+      "next_ready_ns": 16669251
+    },
+    {
+      "hz": 60,
+      "minimum_integer_period_ns": 16666667,
+      "offers": 6,
+      "received": [
+        0,
+        99
+      ],
+      "suppressed_publish_returns_true": true,
+      "shared_publisher_timer": true,
+      "burst_ns": 29756,
+      "next_ready_ns": 16669121
+    },
+    {
+      "hz": 60,
+      "minimum_integer_period_ns": 16666667,
+      "offers": 6,
+      "received": [
+        0,
+        99
+      ],
+      "suppressed_publish_returns_true": true,
+      "shared_publisher_timer": true,
+      "burst_ns": 38242,
+      "next_ready_ns": 16669993
+    }
+  ]
+}

@@ -51,6 +51,8 @@ pub struct Counters {
     pub imu_failures: u64,
     pub invalid_imu_samples: u64,
     pub poses_queued: u64,
+    /// Ticks intentionally omitted by the configured wall-time pose publication period.
+    pub poses_throttled: u64,
     pub pose_failures: u64,
     pub invalid_pose_frames: u64,
     pub removals_queued: u64,
@@ -165,6 +167,7 @@ pub struct Server {
     node: Node,
     publisher: Publisher,
     poses: Publisher,
+    pose_rate: poses::PublicationRate,
     controls: Service,
     removals: removals::Removals,
     command_budget: NonZeroUsize,
@@ -230,6 +233,7 @@ impl Server {
             node,
             publisher,
             poses,
+            pose_rate: poses::PublicationRate::default(),
             controls,
             removals,
             command_budget,
@@ -242,6 +246,17 @@ impl Server {
             counters: Counters::default(),
             imus,
         })
+    }
+
+    /// Minimum wall-time interval between pose publication attempts; native default is 60 Hz.
+    pub fn pose_publication_period(&self) -> Duration {
+        self.pose_rate.period()
+    }
+
+    /// Selects a pose interval without pacing physics. Zero publishes every tick.
+    /// A policy change makes the next frame eligible; simulation resets retain the wall timer.
+    pub fn set_pose_publication_period(&mut self, period: Duration) {
+        self.pose_rate.set_period(period);
     }
 
     pub fn simulation(&self) -> &Simulation {
@@ -286,16 +301,7 @@ impl Server {
         } else {
             self.counters.clock_failures += 1;
         }
-        match poses::packet(self.simulation.world(), info.sim_time) {
-            Ok(packet) => {
-                if self.poses.publish(packet.encode_to_vec()).is_ok() {
-                    self.counters.poses_queued += 1;
-                } else {
-                    self.counters.pose_failures += 1;
-                }
-            }
-            Err(_) => self.counters.invalid_pose_frames += 1,
-        }
+        self.publish_poses(info.sim_time);
         self.publish_imus();
         self.removals
             .execute(&mut self.simulation, &mut self.counters);
@@ -344,6 +350,24 @@ impl Server {
             .is_err()
         {
             self.counters.response_failures += 1;
+        }
+    }
+
+    fn publish_poses(&mut self, time: Duration) {
+        if !self.pose_rate.ready(Instant::now()) {
+            self.counters.poses_throttled += 1;
+            return;
+        }
+        match poses::packet(self.simulation.world(), time) {
+            Ok(packet) => {
+                self.pose_rate.attempted(Instant::now());
+                if self.poses.publish(packet.encode_to_vec()).is_ok() {
+                    self.counters.poses_queued += 1;
+                } else {
+                    self.counters.pose_failures += 1;
+                }
+            }
+            Err(_) => self.counters.invalid_pose_frames += 1,
         }
     }
 

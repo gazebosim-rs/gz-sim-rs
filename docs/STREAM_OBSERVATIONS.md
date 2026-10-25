@@ -24,9 +24,11 @@ fill missing observations. A missing stream still fails.
 The report records the sum of each public server call plus complete receipt,
 decode and validation time. It excludes the declared pacing and records actual
 pacing and total wall time separately. Do not invert this latency into unpaced
-throughput. The earlier unpaced IMU-only reports remain unchanged. Rust currently
-publishes pose/info on every tick; this experiment matches requested observations
+throughput. The earlier unpaced IMU-only reports remain unchanged. At the measured d4c73ee revision, Rust
+published pose/info on every tick; this experiment matches requested observations
 at the common cadence and does not establish default pose-rate parity.
+[POSE_CADENCE.md](POSE_CADENCE.md) records the subsequent default-policy change;
+the historical report is unchanged.
 
 ## Assertions and byte accounting
 
