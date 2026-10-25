@@ -1,0 +1,46 @@
+{
+  "decision": "approved",
+  "author": "/root",
+  "reviewer": "/root/msgs_review_fallback",
+  "scope": "Shared-SDF native/Rust headless IMU acquisition over exactly 100 unpaced 1 ms pre-contact steps with DART and TPE native controls, Rust TPE semantics and Rapier physical free-fall check.",
+  "base": "94814ee7a7c420f98ea81e12aabcea3764a3c72a",
+  "tree": "680b7aa29730f237ad0f5e45f19ad112a58c44f5",
+  "diff_sha256": "d996e064c3bb58cc6cb2b73b419b4f12a79413f71214714fd78bcc6bf75a2fa8",
+  "files": {
+    "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+    "crates/gz-sim-scene/tests/headless_imu.rs": "64921ea5bd1c63d3b734dcd5f8b7bd072e8d2c3d4cd9f970dc1e7067a3491ddf",
+    "crates/gz-sim-scene/tests/native_headless_imu.cc": "9142452db8c8e18a41c1047c0d984c3adbf8a2e5dcc29b49cb1df21f1e9942db",
+    "docs/HEADLESS_REFERENCE.md": "4ea5921d12d32f77bf9eb91c53a835e738582a71ecd0f3c6f8e212157d29f67d",
+    "planning/reference/headless-imu.json": "23e2a38c20ebf863d080f75157be807a2ce93d971f27b72117436b8bc152b75f",
+    "planning/test-ledger.json": "8738fd3f9462dd2696408539cbdcab2bb7f0f3314f1a5753fa35b87576d0fad1",
+    "scripts/probe-headless-imu.py": "afff89d58c84049d33018422adbb488709d9969339ce4c2093edeb8dac1f9faa"
+  },
+  "original_reviewed_tree": "f1f126962b56779668e685c478803c5aa2841dc5",
+  "adoption": "All seven candidate files are byte-for-byte identical to original frozen tree f1f126962b56779668e685c478803c5aa2841dc5. The published native client fix remains source SHA2a4992edb40c74fa7c6820c6d1ec4a32758d26e7123999e38ba183ef0fb5cf0a.",
+  "semantic_findings": [],
+  "source_audit": {
+    "fixture": "The same pure headless_imu.sdf bytes feed native ServerConfig SetSdfString and Rust load_world_with_sdf_step. Native backend and Physics/Imu plugins are selected only in ServerConfig, without fixture or production pin changes.",
+    "startup": "Native process-local subscriber is registered before Server construction; the matching IMU publisher is observed before queued unpause via world control. Pinned upstream Imu PostUpdate requires a due sensor and HasConnections. Exact 100 timestamps exclude an extra zero-time sample.",
+    "assertions": "Rust checks one sample per step, exact 1..100 ms time and epoch0, every specific-force/angular-velocity/orientation component against all 200 native rows at predeclared absolute 1e-9 physical bound, and pause before and after acquisition. Existing assertions and tests are unchanged.",
+    "provenance": "Native probe verifies pinned gz-sim/gz-physics raw source files, CMake source dir, compiled C++ source/fixture/binary hashes, and loaded simulator/physics/IMU/backend libraries. Installed dependencies and an existing native build remain qualified provenance; no fresh native library rebuild or performance measurement is claimed."
+  },
+  "independent_replay": {
+    "source": "private raw Git export /tmp/sim-shared-imu-review-da31jv23/source, separate native and Cargo targets",
+    "native": "2 engines passed with 100 complete vector/orientation/time rows each; observations and loaded-library hashes match committed proof, while path-containing command fields differ",
+    "native_log_sha256": "ca4401d4d66a9178a1b52a374bc1010501c7220dd9ede782daf22831fe65345e",
+    "private_native_binary_sha256": "6e7f5526e93a12f231ce93789e9d907ea9116b71795f87e42c340c1868900586",
+    "rust_selected": "1 passed, 0 failed",
+    "rust_log_sha256": "1249af2ec502136bedbc6ce320e91dbf70bfed67b95785d4ee4748694ab754ea",
+    "mutation": "Private native row 38 specific_force[0] change from 0 to 0.001 fails exact Rapier component assertion",
+    "mutation_log_sha256": "8ebca71fdb51f7cb2c70d05213d1d7fa1f6b48efe5665bab3fc5e1f6dc806185"
+  },
+  "gate_chronology": {
+    "old_failed_gate_sha256": "f210dc3f67c0aa298784720bc746fa9cec4b7caf04c7c1812e7874c2d87d9ebb",
+    "old_failure": "Original frozen IMU tree failed an existing nine-scenario native client test after 26.49 s: C++ status succeeded but stderr reported NodeShare::RecvSrvResponse Error removing request handler. It is preserved as failed evidence, not an IMU pass or a dismissed flake.",
+    "root_cause": "Pinned gz-transport41913b9 blocking Request waiter and response receiver both remove the same handler after NotifyResult outside the shared mutex.",
+    "fix": "Separate test-client fix published as 94814ee7a7c420f98ea81e12aabcea3764a3c72a after independent review/normal hook; public async Request plus bounded future removes only the waiter-side double removal without changing payloads, timeouts, assertions, SDK or production Rust.",
+    "fresh_adopted_gate": "Exit 0 on exact seven-file adopted tree 680b7aa29730f237ad0f5e45f19ad112a58c44f5; author evidence reports 195 Rust checks, 12 tooling checks, all nine C++ scenarios, 3162/3208 production lines, 4914/5049 regions and 0 changed production Rust lines.",
+    "fresh_gate_log_sha256": "69575b7673ae8101ae2160b6c702081fb24ee9d6cbb9cdef740987f0218bc757"
+  },
+  "limits": "Functional 100 ms pre-contact IMU acquisition only. Rapier-to-native-DART is a cross-engine physical bound, not same-engine DART parity. No network throughput, measured performance, broad selected-fixture matrix, or P2 acceptance claim. Normal hook and hosted qualification remain required for this packet."
+}

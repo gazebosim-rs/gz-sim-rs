@@ -196,4 +196,16 @@ checks, timeouts and empty-stderr assertions remain unchanged. Independent nativ
 replay and the full 194-Rust/nine-C++ staged gate pass with unchanged coverage.
 NATIVE_CLIENT_REQUESTS.md records source/lifetime proof and the terminating-client
 limitation. Normal-hook publication and hosted qualification remain required.
-The shared-IMU packet remains held until it adopts this fix and passes its checks.
+The shared-IMU packet was held until it adopted this fix and passed its checks.
+
+
+## Shared-SDF sensor reference
+
+The new headless IMU control runs identical unpaced SDF bytes through actual
+native DART/TPE Server, Physics and Imu systems, and compares every acquired
+reading/time to Rust over 100 pre-contact steps. Readiness and queued playback
+replace startup sleeps. Independent source/native/Rust/mutation review and the
+exact adopted 195-test/nine-C++ gate pass. Native installed-build provenance
+remains qualified; HEADLESS_REFERENCE.md records scope and the earlier client
+cleanup failure repaired by published 94814ee. Normal-hook publication/hosted
+qualification and the full P2 assertion/performance report remain required.
