@@ -31,12 +31,14 @@ struct Observations
   bool invalid = false;
   int64_t lastClock = 0;
   int64_t lastImu = 0;
+  std::map<std::string, int64_t> imuTimes;
   int64_t target = 3000000;
 };
 
 int main(int argc, char **argv)
 {
-  const bool withImu = argc > 1 && std::string(argv[1]) == "--imu";
+  const bool sharedImu = argc > 1 && std::string(argv[1]) == "--shared";
+  const bool withImu = sharedImu || (argc > 1 && std::string(argv[1]) == "--imu");
   const bool remove = argc > 1 && std::string(argv[1]) == "--remove";
   auto observations = std::make_shared<Observations>();
   gz::transport::Node node;
@@ -99,10 +101,12 @@ int main(int argc, char **argv)
     };
   if (!node.Subscribe("/world/default/pose/info", poseCallback)) return 12;
   std::function<void(const gz::msgs::IMU &)> imuCallback =
-    [observations, frame = std::string(argc > 3 ? argv[3] : "ball::body::imu")](const auto &imu)
+    [observations, sharedImu, frame = std::string(argc > 3 ? argv[3] : "ball::body::imu")](const auto &imu)
     {
       std::lock_guard<std::mutex> lock(observations->mutex);
-      bool valid = imu.entity_name() == "ball::body::imu" && imu.has_header() &&
+      const bool second = sharedImu && imu.entity_name() == "ball::body::imu2";
+      const auto expectedFrame = sharedImu ? (second ? "second" : "first") : frame;
+      bool valid = (imu.entity_name() == "ball::body::imu" || second) && imu.has_header() &&
         imu.header().has_stamp() && imu.header().stamp().sec() == 0 &&
         imu.header().stamp().nsec() > 0 && imu.has_orientation() &&
         imu.has_angular_velocity() && imu.has_linear_acceleration() &&
@@ -111,7 +115,7 @@ int main(int argc, char **argv)
       const auto &header = imu.header();
       valid = valid && header.data_size() == 2 &&
         header.data(0).key() == "frame_id" && header.data(0).value_size() == 1 &&
-        header.data(0).value(0) == frame &&
+        header.data(0).value(0) == expectedFrame &&
         header.data(1).key() == "seq" && header.data(1).value_size() == 1;
       if (valid)
       {
@@ -134,9 +138,10 @@ int main(int argc, char **argv)
         valid = valid && std::isfinite(value) && std::abs(value) < 1e-9;
       observations->invalid = observations->invalid || !valid;
       observations->lastImu = header.stamp().nsec();
+      observations->imuTimes[imu.entity_name()] = header.stamp().nsec();
       observations->changed.notify_all();
     };
-  if (withImu && !node.Subscribe(argc > 2 ? gz::transport::TopicUtils::AsValidTopic(argv[2]) :
+  if (withImu && !node.Subscribe(sharedImu ? "/robot/shared" : argc > 2 ? gz::transport::TopicUtils::AsValidTopic(argv[2]) :
       "/world/default/model/ball/link/body/sensor/imu/imu", imuCallback)) return 7;
   auto waitFor = [&](bool Observations::*field)
   {
@@ -167,7 +172,10 @@ int main(int argc, char **argv)
           { return observations->lastClock >= stamp || observations->invalid; }) ||
           observations->invalid) return 9;
       if (observations->changed.wait_for(lock, std::chrono::milliseconds(50), [&]
-          { return observations->lastImu >= stamp || observations->invalid; })) break;
+          { return observations->invalid || (observations->lastImu >= stamp &&
+              (!sharedImu || (observations->imuTimes.size() == 2 &&
+                observations->imuTimes.at("ball::body::imu") >= stamp &&
+                observations->imuTimes.at("ball::body::imu2") >= stamp))); })) break;
     }
     std::lock_guard<std::mutex> lock(observations->mutex);
     if (observations->lastImu == 0 || observations->invalid) return 10;
@@ -184,7 +192,10 @@ int main(int argc, char **argv)
   {
     std::unique_lock<std::mutex> lock(observations->mutex);
     if (!observations->changed.wait_for(lock, std::chrono::seconds(8), [&]
-        { return observations->lastImu >= observations->target || observations->invalid; }) ||
+        { return observations->invalid || (observations->lastImu >= observations->target &&
+            (!sharedImu || (observations->imuTimes.size() == 2 &&
+              observations->imuTimes.at("ball::body::imu") >= observations->target &&
+              observations->imuTimes.at("ball::body::imu2") >= observations->target))); }) ||
         observations->invalid) return 11;
   }
   {
@@ -221,5 +232,6 @@ int main(int argc, char **argv)
     if (!waitFor(&Observations::removed)) return 17;
   }
   std::cout << "PASS native clock/control: baseline=" << warmup
-    << " final=" << warmup + 3 << " imu=" << withImu << " poses=4 removed=" << remove << '\n';
+    << " final=" << warmup + 3 << " imu=" << withImu << " poses=4 removed=" << remove
+    << " shared=" << sharedImu << '\n';
 }

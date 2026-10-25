@@ -20,7 +20,7 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal | Full initial-scene reset, joints, offset/multiple shapes, asset resolution and scheduling |
 | gz-sim-cli | Self-contained SDF input, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, resource resolution, signal handling and packaging |
-| gz-sim-server | Bounded clock/pose/IMU publication, polled pause/step controls, deferred remove services, real C++ clients | Root clock election, reset/run-to controls, scene services and runtime sensor registration |
+| gz-sim-server | Bounded clock/pose publication, shared-topic IMU streams, polled pause/step controls, deferred remove services, real C++ clients | Root clock election, reset/run-to controls, scene services and runtime sensor registration |
 
 Rust 1.95.0, Bevy ECS 0.20.0, Rapier3d-f64 0.36.1 and glam 0.33.12 are pinned.
 Authoritative state and solver use f64. The submillimeter motion probe at world
@@ -35,9 +35,9 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 73 Rust tests and nine gate tests, covering 1390/1397
-production lines and 2060/2094 regions. Every production crate exceeds 95% for
-both metrics. The reset identity primitive covers all 53 changed executable lines.
+The current local gate passes 74 Rust tests and nine gate tests, covering 1399/1406
+production lines and 2091/2126 regions. Every production crate exceeds 95% for
+both metrics. The shared IMU increment covers all 11 changed executable lines.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
@@ -48,7 +48,7 @@ remain open. Local model removal is published at 5fd5e49 and remote removal at b
 The consumer now uses reviewed SDF frame/topic/canonical helpers and rejects
 explicit Surface physics until implemented; transport includes native publisher
 recreation ordering. Producer pins and tests are detailed in HEADLESS.md. The C++ client now
-verifies four scenarios using actual clock, local-pose and IMU samples, exact-step
+verifies five scenarios using actual clock, local-pose and IMU samples, exact-step
 controls, stable IDs, topic repair and deferred model removal. Its
 native dependencies are rebuilt from the pinned reference lock in CI.
 

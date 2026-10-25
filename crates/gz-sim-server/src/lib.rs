@@ -15,7 +15,9 @@ use gz_sim_core::{Simulation, StepError, UpdateInfo};
 use gz_sim_scene::{ImuPublication, ImuSample};
 use gz_transport::{Config, Error as TransportError, Node, Publisher, Service, Statistics};
 use std::{
+    collections::BTreeMap,
     num::NonZeroUsize,
+    sync::{Arc, Weak},
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
@@ -55,7 +57,7 @@ pub struct Counters {
 struct ImuStream {
     entity: Entity,
     metadata: ImuPublication,
-    publisher: Publisher,
+    publisher: Arc<Publisher>,
     sequence: u64,
     last_sample: Option<(u64, Duration)>,
 }
@@ -177,6 +179,8 @@ impl Server {
         if world_name.is_empty() || world_name.contains('/') {
             return Err(TransportError::InvalidName.into());
         }
+        let partition = config.partition.clone();
+        let namespace = config.namespace.clone();
         let node = Node::new(config)?;
         let publisher = node.advertise(&format!("/world/{world_name}/clock"), "gz.msgs.Clock")?;
         let controls = node.serve(
@@ -187,15 +191,23 @@ impl Server {
         let poses = node.advertise(&format!("/world/{world_name}/pose/info"), "gz.msgs.Pose_V")?;
         let removals = removals::Removals::new(&node, world_name)?;
         let mut imus = Vec::new();
+        let mut imu_publishers: BTreeMap<String, Weak<Publisher>> = BTreeMap::new();
         for entity in simulation.world().iter_entities() {
             if let Some(metadata) = entity.get::<ImuPublication>() {
+                let topic = gz_transport::as_valid_topic(&metadata.topic);
+                let key = gz_transport::qualified_name(&partition, &namespace, &topic)?;
+                let publisher = match imu_publishers.get(&key).and_then(Weak::upgrade) {
+                    Some(publisher) => publisher,
+                    None => {
+                        let publisher = Arc::new(node.advertise(&topic, "gz.msgs.IMU")?);
+                        imu_publishers.insert(key, Arc::downgrade(&publisher));
+                        publisher
+                    }
+                };
                 imus.push(ImuStream {
                     entity: entity.id(),
                     metadata: metadata.clone(),
-                    publisher: node.advertise(
-                        &gz_transport::as_valid_topic(&metadata.topic),
-                        "gz.msgs.IMU",
-                    )?,
+                    publisher,
                     sequence: 0,
                     last_sample: None,
                 });

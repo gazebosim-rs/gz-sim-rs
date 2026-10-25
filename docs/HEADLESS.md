@@ -112,17 +112,17 @@ Native libraries are built from planning/transport-reference-lock.json. An exist
 identical build may be selected with GZ_REFERENCE_PREFIX; source configuration,
 library hashes, pkg-config prefix and dynamic linkage are checked.
 
-Four real C++ client scenarios verify clock/exact-step control, actual IMU samples,
-topic repair and removal. They wait for received clock/pose/sample packets rather
+Five real C++ client scenarios verify clock/exact-step control, actual IMU samples,
+topic repair, removal and two IMUs sharing one endpoint. They wait for received clock/pose/sample packets rather
 than assuming readiness. Removal checks ordinary acceptance, blocking failure,
 ID precedence and disappearance of the ball while the ground keeps its IDs.
 Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current gate passes 73 Rust checks and nine gate tests: 1390/1397 production
-lines and 2060/2094 regions. Every production crate exceeds 95% for both metrics;
-All 53 changed executable lines in the reset identity primitive are covered. Independent review and the exact
+The current gate passes 74 Rust checks and nine gate tests: 1399/1406 production
+lines and 2091/2126 regions. Every production crate exceeds 95% for both metrics;
+All 11 changed executable lines in the shared IMU endpoint increment are covered. Independent review and the exact
 staged gate are required before publishing this increment.
 
 Remaining P2 work includes full reset, TPE, local/Fuel resources, sensor scheduling
@@ -148,7 +148,7 @@ The transport pin rejects duplicate same-node publishers and orders withdrawal
 before immediate recreation. Surviving stream leases can be retained during the
 planned reset; recreation after removal has a native-tested producer contract.
 Consumer tests cover frame-field precedence, empty legacy IDs, topic defaults and
-XML whitespace, explicit unsupported surfaces and all four real C++ scenarios.
+XML whitespace, explicit unsupported surfaces and all five real C++ scenarios.
 
 
 World-bound identity reservations now permit explicitly restoring an original
@@ -157,3 +157,14 @@ resource teardown cannot validate a stale reservation. Ordinary allocation remai
 monotonic within the intact allocator; restoration does not rewind its counter.
 See [IDENTITIES.md](IDENTITIES.md). These primitives do not implement the pending
 full scene reset, backend restoration, callback ordering or stream reconstruction.
+
+
+Multiple IMUs may share a topic, including relative/absolute aliases under a
+namespace. The server uses the transport qualifier as the cache key and shares
+one publisher while retaining each source's metadata, samples and sequence.
+The temporary cache holds only weak references; retiring one stream preserves
+its peers, and retiring the last releases the endpoint. A fifth C++ scenario
+receives both frame IDs and independent sequences through the aliased endpoint.
+The world uses one logical publisher per shared topic; discovery publisher counts
+differ from native per-sensor Nodes. Full discovery/inspection parity remains
+separate NET work. No additional IO worker is created per sensor.

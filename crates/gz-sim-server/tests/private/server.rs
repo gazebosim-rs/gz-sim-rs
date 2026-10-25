@@ -873,3 +873,91 @@ fn client_timeout_does_not_cancel_an_accepted_removal() {
     assert_eq!(server.counters.removals_completed, 1);
     assert!(server.imus.is_empty());
 }
+
+#[test]
+fn shared_imu_topic_preserves_each_source_and_retires_only_the_last_publisher() {
+    use gz_msgs::msgs::Imu;
+    use std::collections::BTreeSet;
+    let config = Config {
+        namespace: "/robot".into(),
+        ..config()
+    };
+    let xml = include_str!("../../../gz-sim-scene/tests/fixtures/fall.sdf")
+        .replace("<always_on>true</always_on>", "<always_on>true</always_on><topic>shared</topic><frame_id>first</frame_id>")
+        .replace("</sensor>", "</sensor><sensor name='imu2' type='imu'><always_on>true</always_on><update_rate>1000</update_rate><topic>/robot/shared</topic><frame_id>second</frame_id></sensor>");
+    let sim = gz_sim_scene::load_world(
+        &xml,
+        "shared.sdf",
+        "default",
+        Duration::from_millis(1),
+        &sdformat::NoResources,
+    )
+    .unwrap();
+    let mut server = Server::new(
+        sim,
+        "default",
+        config.clone(),
+        NonZeroUsize::new(2).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(server.imus.len(), 2);
+    assert!(Arc::ptr_eq(
+        &server.imus[0].publisher,
+        &server.imus[1].publisher
+    ));
+    let endpoint = Arc::downgrade(&server.imus[0].publisher);
+    let client = Node::new(config).unwrap();
+    let subscriber = client.subscribe("/robot/shared", "gz.msgs.IMU").unwrap();
+    server.simulation.set_paused(false);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let mut sources = BTreeSet::new();
+    while sources.len() < 2 {
+        assert!(Instant::now() < deadline);
+        server.tick().unwrap();
+        if let Ok(message) = subscriber.recv_timeout(Duration::from_millis(2)) {
+            let imu = Imu::decode(message.data.as_slice()).unwrap();
+            let frame = &imu.header.as_ref().unwrap().data[0].value[0];
+            assert!(matches!(
+                (imu.entity_name.as_str(), frame.as_str()),
+                ("ball::body::imu", "first") | ("ball::body::imu2", "second")
+            ));
+            sources.insert(imu.entity_name);
+        }
+    }
+    assert!(server.imus.iter().all(|stream| stream.sequence > 0));
+    let first = server
+        .imus
+        .iter()
+        .find(|stream| stream.metadata.frame_id == "first")
+        .unwrap()
+        .entity;
+    let removed_at = server.simulation.elapsed();
+    server.simulation.world_mut().entity_mut(first).despawn();
+    server.tick().unwrap();
+    assert_eq!(server.imus.len(), 1);
+    assert_eq!(endpoint.strong_count(), 1);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    loop {
+        assert!(Instant::now() < deadline);
+        server.tick().unwrap();
+        if let Ok(message) = subscriber.recv_timeout(Duration::from_millis(2)) {
+            let imu = Imu::decode(message.data.as_slice()).unwrap();
+            let stamp = imu.header.as_ref().unwrap().stamp.as_ref().unwrap();
+            let time = Duration::new(
+                stamp.sec.try_into().unwrap(),
+                stamp.nsec.try_into().unwrap(),
+            );
+            if time > removed_at {
+                assert_eq!(imu.entity_name, "ball::body::imu2");
+                assert_eq!(imu.header.as_ref().unwrap().data[0].value, ["second"]);
+                break;
+            }
+        }
+    }
+    let ball = public_id(&server, "default::ball");
+    gz_sim_scene::remove_model(&mut server.simulation, ball).unwrap();
+    server.tick().unwrap();
+    assert!(server.imus.is_empty());
+    assert!(endpoint.upgrade().is_none());
+    assert_eq!(server.counters.imu_failures, 0);
+}

@@ -25,13 +25,14 @@ impl Drop for Peer {
 
 #[test]
 fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
-    run_native_world(false, None, false);
-    run_native_world(true, None, false);
-    run_native_world(true, Some("robot ~imu//@:= sensor"), false);
-    run_native_world(false, None, true);
+    run_native_world(false, None, false, false);
+    run_native_world(true, None, false, false);
+    run_native_world(true, Some("robot ~imu//@:= sensor"), false, false);
+    run_native_world(false, None, true, false);
+    run_native_world(true, None, false, true);
 }
 
-fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool) {
+fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool, shared_imu: bool) {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let build = Command::new("python3")
         .arg(root.join("scripts/native-peer.py"))
@@ -48,6 +49,11 @@ fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool) {
         partition: format!("native-sim-{}", std::process::id()),
         message_port: message.local_addr().unwrap().port(),
         service_port: service.local_addr().unwrap().port(),
+        namespace: if shared_imu {
+            "/robot".into()
+        } else {
+            String::new()
+        },
         ..Config::default()
     };
     drop((message, service));
@@ -57,6 +63,11 @@ fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool) {
             "<always_on>true</always_on>",
             &format!("<topic>{topic}</topic><frame_id>sensor_frame</frame_id><gz_frame_id>ignored</gz_frame_id>"),
         );
+    }
+    if shared_imu {
+        xml = xml
+            .replace("<always_on>true</always_on>", "<always_on>true</always_on><topic>shared</topic><frame_id>first</frame_id>")
+            .replace("</sensor>", "</sensor><sensor name='imu2' type='imu'><always_on>true</always_on><update_rate>1000</update_rate><topic>/robot/shared</topic><frame_id>second</frame_id></sensor>");
     }
     let simulation = load_world(
         &xml,
@@ -77,7 +88,9 @@ fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool) {
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
     let mut command = Command::new(root.join("artifacts/native-peer/clock-client"));
-    if with_imu {
+    if shared_imu {
+        command.arg("--shared");
+    } else if with_imu {
         command.arg("--imu");
         if let Some(topic) = topic {
             command.arg(topic).arg("sensor_frame");
@@ -170,7 +183,13 @@ fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool) {
     }
     assert_eq!(server.counters().controls_accepted, final_steps - 2);
     assert_eq!(server.counters().controls_rejected, 1);
-    assert_eq!(server.counters().imus_queued, final_steps);
+    assert_eq!(
+        server.counters().imus_queued,
+        final_steps * if shared_imu { 2 } else { 1 }
+    );
+    if shared_imu {
+        assert!(stdout.contains("shared=1"));
+    }
     assert_eq!(server.counters().imu_failures, 0);
     server.shutdown();
 }
