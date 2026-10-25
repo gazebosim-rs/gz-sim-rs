@@ -417,3 +417,139 @@ fn reset_stream_reconciliation_preserves_shared_publishers_and_retires_additions
         2
     );
 }
+
+#[test]
+fn reported_step_failure_stops_server_publications_and_future_controls() {
+    use bevy_ecs::prelude::Res;
+    use gz_sim_core::StepFault;
+    let mut server = imu_server(config());
+    server.simulation.set_paused(false);
+    server.tick().unwrap();
+    let before = server.counters;
+    let committed = *server.simulation.world().resource::<UpdateInfo>();
+    server
+        .simulation
+        .add_systems(gz_sim_core::Phase::PhysicsStep, |fault: Res<StepFault>| {
+            fault.report(std::io::Error::other("physics step failed"));
+        });
+    assert!(matches!(
+        server.tick(),
+        Err(Error::Step(StepError::Faulted))
+    ));
+    assert_eq!(
+        *server.simulation.world().resource::<UpdateInfo>(),
+        committed
+    );
+    assert_eq!(server.simulation.elapsed(), Duration::from_millis(1));
+    assert!(
+        server
+            .simulation
+            .fault()
+            .unwrap()
+            .to_string()
+            .contains("physics step failed")
+    );
+    assert_eq!(
+        (
+            server.counters.clocks_queued,
+            server.counters.clock_failures
+        ),
+        (before.clocks_queued, before.clock_failures)
+    );
+    assert_eq!(
+        (server.counters.poses_queued, server.counters.pose_failures),
+        (before.poses_queued, before.pose_failures)
+    );
+    assert_eq!(
+        (server.counters.imus_queued, server.counters.imu_failures),
+        (before.imus_queued, before.imu_failures)
+    );
+    assert_eq!(
+        (
+            server.counters.controls_accepted,
+            server.counters.controls_rejected
+        ),
+        (before.controls_accepted, before.controls_rejected)
+    );
+    assert!(!server.apply_control(WorldControl::default()));
+    assert!(matches!(
+        server.tick(),
+        Err(Error::Step(StepError::Faulted))
+    ));
+    assert_eq!(server.counters.clocks_queued, before.clocks_queued);
+    server.shutdown();
+}
+
+#[test]
+fn committed_reset_fault_cancels_admitted_removals_and_retires_stale_streams() {
+    use bevy_ecs::prelude::Res;
+    use gz_sim_core::StepFault;
+    let cfg = config();
+    let mut server = imu_server(cfg.clone());
+    server.simulation.step_exact(2).unwrap();
+    server.tick().unwrap();
+    let before = server.counters;
+    let endpoint = Arc::downgrade(&server.imus[0].publisher);
+    let ball = public_id(&server, "default::ball");
+    let request = removal_request(
+        cfg,
+        true,
+        Entity {
+            id: ball,
+            ..Default::default()
+        }
+        .encode_to_vec(),
+    );
+    poll_removals(&mut server, 1);
+    server
+        .simulation
+        .add_systems(gz_sim_core::Phase::Reset, |fault: Res<StepFault>| {
+            fault.report(std::io::Error::other("reset callback failed"));
+        });
+    assert!(server.apply_control(rewind(
+        WorldReset {
+            all: true,
+            ..Default::default()
+        },
+        0
+    )));
+    assert!(matches!(
+        server.tick(),
+        Err(Error::Reset(gz_sim_scene::SceneResetError::CommittedReset))
+    ));
+    assert!(!removal_result(request));
+    assert_eq!(server.counters.removals_cancelled, 1);
+    assert_eq!(
+        server.counters.removals_completed + server.counters.removals_failed,
+        0
+    );
+    assert!(!server.pending_reset);
+    assert!(server.imus.is_empty());
+    assert!(endpoint.upgrade().is_none());
+    assert!(entity_by_id(server.simulation.world(), ball).is_some());
+    assert_eq!(
+        (
+            server.simulation.elapsed(),
+            server.simulation.world().resource::<UpdateInfo>().epoch
+        ),
+        (Duration::ZERO, 1)
+    );
+    assert_eq!(
+        (
+            server.counters.clocks_queued,
+            server.counters.poses_queued,
+            server.counters.imus_queued
+        ),
+        (
+            before.clocks_queued,
+            before.poses_queued,
+            before.imus_queued
+        )
+    );
+    assert!(matches!(
+        server.tick(),
+        Err(Error::Step(StepError::Faulted))
+    ));
+    assert!(!server.apply_control(WorldControl::default()));
+    server.shutdown();
+}

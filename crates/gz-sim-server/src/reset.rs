@@ -38,7 +38,7 @@ impl Server {
                 entry.insert(publisher);
             }
         }
-        let result = reset_loaded_world(&mut self.simulation, |sim| {
+        let reset = reset_loaded_world(&mut self.simulation, |sim| {
             let mut streams = Vec::new();
             for entity in sim.world().iter_entities() {
                 if entity.contains::<PendingResetRemoval>() {
@@ -63,7 +63,17 @@ impl Server {
                 });
             }
             Ok::<_, Error>((*sim.world().resource::<UpdateInfo>(), streams))
-        })?;
+        });
+        let result = match reset {
+            Ok(result) => result,
+            Err(error @ gz_sim_scene::SceneResetError::CommittedReset) => {
+                self.pending_reset = false;
+                self.imus.clear();
+                self.removals.cancel_for_reset(&mut self.counters);
+                return Err(error.into());
+            }
+            Err(error) => return Err(error.into()),
+        };
         // Reset is committed even if a custom handler invalidated the stream contract.
         self.pending_reset = false;
         self.active_time = ActiveTime::default();

@@ -122,9 +122,9 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current gate passes 109 Rust checks and nine gate tests: 1821/1831 production
-lines and 2802/2850 regions. Every production crate exceeds 95% for both metrics;
-The ECS observation increment covers all 36 changed executable lines. Independent review and the exact
+The current gate passes 115 Rust checks and nine gate tests: 1870/1880 production
+lines and 2884/2932 regions. Every production crate exceeds 95% for both metrics;
+The reported-fault increment covers all 57 changed executable lines. Independent review and the exact
 staged gate are required before publishing this increment.
 
 Remaining P2 work includes TPE, local/Fuel resources, sensor scheduling, the
@@ -215,3 +215,10 @@ systems no longer fetch Rapier state themselves. Analytic tests without a physic
 backend cover frame projection, pause/reset and replacement runtime link handles.
 All six existing native client scenarios retain their assertions. This prepares
 another backend; it does not install TPE or decide D23 behavior.
+
+
+Reported system errors now use a typed first-fault channel that preserves Bevy
+parallelism and stops later registered systems. Failed normal ticks retain last
+committed timing, and server publication/control processing stops. Committed
+reset faults clean pending nodes and streams without observing invalid state.
+See [STEP_FAULTS.md](STEP_FAULTS.md) for terminal-run and side-effect boundaries.

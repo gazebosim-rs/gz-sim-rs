@@ -25,6 +25,8 @@ pub enum SceneResetError {
     MissingInitialState,
     #[error("scene physics backend is missing")]
     MissingPhysics,
+    #[error("a reset handler failed after scene reconstruction; the run is invalid")]
+    CommittedReset,
     #[error("runtime physics bindings cannot be restored by this loader")]
     RuntimePhysics,
     #[error("resources and Bevy infrastructure must not belong to the scene hierarchy")]
@@ -128,7 +130,9 @@ pub fn initial_imu_publications(
 /// Restores the loaded scene in the same Bevy World, then invokes reset handlers.
 /// The immutable observer runs before runtime additions retire, matching native
 /// reset-time removal observation. Its result is returned after cleanup.
-/// Typed failures precede mutation. A panicking handler/observer invalidates the run.
+/// Preflight failures precede mutation. A reported reset fault is terminal after
+/// reconstruction: pending nodes retire and observation is skipped.
+/// A panicking handler/observer invalidates the run.
 /// Custom resources survive; custom system state requires an explicit Reset handler.
 pub fn reset_loaded_world<R>(
     sim: &mut Simulation,
@@ -261,16 +265,17 @@ pub fn reset_loaded_world<R>(
         removed_ids,
     });
     world.insert_resource(RestoredPhysics { epoch });
-    sim.reset()
-        .expect("epoch was preflighted before scene mutation");
+    let reset = sim.reset();
     sim.world_mut().remove_resource::<RestoredPhysics>();
-    let result = observe(sim);
+    let result = reset
+        .map_err(|_| SceneResetError::CommittedReset)
+        .map(|_| observe(sim));
     for entity in extra {
         if sim.world().get_entity(entity).is_ok() {
             sim.world_mut().entity_mut(entity).despawn();
         }
     }
-    Ok(result)
+    result
 }
 
 #[cfg(test)]

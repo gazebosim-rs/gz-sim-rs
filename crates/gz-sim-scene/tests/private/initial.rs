@@ -518,3 +518,43 @@ fn mixed_initial_node_and_observer_ownership_fails_before_reconstruction() {
     assert!(sim.world().get::<Observer>(world).is_some());
     assert_eq!(sim.world().resource::<RapierBackend>().state(body), state);
 }
+
+#[test]
+fn reported_reset_fault_cleans_pending_nodes_without_observation_or_retry() {
+    use gz_sim_core::StepFault;
+    use std::cell::Cell;
+    let mut sim = load();
+    sim.step_exact(2).unwrap();
+    let extra = sim.world_mut().spawn(Name("runtime extra".into())).id();
+    let extra_id = assign_id(sim.world_mut(), extra).unwrap();
+    sim.add_systems(Phase::Reset, |fault: Res<StepFault>| {
+        fault.report(std::io::Error::other("reset callback failed"));
+    });
+    let observed = Cell::new(false);
+    assert!(matches!(
+        reset_loaded_world(&mut sim, |_| observed.set(true)),
+        Err(SceneResetError::CommittedReset)
+    ));
+    assert!(!observed.get());
+    assert!(sim.world().get_entity(extra).is_err());
+    assert!(entity_by_id(sim.world(), extra_id).is_none());
+    assert!(!sim.world().contains_resource::<RestoredPhysics>());
+    assert_eq!(
+        (sim.elapsed(), sim.world().resource::<UpdateInfo>().epoch),
+        (Duration::ZERO, 1)
+    );
+    assert!(
+        sim.fault()
+            .unwrap()
+            .to_string()
+            .contains("reset callback failed")
+    );
+    let count = sim.world().entities().len();
+    assert!(matches!(
+        reset_loaded_world(&mut sim, |_| observed.set(true)),
+        Err(SceneResetError::Clock(StepError::Faulted))
+    ));
+    assert_eq!(sim.world().entities().len(), count);
+    assert!(!observed.get());
+    assert_eq!(sim.tick(), Err(StepError::Faulted));
+}

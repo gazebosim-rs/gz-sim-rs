@@ -50,3 +50,9 @@ SERVER_RESET.md describes the bounded remote composition: control ordering,
 real-time clock reset, stream reconstruction and old admitted-request cancellation.
 Already queued transport data cannot be recalled. TPE, offline resources and equal-work performance remain P2
 requirements; no performance improvement is claimed by this reset increment.
+
+
+Reported reset-handler failures are terminal after reconstruction. Pending runtime
+nodes still retire, RestoredPhysics is removed, and observation is skipped; the
+caller receives SceneResetError::CommittedReset. Pre-existing faults reject reset
+before mutation. STEP_FAULTS.md records the diagnostic and server boundaries.

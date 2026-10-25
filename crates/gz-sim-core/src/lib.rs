@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Explicit simulation steps over a Bevy ECS world, independent of rendering.
 
+mod fault;
+pub use fault::StepFault;
+
 mod identity;
 pub use identity::{
     EntityId, EntityLookup, IdentityError, ReservedId, assign_id, entity_by_id, reserve_id,
@@ -43,13 +46,16 @@ pub enum StepError {
     ZeroDuration,
     #[error("simulation time, iteration, or epoch overflow")]
     Overflow,
+    #[error("a simulation system failed")]
+    Faulted,
 }
 
 /// Owns the ECS and advances only when explicitly requested.
 ///
 /// `tick` respects pause; `step_exact` advances a requested number of steps even
 /// while paused. Reset handlers restore domain state; the core resets only time.
-/// A panicking system invalidates that run: mutations are not rolled back.
+/// Reported faults stop later registered systems and make the run terminal.
+/// Earlier/running/deferred effects are not rolled back; panics also invalidate the run.
 pub struct Simulation {
     world: World,
     schedule: Schedule,
@@ -60,6 +66,7 @@ pub struct Simulation {
     epoch: u64,
     paused: bool,
     extensions: HashSet<TypeId>,
+    faulted: bool,
 }
 
 impl Simulation {
@@ -68,6 +75,7 @@ impl Simulation {
             return Err(StepError::ZeroDuration);
         }
         let mut world = World::new();
+        world.init_resource::<StepFault>();
         world.insert_resource(UpdateInfo {
             start_time: Duration::ZERO,
             sim_time: Duration::ZERO,
@@ -101,6 +109,7 @@ impl Simulation {
             epoch: 0,
             paused: true,
             extensions: HashSet::new(),
+            faulted: false,
         })
     }
 
@@ -115,7 +124,8 @@ impl Simulation {
         phase: Phase,
         systems: impl IntoScheduleConfigs<ScheduleSystem, M>,
     ) {
-        let configured: ScheduleConfigs<ScheduleSystem> = systems.in_set(phase);
+        let configured: ScheduleConfigs<ScheduleSystem> =
+            systems.in_set(phase).distributive_run_if(fault::healthy);
         if phase == Phase::Reset {
             self.reset_schedule.add_systems(configured);
         } else {
@@ -148,6 +158,19 @@ impl Simulation {
         self.step_duration
     }
 
+    /// First typed diagnostic from a failed system, retained for this run.
+    pub fn fault(&self) -> Option<&(dyn std::error::Error + Send + Sync + 'static)> {
+        self.world.resource::<StepFault>().error()
+    }
+
+    fn ensure_healthy(&mut self) -> Result<(), StepError> {
+        if self.faulted || self.fault().is_some() {
+            self.faulted = true;
+            return Err(StepError::Faulted);
+        }
+        Ok(())
+    }
+
     /// Runs all phases once. Paused ticks have zero dt and do not advance time.
     pub fn tick(&mut self) -> Result<UpdateInfo, StepError> {
         self.run_tick(self.paused)
@@ -156,6 +179,7 @@ impl Simulation {
     /// Advances exactly `count` steps, retaining the current pause setting.
     /// Overflow is checked for the whole request before any system runs.
     pub fn step_exact(&mut self, count: u64) -> Result<(), StepError> {
+        self.ensure_healthy()?;
         self.validate_steps(count)?;
         for _ in 0..count {
             self.run_tick(false)?;
@@ -165,6 +189,9 @@ impl Simulation {
 
     /// Checks a complete future request without advancing or changing pause state.
     pub fn validate_steps(&self, count: u64) -> Result<(), StepError> {
+        if self.faulted || self.fault().is_some() {
+            return Err(StepError::Faulted);
+        }
         let nanos = self
             .step_duration
             .as_nanos()
@@ -178,6 +205,8 @@ impl Simulation {
     }
 
     fn run_tick(&mut self, paused: bool) -> Result<UpdateInfo, StepError> {
+        self.ensure_healthy()?;
+        let previous = *self.world.resource::<UpdateInfo>();
         let dt = if paused {
             Duration::ZERO
         } else {
@@ -198,6 +227,10 @@ impl Simulation {
         };
         self.world.insert_resource(info);
         self.schedule.run(&mut self.world);
+        if let Err(error) = self.ensure_healthy() {
+            self.world.insert_resource(previous);
+            return Err(error);
+        }
         self.elapsed = end;
         self.iteration = iteration;
         Ok(info)
@@ -205,6 +238,7 @@ impl Simulation {
 
     /// Starts a new epoch and invokes reset handlers without advancing physics.
     pub fn reset(&mut self) -> Result<(), StepError> {
+        self.ensure_healthy()?;
         let epoch = self.validate_reset()?;
         self.elapsed = Duration::ZERO;
         self.iteration = 0;
@@ -218,11 +252,14 @@ impl Simulation {
             paused: self.paused,
         });
         self.reset_schedule.run(&mut self.world);
-        Ok(())
+        self.ensure_healthy()
     }
 
     /// Checks the next reset epoch before a domain transaction changes the world.
     pub fn validate_reset(&self) -> Result<u64, StepError> {
+        if self.faulted || self.fault().is_some() {
+            return Err(StepError::Faulted);
+        }
         self.epoch.checked_add(1).ok_or(StepError::Overflow)
     }
 }

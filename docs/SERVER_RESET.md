@@ -45,3 +45,9 @@ failed preflight, overflow, shared leases, runtime additions and handler failure
 This bounded integration does not complete IO-01, CORE-02 or P2. Runtime sensor
 registration, scheduler/noise, TPE, resources, the simple joint and velocity/force
 inputs, and equal-work performance remain open.
+
+
+A reset handler reporting a system fault invalidates the run after reconstruction.
+The admitted old removal batch is cancelled, stale IMU streams retire, and no new
+server frame is published. Later ticks and controls reject the faulted simulation.
+This differs from a transactional preflight rejection; see STEP_FAULTS.md.

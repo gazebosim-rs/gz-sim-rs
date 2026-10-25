@@ -262,6 +262,7 @@ impl Server {
         if self.reset_failed {
             return Err(Error::ResetStreams);
         }
+        self.simulation.validate_steps(0)?;
         if !self.pending_reset {
             self.validate_steps(u64::from(!self.simulation.is_paused()))?;
         }
@@ -384,6 +385,9 @@ impl Server {
     }
 
     fn apply_control(&mut self, control: WorldControl) -> bool {
+        if self.simulation.validate_steps(0).is_err() {
+            return false;
+        }
         if control.seed != 0 || control.run_to_sim_time.is_some() {
             return false;
         }
