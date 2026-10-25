@@ -227,7 +227,12 @@ def staged():
         changed = changed_sources({}, index=True)
         manifest = Path(directory) / "changed-lines.json"
         manifest.write_text(json.dumps({path: sorted(lines) for path, lines in changed.items()}))
-        subprocess.run([sys.executable, str(Path(directory) / "scripts/verify.py"), "--changed-lines", str(manifest)], cwd=directory, check=True)
+        # Child Git commands must not inherit the caller's worktree or index.
+        env = os.environ.copy()
+        keys = run(["git", "rev-parse", "--local-env-vars"], capture_output=True, text=True).stdout.splitlines()
+        for key in keys:
+            env.pop(key, None)
+        subprocess.run([sys.executable, str(Path(directory) / "scripts/verify.py"), "--changed-lines", str(manifest)], cwd=directory, env=env, check=True)
         if run(["git", "write-tree"], capture_output=True, text=True).stdout.strip() != tree:
             raise ValueError("index changed during verification")
 

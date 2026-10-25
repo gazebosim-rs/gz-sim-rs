@@ -38,7 +38,7 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 157 Rust checks and nine gate tests, including all
+The current local gate passes 157 Rust checks and ten gate tests, including all
 seven actual C++ client scenarios. Coverage is 2372/2400 production lines and
 3725/3819 regions. Every production crate exceeds 95% for both metrics. The offline
 Fuel increment covers assets 15/15 and CLI 5/5 changed executable lines. Assets
@@ -115,3 +115,14 @@ logical IDs/poses after the resolver and cached files are removed.
 See LOCAL_ASSETS.md for limits, configuration and native-reference qualifications.
 This is a model-include consumer, not completion of downloads, cancellation,
 remote world/model-file URLs or the complete FUEL-01/P2 contract.
+
+## Worktree hook isolation
+
+The exported staged verifier removes official repository-local Git environment
+keys only in its child process. The parent still selects and rechecks the intended
+index. A new real-worktree/alternate-index regression checks child normal/bare
+Git fixtures without redirecting them into the caller. Main HEAD ancestry, index
+bytes, configuration, unstaged content and nonlocal settings are preserved. The
+original wrapper fails the new test on leaked keys; the fix passes. This is a
+verification-boundary correction; production Rust coverage and all seven native
+client scenarios remain required. No root repository corruption is claimed.

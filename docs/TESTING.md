@@ -9,16 +9,15 @@ not justify reduced coverage of behavior.
 
 The rewrite also requires **strictly greater than 95% production Rust line and
 region coverage**, per production crate and for the workspace. The owner's >95%
-requirement is confirmed; choosing both metrics and per-crate enforcement is the
-proposed concrete policy. Exactly 95.00% fails. High coverage is necessary, not
+requirement is enforced for both metrics and each crate. Exactly 95.00% fails. High coverage is necessary, not
 sufficient: parity, negative cases, numerical accuracy, lifecycle safety, and
 performance gates are separate requirements.
 
-This repository currently contains the plan and inventory only. It has no
-simulator implementation, executable migration test results, coverage report, or
-installed quality hooks. Implement and validate these gates in P1 before the
-first accepted production feature. Never present a plan-only CI result as simulator
-acceptance or treat an empty workspace as 100% covered.
+The current implementation and measured evidence are recorded in STATUS.md.
+The configured pre-commit hook exports the staged tree and runs strict verification,
+including real C++ scenarios. Passing this implemented subset does not establish
+complete upstream parity or phase acceptance. Never treat an empty workspace as
+100% covered.
 
 ## Pinned reference and complete test ledger
 
@@ -191,8 +190,8 @@ for its digest. Until that mechanism exists, strict verification requires a
 properly equipped machine. Do not silently downgrade it to CPU-only coverage.
 
 Keep documentation-only checks proportionate: validate docs/manifests and reuse
-unchanged-code evidence by verified code digest when implemented. No production
-code exists today, so coverage is explicitly not applicable rather than passed.
+unchanged-code evidence by verified code digest when implemented. Required
+production coverage remains enforced; documentation does not exempt code changes.
 
 CI must test the checks themselves during P1: exactly-95 and below-95 data fail;
 missing crate/profile/instrumentation fails; stale evidence fails; a weakened
@@ -211,3 +210,21 @@ Archive machine-readable test results, coverage JSON, missing-line reports,
 feature/runner metadata, differential outputs, and exact commands against the
 release commit. Record failures and unrun work plainly. Only a complete required
 matrix supports a release acceptance claim.
+
+## Staged verifier Git context
+
+The parent hook retains its Git context when selecting/exporting the intended
+index and checking that the index stayed unchanged. The exported verifier removes
+only the repository-local environment keys reported by `git rev-parse
+--local-env-vars`. Otherwise a real worktree hook's absolute GIT_DIR and alternate
+GIT_INDEX_FILE can redirect child Git commands into the caller's repository.
+Reference/build settings, coverage configuration and nonlocal Git settings remain.
+
+A real temporary-worktree commit regression exercises this boundary with an
+alternate index, unstaged changes and a path containing spaces. Its exported child
+creates normal and bare Git repositories after proving local keys are absent.
+The test checks intended committed bytes, caller HEAD ancestry, ordinary-index
+bytes, core.bare, unstaged content and preserved reference/global configuration.
+The unchanged wrapper fails this regression on leaked Git keys; the fix preserves
+all original coverage/native checks. No simulator repository corruption has been
+observed; this closes the same boundary defect found in another repository's hook.
