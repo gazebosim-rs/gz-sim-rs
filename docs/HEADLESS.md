@@ -122,9 +122,9 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current gate passes 96 Rust checks and nine gate tests: 1755/1765 production
-lines and 2689/2737 regions. Every production crate exceeds 95% for both metrics;
-All 120 changed executable lines in the server reset increment are covered. Independent review and the exact
+The current gate passes 97 Rust checks and nine gate tests: 1759/1769 production
+lines and 2694/2742 regions. Every production crate exceeds 95% for both metrics;
+All four changed executable lines in the SDF consumer increment are covered. Independent review and the exact
 staged gate are required before publishing this increment.
 
 Remaining P2 work includes TPE, local/Fuel resources, sensor scheduling, the
@@ -135,7 +135,7 @@ and backend inventories, Bevy rendering and release qualification remain open.
 
 ## Reviewed producer integration
 
-The workspace pins SDF 67406180, messages 195644d8 and transport c00de5e4.
+The workspace pins SDF e59a674d, messages 195644d8 and transport c00de5e4.
 SDF supplies canonical-link selection directly: the returned link is borrowed from
 that model's subtree, whose links are all constructed before the model anchor.
 The body lookup is consequently an internal construction invariant. No parallel
@@ -145,13 +145,17 @@ SDF also retains contact/friction metadata and uses its audited Linux GNU scalar
 conversion boundary. The scene rejects every explicit surface, including an empty
 one, until backend parameter mapping exists. It never silently accepts ignored
 friction or collision filters. Parser conversion and resolver IO happen during
-loading, outside stepping; Linux GNU qualification remains explicit.
+loading, outside stepping; Linux GNU qualification remains explicit. The reviewed
+1.5 subset now passes the unchanged legacy-world physics/IMU assertions alongside
+1.6 and 1.7. Any explicit fluid added-mass matrix, including empty or zero, is
+rejected on static and dynamic links until a backend mapping exists. Absent
+metadata retains current behavior; no fluid physics is silently ignored.
 
 The transport pin rejects duplicate same-node publishers and orders withdrawal
-before immediate recreation. Surviving stream leases can be retained during the
-planned reset; recreation after removal has a native-tested producer contract.
+before immediate recreation. Surviving stream leases are retained during
+reset; recreation after removal has a native-tested producer contract.
 Consumer tests cover frame-field precedence, empty legacy IDs, topic defaults and
-XML whitespace, explicit unsupported surfaces and all five real C++ scenarios.
+XML whitespace, explicit unsupported surfaces and all six real C++ scenarios.
 
 
 World-bound identity reservations now permit explicitly restoring an original

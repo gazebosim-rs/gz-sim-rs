@@ -35,9 +35,9 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 96 Rust tests and nine gate tests, covering 1755/1765
-production lines and 2689/2737 regions. Every production crate exceeds 95% for
-both metrics. The server reset increment covers all 120 changed executable lines.
+The current local gate passes 97 Rust tests and nine gate tests, covering 1759/1769
+production lines and 2694/2742 regions. Every production crate exceeds 95% for
+both metrics. The SDF consumer increment covers all four changed executable lines.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
@@ -46,10 +46,10 @@ The hierarchy/pose revision d3524f5 passed its exact hosted gate.
 [CORE-01 is accepted](acceptance/CORE-01.md); API-01, QLT-01 and the broader phases
 remain open. Local model removal is published at 5fd5e49 and remote removal at b39ea419.
 The consumer now uses reviewed SDF frame/topic/canonical helpers and rejects
-explicit Surface physics until implemented; transport includes native publisher
+explicit Surface and fluid added-mass physics until implemented; transport includes native publisher
 recreation ordering. Producer pins and tests are detailed in HEADLESS.md. The C++ client now
 verifies six scenarios using actual clock, local-pose and IMU samples, exact-step
-controls, stable IDs, topic repair and deferred model removal. Its
+controls, stable IDs, topic repair, deferred model removal and reset/resume. Its
 native dependencies are rebuilt from the pinned reference lock in CI.
 
 `python3 scripts/verify.py` runs formatting, Clippy with warnings denied, Rust and

@@ -298,6 +298,11 @@ fn build_model(
             name,
             "collision count (expected one)",
         )?;
+        require(
+            link.inertial.fluid_added_mass.is_none(),
+            name,
+            "fluid added mass",
+        )?;
         let collision = &link.collisions[0];
         require(
             collision.surface.source.is_none(),

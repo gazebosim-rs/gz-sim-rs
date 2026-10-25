@@ -1588,7 +1588,7 @@ dependencies = [
 [[package]]
 name = "sdformat"
 version = "0.1.0"
-source = "git+https://github.com/gazebosim-rs/sdformat-rs?rev=6740618086d541054e13945b2ecb9a8cbc6fbfb6#6740618086d541054e13945b2ecb9a8cbc6fbfb6"
+source = "git+https://github.com/gazebosim-rs/sdformat-rs?rev=e59a674d3f41129e94eac829de95166dd5d355e2#e59a674d3f41129e94eac829de95166dd5d355e2"
 dependencies = [
  "errno",
  "glam 0.30.9",

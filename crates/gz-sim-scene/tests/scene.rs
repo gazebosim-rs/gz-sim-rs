@@ -388,7 +388,7 @@ fn deferred_sdf_pose_errors_are_rejected_before_scene_construction() {
 
 #[test]
 fn retained_legacy_sdf_worlds_reach_the_same_physics_and_sensor_state() {
-    for version in ["1.6", "1.7"] {
+    for version in ["1.5", "1.6", "1.7"] {
         let xml = WORLD.replace("version=\"1.12\"", &format!("version=\"{version}\""));
         assert_ne!(xml, WORLD);
         let mut sim = load(&xml).unwrap();
@@ -509,5 +509,42 @@ fn explicit_surface_metadata_is_rejected_until_physics_mapping_exists() {
                 ..
             })
         ));
+    }
+}
+
+#[test]
+fn explicit_fluid_added_mass_is_rejected_for_static_and_dynamic_links() {
+    for matrix in [
+        "<fluid_added_mass/>",
+        "<fluid_added_mass><xx>0</xx></fluid_added_mass>",
+        "<fluid_added_mass><xx>2</xx><xq>0.5</xq></fluid_added_mass>",
+    ] {
+        for static_link in [false, true] {
+            let xml = if static_link {
+                WORLD.replace(
+                    "<link name=\"base\">",
+                    &format!("<link name='base'><inertial>{matrix}</inertial>"),
+                )
+            } else {
+                WORLD.replace("</inertia>", &format!("</inertia>{matrix}"))
+            };
+            // DOM metadata remains available even when this backend has no mapping.
+            let sdf = sdformat::load_str(&xml, "fluid.sdf", &NoResources).unwrap();
+            assert!(
+                sdf.worlds
+                    .iter()
+                    .flat_map(|world| &world.models)
+                    .flat_map(|model| &model.links)
+                    .any(|link| link.inertial.fluid_added_mass.is_some())
+            );
+            assert!(matches!(
+                load(&xml),
+                Err(LoadError::Unsupported {
+                    feature: "fluid added mass",
+                    ..
+                })
+            ));
+            assert!(load(WORLD).is_ok());
+        }
     }
 }
