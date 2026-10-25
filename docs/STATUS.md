@@ -39,6 +39,14 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
+Coordinated typed-SDF adoption passed independent source/API/assertion review
+and exact staged checks:230 Rust tests, sixteen tooling checks and eleven C++
+scenarios; coverage3513/3549 lines5366/5483 regions, every crate above95%,
+changed scene8/8. [TYPED_SENSOR_ADOPTION.md](TYPED_SENSOR_ADOPTION.md) records
+explicit unsupported sensor/joint boundaries and the qualified static-frame
+native replay. Normal protected hook, exact hosted and publication remain
+separate qualification requirements; broad LOAD-01/P2 remain open.
+
 Subscriber-driven pose/IMU work passed independent native/source/assertion review
 and the exact staged gate:227 Rust tests, sixteen tooling checks and eleven actual
 C++ scenarios; coverage3505/3541 lines5353/5470 regions, every crate above95%,

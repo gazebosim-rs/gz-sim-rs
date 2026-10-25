@@ -1,0 +1,37 @@
+{
+  "decision": "approved",
+  "reviewer": "/root/sdformat_owner_fallback",
+  "author": "/root",
+  "review_type": "independent frozen source/API/assertion/native evidence review",
+  "base": "4ee91b28c44d890890240740c914e7909e1bb8a0",
+  "tree": "10dfa8323b9852173dcc960bb33ac7e3f0f1f43d",
+  "diff_sha256": "b8b369ed6aeaef66335ee6789ad50c4df0a66a461a07fa4650a8383ef1df42c3",
+  "files_sha256": {
+    "Cargo.lock": "0ba9a546f49bc3f1070f83a70d43019b17eec4255e50ed8f1b6f17269efaef26",
+    "Cargo.toml": "dd2e02d08c515bbcf0cb09293a32837c9645e67a5a5c94b42e7e875061cc649c",
+    "crates/gz-sim-scene/src/joints.rs": "80d6e6d02bb85fc6573ddf03e55887ecbd237636a2da9d9279d4762f8b975bbd",
+    "crates/gz-sim-scene/src/lib.rs": "50526d92ae8de17124a8726af297af1a265cc7787464d9ab9e4f13301d5c7199",
+    "crates/gz-sim-scene/tests/typed_sensors.rs": "88d29903b02b1437f8a07c1bfe57aec67475ab14c21890357433a521ccc31887",
+    "docs/HEADLESS.md": "5c078d732c4a50b0632b24c89320b3d212068d3f5bdc4246d1b625175d0afd63",
+    "docs/STATUS.md": "31404cfed32770dc4af22d15f0265653e30e9e2d1e5a49fcc77bfc030cee78b9",
+    "docs/TYPED_SENSOR_ADOPTION.md": "7b971e27dcba3467dc3d496a9dd03a1b6358ce15221812a35faae5fc1e865b2d",
+    "planning/reference/sdf-adoption.json": "bdd94121ce5037e0d54ae2c98fe1b575b392bfd0d06f4862439202b165160078",
+    "planning/test-ledger.json": "2acc0249998dc5190e844d69e11b9ef945273c19676af67b0af02374d46d3cce"
+  },
+  "scope": "Bounded SDF575 typed sensor consumer adoption. sensor.imu() guards all nine parsed non-IMU config variants; Joint.sensors is checked before topology/backend lowering for both engines; static-model implicit-frame sink preserves physical pose and reset identity. No sensor measurement, full LOAD/P2, D23 or native static policy claim.",
+  "evidence": {
+    "private_raw_export": "Exact frozen tree exported without Git; selected three new Rust tests passed3/0 with separate target.",
+    "guard_mutants": [
+      "Removing Joint.sensors guard fails exact joint test on Rapier before lowering.",
+      "Replacing non-IMU capability guard with default IMU fallback fails exact contact test on Rapier."
+    ],
+    "native": "Historical exact 6ab static-model packet replay hash0a43c3470228d6719ea1b5e0073ac9e68e24af1c541b11a4ecb14d14e1afd3ca: 61 observations, unchanged original1/0; original corpus hash5238b7f3 shared with adopted SDF575. Current575 helper anchoring failure remains explicitly disclosed; producer has separate corrective candidate.",
+    "author_gate": "Strict staged log has 230 Rust,16 tooling,11 C++; workspace3513/3549 lines5366/5483 regions, changed scene8/8, every production crate >95%.",
+    "existing_tests": "Existing227 Rust and11 C++ unchanged; new three tests add bounded capability/identity assertions."
+  },
+  "limitations": [
+    "Native static probe compiled against installed SDK plus pinned source; no fresh full native rebuild or reproducible image claim.",
+    "Producer SDF575 helper historical reverse-parent guard fails after legitimate later test edits; exact historical6ab packet was replayed without bypass.",
+    "No full native simulator sensor behavior or complete retained original retirement."
+  ]
+}

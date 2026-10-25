@@ -43,6 +43,13 @@ pub(super) fn validate_model(
     rapier: bool,
     is_static: bool,
 ) -> Result<(), LoadError> {
+    for joint in &model.joints {
+        require(
+            joint.sensors.is_empty(),
+            &format!("{}::{}", model.scoped_name, joint.name),
+            "joint sensors",
+        )?;
+    }
     if model.joints.is_empty() {
         return Ok(());
     }

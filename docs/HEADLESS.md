@@ -140,7 +140,11 @@ qualification also remain open.
 
 ## Reviewed producer integration
 
-The workspace pins SDF 706e8fde, messages 2cea810e, transport 7ce88e5f and Fuel 3747086e.
+The workspace pins SDF `575d4d9`, messages `2cea810e`, transport `2a545f1`
+and Fuel `3747086e`.
+[TYPED_SENSOR_ADOPTION.md](TYPED_SENSOR_ADOPTION.md) records typed metadata
+capability guards and static-model graph qualifications; other sensor
+measurements remain unsupported.
 SDF supplies canonical-link selection directly: the returned link is borrowed from
 that model's subtree, whose links are all constructed before the model anchor.
 The body lookup is consequently an internal construction invariant. No parallel

@@ -620,7 +620,10 @@ fn build_model(
         for sensor in &link.sensors {
             let name = format!("{}::{}", link.scoped_name, sensor.name);
             require(!sensor.enable_metrics, &name, "sensor metrics")?;
-            let config = &sensor.imu;
+            let config = sensor.imu().ok_or_else(|| LoadError::Unsupported {
+                entity: name.clone(),
+                feature: "non-IMU sensors",
+            })?;
             require(
                 config.enable_orientation
                     && config.localization == "CUSTOM"

@@ -1,0 +1,67 @@
+{
+  "upstream_sha": "1249805d9fceeff94ca1fe63e26ab9c051cea24e",
+  "corpus_sha256": "5238b7f3d8e1c2977ebd689caf6656c9750e83b65682f197c9dd33e9efe7472d",
+  "probe_source_sha256": "2adf757013da974ef318b011957bdc050e2b4c9915f1194ed08811fb12e8a104",
+  "probe_binary_sha256": "069b4f30577a6123661818225ae8199577c6cf6342b90266be22ff9ed283f2be",
+  "source_sha256": {
+    "src/FrameSemantics.cc": "9fa1184da2130efdd3d4932ca5616de7bba347b8348ad2fcd972f4ec789992bc",
+    "src/FrameSemantics.hh": "d4c9ffe3852586a14fe11d41d03a6334a957b817ffbaf9a7d6657e4fdfb22889",
+    "src/ScopedGraph.hh": "e895370927e4dffdc3531e29586478e9fb1018762186c27556588ee9052ad6d2",
+    "src/Utils.hh": "bf1564bfb978d06126ad9345e844f49cb1af5552747df6a3bfe0dcabd081c6bf",
+    "src/Model.cc": "9ce157bcd85ad233af6022192315ffa61ff5374490f8912f6750c98a0448d8d9",
+    "src/Frame.cc": "76832c96a550cf416a1fb712418349bc8a94e11d0d62986b92055362b743a30a",
+    "src/Joint.cc": "4ebe9449ca64f4011a618c01292ba6673db069c7b5ec7dd6eae70018ad4d5271",
+    "src/FrameSemantics_TEST.cc": "e073d0e0d33584641d5d830e0140d233092b226f37f6488a304bf858d1cfccb1",
+    "test/sdf/model_nested_static_model.sdf": "ac93cefe77c79aa1ec98080d9b678dfe7ca6f5f6eacfe9219a0556ce7816a252",
+    "include/sdf/Root.hh": "9f740bfa027a98de449046345996b5a8544499a41b2c546d20804d67568975b7",
+    "include/sdf/World.hh": "a1a8046d9f04c103891e5a496e0edc2e59fbf856c763d6cac32d4aa54e94b0ea",
+    "include/sdf/Model.hh": "efc07cccb992ee8a0cd881e644454fb73b82260085e38567e5573573dc105e2d",
+    "include/sdf/Link.hh": "3d35750221ef5753a3db80264f09edefc36188f26ea2ff60c12c1b863aff3352",
+    "include/sdf/Frame.hh": "96266bcc8c92f8aed61060cc6a0fc4a2c460170c25b9ad515797d73557be6cf6",
+    "include/sdf/Joint.hh": "4fd4a37dc51dce993fbd375e2c4e4e29895879d171be4cc31f494f20ef2398fc",
+    "include/sdf/SemanticPose.hh": "690f3b787a0e433195e7603181e4655b680512055e05c128163573fea220073b",
+    "include/sdf/Element.hh": "7fd9188523a957c8d9d96e33f31ff39ccf95fd3752a664bf3ffb60185be9da4e",
+    "include/sdf/Error.hh": "a80e27c0060a2c810fc44975d9cf1de3ccf4506faf73f14ebdd2c93137a12dc8",
+    "include/sdf/Types.hh": "306dadbda2553f6bee407bbb022ab54d8bd03d9a2844142e2f493d96bbfebb55",
+    "include/sdf/InterfaceElements.hh": "b7ef01a3770b3a82edc92028c8c70bd4f3a0c156deb254b0c0aacc6e244c6dbd",
+    "include/sdf/InterfaceFrame.hh": "d6ac4dd47ebf0562835e024a3800fe118db78f6c03eedc4e58e9147189966447",
+    "include/sdf/InterfaceJoint.hh": "aa9e94f4ea767d372fc2ceb1e1a1af3aa8e31fa407f8424c1e89cd123620aac6",
+    "include/sdf/InterfaceLink.hh": "b41bc7815b6d3f5155a434818faabe2ee536187b1115628980a51563f2aee790",
+    "include/sdf/InterfaceModel.hh": "d27b0c512ffc1fcb57f839c7f5284a32315f3c717273f2fff5b4fe0da9bec817"
+  },
+  "original_binary_sha256": "26fa8eae908af45248188c60a95122a1c2a69c733d35ad6873ac6b47c01ed51a",
+  "linked_libraries_sha256": {
+    "libsdformat.so.17": "bcc864bcee56b49c13081e29722051e26c036260e3dd037e7736aa2b8620358f",
+    "libgz-math.so.10": "288c6f52fac45359f5de67d97e0069b7f37420f5f78888e61406b8f565656c4f",
+    "libstdc++.so.6": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+    "libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf"
+  },
+  "math_upstream_sha": "1316ed334f4d5bda7be59aae07cd6e8ff31cfe13",
+  "math_header_sha256": {
+    "include/gz/math/Pose3.hh": "6bfc53f0bd22a3e1596bbdb07c24bacdac9e17bd8178b9373d8df1b01e4fc6f6",
+    "include/gz/math/Quaternion.hh": "9170601444da93735b4d14b369cc4266fafc7655657a6af7613e31206382b873",
+    "include/gz/math/Vector3.hh": "b4e8d01584139efba180bf530c95e18101aee4fb070aa93b8ddfe7cc38282a38",
+    "include/gz/math/graph/Edge.hh": "129aa339f71e097d62eac3739ca9b437d6b2a4c5eb633724b6258ee3f3ee48cb",
+    "include/gz/math/graph/Graph.hh": "0e42d3daf5646bfe6ecd775eda99e694620d18a14dec39967eafe5be4a3e8dc6",
+    "include/gz/math/graph/GraphAlgorithms.hh": "bb0bfcb086853825396e650bc52da6434ec1a7bc1a9b3dc03333b7107d9b4b2c",
+    "include/gz/math/graph/Vertex.hh": "cbac7f1e5e1bd979b3b28fde617076d439bb2de2d82b7d7feb5d04c7f6fd399b"
+  },
+  "originals": [
+    {
+      "case": "NestedFrameSemantics.ModelWithoutLinksWithNestedStaticModel",
+      "tests": 1,
+      "failures": 0,
+      "skipped": 0
+    }
+  ],
+  "qualification": "Fresh helper plus immutable FrameSemantics.cc compilation; existing pinned original test binary and installed SDK/library/header identity. Root DOM graph uses the installed library, while direct graph queries use the freshly compiled source. No fresh full native rebuild or reproducible image claim.",
+  "scope": "Coordinated SDF575 consumer adoption; bounded typed sensor guards and producer static-body graph correction, not new sensor measurements or broad LOAD01 acceptance.",
+  "producer_old": "4ed690b3a872e395df0f3544b278c7f1d3c45a7e",
+  "producer_new": "575d4d9abe5cd46dd2b02ebdd1267d9e25d6206f",
+  "historical_reference_packet": "6ab311eef76701ace7b44ea87ec03e0750394949",
+  "native_observation_count": 61,
+  "native_full_report_sha256": "0a43c3470228d6719ea1b5e0073ac9e68e24af1c541b11a4ecb14d14e1afd3ca",
+  "reproduction_script_sha256": "ab75eab2ce46480ff925dbe12655d60b589d43d6bd3ec7b4d46ee916946eb7d8",
+  "source_corpus_identical_in_adopted_revision": true,
+  "current_helper_limit": "Running current575 static_model_reference.py fails its reverse-parent hash check on legitimately evolved tests/semantics.rs before native execution. Exact historical6ab packet replay passed every guard; no guard/test/assertion weakened. Producer owner notified for a separate fix."
+}
