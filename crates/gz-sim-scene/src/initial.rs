@@ -59,6 +59,8 @@ struct Node {
     imu: Option<Imu>,
     publication: Option<ImuPublication>,
     visual: Option<VisualProperties>,
+    material: Option<VisualMaterial>,
+    link_properties: Option<LinkProperties>,
 }
 
 enum InitialPhysics {
@@ -129,6 +131,8 @@ pub(super) fn capture(sim: &mut Simulation) {
             imu: entity.get::<Imu>().cloned(),
             publication: entity.get::<ImuPublication>().cloned(),
             visual: entity.get::<VisualProperties>().cloned(),
+            material: entity.get::<VisualMaterial>().cloned(),
+            link_properties: entity.get::<LinkProperties>().copied(),
         });
     }
     nodes.sort_by_key(|node| node.id.get());
@@ -295,6 +299,12 @@ pub fn reset_loaded_world<R>(
         }
         if let Some(visual) = &node.visual {
             entity.insert(visual.clone());
+        }
+        if let Some(material) = &node.material {
+            entity.insert(material.clone());
+        }
+        if let Some(properties) = node.link_properties {
+            entity.insert(properties);
         }
         if let Some(publication) = &node.publication {
             entity.insert(publication.clone());

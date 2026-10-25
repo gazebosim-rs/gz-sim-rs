@@ -38,13 +38,13 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 182 Rust checks and twelve gate tests, including all
-nine actual C++ client scenarios. Coverage is 2733/2767 production lines and
-4288/4391 regions. Every production crate exceeds 95% for both metrics. The
-input increment covers TPE15/15, Rapier56/56 and scene178/179 changed executable
-lines. Scene coverage is 1145/1176 lines and 1778/1854 regions. No coverage
-exclusions or thresholds changed. Independent review and the exact staged hook
-remain required before this input increment is published.
+The current local gate passes 184 Rust checks and twelve gate tests, including all
+nine actual C++ client scenarios. Coverage is 2748/2783 production lines and
+4329/4436 regions. Every production crate exceeds 95% for both metrics. The
+controlled producer increment covers 28/28 changed executable scene lines; scene
+coverage is 1160/1192 lines and 1819/1899 regions. No coverage exclusions or
+thresholds changed. Independent review and the exact staged hook remain required
+before this producer increment is published.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
 Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
@@ -102,8 +102,8 @@ and release matrices. CORE-02, full IO-01 and P2 are still open.
 
 ## Offline Fuel integration
 
-The workspace consumes public Fuel 3747086 and Transport 20320129 with its exact
-Messages e2001a3 dependency; using one Messages identity preserves its TypeName
+The workspace consumes public Fuel 3747086 and Transport 7ce88e5 with its exact
+Messages 2cea810 dependency; using one Messages identity preserves its TypeName
 trait boundary. Transport's reviewed socket2 0.6.5 pin fixes the former Fuel/Tokio
 resolution conflict. The actual root lock uses Tokio 1.54.1; hyper-util 0.1.15 keeps
 its separate socket2 0.5.10 dependency. No constraints were relaxed or producer
@@ -171,3 +171,14 @@ report remain P2 work. These local APIs cover its bounded free-body input
 capability when exercised by the selected fixture; native input transport systems
 remain wider retained work unless that fixture requires them. Real C++ peer
 interoperability remains required.
+
+
+## Controlled producer metadata
+
+SDF 706e8fde supplies native axis-default corrections, owned Material and link
+flags. VisualMaterial and LinkProperties survive loaded reset; nondefault physical
+flags are rejected until supported. Transport 7ce88e5 and matching Messages 2cea810
+preserve one Messages identity and retain Fuel 374 unchanged. The full author
+gate passes 184 Rust checks; review/staged/hosted qualification remains pending
+for this increment.
+PRODUCER_METADATA.md records graph, scope and the unadopted Contact enum boundary.

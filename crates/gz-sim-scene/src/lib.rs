@@ -78,6 +78,14 @@ impl WorldPhysics {
 #[derive(Component, Debug, Clone)]
 pub struct VisualProperties(pub sdformat::VisualProperties);
 
+/// Owned material data; rendering and resource loading are separate systems.
+#[derive(Component, Debug, Clone)]
+pub struct VisualMaterial(pub Box<sdformat::Material>);
+
+/// Construction metadata. Editing it does not reconfigure an installed backend.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LinkProperties(pub sdformat::LinkProperties);
+
 #[derive(Component, Debug)]
 pub struct LocalName(pub String);
 
@@ -410,6 +418,14 @@ fn build_model(
     for link in &model.links {
         let name = &link.scoped_name;
         require(link.plugins.is_empty(), name, "link plugins")?;
+        require(!link.properties.enable_wind, name, "link wind")?;
+        require(
+            link.properties.enable_gravity,
+            name,
+            "disabled link gravity",
+        )?;
+        require(!link.properties.kinematic, name, "kinematic links")?;
+        require(!link.properties.self_collide, name, "link self collision")?;
         require(
             link.visuals.iter().all(|visual| visual.plugins.is_empty()),
             name,
@@ -480,6 +496,9 @@ fn build_model(
         };
         let local = sdf.pose_of(name, &model.scoped_name)?;
         let link_entity = spawn_node(sim, Some(model_entity), name, EntityKind::Link, local, pose)?;
+        sim.world_mut()
+            .entity_mut(link_entity)
+            .insert(LinkProperties(link.properties));
         sim.world_mut().entity_mut(link_entity).insert((Velocity {
             linear: [0.0; 3],
             angular: [0.0; 3],
@@ -501,14 +520,11 @@ fn build_model(
             .collisions
             .iter()
             .map(|child| (&child.name, &child.pose, EntityKind::Collision, None))
-            .chain(link.visuals.iter().map(|child| {
-                (
-                    &child.name,
-                    &child.pose,
-                    EntityKind::Visual,
-                    Some(&child.properties),
-                )
-            }))
+            .chain(
+                link.visuals
+                    .iter()
+                    .map(|child| (&child.name, &child.pose, EntityKind::Visual, Some(child))),
+            )
         {
             let local = sdf.resolve_pose(child_pose, &model.scoped_name, name, name)?;
             let world = sdf.resolve_pose(child_pose, &model.scoped_name, name, context.world)?;
@@ -521,10 +537,12 @@ fn build_model(
                 world,
             )?;
             sim.world_mut().entity_mut(entity).insert(AttachedPose);
-            if let Some(properties) = visual {
-                sim.world_mut()
-                    .entity_mut(entity)
-                    .insert(VisualProperties(properties.clone()));
+            if let Some(visual) = visual {
+                let mut entity = sim.world_mut().entity_mut(entity);
+                entity.insert(VisualProperties(visual.properties.clone()));
+                if let Some(material) = &visual.material {
+                    entity.insert(VisualMaterial(material.clone()));
+                }
             }
         }
         for sensor in &link.sensors {

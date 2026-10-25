@@ -122,12 +122,11 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current full gate passes 182 Rust checks and twelve gate tests, including all
-nine real C++ scenarios: 2733/2767 production lines and 4288/4391 regions. Every
-production crate strictly exceeds 95% for both metrics. The input increment
-covers TPE15/15, Rapier56/56 and scene178/179 changed executable lines.
-Independent review and the exact staged gate remain required before this input
-increment is published.
+The current full gate passes 184 Rust checks and twelve gate tests, including all
+nine real C++ scenarios: 2748/2783 production lines and 4329/4436 regions. Every
+production crate strictly exceeds 95% for both metrics. The controlled producer
+increment covers 28/28 changed executable scene lines. Independent review and the
+exact staged gate remain required before this producer increment is published.
 
 Remaining P2 work is the selected fixture's simple-joint variant, equal-work C++
 comparison/performance report and exact retained assertions. Its bounded
@@ -142,7 +141,7 @@ qualification also remain open.
 
 ## Reviewed producer integration
 
-The workspace pins SDF 7ed5ad02, messages e2001a3b, transport 20320129 and Fuel 3747086e.
+The workspace pins SDF 706e8fde, messages 2cea810e, transport 7ce88e5f and Fuel 3747086e.
 SDF supplies canonical-link selection directly: the returned link is borrowed from
 that model's subtree, whose links are all constructed before the model anchor.
 The body lookup is consequently an internal construction invariant. No parallel
@@ -308,3 +307,9 @@ reset/removal cancel them. TPE force/static/rotation limitations remain explicit
 [PHYSICS_INPUTS.md](PHYSICS_INPUTS.md) records supported scope, native controls,
 analytic cross-engine accuracy and lifecycle/fault tests. This increment does
 not add transport command ingress or complete the P2 joint/performance report.
+
+
+[PRODUCER_METADATA.md](PRODUCER_METADATA.md) records the controlled SDF material,
+link-flag and matched Messages/Transport adoption. Newly accepted material data
+remains owned through reset; nondefault link physics flags fail explicitly.
+There are no new renderer/resource effects or accepted joint constraints.
