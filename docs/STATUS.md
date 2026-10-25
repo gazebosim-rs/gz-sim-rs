@@ -15,14 +15,14 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 
 | Crate | Behavior | Remaining boundary |
 | --- | --- | --- |
-| gz-assets | Bounded local files/configured directories, native include lookup precedence, lossless source IDs and structured warnings | Offline Fuel, SDK/install/package policy and decoded resource caching |
+| gz-assets | Bounded local files/configured directories, cache-only Fuel model includes, native lookup precedence, lossless source IDs and structured warnings | Downloads/cancellation, SDK/install/package policy and decoded resource caching |
 | gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, typed terminal fault diagnostics, world/allocator-bound reset reservations, isolated worlds | Persistence and complete lifecycle contract |
 | gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
 | gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation, model overlap contacts and typed faults | Remaining geometry/commands and D23 policy |
 | gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, asset resolution and scheduling |
-| gz-sim-cli | Local SDF/configured world input and include roots, Rapier/TPE selection, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, offline Fuel resources, signal handling and packaging |
+| gz-sim-cli | Local SDF/configured world input and include roots, Rapier/TPE selection, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, remote top-level resources, signal handling and packaging |
 | gz-sim-server | Bounded clock/pose publication, shared-topic IMU streams, polled pause/step/reset controls, deferred remove services, real C++ clients | Root clock election, run-to controls, scene services and runtime sensor registration |
 
 Rust 1.95.0, Bevy ECS 0.20.0, Rapier3d-f64 0.36.1 and glam 0.33.12 are pinned.
@@ -38,12 +38,14 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 151 Rust checks and nine gate tests, including all
-seven actual C++ client scenarios. Coverage is 2352/2380 production lines and
-3677/3771 regions. Every production crate exceeds 95% for both metrics. The local-resource
-increment covers assets 124/125 and CLI 29/29 changed executable lines. Assets
-coverage is 132/133 lines and 245/250 regions; the prior physics/scene gates remain
-required.
+The current local gate passes 157 Rust checks and nine gate tests, including all
+seven actual C++ client scenarios. Coverage is 2372/2400 production lines and
+3725/3819 regions. Every production crate exceeds 95% for both metrics. The offline
+Fuel increment covers assets 15/15 and CLI 5/5 changed executable lines. Assets
+coverage is 147/148 lines and 282/287 regions. No coverage exclusions or thresholds
+changed. A separate fresh reviewer replay covers the cache API, both real engines,
+CLI fixtures and six installed-native cache controls; final manifest/evidence
+binding is required before publication.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
@@ -98,3 +100,18 @@ the first slice's simple-joint variant and velocity/force inputs. Record the
 equal-work reference comparison and performance report for P2. Then
 complete the retained backend, sensor/system, rendering, plugin, packaging and
 release matrices. CORE-02, full IO-01 and P2 are still open.
+
+## Offline Fuel integration
+
+The workspace consumes public Fuel 3747086 and Transport 20320129 with its exact
+Messages e2001a3 dependency; using one Messages identity preserves its TypeName
+trait boundary. Transport's reviewed socket2 0.6.5 pin fixes the former Fuel/Tokio
+resolution conflict. The actual root lock uses Tokio 1.54.1; hyper-util 0.1.15 keeps
+its separate socket2 0.5.10 dependency. No constraints were relaxed or producer
+source edited. Fuel cache lookup never invokes download/fetch/details, and misses
+remain explicit. Both engines load through the cache, step and restore original
+logical IDs/poses after the resolver and cached files are removed.
+
+See LOCAL_ASSETS.md for limits, configuration and native-reference qualifications.
+This is a model-include consumer, not completion of downloads, cancellation,
+remote world/model-file URLs or the complete FUEL-01/P2 contract.

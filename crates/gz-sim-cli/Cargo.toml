@@ -10,6 +10,7 @@ name = "gz-sim-rs"
 path = "src/main.rs"
 
 [dependencies]
+gz-fuel-tools.workspace = true
 clap.workspace = true
 gz-assets = { path = "../gz-assets" }
 gz-sim-scene = { path = "../gz-sim-scene" }

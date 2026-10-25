@@ -11,6 +11,7 @@ jobs:
       - name: Install native client build dependencies
         run: |
           sudo apt-get update
+          sudo apt-get install -y libssl-dev
           python3 -c 'import json, subprocess; subprocess.run(["sudo", "apt-get", "install", "-y", *json.load(open("planning/transport-reference-lock.json"))["apt_dependencies"]], check=True)'
       - run: python3 scripts/bootstrap-native.py --jobs 2
       - run: python3 scripts/verify.py

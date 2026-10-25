@@ -1,4 +1,4 @@
-# Local SDF resources
+# Local and offline SDF resources
 
 The gz-assets workspace crate loads local UTF-8 SDF resources before simulator
 construction. It has no Bevy dependency and performs no downloads. LocalResources
@@ -65,6 +65,48 @@ python3 scripts/probe-local-resources.py --dependency-prefix "$DEPENDENCY_PREFIX
 
 These controls use an installed SDFormat SDK, with linked dependencies qualified;
 they do not close the complete reproduced native simulator/Fuel baseline.
-Offline Fuel lookup, downloads/cancellation, SDK install-directory defaults,
+Downloads/cancellation, SDK install-directory defaults,
 resource-path services, package discovery, decoded mesh/material/image caching,
 standalone-model wrapping and the broader headless P2 milestone remain open.
+
+## Offline Fuel model includes
+
+The consumer pins the independent gz-fuel-tools-rs API and calls only
+FuelClient::parse(Model) and cached(Model). Enable it with with_cached_fuel;
+the CLI enables it using the producer's default configuration. The pinned producer
+uses native TLS; Linux builds need OpenSSL development files (`libssl-dev`),
+which the CI job installs. Release packaging of runtime dependencies remains open.
+`--fuel-cache-path` overrides the cache directory; otherwise the producer's
+GZ_FUEL_CACHE_PATH/default-cache rules apply. Configurations may contain tokens;
+the consumer does not print them. No fetch, download or details call is made,
+including on a cache miss.
+
+After local candidates miss, HTTP(S) model URLs are parsed by Fuel. Exact versions
+require that version; tip and versionless identifiers select the highest numeric
+usable cached version. The producer owns URL normalization, cache layout, version
+selection and symlink rejection. A missing/unusable entry becomes CacheMiss, not
+a fabricated filesystem error: the producer's Option API also hides cache-scan
+IO failures. Invalid model URLs remain Fuel errors.
+
+A cached directory goes through the same SDF configuration selector as local
+includes. Metadata-only Fuel entries can be usable to Fuel yet lack the
+model.config/manifest.xml needed for an SDF include; they fail explicitly. The
+native FetchResource directory handoff and separate sdfFromPath API are not
+interchangeable. Cached XML retains the same read and warning limits, source
+identities and errors. Loading completes before stepping, and reset uses the
+owned blueprint after the cache and resolver have been removed.
+
+Model-file URLs, top-level remote world/model URLs, collection expansion,
+network downloads, cancellation and decoded assets remain outside this slice.
+Cache safety restrictions inherited from the producer are not claims of complete
+native filesystem parity. Six installed SDK controls cover exact/tip/versionless
+selection, lowercase identities, missing versions and invalid identifiers:
+
+```sh
+python3 scripts/probe-offline-fuel.py --dependency-prefix "$DEPENDENCY_PREFIX" --work-dir /tmp/offline-fuel-probe --output /tmp/offline-fuel-proof.json
+```
+
+The hashed reference is planning/reference/offline-fuel.json. These narrow controls
+do not close the complete reproduced native simulator/Fuel baseline. Rust tests
+use the actual producer cache API and loopback listeners to detect unwanted
+requests on hits and misses; CLI and both-engine tests exercise loaded scenes.

@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Bounded local SDF loading before simulation construction.
+//! Bounded local and cache-only Fuel SDF loading before simulation construction.
+use gz_fuel_tools::{FuelClient, ResourceKind};
 use sdformat::{ModelConfigWarning, Resource, ResourceResolver};
 use std::{
     collections::BTreeMap,
@@ -28,6 +29,10 @@ pub enum AssetError {
     Poisoned,
     #[error("resource base directory must be absolute")]
     RelativeBase,
+    #[error(transparent)]
+    Fuel(#[from] gz_fuel_tools::Error),
+    #[error("no usable cached Fuel model")]
+    CacheMiss,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -47,6 +52,7 @@ pub struct LocalResources {
     max_bytes: u64,
     warnings: Mutex<Vec<Warning>>,
     max_warnings: usize,
+    fuel: Option<FuelClient>,
 }
 
 impl LocalResources {
@@ -61,7 +67,15 @@ impl LocalResources {
             max_bytes,
             warnings: Mutex::new(Vec::new()),
             max_warnings: 1024,
+            fuel: None,
         })
+    }
+
+    /// Enables cache-only Fuel model lookup after local paths miss.
+    /// Construction, URL parsing and cache lookup make no network request.
+    pub fn with_cached_fuel(mut self, client: FuelClient) -> Self {
+        self.fuel = Some(client);
+        self
     }
 
     pub fn add_uri_path(&mut self, prefix: String, root: PathBuf) {
@@ -121,6 +135,16 @@ impl LocalResources {
             );
         for path in candidates {
             if fs::metadata(&path).is_ok() {
+                return self.read_path(&path);
+            }
+        }
+        if let Some(client) = &self.fuel {
+            let scheme = uri.split_once("://").map_or("", |(scheme, _)| scheme);
+            if scheme.eq_ignore_ascii_case("http") || scheme.eq_ignore_ascii_case("https") {
+                let id = client.parse(uri, ResourceKind::Model)?;
+                let path = client
+                    .cached(ResourceKind::Model, &id)
+                    .ok_or(AssetError::CacheMiss)?;
                 return self.read_path(&path);
             }
         }

@@ -20,6 +20,9 @@ struct Args {
     /// Additional resource roots, appended after environment roots.
     #[arg(long)]
     resource_path: Vec<PathBuf>,
+    /// Offline Fuel cache root for model includes; misses never download.
+    #[arg(long)]
+    fuel_cache_path: Option<PathBuf>,
     #[arg(long, default_value = "67108864")]
     max_xml_bytes: NonZeroU64,
     /// Fail loading if resource warnings exceed this budget.
@@ -61,6 +64,11 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
     }
     let mut resolver =
         gz_assets::LocalResources::new(std::env::current_dir()?, roots, args.max_xml_bytes.get())?;
+    let mut fuel = gz_fuel_tools::ClientConfig::default();
+    if let Some(path) = args.fuel_cache_path {
+        fuel.cache_location = path;
+    }
+    resolver = resolver.with_cached_fuel(gz_fuel_tools::FuelClient::new(fuel));
     resolver.set_warning_limit(args.max_resource_warnings);
     let loaded = (|| -> Result<_, Box<dyn Error>> {
         let resource = resolver.read_path(&args.file)?;

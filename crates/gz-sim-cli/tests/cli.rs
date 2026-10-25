@@ -262,3 +262,59 @@ fn local_model_directory_includes_and_budgets_work_through_the_cli() {
             .contains("NewerVersion")
     );
 }
+
+#[test]
+fn offline_fuel_cache_override_and_environment_drive_both_headless_engines() {
+    let temp = tempfile::TempDir::new().unwrap();
+    let cache = temp.path().join("cache");
+    let directory = cache.join("fuel.gazebosim.org/alice/models/robot/2");
+    std::fs::create_dir_all(&directory).unwrap();
+    std::fs::write(
+        directory.join("model.config"),
+        "<model><sdf version='1.12'>model.sdf</sdf></model>",
+    )
+    .unwrap();
+    std::fs::write(directory.join("model.sdf"), "<sdf version='1.12'><model name='robot'><static>true</static><link name='body'><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model></sdf>").unwrap();
+    let world = temp.path().join("world.sdf");
+    std::fs::write(&world, "<sdf version='1.12'><world name='default'><include><uri>https://fuel.gazebosim.org/1.0/alice/models/robot/2</uri><pose>1 2 3 0 0 0</pose></include></world></sdf>").unwrap();
+    for engine in ["rapier", "tpe"] {
+        for override_path in [true, false] {
+            let mut cmd = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"));
+            cmd.arg(&world)
+                .args(["--physics-engine", engine, "--iterations", "3"])
+                .env_remove("SDF_PATH")
+                .env_remove("GZ_SIM_RESOURCE_PATH");
+            if override_path {
+                cmd.arg("--fuel-cache-path")
+                    .arg(&cache)
+                    .env("GZ_FUEL_CACHE_PATH", temp.path().join("unused"));
+            } else {
+                cmd.env("GZ_FUEL_CACHE_PATH", &cache);
+            }
+            let result = cmd.output().unwrap();
+            assert!(
+                result.status.success(),
+                "{}",
+                String::from_utf8_lossy(&result.stderr)
+            );
+            assert_eq!(
+                String::from_utf8(result.stdout).unwrap(),
+                "simulation_ns=3000000 iterations=3\ndefault::robot::body 1 2 3\n"
+            );
+        }
+    }
+    std::fs::remove_dir_all(&cache).unwrap();
+    let result = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
+        .arg(&world)
+        .arg("--fuel-cache-path")
+        .arg(&cache)
+        .output()
+        .unwrap();
+    assert_eq!(result.status.code(), Some(1));
+    assert!(result.stdout.is_empty());
+    assert!(
+        String::from_utf8(result.stderr)
+            .unwrap()
+            .contains("no usable cached Fuel model")
+    );
+}

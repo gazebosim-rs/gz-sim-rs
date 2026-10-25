@@ -122,12 +122,13 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current gate passes 115 Rust checks and nine gate tests: 1870/1880 production
-lines and 2884/2932 regions. Every production crate exceeds 95% for both metrics;
-The reported-fault increment covers all 57 changed executable lines. Independent review and the exact
-staged gate are required before publishing this increment.
+The current full gate passes 157 Rust checks and nine gate tests, including all
+seven real C++ scenarios: 2372/2400 production lines and 3725/3819 regions. Every
+production crate strictly exceeds 95% for both metrics. The cache-only Fuel
+increment covers all 20 changed executable lines. Independent review and the
+exact staged gate remain required before publication.
 
-Remaining P2 work includes remaining TPE capabilities, offline Fuel resources, sensor scheduling, the
+Remaining P2 work includes remaining TPE capabilities, full resource/download behavior, sensor scheduling, the
 simple-joint variant and velocity/force input required by PLAN.md, plus the
 equal-work C++ comparison/performance report. The complete articulation, system
 and backend inventories, Bevy rendering and release qualification remain open.
@@ -135,7 +136,7 @@ and backend inventories, Bevy rendering and release qualification remain open.
 
 ## Reviewed producer integration
 
-The workspace pins SDF 80b6c74a, messages 195644d8 and transport c00de5e4.
+The workspace pins SDF 80b6c74a, messages e2001a3b, transport 20320129 and Fuel 3747086e.
 SDF supplies canonical-link selection directly: the returned link is borrowed from
 that model's subtree, whose links are all constructed before the model anchor.
 The body lookup is consequently an internal construction invariant. No parallel
@@ -237,12 +238,21 @@ loader. Visual cast-shadows, transparency, visibility flags and optional laser
 retro metadata are now owned by ECS components and the loaded-reset blueprint;
 parsing them does not implement rendering or lidar effects. A removal/reset
 regression preserves nondefault values and distinguishes Some(0) laser retro.
-The config selector is preparation for a bounded filesystem/offline cache consumer;
-selecting a filename is not a resource lookup or a promise that its SDF version
-can be loaded. Local files/configured includes are handled by [LOCAL_ASSETS.md](LOCAL_ASSETS.md);
-offline Fuel cache integration remains under implementation.
+The config selector supplies a directory's SDF filename; selection alone does not
+establish that its SDF version can be loaded. [LOCAL_ASSETS.md](LOCAL_ASSETS.md)
+describes actual local lookup and cache-only Fuel model includes.
 
 The CLI's local loader supports `--resource-path`, `--max-xml-bytes` and
 `--max-resource-warnings`. Directory inputs must select a world; model directories
 are supported as include resources. No filesystem or network wait is added to a
-simulation step. SDK install paths and Fuel/cache lookup remain separate work.
+simulation step. SDK install paths and online Fuel/download behavior remain open.
+
+## Cache-only Fuel model includes
+
+The headless CLI supports cached HTTP(S) model includes through the independent
+Fuel API after local lookup misses. `--fuel-cache-path` overrides its cache root;
+otherwise producer defaults and GZ_FUEL_CACHE_PATH apply. Hits and misses never
+download. Exact/tip/versionless cache selection belongs to Fuel; the cached
+directory uses the existing SDF configuration selector and XML/warning limits.
+Both engines restore loaded state after the cache is removed. LOCAL_ASSETS.md
+records reference hashes, errors, controls and remaining resource scope.

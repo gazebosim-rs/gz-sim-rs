@@ -17,6 +17,7 @@ gz-physics-tpe = { path = "../gz-physics-tpe" }
 gz-sensors = { path = "../gz-sensors" }
 
 [dev-dependencies]
+gz-fuel-tools.workspace = true
 gz-assets = { path = "../gz-assets" }
 tempfile = "=3.25.0"
 serde_json = "=1.0.149"
