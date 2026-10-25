@@ -222,3 +222,17 @@ numbers are context only because publication/bookkeeping paths differ. The
 warmup command/IMU acceleration mismatch remains a separate SENSOR-01/P2 task.
 HEADLESS_PERFORMANCE.md records raw data, qualifications and remaining full-server
 comparison work; this does not establish P2 or rewrite-wide performance acceptance.
+
+
+## Velocity replacement and IMU history
+
+A native-backed regression distinguishes velocity configuration from integrated
+force. All 300 acquired readings/timestamps from native DART/TPE match the bounded
+Rust checks; a real force remains visible. Multiple attached sensors, paused
+commands, invalid input, failed execution and reset/removal lifetimes are checked.
+INPUT_IMU.md records the changed benchmark warmup assertion and historical-report
+limits. Independent native/Rust/mutation review approved the exact source and warmup
+assertion correction. The strict staged gate passes201 Rust/14 tooling/nine actual
+C++ scenarios:3182/3228 lines,4941/5079 regions, all crates >95% and scene12/12
+changed lines. Normal-hook publication and hosted qualification remain required;
+P2 stays open.

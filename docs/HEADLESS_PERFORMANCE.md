@@ -62,11 +62,11 @@ per-step physical-position checks prevent that false positive.
 ## Limits that remain visible
 
 The initialization command produces a native TPE warmup x acceleration of zero;
-Rust's current finite-difference IMU reports 1000 m/s^2 for that velocity change.
+The measured Rust revision's finite-difference IMU reported 1000 m/s^2 for that velocity change.
 Both values are retained in the reports. The measured interval starts after that
-one setup frame; every measured sensor value matches. This is a separate pending
-SENSOR-01 command/history compatibility issue, not a claimed parity result or a
-reason to weaken either observation. It must be resolved in the full P2 matrix.
+one setup frame; every measured sensor value matches. INPUT_IMU.md records the
+separate native-backed history correction and its force countercontrol. These
+historical reports remain unchanged and are not measurements of the correction.
 The native installed dependency qualification and complete reference environment
 also remain explicit. A scoped performance result does not complete P2 or the
 rewrite. Scoped independent review reproduced both executor modes and approved

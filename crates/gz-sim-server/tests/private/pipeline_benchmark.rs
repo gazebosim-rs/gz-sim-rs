@@ -30,7 +30,8 @@ fn check(message: &Imu, sequence: u64, metadata: &ImuPublication) -> (u64, f64) 
     let w = message.angular_velocity.as_ref().unwrap();
     assert_eq!([w.x, w.y, w.z], [0.0; 3]);
     let a = message.linear_acceleration.as_ref().unwrap();
-    let expected_x = if sequence == 0 { 1000.0 } else { 0.0 };
+    // Native velocity replacement does not produce an acceleration impulse.
+    let expected_x = 0.0;
     assert!((a.x - expected_x).abs() < 1e-9);
     assert_eq!(a.y, 0.0);
     assert!((a.z - 9.81).abs() < 1e-9);

@@ -207,6 +207,20 @@ fn execute(world: &mut World, entity: Entity, input: PendingInput) -> Result<(),
             }
         }
     }
+    if let Some((linear, _)) = input.velocity {
+        // A velocity replacement is configuration, not an integrated force impulse.
+        let children: Vec<_> = world
+            .get::<Children>(entity)
+            .map(|children| children.iter().collect())
+            .unwrap_or_default();
+        for child in children {
+            if let Some(mut sensor) = world.get_mut::<crate::Imu>(child)
+                && sensor.link == id
+            {
+                sensor.previous_velocity = glam::DVec3::from_array(linear);
+            }
+        }
+    }
     Ok(())
 }
 

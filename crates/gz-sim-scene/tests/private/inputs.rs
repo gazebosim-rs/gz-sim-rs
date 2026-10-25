@@ -230,3 +230,46 @@ fn missing_and_foreign_loaded_owners_cannot_admit_or_execute_inputs() {
         }
     }
 }
+
+#[test]
+fn failed_velocity_execution_preserves_attached_imu_history() {
+    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+        let mut sim = load_world_with_sdf_step(
+            include_str!("../fixtures/headless_imu.sdf"),
+            "failed-input-imu",
+            "default",
+            &NoResources,
+            engine,
+        )
+        .unwrap();
+        let link = sim
+            .world()
+            .iter_entities()
+            .find(|e| {
+                e.get::<Name>()
+                    .is_some_and(|n| n.0 == "default::ball::body")
+            })
+            .unwrap()
+            .id();
+        let id = sim.world().get::<EntityId>(link).unwrap().get();
+        sim.step_exact(1).unwrap();
+        let history = sim
+            .world()
+            .iter_entities()
+            .find_map(|e| e.get::<crate::Imu>())
+            .unwrap()
+            .previous_velocity;
+        queue_link_world_velocity(&mut sim, id, [1.0, 0.0, 0.0], [0.0; 3]).unwrap();
+        sim.world_mut().entity_mut(link).remove::<ChildOf>();
+        assert_eq!(sim.step_exact(1), Err(StepError::Faulted));
+        assert_eq!(
+            sim.world()
+                .iter_entities()
+                .find_map(|e| e.get::<crate::Imu>())
+                .unwrap()
+                .previous_velocity,
+            history
+        );
+        assert_eq!(sim.elapsed(), std::time::Duration::from_millis(1));
+    }
+}

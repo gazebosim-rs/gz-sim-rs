@@ -1,0 +1,43 @@
+{
+  "decision": "approved",
+  "author": "/root",
+  "reviewer": "/root/msgs_review_fallback",
+  "base": "84aef01f4685c6ea3a398e485a70b96284fbd08e",
+  "tree": "b918ee4d5e9731cfbeef76b5e7c607b819a5c291",
+  "diff_sha256": "c601ac97cfaa8ab54d2528082874923353b359ae572ef1a44b49c499ddc08688",
+  "files": {
+    "crates/gz-sim-scene/src/inputs.rs": "fed77245f32195febad15cec9a1e2c9361c76a2007e6e1241223ec91c8de2d3d",
+    "crates/gz-sim-scene/tests/input_imu.rs": "5e345fb3e7caaf24713feeabcc3f4d75a3d4d18eecea56b5c894417516cde001",
+    "crates/gz-sim-scene/tests/native_input_imu.cc": "55ca327f0d7ed71d21d776c2364019709322111a7cbe1908b653e98931ea3fa1",
+    "crates/gz-sim-scene/tests/private/inputs.rs": "022e1f0052f28299672f99ae80b67003c08803a209a96926ad8e531b5f69c60a",
+    "crates/gz-sim-server/tests/private/pipeline_benchmark.rs": "254329fa52bfb36e2ddf967ad92b50c7a57745e7e91549b9116f89e7ca134140",
+    "docs/HEADLESS_PERFORMANCE.md": "e66587f08f9f964efced38141b5235fa3a250b12436a3e2adc04b90f0677ef82",
+    "docs/INPUT_IMU.md": "93b9d544f49e6eecb770ed31f9bc5e3c5b613eda95018cffa7c2cc3ce6ad2896",
+    "docs/STATUS.md": "a965dbc51612d0a412b4a208cfc6b9214604411a0c15439e39e5d4cd40c4ede9",
+    "planning/reference/input-imu.json": "b0251fe350d27624b379bb3f3658b167e8289385fa101406b17fa213a1bb6078",
+    "planning/test-ledger.json": "0b40f52d5e3fdf55a2ee83071e0305234a0971e8c2bfbd0d997d42acb2d7eb05",
+    "scripts/probe-input-imu.py": "397a01dfc2078d431e47e35f1405c5eb6d398c50b6e3c76394222eabbfdb75f4"
+  },
+  "native_reference_sha256": "b0251fe350d27624b379bb3f3658b167e8289385fa101406b17fa213a1bb6078",
+  "native_probe_source_sha256": "55ca327f0d7ed71d21d776c2364019709322111a7cbe1908b653e98931ea3fa1",
+  "shared_sdf_sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+  "author_gate_log_sha256": "474c0acbaa8730922223e2ec6a811ea32472f6561fc3753dab313db4ec7c307b",
+  "author_gate": "EXIT0 on exact eleven-file frozen tree: 201 Rust tests, 14 tooling checks, all nine actual C++ scenarios; workspace 3182/3228 lines and 4941/5079 regions, every production crate above 95%, 12/12 new scene executable lines.",
+  "reviewer_evidence": {
+    "native.log": "acc551b3b020073a662896756d185842d9044a8f25dbb3e8d9f987935c1304d7",
+    "native.json": "8af534dabbbf856a963fccf1bcae240e20c9efb98bd83cb91d1b1b6fb04cfb72",
+    "rust.log": "87c48c8f4272a6b664d5870ef03c3da619e13eea5568f15f29331ace7431ca7e",
+    "private-fault.log": "c491ed83a7991b0f838bd939270af1d54afbf2719fadd781ffa8c48c6d200fe3",
+    "private-pipeline.log": "c998dc6b5b9ea2c0ecbe701b38f9ddda84cf727c56ede2a146706ab6bf90c387",
+    "mutant.log": "d7d8e31e1e360512ab21f6bc8f297437a7003fd5175486fdeb73515cdf5e4dcd",
+    "mutant.diff": "c5e5f2988be089d1c6db38cd56da500af34757097e210429b1740d13307597b2"
+  },
+  "reviewer_checks": [
+    "Fresh native probe from exact Git tree export and separate binary/work directory: three controls, 300 complete readings. Source/fixture/binary/loaded-library hashes and every observation equal author reference; report command and work path are reviewer-local.",
+    "Private exclusive Cargo target: new native/Rust comparison and two-sensor lifecycle tests pass 2/0; faulted execution history test passes 1/0; selected process-local TPE pipeline including corrected warmup passes 1/0.",
+    "Removing only the new history rebase in private source yields focused failure Rapier velocity sample1 specific_force 1000 vs native 0; original source restored to exact staged digest."
+  ],
+  "assertion_disposition": "Approved: old Rust-only warmup x=1000 expectation is corrected to native-backed zero with the same 1e-9 bound; all other process-local sequence, timing, field, covariance, message/count, and measured-interval checks remain. Author preceding-source failure and reviewer removal mutant independently expose the defect; a real DART 2 N / 2 kg force remains x=1 on second step.",
+  "scope": "Velocity replacement rebases previous world linear velocity of attached matching IMUs after successful backend application and before physics integration. Native DART and TPE prove zero artificial acceleration across 100 exact 1 ms samples each; DART force countercontrol proves physical acceleration retained. Rust Rapier is compared to this bounded physical contract, not presented as a DART adapter.",
+  "limits": "Native installed dependency provenance remains qualified. Paused, multiple attached IMUs, invalid/faulted input, reset and removal are Rust lifecycle assertions. Historical performance reports are unchanged; no equal-work full-server speedup, complete selected-fixture matrix, or P2 acceptance follows. Normal commit hook, public publication and hosted CI remain pending."
+}
