@@ -65,7 +65,8 @@
     "crates/gz-physics-rapier/tests/physics.rs": "Real backend precision, free fall, contact, reset/removal, duplicate registration and numeric boundary probes; reviewed by /root/msgs. Full inertia/rotation and atomic impulse overflow reviewed by /root/transport.",
     "crates/gz-sensors/tests/imu.rs": "Free fall, rotated sensor and invalid finite/unit quaternion boundaries; reviewed by /root/sdformat.",
     "crates/gz-sim-scene/tests/scene.rs": "Integrated SDF/Bevy/Rapier/IMU subset, frames/inertia/orientation/pause/reset/failure isolation. Reviewed by /root/sdformat; full original simulator tests remain pending.",
-    "crates/gz-sim-cli/tests/cli.rs": "New Rust CLI argument/load/error contracts, exact analytic state, whole-request overflow and output IO failure. Reviewed by /root/transport; original Gazebo CLI parity remains pending."
+    "crates/gz-sim-cli/tests/cli.rs": "New Rust CLI argument/load/error contracts, exact analytic state, whole-request overflow and output IO failure. Reviewed by /root/transport; original Gazebo CLI parity remains pending.",
+    "crates/gz-sim-server/tests/private/reset.rs": "New bounded server reset behavior derived from the pinned five-case native control probe: scene/ID/stream restoration, pause/step/overwrite flags, cancellation after commit, failed preflight, overflow, shared endpoints and explicit terminal handler failures. No additional original case retired; independent source and exact staged checks required."
   },
   "exclusions": [],
   "retirements": []

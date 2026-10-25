@@ -6,12 +6,12 @@ independent Rust message and transport libraries. It owns these endpoints:
 | Endpoint under `/world/<name>` | Contract |
 | --- | --- |
 | `/clock` | gz.msgs.Clock with simulation, active real and system time |
-| `/control` | gz.msgs.WorldControl to gz.msgs.Boolean; pause and exact stepping |
+| `/control` | gz.msgs.WorldControl to gz.msgs.Boolean; pause, exact stepping and loaded-scene reset |
 | `/pose/info` | gz.msgs.Pose_V with stable IDs and parent-relative poses |
 | `/remove` | gz.msgs.Entity to gz.msgs.Boolean; deferred command acceptance |
 | `/remove/blocking` | Same request; reply reports execution result |
 
-Root `/clock` election, complete scene messages/services and full reset are open.
+Root `/clock` election and complete scene messages/services remain open.
 The coordinator owns this integration, native clients and reference build. Source
 contracts come from pinned gz-sim SimulationRunner, UserCommands, Util and the
 scene/sensor implementations. New conformance cases preserve the selected native
@@ -30,9 +30,10 @@ Control polling has a finite per-tick budget. Pause is always applied. Nonzero
 multi_step overrides step; pending iterations are added only when pause=true.
 They pause the server on completion; an intervening pause preserves the count.
 Overflow is checked before changing state. Replies acknowledge command acceptance.
-Seed changes, run_to_sim_time and nonempty reset requests currently return a
-successful service response with Boolean.data=false. They are explicit unsupported
-capabilities until their native contracts are implemented.
+Seed changes and run_to_sim_time return a successful service response with
+Boolean.data=false. Loaded-scene all/time_only reset is queued for the next tick;
+model_only is ignored and acknowledged. See [SERVER_RESET.md](SERVER_RESET.md)
+for control overwrite, pending iteration, stream and cancellation boundaries.
 
 ## Entities, poses and IMU
 
@@ -102,9 +103,9 @@ underlying finite service queues provide further backpressure.
 The loaded-scene API now restores removed initial logical objects with their
 original IDs and retires runtime additions after reset observation. It preserves
 resources and registered Bevy infrastructure in the same World. The separate core
-reset still restores only retained domain state and time. Remote reset remains
-rejected until server command ordering and sensor instance/sequence reconstruction
-are integrated. See [SCENE_RESET.md](SCENE_RESET.md) for its bounded contract.
+reset still restores only retained domain state and time. Remote reset composes
+the loaded scene with command ordering and stream reconstruction. See
+[SCENE_RESET.md](SCENE_RESET.md) and [SERVER_RESET.md](SERVER_RESET.md).
 
 ## Reproduction and remaining work
 
@@ -113,22 +114,23 @@ Native libraries are built from planning/transport-reference-lock.json. An exist
 identical build may be selected with GZ_REFERENCE_PREFIX; source configuration,
 library hashes, pkg-config prefix and dynamic linkage are checked.
 
-Five real C++ client scenarios verify clock/exact-step control, actual IMU samples,
-topic repair, removal and two IMUs sharing one endpoint. They wait for received clock/pose/sample packets rather
+Six real C++ client scenarios verify clock/exact-step control, actual IMU samples,
+topic repair, removal, two IMUs sharing one endpoint and remove/reset/resume. They wait for received clock/pose/sample packets rather
 than assuming readiness. Removal checks ordinary acceptance, blocking failure,
 ID precedence and disappearance of the ball while the ground keeps its IDs.
 Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current gate passes 89 Rust checks and nine gate tests: 1641/1651 production
-lines and 2505/2550 regions. Every production crate exceeds 95% for both metrics;
-All 184 changed executable lines in the loaded-scene reset increment are covered. Independent review and the exact
+The current gate passes 96 Rust checks and nine gate tests: 1755/1765 production
+lines and 2689/2737 regions. Every production crate exceeds 95% for both metrics;
+All 120 changed executable lines in the server reset increment are covered. Independent review and the exact
 staged gate are required before publishing this increment.
 
-Remaining P2 work includes full reset, TPE, local/Fuel resources, sensor scheduling
-and the equal-work C++ comparison/performance report. Joints, forces, the complete
-system/backend inventories, Bevy rendering and release qualification remain open.
+Remaining P2 work includes TPE, local/Fuel resources, sensor scheduling, the
+simple-joint variant and velocity/force input required by PLAN.md, plus the
+equal-work C++ comparison/performance report. The complete articulation, system
+and backend inventories, Bevy rendering and release qualification remain open.
 
 
 ## Reviewed producer integration
@@ -157,7 +159,7 @@ logical ID after its owner is gone. They also bind the allocator instance, so
 resource teardown cannot validate a stale reservation. Ordinary allocation remains
 monotonic within the intact allocator; restoration does not rewind its counter.
 See [IDENTITIES.md](IDENTITIES.md). Loaded-scene reset composes these reservations
-with backend restoration; remote command ordering and stream reconstruction remain pending.
+with backend restoration and the remote stream/control integration.
 
 
 Multiple IMUs may share a topic, including relative/absolute aliases under a
@@ -176,7 +178,7 @@ settings, builds an independent solver before domain mutation, and commits only 
 its owning backend. It revives initial body IDs, retires runtime bodies and retains
 all later allocation history. See [PHYSICS_STATE.md](PHYSICS_STATE.md). This API and
 the identity reservations are composed with the loaded-scene blueprint and reset-time
-observations. Server command ordering and stream reconstruction remain pending.
+observations. The server composes command ordering and stream reconstruction.
 
 
 Loaded-scene reset preflights identities (including resources), infrastructure

@@ -84,6 +84,15 @@ impl Removals {
         Ok(())
     }
 
+    pub(crate) fn cancel_for_reset(&mut self, counters: &mut Counters) {
+        for pending in self.pending.drain(..) {
+            counters.removals_cancelled += 1;
+            if let Some(reply) = pending.reply {
+                respond(reply, false, counters);
+            }
+        }
+    }
+
     pub(crate) fn execute(&mut self, sim: &mut Simulation, counters: &mut Counters) {
         // Native commands resolve before deferred deletion; duplicate targets succeed together.
         let targets: Vec<_> = self

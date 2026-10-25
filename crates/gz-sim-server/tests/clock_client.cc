@@ -38,12 +38,13 @@ struct Observations
 int main(int argc, char **argv)
 {
   const bool sharedImu = argc > 1 && std::string(argv[1]) == "--shared";
-  const bool withImu = sharedImu || (argc > 1 && std::string(argv[1]) == "--imu");
+  const bool reset = argc > 1 && std::string(argv[1]) == "--reset";
+  const bool withImu = reset || sharedImu || (argc > 1 && std::string(argv[1]) == "--imu");
   const bool remove = argc > 1 && std::string(argv[1]) == "--remove";
   auto observations = std::make_shared<Observations>();
   gz::transport::Node node;
   std::function<void(const gz::msgs::Clock &)> callback =
-    [observations](const auto &clock)
+    [observations, reset](const auto &clock)
     {
       std::lock_guard<std::mutex> lock(observations->mutex);
       if (!clock.has_sim() || !clock.has_real() || !clock.has_system() ||
@@ -52,7 +53,11 @@ int main(int argc, char **argv)
           clock.system().sec() < 1000000000 || clock.sim().sec() != 0)
         observations->invalid = true;
       if (clock.sim().sec() == 0 && clock.sim().nsec() == 0)
+      {
+        if (reset && (clock.real().sec() != 0 || clock.real().nsec() != 0))
+          observations->invalid = true;
         observations->initial = true;
+      }
       observations->lastClock = clock.sim().nsec();
       if (clock.sim().sec() == 0 && clock.sim().nsec() == observations->target)
         observations->final = true;
@@ -156,6 +161,7 @@ int main(int argc, char **argv)
   gz::msgs::Boolean response;
   bool result = false;
   unsigned int warmup = 0;
+  unsigned int reconnect = 0;
   if (withImu)
   {
     // Establish sensor readiness using real sampled steps, never fabricated packets.
@@ -208,7 +214,7 @@ int main(int argc, char **argv)
   request.set_seed(42);
   if (!node.Request("/world/default/control", request, 7000, response, result) ||
       !result || response.data()) return 6;
-  if (remove)
+  if (remove || reset)
   {
     gz::msgs::Entity entity;
     {
@@ -231,7 +237,67 @@ int main(int argc, char **argv)
         !result || !response.data()) return 16;
     if (!waitFor(&Observations::removed)) return 17;
   }
+  if (reset)
+  {
+    {
+      std::lock_guard<std::mutex> lock(observations->mutex);
+      observations->initial = false;
+      observations->initialPose = false;
+      observations->lastImu = 0;
+      observations->imuTimes.clear();
+    }
+    request.Clear();
+    request.set_pause(true);
+    request.mutable_reset()->set_all(true);
+    if (!node.Request("/world/default/control", request, 7000, response, result) ||
+        !result || !response.data()) return 18;
+    if (!waitFor(&Observations::initial) || !waitFor(&Observations::initialPose)) return 19;
+    // Removal retired the endpoint. Prove the recreated sensor connection with
+    // sampled steps, then reset its live lease to test the first sequence exactly.
+    for (; reconnect < 100;)
+    {
+      ++reconnect;
+      request.Clear();
+      request.set_pause(true);
+      request.set_step(true);
+      if (!node.Request("/world/default/control", request, 7000, response, result) ||
+          !result || !response.data()) return 23;
+      std::unique_lock<std::mutex> lock(observations->mutex);
+      const int64_t stamp = reconnect * 1000000;
+      if (!observations->changed.wait_for(lock, std::chrono::seconds(8), [&]
+          { return observations->lastClock == stamp || observations->invalid; }) ||
+          observations->invalid) return 24;
+      if (observations->changed.wait_for(lock, std::chrono::milliseconds(50), [&]
+          { return observations->lastImu == stamp || observations->invalid; })) break;
+    }
+    {
+      std::lock_guard<std::mutex> lock(observations->mutex);
+      if (observations->lastImu == 0 || observations->invalid) return 25;
+      observations->initial = false;
+      observations->initialPose = false;
+      observations->lastImu = 0;
+      observations->target = 1000000;
+      observations->final = false;
+    }
+    request.Clear();
+    request.set_pause(true);
+    request.mutable_reset()->set_time_only(true);
+    if (!node.Request("/world/default/control", request, 7000, response, result) ||
+        !result || !response.data()) return 26;
+    if (!waitFor(&Observations::initial) || !waitFor(&Observations::initialPose)) return 27;
+    request.Clear();
+    request.set_pause(true);
+    request.set_step(true);
+    if (!node.Request("/world/default/control", request, 7000, response, result) ||
+        !result || !response.data()) return 20;
+    if (!waitFor(&Observations::final)) return 21;
+    std::unique_lock<std::mutex> lock(observations->mutex);
+    if (!observations->changed.wait_for(lock, std::chrono::seconds(8), [&]
+        { return observations->invalid ||
+            (observations->lastImu == 1000000 && observations->lastPose == 1000000); }) ||
+        observations->invalid) return 22;
+  }
   std::cout << "PASS native clock/control: baseline=" << warmup
-    << " final=" << warmup + 3 << " imu=" << withImu << " poses=4 removed=" << remove
-    << " shared=" << sharedImu << '\n';
+    << " final=" << (reset ? 1 : warmup + 3) << " imu=" << withImu << " poses=4 removed=" << remove
+    << " shared=" << sharedImu << " reset=" << reset << " reconnect=" << reconnect << '\n';
 }

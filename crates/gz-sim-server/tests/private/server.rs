@@ -189,13 +189,6 @@ fn unsupported_and_overflowing_controls_leave_state_unchanged() {
             }),
             ..Default::default()
         },
-        WorldControl {
-            reset: Some(gz_msgs::msgs::WorldReset {
-                model_only: true,
-                ..Default::default()
-            }),
-            ..Default::default()
-        },
     ] {
         assert!(!server.apply_control(request));
     }
@@ -961,3 +954,6 @@ fn shared_imu_topic_preserves_each_source_and_retires_only_the_last_publisher() 
     assert!(endpoint.upgrade().is_none());
     assert_eq!(server.counters.imu_failures, 0);
 }
+
+#[path = "reset.rs"]
+mod reset_tests;

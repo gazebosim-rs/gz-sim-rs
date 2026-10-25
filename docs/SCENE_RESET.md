@@ -46,8 +46,7 @@ Rust case likewise runs through nine independent Simulation instances. These are
 repetitions, not alternative C++ storage implementations. Mappings require
 independent review; no broad ECM parity is claimed.
 
-This scene API does not yet enable remote world reset. Server integration still
-needs native control ordering, real-time clock reset, sensor instance/sequence
-reconstruction and handling of old queued requests. Already queued transport data
-cannot be recalled. TPE, offline resources and equal-work performance remain P2
+SERVER_RESET.md describes the bounded remote composition: control ordering,
+real-time clock reset, stream reconstruction and old admitted-request cancellation.
+Already queued transport data cannot be recalled. TPE, offline resources and equal-work performance remain P2
 requirements; no performance improvement is claimed by this reset increment.

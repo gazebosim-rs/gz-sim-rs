@@ -4,6 +4,7 @@
 
 mod poses;
 mod removals;
+mod reset;
 
 use bevy_ecs::entity::Entity;
 use gz_msgs::{
@@ -29,6 +30,10 @@ pub enum Error {
     Step(#[from] StepError),
     #[error("timestamp exceeds the signed protobuf seconds range")]
     TimeRange,
+    #[error(transparent)]
+    Reset(#[from] gz_sim_scene::SceneResetError),
+    #[error("reset handler changed the prepared IMU stream configuration")]
+    ResetStreams,
     #[error("entity ID cannot be represented by the uint32 pose protocol")]
     PoseIdRange,
     #[error("pose entity lacks a name, identity or valid parent-relative transform")]
@@ -52,11 +57,13 @@ pub struct Counters {
     pub removals_rejected: u64,
     pub removals_completed: u64,
     pub removals_failed: u64,
+    pub removals_cancelled: u64,
 }
 
 struct ImuStream {
     entity: Entity,
     metadata: ImuPublication,
+    endpoint: String,
     publisher: Arc<Publisher>,
     sequence: u64,
     last_sample: Option<(u64, Duration)>,
@@ -162,6 +169,10 @@ pub struct Server {
     removals: removals::Removals,
     command_budget: NonZeroUsize,
     pending_steps: u64,
+    pending_reset: bool,
+    reset_failed: bool,
+    partition: String,
+    namespace: String,
     active_time: ActiveTime,
     counters: Counters,
     imus: Vec<ImuStream>,
@@ -200,13 +211,14 @@ impl Server {
                     Some(publisher) => publisher,
                     None => {
                         let publisher = Arc::new(node.advertise(&topic, "gz.msgs.IMU")?);
-                        imu_publishers.insert(key, Arc::downgrade(&publisher));
+                        imu_publishers.insert(key.clone(), Arc::downgrade(&publisher));
                         publisher
                     }
                 };
                 imus.push(ImuStream {
                     entity: entity.id(),
                     metadata: metadata.clone(),
+                    endpoint: key,
                     publisher,
                     sequence: 0,
                     last_sample: None,
@@ -222,6 +234,10 @@ impl Server {
             removals,
             command_budget,
             pending_steps: 0,
+            pending_reset: false,
+            reset_failed: false,
+            partition,
+            namespace,
             active_time: ActiveTime::default(),
             counters: Counters::default(),
             imus,
@@ -243,12 +259,26 @@ impl Server {
 
     /// The caller supplies pacing and cancellation outside the simulation's step.
     pub fn tick(&mut self) -> Result<UpdateInfo, Error> {
-        self.validate_steps(u64::from(!self.simulation.is_paused()))?;
+        if self.reset_failed {
+            return Err(Error::ResetStreams);
+        }
+        if !self.pending_reset {
+            self.validate_steps(u64::from(!self.simulation.is_paused()))?;
+        }
         let now = Instant::now();
         self.active_time
             .set_running(!self.simulation.is_paused(), now);
-        let real = self.active_time.elapsed(now);
-        let info = self.simulation.tick()?;
+        let resetting = self.pending_reset;
+        let info = if resetting {
+            self.reset_scene()?
+        } else {
+            self.simulation.tick()?
+        };
+        let real = if resetting {
+            Duration::ZERO
+        } else {
+            self.active_time.elapsed(now)
+        };
         let message = clock(info.sim_time, real, SystemTime::now())?;
         if self.publisher.publish(message.encode_to_vec()).is_ok() {
             self.counters.clocks_queued += 1;
@@ -354,11 +384,15 @@ impl Server {
     }
 
     fn apply_control(&mut self, control: WorldControl) -> bool {
-        if control.seed != 0
-            || control.run_to_sim_time.is_some()
-            || control
-                .reset
-                .is_some_and(|reset| reset.all || reset.time_only || reset.model_only)
+        if control.seed != 0 || control.run_to_sim_time.is_some() {
+            return false;
+        }
+        let rewind = control
+            .reset
+            .is_some_and(|reset| reset.all || reset.time_only);
+        if rewind
+            && (gz_sim_scene::initial_imu_publications(&self.simulation).is_err()
+                || self.simulation.validate_reset().is_err())
         {
             return false;
         }
@@ -371,7 +405,12 @@ impl Server {
             let Some(pending) = self.pending_steps.checked_add(count) else {
                 return false;
             };
-            if self.validate_steps(pending).is_err() {
+            let validation = if rewind {
+                self.validate_reset_steps(pending.saturating_sub(u64::from(count != 0)))
+            } else {
+                self.validate_steps(pending)
+            };
+            if validation.is_err() {
                 return false;
             }
             pending
@@ -379,6 +418,7 @@ impl Server {
             self.pending_steps
         };
         self.pending_steps = pending;
+        self.pending_reset = rewind;
         self.set_paused(control.pause && count == 0);
         true
     }

@@ -426,7 +426,17 @@
           "mode": "step-reset",
           "exit_code": 0
         }
-      ]
+      ],
+      "rust_mapping": {
+        "state": "selected-behavior-implemented",
+        "tests": [
+          "crates/gz-sim-server/tests/private/reset.rs::native_reset_flags_overwrite_and_pending_iteration_accounting",
+          "crates/gz-sim-server/tests/private/reset.rs::reset_cancels_only_admitted_removals_after_commit_and_preserves_live_endpoint",
+          "crates/gz-sim-server/tests/private/reset.rs::reset_restores_removed_scene_ids_and_restarts_sensor_instances",
+          "crates/gz-sim-server/tests/native.rs::cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time"
+        ],
+        "qualification": "Five selected native observations are covered by the loaded-scene server profile. Blocking reset cancellation replies false as an explicit new Rust API boundary; it is not a native blocking admission/destruction parity claim. Unpolled requests and queued publications are not flushed. Full CORE-02/IO-01 and P2 remain open."
+      }
     }
   ],
   "math_ctest": {

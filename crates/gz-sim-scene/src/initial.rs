@@ -109,6 +109,22 @@ pub(super) fn capture(sim: &mut Simulation) {
         .insert_resource(InitialScene(Arc::new(initial)));
 }
 
+/// Initial stream configuration, including sensors whose runtime entities were removed.
+/// The iterator borrows the immutable loader blueprint; it performs no IO.
+pub fn initial_imu_publications(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = &ImuPublication>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial
+        .0
+        .nodes
+        .iter()
+        .filter_map(|node| node.publication.as_ref()))
+}
+
 /// Restores the loaded scene in the same Bevy World, then invokes reset handlers.
 /// The immutable observer runs before runtime additions retire, matching native
 /// reset-time removal observation. Its result is returned after cleanup.

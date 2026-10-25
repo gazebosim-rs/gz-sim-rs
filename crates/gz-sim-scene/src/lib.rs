@@ -5,7 +5,10 @@
 mod lifecycle;
 pub use lifecycle::{RemoveError, remove_model};
 mod initial;
-pub use initial::{PendingResetRemoval, SceneResetError, SceneResetInfo, reset_loaded_world};
+pub use initial::{
+    PendingResetRemoval, SceneResetError, SceneResetInfo, initial_imu_publications,
+    reset_loaded_world,
+};
 
 use bevy_ecs::prelude::*;
 use glam::{DQuat, DVec3};

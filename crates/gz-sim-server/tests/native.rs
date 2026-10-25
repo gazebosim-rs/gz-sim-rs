@@ -25,14 +25,21 @@ impl Drop for Peer {
 
 #[test]
 fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
-    run_native_world(false, None, false, false);
-    run_native_world(true, None, false, false);
-    run_native_world(true, Some("robot ~imu//@:= sensor"), false, false);
-    run_native_world(false, None, true, false);
-    run_native_world(true, None, false, true);
+    run_native_world(false, None, false, false, false);
+    run_native_world(true, None, false, false, false);
+    run_native_world(true, Some("robot ~imu//@:= sensor"), false, false, false);
+    run_native_world(false, None, true, false, false);
+    run_native_world(true, None, false, true, false);
+    run_native_world(true, None, false, false, true);
 }
 
-fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool, shared_imu: bool) {
+fn run_native_world(
+    with_imu: bool,
+    topic: Option<&str>,
+    remove: bool,
+    shared_imu: bool,
+    reset: bool,
+) {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let build = Command::new("python3")
         .arg(root.join("scripts/native-peer.py"))
@@ -88,7 +95,9 @@ fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool, shared_im
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
     let mut command = Command::new(root.join("artifacts/native-peer/clock-client"));
-    if shared_imu {
+    if reset {
+        command.arg("--reset");
+    } else if shared_imu {
         command.arg("--shared");
     } else if with_imu {
         command.arg("--imu");
@@ -157,7 +166,9 @@ fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool, shared_im
         .unwrap()
         .parse()
         .unwrap();
-    if with_imu {
+    if reset {
+        assert_eq!(final_steps, 1);
+    } else if with_imu {
         assert!(final_steps >= 4);
     } else {
         assert_eq!(final_steps, 3);
@@ -181,11 +192,44 @@ fn run_native_world(with_imu: bool, topic: Option<&str>, remove: bool, shared_im
     } else {
         assert!(body.unwrap().get::<WorldPose>().unwrap().translation[2] < 5.0);
     }
-    assert_eq!(server.counters().controls_accepted, final_steps - 2);
+    let warmup: u64 = stdout
+        .split_whitespace()
+        .find_map(|word| word.strip_prefix("baseline="))
+        .unwrap()
+        .parse()
+        .unwrap();
+    let reconnect: u64 = stdout
+        .split_whitespace()
+        .find_map(|word| word.strip_prefix("reconnect="))
+        .unwrap()
+        .parse()
+        .unwrap();
+    if reset {
+        assert!(stdout.contains("reset=1"));
+        assert!((1..=100).contains(&reconnect));
+        assert_eq!(
+            server
+                .simulation()
+                .world()
+                .resource::<gz_sim_core::UpdateInfo>()
+                .epoch,
+            2
+        );
+        assert_eq!(server.counters().controls_accepted, warmup + reconnect + 4);
+        assert_eq!(server.counters().removals_queued, 3);
+        assert_eq!(server.counters().removals_failed, 2);
+        assert_eq!(server.counters().removals_completed, 1);
+    } else {
+        assert_eq!(server.counters().controls_accepted, final_steps - 2);
+    }
     assert_eq!(server.counters().controls_rejected, 1);
     assert_eq!(
         server.counters().imus_queued,
-        final_steps * if shared_imu { 2 } else { 1 }
+        if reset {
+            warmup + reconnect + 4
+        } else {
+            final_steps * if shared_imu { 2 } else { 1 }
+        }
     );
     if shared_imu {
         assert!(stdout.contains("shared=1"));
