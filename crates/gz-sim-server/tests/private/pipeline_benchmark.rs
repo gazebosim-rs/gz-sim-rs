@@ -8,7 +8,7 @@ use gz_sim_scene::{
 };
 use sdformat::NoResources;
 
-fn check(message: &Imu, sequence: u64, metadata: &ImuPublication) -> (u64, f64) {
+pub(super) fn check(message: &Imu, sequence: u64, metadata: &ImuPublication) -> (u64, f64) {
     let header = message.header.as_ref().unwrap();
     let stamp = header.stamp.as_ref().unwrap();
     let nanos = stamp.sec as u64 * 1_000_000_000 + stamp.nsec as u64;

@@ -44,3 +44,27 @@ class PipelineEvidence(unittest.TestCase):
             row['warmup_force_x'] = wrong
             with self.subTest(wrong=wrong), self.assertRaises(ValueError):
                 pipeline.decode('PIPELINE ' + json.dumps(row), 2, fixture_hash, warmup_force_x=0.0)
+
+    def test_complete_stream_evidence_and_opaque_id_accounting(self):
+        row = self.row()
+        row.update(warmup_force_x=0.0, wall_nanos=40_000_100, pacing_wait_nanos=40_000_000, request_period_us=20000, clock_count=2, pose_count=2,
+                   clock_time_sum=5_000_000, pose_time_sum=5_000_000,
+                   clock_bytes=60, pose_bytes=100, pose_bytes_without_id_values=92,
+                   pose_ids=dict(ground=4, ball=7, base=5, body=8))
+        fixture_hash = hashlib.sha256(bytes.fromhex(row['fixture_hex'])).hexdigest()
+        def decode(value):
+            return pipeline.decode('PIPELINE ' + json.dumps(value), 2, fixture_hash,
+                                   warmup_force_x=0.0, streams=True, request_period_us=20000)
+        decode(row)
+        for key, wrong in [('request_period_us', 1000), ('wall_nanos', 10), ('pacing_wait_nanos', 50_000_000), ('clock_count', 1), ('pose_count', 3),
+                           ('clock_time_sum', 4_000_000), ('pose_time_sum', 0),
+                           ('clock_bytes', 0), ('pose_bytes_without_id_values', 91),
+                           ('pose_ids', dict(ground=4, ball=7, base=5, body=7)),
+                           ('pose_ids', dict(ground=4, ball=7, base=5, body=True)),
+                           ('pose_ids', dict(ground=4, ball=7, base=5, body=2**32)),
+                           ('pose_ids', dict(ground=4, ball=7, base=5))]:
+            with self.subTest(key=key, wrong=wrong), self.assertRaises(ValueError):
+                decode(dict(row, **{key: wrong}))
+        larger_ids = dict(row, pose_ids=dict(ground=4, ball=7, base=5, body=128),
+                          pose_bytes_without_id_values=90)
+        decode(larger_ids)

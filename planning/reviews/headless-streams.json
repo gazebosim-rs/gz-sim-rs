@@ -1,0 +1,49 @@
+{
+  "decision": "approved",
+  "author": "/root",
+  "reviewer": "/root/msgs_review_fallback",
+  "scope": "Selected 50 Hz requested complete clock/pose/IMU observation contract on actual Rust/native Server with TPE, pure shared SDF and 1 ms internal steps; sampled complete work latency only.",
+  "base_commit": "5f96723efda8a7bd3a20465b8f2a111f2f75e23e",
+  "staged_tree": "7497fd30b6e9894ba5a7f1dfac50a2e45183817f",
+  "staged_diff_sha256": "2d461b99cf0eff22da8f253c97a64e01c63431d0b486b30e985c493e80c43e75",
+  "files": {
+    "crates/gz-sim-server/src/lib.rs": "df1bb60308ca81ff42d43d2d464dc7e50bd1e74053337f8ff3ee738330622423",
+    "crates/gz-sim-server/tests/native_stream_benchmark.cc": "6aefe359365f0ccbc6e1d54255abf3ed545b3a9ee59a46bc75c6e0833413697a",
+    "crates/gz-sim-server/tests/private/pipeline_benchmark.rs": "57a5a5eec6e2f3ce7c4346f0b4b2652886bdf42969f9d7a1ba24ccecc0aa97d7",
+    "crates/gz-sim-server/tests/private/streams_benchmark.rs": "80c061c32c5b884f972e9417f05914bbc0d43ac5ecc81a65f0539b67e5c69402",
+    "docs/STREAM_OBSERVATIONS.md": "6a584cdabcb78884750a2f300a3d4cb52dece67c8b338f16b7a658a80021227a",
+    "planning/benchmarks/headless-streams.json": "fbadeee06dcac94e46269f6408ee933aac5406c0fc8f698fbbb902555016e229",
+    "planning/test-ledger.json": "d230628f2fc49305983bec334c7248d796669c0ba7bcfc4ada5572e9ca790f48",
+    "scripts/benchmark-headless-pipeline.py": "0d6002182dc17465ea9452a843a6f08777d156fb20d0462bb948b77c024b45a4",
+    "tests/test_pipeline_benchmark.py": "e0e0f66b6865d8bc731646b6e90906855b1677badaaa08a4fd1cbbba0e03f357"
+  },
+  "author_evidence": {
+    "proposal_patch_sha256": "2d461b99cf0eff22da8f253c97a64e01c63431d0b486b30e985c493e80c43e75",
+    "report_sha256": "fbadeee06dcac94e46269f6408ee933aac5406c0fc8f698fbbb902555016e229",
+    "exact_staged_gate_sha256": "492153a4eb51eccede4e14fa71ee563ffbbfcfe54a3b26b6ac14a336025099d7",
+    "initial_unpaced_failure_sha256": "92301875050bfa627c12aed682308d5568612108ef45c1679ec8639f52333501",
+    "native_scene_source_sha256": "9b108bfcd0160e7627ad8a72952e003a164fbd17f1678ca2c50495c1d9b4d2b5",
+    "native_scene_loaded_library": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib/libgz-sim-scene-broadcaster-system.so.11.0.0~pre3",
+    "native_scene_loaded_library_sha256": "7e628e9ddd906b563fee90fa798f6ab3a0d4322828eb4bf7304771aa17839aff",
+    "gate": "204 Rust, 16 tooling, nine actual C++ scenarios; 3193/3228 lines and 4964/5079 regions, no production behavior delta"
+  },
+  "reviewer_evidence": {
+    "private_raw_export": "5f96723 archive plus exact proposal.patch; all nine frozen staged file hashes independently equal",
+    "private_exclusive_release_build_log_sha256": "c6751fcddb159b5422794a3c19f38af39a6ca343fdc9f04cb142835c41130f81",
+    "private_full_128_step_report_sha256": "0724965f7fea377f04b5fdfd8ef9ba06d8573639cdb19dac7653247907ecca9a",
+    "private_full_replay_log_sha256": "d226683b024798ecb00628d16656a1cdd826b72e085f06b524565f2b26fa2060",
+    "private_16_step_calibration_report_sha256": "61cb349549f2d8717d4be6680b0a635a167650fbc579a645020b14a5e4225061",
+    "private_setup_failure_sha256": "bd7df152f673d9e8fe09c78c94dc66c99b70fe664364b5b6070543866f3b123a",
+    "private_missing_pose_source_mutant_diff_sha256": "1866bad7531763478c571612bdd52145ff96c756b2bf6dbb4827e857393472bd",
+    "private_missing_pose_mutant_log_sha256": "6cfebe7774fc874e16f1c4ce4c02b429286c00a250f1d0afc154048bc60d24df",
+    "private_seven_report_mutants_sha256": "338a09bd9e479889c292b08a58fc859119bcdc26e9c54099e2722a7e48303983"
+  },
+  "checks": [
+    "Private raw export and separate release target reproduced all nine staged source hashes, pinned fixture/lock, source and loaded-library provenance. Private full 128-step by seven measured pairs plus one warmup pair passed at CPU31 and 20 ms prospective post-observation request gaps.",
+    "Both implementations returned exactly one checked clock, four-role pose packet and IMU for each of 128 measured steps. All 16 process samples agreed on sim/clock/pose time sums 8384000000, IMU logical bytes 26899, pose bytes after ID-varint subtraction 16127, force sum 1255.68 and final x 0.129. Warmup acceleration x was zero. Role IDs were unique, stable and opaque.",
+    "The authored seven-pair medians and ranges recompute from raw samples after excluding pair zero. The large Rust 268.729 us process-mean outlier is retained. Private medians differ and are treated as a separate protocol replay, not a replacement performance result.",
+    "The private production pose-publication suppression mutant failed the selected Rust test at warmup receipt timeout. Seven independent report mutations covering missing clock/pose, timestamp, cadence, wall/pacing, ID-byte accounting and duplicate role ID were rejected.",
+    "Pinned SceneBroadcaster source hash and actual loaded Release scene-broadcaster library hash match; source hardcodes pose/info 60 wall-Hz. The initial unpaced native step-two IMU2/clock2/pose1 failure is retained, and neither reference code nor queue/assertion contract was weakened."
+  ],
+  "limits": "Approval is for the selected paced requested-observation workload and the sampled report. It does not establish unpaced pose-rate parity, maximum throughput, full P2 acceptance, whole-Gazebo speedup or identical native/Rust internal instructions. Native local transport can bypass serialization; Rust uses encoded worker queues. Installed dependency provenance remains qualified. The private 16-step replay is calibration only; its first report-generation failure was private missing Git metadata, not a native/Rust assertion failure. Normal hook/publication and hosted CI remain pending."
+}

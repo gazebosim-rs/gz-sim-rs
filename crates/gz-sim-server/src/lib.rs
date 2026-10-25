@@ -440,3 +440,7 @@ mod tests;
 #[cfg(test)]
 #[path = "../tests/private/pipeline_benchmark.rs"]
 mod pipeline_benchmark;
+
+#[cfg(test)]
+#[path = "../tests/private/streams_benchmark.rs"]
+mod streams_benchmark;

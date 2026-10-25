@@ -1,13 +1,14 @@
 # Implementation status
 
-This is an initial implementation, not a complete rewrite or accepted P2 slice.
-All 78 simulator system migrations remain pending. No speedup is claimed.
+The selected headless implementation is progressing; complete rewrite and P2
+acceptance remain open. All 78 broad system migration packets remain open.
+Scoped performance reports retain their explicit workloads and limits.
 
 ## Ownership and model routing
 
 The coordinator owns this monorepo and integration. One agent owns each independent
 repository. Current sdformat-rs, gz-transport-rs and gz-msgs-rs owners use
-gpt-6.1-sol with high reasoning for implementation and validation. Agents work on bounded
+gpt-6-sol with high reasoning for implementation and validation. Agents work on bounded
 packets and independently review one another's changes. Fuel remains with its
 existing agent. Four concurrent slots cover the coordinator and three repo agents.
 
@@ -38,14 +39,14 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-Published 03328bf passed the normal hook and exact hosted CI 40212126834:
-202 Rust tests, fifteen tooling checks and all nine actual C++ client scenarios.
-Coverage is 3182/3228 production lines and 4941/5079 regions; every crate exceeds
-95% on both metrics. The reviewed lifecycle reference increment passes its strict
-staged gate with 203 Rust tests, fifteen tooling checks and all nine C++ scenarios;
-coverage is 3193/3228 lines and 4964/5079 regions with no new production lines.
-Its normal hook and hosted qualification remain pending. No existing test,
-tolerance, exclusion or threshold was weakened. Full P2 acceptance remains open.
+Published 5f96723 passed the normal hook and exact hosted CI 40213637926:
+203 Rust tests, fifteen tooling checks and all nine actual C++ client scenarios.
+Coverage is 3193/3228 production lines and 4964/5079 regions; every production
+crate exceeds 95% on both metrics. The reviewed complete-stream observation
+increment passes its exact source gate with 204 Rust tests and sixteen tooling
+checks, unchanged production coverage and all nine C++ scenarios. Its normal
+hook and hosted qualification remain pending. No existing test, tolerance,
+exclusion or threshold was weakened. Full P2 acceptance remains open.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
 Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
@@ -266,3 +267,15 @@ LIFECYCLE_REFERENCE.md and planning/reviews/lifecycle-controls.json record scope
 and the declared two-step cross-engine position bound. This closes the missing
 durable reference controls; the complete selected-fixture acceptance matrix is
 still required for P2.
+
+
+## Complete requested streams
+
+Actual Rust/native servers now return a checked clock, four-role parent-relative
+pose packet and IMU for each selected request. Prospective 20ms host gaps respect
+native pose/info's hard 60 wall-Hz limit; measured call/receipt/check latency excludes
+that declared pacing and reports wall time separately. An unpaced missing-pose
+experiment remains a failed reference, and current Rust default pose-rate parity
+is not claimed. Independent full 128-step/seven-pair replay and missing-pose/report
+mutants validate the scoped protocol. STREAM_OBSERVATIONS.md records all fields,
+opaque ID-byte accounting, large timing outliers and the remaining P2 matrix.
