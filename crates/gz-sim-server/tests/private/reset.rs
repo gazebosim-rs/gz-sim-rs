@@ -553,3 +553,189 @@ fn committed_reset_fault_cancels_admitted_removals_and_retires_stale_streams() {
     assert!(!server.apply_control(WorldControl::default()));
     server.shutdown();
 }
+
+#[test]
+fn shared_sdf_native_control_precedence_removal_and_reset_observations_match() {
+    #[derive(bevy_ecs::prelude::Resource, Default)]
+    struct ObservedResets(u64);
+    let proof: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../../planning/reference/lifecycle-controls.json"
+    ))
+    .unwrap();
+    let rows = proof["observations"].as_array().unwrap();
+    assert_eq!(rows.len(), 10);
+    let variants: Vec<_> = rows
+        .iter()
+        .map(|row| {
+            (
+                row["engine"].as_str().unwrap(),
+                row["mode"].as_str().unwrap(),
+            )
+        })
+        .collect();
+    let expected: Vec<_> = ["dartsim", "tpe"]
+        .into_iter()
+        .flat_map(|engine| {
+            [
+                "ordinary",
+                "overwrite",
+                "model-only",
+                "time-only",
+                "step-reset",
+            ]
+            .map(|mode| (engine, mode))
+        })
+        .collect();
+    assert_eq!(variants, expected);
+    for row in rows {
+        let mode = row["mode"].as_str().unwrap();
+        let engine = match row["engine"].as_str().unwrap() {
+            "dartsim" => gz_sim_scene::PhysicsEngine::Rapier,
+            "tpe" => gz_sim_scene::PhysicsEngine::Tpe,
+            other => panic!("unknown reference engine {other}"),
+        };
+        let cfg = config();
+        let mut simulation = gz_sim_scene::load_world_with_sdf_step(
+            include_str!("../../../gz-sim-scene/tests/fixtures/headless_imu.sdf"),
+            "headless_imu.sdf",
+            "default",
+            &sdformat::NoResources,
+            engine,
+        )
+        .unwrap();
+        simulation
+            .world_mut()
+            .insert_resource(ObservedResets::default());
+        simulation.add_systems(
+            gz_sim_core::Phase::Reset,
+            |mut count: bevy_ecs::prelude::ResMut<ObservedResets>| {
+                count.0 += 1;
+            },
+        );
+        let mut server = Server::new(
+            simulation,
+            "default",
+            cfg.clone(),
+            NonZeroUsize::new(4).unwrap(),
+        )
+        .unwrap();
+        let original = public_id(&server, "default::ball");
+        server.tick().unwrap();
+        let reset = |time_only: bool| {
+            rewind(
+                WorldReset {
+                    all: !time_only,
+                    time_only,
+                    ..Default::default()
+                },
+                0,
+            )
+        };
+        if mode == "ordinary" || mode == "overwrite" {
+            assert!(server.apply_control(reset(false)));
+        }
+        if mode == "ordinary" || mode == "model-only" || mode == "time-only" {
+            let request = removal_request(
+                cfg,
+                false,
+                Entity {
+                    name: "ball".into(),
+                    r#type: gz_msgs::msgs::entity::Type::Model as i32,
+                    ..Default::default()
+                }
+                .encode_to_vec(),
+            );
+            poll_removals(&mut server, 1);
+            assert!(removal_result(request));
+            if mode != "ordinary" {
+                server.tick().unwrap();
+                server.tick().unwrap();
+                assert!(entity_by_id(server.simulation.world(), original).is_none());
+            }
+        }
+        match mode {
+            "ordinary" => {}
+            "overwrite" => assert!(server.apply_control(WorldControl {
+                pause: true,
+                ..Default::default()
+            })),
+            "model-only" => assert!(server.apply_control(rewind(
+                WorldReset {
+                    model_only: true,
+                    ..Default::default()
+                },
+                0
+            ))),
+            "time-only" => assert!(server.apply_control(reset(true))),
+            "step-reset" => assert!(server.apply_control(rewind(
+                WorldReset {
+                    all: true,
+                    ..Default::default()
+                },
+                3
+            ))),
+            _ => panic!("unknown reference mode {mode}"),
+        }
+        for _ in 0..if mode == "step-reset" { 3 } else { 2 } {
+            server.tick().unwrap();
+        }
+        assert!(server.simulation.is_paused());
+        assert_eq!(
+            server.simulation.elapsed().as_nanos(),
+            row["time_ns"].as_u64().unwrap() as u128,
+            "{engine:?}/{mode}"
+        );
+        assert_eq!(
+            server.simulation.world().resource::<UpdateInfo>().epoch,
+            row["resets"].as_u64().unwrap(),
+            "{engine:?}/{mode}"
+        );
+        assert_eq!(
+            server.simulation.world().resource::<ObservedResets>().0,
+            row["resets"].as_u64().unwrap(),
+            "{engine:?}/{mode} reset callbacks"
+        );
+        assert!(row["original"].as_u64().unwrap() > 0);
+        // Runtime identity numbers differ across implementations; restoration must retain each original.
+        let restored = entity_by_id(server.simulation.world(), original).is_some();
+        assert_eq!(
+            restored,
+            row["ball"] == row["original"],
+            "{engine:?}/{mode}"
+        );
+        if let Some(entity) = entity_by_id(server.simulation.world(), original) {
+            let pose = server
+                .simulation
+                .world()
+                .get::<gz_sim_scene::WorldPose>(entity)
+                .unwrap();
+            let actual = pose.translation.into_iter().chain(pose.rotation);
+            let expected = row["pose"].as_array().unwrap();
+            assert_eq!(expected.len(), 7);
+            for (axis, (actual, expected)) in actual.zip(expected).enumerate() {
+                // At two 1ms steps, half an Euler tick per step bounds the solver integration bias.
+                let tolerance = if engine == gz_sim_scene::PhysicsEngine::Rapier
+                    && mode == "step-reset"
+                    && axis == 2
+                {
+                    9.81e-6 + 1e-12
+                } else {
+                    1e-12
+                };
+                assert!(
+                    (actual - expected.as_f64().unwrap()).abs() <= tolerance,
+                    "{engine:?}/{mode} axis{axis}: {actual} versus {expected}"
+                );
+            }
+        } else {
+            assert!(row["pose"].is_null());
+        }
+        if !restored {
+            assert_eq!(row["ball"], 0);
+        }
+        if mode == "ordinary" {
+            assert_eq!(server.counters.removals_cancelled, 1);
+        }
+        server.shutdown();
+    }
+}

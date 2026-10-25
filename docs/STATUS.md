@@ -38,14 +38,14 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-Published a867617 passed the normal hook and exact hosted CI 40210013522:
-201 Rust tests, fourteen tooling checks and all nine actual C++ client scenarios.
+Published 03328bf passed the normal hook and exact hosted CI 40212126834:
+202 Rust tests, fifteen tooling checks and all nine actual C++ client scenarios.
 Coverage is 3182/3228 production lines and 4941/5079 regions; every crate exceeds
-95% on both metrics, with 12/12 changed scene lines. The reviewed full-server
-increment passes its strict staged gate with 202 Rust tests and fifteen tooling
-checks, unchanged production coverage and all nine C++ scenarios; its normal
-hook and hosted qualification remain pending. No test, tolerance, coverage
-exclusion or threshold was weakened. Full P2 acceptance remains open.
+95% on both metrics. The reviewed lifecycle reference increment passes its strict
+staged gate with 203 Rust tests, fifteen tooling checks and all nine C++ scenarios;
+coverage is 3193/3228 lines and 4964/5079 regions with no new production lines.
+Its normal hook and hosted qualification remain pending. No existing test,
+tolerance, exclusion or threshold was weakened. Full P2 acceptance remains open.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
 Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
@@ -252,3 +252,17 @@ a large within-Rust improvement; it does not isolate command wakeup as the sole
 cause. Missing-IMU mutation fails. FULL_SERVER_PERFORMANCE.md records limits and
 the rejected overloaded batch; planning/reviews/full-server-pipeline.json binds
 the approved source. The selected-fixture lifecycle matrix remains required.
+
+
+## Durable reset/removal reference
+
+Ten tracked native DART/TPE controls now reproduce selected queued-control,
+reset callback, identity, model pose and reset-plus-step observations on the shared
+SDF. Rust compares actual Reset observer counts and completed outcomes. Native
+ordinary removal/reset does not expose a cancellation counter; the additional
+Rust cancellation boundary is stated separately. Independent complete native
+replay and Rust execution pass; counter/multistep/pose mutants fail as expected.
+LIFECYCLE_REFERENCE.md and planning/reviews/lifecycle-controls.json record scope
+and the declared two-step cross-engine position bound. This closes the missing
+durable reference controls; the complete selected-fixture acceptance matrix is
+still required for P2.

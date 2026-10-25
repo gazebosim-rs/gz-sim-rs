@@ -1,0 +1,50 @@
+{
+  "decision": "approved",
+  "author": "/root",
+  "reviewer": "/root/msgs_review_fallback",
+  "base": "03328bfc302376bf6094ea21862123778a34ac1d",
+  "tree": "d69b203ceeb3f2036aa472fbbf295f9ddcfcdb48",
+  "diff_sha256": "4ceac9c7e7c2aea6297e5079720a80e95cb70df1554472032e8533818768987b",
+  "files": {
+    "Cargo.lock": "30760c7a09475ab45bb90c0b0432fc1d75212bb12d0dcf5911d90c441ae5474b",
+    "crates/gz-sim-server/Cargo.toml": "ad21ec54a0f88438b1e79d3ac8238d81f51634d7c27e2d41b30ca712a91a9d67",
+    "crates/gz-sim-server/tests/native_lifecycle_controls.cc": "ba21c6419db28f54b4934d5efd4c3d95d4b407002607206de80ff70030b1e958",
+    "crates/gz-sim-server/tests/private/reset.rs": "178f2f987824237c69197e9152a3a6605ebb5f797818694a5b5cb56329d24d07",
+    "docs/LIFECYCLE_REFERENCE.md": "b11ef171fd4d9668627d8735123eccdd4e7a403b348f21871eccc99457bedbc0",
+    "planning/reference/lifecycle-controls.json": "4f9177eb98b78f271c39e9efa6f54ec612a12a9d890cf582c9e765accaa8c188",
+    "planning/test-ledger.json": "13ef9734c6a1b662c3ca7fc96aa7e40931c400f6a3b64f894d4f44135f623286",
+    "scripts/probe-lifecycle-controls.py": "bee5b143bd039b196f97723c2f2b055635bcd661f0cb607fdc7bfea7d95957c9"
+  },
+  "source_qualification": {
+    "original_reviewed_tree": "c5632c45e310e86c2f6b0894d0bfe9a3103f8e4a",
+    "metadata_only_changes": [
+      "docs/LIFECYCLE_REFERENCE.md",
+      "planning/test-ledger.json"
+    ],
+    "qualified_patch_sha256": "4ceac9c7e7c2aea6297e5079720a80e95cb70df1554472032e8533818768987b",
+    "protected_source_test_probe_reference_hashes": "unchanged from original reviewed tree"
+  },
+  "native_reference_sha256": "4f9177eb98b78f271c39e9efa6f54ec612a12a9d890cf582c9e765accaa8c188",
+  "shared_sdf_sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+  "author_gate_log_sha256": "d2c839d4782e397a5f3b800c5e28ec9ac8c75580f72d71041ae8894691b29e02",
+  "author_gate": "EXIT0 on source freeze: 203 Rust tests, 15 tooling checks, nine actual C++ scenarios; workspace3193/3228 lines4964/5079 regions, every crate strictly above95%, production executable delta0. Qualified tree changes only documentation/ledger wording.",
+  "reviewer_evidence": {
+    "reviewer-native.log": "4cba90ac11343ffaf12b476e28000588b7b10eb5f8ed113b644887d8ff3fe7c3",
+    "reviewer-rust.log": "5c8ef1612c4b3b26df4c2e13cb0c6d02300df957688defafd180143c9f1ae54c",
+    "reviewer-counter-mutant.diff": "ac024d0d8aa0501920690f0b735189ae4dcb4910bb27fbbf56ebe32544ae68ac",
+    "reviewer-counter-mutant.log": "26863c640b2807ba83b88c394baba10f900fbf02cd70e16cb6a4747877119940",
+    "reviewer-step-mutant.diff": "6a1e10f38e241e4931e01fb5ad7adccd8ff5469a62b44ed380dc1ac455a3671e",
+    "reviewer-step-mutant.log": "3a0a03aaf9054cf202d20833be8b70a09ae0105a53b1d99a2b1298424cfb5d07",
+    "reviewer-pose-mutant.diff": "5aa6f59320662073d559a365a9c3d040914f7ff4acb0d05900ca6f22e0f96e81",
+    "reviewer-pose-mutant.log": "612e4d6506a44ced7debc36d40e42451ae5ea5d199e8004b87b2e6d42ee7d002"
+  },
+  "reviewer_private_native_proof_sha256": "78b67f409f08dcc505cd86ee1920816ffa0209025ad019db50a68c946c9ac12c",
+  "reviewer_checks": [
+    "Exact eight-file raw Git archive and separate native build/work directory: all ten DART/TPE control rows pass and match tracked observations byte-for-byte as parsed values; pinned revisions, source/build, fixture, native binary, compiler/helper and each loaded-library hash map match exactly.",
+    "Exclusive Cargo target on raw frozen source: selected Rust native-reference comparison passes 1/0 across all ten cases, using actual Reset phase counter, paused/time/identity/full-pose checks.",
+    "Private Reset-callback increment removal fails Rapier ordinary 0 versus native one; private multi_step3-to-2 fails Rapier step-reset 1ms versus 2ms; private ordinary reference z displacement of1mm fails exact pose check. All mutants are in private source only, with retained source diffs and logs."
+  ],
+  "scope": "Durable shared headless SDF reference for five selected control outcomes on native DART and TPE and Rust Rapier/TPE: successful queued control/removal RPC, reset callback count, final model identity, paused/time, all pose components and step count. Native ordinary proves one reset and original identity present after queued remove/reset; Rust cancelled=1 is an additional Rust-only boundary.",
+  "limits": "Native installed SDK/build provenance is qualified. Native and Rust admission/callback phase scheduling differ; only completed selected observations compare. Rapier-versus-DART two-step vertical pose uses predeclared 9.81e-6m+1e-12 analytic integration bound, all other pose components 1e-12. No original test retired, production code or prior tolerance changed. No full P2/phase, arbitrary topology, native-DART adapter, or performance claim. Final metadata binding, normal hook, public push and hosted CI pending.",
+  "reviewer_private_native_proof_path": "artifacts/headless-lifecycle/reviewer-native.json"
+}

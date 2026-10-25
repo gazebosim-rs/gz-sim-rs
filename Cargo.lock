@@ -1025,6 +1025,7 @@ dependencies = [
  "gz-sim-scene",
  "gz-transport",
  "sdformat",
+ "serde_json",
  "thiserror",
 ]
 
