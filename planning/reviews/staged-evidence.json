@@ -1,0 +1,22 @@
+{
+  "candidate_diff_sha256": "fda9c9aba65d60b83e1395f706e7bac982dd21de45beb93e379b8a0d29bc85a6",
+  "candidate_tree": "25735523675919adff9f821923bdff89a9e61d72",
+  "evidence": {
+    "failure_masking_mutant": "2 expected test errors when retention exception incorrectly masks child exit7 and changed-index failure",
+    "focused_tests": "8/0 independent real temporary Git child tests",
+    "partial_label_mutant": "missing-output test fails when evidence_state forced complete",
+    "private_raw_copy": "exact verify.py and test_staged_evidence.py bytes outside author worktree",
+    "source_audit": "checks_state remains export_failed/checks_failed/index_changed/passed; evidence_state records partial/complete independently; original child/index BaseException re-raised when retention raises Exception, secondary failure reported; retention-only error propagates; three allowlisted outputs copied after root containment and symlink checks with content SHA256; original index guard unchanged"
+  },
+  "files_sha256": {
+    "docs/TESTING.md": "bec3d96a94fe7b273a913a0579701bc4f2a41ec3c8f69066a62f2fe19a7d8bc4",
+    "planning/test-ledger.json": "1ca00fee496d1e961d7798aef652aaca9fda1e97f2c672171e98b9826cf1add0",
+    "scripts/verify.py": "ec1edd481c8f9150b463e42d43f6bd862042dbb68cdb0d87da0c008c991a2daf",
+    "tests/test_staged_evidence.py": "ac4b540b1c0b9acaed92838254c48d87905efd806b89748bac41e8f946b99141"
+  },
+  "limits": "Source approval only. Strict staged gate, final metadata/parent binding, normal hook, publication and hosted run remain owner gates. Partial retained evidence and a passed child are separate facts; this change adds no upstream case retirement or broad P2 acceptance.",
+  "parent": "d3a48c3945b00e9fef71e4c1b539bc25f6b82685",
+  "reviewer": "/root/sdformat_owner_fallback",
+  "scope": "QLT01 staged evidence retention V2 source, API, failure preservation and focused private replay",
+  "verdict": "approved_source"
+}

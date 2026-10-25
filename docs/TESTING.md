@@ -19,6 +19,18 @@ including real C++ scenarios. Passing this implemented subset does not establish
 complete upstream parity or phase acceptance. Never treat an empty workspace as
 100% covered.
 
+## Retained staged evidence
+
+Staged runs retain raw Rust test output and available coverage summaries under
+ignored `artifacts/staged/<tree>-<run>/`. Each run has a separate directory and a
+`stage-result.json` with the exact tree, `checks_state`, `evidence_state`, file hashes and missing
+files. Checks marked `passed` require the child verifier to succeed and the original index to remain
+unchanged. Export/preflight failures, child failures and index changes remain
+failures. Evidence is separately `complete` or `partial`; missing files never
+become complete evidence. A retention error preserves and reports any original
+verification failure; a retention-only error also fails the hook. Artifact
+presence alone is no acceptance claim. Files outside the exported tree are never copied through links.
+
 ## Pinned reference and complete test ledger
 
 P0 builds the selected upstream main commits in an isolated, reproducible

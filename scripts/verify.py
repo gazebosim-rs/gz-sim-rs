@@ -262,22 +262,61 @@ def export_snapshot(tree, candidate):
     validate_snapshot(tree, candidate)
 
 
+def retain_staged_evidence(tree, candidate, state):
+    directory = ROOT / "artifacts/staged"
+    directory.mkdir(parents=True, exist_ok=True)
+    output = Path(tempfile.mkdtemp(prefix=tree + "-", dir=directory))
+    hashes, missing = {}, []
+    for name in ("test-output.log", "evidence.json", "summary.json"):
+        source = candidate / "artifacts/coverage" / name
+        if (source.is_file() and not source.is_symlink()
+                and source.resolve().is_relative_to(candidate.resolve())):
+            data = source.read_bytes()
+            (output / name).write_bytes(data)
+            hashes[name] = hashlib.sha256(data).hexdigest()
+        else:
+            missing.append(name)
+    (output / "stage-result.json").write_text(json.dumps({
+        "tree": tree, "checks_state": state,
+        "evidence_state": "partial" if missing else "complete",
+        "artifacts_sha256": hashes,
+        "missing_artifacts": missing,
+    }, indent=2) + "\n")
+    print("Staged evidence:", output, flush=True)
+
+
 def staged():
     tree = run(["git", "write-tree"], capture_output=True, text=True).stdout.strip()
     with tempfile.TemporaryDirectory(prefix="gz-sim-index-") as directory:
         candidate = Path(directory) / "repo"
-        export_snapshot(tree, candidate)
-        changed = changed_sources({}, index=True)
-        manifest = Path(directory) / "changed-lines.json"
-        manifest.write_text(json.dumps({path: sorted(lines) for path, lines in changed.items()}))
-        # Child Git commands must not inherit the caller's worktree or index.
-        env = os.environ.copy()
-        keys = run(["git", "rev-parse", "--local-env-vars"], capture_output=True, text=True).stdout.splitlines()
-        for key in keys:
-            env.pop(key, None)
-        subprocess.run([sys.executable, str(candidate / "scripts/verify.py"), "--changed-lines", str(manifest)], cwd=candidate, env=env, check=True)
-        if run(["git", "write-tree"], capture_output=True, text=True).stdout.strip() != tree:
-            raise ValueError("index changed during verification")
+        state = "export_failed"
+        failure = None
+        try:
+            export_snapshot(tree, candidate)
+            changed = changed_sources({}, index=True)
+            manifest = Path(directory) / "changed-lines.json"
+            manifest.write_text(json.dumps({path: sorted(lines) for path, lines in changed.items()}))
+            # Child Git commands must not inherit the caller's worktree or index.
+            env = os.environ.copy()
+            keys = run(["git", "rev-parse", "--local-env-vars"], capture_output=True, text=True).stdout.splitlines()
+            for key in keys:
+                env.pop(key, None)
+            state = "checks_failed"
+            subprocess.run([sys.executable, str(candidate / "scripts/verify.py"), "--changed-lines", str(manifest)], cwd=candidate, env=env, check=True)
+            state = "index_changed"
+            if run(["git", "write-tree"], capture_output=True, text=True).stdout.strip() != tree:
+                raise ValueError("index changed during verification")
+            state = "passed"
+        except BaseException as error:
+            failure = error
+            raise
+        finally:
+            try:
+                retain_staged_evidence(tree, candidate, state)
+            except Exception as error:
+                if failure is None:
+                    raise
+                print(f"Could not retain staged evidence: {error}", file=sys.stderr)
 
 
 def main():
