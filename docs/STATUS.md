@@ -38,7 +38,7 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 163 Rust checks and ten gate tests, including all
+The current local gate passes 163 Rust checks and twelve gate tests, including all
 nine actual C++ client scenarios. Coverage is 2422/2450 production lines and
 3789/3883 regions. Every production crate exceeds 95% for both metrics. The
 sampling-cadence increment covers all 56 changed executable scene lines.
@@ -134,3 +134,12 @@ observations and remaining scope. The former Rust-only 10 Hz rejection becomes a
 stronger supported-input test; the error table retains a genuinely unrepresentable
 1e-300 Hz period. That disposition requires independent assertion review; no
 upstream test is retired or numerical tolerance relaxed.
+
+## Exact staged source export
+
+The verifier now exports through a private index and validates all raw Git blobs,
+file modes, symlinks, directories and paths before running checks. The regression
+that previously failed because export-ignore hid a staged file now passes. A
+tracked changed-lines.json also survives unchanged; generated metadata stays
+outside the exported source. Checkout conversion and deliberate snapshot mutations
+fail closed. Simulator Rust and its native/coverage requirements are unchanged.

@@ -39,6 +39,7 @@ class StagedEnvironment(unittest.TestCase):
             probe.write_text('''import json, os, pathlib, subprocess
 report = pathlib.Path(os.environ['GZ_ENV_REPORT'])
 assert pathlib.Path('staged.txt').read_text() == 'intended staged bytes\\n'
+assert pathlib.Path('changed-lines.json').read_text() == 'owned source manifest'
 keys = subprocess.check_output(['git', 'rev-parse', '--local-env-vars'], text=True).splitlines()
 assert not any(key in os.environ for key in keys), sorted(key for key in keys if key in os.environ)
 assert os.environ['GZ_REFERENCE_PREFIX'] == 'preserved-reference'
@@ -64,7 +65,9 @@ report.write_text(json.dumps({'isolated': True}))
             alternate_env = {'GIT_INDEX_FILE': str(alternate)}
             git(worktree, 'read-tree', 'HEAD', extra=alternate_env)
             (worktree / 'staged.txt').write_text('intended staged bytes\n')
-            git(worktree, 'add', 'staged.txt', extra=alternate_env)
+            (worktree / '.gitattributes').write_text('staged.txt export-ignore\n')
+            (worktree / 'changed-lines.json').write_text('owned source manifest')
+            git(worktree, 'add', 'staged.txt', '.gitattributes', 'changed-lines.json', extra=alternate_env)
             intended = git(worktree, 'write-tree', extra=alternate_env)
             (worktree / 'staged.txt').write_text('unstaged bytes\n')
             hooks = root / 'hooks'

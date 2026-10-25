@@ -219,11 +219,54 @@ def coverage(changed_file=None):
     print("Changed executable lines:", json.dumps(changed_totals))
 
 
+def validate_snapshot(tree, candidate):
+    """Require raw staged bytes before executing the exported verifier."""
+    algorithm = run(["git", "rev-parse", "--show-object-format"], capture_output=True, text=True).stdout.strip()
+    expected = set()
+    for entry in run(["git", "ls-tree", "-rzt", tree], capture_output=True).stdout.split(b"\0"):
+        if not entry:
+            continue
+        metadata, name = entry.split(b"\t", 1)
+        mode, kind, oid = metadata.split()
+        relative = os.fsdecode(name)
+        expected.add(relative)
+        path = candidate / relative
+        if kind == b"tree":
+            if not path.is_dir() or path.is_symlink():
+                raise ValueError("exported directory differs from staged tree")
+            continue
+        if kind != b"blob":
+            raise ValueError("unsupported non-blob staged input")
+        if mode == b"120000" and path.is_symlink():
+            data = os.fsencode(os.readlink(path))
+        elif mode in (b"100644", b"100755") and path.is_file() and not path.is_symlink():
+            if bool(path.stat().st_mode & 0o100) != (mode == b"100755"):
+                raise ValueError("exported executable mode differs from staged tree")
+            data = path.read_bytes()
+        else:
+            raise ValueError("exported file type differs from staged tree")
+        actual = hashlib.new(algorithm, f"blob {len(data)}\0".encode() + data).hexdigest()
+        if actual != oid.decode():
+            raise ValueError(f"exported blob differs from staged tree: {relative}")
+    actual_paths = {str(path.relative_to(candidate)) for path in candidate.rglob("*")}
+    if actual_paths != expected:
+        raise ValueError("exported paths differ from staged tree")
+
+
+def export_snapshot(tree, candidate):
+    candidate.mkdir()
+    with tempfile.TemporaryDirectory(prefix="gz-sim-export-index-") as directory:
+        env = dict(os.environ, GIT_INDEX_FILE=str(Path(directory) / "index"))
+        run(["git", "read-tree", tree], env=env)
+        run(["git", "checkout-index", "--all", f"--prefix={candidate}/"], env=env)
+    validate_snapshot(tree, candidate)
+
+
 def staged():
     tree = run(["git", "write-tree"], capture_output=True, text=True).stdout.strip()
     with tempfile.TemporaryDirectory(prefix="gz-sim-index-") as directory:
-        archive = run(["git", "archive", "--format=tar", tree], capture_output=True).stdout
-        subprocess.run(["tar", "-xf", "-", "-C", directory], input=archive, check=True)
+        candidate = Path(directory) / "repo"
+        export_snapshot(tree, candidate)
         changed = changed_sources({}, index=True)
         manifest = Path(directory) / "changed-lines.json"
         manifest.write_text(json.dumps({path: sorted(lines) for path, lines in changed.items()}))
@@ -232,7 +275,7 @@ def staged():
         keys = run(["git", "rev-parse", "--local-env-vars"], capture_output=True, text=True).stdout.splitlines()
         for key in keys:
             env.pop(key, None)
-        subprocess.run([sys.executable, str(Path(directory) / "scripts/verify.py"), "--changed-lines", str(manifest)], cwd=directory, env=env, check=True)
+        subprocess.run([sys.executable, str(candidate / "scripts/verify.py"), "--changed-lines", str(manifest)], cwd=candidate, env=env, check=True)
         if run(["git", "write-tree"], capture_output=True, text=True).stdout.strip() != tree:
             raise ValueError("index changed during verification")
 

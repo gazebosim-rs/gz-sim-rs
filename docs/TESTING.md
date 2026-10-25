@@ -228,3 +228,12 @@ bytes, core.bare, unstaged content and preserved reference/global configuration.
 The unchanged wrapper fails this regression on leaked Git keys; the fix preserves
 all original coverage/native checks. No simulator repository corruption has been
 observed; this closes the same boundary defect found in another repository's hook.
+
+The parent exports through a private Git index and checks every staged blob,
+executable flag, symlink target, directory and path before starting the child.
+Export-ignore attributes cannot hide inputs. Checkout filters that alter bytes
+cause an explicit failure rather than verification of different code. The caller's
+selected index remains untouched. Generated coverage metadata lives outside the
+exported source directory, so a tracked changed-lines.json cannot be overwritten.
+Tests exercise the real worktree hook with export-ignore and that filename, then
+check raw roundtrips, checkout conversion and deliberate byte/mode/type/path errors.

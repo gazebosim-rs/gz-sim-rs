@@ -122,7 +122,7 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current full gate passes 163 Rust checks and ten gate tests, including all
+The current full gate passes 163 Rust checks and twelve gate tests, including all
 nine real C++ scenarios: 2422/2450 production lines and 3789/3883 regions. Every
 production crate strictly exceeds 95% for both metrics. The sampling-cadence
 increment covers all 56 changed executable scene lines. Independent review and the
