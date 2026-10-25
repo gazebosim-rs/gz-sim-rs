@@ -128,3 +128,25 @@ fn output_failure_returns_an_error() {
             .contains("No space left")
     );
 }
+
+#[test]
+fn tpe_selection_preserves_headless_output_and_rejects_unknown_engines() {
+    let result = command(&[fixture(), "--physics-engine", "tpe", "--iterations", "100"]);
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert_eq!(
+        String::from_utf8(result.stdout).unwrap(),
+        "simulation_ns=100000000 iterations=100\ndefault::ball::body 0 0 5\ndefault::ground::base 0 0 -0.5\n"
+    );
+    let result = command(&[fixture(), "--physics-engine", "bullet"]);
+    assert_eq!(result.status.code(), Some(2));
+    assert!(
+        String::from_utf8(result.stderr)
+            .unwrap()
+            .contains("expected rapier or tpe")
+    );
+    assert!(result.stdout.is_empty());
+}

@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use clap::Parser;
-use gz_sim_scene::{BodyHandle, Name, WorldPose};
+use gz_sim_scene::{EntityKind, Name, PhysicsEngine, WorldPose};
 use std::{
     error::Error,
     io::{self, Write},
@@ -17,6 +17,8 @@ use std::{
 struct Args {
     /// Self-contained SDF file.
     file: PathBuf,
+    #[arg(long, default_value = "rapier", value_parser = parse_engine)]
+    physics_engine: PhysicsEngine,
     #[arg(long, default_value = "default")]
     world: String,
     #[arg(long, default_value_t = 1000)]
@@ -25,21 +27,31 @@ struct Args {
     step_ns: NonZeroU64,
 }
 
+fn parse_engine(value: &str) -> Result<PhysicsEngine, String> {
+    match value {
+        "rapier" => Ok(PhysicsEngine::Rapier),
+        "tpe" => Ok(PhysicsEngine::Tpe),
+        _ => Err("expected rapier or tpe".into()),
+    }
+}
+
 fn run(args: Args) -> Result<(), Box<dyn Error>> {
     let xml = std::fs::read_to_string(&args.file)?;
-    let mut simulation = gz_sim_scene::load_world(
+    let mut simulation = gz_sim_scene::load_world_with_engine(
         &xml,
         &args.file.to_string_lossy(),
         &args.world,
         Duration::from_nanos(args.step_ns.get()),
         &sdformat::NoResources,
+        args.physics_engine,
     )?;
     simulation.step_exact(args.iterations)?;
     let elapsed = simulation.elapsed().as_nanos();
     let mut poses = simulation
         .world_mut()
-        .query::<(&Name, &WorldPose, &BodyHandle)>()
+        .query::<(&Name, &WorldPose, &EntityKind)>()
         .iter(simulation.world())
+        .filter(|(_, _, kind)| **kind == EntityKind::Link)
         .map(|(name, pose, _)| (name.0.clone(), pose.translation))
         .collect::<Vec<_>>();
     poses.sort_by(|a, b| a.0.cmp(&b.0));

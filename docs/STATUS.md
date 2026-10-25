@@ -17,11 +17,11 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 | --- | --- | --- |
 | gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, typed terminal fault diagnostics, world/allocator-bound reset reservations, isolated worlds | Persistence and complete lifecycle contract |
 | gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
-| gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation and typed arithmetic faults | SDF selection/restoration, contacts, commands and D23 policy |
+| gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation and typed arithmetic faults | Contact reporting, commands and D23 policy |
 | gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, forces, common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Rates, seeds/noise, complete frame configuration and remaining sensor families |
-| gz-sim-scene | Atomic SDF construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, asset resolution and scheduling |
-| gz-sim-cli | Self-contained SDF input, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, resource resolution, signal handling and packaging |
+| gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, asset resolution and scheduling |
+| gz-sim-cli | Self-contained SDF input, Rapier/TPE selection, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, resource resolution, signal handling and packaging |
 | gz-sim-server | Bounded clock/pose publication, shared-topic IMU streams, polled pause/step/reset controls, deferred remove services, real C++ clients | Root clock election, run-to controls, scene services and runtime sensor registration |
 
 Rust 1.95.0, Bevy ECS 0.20.0, Rapier3d-f64 0.36.1 and glam 0.33.12 are pinned.
@@ -37,10 +37,12 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 118 Rust tests and nine gate tests, covering 1903/1913
-production lines and 2933/2980 regions. Every production crate exceeds 95% for
-both metrics. The TPE adapter increment covers all 34 changed executable lines. TPE coverage
-is 81/81 lines and 121/121 regions; all prior assertions remain required.
+The current local gate passes 127 Rust tests and nine gate tests, covering 2034/2057
+production lines and 3133/3206 regions. Every production crate exceeds 95% for
+both metrics. The TPE scene increment covers all 198 changed executable lines. Scene coverage
+is 805/827 lines and 1231/1287 regions; all prior assertions remain required.
+The final new regression checks and exact staged snapshot must re-establish these
+counts before publication.
 Independent review and the exact staged hook are required before publication.
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
@@ -51,8 +53,8 @@ remain open. Local model removal is published at 5fd5e49 and remote removal at b
 The consumer now uses reviewed SDF frame/topic/canonical helpers and rejects
 explicit Surface and fluid added-mass physics until implemented; transport includes native publisher
 recreation ordering. Producer pins and tests are detailed in HEADLESS.md. The C++ client now
-verifies six scenarios using actual clock, local-pose and IMU samples, exact-step
-controls, stable IDs, topic repair, deferred model removal and reset/resume. Its
+verifies seven scenarios using actual clock, local-pose and IMU samples, exact-step
+controls, stable IDs, topic repair, deferred model removal and reset/resume, including explicit TPE kinematics. Its
 native dependencies are rebuilt from the pinned reference lock in CI.
 
 `python3 scripts/verify.py` runs formatting, Clippy with warnings denied, Rust and

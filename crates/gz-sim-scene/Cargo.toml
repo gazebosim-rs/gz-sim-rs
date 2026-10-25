@@ -12,7 +12,11 @@ thiserror.workspace = true
 sdformat.workspace = true
 gz-sim-core = { path = "../gz-sim-core" }
 gz-physics-rapier = { path = "../gz-physics-rapier" }
+gz-physics-tpe = { path = "../gz-physics-tpe" }
 gz-sensors = { path = "../gz-sensors" }
+
+[dev-dependencies]
+serde_json = "=1.0.149"
 
 [lints]
 workspace = true

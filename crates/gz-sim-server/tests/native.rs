@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use gz_sim_scene::{Name, WorldPose, load_world};
+use gz_sim_scene::{Name, PhysicsEngine, WorldPose, load_world_with_engine};
 use gz_sim_server::Server;
 use gz_transport::Config;
 use sdformat::NoResources;
@@ -25,12 +25,20 @@ impl Drop for Peer {
 
 #[test]
 fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
-    run_native_world(false, None, false, false, false);
-    run_native_world(true, None, false, false, false);
-    run_native_world(true, Some("robot ~imu//@:= sensor"), false, false, false);
-    run_native_world(false, None, true, false, false);
-    run_native_world(true, None, false, true, false);
-    run_native_world(true, None, false, false, true);
+    run_native_world(false, None, false, false, false, PhysicsEngine::Rapier);
+    run_native_world(true, None, false, false, false, PhysicsEngine::Rapier);
+    run_native_world(
+        true,
+        Some("robot ~imu//@:= sensor"),
+        false,
+        false,
+        false,
+        PhysicsEngine::Rapier,
+    );
+    run_native_world(false, None, true, false, false, PhysicsEngine::Rapier);
+    run_native_world(true, None, false, true, false, PhysicsEngine::Rapier);
+    run_native_world(true, None, false, false, true, PhysicsEngine::Rapier);
+    run_native_world(true, None, false, false, true, PhysicsEngine::Tpe);
 }
 
 fn run_native_world(
@@ -39,6 +47,7 @@ fn run_native_world(
     remove: bool,
     shared_imu: bool,
     reset: bool,
+    engine: PhysicsEngine,
 ) {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let build = Command::new("python3")
@@ -76,12 +85,13 @@ fn run_native_world(
             .replace("<always_on>true</always_on>", "<always_on>true</always_on><topic>shared</topic><frame_id>first</frame_id>")
             .replace("</sensor>", "</sensor><sensor name='imu2' type='imu'><always_on>true</always_on><update_rate>1000</update_rate><topic>/robot/shared</topic><frame_id>second</frame_id></sensor>");
     }
-    let simulation = load_world(
+    let simulation = load_world_with_engine(
         &xml,
         "fall.sdf",
         "default",
         Duration::from_millis(1),
         &NoResources,
+        engine,
     )
     .unwrap();
     let mut server = Server::new(
@@ -96,7 +106,11 @@ fn run_native_world(
         .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
     let mut command = Command::new(root.join("artifacts/native-peer/clock-client"));
     if reset {
-        command.arg("--reset");
+        command.arg(if engine == PhysicsEngine::Tpe {
+            "--tpe-reset"
+        } else {
+            "--reset"
+        });
     } else if shared_imu {
         command.arg("--shared");
     } else if with_imu {
@@ -189,6 +203,11 @@ fn run_native_world(
         assert_eq!(server.counters().removals_queued, 3);
         assert_eq!(server.counters().removals_failed, 2);
         assert_eq!(server.counters().removals_completed, 1);
+    } else if engine == PhysicsEngine::Tpe {
+        assert_eq!(
+            body.unwrap().get::<WorldPose>().unwrap().translation[2],
+            5.0
+        );
     } else {
         assert!(body.unwrap().get::<WorldPose>().unwrap().translation[2] < 5.0);
     }

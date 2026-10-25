@@ -38,7 +38,8 @@ struct Observations
 int main(int argc, char **argv)
 {
   const bool sharedImu = argc > 1 && std::string(argv[1]) == "--shared";
-  const bool reset = argc > 1 && std::string(argv[1]) == "--reset";
+  const bool tpe = argc > 1 && std::string(argv[1]) == "--tpe-reset";
+  const bool reset = tpe || (argc > 1 && std::string(argv[1]) == "--reset");
   const bool withImu = reset || sharedImu || (argc > 1 && std::string(argv[1]) == "--imu");
   const bool remove = argc > 1 && std::string(argv[1]) == "--remove";
   auto observations = std::make_shared<Observations>();
@@ -65,7 +66,7 @@ int main(int argc, char **argv)
     };
   if (!node.Subscribe("/world/default/clock", callback)) return 2;
   std::function<void(const gz::msgs::Pose_V &)> poseCallback =
-    [observations](const auto &poses)
+    [observations, tpe](const auto &poses)
     {
       std::lock_guard<std::mutex> lock(observations->mutex);
       bool valid = poses.has_header() && poses.header().has_stamp() &&
@@ -88,7 +89,7 @@ int main(int argc, char **argv)
           valid = valid && std::isfinite(value) && std::abs(value) < 1e-12;
         const double z = pose.position().z();
         valid = valid && std::isfinite(z);
-        if (pose.name() == "ball") valid = valid && z <= 5 && z > 4;
+        if (pose.name() == "ball") valid = valid && (tpe ? z == 5 : z <= 5 && z > 4);
         else if (pose.name() == "base") valid = valid && z == -0.5;
         else if (pose.name() == "ground" || pose.name() == "body")
           valid = valid && std::abs(z) < 1e-12;
@@ -106,7 +107,7 @@ int main(int argc, char **argv)
     };
   if (!node.Subscribe("/world/default/pose/info", poseCallback)) return 12;
   std::function<void(const gz::msgs::IMU &)> imuCallback =
-    [observations, sharedImu, frame = std::string(argc > 3 ? argv[3] : "ball::body::imu")](const auto &imu)
+    [observations, sharedImu, tpe, frame = std::string(argc > 3 ? argv[3] : "ball::body::imu")](const auto &imu)
     {
       std::lock_guard<std::mutex> lock(observations->mutex);
       const bool second = sharedImu && imu.entity_name() == "ball::body::imu2";
@@ -139,7 +140,7 @@ int main(int argc, char **argv)
       for (double value : {imu.orientation().x(), imu.orientation().y(),
           imu.orientation().z(), imu.orientation().w() - 1,
           imu.angular_velocity().x(), imu.angular_velocity().y(), imu.angular_velocity().z(),
-          imu.linear_acceleration().x(), imu.linear_acceleration().y(), imu.linear_acceleration().z()})
+          imu.linear_acceleration().x(), imu.linear_acceleration().y(), imu.linear_acceleration().z() - (tpe ? 9.81 : 0.0)})
         valid = valid && std::isfinite(value) && std::abs(value) < 1e-9;
       observations->invalid = observations->invalid || !valid;
       observations->lastImu = header.stamp().nsec();

@@ -222,3 +222,11 @@ parallelism and stops later registered systems. Failed normal ticks retain last
 committed timing, and server publication/control processing stops. Committed
 reset faults clean pending nodes and streams without observing invalid state.
 See [STEP_FAULTS.md](STEP_FAULTS.md) for terminal-run and side-effect boundaries.
+
+## Selectable TPE kinematics
+
+Use `--physics-engine tpe` or `load_world_with_engine(..., PhysicsEngine::Tpe)`
+for the bounded kinematic TPE path described in [TPE_SCENE.md](TPE_SCENE.md).
+Default Rapier behavior is retained. The seventh real C++ scenario verifies TPE
+clock/pose/IMU/control/removal/reset interoperability; it does not close native
+TPE contacts, commands, nested models or the complete P2 comparison.

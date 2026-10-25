@@ -29,20 +29,32 @@ pub fn remove_model(sim: &mut Simulation, id: u64) -> Result<Vec<u64>, RemoveErr
     {
         return Err(RemoveError::NotWorldModel(id));
     }
-    let backend = world
-        .get_resource::<RapierBackend>()
-        .ok_or(RemoveError::InvalidPhysics)?;
+    let backend = world.get_resource::<RapierBackend>();
+    if backend.is_some() == world.contains_resource::<crate::tpe::TpeWorld>() {
+        return Err(RemoveError::InvalidPhysics);
+    }
     let mut pending = vec![root];
     let mut bodies = BTreeSet::new();
     let mut subtree = BTreeSet::new();
     let mut ids = Vec::new();
     while let Some(entity) = pending.pop() {
+        if backend.is_none() {
+            let valid = match world.get::<EntityKind>(entity) {
+                Some(EntityKind::Model) => world.get::<gz_physics_tpe::Motion>(entity).is_some(),
+                Some(EntityKind::Link) => world.get::<crate::tpe::TpeLink>(entity).is_some(),
+                _ => true,
+            };
+            if !valid {
+                return Err(RemoveError::InvalidPhysics);
+            }
+        }
         subtree.insert(entity);
         if let Some(id) = world.get::<EntityId>(entity) {
             ids.push(id.get());
         }
         if let Some(body) = world.get::<BodyHandle>(entity)
-            && (backend.state(body.id()).is_none() || !bodies.insert(body.id()))
+            && (backend.is_none_or(|backend| backend.state(body.id()).is_none())
+                || !bodies.insert(body.id()))
         {
             return Err(RemoveError::InvalidPhysics);
         }
@@ -58,12 +70,13 @@ pub fn remove_model(sim: &mut Simulation, id: u64) -> Result<Vec<u64>, RemoveErr
     }) {
         return Err(RemoveError::InvalidPhysics);
     }
-    let mut backend = sim.world_mut().resource_mut::<RapierBackend>();
-    for body in bodies {
-        assert!(
-            backend.remove(body),
-            "preflighted bodies remain owned until commit"
-        );
+    if let Some(mut backend) = sim.world_mut().get_resource_mut::<RapierBackend>() {
+        for body in bodies {
+            assert!(
+                backend.remove(body),
+                "preflighted bodies remain owned until commit"
+            );
+        }
     }
     // ChildOf's linked-spawn relationship also removes descendants and ID hooks.
     sim.world_mut().entity_mut(root).despawn();

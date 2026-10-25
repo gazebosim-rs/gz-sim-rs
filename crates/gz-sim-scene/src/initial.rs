@@ -31,6 +31,8 @@ pub enum SceneResetError {
     RuntimePhysics,
     #[error("resources and Bevy infrastructure must not belong to the scene hierarchy")]
     InfrastructureOwnership,
+    #[error("initial TPE scene belongs to a different backend")]
+    ForeignPhysics,
     #[error(transparent)]
     Identity(#[from] IdentityError),
     #[error(transparent)]
@@ -48,6 +50,8 @@ struct Node {
     local: LocalPose,
     pose: WorldPose,
     body: Option<BodyId>,
+    motion: Option<gz_physics_tpe::Motion>,
+    tpe_link: bool,
     velocity: Option<Velocity>,
     anchor: Option<ModelAnchor>,
     attached: bool,
@@ -55,9 +59,14 @@ struct Node {
     publication: Option<ImuPublication>,
 }
 
+enum InitialPhysics {
+    Rapier(Box<InitialPhysicsState>),
+    Tpe(Arc<()>),
+}
+
 struct Blueprint {
     nodes: Vec<Node>,
-    physics: InitialPhysicsState,
+    physics: InitialPhysics,
     gravity: [f64; 3],
 }
 
@@ -94,6 +103,8 @@ pub(super) fn capture(sim: &mut Simulation) {
                 .get::<WorldPose>()
                 .expect("loader provided world poses"),
             body: entity.get::<BodyHandle>().map(BodyHandle::id),
+            motion: entity.get::<gz_physics_tpe::Motion>().cloned(),
+            tpe_link: entity.contains::<tpe::TpeLink>(),
             velocity: entity.get::<Velocity>().copied(),
             anchor: entity.get::<ModelAnchor>().cloned(),
             attached: entity.contains::<AttachedPose>(),
@@ -104,7 +115,11 @@ pub(super) fn capture(sim: &mut Simulation) {
     nodes.sort_by_key(|node| node.id.get());
     let initial = Blueprint {
         nodes,
-        physics: world.resource::<RapierBackend>().initial_state(),
+        physics: if let Some(backend) = world.get_resource::<RapierBackend>() {
+            InitialPhysics::Rapier(Box::new(backend.initial_state()))
+        } else {
+            InitialPhysics::Tpe(world.resource::<tpe::TpeWorld>().0.clone())
+        },
         gravity: world.resource::<Gravity>().0,
     };
     sim.world_mut()
@@ -171,7 +186,9 @@ pub fn reset_loaded_world<R>(
         }
         current.push(entity.id());
         if id.is_none_or(|id| !initial_ids.contains(&id)) {
-            if entity.contains::<BodyHandle>()
+            if entity.contains::<gz_physics_tpe::Motion>()
+                || entity.contains::<tpe::TpeLink>()
+                || entity.contains::<BodyHandle>()
                 || entity.contains::<ModelAnchor>()
                 || entity.contains::<Imu>()
                 || entity.contains::<AttachedPose>()
@@ -187,11 +204,29 @@ pub fn reset_loaded_world<R>(
             removed_ids.extend(id);
         }
     }
-    let prepared = sim
-        .world()
-        .get_resource::<RapierBackend>()
-        .ok_or(SceneResetError::MissingPhysics)?
-        .prepare_initial(&initial.physics)?;
+    let prepared = match &initial.physics {
+        InitialPhysics::Rapier(initial) => {
+            if sim.world().contains_resource::<tpe::TpeWorld>() {
+                return Err(SceneResetError::ForeignPhysics);
+            }
+            Some(
+                sim.world()
+                    .get_resource::<RapierBackend>()
+                    .ok_or(SceneResetError::MissingPhysics)?
+                    .prepare_initial(initial)?,
+            )
+        }
+        InitialPhysics::Tpe(owner) => {
+            let current = sim
+                .world()
+                .get_resource::<tpe::TpeWorld>()
+                .ok_or(SceneResetError::MissingPhysics)?;
+            if !Arc::ptr_eq(owner, &current.0) || sim.world().contains_resource::<RapierBackend>() {
+                return Err(SceneResetError::ForeignPhysics);
+            }
+            None
+        }
+    };
     let previous_time = sim.elapsed();
     let world = sim.world_mut();
     // Detach first so replacing original parents cannot recursively delete additions.
@@ -213,6 +248,12 @@ pub fn reset_loaded_world<R>(
             node.local,
             node.pose,
         ));
+        if let Some(motion) = &node.motion {
+            entity.insert(motion.clone());
+        }
+        if node.tpe_link {
+            entity.insert(tpe::TpeLink);
+        }
         if let Some(body) = node.body {
             entity.insert(BodyHandle(body));
         }
@@ -252,10 +293,12 @@ pub fn reset_loaded_world<R>(
         }
         world.entity_mut(entity).insert(PendingResetRemoval);
     }
-    world
-        .resource_mut::<RapierBackend>()
-        .apply_initial(prepared)
-        .expect("exclusive transaction retained the preflighted backend");
+    if let Some(prepared) = prepared {
+        world
+            .resource_mut::<RapierBackend>()
+            .apply_initial(prepared)
+            .expect("exclusive transaction retained the preflighted backend");
+    }
     world.insert_resource(Gravity(initial.gravity));
     removed_ids.sort_unstable();
     world.insert_resource(SceneResetInfo {

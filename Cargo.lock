@@ -830,9 +830,11 @@ dependencies = [
  "bevy_ecs",
  "glam 0.33.12",
  "gz-physics-rapier",
+ "gz-physics-tpe",
  "gz-sensors",
  "gz-sim-core",
  "sdformat",
+ "serde_json",
  "thiserror",
 ]
 

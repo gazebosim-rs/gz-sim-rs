@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
+mod tpe;
+pub use tpe::PhysicsEngine;
+
 mod lifecycle;
 pub use lifecycle::{RemoveError, remove_model};
 mod initial;
@@ -169,6 +172,10 @@ pub enum LoadError {
     Clock(#[from] StepError),
     #[error(transparent)]
     Identity(#[from] IdentityError),
+    #[error(transparent)]
+    Tpe(#[from] gz_physics_tpe::MotionError),
+    #[error(transparent)]
+    TpeInstall(#[from] gz_physics_tpe::InstallError),
 }
 
 fn require(supported: bool, entity: &str, feature: &'static str) -> Result<(), LoadError> {
@@ -191,6 +198,25 @@ pub fn load_world(
     step: Duration,
     resolver: &dyn ResourceResolver,
 ) -> Result<Simulation, LoadError> {
+    load_world_with_engine(
+        xml,
+        source,
+        world_name,
+        step,
+        resolver,
+        PhysicsEngine::Rapier,
+    )
+}
+
+/// Selects one physics engine at construction; see each backend's supported scope.
+pub fn load_world_with_engine(
+    xml: &str,
+    source: &str,
+    world_name: &str,
+    step: Duration,
+    resolver: &dyn ResourceResolver,
+    engine: PhysicsEngine,
+) -> Result<Simulation, LoadError> {
     let sdf = sdformat::load_str(xml, source, resolver)?;
     sdf.validate_non_frame_poses()?;
     let world = sdf
@@ -200,7 +226,10 @@ pub fn load_world(
         .ok_or_else(|| LoadError::MissingWorld(world_name.into()))?;
     require(world.plugins.is_empty(), world_name, "world plugins")?;
     let mut sim = Simulation::new(step)?;
-    let mut backend = RapierBackend::new(world.gravity)?;
+    let mut backend = match engine {
+        PhysicsEngine::Rapier => Some(RapierBackend::new(world.gravity)?),
+        PhysicsEngine::Tpe => None,
+    };
     let mut context = SceneContext {
         world: world_name,
         step,
@@ -223,22 +252,25 @@ pub fn load_world(
         build_model(&sdf, model, &mut context, &parent, &mut sim, &mut backend)?;
     }
     sim.world_mut().insert_resource(Gravity(world.gravity));
-    gz_physics_rapier::install(&mut sim, backend)?;
+    match backend {
+        Some(backend) => {
+            gz_physics_rapier::install(&mut sim, backend)?;
+            sim.add_systems(Phase::PhysicsCommit, sync_bodies.before(sync_models));
+            sim.add_systems(
+                Phase::Reset,
+                sync_bodies.after(PhysicsReset).before(sync_models),
+            );
+        }
+        None => tpe::install(&mut sim)?,
+    }
     sim.add_systems(
         Phase::PhysicsCommit,
-        (
-            sync_bodies,
-            sync_models,
-            sync_local_poses,
-            sync_attached_poses,
-        )
-            .chain(),
+        (sync_models, sync_local_poses, sync_attached_poses).chain(),
     );
     sim.add_systems(Phase::PostStep, sample_imus);
     sim.add_systems(
         Phase::Reset,
         (
-            sync_bodies,
             sync_models,
             sync_local_poses,
             sync_attached_poses,
@@ -257,8 +289,15 @@ fn build_model(
     context: &mut SceneContext<'_>,
     parent: &ParentModel,
     sim: &mut Simulation,
-    backend: &mut RapierBackend,
+    backend: &mut Option<RapierBackend>,
 ) -> Result<(), LoadError> {
+    if backend.is_none() {
+        require(
+            model.models.is_empty(),
+            &model.scoped_name,
+            "TPE nested models",
+        )?;
+    }
     require(model.joints.is_empty(), &model.scoped_name, "joints")?;
     require(
         model.plugins.is_empty(),
@@ -282,6 +321,9 @@ fn build_model(
         local,
         pose,
     )?;
+    if backend.is_none() {
+        tpe::add_model(sim, model_entity, pose)?;
+    }
     let parent = ParentModel {
         entity: model_entity,
         is_static,
@@ -333,32 +375,42 @@ fn build_model(
             name,
             "offset center of mass",
         )?;
-        let id = backend.spawn_link(
-            BodySpec {
-                shape,
-                position: pose.translation,
-                velocity: [0.0; 3],
-                mass: (!is_static).then_some(link.inertial.mass),
-            },
-            RotationSpec {
-                orientation: pose.rotation,
-                ..Default::default()
-            },
-            Some(Inertia {
-                center: inertial_pose.translation,
-                orientation: inertial_pose.rotation,
-                tensor: link.inertial.inertia,
-            }),
-        )?;
+        let spec = BodySpec {
+            shape,
+            position: pose.translation,
+            velocity: [0.0; 3],
+            mass: (!is_static).then_some(link.inertial.mass),
+        };
+        let id = if let Some(backend) = backend {
+            Some(backend.spawn_link(
+                spec,
+                RotationSpec {
+                    orientation: pose.rotation,
+                    ..Default::default()
+                },
+                Some(Inertia {
+                    center: inertial_pose.translation,
+                    orientation: inertial_pose.rotation,
+                    tensor: link.inertial.inertia,
+                }),
+            )?)
+        } else {
+            tpe::validate_link(spec, pose)?;
+            None
+        };
         let local = sdf.pose_of(name, &model.scoped_name)?;
         let link_entity = spawn_node(sim, Some(model_entity), name, EntityKind::Link, local, pose)?;
-        sim.world_mut().entity_mut(link_entity).insert((
-            BodyHandle(id),
-            Velocity {
-                linear: [0.0; 3],
-                angular: [0.0; 3],
-            },
-        ));
+        sim.world_mut().entity_mut(link_entity).insert((Velocity {
+            linear: [0.0; 3],
+            angular: [0.0; 3],
+        },));
+        if let Some(id) = id {
+            sim.world_mut()
+                .entity_mut(link_entity)
+                .insert(BodyHandle(id));
+        } else {
+            sim.world_mut().entity_mut(link_entity).insert(tpe::TpeLink);
+        }
         let link_id = sim
             .world()
             .get::<EntityId>(link_entity)
@@ -473,7 +525,7 @@ fn build_model(
     for child in &model.models {
         build_model(sdf, child, context, &parent, sim, backend)?;
     }
-    if !is_static {
+    if !is_static && backend.is_some() {
         let (canonical, _) = model.canonical_link_and_relative_name();
         let canonical = canonical.ok_or_else(|| LoadError::Unsupported {
             entity: model.scoped_name.clone(),
@@ -542,7 +594,11 @@ fn sync_models(
     }
 }
 
-type PoseUpdateFilter = (Without<AttachedPose>, Without<PendingResetRemoval>);
+type PoseUpdateFilter = (
+    Without<AttachedPose>,
+    Without<PendingResetRemoval>,
+    Without<tpe::TpeLink>,
+);
 
 fn sync_local_poses(
     parents: Query<&WorldPose>,
