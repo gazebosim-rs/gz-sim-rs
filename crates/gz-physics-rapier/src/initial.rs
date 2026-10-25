@@ -12,6 +12,7 @@ pub struct InitialPhysicsState {
     gravity: Vector,
     parameters: IntegrationParameters,
     bodies: BTreeMap<BodyId, Construction>,
+    joints: joints::InitialJoints,
     next_id: u64,
 }
 
@@ -19,7 +20,8 @@ pub struct InitialPhysicsState {
 pub struct PreparedPhysicsReset {
     owner: Arc<()>,
     world: PhysicsWorld,
-    bodies: BTreeMap<BodyId, (RigidBodyHandle, BodySpec, RotationSpec, Option<Inertia>)>,
+    bodies: BTreeMap<BodyId, BodyEntry>,
+    joints: joints::WorldJoints,
     next_id: u64,
 }
 
@@ -39,6 +41,7 @@ impl RapierBackend {
                 .iter()
                 .map(|(&id, &(_, spec, rotation, inertia))| (id, (spec, rotation, inertia)))
                 .collect(),
+            joints: self.joints.initial(),
             next_id: self.next_id,
         }
     }
@@ -61,20 +64,27 @@ impl RapierBackend {
             let handle = insert_initial(&mut world, spec, rotational, inertia);
             bodies.insert(id, (handle, spec, rotational, inertia));
         }
+        let joints = joints::WorldJoints::restore(&initial.joints, &mut world, &bodies);
         Ok(PreparedPhysicsReset {
             owner: self.owner.clone(),
             world,
             bodies,
+            joints,
             next_id: initial.next_id,
         })
     }
 
     /// Restores initial IDs and retires runtime bodies. Later allocations remain monotonic,
     /// including bodies allocated after preparation. A foreign state leaves this unchanged.
-    pub fn apply_initial(&mut self, prepared: PreparedPhysicsReset) -> Result<(), PhysicsError> {
+    pub fn apply_initial(
+        &mut self,
+        mut prepared: PreparedPhysicsReset,
+    ) -> Result<(), PhysicsError> {
         if !Arc::ptr_eq(&self.owner, &prepared.owner) {
             return Err(PhysicsError::ForeignInitialState);
         }
+        prepared.joints.preserve_high_water(&self.joints);
+        self.joints = prepared.joints;
         self.pending_wrenches.clear();
         self.world = prepared.world;
         self.bodies = prepared.bodies;

@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
+mod joints;
+pub use joints::{JointDefinition, JointHandle, JointSample};
+
 mod inputs;
 pub use inputs::{InputError, queue_link_world_velocity, queue_link_world_wrench};
 
@@ -57,6 +60,7 @@ pub enum EntityKind {
     Collision,
     Visual,
     Sensor,
+    Joint,
 }
 
 /// Loaded profiles and the caller's explicit step override. Exact stepping is unpaced.
@@ -341,6 +345,9 @@ fn load_world_configured(
     match backend {
         Some(backend) => {
             gz_physics_rapier::install(&mut sim, backend)?;
+            sim.add_systems(Phase::PhysicsPrepare, joints::preflight);
+            sim.add_systems(Phase::PhysicsCommit, joints::sample);
+            sim.add_systems(Phase::Reset, joints::sample.after(PhysicsReset));
             sim.add_systems(Phase::PhysicsCommit, sync_bodies.before(sync_models));
             sim.add_systems(
                 Phase::Reset,
@@ -384,7 +391,15 @@ fn build_model(
             "TPE nested models",
         )?;
     }
-    require(model.joints.is_empty(), &model.scoped_name, "joints")?;
+    let top_level = sim.world().get::<EntityKind>(parent.entity) == Some(&EntityKind::World);
+    joints::validate_model(
+        sdf,
+        model,
+        context.world,
+        top_level,
+        backend.is_some(),
+        parent.is_static || model.is_static,
+    )?;
     require(
         model.plugins.is_empty(),
         &model.scoped_name,
@@ -627,6 +642,9 @@ fn build_model(
                 },
             ));
         }
+    }
+    if let Some(backend) = backend {
+        joints::build(sdf, model, context, model_entity, sim, backend)?;
     }
     for child in &model.models {
         build_model(sdf, child, context, &parent, sim, backend)?;

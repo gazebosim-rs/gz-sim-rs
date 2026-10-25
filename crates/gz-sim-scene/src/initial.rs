@@ -50,6 +50,9 @@ struct Node {
     local: LocalPose,
     pose: WorldPose,
     body: Option<BodyId>,
+    joint: Option<JointHandle>,
+    joint_definition: Option<JointDefinition>,
+    joint_sample: Option<JointSample>,
     motion: Option<gz_physics_tpe::Motion>,
     tpe_link: Option<tpe::TpeLink>,
     tpe_bounds: Option<gz_physics_tpe::ModelBounds>,
@@ -76,7 +79,12 @@ struct Blueprint {
 }
 
 #[derive(Resource)]
-struct InitialScene(Arc<Blueprint>);
+pub(super) struct InitialScene(Arc<Blueprint>);
+impl InitialScene {
+    pub(super) fn owns_rapier(&self, backend: &RapierBackend) -> bool {
+        matches!(&self.0.physics, InitialPhysics::Rapier(initial) if backend.owns_initial_state(initial))
+    }
+}
 
 pub(super) fn matches_physics_owner(world: &World) -> bool {
     let Some(scene) = world.get_resource::<InitialScene>() else {
@@ -122,6 +130,9 @@ pub(super) fn capture(sim: &mut Simulation) {
                 .get::<WorldPose>()
                 .expect("loader provided world poses"),
             body: entity.get::<BodyHandle>().map(BodyHandle::id),
+            joint: entity.get::<JointHandle>().copied(),
+            joint_definition: entity.get::<JointDefinition>().cloned(),
+            joint_sample: entity.get::<JointSample>().copied(),
             motion: entity.get::<gz_physics_tpe::Motion>().cloned(),
             tpe_link: entity.get::<tpe::TpeLink>().cloned(),
             tpe_bounds: entity.get::<gz_physics_tpe::ModelBounds>().cloned(),
@@ -213,6 +224,7 @@ pub fn reset_loaded_world<R>(
             if entity.contains::<gz_physics_tpe::Motion>()
                 || entity.contains::<tpe::TpeLink>()
                 || entity.contains::<gz_physics_tpe::ModelBounds>()
+                || entity.contains::<JointHandle>()
                 || entity.contains::<BodyHandle>()
                 || entity.contains::<ModelAnchor>()
                 || entity.contains::<Imu>()
@@ -281,6 +293,15 @@ pub fn reset_loaded_world<R>(
         }
         if let Some(bounds) = &node.tpe_bounds {
             entity.insert(bounds.clone());
+        }
+        if let Some(joint) = node.joint {
+            entity.insert((joint, joints::JointNode));
+        }
+        if let Some(definition) = &node.joint_definition {
+            entity.insert(definition.clone());
+        }
+        if let Some(sample) = node.joint_sample {
+            entity.insert(sample);
         }
         if let Some(body) = node.body {
             entity.insert(BodyHandle(body));

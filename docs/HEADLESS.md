@@ -122,15 +122,14 @@ Rust tests also cover invalid/overflowing commands, duplicates, scoped-name and
 identity checks, paused/running removal, batch limits, client timeouts, shutdown,
 sequence wrapping, invalid samples and publication failures.
 
-The current full gate passes 184 Rust checks and twelve gate tests, including all
-nine real C++ scenarios: 2748/2783 production lines and 4329/4436 regions. Every
-production crate strictly exceeds 95% for both metrics. The controlled producer
-increment covers 28/28 changed executable scene lines. Independent review and the
-exact staged gate remain required before this producer increment is published.
+The current joint slice passes 194 Rust checks, twelve tooling checks and all
+nine real C++ scenarios in working/exact staged verification: 3162/3208 production
+lines and 4914/5049 regions, every crate strictly above 95%. Independent review
+approved the bounded joint contract and fresh native controls; the normal commit
+hook and hosted qualification remain required before publication.
 
-Remaining P2 work is the selected fixture's simple-joint variant, equal-work C++
-comparison/performance report and exact retained assertions. Its bounded
-free-body inputs are provided locally; real C++ peer interoperability remains
+Remaining P2 work is the equal-work C++ comparison/performance report and exact
+selected-fixture assertions. Its bounded free-body inputs are provided locally; real C++ peer interoperability remains
 required. Native wrench/velocity transport systems remain wider retained work
 unless the selected fixture needs them. Local resources and noise-free IMU are the current slice's supported
 scope. Full downloads, sensor noise and remaining TPE capabilities stay open in
@@ -312,4 +311,8 @@ not add transport command ingress or complete the P2 joint/performance report.
 [PRODUCER_METADATA.md](PRODUCER_METADATA.md) records the controlled SDF material,
 link-flag and matched Messages/Transport adoption. Newly accepted material data
 remains owned through reset; nondefault link physics flags fail explicitly.
-There are no new renderer/resource effects or accepted joint constraints.
+There are no new renderer/resource effects in that adoption.
+
+[JOINTS.md](JOINTS.md) records the next bounded world-revolute variant, native
+controls and strict author checks. Independent review and the exact staged gate pass. Normal-hook publication and
+hosted qualification remain required before acceptance.

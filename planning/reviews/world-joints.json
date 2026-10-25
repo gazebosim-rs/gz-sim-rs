@@ -1,0 +1,87 @@
+{
+  "decision": "approved",
+  "author": "/root",
+  "reviewer": "/root/sdformat",
+  "reviewed_at": "2026-10-25T13:14:30.171749Z",
+  "scope": "Bounded one-dynamic-link world-anchored unbounded revolute construction, joint observations/reset/removal and qualified native comparison. Semantic/source/assertion approval only; final coordinator metadata, normal staged hook and hosted publication remain required.",
+  "base": "67c1af4508008047f09a5ca7918c94c49fb56736",
+  "source_tree": "8fa3713ce5bf9996387e875e37c87db506c4fc98",
+  "source_diff_sha256": "357f0156613b9d29222aeecd93bec79f4413c28a0f469bb097d7b179983fe460",
+  "reviewed_tree": "b0b25dd0e8271faa0c4c41d7a9e58d963993f7e7",
+  "diff_sha256": "0e562e53998f8a6159f6b3d4289da8a02f75e1de919b0d1168d566105154e392",
+  "files": {
+    "Cargo.lock": "4341f4aa37050dd521cb582fff398c4b2d8e511e56b3cadb11a7c686b13dea90",
+    "Cargo.toml": "d3aabbfd8ede811c3e657ef44ce128c0050db9e585af020d87eead0c5bc27f2f",
+    "crates/gz-physics-rapier/Cargo.toml": "ce3b1e1c551b1a68e1d5c7b4f5fa983cd2567622240228ca6100c3c9db0a7faf",
+    "crates/gz-physics-rapier/src/initial.rs": "5f1a5a529f793b7135d1be9cf33a2fd4534e0fdb013260f5cb7e4b482da9137e",
+    "crates/gz-physics-rapier/src/joints.rs": "01cdfdb10f1b59ff916686d5fc1682e5a163d6b9cffcb99f9003e26999ea7190",
+    "crates/gz-physics-rapier/src/lib.rs": "0c3fabd639f5eb8034a8d19ab28c0d88ba8c6802283f581e6c973d22e7e22067",
+    "crates/gz-physics-rapier/tests/fixtures/world_pendulum.json": "0d59d4caf32165dfcf013139cb06776d985b57e4bd34618abd692997e5f9b81c",
+    "crates/gz-physics-rapier/tests/joints.rs": "f49ca21914a339e50fb900d44a2f75348a97454e36e8b47266198d233e8c67e4",
+    "crates/gz-physics-rapier/tests/private/joints.rs": "165df0f259c6afceeb1392e83e983a18b7f2a24dc18e304ac557eddc0d387589",
+    "crates/gz-sim-scene/src/initial.rs": "5f61a26d54a77e7cf225060bbbf408016592c40e6ff872a080612b50789dfd1f",
+    "crates/gz-sim-scene/src/inputs.rs": "a0acc03821d06e0e9790ebd7d45d5e72d129d90ecf662692c8d6ce71d48d5f88",
+    "crates/gz-sim-scene/src/joints.rs": "c11dee1e741e555fd85aa864481810d60e03ecca7e2345e99eefac39ea61fa95",
+    "crates/gz-sim-scene/src/lib.rs": "57a6e5777cda14791cc3ccb77e227d4fd9af6aad8af8259c26c1656f6b3805c2",
+    "crates/gz-sim-scene/src/lifecycle.rs": "8b975cf1782b45f03155644187cfde8aa35daaa99cc435b20dd25ef18cca5074",
+    "crates/gz-sim-scene/tests/fixtures/pendulum.sdf": "edc6a2031d2814c987b266a0bbeee7cadbbf706dc6529c531e267c88769f8d11",
+    "crates/gz-sim-scene/tests/joints.rs": "5d5976ee49e0feab06e5ff15da15d924013189a99e266050bf9f01bf27ed3210",
+    "crates/gz-sim-scene/tests/native_joints.cc": "8b1a24fd2126a1efc4cc4b1978d320ba90a9b3eca6eb7c598a1a1dfcdddc9073",
+    "docs/HEADLESS.md": "6daa12bdf6f77d6b7b72a3eeb8e5adbc191bfd1e759cc3933b6ed8bb5effe91b",
+    "docs/JOINTS.md": "0a36f7ebaefacc7248e40f57a9cf2828d2bd5c97b6b1fe45c20c385464b050cd",
+    "planning/reference/world-joints.json": "67368ac2348e1d5a005f647b1490cd70ee600931043d2740b6a4a88b6623e097",
+    "planning/test-ledger.json": "956cd1aa821fb052460c3c161935406fb7d61540d5277425dd476be6d37ace78",
+    "scripts/probe-joints.py": "2a542ca4582c0fd505624c9dfee25b70778831fb79a54da19ed125767f16213d"
+  },
+  "independent_checks": {
+    "raw_export": "169 raw Git blobs and all 22 frozen input hashes validated before execution in reviewer-owned source and target; 21 unchanged inputs plus the exact reset wording delta rebound afterward.",
+    "rust_checks": 139,
+    "native_cpp_peer_scenarios": 9,
+    "native_joint_controls": 3,
+    "native_equality": "All shared proof fields exactly equal author, including source/fixture/compiler/binary/loaded-library hashes and every observation; only reviewer command paths differ. All 349 recorded native libraries independently hash-checked before fresh probe rebuild/replay.",
+    "reviewer_countertests": {
+      "count": 3,
+      "scope": [
+        "Arbitrary construction quaternion and normalized/nonunit/antiparallel world axes preserve signed turns at retained angular cap and reset; six 500-step cases.",
+        "Model and joint axis/gravity covariance under an independent 90-degree world rotation over 1000 steps.",
+        "Exact finite inverted/equal raw SDF limits parse but return explicit runtime joint-limit capability errors."
+      ]
+    },
+    "isolation": "Fresh reviewer-owned Rust 1.95.0 source/target; source hashes unchanged. Initial counter-command package-selection failure from incorrect cwd retained separately, then all actual countertests passed from the snapshot workspace."
+  },
+  "semantic_review": [
+    "Scene resolves anchor and axis through producer pose_of/resolve_axis into world coordinates; explicit guards reject unsupported topology/types, finite or inverted limits, stop/dynamic values and TPE joints.",
+    "Matching world/local frames make initial body pose angle zero. Fixed colliderless anchor and constraint ownership retire with bodies; construction validates before mutation. Private initial records and owner Arc protect prepared resets; high-water joint IDs survive resets.",
+    "Joint entity/public child IDs and same-model association are checked before stepping/removal; foreign/missing/duplicate bindings fault without advancing committed time. Loaded blueprint restores metadata/constraint references/IDs and epoch samples; free-body input admission rejects constrained bodies.",
+    "Retained Rapier default allow_fast_rotation=false clamps each integration substep using the full-step inverse dt, so total rotation remains under pi/4 and nearest-angle unwrapping cannot lose a whole turn in the exposed configuration. Sleep disabling is scoped to live joint ownership and restored on final removal."
+  ],
+  "explicit_new_test_disposition": "Approved correcting the new continuous-spin test from ideal omega*dt to 2*n*atan(omega*dt/(2*n)) at the SAME 1e-10 tolerance. Independently read Rapier staged init dt/n and RigidBodyVelocity::integrate_linearized normalization of [omega*h/2,1]*q; the expectation follows that discrete integrator, not fitted observations. Both-direction authored tests and independent arbitrary-axis/cap controls pass. No prior test/fixture/tolerance was changed.",
+  "native_reset_qualification": "SimulationRunner processes requested iterations only when unpaused. Probe reset processing plus Run(1,paused) and Run(10,unpaused) advances 11 total post-reset iterations; assertions compare recorded selected observations at 1 and 10, not an unrecorded final 11 or reset-time-zero snapshot. Duplicate old endpoint is explicitly qualified. Docs-only wording correction preserves all source/probe/fixture bytes.",
+  "author_evidence": {
+    "rust_checks": 194,
+    "tools": 12,
+    "cpp_scenarios": 9,
+    "lines": [
+      3162,
+      3208
+    ],
+    "regions": [
+      4914,
+      5049
+    ],
+    "changed_backend": [
+      197,
+      197
+    ],
+    "changed_scene": [
+      211,
+      216
+    ],
+    "qualification": "Working and exact staged gates reported passing; inspected but full coverage/tooling not independently recomputed."
+  },
+  "limits": [
+    "No general articulation, finite limits, body-parented joints, TPE joints, damping/friction/springs, joint actuation/transport endpoint or Contact/F-T runtime claim.",
+    "Selected native snapshots use declared cross-engine numerical bounds; existing SDK/native build remains qualified. No equal-work/performance, whole P2 or full backend/upstream case retirement acceptance.",
+    "Final coordinator status/review metadata requires an exact additional rebind before publication."
+  ]
+}

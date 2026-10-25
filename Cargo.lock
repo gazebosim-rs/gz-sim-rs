@@ -949,6 +949,7 @@ dependencies = [
  "gz-physics",
  "gz-sim-core",
  "rapier3d-f64",
+ "serde_json",
  "thiserror",
 ]
 
@@ -2173,7 +2174,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 [[package]]
 name = "sdformat"
 version = "0.1.0"
-source = "git+https://github.com/gazebosim-rs/sdformat-rs?rev=706e8fde8d096e520cac0cfcc34847ef138dfbb9#706e8fde8d096e520cac0cfcc34847ef138dfbb9"
+source = "git+https://github.com/gazebosim-rs/sdformat-rs?rev=4ed690b3a872e395df0f3544b278c7f1d3c45a7e#4ed690b3a872e395df0f3544b278c7f1d3c45a7e"
 dependencies = [
  "errno",
  "glam 0.30.9",

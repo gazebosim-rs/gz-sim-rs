@@ -19,9 +19,9 @@ existing agent. Four concurrent slots cover the coordinator and three repo agent
 | gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, typed terminal fault diagnostics, world/allocator-bound reset reservations, isolated worlds | Persistence and complete lifecycle contract |
 | gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
 | gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation, model overlap contacts and typed faults | Remaining geometry/commands and D23 policy |
-| gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, world velocity/COM wrench inputs, backend reset/removal, prepared initial-state restoration and numeric validation | Articulations, remaining force frames and common capabilities, DART/MuJoCo/TPE adapters |
+| gz-physics-rapier | Full-f64 sphere/box dynamics, inertia tensors, static bodies, world impulses, gravity, world velocity/COM wrench inputs, world-revolute constraints, backend reset/removal, prepared initial-state restoration and numeric validation | General articulations, remaining force frames and common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | Noise-free IMU specific force and relative orientation using f64 glam math | Seeds/noise, complete frame configuration and remaining sensor families |
-| gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, phase-preserving IMU sampling, checked model-subtree removal and loaded-scene restoration | Joints, offset/multiple shapes, full resource policy and remaining sensor contracts |
+| gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, phase-preserving IMU sampling, checked model-subtree removal and loaded-scene restoration | General joints, offset/multiple shapes, full resource policy and remaining sensor contracts |
 | gz-sim-cli | Local SDF/configured world input and include roots, Rapier/TPE selection, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, remote top-level resources, signal handling and packaging |
 | gz-sim-server | Bounded clock/pose publication, shared-topic IMU streams, polled pause/step/reset controls, deferred remove services, real C++ clients | Root clock election, run-to controls, scene services and runtime sensor registration |
 
@@ -38,13 +38,14 @@ system panics invalidate the run rather than rolling back state.
 
 ## Current evidence
 
-The current local gate passes 184 Rust checks and twelve gate tests, including all
-nine actual C++ client scenarios. Coverage is 2748/2783 production lines and
-4329/4436 regions. Every production crate exceeds 95% for both metrics. The
-controlled producer increment covers 28/28 changed executable scene lines; scene
-coverage is 1160/1192 lines and 1819/1899 regions. No coverage exclusions or
-thresholds changed. Independent review and the exact staged hook remain required
-before this producer increment is published.
+The current joint slice passes 194 Rust checks, twelve tooling checks and all
+nine actual C++ client scenarios in the working and exact staged gates. Coverage
+is 3162/3208 production lines and 4914/5049 regions; every crate exceeds 95% on
+both metrics. Backend changed lines are 197/197; scene changed lines are 211/216.
+Independent review approved 139 replayed checks, all nine C++ cases, three fresh
+native joint controls and three additional reviewer controls. The normal commit
+hook and hosted qualification remain required for publication. No test, tolerance,
+coverage exclusion or threshold was weakened. See [JOINTS.md](JOINTS.md).
 [HEADLESS.md](HEADLESS.md) records the behavior and remaining integration scope.
 
 Published clock/control, IMU and topic-repair revisions passed clean GitHub CI.
@@ -93,9 +94,9 @@ The separate core reset remains limited to retained domain state. Remote reset
 now composes control ordering, real time and stream reconstruction. SCENE_RESET.md
 and SERVER_RESET.md record supported boundaries, cancellation differences and ports.
 
-Next: complete the first slice's simple-joint variant and velocity/force inputs,
-then its equal-work reference comparison/performance report and selected-fixture
-assertions for P2. Full downloads and sensor noise remain wider-plan work, rather
+Next: finish the selected-fixture assertions and equal-work reference comparison/
+performance report for P2. The bounded simple-joint slice passes author/staged
+checks and independent review; its normal hook and hosted qualification remain. Full downloads and sensor noise remain wider-plan work, rather
 than additional prerequisites for this local-resource, noise-free IMU fixture.
 Then complete the retained backend, sensor/system, rendering, plugin, packaging
 and release matrices. CORE-02, full IO-01 and P2 are still open.
@@ -164,10 +165,10 @@ replacement and one-step COM force/torque accumulation. The author gate passes
 182 Rust checks, twelve tooling checks and the existing nine actual C++ scenarios;
 2733/2767 production lines and 4288/4391 regions pass all per-crate gates.
 Thirty fresh native world-input controls qualify supported velocity/angular
-observations and explicit TPE gaps. Independent review and the normal staged hook
-remain required before publication. PHYSICS_INPUTS.md records the scope and
-analytic force-position accuracy bound. Simple joints and the complete selected-fixture assertions/reference/performance
-report remain P2 work. These local APIs cover its bounded free-body input
+observations and explicit TPE gaps. Published 25c801d passed independent review, the normal staged hook and hosted
+CI 40185967463. PHYSICS_INPUTS.md records the scope and
+analytic force-position accuracy bound. The complete selected-fixture assertions/reference/performance report remains
+P2 work; JOINTS.md records the bounded joint variant. These local APIs cover its bounded free-body input
 capability when exercised by the selected fixture; native input transport systems
 remain wider retained work unless that fixture requires them. Real C++ peer
 interoperability remains required.
@@ -179,6 +180,8 @@ SDF 706e8fde supplies native axis-default corrections, owned Material and link
 flags. VisualMaterial and LinkProperties survive loaded reset; nondefault physical
 flags are rejected until supported. Transport 7ce88e5 and matching Messages 2cea810
 preserve one Messages identity and retain Fuel 374 unchanged. The full author
-gate passes 184 Rust checks; review/staged/hosted qualification remains pending
-for this increment.
+gate passed 184 Rust checks. Published 67c1af4 passed independent review, the
+normal staged hook and hosted CI 40188844686. The joint slice now consumes
+pre-Contact SDF 4ed690b (derived Clone only); later sensor enum changes remain
+unadopted.
 PRODUCER_METADATA.md records graph, scope and the unadopted Contact enum boundary.

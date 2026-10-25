@@ -11,6 +11,9 @@ use std::{
     time::Duration,
 };
 
+mod joints;
+pub use joints::{JointId, JointState};
+
 mod initial;
 pub use initial::{InitialPhysicsState, PreparedPhysicsReset};
 
@@ -42,13 +45,22 @@ pub enum PhysicsError {
     MissingBody,
     #[error("initial physics state belongs to a different backend")]
     ForeignInitialState,
+    #[error("joint requires a dynamic child and representable finite anchor/axis")]
+    InvalidJoint,
+    #[error("joint construction is closed until physics reset")]
+    JointConstructionClosed,
+    #[error("joint identifier space exhausted")]
+    JointIdOverflow,
 }
+
+type BodyEntry = (RigidBodyHandle, BodySpec, RotationSpec, Option<Inertia>);
 
 #[derive(Resource)]
 pub struct RapierBackend {
     owner: Arc<()>,
     world: PhysicsWorld,
-    bodies: BTreeMap<BodyId, (RigidBodyHandle, BodySpec, RotationSpec, Option<Inertia>)>,
+    bodies: BTreeMap<BodyId, BodyEntry>,
+    joints: joints::WorldJoints,
     next_id: u64,
     pending_wrenches: BTreeSet<BodyId>,
 }
@@ -180,6 +192,7 @@ impl RapierBackend {
                 ..PhysicsWorld::new()
             },
             bodies: BTreeMap::new(),
+            joints: joints::WorldJoints::default(),
             next_id: 0,
             pending_wrenches: BTreeSet::new(),
         })
@@ -241,7 +254,9 @@ impl RapierBackend {
     pub fn remove(&mut self, id: BodyId) -> bool {
         if let Some((handle, ..)) = self.bodies.remove(&id) {
             self.pending_wrenches.remove(&id);
+            self.joints.forget_body(id);
             self.world.remove_body(handle);
+            self.joints.release_unused_anchor(&mut self.world);
             true
         } else {
             false
@@ -318,6 +333,7 @@ impl RapierBackend {
 
     /// Restores remaining bodies to their spawn state. Removed bodies stay removed.
     pub fn reset(&mut self) {
+        let joints = self.joints.initial();
         self.pending_wrenches.clear();
         self.world = PhysicsWorld {
             gravity: self.world.gravity,
@@ -327,12 +343,15 @@ impl RapierBackend {
         for (handle, spec, rotational, inertia) in self.bodies.values_mut() {
             *handle = initial::insert_initial(&mut self.world, *spec, *rotational, *inertia);
         }
+        self.joints = joints::WorldJoints::restore(&joints, &mut self.world, &self.bodies);
     }
 
     fn step(&mut self, dt: Duration) {
         if !dt.is_zero() {
+            self.joints.close();
             self.world.integration_parameters.dt = dt.as_secs_f64();
             self.world.step();
+            self.joints.update(&self.world, &self.bodies);
             for id in std::mem::take(&mut self.pending_wrenches) {
                 if let Some((handle, ..)) = self.bodies.get(&id) {
                     let body = &mut self.world.bodies[*handle];

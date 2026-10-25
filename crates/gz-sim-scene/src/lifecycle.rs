@@ -29,6 +29,9 @@ pub fn remove_model(sim: &mut Simulation, id: u64) -> Result<Vec<u64>, RemoveErr
     {
         return Err(RemoveError::NotWorldModel(id));
     }
+    if !crate::joints::bindings_valid(world) {
+        return Err(RemoveError::InvalidPhysics);
+    }
     let backend = world.get_resource::<RapierBackend>();
     if backend.is_some() == world.contains_resource::<crate::tpe::TpeWorld>() {
         return Err(RemoveError::InvalidPhysics);

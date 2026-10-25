@@ -77,6 +77,9 @@ fn binding(world: &World, entity: Entity, id: u64) -> Result<Binding, InputError
         if backend.is_dynamic(id) == Some(false) {
             return Err(InputError::Unsupported("fixed-body input"));
         }
+        if backend.is_jointed(id) == Some(true) {
+            return Err(InputError::Unsupported("jointed-body input"));
+        }
         return backend
             .state(id)
             .map(|_| Binding::Rapier(id))

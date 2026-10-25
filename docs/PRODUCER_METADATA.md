@@ -21,8 +21,8 @@ flags return typed Unsupported errors instead of being silently ignored. Editing
 these metadata components does not reconfigure a running solver. Loaded reset
 restores their original owned values after mutation or removal.
 
-New SDF axis defaults/dynamics remain parser metadata: all joints are still
-unsupported by this scene loader. The producer's subsequent ContactSensor enum
+At this producer-adoption revision all joints remained unsupported. The later
+bounded world-revolute consumer is documented in JOINTS.md. The producer's subsequent ContactSensor enum
 change is not adopted. World physics selection, IMU behavior, existing lifecycle
 and transport assertions remain required.
 
@@ -30,7 +30,7 @@ The author gate passes 184 Rust checks, twelve tooling checks and all nine actua
 C++ scenarios: 2748/2783 production lines, 4329/4436 regions, every crate >95%
 for each metric and 28/28 changed executable scene lines. Both engines exercise
 metadata ownership/reset and nondefault flag rejection. No existing assertions,
-coverage exclusions or thresholds changed. Independent review, exact staged hook
-and dependency/consumer hosted qualification remain required before publication.
+coverage exclusions or thresholds changed. Published 67c1af4 passed independent review, the exact normal hook and hosted
+consumer CI 40188844686; dependencies were independently qualified.
 This prepares the selected simple-joint variant; it does not implement joints,
 rendering, complete backend flag semantics or P2 acceptance.
