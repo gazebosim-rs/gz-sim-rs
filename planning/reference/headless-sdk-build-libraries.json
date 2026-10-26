@@ -1,0 +1,1031 @@
+{
+  "scope": "Native build-library/compiler-input inventory for the immutable headless SDK; no execution-pass or performance claim.",
+  "image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+  "sdk_environment_sha256": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f",
+  "builds": {
+    "gz-sim": {
+      "directory": "builds/gz-sim",
+      "source": "sources/gz-sim",
+      "cmake_cache_sha256": "51b1c17bca52af0f0d3b04a6d82dd1bb89b92551cc83eab7685baa20a449ce57",
+      "library_files": {
+        "libEventTriggerSystem.so": {
+          "sha256": "583e2e0462d22f26f2eb51f812b00db7d60c76ad3619bf96581ad466cf7d0f1a"
+        },
+        "libMockSystem.so": {
+          "sha256": "9861c546e4fd04cf3d68a0524cc9a29bbce8e5f866ceaff84809ed7a64f8fc3c"
+        },
+        "libNull.so": {
+          "sha256": "6d69200a82982a7a9f376ff905569e1625630c25f5a226561608d48692482011"
+        },
+        "libTestModelSystem.so": {
+          "sha256": "054dd764f8b049d01144c5f45e875613d1c0fff4789ec5ab24cb33f867d4aedf"
+        },
+        "libTestSensorSystem.so": {
+          "sha256": "e17b2a591a74f4f054361150d80593346fca7fc1b0fd83a0cd15dbef75059471"
+        },
+        "libTestStaticModelSystem.a": {
+          "sha256": "e8eea39e035ab2b3ae6cbb23c66b64ae92d048ace58d15c0cda3c5e495b291c2"
+        },
+        "libTestSystem.so": {
+          "sha256": "ed1590b637680c73d196ed8bcfb332494887da031841211beead71034a7bae70"
+        },
+        "libTestVisualSystem.so": {
+          "sha256": "2a0c8d2df125612be55b7842ec73314255ad0ed93fc7137fb6bf86be272244ef"
+        },
+        "libTestWorldSystem.so": {
+          "sha256": "4290fe717254dba454713a48b1ecc2bb72973d7c431c1b95c44615e613f4b4ed"
+        },
+        "libbackward.a": {
+          "sha256": "a47169eed8dc7b6fec5bbdc6793c05319c6859859de5cfb96745467c6325a098"
+        },
+        "libgtest.a": {
+          "sha256": "45e0f0c931712ce4d871f20bf422b5ff37d0efa2c89a8d291880e1ead5296f67"
+        },
+        "libgtest_main.a": {
+          "sha256": "a526f0a124dd36abef1bf92aaefe7ba90e7625c826b438e8d953a6c5bff0fc17"
+        },
+        "libgz-sim-ackermann-steering-system.so": {
+          "symlink": "libgz-sim-ackermann-steering-system.so.11"
+        },
+        "libgz-sim-ackermann-steering-system.so.11": {
+          "symlink": "libgz-sim-ackermann-steering-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-ackermann-steering-system.so.11.0.0~pre3": {
+          "sha256": "e98ca15bb9353a02c0f37354c84eb6e35a3dbe9417a12472e5ceb51215e210f9"
+        },
+        "libgz-sim-acoustic-comms-system.so": {
+          "symlink": "libgz-sim-acoustic-comms-system.so.11"
+        },
+        "libgz-sim-acoustic-comms-system.so.11": {
+          "symlink": "libgz-sim-acoustic-comms-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-acoustic-comms-system.so.11.0.0~pre3": {
+          "sha256": "9dce723950fe639b634a6f04e6adb3577c123673bcab7d8e5847ebb5c63a2a14"
+        },
+        "libgz-sim-advanced-lift-drag-system.so": {
+          "symlink": "libgz-sim-advanced-lift-drag-system.so.11"
+        },
+        "libgz-sim-advanced-lift-drag-system.so.11": {
+          "symlink": "libgz-sim-advanced-lift-drag-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-advanced-lift-drag-system.so.11.0.0~pre3": {
+          "sha256": "e58e3010be9ec9f9416b4a4218e6fd6aff77497d963bc4d3fcf3a1084e443ada"
+        },
+        "libgz-sim-air-pressure-system.so": {
+          "symlink": "libgz-sim-air-pressure-system.so.11"
+        },
+        "libgz-sim-air-pressure-system.so.11": {
+          "symlink": "libgz-sim-air-pressure-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-air-pressure-system.so.11.0.0~pre3": {
+          "sha256": "a0601d1f42676ef4f9d04d41603b06a2a7a4f59e47f38e21f1bba1459aa04dc4"
+        },
+        "libgz-sim-air-speed-system.so": {
+          "symlink": "libgz-sim-air-speed-system.so.11"
+        },
+        "libgz-sim-air-speed-system.so.11": {
+          "symlink": "libgz-sim-air-speed-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-air-speed-system.so.11.0.0~pre3": {
+          "sha256": "56d1ba83c912358b514735b1a8e7d5e1cbf30d0a752e6d0448b8e000f9716758"
+        },
+        "libgz-sim-altimeter-system.so": {
+          "symlink": "libgz-sim-altimeter-system.so.11"
+        },
+        "libgz-sim-altimeter-system.so.11": {
+          "symlink": "libgz-sim-altimeter-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-altimeter-system.so.11.0.0~pre3": {
+          "sha256": "2235717e031de8db7ba532351cced1266f8d6d836771e59d92a8f521059ec8c3"
+        },
+        "libgz-sim-apply-joint-force-system.so": {
+          "symlink": "libgz-sim-apply-joint-force-system.so.11"
+        },
+        "libgz-sim-apply-joint-force-system.so.11": {
+          "symlink": "libgz-sim-apply-joint-force-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-apply-joint-force-system.so.11.0.0~pre3": {
+          "sha256": "f5991f7020a45912bab515745bcaa3e7fadec6573ca4f750690e589c9db4eaba"
+        },
+        "libgz-sim-apply-link-wrench-system.so": {
+          "symlink": "libgz-sim-apply-link-wrench-system.so.11"
+        },
+        "libgz-sim-apply-link-wrench-system.so.11": {
+          "symlink": "libgz-sim-apply-link-wrench-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-apply-link-wrench-system.so.11.0.0~pre3": {
+          "sha256": "1eea3f009e14ea0a4afea974293e0410f13568ce51321944475e4f24f9151a48"
+        },
+        "libgz-sim-breadcrumbs-system.so": {
+          "symlink": "libgz-sim-breadcrumbs-system.so.11"
+        },
+        "libgz-sim-breadcrumbs-system.so.11": {
+          "symlink": "libgz-sim-breadcrumbs-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-breadcrumbs-system.so.11.0.0~pre3": {
+          "sha256": "31af37d39453bdb15871e4a1e36fef3dc0919d61a1335327edb25cacfc0af54e"
+        },
+        "libgz-sim-buoyancy-engine-system.so": {
+          "symlink": "libgz-sim-buoyancy-engine-system.so.11"
+        },
+        "libgz-sim-buoyancy-engine-system.so.11": {
+          "symlink": "libgz-sim-buoyancy-engine-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-buoyancy-engine-system.so.11.0.0~pre3": {
+          "sha256": "718e8cfdc25c788f744c27935f4ad7a1b4092a9f5b46ff95309a0834742f398f"
+        },
+        "libgz-sim-buoyancy-system.so": {
+          "symlink": "libgz-sim-buoyancy-system.so.11"
+        },
+        "libgz-sim-buoyancy-system.so.11": {
+          "symlink": "libgz-sim-buoyancy-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-buoyancy-system.so.11.0.0~pre3": {
+          "sha256": "aae76cd460c7c145c80f8401a7863e1de93c1c8a2a89ee62ef8c796db322fcb3"
+        },
+        "libgz-sim-camera-video-recorder-system.so": {
+          "symlink": "libgz-sim-camera-video-recorder-system.so.11"
+        },
+        "libgz-sim-camera-video-recorder-system.so.11": {
+          "symlink": "libgz-sim-camera-video-recorder-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-camera-video-recorder-system.so.11.0.0~pre3": {
+          "sha256": "ec2e2e1672af67ec1b22462e700a3b6f7448332f7635e64991a2cd30082f56b9"
+        },
+        "libgz-sim-collada-world-exporter-system.so": {
+          "symlink": "libgz-sim-collada-world-exporter-system.so.11"
+        },
+        "libgz-sim-collada-world-exporter-system.so.11": {
+          "symlink": "libgz-sim-collada-world-exporter-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-collada-world-exporter-system.so.11.0.0~pre3": {
+          "sha256": "6bf3eec9d18e78af2e3d9ffa2d6ae4b69b470c6fdeb52f19bd92ca6b26a36b65"
+        },
+        "libgz-sim-comms-endpoint-system.so": {
+          "symlink": "libgz-sim-comms-endpoint-system.so.11"
+        },
+        "libgz-sim-comms-endpoint-system.so.11": {
+          "symlink": "libgz-sim-comms-endpoint-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-comms-endpoint-system.so.11.0.0~pre3": {
+          "sha256": "10bae15ff24a24cdbb2733080037d4872c3c8eaceea16d10fcee2a55f43359fa"
+        },
+        "libgz-sim-contact-system.so": {
+          "symlink": "libgz-sim-contact-system.so.11"
+        },
+        "libgz-sim-contact-system.so.11": {
+          "symlink": "libgz-sim-contact-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-contact-system.so.11.0.0~pre3": {
+          "sha256": "346ff9819c999aab39e084dcb1421cecc6b577528d2c1af544fbae72ee043f12"
+        },
+        "libgz-sim-cpu-lidar-system.so": {
+          "symlink": "libgz-sim-cpu-lidar-system.so.11"
+        },
+        "libgz-sim-cpu-lidar-system.so.11": {
+          "symlink": "libgz-sim-cpu-lidar-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-cpu-lidar-system.so.11.0.0~pre3": {
+          "sha256": "4e8b299ce71ef1b8bf4fded4add10d57312e072a28ef308e3fba1b49e3877a81"
+        },
+        "libgz-sim-detachable-joint-system.so": {
+          "symlink": "libgz-sim-detachable-joint-system.so.11"
+        },
+        "libgz-sim-detachable-joint-system.so.11": {
+          "symlink": "libgz-sim-detachable-joint-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-detachable-joint-system.so.11.0.0~pre3": {
+          "sha256": "6ef35c68d11ef00542b0a45908bf48d532f582d7078cc4c58892b3a70607fabf"
+        },
+        "libgz-sim-diff-drive-system.so": {
+          "symlink": "libgz-sim-diff-drive-system.so.11"
+        },
+        "libgz-sim-diff-drive-system.so.11": {
+          "symlink": "libgz-sim-diff-drive-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-diff-drive-system.so.11.0.0~pre3": {
+          "sha256": "9e45a8a5bab843cb8d8900b9eeaea7c49de7f21a2ea02fd04f602c45708c3e4e"
+        },
+        "libgz-sim-drive-to-pose-controller-system.so": {
+          "symlink": "libgz-sim-drive-to-pose-controller-system.so.11"
+        },
+        "libgz-sim-drive-to-pose-controller-system.so.11": {
+          "symlink": "libgz-sim-drive-to-pose-controller-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-drive-to-pose-controller-system.so.11.0.0~pre3": {
+          "sha256": "d9275ef8e7ca4ba2ca17d259e14921476951894538b9a4439f0a68da6566a7dc"
+        },
+        "libgz-sim-dvl-system.so": {
+          "symlink": "libgz-sim-dvl-system.so.11"
+        },
+        "libgz-sim-dvl-system.so.11": {
+          "symlink": "libgz-sim-dvl-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-dvl-system.so.11.0.0~pre3": {
+          "sha256": "d1fa3ff0a0e8e9c055076ae8c82379b8edb4ca74d79ae3f893a89d6105eef90a"
+        },
+        "libgz-sim-elevator-system.so": {
+          "symlink": "libgz-sim-elevator-system.so.11"
+        },
+        "libgz-sim-elevator-system.so.11": {
+          "symlink": "libgz-sim-elevator-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-elevator-system.so.11.0.0~pre3": {
+          "sha256": "bf2885b5d313ba4492aab07668cd39fdb68f006d15efcab8befdb120ba57fb5c"
+        },
+        "libgz-sim-entity-semantics-system.so": {
+          "symlink": "libgz-sim-entity-semantics-system.so.11"
+        },
+        "libgz-sim-entity-semantics-system.so.11": {
+          "symlink": "libgz-sim-entity-semantics-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-entity-semantics-system.so.11.0.0~pre3": {
+          "sha256": "8ef203e211c1e196614ffbb2ae6455c7b3dfa748ed1566f0c23200a36467b517"
+        },
+        "libgz-sim-environment-preload-system.so": {
+          "symlink": "libgz-sim-environment-preload-system.so.11"
+        },
+        "libgz-sim-environment-preload-system.so.11": {
+          "symlink": "libgz-sim-environment-preload-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-environment-preload-system.so.11.0.0~pre3": {
+          "sha256": "f08812f258fcb1d571e364fbd5a68e1cc1ff679fd3d0c85e38277cf65b46b40d"
+        },
+        "libgz-sim-environmental-sensor-system.so": {
+          "symlink": "libgz-sim-environmental-sensor-system.so.11"
+        },
+        "libgz-sim-environmental-sensor-system.so.11": {
+          "symlink": "libgz-sim-environmental-sensor-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-environmental-sensor-system.so.11.0.0~pre3": {
+          "sha256": "04150ab7883661af1ea15942bc6c384d67d9d62df685c078f80862da6787562c"
+        },
+        "libgz-sim-follow-actor-system.so": {
+          "symlink": "libgz-sim-follow-actor-system.so.11"
+        },
+        "libgz-sim-follow-actor-system.so.11": {
+          "symlink": "libgz-sim-follow-actor-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-follow-actor-system.so.11.0.0~pre3": {
+          "sha256": "d218b7a95edffdef654292cd999b14e1c893f5b5bf622f4f8e5618de3e1a17b7"
+        },
+        "libgz-sim-forcetorque-system.so": {
+          "symlink": "libgz-sim-forcetorque-system.so.11"
+        },
+        "libgz-sim-forcetorque-system.so.11": {
+          "symlink": "libgz-sim-forcetorque-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-forcetorque-system.so.11.0.0~pre3": {
+          "sha256": "046f375b28b7b09eba853e51db981205c19c081c7e804ea14dd6b0bb2fbcac07"
+        },
+        "libgz-sim-free-space-explorer-system.so": {
+          "symlink": "libgz-sim-free-space-explorer-system.so.11"
+        },
+        "libgz-sim-free-space-explorer-system.so.11": {
+          "symlink": "libgz-sim-free-space-explorer-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-free-space-explorer-system.so.11.0.0~pre3": {
+          "sha256": "f8b81c02758fb77ba1048fe4a4fbb44a4dab802a00599c6b50992e6b33e2991b"
+        },
+        "libgz-sim-hydrodynamics-system.so": {
+          "symlink": "libgz-sim-hydrodynamics-system.so.11"
+        },
+        "libgz-sim-hydrodynamics-system.so.11": {
+          "symlink": "libgz-sim-hydrodynamics-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-hydrodynamics-system.so.11.0.0~pre3": {
+          "sha256": "0c1cc755f1244911e932ae8b8e663dd575f8eb10f3f14caeb22423e740367e8b"
+        },
+        "libgz-sim-imu-system.so": {
+          "symlink": "libgz-sim-imu-system.so.11"
+        },
+        "libgz-sim-imu-system.so.11": {
+          "symlink": "libgz-sim-imu-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-imu-system.so.11.0.0~pre3": {
+          "sha256": "6f047da93f3fd5e55f7e262c84d1c7ebcb4cd9a70557594567d6aea2c5919671"
+        },
+        "libgz-sim-joint-controller-system.so": {
+          "symlink": "libgz-sim-joint-controller-system.so.11"
+        },
+        "libgz-sim-joint-controller-system.so.11": {
+          "symlink": "libgz-sim-joint-controller-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-joint-controller-system.so.11.0.0~pre3": {
+          "sha256": "f33cacf654e71d12706aee29856296c0d2b0ab9e0ccc89131ac3c0d25c271a42"
+        },
+        "libgz-sim-joint-position-controller-system.so": {
+          "symlink": "libgz-sim-joint-position-controller-system.so.11"
+        },
+        "libgz-sim-joint-position-controller-system.so.11": {
+          "symlink": "libgz-sim-joint-position-controller-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-joint-position-controller-system.so.11.0.0~pre3": {
+          "sha256": "d5ce17777e6e53de7477ed98fb2ce05c1e417380c13204ffbca071e63411f485"
+        },
+        "libgz-sim-joint-state-publisher-system.so": {
+          "symlink": "libgz-sim-joint-state-publisher-system.so.11"
+        },
+        "libgz-sim-joint-state-publisher-system.so.11": {
+          "symlink": "libgz-sim-joint-state-publisher-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-joint-state-publisher-system.so.11.0.0~pre3": {
+          "sha256": "9c39f104fe787e0b5ab6cf8a94cd426574dedf52180bd5a407e3a4226b03edc1"
+        },
+        "libgz-sim-joint-trajectory-controller-system.so": {
+          "symlink": "libgz-sim-joint-trajectory-controller-system.so.11"
+        },
+        "libgz-sim-joint-trajectory-controller-system.so.11": {
+          "symlink": "libgz-sim-joint-trajectory-controller-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-joint-trajectory-controller-system.so.11.0.0~pre3": {
+          "sha256": "c617b3ba3ab0e068edb601ee0407e80a0efb24175c1a587f4bc196c778f9001a"
+        },
+        "libgz-sim-kinetic-energy-monitor-system.so": {
+          "symlink": "libgz-sim-kinetic-energy-monitor-system.so.11"
+        },
+        "libgz-sim-kinetic-energy-monitor-system.so.11": {
+          "symlink": "libgz-sim-kinetic-energy-monitor-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-kinetic-energy-monitor-system.so.11.0.0~pre3": {
+          "sha256": "c77fe15f8b7a75ad22fefeb520818845af4c7b691dc0baf7b22d33350cac0220"
+        },
+        "libgz-sim-label-system.so": {
+          "symlink": "libgz-sim-label-system.so.11"
+        },
+        "libgz-sim-label-system.so.11": {
+          "symlink": "libgz-sim-label-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-label-system.so.11.0.0~pre3": {
+          "sha256": "0592fbf8ffaedfa5ed65b4a49bac0eb127d06f06cd3e4c42d53279607c0a3ec8"
+        },
+        "libgz-sim-led-plugin-system.so": {
+          "symlink": "libgz-sim-led-plugin-system.so.11"
+        },
+        "libgz-sim-led-plugin-system.so.11": {
+          "symlink": "libgz-sim-led-plugin-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-led-plugin-system.so.11.0.0~pre3": {
+          "sha256": "7b93e32905e548b8f2e78e04776ca74c7a1c41fbf05e2595abdcc300b67cfcd9"
+        },
+        "libgz-sim-lens-flare-system.so": {
+          "symlink": "libgz-sim-lens-flare-system.so.11"
+        },
+        "libgz-sim-lens-flare-system.so.11": {
+          "symlink": "libgz-sim-lens-flare-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-lens-flare-system.so.11.0.0~pre3": {
+          "sha256": "237be9dcf0da6e2ce447896c44ae1f127dcf28032ec82af540e2dc207e77db1b"
+        },
+        "libgz-sim-lift-drag-system.so": {
+          "symlink": "libgz-sim-lift-drag-system.so.11"
+        },
+        "libgz-sim-lift-drag-system.so.11": {
+          "symlink": "libgz-sim-lift-drag-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-lift-drag-system.so.11.0.0~pre3": {
+          "sha256": "4d6049e4b4a056f5017ef9a1cad4b78cc9d6cdb683805ee65735a73183280672"
+        },
+        "libgz-sim-lighter_than_air_dynamics-system.so": {
+          "symlink": "libgz-sim-lighter_than_air_dynamics-system.so.11"
+        },
+        "libgz-sim-lighter_than_air_dynamics-system.so.11": {
+          "symlink": "libgz-sim-lighter_than_air_dynamics-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-lighter_than_air_dynamics-system.so.11.0.0~pre3": {
+          "sha256": "1724ba9e64fa95323aaea1d5fc4ecde992cfce20af5731c8ba0f7ede9bb02cc1"
+        },
+        "libgz-sim-linearbatteryplugin-system.so": {
+          "symlink": "libgz-sim-linearbatteryplugin-system.so.11"
+        },
+        "libgz-sim-linearbatteryplugin-system.so.11": {
+          "symlink": "libgz-sim-linearbatteryplugin-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-linearbatteryplugin-system.so.11.0.0~pre3": {
+          "sha256": "72d03a6d0ad592c9e3d2a7158ff57f0b1b18f23d4cfdf38f6093d899f1c1d5a9"
+        },
+        "libgz-sim-log-system.so": {
+          "symlink": "libgz-sim-log-system.so.11"
+        },
+        "libgz-sim-log-system.so.11": {
+          "symlink": "libgz-sim-log-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-log-system.so.11.0.0~pre3": {
+          "sha256": "69b83c8c7a5bbe9eada645b2e046109fa231bbf462ed73914f36d9a110c6e576"
+        },
+        "libgz-sim-log-video-recorder-system.so": {
+          "symlink": "libgz-sim-log-video-recorder-system.so.11"
+        },
+        "libgz-sim-log-video-recorder-system.so.11": {
+          "symlink": "libgz-sim-log-video-recorder-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-log-video-recorder-system.so.11.0.0~pre3": {
+          "sha256": "54f719ec52741ed8e8e54e78413acbfdba6faff14b18ab2f0edef4c4c389b9ac"
+        },
+        "libgz-sim-logical-camera-system.so": {
+          "symlink": "libgz-sim-logical-camera-system.so.11"
+        },
+        "libgz-sim-logical-camera-system.so.11": {
+          "symlink": "libgz-sim-logical-camera-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-logical-camera-system.so.11.0.0~pre3": {
+          "sha256": "d2a2dcf340b46422cb6579aa3423cddd1d22c0545b90381943d8d00cb014511a"
+        },
+        "libgz-sim-logicalaudiosensorplugin-system.so": {
+          "symlink": "libgz-sim-logicalaudiosensorplugin-system.so.11"
+        },
+        "libgz-sim-logicalaudiosensorplugin-system.so.11": {
+          "symlink": "libgz-sim-logicalaudiosensorplugin-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-logicalaudiosensorplugin-system.so.11.0.0~pre3": {
+          "sha256": "7998ecd4a372b61a2370652ed84e2f6df503cab44875dc9c3d8b06850682b48a"
+        },
+        "libgz-sim-lookup-wheel-slip-system.so": {
+          "symlink": "libgz-sim-lookup-wheel-slip-system.so.11"
+        },
+        "libgz-sim-lookup-wheel-slip-system.so.11": {
+          "symlink": "libgz-sim-lookup-wheel-slip-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-lookup-wheel-slip-system.so.11.0.0~pre3": {
+          "sha256": "0c73204a65760a433b86a312c5204becd2480896543c22149e28abc0da53515b"
+        },
+        "libgz-sim-magnetometer-system.so": {
+          "symlink": "libgz-sim-magnetometer-system.so.11"
+        },
+        "libgz-sim-magnetometer-system.so.11": {
+          "symlink": "libgz-sim-magnetometer-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-magnetometer-system.so.11.0.0~pre3": {
+          "sha256": "c43229eb5b44146b866fa7e2bfd057d64b50a43af9639751f7a14dd143388353"
+        },
+        "libgz-sim-mecanum-drive-system.so": {
+          "symlink": "libgz-sim-mecanum-drive-system.so.11"
+        },
+        "libgz-sim-mecanum-drive-system.so.11": {
+          "symlink": "libgz-sim-mecanum-drive-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-mecanum-drive-system.so.11.0.0~pre3": {
+          "sha256": "d3cab6af2aabdd47871a32ccd5b4320cef231d9c611de647206dfb8703c4691d"
+        },
+        "libgz-sim-model-photo-shoot-system.so": {
+          "symlink": "libgz-sim-model-photo-shoot-system.so.11"
+        },
+        "libgz-sim-model-photo-shoot-system.so.11": {
+          "symlink": "libgz-sim-model-photo-shoot-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-model-photo-shoot-system.so.11.0.0~pre3": {
+          "sha256": "065d47780c892141cc23b7ad02412085cbe6ece6e45caaf21fced5946206f235"
+        },
+        "libgz-sim-multicopter-control-system.so": {
+          "symlink": "libgz-sim-multicopter-control-system.so.11"
+        },
+        "libgz-sim-multicopter-control-system.so.11": {
+          "symlink": "libgz-sim-multicopter-control-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-multicopter-control-system.so.11.0.0~pre3": {
+          "sha256": "818c8f9da1aa0bc297c58d0f76c8204d0d245c7179e6f72cc61a4edf9f4cfb7a"
+        },
+        "libgz-sim-multicopter-motor-model-system.so": {
+          "symlink": "libgz-sim-multicopter-motor-model-system.so.11"
+        },
+        "libgz-sim-multicopter-motor-model-system.so.11": {
+          "symlink": "libgz-sim-multicopter-motor-model-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-multicopter-motor-model-system.so.11.0.0~pre3": {
+          "sha256": "7c20db9a832e16088c182e517c2024b143d3d18a9fb3df9dc00549120dc0efba"
+        },
+        "libgz-sim-navsat-system.so": {
+          "symlink": "libgz-sim-navsat-system.so.11"
+        },
+        "libgz-sim-navsat-system.so.11": {
+          "symlink": "libgz-sim-navsat-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-navsat-system.so.11.0.0~pre3": {
+          "sha256": "e24bbc13b0c5756db25fe6a36224554f15d58bcd2a2212ed199e049adeb3fc14"
+        },
+        "libgz-sim-odometry-publisher-system.so": {
+          "symlink": "libgz-sim-odometry-publisher-system.so.11"
+        },
+        "libgz-sim-odometry-publisher-system.so.11": {
+          "symlink": "libgz-sim-odometry-publisher-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-odometry-publisher-system.so.11.0.0~pre3": {
+          "sha256": "a2b20c264cfc5e39849e5e44b01c2b138f8aedd2ca111b752a37111c403e97de"
+        },
+        "libgz-sim-opticaltactileplugin-system.so": {
+          "symlink": "libgz-sim-opticaltactileplugin-system.so.11"
+        },
+        "libgz-sim-opticaltactileplugin-system.so.11": {
+          "symlink": "libgz-sim-opticaltactileplugin-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-opticaltactileplugin-system.so.11.0.0~pre3": {
+          "sha256": "0e3628587737f3277a42d97f2731cf80662ddd690cb3d5ab39635e7e12ed8c0d"
+        },
+        "libgz-sim-particle-emitter-system.so": {
+          "symlink": "libgz-sim-particle-emitter-system.so.11"
+        },
+        "libgz-sim-particle-emitter-system.so.11": {
+          "symlink": "libgz-sim-particle-emitter-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-particle-emitter-system.so.11.0.0~pre3": {
+          "sha256": "d9c935d8af3dde1aa04b413f1b7b58ce7479ca27049f5cfe49c60e081827d109"
+        },
+        "libgz-sim-perfect-comms-system.so": {
+          "symlink": "libgz-sim-perfect-comms-system.so.11"
+        },
+        "libgz-sim-perfect-comms-system.so.11": {
+          "symlink": "libgz-sim-perfect-comms-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-perfect-comms-system.so.11.0.0~pre3": {
+          "sha256": "1df24def9f4a69774907ad2f8ffc50b1b9997846248dea6bd994b9c41db5b870"
+        },
+        "libgz-sim-performer-detector-system.so": {
+          "symlink": "libgz-sim-performer-detector-system.so.11"
+        },
+        "libgz-sim-performer-detector-system.so.11": {
+          "symlink": "libgz-sim-performer-detector-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-performer-detector-system.so.11.0.0~pre3": {
+          "sha256": "b84f8b9cc70133acb6113ead6114282d77a7bee1e1e0cc257bc9473512889c9d"
+        },
+        "libgz-sim-physics-system.so": {
+          "symlink": "libgz-sim-physics-system.so.11"
+        },
+        "libgz-sim-physics-system.so.11": {
+          "symlink": "libgz-sim-physics-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-physics-system.so.11.0.0~pre3": {
+          "sha256": "c0772fea6fe39aee973c483e4d6f9d0e7ef46c9f91a3f8f4d02a70e42868bc17"
+        },
+        "libgz-sim-pose-publisher-system.so": {
+          "symlink": "libgz-sim-pose-publisher-system.so.11"
+        },
+        "libgz-sim-pose-publisher-system.so.11": {
+          "symlink": "libgz-sim-pose-publisher-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-pose-publisher-system.so.11.0.0~pre3": {
+          "sha256": "83b88b329b1e0e72257fbc62d408c2ed492335548c015cca068d168c877fb3f1"
+        },
+        "libgz-sim-rendering.so": {
+          "symlink": "libgz-sim-rendering.so.11"
+        },
+        "libgz-sim-rendering.so.11": {
+          "symlink": "libgz-sim-rendering.so.11.0.0~pre3"
+        },
+        "libgz-sim-rendering.so.11.0.0~pre3": {
+          "sha256": "4965d2709411d6f2caf6fd89c21216479d0289e6b2616179de9a71a24907cd85"
+        },
+        "libgz-sim-rf-comms-system.so": {
+          "symlink": "libgz-sim-rf-comms-system.so.11"
+        },
+        "libgz-sim-rf-comms-system.so.11": {
+          "symlink": "libgz-sim-rf-comms-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-rf-comms-system.so.11.0.0~pre3": {
+          "sha256": "bfeeb73f0933e2994a13144c2718b9767702ff66114bfd1247f38938ea1b2c2b"
+        },
+        "libgz-sim-scene-broadcaster-system.so": {
+          "symlink": "libgz-sim-scene-broadcaster-system.so.11"
+        },
+        "libgz-sim-scene-broadcaster-system.so.11": {
+          "symlink": "libgz-sim-scene-broadcaster-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-scene-broadcaster-system.so.11.0.0~pre3": {
+          "sha256": "4eadc871cb2e9edd9c8a2d81eede841af20ac23a6db122b057492ce23d9fb489"
+        },
+        "libgz-sim-sensors-system.so": {
+          "symlink": "libgz-sim-sensors-system.so.11"
+        },
+        "libgz-sim-sensors-system.so.11": {
+          "symlink": "libgz-sim-sensors-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-sensors-system.so.11.0.0~pre3": {
+          "sha256": "d3638802a06178e9e2067135163ff24e5aae9df6c5ba0084d5b8b9bdc7be560b"
+        },
+        "libgz-sim-shader-param-system.so": {
+          "symlink": "libgz-sim-shader-param-system.so.11"
+        },
+        "libgz-sim-shader-param-system.so.11": {
+          "symlink": "libgz-sim-shader-param-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-shader-param-system.so.11.0.0~pre3": {
+          "sha256": "2ee0f52f9232dcac7b2dc25946742f837c712c49c79d5a64d6952da574af9eba"
+        },
+        "libgz-sim-spacecraft-thruster-model-system.so": {
+          "symlink": "libgz-sim-spacecraft-thruster-model-system.so.11"
+        },
+        "libgz-sim-spacecraft-thruster-model-system.so.11": {
+          "symlink": "libgz-sim-spacecraft-thruster-model-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-spacecraft-thruster-model-system.so.11.0.0~pre3": {
+          "sha256": "3bad0aa27ad48d614268800a35b15a34d737e8e81651558b134a3357241d3f8c"
+        },
+        "libgz-sim-swerve-drive-system.so": {
+          "symlink": "libgz-sim-swerve-drive-system.so.11"
+        },
+        "libgz-sim-swerve-drive-system.so.11": {
+          "symlink": "libgz-sim-swerve-drive-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-swerve-drive-system.so.11.0.0~pre3": {
+          "sha256": "6335b3e3a1a8d7ce20547dcd8f51cfc735bc93ea6451b140823d3e3fdd769c9e"
+        },
+        "libgz-sim-thermal-sensor-system.so": {
+          "symlink": "libgz-sim-thermal-sensor-system.so.11"
+        },
+        "libgz-sim-thermal-sensor-system.so.11": {
+          "symlink": "libgz-sim-thermal-sensor-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-thermal-sensor-system.so.11.0.0~pre3": {
+          "sha256": "52e92cee3e6eaed419c71d9dea69f953c2b03bf7def3ed2ca64e314fa7a07265"
+        },
+        "libgz-sim-thermal-system.so": {
+          "symlink": "libgz-sim-thermal-system.so.11"
+        },
+        "libgz-sim-thermal-system.so.11": {
+          "symlink": "libgz-sim-thermal-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-thermal-system.so.11.0.0~pre3": {
+          "sha256": "03c85c5e7a1c0841b1fe924d0d123933a2076f0eef1e979504207db18617ea5c"
+        },
+        "libgz-sim-thruster-system.so": {
+          "symlink": "libgz-sim-thruster-system.so.11"
+        },
+        "libgz-sim-thruster-system.so.11": {
+          "symlink": "libgz-sim-thruster-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-thruster-system.so.11.0.0~pre3": {
+          "sha256": "038659d87058f92755cae5e19e187d786b9dfb899ea1de37a61da4c2a953281b"
+        },
+        "libgz-sim-timeline-publisher-system.so": {
+          "symlink": "libgz-sim-timeline-publisher-system.so.11"
+        },
+        "libgz-sim-timeline-publisher-system.so.11": {
+          "symlink": "libgz-sim-timeline-publisher-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-timeline-publisher-system.so.11.0.0~pre3": {
+          "sha256": "c62cf4b4f2408664428d460dee959cb8e345d6df1a3bd79be32a3dcac6832c11"
+        },
+        "libgz-sim-touchplugin-system.so": {
+          "symlink": "libgz-sim-touchplugin-system.so.11"
+        },
+        "libgz-sim-touchplugin-system.so.11": {
+          "symlink": "libgz-sim-touchplugin-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-touchplugin-system.so.11.0.0~pre3": {
+          "sha256": "7fe52261417bddc0ef01f227f17f45227a013d5d7a0b33b4ac5f7c5b1fe2f1f4"
+        },
+        "libgz-sim-track-controller-system.so": {
+          "symlink": "libgz-sim-track-controller-system.so.11"
+        },
+        "libgz-sim-track-controller-system.so.11": {
+          "symlink": "libgz-sim-track-controller-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-track-controller-system.so.11.0.0~pre3": {
+          "sha256": "18e1d1d9c456ea5209537b85d35f79dc82b81b17b32d7fbb620b99dd9c22f8db"
+        },
+        "libgz-sim-tracked-vehicle-system.so": {
+          "symlink": "libgz-sim-tracked-vehicle-system.so.11"
+        },
+        "libgz-sim-tracked-vehicle-system.so.11": {
+          "symlink": "libgz-sim-tracked-vehicle-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-tracked-vehicle-system.so.11.0.0~pre3": {
+          "sha256": "757eb8f7f45547881592c122b4b3c8155f9a22ddfcb7045363a9eca9ea89adbe"
+        },
+        "libgz-sim-trajectory-follower-system.so": {
+          "symlink": "libgz-sim-trajectory-follower-system.so.11"
+        },
+        "libgz-sim-trajectory-follower-system.so.11": {
+          "symlink": "libgz-sim-trajectory-follower-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-trajectory-follower-system.so.11.0.0~pre3": {
+          "sha256": "5990e0d2b6e8a2e698145e7f538e2a21e1ab4d451932b8d23cb98ac1ac7c5dff"
+        },
+        "libgz-sim-triggered-publisher-system.so": {
+          "symlink": "libgz-sim-triggered-publisher-system.so.11"
+        },
+        "libgz-sim-triggered-publisher-system.so.11": {
+          "symlink": "libgz-sim-triggered-publisher-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-triggered-publisher-system.so.11.0.0~pre3": {
+          "sha256": "0f0227ab05453ffb0f7cdfb102b3c2483707c7d96762143e73a14594cd41920c"
+        },
+        "libgz-sim-user-commands-system.so": {
+          "symlink": "libgz-sim-user-commands-system.so.11"
+        },
+        "libgz-sim-user-commands-system.so.11": {
+          "symlink": "libgz-sim-user-commands-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-user-commands-system.so.11.0.0~pre3": {
+          "sha256": "70323a3e590759f95a6ea77517f986a613424b4e525ff9d5be35b7c70dc83165"
+        },
+        "libgz-sim-velocity-control-system.so": {
+          "symlink": "libgz-sim-velocity-control-system.so.11"
+        },
+        "libgz-sim-velocity-control-system.so.11": {
+          "symlink": "libgz-sim-velocity-control-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-velocity-control-system.so.11.0.0~pre3": {
+          "sha256": "fba5fbd30e9d0ebc55d4e4541605538b95644c4a4e6e3292ed17449ea57de68b"
+        },
+        "libgz-sim-websocket-server-system.so": {
+          "symlink": "libgz-sim-websocket-server-system.so.11"
+        },
+        "libgz-sim-websocket-server-system.so.11": {
+          "symlink": "libgz-sim-websocket-server-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-websocket-server-system.so.11.0.0~pre3": {
+          "sha256": "95e0591a4aaa8983d1377fac2a6b8280a5a3fa7ab8b3efa7758f9e17b37a9697"
+        },
+        "libgz-sim-wheel-slip-system.so": {
+          "symlink": "libgz-sim-wheel-slip-system.so.11"
+        },
+        "libgz-sim-wheel-slip-system.so.11": {
+          "symlink": "libgz-sim-wheel-slip-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-wheel-slip-system.so.11.0.0~pre3": {
+          "sha256": "e8769d72aadb6b67c35c30e5d656325b9209765d1adc4a478c48757e7c9bd4d2"
+        },
+        "libgz-sim-wind-effects-system.so": {
+          "symlink": "libgz-sim-wind-effects-system.so.11"
+        },
+        "libgz-sim-wind-effects-system.so.11": {
+          "symlink": "libgz-sim-wind-effects-system.so.11.0.0~pre3"
+        },
+        "libgz-sim-wind-effects-system.so.11.0.0~pre3": {
+          "sha256": "02f91d3b7ab450871ee04b898d5b172415f05564103b44b31ce06c578ce07d52"
+        },
+        "libgz-sim.so": {
+          "symlink": "libgz-sim.so.11"
+        },
+        "libgz-sim.so.11": {
+          "symlink": "libgz-sim.so.11.0.0~pre3"
+        },
+        "libgz-sim.so.11.0.0~pre3": {
+          "sha256": "7150e57be1acda3b8e127bc7e9dd85d1df820664c3ac40c9618249843833a3b5"
+        },
+        "libgz.a": {
+          "sha256": "54a733677bfc22e7b4306f19df79a5bcdea17d58f9dab314edb4e7442dd464bb"
+        }
+      }
+    },
+    "gz-physics": {
+      "directory": "builds/gz-physics",
+      "source": "sources/gz-physics",
+      "cmake_cache_sha256": "74251d7395be284f24d7e70e7fb7675a4e4f43307faab7cfe2f42e222c56cc2d",
+      "library_files": {
+        "libMockCompositeData.so": {
+          "sha256": "493138dee7cc41b50802ac555afae0119fdb709da9f396f3971cb9d6c19684e8"
+        },
+        "libMockEntities.so": {
+          "sha256": "49457e9bfdee5f29f97400283ee92183846b1c0d77ec2a20e84907c43e5f4455"
+        },
+        "libMockFrames.so": {
+          "sha256": "9cdaa79e420f1129edfd7bf7ec8ba19ef21f2e0522c091a3979d74168caa6d64"
+        },
+        "libMockJoints.so": {
+          "sha256": "22089c119fb3456c54fcd5f1ac001fe14662d74288aad5084bae4e3bb7d398ed"
+        },
+        "libgtest.a": {
+          "sha256": "05807296c596b24690728f2089501d80f51f464ae159d74cbd48a90f1609d829"
+        },
+        "libgtest_main.a": {
+          "sha256": "88c1fa95d63307d0270cccbbba2eb78b11ff4f73a9025588f85d89acc7aac8c2"
+        },
+        "libgz-physics-tpe-plugin.so": {
+          "symlink": "libgz-physics-tpe-plugin.so.10"
+        },
+        "libgz-physics-tpe-plugin.so.10": {
+          "symlink": "libgz-physics-tpe-plugin.so.10.0.0~pre2"
+        },
+        "libgz-physics-tpe-plugin.so.10.0.0~pre2": {
+          "sha256": "bdb7fc6d928aea335e6273efc7673712da3a3e3962c7732745e3accddc509b7e"
+        },
+        "libgz-physics-tpelib.so": {
+          "symlink": "libgz-physics-tpelib.so.10"
+        },
+        "libgz-physics-tpelib.so.10": {
+          "symlink": "libgz-physics-tpelib.so.10.0.0~pre2"
+        },
+        "libgz-physics-tpelib.so.10.0.0~pre2": {
+          "sha256": "d4227fc2ea34a7ac08bf242fb300c5ce7f318825639360d1e6d3a3cd5683c9e2"
+        },
+        "libgz-physics.so": {
+          "symlink": "libgz-physics.so.10"
+        },
+        "libgz-physics.so.10": {
+          "symlink": "libgz-physics.so.10.0.0~pre2"
+        },
+        "libgz-physics.so.10.0.0~pre2": {
+          "sha256": "d0a7735672b5e949a7d1eaa122e0e2a73d9fdcc758e7a552490fe3550e7252e7"
+        }
+      }
+    },
+    "gz-sensors": {
+      "directory": "builds/gz-sensors",
+      "source": "sources/gz-sensors",
+      "cmake_cache_sha256": "847f941ef16cd17a9304cf0e6133c28c10e173c8ebd9868e0fa93d0951008a1b",
+      "library_files": {
+        "libgtest.a": {
+          "sha256": "d8e41a2d9ba9a0453b72f9c8531f1ed07d7e0c1ef2031d0089171db472f2cf35"
+        },
+        "libgtest_main.a": {
+          "sha256": "b48dfeb185a925ab30363f1bf8b8ab081239984ebab220170700384379acdc43"
+        },
+        "libgz-sensors-air_pressure.so": {
+          "symlink": "libgz-sensors-air_pressure.so.11"
+        },
+        "libgz-sensors-air_pressure.so.11": {
+          "symlink": "libgz-sensors-air_pressure.so.11.0.0~pre2"
+        },
+        "libgz-sensors-air_pressure.so.11.0.0~pre2": {
+          "sha256": "72d3765730ee8794adc8290e2eaf999cee71330c7e53c8c8b5f07bfd5b56cec9"
+        },
+        "libgz-sensors-air_speed.so": {
+          "symlink": "libgz-sensors-air_speed.so.11"
+        },
+        "libgz-sensors-air_speed.so.11": {
+          "symlink": "libgz-sensors-air_speed.so.11.0.0~pre2"
+        },
+        "libgz-sensors-air_speed.so.11.0.0~pre2": {
+          "sha256": "1c14f0bad54132857ee53090c2b3e51d6094c8fa8393e1030fba9f3b4bd385ad"
+        },
+        "libgz-sensors-altimeter.so": {
+          "symlink": "libgz-sensors-altimeter.so.11"
+        },
+        "libgz-sensors-altimeter.so.11": {
+          "symlink": "libgz-sensors-altimeter.so.11.0.0~pre2"
+        },
+        "libgz-sensors-altimeter.so.11.0.0~pre2": {
+          "sha256": "a42d2c6fefcc146e067ff7ddcf2739bfe5b150d24897e741e295b7d0b3397ccd"
+        },
+        "libgz-sensors-boundingbox_camera.so": {
+          "symlink": "libgz-sensors-boundingbox_camera.so.11"
+        },
+        "libgz-sensors-boundingbox_camera.so.11": {
+          "symlink": "libgz-sensors-boundingbox_camera.so.11.0.0~pre2"
+        },
+        "libgz-sensors-boundingbox_camera.so.11.0.0~pre2": {
+          "sha256": "21c88de59dfaf5698926328b1ae860431baad1c3da6f9a6452ed7e1f34364706"
+        },
+        "libgz-sensors-camera.so": {
+          "symlink": "libgz-sensors-camera.so.11"
+        },
+        "libgz-sensors-camera.so.11": {
+          "symlink": "libgz-sensors-camera.so.11.0.0~pre2"
+        },
+        "libgz-sensors-camera.so.11.0.0~pre2": {
+          "sha256": "f52e015b372c1a234c50c5164aee268c814b23e25849c853a579726d675edc22"
+        },
+        "libgz-sensors-cpu_lidar.so": {
+          "symlink": "libgz-sensors-cpu_lidar.so.11"
+        },
+        "libgz-sensors-cpu_lidar.so.11": {
+          "symlink": "libgz-sensors-cpu_lidar.so.11.0.0~pre2"
+        },
+        "libgz-sensors-cpu_lidar.so.11.0.0~pre2": {
+          "sha256": "945ce5548434a11eb78c4634b4956c0a7689c64addb16d7c539b918b4cb86727"
+        },
+        "libgz-sensors-depth_camera.so": {
+          "symlink": "libgz-sensors-depth_camera.so.11"
+        },
+        "libgz-sensors-depth_camera.so.11": {
+          "symlink": "libgz-sensors-depth_camera.so.11.0.0~pre2"
+        },
+        "libgz-sensors-depth_camera.so.11.0.0~pre2": {
+          "sha256": "42a2957fc68cc7faf80b2ec083b6efacb81a422e536b7cf1afba3dfe8c27ef07"
+        },
+        "libgz-sensors-dvl.so": {
+          "symlink": "libgz-sensors-dvl.so.11"
+        },
+        "libgz-sensors-dvl.so.11": {
+          "symlink": "libgz-sensors-dvl.so.11.0.0~pre2"
+        },
+        "libgz-sensors-dvl.so.11.0.0~pre2": {
+          "sha256": "7f3366850d0a9cb3f8549c3e722d936d38c2395dfd3a895d86e661e42b9bccc2"
+        },
+        "libgz-sensors-force_torque.so": {
+          "symlink": "libgz-sensors-force_torque.so.11"
+        },
+        "libgz-sensors-force_torque.so.11": {
+          "symlink": "libgz-sensors-force_torque.so.11.0.0~pre2"
+        },
+        "libgz-sensors-force_torque.so.11.0.0~pre2": {
+          "sha256": "7eb3aa5b2f3ef840d66e45716e004695c60a9d43b7918e8fd54d62c91b7a108e"
+        },
+        "libgz-sensors-gpu_lidar.so": {
+          "symlink": "libgz-sensors-gpu_lidar.so.11"
+        },
+        "libgz-sensors-gpu_lidar.so.11": {
+          "symlink": "libgz-sensors-gpu_lidar.so.11.0.0~pre2"
+        },
+        "libgz-sensors-gpu_lidar.so.11.0.0~pre2": {
+          "sha256": "7af171c264a37a8a7835fd04bc62f37a080dfb1131d30c20bc91ed989bd6adda"
+        },
+        "libgz-sensors-imu.so": {
+          "symlink": "libgz-sensors-imu.so.11"
+        },
+        "libgz-sensors-imu.so.11": {
+          "symlink": "libgz-sensors-imu.so.11.0.0~pre2"
+        },
+        "libgz-sensors-imu.so.11.0.0~pre2": {
+          "sha256": "8aee0d4dd3ac2b4fac37b7cdf20ff0c49b4d98211bfead44bb0141be0693836b"
+        },
+        "libgz-sensors-lidar.so": {
+          "symlink": "libgz-sensors-lidar.so.11"
+        },
+        "libgz-sensors-lidar.so.11": {
+          "symlink": "libgz-sensors-lidar.so.11.0.0~pre2"
+        },
+        "libgz-sensors-lidar.so.11.0.0~pre2": {
+          "sha256": "863308ec979dff48c8cae61fe063e687294a94562e5b1402e9d2be0108785e78"
+        },
+        "libgz-sensors-logical_camera.so": {
+          "symlink": "libgz-sensors-logical_camera.so.11"
+        },
+        "libgz-sensors-logical_camera.so.11": {
+          "symlink": "libgz-sensors-logical_camera.so.11.0.0~pre2"
+        },
+        "libgz-sensors-logical_camera.so.11.0.0~pre2": {
+          "sha256": "a143b48311cbdfc60256fb73178b95c4579b3f595cb724afb9326a075d713a7b"
+        },
+        "libgz-sensors-magnetometer.so": {
+          "symlink": "libgz-sensors-magnetometer.so.11"
+        },
+        "libgz-sensors-magnetometer.so.11": {
+          "symlink": "libgz-sensors-magnetometer.so.11.0.0~pre2"
+        },
+        "libgz-sensors-magnetometer.so.11.0.0~pre2": {
+          "sha256": "8e9bc39fba29c26e92cf2aa7079a45a577745bfa90d9f70d5be3a76156407e4e"
+        },
+        "libgz-sensors-navsat.so": {
+          "symlink": "libgz-sensors-navsat.so.11"
+        },
+        "libgz-sensors-navsat.so.11": {
+          "symlink": "libgz-sensors-navsat.so.11.0.0~pre2"
+        },
+        "libgz-sensors-navsat.so.11.0.0~pre2": {
+          "sha256": "aed10cedd30a7ca4ef9c49776ab83f31ae0d1184bdf7583bc2d908b4307b9830"
+        },
+        "libgz-sensors-rendering.so": {
+          "symlink": "libgz-sensors-rendering.so.11"
+        },
+        "libgz-sensors-rendering.so.11": {
+          "symlink": "libgz-sensors-rendering.so.11.0.0~pre2"
+        },
+        "libgz-sensors-rendering.so.11.0.0~pre2": {
+          "sha256": "93058b6cf3aea45761c1122f34eaa61eb2d931b6ad5b2256741b32498a9664e0"
+        },
+        "libgz-sensors-rgbd_camera.so": {
+          "symlink": "libgz-sensors-rgbd_camera.so.11"
+        },
+        "libgz-sensors-rgbd_camera.so.11": {
+          "symlink": "libgz-sensors-rgbd_camera.so.11.0.0~pre2"
+        },
+        "libgz-sensors-rgbd_camera.so.11.0.0~pre2": {
+          "sha256": "67512dbf9d8ca0f0771734af67b85ee29c6511a3d5e1a090e6238ed61a66b458"
+        },
+        "libgz-sensors-segmentation_camera.so": {
+          "symlink": "libgz-sensors-segmentation_camera.so.11"
+        },
+        "libgz-sensors-segmentation_camera.so.11": {
+          "symlink": "libgz-sensors-segmentation_camera.so.11.0.0~pre2"
+        },
+        "libgz-sensors-segmentation_camera.so.11.0.0~pre2": {
+          "sha256": "f8d08add616e158e31b0cc3b394d7bad6aa20b030572b5bebd793707f778434b"
+        },
+        "libgz-sensors-thermal_camera.so": {
+          "symlink": "libgz-sensors-thermal_camera.so.11"
+        },
+        "libgz-sensors-thermal_camera.so.11": {
+          "symlink": "libgz-sensors-thermal_camera.so.11.0.0~pre2"
+        },
+        "libgz-sensors-thermal_camera.so.11.0.0~pre2": {
+          "sha256": "499d59565df41f530e6a6945e792170807376db5f57913620eb1eb04400f020b"
+        },
+        "libgz-sensors-wide_angle_camera.so": {
+          "symlink": "libgz-sensors-wide_angle_camera.so.11"
+        },
+        "libgz-sensors-wide_angle_camera.so.11": {
+          "symlink": "libgz-sensors-wide_angle_camera.so.11.0.0~pre2"
+        },
+        "libgz-sensors-wide_angle_camera.so.11.0.0~pre2": {
+          "sha256": "8078eebb13a64ec6b153d43bc61d66673ac56434416aa8575820c992b1982e71"
+        },
+        "libgz-sensors.so": {
+          "symlink": "libgz-sensors.so.11"
+        },
+        "libgz-sensors.so.11": {
+          "symlink": "libgz-sensors.so.11.0.0~pre2"
+        },
+        "libgz-sensors.so.11.0.0~pre2": {
+          "sha256": "3be2c4245553eed32e121eb049352ba40a10a8827e8ba55bbf390ecc798787e2"
+        }
+      }
+    }
+  },
+  "server_compiler_inputs": {
+    "flags.make": "24ca04db7b6e22d9af409dc42c19f4566140ad2d87b2d69d3031ad225ba92456",
+    "link.txt": "e693081628a6a6759e663c96dc554a7065cdef6b285f3a5e1185d34f6bbabd7f"
+  }
+}

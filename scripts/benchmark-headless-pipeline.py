@@ -10,11 +10,28 @@ import math
 import os
 from pathlib import Path
 import platform
+import re
 import shlex
+import shutil
 import statistics
 import subprocess
+import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
+reference_spec = importlib.util.spec_from_file_location('client_reference', ROOT / 'scripts/native_reference.py')
+client_reference = importlib.util.module_from_spec(reference_spec)
+reference_spec.loader.exec_module(client_reference)
+
+SDK_BUILD_INPUTS = {
+    'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', 'planning/baseline.json',
+    'planning/transport-reference-lock.json', 'planning/reference/headless-sdk-environment.json',
+    'planning/reference/headless-sdk-build-libraries.json',
+    'scripts/benchmark-headless-pipeline.py', 'scripts/native_reference.py',
+    'scripts/probe-headless-imu.py', 'reference/build-reference.py',
+    'crates/gz-sim-scene/tests/fixtures/headless_imu.sdf',
+    *('crates/gz-sim-server/tests/' + name for name in [
+        'native_pipeline_benchmark.cc', 'native_lockstep_benchmark.cc', 'native_stream_benchmark.cc']),
+}
 
 
 def digest(path):
@@ -25,6 +42,89 @@ def cache_value(build, key):
     prefix = key + ':'
     return next(line.split('=', 1)[1] for line in (build / 'CMakeCache.txt').read_text().splitlines()
                 if line.startswith(prefix))
+
+
+def validate_rust_build(record_path, build_json, binary):
+    """Check the retained host build record before executing in the compiler-free SDK."""
+    record = json.loads(record_path.read_text())
+    for key in ['source_tree', 'git_base']:
+        if not re.fullmatch('[0-9a-f]{40}', record[key]):
+            raise ValueError('invalid Rust source identity')
+    if record['build_json_sha256'] != digest(build_json) or record['binary_sha256'] != digest(binary):
+        raise ValueError('Rust build or executable identity differs')
+    with binary.open('rb') as executable:
+        if executable.read(4) != b'\x7fELF':
+            raise ValueError('Rust SDK benchmark requires an ELF executable')
+    messages = [json.loads(line) for line in build_json.read_text().splitlines()]
+    if [row.get('success') for row in messages if row.get('reason') == 'build-finished'] != [True]:
+        raise ValueError('Rust build did not complete successfully')
+    channel = tomllib.loads((ROOT / 'rust-toolchain.toml').read_text())['toolchain']['channel']
+    if not record['rustc_vv'].startswith('rustc ' + channel + ' '):
+        raise ValueError('Rust compiler version differs from the pinned toolchain')
+    required = SDK_BUILD_INPUTS | {str(path.relative_to(ROOT)) for path in (ROOT / 'crates').rglob('*.rs')}
+    required |= {str(path.relative_to(ROOT)) for path in (ROOT / 'crates').rglob('Cargo.toml')}
+    sources = record['source_sha256']
+    if not required.issubset(sources):
+        raise ValueError('Rust build record omits required source inputs')
+    for name, expected in sources.items():
+        path = client_reference.contained_file(ROOT, name)
+        if path.is_symlink() or digest(path) != expected:
+            raise ValueError('Rust build source changed: ' + name)
+    return record
+
+
+def validate_sdk_builds(builds, prefix, sdk):
+    registry = json.loads((ROOT/'planning/reference/headless-sdk-build-libraries.json').read_text())
+    if registry['sdk_environment_sha256'] != digest(ROOT/'planning/reference/headless-sdk-environment.json'):
+        raise ValueError('native build registry belongs to a different SDK')
+    if set(registry['builds']) != {'gz-'+name for name in builds}:
+        raise ValueError('native SDK build set differs')
+    root = prefix.parent
+    pins = {row['name']: row for row in sdk['repositories']}
+    libraries = {str((prefix/name).resolve()): entry['sha256']
+                 for name,entry in sdk['installed_files'].items() if 'sha256' in entry and '.so' in Path(name).name}
+    for name,directory in builds.items():
+        key = 'gz-'+name
+        expected = registry['builds'][key]
+        if expected['directory'] != 'builds/'+key or expected['source'] != 'sources/'+key:
+            raise ValueError('unexpected native SDK layout')
+        if directory != (root/expected['directory']).resolve() or Path(cache_value(directory,'CMAKE_HOME_DIRECTORY')).resolve() != (root/expected['source']).resolve():
+            raise ValueError('native build or source root differs from SDK')
+        cache_hash = digest(directory/'CMakeCache.txt')
+        if cache_hash != expected['cmake_cache_sha256'] or cache_hash != pins[key]['cmake_cache_sha256']:
+            raise ValueError('native CMake cache differs from SDK')
+        files = client_reference.builder.files_under(directory/'lib')
+        if files != expected['library_files']:
+            raise ValueError('native build library inventory differs from SDK')
+        libraries.update({str((directory/'lib'/path).resolve()): entry['sha256']
+                          for path,entry in files.items() if 'sha256' in entry and '.so' in Path(path).name})
+    target = builds['sim']/'src/CMakeFiles/UNIT_ServerConfig_TEST.dir'
+    if registry['server_compiler_inputs'] != {name: digest(target/name) for name in ['flags.make','link.txt']}:
+        raise ValueError('native compiler inputs differ from SDK')
+    return libraries
+
+
+def validate_sdk_loaded_libraries(loaded, expected):
+    for path,actual in loaded.items():
+        if Path(path).name.startswith(('libgz-', 'libsdformat')):
+            canonical = str(Path(path).resolve())
+            if canonical not in expected or expected[canonical] != actual:
+                raise ValueError('unqualified loaded SDK library: '+path)
+
+
+def require_native_libraries(loaded, required, qualified=None):
+    for name,directory in required.items():
+        found = [Path(path) for path in loaded if Path(path).name.startswith(name)]
+        if len(found) != 1:
+            raise ValueError('missing or duplicate loaded library: '+name)
+        path = found[0]
+        if qualified is None:
+            valid = path.resolve() == (directory/path.name).resolve()
+        else:
+            canonical = str(path.resolve())
+            valid = canonical in qualified and qualified[canonical] == loaded[str(path)]
+        if not valid:
+            raise ValueError('unqualified loaded library location: '+name)
 
 
 def decode(output, steps, fixture_sha256, *, warmup_force_x=None, streams=False, request_period_us=None):
@@ -90,7 +190,11 @@ def main():
     parser.add_argument('--path', choices=['direct', 'server', 'streams'], default='direct')
     parser.add_argument('--request-period-us', type=int, default=20000)
     parser.add_argument('--executor', choices=['default', 'single', 'parallel'], default='default')
+    parser.add_argument('--reference-profile', choices=[client_reference.LEGACY, client_reference.SDK], default=client_reference.LEGACY)
+    parser.add_argument('--rust-build-info', type=Path)
     args = parser.parse_args()
+    if args.reference_profile == client_reference.SDK and args.rust_build_info is None:
+        raise ValueError('the SDK profile requires the retained Rust build record')
     if args.path == 'streams' and not 20000 <= args.request_period_us <= 1000000:
         raise ValueError('native pose/info requires declared request period of20ms or more')
     if not 1 <= args.steps <= 1000 or args.samples < 7:
@@ -101,6 +205,8 @@ def main():
         raise ValueError('CPU is outside this process affinity')
     work = args.work_dir.resolve()
     work.mkdir(parents=True, exist_ok=True)
+    if args.reference_profile == client_reference.SDK and any(work.iterdir()):
+        raise ValueError('the SDK profile requires a new measurement directory')
     builds = {name: getattr(args, name.replace('-', '_') + '_build').resolve()
               for name in ['sim', 'physics', 'sensors']}
     # Reuse the already reviewed raw-source checker; no native source is modified.
@@ -125,25 +231,17 @@ def main():
         build_settings[name] = dict(source=str(source), cache_sha256=digest(build / 'CMakeCache.txt'),
                                     release_flags=cache_value(build, 'CMAKE_CXX_FLAGS_RELEASE'))
     prefix = args.reference_prefix.resolve()
-    reference = json.loads((prefix.parent / 'environment.json').read_text())
+    metadata_path = prefix.parent / 'environment.json'
+    metadata_bytes = metadata_path.read_bytes()
+    reference = json.loads(metadata_bytes)
     expected_lock = json.loads((ROOT / 'planning/transport-reference-lock.json').read_text())
-    if reference['source_lock'] != expected_lock:
-        raise ValueError('transport reference lock differs')
-    for name, expected in reference['libraries_sha256'].items():
-        if digest(prefix / name) != expected:
-            raise ValueError('transport reference library changed: ' + name)
-    target = builds['sim'] / 'src/CMakeFiles/UNIT_ServerConfig_TEST.dir'
-    flags = (target / 'flags.make').read_text()
-    includes = shlex.split(next(line.split('=', 1)[1] for line in flags.splitlines()
-                                if line.startswith('CXX_INCLUDES =')))
-    link = shlex.split((target / 'link.txt').read_text())
-    libraries = [str((builds['sim'] / 'src' / item).resolve()) if item.startswith('../') else item
-                 for item in link[link.index('-o') + 2:] if 'gtest' not in item]
-    source = ROOT / ('crates/gz-sim-server/tests/native_stream_benchmark.cc' if args.path == 'streams' else 'crates/gz-sim-server/tests/native_lockstep_benchmark.cc' if args.path == 'server' else 'crates/gz-sim-server/tests/native_pipeline_benchmark.cc')
-    native = work / 'native-pipeline'
-    command = [link[0], '-std=c++17', '-O3', '-DNDEBUG', '-Wall', '-Wextra', '-Werror',
-               *includes, str(source), '-o', str(native), *libraries]
-    subprocess.run(command, cwd=builds['sim'] / 'src', check=True)
+    sdk = json.loads((ROOT / 'planning/reference/headless-sdk-environment.json').read_text()) if args.reference_profile == client_reference.SDK else None
+    reference_identity = client_reference.validate_reference(prefix, reference, expected_lock, sdk, args.reference_profile)
+    compile_env = client_reference.builder.build_environment(prefix) if sdk is not None else os.environ.copy()
+    sdk_libraries = validate_sdk_builds(builds,prefix,sdk) if sdk is not None else None
+    sdk_registry_sha256 = digest(ROOT/'planning/reference/headless-sdk-build-libraries.json') if sdk is not None else None
+    if sdk is not None and args.dependency_prefix.resolve() != prefix:
+        raise ValueError('the SDK profile requires its qualified dependency prefix')
     rust_candidates = []
     for line in args.rust_build_json.read_text().splitlines():
         try:
@@ -154,11 +252,52 @@ def main():
             if item['target']['name'] == 'gz_sim_server' and item['profile']['test']:
                 if item['profile']['opt_level'] != '3' or item['profile']['debug_assertions']:
                     raise ValueError('Rust test executable is not the release profile')
+                if sdk is not None and Path(item['target']['src_path']).resolve() != ROOT / 'crates/gz-sim-server/src/lib.rs':
+                    raise ValueError('Rust executable belongs to a different source export')
                 rust_candidates.append(Path(item['executable']).resolve())
     if len(set(rust_candidates)) != 1:
         raise ValueError('expected exactly one release server test executable')
     rust = rust_candidates[0]
+    rust_sha256 = digest(rust)
+    rust_build = validate_rust_build(args.rust_build_info, args.rust_build_json, rust) if sdk is not None else None
+    rust_build_info_sha256 = digest(args.rust_build_info) if rust_build is not None else None
     fixture = ROOT / 'crates/gz-sim-scene/tests/fixtures/headless_imu.sdf'
+    fixture_sha256 = digest(fixture)
+    target = builds['sim'] / 'src/CMakeFiles/UNIT_ServerConfig_TEST.dir'
+    flags = (target / 'flags.make').read_text()
+    includes = shlex.split(next(line.split('=', 1)[1] for line in flags.splitlines()
+                                if line.startswith('CXX_INCLUDES =')))
+    link = shlex.split((target / 'link.txt').read_text())
+    libraries = [str((builds['sim'] / 'src' / item).resolve()) if item.startswith('../') else item
+                 for item in link[link.index('-o') + 2:] if 'gtest' not in item]
+    source = ROOT / ('crates/gz-sim-server/tests/native_stream_benchmark.cc' if args.path == 'streams' else 'crates/gz-sim-server/tests/native_lockstep_benchmark.cc' if args.path == 'server' else 'crates/gz-sim-server/tests/native_pipeline_benchmark.cc')
+    source_bytes = source.read_bytes()
+    captured_source = work / 'native-pipeline-source.cc'
+    captured_source.write_bytes(source_bytes)
+    compiler = Path(shutil.which(link[0], path=compile_env.get('PATH', '')) or link[0]).resolve(strict=True)
+    compiler_sha256 = digest(compiler)
+    if sdk is not None and compiler_sha256 != reference_identity['expected_compiler_sha256']:
+        raise ValueError('native benchmark compiler differs from the SDK')
+    compiler_version = subprocess.check_output([str(compiler), '--version'], env=compile_env, text=True)
+    native = work / 'native-pipeline'
+    command = [str(compiler), '-std=c++17', '-O3', '-DNDEBUG', '-Wall', '-Wextra', '-Werror',
+               *includes, str(captured_source), '-o', str(native), *libraries]
+    subprocess.run(command, cwd=builds['sim'] / 'src', env=compile_env, check=True)
+    binary_sha256 = dict(native=digest(native), rust=rust_sha256)
+
+    def recheck_inputs():
+        if metadata_path.read_bytes() != metadata_bytes or source.read_bytes() != source_bytes or captured_source.read_bytes() != source_bytes:
+            raise ValueError('native benchmark input changed')
+        if client_reference.validate_reference(prefix, reference, expected_lock, sdk, args.reference_profile) != reference_identity or digest(compiler) != compiler_sha256:
+            raise ValueError('native benchmark reference or compiler changed')
+        if sdk is not None and (digest(ROOT/'planning/reference/headless-sdk-build-libraries.json') != sdk_registry_sha256 or validate_sdk_builds(builds,prefix,sdk) != sdk_libraries):
+            raise ValueError('native SDK build identity changed')
+        if dict(native=digest(native), rust=digest(rust)) != binary_sha256 or digest(fixture) != fixture_sha256:
+            raise ValueError('benchmark executable or fixture changed')
+        if rust_build is not None and (digest(args.rust_build_info) != rust_build_info_sha256 or validate_rust_build(args.rust_build_info, args.rust_build_json, rust) != rust_build):
+            raise ValueError('Rust benchmark build record changed')
+
+    recheck_inputs()
     libdirs = [builds['physics'] / 'lib', builds['sensors'] / 'lib', builds['sim'] / 'lib',
                prefix / 'lib', args.dependency_prefix.resolve() / 'lib']
     base_env = os.environ.copy()
@@ -201,13 +340,12 @@ def main():
             (work / f'{kind}-{index}.stderr').write_text(result.stderr)
             if result.returncode or result.stderr:
                 raise ValueError(f'{kind} sample {index} failed: {result.returncode} {result.stderr}')
-            pair[kind] = decode(result.stdout, args.steps, digest(fixture), warmup_force_x=0.0 if args.path != 'direct' else None, streams=args.path == 'streams', request_period_us=args.request_period_us)
+            pair[kind] = decode(result.stdout, args.steps, fixture_sha256, warmup_force_x=0.0 if args.path != 'direct' else None, streams=args.path == 'streams', request_period_us=args.request_period_us)
             if kind == 'native':
                 loaded = loaded_libraries(maps)
-                for name, directory in required.items():
-                    found = [Path(path) for path in loaded if Path(path).name.startswith(name)]
-                    if len(found) != 1 or found[0].resolve() != (directory / found[0].name).resolve():
-                        raise ValueError('wrong or duplicate loaded library: ' + name)
+                if sdk_libraries is not None:
+                    validate_sdk_loaded_libraries(loaded,sdk_libraries)
+                require_native_libraries(loaded,required,sdk_libraries)
                 if native_libs is not None and loaded != native_libs:
                     raise ValueError('native library set changed between samples')
                 native_libs = loaded
@@ -220,6 +358,7 @@ def main():
         if not math.isclose(pair['native']['force_sum'], pair['rust']['force_sum'], abs_tol=1e-8):
             raise ValueError('native/Rust physical checksum differs')
         observations.append(pair)
+    recheck_inputs()
     values = {name: [pair[name]['nanos'] / args.steps for pair in observations[1:]]
               for name in ['native', 'rust']}
     medians = {name: statistics.median(value) for name, value in values.items()}
@@ -241,13 +380,16 @@ def main():
         ns_per_step=dict(medians=medians, min={k:min(v) for k,v in values.items()},
                          max={k:max(v) for k,v in values.items()}, native_over_rust=medians['native']/medians['rust']),
         builds=build_settings, native_revisions={name:lock['gz-'+name] for name in builds}, native_sources=native_sources, native_command=command,
-        compiler=subprocess.check_output([link[0], '--version'], text=True),
-        rustc=subprocess.check_output(['rustc', '-vV'], text=True),
-        fixture_sha256=digest(fixture), rust_production_sources={str(p.relative_to(ROOT)):digest(p) for p in (ROOT/'crates').rglob('*.rs') if '/src/' in str(p)}, cargo_lock_sha256=digest(ROOT/'Cargo.lock'), git_base=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(), source_sha256={str(p.relative_to(ROOT)):digest(p) for p in
+        compiler=compiler_version, compiler_sha256=compiler_sha256,
+        reference_identity=reference_identity, rust_build_info_sha256=rust_build_info_sha256,
+        sdk_build_registry_sha256=sdk_registry_sha256,
+        source_tree=rust_build['source_tree'] if rust_build is not None else None,
+        rustc=rust_build['rustc_vv'] if rust_build is not None else subprocess.check_output(['rustc', '-vV'], text=True),
+        fixture_sha256=fixture_sha256, rust_production_sources={str(p.relative_to(ROOT)):digest(p) for p in (ROOT/'crates').rglob('*.rs') if '/src/' in str(p)}, cargo_lock_sha256=digest(ROOT/'Cargo.lock'), git_base=rust_build['git_base'] if rust_build is not None else subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(), source_sha256={str(p.relative_to(ROOT)):digest(p) for p in
             [source, ROOT/'crates/gz-sim-server/tests/private/pipeline_benchmark.rs',
              *([ROOT/'crates/gz-sim-server/tests/private/streams_benchmark.rs'] if args.path == 'streams' else []),
              ROOT/'crates/gz-sim-server/src/lib.rs', ROOT/'crates/gz-sim-core/src/lib.rs', Path(__file__).resolve()]},
-        binary_sha256=dict(native=digest(native), rust=digest(rust)), native_libraries=native_libs)
+        binary_sha256=binary_sha256, native_libraries=native_libs)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report['ns_per_step']))

@@ -1,0 +1,52 @@
+{
+  "decision": "approved_bounded_source_producer_capsule_functional_measurement_projection",
+  "author": "/root",
+  "reviewer": "/root/sdformat_owner_v3",
+  "source_tree": "e3d52f551a39907198ee7f6bad91cccb80096dc7",
+  "parent": "a9a060f6229c4e98932d33c361ea6d2d00f72bac",
+  "independent_reviews_sha256": {
+    "source": "620247e5867af7e6b256030aa4a6b508f78956e1807d8ec52130a47e2fbd61b2",
+    "release_producer": "b0b5e70944e27cc48cf4be34e95cab55d77af4eaf38af591ad73eb08eff5f194",
+    "capsule": "81f79fe87ccc8504e8299f7ee33b1a64243f84258f3edcee104ec2be5f4f90d7",
+    "functional": "b6665fb1326865dd187bc7aafeb8eee3611671c1f0526efaeab61219cc1ae0ba",
+    "actual_measurements": "4f26ab42393143d691edb7cc97203ba5cd73eaeeb2fbfa6a09602c86497af77a",
+    "projection_and_append": "0d9878da61dd912df70e1acd93b1684017e790a10c1cc0f1f2a9dd38049f2166"
+  },
+  "files_sha256": {
+    "scripts/benchmark-headless-pipeline.py": "b10c1450b54700f694461d6ccfb64a32be4736d797f1ea03168d2a50ec59ea78",
+    "tests/test_pipeline_benchmark.py": "da81f4e357a66b1af7ad51b7d01afc7d51575a2982b4428a3d773ca94b1dbe20",
+    "planning/reference/headless-sdk-build-libraries.json": "28d3693ed4ad4e6f8fe226f6a2c1c152010cc7291a61be30dab42ca1299da19a",
+    "planning/benchmarks/headless-streams-sdk-v3.json": "877cd527c6d33a5b611206ef14888922bb90d11cf64e6b7ce5e65c2b7920fd0f",
+    "docs/FULL_SERVER_PERFORMANCE.md": "ec50665d32eca69ed4bff28c89aeba7dbe0c16d5f4cd8f5c6a678e0f5c3873f8",
+    "docs/STATUS.md": "bbfe4380b5be617a4fc4f6d6821dbe983650653a765bae2437fd02c8e6ea7772"
+  },
+  "source_gate": {
+    "tree": "e3d52f551a39907198ee7f6bad91cccb80096dc7",
+    "checks_state": "passed",
+    "evidence_state": "complete",
+    "artifacts_sha256": {
+      "test-output.log": "8d9f1eae3cbde5cac2050fb6f6c80d4ceeee7de87e542506fffc49d656d40dce",
+      "evidence.json": "f51ab66700d8d2fca23349d8228e0b3458f9c8b909a3cefd41826ec03f7d4938",
+      "summary.json": "7c8fad92b22a8a54302fd67b8f9bd941ca86a364f9a71bc4758c17a7b39623bd"
+    },
+    "missing_artifacts": []
+  },
+  "source_gate_checks": {
+    "rust_tests": 246,
+    "tooling_tests": 75,
+    "actual_legacy_cpp_client_scenarios": 15,
+    "production_lines": [
+      3548,
+      3584
+    ],
+    "production_regions": [
+      5419,
+      5538
+    ],
+    "every_production_crate": "strictly above95% lines and regions",
+    "changed_production_rust_lines": 0
+  },
+  "scope": "Explicit clean SDK benchmark profile; separate shared-host selected TPE/clock/pose/IMU work-latency batches with all decoded observations. Exact fresh299blob source, optimizedRustELF/native compiler/fixture/library bindings and rejection controls. Legacy profile, producerpins, historicalreports, native/Rust harness bytes, workload/tolerances/assertions/coverage gates unchanged. No new production runtime change or original-test port.",
+  "retained_failures": "V1 unapproved provenance binding finding; V2 functional installed-plugin role guard failure before Rustpair/measurement; corrected reviewer setup assumptions and Docker permissions retained without pass credit. No failed observation excluded from accepted batches.",
+  "limits": "20ms host pacing excluded and recorded; serialization/internal paths differ; no pooling, causal attribution, general/balanced/unpaced throughput, full P0/P2 or registry distribution claim. Mandatory final metadata binding, normal protected hook and exact hosted qualification remain separate."
+}

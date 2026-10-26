@@ -1,5 +1,17 @@
 # Implementation status
 
+Current-source clean-SDK measurements and independent replay now cover the
+selected two-model TPE clock/pose/IMU observation path. Each separate batch
+retains eleven alternating process pairs, complete decoded receipts and source,
+compiler, optimized binary and loaded-library identities. Author work latency
+medians are 60.452 us native and 36.644 us Rust; independent medians are 58.856 us
+and 36.311 us. The paired Rust/native ratios are 0.61151 and 0.61747, with separate
+bootstrap intervals. Host pacing is excluded and recorded; this is shared-host
+selected-workload evidence. Strict source and publication checks are recorded in
+the scoped receipt; full P0/P2, balanced robotics and the wider rewrite remain
+open. See [the measurement scope](FULL_SERVER_PERFORMANCE.md#current-source-clean-sdk-observation).
+
+
 The compiler-diagnostic inventory now recognizes seven pinned physics/plugin
 registrations without executing their wrappers. Author and independent listings
 preserve all 1,175 identities, 579 result guards and 578 configurations/4,589

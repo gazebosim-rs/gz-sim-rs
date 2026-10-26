@@ -77,3 +77,53 @@ all crates strictly above 95%. The review receipt is
 planning/reviews/full-server-pipeline.json. Normal hook and hosted qualification
 remain required. The selected-fixture lifecycle/assertion matrix
 is separate from this latency measurement.
+
+
+## Current-source clean SDK observation
+
+The current-source SDK batches in
+[headless-streams-sdk-v3.json](../planning/benchmarks/headless-streams-sdk-v3.json)
+use the actual Rust server and native Server/Physics/Imu/SceneBroadcaster with
+requested clock, pose and IMU streams. Both consume the same two-model SDF,
+TPE settings, 1 ms physics steps, 1 m/s free-body velocity and noise-free 1000 Hz
+IMU. Every step waits for all decoded observations before another request.
+The complete field, timestamp, position, count, queue and byte-accounting checks
+remain unchanged. Opaque entity IDs are validated within each run; the pose byte
+comparison removes only their encoded varint values.
+
+Each batch contains eleven alternating native/Rust process pairs: one warmup
+pair and ten measured pairs, each with 128 steps after one received setup frame.
+Requests are paced by at least 20 ms on the host. Reported work latency sums the
+server call, complete receipt and validation, excluding the separately recorded
+pacing wait. Wall time and every observation remain in the report. This is not
+unpaced throughput. Both batches ran on shared Ryzen 5950X CPU 31 with other
+coordinated build and native jobs held.
+
+| Batch | Native median work/step | Rust median work/step | Paired geometric Rust/native ratio | Bootstrap 95% interval |
+| --- | ---: | ---: | ---: | ---: |
+| Author | 60.452 us | 36.644 us | 0.61151 | 0.60021–0.62624 |
+| Independent reviewer | 58.856 us | 36.311 us | 0.61747 | 0.60505–0.63152 |
+
+The ratios use the ten paired observations, not a ratio of medians. Each interval
+uses 10,000 paired bootstrap resamples with seed 42; the batches are separate and
+are not pooled. Warmup is the only excluded pair. All extrema and failed earlier
+attempts are retained. These observations do not establish a causal optimization,
+a whole-simulator speedup or a balanced robotics performance budget.
+
+Both runs use the immutable fourteen-repository SDK image
+`sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d`.
+The reviewed 299-blob source export, fresh optimized Rust ELF, native compiler,
+fixture and loaded native libraries are bound by hashes before and after runs.
+SDK installed plugins and qualified build libraries are checked against the
+explicit SDK inventories. The default legacy-reference profile is unchanged.
+Native local transport may bypass serialization; Rust uses encoded queues.
+Requested delivered work matches while those internal paths differ.
+
+Independent review replayed the functional and measurement capsules and checked
+all 44 measured/warmup process runs, source and library identities, observations
+and statistics. The public projection replaces only repeated fixture bytes with
+their verified SHA-256. Historical reports above remain unchanged and describe
+their original sources and protocols. Full P0/P2 acceptance, broader fixtures,
+DART/MuJoCo, articulated robots, cameras/lidar and image distribution remain open.
+Strict source, protected publication and exact hosted checks are recorded
+separately in the scoped review receipt.
