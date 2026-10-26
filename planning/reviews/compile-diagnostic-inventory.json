@@ -1,0 +1,44 @@
+{
+  "decision": "approved_bounded_source_native_projection",
+  "author": "/root",
+  "reviewer": "/root/sdformat_owner_v2",
+  "scope": "Seven exact pinned compiler-diagnostic registrations; no wrapper execution, functional pass, new Rust port, retirement, performance, full inventory or P0/P2 credit.",
+  "source_sha256": {
+    "scripts/inventory-native-tests.py": "535f19a4214205270426998dbad039182f199412d5e002c6335030c2bcabd9a8",
+    "tests/test_native_inventory.py": "5ba0be4fe3b73af6042d58ae569ffaa06a87b58c2f152e3edd06ca03c20cd50f"
+  },
+  "source_review_sha256": "dcc84c43b5bf5867a8a3601e7f4391d93e2a99993e5e37cb8dd606d087851961",
+  "runner_preuse_review_sha256": "d898c51881222a8f6f380f82611a6632eb1c459b8be072b74c87b67b8e49bcef",
+  "source_native_review_sha256": "68803e26e91c9dc11ca28ed8d9e89c0ff6454a2745578e28a03bdac8ff0ff27e",
+  "projection_review_sha256": "6e732cf88fdd0244533236d15df6db7596f1f69e066103b0978214b354dfe340",
+  "preservation_supplement_sha256": "440c24808ec313d09c5665032a8777c73b87f4c68b15803cc571614653a988d2",
+  "source_gate": {
+    "tree": "a4f6596c7e7edbdfac982e14214b9179e2ca3ac2",
+    "rust_tests": 246,
+    "tool_tests": 68,
+    "native_cpp_scenarios": 15,
+    "native_profile": "legacy transport-client-v1; inventory run is separately registration-only",
+    "production_crates": 9,
+    "workspace_coverage": {
+      "lines": [
+        3548,
+        3584
+      ],
+      "regions": [
+        5419,
+        5538
+      ]
+    },
+    "changed_production_rust": false,
+    "stage_result_sha256": "ea281c4c7ce77df872eea9f8f281561d33f152eac1795e4243ae41eb7bc32253",
+    "log_sha256": "dc444fa5e56e4e759f4b8e1c846f55e9fd20bfb604eee94eedd261c8b4bb4757",
+    "retained_artifacts_sha256": {
+      "test-output.log": "0494489036b8ad2672b0bbb5832753fef3c8d1e5ea25c0b76e0e670b09038996",
+      "evidence.json": "f51ab66700d8d2fca23349d8228e0b3458f9c8b909a3cefd41826ec03f7d4938",
+      "summary.json": "7c8fad92b22a8a54302fd67b8f9bd941ca86a364f9a71bc4758c17a7b39623bd"
+    }
+  },
+  "inventory_result": "Author and independent immutable listings preserve1175 identities,579 result guards,578 configurations/4589 cases; exactly7 wrapper rows reclassified. Eleven gaps and expected Zenoh empty-list EXIT1 retained. Seven C++ unit hashes match pinned Git.",
+  "raw_output_limits": "Three raw stdout differences confined to GetParam address/object comments; parsed payloads preserved, no raw-byte or parameter-semantic equality claimed.",
+  "publication_checks": "Mandatory normal protected hook and exact hosted qualification remain required."
+}

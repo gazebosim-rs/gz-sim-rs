@@ -1,6 +1,8 @@
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
 import importlib.util
+import copy
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -89,6 +91,102 @@ DISABLED_Group.
                 changed_parent = parent | {"command": [parent["command"][0], "--gtest_output=xml:" + endpoint]}
                 changed_guard = guard | {"command": [*guard["command"][:2], endpoint]}
                 self.assertIsNone(inventory.result_guard(changed_guard, [changed_parent, changed_guard], {parent["name"]}, self.directory))
+
+    def compile_failure_fixture(self, repository, source=None, build=None):
+        source = source or self.directory / repository
+        build = build or self.directory / (repository + "-build")
+        build.mkdir(exist_ok=True)
+        contract = copy.deepcopy(inventory.COMPILE_FAILURES[repository])
+        directory = source / contract["directory"]
+        directory.mkdir(parents=True)
+        helper, cmake = directory / "testrunner.bash", directory / "CMakeLists.txt"
+        helper.write_text("# Nonexecuted compiler registration fixture.\n")
+        cmake.write_text("# Controlled CTest registration source.\n")
+        contract.update(helper_sha256=inventory.digest(helper.read_bytes()),
+                        cmake_sha256=inventory.digest(cmake.read_bytes()))
+        tests = []
+        for target, diagnostic in contract["targets"].items():
+            (directory / (target + ".cc")).write_text("// Synthetic source identity: " + target + "\n")
+            tests.append({"name": "STATIC_ASSERT_" + target,
+                          "command": [str(helper), "/usr/bin/cmake", "--build", ".", "--target", target, "--config", "Release"],
+                          "properties": [{"name": "PASS_REGULAR_EXPRESSION", "value": [diagnostic]},
+                                         {"name": "WORKING_DIRECTORY", "value": str(build)}]})
+        return source, build, contract, tests
+
+    def test_compile_failure_registrations_preserve_all_seven_diagnostics_without_execution(self):
+        count = 0
+        for repository in inventory.COMPILE_FAILURES:
+            source, build, contract, tests = self.compile_failure_fixture(repository)
+            with patch.dict(inventory.COMPILE_FAILURES, {repository: contract}), patch.object(inventory.subprocess, "run") as child:
+                for test in tests:
+                    row = inventory.compile_failure_registration(repository, test, tests, build, source)
+                    self.assertEqual(row["state"], "registered_compile_failure")
+                    self.assertEqual(row["scope"], "registration_only_not_executed")
+                    self.assertEqual(row["expected_diagnostic"], test["properties"][0]["value"][0])
+                    self.assertEqual(row["source_sha256"]["testrunner.bash"], contract["helper_sha256"])
+                    self.assertIn(row["target"] + ".cc", row["source_sha256"])
+                    self.assertNotIn("cases", row)
+                    self.assertNotIn("exit_code", row)
+                    count += 1
+            child.assert_not_called()
+        self.assertEqual(count, 7)
+
+    def test_compile_failure_changed_commands_properties_and_duplicate_names_remain_gaps(self):
+        repository = "gz-physics"
+        source, build, contract, tests = self.compile_failure_fixture(repository)
+        test = tests[0]
+        variants = [test | {"name": "OTHER_" + test["name"]},
+                    test | {"command": ["/decoy/testrunner.bash", *test["command"][1:]]},
+                    test | {"command": [test["command"][0], "/decoy/cmake", *test["command"][2:]]},
+                    test | {"command": [*test["command"], "--verbose"]},
+                    test | {"command": [*test["command"][:-1], "Debug"]},
+                    test | {"properties": []},
+                    test | {"properties": [*test["properties"], {"name": "ENVIRONMENT", "value": ["CXX=/decoy"]}]},
+                    test | {"properties": [{"name": "PASS_REGULAR_EXPRESSION", "value": ["different"]}, *test["properties"][1:]]}]
+        with patch.dict(inventory.COMPILE_FAILURES, {repository: contract}):
+            for changed in variants:
+                with self.subTest(changed=changed):
+                    self.assertIsNone(inventory.compile_failure_registration(repository, changed, [changed], build, source))
+            self.assertIsNone(inventory.compile_failure_registration(repository, test, [test, test], build, source))
+            self.assertIsNone(inventory.compile_failure_registration("unknown", test, [test], build, source))
+
+    def test_compile_failure_changed_helper_cmake_missing_source_and_escaping_source_remain_gaps(self):
+        repository = "gz-plugin"
+        source, build, contract, tests = self.compile_failure_fixture(repository)
+        test = tests[0]
+        directory = source / contract["directory"]
+        with patch.dict(inventory.COMPILE_FAILURES, {repository: contract}):
+            for name in ["testrunner.bash", "CMakeLists.txt"]:
+                path = directory / name
+                original = path.read_bytes()
+                path.write_bytes(original + b"changed")
+                self.assertIsNone(inventory.compile_failure_registration(repository, test, tests, build, source))
+                path.write_bytes(original)
+            unit = directory / (next(iter(contract["targets"])) + ".cc")
+            data = unit.read_bytes()
+            unit.unlink()
+            self.assertIsNone(inventory.compile_failure_registration(repository, test, tests, build, source))
+            outside = self.directory / "outside.cc"
+            outside.write_bytes(data)
+            unit.symlink_to(outside)
+            self.assertIsNone(inventory.compile_failure_registration(repository, test, tests, build, source))
+
+    def test_collect_keeps_compile_failure_registrations_outside_listing_jobs(self):
+        source, baseline = self.source_fixture("compiler-source", "source fixture\n")
+        build, _, _ = self.build_fixture(source)
+        repository = "gz-physics"
+        source, build, contract, tests = self.compile_failure_fixture(repository, source, build)
+        original_run = subprocess.run
+        def child(command, **kwargs):
+            if command[:1] == ["ctest"]:
+                return subprocess.CompletedProcess(command, 0, stdout=json.dumps({"tests": tests}).encode(), stderr=b"")
+            return original_run(command, **kwargs)
+        with patch.dict(inventory.COMPILE_FAILURES, {repository: contract}), patch.object(inventory.subprocess, "run", side_effect=child):
+            reference, rows, jobs = inventory.collect(repository, build, baseline, self.directory)
+        self.assertEqual(reference["registered_entries"], 3)
+        self.assertEqual([row["state"] for row in rows], ["registered_compile_failure"] * 3)
+        self.assertEqual(jobs, [])
+        self.assertTrue(all("cases" not in row for row in rows))
 
     def job(self, code, properties=None, configuration="a" * 64):
         row = {"repository": "gz-math", "ctest": "../../escape", "configuration": configuration}

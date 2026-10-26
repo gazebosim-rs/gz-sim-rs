@@ -1,39 +1,124 @@
 {
-  "scope": "Configured headless native listing and result-guard registrations only; no execution-pass, Rust-port, complete inventory, REF02 or P0 acceptance.",
+  "scope": "Configured native listing and exact result-file/compiler-diagnostic registrations only; no wrapper execution, functional pass, Rust port, retirement, full REF02/P0/P2 or performance credit.",
   "image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
   "image_environment_sha256": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f",
   "embedded_collector_sha256": "be183163986327405b4d94d23b47d61a359b19d8eb851ac2fa819168cfae9f8a",
   "external_listing_result": {
-    "external_collector_sha256": "0d0e4b83548bf4fe2acf689f8774bbb4f0df5ca208fac0dd0a3ae918e6e926a4",
+    "external_collector_sha256": "535f19a4214205270426998dbad039182f199412d5e002c6335030c2bcabd9a8",
     "image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
     "collector_status": {
       "state": "completed",
       "exit_code": 1
     },
     "runner_sha256": "4c82b1ba6ba5ae941865fa531446f4c62ad431da1d9b6f8033cf4408edf3db09",
-    "checker_sha256": "14b1304ee55bbddb442277d6b477d2e8571a380f5b22ab06d4204c2245076ec1",
-    "archive_sha256": "3676d1300b321392d3e6ba310c2feb632902a3ca00cfdec04bab0a7e15ec7769",
+    "checker_sha256": "6671be0e32dee14a2506c8dbff157e497b31014f6c7b7a798776855ef9a05727",
+    "archive_sha256": "096d884cf4eca2b30ad3e4c9e4f8220801d204d329b005e79af4d6aedc01ca94",
     "scope": "Configured image test inventory only; no execution-pass, complete inventory or P0 acceptance.",
     "verified_counts": {
       "registered_result_guards": 579,
+      "registered_compile_failures": 7,
       "listed_configurations": 578,
       "listed_case_expansions": 4589,
-      "unqualified_entries": 18,
+      "unqualified_entries": 11,
       "failed_or_unqualified_builds": 1,
       "image_collector_unchanged": true
     },
     "state": "recorded_with_gaps"
   },
-  "public_report_sha256": "f44048c038b9d54859857a9d5b92421aa9d1a43ab04e75018d68a8e7897ad7c3",
+  "public_report_sha256": "5004b283382ef73b9760cc1203960c54956875f0a0090cdb726f44b6b2c54469",
   "preservation": {
-    "listed_configurations_preserved": 578,
-    "listed_case_expansions_preserved": 4589,
-    "only_old_wrapper_rows_reclassified": 579,
-    "registered_guards_are_not_cases_or_execution_passes": true,
-    "old_report_sha256": "0af06c276514989692fb4c45e7072a73f531d125f5db0bcb6e5f3fe674ace751",
-    "new_report_sha256": "f44048c038b9d54859857a9d5b92421aa9d1a43ab04e75018d68a8e7897ad7c3"
+    "scope": "Inventory preservation only; no wrapper execution, functional pass, Rust port or retirement.",
+    "old_inventory_sha256": "f44048c038b9d54859857a9d5b92421aa9d1a43ab04e75018d68a8e7897ad7c3",
+    "new_inventory_sha256": "5004b283382ef73b9760cc1203960c54956875f0a0090cdb726f44b6b2c54469",
+    "preserved_identities": 1175,
+    "reclassified_compile_guards": [
+      [
+        "gz-physics",
+        "STATIC_ASSERT_FeatureList_InvalidFeature"
+      ],
+      [
+        "gz-physics",
+        "STATIC_ASSERT_FeatureList_conflict"
+      ],
+      [
+        "gz-physics",
+        "STATIC_ASSERT_FeatureList_nested_conflict"
+      ],
+      [
+        "gz-plugin",
+        "STATIC_ASSERT_plugin_bad_const_assignment"
+      ],
+      [
+        "gz-plugin",
+        "STATIC_ASSERT_plugin_bad_const_construct"
+      ],
+      [
+        "gz-plugin",
+        "STATIC_ASSERT_plugin_no_base_class"
+      ],
+      [
+        "gz-plugin",
+        "STATIC_ASSERT_plugin_wrong_base_class"
+      ]
+    ],
+    "preserved_gtest_configurations": 578,
+    "preserved_case_expansions": 4589,
+    "preserved_result_guards": 579,
+    "raw_stdout_hash_differences_confined_to_GetParam_comments": [
+      [
+        "gz-common",
+        "UNIT_Image_TEST"
+      ],
+      [
+        "gz-sensors",
+        "INTEGRATION_force_torque"
+      ],
+      [
+        "gz-sim",
+        "INTEGRATION_acoustic_comms"
+      ]
+    ]
   },
-  "remaining": "17 wrappers/unrecognized executables and one empty Zenoh-gated binary remain explicit gaps. Collector exit1 is retained. Full profile expansion/execution and ledger reconciliation remain open.",
-  "independent_replay_note": "Independent image replay preserves all listed configuration/case payloads; three parameterized binaries print different ASLR addresses in GetParam comments, so raw stdout hashes differ. No raw-output byte identity is claimed.",
-  "retained_unapproved_draft": "V1 classifier/runner preserved after preuse review found duplicate guard/interpreter identity, report validation and receipt provenance gaps. Corrected before first native use; no assertion or native failure waived."
+  "prior_public_observation": {
+    "commit": "b65bc63926c0398181a6924a418bbd7a7d10842a",
+    "inventory_sha256": "f44048c038b9d54859857a9d5b92421aa9d1a43ab04e75018d68a8e7897ad7c3",
+    "evidence_sha256": "21dc4008bdb12fb8c3bc06122800ebeb97111807f5d5518cb50e5494d81667f4"
+  },
+  "independent_replay": {
+    "reviewer": "/root/sdformat_owner_v2",
+    "result_sha256": "5a593fbe1667430360332ac8ed89765ab9c4e24ff8035ab9698c584925083913",
+    "archive_sha256": "382b81e79a5d54ca07a460ce75c87fb12d0a498ea92f80945ec1c2d8f4f69328",
+    "source_native_review_sha256": "68803e26e91c9dc11ca28ed8d9e89c0ff6454a2745578e28a03bdac8ff0ff27e",
+    "preservation_supplement_sha256": "440c24808ec313d09c5665032a8777c73b87f4c68b15803cc571614653a988d2"
+  },
+  "remaining": "Ten other wrappers/executables and the empty Zenoh-gated binary remain explicit gaps. EXIT1 is retained. Full profile expansion/execution and source-ledger reconciliation remain open.",
+  "raw_output_note": "All prior parsed cases/configurations/guards are preserved. Three raw stdout hashes differ in GetParam address/object comments; no raw byte or parameter semantic equality is claimed.",
+  "negative_controls": "Focused19/0 plus independently replayed22 synthetic receipt rejections. Wrapper programs were never executed by recognition. Initial preservation address-pattern setup failure is retained, uncredited; the corrected report states comment-locality only.",
+  "publication": "Independent source/native/projection reviews and exact staged source checks passed. Final binding, mandatory normal hook, public push and exact hosted qualification remain separate required checks.",
+  "source_gate": {
+    "tree": "a4f6596c7e7edbdfac982e14214b9179e2ca3ac2",
+    "rust_tests": 246,
+    "tool_tests": 68,
+    "native_cpp_scenarios": 15,
+    "native_profile": "legacy transport-client-v1; inventory run is separately registration-only",
+    "production_crates": 9,
+    "workspace_coverage": {
+      "lines": [
+        3548,
+        3584
+      ],
+      "regions": [
+        5419,
+        5538
+      ]
+    },
+    "changed_production_rust": false,
+    "stage_result_sha256": "ea281c4c7ce77df872eea9f8f281561d33f152eac1795e4243ae41eb7bc32253",
+    "log_sha256": "dc444fa5e56e4e759f4b8e1c846f55e9fd20bfb604eee94eedd261c8b4bb4757",
+    "retained_artifacts_sha256": {
+      "test-output.log": "0494489036b8ad2672b0bbb5832753fef3c8d1e5ea25c0b76e0e670b09038996",
+      "evidence.json": "f51ab66700d8d2fca23349d8228e0b3458f9c8b909a3cefd41826ec03f7d4938",
+      "summary.json": "7c8fad92b22a8a54302fd67b8f9bd941ca86a364f9a71bc4758c17a7b39623bd"
+    }
+  }
 }

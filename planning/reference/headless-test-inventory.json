@@ -1,8 +1,8 @@
 {
-  "scope": "Available configured native CTest/gtest lists only. Listed cases are not executed passes. Exact pinned result-file guards are registered separately, never executed or counted as gtest cases. Other wrappers, unrecognized shared-gtest binaries and unavailable builds remain gaps. Checkout/cache/binary hashes are not clean-build attestation; full runtime inventory and immutable dependency image remain open.",
+  "scope": "Available configured native CTest/gtest lists only. Listed cases are not executed passes. Exact pinned result-file and compiler-diagnostic guards are registered separately, never executed or counted as gtest cases. Other wrappers, unrecognized shared-gtest binaries and unavailable builds remain gaps. Checkout/cache/binary hashes are not clean-build attestation; full runtime inventory and immutable dependency image remain open.",
   "acceptance": "inventory_only",
-  "enumerated_at": "2026-10-26T08:07:27.051343+00:00",
-  "collector_sha256": "0d0e4b83548bf4fe2acf689f8774bbb4f0df5ca208fac0dd0a3ae918e6e926a4",
+  "enumerated_at": "2026-10-26T12:01:18.276698+00:00",
+  "collector_sha256": "535f19a4214205270426998dbad039182f199412d5e002c6335030c2bcabd9a8",
   "baseline_sha256": "0cb03b9b3f87d6ca6a9068262ff60cbf7ba7f095916d93dceaec4cdb4b79fe55",
   "tool_versions": {
     "cmake": "cmake version 3.28.3",
@@ -1007,7 +1007,7 @@
       "binary_sha256": "0670b892585dba5696817e69135446c9f328248aca6c2737cdf264677e4edd13",
       "configuration": "23f895657bedb7c595fe52a3ea05bdb05d609887740abacca59d70eff7973ad0",
       "ctest_disabled": false,
-      "stdout_sha256": "2c28f31b8777f149c88eda65271364b4ae575dac5123c065894fbffee34607b9",
+      "stdout_sha256": "ffcd620d7df9caa40f95c7cc5342ef65c7c8fcab144fb85ff03ef7292f2e2e64",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "exit_code": 0,
       "state": "listed",
@@ -10123,21 +10123,51 @@
       "ctest": "STATIC_ASSERT_FeatureList_InvalidFeature",
       "binary": "testrunner.bash",
       "binary_sha256": "8fcd6c7d9b348cd5a27e12c2402cb485a7fcef601c2b053c387ac5480343bb2c",
-      "state": "wrapper_or_unrecognized_binary"
+      "state": "registered_compile_failure",
+      "framework": "ctest_compiler_diagnostic",
+      "scope": "registration_only_not_executed",
+      "target": "FeatureList_InvalidFeature",
+      "expected_diagnostic": "NOT A Feature",
+      "source_sha256": {
+        "testrunner.bash": "8fcd6c7d9b348cd5a27e12c2402cb485a7fcef601c2b053c387ac5480343bb2c",
+        "CMakeLists.txt": "5d7e972ccffd097511d8fc10ed531ff7675144621011ad58606d089106742895",
+        "FeatureList_InvalidFeature.cc": "f0e02f43e452b68f3ca393a6cf00ef82a31b68b2dd878ac50dfa376f685b95b8"
+      },
+      "configuration": "43afee71c54cb128a3130b0cbb229306b247e212aada045a1ca49b4dafbd2931"
     },
     {
       "repository": "gz-physics",
       "ctest": "STATIC_ASSERT_FeatureList_conflict",
       "binary": "testrunner.bash",
       "binary_sha256": "8fcd6c7d9b348cd5a27e12c2402cb485a7fcef601c2b053c387ac5480343bb2c",
-      "state": "wrapper_or_unrecognized_binary"
+      "state": "registered_compile_failure",
+      "framework": "ctest_compiler_diagnostic",
+      "scope": "registration_only_not_executed",
+      "target": "FeatureList_conflict",
+      "expected_diagnostic": "FEATURE CONFLICT DETECTED",
+      "source_sha256": {
+        "testrunner.bash": "8fcd6c7d9b348cd5a27e12c2402cb485a7fcef601c2b053c387ac5480343bb2c",
+        "CMakeLists.txt": "5d7e972ccffd097511d8fc10ed531ff7675144621011ad58606d089106742895",
+        "FeatureList_conflict.cc": "32dafd2a842cc140981f5309d12e7a8d26a236571427207af90bd416319ed42b"
+      },
+      "configuration": "4b794828b41f7f766c023a4d7778a270ce71d999ac46cea6b476fd8409327bac"
     },
     {
       "repository": "gz-physics",
       "ctest": "STATIC_ASSERT_FeatureList_nested_conflict",
       "binary": "testrunner.bash",
       "binary_sha256": "8fcd6c7d9b348cd5a27e12c2402cb485a7fcef601c2b053c387ac5480343bb2c",
-      "state": "wrapper_or_unrecognized_binary"
+      "state": "registered_compile_failure",
+      "framework": "ctest_compiler_diagnostic",
+      "scope": "registration_only_not_executed",
+      "target": "FeatureList_nested_conflict",
+      "expected_diagnostic": "FEATURE CONFLICT DETECTED",
+      "source_sha256": {
+        "testrunner.bash": "8fcd6c7d9b348cd5a27e12c2402cb485a7fcef601c2b053c387ac5480343bb2c",
+        "CMakeLists.txt": "5d7e972ccffd097511d8fc10ed531ff7675144621011ad58606d089106742895",
+        "FeatureList_nested_conflict.cc": "a3e891c65bcd48a8f5e6e96e9cd30777a206e09953ba6ac92e57fe6eb8f516d4"
+      },
+      "configuration": "aab593ad8f4c582f0dcfc67fc2f820162abb418db697d773ce29e18b858a0917"
     },
     {
       "repository": "gz-physics",
@@ -11586,28 +11616,68 @@
       "ctest": "STATIC_ASSERT_plugin_bad_const_assignment",
       "binary": "testrunner.bash",
       "binary_sha256": "e39476402e9d020340328af57f3a18fc40e20bb8a2c3021162e32fe15d759a50",
-      "state": "wrapper_or_unrecognized_binary"
+      "state": "registered_compile_failure",
+      "framework": "ctest_compiler_diagnostic",
+      "scope": "registration_only_not_executed",
+      "target": "plugin_bad_const_assignment",
+      "expected_diagnostic": "The requested PluginPtr cast would discard const qualifiers",
+      "source_sha256": {
+        "testrunner.bash": "e39476402e9d020340328af57f3a18fc40e20bb8a2c3021162e32fe15d759a50",
+        "CMakeLists.txt": "0c03081edaf0fb17aa81341b6fd2423d4091d93b4e27628c49a8dd8d2235b577",
+        "plugin_bad_const_assignment.cc": "dec5686ed5054797938fce4ece44ea0be9bf5d162d33cba47cceb5c047eaf8db"
+      },
+      "configuration": "80a7f95e0b5090c1abc27e7c9e59fae386109e6470f9efd08c50942f356f27ea"
     },
     {
       "repository": "gz-plugin",
       "ctest": "STATIC_ASSERT_plugin_bad_const_construct",
       "binary": "testrunner.bash",
       "binary_sha256": "e39476402e9d020340328af57f3a18fc40e20bb8a2c3021162e32fe15d759a50",
-      "state": "wrapper_or_unrecognized_binary"
+      "state": "registered_compile_failure",
+      "framework": "ctest_compiler_diagnostic",
+      "scope": "registration_only_not_executed",
+      "target": "plugin_bad_const_construct",
+      "expected_diagnostic": "The requested PluginPtr cast would discard const qualifiers",
+      "source_sha256": {
+        "testrunner.bash": "e39476402e9d020340328af57f3a18fc40e20bb8a2c3021162e32fe15d759a50",
+        "CMakeLists.txt": "0c03081edaf0fb17aa81341b6fd2423d4091d93b4e27628c49a8dd8d2235b577",
+        "plugin_bad_const_construct.cc": "445e63be4f430829a1ab32ade587c0ca20225da137252588a3bbccaec7dc57dc"
+      },
+      "configuration": "90feeccf40ea3b41e1fb27df7c2db2f2f912a8f616775b9a4394f6e20ef54b0f"
     },
     {
       "repository": "gz-plugin",
       "ctest": "STATIC_ASSERT_plugin_no_base_class",
       "binary": "testrunner.bash",
       "binary_sha256": "e39476402e9d020340328af57f3a18fc40e20bb8a2c3021162e32fe15d759a50",
-      "state": "wrapper_or_unrecognized_binary"
+      "state": "registered_compile_failure",
+      "framework": "ctest_compiler_diagnostic",
+      "scope": "registration_only_not_executed",
+      "target": "plugin_no_base_class",
+      "expected_diagnostic": "BUT THE INTERFACE IS NOT A BASE CLASS OF THE",
+      "source_sha256": {
+        "testrunner.bash": "e39476402e9d020340328af57f3a18fc40e20bb8a2c3021162e32fe15d759a50",
+        "CMakeLists.txt": "0c03081edaf0fb17aa81341b6fd2423d4091d93b4e27628c49a8dd8d2235b577",
+        "plugin_no_base_class.cc": "648d71c5d7cf00cde4e5d8e3ee441958643bd281cd64aee19a299deb0066e53b"
+      },
+      "configuration": "33c77a77f0017762a1c0f6ad6aa417e427ab1f386e3690ed13bd8b10ceb5510c"
     },
     {
       "repository": "gz-plugin",
       "ctest": "STATIC_ASSERT_plugin_wrong_base_class",
       "binary": "testrunner.bash",
       "binary_sha256": "e39476402e9d020340328af57f3a18fc40e20bb8a2c3021162e32fe15d759a50",
-      "state": "wrapper_or_unrecognized_binary"
+      "state": "registered_compile_failure",
+      "framework": "ctest_compiler_diagnostic",
+      "scope": "registration_only_not_executed",
+      "target": "plugin_wrong_base_class",
+      "expected_diagnostic": "BUT THE INTERFACE IS NOT A BASE CLASS OF THE",
+      "source_sha256": {
+        "testrunner.bash": "e39476402e9d020340328af57f3a18fc40e20bb8a2c3021162e32fe15d759a50",
+        "CMakeLists.txt": "0c03081edaf0fb17aa81341b6fd2423d4091d93b4e27628c49a8dd8d2235b577",
+        "plugin_wrong_base_class.cc": "e0f9cf2cb88582685222d812c8227acf6ed4d1153f2491e5b9ca4b0668cbbd2d"
+      },
+      "configuration": "d9b2dd63586a2ebdc296d492ae6cd19685c32eeaaa5e2d15e537d14c488bd51b"
     },
     {
       "repository": "gz-plugin",
@@ -12472,7 +12542,7 @@
       "binary_sha256": "cce465fc401d2c9480b077a2b9a0b7a224deb3c28c41c011365efd5da8cf0e17",
       "configuration": "22ff1cfa8ce7a4b17dc28a99dde6303a0e1c9c3dd9e62b7fea7bf54ff26c5864",
       "ctest_disabled": false,
-      "stdout_sha256": "5dfc7e6a2af07d4bb68a75296cbc06c6c6cab5d9624f6b225f654145139d4f2e",
+      "stdout_sha256": "c8be477b2dadcb9560fb99ecb7fa4aaaad796e844df09a840b9fffa5c5e97834",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "exit_code": 0,
       "state": "listed",
@@ -13383,7 +13453,7 @@
       "binary_sha256": "1a31f96a27ecb514173f9877b008d057b5d81a7e551963722e8d21a4942a1136",
       "configuration": "b42e3e6b91e1d8a3646bc6d608abfe8d8d189258d9849a0d75c308704ce63872",
       "ctest_disabled": false,
-      "stdout_sha256": "8dea9e8a09141443f97b73dd978ba3ea7ef805ea7fb7978a8777664f7624f90c",
+      "stdout_sha256": "787cb7744338ff9cc31e6cc82bfab61ac69e4e974a6858d3766806b4283afeaa",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "exit_code": 0,
       "state": "listed",
@@ -33059,8 +33129,9 @@
       "configuration": "de183c751f644cbcc9ec1d0238694439cd71892f1ab6d09ebdd27690b8f7fa58"
     }
   ],
-  "unqualified_entries": 18,
+  "unqualified_entries": 11,
   "registered_result_guards": 579,
+  "registered_compile_failures": 7,
   "listed_configurations": 578,
   "listed_case_expansions": 4589,
   "failed_or_unqualified_builds": 1

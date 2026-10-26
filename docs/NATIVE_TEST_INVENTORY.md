@@ -57,8 +57,8 @@ The BSD helper remains upstream; its source is not copied or relicensed.
 
 The immutable SDK from REFERENCE_IMAGE.md retains its original embedded
 collector. A separately hashed external collector lists 579 result guards and
-preserves all 578 native configurations and 4,589 case expansions. Eighteen
-entries remain unqualified: seventeen other wrappers/executables and the empty
+preserves all 578 native configurations and 4,589 case expansions. That observation
+left eighteen entries unqualified: seventeen other wrappers/executables and the empty
 Zenoh-gated NodeShared binary. The collector still exits1 for that empty list;
 this is retained evidence, not a successful complete inventory.
 
@@ -66,7 +66,37 @@ See [the complete listing](../planning/reference/headless-test-inventory.json) a
 [its evidence](../planning/reference/headless-test-inventory-evidence.json) for
 image, external collector, checker, archive and preservation identities. The earlier 597-gap
 report remains unchanged. Independent replay preserves case/configuration
-payloads; three parameterized binaries vary only ASLR addresses in raw GetParam
-comments. No raw-output byte identity, native functional pass, performance
+payloads; three parameterized binaries have different raw GetParam address/object
+comments. No raw-output byte or parameter-semantic equality, native functional pass, performance
 improvement, full REF02 or P0 completion is claimed. Other runtime profiles and
 full source-ledger reconciliation remain open.
+
+## Compiler-diagnostic registrations
+
+The collector separately recognizes seven pinned CTest registrations that require
+specific compiler diagnostics: three physics FeatureList cases and four plugin
+const/base-class cases. Recognition checks the exact helper and CMake source
+hashes, target, diagnostic predicate, Release command and working directory,
+and records each C++ source hash. Changed commands, helpers, properties, missing
+or escaping sources and duplicate names remain gaps. Recognition executes neither
+the wrapper nor its build target and adds no gtest case or functional pass.
+
+Author and independent immutable-image listings preserve all 1,175 registered
+identities, 579 result guards, 578 gtest configurations and 4,589 case expansions.
+Exactly seven old wrapper rows become compiler-diagnostic registrations. Eleven
+gaps remain: seven symbol-version guards, the CMake policy test, the Python
+protobuf test, the CLI dispatcher test and the empty Zenoh-gated binary. Its
+listing failure still produces exit1. No test has been retired or ported by this
+classification; retained plugin, Python and CLI behavior remains in scope.
+
+The public listing and evidence above now record this incremental observation.
+The previous report and its hashes remain identified at their published commit;
+the SDK image and original embedded collector are unchanged. Three raw stdout
+hashes differ only within GetParam address/object comments. Parsed case payloads
+are preserved; raw-byte and parameter-semantic equality are not claimed.
+Independent source/native/projection review, focused19 checks and 22 synthetic
+receipt rejections pass. Exact staged checks passed 246 Rust tests, 68 tooling
+tests and fifteen unchanged legacy-reference C++ scenarios, with every production
+crate above 95% line and region coverage. Final binding, normal protected commit
+and exact hosted qualification remain separate gates. Full REF02/P0/P2
+acceptance remains open.

@@ -57,6 +57,54 @@ def parse_cases(output):
 # Pinned gz-cmake tools/check_test_ran.py; recognition does not execute the guard.
 RESULT_GUARD_SHA256 = "31b778bd4aebe0cc8907802cc5cd39dd648335e9de2c1eef1219d6651cb607ed"
 
+# These pinned CTest registrations require compiler diagnostics, not a gtest list.
+COMPILE_FAILURES = {
+    "gz-physics": {
+        "directory": "test/static_assert",
+        "helper_sha256": "8fcd6c7d9b348cd5a27e12c2402cb485a7fcef601c2b053c387ac5480343bb2c",
+        "cmake_sha256": "5d7e972ccffd097511d8fc10ed531ff7675144621011ad58606d089106742895",
+        "targets": {"FeatureList_InvalidFeature": "NOT A Feature",
+                    "FeatureList_conflict": "FEATURE CONFLICT DETECTED",
+                    "FeatureList_nested_conflict": "FEATURE CONFLICT DETECTED"},
+    },
+    "gz-plugin": {
+        "directory": "test/static_assertions",
+        "helper_sha256": "e39476402e9d020340328af57f3a18fc40e20bb8a2c3021162e32fe15d759a50",
+        "cmake_sha256": "0c03081edaf0fb17aa81341b6fd2423d4091d93b4e27628c49a8dd8d2235b577",
+        "targets": {"plugin_bad_const_construct": "The requested PluginPtr cast would discard const qualifiers",
+                    "plugin_bad_const_assignment": "The requested PluginPtr cast would discard const qualifiers",
+                    "plugin_no_base_class": "BUT THE INTERFACE IS NOT A BASE CLASS OF THE",
+                    "plugin_wrong_base_class": "BUT THE INTERFACE IS NOT A BASE CLASS OF THE"},
+    },
+}
+
+
+def compile_failure_registration(repository, test, tests, build, source):
+    contract = COMPILE_FAILURES.get(repository)
+    if contract is None or sum(row["name"] == test["name"] for row in tests) != 1:
+        return None
+    target = test["name"].removeprefix("STATIC_ASSERT_")
+    if test["name"] != "STATIC_ASSERT_" + target or target not in contract["targets"]:
+        return None
+    directory = source / contract["directory"]
+    helper, cmake, unit = (directory / name for name in ["testrunner.bash", "CMakeLists.txt", target + ".cc"])
+    command = [str(helper), "/usr/bin/cmake", "--build", ".", "--target", target, "--config", "Release"]
+    properties = [{"name": "PASS_REGULAR_EXPRESSION", "value": [contract["targets"][target]]},
+                  {"name": "WORKING_DIRECTORY", "value": str(build)}]
+    if test.get("command") != command or test.get("properties") != properties:
+        return None
+    paths = [helper, cmake, unit]
+    if any(path.is_symlink() or not path.is_file()
+           or not path.resolve().is_relative_to(source.resolve()) for path in paths):
+        return None
+    hashes = {path.name: digest(path.read_bytes()) for path in paths}
+    if hashes[helper.name] != contract["helper_sha256"] or hashes[cmake.name] != contract["cmake_sha256"]:
+        return None
+    return {"state": "registered_compile_failure", "framework": "ctest_compiler_diagnostic",
+            "scope": "registration_only_not_executed", "target": target,
+            "expected_diagnostic": contract["targets"][target], "source_sha256": hashes,
+            "configuration": configuration_key(command, properties)}
+
 
 def result_guard(test, tests, known_gtests, build):
     command = test.get("command", [])
@@ -190,6 +238,8 @@ def collect(repository, build, baseline, raw):
     for row in rows:
         if row["state"] == "wrapper_or_unrecognized_binary":
             guard = result_guard(registrations[row["ctest"]], data["tests"], known_gtests, build)
+            if guard is None:
+                guard = compile_failure_registration(repository, registrations[row["ctest"]], data["tests"], build, source)
             if guard is not None:
                 row.update(guard)
     reference = {
@@ -233,7 +283,7 @@ def main():
         rows.extend(pool.map(lambda job: enumerate_job(job, raw, env), jobs))
     failed = sum(r.get("state") == "unqualified_build" for r in repositories) + sum(r["state"] == "enumeration_failed" for r in rows)
     report = {
-        "scope": "Available configured native CTest/gtest lists only. Listed cases are not executed passes. Exact pinned result-file guards are registered separately, never executed or counted as gtest cases. Other wrappers, unrecognized shared-gtest binaries and unavailable builds remain gaps. Checkout/cache/binary hashes are not clean-build attestation; full runtime inventory and immutable dependency image remain open.",
+        "scope": "Available configured native CTest/gtest lists only. Listed cases are not executed passes. Exact pinned result-file and compiler-diagnostic guards are registered separately, never executed or counted as gtest cases. Other wrappers, unrecognized shared-gtest binaries and unavailable builds remain gaps. Checkout/cache/binary hashes are not clean-build attestation; full runtime inventory and immutable dependency image remain open.",
         "acceptance": "inventory_only",
         "enumerated_at": datetime.now(timezone.utc).isoformat(),
         "collector_sha256": digest(Path(__file__).read_bytes()),
@@ -241,8 +291,9 @@ def main():
         "tool_versions": {name: subprocess.check_output([name, "--version"], text=True).splitlines()[0] for name in ["cmake", "ctest"]},
         "repositories": repositories,
         "entries": sorted(rows, key=lambda r: (r["repository"], r["ctest"])),
-        "unqualified_entries": sum(r["state"] not in {"listed", "duplicate_configuration", "registered_result_guard"} for r in rows),
+        "unqualified_entries": sum(r["state"] not in {"listed", "duplicate_configuration", "registered_result_guard", "registered_compile_failure"} for r in rows),
         "registered_result_guards": sum(r["state"] == "registered_result_guard" for r in rows),
+        "registered_compile_failures": sum(r["state"] == "registered_compile_failure" for r in rows),
         "listed_configurations": sum(r["state"] == "listed" for r in rows),
         "listed_case_expansions": sum(len(r.get("cases", [])) for r in rows),
         "failed_or_unqualified_builds": failed,
@@ -250,7 +301,7 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n")
     (raw / "inventory.json").write_bytes(args.output.read_bytes())
-    summary = ["registered_result_guards", "listed_configurations", "listed_case_expansions", "unqualified_entries", "failed_or_unqualified_builds"]
+    summary = ["registered_result_guards", "registered_compile_failures", "listed_configurations", "listed_case_expansions", "unqualified_entries", "failed_or_unqualified_builds"]
     print(json.dumps({k: report[k] for k in summary}))
     return bool(failed)
 

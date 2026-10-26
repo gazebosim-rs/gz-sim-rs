@@ -1,13 +1,23 @@
 # Implementation status
 
-The explicit clean SDK client profile is under qualification. A fresh exact-source
+The compiler-diagnostic inventory now recognizes seven pinned physics/plugin
+registrations without executing their wrappers. Author and independent listings
+preserve all 1,175 identities, 579 result guards and 578 configurations/4,589
+case expansions, with eleven gaps and the Zenoh empty-list exit1 retained.
+Independent source/native/projection review and exact source checks passed
+246 Rust/68 tooling/15 unchanged C++ scenarios with unchanged strict coverage.
+Normal publication checks remain separate; no test was ported or retired by
+recognition. See [the inventory report](NATIVE_TEST_INVENTORY.md).
+
+The explicit clean SDK client profile is published and CI-qualified. A fresh exact-source
 Rust native test passed its unchanged fifteen real C++ client scenarios in the
 immutable fourteen-repository SDK image. Per-scenario executable/provenance
 bindings and the original assertions are retained. The separate strict source
 gate passed 246 Rust tests, 64 tooling tests and fifteen legacy-reference C++
 scenarios, with every production crate above 95% line and region coverage.
 Independent SDK replay passed with matching identities and empty stderr.
-Publication checks remain pending; see
+The normal protected gate and exact hosted run 40317804892 passed for public
+commit b65bc63926c0398181a6924a418bbd7a7d10842a; see
 [the scoped report](REFERENCE_IMAGE.md#explicit-sdk-client-profile). No P0/P2,
 full-rewrite or performance completion is claimed.
 
@@ -15,13 +25,13 @@ The selected headless implementation is progressing; complete rewrite and P2
 acceptance remain open. All 78 broad system migration packets remain open.
 Scoped performance reports retain their explicit workloads and limits.
 
-## Configured native result guards
+## Earlier configured native result guards
 
-The reviewed external collector lists 579 pinned result-file guards separately
-from gtest cases and execution passes. All 578 native configuration/case payloads
-and 4,589 case expansions are preserved. Eighteen gaps and the empty Zenoh-gated
-binary's exit1 remain explicit; the original SDK and its 597-gap report are
-unchanged. Independent source/native review and exact source checks passed
+The earlier reviewed external collector listed 579 pinned result-file guards
+separately from gtest cases and execution passes. All 578 native configuration/case
+payloads and 4,589 case expansions were preserved. That observation retained
+eighteen gaps and the empty Zenoh-gated binary's exit1; the original SDK and its
+597-gap report are unchanged. Independent source/native review and exact source checks passed
 246 Rust/57 tooling/15 real C++ scenarios with unchanged strict coverage.
 See NATIVE_TEST_INVENTORY.md for identities and limits. Full REF02/P0 and P2
 remain open; no upstream Rust port or new performance result is claimed.
