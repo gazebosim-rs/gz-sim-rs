@@ -25,13 +25,19 @@ pub(super) fn add_model(
     sim: &mut Simulation,
     entity: Entity,
     pose: Transform,
+    is_static: bool,
 ) -> Result<(), LoadError> {
-    let motion = Motion::new(BodyState {
+    let state = BodyState {
         position: pose.translation,
         orientation: pose.rotation,
         velocity: [0.0; 3],
         angular_velocity: [0.0; 3],
-    })?;
+    };
+    let motion = if is_static {
+        Motion::new_fixed(state)?
+    } else {
+        Motion::new(state)?
+    };
     sim.world_mut().entity_mut(entity).insert(motion);
     Ok(())
 }

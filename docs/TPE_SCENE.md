@@ -2,14 +2,15 @@
 
 `load_world` retains Rapier as its default. `load_world_with_engine` accepts
 PhysicsEngine::Tpe, and the headless CLI exposes `--physics-engine tpe`.
-The loader currently accepts top-level, unjointed models with centered box/sphere
+The loader currently accepts top-level, unjointed models with centered box/sphere/cylinder
 collisions. Nested TPE models fail explicitly. The existing plugin, surface,
 fluid-added-mass, frame, IMU configuration and source-validation guards remain.
 
 The selected TPE path is kinematic. Gravity does not accelerate bodies; mass and
 inertia do not affect motion. Gravity still supplies IMU specific force. Collision
 shapes supply model-level overlap points through [TPE_CONTACTS.md](TPE_CONTACTS.md).
-No collision response, joint, force or link-velocity command is implied. Full TPE
+No collision response, joint or force effect is implied. Supported world-velocity
+commands are described in [PHYSICS_INPUTS.md](PHYSICS_INPUTS.md). Full TPE
 capabilities, native test parity and the complete headless P2 milestone remain open.
 
 Bevy owns a validated Motion component on each model. Direct child links retain
@@ -17,7 +18,13 @@ fixed local poses; committed model motion composes those frames before shared
 attachment, local-pose and IMU observation systems run. No native World/Entity
 class hierarchy or second body registry is ported. Direct model state replacement
 is a low-level Rust operation with constructor reset semantics; it is not a Gazebo
-world-velocity command. Static/rotated-link command policy D23 remains undecided.
+world-velocity command. Confirmed D23 keeps static models immobile, including
+models without contact geometry. Loaded fixed Motion retains its policy through
+core and reconstructed reset, independently of ModelBounds. Static bounds also
+freeze ordinary low-level Motion. Paused physics phases clear stored fixed-body
+velocities without changing pose bits. Rotated model/link commands honor world
+axes; fixed-body commands remain rejected before mutation. See
+[TPE_POLICY.md](TPE_POLICY.md) for native differences and assertion dispositions.
 
 Pinned World::Step updates top-level models and direct child link-local motion.
 This slice implements zero link-local velocities. The native plugin reports model

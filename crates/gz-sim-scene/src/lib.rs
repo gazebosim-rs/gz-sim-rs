@@ -483,7 +483,7 @@ fn build_model(
         pose,
     )?;
     if backend.is_none() {
-        tpe::add_model(sim, model_entity, pose)?;
+        tpe::add_model(sim, model_entity, pose, is_static)?;
     }
     let parent = ParentModel {
         entity: model_entity,

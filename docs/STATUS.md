@@ -4,6 +4,19 @@ The selected headless implementation is progressing; complete rewrite and P2
 acceptance remain open. All 78 broad system migration packets remain open.
 Scoped performance reports retain their explicit workloads and limits.
 
+## Corrected TPE static and world-axis behavior
+
+Confirmed D23 keeps static models immobile, including empty models without
+contact bounds, and honors world-axis velocity commands on supported rotated
+model/link frames. Pause/reset/public IDs, IMU frames and unsupported wrench
+admission are covered. Independent source/native/assertion review and exact
+staged246 Rust/41 tooling/15 unchanged C++ child clients passed; all crates
+exceed95% lines and regions, workspace3548/3584 and5419/5538, changedTPE27/27
+and scene11/11. [TPE_POLICY.md](TPE_POLICY.md) records retained native differences,
+the reviewed guard correction and remaining frame scope. Normal protected commit
+and exact hosted verification remain separate requirements. Full PHY02/P2 remain
+open; no new performance result is claimed.
+
 ## Ownership and model routing
 
 The coordinator owns this monorepo and integration. One agent owns each independent
@@ -60,7 +73,7 @@ ratified budgets or P2. See planning/reviews/transport-consumer.json.
 | gz-assets | Bounded local files/configured directories, cache-only Fuel model includes, native lookup precedence, lossless source IDs and structured warnings | Downloads/cancellation, SDK/install/package policy and decoded resource caching |
 | gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, typed terminal fault diagnostics, world/allocator-bound reset reservations, isolated worlds | Persistence and complete lifecycle contract |
 | gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
-| gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation, model overlap contacts and typed faults | Remaining geometry/commands and D23 policy |
+| gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation, model overlap contacts and typed faults | Remaining geometry/commands and full backend conformance |
 | gz-physics-rapier | Full-f64 sphere/box/cylinder dynamics, inertia tensors, static bodies, world impulses, gravity, world velocity/COM wrench inputs, world-revolute constraints, backend reset/removal, prepared initial-state restoration and numeric validation | General articulations, remaining force frames and common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | IMU specific force/relative orientation, seeded Gaussian/bias/quantization and native covariance using f64 math | Activation, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, phase-preserving IMU sampling, checked model-subtree removal and loaded-scene restoration | General joints, offset/multiple shapes, full resource policy and remaining sensor contracts |

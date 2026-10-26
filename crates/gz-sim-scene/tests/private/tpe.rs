@@ -157,7 +157,7 @@ fn tpe_construction_rejects_invalid_shapes_and_numeric_poses() {
     let mut sim = Simulation::new(Duration::from_millis(1)).unwrap();
     let entity = sim.world_mut().spawn_empty().id();
     assert!(matches!(
-        add_model(&mut sim, entity, pose),
+        add_model(&mut sim, entity, pose, false),
         Err(LoadError::Tpe(_))
     ));
     install(&mut sim).unwrap();

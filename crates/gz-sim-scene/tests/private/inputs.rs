@@ -132,7 +132,7 @@ fn capabilities_and_accumulation_are_explicit_and_atomic() {
             }
         }
         assert!(matches!(
-            queue_link_world_velocity(&mut sim, id, [1.0; 3], [0.0; 3]),
+            queue_link_world_wrench(&mut sim, id, [1.0; 3], [0.0; 3]),
             Err(InputError::Unsupported(_))
         ));
         assert!(sim.world().get::<PendingInput>(link).is_none());

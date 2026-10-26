@@ -1,16 +1,18 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use crate::{Body, MotionError};
+use crate::{Body, ModelBounds, MotionError};
 use bevy_ecs::prelude::*;
 use gz_physics::{BodyState, PhysicsInstallation};
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo};
 
 /// Bevy-owned constant-velocity body and its immutable constructor state.
-/// No static flag, hierarchy, collider or link-command policy is implied.
+/// Fixed motion or static ModelBounds holds pose and clears velocities on step/reset.
+/// Hierarchy and link-command policy belong to the simulator adapter.
 #[derive(Component, Clone, Debug)]
 pub struct Motion {
     body: Body,
     initial: Body,
+    fixed: bool,
 }
 
 impl Motion {
@@ -19,6 +21,16 @@ impl Motion {
         Ok(Self {
             initial: body.clone(),
             body,
+            fixed: false,
+        })
+    }
+
+    /// Constructs immobile motion independently of collision geometry.
+    /// Stored velocities are cleared on the next physics phase or reset.
+    pub fn new_fixed(state: BodyState) -> Result<Self, MotionError> {
+        Ok(Self {
+            fixed: true,
+            ..Self::new(state)?
         })
     }
 
@@ -27,7 +39,8 @@ impl Motion {
     }
 
     /// Replaces finite world velocities without changing the state restored by reset.
-    /// Hierarchy, static-body and link-frame command policy belongs to the scene adapter.
+    /// Fixed motion clears these values on the next physics phase; scene admission
+    /// rejects fixed-body commands before this low-level setter is called.
     pub fn set_world_velocity(
         &mut self,
         linear: [f64; 3],
@@ -73,11 +86,24 @@ pub fn install(sim: &mut Simulation) -> Result<(), InstallError> {
     Ok(())
 }
 
-fn advance(time: Res<UpdateInfo>, fault: Res<StepFault>, mut bodies: Query<(Entity, &mut Motion)>) {
-    if time.dt.is_zero() {
-        return;
-    }
-    for (entity, mut motion) in &mut bodies {
+fn freeze(motion: &mut Motion) {
+    motion.body.state.velocity = [0.0; 3];
+    motion.body.state.angular_velocity = [0.0; 3];
+}
+
+fn advance(
+    time: Res<UpdateInfo>,
+    fault: Res<StepFault>,
+    mut bodies: Query<(Entity, &mut Motion, Option<&ModelBounds>)>,
+) {
+    for (entity, mut motion, bounds) in &mut bodies {
+        if motion.fixed || bounds.is_some_and(ModelBounds::is_static) {
+            freeze(&mut motion);
+            continue;
+        }
+        if time.dt.is_zero() {
+            continue;
+        }
         if let Err(source) = motion.body.advance(time.dt) {
             fault.report(StepFailure { entity, source });
             break;
@@ -85,8 +111,11 @@ fn advance(time: Res<UpdateInfo>, fault: Res<StepFault>, mut bodies: Query<(Enti
     }
 }
 
-fn reset(mut bodies: Query<&mut Motion>) {
-    for mut motion in &mut bodies {
+fn reset(mut bodies: Query<(&mut Motion, Option<&ModelBounds>)>) {
+    for (mut motion, bounds) in &mut bodies {
         motion.body = motion.initial.clone();
+        if motion.fixed || bounds.is_some_and(ModelBounds::is_static) {
+            freeze(&mut motion);
+        }
     }
 }

@@ -9,8 +9,8 @@ endpoint or CLI command in this increment.
 
 Admission validates the installed processor, current hierarchy/backend binding and loaded backend ownership,
 finite values and healthy future clock before mutation. Accumulated force/torque
-overflow leaves both fields unchanged. Fixed Rapier bodies reject input; TPE
-static and rotated-model/link cases remain unsupported pending D23. TPE has no
+overflow leaves both fields unchanged. Fixed Rapier and TPE bodies reject input. Rotated TPE model/link frames accept
+world-axis velocity commands under confirmed D23. TPE has no
 external wrench feature and returns a typed Unsupported error. There is no
 solver fallback or implied force effect.
 
@@ -47,8 +47,10 @@ provenance remains qualified. Reproduce using `scripts/probe-physics-inputs.py`;
 `planning/reference/physics-inputs.json` records commands and hashes.
 
 Rust checks supported velocity/angular observations against these controls.
-Ten rotated TPE controls remain D23 evidence, with explicit unsupported admission;
-they are not counted as matching runtime cases. Identity TPE wrench requests
+Ten rotated TPE controls remain native observations. Rust now honors world axes
+and explicitly checks the native rotation differences under D23; those controls
+are not counted as matching trajectories. [TPE_POLICY.md](TPE_POLICY.md) records
+the correction and preserved assertions. Identity TPE wrench requests
 also return Unsupported, whereas native TPE ignores them. The retained velocity
 is checked after that rejected request; no TPE force implementation is claimed.
 

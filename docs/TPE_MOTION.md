@@ -29,8 +29,9 @@ static flags and the rest of that original case remain unmigrated.
 
 The SDF loader defaults to Rapier and now offers an explicit TPE kinematic path;
 see [TPE_SCENE.md](TPE_SCENE.md). Model contact reporting is described in [TPE_CONTACTS.md](TPE_CONTACTS.md);
-commands and the full original ledger remain open. D23 separately awaits the owner's decision on native static-model movement
-and rotated-link velocity conversion; this kernel does not select those policies.
+the full original ledger remains open. Confirmed D23 corrects static-model motion
+and rotated world-velocity conversion in the ECS/scene adapters; the standalone
+Body kernel retains the native motion arithmetic. See [TPE_POLICY.md](TPE_POLICY.md).
 The kernel acceptance gate passed 106 Rust checks and 9 tooling checks, retaining all six
 real C++ server scenarios. Motion coverage is 48/48 lines, 73/73 regions and 46/46
 changed executable lines. Independent source/assertion/fixture review and the exact staged/hosted gates
@@ -45,7 +46,8 @@ component and its lifetime; no separate body registry or entity allocator is use
 The readonly state accessor prevents bypassing numeric invariants. Replacing a
 Motion component deliberately creates a new constructor/reset state.
 
-Paused ticks do no motion work. Exact stepping follows the kernel semantics;
+Paused ticks retain dynamic poses; fixed motion clears stored velocities.
+Advancing dynamic steps follow the kernel semantics;
 `MotionReset` lets observers run after restoration. Core reset restores surviving
 components; it does not reconstruct removed entities. The loaded-scene blueprint
 supplies that separate responsibility for the selectable TPE loader path.
@@ -60,8 +62,10 @@ An arithmetic failure reports a concrete `StepFailure` containing the Bevy entit
 and source MotionError through StepFault. The run becomes terminal and later
 registered phases do not publish a successful step. The failed body's numeric
 state is unchanged; earlier body advances and other effects are not rolled back.
-This adapter defines no static flag, hierarchy, collider or link-command policy,
-and does not resolve D23.
+Motion::new_fixed stores immutable fixed policy independently of collider bounds.
+Fixed motion or static ModelBounds holds pose and clears velocities during
+physics/reset; scene admission rejects fixed-body commands. Hierarchy and
+link-command policy remain in the scene adapter.
 
 Three supplementary integration checks cover analytic translation/rotation across
 50 steps, pause, reset ordering, entity/component removal, mutual installation,

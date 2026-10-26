@@ -28,7 +28,7 @@ Status as of 2026-10-24. `Confirmed` means the owner specified or answered it.
 | D20 | Proposed | Performance budgets in PERFORMANCE.md are initial targets to ratify after baseline measurement. |
 | D21 | Confirmed | Balanced robotics is the primary performance workload: articulated robots, many entities, and camera/lidar sensors. Also benchmark batch/headless and large worlds. |
 | D22 | Confirmed | The Rust physics backend must use a full-f64 solver. Prioritize Rapier f64 and validate its capabilities, integration, accuracy, and performance with probes. |
-| D23 | Open | TPE static-model and rotated-link world-velocity quirks: reproduce pinned native behavior or correct it with documented differences. Owner asked; only dependent adapter behavior is blocked. |
+| D23 | Confirmed | Correct native TPE static-model motion and rotated-link world-velocity quirks. Keep static models immobile and honor world axes; preserve existing assertions and record native differences. Implementation and verification remain required. |
 
 ## Outstanding questions and decision triggers
 

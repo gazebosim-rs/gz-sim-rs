@@ -88,25 +88,14 @@ fn binding(world: &World, entity: Entity, id: u64) -> Result<Binding, InputError
     let bounds = world
         .get::<ModelBounds>(model)
         .ok_or(InputError::InvalidPhysics)?;
-    let local = world
+    world
         .get::<LocalPose>(entity)
         .ok_or(InputError::InvalidPhysics)?;
-    let pose = world
+    world
         .get::<WorldPose>(model)
         .ok_or(InputError::InvalidPhysics)?;
-    if bounds.is_static()
-        || !crate::identity(sdformat::Transform {
-            translation: [0.0; 3],
-            rotation: local.0.rotation,
-        })
-        || !crate::identity(sdformat::Transform {
-            translation: [0.0; 3],
-            rotation: pose.rotation,
-        })
-    {
-        return Err(InputError::Unsupported(
-            "TPE static or rotated-link velocity policy (D23)",
-        ));
+    if bounds.is_static() {
+        return Err(InputError::Unsupported("fixed-body input"));
     }
     if world.get::<Motion>(model).is_none() || world.get::<tpe::TpeLink>(entity).is_none() {
         return Err(InputError::InvalidPhysics);
@@ -124,7 +113,7 @@ fn target(world: &World, id: u64, values: Pair) -> Result<(Entity, Binding), Inp
 
 /// Queues world-frame velocities for a free single-link body at the next advancing step.
 /// Replaces a prior velocity request; paused ticks retain it. Reset/removal cancel it.
-/// TPE static/rotated-link cases remain unsupported pending D23.
+/// Fixed bodies reject input. TPE accepts rotated model/link frames in world axes.
 pub fn queue_link_world_velocity(
     sim: &mut Simulation,
     id: u64,

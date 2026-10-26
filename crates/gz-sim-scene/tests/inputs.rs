@@ -163,10 +163,10 @@ fn native_world_velocity_and_wrench_controls_match_supported_observations() {
         };
         if native_engine == "tpe" && row["frame"] != "identity" {
             assert!(matches!(
-                queue_link_world_velocity(&mut sim, link, linear, angular),
+                queue_link_world_wrench(&mut sim, link, linear, angular),
                 Err(InputError::Unsupported(_))
             ));
-            continue; // D23 controls remain retained evidence, not matching Rust cases.
+            continue; // Corrected velocity observations are checked separately in tpe_policy.rs.
         }
         if matches!(mode, "velocity" | "angular" | "both") {
             queue_link_world_velocity(&mut sim, link, linear, angular).unwrap();

@@ -1,0 +1,102 @@
+{
+  "decision": "approved",
+  "author": "/root",
+  "reviewer": "/root/sdformat_owner_fallback",
+  "parent": "f118fff9a7ccea9a44e7f0e0119295cb723b0e72",
+  "source_tree": "ce831415de1bf561ce78068b20b1855c785f316f",
+  "source_proposal": "artifacts/tpe-policy/proposal-v2.json",
+  "source_proposal_sha256": "78d9c5ab5b127ab912adb49829c80fc330817aa8d8bd463c4952dcd99b882acb",
+  "source_diff_sha256": "edd7d0df02d39ef9db465e612f518cabfc392f05eb63d6ba52f43b7d60391e38",
+  "candidate_paths": [
+    "crates/gz-physics-tpe/src/ecs.rs",
+    "crates/gz-physics-tpe/tests/static_policy.rs",
+    "crates/gz-sim-scene/src/inputs.rs",
+    "crates/gz-sim-scene/src/lib.rs",
+    "crates/gz-sim-scene/src/tpe.rs",
+    "crates/gz-sim-scene/tests/inputs.rs",
+    "crates/gz-sim-scene/tests/native_tpe_static.cc",
+    "crates/gz-sim-scene/tests/private/inputs.rs",
+    "crates/gz-sim-scene/tests/private/tpe.rs",
+    "crates/gz-sim-scene/tests/tpe_policy.rs",
+    "docs/DECISIONS.md",
+    "docs/HEADLESS.md",
+    "docs/PHYSICS_INPUTS.md",
+    "docs/STATUS.md",
+    "docs/TPE_MOTION.md",
+    "docs/TPE_POLICY.md",
+    "docs/TPE_SCENE.md",
+    "planning/reference/tpe-policy.json",
+    "scripts/probe-tpe-static.py",
+    "tests/test_tpe_static_probe.py"
+  ],
+  "files_sha256": {
+    "crates/gz-physics-tpe/src/ecs.rs": "fb14d7788956007e7ccfa8d90c69e1646ac3e255eb95c09db757b34bacfc8b4b",
+    "crates/gz-physics-tpe/tests/static_policy.rs": "30554a2b179b1a5d4838fedd2a714fd2e95b5b97ec5806078f5ef4a091571841",
+    "crates/gz-sim-scene/src/inputs.rs": "3d09ae8ca26cd6b3901011350d49c682b0c6b0cf0a56256932da7f2e72d5aa20",
+    "crates/gz-sim-scene/src/lib.rs": "17fddbea9e9135833ee13ad8044a70c5ca337d2315ebb8a8f157dc946f55bccc",
+    "crates/gz-sim-scene/src/tpe.rs": "69029575daa734ce6797e6adc6d698fda740dca8c2e3426cd8cfcc6e340a141d",
+    "crates/gz-sim-scene/tests/inputs.rs": "3874eae17a92e6b4ff2356b240b848371e7ce7d57c383c99ba1fc34be6474fc7",
+    "crates/gz-sim-scene/tests/native_tpe_static.cc": "16973d7cc8fa0d2b9cb6a08e091bc88f99b46dbb7d6e78d63eaa247ae69c0b0c",
+    "crates/gz-sim-scene/tests/private/inputs.rs": "f4be39dcb48e75ed07831eb21dd62b3449f93921a3af6829bf41f4c469539b99",
+    "crates/gz-sim-scene/tests/private/tpe.rs": "ae542f8faab2673d53007e405cad2f502ff8e584e2d7932cb385998900c2249f",
+    "crates/gz-sim-scene/tests/tpe_policy.rs": "2c7885a80f9bd96072d804ce6a9e674d3727d768e08f11fefbcdb9710fda2d9c",
+    "docs/DECISIONS.md": "ff5a1171266ab3457a927f80744268bad97396a7c29bbc6da8ab7ab6d18d6815",
+    "docs/HEADLESS.md": "7eda7718386eab2104df2a7c419d6445361a8d49733409a9d87001d6adcab169",
+    "docs/PHYSICS_INPUTS.md": "fc8c56224e64b9627103d6e3fa39551d22d17bb697e9d4d7d8fc4fc921fa5c69",
+    "docs/STATUS.md": "b4ec3d39c995b39aa462f92f2c9cb8370363aef1ad2d2a93df174d039f4a914b",
+    "docs/TPE_MOTION.md": "1c62df248589bc36a694e1d540432851abac750ab71749e40b732dc577a12cb6",
+    "docs/TPE_POLICY.md": "f420eee1ebaf8b423caba663f6e254b42f3bc6d92acb8f76424d15819f54177f",
+    "docs/TPE_SCENE.md": "ea36c1eb0388d9eb18b92c532584750ea3968347a08253f10fa225ac625709b5",
+    "planning/reference/tpe-policy.json": "bd243355fe5d0931dd890801ce0ecb8a719d3d9886b9e203a192da115a5dd66b",
+    "scripts/probe-tpe-static.py": "bb8b36e1cf84521b008584afb8ed28d27dd50b4c02aa05967cf4eac13efd1e30",
+    "tests/test_tpe_static_probe.py": "fee5603f94f5e36d8ccb4970a055aeac623110d695b5e6cac08f74c41711c016"
+  },
+  "source_review": "Complete bounded D23 static and world-axis policy source/API/assertion review. Fixed Motion applies to loaded static models including empty no-bounds cases; static ModelBounds fallback retains low-level behavior. Supported rotated single-link model-origin velocity follows world axes; frame composition and IMU controls retained. Original two Rust-only rotated admission negatives become same-frame TPE wrench negatives, with positive velocity payloads covered separately. Native thirty-row fixture unchanged; no upstream assertion or tolerance retirement.",
+  "native_evidence": {
+    "static_raw": "artifacts/tpe-policy/native-static-v3.json",
+    "static_raw_sha256": "e78f46db060c5d53354e79a6951bac1747c00dc5637fdbc537706d0843277b24",
+    "world_inputs_raw": "artifacts/tpe-policy/native-inputs.json",
+    "world_inputs_raw_sha256": "8c59ba959f569bb0f18d4e51c67758bd011ce90f7de43656caa8ad5bd0cc9f3e",
+    "public_projection": "planning/reference/tpe-policy.json",
+    "public_projection_sha256": "bd243355fe5d0931dd890801ce0ecb8a719d3d9886b9e203a192da115a5dd66b",
+    "static_observations": "six exact rows; reviewer fresh runner matches all six values and pinned source/probe/runner/build/native binary hashes; Model.BasicAPI original one completed/no failures/errors/disabled/skips",
+    "world_inputs_observations": "all thirty numeric rows projected exactly; only empty stderr and private host paths omitted; existing fixture hash unchanged",
+    "reference_limit": "Pinned installed dependency/build provenance qualified; native static/rotated quirks are recorded divergences, not desired Rust behavior."
+  },
+  "strict_gate": {
+    "log": "artifacts/tpe-policy/staged-v2.log",
+    "log_sha256": "fbda47930950f6a61e6196ed8ae406bae1a280ada07cf22976a340467c2a99eb",
+    "retained_result_sha256": "c96533ed0c37f6545080343c72b6c3c84e1715dfb6fea3921d050b225fc33198",
+    "retained_artifact_sha256": {
+      "test-output.log": "163d4bf0aa4710bb47560e0c397a85d15e80a198dfd17b8bed720f75df21fd25",
+      "evidence.json": "a96cf07730942f9830bd7e8ec428037d300d323ed3c803fca790284bfd180d5c",
+      "summary.json": "7c8fad92b22a8a54302fd67b8f9bd941ca86a364f9a71bc4758c17a7b39623bd"
+    },
+    "rust_tests": 246,
+    "tooling_tests": 41,
+    "native_cpp_clients": "15 child scenarios inside one passing, unchanged aggregate native.rs test",
+    "coverage": {
+      "workspace_lines": "3548/3584",
+      "workspace_regions": "5419/5538",
+      "changed_tpe": "27/27",
+      "changed_scene": "11/11"
+    },
+    "all_crates_strictly_above_95_percent": true
+  },
+  "private_replay": {
+    "git_free_parent_export_exact_overlay_files": 20,
+    "fresh_native": "six static observations and Model.BasicAPI 1/0; observations and controls stdout byte-identical to authored v3",
+    "xml_guard": "six tests pass; old exact predicate mutant fails retained controls",
+    "rust": "three low-level TPE policy, four scene policy, one migrated native-input integration and one internal atomicity test all pass in separate target",
+    "log_sha256": {
+      "native": "6e4b729989799170ae512d97f586ba5f1421891befd3e26089d7688352c39be4",
+      "xml_guard": "c6b9b1f09add0403cc07e90bfdf272129b1ddfa2f8f7675ea8218862f2516371",
+      "rust_low_level": "b60d34ad1cf4faec780e1065edd47d2b2fce82d4362f9673e86f93af93d19b28",
+      "rust_scene": "8a8421d993a6512e0c2c1061b7afb9ea55f1338c9b58b40b30ef434db748358b",
+      "rust_inputs": "7e4e7f594d3677e8649a8dfbb87d7b1fde5a74e698efb5f2f45dfff79bf4406e",
+      "rust_internal_inputs": "73fa27f5768a30d6b8e96d929bb0697b7369af74668aa871c2bf6f67c857809a"
+    }
+  },
+  "limits": "No full native Model.BasicAPI retirement, general link-origin rigid twist or angular cross-offset term, full TPE wrench/solver, broad PHY02/P2 or performance parity claim. The existing native C++ child stdout is captured by the unchanged aggregate harness; no separate per-child stdout artifact is claimed.",
+  "publication": "Source approved on exact frozen bytes. Final metadata/parent binding, normal protected hook and hosted qualification remain separate."
+}

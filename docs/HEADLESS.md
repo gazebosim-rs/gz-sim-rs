@@ -225,7 +225,8 @@ Backend synchronization remains first in PhysicsCommit and Reset; observation
 systems no longer fetch Rapier state themselves. Analytic tests without a physics
 backend cover frame projection, pause/reset and replacement runtime link handles.
 All six existing native client scenarios retain their assertions. This prepares
-another backend; it does not install TPE or decide D23 behavior.
+another backend. The later TPE installation and confirmed D23 correction are
+recorded in TPE_SCENE.md and TPE_POLICY.md.
 
 
 Reported system errors now use a typed first-fault channel that preserves Bevy
@@ -308,7 +309,8 @@ invalid boundaries and CLI override precedence. No original test is retired.
 
 The loaded scene accepts queued world-frame velocity and one-step COM wrench
 inputs for supported top-level single-link bodies. Paused ticks retain them;
-reset/removal cancel them. TPE force/static/rotation limitations remain explicit.
+reset/removal cancel them. Fixed bodies and TPE wrenches reject admission;
+rotated TPE model/link commands now honor world axes under confirmed D23.
 [PHYSICS_INPUTS.md](PHYSICS_INPUTS.md) records supported scope, native controls,
 analytic cross-engine accuracy and lifecycle/fault tests. This increment does
 not add transport command ingress or complete the P2 joint/performance report.
