@@ -38,6 +38,7 @@ impl Server {
                 entry.insert(publisher);
             }
         }
+        let rates = &mut self.rates;
         let reset = reset_loaded_world(&mut self.simulation, |sim| {
             let mut streams = Vec::new();
             for entity in sim.world().iter_entities() {
@@ -62,6 +63,7 @@ impl Server {
                     last_sample: None,
                 });
             }
+            rates.restart(sim)?;
             Ok::<_, Error>((*sim.world().resource::<UpdateInfo>(), streams))
         });
         let result = match reset {
@@ -69,6 +71,7 @@ impl Server {
             Err(error @ gz_sim_scene::SceneResetError::CommittedReset) => {
                 self.pending_reset = false;
                 self.imus.clear();
+                self.rates.clear();
                 self.removals.cancel_for_reset(&mut self.counters);
                 return Err(error.into());
             }
@@ -85,6 +88,7 @@ impl Server {
             Err(error) => {
                 self.reset_failed = true;
                 self.imus.clear();
+                self.rates.clear();
                 return Err(error);
             }
         };

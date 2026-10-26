@@ -127,3 +127,27 @@ their original sources and protocols. Full P0/P2 acceptance, broader fixtures,
 DART/MuJoCo, articulated robots, cameras/lidar and image distribution remain open.
 Strict source, protected publication and exact hosted checks are recorded
 separately in the scoped review receipt.
+
+
+## Runtime IMU rate candidate
+
+[The current rate-control source measurements](../planning/benchmarks/headless-streams-imu-rates-v1.json)
+retain the same two-model TPE fixture and complete requested clock, pose and IMU
+checks. Each separate batch contains eleven alternating process pairs: one warmup
+pair and ten measured pairs, with 128 steps after each process's setup step.
+Host requests remain paced by at least 20 ms; reported work latency excludes that
+pacing. All measured pairs and extremes are retained.
+
+Author medians are 61.646 us native and 39.741 us Rust; independent medians are
+61.163 us and 39.275 us. Paired Rust/native geometric ratios are 0.63979 and
+0.64388, with separate 95% bootstrap intervals [0.61952, 0.65813] and
+[0.63129, 0.65692]. These are selected shared-host observation measurements,
+not a rate-change benchmark or a balanced robotics result. They do not establish
+a causal change from earlier batches or unpaced throughput.
+
+Independent review binds all 44 process runs, the exact source, compiler,
+optimized executable, native libraries and decoded work. The timed tree is
+`b08c406f`, reconstructed from base `22a536c6` and the 26 paths listed in the
+report; subsequent evidence metadata is outside that tree. Historical datasets
+remain separate. Strict source, final publication and hosted checks remain
+required before accepting the rate-control increment.

@@ -1,5 +1,16 @@
 # Implementation status
 
+Runtime IMU rate controls now have independent source and runtime approval. A fresh
+89-test replay and six failing production controls cover deadline coupling, reset
+queues, provider selection, overload counters and bounded polling. Real C++
+rate/reset clients pass on TPE and Rapier. Two independently reviewed equal-work
+TPE observation batches retain all measured pairs; the paired Rust/native work
+latency ratios are 0.63979 and 0.64388 for that selected workload. The canonical
+staged source gate passes 271 Rust and 83 tooling tests, with all nine production
+crates above 95% line and region coverage; independent coverage binding passed.
+Final metadata binding, the normal protected hook and exact hosted qualification
+remain required; see [IMU_RATES.md](IMU_RATES.md).
+
 Centered SDF capsules now use Rapier's existing f64 Z-axis primitive and native
 TPE model bounds, including both hemispheres. Independent native and Rust replay
 passed, with axis, extent and overflow controls failing their original predicates.

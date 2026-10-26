@@ -115,3 +115,66 @@ fn recorded_native_sampling_clock_controls() {
         assert_eq!(schedule.next, Duration::ZERO);
     }
 }
+
+#[test]
+fn runtime_rate_changes_preserve_native_phase_and_defined_nonfinite_rules() {
+    let data: serde_json::Value =
+        serde_json::from_str(include_str!("../fixtures/runtime_imu_rate.json")).unwrap();
+    let mut schedule = SampleSchedule::new(10.0).unwrap();
+    for (index, row) in data["observations"]["phase"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .enumerate()
+    {
+        if index == 1 {
+            schedule.change_runtime_rate(5.0).unwrap();
+        }
+        if index == 3 {
+            schedule.change_runtime_rate(10.0).unwrap();
+        }
+        assert_eq!(
+            schedule
+                .take_sample(Duration::from_nanos(row["now_ns"].as_u64().unwrap()), false)
+                .unwrap(),
+            row["sampled"].as_bool().unwrap()
+        );
+        assert_eq!(
+            schedule.next.as_nanos(),
+            u128::from(row["next_ns"].as_u64().unwrap())
+        );
+    }
+    for group in data["observations"]["nonfinite_phase"].as_array().unwrap() {
+        let (rate, start) = match group["request"].as_str().unwrap() {
+            "nan" => (f64::NAN, 1_000_000_000),
+            "inf" => (f64::INFINITY, 0),
+            "-inf" => (0.0, 1_000_000_000), // Native service clamps negative requests.
+            _ => panic!("unexpected native rate"),
+        };
+        let mut schedule = SampleSchedule::new(0.0).unwrap();
+        schedule.next = Duration::from_nanos(start);
+        schedule.change_runtime_rate(rate).unwrap();
+        for row in group["rows"].as_array().unwrap() {
+            assert_eq!(
+                schedule
+                    .take_sample(Duration::from_nanos(row["now_ns"].as_u64().unwrap()), false)
+                    .unwrap(),
+                row["sampled"].as_bool().unwrap()
+            );
+            assert_eq!(
+                schedule.next.as_nanos(),
+                u128::from(row["next_ns"].as_u64().unwrap())
+            );
+        }
+    }
+    // Runtime support does not relax the separate SDF-loading numerical boundary.
+    for invalid in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        assert!(matches!(
+            SampleSchedule::new(invalid),
+            Err(ScheduleError::InvalidRate)
+        ));
+    }
+    let before = (schedule.period, schedule.next);
+    assert!(schedule.change_runtime_rate(f64::MIN_POSITIVE).is_err());
+    assert_eq!((schedule.period, schedule.next), before);
+}

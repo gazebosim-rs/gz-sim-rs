@@ -12,6 +12,9 @@ pub use inputs::{InputError, queue_link_world_velocity, queue_link_world_wrench}
 mod schedule;
 use schedule::{SampleSchedule, ScheduleError};
 
+mod rates;
+pub use rates::{ImuRateError, ImuRateInfo, RateChange, imu_rate, set_imu_rate};
+
 mod tpe;
 pub use tpe::PhysicsEngine;
 
@@ -163,6 +166,8 @@ struct Imu {
     reference: DQuat,
     previous_velocity: DVec3,
     schedule: SampleSchedule,
+    sdf_rate_hz: f64,
+    rate_hz: f64,
     noise: Option<Box<noise::ImuNoise>>,
 }
 
@@ -713,6 +718,8 @@ fn build_model(
                     reference: DQuat::from_array(pose.rotation) * DQuat::from_array(local.rotation),
                     previous_velocity: DVec3::ZERO,
                     schedule,
+                    sdf_rate_hz: sensor.update_rate,
+                    rate_hz: sensor.update_rate,
                     noise,
                 },
             ));
@@ -866,11 +873,11 @@ fn sample_imus(
     if time.dt.is_zero() {
         return;
     }
-    let needed = interest.as_ref().is_none_or(|interest| {
-        sensors.iter().any(|(_, id, sensor)| {
+    let needed = sensors.iter().any(|(_, id, sensor)| {
+        let connected = interest.as_ref().is_none_or(|interest| {
             id.is_some_and(|id| interest.0.binary_search(&id.get()).is_ok())
-                && sensor.schedule.is_due(time.sim_time)
-        })
+        });
+        connected && sensor.schedule.is_due(time.sim_time)
     });
     for (entity, _, mut sensor) in &mut sensors {
         let body = identities

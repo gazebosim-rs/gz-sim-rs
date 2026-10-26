@@ -1185,3 +1185,6 @@ fn disabled_orientation_omits_only_the_quaternion_field() {
     );
     assert_eq!(actual, expected);
 }
+
+#[path = "runtime_rates.rs"]
+mod runtime_rate_tests;

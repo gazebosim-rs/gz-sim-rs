@@ -1,0 +1,192 @@
+{
+  "author": "/root",
+  "reviewer": "/root/msgs_owner_astra",
+  "source_review": "approved",
+  "runtime_review": "approved",
+  "source_tree": "b08c406f94b04b1cfe0d14556303238977757e82",
+  "static_review_sha256": "1048c327121553d5121cd820ca874e5217bc36f58c5be9ad21633b6df6568b50",
+  "independent_runtime_sha256": "afc2d881a84bff23a5ce5cb037538085102d02498a7ca62401fd6e8c3920a39b",
+  "metadata_draft_review_sha256": "efd77270b5b3d58fe94a9834ac5ebbe51ba69fd812a1f01e09d2fccba8d9152e",
+  "independent_replay": {
+    "raw_source_files": 326,
+    "changed_paths": 26,
+    "positive_tests": 89,
+    "restored_tests": 89,
+    "effective_production_controls": [
+      "raw deadline bypass",
+      "no-interest global gate bypass",
+      "old reset receiver queue",
+      "same-topic provider fanout",
+      "hidden worker queue drops",
+      "request budget plus one"
+    ]
+  },
+  "native_reference": "planning/reference/runtime-imu-rate.json",
+  "scope": "Loaded IMU rate API and bounded one-way wire endpoints; native cap/phase/reset/raw-deadline behavior with declared finite-period boundary. Two original Sensor cases remain partial. No upstream retirement, generic Sensor, all-family, performance or P2 acceptance inferred.",
+  "publication": "Independent final metadata binding, normal protected hook on final staged bytes and exact hosted qualification remain required.",
+  "performance_review": {
+    "decision": "approved_with_recorded_scope",
+    "actual_build_review_sha256": "ed83a3cba77fd80954fb3ce7253a585d2d4dad1e5451a8037d84106a6fa4cd04",
+    "functional_review_sha256": "254167f5300dc3f09e0066aec13b5bf676cdc85d3e83fe23dc41843f7c05fe72",
+    "actual_measurement_review_sha256": "79315c8f5fd85eb217bebe726fcf93d4b498c178da6433eca08f26737ccb85b1",
+    "report": "planning/benchmarks/headless-streams-imu-rates-v1.json",
+    "scope": "Two separate11-pair128step shared-host TPE clock/pose/IMU work-latency batches. All10 measured pairs retained; no rate-change, balanced robotics, causal, unpaced throughput or P2 claim."
+  },
+  "strict_source_gate": {
+    "tree": "49751dcd602083c3f5853ad547672224008b98c8",
+    "command": [
+      "python3",
+      "scripts/verify.py",
+      "--staged"
+    ],
+    "checks_state": "passed",
+    "evidence_state": "complete",
+    "rust_tests": 271,
+    "tooling_tests": 83,
+    "functional_cpp_process_scenarios": 17,
+    "separate_cpp_lifecycle_controls": 3,
+    "independent_source_full_review_sha256": "b264385406eadac714495807b3463e96db3f1f69b2aac387fd3639e70e8dcb4b",
+    "retained_result_sha256": "76eef725f95c44543e58047526bf05b9950322f32566afda69c64bd225d06564",
+    "coverage": {
+      "gz-assets": {
+        "lines": [
+          147,
+          148
+        ],
+        "regions": [
+          282,
+          287
+        ]
+      },
+      "gz-physics-tpe": {
+        "lines": [
+          220,
+          221
+        ],
+        "regions": [
+          310,
+          312
+        ]
+      },
+      "gz-physics": {
+        "lines": [
+          6,
+          6
+        ],
+        "regions": [
+          3,
+          3
+        ]
+      },
+      "gz-sim-core": {
+        "lines": [
+          271,
+          271
+        ],
+        "regions": [
+          389,
+          392
+        ]
+      },
+      "gz-physics-rapier": {
+        "lines": [
+          557,
+          558
+        ],
+        "regions": [
+          853,
+          858
+        ]
+      },
+      "gz-sensors": {
+        "lines": [
+          106,
+          106
+        ],
+        "regions": [
+          153,
+          153
+        ]
+      },
+      "gz-sim-scene": {
+        "lines": [
+          1628,
+          1660
+        ],
+        "regions": [
+          2494,
+          2582
+        ]
+      },
+      "gz-sim-cli": {
+        "lines": [
+          79,
+          79
+        ],
+        "regions": [
+          133,
+          137
+        ]
+      },
+      "gz-sim-server": {
+        "lines": [
+          787,
+          792
+        ],
+        "regions": [
+          1211,
+          1235
+        ]
+      },
+      "workspace": {
+        "lines": [
+          3801,
+          3841
+        ],
+        "regions": [
+          5828,
+          5959
+        ]
+      }
+    },
+    "changed_lines": {
+      "gz-assets": [
+        0,
+        0
+      ],
+      "gz-physics-tpe": [
+        0,
+        0
+      ],
+      "gz-physics": [
+        0,
+        0
+      ],
+      "gz-sim-core": [
+        0,
+        0
+      ],
+      "gz-physics-rapier": [
+        0,
+        0
+      ],
+      "gz-sensors": [
+        0,
+        0
+      ],
+      "gz-sim-scene": [
+        52,
+        52
+      ],
+      "gz-sim-cli": [
+        0,
+        0
+      ],
+      "gz-sim-server": [
+        177,
+        180
+      ]
+    },
+    "scope": "Canonical full source gate on the32-path snapshot, before final evidence-only metadata updates. Complete unfiltered JSON/LCOV independently recomputed with source-root rebinding only. No old assertion, numerical tolerance, coverage filter or producer pin changed. Separate actual C++ raw/provenance remains in the independent runtime receipt; the canonical gate does not retain individual child files."
+  }
+}

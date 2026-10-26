@@ -3,6 +3,7 @@
 //! Bounded world-clock publication and control around an explicitly stepped simulation.
 
 mod poses;
+mod rates;
 mod removals;
 mod reset;
 
@@ -38,6 +39,8 @@ pub enum Error {
     PoseIdRange,
     #[error("pose entity lacks a name, identity or valid parent-relative transform")]
     PoseData,
+    #[error("IMU publication lacks a unique public identity")]
+    ImuIdentity,
 }
 
 /// Whether publication and loaded IMU acquisition follow known subscriber interest.
@@ -74,6 +77,9 @@ pub struct Counters {
     pub removals_completed: u64,
     pub removals_failed: u64,
     pub removals_cancelled: u64,
+    pub imu_rates_applied: u64,
+    pub imu_rates_ignored: u64,
+    pub imu_rates_rejected: u64,
 }
 
 struct ImuStream {
@@ -197,6 +203,7 @@ pub struct Server {
     interest_policy: InterestPolicy,
     controls: Service,
     removals: removals::Removals,
+    rates: rates::Rates,
     command_budget: NonZeroUsize,
     pending_steps: u64,
     pending_reset: bool,
@@ -222,7 +229,7 @@ impl Server {
         }
         let partition = config.partition.clone();
         let namespace = config.namespace.clone();
-        let node = Node::new(config)?;
+        let node = Node::new(config.clone())?;
         let publisher = node.advertise(&format!("/world/{world_name}/clock"), "gz.msgs.Clock")?;
         let controls = node.serve(
             &format!("/world/{world_name}/control"),
@@ -255,6 +262,14 @@ impl Server {
                 });
             }
         }
+        let mut rates = match gz_sim_scene::initial_imu_publications(&simulation) {
+            Ok(sensors) => rates::Rates::prepare(&config, sensors)?,
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => {
+                rates::Rates::prepare(&config, imus.iter().map(|stream| &stream.metadata))?
+            }
+            Err(error) => return Err(error.into()),
+        };
+        rates.bind(&simulation)?;
         Ok(Self {
             simulation,
             node,
@@ -264,6 +279,7 @@ impl Server {
             interest_policy: InterestPolicy::default(),
             controls,
             removals,
+            rates,
             command_budget,
             pending_steps: 0,
             pending_reset: false,
@@ -303,8 +319,11 @@ impl Server {
     pub fn counters(&self) -> Counters {
         self.counters
     }
+    /// Aggregate counters from the world and all IMU-rate workers.
     pub fn transport_statistics(&self) -> Statistics {
-        self.node.statistics()
+        let mut total = self.node.statistics();
+        self.rates.add_statistics(&mut total);
+        total
     }
     pub fn pending_steps(&self) -> u64 {
         self.pending_steps
@@ -350,6 +369,7 @@ impl Server {
                 .get::<ImuPublication>(stream.entity)
                 .is_some()
         });
+        self.rates.retire(&self.simulation);
         if !info.paused && self.pending_steps > 0 {
             self.pending_steps -= 1;
             if self.pending_steps == 0 {
@@ -364,6 +384,11 @@ impl Server {
             };
             self.respond(request);
         }
+        self.rates.poll(
+            &mut self.simulation,
+            self.command_budget,
+            &mut self.counters,
+        )?;
         self.removals
             .poll(self.command_budget, &mut self.counters)?;
         Ok(info)
@@ -526,6 +551,7 @@ impl Server {
 
     /// Join the IO worker outside stepping. Dropping the server also joins it.
     pub fn shutdown(&mut self) {
+        self.rates.shutdown();
         self.node.shutdown();
     }
 }

@@ -17,6 +17,20 @@ pub(super) struct SampleSchedule {
 }
 
 impl SampleSchedule {
+    /// Runtime control preserves phase. Native NaN is continuous; positive
+    /// infinity has a zero reciprocal, clamped to one native clock tick.
+    pub(super) fn change_runtime_rate(&mut self, rate_hz: f64) -> Result<(), ScheduleError> {
+        let period = if rate_hz.is_nan() {
+            None
+        } else if rate_hz == f64::INFINITY {
+            Some(Duration::from_nanos(1))
+        } else {
+            Self::new(rate_hz)?.period
+        };
+        self.period = period;
+        Ok(())
+    }
+
     pub(super) fn reset(&mut self) {
         self.next = Duration::ZERO;
     }
@@ -42,7 +56,7 @@ impl SampleSchedule {
     }
 
     pub(super) fn is_due(&self, now: Duration) -> bool {
-        self.period.is_none() || now >= self.next
+        now >= self.next
     }
 
     pub(super) fn take_sample(

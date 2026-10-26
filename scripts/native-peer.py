@@ -2,6 +2,7 @@
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
 """Compile the required C++ client against the pinned native transport reference."""
+import argparse
 import hashlib
 import json
 import os
@@ -10,6 +11,9 @@ import shlex
 import subprocess
 from native_reference import LEGACY, SDK, builder, compiler_identity, validate_reference
 
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--client', choices=['clock', 'rate'], default='clock')
+args = parser.parse_args()
 root = Path(__file__).resolve().parents[1]
 prefix = Path(os.environ.get('GZ_REFERENCE_PREFIX', root / 'artifacts/native-reference/install')).resolve()
 metadata_path = prefix.parent / 'environment.json'
@@ -24,13 +28,13 @@ compiler, compiler_record = compiler_identity(env, reference.get('expected_compi
 actual = subprocess.check_output(['pkg-config', '--variable=prefix', 'gz-transport'], env=env, text=True).strip()
 assert Path(actual).resolve() == prefix, 'pkg-config selected a different native installation'
 flags = shlex.split(subprocess.check_output(['pkg-config', '--cflags', '--libs', 'gz-transport'], env=env, text=True))
-source = root / 'crates/gz-sim-server/tests/clock_client.cc'
-out = root / 'artifacts/native-peer'
+source = root / f'crates/gz-sim-server/tests/{args.client}_client.cc'
+out = root / ('artifacts/native-peer' if args.client == 'clock' else 'artifacts/native-rate-peer')
 out.mkdir(parents=True, exist_ok=True)
 source_bytes = source.read_bytes()
-captured_source = out / 'clock-client-source.cc'
+captured_source = out / f'{args.client}-client-source.cc'
 captured_source.write_bytes(source_bytes)
-binary = out / 'clock-client'
+binary = out / f'{args.client}-client'
 subprocess.run([compiler, '-std=c++17', '-Wall', '-Wextra', '-Werror', str(captured_source), *flags, '-Wl,-rpath,' + str(prefix / 'lib'), '-o', str(binary)], env=env, check=True)
 if (source.read_bytes() != source_bytes or captured_source.read_bytes() != source_bytes
         or metadata_path.read_bytes() != metadata_bytes):

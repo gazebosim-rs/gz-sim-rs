@@ -1,0 +1,538 @@
+{
+  "scope": "Native base Sensor Double/Empty rate admission and schedule observations only; no actual IMU packet/shared-topic/reset claim.",
+  "actual_review_sha256": "4f2a84e525a8313745ab7b85fca287e9f3c42383d3ad87fe5cc34f4218ba8eb3",
+  "observations": {
+    "bounds": [
+      {
+        "sdf_max": 0,
+        "rows": [
+          {
+            "request": 5,
+            "request_negative_zero": false,
+            "rate": 5,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 0,
+            "request_negative_zero": false,
+            "rate": 0,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 20,
+            "request_negative_zero": false,
+            "rate": 20,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": -5,
+            "request_negative_zero": false,
+            "rate": 0,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 0,
+            "request_negative_zero": true,
+            "rate": 0,
+            "rate_negative_zero": true,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 1e-07,
+            "request_negative_zero": false,
+            "rate": 1e-07,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 1e-06,
+            "request_negative_zero": false,
+            "rate": 1e-06,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 1e-05,
+            "request_negative_zero": false,
+            "rate": 1e-05,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10,
+            "request_negative_zero": false,
+            "rate": 10,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10.0000005,
+            "request_negative_zero": false,
+            "rate": 10.0000005,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10.000001,
+            "request_negative_zero": false,
+            "rate": 10.000001,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10.000002,
+            "request_negative_zero": false,
+            "rate": 10.000002,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": "nan",
+            "request_negative_zero": false,
+            "rate": "nan",
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": "inf",
+            "request_negative_zero": false,
+            "rate": "inf",
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": "-inf",
+            "request_negative_zero": false,
+            "rate": 0,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          }
+        ]
+      },
+      {
+        "sdf_max": 10,
+        "rows": [
+          {
+            "request": 5,
+            "request_negative_zero": false,
+            "rate": 5,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 0,
+            "request_negative_zero": false,
+            "rate": 5,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 20,
+            "request_negative_zero": false,
+            "rate": 5,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": -5,
+            "request_negative_zero": false,
+            "rate": 5,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 0,
+            "request_negative_zero": true,
+            "rate": 5,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 1e-07,
+            "request_negative_zero": false,
+            "rate": 5,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 1e-06,
+            "request_negative_zero": false,
+            "rate": 1e-06,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 1e-05,
+            "request_negative_zero": false,
+            "rate": 1e-05,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10,
+            "request_negative_zero": false,
+            "rate": 10,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10.0000005,
+            "request_negative_zero": false,
+            "rate": 10.0000005,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10.000001,
+            "request_negative_zero": false,
+            "rate": 10.0000005,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10.000002,
+            "request_negative_zero": false,
+            "rate": 10.0000005,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": "nan",
+            "request_negative_zero": false,
+            "rate": 10.0000005,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": "inf",
+            "request_negative_zero": false,
+            "rate": 10.0000005,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": "-inf",
+            "request_negative_zero": false,
+            "rate": 10.0000005,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          }
+        ]
+      },
+      {
+        "sdf_max": 1e-07,
+        "rows": [
+          {
+            "request": 5,
+            "request_negative_zero": false,
+            "rate": 5,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 0,
+            "request_negative_zero": false,
+            "rate": 0,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 20,
+            "request_negative_zero": false,
+            "rate": 20,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": -5,
+            "request_negative_zero": false,
+            "rate": 0,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 0,
+            "request_negative_zero": true,
+            "rate": 0,
+            "rate_negative_zero": true,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 1e-07,
+            "request_negative_zero": false,
+            "rate": 1e-07,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 1e-06,
+            "request_negative_zero": false,
+            "rate": 1e-06,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 1e-05,
+            "request_negative_zero": false,
+            "rate": 1e-05,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10,
+            "request_negative_zero": false,
+            "rate": 10,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10.0000005,
+            "request_negative_zero": false,
+            "rate": 10.0000005,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10.000001,
+            "request_negative_zero": false,
+            "rate": 10.000001,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": 10.000002,
+            "request_negative_zero": false,
+            "rate": 10.000002,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": "nan",
+            "request_negative_zero": false,
+            "rate": "nan",
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": "inf",
+            "request_negative_zero": false,
+            "rate": "inf",
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          },
+          {
+            "request": "-inf",
+            "request_negative_zero": false,
+            "rate": 0,
+            "rate_negative_zero": false,
+            "next_ns": 0,
+            "count": 0
+          }
+        ]
+      }
+    ],
+    "phase": [
+      {
+        "now_ns": 0,
+        "sampled": true,
+        "rate": 10,
+        "rate_negative_zero": false,
+        "next_ns": 100000000,
+        "count": 1
+      },
+      {
+        "now_ns": 50000000,
+        "sampled": false,
+        "rate": 5,
+        "rate_negative_zero": false,
+        "next_ns": 100000000,
+        "count": 1
+      },
+      {
+        "now_ns": 100000000,
+        "sampled": true,
+        "rate": 5,
+        "rate_negative_zero": false,
+        "next_ns": 300000000,
+        "count": 2
+      },
+      {
+        "now_ns": 200000000,
+        "sampled": false,
+        "rate": 10,
+        "rate_negative_zero": false,
+        "next_ns": 300000000,
+        "count": 2
+      },
+      {
+        "now_ns": 300000000,
+        "sampled": true,
+        "rate": 10,
+        "rate_negative_zero": false,
+        "next_ns": 400000000,
+        "count": 3
+      }
+    ],
+    "nonfinite_phase": [
+      {
+        "request": "nan",
+        "rows": [
+          {
+            "now_ns": 0,
+            "sampled": true,
+            "rate": "nan",
+            "rate_negative_zero": false,
+            "next_ns": 1000000000,
+            "count": 1
+          },
+          {
+            "now_ns": 0,
+            "sampled": true,
+            "rate": "nan",
+            "rate_negative_zero": false,
+            "next_ns": 1000000000,
+            "count": 2
+          },
+          {
+            "now_ns": 1,
+            "sampled": true,
+            "rate": "nan",
+            "rate_negative_zero": false,
+            "next_ns": 1000000000,
+            "count": 3
+          },
+          {
+            "now_ns": 2,
+            "sampled": true,
+            "rate": "nan",
+            "rate_negative_zero": false,
+            "next_ns": 1000000000,
+            "count": 4
+          }
+        ]
+      },
+      {
+        "request": "inf",
+        "rows": [
+          {
+            "now_ns": 0,
+            "sampled": true,
+            "rate": "inf",
+            "rate_negative_zero": false,
+            "next_ns": 1,
+            "count": 1
+          },
+          {
+            "now_ns": 0,
+            "sampled": false,
+            "rate": "inf",
+            "rate_negative_zero": false,
+            "next_ns": 1,
+            "count": 1
+          },
+          {
+            "now_ns": 1,
+            "sampled": true,
+            "rate": "inf",
+            "rate_negative_zero": false,
+            "next_ns": 2,
+            "count": 2
+          },
+          {
+            "now_ns": 2,
+            "sampled": true,
+            "rate": "inf",
+            "rate_negative_zero": false,
+            "next_ns": 3,
+            "count": 3
+          }
+        ]
+      },
+      {
+        "request": "-inf",
+        "rows": [
+          {
+            "now_ns": 0,
+            "sampled": true,
+            "rate": 0,
+            "rate_negative_zero": false,
+            "next_ns": 1000000000,
+            "count": 1
+          },
+          {
+            "now_ns": 0,
+            "sampled": true,
+            "rate": 0,
+            "rate_negative_zero": false,
+            "next_ns": 1000000000,
+            "count": 2
+          },
+          {
+            "now_ns": 1,
+            "sampled": true,
+            "rate": 0,
+            "rate_negative_zero": false,
+            "next_ns": 1000000000,
+            "count": 3
+          },
+          {
+            "now_ns": 2,
+            "sampled": true,
+            "rate": 0,
+            "rate_negative_zero": false,
+            "next_ns": 1000000000,
+            "count": 4
+          }
+        ]
+      }
+    ]
+  }
+}
