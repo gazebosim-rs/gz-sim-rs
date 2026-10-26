@@ -1,0 +1,95 @@
+{
+  "decision": "approved",
+  "author": "/root",
+  "reviewer": "/root/sdformat_owner_fallback",
+  "scope": "Bounded local amd64 headless TPE native SDK source, provenance, selected original assertions, 100-step Server/TPE/IMU fixture and honest incomplete inventory; no image registry, full inventory, P0, P2, performance, or Rust-port credit.",
+  "source_freeze": {
+    "manifest": "artifacts/reference-image/proposal-v6.json",
+    "sha256": "4a6b3c41b99a4e8a8211d10ef30fa4280156f58573a3cea7d78871d4d15b008d",
+    "tree": "6f227fcc1c7f0d109e014ea104a61c7bb26c16e1",
+    "files": {
+      "reference/Dockerfile": "8820d218f1d9d60c0c1fbf8692506ca9b833da532f6871ad2c8df5efc96c45ea",
+      "reference/Dockerfile.dockerignore": "4cbdbd53029f730291e4ea7d0bedd9bb414e1aa0b7b290c714f4584934511b12",
+      "reference/README.md": "58f081fb9e19733004a558ddedb505a03eadbcc4b5bd0f66454494ef492d4ebf",
+      "reference/apt-sources.sh": "e79e0af4acd7ef6c45838fa8d968e6e5edae4a32854f31db66252ee0f55f0e2e",
+      "reference/build-reference.py": "5960a384010ff43a3efe57a97009621e01f82786c28e8f35dc6e35381645aac0",
+      "reference/headless-tpe.lock.json": "daeec3d6565951a31635eed53c82d439402ac07c724e3e761d1d8e05936bb7fe",
+      "reference/ubuntu-bootstrap.json": "2f0af7bce16ef23d7ff95ebfe211d3c5b1ef60578c50aaa997d3d798ad64d515",
+      "tests/test_reference_build.py": "0c798efd8c950d4862c3bea64396a84f2420db6189c989c593255391aa8b2e6d"
+    }
+  },
+  "candidate_pre_receipt": {
+    "manifest": "artifacts/reference-image/integration-proposal.json",
+    "sha256": "f634ad1dc6a036a6dbb77fec898ecd6fd37069de1cff0fae0ef408fb2509aa5f",
+    "parent": "ab8d1adf47364c61620f57d95e07b0906351dae1",
+    "tree": "a4e521b9cf30d824818d8b5c2059a0412aacba9c",
+    "diff_sha256": "fe51cd9e90418b5937ca0741dc4e900c5e2d262534f8933517d2870473f887e2",
+    "files": {
+      "docs/REFERENCE_IMAGE.md": "121a15c09fb9317156100e1a85976a6532af3daeb29b51f50cd114f90f14cadc",
+      "docs/STATUS.md": "68393c794d3581a0a0c9dee8f9f0182e9fdcb71298bf174888f0afe10bc26b9c",
+      "planning/reference/headless-sdk-environment.json": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f",
+      "planning/reference/headless-sdk-evidence.json": "c0bcbdfd9ff0cdcd034d17f23c47f4cf6310ca77ae23ab4dc49e26b7d1f0a3e8",
+      "reference/Dockerfile": "8820d218f1d9d60c0c1fbf8692506ca9b833da532f6871ad2c8df5efc96c45ea",
+      "reference/Dockerfile.dockerignore": "4cbdbd53029f730291e4ea7d0bedd9bb414e1aa0b7b290c714f4584934511b12",
+      "reference/README.md": "58f081fb9e19733004a558ddedb505a03eadbcc4b5bd0f66454494ef492d4ebf",
+      "reference/apt-sources.sh": "e79e0af4acd7ef6c45838fa8d968e6e5edae4a32854f31db66252ee0f55f0e2e",
+      "reference/build-reference.py": "5960a384010ff43a3efe57a97009621e01f82786c28e8f35dc6e35381645aac0",
+      "reference/headless-tpe.lock.json": "daeec3d6565951a31635eed53c82d439402ac07c724e3e761d1d8e05936bb7fe",
+      "reference/ubuntu-bootstrap.json": "2f0af7bce16ef23d7ff95ebfe211d3c5b1ef60578c50aaa997d3d798ad64d515",
+      "tests/test_reference_build.py": "0c798efd8c950d4862c3bea64396a84f2420db6189c989c593255391aa8b2e6d"
+    },
+    "preserved_parent_blobs": 277,
+    "no_unstaged_changes": true,
+    "all_candidate_modes": "100644"
+  },
+  "source_gate": {
+    "log": "artifacts/reference-image/staged-source-v6.log",
+    "sha256": "6ad97624e9b98a50afcfde32717f3d5c5fb335be4829ae706f100c925af5b540",
+    "result": "passed",
+    "rust_tests": 246,
+    "tool_tests": 53,
+    "native_client_scenarios": 15,
+    "workspace_coverage_lines": "3548/3584",
+    "workspace_coverage_regions": "5419/5538",
+    "all_nine_crates_above_95_percent": true,
+    "changed_production_rust_lines": "none"
+  },
+  "image": {
+    "id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+    "architecture": "amd64",
+    "local_only": true,
+    "replay_settings": "--pull=never, --read-only, --network=none, dropped capabilities, private /tmp and /root/.gz tmpfs"
+  },
+  "reviewed_evidence": {
+    "environment": "planning/reference/headless-sdk-environment.json",
+    "environment_sha256": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f",
+    "selected": "artifacts/reference-image/runtime-v6-second/result.json",
+    "selected_sha256": "2d9b3ac34e7b96b17ec7c964f73d273c6df65e1fa2d0809a828fef31259d2603",
+    "headless": "artifacts/reference-image/headless-v6-third/result.json",
+    "headless_sha256": "69bb903d52bda14f60c0fe1f9a3157df49e6be4b31494bd6ae83357a14d4fb6a",
+    "inventory": "artifacts/reference-image/inventory-v6-second/raw/inventory.json",
+    "inventory_sha256": "0af06c276514989692fb4c45e7072a73f531d125f5db0bcb6e5f3fe674ace751",
+    "projection": "planning/reference/headless-sdk-evidence.json",
+    "projection_sha256": "c0bcbdfd9ff0cdcd034d17f23c47f4cf6310ca77ae23ab4dc49e26b7d1f0a3e8"
+  },
+  "independent_replay": {
+    "selected_receipt": "artifacts/reference-image/reviewer-runtime-sdf-20261026/result.json",
+    "selected_receipt_sha256": "c9303bb7bbe84cce776d8194929f82d42d94bc49044efa833506620bf68a9788",
+    "headless_receipt": "artifacts/reference-image/reviewer-headless-sdf-20261026/receipt.json",
+    "headless_receipt_sha256": "592d9a1977027e0dea8322ebb32f3cc84808d2e368c855e37d88d04cf90fcdb5",
+    "selected_originals": "10/10 completed, 0 errors/failures/skips, native stderr empty; same binary and installed-library hashes; XML timings differ, testcase identities/outcomes match",
+    "headless": "100/100 identical 1 ms rows; independently compiled binary byte-identical; source, fixture and loaded-library hashes match; native and Docker stderr empty"
+  },
+  "source_and_assertion_review": [
+    "Ten pre-build input hashes, fourteen baseline source pins, clean Git source checks, explicit GCC/G++ and effective compiler hashes, fixed signed snapshot, sorted dependencies, retained Release/BUILD_TESTING and installed symlink/file hashes checked.",
+    "Independent selected native replay verifies five Model, two World and three IMU original cases with exact completed XML and empty diagnostics.",
+    "Independent 100-step real Server/Physics/TPE/IMU replay verifies full native output and loaded installed library hashes.",
+    "Public projection recomputed from raw retained evidence; 690 packages, 4743 installed paths and 14 source records; no private host paths in public docs/projections.",
+    "Inventory collector retains exit 1 and 597 gaps (596 wrappers/unrecognized, one empty Zenoh-gated NodeShared binary)."
+  ],
+  "limits": [
+    "Actual image registry distribution and license review remain open.",
+    "Other backends, GUI/GPU/language profiles, full native suite/inventory, REF01, REF02, P0 and P2 remain open.",
+    "Normal protected hook, public commit and hosted qualification are not part of this source review."
+  ]
+}

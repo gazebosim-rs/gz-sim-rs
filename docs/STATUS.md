@@ -4,6 +4,17 @@ The selected headless implementation is progressing; complete rewrite and P2
 acceptance remain open. All 78 broad system migration packets remain open.
 Scoped performance reports retain their explicit workloads and limits.
 
+## Clean native headless reference SDK
+
+The fourteen-repository native SDK now builds from the pinned Ubuntu image and
+package snapshot. Ten selected unchanged originals and the unchanged 100-step
+Server/TPE/IMU fixture pass with empty stderr after providing private writable
+Gazebo logs. The expanded inventory retains 597 explicit gaps; these results
+do not complete REF-01, REF-02, P0 or P2. [REFERENCE_IMAGE.md](REFERENCE_IMAGE.md)
+records the immutable local image, manifests, retained failures and remaining
+profiles. Image registry publication and adoption into the native-client CI
+contract remain separate work.
+
 ## Corrected TPE static and world-axis behavior
 
 Confirmed D23 keeps static models immobile, including empty models without
@@ -20,8 +31,9 @@ open; no new performance result is claimed.
 ## Ownership and model routing
 
 The coordinator owns this monorepo and integration. One agent owns each independent
-repository. Current sdformat-rs, gz-transport-rs and gz-msgs-rs owners use
-gpt-6-sol with high reasoning for implementation and validation. Agents work on bounded
+repository. The sdformat-rs and gz-msgs-rs owners use gpt-6-sol with high
+reasoning; the replacement Transport owner uses gpt-6.1-sol with high reasoning
+after repeated model-capacity failures. Agents work on bounded
 packets and independently review one another's changes. Fuel remains with its
 existing agent. Four concurrent slots cover the coordinator and three repo agents.
 

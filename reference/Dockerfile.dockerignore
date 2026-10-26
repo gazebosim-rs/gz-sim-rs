@@ -1,0 +1,16 @@
+# Copyright (C) 2026 Open Source Robotics Foundation
+# SPDX-License-Identifier: Apache-2.0
+**
+!reference/
+!reference/Dockerfile
+!reference/Dockerfile.dockerignore
+!reference/apt-sources.sh
+!reference/build-reference.py
+!reference/headless-tpe.lock.json
+!reference/ubuntu-bootstrap.json
+!planning/
+!planning/baseline.json
+!scripts/
+!scripts/inventory-native-tests.py
+!LICENSE
+!NOTICE

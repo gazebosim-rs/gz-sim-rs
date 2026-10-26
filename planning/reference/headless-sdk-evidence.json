@@ -1,0 +1,2254 @@
+{
+  "scope": "Clean local amd64 native headless TPE SDK image and selected runtime evidence only. No complete test inventory, all-backend/GPU/language profile, Rust port, performance or P0/P2 acceptance. Image is local by immutable ID, not published to a registry.",
+  "image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+  "source_tree": "6f227fcc1c7f0d109e014ea104a61c7bb26c16e1",
+  "recipe_proposal_sha256": "4a6b3c41b99a4e8a8211d10ef30fa4280156f58573a3cea7d78871d4d15b008d",
+  "build_log_sha256": "b1cb46f8fcbb7a6b6d4b240d5cf1e148b50c65029c4515ddbd6c36b3e4417721",
+  "environment_sha256": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f",
+  "dependency_evidence_sha256": "5fc85ba25f52ab15b283acd2759b19e11c269497e88b57780da2207116eba275",
+  "selected_originals": {
+    "count": 10,
+    "result": {
+      "state": "passed",
+      "image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+      "exit_code": 0,
+      "smoke_sha256": "b4a1557792bdd1ce047b9bc737b8170957d2b1c00b9475f8640f00c732ff0d72",
+      "runner_sha256": "7ae337017b3bfc7152c3e5b340f179e6d22401b2c06c3b85811e7db3bd6c066c",
+      "expected_sha256": "1165d9a678bed247881e350f51fd5d7b423bf3f60df11b60d80f974578ba1a0e",
+      "stdout_sha256": "db8a1d9837c15e9f66155a609f06522db60ae72cf139fbb4fc90088af2fdbad6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Selected unchanged native originals and image provenance only; no Rust port or full P0/P2 credit."
+    },
+    "groups": [
+      {
+        "command": [
+          "/reference/builds/gz-physics/bin/UNIT_tpelib_Model_TEST",
+          "--gtest_filter=Model.BasicAPI:Model.Link:Model.BoundingBox:Model.CollideBitmask:Model.NestedModel",
+          "--gtest_output=xml:/tmp/UNIT_tpelib_Model_TEST.xml"
+        ],
+        "binary_sha256": "8845a497ae946b01584948adafcdbd9aa9e1a27e8848a6f68b13d0436036e5a5",
+        "exit_code": 0,
+        "libraries_sha256": {
+          "/reference/install/lib/libgz-physics-tpelib.so.10.0.0~pre2": "c825e8f36adb8ab644e7b02e56a35fd3f92e9c4832e9fe9c2a06705ef6ca67a3",
+          "/reference/install/lib/libgz-math.so.10.0.0~pre2": "9493022b88e90a746280de2839a62496343edaef34b51ba367ce3f3393055472",
+          "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+          "/usr/lib/x86_64-linux-gnu/libm.so.6": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+          "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+          "/usr/lib/x86_64-linux-gnu/libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+          "/reference/install/lib/libgz-common-graphics.so.8.0.0~pre2": "aefd8fb2bb3bbebf98bb542e940bf07eee6fdf6e77e2a2c1fbb93628f324dd75",
+          "/reference/install/lib/libgz-common.so.8.0.0~pre2": "45678fb9693581b7e2a11a35031cfce7c0a33f06d909b37d58d533f4827fe9b3",
+          "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+          "/usr/lib/x86_64-linux-gnu/libassimp.so.5.3.0": "f5524225032201d129cac2adf305af9c7ffcf612d8662f3c87a2d891d5cd3d18",
+          "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0": "f9e01d87fb78af744a426af8c992e94abf8cd3810a256e117bcc94cd84d2be6d",
+          "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0": "78d7f4d6f27b7dffc1c84dfe2f83e84aefa6f6ceeffc6ac4bc41f9fbc61cb84e",
+          "/reference/install/lib/libgz-utils-log.so.5.0.0~pre2": "a233a8a5127507c108acdae673649408bcf0d263ef2b268b1f750c016960609a",
+          "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0": "62bb2fbc92edc05b35888e624882b78f5b38c0aca6a3df7ab7db32bb9c2629b6",
+          "/usr/lib/x86_64-linux-gnu/libz.so.1.3": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+          "/usr/lib/x86_64-linux-gnu/libdraco.so.8.0.0": "b368d354f2778606b2553037fc8a3212719ee76a82711c60f7c72de49818e781",
+          "/usr/lib/x86_64-linux-gnu/libminizip.so.1.0.0": "7397458805900a67287673a7d469d1ff207525ae7694ed885e8603d0164828bf",
+          "/usr/lib/x86_64-linux-gnu/libpugixml.so.1.14": "b5493d9c8c6e36e3b72e38564b7e287ad925ab717577ded997465f9ac9da1c9e",
+          "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0": "da008b908b32e428eaa1c09e36d6894c8f88362e254b503c7c2c6112b4ec9ed0"
+        },
+        "stdout_sha256": "bb6ffada1b2125ebe6bc51c56ad64b5374ac9bb0f38a30762ac3d1d2e61d26cb",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "xml_sha256": "812a5b5d79dcda482f317feff5321b74158749cdfb948bcd3715b05fa4726720"
+      },
+      {
+        "command": [
+          "/reference/builds/gz-physics/bin/UNIT_tpelib_World_TEST",
+          "--gtest_filter=World.BasicAPI:World.Model",
+          "--gtest_output=xml:/tmp/UNIT_tpelib_World_TEST.xml"
+        ],
+        "binary_sha256": "a275a8097ad079268ec768c9b7b5c8438790c23a7ab5cb3f4137e54a5887333f",
+        "exit_code": 0,
+        "libraries_sha256": {
+          "/reference/install/lib/libgz-physics-tpelib.so.10.0.0~pre2": "c825e8f36adb8ab644e7b02e56a35fd3f92e9c4832e9fe9c2a06705ef6ca67a3",
+          "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+          "/usr/lib/x86_64-linux-gnu/libm.so.6": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+          "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+          "/usr/lib/x86_64-linux-gnu/libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+          "/reference/install/lib/libgz-common-graphics.so.8.0.0~pre2": "aefd8fb2bb3bbebf98bb542e940bf07eee6fdf6e77e2a2c1fbb93628f324dd75",
+          "/reference/install/lib/libgz-common.so.8.0.0~pre2": "45678fb9693581b7e2a11a35031cfce7c0a33f06d909b37d58d533f4827fe9b3",
+          "/reference/install/lib/libgz-math.so.10.0.0~pre2": "9493022b88e90a746280de2839a62496343edaef34b51ba367ce3f3393055472",
+          "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+          "/usr/lib/x86_64-linux-gnu/libassimp.so.5.3.0": "f5524225032201d129cac2adf305af9c7ffcf612d8662f3c87a2d891d5cd3d18",
+          "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0": "f9e01d87fb78af744a426af8c992e94abf8cd3810a256e117bcc94cd84d2be6d",
+          "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0": "78d7f4d6f27b7dffc1c84dfe2f83e84aefa6f6ceeffc6ac4bc41f9fbc61cb84e",
+          "/reference/install/lib/libgz-utils-log.so.5.0.0~pre2": "a233a8a5127507c108acdae673649408bcf0d263ef2b268b1f750c016960609a",
+          "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0": "62bb2fbc92edc05b35888e624882b78f5b38c0aca6a3df7ab7db32bb9c2629b6",
+          "/usr/lib/x86_64-linux-gnu/libz.so.1.3": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+          "/usr/lib/x86_64-linux-gnu/libdraco.so.8.0.0": "b368d354f2778606b2553037fc8a3212719ee76a82711c60f7c72de49818e781",
+          "/usr/lib/x86_64-linux-gnu/libminizip.so.1.0.0": "7397458805900a67287673a7d469d1ff207525ae7694ed885e8603d0164828bf",
+          "/usr/lib/x86_64-linux-gnu/libpugixml.so.1.14": "b5493d9c8c6e36e3b72e38564b7e287ad925ab717577ded997465f9ac9da1c9e",
+          "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0": "da008b908b32e428eaa1c09e36d6894c8f88362e254b503c7c2c6112b4ec9ed0"
+        },
+        "stdout_sha256": "dbcc3283a978197ac08f03696c295a261b805ef91d65b164b60033b104bd21c3",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "xml_sha256": "4a6ac0f9e4a359560de2f581f6cb145b0c46851636a7eaaae73008fc68c1188b"
+      },
+      {
+        "command": [
+          "/reference/builds/gz-sensors/bin/UNIT_ImuSensor_TEST",
+          "--gtest_filter=ImuSensor_TEST.CreateImuSensor:ImuSensor_TEST.Orientation:ImuSensor_TEST.OrientationReference",
+          "--gtest_output=xml:/tmp/UNIT_ImuSensor_TEST.xml"
+        ],
+        "binary_sha256": "085891ea1456c15d9a01cd150032ec8ca6e0d8df5d00389b2d4ad9adc04915c3",
+        "exit_code": 0,
+        "libraries_sha256": {
+          "/reference/install/lib/libgz-sensors-imu.so.11.0.0~pre2": "f1d3bbec59098198da1bd58bd14d645984776f03150253ebb41b010986cf3166",
+          "/reference/install/lib/libgz-sensors.so.11.0.0~pre2": "a0d26b45da986fcd98a5eb4d19151e1b38b5ed78136262df107df06ece54b876",
+          "/reference/install/lib/libgz-common.so.8.0.0~pre2": "45678fb9693581b7e2a11a35031cfce7c0a33f06d909b37d58d533f4827fe9b3",
+          "/reference/install/lib/libsdformat.so.17.0.0~pre2": "b479f560e393b21959e4f49057659b66d0ffecdc2e85b041195cfe1bd95ec977",
+          "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+          "/usr/lib/x86_64-linux-gnu/libm.so.6": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+          "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+          "/usr/lib/x86_64-linux-gnu/libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+          "/reference/install/lib/libgz-transport.so.16.0.0~pre2": "f112c13f5b456dcdca7bc67da226c6703bc42d72d086faa4d9927b28245c123a",
+          "/reference/install/lib/libgz-msgs.so.13.0.0~pre2": "d060606556570dfa71d6516b33790be67ba228f6e2a22e673cca606c76b75893",
+          "/reference/install/lib/libgz-math.so.10.0.0~pre2": "9493022b88e90a746280de2839a62496343edaef34b51ba367ce3f3393055472",
+          "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12": "53a2a625a30418d6ea84438b04c9196214dec51a30476596ee9be45ccadb0404",
+          "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0": "78d7f4d6f27b7dffc1c84dfe2f83e84aefa6f6ceeffc6ac4bc41f9fbc61cb84e",
+          "/reference/install/lib/libgz-utils-log.so.5.0.0~pre2": "a233a8a5127507c108acdae673649408bcf0d263ef2b268b1f750c016960609a",
+          "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0": "62bb2fbc92edc05b35888e624882b78f5b38c0aca6a3df7ab7db32bb9c2629b6",
+          "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+          "/reference/install/lib/libgz-utils.so.5.0.0~pre2": "e5e4ad155f68074b4ec3c22416aee25755a6670641dd89032453e43eb3759952",
+          "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0": "f9e01d87fb78af744a426af8c992e94abf8cd3810a256e117bcc94cd84d2be6d",
+          "/usr/lib/x86_64-linux-gnu/liburdfdom_model.so.4.0": "ac27f211accb66a3f461d8d0b09b9ff123e306e68a0bac0f7c502203d7cbb34e",
+          "/usr/lib/x86_64-linux-gnu/libzmq.so.5.2.5": "c56acd8baaec3d869f7e23a194870302acef6d86384f1f0fe946fb81c7015a42",
+          "/usr/lib/x86_64-linux-gnu/libz.so.1.3": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+          "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0": "da008b908b32e428eaa1c09e36d6894c8f88362e254b503c7c2c6112b4ec9ed0",
+          "/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0": "bb9ced68ce1209c48b55ddcebe913542197dc745c71febd65205ff0a4d833651",
+          "/usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1": "e86cd4f0019f42c2ba5e60602e0edc8694d2948377d98c3654d0f6bddb5254bb",
+          "/usr/lib/x86_64-linux-gnu/libsodium.so.23.3.0": "fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5",
+          "/usr/lib/x86_64-linux-gnu/libpgm-5.3.so.0.0.128": "46e1d5126ff73b9ba0c340b2cf0245d77620f85524c6fc967d533be6d19bdada",
+          "/usr/lib/x86_64-linux-gnu/libnorm.so.1": "2543db995aa530bda8d145126b25c08d54cfe3348993e11eb75c30d6b43f5e72",
+          "/usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2.2": "c7aa00cf51646f7c32f196d329a562bc873ff32906c9caf6554ca489dd657507",
+          "/usr/lib/x86_64-linux-gnu/libmd.so.0.1.0": "423e18586b6ea740f4465afd64f7a9a4cb7264ed979c8e7256f9085af5345fef",
+          "/usr/lib/x86_64-linux-gnu/libkrb5.so.3.3": "fad617a72b5839d30143e7db03281279089def6f18788cbb0b7f86385301bf04",
+          "/usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1": "b37407fb2930939bf78b47267019cd201a8af1f4b6a3852249c849cf3a985798",
+          "/usr/lib/x86_64-linux-gnu/libcom_err.so.2.1": "022943b3b11c860b049bce41342f1c2594941b7b401d95dfdf235521099fee08",
+          "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1": "936bae947a838bd47676a419dfcfb036d0163249215b58ec706ec7d46b7497aa",
+          "/usr/lib/x86_64-linux-gnu/libkeyutils.so.1.10": "f48214417757f18793ed6e180cc14ee1d6f04252a518fc7270e8ca1d0b4260fe",
+          "/usr/lib/x86_64-linux-gnu/libresolv.so.2": "1d730ea434da5a5595bc6a961d7a9ace83e03703205df9644044b3dca79c362f"
+        },
+        "stdout_sha256": "e99ce0894cb169ffbd3ab5bfb820f9cc253346156fc2f856d9bb48089af176be",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "xml_sha256": "1bde3da3a891ed559b2300c0a6108f19fbb79c6711f3e51a98e2b403bf754b64"
+      }
+    ]
+  },
+  "headless_server": {
+    "state": "passed",
+    "scope": "Native Server/Physics/TPE/IMU fixture at100x1ms only; no performance or full P0/P2 acceptance.",
+    "status": {
+      "compile_exit": 0,
+      "source_sha256": "9142452db8c8e18a41c1047c0d984c3adbf8a2e5dcc29b49cb1df21f1e9942db",
+      "fixture_sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+      "run_exit": 0,
+      "binary_sha256": "b41d9a1721372bc7f5eb4555d16ddb896d65be6272b6bb69f56465576ab3b646",
+      "libraries_sha256": {
+        "/reference/install/lib/gz-physics/engine-plugins/libgz-physics-tpe-plugin.so.10.0.0~pre2": "fa282f20ebbb3dbd789aecf699db396810fea0d1ca48d19e50bd640a8afb1f92",
+        "/reference/install/lib/gz-sim/plugins/libgz-sim-imu-system.so.11.0.0~pre3": "865a3d02d661a12e16b1e616c8635ca5d414f4c4411e4a4bceae3284d93b2b8d",
+        "/reference/install/lib/gz-sim/plugins/libgz-sim-physics-system.so.11.0.0~pre3": "9d84d60abb52c59441bb4c2448f340ff992c9cd243b5444c15a919bdf3e76810",
+        "/reference/install/lib/libgz-common-events.so.8.0.0~pre2": "83ba76d6271abe00e49a57336078c0fbb4b8ebbb1b9a961dd90eb48436ff8a14",
+        "/reference/install/lib/libgz-common-geospatial.so.8.0.0~pre2": "990e5163339ea1749619e5f080623065ac112456178567d8ed0a710d21957f40",
+        "/reference/install/lib/libgz-common-graphics.so.8.0.0~pre2": "aefd8fb2bb3bbebf98bb542e940bf07eee6fdf6e77e2a2c1fbb93628f324dd75",
+        "/reference/install/lib/libgz-common.so.8.0.0~pre2": "45678fb9693581b7e2a11a35031cfce7c0a33f06d909b37d58d533f4827fe9b3",
+        "/reference/install/lib/libgz-fuel_tools.so.12.0.0~pre2": "6e6d063e6db12a719088bf908c7222c1c4a4c7896fd2f28e6384f489f31d61c1",
+        "/reference/install/lib/libgz-math.so.10.0.0~pre2": "9493022b88e90a746280de2839a62496343edaef34b51ba367ce3f3393055472",
+        "/reference/install/lib/libgz-msgs.so.13.0.0~pre2": "d060606556570dfa71d6516b33790be67ba228f6e2a22e673cca606c76b75893",
+        "/reference/install/lib/libgz-physics-tpelib.so.10.0.0~pre2": "c825e8f36adb8ab644e7b02e56a35fd3f92e9c4832e9fe9c2a06705ef6ca67a3",
+        "/reference/install/lib/libgz-physics.so.10.0.0~pre2": "fd4c8934ee3a8a5f2b0982da47442f5247622c8b704d0aaf3b7f652319f563da",
+        "/reference/install/lib/libgz-plugin-loader.so.5.0.0~pre2": "3273e62b55e1be287827d6029fba2f56b78649fee69f95cd131d7c12ef651577",
+        "/reference/install/lib/libgz-plugin.so.5.0.0~pre2": "99829776f4e52589800df48d75f325c6ee7e020a9ea992705e10e4bb223259ef",
+        "/reference/install/lib/libgz-sensors-imu.so.11.0.0~pre2": "f1d3bbec59098198da1bd58bd14d645984776f03150253ebb41b010986cf3166",
+        "/reference/install/lib/libgz-sensors.so.11.0.0~pre2": "a0d26b45da986fcd98a5eb4d19151e1b38b5ed78136262df107df06ece54b876",
+        "/reference/install/lib/libgz-sim.so.11.0.0~pre3": "e9c05159978b7c7d819f18eb67ccf5d642a51a84f579d17ad2e964915fb0cc96",
+        "/reference/install/lib/libgz-transport-parameters.so.16.0.0~pre2": "9e568aa4a227dd12661e9feb065cf825d2b130a208333e0f48b605379cf09c31",
+        "/reference/install/lib/libgz-transport.so.16.0.0~pre2": "f112c13f5b456dcdca7bc67da226c6703bc42d72d086faa4d9927b28245c123a",
+        "/reference/install/lib/libgz-utils-log.so.5.0.0~pre2": "a233a8a5127507c108acdae673649408bcf0d263ef2b268b1f750c016960609a",
+        "/reference/install/lib/libgz-utils.so.5.0.0~pre2": "e5e4ad155f68074b4ec3c22416aee25755a6670641dd89032453e43eb3759952",
+        "/reference/install/lib/libsdformat.so.17.0.0~pre2": "b479f560e393b21959e4f49057659b66d0ffecdc2e85b041195cfe1bd95ec977",
+        "/usr/lib/libarmadillo.so.12.6.7": "ccd53833f1b8f2a2f4dc319110b4573845d227ce15c0157449fc8012addd5127",
+        "/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0": "e748efcae5753fe4a652877fccdb5895ac6f7605668a2db878b19c914e78e3a8",
+        "/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0": "851bb1fc5833ede9ed704b4417a251a899976d5e0915de40452615187a65278f",
+        "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+        "/usr/lib/x86_64-linux-gnu/libLerc.so.4": "a0ee52df526738293bdd232ddaefbb0d1d9c2da775a82fc6730e7cd394da560c",
+        "/usr/lib/x86_64-linux-gnu/libaec.so.0.1.2": "4fd52145f7a3f0648b3f5a9527bc3143f96e47768bb68acd62bd12399871ddcc",
+        "/usr/lib/x86_64-linux-gnu/libarpack.so.2.1.0": "98ac6135ac6cabe79f79dec26c675f9c41a0bd09e1b27da917140e36ece8414c",
+        "/usr/lib/x86_64-linux-gnu/libassimp.so.5.3.0": "f5524225032201d129cac2adf305af9c7ffcf612d8662f3c87a2d891d5cd3d18",
+        "/usr/lib/x86_64-linux-gnu/libblosc.so.1.21.5": "34331c189bd5fe8154f9803c0f74ef953762f00a8f28903400b999ce4b022123",
+        "/usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1.1.0": "a91ead095d2c80520c55a89057bbe10b031a075340442e63f44b310f93883a1b",
+        "/usr/lib/x86_64-linux-gnu/libbrotlidec.so.1.1.0": "64d8a5019d4c294b89fde1193343ea324bbd8603652554e5545f0a01595fa2c5",
+        "/usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1": "e86cd4f0019f42c2ba5e60602e0edc8694d2948377d98c3654d0f6bddb5254bb",
+        "/usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4": "cc08c9f50a8009ffd6391e0116a100369b11ca9238fa52392c019e6645b122a1",
+        "/usr/lib/x86_64-linux-gnu/libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+        "/usr/lib/x86_64-linux-gnu/libcfitsio.so.10.4.3.1": "cb7a3f500672733e2a445b9e7495bf4dbbe98741adfdc5e7bf6d84e4a6f6ac32",
+        "/usr/lib/x86_64-linux-gnu/libcom_err.so.2.1": "022943b3b11c860b049bce41342f1c2594941b7b401d95dfdf235521099fee08",
+        "/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0": "bb9ced68ce1209c48b55ddcebe913542197dc745c71febd65205ff0a4d833651",
+        "/usr/lib/x86_64-linux-gnu/libcrypto.so.3": "6866ed711dab8927e1bf82bf1cd30e828bdfc34f3cc1e83b1c9eb01ce6c37d9a",
+        "/usr/lib/x86_64-linux-gnu/libcurl-gnutls.so.4.8.0": "83f783be410435ef15c7f0d30de9f0d11f2fc64b9ca0567fb956ab29842214c8",
+        "/usr/lib/x86_64-linux-gnu/libcurl.so.4.8.0": "3e51df20a6b52879ee83a207115a9bc6891092741ce2f5ec791606e6caf859fa",
+        "/usr/lib/x86_64-linux-gnu/libdeflate.so.0": "608c8d7e4345a9ff4b57aa853ce0c355cf2e1d5ec11b8bee86fb4760bba8a15f",
+        "/usr/lib/x86_64-linux-gnu/libdfalt.so.0.0.0": "4e9985faccc884622d051a33d8d49dbd9edf03ddf75dd7b4fa1969d0dd528852",
+        "/usr/lib/x86_64-linux-gnu/libdraco.so.8.0.0": "b368d354f2778606b2553037fc8a3212719ee76a82711c60f7c72de49818e781",
+        "/usr/lib/x86_64-linux-gnu/libexpat.so.1.9.1": "286682ecbc5e59a638963b1a4e6351e65eb32fcf4bdcb9cb7569b6a61fe06a8d",
+        "/usr/lib/x86_64-linux-gnu/libffi.so.8.1.4": "00f593fe192f2851b8ce23b25cec2488d769beb5a8f63e8c9e563071e1075153",
+        "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0": "da008b908b32e428eaa1c09e36d6894c8f88362e254b503c7c2c6112b4ec9ed0",
+        "/usr/lib/x86_64-linux-gnu/libfontconfig.so.1.12.1": "a94b4059b27766f563894c8f7e61762b6f6b2e25c59ef36b730164d4b75c6c98",
+        "/usr/lib/x86_64-linux-gnu/libfreetype.so.6.20.1": "992dac80abe3a3854f3eb2668da4207c029664ceca5f122ddb46e2a8169e9499",
+        "/usr/lib/x86_64-linux-gnu/libfreexl.so.1.2.0": "f2039b4590601171c023835f7ca382d6bfd57ab20dc52606881ef64924082999",
+        "/usr/lib/x86_64-linux-gnu/libfyba.so.0.0.0": "be2cb05680106469a426cf0f79fff01b45f758c8b0b63f5647a9e2b643c18a31",
+        "/usr/lib/x86_64-linux-gnu/libfygm.so.0.0.0": "28795708b855867c02af33750679bfd47982bb59864e047d7c7ed99862d4dad7",
+        "/usr/lib/x86_64-linux-gnu/libfyut.so.0.0.0": "5fafe49dcad53e6e901cd9692a2393ecdf3022c8e10621baa3fd928813137985",
+        "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+        "/usr/lib/x86_64-linux-gnu/libgdal.so.34.3.8.4": "ea0cc2d10ca69e428cc4d70ea9c1e7e2f5af2108bc2339e7ed653f6508655ebb",
+        "/usr/lib/x86_64-linux-gnu/libgeos.so.3.12.1": "976ebb2b21926919404a87bed43de38a285686822ffc6a54f9e494a52cd41cf8",
+        "/usr/lib/x86_64-linux-gnu/libgeos_c.so.1.18.1": "fa0f458f3bc0ac66b51b5eb8532092948723c3c74c7eb8ea491811188f69b929",
+        "/usr/lib/x86_64-linux-gnu/libgeotiff.so.5.2.1": "252b2afa931e7d730b745a3952d833e03f61aeb786aa1d8f8b852b761fba445f",
+        "/usr/lib/x86_64-linux-gnu/libgfortran.so.5.0.0": "342618ccfebe840446e4ef2b7893f4161b2084845e570f42d68a70bfde58a58d",
+        "/usr/lib/x86_64-linux-gnu/libgif.so.7.2.0": "70ac81372d0ddbdf03dbdd7a9f994df625928cedf794b7c0a06c9eac27a4edc3",
+        "/usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0": "0ccdfb6d6f5c039465f6d002cf7e4c072d48ac6a2cffc8dd6c748dec31592804",
+        "/usr/lib/x86_64-linux-gnu/libgnutls.so.30.37.1": "ddbae2995750875c07bc218d12a062d73f8250678f54dedda7e9be5068781c98",
+        "/usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2.2": "c7aa00cf51646f7c32f196d329a562bc873ff32906c9caf6554ca489dd657507",
+        "/usr/lib/x86_64-linux-gnu/libhdf5_serial.so.103.4.0": "aa9c9c402261b73469d0b79fe0d585537bdea8d4b5dab872fab613640277db0e",
+        "/usr/lib/x86_64-linux-gnu/libhdf5_serial_hl.so.100.1.7": "f7612eea5f3df4d0fb7b7d8d0840b79ee25958e00da8d4934fe869ae36431a2b",
+        "/usr/lib/x86_64-linux-gnu/libheif.so.1.17.6": "52a1f6dc6df853f411df20574819b4f7b773c827f34c990b963154176c04e620",
+        "/usr/lib/x86_64-linux-gnu/libhogweed.so.6.8": "c3c606139d4f7776efa4dbd4a6b62e30c916b07a0cafd8c3ef173d6f093607e3",
+        "/usr/lib/x86_64-linux-gnu/libicudata.so.74.2": "ddbb3718b8bd9cbd780e5ab08b4503c30a6c4fa0706ebe5d074ed6b596c1714e",
+        "/usr/lib/x86_64-linux-gnu/libicuuc.so.74.2": "7560aadde38e5f4237a47a1ddd5891f9b36768a77a60faae30beee003ac01901",
+        "/usr/lib/x86_64-linux-gnu/libidn2.so.0.4.0": "6e632fd9a3125db60bbc623719bbc17b0470330321c5b1c57f1ff7190e5551ad",
+        "/usr/lib/x86_64-linux-gnu/libjbig.so.0": "6fea8a26ef5e0d2a36d296d7d0ec0c1f0894bf796b5824317bea88c090833a62",
+        "/usr/lib/x86_64-linux-gnu/libjpeg.so.8.2.2": "ac09f2cd6f8a3b8e3cb123999ce275f9bcbe31c6cf9e20212c8f297772591d15",
+        "/usr/lib/x86_64-linux-gnu/libjson-c.so.5.3.0": "5cb4dfc866c13becb4d447440c4efbbd4114a469e348209f6f86d9741c12661f",
+        "/usr/lib/x86_64-linux-gnu/libjsoncpp.so.1.9.5": "72527df2ef55a4af661f691e8be0eeece16a8e9bfc9a2a21971d41738e84b67b",
+        "/usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1": "b37407fb2930939bf78b47267019cd201a8af1f4b6a3852249c849cf3a985798",
+        "/usr/lib/x86_64-linux-gnu/libkeyutils.so.1.10": "f48214417757f18793ed6e180cc14ee1d6f04252a518fc7270e8ca1d0b4260fe",
+        "/usr/lib/x86_64-linux-gnu/libkmlbase.so.1.3.0": "70268ad82655c5701e022638d5c965b5165e4b7e6d9eb615f8a1dc302ca99b87",
+        "/usr/lib/x86_64-linux-gnu/libkmldom.so.1.3.0": "171cfe06e16ddfed640fc8ac494c35f56ae4af11eef3b51df43872a233524c1b",
+        "/usr/lib/x86_64-linux-gnu/libkmlengine.so.1.3.0": "d9bb9fd5000ed511f32036fbc31fa74f043d0f91fe11d0798b4adf5289879205",
+        "/usr/lib/x86_64-linux-gnu/libkrb5.so.3.3": "fad617a72b5839d30143e7db03281279089def6f18788cbb0b7f86385301bf04",
+        "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1": "936bae947a838bd47676a419dfcfb036d0163249215b58ec706ec7d46b7497aa",
+        "/usr/lib/x86_64-linux-gnu/liblber.so.2.0.200": "ddf14275b1fb70ba06510094071adcc1462e675f15ae6cdcadbf40c1dabe5a03",
+        "/usr/lib/x86_64-linux-gnu/liblcms2.so.2.0.14": "65d948920458341176f78e3797320ffb7c052ab5bd75036c3db75dd88839b007",
+        "/usr/lib/x86_64-linux-gnu/libldap.so.2.0.200": "a9829b999c95452eb0a34cc7b5349427b76dbf3e5d5c8672a5ca69e454c1b151",
+        "/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.2": "f059d7bfdc300ea3de7241bf0d21b2b5c9a5eac47cf8b8b28d3accafed90fe6e",
+        "/usr/lib/x86_64-linux-gnu/liblz4.so.1.9.4": "40bffd0a098387368b16b992abd5f7cf43c0fa2f05cabe5a6d483719554adfda",
+        "/usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5": "26b37d25f7ca2a2d348de8ecabacda12e921cd933b21fa069a179760db77219d",
+        "/usr/lib/x86_64-linux-gnu/libm.so.6": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+        "/usr/lib/x86_64-linux-gnu/libmd.so.0.1.0": "423e18586b6ea740f4465afd64f7a9a4cb7264ed979c8e7256f9085af5345fef",
+        "/usr/lib/x86_64-linux-gnu/libmfhdfalt.so.0.0.0": "371550bb1c25199507845bedfa17e78ee8179a0c5bf98b52bdb3675698a9bf26",
+        "/usr/lib/x86_64-linux-gnu/libminizip.so.1.0.0": "7397458805900a67287673a7d469d1ff207525ae7694ed885e8603d0164828bf",
+        "/usr/lib/x86_64-linux-gnu/libmysqlclient.so.21.2.46": "4707393164b8a29b11a35a87ad213612a936df43360c491555b1a0e528967080",
+        "/usr/lib/x86_64-linux-gnu/libnetcdf.so.19": "04fc972259131718fd96f0ea876654fe0a410a4af1635349dc8ec1590764f0f5",
+        "/usr/lib/x86_64-linux-gnu/libnettle.so.8.8": "a245ed916229583d6fe0b07657b3ed945bc148c28cc08b5266295f620d2b91cc",
+        "/usr/lib/x86_64-linux-gnu/libnghttp2.so.14.26.0": "46764ab5b6ca7e353a322054f0bee45d9158a27f3e6a82a2fa4447f2ba9ba268",
+        "/usr/lib/x86_64-linux-gnu/libnorm.so.1": "2543db995aa530bda8d145126b25c08d54cfe3348993e11eb75c30d6b43f5e72",
+        "/usr/lib/x86_64-linux-gnu/libnspr4.so": "c32583a53640c144757419b977a76976ee3dbda7b905a0af1046ace3c570ae98",
+        "/usr/lib/x86_64-linux-gnu/libnss3.so": "e02cd7ae23536d20588e6f0a3e1cfa93e7591cbca2408a090a147769dd3e3f7d",
+        "/usr/lib/x86_64-linux-gnu/libnssutil3.so": "8be78576227541c877d6ab17b49efe9ed7635b75039ea9810c8ccd030380f6e3",
+        "/usr/lib/x86_64-linux-gnu/libodbc.so.2.0.0": "e3053cde233bfbd3d1f00a656f34a1cca18f55f1ffce9bb949ed494570779f61",
+        "/usr/lib/x86_64-linux-gnu/libodbcinst.so.2.0.0": "63324384f43fa395e3bc6ec197dd4b7c554ff848919106d84aa5fc82b65865ca",
+        "/usr/lib/x86_64-linux-gnu/libogdi.so.4.1": "ad8a3c4b0f0b1ed4eda98967a1ad41524cdaa96b1d354acc9c6de3a57e355db0",
+        "/usr/lib/x86_64-linux-gnu/libopenjp2.so.2.5.0": "19906c0334e8db2137912f83cceed5a03d954a9c12d9781901a9a27f92ce1c4d",
+        "/usr/lib/x86_64-linux-gnu/libp11-kit.so.0.3.1": "a59efd4792d3343dedea1d26a28f5597abfe3369082deb504c4802a31b014897",
+        "/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.11.2": "e00576d71d81d3ba0cfa4903c835a44a8723aac96f72f79ff75200b4cff9071b",
+        "/usr/lib/x86_64-linux-gnu/libpgm-5.3.so.0.0.128": "46e1d5126ff73b9ba0c340b2cf0245d77620f85524c6fc967d533be6d19bdada",
+        "/usr/lib/x86_64-linux-gnu/libplc4.so": "f68520b4a9ba6190c67ce96511192f9af31dd96d91f18fd64cca48ffe08f7deb",
+        "/usr/lib/x86_64-linux-gnu/libplds4.so": "403f3c1ec489de93d04b5a386d2e659af6da0a41e09ffb90a280b6d68eeb1617",
+        "/usr/lib/x86_64-linux-gnu/libpng16.so.16.43.0": "89c0c6569a8c00480d451401ad4c0a74942e62dc57f229a970592fdc5adb29e8",
+        "/usr/lib/x86_64-linux-gnu/libpoppler.so.134.0.0": "0f2d017b1b9bb0ed1545185cc8c35237f34cdf48342af3c6b9a711ffbed8ce0b",
+        "/usr/lib/x86_64-linux-gnu/libpq.so.5.16": "b4ba0da9e51354cf40a599e787f0942c98fc268cf29b51806c62770d8f2a2a71",
+        "/usr/lib/x86_64-linux-gnu/libproj.so.25.9.4.0": "7ef5e3f3876ad24b07c5c23ea904a48b012bb0bb0c2b3306acb6136b3589b73b",
+        "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12": "53a2a625a30418d6ea84438b04c9196214dec51a30476596ee9be45ccadb0404",
+        "/usr/lib/x86_64-linux-gnu/libpsl.so.5.3.4": "ae6c5a9aecc249fc66e03c16ec6c4385d09d7e12e0ea7694bb831ab4fee8133c",
+        "/usr/lib/x86_64-linux-gnu/libpugixml.so.1.14": "b5493d9c8c6e36e3b72e38564b7e287ad925ab717577ded997465f9ac9da1c9e",
+        "/usr/lib/x86_64-linux-gnu/libqhull_r.so.8.0.2": "e4423b6ed8ab57f00e2695be19590898ad452bc2945afdb76f12f4f9a7fe6bd8",
+        "/usr/lib/x86_64-linux-gnu/libresolv.so.2": "1d730ea434da5a5595bc6a961d7a9ace83e03703205df9644044b3dca79c362f",
+        "/usr/lib/x86_64-linux-gnu/librtmp.so.1": "15a2a75e8c437b9c99971b5ee10278ab110beef1a56d1d9e5d6759ea140e98ac",
+        "/usr/lib/x86_64-linux-gnu/librttopo.so.1.1.0": "c9cb7d8a874c19931a1c588e9df797e2373439af8802a77fad5f1faf32455ff3",
+        "/usr/lib/x86_64-linux-gnu/libsasl2.so.2.0.25": "a0f410ad093236856eee59c4ff2838dc04d932ea0993400f23ed77d67d85af34",
+        "/usr/lib/x86_64-linux-gnu/libsharpyuv.so.0.0.1": "b2e62799e5dbd783a0671d53be99f7c6489567a5332a1e8f471e6bb250f294dc",
+        "/usr/lib/x86_64-linux-gnu/libsmime3.so": "2c9e89b4004d027ceab26e71fbced1d82f7b2129f54d90495e86c888c6c0d777",
+        "/usr/lib/x86_64-linux-gnu/libsnappy.so.1.1.10": "955acc8eec21bea1fe890ebf75e73d1c94438264d55e042c10ad1a7a57c2e065",
+        "/usr/lib/x86_64-linux-gnu/libsodium.so.23.3.0": "fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5",
+        "/usr/lib/x86_64-linux-gnu/libspatialite.so.8.1.0": "9b93f21d1cf0853d6080f65224c523e5a661429669be2ba07bfc24d9176f744c",
+        "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0": "62bb2fbc92edc05b35888e624882b78f5b38c0aca6a3df7ab7db32bb9c2629b6",
+        "/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6": "85265a9d4afca6f4b325ceb078b669c754fb881abed4cafe91ccebe9d625d975",
+        "/usr/lib/x86_64-linux-gnu/libssh.so.4.9.6": "b82bd54edb908605b8142be1a6d242df65501af0e9bb7581cc36ebf4d8a5ecfd",
+        "/usr/lib/x86_64-linux-gnu/libssl.so.3": "a40e7b67489bbd257e432c700ff8f6a1ad796425b5eccecdc2930127fdd86624",
+        "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+        "/usr/lib/x86_64-linux-gnu/libsuperlu.so.6.0.1": "18e66baee8422b4f0174b16f7df77b24846b77ee04b1b946ab17928c24f06d70",
+        "/usr/lib/x86_64-linux-gnu/libsz.so.2.0.1": "e73fa40252e84d38d64f9b3268ae6679530a777a55d6478d6b24de176d845c4b",
+        "/usr/lib/x86_64-linux-gnu/libtasn1.so.6.6.3": "59994414d0cdec4f678ef91eaaafc44b26b00bca507e4cc7978caaf79f584173",
+        "/usr/lib/x86_64-linux-gnu/libtiff.so.6.0.1": "aad9b47982a23560b6f6657adcd70a1141d0971bd4f2eb5b3753745f3e8feee4",
+        "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0": "f9e01d87fb78af744a426af8c992e94abf8cd3810a256e117bcc94cd84d2be6d",
+        "/usr/lib/x86_64-linux-gnu/libtirpc.so.3.0.0": "bc8768306c9212184e906329fc70fa9e69b680711596f7663c6e51ba32c91194",
+        "/usr/lib/x86_64-linux-gnu/libunistring.so.5.0.0": "7bcf825cd449892db5105ad2aed91dcf94a27b796426600c765720c584c54dd1",
+        "/usr/lib/x86_64-linux-gnu/liburdfdom_model.so.4.0": "ac27f211accb66a3f461d8d0b09b9ff123e306e68a0bac0f7c502203d7cbb34e",
+        "/usr/lib/x86_64-linux-gnu/liburiparser.so.1.0.30": "15b1a15f9bea5cf3d46e5a20d4dca9c196333c43937d2404a389efdafd98f28c",
+        "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0": "78d7f4d6f27b7dffc1c84dfe2f83e84aefa6f6ceeffc6ac4bc41f9fbc61cb84e",
+        "/usr/lib/x86_64-linux-gnu/libwebp.so.7.1.8": "9664db51ec65209078abbb8bc7b699888a43ecc2f3c74ce8dd4e497175aa5bf0",
+        "/usr/lib/x86_64-linux-gnu/libxerces-c-3.2.so": "67e0bd6a575a4b758c00e18beb076612af3690a1f399976657a0c399f9a0490e",
+        "/usr/lib/x86_64-linux-gnu/libxml2.so.2.9.14": "209e941be9eb2eb9ab36caaa0b81d1c6b36c8f5d7268c24f19e81039137e6485",
+        "/usr/lib/x86_64-linux-gnu/libyaml-0.so.2.0.9": "a518a0ec7ee915fbeabe80551b8c9573b34e37b9402cc3e3eeab0fe346ba6ef0",
+        "/usr/lib/x86_64-linux-gnu/libz.so.1.3": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+        "/usr/lib/x86_64-linux-gnu/libzip.so.4.0": "686612e6af220e2de954795ac7184695ebe3660541b13fa793cf5dc6ed352b5b",
+        "/usr/lib/x86_64-linux-gnu/libzmq.so.5.2.5": "c56acd8baaec3d869f7e23a194870302acef6d86384f1f0fe946fb81c7015a42",
+        "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5": "0a2128bc10841fb29e76d08d945864dfb0b6a66da5df6df5d8299197439e54bb"
+      }
+    },
+    "rows": [
+      {
+        "time_ns": 1000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 2000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 3000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 4000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 5000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 6000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 7000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 8000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 9000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 10000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 11000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 12000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 13000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 14000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 15000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 16000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 17000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 18000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 19000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 20000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 21000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 22000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 23000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 24000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 25000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 26000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 27000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 28000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 29000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 30000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 31000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 32000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 33000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 34000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 35000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 36000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 37000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 38000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 39000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 40000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 41000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 42000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 43000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 44000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 45000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 46000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 47000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 48000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 49000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 50000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 51000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 52000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 53000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 54000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 55000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 56000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 57000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 58000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 59000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 60000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 61000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 62000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 63000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 64000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 65000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 66000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 67000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 68000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 69000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 70000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 71000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 72000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 73000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 74000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 75000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 76000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 77000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 78000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 79000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 80000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 81000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 82000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 83000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 84000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 85000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 86000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 87000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 88000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 89000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 90000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 91000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 92000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 93000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 94000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 95000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 96000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 97000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 98000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 99000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "time_ns": 100000000,
+        "specific_force": [
+          0,
+          0,
+          9.81
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    "archive_sha256": "e0657d35d9b0f4b72b9b5d7b430492659019bafd902da103cced463318742433",
+    "runner_sha256": "697212addbb874e4776c280b95762f5c20c1cdb00ae25ca50cf0e19281e226a8",
+    "run_stdout_sha256": "daa81163b95f9b361e38ff4ac6251b4daf7b990ad4161f88541d1c25b2a7f541",
+    "run_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "configured_inventory": {
+    "collector_sha256": "be183163986327405b4d94d23b47d61a359b19d8eb851ac2fa819168cfae9f8a",
+    "raw_report_sha256": "0af06c276514989692fb4c45e7072a73f531d125f5db0bcb6e5f3fe674ace751",
+    "archive_sha256": "2ecfe54360d2a823a52994d8d7b53b18cd7f33aa9494a3e4617eef1ac2924e50",
+    "configured_repositories": 14,
+    "listed_configurations": 578,
+    "listed_case_expansions": 4589,
+    "unqualified_entries": 597,
+    "collector_exit_code": 1,
+    "remaining": {
+      "wrappers_or_unrecognized_binaries": 596,
+      "empty_gtest_binary": {
+        "repository": "gz-transport",
+        "ctest": "UNIT_NodeShared_TEST",
+        "reason": "Every source case is guarded by HAVE_ZENOH; this profile intentionally disables Zenoh. Empty list remains a gap, not a passing test."
+      }
+    }
+  },
+  "retained_failures": [
+    "V3 SDK missing libprotoc-dev; V4/V5 package corrections added real dependencies.",
+    "V5 physics common-test CMake requires Bullet include path even with Bullet engines skipped; V6 adds actual reference-only SDK headers, leaves engines skipped.",
+    "First image inventory required CTest Testing/Temporary log writes; private Testing-only tmpfs corrected setup without changing collector or image.",
+    "First headless compile probe could not execute private noexec tmpfs; private exec-tmpfs corrected setup without changing source/fixture.",
+    "Output-directory guard rejected overwrite before second probe; prior evidence retained.",
+    "First selected IMU and headless numeric passes each emitted a 111-byte log-path warning on read-only /root/.gz. Reruns use a private writable log tmpfs with unchanged image, source, fixture and assertions; all selected/headless stderr is empty. Warning runs remain retained."
+  ],
+  "remaining": [
+    "Independent actual image/projection review and exact staged/normal/hosted gates for recipe publication.",
+    "Full runtime test expansion/execution, wrappers, backend/render/language profiles and feature matrix.",
+    "License/distribution review and any image registry publication.",
+    "New SDK manifest is not the old six-library native-client source_lock contract; integration needs its own validation."
+  ],
+  "runtime_setup": {
+    "root_filesystem": "read-only",
+    "network": "none",
+    "image_pull": "never",
+    "writable_logs": "private /root/.gz tmpfs,16MiB,nosuid,nodev",
+    "host_home_modified": false,
+    "image_bytes_changed": false,
+    "selected_originals_stderr_bytes": [
+      0,
+      0,
+      0
+    ],
+    "headless_stderr_bytes": 0
+  }
+}

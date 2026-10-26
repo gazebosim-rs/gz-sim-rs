@@ -1,0 +1,21 @@
+{
+  "snapshot": "20261024T000000Z",
+  "suite": "noble",
+  "component": "main",
+  "base_digest": "sha256:a2d43bffc46670d7108bb3c0468c67c5557c4c92e83e1e34cbff1322ad1b94dc",
+  "inrelease_sha256": "cdb2f31d809f589719a53c6ad15f255b27569c4059542ada282aaa21b8e164b0",
+  "packages_xz_sha256": "2a6a199e1031a5c279cb346646d594993f35b1c03dd4a82aaa0323980dd92451",
+  "package": {
+    "Package": "ca-certificates",
+    "Version": "20240203",
+    "Architecture": "all",
+    "Filename": "pool/main/c/ca-certificates/ca-certificates_20240203_all.deb",
+    "SHA256": "641de77d8f142cfd62a1a6f964ba67b20754d3337c480efb529d086075a06c9a",
+    "Size": "159378",
+    "Depends": "openssl (>= 1.1.1), debconf (>= 0.5) | debconf-2.0"
+  },
+  "inrelease_url": "https://snapshot.ubuntu.com/ubuntu/20261024T000000Z/dists/noble/InRelease",
+  "packages_url": "https://snapshot.ubuntu.com/ubuntu/20261024T000000Z/dists/noble/main/binary-amd64/Packages.xz",
+  "signature_key": "F6ECB3762474EDA9D21B7022871920D1991BC93C",
+  "verification": "gpgv with the Ubuntu archive keyring inside the pinned official base image; Packages.xz SHA checked against InRelease and package SHA checked against Packages. No private host CA or TLS verification bypass."
+}

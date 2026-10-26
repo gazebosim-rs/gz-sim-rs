@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "status": "draft recipe; independent review and clean full native build pending",
+  "profile": "headless-tpe-native-reference",
+  "base_image": "docker.io/library/ubuntu@sha256:a2d43bffc46670d7108bb3c0468c67c5557c4c92e83e1e34cbff1322ad1b94dc",
+  "architecture": "amd64",
+  "ubuntu_snapshot": "20261024T000000Z",
+  "baseline_sha256": "0cb03b9b3f87d6ca6a9068262ff60cbf7ba7f095916d93dceaec4cdb4b79fe55",
+  "apt_dependencies": [
+    "binutils-dev",
+    "build-essential",
+    "ca-certificates",
+    "clang",
+    "cmake",
+    "cppzmq-dev",
+    "curl",
+    "freeglut3-dev",
+    "git",
+    "libassimp-dev",
+    "libavcodec-dev",
+    "libavdevice-dev",
+    "libavformat-dev",
+    "libavutil-dev",
+    "libbenchmark-dev",
+    "libboost-dev",
+    "libboost-filesystem-dev",
+    "libboost-system-dev",
+    "libbullet-dev",
+    "libcurl4-openssl-dev",
+    "libdw-dev",
+    "libdwarf-dev",
+    "libeigen3-dev",
+    "libfreeimage-dev",
+    "libgdal-dev",
+    "libgflags-dev",
+    "libgl-dev",
+    "libglew-dev",
+    "libgmock-dev",
+    "libgtest-dev",
+    "libjsoncpp-dev",
+    "libprotobuf-dev",
+    "libprotoc-dev",
+    "libspdlog-dev",
+    "libsqlite3-dev",
+    "libswresample-dev",
+    "libswscale-dev",
+    "libtinyxml2-dev",
+    "liburdfdom-dev",
+    "libwebsockets-dev",
+    "libxi-dev",
+    "libxmu-dev",
+    "libyaml-dev",
+    "libzip-dev",
+    "libzmq3-dev",
+    "pkg-config",
+    "protobuf-compiler",
+    "python3",
+    "python3-dev",
+    "python3-empy",
+    "python3-protobuf",
+    "python3-psutil",
+    "python3-pytest",
+    "ruby",
+    "ruby-dev",
+    "ruby-ffi",
+    "uuid-dev"
+  ],
+  "cmake_common": {
+    "CMAKE_BUILD_TYPE": "Release",
+    "CMAKE_INSTALL_LIBDIR": "lib",
+    "BUILD_TESTING": "ON",
+    "CMAKE_C_COMPILER": "/usr/bin/gcc",
+    "CMAKE_CXX_COMPILER": "/usr/bin/g++"
+  },
+  "repositories": [
+    {
+      "name": "gz-cmake",
+      "url": "https://github.com/gazebosim/gz-cmake",
+      "sha": "ca67ea8460fc03da062780805feb01cb20f4e0ba",
+      "cmake": {}
+    },
+    {
+      "name": "gz-utils",
+      "url": "https://github.com/gazebosim/gz-utils",
+      "sha": "eafd2035e344eeb28ccab03409093637b89bee35",
+      "cmake": {
+        "GZ_UTILS_VENDOR_CLI11": "ON"
+      }
+    },
+    {
+      "name": "gz-math",
+      "url": "https://github.com/gazebosim/gz-math",
+      "sha": "1316ed334f4d5bda7be59aae07cd6e8ff31cfe13",
+      "cmake": {
+        "SKIP_PYBIND11": "ON",
+        "SKIP_SWIG": "ON"
+      }
+    },
+    {
+      "name": "gz-tools",
+      "url": "https://github.com/gazebosim/gz-tools",
+      "sha": "832ff554af2605667bfebbbe7b794741d00d9c2f",
+      "cmake": {}
+    },
+    {
+      "name": "gz-plugin",
+      "url": "https://github.com/gazebosim/gz-plugin",
+      "sha": "1667852f9063cd5ebd954e2beefcc932f9698f88",
+      "cmake": {}
+    },
+    {
+      "name": "gz-common",
+      "url": "https://github.com/gazebosim/gz-common",
+      "sha": "4daa84f2e7e23eed296d6b997fac88e63b0a450d",
+      "cmake": {}
+    },
+    {
+      "name": "gz-msgs",
+      "url": "https://github.com/gazebosim/gz-msgs",
+      "sha": "89c0c3d1474f545cb889335daf930bfdab6ab852",
+      "cmake": {}
+    },
+    {
+      "name": "gz-transport",
+      "url": "https://github.com/gazebosim/gz-transport",
+      "sha": "41913b9dfc3dbce33ac5464ddcb427cc82450f26",
+      "cmake": {
+        "GZ_TRANSPORT_ENABLE_ZENOH": "OFF",
+        "GZ_TRANSPORT_DEFAULT_IMPLEMENTATION": "zeromq",
+        "SKIP_PYBIND11": "ON"
+      }
+    },
+    {
+      "name": "sdformat",
+      "url": "https://github.com/gazebosim/sdformat",
+      "sha": "1249805d9fceeff94ca1fe63e26ab9c051cea24e",
+      "cmake": {
+        "SKIP_PYBIND11": "ON"
+      }
+    },
+    {
+      "name": "gz-fuel-tools",
+      "url": "https://github.com/gazebosim/gz-fuel-tools",
+      "sha": "6ac62b01d7d8af3ab23fd2239728a791704a3f09",
+      "cmake": {}
+    },
+    {
+      "name": "gz-rendering",
+      "url": "https://github.com/gazebosim/gz-rendering",
+      "sha": "fb8e38cee4dad491f95f205afe6697b6a5d0f5fa",
+      "cmake": {
+        "SKIP_ogre": "ON",
+        "SKIP_ogre2": "ON"
+      }
+    },
+    {
+      "name": "gz-sensors",
+      "url": "https://github.com/gazebosim/gz-sensors",
+      "sha": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+      "cmake": {}
+    },
+    {
+      "name": "gz-physics",
+      "url": "https://github.com/gazebosim/gz-physics",
+      "sha": "b44cd0d0ea6606b6c98320c0c87a5670d4fc6be6",
+      "cmake": {
+        "SKIP_bullet": "ON",
+        "SKIP_bullet-featherstone": "ON",
+        "SKIP_dartsim": "ON",
+        "SKIP_mujoco": "ON"
+      }
+    },
+    {
+      "name": "gz-sim",
+      "url": "https://github.com/gazebosim/gz-sim",
+      "sha": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "cmake": {
+        "ENABLE_GUI": "OFF",
+        "SKIP_PYBIND11": "ON"
+      }
+    }
+  ],
+  "remaining": [
+    "Validate clean explicit-snapshot package installation and complete source dependency closure.",
+    "Independently review recipe/build/provenance and qualify the resulting image.",
+    "Clean build, inventory and selected actual native tests remain required.",
+    "DART, MuJoCo, Zenoh, Python/SWIG, GPU/renderer and GUI reference profiles remain separately unqualified.",
+    "Legacy CMake/rendering/tools are reference dependencies, not Rust replacement repositories."
+  ]
+}
