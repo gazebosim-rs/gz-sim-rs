@@ -1,0 +1,28 @@
+{
+  "decision": "approved_bounded_source_native_projection",
+  "reviewer": "/root/sdformat_owner_v2",
+  "author": "/root",
+  "source_tree": "e43aaf100afa7a782c760b8aaf4a89b60acc4057",
+  "source_native_review_sha256": "a0a55973db0d73855d0745ae8207f26cf72d9b1ab74223083839714c3b20ecdc",
+  "preuse_review_sha256": "d60210a17774cb079ca8ac978383fddac59960255a122c36f05e76c041fba18c",
+  "compile_validator_review_sha256": "4300596100b4b481f29a64da5424e60483ac7eabdc05cf944d22b9e8ba185809",
+  "source_sha256": {
+    "scripts/native-peer.py": "907ef84aa3806f6aed57faf9a97e1728a27c65634b9790e3bc88ddc07325cd39",
+    "scripts/native_reference.py": "a948581a93ad55f681df9f3ce242ac74b9dfc7984c81fd1d1a8c8733368a79bd",
+    "tests/test_native_reference.py": "86f544235164d72acdf72c7eaafab35305102cc12f3d2f4ae13d34f60e46a0e7"
+  },
+  "source_gate": {
+    "tree": "e43aaf100afa7a782c760b8aaf4a89b60acc4057",
+    "checks_state": "passed",
+    "evidence_state": "complete",
+    "artifacts_sha256": {
+      "test-output.log": "80ce3204db7ebd421780f59a629b649749779dadcd9484ea7d495cbede83bb6e",
+      "evidence.json": "f51ab66700d8d2fca23349d8228e0b3458f9c8b909a3cefd41826ec03f7d4938",
+      "summary.json": "7c8fad92b22a8a54302fd67b8f9bd941ca86a364f9a71bc4758c17a7b39623bd"
+    },
+    "missing_artifacts": []
+  },
+  "reviewed_draft_projection_sha256": "07fdd2f0200fb4ea865686b0316f3bf837f95db1804cb0d9aef709aef0063809",
+  "scope": "Explicit SDK client contract, unchanged Rust/C++ assertions and independently replayed fifteen actual C++ client scenarios. Compiler-time startup linkage, not runtime /proc maps. No new original-test port, performance, full native-suite, P0/P2 or registry-distribution credit.",
+  "publication_checks": "Mandatory normal protected hook and exact hosted qualification remain required."
+}

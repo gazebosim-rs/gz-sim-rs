@@ -58,3 +58,38 @@ The SDK manifest is a different contract from the existing six-library native
 client reference; adopting it into CI requires a separate integration change.
 Equal-work results in HEADLESS_MEASUREMENT.md belong to their recorded revisions
 and environment, not to this new SDK or its compiler.
+
+## Explicit SDK client profile
+
+The client builder accepts `GZ_REFERENCE_PROFILE=clean-headless-sdk-v1` with
+`GZ_REFERENCE_PREFIX=/reference/install` inside the qualified SDK environment.
+The default remains `transport-client-v1`, using the existing six-repository
+reference. Selecting one never substitutes its metadata for the other's contract.
+
+The SDK profile validates the complete accepted environment manifest, ten copied
+inputs, installed files and symlinks, fourteen clean source checkouts and compiler
+identity. The builder compiles a captured, byte-identical copy of the existing
+C++ client and rechecks inputs, sources, libraries and compiler before publishing
+provenance. Contract tests reject changed manifests, inventory, source trees,
+compiler and compilation-time mutations.
+
+A fresh exact-source Rust native test has run inside the immutable SDK image.
+Its unchanged assertions passed all fifteen actual C++ client scenarios: clock,
+IMU and repaired topics, deferred removal, shared topics, Rapier/TPE reset,
+acquisition scheduling, seeded noise and disabled orientation. Each compilation
+retained its executable and provenance, with checked hashes; the final receipt
+must match the final audited event. Compiler-time `ldd` establishes startup
+linkage, and each client receives the same immutable SDK library prefix at
+runtime. This is not a running-process `/proc` mapping observation.
+
+The [scoped evidence](../planning/reference/sdk-client-evidence.json) records the
+image, Rust/C++ source and binary identities, compiler and fifteen receipts.
+Independent actual replay passed with matching source, compiler, metadata and
+all fifteen C++ executable hashes and empty stderr. Publication qualification
+remains separate. The strict
+source gate separately passed 246 Rust tests, 64 tooling tests and the existing
+fifteen legacy-reference C++ scenarios. Every production crate still exceeds
+95% line and region coverage. No producer pin, original assertion or numerical
+tolerance changed. This work supplies functional interoperability evidence;
+it grants no performance, full native-suite, new original-test port or P0/P2
+completion claim.

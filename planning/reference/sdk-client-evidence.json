@@ -1,0 +1,185 @@
+{
+  "scope": "Selected unchanged Rust native test with fifteen actual C++ client scenarios in the immutable native SDK; no new original-test port, performance, full P0 or P2 credit.",
+  "image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+  "profile": "clean-headless-sdk-v1",
+  "default_profile_preserved": "transport-client-v1",
+  "rust_source_tree": "e43aaf100afa7a782c760b8aaf4a89b60acc4057",
+  "rust_binary_sha256": "52914ab1f20d12ad6b3eee830246c6b80ac89e5f6ab0418f98d0c6580bc7314d",
+  "rust_test": "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time",
+  "rust_tests": {
+    "passed": 1,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cpp_child_scenarios": 15,
+  "runtime_source_sha256": {
+    "scripts/native-peer.py": "907ef84aa3806f6aed57faf9a97e1728a27c65634b9790e3bc88ddc07325cd39",
+    "scripts/native_reference.py": "a948581a93ad55f681df9f3ce242ac74b9dfc7984c81fd1d1a8c8733368a79bd",
+    "reference/build-reference.py": "5960a384010ff43a3efe57a97009621e01f82786c28e8f35dc6e35381645aac0",
+    "planning/transport-reference-lock.json": "d3763b54283747d43c0aecbc74b27aec600fa36bba4d8509635f7a83db35e247",
+    "planning/reference/headless-sdk-environment.json": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f",
+    "crates/gz-sim-server/tests/clock_client.cc": "a0297fd50f0e22760867309003814cb812f401f3e5dda26ca27f530eef6d34d8"
+  },
+  "unchanged_test_source_sha256": {
+    "crates/gz-sim-server/tests/native.rs": "f8fe499d478e7b81350a0f8cd440d23d40e4a5efa9f3428d74d18d25bec7c0f9",
+    "crates/gz-sim-server/tests/clock_client.cc": "a0297fd50f0e22760867309003814cb812f401f3e5dda26ca27f530eef6d34d8"
+  },
+  "capsule_sha256": {
+    "interop-in-image.py": "ea487b4fef114af924893bab6902fa84f0d557f2b98394980d854de959c630ad",
+    "interop-inner.py": "70dd547bdfd97b0bba80ab25ecbfb6b7a37a1c63ec28e79759588aee76be9b3e",
+    "peer-audit.py": "94c43ac234536e8e9ab8a7f9e8c59f43f957a9664bd3ef4afee16db05762f633"
+  },
+  "compiler": {
+    "sha256": "1353e9bdd29a7295c7226bf6c63abccce056d8cac31f112e5cdbecc3f28c2769",
+    "version": "x86_64-linux-gnu-g++-13 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
+  },
+  "verified_shared_library_inventory_entries": 204,
+  "linkage_scope": "Compiler-time ldd startup linkage and the identical immutable SDK runtime LD_LIBRARY_PATH; no running-process /proc mapping observation.",
+  "raw_evidence_sha256": {
+    "artifacts/sdk-client/interop-image-v2-first/result.json": "6760fd80b5c2ddb5c86825c3266d3590758d6e62d7105f34a33587862bc0a3bc",
+    "artifacts/sdk-client/interop-image-v2-first/raw.tar.gz": "5fd33878c25f38f9c7b1118c10e88b5eb229956e109cfba0005086dc5fb7f482",
+    "artifacts/sdk-client/interop-image-v2-first/raw/status.json": "f52d93cd291e367f579de07d539c83d1c85fce7827653f583f2a627982cc7877",
+    "artifacts/sdk-client/interop-image-v2-first/raw/test.stdout": "2ca0906ec6bd94735c1a0bdf8e0db54bf79674b3a33484c9d3f406c9a845b83b",
+    "artifacts/sdk-client/interop-image-v2-first/raw/test.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/sdk-client/interop-image-v2-first/raw/peer-events.jsonl": "80f527ead0fc4c1a80f6fb78caa08f0ed6966682c01b9dc8981d2d2007a55408",
+    "artifacts/sdk-client/rust-build-v2.jsonl": "bdf45a6c1c6d669b7754ea1bc6baee2046a4413ec3b826b894e62bffdc9d8a83",
+    "artifacts/sdk-client/rust-build-v2.stderr": "f164df7e87d89079cad3310b79cfcc4e4cfb67161e8c77f30a095c8e5b28dcb9",
+    "artifacts/sdk-client/source-proposal-v2.json": "22e92fd7753bab123b052cf0c1d86c867060231a4570263f2cf72c8e8de701fb",
+    "artifacts/sdk-client/staged-source-v2.log": "268fb52e67a047eb5290bfac2ed8016f18a3416e12da12676716d9a819ba5b2a",
+    "artifacts/sdk-client/interop-binding-controls-v2.json": "97815556b1a6a4da385946295b932dfc5f41f08d6bb2025c2a2b49c30fa53e75",
+    "artifacts/sdk-client/runner-controls-v3.json": "913c9879d1d2e75eb1fec68c94885331abf8d2da8e71aa9e656b137831dc04f6"
+  },
+  "scenario_receipts": [
+    {
+      "index": 1,
+      "scenario": "clock",
+      "provenance_sha256": "da787e96adb79c7879118521cfc6379479a1b0870d2005f452ce40e077cb5728",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 2,
+      "scenario": "imu",
+      "provenance_sha256": "32f454a929fdb44de5d672c04e36e50b253af7b76497aa59f0933387e41a1a48",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 3,
+      "scenario": "repaired IMU topic",
+      "provenance_sha256": "15ab7bacf30c0136407430a33d26a726b52ac09848ddafb1577ea02fc3ba4bb7",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 4,
+      "scenario": "deferred removal",
+      "provenance_sha256": "2c7675ecc65abe14f3a941a46370ef3dab4184dc4dae878f4dfd2063feb05dcb",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 5,
+      "scenario": "shared-topic IMUs",
+      "provenance_sha256": "8e3fbfc6deabbd896f63dcf1dd61c205b7f39ada1acfec928d360f77d323a7f0",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 6,
+      "scenario": "Rapier reset",
+      "provenance_sha256": "7d84d93cb84efbc86580fd9b93db441f947434cd4b1235ac9440a2577f8a773c",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 7,
+      "scenario": "TPE reset",
+      "provenance_sha256": "43ae0cd1a2d456a8f959b595b75e265abbcd671e22c8054a5f29d590b5e84c51",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 8,
+      "scenario": "Rapier schedule",
+      "provenance_sha256": "a2cd66e3b03905f50495722c1ac4d540ac526caab15c58d90f51eb13dfcca764",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 9,
+      "scenario": "TPE schedule",
+      "provenance_sha256": "c3e633a49f2358c466b471b6cabecd52cb165d02ac6251313de90bec54049506",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 10,
+      "scenario": "Rapier noisy schedule",
+      "provenance_sha256": "53f5a66cd2319c774cf04faf113b4c52d530e1fd3be5a02727e6bf9efbb2501f",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 11,
+      "scenario": "TPE noisy schedule",
+      "provenance_sha256": "e0dd903978ee33933e745b14d0e5fd55acc113160b788846fafc8ae4d7135aa7",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 12,
+      "scenario": "Rapier disabled orientation",
+      "provenance_sha256": "c2f23f7435a5ba3f79af52fb77dc185b860aae7105253c410fe9b05539f31c31",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 13,
+      "scenario": "Rapier noisy disabled orientation",
+      "provenance_sha256": "7b36486168837a27d0d4aa709b092ac277f28e07307d9aeaf6addc24270c598f",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 14,
+      "scenario": "TPE disabled orientation",
+      "provenance_sha256": "d78b1d341132c37b0075afedd112d92b9a13ec524b016bb2f5b8707e6f7f04b3",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    },
+    {
+      "index": 15,
+      "scenario": "TPE noisy disabled orientation",
+      "provenance_sha256": "e1c30bdcdb74833f7f06dbc9d7a3b0f3786bc142f4eb8aa8215e32ab0f3a5f86",
+      "binary_sha256": "b130c3b284c79e43d20b39893d236760d91177e3de794442d732c418a7bd89a4"
+    }
+  ],
+  "source_gate": {
+    "tree": "e43aaf100afa7a782c760b8aaf4a89b60acc4057",
+    "state": "passed",
+    "rust_tests": 246,
+    "tool_tests": 64,
+    "cpp_child_scenarios": 15,
+    "native_profile": "legacy host transport-client-v1; distinct from the separate SDK replay",
+    "lines": [
+      3548,
+      3584
+    ],
+    "regions": [
+      5419,
+      5538
+    ],
+    "production_crates": 9,
+    "changed_production_rust": false
+  },
+  "limits": [
+    "Independent selected SDK replay passed; normal hook and exact public hosted qualification remain separate required publication checks.",
+    "Producer pins and original assertions unchanged.",
+    "SDK image remains local; no registry distribution or full native profile qualification.",
+    "All broader SLICE-01 dependencies, REF-01/02, P0/P2 and balanced performance work remain open."
+  ],
+  "independent_replay": {
+    "reviewer": "/root/sdformat_owner_v2",
+    "state": "passed",
+    "rust_tests": {
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0
+    },
+    "cpp_child_scenarios": 15,
+    "result_sha256": "312606a9d0cb9b96561de19e87f1e227cbd592a3c026a5c173a5a12dfbe6a7cd",
+    "archive_sha256": "022826a976773e4ab5813cd51175b78f0bc5205756d6cbb3e928b1a5a154ba27",
+    "test_stdout_sha256": "b3ac0f725a1f2609e0647f34c8a326eacf6e8b0ff1c3f5ab1a9946f722946c6c",
+    "test_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "test_stderr_bytes": 0,
+    "all_fifteen_peer_binaries_match_author": true,
+    "source_native_review_sha256": "a0a55973db0d73855d0745ae8207f26cf72d9b1ab74223083839714c3b20ecdc"
+  }
+}

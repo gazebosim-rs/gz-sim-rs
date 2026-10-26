@@ -1,5 +1,16 @@
 # Implementation status
 
+The explicit clean SDK client profile is under qualification. A fresh exact-source
+Rust native test passed its unchanged fifteen real C++ client scenarios in the
+immutable fourteen-repository SDK image. Per-scenario executable/provenance
+bindings and the original assertions are retained. The separate strict source
+gate passed 246 Rust tests, 64 tooling tests and fifteen legacy-reference C++
+scenarios, with every production crate above 95% line and region coverage.
+Independent SDK replay passed with matching identities and empty stderr.
+Publication checks remain pending; see
+[the scoped report](REFERENCE_IMAGE.md#explicit-sdk-client-profile). No P0/P2,
+full-rewrite or performance completion is claimed.
+
 The selected headless implementation is progressing; complete rewrite and P2
 acceptance remain open. All 78 broad system migration packets remain open.
 Scoped performance reports retain their explicit workloads and limits.
