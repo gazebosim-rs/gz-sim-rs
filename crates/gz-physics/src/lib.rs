@@ -12,6 +12,11 @@ pub enum Shape {
         radius: f64,
         half_height: f64,
     },
+    /// Spherical caps around a Z-axis segment of length twice `half_length`.
+    Capsule {
+        radius: f64,
+        half_length: f64,
+    },
     Box {
         half_extents: [f64; 3],
     },

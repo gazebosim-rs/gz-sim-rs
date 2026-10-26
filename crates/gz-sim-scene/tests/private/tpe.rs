@@ -192,3 +192,47 @@ fn cylinder_tpe_bounds_reject_invalid_dimensions() {
         }
     }
 }
+
+#[test]
+fn capsule_tpe_bounds_reject_invalid_dimensions_and_overflowing_cap_extent() {
+    for invalid in [0.0, -1.0, f64::NAN, f64::INFINITY] {
+        for shape in [
+            Shape::Capsule {
+                radius: invalid,
+                half_length: 1.4,
+            },
+            Shape::Capsule {
+                radius: 0.6,
+                half_length: invalid,
+            },
+        ] {
+            assert!(matches!(
+                validate_link(
+                    BodySpec {
+                        shape,
+                        position: [0.; 3],
+                        velocity: [0.; 3],
+                        mass: None,
+                    },
+                    Transform::default()
+                ),
+                Err(LoadError::Physics(PhysicsError::InvalidValue))
+            ));
+        }
+    }
+    assert!(matches!(
+        validate_link(
+            BodySpec {
+                shape: Shape::Capsule {
+                    radius: f64::MAX,
+                    half_length: f64::MAX
+                },
+                position: [0.; 3],
+                velocity: [0.; 3],
+                mass: None,
+            },
+            Transform::default()
+        ),
+        Err(LoadError::Physics(PhysicsError::InvalidValue))
+    ));
+}

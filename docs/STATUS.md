@@ -1,5 +1,14 @@
 # Implementation status
 
+Centered SDF capsules now use Rapier's existing f64 Z-axis primitive and native
+TPE model bounds, including both hemispheres. Independent native and Rust replay
+passed, with axis, extent and overflow controls failing their original predicates.
+The strict source gate passes 253 Rust/75 tooling/15 unchanged C++ client scenarios;
+all nine production crates exceed 95% line and region coverage. Native mutable
+Shape defaults/getters/setters remain a partial port; normal protected publication
+and exact hosted qualification are separate requirements. See [CAPSULES.md](CAPSULES.md).
+
+
 Current-source clean-SDK measurements and independent replay now cover the
 selected two-model TPE clock/pose/IMU observation path. Each separate batch
 retains eleven alternating process pairs, complete decoded receipts and source,
@@ -131,7 +140,7 @@ ratified budgets or P2. See planning/reviews/transport-consumer.json.
 | gz-sim-core | Bevy schedules, deferred commands, exact/pause stepping, integer time/epochs, atomic overflow checks, stable public IDs and cleanup, typed terminal fault diagnostics, world/allocator-bound reset reservations, isolated worlds | Persistence and complete lifecycle contract |
 | gz-physics | Shared f64 body construction, inertial, rotation/state values and exclusive installation identity | Shared backend capability contract and TPE scene integration |
 | gz-physics-tpe | Validated constant-velocity Body, Bevy-owned Motion, exclusive phase/reset installation, model overlap contacts and typed faults | Remaining geometry/commands and full backend conformance |
-| gz-physics-rapier | Full-f64 sphere/box/cylinder dynamics, inertia tensors, static bodies, world impulses, gravity, world velocity/COM wrench inputs, world-revolute constraints, backend reset/removal, prepared initial-state restoration and numeric validation | General articulations, remaining force frames and common capabilities, DART/MuJoCo/TPE adapters |
+| gz-physics-rapier | Full-f64 sphere/box/cylinder/capsule dynamics, inertia tensors, static bodies, world impulses, gravity, world velocity/COM wrench inputs, world-revolute constraints, backend reset/removal, prepared initial-state restoration and numeric validation | General articulations, remaining force frames and common capabilities, DART/MuJoCo/TPE adapters |
 | gz-sensors | IMU specific force/relative orientation, seeded Gaussian/bias/quantization and native covariance using f64 math | Activation, complete frame configuration and remaining sensor families |
 | gz-sim-scene | Atomic SDF construction, Rapier/TPE construction, backend-independent ECS observations, Bevy ownership hierarchy, canonical model and local poses, phase-preserving IMU sampling, checked model-subtree removal and loaded-scene restoration | General joints, offset/multiple shapes, full resource policy and remaining sensor contracts |
 | gz-sim-cli | Local SDF/configured world input and include roots, Rapier/TPE selection, exact integer steps, sorted physical-link state and typed load errors | Legacy grammar, transport serving, remote top-level resources, signal handling and packaging |

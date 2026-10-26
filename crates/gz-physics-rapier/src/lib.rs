@@ -125,6 +125,15 @@ fn collider(shape: Shape) -> Result<ColliderBuilder, PhysicsError> {
             Ok(ColliderBuilder::cylinder(half_height, radius)
                 .rotation(Vector::X * std::f64::consts::FRAC_PI_2))
         }
+        Shape::Capsule {
+            radius,
+            half_length,
+        } if [radius, half_length]
+            .into_iter()
+            .all(|v| v.is_finite() && v > 0.0) =>
+        {
+            Ok(ColliderBuilder::capsule_z(half_length, radius))
+        }
         Shape::Box {
             half_extents: [x, y, z],
         } if [x, y, z].into_iter().all(|v| v.is_finite() && v > 0.0) => {

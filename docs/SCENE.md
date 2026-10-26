@@ -6,7 +6,8 @@ change another running simulation. Includes use the supplied SDF resource resolv
 `NoResources` supports self-contained files. No network or GPU is involved.
 
 The current supported scene has unjointed models, nested models, static inheritance,
-and one centered sphere or box collision per link. Inertia tensors use SDF's
+and one centered sphere, box, cylinder or capsule collision per link. Inertia
+tensors use SDF's
 xx,yy,zz,xy,xz,yz order; the inertial rotation is applied before Rapier's symmetric
 eigendecomposition. Nonpositive/invalid inertia and derived overflow are rejected.
 The scene requires a centered center of mass. The backend itself also represents

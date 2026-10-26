@@ -530,6 +530,10 @@ fn build_model(
                 radius,
                 half_height: length * 0.5,
             },
+            Geometry::Capsule { radius, length } => Shape::Capsule {
+                radius,
+                half_length: length * 0.5,
+            },
             Geometry::Box { size } => Shape::Box {
                 half_extents: size.map(|v| v * 0.5),
             },

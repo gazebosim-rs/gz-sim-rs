@@ -51,6 +51,15 @@ pub(super) fn validate_link(spec: BodySpec, pose: Transform) -> Result<TpeLink, 
         } => [radius, half_height]
             .into_iter()
             .all(|v| v.is_finite() && v > 0.0),
+        Shape::Capsule {
+            radius,
+            half_length,
+        } => {
+            [radius, half_length]
+                .into_iter()
+                .all(|v| v.is_finite() && v > 0.0)
+                && (radius + half_length).is_finite()
+        }
         Shape::Box { half_extents } => half_extents.into_iter().all(|v| v.is_finite() && v > 0.0),
     };
     if !valid_shape {
@@ -68,6 +77,10 @@ pub(super) fn validate_link(spec: BodySpec, pose: Transform) -> Result<TpeLink, 
             radius,
             half_height,
         } => [radius, radius, half_height],
+        Shape::Capsule {
+            radius,
+            half_length,
+        } => [radius, radius, half_length + radius],
         Shape::Box { half_extents } => half_extents,
     };
     Ok(TpeLink(Aabb::from_half_extents(

@@ -1,0 +1,68 @@
+{
+  "decision": "approved_bounded_source_native_runtime_projection",
+  "author": "/root",
+  "reviewer": "/root/sdformat_owner_v3",
+  "parent": "25f682f5315fbc91340cadb79f76a472df69f09c",
+  "source_tree": "5782c250519b18951a332c6434468f6d3339e27e",
+  "source_freeze_sha256": "251c45a6d2679a21306fc74b70d6668568827a94eedbcd8afa800bdd3b2c591f",
+  "independent_reviews_sha256": {
+    "native_preuse": "8c319f7348bb5736c401ea58ca6545983b4493bf4210020d8fe35e6f94a898d8",
+    "native_actual": "1223cbc40fbb62ebf8195b30c4015b50eb3bff34cfbd460d267a3664062af86e",
+    "runtime_source_projection": "a4a140bf8a7760a5d5b1599c5db6ace37a6b3c69cc4a75dc142deb5d85c7268a"
+  },
+  "files_sha256": {
+    "crates/gz-physics-rapier/src/lib.rs": "fbdc46cbc86c082aa0aec51a89fdf208754624c6c24f14cbc9e0ca6c063ac01c",
+    "crates/gz-physics-rapier/tests/capsule.rs": "0fc87348851bce2f170f1aea22775290e76787ec1b8dffe8313c1445bafb6e4d",
+    "crates/gz-physics/src/lib.rs": "66dedf75ffe62bd46559e21ee08be6ed0f024f3c411197a5043b6c750707bc53",
+    "crates/gz-sim-scene/src/lib.rs": "fb5d81f6b1f4a2f7be5c0f43a6a8e47723c9358967370a2824d635e710285c1b",
+    "crates/gz-sim-scene/src/tpe.rs": "a6642cb081b0dde6473c3210f32e43b80e6f5f2125cbf6cae608db4b8572da81",
+    "crates/gz-sim-scene/tests/capsule.rs": "3313c5de1d886b99fb8393fe72e9f2890861304017378373ecc420c043236070",
+    "crates/gz-sim-scene/tests/native_capsule.cc": "882ccd2f71bcfe421783f7b88cabd2efd1ce3707e7606dcf92dc4a8103c8d13f",
+    "crates/gz-sim-scene/tests/private/tpe.rs": "d07f18d398c64b2bd649317b4454b0b9f1889f571bdebecd45dd583a47366b61",
+    "planning/reference/capsule.json": "dc47271e4599f9be14e356b01634d1dfe5f748717e789f5af3b3659a67f53933",
+    "scripts/probe-capsule.py": "7d0a22d61fd5e027560a6776cad1f11eafeed68e2ce2b9605d1850f2349b5f34",
+    "docs/CAPSULES.md": "854f34442e7f3ac4d661250482487a413d452435d8541efa448ecc5d2455b186",
+    "docs/SCENE.md": "62d16ceb15677862ecfaf523caf1a63192195120d364ffc9d9be310911a757c5",
+    "docs/STATUS.md": "ed0bfb8a821412fd4e33385e83502402a0ec8f2dccf3bbd9bbed31f79e544662",
+    "planning/test-ledger.json": "6fce67da344021dcdda31642379189bb6b2e75f05902f7e271cebb13065b987a"
+  },
+  "independent_checks": "Exact raw source export and own fresh target: Rapier4/0,scene2/0,privateTPE1/0 with25filtered; restored7/0. Three production-only controls fail intended axis inertia/support, native TPE contact and max-extent overflow predicates; no test or fixture mutations. Native original1/0 and8controls independently reproduced with exactsource/compiler/library/ELF hashes. Public native report removes private paths and normalizes library keys only.",
+  "source_gate": {
+    "tree": "5782c250519b18951a332c6434468f6d3339e27e",
+    "checks_state": "passed",
+    "evidence_state": "complete",
+    "artifacts_sha256": {
+      "test-output.log": "65582f702ff7228527ae4c3a96e526a319b0cdc7229a04c6cb3a66928e4dc14c",
+      "evidence.json": "46d51c716d76c26cf6fbf27e40354cef2746a73db05d55ce1137754a556dbc16",
+      "summary.json": "72c897311968bdf4fe99bc17b595d9b7eeeb67159ab7f1c4c44867a51265fd4a"
+    },
+    "missing_artifacts": []
+  },
+  "source_gate_counts": {
+    "rust_tests": 253,
+    "tooling_tests": 75,
+    "actual_cpp_scenarios": 15,
+    "production_lines": [
+      3569,
+      3605
+    ],
+    "production_regions": [
+      5446,
+      5565
+    ],
+    "per_crate": "All9productioncrates strictly>95% lines andregions",
+    "changed_lines": {
+      "gz-physics-rapier": [
+        6,
+        6
+      ],
+      "gz-sim-scene": [
+        13,
+        13
+      ]
+    }
+  },
+  "ledger": "Append one PARTIAL Shape.CapsuleShape row. Positive dimensions/native Z bounds and supplementary differential contacts qualify supported construction; default zero bounds and complete mutable native getter/setter/type API remain unported. Three complete/six partial; no retirement, exclusion, old assertion/tolerance/fixture/pin/policy changes.",
+  "scope": "Centered positive finite GazeboZcapsules using stable f64Rapier capsule_z and native TPEAABBhalf-length+radius; derivedmass/bounds admission beforemutation, loadedIMU/reset/IDs and narrowshape correctness. No custom collision/inertia algorithm, performance, fullbackend/P0/P2/fullrewrite claim.",
+  "publication": "Independent final metadata binding, mandatory normal protected hook and exact hosted qualification remain separate requirements."
+}
