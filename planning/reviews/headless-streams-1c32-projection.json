@@ -1,0 +1,15 @@
+{
+  "analysis_sha256": "ca7919c9ed28b1cc270903f3d7b83ae370c14c3f66e60bfb88b84d68b6296f36",
+  "checks": [
+    "All 11 sample pairs and 22 numeric/identity rows match raw report exactly after removal of repeated fixture_hex only; every removed fixture hashes to unchanged fixture_sha256.",
+    "All public top-level fields shared with raw report match byte-decoded JSON values; only six source/build/command/library maps omitted, and statistics equals exact independent analysis JSON.",
+    "Warmup flag applies only to first retained pair; all other ten pairs and extremes are present.",
+    "Documentation rounds medians, paired ratio and confidence interval accurately, states seed42/10000 bootstrap and floor((N-1)*p) method, and limits claims to selected two-model TPE/IMU complete stream on CPU31.",
+    "Projection contains no private home/build/library paths or environment values; compiler metadata remains."
+  ],
+  "decision": "approved_public_safe_projection_scoped",
+  "limits": "Public projection binds omitted build/source/library details by raw report SHA and independent raw review; it is not self-contained build provenance. No balanced robotics, general simulator speed, formal budget or P2 acceptance.",
+  "prior_raw_review_sha256": "7aac74bffdd9c4889ff9e5405b8d67185d718364fbbe131c0a186f8090d2c299",
+  "projection_sha256": "79ac165d6ced6ca77d2cf229776721e5ee13e52761170a38b2bcadb5eff9ece4",
+  "raw_report_sha256": "cb3690c025590ba26be8253c20b521640f0aea584b68ec4d51570a539d8477c6"
+}

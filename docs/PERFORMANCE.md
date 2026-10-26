@@ -2,8 +2,9 @@
 
 The owner selected balanced robotics as the primary workload: articulated robots,
 many entities, and camera/lidar sensors. Headless batch throughput and large worlds
-remain required benchmark categories. No performance improvement has been measured
-in this planning session.
+remain required benchmark categories. [HEADLESS_MEASUREMENT.md](HEADLESS_MEASUREMENT.md)
+records a scoped native/Rust TPE streaming comparison; it does not accept the
+balanced suite or the proposed budgets.
 
 ## Compare equal work
 
