@@ -1,0 +1,27 @@
+{
+  "author": "/root",
+  "decision": "approved",
+  "diff_sha256": "44f2b1c1c6080696c25e7ecdbaab06d0c075c9e2699e23c97f5adf1bfc1cfbec",
+  "files_sha256": {
+    "docs/NATIVE_TEST_INVENTORY.md": "037569fbd61db26a99c475ca68fe11a1ce1ab5177e22c6cab2f412455c8a34b6",
+    "planning/reference/runtime-inventory.json": "84b20f481d8f6c15084abe5cd201f0445f3b14fb6fa85257bec6e9695687d3aa",
+    "planning/test-ledger.json": "218a385dd2030306ce2a5d8d1e26f7583f1afdd1e959413abd5d0b208d2a38db",
+    "scripts/inventory-native-tests.py": "be183163986327405b4d94d23b47d61a359b19d8eb851ac2fa819168cfae9f8a",
+    "tests/test_native_inventory.py": "ff6c2cc1b40b034d7c9edf2636d03996a06719aafcb8c6df664abced301f577e"
+  },
+  "independent_checks": {
+    "bindings": "all five frozen file hashes, staged tree and binary diff hash, collector/baseline hashes and all five pinned source revisions match",
+    "counts": "961 registered entries = 237 listed + 540 wrapper/unrecognized + 184 missing command; 2388 listed case expansions, 724 unqualified entries, zero listing failures",
+    "privacy": "public report has no home/build/library/environment path strings; raw commands and outputs remain ignored local evidence",
+    "private_raw_export_unit_tests": "11 passed, 0 failed",
+    "v1_negative": "new hostile Git environment test fails against preserved V1 source (ValueError not raised)",
+    "v2_hostile_git": "wrong-source decoy rejected before CTest, correct-source accepted, dirty source rejected under inherited GIT_DIR/GIT_WORK_TREE",
+    "v3_native_raw": "237 listed stdout/stderr pairs rehashed and parsed byte-for-byte; five raw CTest JSON hashes match; report is byte-identical to raw inventory.json"
+  },
+  "parent": "66e55596fc977791191ef3159bdf13505156e9fc",
+  "proposal_sha256": "456922e5c810bd99feea72edf6c340d01e5d5ac73e2b4d07166f9e21fb62bfb2",
+  "remaining": "Full workspace staged gate, final metadata binding, normal protected hook, publication and hosted qualification remain author work. Checkout/cache/binary hashes are observations, not clean immutable dependency-image attestation.",
+  "reviewer": "/root/sdformat_owner_fallback",
+  "scope": "REF02 configured native CTest/gtest listing collector and five-build evidence only; no case execution pass, wrapper coverage, immutable build attestation, full runtime inventory, P0 or release acceptance.",
+  "source_tree": "b0f38145b5346acbe97e305c26eb2560a9c12974"
+}
