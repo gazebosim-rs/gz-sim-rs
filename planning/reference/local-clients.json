@@ -1,0 +1,75 @@
+{
+  "scope": "Reviewed consumer candidate on public hosted-green Transport c21ffcc. Exact staged gate239 Rust/24 tooling/15 unchanged C++ scenarios and independent source/API/assertion review pass. Normal protected commit and exact consumer hosted qualification remain required; no complete original-case or IO/P2 credit.",
+  "producer": {
+    "commit": "c21ffcc7ebdc108aefa1ab137f5468887a4bce96",
+    "tree": "0f3204235485200a60871ab725cc100af4f1a8c2",
+    "runtime_sha256": "ee43216829bbe9b517a4c69cbab40f6a1cc71d85a7877c78d84550b78b447bd4",
+    "contract_sha256": "d289adfd4c15183274cc85823b051841fd9265c46c2fcb23aba92ae726aa3fab",
+    "source_review_sha256": "1ac6f3645936bd353f8208ce50370893fe36ae7ed4fe234353ff5f9727cffc80",
+    "performance_review_sha256": "89a0736223c5ecb81bf0dac041d6b9f2d87897d53f9b42f5c606dbd0a0bad2e3",
+    "review_url": "https://github.com/gazebosim-rs/gz-transport-rs/blob/c21ffcc7ebdc108aefa1ab137f5468887a4bce96/docs/reviews/publication-cost-source.json",
+    "hosted_run": "https://github.com/gazebosim-rs/gz-transport-rs/actions/runs/40248292544",
+    "hosted_state": "success"
+  },
+  "preserved_dependencies": {
+    "gz-msgs": "2cea810e929adb4f925750b325265a99f9ae78b4",
+    "sdformat": "575d4d9abe5cd46dd2b02ebdd1267d9e25d6206f",
+    "gz-fuel-tools": "3747086ed13b59d2f7701eedc11329ebd7c9df3a"
+  },
+  "author_controls": {
+    "candidate": "one Rust test, both engines and two epochs; no publish warmup/retry, time1ms/seq0, whole packet reset replay, direct origin,50ms quiet window, routing_errors0",
+    "old_pin": "2a545f1d1983c2f5cb1a82d9fadc18a6278175dd",
+    "old_result": "First message arrived over wire and failed exact intra_process assertion; not a lost-packet claim. Initial mutable-client compile error retained separately.",
+    "original_development_log_sha256": "5319055b3b2be579082b2c39275b8ef902c8d76482fbd1c6081eaa7dc4d5afa8",
+    "fresh_old_control_log_sha256": "df0c8e0d9d3e17cec1f710b69085b53cd4423811cd21a03a31252b92a7132ed8",
+    "fresh_old_control_test_sha256": "80291be7dec1d9cd8d342a2f07f358e85fdd1373530026c9b92a17c158466800",
+    "fresh_old_control_adaptation": "Exact current candidate test except producer-only routing_errors assertion omitted because absent on old Statistics; all frame/origin/reset expectations preserved.",
+    "historical_candidate_log_sha256": "a7fdb9fb11256bb749c28921e550d0105f96fcc12edd43792ed911789294e72a",
+    "prepared_release_replay": "Unchanged first-frame test on raw f816 Sim plus reviewed f5eff737 producer source: one passing test, both engines/reset. Prepared code is not the new public consumer source; fresh full gate remains required.",
+    "prepared_release_replay_log_sha256": "1edf3c909de6f4f86124c940bcedfccced93ad05af181a2ccdfde4ce0034e061"
+  },
+  "limits": [
+    "Producer bounded fingerprint/address-reuse and per-Node discovery/service limits remain.",
+    "50ms consumer quiet window supplements, does not replace producer connected-wire500ms negative control.",
+    "Broader native equivalence, complete original case, dedicated performance and IO01/P2 acceptance unclaimed."
+  ],
+  "failed_adoption": {
+    "tree": "f81632c28c0d7727eb16138fb1416c6c68fc26e7",
+    "producer": "2d810f898d9e3fc1c3be265b03355d6b881865d0",
+    "gate_log_sha256": "b2f8a2497d78b61a8ff70073ce06254c447a19d8d125516ee26e0199ee9de3a4",
+    "result": "Existing real_transport_commands_report_acceptance_and_exact_step_completion failed Timeout; new IMU test passed. Raw all45 diagnostic replay reproduced44/1. Malformed request reached server; shared command queue rejected the consumed response with QueueFull under publication load. That admission design predates2d; no unique2d causation or historical lost-packet cause inferred. No failed run is waived."
+  },
+  "performance": {
+    "publication_history": "planning/benchmarks/transport-publication-history.json",
+    "publication_history_review": "planning/reviews/transport-history-projection.json",
+    "point_ratio": 1.0359797412283704,
+    "bootstrap95": [
+      0.9924289700377621,
+      1.0765820918455025
+    ],
+    "qualification": "Shared-host point overhead3.598% meets proposed5% point target, but interval crosses5%; no <=5% upper bound, ratified budget, C++ or whole-engine claim. Seven histories retain all154 samples, including initial71% regression.",
+    "historical_native": "planning/benchmarks/current-native-streams.json",
+    "native_review": "planning/reviews/current-native-performance.json",
+    "projection_review": "planning/reviews/current-native-projection.json",
+    "native_scope": "Historical public05c9291 comparison only; not the new producer pin. All11 pairs retained, one declared warmup excluded, outliers retained; selected two-model TPE/noise-freeIMU clock/pose/IMU streams only."
+  },
+  "consumer_gate": {
+    "tree": "c6beec5799f9ce945a5184e6107ea6631e9118ac",
+    "gate_log_sha256": "794a3b0dd38d7b8cd35692e1bb21d05068f6eddde031bcc8b4ea6436f815759b",
+    "rust_tests": 239,
+    "tooling_tests": 24,
+    "unchanged_cpp_scenarios": 15,
+    "coverage": {
+      "lines": [
+        3535,
+        3572
+      ],
+      "regions": [
+        5395,
+        5514
+      ]
+    },
+    "production_delta": "Only a loader API comment; no executable Rust source changed. Dependency implementation is covered by its independent producer gates.",
+    "review": "planning/reviews/transport-consumer.json"
+  }
+}

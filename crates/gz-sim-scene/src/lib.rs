@@ -264,7 +264,8 @@ fn require(supported: bool, entity: &str, feature: &'static str) -> Result<(), L
 }
 
 /// Creates a fresh world or returns an error without changing any existing simulation.
-/// The current backend accepts unjointed models with one centered box/sphere per link.
+/// Loads one centered sphere, box or Z-axis cylinder per link.
+/// Capability guards reject unsupported geometry and joint configurations.
 pub fn load_world(
     xml: &str,
     source: &str,

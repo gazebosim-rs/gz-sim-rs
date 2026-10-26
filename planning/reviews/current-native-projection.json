@@ -1,0 +1,18 @@
+{
+  "reviewer": "/root/sdformat_owner_fallback",
+  "subject": "Root current-native public-safe performance projection",
+  "status": "approved",
+  "created_utc": "2026-10-26T00:02:09.099452+00:00",
+  "public_projection": "artifacts/transport-consumer/performance/current-native-public.json",
+  "public_projection_sha256": "75b2662c5563d71d8db626aa200591a57411089b422572a8741df01fd7018453",
+  "raw_report_sha256": "1667ce0e44a3c2f2c14849ce92dbecb360868591df82ad3ab3b93b1cd8e815b3",
+  "analysis_sha256": "39cf42f2026b79c6a7581834bfd5818891c543e7db26bb307ca7c78c77182cd9",
+  "checks": [
+    "All 11 native/Rust pairs and every numeric/identity field equal raw report after fixture_hex removal; each removed fixture hashes to listed fixture SHA.",
+    "One predeclared warmup pair excluded from statistics; all 10 measured pairs, including the Rust 118.9 us outlier, retained.",
+    "Public statistics exactly equal approved analysis; medians and paired geometric ratio independently recomputed from public sample pairs.",
+    "Only generic compiler InstalledDir /usr/bin remains; no private build/library path, repeated fixture body or environment value appears in projection.",
+    "Scope explicitly excludes network, joints, rendering, balanced robotics, whole-engine speedup and P2 acceptance. Native internal transport serialization/build dependency provenance remain qualified."
+  ],
+  "limits": "This audits projection integrity against already reviewed raw benchmark; it does not rerun workloads or establish general performance parity."
+}

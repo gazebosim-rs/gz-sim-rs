@@ -1,0 +1,25 @@
+{
+  "reviewer": "/root/sdformat_owner_fallback",
+  "subject": "Seven-report Transport publication history public projection",
+  "status": "approved_scoped",
+  "created_utc": "2026-10-26T00:13:02.969481+00:00",
+  "projection": "planning/benchmarks/transport-publication-history.json",
+  "projection_sha256": "49329fd3ff2339b2836bf7beb0fa2138699b8f782aa7b53f61e6d9a081bcde09",
+  "raw_report_sha256": {
+    "complete-stream-performance.json": "7f0963c581782878cffe29d2bc48766a64b4179910a414444ec8f7ed8ab37d7a",
+    "optimized-stream-performance.json": "5702b33c2475fb6e1bfbd2be96483d0b5ef82e44fa6e4c4dc8ea1185d67d2122",
+    "generation-stream-performance.json": "a22254ce931ae2d8c83e2d441a313c9b7559fe79ba53994124048f90ce1461c0",
+    "borrow-stream-performance.json": "dffa19a40851db86d3b0ab2db58770b5b1ceb3493b2cd33f2e57185336f2990f",
+    "combined-stream-performance.json": "6cb9bb86ca0ca09b2a7a73980cdbc8bdd076774d01da06e222b86a01faf795ed",
+    "history-stream-performance.json": "20739883aa58f9b9c867b9d8d6622eb1c195080961daa3869c3086e97960e901",
+    "last-target-stream-performance.json": "3061407b8828e03600bd31a8808357389e693d88ccf2a693eb3e7d8f2ad9c434"
+  },
+  "checks": [
+    "All seven raw report hashes match their unique retained sources; all 154 observations preserve sample index, variant, warmup flag and sample log hash.",
+    "For every observation, six variable fields match raw exactly; every factored common logical field equals its raw observation and each removed fixture_hex hashes to the listed identical fixture SHA.",
+    "All shared top metadata, source trees/binaries, medians, paired geometric ratios, random-seed42 10000-resample percentile intervals and variant identities match raw; estimates recomputed from ten measured pairs after only sample0 warmup.",
+    "All seven candidate/parent geometric ratios exceed one; early measured regressions and final 1.0359797 with interval upper1.076582 remain visible.",
+    "No private absolute path or raw repeated fixture body appears in projection; wording excludes C++ comparison, formal performance budget, balanced robotics and P2 acceptance."
+  ],
+  "limits": "Projection integrity audit only. Raw benchmark execution, installed dependency provenance and shared-host timing limits remain as separately reviewed; no new performance acceptance claim."
+}

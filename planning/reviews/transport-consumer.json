@@ -1,0 +1,69 @@
+{
+  "reviewer": "/root/sdformat_owner_fallback",
+  "author": "/root",
+  "decision": "approved_scoped_source",
+  "created_utc": "2026-10-26T00:22:52.531994+00:00",
+  "proposal": "artifacts/transport-final/proposal.json",
+  "proposal_sha256": "8a5476ced0fdf93d8ca1ac1a39ff3e7e4c6b96a30c9348e90ac428a6cd689d31",
+  "base": "d4aaab213aa91f64138636be401979def4daf419",
+  "source_tree": "c6beec5799f9ce945a5184e6107ea6631e9118ac",
+  "binary_diff_sha256": "9c1113d5e7b78dc592fefe6a44ef932d8f62a0747cb6e7f8606db7891bc2115c",
+  "files_sha256": {
+    "Cargo.lock": "50ff708b370a6938a3105af7692d6e449790988924720248ec3d6a3a8622ed60",
+    "Cargo.toml": "7a01f17d50249181a4e8edebeac1cd743780998a23b21a45022963ff60635517",
+    "crates/gz-sim-scene/src/lib.rs": "6ece80136a271f82ec6697622525aa5ead1ead642d8aa63de12f8d4c3da47884",
+    "crates/gz-sim-server/tests/private/interest.rs": "054681263b2f2156117857bb938d5b8433d8c5c90db99240e1c0873ad866bfd6",
+    "docs/HEADLESS.md": "d7f3785a59f390b740e0734d9ee5d3e2d4a9344aaaca81011e30684a7f295ed3",
+    "docs/LOCAL_CLIENTS.md": "10da9a56cd824f3cbb13913e5ba15b3dbe63e0776a19fc38496b46400b4947a0",
+    "docs/STATUS.md": "5e024e499fb8e5b88393b6012b571a3c8153bd1c7497ffbbca4cca5987a460d0",
+    "planning/benchmarks/current-native-streams.json": "75b2662c5563d71d8db626aa200591a57411089b422572a8741df01fd7018453",
+    "planning/benchmarks/transport-publication-history.json": "49329fd3ff2339b2836bf7beb0fa2138699b8f782aa7b53f61e6d9a081bcde09",
+    "planning/reference/local-clients.json": "8536bed5faa17db65f8c7c7cccf4f8f852fc0ab0e6a56674bc6dcb6fac2362ca",
+    "planning/reviews/current-native-performance.json": "239aaba7edfbc8d264a6e62d19135d9978ed6593f544ed3c12cc7e20b9fa0810",
+    "planning/reviews/current-native-projection.json": "43be50741cf89b836c21100f4326ca95f97d8087947eaf818c7f0626e9388c77",
+    "planning/reviews/transport-history-projection.json": "9a60f9670e3b2891e4a86395a2fd73eac654622d21b458561d9c8d0748f8309c",
+    "planning/test-ledger.json": "4e50caa74ca5948256dc7cd308f69f1a8d035ecd2fec2800f9a98752beb4ee4c"
+  },
+  "preserved_parent_blobs": 246,
+  "producer_pin": "c21ffcc7ebdc108aefa1ab137f5468887a4bce96",
+  "source_gate": {
+    "log_sha256": "794a3b0dd38d7b8cd35692e1bb21d05068f6eddde031bcc8b4ea6436f815759b",
+    "stage_checks": "passed",
+    "stage_evidence": "complete",
+    "test_output_sha256": "3058fd70e7a232e18e2a9c0d47ea3b7bd3b7549dec8ee378a670acf5e27989f7",
+    "rust_test_rows": 239,
+    "tool_tests": 24,
+    "coverage_workspace": {
+      "lines": [
+        3535,
+        3572
+      ],
+      "regions": [
+        5395,
+        5514
+      ]
+    },
+    "all_production_crates_above95": true
+  },
+  "private_replay": {
+    "raw_tree_blobs": 260,
+    "first_frame_log_sha256": "ba732d0d18e829ea80835ec56ce4243c48e9a11f262ed16f7b7c15221a27ab58",
+    "first_frame_result": "1/0, both Rapier and TPE and reset epochs",
+    "service_response_log_sha256": "77a97d61af718503b2e80869c828db03b97bf52e6e8223d905a46e719eea9627",
+    "service_response_result": "1/0 exact retained real Transport command test",
+    "unprivileged_socket_attempt": "setup-only EPERM at fixture UdpSocket::bind before candidate assertion; socket-enabled exact binary replay passed"
+  },
+  "negative_control": {
+    "old_pin": "2a545f1d1983c2f5cb1a82d9fadc18a6278175dd",
+    "old_log_sha256": "df0c8e0d9d3e17cec1f710b69085b53cd4423811cd21a03a31252b92a7132ed8",
+    "disposition": "Exact new test body minus only producer-only routing_errors assertion on old pin fails direct intra_process assertion after receiving first frame; no lost-packet claim."
+  },
+  "checks": [
+    "Cargo.toml and Cargo.lock change only Transport 2a\u2192c21; SDF575, Msgs2cea and Fuel374 pins unchanged.",
+    "New first-frame regression preserves full IMU packet, 1ms/seq0, direct metadata origin, 50ms quiet window, exact reset repeat and routing_errors zero across Rapier/TPE; no old assertion/tolerance removed.",
+    "Public native comparison and seven within-Rust history projections equal independently reviewed SHA-bound receipts and keep all warmups/outliers/regressions.",
+    "All 14 source hashes, frozen Git tree and binary diff match; 246 preexisting tracked blobs unchanged.",
+    "Planning ledger adds only scoped consumer test evidence and no original-case retirement or coverage exclusion."
+  ],
+  "limits": "Producer hosted run40248292544 was pending at source freeze; final source overlap/metadata binding, normal protected hook, public consumer hosted verification and broader IO01/P2 performance acceptance remain separate. 50ms consumer duplicate quiet window does not replace producer 500ms connected-wire control."
+}

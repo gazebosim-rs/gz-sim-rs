@@ -33,6 +33,26 @@ planning/reviews/cylinder.json records the review and test dispositions. Normal
 protected commit and exact hosted verification remain separate requirements.
 Broader LOAD/PHY packets and P2 remain open.
 
+## Reviewed Transport consumer integration
+
+The reviewed pin c21ffcc adds separate-Node direct delivery and a bounded
+service-response lane. The retained experimental2d gate failed a service timeout;
+its consumed response hit the shared command queue. That failure is preserved.
+The new first-frame/reset/origin test retains all existing payload and timing
+assertions on Rapier and TPE. [LOCAL_CLIENTS.md](LOCAL_CLIENTS.md) records the
+repair and native routing boundaries. Exact staged239 Rust tests,24 tooling
+checks and all15 unchanged C++ scenarios pass; every crate exceeds95% lines and
+regions with unchanged workspace coverage3535/3572 and5395/5514. Independent
+source/API/assertion and private first-frame/service-response replay approved;
+producer hosted40248292544 SUCCESS. Normal consumer hook/hosted remain required.
+
+Seven within-Rust publication comparisons retain all 154 observations, including
+regressions. The final paired ratio is 1.03598 with 95% interval [0.99243,1.07658]:
+the point meets the proposed 5% target, while a 5% upper bound remains unproven.
+The separate historical public05/native report applies only to its exact selected
+TPE/IMU stream fixture. Neither report accepts balanced robotics performance,
+ratified budgets or P2. See planning/reviews/transport-consumer.json.
+
 ## Implemented scope
 
 | Crate | Behavior | Remaining boundary |

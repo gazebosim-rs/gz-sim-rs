@@ -1,0 +1,683 @@
+{
+  "scope": "Actual Rust Server versus native Server+Physics+Imu+SceneBroadcaster, all three requested clock/pose/IMU streams with prospective20ms-or-greater request pacing and per-step complete receipt; summed work latency excludes declared pacing, walltime recorded separately. Two-model TPE with one constant1m/s free body, one1000Hz noise-free IMU, sharedSDF, internallyunpaced1ms physics and complete decoded local observations. One received warmup excluded; N measured steps. Not network, joints, rendering, balanced robotics or whole-engine speedup.",
+  "measurement_boundary": "Sum of per-request servercall+complete-receipt/check latency, declared host pacing excluded and recorded separately",
+  "pose_byte_contract": "Record raw bytes and opaque stable roleIDs; cross-run size comparison subtracts only ID varint values, guarded by every small pose record encodedlen<128",
+  "qualification": "Shared host CPU-pinned alternating samples. Native local transport may bypass serialization; Rust currently uses encoded queues. Requested delivered messages/settings match, not internal instructions. Other installed dependencies/build provenance remain qualified; no P2 acceptance inferred.",
+  "hardware": {
+    "cpu_model": "AMD Ryzen 9 5950X 16-Core Processor",
+    "machine": "x86_64",
+    "cpu_affinity": 31
+  },
+  "observation_protocol": "Rust receives/checks each requested observation after Server::tick; native calls Server.Run(true,1,false), checks its callbacks and waits for all requested observations. Neither admits another step before complete receipt. Both include complete receipt and checking inside timing.",
+  "queue_settings": {
+    "rust_capacity": 1000,
+    "rust_send_hwm": 1000,
+    "rust_receive_hwm": 1000,
+    "native_explicit_hwm": 1000
+  },
+  "request_period_us": 20000,
+  "steps": 128,
+  "rust_path": "streams",
+  "rust_executor": "default",
+  "warmup_pairs": 1,
+  "measured_pairs": 10,
+  "ns_per_step": {
+    "medians": {
+      "native": 69922.109375,
+      "rust": 39342.77734375
+    },
+    "min": {
+      "native": 64031.84375,
+      "rust": 33985.7421875
+    },
+    "max": {
+      "native": 77267.7734375,
+      "rust": 118905.1015625
+    },
+    "native_over_rust": 1.77725402464775
+  },
+  "native_revisions": {
+    "sim": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+    "physics": "b44cd0d0ea6606b6c98320c0c87a5670d4fc6be6",
+    "sensors": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f"
+  },
+  "fixture_sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+  "cargo_lock_sha256": "0ba9a546f49bc3f1070f83a70d43019b17eec4255e50ed8f1b6f17269efaef26",
+  "git_base": "05c9291d1856186db0125b15a3c034daeac2b9f2",
+  "binary_sha256": {
+    "native": "4c901947b07a39792acf5242707b831670d97d97dfd0c0353b5ac57cdae67fc2",
+    "rust": "7f8105e96d09a69b061333b799cd33908543f4f389524d36d839f7b1a1916c48"
+  },
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)\nbinary: rustc\ncommit-hash: 59807616e1fa2540724bfbac14d7976d7e4a3860\ncommit-date: 2026-04-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.95.0\nLLVM version: 22.1.2\n",
+  "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin\n",
+  "samples": [
+    {
+      "index": 0,
+      "warmup": true,
+      "native": {
+        "steps": 128,
+        "nanos": 10063901,
+        "wall_nanos": 2580670839,
+        "pacing_wait_nanos": 2570602620,
+        "request_period_us": 20000,
+        "logical_bytes": 26899,
+        "time_sum": 8384000000,
+        "force_sum": 1255.679999999996,
+        "final_x": 0.1290000000000001,
+        "warmup_force_x": 0,
+        "clock_count": 128,
+        "pose_count": 128,
+        "clock_time_sum": 8384000000,
+        "pose_time_sum": 8384000000,
+        "clock_bytes": 3798,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_ids": {
+          "ball": 7,
+          "base": 5,
+          "body": 8,
+          "ground": 4
+        }
+      },
+      "rust": {
+        "clock_bytes": 3803,
+        "clock_count": 128,
+        "clock_time_sum": 8384000000,
+        "final_x": 0.1290000000000001,
+        "force_sum": 1255.679999999996,
+        "logical_bytes": 26899,
+        "nanos": 5820091,
+        "pacing_wait_nanos": 2571286788,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_count": 128,
+        "pose_ids": {
+          "ball": 5,
+          "base": 3,
+          "body": 6,
+          "ground": 2
+        },
+        "pose_time_sum": 8384000000,
+        "request_period_us": 20000,
+        "steps": 128,
+        "time_sum": 8384000000,
+        "wall_nanos": 2577145916,
+        "warmup_force_x": 0.0
+      }
+    },
+    {
+      "index": 1,
+      "warmup": false,
+      "native": {
+        "steps": 128,
+        "nanos": 8401258,
+        "wall_nanos": 2576751265,
+        "pacing_wait_nanos": 2568346158,
+        "request_period_us": 20000,
+        "logical_bytes": 26899,
+        "time_sum": 8384000000,
+        "force_sum": 1255.679999999996,
+        "final_x": 0.1290000000000001,
+        "warmup_force_x": 0,
+        "clock_count": 128,
+        "pose_count": 128,
+        "clock_time_sum": 8384000000,
+        "pose_time_sum": 8384000000,
+        "clock_bytes": 3789,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_ids": {
+          "ball": 7,
+          "base": 5,
+          "body": 8,
+          "ground": 4
+        }
+      },
+      "rust": {
+        "clock_bytes": 3789,
+        "clock_count": 128,
+        "clock_time_sum": 8384000000,
+        "final_x": 0.1290000000000001,
+        "force_sum": 1255.679999999996,
+        "logical_bytes": 26899,
+        "nanos": 4528663,
+        "pacing_wait_nanos": 2567184552,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_count": 128,
+        "pose_ids": {
+          "ball": 5,
+          "base": 3,
+          "body": 6,
+          "ground": 2
+        },
+        "pose_time_sum": 8384000000,
+        "request_period_us": 20000,
+        "steps": 128,
+        "time_sum": 8384000000,
+        "wall_nanos": 2571743545,
+        "warmup_force_x": 0.0
+      }
+    },
+    {
+      "index": 2,
+      "warmup": false,
+      "native": {
+        "steps": 128,
+        "nanos": 8196076,
+        "wall_nanos": 2576016940,
+        "pacing_wait_nanos": 2567815954,
+        "request_period_us": 20000,
+        "logical_bytes": 26899,
+        "time_sum": 8384000000,
+        "force_sum": 1255.679999999996,
+        "final_x": 0.1290000000000001,
+        "warmup_force_x": 0,
+        "clock_count": 128,
+        "pose_count": 128,
+        "clock_time_sum": 8384000000,
+        "pose_time_sum": 8384000000,
+        "clock_bytes": 3789,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_ids": {
+          "ball": 7,
+          "base": 5,
+          "body": 8,
+          "ground": 4
+        }
+      },
+      "rust": {
+        "clock_bytes": 3788,
+        "clock_count": 128,
+        "clock_time_sum": 8384000000,
+        "final_x": 0.1290000000000001,
+        "force_sum": 1255.679999999996,
+        "logical_bytes": 26899,
+        "nanos": 4350175,
+        "pacing_wait_nanos": 2567163785,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_count": 128,
+        "pose_ids": {
+          "ball": 5,
+          "base": 3,
+          "body": 6,
+          "ground": 2
+        },
+        "pose_time_sum": 8384000000,
+        "request_period_us": 20000,
+        "steps": 128,
+        "time_sum": 8384000000,
+        "wall_nanos": 2571536296,
+        "warmup_force_x": 0.0
+      }
+    },
+    {
+      "index": 3,
+      "warmup": false,
+      "native": {
+        "steps": 128,
+        "nanos": 8372859,
+        "wall_nanos": 2576182761,
+        "pacing_wait_nanos": 2567805123,
+        "request_period_us": 20000,
+        "logical_bytes": 26899,
+        "time_sum": 8384000000,
+        "force_sum": 1255.679999999996,
+        "final_x": 0.1290000000000001,
+        "warmup_force_x": 0,
+        "clock_count": 128,
+        "pose_count": 128,
+        "clock_time_sum": 8384000000,
+        "pose_time_sum": 8384000000,
+        "clock_bytes": 3802,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_ids": {
+          "ball": 7,
+          "base": 5,
+          "body": 8,
+          "ground": 4
+        }
+      },
+      "rust": {
+        "clock_bytes": 3795,
+        "clock_count": 128,
+        "clock_time_sum": 8384000000,
+        "final_x": 0.1290000000000001,
+        "force_sum": 1255.679999999996,
+        "logical_bytes": 26899,
+        "nanos": 4444487,
+        "pacing_wait_nanos": 2567203715,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_count": 128,
+        "pose_ids": {
+          "ball": 5,
+          "base": 3,
+          "body": 6,
+          "ground": 2
+        },
+        "pose_time_sum": 8384000000,
+        "request_period_us": 20000,
+        "steps": 128,
+        "time_sum": 8384000000,
+        "wall_nanos": 2571675226,
+        "warmup_force_x": 0.0
+      }
+    },
+    {
+      "index": 4,
+      "warmup": false,
+      "native": {
+        "steps": 128,
+        "nanos": 9149204,
+        "wall_nanos": 2577151664,
+        "pacing_wait_nanos": 2567997852,
+        "request_period_us": 20000,
+        "logical_bytes": 26899,
+        "time_sum": 8384000000,
+        "force_sum": 1255.679999999996,
+        "final_x": 0.1290000000000001,
+        "warmup_force_x": 0,
+        "clock_count": 128,
+        "pose_count": 128,
+        "clock_time_sum": 8384000000,
+        "pose_time_sum": 8384000000,
+        "clock_bytes": 3797,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_ids": {
+          "ball": 7,
+          "base": 5,
+          "body": 8,
+          "ground": 4
+        }
+      },
+      "rust": {
+        "clock_bytes": 3795,
+        "clock_count": 128,
+        "clock_time_sum": 8384000000,
+        "final_x": 0.1290000000000001,
+        "force_sum": 1255.679999999996,
+        "logical_bytes": 26899,
+        "nanos": 15219853,
+        "pacing_wait_nanos": 2580735731,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_count": 128,
+        "pose_ids": {
+          "ball": 5,
+          "base": 3,
+          "body": 6,
+          "ground": 2
+        },
+        "pose_time_sum": 8384000000,
+        "request_period_us": 20000,
+        "steps": 128,
+        "time_sum": 8384000000,
+        "wall_nanos": 2596009287,
+        "warmup_force_x": 0.0
+      }
+    },
+    {
+      "index": 5,
+      "warmup": false,
+      "native": {
+        "steps": 128,
+        "nanos": 9890275,
+        "wall_nanos": 2578109100,
+        "pacing_wait_nanos": 2568213545,
+        "request_period_us": 20000,
+        "logical_bytes": 26899,
+        "time_sum": 8384000000,
+        "force_sum": 1255.679999999996,
+        "final_x": 0.1290000000000001,
+        "warmup_force_x": 0,
+        "clock_count": 128,
+        "pose_count": 128,
+        "clock_time_sum": 8384000000,
+        "pose_time_sum": 8384000000,
+        "clock_bytes": 3790,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_ids": {
+          "ball": 7,
+          "base": 5,
+          "body": 8,
+          "ground": 4
+        }
+      },
+      "rust": {
+        "clock_bytes": 3799,
+        "clock_count": 128,
+        "clock_time_sum": 8384000000,
+        "final_x": 0.1290000000000001,
+        "force_sum": 1255.679999999996,
+        "logical_bytes": 26899,
+        "nanos": 7180158,
+        "pacing_wait_nanos": 2567336598,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_count": 128,
+        "pose_ids": {
+          "ball": 5,
+          "base": 3,
+          "body": 6,
+          "ground": 2
+        },
+        "pose_time_sum": 8384000000,
+        "request_period_us": 20000,
+        "steps": 128,
+        "time_sum": 8384000000,
+        "wall_nanos": 2574555874,
+        "warmup_force_x": 0.0
+      }
+    },
+    {
+      "index": 6,
+      "warmup": false,
+      "native": {
+        "steps": 128,
+        "nanos": 9248451,
+        "wall_nanos": 2577361591,
+        "pacing_wait_nanos": 2568108209,
+        "request_period_us": 20000,
+        "logical_bytes": 26899,
+        "time_sum": 8384000000,
+        "force_sum": 1255.679999999996,
+        "final_x": 0.1290000000000001,
+        "warmup_force_x": 0,
+        "clock_count": 128,
+        "pose_count": 128,
+        "clock_time_sum": 8384000000,
+        "pose_time_sum": 8384000000,
+        "clock_bytes": 3797,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_ids": {
+          "ball": 7,
+          "base": 5,
+          "body": 8,
+          "ground": 4
+        }
+      },
+      "rust": {
+        "clock_bytes": 3798,
+        "clock_count": 128,
+        "clock_time_sum": 8384000000,
+        "final_x": 0.1290000000000001,
+        "force_sum": 1255.679999999996,
+        "logical_bytes": 26899,
+        "nanos": 5303646,
+        "pacing_wait_nanos": 2569643597,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_count": 128,
+        "pose_ids": {
+          "ball": 5,
+          "base": 3,
+          "body": 6,
+          "ground": 2
+        },
+        "pose_time_sum": 8384000000,
+        "request_period_us": 20000,
+        "steps": 128,
+        "time_sum": 8384000000,
+        "wall_nanos": 2574981451,
+        "warmup_force_x": 0.0
+      }
+    },
+    {
+      "index": 7,
+      "warmup": false,
+      "native": {
+        "steps": 128,
+        "nanos": 8788576,
+        "wall_nanos": 2577246136,
+        "pacing_wait_nanos": 2568452672,
+        "request_period_us": 20000,
+        "logical_bytes": 26899,
+        "time_sum": 8384000000,
+        "force_sum": 1255.679999999996,
+        "final_x": 0.1290000000000001,
+        "warmup_force_x": 0,
+        "clock_count": 128,
+        "pose_count": 128,
+        "clock_time_sum": 8384000000,
+        "pose_time_sum": 8384000000,
+        "clock_bytes": 3795,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_ids": {
+          "ball": 7,
+          "base": 5,
+          "body": 8,
+          "ground": 4
+        }
+      },
+      "rust": {
+        "clock_bytes": 3788,
+        "clock_count": 128,
+        "clock_time_sum": 8384000000,
+        "final_x": 0.1290000000000001,
+        "force_sum": 1255.679999999996,
+        "logical_bytes": 26899,
+        "nanos": 14661448,
+        "pacing_wait_nanos": 2569040894,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_count": 128,
+        "pose_ids": {
+          "ball": 5,
+          "base": 3,
+          "body": 6,
+          "ground": 2
+        },
+        "pose_time_sum": 8384000000,
+        "request_period_us": 20000,
+        "steps": 128,
+        "time_sum": 8384000000,
+        "wall_nanos": 2583738425,
+        "warmup_force_x": 0.0
+      }
+    },
+    {
+      "index": 8,
+      "warmup": false,
+      "native": {
+        "steps": 128,
+        "nanos": 9111484,
+        "wall_nanos": 2577439298,
+        "pacing_wait_nanos": 2568321960,
+        "request_period_us": 20000,
+        "logical_bytes": 26899,
+        "time_sum": 8384000000,
+        "force_sum": 1255.679999999996,
+        "final_x": 0.1290000000000001,
+        "warmup_force_x": 0,
+        "clock_count": 128,
+        "pose_count": 128,
+        "clock_time_sum": 8384000000,
+        "pose_time_sum": 8384000000,
+        "clock_bytes": 3788,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_ids": {
+          "ball": 7,
+          "base": 5,
+          "body": 8,
+          "ground": 4
+        }
+      },
+      "rust": {
+        "clock_bytes": 3788,
+        "clock_count": 128,
+        "clock_time_sum": 8384000000,
+        "final_x": 0.1290000000000001,
+        "force_sum": 1255.679999999996,
+        "logical_bytes": 26899,
+        "nanos": 4768105,
+        "pacing_wait_nanos": 2567286506,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_count": 128,
+        "pose_ids": {
+          "ball": 5,
+          "base": 3,
+          "body": 6,
+          "ground": 2
+        },
+        "pose_time_sum": 8384000000,
+        "request_period_us": 20000,
+        "steps": 128,
+        "time_sum": 8384000000,
+        "wall_nanos": 2572083452,
+        "warmup_force_x": 0.0
+      }
+    },
+    {
+      "index": 9,
+      "warmup": false,
+      "native": {
+        "steps": 128,
+        "nanos": 8617494,
+        "wall_nanos": 2576590560,
+        "pacing_wait_nanos": 2567968415,
+        "request_period_us": 20000,
+        "logical_bytes": 26899,
+        "time_sum": 8384000000,
+        "force_sum": 1255.679999999996,
+        "final_x": 0.1290000000000001,
+        "warmup_force_x": 0,
+        "clock_count": 128,
+        "pose_count": 128,
+        "clock_time_sum": 8384000000,
+        "pose_time_sum": 8384000000,
+        "clock_bytes": 3799,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_ids": {
+          "ball": 7,
+          "base": 5,
+          "body": 8,
+          "ground": 4
+        }
+      },
+      "rust": {
+        "clock_bytes": 3801,
+        "clock_count": 128,
+        "clock_time_sum": 8384000000,
+        "final_x": 0.1290000000000001,
+        "force_sum": 1255.679999999996,
+        "logical_bytes": 26899,
+        "nanos": 4409354,
+        "pacing_wait_nanos": 2567180335,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_count": 128,
+        "pose_ids": {
+          "ball": 5,
+          "base": 3,
+          "body": 6,
+          "ground": 2
+        },
+        "pose_time_sum": 8384000000,
+        "request_period_us": 20000,
+        "steps": 128,
+        "time_sum": 8384000000,
+        "wall_nanos": 2571621951,
+        "warmup_force_x": 0.0
+      }
+    },
+    {
+      "index": 10,
+      "warmup": false,
+      "native": {
+        "steps": 128,
+        "nanos": 9139240,
+        "wall_nanos": 2577543831,
+        "pacing_wait_nanos": 2568399841,
+        "request_period_us": 20000,
+        "logical_bytes": 26899,
+        "time_sum": 8384000000,
+        "force_sum": 1255.679999999996,
+        "final_x": 0.1290000000000001,
+        "warmup_force_x": 0,
+        "clock_count": 128,
+        "pose_count": 128,
+        "clock_time_sum": 8384000000,
+        "pose_time_sum": 8384000000,
+        "clock_bytes": 3802,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_ids": {
+          "ball": 7,
+          "base": 5,
+          "body": 8,
+          "ground": 4
+        }
+      },
+      "rust": {
+        "clock_bytes": 3798,
+        "clock_count": 128,
+        "clock_time_sum": 8384000000,
+        "final_x": 0.1290000000000001,
+        "force_sum": 1255.679999999996,
+        "logical_bytes": 26899,
+        "nanos": 5508595,
+        "pacing_wait_nanos": 2577770964,
+        "pose_bytes": 16639,
+        "pose_bytes_without_id_values": 16127,
+        "pose_count": 128,
+        "pose_ids": {
+          "ball": 5,
+          "base": 3,
+          "body": 6,
+          "ground": 2
+        },
+        "pose_time_sum": 8384000000,
+        "request_period_us": 20000,
+        "steps": 128,
+        "time_sum": 8384000000,
+        "wall_nanos": 2583317837,
+        "warmup_force_x": 0.0
+      }
+    }
+  ],
+  "statistics": {
+    "source_report_sha256": "1667ce0e44a3c2f2c14849ce92dbecb360868591df82ad3ab3b93b1cd8e815b3",
+    "source_report": "current-native-performance.json",
+    "public_rust_commit": "05c9291d1856186db0125b15a3c034daeac2b9f2",
+    "scope": "Selected TPE complete-stream workload only: constant-velocity body, one noise-free IMU, clock and pose observations. Shared host CPU31; installed native dependency/build provenance qualified. Not balanced robotics, general speedup, dedicated hardware or P2 acceptance.",
+    "measured_pairs": 10,
+    "warmup_pairs_retained": 1,
+    "all_outliers_retained": true,
+    "median_us_per_step": {
+      "native": 69.922109375,
+      "rust": 39.34277734375
+    },
+    "paired_rust_over_native_geomean": 0.7001760299598635,
+    "paired_bootstrap95_ratio": [
+      0.5487310894610801,
+      0.950710294615944
+    ],
+    "bootstrap_seed": 42,
+    "bootstrap_resamples": 10000,
+    "ratio_samples": [
+      0.5390458190904267,
+      0.5307631359201648,
+      0.5308207148836497,
+      1.6635166294248112,
+      0.7259816334732856,
+      0.5734631669670953,
+      1.6682393143098495,
+      0.5233071802573543,
+      0.5116747397793372,
+      0.6027410375479799
+    ]
+  },
+  "raw_report_sha256": "1667ce0e44a3c2f2c14849ce92dbecb360868591df82ad3ab3b93b1cd8e815b3",
+  "projection": "Retains all eleven native/Rust pairs and every numeric/identity field; only repeated fixture_hex bytes are replaced by the fixture SHA-256. Source/build/library provenance remains bound to the independently reviewed raw report hash. No private build/library paths or environment values are published."
+}

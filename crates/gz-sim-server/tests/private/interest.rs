@@ -242,3 +242,140 @@ fn idle_ticks_preserve_noise_stream_and_use_the_full_acquisition_gap() {
             .unwrap()
     );
 }
+
+#[test]
+fn separate_node_receives_first_imu_frame_directly_and_once_after_reset() {
+    for engine in [
+        gz_sim_scene::PhysicsEngine::Rapier,
+        gz_sim_scene::PhysicsEngine::Tpe,
+    ] {
+        let settings = config();
+        let sim = gz_sim_scene::load_world_with_engine(
+            include_str!("../../../gz-sim-scene/tests/fixtures/imu_interest.sdf"),
+            "separate-node.sdf",
+            "default",
+            Duration::from_millis(1),
+            &sdformat::NoResources,
+            engine,
+        )
+        .unwrap();
+        let mut server = Server::new(
+            sim,
+            "default",
+            settings.clone(),
+            NonZeroUsize::new(2).unwrap(),
+        )
+        .unwrap();
+        let mut client = Node::new(settings.clone()).unwrap();
+        let subscription = client.subscribe("/activation/fast", "gz.msgs.IMU").unwrap();
+        let publisher = &server
+            .imus
+            .iter()
+            .find(|stream| stream.metadata.topic == "/activation/fast")
+            .unwrap()
+            .publisher;
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !publisher.connection_snapshot().unwrap() {
+            assert!(
+                Instant::now() < deadline,
+                "separate Node registration did not arrive"
+            );
+            thread::sleep(Duration::from_millis(1));
+        }
+        assert_eq!(server.simulation().elapsed(), Duration::ZERO);
+        let mut first = None;
+        for epoch in 0..2 {
+            assert!(server.apply_control(WorldControl {
+                pause: true,
+                multi_step: 1,
+                ..Default::default()
+            }));
+            server.tick().unwrap();
+            assert_eq!(server.simulation().elapsed(), Duration::from_millis(1));
+            let received = subscription
+                .recv_with_info_timeout(Duration::from_secs(5))
+                .unwrap();
+            assert!(
+                received.info().intra_process,
+                "another Node in this process must use native direct delivery"
+            );
+            assert_eq!(
+                received.info().partition,
+                format!("/{}", settings.partition)
+            );
+            assert_eq!(received.info().topic, "/activation/fast");
+            assert_eq!(received.info().type_name, "gz.msgs.IMU");
+            let frame = gz_msgs::msgs::Imu::decode(received.data.as_slice()).unwrap();
+            let header = frame.header.as_ref().unwrap();
+            assert_eq!(
+                header.stamp,
+                Some(Time {
+                    sec: 0,
+                    nsec: 1_000_000
+                })
+            );
+            assert_eq!(header.data.len(), 2);
+            assert_eq!(header.data[0].key, "frame_id");
+            assert_eq!(header.data[0].value, ["ball::body::fast"]);
+            assert_eq!(header.data[1].key, "seq");
+            assert_eq!(header.data[1].value, ["0"]);
+            assert_eq!(frame.entity_name, "ball::body::fast");
+            let orientation = frame.orientation.as_ref().unwrap();
+            assert_eq!(
+                [orientation.x, orientation.y, orientation.z, orientation.w],
+                [0.0, 0.0, 0.0, 1.0]
+            );
+            let gyro = frame.angular_velocity.as_ref().unwrap();
+            assert_eq!([gyro.x, gyro.y, gyro.z], [0.0; 3]);
+            let accel = frame.linear_acceleration.as_ref().unwrap();
+            assert_eq!([accel.x, accel.y], [0.0; 2]);
+            assert!(
+                (accel.z
+                    - if engine == gz_sim_scene::PhysicsEngine::Tpe {
+                        9.81
+                    } else {
+                        0.0
+                    })
+                .abs()
+                    < 1e-10
+            );
+            for covariance in [
+                &frame.orientation_covariance,
+                &frame.angular_velocity_covariance,
+                &frame.linear_acceleration_covariance,
+            ] {
+                assert!(covariance.as_ref().unwrap().header.is_none());
+                assert_eq!(covariance.as_ref().unwrap().data, [0.0; 9]);
+            }
+            if let Some(first) = &first {
+                assert_eq!(&frame, first);
+            } else {
+                first = Some(frame);
+            }
+            assert!(matches!(
+                subscription.recv_timeout(Duration::from_millis(50)),
+                Err(TransportError::Timeout)
+            ));
+            assert_eq!(server.counters().imu_failures, 0);
+            assert_eq!(server.counters().invalid_imu_samples, 0);
+            assert_eq!(server.counters().interest_failures, 0);
+            assert_eq!(
+                server.simulation().world().resource::<UpdateInfo>().epoch,
+                epoch
+            );
+            assert!(server.apply_control(WorldControl {
+                pause: true,
+                reset: Some(gz_msgs::msgs::WorldReset {
+                    all: true,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }));
+            server.tick().unwrap();
+            assert_eq!(server.simulation().elapsed(), Duration::ZERO);
+        }
+        assert_eq!(server.transport_statistics().routing_errors, 0);
+        server.shutdown();
+        client.shutdown();
+    }
+}

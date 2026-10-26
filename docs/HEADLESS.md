@@ -140,7 +140,7 @@ qualification also remain open.
 
 ## Reviewed producer integration
 
-The workspace pins SDF `575d4d9`, messages `2cea810e`, transport `2a545f1`
+The workspace pins SDF `575d4d9`, messages `2cea810e`, transport `c21ffcc`
 and Fuel `3747086e`.
 [TYPED_SENSOR_ADOPTION.md](TYPED_SENSOR_ADOPTION.md) records typed metadata
 capability guards and static-model graph qualifications; other sensor
@@ -164,7 +164,9 @@ The transport pin rejects duplicate same-node publishers and orders withdrawal
 before immediate recreation. Surviving stream leases are retained during
 reset; recreation after removal has a native-tested producer contract.
 Consumer tests cover frame-field precedence, empty legacy IDs, topic defaults and
-XML whitespace, explicit unsupported surfaces and all seven real C++ scenarios.
+XML whitespace, explicit unsupported surfaces and all fifteen real C++ scenarios.
+[LOCAL_CLIENTS.md](LOCAL_CLIENTS.md) records separate-Node first-frame/reset
+checks, the bounded response-lane repair and publication performance limits.
 
 
 World-bound identity reservations now permit explicitly restoring an original

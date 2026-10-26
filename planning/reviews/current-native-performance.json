@@ -1,0 +1,18 @@
+{
+  "reviewer": "/root/sdformat_owner_fallback",
+  "author": "/root",
+  "decision": "approved_scoped",
+  "source_sha256": {
+    "artifacts/transport-consumer/performance/current-native-performance.json": "1667ce0e44a3c2f2c14849ce92dbecb360868591df82ad3ab3b93b1cd8e815b3",
+    "artifacts/transport-consumer/performance/current-native-analysis.json": "39cf42f2026b79c6a7581834bfd5818891c543e7db26bb307ca7c78c77182cd9",
+    "scripts/benchmark-headless-pipeline.py": "0d6002182dc17465ea9452a843a6f08777d156fb20d0462bb948b77c024b45a4",
+    "crates/gz-sim-server/tests/native_stream_benchmark.cc": "6aefe359365f0ccbc6e1d54255abf3ed545b3a9ee59a46bc75c6e0833413697a",
+    "crates/gz-sim-server/tests/private/streams_benchmark.rs": "80c061c32c5b884f972e9417f05914bbc0d43ac5ecc81a65f0539b67e5c69402"
+  },
+  "public_rust_commit": "05c9291d1856186db0125b15a3c034daeac2b9f2",
+  "scope": "Selected two-model TPE, one noise-free 1000Hz IMU, constant 1m/s body, decoded clock/pose/IMU complete receipt, 128 internally unpaced 1ms steps per run, prospective 20ms request spacing on CPU31. Summed per-request work latency excludes pacing; native and Rust internal transport implementations differ. No balanced robotics, network, joints, rendering, P2 or general speed claim.",
+  "provenance": "Read-only independently matched report hash, exact unchanged benchmark script/source, Rust public source and Cargo.lock hashes, fixture, native pinned raw source hashes, Release -O3 -DNDEBUG CMake caches, native and Rust binary hashes, 342 loaded-library hashes and all 11 native maps. Native transport reference lock is upstream41913b9; Rust Cargo.lock pins rewrite2a545f1.",
+  "replay": "All 11 retained alternating pairs have exact raw stdout rows equal to report, empty stderr and complete maps; only predeclared index0 warmup excluded from estimates. Every pair has 128 clock/pose/IMU observations, identical fixture bytes, logical IMU bytes 26899, normalized pose bytes16127, timestamp/force/final-x checksums. Clock byte totals can vary with wall timestamps; raw pose IDs differ but remain stable by role and one-byte per record.",
+  "statistics": "Independent recomputation from measured indexes1..10: native median69.922109375us/step, Rust median39.34277734375us/step, paired Rust/native geometric mean0.7001760299598635, 10000 paired bootstrap resamples seed42 percentile95[0.5487310894610801,0.950710294615944]. Both Rust high samples including118.9051015625us/step retained. Ratio of medians and paired geometric ratio are distinct measures.",
+  "limits": "Shared-host CPU affinity and installed native dependencies remain qualified; no dedicated hardware timing claim. Request-level decoded work equivalence is established, not equality of scheduler, transport serialization path, or full engine workload."
+}
