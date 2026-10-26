@@ -1,0 +1,39 @@
+{
+  "scope": "Configured headless native listing and result-guard registrations only; no execution-pass, Rust-port, complete inventory, REF02 or P0 acceptance.",
+  "image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+  "image_environment_sha256": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f",
+  "embedded_collector_sha256": "be183163986327405b4d94d23b47d61a359b19d8eb851ac2fa819168cfae9f8a",
+  "external_listing_result": {
+    "external_collector_sha256": "0d0e4b83548bf4fe2acf689f8774bbb4f0df5ca208fac0dd0a3ae918e6e926a4",
+    "image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+    "collector_status": {
+      "state": "completed",
+      "exit_code": 1
+    },
+    "runner_sha256": "4c82b1ba6ba5ae941865fa531446f4c62ad431da1d9b6f8033cf4408edf3db09",
+    "checker_sha256": "14b1304ee55bbddb442277d6b477d2e8571a380f5b22ab06d4204c2245076ec1",
+    "archive_sha256": "3676d1300b321392d3e6ba310c2feb632902a3ca00cfdec04bab0a7e15ec7769",
+    "scope": "Configured image test inventory only; no execution-pass, complete inventory or P0 acceptance.",
+    "verified_counts": {
+      "registered_result_guards": 579,
+      "listed_configurations": 578,
+      "listed_case_expansions": 4589,
+      "unqualified_entries": 18,
+      "failed_or_unqualified_builds": 1,
+      "image_collector_unchanged": true
+    },
+    "state": "recorded_with_gaps"
+  },
+  "public_report_sha256": "f44048c038b9d54859857a9d5b92421aa9d1a43ab04e75018d68a8e7897ad7c3",
+  "preservation": {
+    "listed_configurations_preserved": 578,
+    "listed_case_expansions_preserved": 4589,
+    "only_old_wrapper_rows_reclassified": 579,
+    "registered_guards_are_not_cases_or_execution_passes": true,
+    "old_report_sha256": "0af06c276514989692fb4c45e7072a73f531d125f5db0bcb6e5f3fe674ace751",
+    "new_report_sha256": "f44048c038b9d54859857a9d5b92421aa9d1a43ab04e75018d68a8e7897ad7c3"
+  },
+  "remaining": "17 wrappers/unrecognized executables and one empty Zenoh-gated binary remain explicit gaps. Collector exit1 is retained. Full profile expansion/execution and ledger reconciliation remain open.",
+  "independent_replay_note": "Independent image replay preserves all listed configuration/case payloads; three parameterized binaries print different ASLR addresses in GetParam comments, so raw stdout hashes differ. No raw-output byte identity is claimed.",
+  "retained_unapproved_draft": "V1 classifier/runner preserved after preuse review found duplicate guard/interpreter identity, report validation and receipt provenance gaps. Corrected before first native use; no assertion or native failure waived."
+}

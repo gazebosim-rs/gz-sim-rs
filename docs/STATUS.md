@@ -4,6 +4,17 @@ The selected headless implementation is progressing; complete rewrite and P2
 acceptance remain open. All 78 broad system migration packets remain open.
 Scoped performance reports retain their explicit workloads and limits.
 
+## Configured native result guards
+
+The reviewed external collector lists 579 pinned result-file guards separately
+from gtest cases and execution passes. All 578 native configuration/case payloads
+and 4,589 case expansions are preserved. Eighteen gaps and the empty Zenoh-gated
+binary's exit1 remain explicit; the original SDK and its 597-gap report are
+unchanged. Independent source/native review and exact source checks passed
+246 Rust/57 tooling/15 real C++ scenarios with unchanged strict coverage.
+See NATIVE_TEST_INVENTORY.md for identities and limits. Full REF02/P0 and P2
+remain open; no upstream Rust port or new performance result is claimed.
+
 ## Clean native headless reference SDK
 
 The fourteen-repository native SDK now builds from the pinned Ubuntu image and
@@ -31,9 +42,10 @@ open; no new performance result is claimed.
 ## Ownership and model routing
 
 The coordinator owns this monorepo and integration. One agent owns each independent
-repository. The sdformat-rs and gz-msgs-rs owners use gpt-6-sol with high
-reasoning; the replacement Transport owner uses gpt-6.1-sol with high reasoning
-after repeated model-capacity failures. Agents work on bounded
+repository. The sdformat-rs and Transport owners use gpt-6.1-sol with high
+reasoning. The Msgs owner uses gpt-6-astra with high reasoning after repeated
+capacity failures in both Sol models; work remains bounded and independently
+reviewed. Agents work on bounded
 packets and independently review one another's changes. Fuel remains with its
 existing agent. Four concurrent slots cover the coordinator and three repo agents.
 

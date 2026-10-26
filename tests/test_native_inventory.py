@@ -42,6 +42,54 @@ DISABLED_Group.
         for properties in [base | {"WORKING_DIRECTORY": "/b"}, base | {"ENVIRONMENT": list(reversed(base["ENVIRONMENT"]))}, base | {"ENVIRONMENT_MODIFICATION": list(reversed(base["ENVIRONMENT_MODIFICATION"]))}, base | {"DISABLED": True}]:
             self.assertNotEqual(key, inventory.configuration_key(command, properties))
 
+    def guard_fixture(self):
+        helper = self.directory / "check_test_ran.py"
+        helper.write_text("# Nonexecuted registration fixture.\n")
+        self.guard_digest = inventory.digest(helper.read_bytes())
+        parent = {"name": "UNIT_fixture_TEST", "command": ["/native/gtest", "--gtest_output=xml:" + str(self.directory / "test_results/UNIT_fixture_TEST.xml")], "properties": [{"name": "WORKING_DIRECTORY", "value": str(self.directory)}]}
+        guard = {"name": "check_" + parent["name"], "command": ["/usr/bin/python3", str(helper), parent["command"][1].removeprefix("--gtest_output=xml:")], "properties": parent["properties"]}
+        return parent, guard
+
+    def test_exact_result_guard_is_a_registration_without_execution_or_cases(self):
+        parent, guard = self.guard_fixture()
+        with patch.object(inventory, "RESULT_GUARD_SHA256", self.guard_digest), patch.object(inventory.subprocess, "run") as child:
+            row = inventory.result_guard(guard, [parent, guard], {parent["name"]}, self.directory)
+        child.assert_not_called()
+        self.assertEqual(row["state"], "registered_result_guard")
+        self.assertEqual(row["scope"], "registration_only_not_executed")
+        self.assertEqual(row["guarded_ctest"], parent["name"])
+        self.assertNotIn("cases", row)
+        self.assertFalse(Path(guard["command"][2]).exists())
+
+    def test_unknown_helper_interpreter_and_missing_or_ambiguous_parent_remain_gaps(self):
+        parent, guard = self.guard_fixture()
+        with patch.object(inventory, "RESULT_GUARD_SHA256", self.guard_digest):
+            self.assertIsNone(inventory.result_guard(guard, [parent, guard], set(), self.directory))
+            self.assertIsNone(inventory.result_guard(guard, [parent, parent, guard], {parent["name"]}, self.directory))
+            self.assertIsNone(inventory.result_guard(guard, [parent, guard, guard], {parent["name"]}, self.directory))
+            self.assertIsNone(inventory.result_guard(guard, [guard], {parent["name"]}, self.directory))
+            for interpreter in ["/usr/bin/python2", "/tmp/python3"]:
+                changed = guard | {"command": [interpreter, *guard["command"][1:]]}
+                self.assertIsNone(inventory.result_guard(changed, [parent, changed], {parent["name"]}, self.directory))
+            Path(guard["command"][1]).write_text("# changed helper\n")
+            self.assertIsNone(inventory.result_guard(guard, [parent, guard], {parent["name"]}, self.directory))
+
+    def test_changed_guard_arguments_environment_and_xml_endpoint_remain_gaps(self):
+        parent, guard = self.guard_fixture()
+        variants = [guard | {"command": [*guard["command"], "extra"]},
+                    guard | {"command": [*guard["command"][:2], str(self.directory / "other.xml")]},
+                    guard | {"properties": [*guard["properties"], {"name": "ENVIRONMENT", "value": ["PYTHONPATH=/decoy"]}]},
+                    guard | {"properties": [{"name": "WORKING_DIRECTORY", "value": "/other"}]},
+                    guard | {"properties": [*guard["properties"], *guard["properties"]]}]
+        with patch.object(inventory, "RESULT_GUARD_SHA256", self.guard_digest):
+            for changed in variants:
+                with self.subTest(changed=changed):
+                    self.assertIsNone(inventory.result_guard(changed, [parent, changed], {parent["name"]}, self.directory))
+            for endpoint in [str(self.directory.parent / "escaped.xml"), "test_results/UNIT_fixture_TEST.xml"]:
+                changed_parent = parent | {"command": [parent["command"][0], "--gtest_output=xml:" + endpoint]}
+                changed_guard = guard | {"command": [*guard["command"][:2], endpoint]}
+                self.assertIsNone(inventory.result_guard(changed_guard, [changed_parent, changed_guard], {parent["name"]}, self.directory))
+
     def job(self, code, properties=None, configuration="a" * 64):
         row = {"repository": "gz-math", "ctest": "../../escape", "configuration": configuration}
         return row, [sys.executable, "-c", code], properties or {}, self.directory
@@ -124,6 +172,29 @@ DISABLED_Group.
         fake.write_text("#!" + sys.executable + "\nfrom pathlib import Path\nPath(" + repr(str(marker)) + ").touch()\nprint('{\"tests\": []}')\n")
         fake.chmod(0o755)
         return build, binary_dir, marker
+
+    def test_collect_keeps_result_guards_separate_from_native_listing_jobs(self):
+        import json
+        source, baseline = self.source_fixture("source", "registration fixture\n")
+        build, binary_dir, _ = self.build_fixture(source)
+        helper = self.directory / "check_test_ran.py"
+        helper.write_text("# Nonexecuted guard fixture\n")
+        executable = self.directory / "UNIT_fixture_TEST"
+        executable.write_bytes(b"\x7fELF controlled gtest_list_tests marker")
+        endpoint = str(build / "test_results/UNIT_fixture_TEST.xml")
+        properties = [{"name": "WORKING_DIRECTORY", "value": str(build)}]
+        parent = {"name": "UNIT_fixture_TEST", "command": [str(executable), "--gtest_output=xml:" + endpoint], "properties": properties}
+        guard = {"name": "check_UNIT_fixture_TEST", "command": ["/usr/bin/python3", str(helper), endpoint], "properties": properties}
+        data = json.dumps({"tests": [guard, parent]})
+        (binary_dir / "ctest").write_text("#!" + sys.executable + "\nprint(" + repr(data) + ")\n")
+        with patch.dict(os.environ, {"PATH": str(binary_dir) + os.pathsep + os.environ["PATH"]}), patch.object(inventory, "RESULT_GUARD_SHA256", inventory.digest(helper.read_bytes())):
+            reference, rows, jobs = inventory.collect("gz-math", build, baseline, self.directory)
+        self.assertEqual(reference["registered_entries"], 2)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["state"], "registered_result_guard")
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual(jobs[0][0]["ctest"], parent["name"])
+        self.assertNotIn("cases", rows[0])
 
     def test_wrong_revision_or_dirty_source_cannot_execute_ctest(self):
         source, baseline = self.source_fixture("source", "original tracked fixture\n")

@@ -53,6 +53,47 @@ def parse_cases(output):
     return cases
 
 
+
+# Pinned gz-cmake tools/check_test_ran.py; recognition does not execute the guard.
+RESULT_GUARD_SHA256 = "31b778bd4aebe0cc8907802cc5cd39dd648335e9de2c1eef1219d6651cb607ed"
+
+
+def result_guard(test, tests, known_gtests, build):
+    command = test.get("command", [])
+    if len(command) != 3 or command[0] != "/usr/bin/python3":
+        return None
+    helper = Path(command[1])
+    if not helper.is_file() or digest(helper.read_bytes()) != RESULT_GUARD_SHA256:
+        return None
+    name = test["name"]
+    if not name.startswith("check_") or name[6:] not in known_gtests:
+        return None
+    if sum(t["name"] == name for t in tests) != 1:
+        return None
+    parents = [t for t in tests if t["name"] == name[6:]]
+    if len(parents) != 1:
+        return None
+    parent = parents[0]
+    properties = test.get("properties", [])
+    if any(p["name"] != "WORKING_DIRECTORY" for p in properties) or len(properties) > 1:
+        return None
+    cwd = properties[0]["value"] if properties else str(build)
+    parent_cwds = [p["value"] for p in parent.get("properties", []) if p["name"] == "WORKING_DIRECTORY"]
+    if parent_cwds != [cwd] or not isinstance(cwd, str):
+        return None
+    outputs = [a.removeprefix("--gtest_output=xml:") for a in parent["command"][1:] if a.startswith("--gtest_output=")]
+    if outputs != [command[2]] or "--gtest_output=xml:" + command[2] not in parent["command"]:
+        return None
+    target = Path(command[2])
+    if not target.is_absolute() or not target.resolve().is_relative_to((build / "test_results").resolve()):
+        return None
+    if target.resolve() != (build / "test_results" / (parent["name"] + ".xml")).resolve():
+        return None
+    return {"state": "registered_result_guard", "guarded_ctest": parent["name"],
+            "helper_sha256": RESULT_GUARD_SHA256, "scope": "registration_only_not_executed",
+            "configuration": configuration_key(command, properties)}
+
+
 def environment_list(properties, name):
     value = properties.get(name, [])
     if not isinstance(value, list) or any(not isinstance(s, str) for s in value):
@@ -144,6 +185,13 @@ def collect(repository, build, baseline, raw):
             continue
         seen.add(key)
         jobs.append((row, command, properties, properties.get("WORKING_DIRECTORY", str(build))))
+    known_gtests = {job[0]["ctest"] for job in jobs}
+    registrations = {t["name"]: t for t in data["tests"]}
+    for row in rows:
+        if row["state"] == "wrapper_or_unrecognized_binary":
+            guard = result_guard(registrations[row["ctest"]], data["tests"], known_gtests, build)
+            if guard is not None:
+                row.update(guard)
     reference = {
         "repository": repository,
         "source_revision": revision,
@@ -185,7 +233,7 @@ def main():
         rows.extend(pool.map(lambda job: enumerate_job(job, raw, env), jobs))
     failed = sum(r.get("state") == "unqualified_build" for r in repositories) + sum(r["state"] == "enumeration_failed" for r in rows)
     report = {
-        "scope": "Available configured native CTest/gtest lists only. Listed cases are not executed passes. Wrappers, unrecognized shared-gtest binaries and unavailable builds remain gaps. Checkout/cache/binary hashes are not clean-build attestation; full runtime inventory and immutable dependency image remain open.",
+        "scope": "Available configured native CTest/gtest lists only. Listed cases are not executed passes. Exact pinned result-file guards are registered separately, never executed or counted as gtest cases. Other wrappers, unrecognized shared-gtest binaries and unavailable builds remain gaps. Checkout/cache/binary hashes are not clean-build attestation; full runtime inventory and immutable dependency image remain open.",
         "acceptance": "inventory_only",
         "enumerated_at": datetime.now(timezone.utc).isoformat(),
         "collector_sha256": digest(Path(__file__).read_bytes()),
@@ -193,7 +241,8 @@ def main():
         "tool_versions": {name: subprocess.check_output([name, "--version"], text=True).splitlines()[0] for name in ["cmake", "ctest"]},
         "repositories": repositories,
         "entries": sorted(rows, key=lambda r: (r["repository"], r["ctest"])),
-        "unqualified_entries": sum(r["state"] not in {"listed", "duplicate_configuration"} for r in rows),
+        "unqualified_entries": sum(r["state"] not in {"listed", "duplicate_configuration", "registered_result_guard"} for r in rows),
+        "registered_result_guards": sum(r["state"] == "registered_result_guard" for r in rows),
         "listed_configurations": sum(r["state"] == "listed" for r in rows),
         "listed_case_expansions": sum(len(r.get("cases", [])) for r in rows),
         "failed_or_unqualified_builds": failed,
@@ -201,7 +250,7 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n")
     (raw / "inventory.json").write_bytes(args.output.read_bytes())
-    summary = ["listed_configurations", "listed_case_expansions", "unqualified_entries", "failed_or_unqualified_builds"]
+    summary = ["registered_result_guards", "listed_configurations", "listed_case_expansions", "unqualified_entries", "failed_or_unqualified_builds"]
     print(json.dumps({k: report[k] for k in summary}))
     return bool(failed)
 

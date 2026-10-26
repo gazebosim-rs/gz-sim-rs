@@ -1,0 +1,44 @@
+{
+  "decision": "approved_bounded_source_and_inventory_evidence",
+  "author": "/root",
+  "reviewer": "/root/sdformat_owner_v2",
+  "recorded_at": "2026-10-26T08:12:48.638684+00:00",
+  "parent": "d0b7fb3db3a7dfb8e8f95b432c73cfed8aa8ef3b",
+  "tree": "014ed1d8f2f85be8a7c327b24d5c197dee44e0d3",
+  "source_proposal_sha256": "7d2402e0f22b9dd830b961645becc63d9facaea57ccede566d9be2edab5bbf6b",
+  "diff_sha256": "a4ec652ce50f657ebd7335ba8cc5b99b34cdc6730df3dfc6f33685f4e8ebede6",
+  "files": {
+    "scripts/inventory-native-tests.py": "0d0e4b83548bf4fe2acf689f8774bbb4f0df5ca208fac0dd0a3ae918e6e926a4",
+    "tests/test_native_inventory.py": "d61488193c861c7814557fc1fbffc2d8d14dff1b3632b3e8854a95beb182a28c"
+  },
+  "independent_source": "Exact2file Git-tree export and all SHA256s/diff/tree/parent verified; separate export15 focused tests pass. All existing tests/assertions preserved; four meaningful new test groups cover exact registration, helper/interpreter/ambiguity rejection, args/environment/XML rejection and integrated collect projection. Native pinned gz-cmake GzBuildTests.cmake and BSD helper31b778bd independently read; helper bytes are recognized, not copied/relicensed/executed. No Rust production/exclusions/assertion weakening/performance changes.",
+  "semantics": "Only exact /usr/bin/python3 + pinned helper hash + unique check_ target + unique recognized gtest parent + matched cwd + exact expected test_results XML endpoint are recognized. Guards carry registration_only_not_executed and no cases. Helper/unknown wrappers and empty listing failures stay explicit. Case/config enumeration is unchanged.",
+  "native_replay": {
+    "external_collector_sha256": "0d0e4b83548bf4fe2acf689f8774bbb4f0df5ca208fac0dd0a3ae918e6e926a4",
+    "image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+    "collector_status": {
+      "state": "completed",
+      "exit_code": 1
+    },
+    "runner_sha256": "4c82b1ba6ba5ae941865fa531446f4c62ad431da1d9b6f8033cf4408edf3db09",
+    "checker_sha256": "14b1304ee55bbddb442277d6b477d2e8571a380f5b22ab06d4204c2245076ec1",
+    "archive_sha256": "aac84e0d8c6fcbf7bab190f55ac00b1784630f4ba5cf7178bfd47c434cc82fb7",
+    "scope": "Configured image test inventory only; no execution-pass, complete inventory or P0 acceptance.",
+    "verified_counts": {
+      "registered_result_guards": 579,
+      "listed_configurations": 578,
+      "listed_case_expansions": 4589,
+      "unqualified_entries": 18,
+      "failed_or_unqualified_builds": 1,
+      "image_collector_unchanged": true
+    },
+    "state": "recorded_with_gaps"
+  },
+  "native_receipt_sha256": "4a9a78037902c872aaf9634c6e32d3ed7c2f4e20bc6cf8ddfc6a0283f48d31c2",
+  "producer_receipt_sha256": "d503ba03eb45b209d92046aa2a9ddd25c237ee705fdddb132b3e24eb66476fc5",
+  "checker_sha256": "14b1304ee55bbddb442277d6b477d2e8571a380f5b22ab06d4204c2245076ec1",
+  "independent_preservation_sha256": "776cb5a0bf478ff3a5c8fc3526f5b0c268ca1860b0ed19a9f857a7775ecaa3ec",
+  "preservation": "1175 identities unique and preserved;579 prior wrapper rows gain only registration projection, retaining prior fields. All578 configurations/4589 case payloads preserved in producer and reviewer runs. Three stdout hashes differ from old listing solely due to inspected ASLR addresses in GTest parameter comments; raw data retained, no raw-byte equality claim.18 gaps include17 other wrappers and1 empty Zenoh-gated UNIT_NodeShared_TEST enumeration failure.",
+  "controls": "Independent15 focused tests,9 negative+1positive synthetic receipt controls. Captured checker execution/retention and recheck audited; fake-Docker exit7 receipt inspected only. Native replay CLIEXIT1 retained recorded_with_gaps, not pass.",
+  "qualification": "Source/evidence approved only for this bounded classification. Final docs/projection/metadata binding, normal mandatory hook and exact hosted qualification remain pending. REF02 and P0 remain open; no functional native or Rust upstream port credited by registration listing."
+}
