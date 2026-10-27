@@ -15,6 +15,9 @@ use schedule::{SampleSchedule, ScheduleError};
 mod rates;
 pub use rates::{ImuRateError, ImuRateInfo, RateChange, imu_rate, set_imu_rate};
 
+mod activation;
+pub use activation::{ImuActivationError, imu_active, set_imu_active};
+
 mod tpe;
 pub use tpe::PhysicsEngine;
 
@@ -168,6 +171,7 @@ struct Imu {
     schedule: SampleSchedule,
     sdf_rate_hz: f64,
     rate_hz: f64,
+    active: bool,
     noise: Option<Box<noise::ImuNoise>>,
 }
 
@@ -720,6 +724,7 @@ fn build_model(
                     schedule,
                     sdf_rate_hz: sensor.update_rate,
                     rate_hz: sensor.update_rate,
+                    active: true,
                     noise,
                 },
             ));
@@ -887,7 +892,7 @@ fn sample_imus(
         let velocity = DVec3::from_array(body_velocity.linear);
         let acceleration = (velocity - sensor.previous_velocity) / time.dt.as_secs_f64();
         sensor.previous_velocity = velocity;
-        if !needed {
+        if !needed || !sensor.active {
             continue;
         }
         match sensor.schedule.take_sample(time.sim_time, false) {

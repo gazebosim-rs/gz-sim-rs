@@ -157,6 +157,20 @@
       "reviewer": "/root/msgs_owner_astra",
       "review": "Independent static and fresh-source runtime review approved:89 positive checks, six effective production controls and89 restored checks. Canonical staged source verification passes271 Rust/83 tooling tests with all9 production crates above95% lines/regions; independent full coverage binding approved. Receipt planning/reviews/runtime-imu-rate.json. Current-source scoped performance is separately reviewed; final metadata binding, normal protected hook and exact hosted qualification remain required. No original case retired.",
       "native_reference": "planning/reference/runtime-imu-rate.json"
+    },
+    {
+      "repository": "gz-sensors",
+      "upstream_commit": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+      "source": "src/Sensor_TEST.cc",
+      "test": "Sensor_TEST.Sensor",
+      "rust_test": "crates/gz-sim-scene/tests/imu_activation.rs::native_default_and_mutation_getters_preserve_phase_across_inactive_rate_changes",
+      "status": "partially_ported",
+      "retained_assertions": "The initial active getter is true; SetActive(false) makes it false. Other activation/phase checks are supplementary native probe observations, not constructor-test assertions.",
+      "remaining_assertions": "The original constructor/name/topic/frame/identity/configuration and remaining getter/setter assertions are not ported. No original case retired.",
+      "api_mapping": "Focused loaded IMU entity APIs replace this subset of generic Sensor methods; no generic Sensor framework or forced Rust acquisition API is introduced.",
+      "reviewer": "/root/transport_owner_v3",
+      "review": "Independent native/source/runtime/full reviews approved:91 positive checks, six effective production controls and91 restored checks; canonical279 Rust/88 tooling tests pass with all9 production crates above95% lines/regions. V1 history sensitivity hole retained and closed by an added natural Rapier gravity witness. Final metadata, normal hook and exact hosted CI remain pending; no original case retired. Receipt planning/reviews/imu-activation.json.",
+      "native_reference": "planning/reference/imu-activation.json"
     }
   ],
   "supplementary_tests": {
@@ -211,7 +225,9 @@
     "crates/gz-sim-scene/tests/capsule.rs": "Default/explicit SDF capsule loading through both headless engines, integer IMU times/readings, original IDs and loaded reset; eight native TPE model-contact controls with exact mode inventory and1e-12 point checks. No mutable Shape default/API or full P2 claim.",
     "crates/gz-sim-scene/tests/runtime_imu_future_gate.rs": "Native raw global deadline and connected-peer coupling for zero/NaN, TPE/Rapier and explicit interest or Always/no-interest. Native full-system future reference is TPE only.",
     "crates/gz-sim-server/tests/private/rates.rs": "Minimal bounded warm pool, remap collisions/capacity, old reset queue retirement, setup/reset faults, queue-drop visibility and per-tick request budget.",
-    "crates/gz-sim-server/tests/native_rates.rs": "Real legacy C++ client on TPE/Rapier, both resets, exact native-derived timestamps, sequence and physical/covariance fields. Two functional processes supplement the unchanged15; delayed delivery, exit7 and Rust-unwind/hung-child cleanup are separate controls."
+    "crates/gz-sim-server/tests/native_rates.rs": "Real legacy C++ client on TPE/Rapier, both resets, exact native-derived timestamps, sequence and physical/covariance fields. Two functional processes supplement the unchanged15; delayed delivery, exit7 and Rust-unwind/hung-child cleanup are separate controls.",
+    "crates/gz-sim-scene/tests/imu_activation.rs": "Both TPE and Rapier: ordinary inactive acquisition preserves phase/noise stream, raw-deadline peer admission remains global, velocity history stays current, invalid IDs/terminal faults are atomic, pause/removal and loaded reconstruction have explicit state. Native forced rows remain reference-only; no full native IMUServer activation claim.",
+    "crates/gz-sim-server/tests/private/activation.rs": "Local activation on both engines suppresses cached duplicate packets and preserves sequence continuity; loaded full/time-only reset restores active=true and initial sequence, while pause/invalid ID remain explicit. Existing committed-reset failure case additionally rejects activation after terminal failure."
   },
   "exclusions": [],
   "retirements": [],

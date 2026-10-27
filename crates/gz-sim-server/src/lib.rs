@@ -41,6 +41,8 @@ pub enum Error {
     PoseData,
     #[error("IMU publication lacks a unique public identity")]
     ImuIdentity,
+    #[error(transparent)]
+    ImuActivation(#[from] gz_sim_scene::ImuActivationError),
 }
 
 /// Whether publication and loaded IMU acquisition follow known subscriber interest.
@@ -315,6 +317,16 @@ impl Server {
 
     pub fn simulation(&self) -> &Simulation {
         &self.simulation
+    }
+
+    /// Changes local IMU acquisition without altering registrations or its phase.
+    /// A committed reset failure rejects further control of the invalid run.
+    pub fn set_imu_active(&mut self, id: u64, active: bool) -> Result<(), Error> {
+        if self.reset_failed {
+            return Err(Error::ResetStreams);
+        }
+        gz_sim_scene::set_imu_active(&mut self.simulation, id, active)?;
+        Ok(())
     }
     pub fn counters(&self) -> Counters {
         self.counters

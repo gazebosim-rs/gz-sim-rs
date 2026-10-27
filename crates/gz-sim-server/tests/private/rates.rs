@@ -229,6 +229,20 @@ fn rate_worker_failure_during_committed_reset_is_terminal_and_retires_leases() {
     );
     assert!(server.rates.providers.is_empty());
     assert!(server.reset_failed);
+    let id = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|entity| entity.contains::<ImuPublication>())
+        .unwrap()
+        .get::<gz_sim_core::EntityId>()
+        .unwrap()
+        .get();
+    assert!(matches!(
+        server.set_imu_active(id, false),
+        Err(Error::ResetStreams)
+    ));
+    assert!(gz_sim_scene::imu_active(server.simulation(), id).unwrap());
     assert!(matches!(server.tick(), Err(Error::ResetStreams)));
 }
 

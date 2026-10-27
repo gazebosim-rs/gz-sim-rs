@@ -1188,3 +1188,6 @@ fn disabled_orientation_omits_only_the_quaternion_field() {
 
 #[path = "runtime_rates.rs"]
 mod runtime_rate_tests;
+
+#[path = "activation.rs"]
+mod activation_tests;

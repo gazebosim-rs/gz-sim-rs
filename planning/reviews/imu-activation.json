@@ -1,0 +1,186 @@
+{
+  "author": "/root",
+  "reviewer": "/root/transport_owner_v3",
+  "parent": "a8b80129071039568471efb9e9a56edd02b8effb",
+  "source_freeze_sha256": "ceef731caa4307281aea9a2ede500c088a51599493a198435eda5ef6c5702999",
+  "files_sha256": {
+    "crates/gz-sim-scene/src/activation.rs": "ed37c68fee674d26993ba0cb1816514c221851b60ad17d8b9b98b4b25c641705",
+    "crates/gz-sim-scene/tests/fixtures/imu_activation.json": "485aebdc0630a5e6dbc6f8672d547f72f859cc762336f0e5ad9ce1f8049e3f2c",
+    "crates/gz-sim-scene/tests/imu_activation.rs": "e801a5d3fb082398055b4e900056f4ea1ad33bccd3efa6d7e6e1e20207c7b6ec",
+    "crates/gz-sim-server/tests/private/activation.rs": "f7996a9fe1672f2813d20ae75c0034d80353e94fa807b95badbbcd360a23c0a5",
+    "crates/gz-sim-scene/src/lib.rs": "1181e10573d5114d3f40f7e992487d7c7c2836efb66ec223acf7c15e20c2357c",
+    "crates/gz-sim-scene/tests/private/observations.rs": "7fa298a542f855e5771ddbcb504861f8bf98c87251675d25cf1e2ed759875288",
+    "crates/gz-sim-server/src/lib.rs": "a0ee64ebed039f5438529cfe2e3e2953723bb802d71c6b7175a964761cc87470",
+    "crates/gz-sim-server/tests/private/rates.rs": "5e6652072c24ebd8f61cbd1a17f1115e37ef593d7ff901b4612d8eabf3349152",
+    "crates/gz-sim-server/tests/private/server.rs": "6871422460bdca6920679627f9e1da91d5b8281467565a057372db7530946510"
+  },
+  "runtime_proof_sha256": "eca889f7c1665ef6a48f6909fa271abd963fcf083d64e064959a3b56475509ce",
+  "static_receipt_sha256": "d1f4b55a3127e1da21fafd8cc84a4c7c33b69a296d25c0809fe4d49938915a0e",
+  "native_actual_review_sha256": "1d0dca326ea1aa14f8e0291f3bb0388ce240fbb0e8ec2305bb1fde2ceb27e923",
+  "public_native_actual_review_sha256": "61395c2a666a56bd1410beba9dde8eaaa23b7078b798c836e13a7ed23de5a6db",
+  "positive_checks": 91,
+  "restored_checks": 91,
+  "production_controls": 6,
+  "control_results": {
+    "inactive_gate": "Cached timestamp250ms violates retained original cached sample.",
+    "global_any_due_connected": "Target1ms violates expected11ms.",
+    "history_before_gate": "Added natural Rapier gravity resumed-z predicate fails; existing input-configuration test preserved.",
+    "phase_reset": "Extra sample300ms violates retained251ms checkpoint.",
+    "committed_reset_guard": "Existing strengthened ResetStreams assertion fails.",
+    "terminal_scene_validation": "Clock error/atomic mutation assertion fails."
+  },
+  "retained_failures": [
+    "V1 history mutant unexpectedly passed because velocity command explicitly sets history;99fe findings and allV1 raw/logs/source bytes preserved. Added independent integrated-gravity witness closes sensitivity without production edit or assertion weakening.",
+    "Author V2 restricted server12pass45socket PermissionDenied failures retained; qualified explicit-socket retry57pass is separate. Reviewer used explicit local-socket permissions.",
+    "The coordinator underestimated combined disk use during the first normal coverage build and a parallel private review. Both disk guards stopped their jobs; no normal commit was accepted. Failed scratch, logs, source and cache bytes remain retained. The normal retry requires at least14GiB initial free space and an exclusive cold-build allocation, with the same2GiB floor and unchanged assertions/coverage policy."
+  ],
+  "limits": [
+    "Source semantics only; no strict full coverage, normal hook, public acceptance or exact hosted approval.",
+    "Two active getter assertions are only a PARTIAL Sensor_TEST.Sensor mapping; constructor/name/topic/frame/identity/configuration assertions remain open.",
+    "Loaded reset, white-noise, queue/sample sequence and both-engine configuration-history tests are Rust supplements; natural gravity history proof is Rapier only.",
+    "No forced Rust API/wire endpoint/full generic Sensor framework/full native IMUServer activation-reset parity or performance/P2 claim."
+  ],
+  "source_review": "approved",
+  "runtime_review": "approved",
+  "source_review_sha256": "f225ace7743755591e4d0c70c244b128693f17fd13598ddcda2ad2f72b405f59",
+  "remaining": "Final metadata binding, normal protected hook and exact hosted CI are required for acceptance.",
+  "strict_source_gate": {
+    "tree": "fd0f396ac80ed49995fd6784055d1536a2838956",
+    "command": [
+      "python3",
+      "scripts/verify.py",
+      "--staged"
+    ],
+    "checks_state": "passed",
+    "evidence_state": "complete",
+    "rust_tests": 279,
+    "tooling_tests": 88,
+    "functional_cpp_process_scenarios": 17,
+    "separate_cpp_lifecycle_controls": 3,
+    "independent_full_review_sha256": "e4d2012fa3b225cbfd13d9c2b797d94de0635b6d278d29092df64dd635432f59",
+    "retained_result_sha256": "5e30c9bd649d7d0ee6890c60a9bbbe3f88106764ca5ef86e0e882e19099d5b4b",
+    "coverage": {
+      "gz-assets": {
+        "lines": [
+          147,
+          148
+        ],
+        "regions": [
+          282,
+          287
+        ]
+      },
+      "gz-physics-tpe": {
+        "lines": [
+          220,
+          221
+        ],
+        "regions": [
+          310,
+          312
+        ]
+      },
+      "gz-physics": {
+        "lines": [
+          6,
+          6
+        ],
+        "regions": [
+          3,
+          3
+        ]
+      },
+      "gz-sim-core": {
+        "lines": [
+          271,
+          271
+        ],
+        "regions": [
+          389,
+          392
+        ]
+      },
+      "gz-physics-rapier": {
+        "lines": [
+          557,
+          558
+        ],
+        "regions": [
+          853,
+          858
+        ]
+      },
+      "gz-sensors": {
+        "lines": [
+          106,
+          106
+        ],
+        "regions": [
+          153,
+          153
+        ]
+      },
+      "gz-sim-scene": {
+        "lines": [
+          1650,
+          1682
+        ],
+        "regions": [
+          2528,
+          2616
+        ]
+      },
+      "gz-sim-cli": {
+        "lines": [
+          79,
+          79
+        ],
+        "regions": [
+          133,
+          137
+        ]
+      },
+      "gz-sim-server": {
+        "lines": [
+          794,
+          799
+        ],
+        "regions": [
+          1222,
+          1246
+        ]
+      },
+      "workspace": {
+        "lines": [
+          3830,
+          3870
+        ],
+        "regions": [
+          5873,
+          6004
+        ]
+      }
+    },
+    "changed_executable_lines": {
+      "gz-sim-scene": [
+        22,
+        22
+      ],
+      "gz-sim-server": [
+        7,
+        7
+      ]
+    }
+  },
+  "performance_review": {
+    "decision": "approved_with_recorded_scope",
+    "actual_build_review_sha256": "3c5e58e02b10468e25a580fb84aafafedeb7c5072a68935c941da8d0841ed022",
+    "functional_review_sha256": "303525858932b05cf4132226b52f716c2c869a7d9cda246d35c8a3e45a737deb",
+    "actual_measurement_review_sha256": "92d47bbac9225b1fc8cae82f1f1f475120a5055bee0f4a2451f9fdd9be2c973e",
+    "report": "planning/benchmarks/headless-streams-imu-activation-v1.json",
+    "scope": "Separate11-pair128-step shared-host default-active TPE clock/pose/IMU batches; all10 measured pairs retained in each. No activation-toggle, causal, balanced-robotics, unpaced-throughput or P2 claim.",
+    "projection_preuse_sha256": "8a13f3dcf1bd57756658c666545c5b2917c12e335fd415c84734018e9e3038b9",
+    "projection_actual_review_sha256": "45ad9d27d646f0230522c0f7aff7a7c933b544af8b888e24fb95fee576c7e24a",
+    "source_reconstruction": "The public report retains17 measured delta identities and five exact preliminary metadata snapshots. Independent reconstruction recovers all339 blobs/modes and measuredfd0f; twelve measured nonmetadata files are unchanged in the final candidate."
+  }
+}

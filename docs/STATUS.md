@@ -1,5 +1,14 @@
 # Implementation status
 
+Local IMU activation passes independent source/runtime review and the canonical
+staged gate: 279 Rust tests, 88 tooling tests, seventeen functional C++ scenarios
+and three lifecycle controls. Independent full review recomputes every production
+crate above 95% lines and regions. Two current-source, default-active SDK TPE
+stream batches retain all measured pairs; their paired Rust/native work-latency
+ratios are 0.63209 and 0.64465. Acceptance requires final metadata binding,
+the normal protected hook and exact hosted CI for the final commit. See
+[IMU_ACTIVATION.md](IMU_ACTIVATION.md).
+
 Runtime IMU rate controls now have independent source and runtime approval. A fresh
 89-test replay and six failing production controls cover deadline coupling, reset
 queues, provider selection, overload counters and bounded polling. Real C++
@@ -8,8 +17,9 @@ TPE observation batches retain all measured pairs; the paired Rust/native work
 latency ratios are 0.63979 and 0.64388 for that selected workload. The canonical
 staged source gate passes 271 Rust and 83 tooling tests, with all nine production
 crates above 95% line and region coverage; independent coverage binding passed.
-Final metadata binding, the normal protected hook and exact hosted qualification
-remain required; see [IMU_RATES.md](IMU_RATES.md).
+Final metadata binding and the normal protected hook passed; public commit
+`a8b80129071039568471efb9e9a56edd02b8effb` passed exact hosted run
+40414745428. See [IMU_RATES.md](IMU_RATES.md).
 
 Centered SDF capsules now use Rapier's existing f64 Z-axis primitive and native
 TPE model bounds, including both hemispheres. Independent native and Rust replay

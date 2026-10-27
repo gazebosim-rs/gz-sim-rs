@@ -1,0 +1,210 @@
+{
+  "scope": "Qualified native BaseSensor activation/force/phase observations. Loaded Rust activation ports only ordinary acquisition; no forced Rust API or complete Sensor framework/full native IMUServer activation claim.",
+  "source_revision": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+  "report_sha256": "8958825371075051467986219649e908609a272e2e991bda57157d597060f78e",
+  "independent_actual_review_sha256": "1d0dca326ea1aa14f8e0291f3bb0388ce240fbb0e8ec2305bb1fde2ceb27e923",
+  "observations": {
+    "groups": [
+      {
+        "initial": {
+          "active": true,
+          "rate_hz": 0,
+          "next_ns": 100000000,
+          "count": 0
+        },
+        "rows": [
+          {
+            "label": "active_before_deadline",
+            "now_ms": 0,
+            "force": false,
+            "sampled": true,
+            "active": true,
+            "rate_hz": 0,
+            "next_ns": 100000000,
+            "count": 1
+          },
+          {
+            "label": "inactive_before_deadline",
+            "now_ms": 50,
+            "force": false,
+            "sampled": false,
+            "active": false,
+            "rate_hz": 0,
+            "next_ns": 100000000,
+            "count": 1
+          },
+          {
+            "label": "forced_inactive_before_deadline",
+            "now_ms": 50,
+            "force": true,
+            "sampled": true,
+            "active": false,
+            "rate_hz": 0,
+            "next_ns": 100000000,
+            "count": 2
+          },
+          {
+            "label": "reenabled_before_deadline",
+            "now_ms": 50,
+            "force": false,
+            "sampled": true,
+            "active": true,
+            "rate_hz": 0,
+            "next_ns": 100000000,
+            "count": 3
+          },
+          {
+            "label": "inactive_at_deadline",
+            "now_ms": 100,
+            "force": false,
+            "sampled": false,
+            "active": false,
+            "rate_hz": 0,
+            "next_ns": 100000000,
+            "count": 3
+          },
+          {
+            "label": "reenabled_at_deadline",
+            "now_ms": 100,
+            "force": false,
+            "sampled": true,
+            "active": true,
+            "rate_hz": 0,
+            "next_ns": 100000000,
+            "count": 4
+          },
+          {
+            "label": "inactive_overdue",
+            "now_ms": 250,
+            "force": false,
+            "sampled": false,
+            "active": false,
+            "rate_hz": 0,
+            "next_ns": 100000000,
+            "count": 4
+          },
+          {
+            "label": "forced_inactive_overdue",
+            "now_ms": 250,
+            "force": true,
+            "sampled": true,
+            "active": false,
+            "rate_hz": 0,
+            "next_ns": 100000000,
+            "count": 5
+          },
+          {
+            "label": "reenabled_overdue",
+            "now_ms": 250,
+            "force": false,
+            "sampled": true,
+            "active": true,
+            "rate_hz": 0,
+            "next_ns": 100000000,
+            "count": 6
+          }
+        ]
+      },
+      {
+        "initial": {
+          "active": true,
+          "rate_hz": 10,
+          "next_ns": 100000000,
+          "count": 0
+        },
+        "rows": [
+          {
+            "label": "active_before_deadline",
+            "now_ms": 0,
+            "force": false,
+            "sampled": false,
+            "active": true,
+            "rate_hz": 10,
+            "next_ns": 100000000,
+            "count": 0
+          },
+          {
+            "label": "inactive_before_deadline",
+            "now_ms": 50,
+            "force": false,
+            "sampled": false,
+            "active": false,
+            "rate_hz": 10,
+            "next_ns": 100000000,
+            "count": 0
+          },
+          {
+            "label": "forced_inactive_before_deadline",
+            "now_ms": 50,
+            "force": true,
+            "sampled": true,
+            "active": false,
+            "rate_hz": 10,
+            "next_ns": 100000000,
+            "count": 1
+          },
+          {
+            "label": "reenabled_before_deadline",
+            "now_ms": 50,
+            "force": false,
+            "sampled": false,
+            "active": true,
+            "rate_hz": 10,
+            "next_ns": 100000000,
+            "count": 1
+          },
+          {
+            "label": "inactive_at_deadline",
+            "now_ms": 100,
+            "force": false,
+            "sampled": false,
+            "active": false,
+            "rate_hz": 10,
+            "next_ns": 100000000,
+            "count": 1
+          },
+          {
+            "label": "reenabled_at_deadline",
+            "now_ms": 100,
+            "force": false,
+            "sampled": true,
+            "active": true,
+            "rate_hz": 10,
+            "next_ns": 200000000,
+            "count": 2
+          },
+          {
+            "label": "inactive_overdue",
+            "now_ms": 250,
+            "force": false,
+            "sampled": false,
+            "active": false,
+            "rate_hz": 10,
+            "next_ns": 200000000,
+            "count": 2
+          },
+          {
+            "label": "forced_inactive_overdue",
+            "now_ms": 250,
+            "force": true,
+            "sampled": true,
+            "active": false,
+            "rate_hz": 10,
+            "next_ns": 200000000,
+            "count": 3
+          },
+          {
+            "label": "reenabled_overdue",
+            "now_ms": 250,
+            "force": false,
+            "sampled": true,
+            "active": true,
+            "rate_hz": 10,
+            "next_ns": 300000000,
+            "count": 4
+          }
+        ]
+      }
+    ]
+  }
+}

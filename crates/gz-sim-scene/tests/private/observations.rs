@@ -48,6 +48,7 @@ fn observers_consume_committed_link_state_and_resolve_restored_public_ids() {
             schedule: SampleSchedule::new(0.0).unwrap(),
             sdf_rate_hz: 0.0,
             rate_hz: 0.0,
+            active: true,
             noise: None,
         })
         .id();

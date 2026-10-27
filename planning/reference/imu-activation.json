@@ -1,0 +1,52 @@
+{
+  "scope": "Qualified installed Sensor11 BaseSensor activation/getter/deadline observations. Rust exposes ordinary loaded IMU activation only; full framework and native whole-IMUServer activation parity remain open.",
+  "upstream": {
+    "gz-sensors": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+    "gz-sim": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3"
+  },
+  "sources_sha256": {
+    "gz-sensors/src/Sensor.cc": "5fb2ea0aaa27b960c463c82de3074ad0bb221341454fb999946eca9f5afff2a2",
+    "gz-sensors/src/Sensor_TEST.cc": "4b135b31eb52555d9f89743fef2e4693ba33e142d22bcab53e6dec902d1f7605",
+    "gz-sensors/include/gz/sensors/Sensor.hh": "5938859b63479e6bd872f5df6bc48070c9a733fa3f7a240da7bfa3adbde3156b",
+    "gz-sim/src/systems/imu/Imu.cc": "0f38a974840f039787f3f6805b917cc357c26db19af265171b5c79c8cd2c022e"
+  },
+  "native_capture": {
+    "report_sha256": "8958825371075051467986219649e908609a272e2e991bda57157d597060f78e",
+    "probe_sha256": "dbea60213a51802816b91ff905de24ee899456d3e58cea9cb34da0c10258ed4c",
+    "binary_sha256": "84c853499fc7a9e2feff52cec695db03b400c15108b7148f9d66b0ba3c48ccde",
+    "stdout_sha256": "847cd46e0526c0010da4e0cfd282a1a4bb8a78a0975de8022fc8bd11f354f885",
+    "headers": 489,
+    "inputs": 499,
+    "libraries": 35,
+    "actual_review_sha256": "1d0dca326ea1aa14f8e0291f3bb0388ce240fbb0e8ec2305bb1fde2ceb27e923",
+    "groups": 2,
+    "observations": 18
+  },
+  "original": {
+    "test": "Sensor_TEST.Sensor",
+    "tests": 1,
+    "failures": 0,
+    "binary_sha256": "8588a2e10213bd461b94877b7ed882410a0b1ccc7ce7b5969d39ece3439c719f",
+    "xml_sha256": "8dbf665460b9426550c6636ad2de5872385803e2e4ccc0f84d2f37eccb550124",
+    "ported_subset": "Default IsActive()==true and SetActive(false) getter observations only. Constructor identity, name, frame, topic and other assertions remain unported."
+  },
+  "public_reproduction": {
+    "script": "scripts/probe-imu-activation.py",
+    "cpp": "crates/gz-sim-scene/tests/native_imu_activation.cc",
+    "preuse_review_sha256": "2b6677998c01725b9214049a289427360d36209db95f8c9ff3878a3ce998c62f",
+    "report_sha256": "a46c03d0518b1b880086fe813372a40ba4d875cbe4c7f15b25facdcfea5485f2",
+    "binary_sha256": "d0afe09b00fc959c2007aa705bb4ef7ddfbbae10e55bf069341b90a944c0f5ab",
+    "actual_review_sha256": "61395c2a666a56bd1410beba9dde8eaaa23b7078b798c836e13a7ed23de5a6db",
+    "qualification": "Same18 actual rows and loaded libraries. Public filename changes ELF identity; each ELF is recorded independently. Compiler/reference-binary checks retain installed-build lineage, not a clean SDK rebuild."
+  },
+  "fixture": "crates/gz-sim-scene/tests/fixtures/imu_activation.json",
+  "loaded_contract": {
+    "inactive": "Ordinary acquisition consumes no deadline, sample sequence or noise draw; cached samples are not republished.",
+    "global_admission": "Raw due+connected prepass retains native Imu.cc ordering, including inactive peers.",
+    "velocity": "Physics velocity history remains current while acquisition is inactive.",
+    "reset": "Rust loaded-world reconstruction restores initial active=true; this local lifecycle contract is not proven native whole-server activation parity.",
+    "forced": "Native forced rows remain reference-only; no forced Rust API is exposed."
+  },
+  "acceptance": "Independent native, source, runtime and full coverage reviews approved:279 Rust/88 tooling tests, all9 crates strictly above95% lines/regions. Current-source default-active SDK stream measurements and lossless public projection are separately reviewed. Acceptance requires final metadata binding, the normal protected hook and exact hosted CI for the final commit.",
+  "source_review": "planning/reviews/imu-activation.json"
+}
