@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "status": "candidate_functional_interop_verified_quality_and_performance_pending",
+  "license": "Apache-2.0",
+  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
+  "candidate_tree": "3a22af94e7f8a0fc7061f110a202a36c390dd91b",
+  "implementation_scope": "Run-boundary root clock admission; cached-interest publication with identical root/world payloads. Not atomic leader election or complete IO-01/P2.",
+  "transport_revision": "cffaca6cf90d493911191a4bd6b1ed04da93b74b",
+  "sdk_image": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+  "functional_cpp_cases": 19,
+  "separate_lifecycle_controls": 3,
+  "exact_rust_integration_tests": 2,
+  "cpp_compiler_receipts": {
+    "clock": 16,
+    "rate": 1
+  },
+  "new_clock_contract": {
+    "engines": [
+      "TPE",
+      "Rapier f64"
+    ],
+    "sim_nanoseconds": [
+      0,
+      1000000,
+      2000000
+    ],
+    "assertions": "Complete serialized root/world Clock equality with sim/real/system presence, accepted exact-step requests, final2ms paused state and zero endpoint errors.",
+    "raw_frame_capture": false
+  },
+  "source_sha256": {
+    "crates/gz-sim-server/src/lib.rs": "eaf6829ff504cf15ff45f06ce6384f14d00c9a29ec5bd72a277f487e36be0e42",
+    "crates/gz-sim-server/tests/private/root_clock.rs": "c304d04061504286ca7dbff73cc99ac3c03be534dfe3689852240cb0bfd97b8a",
+    "crates/gz-sim-server/tests/native.rs": "7e4fd0aed0c4c7234347894f5fa66e4ab2db227b9c3e910e5f4821fb81081445",
+    "crates/gz-sim-server/tests/clock_client.cc": "3ce6958f8cc8ff727eaacac53b2a634e72d0a6c48fab18e1b8fe18b89942e819",
+    "crates/gz-sim-server/tests/private/streams_benchmark.rs": "055b7d11755e481465400f0d8ab03a086f1beecb7e23371a40ee98cabadcbea1"
+  },
+  "reviews": {
+    "author_actual": "0e33d4443105b322b98c45074c39b12c81386f0d693fffbef13412b1cf58c764",
+    "fresh_independent_actual": "b71da0961211dec0c22cb5ad1f3af9fba7fbbd0993260be39fc2378e8eb2caaf",
+    "current_pin_build": "166982ffc577eee0bd1fa91b95d5b9e99c7928997f6fa4c4bdfd320097f399bb"
+  },
+  "upstream_reference": {
+    "repository": "gz-sim",
+    "revision": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+    "source": "src/SimulationRunner_TEST.cc",
+    "test": "ServerRepeat/SimulationRunnerTest.Time/0",
+    "disposition": "Reference original passed; these are supplementary contracts, not full port or retirement.",
+    "remaining_assertions": "Complete100/200/300 iteration and frame-count sequence, mutable1ms->2ms step size and update-period assertions remain outside this root-clock slice."
+  },
+  "remaining": [
+    "Current full quality/strict line-and-region coverage per crate and workspace",
+    "Refreshed equal-work benchmark including native root attempts and Rust root enqueues",
+    "Normal hook, exact hosted CI and publication",
+    "Wider native IO/transport/multi-host and formal P2 prerequisites"
+  ],
+  "retained_evidence_note": "Raw SDK capsules and review receipts are retained locally in ignored artifacts; source/test contracts and SDK recipe are repository inputs."
+}

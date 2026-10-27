@@ -45,7 +45,7 @@ pub enum Error {
     ImuActivation(#[from] gz_sim_scene::ImuActivationError),
 }
 
-/// Whether publication and loaded IMU acquisition follow known subscriber interest.
+/// Whether pose publication and loaded IMU acquisition follow known subscriber interest.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum InterestPolicy {
     /// Native behavior; registration hints do not guarantee delivery readiness.
@@ -59,6 +59,9 @@ pub enum InterestPolicy {
 pub struct Counters {
     pub clocks_queued: u64,
     pub clock_failures: u64,
+    pub root_clocks_queued: u64,
+    /// Failed root subscription snapshots or publication attempts.
+    pub root_clock_failures: u64,
     pub controls_accepted: u64,
     pub controls_rejected: u64,
     pub response_failures: u64,
@@ -200,6 +203,7 @@ pub struct Server {
     simulation: Simulation,
     node: Node,
     publisher: Publisher,
+    root_clock: Option<Publisher>,
     poses: Publisher,
     pose_rate: poses::PublicationRate,
     interest_policy: InterestPolicy,
@@ -276,6 +280,7 @@ impl Server {
             simulation,
             node,
             publisher,
+            root_clock: None,
             poses,
             pose_rate: poses::PublicationRate::default(),
             interest_policy: InterestPolicy::default(),
@@ -292,6 +297,41 @@ impl Server {
             counters: Counters::default(),
             imus,
         })
+    }
+
+    /// Prepare a run boundary outside stepping. Worker waits share one timeout;
+    /// timeout or transport failure is not evidence that the root topic is vacant.
+    /// Retry an occupied root topic between runs. An admitted publisher survives reset
+    /// and later competing publishers. The result reports ownership, not peer readiness.
+    /// A failed refresh retains an admitted publisher for the next preparation attempt.
+    pub fn prepare_run(&mut self, timeout: Duration) -> Result<bool, Error> {
+        if self.reset_failed {
+            return Err(Error::ResetStreams);
+        }
+        self.simulation.validate_steps(0)?;
+        let deadline = Instant::now()
+            .checked_add(timeout)
+            .ok_or(TransportError::InvalidConfig)?;
+        let remaining = || {
+            deadline
+                .checked_duration_since(Instant::now())
+                .filter(|remaining| !remaining.is_zero())
+                .ok_or(TransportError::Timeout)
+        };
+        if self.root_clock.is_none()
+            && self
+                .node
+                .topic_info("/clock", remaining()?)?
+                .publishers
+                .is_empty()
+        {
+            self.root_clock = Some(self.node.advertise("/clock", "gz.msgs.Clock")?);
+        }
+        self.publisher.refresh_connection_snapshot(remaining()?)?;
+        if let Some(publisher) = &self.root_clock {
+            publisher.refresh_connection_snapshot(remaining()?)?;
+        }
+        Ok(self.root_clock.is_some())
     }
 
     /// Minimum wall-time interval between pose publication attempts; native default is 60 Hz.
@@ -342,6 +382,7 @@ impl Server {
     }
 
     /// The caller supplies pacing and cancellation outside the simulation's step.
+    /// Call `prepare_run` at the run boundary to establish root clock ownership.
     pub fn tick(&mut self) -> Result<UpdateInfo, Error> {
         if self.reset_failed {
             return Err(Error::ResetStreams);
@@ -366,10 +407,30 @@ impl Server {
             self.active_time.elapsed(now)
         };
         let message = clock(info.sim_time, real, SystemTime::now())?;
-        if self.publisher.publish(message.encode_to_vec()).is_ok() {
+        let data = message.encode_to_vec();
+        let root_data = self.root_clock.as_ref().and_then(|publisher| {
+            match (
+                publisher.connection_snapshot(),
+                self.publisher.connection_snapshot(),
+            ) {
+                (Ok(root), Ok(world)) => (root || world).then(|| data.clone()),
+                _ => {
+                    self.counters.root_clock_failures += 1;
+                    None
+                }
+            }
+        });
+        if self.publisher.publish(data).is_ok() {
             self.counters.clocks_queued += 1;
         } else {
             self.counters.clock_failures += 1;
+        }
+        if let (Some(publisher), Some(data)) = (&self.root_clock, root_data) {
+            if publisher.publish(data).is_ok() {
+                self.counters.root_clocks_queued += 1;
+            } else {
+                self.counters.root_clock_failures += 1;
+            }
         }
         self.publish_poses(info.sim_time);
         self.publish_imus();

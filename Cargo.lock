@@ -1034,7 +1034,7 @@ dependencies = [
 [[package]]
 name = "gz-transport"
 version = "0.1.0"
-source = "git+https://github.com/gazebosim-rs/gz-transport-rs?rev=c21ffcc7ebdc108aefa1ab137f5468887a4bce96#c21ffcc7ebdc108aefa1ab137f5468887a4bce96"
+source = "git+https://github.com/gazebosim-rs/gz-transport-rs?rev=cffaca6cf90d493911191a4bd6b1ed04da93b74b#cffaca6cf90d493911191a4bd6b1ed04da93b74b"
 dependencies = [
  "gz-msgs",
  "nix",

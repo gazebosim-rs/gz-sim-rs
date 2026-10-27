@@ -1,5 +1,17 @@
 # Implementation status
 
+The root-clock candidate now passes real C++ interoperability in an author run
+and a fresh independent SDK run: nineteen functional scenarios and three separate
+lifecycle controls. The added cases compare complete root/world Clock messages
+at zero, one and two milliseconds on both TPE and Rapier. The accepted Transport
+revision is pinned in the candidate; all other dependency pins are unchanged.
+Full candidate coverage, equal-work performance, the normal hook and exact hosted
+CI remain pending. This functional result does not complete P2 or publish the
+candidate. See [ROOT_CLOCK.md](ROOT_CLOCK.md).
+
+The measurements below describe their historical source revisions. They do not
+qualify the candidate's additional root publication work.
+
 Local IMU activation passes independent source/runtime review and the canonical
 staged gate: 279 Rust tests, 88 tooling tests, seventeen functional C++ scenarios
 and three lifecycle controls. Independent full review recomputes every production

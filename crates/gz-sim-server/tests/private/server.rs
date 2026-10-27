@@ -1191,3 +1191,6 @@ mod runtime_rate_tests;
 
 #[path = "activation.rs"]
 mod activation_tests;
+
+#[path = "root_clock.rs"]
+mod root_clock_tests;

@@ -355,6 +355,10 @@ fn reset_handler_stream_changes_are_explicit_committed_errors() {
         assert!(!server.pending_reset);
         assert_eq!(server.simulation.elapsed(), Duration::ZERO);
         assert!(matches!(server.tick(), Err(Error::ResetStreams)));
+        assert!(matches!(
+            server.prepare_run(Duration::from_secs(5)),
+            Err(Error::ResetStreams)
+        ));
         assert!(server.imus.is_empty());
         assert_eq!(server.simulation.world().resource::<UpdateInfo>().epoch, 1);
     }

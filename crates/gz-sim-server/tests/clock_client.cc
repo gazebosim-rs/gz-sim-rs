@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 #include <condition_variable>
+#include <algorithm>
 #include <functional>
 #include <future>
 #include <utility>
@@ -209,11 +210,76 @@ int RunSamplingCase(bool tpe, bool noisy = false, bool orientation = true)
   return 0;
 }
 
+int RunRootClockCase()
+{
+  struct ClockPairs
+  {
+    std::mutex mutex;
+    std::condition_variable changed;
+    std::vector<std::string> frames[2];
+    int64_t target = 0;
+    bool matched = false;
+    bool invalid = false;
+  };
+  auto observed = std::make_shared<ClockPairs>();
+  auto callback = [observed](unsigned int endpoint)
+  {
+    return std::function<void(const gz::msgs::Clock &)>([observed, endpoint](const auto &clock)
+    {
+      std::lock_guard<std::mutex> lock(observed->mutex);
+      if (!clock.has_sim() || !clock.has_real() || !clock.has_system() ||
+          clock.sim().sec() != 0 || clock.sim().nsec() < 0 || clock.sim().nsec() > 2000000)
+        observed->invalid = true;
+      else if (clock.sim().nsec() == observed->target)
+      {
+        const auto bytes = clock.SerializeAsString();
+        auto &own = observed->frames[endpoint];
+        const auto &other = observed->frames[1 - endpoint];
+        // Keep bounded recent observations; this does not assert lossless delivery.
+        if (own.size() == 64) own.erase(own.begin());
+        own.push_back(bytes);
+        observed->matched = observed->matched ||
+            std::find(other.begin(), other.end(), bytes) != other.end();
+      }
+      observed->changed.notify_all();
+    });
+  };
+  gz::transport::Node node;
+  if (!node.Subscribe("/clock", callback(0)) ||
+      !node.Subscribe("/world/default/clock", callback(1))) return 81;
+  auto wait = [&]
+  {
+    std::unique_lock<std::mutex> lock(observed->mutex);
+    return observed->changed.wait_for(lock, std::chrono::seconds(8), [&]
+        { return observed->matched || observed->invalid; }) && !observed->invalid;
+  };
+  if (!wait()) return 82;
+  for (int64_t target : {1000000LL, 2000000LL})
+  {
+    {
+      std::lock_guard<std::mutex> lock(observed->mutex);
+      observed->target = target;
+      observed->matched = false;
+      for (auto &frames : observed->frames) frames.clear();
+    }
+    gz::msgs::WorldControl request;
+    request.set_pause(true);
+    request.set_multi_step(1);
+    gz::msgs::Boolean response;
+    bool result = false;
+    if (!request_with_reply(node, "/world/default/control", request, 7000, response, result)
+        || !result || !response.data() || !wait()) return 83;
+  }
+  std::cout << "PASS native root clock pairs=3 final=2000000\n";
+  return 0;
+}
+
 int main(int argc, char **argv)
 {
   if (argc > 1)
   {
     const std::string mode = argv[1];
+    if (mode == "--root-clock") return RunRootClockCase();
     if (mode == "--disabled-schedule" || mode == "--tpe-disabled-schedule" ||
         mode == "--disabled-noisy-schedule" || mode == "--tpe-disabled-noisy-schedule")
       return RunSamplingCase(mode.find("--tpe-") == 0, mode.find("noisy") != std::string::npos, false);

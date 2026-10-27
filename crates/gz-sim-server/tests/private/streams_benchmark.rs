@@ -177,6 +177,8 @@ fn tpe_clock_pose_imu_complete_lockstep() {
         .node
         .subscribe("/world/default/pose/info", "gz.msgs.Pose_V")
         .unwrap();
+    // With /clock vacant, native Run admits it even with only a world reader.
+    assert!(server.prepare_run(Duration::from_secs(5)).unwrap());
     assert!(server.apply_control(WorldControl {
         pause: false,
         ..Default::default()
@@ -287,6 +289,8 @@ fn tpe_clock_pose_imu_complete_lockstep() {
         ));
     }
     let counters = server.counters();
+    assert_eq!(counters.root_clocks_queued, steps + 1);
+    assert_eq!(counters.root_clock_failures, 0);
     assert_eq!(
         (
             counters.clocks_queued,
@@ -334,6 +338,9 @@ fn tpe_clock_pose_imu_complete_lockstep() {
         "clock_time_sum": clock_time_sum,
         "pose_time_sum": pose_time_sum,
         "clock_bytes": clock_bytes,
+        // Root and world enqueue identical bytes; this is not wire-delivery accounting.
+        "root_clock_enqueues": counters.root_clocks_queued - 1,
+        "root_clock_enqueued_bytes": clock_bytes,
         "pose_bytes": pose_bytes,
         "pose_bytes_without_id_values": normalized_pose_bytes,
         "fixture_hex": fixture_hex,

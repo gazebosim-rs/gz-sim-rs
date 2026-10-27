@@ -23,6 +23,104 @@ impl Drop for Peer {
     }
 }
 
+fn run_native_root_clock_cases() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let build = Command::new("python3")
+        .arg(root.join("scripts/native-peer.py"))
+        .output()
+        .unwrap();
+    assert!(build.status.success(), "{build:?}");
+    let prefix = std::env::var_os("GZ_REFERENCE_PREFIX")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
+    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+        let message = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let service = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let config = Config {
+            partition: format!("native-root-{}-{engine:?}", std::process::id()),
+            message_port: message.local_addr().unwrap().port(),
+            service_port: service.local_addr().unwrap().port(),
+            ..Config::default()
+        };
+        drop((message, service));
+        let simulation = load_world_with_engine(
+            include_str!("../../gz-sim-scene/tests/fixtures/fall.sdf"),
+            "fall.sdf",
+            "default",
+            Duration::from_millis(1),
+            &NoResources,
+            engine,
+        )
+        .unwrap();
+        let mut server = Server::new(
+            simulation,
+            "default",
+            config.clone(),
+            NonZeroUsize::new(4).unwrap(),
+        )
+        .unwrap();
+        assert!(server.prepare_run(Duration::from_secs(5)).unwrap());
+        let mut peer = Peer(
+            Command::new(root.join("artifacts/native-peer/clock-client"))
+                .arg("--root-clock")
+                .env("GZ_PARTITION", &config.partition)
+                .env("GZ_IP", config.interface.to_string())
+                .env("GZ_TRANSPORT_IMPLEMENTATION", "zeromq")
+                .env("GZ_TRANSPORT_TOPIC_STATISTICS", "0")
+                .env("GZ_DISCOVERY_MULTICAST_IP", config.multicast.to_string())
+                .env_remove("GZ_TRANSPORT_USERNAME")
+                .env_remove("GZ_TRANSPORT_PASSWORD")
+                .env_remove("GZ_RELAY")
+                .env("GZ_DISCOVERY_MSG_PORT", config.message_port.to_string())
+                .env("GZ_DISCOVERY_SRV_PORT", config.service_port.to_string())
+                .env("LD_LIBRARY_PATH", prefix.join("lib"))
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .spawn()
+                .unwrap(),
+        );
+        let deadline = Instant::now() + Duration::from_secs(45);
+        let status = loop {
+            if let Some(status) = peer.0.try_wait().unwrap() {
+                break status;
+            }
+            assert!(
+                Instant::now() < deadline,
+                "native root clock client timed out"
+            );
+            server.tick().unwrap();
+            // Pacing is outside stepping; matching messages establish readiness.
+            thread::sleep(Duration::from_millis(1));
+        };
+        use std::io::Read;
+        let mut stdout = String::new();
+        let mut stderr = String::new();
+        peer.0
+            .stdout
+            .take()
+            .unwrap()
+            .read_to_string(&mut stdout)
+            .unwrap();
+        peer.0
+            .stderr
+            .take()
+            .unwrap()
+            .read_to_string(&mut stderr)
+            .unwrap();
+        assert!(
+            status.success(),
+            "status={status} stdout={stdout} stderr={stderr}"
+        );
+        assert_eq!(stdout, "PASS native root clock pairs=3 final=2000000\n");
+        assert!(stderr.is_empty(), "{stderr}");
+        assert_eq!(server.simulation().elapsed(), Duration::from_millis(2));
+        assert!(server.simulation().is_paused());
+        assert!(server.counters().root_clocks_queued >= 3);
+        assert_eq!(server.counters().root_clock_failures, 0);
+        assert_eq!(server.counters().clock_failures, 0);
+    }
+}
+
 #[test]
 fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
     run_native_world(false, None, false, false, false, PhysicsEngine::Rapier);
@@ -48,6 +146,7 @@ fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
             run_native_schedule_case(engine, noisy, false);
         }
     }
+    run_native_root_clock_cases();
 }
 
 fn run_native_world(
