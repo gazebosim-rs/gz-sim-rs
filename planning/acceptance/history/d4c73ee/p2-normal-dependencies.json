@@ -1,0 +1,1043 @@
+{
+  "schema_version": 1,
+  "implementation_commit": "d4c73eeda89dc912e8225e0a665055e928e8b9e6",
+  "target": "x86_64-unknown-linux-gnu",
+  "command": [
+    "cargo",
+    "tree",
+    "--locked",
+    "--offline",
+    "--workspace",
+    "-e",
+    "normal",
+    "--target",
+    "x86_64-unknown-linux-gnu",
+    "--prefix",
+    "none"
+  ],
+  "cargo_lock_sha256": "30760c7a09475ab45bb90c0b0432fc1d75212bb12d0dcf5911d90c441ae5474b",
+  "normalized_tree_sha256": "12b333df6d3251fcb5bd83a3caa63680a7ec464db24596308c3356c1bf15b54e",
+  "normal_packages": [
+    {
+      "name": "aho-corasick",
+      "version": "1.1.5"
+    },
+    {
+      "name": "allocator-api2",
+      "version": "0.2.21"
+    },
+    {
+      "name": "annotate-snippets",
+      "version": "0.12.17"
+    },
+    {
+      "name": "anstream",
+      "version": "1.0.0"
+    },
+    {
+      "name": "anstyle",
+      "version": "1.0.14"
+    },
+    {
+      "name": "anstyle-parse",
+      "version": "1.0.0"
+    },
+    {
+      "name": "anstyle-query",
+      "version": "1.1.5"
+    },
+    {
+      "name": "anyhow",
+      "version": "1.0.104"
+    },
+    {
+      "name": "approx",
+      "version": "0.5.1"
+    },
+    {
+      "name": "arraydeque",
+      "version": "0.5.1"
+    },
+    {
+      "name": "arrayvec",
+      "version": "0.7.8"
+    },
+    {
+      "name": "async-channel",
+      "version": "2.5.0"
+    },
+    {
+      "name": "async-executor",
+      "version": "1.14.0"
+    },
+    {
+      "name": "async-task",
+      "version": "4.7.1"
+    },
+    {
+      "name": "atomic-waker",
+      "version": "1.1.2"
+    },
+    {
+      "name": "base64",
+      "version": "0.22.1"
+    },
+    {
+      "name": "bevy_ecs",
+      "version": "0.20.0"
+    },
+    {
+      "name": "bevy_ecs_macro_logic",
+      "version": "0.20.0"
+    },
+    {
+      "name": "bevy_ecs_macros",
+      "version": "0.20.0"
+    },
+    {
+      "name": "bevy_macro_utils",
+      "version": "0.20.0"
+    },
+    {
+      "name": "bevy_platform",
+      "version": "0.20.0"
+    },
+    {
+      "name": "bevy_ptr",
+      "version": "0.20.0"
+    },
+    {
+      "name": "bevy_tasks",
+      "version": "0.20.0"
+    },
+    {
+      "name": "bevy_utils",
+      "version": "0.20.0"
+    },
+    {
+      "name": "bitflags",
+      "version": "1.3.2"
+    },
+    {
+      "name": "bitflags",
+      "version": "2.13.2"
+    },
+    {
+      "name": "bumpalo",
+      "version": "3.20.3"
+    },
+    {
+      "name": "bytemuck",
+      "version": "1.25.2"
+    },
+    {
+      "name": "byteorder",
+      "version": "1.5.0"
+    },
+    {
+      "name": "bytes",
+      "version": "1.12.1"
+    },
+    {
+      "name": "cfg-if",
+      "version": "1.0.5"
+    },
+    {
+      "name": "chrono",
+      "version": "0.4.45"
+    },
+    {
+      "name": "clap",
+      "version": "4.6.7"
+    },
+    {
+      "name": "clap_builder",
+      "version": "4.6.7"
+    },
+    {
+      "name": "clap_derive",
+      "version": "4.6.7"
+    },
+    {
+      "name": "clap_lex",
+      "version": "1.1.1"
+    },
+    {
+      "name": "colorchoice",
+      "version": "1.0.5"
+    },
+    {
+      "name": "concurrent-queue",
+      "version": "2.5.0"
+    },
+    {
+      "name": "convert_case",
+      "version": "0.10.0"
+    },
+    {
+      "name": "core_detect",
+      "version": "1.0.0"
+    },
+    {
+      "name": "crc32fast",
+      "version": "1.5.3"
+    },
+    {
+      "name": "crossbeam-queue",
+      "version": "0.3.14"
+    },
+    {
+      "name": "crossbeam-utils",
+      "version": "0.8.23"
+    },
+    {
+      "name": "derive_more",
+      "version": "2.1.1"
+    },
+    {
+      "name": "derive_more-impl",
+      "version": "2.1.1"
+    },
+    {
+      "name": "displaydoc",
+      "version": "0.2.7"
+    },
+    {
+      "name": "disqualified",
+      "version": "1.1.0"
+    },
+    {
+      "name": "downcast-rs",
+      "version": "2.0.2"
+    },
+    {
+      "name": "either",
+      "version": "1.19.0"
+    },
+    {
+      "name": "ena",
+      "version": "0.14.4"
+    },
+    {
+      "name": "encoding_rs",
+      "version": "0.8.42"
+    },
+    {
+      "name": "encoding_rs_io",
+      "version": "0.1.8"
+    },
+    {
+      "name": "equivalent",
+      "version": "1.0.3"
+    },
+    {
+      "name": "errno",
+      "version": "0.3.14"
+    },
+    {
+      "name": "event-listener",
+      "version": "5.4.2"
+    },
+    {
+      "name": "event-listener-strategy",
+      "version": "0.5.4"
+    },
+    {
+      "name": "fastrand",
+      "version": "2.5.0"
+    },
+    {
+      "name": "fixedbitset",
+      "version": "0.5.7"
+    },
+    {
+      "name": "flate2",
+      "version": "1.1.10"
+    },
+    {
+      "name": "fnv",
+      "version": "1.0.7"
+    },
+    {
+      "name": "foldhash",
+      "version": "0.1.5"
+    },
+    {
+      "name": "foldhash",
+      "version": "0.2.0"
+    },
+    {
+      "name": "foreign-types",
+      "version": "0.3.2"
+    },
+    {
+      "name": "foreign-types-shared",
+      "version": "0.1.1"
+    },
+    {
+      "name": "form_urlencoded",
+      "version": "1.2.2"
+    },
+    {
+      "name": "futures-channel",
+      "version": "0.3.34"
+    },
+    {
+      "name": "futures-core",
+      "version": "0.3.34"
+    },
+    {
+      "name": "futures-io",
+      "version": "0.3.34"
+    },
+    {
+      "name": "futures-lite",
+      "version": "2.6.1"
+    },
+    {
+      "name": "futures-sink",
+      "version": "0.3.34"
+    },
+    {
+      "name": "futures-task",
+      "version": "0.3.34"
+    },
+    {
+      "name": "futures-util",
+      "version": "0.3.34"
+    },
+    {
+      "name": "getrandom",
+      "version": "0.4.3"
+    },
+    {
+      "name": "glam",
+      "version": "0.30.9"
+    },
+    {
+      "name": "glam",
+      "version": "0.33.12"
+    },
+    {
+      "name": "glamx",
+      "version": "0.3.1"
+    },
+    {
+      "name": "granit-parser",
+      "version": "2.0.0"
+    },
+    {
+      "name": "gz-assets",
+      "version": "0.1.0"
+    },
+    {
+      "name": "gz-fuel-tools",
+      "version": "12.0.0-pre.2"
+    },
+    {
+      "name": "gz-msgs",
+      "version": "0.1.0"
+    },
+    {
+      "name": "gz-physics",
+      "version": "0.1.0"
+    },
+    {
+      "name": "gz-physics-rapier",
+      "version": "0.1.0"
+    },
+    {
+      "name": "gz-physics-tpe",
+      "version": "0.1.0"
+    },
+    {
+      "name": "gz-sensors",
+      "version": "0.1.0"
+    },
+    {
+      "name": "gz-sim-cli",
+      "version": "0.1.0"
+    },
+    {
+      "name": "gz-sim-core",
+      "version": "0.1.0"
+    },
+    {
+      "name": "gz-sim-scene",
+      "version": "0.1.0"
+    },
+    {
+      "name": "gz-sim-server",
+      "version": "0.1.0"
+    },
+    {
+      "name": "gz-transport",
+      "version": "0.1.0"
+    },
+    {
+      "name": "hash32",
+      "version": "0.3.1"
+    },
+    {
+      "name": "hashbrown",
+      "version": "0.15.5"
+    },
+    {
+      "name": "hashbrown",
+      "version": "0.16.1"
+    },
+    {
+      "name": "hashbrown",
+      "version": "0.17.1"
+    },
+    {
+      "name": "heapless",
+      "version": "0.8.0"
+    },
+    {
+      "name": "heck",
+      "version": "0.5.0"
+    },
+    {
+      "name": "http",
+      "version": "1.5.0"
+    },
+    {
+      "name": "http-body",
+      "version": "1.1.0"
+    },
+    {
+      "name": "http-body-util",
+      "version": "0.1.5"
+    },
+    {
+      "name": "httparse",
+      "version": "1.10.1"
+    },
+    {
+      "name": "hyper",
+      "version": "1.12.0"
+    },
+    {
+      "name": "hyper-tls",
+      "version": "0.6.0"
+    },
+    {
+      "name": "hyper-util",
+      "version": "0.1.15"
+    },
+    {
+      "name": "icu_collections",
+      "version": "2.4.0"
+    },
+    {
+      "name": "icu_locale_core",
+      "version": "2.4.0"
+    },
+    {
+      "name": "icu_normalizer",
+      "version": "2.4.0"
+    },
+    {
+      "name": "icu_normalizer_data",
+      "version": "2.4.0"
+    },
+    {
+      "name": "icu_properties",
+      "version": "2.4.0"
+    },
+    {
+      "name": "icu_properties_data",
+      "version": "2.4.0"
+    },
+    {
+      "name": "icu_provider",
+      "version": "2.4.0"
+    },
+    {
+      "name": "idna",
+      "version": "1.1.0"
+    },
+    {
+      "name": "idna_adapter",
+      "version": "1.2.2"
+    },
+    {
+      "name": "indexmap",
+      "version": "2.14.2"
+    },
+    {
+      "name": "ipnet",
+      "version": "2.12.2"
+    },
+    {
+      "name": "is_terminal_polyfill",
+      "version": "1.70.2"
+    },
+    {
+      "name": "itertools",
+      "version": "0.14.0"
+    },
+    {
+      "name": "itoa",
+      "version": "1.0.18"
+    },
+    {
+      "name": "libc",
+      "version": "0.2.191"
+    },
+    {
+      "name": "libm",
+      "version": "0.2.16"
+    },
+    {
+      "name": "linux-raw-sys",
+      "version": "0.12.1"
+    },
+    {
+      "name": "litemap",
+      "version": "0.8.3"
+    },
+    {
+      "name": "log",
+      "version": "0.4.34"
+    },
+    {
+      "name": "logos",
+      "version": "0.16.1"
+    },
+    {
+      "name": "logos-codegen",
+      "version": "0.16.1"
+    },
+    {
+      "name": "logos-derive",
+      "version": "0.16.1"
+    },
+    {
+      "name": "matrixmultiply",
+      "version": "0.3.11"
+    },
+    {
+      "name": "memchr",
+      "version": "2.8.3"
+    },
+    {
+      "name": "memoffset",
+      "version": "0.9.1"
+    },
+    {
+      "name": "mime",
+      "version": "0.3.17"
+    },
+    {
+      "name": "mime_guess",
+      "version": "2.0.5"
+    },
+    {
+      "name": "mio",
+      "version": "1.2.4"
+    },
+    {
+      "name": "multiversion_no_op",
+      "version": "1.0.0"
+    },
+    {
+      "name": "mutants",
+      "version": "0.0.3"
+    },
+    {
+      "name": "nalgebra",
+      "version": "0.35.0"
+    },
+    {
+      "name": "nalgebra-macros",
+      "version": "0.3.0"
+    },
+    {
+      "name": "native-tls",
+      "version": "0.2.18"
+    },
+    {
+      "name": "nix",
+      "version": "0.31.3"
+    },
+    {
+      "name": "nohash-hasher",
+      "version": "0.2.0"
+    },
+    {
+      "name": "nonmax",
+      "version": "0.5.5"
+    },
+    {
+      "name": "num-complex",
+      "version": "0.4.6"
+    },
+    {
+      "name": "num-derive",
+      "version": "0.5.1"
+    },
+    {
+      "name": "num-integer",
+      "version": "0.1.47"
+    },
+    {
+      "name": "num-rational",
+      "version": "0.4.2"
+    },
+    {
+      "name": "num-traits",
+      "version": "0.2.19"
+    },
+    {
+      "name": "once_cell",
+      "version": "1.21.4"
+    },
+    {
+      "name": "openssl",
+      "version": "0.10.81"
+    },
+    {
+      "name": "openssl-macros",
+      "version": "0.1.1"
+    },
+    {
+      "name": "openssl-probe",
+      "version": "0.2.1"
+    },
+    {
+      "name": "openssl-sys",
+      "version": "0.9.117"
+    },
+    {
+      "name": "ordered-float",
+      "version": "2.10.1"
+    },
+    {
+      "name": "ordered-float",
+      "version": "5.5.0"
+    },
+    {
+      "name": "parking",
+      "version": "2.2.1"
+    },
+    {
+      "name": "parry3d-f64",
+      "version": "0.31.1"
+    },
+    {
+      "name": "percent-encoding",
+      "version": "2.3.2"
+    },
+    {
+      "name": "petgraph",
+      "version": "0.8.1"
+    },
+    {
+      "name": "pin-project-lite",
+      "version": "0.2.17"
+    },
+    {
+      "name": "potential_utf",
+      "version": "0.1.6"
+    },
+    {
+      "name": "proc-macro2",
+      "version": "1.0.107"
+    },
+    {
+      "name": "profiling",
+      "version": "1.0.18"
+    },
+    {
+      "name": "profiling-procmacros",
+      "version": "1.0.18"
+    },
+    {
+      "name": "prost",
+      "version": "0.14.4"
+    },
+    {
+      "name": "prost-derive",
+      "version": "0.14.4"
+    },
+    {
+      "name": "prost-reflect",
+      "version": "0.16.5"
+    },
+    {
+      "name": "prost-types",
+      "version": "0.14.4"
+    },
+    {
+      "name": "quick-xml",
+      "version": "0.38.3"
+    },
+    {
+      "name": "quote",
+      "version": "1.0.47"
+    },
+    {
+      "name": "rapier3d-f64",
+      "version": "0.36.1"
+    },
+    {
+      "name": "rawpointer",
+      "version": "0.2.1"
+    },
+    {
+      "name": "regex-automata",
+      "version": "0.4.18"
+    },
+    {
+      "name": "regex-syntax",
+      "version": "0.8.11"
+    },
+    {
+      "name": "reqwest",
+      "version": "0.12.28"
+    },
+    {
+      "name": "robust",
+      "version": "1.2.0"
+    },
+    {
+      "name": "roxmltree",
+      "version": "0.20.0"
+    },
+    {
+      "name": "rstar",
+      "version": "0.13.0"
+    },
+    {
+      "name": "rustc-hash",
+      "version": "2.1.3"
+    },
+    {
+      "name": "rustix",
+      "version": "1.1.5"
+    },
+    {
+      "name": "rustls-pki-types",
+      "version": "1.15.1"
+    },
+    {
+      "name": "ryu",
+      "version": "1.0.23"
+    },
+    {
+      "name": "safe_arch",
+      "version": "1.2.0"
+    },
+    {
+      "name": "scopeguard",
+      "version": "1.2.0"
+    },
+    {
+      "name": "sdformat",
+      "version": "0.1.0"
+    },
+    {
+      "name": "serde",
+      "version": "1.0.229"
+    },
+    {
+      "name": "serde-saphyr",
+      "version": "2.0.0"
+    },
+    {
+      "name": "serde-value",
+      "version": "0.7.0"
+    },
+    {
+      "name": "serde_core",
+      "version": "1.0.229"
+    },
+    {
+      "name": "serde_derive",
+      "version": "1.0.229"
+    },
+    {
+      "name": "serde_json",
+      "version": "1.0.149"
+    },
+    {
+      "name": "serde_urlencoded",
+      "version": "0.7.1"
+    },
+    {
+      "name": "simba",
+      "version": "0.10.2"
+    },
+    {
+      "name": "simd-adler32",
+      "version": "0.3.10"
+    },
+    {
+      "name": "simdutf8",
+      "version": "0.1.5"
+    },
+    {
+      "name": "slab",
+      "version": "0.4.12"
+    },
+    {
+      "name": "slotmap",
+      "version": "1.1.1"
+    },
+    {
+      "name": "smallvec",
+      "version": "1.16.4"
+    },
+    {
+      "name": "socket2",
+      "version": "0.5.10"
+    },
+    {
+      "name": "socket2",
+      "version": "0.6.5"
+    },
+    {
+      "name": "spade",
+      "version": "2.15.1"
+    },
+    {
+      "name": "spin",
+      "version": "0.12.3"
+    },
+    {
+      "name": "stable_deref_trait",
+      "version": "1.2.1"
+    },
+    {
+      "name": "static_assertions",
+      "version": "1.1.0"
+    },
+    {
+      "name": "strsim",
+      "version": "0.11.1"
+    },
+    {
+      "name": "syn",
+      "version": "2.0.119"
+    },
+    {
+      "name": "syn",
+      "version": "3.0.9"
+    },
+    {
+      "name": "sync_wrapper",
+      "version": "1.0.2"
+    },
+    {
+      "name": "synstructure",
+      "version": "0.14.0"
+    },
+    {
+      "name": "tempfile",
+      "version": "3.25.0"
+    },
+    {
+      "name": "thiserror",
+      "version": "2.0.18"
+    },
+    {
+      "name": "thiserror-impl",
+      "version": "2.0.18"
+    },
+    {
+      "name": "thread_local",
+      "version": "1.1.10"
+    },
+    {
+      "name": "tinystr",
+      "version": "0.8.5"
+    },
+    {
+      "name": "tokio",
+      "version": "1.54.1"
+    },
+    {
+      "name": "tokio-native-tls",
+      "version": "0.3.1"
+    },
+    {
+      "name": "toml_datetime",
+      "version": "1.1.2+spec-1.1.0"
+    },
+    {
+      "name": "toml_edit",
+      "version": "0.25.17+spec-1.1.0"
+    },
+    {
+      "name": "toml_parser",
+      "version": "1.1.5+spec-1.1.0"
+    },
+    {
+      "name": "tower",
+      "version": "0.5.3"
+    },
+    {
+      "name": "tower-http",
+      "version": "0.6.11"
+    },
+    {
+      "name": "tower-layer",
+      "version": "0.3.3"
+    },
+    {
+      "name": "tower-service",
+      "version": "0.3.3"
+    },
+    {
+      "name": "tracing",
+      "version": "0.1.44"
+    },
+    {
+      "name": "tracing-core",
+      "version": "0.1.36"
+    },
+    {
+      "name": "try-lock",
+      "version": "0.2.5"
+    },
+    {
+      "name": "typed-path",
+      "version": "0.13.0"
+    },
+    {
+      "name": "typenum",
+      "version": "1.20.1"
+    },
+    {
+      "name": "unicase",
+      "version": "2.10.0"
+    },
+    {
+      "name": "unicode-ident",
+      "version": "1.0.27"
+    },
+    {
+      "name": "unicode-segmentation",
+      "version": "1.13.3"
+    },
+    {
+      "name": "unicode-width",
+      "version": "0.2.2"
+    },
+    {
+      "name": "unicode-xid",
+      "version": "0.2.6"
+    },
+    {
+      "name": "unsynn",
+      "version": "0.3.0"
+    },
+    {
+      "name": "url",
+      "version": "2.5.8"
+    },
+    {
+      "name": "utf8_iter",
+      "version": "1.0.4"
+    },
+    {
+      "name": "utf8parse",
+      "version": "0.2.2"
+    },
+    {
+      "name": "uuid",
+      "version": "1.23.1"
+    },
+    {
+      "name": "variadics_please",
+      "version": "2.0.0"
+    },
+    {
+      "name": "want",
+      "version": "0.3.2"
+    },
+    {
+      "name": "wide",
+      "version": "1.7.1"
+    },
+    {
+      "name": "winnow",
+      "version": "1.0.4"
+    },
+    {
+      "name": "writeable",
+      "version": "0.6.4"
+    },
+    {
+      "name": "xmlparser",
+      "version": "0.13.6"
+    },
+    {
+      "name": "yoke",
+      "version": "0.8.4"
+    },
+    {
+      "name": "yoke-derive",
+      "version": "0.8.4"
+    },
+    {
+      "name": "zerofrom",
+      "version": "0.1.8"
+    },
+    {
+      "name": "zerofrom-derive",
+      "version": "0.1.8"
+    },
+    {
+      "name": "zeroize",
+      "version": "1.9.1"
+    },
+    {
+      "name": "zerotrie",
+      "version": "0.2.5"
+    },
+    {
+      "name": "zerovec",
+      "version": "0.11.9"
+    },
+    {
+      "name": "zerovec-derive",
+      "version": "0.11.7"
+    },
+    {
+      "name": "zip",
+      "version": "9.1.0"
+    },
+    {
+      "name": "zlib-rs",
+      "version": "0.6.8"
+    },
+    {
+      "name": "zmij",
+      "version": "1.0.23"
+    },
+    {
+      "name": "zmq",
+      "version": "0.10.0"
+    },
+    {
+      "name": "zmq-sys",
+      "version": "0.12.0"
+    },
+    {
+      "name": "zopfli",
+      "version": "0.8.4"
+    }
+  ],
+  "forbidden_render_packages_absent": [
+    "bevy_render",
+    "bevy_window",
+    "bevy_winit",
+    "wgpu",
+    "winit"
+  ],
+  "scope": "Normal Linux Rust closure only; native reference SDK linked libraries and future renderer/platform profiles are separate.",
+  "normalized_tree_recipe": "Run the recorded cargo tree command from the implementation workspace, capture its exact UTF-8 stdout, replace every literal absolute workspace-root path (str(Path.cwd())) with <workspace>, retain order, duplicate lines, spacing and final newline, then SHA256 the resulting UTF-8 bytes. The package set is separately deduplicated by name/version."
+}

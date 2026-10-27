@@ -1,19 +1,20 @@
 {
   "schema_version": 1,
-  "status": "selected_headless_integration_evidence_approved_formal_exits_open",
-  "implementation_commit": "d4c73eeda89dc912e8225e0a665055e928e8b9e6",
-  "implementation_tree": "341df158512a1f652f4d2ab25be03ac3e8cc991a",
+  "status": "current_selected_evidence_reviewed_formal_exits_in_progress",
+  "implementation_commit": "8d065a1a3750d282bada085df4a29a8139a3e875",
+  "implementation_tree": "97448c9658966e8cbed9ec6379258ef4682136a5",
   "scope": "Selected Linux x86_64 no-renderer headless first vertical slice using TPE and full-f64 Rapier; not complete retained simulator, repository, P0 or release acceptance.",
   "consumer_revisions": {
-    "sdformat": "4ed690b3a872e395df0f3544b278c7f1d3c45a7e",
+    "gz-fuel-tools": "3747086ed13b59d2f7701eedc11329ebd7c9df3a",
     "gz-msgs": "2cea810e929adb4f925750b325265a99f9ae78b4",
-    "gz-transport": "48a58eed4e2a3a7613f8b0cd6b0842d7b758a848",
-    "gz-fuel-tools": "3747086ed13b59d2f7701eedc11329ebd7c9df3a"
+    "gz-transport": "c21ffcc7ebdc108aefa1ab137f5468887a4bce96",
+    "sdformat": "575d4d9abe5cd46dd2b02ebdd1267d9e25d6206f"
   },
   "verification": {
-    "rust_tests": 204,
-    "tooling_tests": 16,
-    "real_cpp_scenarios": 9,
+    "rust_tests": 279,
+    "tooling_tests": 88,
+    "real_cpp_scenarios": 17,
+    "separate_cpp_lifecycle_controls": 3,
     "coverage": {
       "gz-assets": {
         "lines": [
@@ -27,12 +28,12 @@
       },
       "gz-physics-tpe": {
         "lines": [
-          202,
-          203
+          220,
+          221
         ],
         "regions": [
-          288,
-          289
+          310,
+          312
         ]
       },
       "gz-physics": {
@@ -57,32 +58,32 @@
       },
       "gz-physics-rapier": {
         "lines": [
-          543,
-          544
+          557,
+          558
         ],
         "regions": [
-          829,
-          834
+          853,
+          858
         ]
       },
       "gz-sensors": {
         "lines": [
-          26,
-          26
+          106,
+          106
         ],
         "regions": [
-          45,
-          45
+          153,
+          153
         ]
       },
       "gz-sim-scene": {
         "lines": [
-          1398,
-          1429
+          1650,
+          1682
         ],
         "regions": [
-          2173,
-          2258
+          2528,
+          2616
         ]
       },
       "gz-sim-cli": {
@@ -97,31 +98,41 @@
       },
       "gz-sim-server": {
         "lines": [
-          521,
-          522
+          794,
+          799
         ],
         "regions": [
-          822,
-          834
+          1222,
+          1246
         ]
       },
       "workspace": {
         "lines": [
-          3193,
-          3228
+          3830,
+          3870
         ],
         "regions": [
-          4964,
-          5079
+          5873,
+          6004
         ]
       }
     },
-    "changed_executable_production_lines": 0,
-    "normal_hook_log_sha256": "e5a4a35fe720bb0216058d37c64926d445b97fe63866e28a893f6f054a559866",
+    "changed_executable_lines": {
+      "gz-sim-scene": [
+        22,
+        22
+      ],
+      "gz-sim-server": [
+        7,
+        7
+      ]
+    },
+    "normal_result_sha256": "121e72e2450987f7437c1cecfe3b386385ee0db0b0919f4d625a6792f5251d94",
+    "normal_review_sha256": "18cbb933fbd07ce041a085cc31db09c315f1aa9d9f8b7dbe9626cfa67b8cb43c",
     "hosted": {
-      "run": 40219319485,
+      "run": 40442119648,
       "state": "success",
-      "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/40219319485"
+      "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/40442119648"
     }
   },
   "contracts": [
@@ -143,7 +154,47 @@
         "docs/SCENE.md",
         "docs/HEADLESS.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Exact selected SDF bytes/profile, world/model/link/collision/IMU ownership, pre-resolved frames, explicit mass/inertia/gravity, stable opaque role IDs; local resources resolve before stepping.",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/scene.rs",
+          "source_sha256": "8f26734338f552883ec369f471111a5126a89430ffd4a2434a30d604b20612f2",
+          "test": "sdf_bevy_physics_and_imu_share_end_step_time_and_reset_epoch",
+          "normal_log_matching_names": [
+            "sdf_bevy_physics_and_imu_share_end_step_time_and_reset_epoch"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/scene.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/hierarchy.rs",
+          "source_sha256": "0e9050edc5bc0250c9b170ccd06cb04bad270255d9199c467327188d06e967a2",
+          "test": "ownership_and_local_poses_preserve_canonical_model_motion_and_ids",
+          "normal_log_matching_names": [
+            "ownership_and_local_poses_preserve_canonical_model_motion_and_ids"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/hierarchy.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+            "crates/gz-sim-scene/tests/fixtures/nested.sdf"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/world_physics.rs",
+          "source_sha256": "4d8303d8d8ce12af313108636d31f6e593dd7dcea49842e95d79675f7f54297f",
+          "test": "first_profile_and_explicit_override_are_owned_and_restored_on_both_engines",
+          "normal_log_matching_names": [
+            "first_profile_and_explicit_override_are_owned_and_restored_on_both_engines"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/world_physics.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/world_physics.json"
+          ]
+        }
+      ]
     },
     {
       "id": "tpe",
@@ -156,12 +207,53 @@
         "planning/reference/tpe-scene-motion.json",
         "planning/reference/tpe-contacts.json"
       ],
-      "scope_limits": "TPE constant motion/no gravity dynamics is intentional native behavior. Nested/static/rotated input and remaining capabilities are not accepted broadly; D23 remains open.",
+      "scope_limits": "Native constant motion/no gravity dynamics is intentional. Confirmed D23 fixed-body/world-axis corrections are implemented with recorded native differences; nested models, general link-origin motion and remaining TPE capabilities are not certified.",
       "documentation": [
         "docs/TPE_SCENE.md",
         "docs/TPE_CONTACTS.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Selected native TPE constant-motion/no-gravity-dynamics semantics, declared contact/support bounds, stepping/reset/removal; no TPE wrench/joints/general capability requirement.",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/tpe.rs",
+          "source_sha256": "dfd1d017656e1039c375c227dae8f1ec6b3085a29b6f231cba74e23641e98c96",
+          "test": "pinned_native_world_model_and_link_motion_match_loaded_tpe_scene",
+          "normal_log_matching_names": [
+            "pinned_native_world_model_and_link_motion_match_loaded_tpe_scene"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/tpe.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+            "planning/reference/tpe-scene-motion.json"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/tpe_contacts.rs",
+          "source_sha256": "511cdeddcbe990f9347278b6e220c2bf1034530d16486f15b5e775c9f9fc6cca",
+          "test": "loaded_contacts_match_fresh_native_model_bounds_and_filtering",
+          "normal_log_matching_names": [
+            "loaded_contacts_match_fresh_native_model_bounds_and_filtering"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/tpe_contacts.rs",
+          "literal_includes": [
+            "planning/reference/tpe-contacts.json"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/tpe.rs",
+          "source_sha256": "dfd1d017656e1039c375c227dae8f1ec6b3085a29b6f231cba74e23641e98c96",
+          "test": "selected_tpe_world_has_no_gravity_dynamics_and_restores_removed_entities",
+          "normal_log_matching_names": [
+            "selected_tpe_world_has_no_gravity_dynamics_and_restores_removed_entities"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/tpe.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+            "planning/reference/tpe-scene-motion.json"
+          ]
+        }
+      ]
     },
     {
       "id": "dynamic",
@@ -180,7 +272,40 @@
         "docs/PHYSICS_INPUTS.md",
         "docs/HEADLESS_REFERENCE.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Use already selected f64 Rapier via PHY-05. Gravity/free-fall, supported shapes/inertia and bounded accuracy must remain tested; native DART is a cross-engine reference, not a Rust DART adapter.",
+      "witnesses": [
+        {
+          "source": "crates/gz-physics-rapier/tests/physics.rs",
+          "source_sha256": "78cfe014d6796094839f86ed4285c40f9dc62a9c91fefd35af871afa8e723a2d",
+          "test": "exact_steps_free_fall_pause_and_reset_use_z_up_and_f64",
+          "normal_log_matching_names": [
+            "exact_steps_free_fall_pause_and_reset_use_z_up_and_f64"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-physics-rapier/tests/physics.rs",
+          "literal_includes": []
+        },
+        {
+          "source": "crates/gz-physics-rapier/tests/physics.rs",
+          "source_sha256": "78cfe014d6796094839f86ed4285c40f9dc62a9c91fefd35af871afa8e723a2d",
+          "test": "explicit_inertia_and_rotation_control_impulse_response_and_reset",
+          "normal_log_matching_names": [
+            "explicit_inertia_and_rotation_control_impulse_response_and_reset"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-physics-rapier/tests/physics.rs",
+          "literal_includes": []
+        },
+        {
+          "source": "crates/gz-physics-rapier/tests/physics.rs",
+          "source_sha256": "78cfe014d6796094839f86ed4285c40f9dc62a9c91fefd35af871afa8e723a2d",
+          "test": "bodies_contact_fixed_ground_and_removed_handles_stay_invalid",
+          "normal_log_matching_names": [
+            "bodies_contact_fixed_ground_and_removed_handles_stay_invalid"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-physics-rapier/tests/physics.rs",
+          "literal_includes": []
+        }
+      ]
     },
     {
       "id": "streams",
@@ -194,11 +319,50 @@
         "planning/benchmarks/headless-streams.json",
         "planning/reviews/headless-streams.json"
       ],
-      "scope_limits": "128 measured requests per process, prospective20ms post-observation gaps; native pose/info hard60wallHz. Current Rust default unthrottled pose cadence is not qualified as native parity. Host clocks differ; opaque ID-byte normalization is exactly guarded.",
+      "scope_limits": "128 measured requests per process with20ms post-observation pacing; native60wallHz default and Rust16_666_667ns admission are bound independently. Broader default/reset/server equivalence is not inferred from paced runs. Host clocks differ; opaque-ID byte normalization is explicitly guarded.",
       "documentation": [
         "docs/STREAM_OBSERVATIONS.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "At every selected observation boundary require clock/pose/IMU delivery, exact sim stamps/counts, full noise-free IMU components/covariances/frame/sequence, canonical model/local poses and validstable IDs; hostclock domains not equal cross-process values.",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-server/tests/private/streams_benchmark.rs",
+          "source_sha256": "80c061c32c5b884f972e9417f05914bbc0d43ac5ecc81a65f0539b67e5c69402",
+          "test": "tpe_clock_pose_imu_complete_lockstep",
+          "normal_log_matching_names": [
+            "streams_benchmark::tpe_clock_pose_imu_complete_lockstep"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/private/streams_benchmark.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/server.rs",
+          "source_sha256": "6871422460bdca6920679627f9e1da91d5b8281467565a057372db7530946510",
+          "test": "imu_message_matches_native_metadata_presence_covariance_and_sequence",
+          "normal_log_matching_names": [
+            "tests::imu_message_matches_native_metadata_presence_covariance_and_sequence"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/private/server.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/native.rs",
+          "source_sha256": "f8fe499d478e7b81350a0f8cd440d23d40e4a5efa9f3428d74d18d25bec7c0f9",
+          "test": "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time",
+          "normal_log_matching_names": [
+            "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/native.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf"
+          ]
+        }
+      ]
     },
     {
       "id": "imu",
@@ -215,13 +379,54 @@
         "planning/reviews/headless-imu.json",
         "planning/reviews/input-imu.json"
       ],
-      "scope_limits": "Noise-free CPU IMU only; full sensor noise/activation/rendered families remain open. Shared-SDF acquisition is100 precontact steps per engine; rate controls preserve their own declared horizons.",
+      "scope_limits": "Qualified frame/gravity/rate/history/noise/local activation contracts. Generic Sensor framework/forced acquisition/metrics and other families remain open; native BaseSensor rows do not prove whole-server activation-reset parity.",
       "documentation": [
         "docs/HEADLESS_REFERENCE.md",
         "docs/INPUT_IMU.md",
         "docs/SENSOR_SCHEDULING.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Same headless_imu.sdf:100 observations1..100ms, every orientation/angular/specific-force component; TPE native semantics, Rapier versus DART bound1e-9 over precontact100ms. Retain pause/no-stale and finite-rate/reset/history assertions.",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/headless_imu.rs",
+          "source_sha256": "64921ea5bd1c63d3b734dcd5f8b7bd072e8d2c3d4cd9f970dc1e7067a3491ddf",
+          "test": "shared_unpaced_sdf_matches_actual_native_acquisition_on_tpe_and_freefall_dynamics",
+          "normal_log_matching_names": [
+            "shared_unpaced_sdf_matches_actual_native_acquisition_on_tpe_and_freefall_dynamics"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/headless_imu.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+            "planning/reference/headless-imu.json"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/sensor_schedule.rs",
+          "source_sha256": "c0e70080cf45376773b37c9005d04811dfbf499d376e895c9ce296b31e0418a3",
+          "test": "native_rates_preserve_phase_derivative_pause_and_reset_for_both_engines",
+          "normal_log_matching_names": [
+            "native_rates_preserve_phase_derivative_pause_and_reset_for_both_engines"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/sensor_schedule.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/input_imu.rs",
+          "source_sha256": "5e345fb3e7caaf24713feeabcc3f4d75a3d4d18eecea56b5c894417516cde001",
+          "test": "all_attached_imus_preserve_history_through_pause_replacement_reset_and_removal",
+          "normal_log_matching_names": [
+            "all_attached_imus_preserve_history_through_pause_replacement_reset_and_removal"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/input_imu.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+            "planning/reference/input-imu.json"
+          ]
+        }
+      ]
     },
     {
       "id": "pause-step",
@@ -241,7 +446,44 @@
         "docs/HEADLESS.md",
         "docs/STEP_FAULTS.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Start paused without extra sample, exact requestedN advancing steps and completion pause, control precedence/overflow/unsupportedinputs explicit; actualC++control/service requests.",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-core/tests/schedule.rs",
+          "source_sha256": "1076ffded71779bbde40b7e7e55883e3d356aa9f585f6b05a721e713f4333f73",
+          "test": "pause_exact_steps_and_reset_keep_distinct_clock_contracts",
+          "normal_log_matching_names": [
+            "pause_exact_steps_and_reset_keep_distinct_clock_contracts"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-core/tests/schedule.rs",
+          "literal_includes": []
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/server.rs",
+          "source_sha256": "6871422460bdca6920679627f9e1da91d5b8281467565a057372db7530946510",
+          "test": "real_transport_commands_report_acceptance_and_exact_step_completion",
+          "normal_log_matching_names": [
+            "tests::real_transport_commands_report_acceptance_and_exact_step_completion"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/private/server.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/server.rs",
+          "source_sha256": "6871422460bdca6920679627f9e1da91d5b8281467565a057372db7530946510",
+          "test": "unsupported_and_overflowing_controls_leave_state_unchanged",
+          "normal_log_matching_names": [
+            "tests::unsupported_and_overflowing_controls_leave_state_unchanged"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/private/server.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf"
+          ]
+        }
+      ]
     },
     {
       "id": "inputs",
@@ -255,12 +497,54 @@
         "planning/reference/physics-inputs.json",
         "planning/reference/input-imu.json"
       ],
-      "scope_limits": "Local Rust APIs, not transport input systems. Twenty supported native velocity/angular rows; ten rotated TPE rows remain D23 evidence. TPE wrench explicitly unsupported. Force positions use the declared half-Euler bound.",
+      "scope_limits": "Local APIs, not transport input systems. Twenty earlier supported native velocity/angular rows retain comparisons; ten rotated TPE rows remain native observations with the confirmed D23 correction. TPE wrench is unsupported. Force positions retain the declared half-Euler bound.",
       "documentation": [
         "docs/PHYSICS_INPUTS.md",
         "docs/INPUT_IMU.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Local free-body world velocity/angularvelocity and COMforce admission/execution/one-tick semantics; velocityreplacement must not invent IMUacceleration, realforce staysvisible; paused/reset/removal and invalidinput preservation. No new transport wrench/velocity system unless fixture itself needs it.",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/inputs.rs",
+          "source_sha256": "3874eae17a92e6b4ff2356b240b848371e7ce7d57c383c99ba1fc34be6474fc7",
+          "test": "native_world_velocity_and_wrench_controls_match_supported_observations",
+          "normal_log_matching_names": [
+            "native_world_velocity_and_wrench_controls_match_supported_observations"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/inputs.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+            "crates/gz-sim-scene/tests/fixtures/physics_inputs.json"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/input_imu.rs",
+          "source_sha256": "5e345fb3e7caaf24713feeabcc3f4d75a3d4d18eecea56b5c894417516cde001",
+          "test": "velocity_replacement_is_not_an_imu_force_and_real_wrench_acceleration_remains",
+          "normal_log_matching_names": [
+            "velocity_replacement_is_not_an_imu_force_and_real_wrench_acceleration_remains"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/input_imu.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+            "planning/reference/input-imu.json"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/inputs.rs",
+          "source_sha256": "3874eae17a92e6b4ff2356b240b848371e7ce7d57c383c99ba1fc34be6474fc7",
+          "test": "admitted_force_is_one_tick_and_bad_inputs_leave_pending_requests_unchanged",
+          "normal_log_matching_names": [
+            "admitted_force_is_one_tick_and_bad_inputs_leave_pending_requests_unchanged"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/inputs.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+            "crates/gz-sim-scene/tests/fixtures/physics_inputs.json"
+          ]
+        }
+      ]
     },
     {
       "id": "joint",
@@ -277,7 +561,47 @@
       "documentation": [
         "docs/JOINTS.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Separate world-parented revolute Rapier variant: nativeDART4000-step pendulum and boundedreset samples, declaredq/bodypose1e-4 andaxisvelocity3e-4 plusanalyticanchor/energy checks; continuousangle/frames/ownership/loadedreset/removal. No TPEjoint/generalarticulation or jointedfreebodycommands.",
+      "witnesses": [
+        {
+          "source": "crates/gz-physics-rapier/tests/joints.rs",
+          "source_sha256": "f49ca21914a339e50fb900d44a2f75348a97454e36e8b47266198d233e8c67e4",
+          "test": "real_native_pendulum_joint_observations_and_reset_are_within_declared_bounds",
+          "normal_log_matching_names": [
+            "real_native_pendulum_joint_observations_and_reset_are_within_declared_bounds"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-physics-rapier/tests/joints.rs",
+          "literal_includes": [
+            "crates/gz-physics-rapier/tests/fixtures/world_pendulum.json"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/joints.rs",
+          "source_sha256": "5d5976ee49e0feab06e5ff15da15d924013189a99e266050bf9f01bf27ed3210",
+          "test": "sdf_world_revolute_preserves_metadata_frames_native_observations_and_loaded_lifecycle",
+          "normal_log_matching_names": [
+            "sdf_world_revolute_preserves_metadata_frames_native_observations_and_loaded_lifecycle"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/joints.rs",
+          "literal_includes": [
+            "crates/gz-physics-rapier/tests/fixtures/world_pendulum.json",
+            "crates/gz-sim-scene/tests/fixtures/pendulum.sdf"
+          ]
+        },
+        {
+          "source": "crates/gz-physics-rapier/tests/joints.rs",
+          "source_sha256": "f49ca21914a339e50fb900d44a2f75348a97454e36e8b47266198d233e8c67e4",
+          "test": "world_revolute_tracks_complete_turns_in_both_directions_and_reset",
+          "normal_log_matching_names": [
+            "world_revolute_tracks_complete_turns_in_both_directions_and_reset"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-physics-rapier/tests/joints.rs",
+          "literal_includes": [
+            "crates/gz-physics-rapier/tests/fixtures/world_pendulum.json"
+          ]
+        }
+      ]
     },
     {
       "id": "lifecycle",
@@ -298,7 +622,51 @@
         "docs/SCENE_RESET.md",
         "docs/SERVER_RESET.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Actualselected native10DART/TPE controls for reset callback/controloverwrite/model_only/time_only/multistep/identity outcome; Rust loadedscene oldIDs+retiredruntimeadditions, removal/no ghosts, sharedstreams and resetreconnection. Do not equate Rustcancellationcounter with native.",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/model_remove.rs",
+          "source_sha256": "17f54f6615619e3aef821b676a1675a4cc76f3923bc72d23e06cbbc281383df9",
+          "test": "removal_retires_model_descendants_bodies_and_samples_without_ghosts",
+          "normal_log_matching_names": [
+            "removal_retires_model_descendants_bodies_and_samples_without_ghosts"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/model_remove.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+            "crates/gz-sim-scene/tests/fixtures/nested.sdf"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/reset.rs",
+          "source_sha256": "437ac48b159b30d91134203bf12d9594e3ca01ba7e998aa90a4438c711c75eae",
+          "test": "shared_sdf_native_control_precedence_removal_and_reset_observations_match",
+          "normal_log_matching_names": [
+            "tests::reset_tests::shared_sdf_native_control_precedence_removal_and_reset_observations_match"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/private/reset.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+            "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+            "planning/reference/lifecycle-controls.json"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/reset.rs",
+          "source_sha256": "437ac48b159b30d91134203bf12d9594e3ca01ba7e998aa90a4438c711c75eae",
+          "test": "reset_stream_reconciliation_preserves_shared_publishers_and_retires_additions",
+          "normal_log_matching_names": [
+            "tests::reset_tests::reset_stream_reconciliation_preserves_shared_publishers_and_retires_additions"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/private/reset.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+            "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+            "planning/reference/lifecycle-controls.json"
+          ]
+        }
+      ]
     },
     {
       "id": "resources",
@@ -316,11 +684,44 @@
       "documentation": [
         "docs/LOCAL_ASSETS.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Bounded local/offline resources via pinnedproducer APIs; bothbackends construct thenstep/reset withoutresolver/sourcefiles. No downloads/remoteassets requirement.",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/local_resources.rs",
+          "source_sha256": "51697ff450f16e7cf07ee2fe240f3a78056d00c935a3cde568c9fb8ab4208972",
+          "test": "configured_local_include_constructs_both_engines_and_preserves_loaded_reset",
+          "normal_log_matching_names": [
+            "configured_local_include_constructs_both_engines_and_preserves_loaded_reset"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/local_resources.rs",
+          "literal_includes": []
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/local_resources.rs",
+          "source_sha256": "51697ff450f16e7cf07ee2fe240f3a78056d00c935a3cde568c9fb8ab4208972",
+          "test": "offline_fuel_include_survives_cache_removal_and_loaded_reset_for_both_engines",
+          "normal_log_matching_names": [
+            "offline_fuel_include_survives_cache_removal_and_loaded_reset_for_both_engines"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-scene/tests/local_resources.rs",
+          "literal_includes": []
+        },
+        {
+          "source": "crates/gz-assets/tests/offline_fuel.rs",
+          "source_sha256": "78ec1b293626e1e8b3397fc7c42c6974aead5c258a37444cad5907c99fa75e1c",
+          "test": "actual_fuel_cache_api_selects_exact_and_tip_without_network_on_hit_or_miss",
+          "normal_log_matching_names": [
+            "actual_fuel_cache_api_selects_exact_and_tip_without_network_on_hit_or_miss"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-assets/tests/offline_fuel.rs",
+          "literal_includes": []
+        }
+      ]
     },
     {
       "id": "interop",
-      "contract": "Nine real C++ process scenarios exercise legacy discovery/pub/sub/service clock, poses, IMU, topic repair, removal, shared streams, reset and cadence.",
+      "contract": "Seventeen actual C++ functional process scenarios plus three separate lifecycle controls verify the current Rust server through native discovery/pub-sub/services.",
       "rust_tests": [
         "crates/gz-sim-server/tests/native.rs",
         "crates/gz-sim-server/tests/clock_client.cc"
@@ -334,7 +735,22 @@
         "docs/HEADLESS.md",
         "docs/NATIVE_CLIENT_REQUESTS.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Actual external legacyC++ process against Rust endpoints, notRust-Rust only. Retain15existing scenarios plus2rate functional scenarios and3separateharnesscontrols at a8; outputlessrate handoff is notremotecompletionack. Process-local SDKbenchmark does notreplace these.",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-server/tests/native.rs",
+          "source_sha256": "f8fe499d478e7b81350a0f8cd440d23d40e4a5efa9f3428d74d18d25bec7c0f9",
+          "test": "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time",
+          "normal_log_matching_names": [
+            "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/native.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf"
+          ]
+        }
+      ]
     },
     {
       "id": "bounds-shutdown",
@@ -350,12 +766,63 @@
         "planning/reviews/lifecycle-controls.json",
         "planning/reviews/headless-streams.json"
       ],
-      "scope_limits": "Selected one-Node server holds its publisher leases. Native Publisher-after-Node-drop parity is a separate Transport gap; no full log/auth/distributed overload conformance claim.",
+      "scope_limits": "The selected publisher/control Node is retained for its leases; bounded dedicated rate-worker Nodes are separately tested. Publisher-after-Node-drop and complete Transport log/auth/distributed behavior are outside this server contract; consult the independent Transport ledger.",
       "documentation": [
         "docs/IDENTITIES.md",
         "docs/STEP_FAULTS.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Finite publication/service queues and per-tick budgets, overload/errorcounters, invalidrequest/faultatomicity, removal/resetordering and teardown; no socketjoin/filesystem in simulationstep.",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-server/tests/private/server.rs",
+          "source_sha256": "6871422460bdca6920679627f9e1da91d5b8281467565a057372db7530946510",
+          "test": "shutdown_after_receipt_reports_reply_failure_without_waiting",
+          "normal_log_matching_names": [
+            "tests::shutdown_after_receipt_reports_reply_failure_without_waiting"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/private/server.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/server.rs",
+          "source_sha256": "6871422460bdca6920679627f9e1da91d5b8281467565a057372db7530946510",
+          "test": "each_removal_batch_is_bounded_when_both_services_have_work",
+          "normal_log_matching_names": [
+            "tests::each_removal_batch_is_bounded_when_both_services_have_work"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/private/server.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/reset.rs",
+          "source_sha256": "437ac48b159b30d91134203bf12d9594e3ca01ba7e998aa90a4438c711c75eae",
+          "test": "reported_step_failure_stops_server_publications_and_future_controls",
+          "normal_log_matching_names": [
+            "tests::reset_tests::reported_step_failure_stops_server_publications_and_future_controls"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/private/reset.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+            "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+            "planning/reference/lifecycle-controls.json"
+          ]
+        },
+        {
+          "source": "crates/gz-sim-core/tests/faults.rs",
+          "source_sha256": "68ea280a38acde895dee51c96a684bc9e8af156517f963a94e4dc78a6a504a0a",
+          "test": "every_normal_phase_stops_later_systems_and_keeps_last_committed_time",
+          "normal_log_matching_names": [
+            "every_normal_phase_stops_later_systems_and_keeps_last_committed_time"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-core/tests/faults.rs",
+          "literal_includes": []
+        }
+      ]
     },
     {
       "id": "performance",
@@ -369,14 +836,30 @@
         "planning/benchmarks/headless-streams.json",
         "planning/reviews/headless-streams.json",
         "planning/benchmarks/full-server-48a.json",
-        "planning/reviews/full-server-pipeline.json"
+        "planning/reviews/full-server-pipeline.json",
+        "planning/benchmarks/headless-streams-imu-activation-v1.json"
       ],
-      "scope_limits": "Selected paced request latency, not unpaced throughput or whole-Gazebo speedup. Earlier IMU-only native ratios are contextual. Shared-host process-mean ranges/outliers and installed-dependency provenance stay explicit.",
+      "scope_limits": "Current immutable TPE SDK batches retain one warmup plus ten measured128step pairs each; declared pacing excluded and all work/wall observations retained. No activation-toggle, causal, general, unpaced-throughput or balanced-robotics claim. Earlier datasets and legacy installed native references retain separate qualifications.",
       "documentation": [
         "docs/STREAM_OBSERVATIONS.md",
         "docs/FULL_SERVER_PERFORMANCE.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "One equal-requested-work current-source report is sufficient forselectedP2, noteverybackendperformance. TPEactualServer+clock/pose/IMU,128steps/10measured+warmup pairs,20msrequestpacing,CPU31,allraw/extrema retained, separateauthor/reviewer statistics. Distinguishlocalserializationpaths andlatencyfromthroughput.",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-server/tests/private/streams_benchmark.rs",
+          "source_sha256": "80c061c32c5b884f972e9417f05914bbc0d43ac5ecc81a65f0539b67e5c69402",
+          "test": "tpe_clock_pose_imu_complete_lockstep",
+          "normal_log_matching_names": [
+            "streams_benchmark::tpe_clock_pose_imu_complete_lockstep"
+          ],
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/8d065a1a3750d282bada085df4a29a8139a3e875/crates/gz-sim-server/tests/private/streams_benchmark.rs",
+          "literal_includes": [
+            "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf"
+          ]
+        }
+      ]
     },
     {
       "id": "headless-closure",
@@ -392,11 +875,13 @@
         "docs/acceptance/CORE-01.md",
         "docs/DEPENDENCIES.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Current exact normal Cargo closure excludes renderer/window/GPU dependencies; existing253-package historicalproof must be refreshed forcurrentpins/lock ratherthanrelabeled.",
+      "witnesses": []
     },
     {
       "id": "quality",
-      "contract": "Strict staged, normal hook and exact hosted gates pass workspace and every production crate above95% lines and regions.",
+      "contract": "Accepted source and normal279Rust/88tooling, all9 crates strict>95% lines/regions and exact implementation hostedCI; refresh publication has its own final gates.",
       "rust_tests": [
         "scripts/verify.py",
         "scripts/rustc-coverage.py",
@@ -408,21 +893,23 @@
         "planning/reviews/headless-streams.json",
         "planning/test-ledger.json"
       ],
-      "scope_limits": "Implemented CPU subset:204 Rust/16 tooling/nine C++ scenarios, all percrate and workspace strict integer gates; complete retained upstream and future feature/native/GPU release matrix still open.",
+      "scope_limits": "Accepted implementation8d065a1:279Rust/88tooling,17functionalC++scenarios plus3separate lifecyclecontrols, all9production crates/workspace strict>95%lines/regions. Complete upstream/platform/feature/native/GPU release qualification remains open; refresh publication has its own final gates.",
       "documentation": [
         "docs/TESTING.md"
       ],
-      "state": "selected_scope_evidence_reviewed"
+      "state": "current_selected_scope_evidence_reviewed",
+      "minimum_selected_assertions": "Exact chosen revision source/full/protectednormal/hosted pass; strictly>95lines+regions each9productioncrates/workspace andchangedpolicy. Existing271Rust83tooling/17functionalC++ evidence at a8 is historical foractivationcandidate, not automaticnewpass.",
+      "witnesses": []
     }
   ],
   "original_ledger": {
     "ported_reviewed": 3,
-    "partially_ported": 4,
-    "scope": "Partial inventory; supplementary differential controls do not retire additional original cases."
+    "partially_ported": 9,
+    "retirement": "No original retired by this evidence refresh."
   },
   "file_sha256": {
-    "Cargo.lock": "30760c7a09475ab45bb90c0b0432fc1d75212bb12d0dcf5911d90c441ae5474b",
-    "Cargo.toml": "653a0b11d1a22e23a8c81b1a84a2964226fd03819be6c20206bfd1fba0a17b18",
+    "Cargo.lock": "50ff708b370a6938a3105af7692d6e449790988924720248ec3d6a3a8622ed60",
+    "Cargo.toml": "7a01f17d50249181a4e8edebeac1cd743780998a23b21a45022963ff60635517",
     "crates/gz-assets/tests/local.rs": "b774957dd02619fa8f64bb56a355a1012056037b1a28b0b10427ba8efc491f2d",
     "crates/gz-assets/tests/offline_fuel.rs": "78ec1b293626e1e8b3397fc7c42c6974aead5c258a37444cad5907c99fa75e1c",
     "crates/gz-physics-rapier/tests/joints.rs": "f49ca21914a339e50fb900d44a2f75348a97454e36e8b47266198d233e8c67e4",
@@ -437,25 +924,25 @@
     "crates/gz-sim-scene/tests/hierarchy.rs": "0e9050edc5bc0250c9b170ccd06cb04bad270255d9199c467327188d06e967a2",
     "crates/gz-sim-scene/tests/input_foreign_backend.rs": "d68d2dcd0b744a9478e5042912dbb36da8da9d7398d2964571ced24e75e131c0",
     "crates/gz-sim-scene/tests/input_imu.rs": "5e345fb3e7caaf24713feeabcc3f4d75a3d4d18eecea56b5c894417516cde001",
-    "crates/gz-sim-scene/tests/inputs.rs": "472adf83fd445a576360ac4151b71c6a69214b454b272fb2e3decdfbcec8298f",
+    "crates/gz-sim-scene/tests/inputs.rs": "3874eae17a92e6b4ff2356b240b848371e7ce7d57c383c99ba1fc34be6474fc7",
     "crates/gz-sim-scene/tests/joints.rs": "5d5976ee49e0feab06e5ff15da15d924013189a99e266050bf9f01bf27ed3210",
     "crates/gz-sim-scene/tests/local_resources.rs": "51697ff450f16e7cf07ee2fe240f3a78056d00c935a3cde568c9fb8ab4208972",
     "crates/gz-sim-scene/tests/model_remove.rs": "17f54f6615619e3aef821b676a1675a4cc76f3923bc72d23e06cbbc281383df9",
-    "crates/gz-sim-scene/tests/scene.rs": "d558c707a4aa8daa9ed8843ad15c0461c46abbd2560c43e8f79aae63af3e26fd",
-    "crates/gz-sim-scene/tests/sensor_schedule.rs": "4e44f5fb7684ee73bd2b9869789658ea0ada8b69cce0cfad4b89fe24ecea17d7",
+    "crates/gz-sim-scene/tests/scene.rs": "8f26734338f552883ec369f471111a5126a89430ffd4a2434a30d604b20612f2",
+    "crates/gz-sim-scene/tests/sensor_schedule.rs": "c0e70080cf45376773b37c9005d04811dfbf499d376e895c9ce296b31e0418a3",
     "crates/gz-sim-scene/tests/tpe.rs": "dfd1d017656e1039c375c227dae8f1ec6b3085a29b6f231cba74e23641e98c96",
     "crates/gz-sim-scene/tests/tpe_contacts.rs": "511cdeddcbe990f9347278b6e220c2bf1034530d16486f15b5e775c9f9fc6cca",
     "crates/gz-sim-scene/tests/world_physics.rs": "4d8303d8d8ce12af313108636d31f6e593dd7dcea49842e95d79675f7f54297f",
-    "crates/gz-sim-server/tests/clock_client.cc": "2a4992edb40c74fa7c6820c6d1ec4a32758d26e7123999e38ba183ef0fb5cf0a",
-    "crates/gz-sim-server/tests/native.rs": "114ba7fc956f04163b71d8e01e7afbfd16ce993af36c928c40c9d51c58ea010b",
+    "crates/gz-sim-server/tests/clock_client.cc": "a0297fd50f0e22760867309003814cb812f401f3e5dda26ca27f530eef6d34d8",
+    "crates/gz-sim-server/tests/native.rs": "f8fe499d478e7b81350a0f8cd440d23d40e4a5efa9f3428d74d18d25bec7c0f9",
     "crates/gz-sim-server/tests/native_stream_benchmark.cc": "6aefe359365f0ccbc6e1d54255abf3ed545b3a9ee59a46bc75c6e0833413697a",
     "crates/gz-sim-server/tests/private/removals.rs": "9ef96fc3d9dccf226f3d32a76df90d617325c15b3cd8ebcd1544cd2a155fc121",
-    "crates/gz-sim-server/tests/private/reset.rs": "178f2f987824237c69197e9152a3a6605ebb5f797818694a5b5cb56329d24d07",
-    "crates/gz-sim-server/tests/private/server.rs": "6363c7e217e63b397258de380b19892fa944723ec91fe5142cc13013105f9189",
+    "crates/gz-sim-server/tests/private/reset.rs": "437ac48b159b30d91134203bf12d9594e3ca01ba7e998aa90a4438c711c75eae",
+    "crates/gz-sim-server/tests/private/server.rs": "6871422460bdca6920679627f9e1da91d5b8281467565a057372db7530946510",
     "crates/gz-sim-server/tests/private/streams_benchmark.rs": "80c061c32c5b884f972e9417f05914bbc0d43ac5ecc81a65f0539b67e5c69402",
     "docs/DEPENDENCIES.md": "2f13f767f530f77f8b04895fbb4cf9cd6f935b836a538cbad7687a92dac1ff2e",
-    "docs/FULL_SERVER_PERFORMANCE.md": "b4063184b3eb6cab7f701f030f755ec29150cfe6fef374ad372d9c456d47b074",
-    "docs/HEADLESS.md": "8646f0b54c66d55f88b9b3bd8bd5f64e9e95448b19b062f4d765e3e5dd9a783c",
+    "docs/FULL_SERVER_PERFORMANCE.md": "fa7cd61f2275fbcef8d510deb6cb48e450cfafb4d40eb5c8de9aaebe21f22337",
+    "docs/HEADLESS.md": "7eda7718386eab2104df2a7c419d6445361a8d49733409a9d87001d6adcab169",
     "docs/HEADLESS_REFERENCE.md": "b47747bfab57f3d9cf4225b0d5ece7eeda700e3ae68d31f19e23197b2cbe205b",
     "docs/IDENTITIES.md": "3a3f3d2836b5d3abb9db5a7fb7ae96d4e09bc40fac885b3645236bb6ca609b57",
     "docs/IMPLEMENTATION_TASKS.md": "d27f8069add38c9806a4ad988f8c8bb7bed1587881c57d92e368fe449d5a26d7",
@@ -464,19 +951,18 @@
     "docs/LIFECYCLE_REFERENCE.md": "6bf0e8fe641c7b3f0583c52f9d33b0eb1174bc397933125a959b86e3ab3c4a07",
     "docs/LOCAL_ASSETS.md": "db681e58525d9a8cc6779b77028e9cd002866e12df0f878f45e63fd5ce9867a2",
     "docs/NATIVE_CLIENT_REQUESTS.md": "1344405ef5bc74043b1883a5493d8498f0c7b0900978c9db6c19c18bb9ed23b9",
-    "docs/PHYSICS_INPUTS.md": "b58d489ed89e6cabf389903c116d793ba73a93004521e7b431d9cafd43d23a0d",
+    "docs/PHYSICS_INPUTS.md": "fc8c56224e64b9627103d6e3fa39551d22d17bb697e9d4d7d8fc4fc921fa5c69",
     "docs/PLAN.md": "e65914fd638e18bc0e85a0ba6642e5c499370cb4f99e1ac729309ce98097d793",
-    "docs/SCENE.md": "959af3ddf24fdcf0c235bf2476bed3c1191edcfe44d992f18df5d2199e516ac6",
+    "docs/SCENE.md": "62d16ceb15677862ecfaf523caf1a63192195120d364ffc9d9be310911a757c5",
     "docs/SCENE_RESET.md": "d001604a1418bce2addcbc823a600cd61630a4b51c9250b09a45af2f660dcf41",
-    "docs/SENSOR_SCHEDULING.md": "b2701ad3caf5a56fb074849ad2476ee5ee44e4e31d53b698f2fed79a2ce29aec",
+    "docs/SENSOR_SCHEDULING.md": "672839d27c715e16b45886f9b1f959b45f194c070947524739a12f9a6cece0f1",
     "docs/SERVER_RESET.md": "0f5eb907c9b4e7c1179e51234c8be010b08f4ba235a78400877a0a0c8af36bfd",
     "docs/STEP_FAULTS.md": "2ebabfff3f1400e58277ccbc5e3e6379a23c9c1d1691db28c391f10864b55a3a",
-    "docs/STREAM_OBSERVATIONS.md": "c25fbf6c1616236da13fcd2baaf2b6bad58573703e72db8c87803f90adb69421",
-    "docs/TESTING.md": "ddd5fe85c78647f206ebe747d7b32aafe5ffd801abd60af1dfa63289d05587b7",
+    "docs/STREAM_OBSERVATIONS.md": "4260bbacded3216e54c4aeaa1df927e39d133050041362099c2758f49c0f45a3",
+    "docs/TESTING.md": "bec3d96a94fe7b273a913a0579701bc4f2a41ec3c8f69066a62f2fe19a7d8bc4",
     "docs/TPE_CONTACTS.md": "61bc253c044ddb6c509c67c4cef315f08230c906d7590444a71bd54e3b147e4d",
-    "docs/TPE_SCENE.md": "a821b89dcb8668f3d1c012254964628e6c9fa11d86e0615154bfdb4b1ad4adf2",
+    "docs/TPE_SCENE.md": "ea36c1eb0388d9eb18b92c532584750ea3968347a08253f10fa225ac625709b5",
     "docs/acceptance/CORE-01.md": "0a71440e33fa1c371268f4d822afe407651e16300be544584a33ae6f0af08f14",
-    "planning/acceptance/p2-normal-dependencies.json": "652b5c14a1af8a0cd89d9b1493afc6375b09bf2fdc22619f760b9f73d000bdcf",
     "planning/baseline.json": "0cb03b9b3f87d6ca6a9068262ff60cbf7ba7f095916d93dceaec4cdb4b79fe55",
     "planning/benchmarks/full-server-48a.json": "3bafc6d58000ca1fd41ea0bfa3dc5711615d873a0f8a311b2f91a3231c0cd32d",
     "planning/benchmarks/headless-streams.json": "fbadeee06dcac94e46269f6408ee933aac5406c0fc8f698fbbb902555016e229",
@@ -498,34 +984,42 @@
     "planning/reviews/lifecycle-controls.json": "8d29f5d82020a3ee51c8db09ecccbea2dd81caf90d7aa657baa0a987830fa23f",
     "planning/reviews/native-client-requests.json": "8fa7c2e3635e937f0a149aea51bdc67193e206e8a6f6f757ae20f92467056b83",
     "planning/reviews/world-joints.json": "b8296311d9ae1ce40cee6aa56741cc00c8af994f7842571edd285b2f7535a37b",
-    "planning/test-ledger.json": "3df614d9be66b6a20ac375391c7881b4a5351688fd892ceab7f3baf283226989",
+    "planning/test-ledger.json": "c2c6b4bba7609514e8dca5b6645e9e1cdcdd72fbde17be40b7e64be82181dc36",
     "planning/transport-reference-lock.json": "d3763b54283747d43c0aecbc74b27aec600fa36bba4d8509635f7a83db35e247",
     "scripts/rustc-coverage.py": "0d7aecf2d85859aba493c4e6e18501652c5587688de517a0e5fbf44d948698ed",
-    "scripts/verify.py": "4d94a196ced525222c45c119b54ee3905367814c67d71bd00c3c5f212b3aef76",
+    "scripts/verify.py": "ec1edd481c8f9150b463e42d43f6bd862042dbb68cdb0d87da0c008c991a2daf",
     "tests/test_coverage_gate.py": "1446e35d04a711aad62ebced1f99bd1f135c8ccc1d7561c7a07b6273b743fc1f",
-    "tests/test_pipeline_benchmark.py": "e0e0f66b6865d8bc731646b6e90906855b1677badaaa08a4fd1cbbba0e03f357",
+    "tests/test_pipeline_benchmark.py": "da81f4e357a66b1af7ad51b7d01afc7d51575a2982b4428a3d773ca94b1dbe20",
     "tests/test_snapshot_export.py": "ae48ac499a5229232fb979dfcdd833a98a1dc8e3edd14945a8c5481c7af6ba25",
-    "tests/test_staged_environment.py": "4b661c97307c97d19cbc18f1c887f52a708f947c3035105bd7d2ff4216fade70"
+    "tests/test_staged_environment.py": "4b661c97307c97d19cbc18f1c887f52a708f947c3035105bd7d2ff4216fade70",
+    "crates/gz-sim-scene/tests/fixtures/nested.sdf": "32b2cc37bcc4191712bc54a22004f0795a34a27732914e0b32c24c798e130e4d",
+    "crates/gz-sim-scene/tests/fixtures/world_physics.json": "3577ef523d9413556798b67fe4f70c8314145754ed4f277ded219da2fdc6e77e",
+    "crates/gz-sim-scene/tests/fixtures/physics_inputs.json": "5bd00bf781e061220ac006db7ef0746bb730666b9d5b074ca4a7dc5e0b87bd21",
+    "crates/gz-physics-rapier/tests/fixtures/world_pendulum.json": "0d59d4caf32165dfcf013139cb06776d985b57e4bd34618abd692997e5f9b81c",
+    "docs/TPE_POLICY.md": "d6677f3e074cf9568fe45eda668e53dacce293d5f6dc731d8cbe604b333aa292",
+    "planning/reviews/tpe-policy.json": "f0f0e4b2c47f5aa04dcf1ea2338914a840d3969419441c65b745b22d1856317c",
+    "planning/reference/tpe-policy.json": "bd243355fe5d0931dd890801ce0ecb8a719d3d9886b9e203a192da115a5dd66b",
+    "crates/gz-sim-server/src/poses.rs": "a1f1bc0d43dfd04d1f148470f4948efb748cb4b8468305e84f57b5e65c1b78ac",
+    "planning/reference/pose-rate.json": "bce99cff6c696824a5bbc94655807959503a63ff4b8616dcbd409952645a2854",
+    "planning/reviews/pose-rate.json": "f0f59510f991644eae1bbd140ca2c82c2d6034ca8a0e4b7713ce95e2621a0bff",
+    "planning/reference/headless-sdk-environment.json": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f",
+    "planning/reference/headless-sdk-build-libraries.json": "28d3693ed4ad4e6f8fe226f6a2c1c152010cc7291a61be30dab42ca1299da19a"
   },
   "remaining": [
-    "Complete immutable native reference image/dependency reproduction and expanded original test inventory remain P0/release work.",
-    "DART and MuJoCo Rust adapters, full TPE/physics capabilities and unresolved D23 static/rotated input policy.",
-    "Current Rust default pose/info publication is unthrottled; native60wallHz default cadence parity is not accepted by the common paced contract.",
-    "Complete sensor scheduler/noise/activation and all rendered/environmental sensor families; Bevy GPU qualification.",
-    "Runtime native versioned C plugin ABI, remaining78 system migrations, world/logging/scripting/CLI/distributed services and external GUI contract.",
-    "Complete retained upstream test/feature/platform/release matrix and representative balanced robotics performance qualification.",
-    "Transport publisher-owned lifetime and broader discovery/log/auth/config; independent repositories remain in development."
+    "Broader P0 executable inventory/profile/provenance qualification and representative balanced robotics baselines; the immutable selected TPE SDK is implemented.",
+    "DART and MuJoCo adapters, remaining TPE/physics capabilities and general articulations. Confirmed D23 static/world-axis policy is implemented with its declared link-origin limits.",
+    "Remaining IO/control/service/ordering/backpressure contracts beyond selected current witnesses. Native60Hz pose admission and subscriber suppression are implemented.",
+    "Broader sensor lifecycle/scheduler/stream/seed contracts and rendered/environmental families. Bounded IMU noise/rates/localactivation are implemented, not a complete generic Sensor framework.",
+    "Native versioned C plugin ABI, remaining78 systems, world/logging/scripting/CLI/distributed services and external GUI contract.",
+    "Complete retained upstream/feature/platform/release matrix and balanced robotics performance.",
+    "Remaining independent-repository contracts and final integration qualification."
   ],
-  "formal_exit_status": {
-    "P2": "in_progress_not_accepted",
-    "SLICE-01": "in_progress_not_accepted"
-  },
+  "formal_exit_status": "in_progress",
   "review_receipt": "planning/acceptance/p2-exit-review.json",
-  "review_receipt_sha256": "ccddc5dadf08f1a0dded43bd262639bde2ac09560a9565e3d3de7004f59cc48a",
   "prerequisites_remaining": [
     {
       "id": "P0",
-      "work": "Complete immutable native reference image/dependency reproduction and expanded executable original inventory."
+      "work": "Immutable TPE headless SDK is implemented; broader P0 executable inventory, required profiles and provenance/benchmark qualification remain open. Legacy DART captures retain their declared installed-build qualification."
     },
     {
       "id": "LOAD-01",
@@ -533,7 +1027,7 @@
     },
     {
       "id": "PHY-02",
-      "work": "Remaining native TPE motion/contact/lifecycle capabilities and D23 static/rotated input policy."
+      "work": "Remaining native TPE motion/contact/lifecycle capabilities and general link-origin semantics. D23 fixed-body/world-axis corrections are implemented under the confirmed policy."
     },
     {
       "id": "PHY-03 or PHY-05",
@@ -541,11 +1035,188 @@
     },
     {
       "id": "SENSOR-01",
-      "work": "Complete scheduler/streams/seeds, noise and activation/frame contracts beyond noise-free selected IMU."
+      "work": "Broader scheduler/stream/seed/frame contracts and generic sensor lifecycle beyond the qualified IMU subset. Bounded noise, rates and local activation are implemented; no blanket Sensor framework or all-family completion."
     },
     {
       "id": "IO-01",
-      "work": "Default native60wallHz pose/info cadence and remaining publication/control/service/ordering/backpressure contracts."
+      "work": "Remaining publication/control/service/ordering/backpressure contracts. Native60Hz default pose admission and subscriber suppression are implemented and bound separately; the old unthrottled-default blocker is closed."
     }
-  ]
+  ],
+  "historical_acceptance": {
+    "commit": "d4c73eeda89dc912e8225e0a665055e928e8b9e6",
+    "matrix": "planning/acceptance/history/d4c73ee/p2.json",
+    "review": "planning/acceptance/history/d4c73ee/p2-exit-review.json",
+    "documentation": "planning/acceptance/history/d4c73ee/P2.md",
+    "note": "Original selected acceptance and formal refusal retained byte-for-byte; no old decision or dependency edge deleted."
+  },
+  "performance": {
+    "report": "planning/benchmarks/headless-streams-imu-activation-v1.json",
+    "report_sha256": "c2aaf13f6435bc6b498dd4ea8d9b64b8438b3ac3e6271b236971b11534599de0",
+    "measurement_review_sha256": "92d47bbac9225b1fc8cae82f1f1f475120a5055bee0f4a2451f9fdd9be2c973e",
+    "projection_review_sha256": "45ad9d27d646f0230522c0f7aff7a7c933b544af8b888e24fb95fee576c7e24a",
+    "scope": "Separate shared-host default-active TPE stream batches. No activation-toggle, causal, general, unpaced throughput or balanced robotics claim. Historical datasets retained."
+  },
+  "scope_dispositions_pending_review": [
+    {
+      "requirement": "SLICE-01 dynamic backend / PHY-03 OR PHY-05",
+      "proposal": "Use the explicitly selected f64 Rapier PHY-05 route for the bounded first dynamic slice. Preserve PHY-03 same-version DART parity as open for final DART/P3/release. Native DART measurements remain cross-engine references, never a Rust DART adapter claim.",
+      "authority": [
+        "docs/PLAN.md First vertical slice",
+        "docs/IMPLEMENTATION_TASKS.md SLICE-01 and following PHY-03 paragraph"
+      ],
+      "approval": "Coordinator plus independent acceptance decision required; no DAG edit made."
+    },
+    {
+      "requirement": "SENSOR-01 broader noise/seeds/activation/rendered families",
+      "proposal": "Bind noise-free selected IMU plus already implemented bounded rate/activation assertions. Do not make completion of all sensor families a new selected-fixture prerequisite. Keep broad SENSOR-01 exits open and preserve native BaseSensor versus full-system limits.",
+      "authority": [
+        "docs/HEADLESS.md Reproduction and remaining work",
+        "docs/PLAN.md First vertical slice"
+      ],
+      "approval": "Explicit scoped dependency disposition required; no blanket SENSOR-01 completion."
+    },
+    {
+      "requirement": "IO/LOAD full downloads, remote resources and filesystem parity",
+      "proposal": "Selected fixture uses local/offline resources with resolver-free runtime/reset. Preserve downloads, cancellation, general assets and wider IO/LOAD exits. Actual C++ transport interoperability remains mandatory.",
+      "authority": [
+        "docs/HEADLESS.md Reproduction and remaining work",
+        "docs/LOCAL_ASSETS.md"
+      ],
+      "approval": "Record selected subset satisfaction and broad packet remains open; do not silently delete dependency edges."
+    },
+    {
+      "requirement": "PHY-02 remaining TPE / D23 / general articulation",
+      "proposal": "Require only declared native-supported TPE motion/contact semantics and explicit unsupported errors for this fixture. Keep remaining TPE and general articulations open; the simple joint variant is Rapier with DART cross-engine bounds.",
+      "authority": [
+        "docs/HEADLESS.md Reproduction and remaining work",
+        "docs/PLAN.md First vertical slice"
+      ],
+      "approval": "Independent selected-scope disposition, not complete PHY-02 parity."
+    },
+    {
+      "requirement": "P0 reference/inventory and formal P2 DAG predecessor rule",
+      "proposal": "Bind current immutable clean TPE SDK and legacy native reference qualifications separately. Preserve old formal exit refusal/history. Coordinator must explicitly decide whether selected SLICE-01 evidence can be accepted while broader P0/P1 contracts remain open; absent that decision formal P2 stays in progress.",
+      "authority": [
+        "docs/acceptance/P2.md Formal exits that remain open",
+        "planning/acceptance/p2-exit-review.json",
+        "docs/PLAN.md"
+      ],
+      "approval": "Unresolved acceptance-policy decision, not an implementation waiver."
+    },
+    {
+      "requirement": "Native default pose cadence versus selected configuration",
+      "proposal": "CLOSE the stale unthrottled-default blocker using the already implemented and reviewed PublicationRate::default at16,666,667ns, Server default wiring, period API and retained boundary/integration controls. Explicit zero policy is used only to preserve historical every-tick workload assertions. This is an evidence correction, not a new implementation or DAG deletion.",
+      "authority": [
+        "crates/gz-sim-server/src/poses.rs",
+        "crates/gz-sim-server/src/lib.rs",
+        "planning/reference/pose-rate.json",
+        "planning/reviews/pose-rate.json",
+        "docs/POSE_CADENCE.md"
+      ],
+      "remaining": "Root clock election,dynamic_pose/info,wider services and complete ordering/backpressure/lifecycle IO contracts remain separately open; do not extrapolate the focused native Transport probe to complete native Server reset/cadence conformance.",
+      "approval": "Proposed selected-blocker closure for coordinator/independent final acceptance; formal P2 and broad IO-01 remain unaccepted."
+    }
+  ],
+  "pose_default_correction": {
+    "published_basis": "a8b80129071039568471efb9e9a56edd02b8effb",
+    "implementation_commit": "fb2e28fa48dcf680da369c94fa3448494630366e",
+    "subsequent_interest_commit": "4ee91b28c44d890890240740c914e7909e1bb8a0",
+    "commits_are_ancestors_of_published_accepted_a8": true,
+    "acceptance_basis": "Published a8 accepted exactCI40414745428 contains both commits; no invented independent hosted-run identity for either historical increment. Historical source review still records normal/hosted pending at its creation time.",
+    "files_sha256_at_a8": {
+      "crates/gz-sim-server/src/poses.rs": "a1f1bc0d43dfd04d1f148470f4948efb748cb4b8468305e84f57b5e65c1b78ac",
+      "crates/gz-sim-server/src/lib.rs": "458af8da853dfa4b44615b922a29e0d273c0d5d2831f257e94e8a86f0cc00cd0",
+      "crates/gz-sim-server/tests/private/poses.rs": "878c383f368c7a339fc775a0ee10022882432b3c32ca6b32739a5b693f24b63d",
+      "crates/gz-sim-server/tests/private/server.rs": "e5caa77d622d60d5e103c2b8d109c6ff06f123ed2646c8b5027c10039693b261",
+      "crates/gz-sim-server/tests/private/interest.rs": "054681263b2f2156117857bb938d5b8433d8c5c90db99240e1c0873ad866bfd6",
+      "planning/reference/pose-rate.json": "bce99cff6c696824a5bbc94655807959503a63ff4b8616dcbd409952645a2854",
+      "planning/reviews/pose-rate.json": "f0f59510f991644eae1bbd140ca2c82c2d6034ca8a0e4b7713ce95e2621a0bff",
+      "planning/reviews/subscriber-interest.json": "683d2765360d51e8f26b95096fb718294b489a2c633988683e2d2d5107746025",
+      "docs/POSE_CADENCE.md": "bf52d0950df8018e26ee54b6aa8a5dc3df427bdd1d9035c7ed735895d087cd9a",
+      "docs/SUBSCRIBER_DEMAND.md": "7b73a0e5ae98b9e637a00a2aee52eea121a09a221a33b00d02896e80c653f9c5"
+    },
+    "implementation": {
+      "default_period_ns": 16666667,
+      "default_policy_used_by_Server": true,
+      "first_valid_packet_eligible": true,
+      "set_period_resets_eligibility": true,
+      "simulation_reset_retains_wall_timer": "Bound by integrated test and independent reset-timer-clearing mutant; no new actual native reset replay here.",
+      "failed_enqueue_consumes_attempt": true,
+      "invalid_packet_does_not_consume_attempt": true,
+      "physics_clock_imu_not_paced_by_pose_gate": true
+    },
+    "supplemental_existing_witnesses": [
+      {
+        "source": "crates/gz-sim-server/tests/private/poses.rs",
+        "test": "native_wall_rate_ceiling_first_frame_and_explicit_policy_boundaries",
+        "source_sha256_at_a8": "878c383f368c7a339fc775a0ee10022882432b3c32ca6b32739a5b693f24b63d",
+        "fd0f_source_gate_reports_ok": true
+      },
+      {
+        "source": "crates/gz-sim-server/tests/private/server.rs",
+        "test": "native_default_pose_period_does_not_pace_clock_imu_or_reset_the_wall_gate",
+        "source_sha256_at_a8": "e5caa77d622d60d5e103c2b8d109c6ff06f123ed2646c8b5027c10039693b261",
+        "fd0f_source_gate_reports_ok": true
+      },
+      {
+        "source": "crates/gz-sim-server/tests/private/server.rs",
+        "test": "failed_pose_enqueue_consumes_its_wall_publication_slot",
+        "source_sha256_at_a8": "e5caa77d622d60d5e103c2b8d109c6ff06f123ed2646c8b5027c10039693b261",
+        "fd0f_source_gate_reports_ok": true
+      },
+      {
+        "source": "crates/gz-sim-server/tests/private/server.rs",
+        "test": "invalid_pose_packet_does_not_consume_the_next_publication_slot",
+        "source_sha256_at_a8": "e5caa77d622d60d5e103c2b8d109c6ff06f123ed2646c8b5027c10039693b261",
+        "fd0f_source_gate_reports_ok": true
+      }
+    ],
+    "native_reference": {
+      "processes": 5,
+      "offers_per_process": 6,
+      "received_values_each": [
+        0,
+        99
+      ],
+      "review_native_report_sha256": "6185c73d99cad9e3b7d40a9431e13471db35f2f714e57b66e202bc0a585f3718",
+      "source_revisions": {
+        "gz-sim": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+        "gz-transport": "41913b9dfc3dbce33ac5464ddcb427cc82450f26"
+      },
+      "source_hashes": {
+        "gz-sim": {
+          "src/systems/scene_broadcaster/SceneBroadcaster.cc": "9b108bfcd0160e7627ad8a72952e003a164fbd17f1678ca2c50495c1d9b4d2b5"
+        },
+        "gz-transport": {
+          "src/Node.cc": "a5e2981e3c9e5f60e574b09a70e12115417371bff38e6d0d49e7a88c88bbdd1d",
+          "src/Node_TEST.cc": "4635b52dfc7297dbd04ddfa6e5e24692ddb673ea08d6b832d093d118f8e05a44"
+        }
+      },
+      "qualifier": "Actual pinned native Transport publisher at the unchanged SceneBroadcaster fixed60 setting; source-backed reset timer reuse. Five independent processes, first-frame and shared-copy suppression, success-return and next eligibility controls. Not a full Server reset/cadence test or performance measurement. Installed dependency/build provenance qualified."
+    },
+    "independent_controls": {
+      "guard_removal_mutant": {
+        "log_sha256": "5e38ebed1c74e3d7b03a6123b641f57509cbf078592f53d55973e6fdf3f7063e",
+        "patch_sha256": "3732797e39bae8a21420940bf15c83eab3f6e9b901c8029b131b4dafc5948310",
+        "result": "Exact selected test fails on an unexpected second pose receipt; earlier 0-test command excluded."
+      },
+      "reset_timer_clearing_mutant": {
+        "log_sha256": "4a2d969aaf8e5c102fb39edecb49fec89025ac20f58798ea29920ac502ad38e8",
+        "patch_sha256": "30c0b23751ca43168de7149663be5464b1b307d258742d423cda65799a250f47",
+        "result": "Exact selected test fails at poses_queued 2 versus 1 after reset."
+      },
+      "private_server_lib_tests": "38/38 pass"
+    },
+    "subsequent_interest_correction": "The old cadence review also listed missing no-subscriber work suppression. At a8 publish_poses checks the atomic connection snapshot before packet creation or timer use;4ee91 and subscriber-interest review bind that later implementation. Do not carry the earlier limitation forward as an active absence.",
+    "remaining_scope": "Actual source-backed/native Transport rate probe plus Rust boundary/integration controls, not a full native Server reset/cadence equivalence experiment. No root clock election,dynamic_pose/info or broader IO-01 completion.",
+    "execution": "Small source/history/receipt read only; no new native/Cargo/tests or Root file changes."
+  },
+  "file_sha256_basis": "Every entry binds implementation_commit8d065a1 via its Git blob, not mutable refresh documentation. Candidate matrix/dependency/doc hashes are bound separately by the refresh reviewer.",
+  "dependency_receipt": {
+    "path": "planning/acceptance/p2-normal-dependencies.json",
+    "sha256": "09b45e1dbd8e6d8124b42f3afde91f16ff33342cffa074f331948663d956881a",
+    "normal_package_count": 259,
+    "normalized_tree_sha256": "30da94272daafc065b91f1c260c7432294eca1ab9002b0f5b3b2029178e8d7c9"
+  },
+  "scope_dispositions_review": "Independent review eba4e604 verifies current facts and preservation of formal prerequisites/history. No broad prerequisite or formal phase exit is approved by this refresh."
 }

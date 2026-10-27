@@ -1,71 +1,177 @@
 {
-  "reviewer": "/root/msgs_review_fallback",
-  "author": "/root",
-  "selected_headless_integration_evidence": "approved_with_recorded_limits",
-  "formal_P2_exit": "not_accepted",
-  "formal_SLICE_01_exit": "not_accepted",
-  "candidate_base_commit": "d4c73eeda89dc912e8225e0a665055e928e8b9e6",
-  "candidate_staged_tree": "0097346b5634baae821aa8afb5fcb1f9751b0250",
-  "candidate_staged_diff_sha256": "3a2c45b20f680d97712d5c0dab87cb918148193ff4da314417b6279a56c843d4",
-  "matrix_sha256": "38879a8d14617f347bf3fadd3a86d06e90c798f8a3e8ee1672f0d09a637413bc",
-  "p2_doc_sha256": "95643f1113f1f82e81be28723d48ab16a5e63290a775cb61ced116b432bad731",
-  "frozen_file_hashes_verified": 85,
-  "contract_rows_verified": 15,
-  "no_unstaged_diff": true,
-  "dependency_closure": {
-    "command": [
-      "cargo",
-      "tree",
-      "--locked",
-      "--offline",
-      "--workspace",
-      "-e",
-      "normal",
-      "--target",
-      "x86_64-unknown-linux-gnu",
-      "--prefix",
-      "none"
-    ],
-    "normalization": "Replace the absolute frozen worktree prefix with <workspace> in the complete cargo tree output; preserve line order and duplicate lines.",
-    "normalized_sha256": "12b333df6d3251fcb5bd83a3caa63680a7ec464db24596308c3356c1bf15b54e",
-    "package_version_pairs": 253,
-    "forbidden_renderer_window_gpu_packages_found": []
+  "decision": "approved_current_selected_evidence_refresh_scope_and_facts",
+  "author": "root",
+  "reviewer": "msgs_owner_astra",
+  "reviewed_at": "2026-10-27T04:06:56.453047+00:00",
+  "proposal_sha256": "929902b23132b71ade1cc0460772290ed1c21e81d24d870b67f16a565710d808",
+  "implementation_commit": "8d065a1a3750d282bada085df4a29a8139a3e875",
+  "implementation_tree": "97448c9658966e8cbed9ec6379258ef4682136a5",
+  "candidate_files_sha256": {
+    "docs/acceptance/P2.md": "2fc21eb9970ba7f1afa8c937ba54d5e98aaca435a622ce8786312596e7246aa7",
+    "planning/acceptance/history/d4c73ee/P2.md": "21d1f23f0af06c9d4cb93856f54f96abeee794e1f80f5e9fef1403235a9cc48d",
+    "planning/acceptance/history/d4c73ee/p2-exit-review.json": "ccddc5dadf08f1a0dded43bd262639bde2ac09560a9565e3d3de7004f59cc48a",
+    "planning/acceptance/history/d4c73ee/p2-normal-dependencies.json": "652b5c14a1af8a0cd89d9b1493afc6375b09bf2fdc22619f760b9f73d000bdcf",
+    "planning/acceptance/history/d4c73ee/p2.json": "026c129e9aa86560b911935186501d978e5fec52fab26d3ea136aaf2511db538",
+    "planning/acceptance/p2-exit-review.json": "c3d741c51284c0527fc33dfeaeb26eeee0cc0e08e479c003b5969d582126167d",
+    "planning/acceptance/p2-normal-dependencies.json": "09b45e1dbd8e6d8124b42f3afde91f16ff33342cffa074f331948663d956881a",
+    "planning/acceptance/p2.json": "d6277d1a26b5289d1e9e666de577481f7aafb3cf5b9be7ca19acad0fd33afc92"
   },
-  "published_implementation": {
-    "commit": "d4c73eeda89dc912e8225e0a665055e928e8b9e6",
-    "normal_hook_log_sha256": "e5a4a35fe720bb0216058d37c64926d445b97fe63866e28a893f6f054a559866",
-    "hosted_run": 40219319485,
-    "hosted_conclusion": "success",
-    "rust_tests": 204,
-    "tooling_tests": 16,
-    "real_cpp_scenarios": 9,
-    "workspace_lines": [
-      3193,
-      3228
+  "proof_sha256": "324a93d60fbdb786d5595df97ed61b63ddbf424533bfb1c48b53928ab9157ee7",
+  "executor_sha256": "5e837df7864155c8428c40f602419f2ca39f526d70e918325b6e43cc5c804d38",
+  "scope": "Root-authored eight-file current selected P2 evidence refresh, not the reviewer earlier draft and not formal P2/SLICE-01 completion. No source/test/policy/DAG changes.",
+  "verified": {
+    "rows": 15,
+    "named_witness_occurrences": 36,
+    "implementation_source_fixture_reference_files": 96,
+    "literal_fixture_count": 12,
+    "history_records": 4,
+    "consumer_pins": "All four exact pins occur in accepted implementation Cargo.lock.",
+    "normal_rust": [
+      279,
+      0,
+      0
     ],
-    "workspace_regions": [
-      4964,
-      5079
-    ]
+    "normal_tooling": 88,
+    "cpp_functional": 17,
+    "cpp_separate_controls": 3,
+    "coverage": {
+      "gz-assets": {
+        "lines": [
+          147,
+          148
+        ],
+        "regions": [
+          282,
+          287
+        ]
+      },
+      "gz-physics-tpe": {
+        "lines": [
+          220,
+          221
+        ],
+        "regions": [
+          310,
+          312
+        ]
+      },
+      "gz-physics": {
+        "lines": [
+          6,
+          6
+        ],
+        "regions": [
+          3,
+          3
+        ]
+      },
+      "gz-sim-core": {
+        "lines": [
+          271,
+          271
+        ],
+        "regions": [
+          389,
+          392
+        ]
+      },
+      "gz-physics-rapier": {
+        "lines": [
+          557,
+          558
+        ],
+        "regions": [
+          853,
+          858
+        ]
+      },
+      "gz-sensors": {
+        "lines": [
+          106,
+          106
+        ],
+        "regions": [
+          153,
+          153
+        ]
+      },
+      "gz-sim-scene": {
+        "lines": [
+          1650,
+          1682
+        ],
+        "regions": [
+          2528,
+          2616
+        ]
+      },
+      "gz-sim-cli": {
+        "lines": [
+          79,
+          79
+        ],
+        "regions": [
+          133,
+          137
+        ]
+      },
+      "gz-sim-server": {
+        "lines": [
+          794,
+          799
+        ],
+        "regions": [
+          1222,
+          1246
+        ]
+      },
+      "workspace": {
+        "lines": [
+          3830,
+          3870
+        ],
+        "regions": [
+          5873,
+          6004
+        ]
+      }
+    },
+    "normal_receipt_sha256": "18cbb933fbd07ce041a085cc31db09c315f1aa9d9f8b7dbe9626cfa67b8cb43c",
+    "dependency_packages": 259,
+    "dependency_normalized_tree_sha256": "30da94272daafc065b91f1c260c7432294eca1ab9002b0f5b3b2029178e8d7c9",
+    "dependency_replay_sha256": "2d9ab903a0ac1372155e77f5355c2543f6def6f32d8ef8ed408945590bbde0c6",
+    "current_performance": {
+      "report": "planning/benchmarks/headless-streams-imu-activation-v1.json",
+      "report_sha256": "c2aaf13f6435bc6b498dd4ea8d9b64b8438b3ac3e6271b236971b11534599de0",
+      "measurement_review_sha256": "92d47bbac9225b1fc8cae82f1f1f475120a5055bee0f4a2451f9fdd9be2c973e",
+      "projection_review_sha256": "45ad9d27d646f0230522c0f7aff7a7c933b544af8b888e24fb95fee576c7e24a",
+      "scope": "Separate shared-host default-active TPE stream batches. No activation-toggle, causal, general, unpaced throughput or balanced robotics claim. Historical datasets retained."
+    }
   },
-  "direct_source_checks": [
-    "Scene load uses sdformat::load_str, frame/pose resolution and backend-specific Bevy construction with typed unsupported boundaries.",
-    "Shared native DART/TPE acquisition and Rust scene tests compare 100 IMU samples per engine with the declared physical bound.",
-    "Native C++ client exercises nine real process scenarios on Rapier/TPE; Rust server test checks exact clock, pose structure/identity and IMU fields.",
-    "Complete-stream benchmark checks each requested clock, four-role pose and IMU at prospective >=20 ms post-observation pacing on actual servers; private full 128-step/seven-pair replay and mutants were reviewed in the earlier receipt.",
-    "All 85 matrix evidence hashes match; original ledger remains only three reviewed ports and four partial cases."
+  "semantic_assessment": [
+    "Selected construction, inputs to physics/IMU, clock/pose/IMU transport, pause/exact-step, removal/reset/reconnection, bounds/shutdown and separate simple-joint variant have named current passing witnesses. Separate focused witnesses compose this minimum selected contract; no missing cross-boundary predicate was demonstrated that requires a new test or new sensor feature. This is scoped evidence assessment, not exhaustive simulator equivalence.",
+    "Full-f64 Rapier is an allowed first dynamic route under PHY-03 OR PHY-05. DART reference comparisons remain cross-engine with declared tolerances; no Rust DART or same-engine DART parity is credited. TPE retains its supported motion semantics and explicit capability limits.",
+    "Native 60Hz pose admission and subscriber-demand suppression close the obsolete specific default-rate blocker. Root clock election, dynamic_pose/info and broad IO ordering/lifecycle remain separate. D23 corrected scope is implemented with declared remaining link-origin limits.",
+    "Published implementation8d065 accepted normal and exact hosted40442119648 provide current quality; nine production crates and workspace strictly exceed95% lines and regions, with unchanged delta policy. Actual raw normal counts and hashes checked here; full LLVM policy recomputation is bound through independent18cbb receipt rather than reclassified as a new runtime gate.",
+    "The independent exact locked/offline normal Linux cargo tree replay returned0, byte-identical stdout/stderr to author, same normalized30da942 and259 name/version pairs; renderer/window/GPU packages absent in this scope only. No build or native replay occurred.",
+    "Current equal-work SDK report is bound to accepted92d47 measurements and45ad projection, all historical/extreme observations retained. Shared-host default-active TPE paced stream latency only; no activation-toggle causal, unpaced/general robotics or formal phase claim.",
+    "Six explicit scope dispositions retain broader P0/LOAD/PHY/SENSOR/IO edges and old refusal. Do not require new full-download/noise/framework/TPE capability work solely to satisfy the selected fixture; do not silently mark the broader prerequisite packets complete either."
   ],
-  "qualified_selected_result": "The 15 rows support a selected Linux x86_64, no-renderer, shared-SDF TPE/Rapier headless integration milestone and first measured requested-observation report. They do not establish native default pose cadence, unpaced throughput, full same-engine DART, broad sensor/physics/resource/transport parity, or release readiness.",
-  "formal_exit_blockers": [
-    "PLAN.md P0 exit still lacks an immutable reproducible native reference image and expanded executable original-test inventory; phase sequence cannot be declared complete.",
-    "IMPLEMENTATION_TASKS.md makes SLICE-01 depend on LOAD-01, PHY-02, PHY-03 or PHY-05, SENSOR-01 and IO-01. The selected subsets do not close the full named dependencies.",
-    "IO-01 default Rust pose/info cadence is unthrottled while native SceneBroadcaster defaults to 60 wall-Hz; the selected >=20 ms contract does not test that default boundary. Broader command/service, backpressure and shutdown behavior remains open.",
-    "SENSOR-01 selected noise-free IMU is evidenced, but noise/seed/activation/runtime sensor behavior in the named packet remains open.",
-    "PHY-02 selected TPE motion/contact is evidenced, but remaining geometry/commands and D23 static/rotated policy remain open; LOAD-01 broader original fixtures/resources remain incomplete."
+  "concrete_remaining_work": [
+    "Freeze final evidence-only refresh including reviewer decision; independent final binding, mandatory normal protected hook and exact hosted success remain required before accepting its publication.",
+    "Coordinator must explicitly resolve the formal DAG/predecessor exit decision against PLAN/IMPLEMENTATION_TASKS. Current packet correctly leaves P2 and SLICE-01 in progress and preserves broad unfinished contracts. This review does not waive those edges."
   ],
-  "not_required_for_this_selected_milestone": [
-    "DART and MuJoCo adapters, rendering/GPU sensors, all 78 systems, plugin ABI, broad CLI/release matrix are later or separate packet obligations and are not inferred complete."
-  ],
-  "metadata_followup": "State the exact cargo-tree <workspace> normalization recipe in tracked dependency proof; keep candidate status and formal P2/SLICE-01 in progress. Correct stale published-stream status text during final metadata integration.",
-  "producer_source_edits": false
+  "findings_history": {
+    "v1_proposal_sha256": "7cbfe3b6fdda2c9ebe029883780725970a3e0cca400c6fc710759c4d6132a240",
+    "finding": "Stale row limits repeated unthrottled default, D23 open,204/16/9 counts and one-Node wording; current Node pool/performance/transport ownership needed precise qualification.",
+    "resolution": "V1 eight candidate bytes verified preserved, V2 six row scope-limit corrections verified; production/tests/assertions unchanged.",
+    "review_execution_failures": []
+  },
+  "remaining_formal_status": {
+    "P2": "in_progress",
+    "SLICE-01": "in_progress",
+    "whole_sensor_framework": "not_qualified",
+    "new_original_retirements": 0
+  },
+  "execution": "Read-only accepted Git blobs, source/fixture and witness identities, retained complete normal raw hashes/counts plus existing independent normal policy receipt, accepted actual SDK reviews/projection, and independent exact offline cargo tree command. No Rust/native tests, measurement rerun, filtering or policy changes."
 }

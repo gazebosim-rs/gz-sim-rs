@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "implementation_commit": "d4c73eeda89dc912e8225e0a665055e928e8b9e6",
+  "implementation_commit": "8d065a1a3750d282bada085df4a29a8139a3e875",
   "target": "x86_64-unknown-linux-gnu",
   "command": [
     "cargo",
@@ -15,8 +15,8 @@
     "--prefix",
     "none"
   ],
-  "cargo_lock_sha256": "30760c7a09475ab45bb90c0b0432fc1d75212bb12d0dcf5911d90c441ae5474b",
-  "normalized_tree_sha256": "12b333df6d3251fcb5bd83a3caa63680a7ec464db24596308c3356c1bf15b54e",
+  "cargo_lock_sha256": "50ff708b370a6938a3105af7692d6e449790988924720248ec3d6a3a8622ed60",
+  "normalized_tree_sha256": "30da94272daafc065b91f1c260c7432294eca1ab9002b0f5b3b2029178e8d7c9",
   "normal_packages": [
     {
       "name": "aho-corasick",
@@ -643,6 +643,10 @@
       "version": "0.1.6"
     },
     {
+      "name": "ppv-lite86",
+      "version": "0.2.21"
+    },
+    {
       "name": "proc-macro2",
       "version": "1.0.107"
     },
@@ -677,6 +681,22 @@
     {
       "name": "quote",
       "version": "1.0.47"
+    },
+    {
+      "name": "rand",
+      "version": "0.10.3"
+    },
+    {
+      "name": "rand_chacha",
+      "version": "0.10.0"
+    },
+    {
+      "name": "rand_core",
+      "version": "0.10.1"
+    },
+    {
+      "name": "rand_distr",
+      "version": "0.6.0"
     },
     {
       "name": "rapier3d-f64",
@@ -983,6 +1003,10 @@
       "version": "0.8.4"
     },
     {
+      "name": "zerocopy",
+      "version": "0.8.63"
+    },
+    {
       "name": "zerofrom",
       "version": "0.1.8"
     },
@@ -1038,6 +1062,6 @@
     "wgpu",
     "winit"
   ],
-  "scope": "Normal Linux Rust closure only; native reference SDK linked libraries and future renderer/platform profiles are separate.",
-  "normalized_tree_recipe": "Run the recorded cargo tree command from the implementation workspace, capture its exact UTF-8 stdout, replace every literal absolute workspace-root path (str(Path.cwd())) with <workspace>, retain order, duplicate lines, spacing and final newline, then SHA256 the resulting UTF-8 bytes. The package set is separately deduplicated by name/version."
+  "scope": "NormalLinuxRust closure only; loaded native SDK libraries, otherplatforms andfuture rendererprofiles are separate.",
+  "normalized_tree_recipe": "Capture exact command stdout UTF8bytes, replace only everyliteralabsolute workspace-root byte sequence with <workspace>; retain order, duplicate lines, spacing and final newline. SHA256 those bytes. Package set separately deduplicated by name/version."
 }
