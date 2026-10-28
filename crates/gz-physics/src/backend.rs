@@ -225,6 +225,12 @@ pub trait DynamicBackend: Send + Sync + 'static {
 #[derive(Resource)]
 pub struct PhysicsBackend(Box<dyn DynamicBackend>);
 
+impl<T: DynamicBackend> From<T> for PhysicsBackend {
+    fn from(backend: T) -> Self {
+        Self(Box::new(backend))
+    }
+}
+
 impl PhysicsBackend {
     /// The concrete adapter, for engine-specific operations and tests.
     pub fn downcast_ref<T: DynamicBackend>(&self) -> Option<&T> {
@@ -263,14 +269,16 @@ pub struct RestoredPhysics {
 
 /// Installs one backend into the simulation's physics and reset phases.
 /// Step and reset failures are reported through [`StepFault`].
-pub fn install(sim: &mut Simulation, backend: impl DynamicBackend) -> Result<(), PhysicsError> {
+pub fn install(
+    sim: &mut Simulation,
+    backend: impl Into<PhysicsBackend>,
+) -> Result<(), PhysicsError> {
     if sim.world().contains_resource::<PhysicsBackend>()
         || !sim.register_extension::<crate::PhysicsInstallation>()
     {
         return Err(PhysicsError::AlreadyInstalled);
     }
-    sim.world_mut()
-        .insert_resource(PhysicsBackend(Box::new(backend)));
+    sim.world_mut().insert_resource(backend.into());
     sim.add_systems(
         Phase::PhysicsStep,
         |time: Res<UpdateInfo>, fault: Res<StepFault>, mut backend: ResMut<PhysicsBackend>| {

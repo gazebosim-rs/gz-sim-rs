@@ -1,5 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
+use gz_physics_rapier::PhysicsBackend;
 use gz_physics_rapier::{BodySpec, RapierBackend, Shape};
 use gz_sim_core::EntityId;
 use gz_sim_scene::{
@@ -36,7 +37,8 @@ fn replace(sim: &mut gz_sim_core::Simulation) {
         })
         .unwrap();
     assert_eq!(old, new, "backend-local IDs intentionally collide");
-    sim.world_mut().insert_resource(foreign);
+    sim.world_mut()
+        .insert_resource(PhysicsBackend::from(foreign));
 }
 #[test]
 fn foreign_world_must_not_accept_a_stale_link_body_id_at_admission() {
@@ -69,7 +71,11 @@ fn foreign_world_after_admission_must_fault_before_executing_stale_binding() {
         .iter_entities()
         .find_map(|e| e.get::<BodyHandle>().map(BodyHandle::id))
         .unwrap();
-    let state = sim.world().resource::<RapierBackend>().state(body).unwrap();
+    let state = sim
+        .world()
+        .resource::<PhysicsBackend>()
+        .state(body)
+        .unwrap();
     assert_eq!(state.position, [100.0, 0.0, 0.0]);
     assert_eq!(state.velocity, [0.0; 3]);
 }

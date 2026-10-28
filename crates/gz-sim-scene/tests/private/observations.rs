@@ -55,7 +55,7 @@ fn observers_consume_committed_link_state_and_resolve_restored_public_ids() {
     sim.add_systems(Phase::PhysicsCommit, sync_models);
     sim.add_systems(Phase::PostStep, sample_imus);
     sim.add_systems(Phase::Reset, (sync_models, reset_imus).chain());
-    assert!(!sim.world().contains_resource::<RapierBackend>());
+    assert!(!sim.world().contains_resource::<PhysicsBackend>());
     sim.set_paused(false);
     sim.tick().unwrap();
     assert_vector(

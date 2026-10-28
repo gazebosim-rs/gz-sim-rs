@@ -45,13 +45,13 @@ fn tpe_reset_preflights_owner_presence_and_runtime_bindings() {
     ));
     sim.world_mut().insert_resource(owner);
     sim.world_mut()
-        .insert_resource(RapierBackend::new([0.0; 3]).unwrap());
+        .insert_resource(PhysicsBackend::from(RapierBackend::new([0.0; 3]).unwrap()));
     assert!(matches!(
         reset_loaded_world(&mut sim, |_| ()),
         Err(SceneResetError::ForeignPhysics)
     ));
     assert_eq!(remove_model(&mut sim, id), Err(RemoveError::InvalidPhysics));
-    sim.world_mut().remove_resource::<RapierBackend>();
+    sim.world_mut().remove_resource::<PhysicsBackend>();
     let link = sim
         .world()
         .iter_entities()

@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
-use gz_physics_rapier::{JointId, JointState};
+use gz_physics::{JointId, JointState, PhysicsBackend};
 use gz_sim_core::entity_by_id;
 use std::collections::BTreeSet;
 
@@ -107,7 +107,7 @@ pub(super) fn build(
     context: &SceneContext<'_>,
     model_entity: Entity,
     sim: &mut Simulation,
-    backend: &mut RapierBackend,
+    backend: &mut PhysicsBackend,
 ) -> Result<(), LoadError> {
     for joint in &model.joints {
         let name = format!("{}::{}", model.scoped_name, joint.name);
@@ -163,7 +163,7 @@ pub(super) fn bindings_valid(world: &World) -> bool {
     if joints.is_empty() {
         return true;
     }
-    let Some(backend) = world.get_resource::<RapierBackend>() else {
+    let Some(backend) = world.get_resource::<PhysicsBackend>() else {
         return false;
     };
     if !initial::matches_physics_owner(world) {
@@ -199,7 +199,7 @@ type JointBindings<'w, 's> = Query<
 
 pub(super) fn preflight(
     initial: Option<Res<initial::InitialScene>>,
-    backend: Option<Res<RapierBackend>>,
+    backend: Option<Res<PhysicsBackend>>,
     fault: Res<StepFault>,
     identities: EntityLookup,
     joints: JointBindings,
@@ -213,7 +213,7 @@ pub(super) fn preflight(
         return;
     };
     let mut seen = BTreeSet::new();
-    let valid = initial.is_some_and(|initial| initial.owns_rapier(&backend))
+    let valid = initial.is_some_and(|initial| initial.owns_backend(&backend))
         && joints.iter().all(|(kind, handle, parent)| {
             let (Some(handle), Some(parent)) = (handle, parent) else {
                 return false;
@@ -235,7 +235,7 @@ pub(super) fn preflight(
 
 pub(super) fn sample(
     time: Res<UpdateInfo>,
-    backend: Res<RapierBackend>,
+    backend: Res<PhysicsBackend>,
     mut joints: Query<(&JointHandle, &mut JointSample)>,
 ) {
     for (handle, mut sample) in &mut joints {

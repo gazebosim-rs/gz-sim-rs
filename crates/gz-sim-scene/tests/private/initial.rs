@@ -95,7 +95,7 @@ fn removed_initial_models_restore_ids_physics_and_sensors_without_running_normal
     );
     assert_eq!(
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .state(physics)
             .unwrap()
             .position[2],
@@ -113,7 +113,7 @@ fn removed_initial_models_restore_ids_physics_and_sensors_without_running_normal
     assert_eq!(sample.time, Duration::from_millis(1));
     assert!(
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .state(physics)
             .unwrap()
             .position[2]
@@ -176,13 +176,13 @@ fn invalid_initial_backend_identity_and_resource_ownership_fail_before_mutation(
     sim.step_exact(2).unwrap();
     let ball = named(&sim, "default::ball");
     let count = sim.world().entities().len();
-    let original = sim.world_mut().remove_resource::<RapierBackend>().unwrap();
+    let original = sim.world_mut().remove_resource::<PhysicsBackend>().unwrap();
     assert!(matches!(
         reset_loaded_world(&mut sim, |_| ()),
         Err(SceneResetError::MissingPhysics)
     ));
     sim.world_mut()
-        .insert_resource(RapierBackend::new([0.0; 3]).unwrap());
+        .insert_resource(PhysicsBackend::from(RapierBackend::new([0.0; 3]).unwrap()));
     assert!(matches!(
         reset_loaded_world(&mut sim, |_| ()),
         Err(SceneResetError::Physics(PhysicsError::ForeignInitialState))
@@ -222,14 +222,14 @@ fn unsupported_runtime_bindings_and_moved_identities_leave_scene_and_clock_uncha
         .get::<BodyHandle>(named(&sim, "default::ball::body"))
         .unwrap()
         .id();
-    let before = sim.world().resource::<RapierBackend>().state(body);
+    let before = sim.world().resource::<PhysicsBackend>().state(body);
     let extra = sim.world_mut().spawn(BodyHandle(body)).id();
     assign_id(sim.world_mut(), extra).unwrap();
     assert!(matches!(
         reset_loaded_world(&mut sim, |_| ()),
         Err(SceneResetError::RuntimePhysics)
     ));
-    assert_eq!(sim.world().resource::<RapierBackend>().state(body), before);
+    assert_eq!(sim.world().resource::<PhysicsBackend>().state(body), before);
     assert_eq!(sim.elapsed(), Duration::from_millis(2));
     assert!(entity_by_id(sim.world(), ball).is_some());
     sim.world_mut().entity_mut(extra).despawn();
@@ -245,7 +245,7 @@ fn unsupported_runtime_bindings_and_moved_identities_leave_scene_and_clock_uncha
         reset_loaded_world(&mut sim, |_| ()),
         Err(SceneResetError::Identity(IdentityError::MovedIdentity))
     ));
-    assert_eq!(sim.world().resource::<RapierBackend>().state(body), before);
+    assert_eq!(sim.world().resource::<PhysicsBackend>().state(body), before);
     assert_eq!(sim.elapsed(), Duration::from_millis(2));
     sim.world_mut().entity_mut(extra).despawn();
     let unnamed_id = sim.world_mut().spawn(Name("unidentified".into())).id();
@@ -436,7 +436,7 @@ fn identity_moved_to_a_resource_is_rejected_before_any_reset_mutation() {
         .get::<BodyHandle>(named(&sim, "default::ball::body"))
         .unwrap()
         .id();
-    let state = sim.world().resource::<RapierBackend>().state(body);
+    let state = sim.world().resource::<PhysicsBackend>().state(body);
     let count = sim.world().entities().len();
     let info = *sim.world().resource::<UpdateInfo>();
     assert!(matches!(
@@ -446,7 +446,7 @@ fn identity_moved_to_a_resource_is_rejected_before_any_reset_mutation() {
     assert_eq!(sim.elapsed(), Duration::from_millis(2));
     assert_eq!(*sim.world().resource::<UpdateInfo>(), info);
     assert_eq!(sim.world().entities().len(), count);
-    assert_eq!(sim.world().resource::<RapierBackend>().state(body), state);
+    assert_eq!(sim.world().resource::<PhysicsBackend>().state(body), state);
     assert!(sim.world().get::<EntityId>(original).is_none());
     assert_eq!(
         sim.world().get::<EntityId>(resource).unwrap().get(),
@@ -506,7 +506,7 @@ fn mixed_initial_node_and_observer_ownership_fails_before_reconstruction() {
         .get::<BodyHandle>(named(&sim, "default::ball::body"))
         .unwrap()
         .id();
-    let state = sim.world().resource::<RapierBackend>().state(body);
+    let state = sim.world().resource::<PhysicsBackend>().state(body);
     assert!(matches!(
         reset_loaded_world(&mut sim, |_| ()),
         Err(SceneResetError::InfrastructureOwnership)
@@ -516,7 +516,7 @@ fn mixed_initial_node_and_observer_ownership_fails_before_reconstruction() {
     assert_eq!(sim.elapsed(), Duration::from_millis(2));
     assert_eq!(entity_by_id(sim.world(), world_id), Some(world));
     assert!(sim.world().get::<Observer>(world).is_some());
-    assert_eq!(sim.world().resource::<RapierBackend>().state(body), state);
+    assert_eq!(sim.world().resource::<PhysicsBackend>().state(body), state);
 }
 
 #[test]

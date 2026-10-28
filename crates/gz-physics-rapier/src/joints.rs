@@ -2,17 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
-/// Backend-local joint identity. Pair it with the backend that created it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct JointId(u64);
-
-/// Angle from construction pose, in radians, and world-axis angular velocity in rad/s.
-#[derive(Debug, Clone, Copy)]
-pub struct JointState {
-    pub position: f64,
-    pub velocity: f64,
-}
-
 #[derive(Clone, Copy)]
 struct Construction {
     child: BodyId,
@@ -153,7 +142,7 @@ impl RapierBackend {
     /// Anchor/axis use world coordinates; the current construction pose is angle zero.
     /// Construction closes at the first advancing step and reopens after reset.
     /// Invalid inputs leave body, joint and anchor state unchanged.
-    pub fn add_world_revolute(
+    pub(crate) fn insert_world_revolute(
         &mut self,
         child: BodyId,
         anchor: [f64; 3],
@@ -193,7 +182,7 @@ impl RapierBackend {
         // Default sleeping would stop low-amplitude articulated motion mid-cycle.
         *world.bodies[*handle].activation_mut() = RigidBodyActivation::cannot_sleep();
         let handle = world.insert_impulse_joint(parent, *handle, construction.data());
-        let id = JointId(self.joints.next);
+        let id = JointId::from_raw(self.joints.next);
         self.joints.records.insert(
             id,
             Joint {
@@ -208,14 +197,14 @@ impl RapierBackend {
     }
 
     /// Registered dynamic endpoint of a world-anchored constraint.
-    pub fn joint_child(&self, id: JointId) -> Option<BodyId> {
+    pub(crate) fn world_joint_child(&self, id: JointId) -> Option<BodyId> {
         self.joints
             .records
             .get(&id)
             .map(|joint| joint.initial.child)
     }
 
-    pub fn joint_state(&self, id: JointId) -> Option<JointState> {
+    pub(crate) fn world_joint_state(&self, id: JointId) -> Option<JointState> {
         let joint = self.joints.records.get(&id)?;
         let handle = self.bodies.get(&joint.initial.child)?.0;
         let body = &self.world.bodies[handle];
@@ -225,7 +214,7 @@ impl RapierBackend {
         })
     }
 
-    pub fn remove_joint(&mut self, id: JointId) -> bool {
+    pub(crate) fn delete_world_joint(&mut self, id: JointId) -> bool {
         let Some(joint) = self.joints.records.remove(&id) else {
             return false;
         };
@@ -240,7 +229,7 @@ impl RapierBackend {
     }
 
     /// Whether a registered body participates in a solver constraint.
-    pub fn is_jointed(&self, id: BodyId) -> Option<bool> {
+    pub(crate) fn has_joint(&self, id: BodyId) -> Option<bool> {
         let (handle, ..) = self.bodies.get(&id)?;
         Some(self.world.impulse_joints_with(*handle).next().is_some())
     }

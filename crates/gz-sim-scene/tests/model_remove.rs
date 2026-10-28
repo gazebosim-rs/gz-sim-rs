@@ -1,7 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use bevy_ecs::entity::Entity;
-use gz_physics_rapier::{BodyId, RapierBackend};
+use gz_physics_rapier::BodyId;
+use gz_physics_rapier::PhysicsBackend;
 use gz_sim_core::{EntityId, Simulation, assign_id, entity_by_id};
 use gz_sim_scene::{BodyHandle, ImuSample, Name, RemoveError, load_world, remove_model};
 use sdformat::NoResources;
@@ -62,7 +63,7 @@ fn removal_retires_model_descendants_bodies_and_samples_without_ghosts() {
         assert_eq!(entity_by_id(sim.world(), *id), None);
     }
     assert_eq!(entity_by_id(sim.world(), ground_id), Some(ground));
-    assert_eq!(sim.world().resource::<RapierBackend>().state(body), None);
+    assert_eq!(sim.world().resource::<PhysicsBackend>().state(body), None);
     sim.step_exact(2).unwrap();
     assert_eq!(bodies(&sim).len(), 1);
     assert!(
@@ -77,7 +78,7 @@ fn removal_retires_model_descendants_bodies_and_samples_without_ghosts() {
     // The existing core reset restores retained domain state, not the initial scene.
     sim.reset().unwrap();
     assert_eq!(entity_by_id(sim.world(), ball), None);
-    assert_eq!(sim.world().resource::<RapierBackend>().state(body), None);
+    assert_eq!(sim.world().resource::<PhysicsBackend>().state(body), None);
     let next = sim.world_mut().spawn_empty().id();
     assert!(assign_id(sim.world_mut(), next).unwrap() > *removed.last().unwrap());
 }
@@ -95,7 +96,7 @@ fn nested_hierarchy_is_removed_recursively_but_is_not_a_direct_remove_target() {
     let removed = remove_model(&mut sim, outer).unwrap();
     assert_eq!(removed.len(), 10);
     for body in body_ids {
-        assert_eq!(sim.world().resource::<RapierBackend>().state(body), None);
+        assert_eq!(sim.world().resource::<PhysicsBackend>().state(body), None);
     }
     sim.step_exact(1).unwrap();
     assert!(bodies(&sim).is_empty());
@@ -132,7 +133,9 @@ fn invalid_targets_and_inconsistent_physics_fail_before_scene_mutation() {
         .get::<BodyHandle>(named(&sim, "default::ground::base"))
         .unwrap()
         .id();
-    sim.world_mut().resource_mut::<RapierBackend>().remove(body);
+    sim.world_mut()
+        .resource_mut::<PhysicsBackend>()
+        .remove(body);
     assert_eq!(
         remove_model(&mut sim, ball),
         Err(RemoveError::InvalidPhysics)
@@ -140,11 +143,11 @@ fn invalid_targets_and_inconsistent_physics_fail_before_scene_mutation() {
     assert!(entity_by_id(sim.world(), ball).is_some());
     assert!(
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .state(ground_body)
             .is_some()
     );
-    sim.world_mut().remove_resource::<RapierBackend>();
+    sim.world_mut().remove_resource::<PhysicsBackend>();
     assert_eq!(
         remove_model(&mut sim, ball),
         Err(RemoveError::InvalidPhysics)
@@ -173,7 +176,7 @@ fn duplicate_body_bindings_are_rejected_before_any_body_is_removed() {
     assert!(entity_by_id(sim.world(), ball).is_some());
     assert!(bodies(&sim).into_iter().all(|body| {
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .state(body)
             .is_some()
     }));
@@ -195,7 +198,7 @@ fn retained_body_alias_is_rejected_without_removing_either_model() {
     sim.world_mut().spawn((handle, ChildOf(parent)));
     let before: Vec<_> = bodies(&sim)
         .into_iter()
-        .map(|body| (body, sim.world().resource::<RapierBackend>().state(body)))
+        .map(|body| (body, sim.world().resource::<PhysicsBackend>().state(body)))
         .collect();
     let count = sim.world().entities().len();
     assert_eq!(
@@ -206,6 +209,6 @@ fn retained_body_alias_is_rejected_without_removing_either_model() {
     assert!(entity_by_id(sim.world(), ball).is_some());
     for (body, state) in before {
         assert!(state.is_some());
-        assert_eq!(sim.world().resource::<RapierBackend>().state(body), state);
+        assert_eq!(sim.world().resource::<PhysicsBackend>().state(body), state);
     }
 }

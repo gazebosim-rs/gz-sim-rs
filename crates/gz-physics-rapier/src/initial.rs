@@ -4,11 +4,8 @@ use super::*;
 
 type Construction = (BodySpec, RotationSpec, Option<Inertia>);
 
-/// Remaining bodies' spawn states and engine settings, tied to this backend instance.
-/// Capture before stepping to define an initial scene; this is not a runtime snapshot.
-#[derive(Clone)]
-pub struct InitialPhysicsState {
-    owner: Arc<()>,
+/// Captured spawn states and engine settings; wrapped in [`InitialPhysicsState`].
+struct InitialData {
     gravity: Vector,
     parameters: IntegrationParameters,
     bodies: BTreeMap<BodyId, Construction>,
@@ -16,9 +13,8 @@ pub struct InitialPhysicsState {
     next_id: u64,
 }
 
-/// Fully constructed reset state, ready to commit without rebuilding the solver.
-pub struct PreparedPhysicsReset {
-    owner: Arc<()>,
+/// A rebuilt solver, wrapped in [`PreparedPhysicsReset`].
+struct PreparedData {
     world: PhysicsWorld,
     bodies: BTreeMap<BodyId, BodyEntry>,
     joints: joints::WorldJoints,
@@ -26,34 +22,28 @@ pub struct PreparedPhysicsReset {
 }
 
 impl RapierBackend {
-    /// Tests backend ownership without constructing a replacement solver.
-    pub fn owns_initial_state(&self, initial: &InitialPhysicsState) -> bool {
-        Arc::ptr_eq(&self.owner, &initial.owner)
+    pub(crate) fn capture_initial(&self) -> InitialPhysicsState {
+        InitialPhysicsState::new(
+            &self.owner,
+            InitialData {
+                gravity: self.world.gravity,
+                parameters: self.world.integration_parameters,
+                bodies: self
+                    .bodies
+                    .iter()
+                    .map(|(&id, &(_, spec, rotation, inertia))| (id, (spec, rotation, inertia)))
+                    .collect(),
+                joints: self.joints.initial(),
+                next_id: self.next_id,
+            },
+        )
     }
 
-    pub fn initial_state(&self) -> InitialPhysicsState {
-        InitialPhysicsState {
-            owner: self.owner.clone(),
-            gravity: self.world.gravity,
-            parameters: self.world.integration_parameters,
-            bodies: self
-                .bodies
-                .iter()
-                .map(|(&id, &(_, spec, rotation, inertia))| (id, (spec, rotation, inertia)))
-                .collect(),
-            joints: self.joints.initial(),
-            next_id: self.next_id,
-        }
-    }
-
-    /// Builds an independent solver state before any scene or backend mutation.
-    pub fn prepare_initial(
+    pub(crate) fn build_initial(
         &self,
         initial: &InitialPhysicsState,
     ) -> Result<PreparedPhysicsReset, PhysicsError> {
-        if !self.owns_initial_state(initial) {
-            return Err(PhysicsError::ForeignInitialState);
-        }
+        let initial = initial.data::<InitialData>(&self.owner)?;
         let mut world = PhysicsWorld {
             gravity: initial.gravity,
             integration_parameters: initial.parameters,
@@ -65,24 +55,23 @@ impl RapierBackend {
             bodies.insert(id, (handle, spec, rotational, inertia));
         }
         let joints = joints::WorldJoints::restore(&initial.joints, &mut world, &bodies);
-        Ok(PreparedPhysicsReset {
-            owner: self.owner.clone(),
-            world,
-            bodies,
-            joints,
-            next_id: initial.next_id,
-        })
+        Ok(PreparedPhysicsReset::new(
+            &self.owner,
+            PreparedData {
+                world,
+                bodies,
+                joints,
+                next_id: initial.next_id,
+            },
+        ))
     }
 
-    /// Restores initial IDs and retires runtime bodies. Later allocations remain monotonic,
-    /// including bodies allocated after preparation. A foreign state leaves this unchanged.
-    pub fn apply_initial(
+    /// A foreign state leaves this backend unchanged.
+    pub(crate) fn commit_initial(
         &mut self,
-        mut prepared: PreparedPhysicsReset,
+        prepared: PreparedPhysicsReset,
     ) -> Result<(), PhysicsError> {
-        if !Arc::ptr_eq(&self.owner, &prepared.owner) {
-            return Err(PhysicsError::ForeignInitialState);
-        }
+        let mut prepared = prepared.into_data::<PreparedData>(&self.owner)?;
         prepared.joints.preserve_high_water(&self.joints);
         self.joints = prepared.joints;
         self.pending_wrenches.clear();

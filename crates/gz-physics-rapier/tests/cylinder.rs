@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use gz_physics_rapier::{BodySpec, PhysicsError, RapierBackend, RotationSpec, Shape, install};
+use gz_physics_rapier::{DynamicBackend, PhysicsBackend};
 use gz_sim_core::Simulation;
 use rapier3d_f64::prelude::{Rotation, Vector};
 use std::time::Duration;
@@ -52,7 +53,7 @@ fn cylinder_inertia_uses_gazebo_z_axis_in_body_and_world_frames() {
                 assert!((value - 1.0).abs() < 1e-12);
             }
             assert_eq!(state.orientation, orientation);
-            backend.reset();
+            backend.reset().unwrap();
             let state = backend.state(id).unwrap();
             assert_eq!(state.velocity, [0.0; 3]);
             assert_eq!(state.angular_velocity, [0.0; 3]);
@@ -77,7 +78,7 @@ fn cylinder_ground_contact_matches_its_transformed_z_axis_support() {
     let id = backend.spawn(cylinder()).unwrap();
     install(&mut sim, backend).unwrap();
     sim.step_exact(2000).unwrap();
-    let state = sim.world().resource::<RapierBackend>().state(id).unwrap();
+    let state = sim.world().resource::<PhysicsBackend>().state(id).unwrap();
     let q = state.orientation;
     let axis = Rotation::from_xyzw(q[0], q[1], q[2], q[3]) * Vector::Z;
     let radial = Vector::Z - axis * axis.z;

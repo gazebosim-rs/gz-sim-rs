@@ -12,6 +12,7 @@ parry3d-f64 = "=0.31.1"
 thiserror.workspace = true
 sdformat.workspace = true
 gz-sim-core = { path = "../gz-sim-core" }
+gz-physics = { path = "../gz-physics" }
 gz-physics-rapier = { path = "../gz-physics-rapier" }
 gz-physics-tpe = { path = "../gz-physics-tpe" }
 gz-sensors = { path = "../gz-sensors" }

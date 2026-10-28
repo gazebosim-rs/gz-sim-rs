@@ -32,7 +32,7 @@ fn selected_tpe_world_has_no_gravity_dynamics_and_restores_removed_entities() {
     let mut sim = load(include_str!("fixtures/fall.sdf")).unwrap();
     assert!(
         !sim.world()
-            .contains_resource::<gz_physics_rapier::RapierBackend>()
+            .contains_resource::<gz_physics_rapier::PhysicsBackend>()
     );
     let ball = named(&sim, "default::ball");
     let ball_id = sim.world().get::<EntityId>(ball).unwrap().get();

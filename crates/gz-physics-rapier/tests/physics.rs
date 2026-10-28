@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use gz_physics_rapier::{BodySpec, PhysicsError, RapierBackend, Shape, install};
+use gz_physics_rapier::{DynamicBackend, PhysicsBackend};
 use gz_sim_core::Simulation;
 use std::time::Duration;
 
@@ -23,22 +24,25 @@ fn exact_steps_free_fall_pause_and_reset_use_z_up_and_f64() {
         install(&mut sim, RapierBackend::new([0.0; 3]).unwrap()),
         Err(PhysicsError::AlreadyInstalled)
     );
+    let installed = sim.world().resource::<PhysicsBackend>();
+    assert_eq!(installed.engine(), "rapier");
+    assert!(installed.downcast_ref::<RapierBackend>().is_some());
     sim.tick().unwrap();
     assert_eq!(
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .state(id)
             .unwrap()
             .position,
         ball().position
     );
     sim.step_exact(100).unwrap();
-    let body = sim.world().resource::<RapierBackend>().state(id).unwrap();
+    let body = sim.world().resource::<PhysicsBackend>().state(id).unwrap();
     assert!((body.position[2] - (5.0 - 0.5 * 9.81 * 0.1_f64.powi(2))).abs() < 0.001);
     assert!((body.velocity[2] + 0.981).abs() < 1e-10);
     assert_eq!(body.position[0..2], [0.0, 0.0]);
     sim.reset().unwrap();
-    let body = sim.world().resource::<RapierBackend>().state(id).unwrap();
+    let body = sim.world().resource::<PhysicsBackend>().state(id).unwrap();
     assert_eq!(body.position, ball().position);
     assert_eq!(body.velocity, [0.0; 3]);
 }
@@ -58,7 +62,7 @@ fn large_coordinate_motion_keeps_submillimeter_precision() {
     sim.step_exact(100).unwrap();
     let displacement = sim
         .world()
-        .resource::<RapierBackend>()
+        .resource::<PhysicsBackend>()
         .state(id)
         .unwrap()
         .position[0]
@@ -83,15 +87,22 @@ fn bodies_contact_fixed_ground_and_removed_handles_stay_invalid() {
     let id = backend.spawn(ball()).unwrap();
     install(&mut sim, backend).unwrap();
     sim.step_exact(2000).unwrap();
-    let mut backend = sim.world_mut().resource_mut::<RapierBackend>();
+    let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
     assert!((backend.state(id).unwrap().position[2] - 0.5).abs() < 0.01);
     assert_eq!(backend.state(ground).unwrap().position, [0.0, 0.0, -0.5]);
     assert!(backend.remove(id));
     assert!(!backend.remove(id));
     assert!(backend.state(id).is_none());
-    backend.reset();
+    backend.reset().unwrap();
     assert!(backend.state(id).is_none());
-    assert_ne!(backend.spawn(ball()).unwrap(), id);
+    assert_ne!(
+        backend
+            .downcast_mut::<RapierBackend>()
+            .unwrap()
+            .spawn(ball())
+            .unwrap(),
+        id
+    );
 }
 
 #[test]
@@ -187,7 +198,7 @@ fn invalid_input_never_reaches_solver() {
 fn removing_backend_resource_does_not_install_duplicate_systems() {
     let mut sim = Simulation::new(Duration::from_millis(1)).unwrap();
     install(&mut sim, RapierBackend::new([0.0; 3]).unwrap()).unwrap();
-    sim.world_mut().remove_resource::<RapierBackend>();
+    sim.world_mut().remove_resource::<PhysicsBackend>();
     assert_eq!(
         install(&mut sim, RapierBackend::new([0.0; 3]).unwrap()),
         Err(PhysicsError::AlreadyInstalled)
@@ -226,7 +237,7 @@ fn explicit_inertia_and_rotation_control_impulse_response_and_reset() {
     assert!((state.angular_velocity[0] - 1.0).abs() < 1e-12);
     assert!(state.angular_velocity[1].abs() < 1e-12);
     assert_eq!(state.orientation, rotational.orientation);
-    backend.reset();
+    backend.reset().unwrap();
     assert_eq!(backend.state(id).unwrap().angular_velocity, [0.0; 3]);
     assert_eq!(
         backend.state(id).unwrap().orientation,
@@ -373,7 +384,7 @@ fn world_velocity_is_atomic_wakes_sleeping_bodies_and_preserves_reset_values() {
     install(&mut sim, backend).unwrap();
     sim.step_exact(1000).unwrap();
     {
-        let mut backend = sim.world_mut().resource_mut::<RapierBackend>();
+        let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
         backend
             .set_world_velocity(id, [1.0, 2.0, 3.0], [0.0, 0.0, 2.0])
             .unwrap();
@@ -397,20 +408,20 @@ fn world_velocity_is_atomic_wakes_sleeping_bodies_and_preserves_reset_values() {
     sim.tick().unwrap();
     assert_eq!(
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .state(id)
             .unwrap()
             .position,
         ball().position
     );
     sim.step_exact(1).unwrap();
-    let state = sim.world().resource::<RapierBackend>().state(id).unwrap();
+    let state = sim.world().resource::<PhysicsBackend>().state(id).unwrap();
     for (actual, expected) in state.position.into_iter().zip([0.01, 0.02, 5.03]) {
         assert!((actual - expected).abs() < 1e-12);
     }
     assert!(state.orientation[2] > 0.0);
     sim.reset().unwrap();
-    let mut backend = sim.world_mut().resource_mut::<RapierBackend>();
+    let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
     assert_eq!(backend.state(id).unwrap().velocity, [0.0; 3]);
     assert_eq!(backend.state(id).unwrap().angular_velocity, [0.0; 3]);
     assert!(backend.remove(id));
@@ -432,7 +443,7 @@ fn world_wrenches_accumulate_for_one_advancing_step_and_cancel_on_reset_or_remov
         .unwrap();
     install(&mut sim, backend).unwrap();
     {
-        let mut backend = sim.world_mut().resource_mut::<RapierBackend>();
+        let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
         backend
             .add_world_wrench(id, [1.0, 0.0, 0.0], [0.0; 3])
             .unwrap();
@@ -447,7 +458,7 @@ fn world_wrenches_accumulate_for_one_advancing_step_and_cancel_on_reset_or_remov
     sim.tick().unwrap();
     assert_eq!(
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .state(id)
             .unwrap()
             .velocity,
@@ -455,12 +466,12 @@ fn world_wrenches_accumulate_for_one_advancing_step_and_cancel_on_reset_or_remov
     );
     for _ in 0..3 {
         sim.step_exact(1).unwrap();
-        let state = sim.world().resource::<RapierBackend>().state(id).unwrap();
+        let state = sim.world().resource::<PhysicsBackend>().state(id).unwrap();
         assert!((state.velocity[0] - 0.01).abs() < 1e-12);
         assert_eq!(state.velocity[1..], [0.0; 2]);
     }
     {
-        let mut backend = sim.world_mut().resource_mut::<RapierBackend>();
+        let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
         backend
             .set_world_velocity(id, [1.0, 0.0, 0.0], [0.0; 3])
             .unwrap();
@@ -471,7 +482,7 @@ fn world_wrenches_accumulate_for_one_advancing_step_and_cancel_on_reset_or_remov
     sim.step_exact(1).unwrap();
     assert!(
         (sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .state(id)
             .unwrap()
             .velocity[0]
@@ -480,20 +491,20 @@ fn world_wrenches_accumulate_for_one_advancing_step_and_cancel_on_reset_or_remov
             < 1e-12
     );
     sim.world_mut()
-        .resource_mut::<RapierBackend>()
+        .resource_mut::<PhysicsBackend>()
         .add_world_wrench(id, [2.0, 0.0, 0.0], [0.0; 3])
         .unwrap();
     sim.reset().unwrap();
     sim.step_exact(1).unwrap();
     assert_eq!(
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .state(id)
             .unwrap()
             .velocity,
         [0.0; 3]
     );
-    let mut backend = sim.world_mut().resource_mut::<RapierBackend>();
+    let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
     backend
         .add_world_wrench(id, [2.0, 0.0, 0.0], [0.0; 3])
         .unwrap();
@@ -541,7 +552,7 @@ fn invalid_and_overflowing_wrenches_preserve_admitted_force_and_torque() {
     install(&mut sim, backend).unwrap();
     sim.step_exact(1).unwrap();
     {
-        let mut backend = sim.world_mut().resource_mut::<RapierBackend>();
+        let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
         assert_eq!(backend.state(id).unwrap().velocity, [0.0; 3]);
         assert_eq!(backend.state(id).unwrap().angular_velocity, [0.0; 3]);
         let initial = backend.initial_state();
@@ -552,7 +563,7 @@ fn invalid_and_overflowing_wrenches_preserve_admitted_force_and_torque() {
         backend.apply_initial(prepared).unwrap();
     }
     sim.step_exact(1).unwrap();
-    let backend = sim.world().resource::<RapierBackend>();
+    let backend = sim.world().resource::<PhysicsBackend>();
     assert_eq!(backend.state(id).unwrap().velocity, [0.0; 3]);
     assert_eq!(backend.state(id).unwrap().angular_velocity, [0.0; 3]);
 }

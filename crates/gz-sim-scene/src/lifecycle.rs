@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use crate::{BodyHandle, EntityKind};
 use bevy_ecs::hierarchy::{ChildOf, Children};
-use gz_physics_rapier::RapierBackend;
+use gz_physics::PhysicsBackend;
 use gz_sim_core::{EntityId, Simulation, entity_by_id};
 use std::collections::BTreeSet;
 
@@ -32,7 +32,7 @@ pub fn remove_model(sim: &mut Simulation, id: u64) -> Result<Vec<u64>, RemoveErr
     if !crate::joints::bindings_valid(world) {
         return Err(RemoveError::InvalidPhysics);
     }
-    let backend = world.get_resource::<RapierBackend>();
+    let backend = world.get_resource::<PhysicsBackend>();
     if backend.is_some() == world.contains_resource::<crate::tpe::TpeWorld>() {
         return Err(RemoveError::InvalidPhysics);
     }
@@ -73,7 +73,7 @@ pub fn remove_model(sim: &mut Simulation, id: u64) -> Result<Vec<u64>, RemoveErr
     }) {
         return Err(RemoveError::InvalidPhysics);
     }
-    if let Some(mut backend) = sim.world_mut().get_resource_mut::<RapierBackend>() {
+    if let Some(mut backend) = sim.world_mut().get_resource_mut::<PhysicsBackend>() {
         for body in bodies {
             assert!(
                 backend.remove(body),

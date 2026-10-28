@@ -73,11 +73,16 @@ fn installed_engines_are_exclusive_even_after_resource_removal() {
         gz_physics_rapier::install(&mut sim, RapierBackend::new([0.0; 3]).unwrap()),
         Err(PhysicsError::AlreadyInstalled)
     );
-    assert!(!sim.world().contains_resource::<RapierBackend>());
+    assert!(
+        !sim.world()
+            .contains_resource::<gz_physics::PhysicsBackend>()
+    );
     let mut other = Simulation::new(Duration::from_millis(1)).unwrap();
     gz_physics_rapier::install(&mut other, RapierBackend::new([0.0; 3]).unwrap()).unwrap();
     assert_eq!(install(&mut other), Err(InstallError::AlreadyInstalled));
-    other.world_mut().remove_resource::<RapierBackend>();
+    other
+        .world_mut()
+        .remove_resource::<gz_physics::PhysicsBackend>();
     assert_eq!(install(&mut other), Err(InstallError::AlreadyInstalled));
     assert_eq!(
         gz_physics_rapier::install(&mut other, RapierBackend::new([0.0; 3]).unwrap()),

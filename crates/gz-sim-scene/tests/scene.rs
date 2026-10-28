@@ -280,7 +280,7 @@ fn imu_publication_uses_structural_topics_and_worldless_names() {
 
 #[test]
 fn imu_orientation_is_relative_to_initial_sensor_world_orientation() {
-    use gz_physics_rapier::RapierBackend;
+    use gz_physics_rapier::PhysicsBackend;
     use gz_sim_scene::BodyHandle;
     let xml = WORLD.replace(
         "<always_on>true</always_on>",
@@ -307,7 +307,7 @@ fn imu_orientation_is_relative_to_initial_sensor_world_orientation() {
         .1
         .id();
     sim.world_mut()
-        .resource_mut::<RapierBackend>()
+        .resource_mut::<PhysicsBackend>()
         .apply_impulse(id, [0.0; 3], [0.0, 0.0, 0.2])
         .unwrap();
     sim.step_exact(100).unwrap();

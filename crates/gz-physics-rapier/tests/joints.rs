@@ -3,6 +3,7 @@
 use gz_physics_rapier::{
     BodyId, BodySpec, Inertia, JointId, PhysicsError, RapierBackend, RotationSpec, Shape, install,
 };
+use gz_physics_rapier::{DynamicBackend, PhysicsBackend};
 use gz_sim_core::Simulation;
 use std::time::Duration;
 
@@ -43,19 +44,22 @@ fn world_revolute_keeps_anchor_and_small_angle_energy_and_resets_its_reference()
     let (mut sim, body, joint) = pendulum();
     let initial = *sim
         .world()
-        .resource::<RapierBackend>()
+        .resource::<PhysicsBackend>()
         .state(body)
         .as_ref()
         .unwrap();
     let initial_energy = 9.81 * (initial.position[2] + 1.0);
     sim.tick().unwrap();
     assert_eq!(
-        sim.world().resource::<RapierBackend>().state(body).unwrap(),
+        sim.world()
+            .resource::<PhysicsBackend>()
+            .state(body)
+            .unwrap(),
         initial
     );
     for tick in 1..=4000 {
         sim.step_exact(1).unwrap();
-        let backend = sim.world().resource::<RapierBackend>();
+        let backend = sim.world().resource::<PhysicsBackend>();
         let s = backend.state(body).unwrap();
         let j = backend.joint_state(joint).unwrap();
         let q = rapier3d_f64::prelude::Rotation::from_xyzw(
@@ -84,12 +88,15 @@ fn world_revolute_keeps_anchor_and_small_angle_energy_and_resets_its_reference()
     }
     sim.reset().unwrap();
     assert_eq!(
-        sim.world().resource::<RapierBackend>().state(body).unwrap(),
+        sim.world()
+            .resource::<PhysicsBackend>()
+            .state(body)
+            .unwrap(),
         initial
     );
     let state = sim
         .world()
-        .resource::<RapierBackend>()
+        .resource::<PhysicsBackend>()
         .joint_state(joint)
         .unwrap();
     assert!(state.position.abs() < 1e-12);
@@ -97,7 +104,7 @@ fn world_revolute_keeps_anchor_and_small_angle_energy_and_resets_its_reference()
     sim.step_exact(1).unwrap();
     assert!(
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .joint_state(joint)
             .unwrap()
             .velocity
@@ -108,9 +115,9 @@ fn world_revolute_keeps_anchor_and_small_angle_energy_and_resets_its_reference()
 #[test]
 fn joint_retirement_and_prepared_reset_restore_constraints_without_id_reuse() {
     let (mut sim, body, joint) = pendulum();
-    let initial = sim.world().resource::<RapierBackend>().initial_state();
+    let initial = sim.world().resource::<PhysicsBackend>().initial_state();
     sim.step_exact(10).unwrap();
-    let mut backend = sim.world_mut().resource_mut::<RapierBackend>();
+    let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
     assert_eq!(
         backend.add_world_revolute(body, [0.0; 3], [0.0, 1.0, 0.0]),
         Err(PhysicsError::JointConstructionClosed)
@@ -119,7 +126,7 @@ fn joint_retirement_and_prepared_reset_restore_constraints_without_id_reuse() {
     assert!(!backend.remove_joint(joint));
     assert!(backend.joint_state(joint).is_none());
     assert_eq!(backend.is_jointed(body), Some(false));
-    backend.reset();
+    backend.reset().unwrap();
     let added = backend
         .add_world_revolute(body, [0.0; 3], [0.0, 1.0, 0.0])
         .unwrap();
@@ -171,7 +178,7 @@ fn real_native_pendulum_joint_observations_and_reset_are_within_declared_bounds(
             sim.elapsed().as_nanos(),
             u128::from(row["time_ns"].as_u64().unwrap())
         );
-        let backend = sim.world().resource::<RapierBackend>();
+        let backend = sim.world().resource::<PhysicsBackend>();
         let state = backend.state(body).unwrap();
         let hinge = backend.joint_state(joint).unwrap();
         // Different integrators; native body output also has a 1e-6 pose-update cache.
@@ -222,7 +229,7 @@ fn world_revolute_tracks_complete_turns_in_both_directions_and_reset() {
             sim.step_exact(1).unwrap();
             let state = sim
                 .world()
-                .resource::<RapierBackend>()
+                .resource::<PhysicsBackend>()
                 .joint_state(joint)
                 .unwrap();
             assert!(
@@ -236,7 +243,7 @@ fn world_revolute_tracks_complete_turns_in_both_directions_and_reset() {
         sim.reset().unwrap();
         let state = sim
             .world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .joint_state(joint)
             .unwrap();
         assert_eq!(state.position, 0.0);

@@ -3,7 +3,6 @@
 //! Full-f64 rigid bodies stepped by the simulator's explicit Bevy schedule.
 
 use bevy_ecs::prelude::*;
-use gz_sim_core::{Phase, Simulation, UpdateInfo};
 use rapier3d_f64::prelude::*;
 use std::sync::Arc;
 use std::{
@@ -11,51 +10,18 @@ use std::{
     time::Duration,
 };
 
-mod joints;
-pub use joints::{JointId, JointState};
-
 mod initial;
-pub use initial::{InitialPhysicsState, PreparedPhysicsReset};
+mod joints;
 
-pub use gz_physics::{BodySpec, BodyState, Inertia, RotationSpec, Shape};
-
-/// A backend-local stable identifier. Always pair it with its owning world.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct BodyId(u64);
-
-#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct PhysicsReset;
-
-/// Marks physics already restored by a validated transaction for one reset epoch.
-/// The transaction removes this after Reset handlers finish. Other epochs rebuild.
-#[derive(Resource)]
-pub struct RestoredPhysics {
-    pub epoch: u64,
-}
-
-#[derive(Debug, thiserror::Error, PartialEq, Eq)]
-pub enum PhysicsError {
-    #[error("body or gravity contains an invalid numeric value")]
-    InvalidValue,
-    #[error("body identifier space exhausted")]
-    IdOverflow,
-    #[error("a physics backend is already installed in this world")]
-    AlreadyInstalled,
-    #[error("body identifier is not present in this backend")]
-    MissingBody,
-    #[error("initial physics state belongs to a different backend")]
-    ForeignInitialState,
-    #[error("joint requires a dynamic child and representable finite anchor/axis")]
-    InvalidJoint,
-    #[error("joint construction is closed until physics reset")]
-    JointConstructionClosed,
-    #[error("joint identifier space exhausted")]
-    JointIdOverflow,
-}
+pub use gz_physics::{
+    BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId, JointState,
+    PhysicsBackend, PhysicsError, PhysicsReset, PreparedPhysicsReset, RestoredPhysics,
+    RotationSpec, Shape, install,
+};
+use std::any::Any;
 
 type BodyEntry = (RigidBodyHandle, BodySpec, RotationSpec, Option<Inertia>);
 
-#[derive(Resource)]
 pub struct RapierBackend {
     owner: Arc<()>,
     world: PhysicsWorld,
@@ -221,9 +187,15 @@ impl RapierBackend {
     pub fn spawn(&mut self, spec: BodySpec) -> Result<BodyId, PhysicsError> {
         self.spawn_link(spec, RotationSpec::default(), None)
     }
+}
+
+impl DynamicBackend for RapierBackend {
+    fn engine(&self) -> &'static str {
+        "rapier"
+    }
 
     /// Creates one centered collider with optional explicit link inertia.
-    pub fn spawn_link(
+    fn spawn_link(
         &mut self,
         spec: BodySpec,
         rotational: RotationSpec,
@@ -246,7 +218,7 @@ impl RapierBackend {
             .next_id
             .checked_add(1)
             .ok_or(PhysicsError::IdOverflow)?;
-        let id = BodyId(self.next_id);
+        let id = BodyId::from_raw(self.next_id);
         let handle = insert(&mut self.world, spec, rotational, shape, properties);
         self.bodies.insert(id, (handle, spec, rotational, inertia));
         self.next_id = next;
@@ -254,13 +226,13 @@ impl RapierBackend {
     }
 
     /// Whether a registered body has dynamic mass rather than a fixed solver body.
-    pub fn is_dynamic(&self, id: BodyId) -> Option<bool> {
+    fn is_dynamic(&self, id: BodyId) -> Option<bool> {
         self.bodies
             .get(&id)
             .map(|(_, spec, ..)| spec.mass.is_some())
     }
 
-    pub fn state(&self, id: BodyId) -> Option<BodyState> {
+    fn state(&self, id: BodyId) -> Option<BodyState> {
         let (handle, ..) = self.bodies.get(&id)?;
         let body = &self.world.bodies[*handle];
         Some(BodyState {
@@ -271,7 +243,7 @@ impl RapierBackend {
         })
     }
 
-    pub fn remove(&mut self, id: BodyId) -> bool {
+    fn remove(&mut self, id: BodyId) -> bool {
         if let Some((handle, ..)) = self.bodies.remove(&id) {
             self.pending_wrenches.remove(&id);
             self.joints.forget_body(id);
@@ -285,7 +257,7 @@ impl RapierBackend {
 
     /// Replaces world-frame velocities and wakes dynamic bodies. Fixed bodies stay fixed.
     /// Invalid inputs leave both velocities unchanged. Reset keeps construction values.
-    pub fn set_world_velocity(
+    fn set_world_velocity(
         &mut self,
         id: BodyId,
         linear: [f64; 3],
@@ -304,7 +276,7 @@ impl RapierBackend {
     /// Accumulates world force at the center of mass and world-frame torque.
     /// The next unpaused step consumes them; fixed bodies remain fixed.
     /// Nonfinite inputs/accumulation leave both force and torque unchanged.
-    pub fn add_world_wrench(
+    fn add_world_wrench(
         &mut self,
         id: BodyId,
         force: [f64; 3],
@@ -329,7 +301,7 @@ impl RapierBackend {
     }
 
     /// Applies linear and angular impulses in world axes. Fixed bodies remain fixed.
-    pub fn apply_impulse(
+    fn apply_impulse(
         &mut self,
         id: BodyId,
         linear: [f64; 3],
@@ -352,7 +324,7 @@ impl RapierBackend {
     }
 
     /// Restores remaining bodies to their spawn state. Removed bodies stay removed.
-    pub fn reset(&mut self) {
+    fn reset(&mut self) -> Result<(), PhysicsError> {
         let joints = self.joints.initial();
         self.pending_wrenches.clear();
         self.world = PhysicsWorld {
@@ -364,9 +336,10 @@ impl RapierBackend {
             *handle = initial::insert_initial(&mut self.world, *spec, *rotational, *inertia);
         }
         self.joints = joints::WorldJoints::restore(&joints, &mut self.world, &self.bodies);
+        Ok(())
     }
 
-    fn step(&mut self, dt: Duration) {
+    fn step(&mut self, dt: Duration) -> Result<(), PhysicsError> {
         if !dt.is_zero() {
             self.joints.close();
             self.world.integration_parameters.dt = dt.as_secs_f64();
@@ -380,35 +353,60 @@ impl RapierBackend {
                 }
             }
         }
+        Ok(())
     }
-}
 
-/// Installs one backend into the simulation's physics and reset phases.
-pub fn install(sim: &mut Simulation, backend: RapierBackend) -> Result<(), PhysicsError> {
-    if sim.world().contains_resource::<RapierBackend>()
-        || !sim.register_extension::<gz_physics::PhysicsInstallation>()
-    {
-        return Err(PhysicsError::AlreadyInstalled);
+    fn add_world_revolute(
+        &mut self,
+        child: BodyId,
+        anchor: [f64; 3],
+        axis: [f64; 3],
+    ) -> Result<JointId, PhysicsError> {
+        self.insert_world_revolute(child, anchor, axis)
     }
-    sim.world_mut().insert_resource(backend);
-    sim.add_systems(
-        Phase::PhysicsStep,
-        |time: Res<UpdateInfo>, mut backend: ResMut<RapierBackend>| {
-            backend.step(time.dt);
-        },
-    );
-    sim.add_systems(
-        Phase::Reset,
-        (|time: Res<UpdateInfo>,
-          restored: Option<Res<RestoredPhysics>>,
-          mut backend: ResMut<RapierBackend>| {
-            if restored.is_none_or(|state| state.epoch != time.epoch) {
-                backend.reset();
-            }
-        })
-        .in_set(PhysicsReset),
-    );
-    Ok(())
+
+    fn joint_child(&self, id: JointId) -> Option<BodyId> {
+        self.world_joint_child(id)
+    }
+
+    fn joint_state(&self, id: JointId) -> Option<JointState> {
+        self.world_joint_state(id)
+    }
+
+    fn remove_joint(&mut self, id: JointId) -> bool {
+        self.delete_world_joint(id)
+    }
+
+    fn is_jointed(&self, id: BodyId) -> Option<bool> {
+        self.has_joint(id)
+    }
+
+    fn initial_state(&self) -> InitialPhysicsState {
+        self.capture_initial()
+    }
+
+    fn owns_initial_state(&self, initial: &InitialPhysicsState) -> bool {
+        initial.is_owned_by(&self.owner)
+    }
+
+    fn prepare_initial(
+        &self,
+        initial: &InitialPhysicsState,
+    ) -> Result<PreparedPhysicsReset, PhysicsError> {
+        self.build_initial(initial)
+    }
+
+    fn apply_initial(&mut self, prepared: PreparedPhysicsReset) -> Result<(), PhysicsError> {
+        self.commit_initial(prepared)
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
 }
 
 #[cfg(test)]

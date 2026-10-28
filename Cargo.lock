@@ -1015,6 +1015,7 @@ dependencies = [
  "glam 0.33.12",
  "gz-assets",
  "gz-fuel-tools",
+ "gz-physics",
  "gz-physics-rapier",
  "gz-physics-tpe",
  "gz-sensors",

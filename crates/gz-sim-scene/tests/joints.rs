@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use bevy_ecs::entity::Entity;
 use gz_physics_rapier::{BodySpec, RapierBackend, Shape};
+use gz_physics_rapier::{DynamicBackend, PhysicsBackend};
 use gz_sim_core::{EntityId, Simulation, StepError, entity_by_id};
 use gz_sim_scene::{
     BodyHandle, EntityKind, InputError, JointDefinition, JointHandle, JointSample, LoadError, Name,
@@ -37,7 +38,7 @@ fn sdf_world_revolute_preserves_metadata_frames_native_observations_and_loaded_l
     assert_eq!(handle.child(), child_id);
     assert_eq!(
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .joint_child(handle.id()),
         Some(sim.world().get::<BodyHandle>(child).unwrap().id())
     );
@@ -100,7 +101,7 @@ fn sdf_world_revolute_preserves_metadata_frames_native_observations_and_loaded_l
     assert!(retired.contains(&joint_id));
     assert!(
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .joint_state(handle.id())
             .is_none()
     );
@@ -198,7 +199,7 @@ fn missing_duplicate_or_foreign_joint_bindings_fault_before_time_advances() {
                 sim.world_mut().spawn(handle);
             }
             3 => {
-                sim.world_mut().remove_resource::<RapierBackend>();
+                sim.world_mut().remove_resource::<PhysicsBackend>();
             }
             4 => {
                 sim.world_mut()
@@ -207,7 +208,7 @@ fn missing_duplicate_or_foreign_joint_bindings_fault_before_time_advances() {
             }
             5 => {
                 sim.world_mut()
-                    .resource_mut::<RapierBackend>()
+                    .resource_mut::<PhysicsBackend>()
                     .remove_joint(handle.id());
             }
             6 => {
@@ -229,7 +230,8 @@ fn missing_duplicate_or_foreign_joint_bindings_fault_before_time_advances() {
                         .unwrap(),
                     handle.id()
                 );
-                sim.world_mut().insert_resource(foreign);
+                sim.world_mut()
+                    .insert_resource(PhysicsBackend::from(foreign));
             }
         }
         assert_eq!(

@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
-use gz_physics_rapier::BodyState;
+use gz_physics::BodyState;
 use gz_physics_tpe::{ModelBounds, Motion, MotionReset};
 use parry3d_f64::{
     bounding_volume::{Aabb, BoundingVolume},

@@ -4,7 +4,7 @@ use bevy_ecs::{
     entity::Entity,
     hierarchy::{ChildOf, Children},
 };
-use gz_physics_rapier::RapierBackend;
+use gz_physics_rapier::PhysicsBackend;
 use gz_sim_core::{EntityId, Simulation, entity_by_id};
 use gz_sim_scene::{BodyHandle, EntityKind, LocalName, LocalPose, Name, WorldPose, load_world};
 use sdformat::NoResources;
@@ -149,7 +149,7 @@ fn nested_canonical_links_and_relative_frames_keep_ownership_distinct() {
     let b = entity(&sim, "default::outer::inner::b");
     let id = sim.world().get::<BodyHandle>(b).unwrap().id();
     sim.world_mut()
-        .resource_mut::<RapierBackend>()
+        .resource_mut::<PhysicsBackend>()
         .apply_impulse(id, [2.0, 0.0, 0.0], [0.0; 3])
         .unwrap();
     sim.step_exact(1).unwrap();
@@ -190,7 +190,7 @@ fn explicit_canonical_link_drives_the_model_and_resolved_visual_frames() {
     let b = entity(&sim, "default::outer::inner::b");
     let id = sim.world().get::<BodyHandle>(b).unwrap().id();
     sim.world_mut()
-        .resource_mut::<RapierBackend>()
+        .resource_mut::<PhysicsBackend>()
         .apply_impulse(id, [1.0, 0.0, 0.0], [0.0; 3])
         .unwrap();
     sim.step_exact(1).unwrap();

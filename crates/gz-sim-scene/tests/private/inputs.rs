@@ -57,7 +57,7 @@ fn admission_rejects_broken_bindings_before_inserting_any_pending_input() {
     }
     let rapier: &[Mutation] = &[
         |w, _, _| {
-            w.remove_resource::<RapierBackend>();
+            w.remove_resource::<PhysicsBackend>();
         },
         |w, _, _| {
             w.insert_resource(tpe::TpeWorld(Arc::new(())));
@@ -67,7 +67,7 @@ fn admission_rejects_broken_bindings_before_inserting_any_pending_input() {
         },
         |w, _, l| {
             let id = w.get::<BodyHandle>(l).unwrap().id();
-            assert!(w.resource_mut::<RapierBackend>().remove(id));
+            assert!(w.resource_mut::<PhysicsBackend>().remove(id));
         },
     ];
     for mutate in rapier {
@@ -173,7 +173,9 @@ fn broken_admitted_inputs_fault_before_step_commit_and_reject_further_admission(
         match corruption {
             0 => {
                 let body = sim.world().get::<BodyHandle>(link).unwrap().id();
-                sim.world_mut().resource_mut::<RapierBackend>().remove(body);
+                sim.world_mut()
+                    .resource_mut::<PhysicsBackend>()
+                    .remove(body);
             }
             1 => {
                 sim.world_mut().entity_mut(link).remove::<EntityId>();

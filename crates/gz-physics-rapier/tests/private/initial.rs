@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
+use gz_sim_core::Simulation;
 
 fn sphere(position: [f64; 3]) -> BodySpec {
     BodySpec {
@@ -30,7 +31,7 @@ fn prepared_reset_restores_removed_initial_bodies_and_retires_later_allocations(
         .unwrap();
     let state = backend.state(initial_body).unwrap();
     let initial = backend.initial_state();
-    backend.step(Duration::from_millis(10));
+    backend.step(Duration::from_millis(10)).unwrap();
     assert_ne!(backend.state(initial_body), Some(state));
     assert!(backend.remove(initial_body));
     let runtime = backend.spawn(sphere([0.0, 0.0, 10.0])).unwrap();
@@ -46,7 +47,7 @@ fn prepared_reset_restores_removed_initial_bodies_and_retires_later_allocations(
     assert_eq!(backend.state(later), None);
     let fresh = backend.spawn(sphere([0.0, 0.0, 30.0])).unwrap();
     assert!(fresh > later);
-    backend.step(Duration::from_millis(1));
+    backend.step(Duration::from_millis(1)).unwrap();
     let next = backend.state(initial_body).unwrap();
     assert!(next.position[0] > state.position[0]);
     assert!(next.position[2] < state.position[2]);
@@ -131,7 +132,7 @@ fn initial_gravity_and_solver_settings_are_restored_and_retained_reset_keeps_set
         .unwrap();
     assert_eq!(backend.world.integration_parameters, settings);
     assert_eq!(backend.world.gravity.to_array(), [0.0, 0.0, -9.81]);
-    backend.reset();
+    backend.reset().unwrap();
     assert_eq!(backend.world.integration_parameters, settings);
     assert_eq!(backend.world.gravity.to_array(), [0.0, 0.0, -9.81]);
 }
@@ -141,7 +142,7 @@ fn prepared_epoch_avoids_rebuilding_and_stale_epoch_does_not_skip_retained_reset
     let mut backend = RapierBackend::new([0.0; 3]).unwrap();
     let body = backend.spawn(sphere([0.0; 3])).unwrap();
     let initial = backend.initial_state();
-    backend.step(Duration::from_millis(1));
+    backend.step(Duration::from_millis(1)).unwrap();
     backend
         .apply_initial(backend.prepare_initial(&initial).unwrap())
         .unwrap();
@@ -150,20 +151,20 @@ fn prepared_epoch_avoids_rebuilding_and_stale_epoch_does_not_skip_retained_reset
     let epoch = sim.validate_reset().unwrap();
     sim.world_mut().insert_resource(RestoredPhysics { epoch });
     sim.world_mut()
-        .resource_mut::<RapierBackend>()
+        .resource_mut::<PhysicsBackend>()
         .apply_impulse(body, [2.0, 0.0, 0.0], [0.0; 3])
         .unwrap();
-    let prepared = sim.world().resource::<RapierBackend>().state(body);
+    let prepared = sim.world().resource::<PhysicsBackend>().state(body);
     sim.reset().unwrap();
     assert_eq!(
-        sim.world().resource::<RapierBackend>().state(body),
+        sim.world().resource::<PhysicsBackend>().state(body),
         prepared
     );
     // Keeping an old marker cannot suppress the next epoch's retained-body reset.
     sim.reset().unwrap();
     assert_eq!(
         sim.world()
-            .resource::<RapierBackend>()
+            .resource::<PhysicsBackend>()
             .state(body)
             .unwrap()
             .velocity,

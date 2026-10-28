@@ -31,9 +31,10 @@ pub use initial::{
 
 use bevy_ecs::prelude::*;
 use glam::{DQuat, DVec3};
-use gz_physics_rapier::{
-    BodyId, BodySpec, Inertia, PhysicsError, PhysicsReset, RapierBackend, RotationSpec, Shape,
+use gz_physics::{
+    BodyId, BodySpec, Inertia, PhysicsBackend, PhysicsError, PhysicsReset, RotationSpec, Shape,
 };
+use gz_physics_rapier::RapierBackend;
 use gz_sensors::{ImuInput, ImuReading, InvalidImuInput};
 use gz_sim_core::{
     EntityId, EntityLookup, IdentityError, Phase, Simulation, StepError, StepFault, UpdateInfo,
@@ -385,7 +386,7 @@ fn load_world_configured(
         step_override,
     });
     let mut backend = match engine {
-        PhysicsEngine::Rapier => Some(RapierBackend::new(world.gravity)?),
+        PhysicsEngine::Rapier => Some(RapierBackend::new(world.gravity)?.into()),
         PhysicsEngine::Tpe => None,
     };
     let mut context = SceneContext {
@@ -413,7 +414,7 @@ fn load_world_configured(
     inputs::install(&mut sim);
     match backend {
         Some(backend) => {
-            gz_physics_rapier::install(&mut sim, backend)?;
+            gz_physics::install(&mut sim, backend)?;
             sim.add_systems(Phase::PhysicsPrepare, joints::preflight);
             sim.add_systems(Phase::PhysicsCommit, joints::sample);
             sim.add_systems(Phase::Reset, joints::sample.after(PhysicsReset));
@@ -451,7 +452,7 @@ fn build_model(
     context: &mut SceneContext<'_>,
     parent: &ParentModel,
     sim: &mut Simulation,
-    backend: &mut Option<RapierBackend>,
+    backend: &mut Option<PhysicsBackend>,
 ) -> Result<(), LoadError> {
     if backend.is_none() {
         require(
@@ -840,7 +841,7 @@ fn sync_attached_poses(
 }
 
 fn sync_bodies(
-    backend: Res<RapierBackend>,
+    backend: Res<PhysicsBackend>,
     mut bodies: Query<(&BodyHandle, &mut WorldPose, &mut Velocity)>,
 ) {
     for (body, mut pose, mut velocity) in &mut bodies {

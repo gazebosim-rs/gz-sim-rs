@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use crate::{BodyHandle, EntityKind, LocalPose, WorldPose, tpe};
 use bevy_ecs::prelude::*;
-use gz_physics_rapier::{BodyId, RapierBackend};
+use gz_physics::{BodyId, PhysicsBackend};
 use gz_physics_tpe::{ModelBounds, Motion};
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo, entity_by_id};
 
@@ -32,13 +32,13 @@ pub enum InputError {
     #[error(transparent)]
     Clock(#[from] gz_sim_core::StepError),
     #[error(transparent)]
-    Rapier(#[from] gz_physics_rapier::PhysicsError),
+    Physics(#[from] gz_physics::PhysicsError),
     #[error(transparent)]
     Tpe(#[from] gz_physics_tpe::MotionError),
 }
 
 enum Binding {
-    Rapier(BodyId),
+    Dynamic(BodyId),
     Tpe(Entity),
 }
 
@@ -65,7 +65,7 @@ fn binding(world: &World, entity: Entity, id: u64) -> Result<Binding, InputError
     {
         return Err(InputError::NotFreeLink(id));
     }
-    let rapier = world.get_resource::<RapierBackend>();
+    let rapier = world.get_resource::<PhysicsBackend>();
     if rapier.is_some() == world.contains_resource::<tpe::TpeWorld>() {
         return Err(InputError::InvalidPhysics);
     }
@@ -82,7 +82,7 @@ fn binding(world: &World, entity: Entity, id: u64) -> Result<Binding, InputError
         }
         return backend
             .state(id)
-            .map(|_| Binding::Rapier(id))
+            .map(|_| Binding::Dynamic(id))
             .ok_or(InputError::InvalidPhysics);
     }
     let bounds = world
@@ -175,8 +175,8 @@ fn execute(world: &mut World, entity: Entity, input: PendingInput) -> Result<(),
         .ok_or(InputError::InvalidPhysics)?
         .get();
     match binding(world, entity, id)? {
-        Binding::Rapier(body) => {
-            let mut backend = world.resource_mut::<RapierBackend>();
+        Binding::Dynamic(body) => {
+            let mut backend = world.resource_mut::<PhysicsBackend>();
             if let Some((linear, angular)) = input.velocity {
                 backend.set_world_velocity(body, linear, angular)?;
             }

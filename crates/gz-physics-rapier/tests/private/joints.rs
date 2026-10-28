@@ -87,7 +87,7 @@ fn linked_sleep_policy_rebuilds_and_restores_only_when_the_last_constraint_retir
             .normalized_linear_threshold
             < 0.0
     );
-    backend.reset();
+    backend.reset().unwrap();
     let handle = backend.bodies[&body].0;
     assert!(
         backend.world.bodies[handle]

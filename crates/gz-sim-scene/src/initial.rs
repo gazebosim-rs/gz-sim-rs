@@ -3,7 +3,7 @@
 use super::*;
 use bevy_ecs::resource::IsResource;
 use bevy_ecs::{observer::Observer, system::SystemIdMarker};
-use gz_physics_rapier::{InitialPhysicsState, RestoredPhysics};
+use gz_physics::{InitialPhysicsState, PhysicsBackend, RestoredPhysics};
 use gz_sim_core::{EntityId, ReservedId, entity_by_id, reserve_id, restore_id};
 use std::{collections::BTreeSet, sync::Arc};
 
@@ -67,7 +67,7 @@ struct Node {
 }
 
 enum InitialPhysics {
-    Rapier(Box<InitialPhysicsState>),
+    Dynamic(InitialPhysicsState),
     Tpe(Arc<()>),
 }
 
@@ -81,8 +81,8 @@ struct Blueprint {
 #[derive(Resource)]
 pub(super) struct InitialScene(Arc<Blueprint>);
 impl InitialScene {
-    pub(super) fn owns_rapier(&self, backend: &RapierBackend) -> bool {
-        matches!(&self.0.physics, InitialPhysics::Rapier(initial) if backend.owns_initial_state(initial))
+    pub(super) fn owns_backend(&self, backend: &PhysicsBackend) -> bool {
+        matches!(&self.0.physics, InitialPhysics::Dynamic(initial) if backend.owns_initial_state(initial))
     }
 }
 
@@ -91,8 +91,8 @@ pub(super) fn matches_physics_owner(world: &World) -> bool {
         return false;
     };
     match &scene.0.physics {
-        InitialPhysics::Rapier(initial) => world
-            .get_resource::<RapierBackend>()
+        InitialPhysics::Dynamic(initial) => world
+            .get_resource::<PhysicsBackend>()
             .is_some_and(|backend| backend.owns_initial_state(initial)),
         InitialPhysics::Tpe(owner) => world
             .get_resource::<tpe::TpeWorld>()
@@ -149,8 +149,8 @@ pub(super) fn capture(sim: &mut Simulation) {
     nodes.sort_by_key(|node| node.id.get());
     let initial = Blueprint {
         nodes,
-        physics: if let Some(backend) = world.get_resource::<RapierBackend>() {
-            InitialPhysics::Rapier(Box::new(backend.initial_state()))
+        physics: if let Some(backend) = world.get_resource::<PhysicsBackend>() {
+            InitialPhysics::Dynamic(backend.initial_state())
         } else {
             InitialPhysics::Tpe(world.resource::<tpe::TpeWorld>().0.clone())
         },
@@ -242,13 +242,13 @@ pub fn reset_loaded_world<R>(
         }
     }
     let prepared = match &initial.physics {
-        InitialPhysics::Rapier(initial) => {
+        InitialPhysics::Dynamic(initial) => {
             if sim.world().contains_resource::<tpe::TpeWorld>() {
                 return Err(SceneResetError::ForeignPhysics);
             }
             Some(
                 sim.world()
-                    .get_resource::<RapierBackend>()
+                    .get_resource::<PhysicsBackend>()
                     .ok_or(SceneResetError::MissingPhysics)?
                     .prepare_initial(initial)?,
             )
@@ -258,7 +258,8 @@ pub fn reset_loaded_world<R>(
                 .world()
                 .get_resource::<tpe::TpeWorld>()
                 .ok_or(SceneResetError::MissingPhysics)?;
-            if !Arc::ptr_eq(owner, &current.0) || sim.world().contains_resource::<RapierBackend>() {
+            if !Arc::ptr_eq(owner, &current.0) || sim.world().contains_resource::<PhysicsBackend>()
+            {
                 return Err(SceneResetError::ForeignPhysics);
             }
             None
@@ -353,7 +354,7 @@ pub fn reset_loaded_world<R>(
     }
     if let Some(prepared) = prepared {
         world
-            .resource_mut::<RapierBackend>()
+            .resource_mut::<PhysicsBackend>()
             .apply_initial(prepared)
             .expect("exclusive transaction retained the preflighted backend");
     }
