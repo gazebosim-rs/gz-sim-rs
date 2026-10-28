@@ -34,9 +34,9 @@ final state. A second termination signal forces immediate exit with status
 `128 + signal`, including when final output is blocked; it can interrupt cleanup.
 Queued publications do not guarantee final wire delivery.
 
-A world name that is not a valid transport topic segment, such as one containing
-a space, currently fails server startup with `InvalidName`. Native Gazebo
-sanitizes such names instead; matching that is open IO-01 work.
+Like native Gazebo, the server sanitizes the SDF world name with the transport
+topic rules before naming world endpoints: `bad world` serves
+`/world/bad_world/clock`. A name that sanitizes to nothing fails startup.
 
 ## Focused evidence and remaining scope
 

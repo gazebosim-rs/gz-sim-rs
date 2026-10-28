@@ -239,7 +239,8 @@ fn unsupported_and_overflowing_controls_leave_state_unchanged() {
 
 #[test]
 fn setup_rejects_invalid_names_configuration_and_unrepresentable_time() {
-    for name in ["", "bad/world", "bad world"] {
+    // These sanitize to an empty or invalid topic, which native Gazebo also rejects.
+    for name in ["", "/", "//", "@~", ":="] {
         assert!(
             Server::new(
                 Simulation::new(Duration::from_millis(1)).unwrap(),
@@ -291,6 +292,33 @@ fn request(
             Duration::from_secs(5),
         )
     })
+}
+
+#[test]
+fn world_names_are_sanitized_like_native_topics() {
+    for (name, topic) in [
+        ("bad world", "/world/bad_world/clock"),
+        ("a@b~c", "/world/abc/clock"),
+        ("nested/world", "/world/nested/world/clock"),
+    ] {
+        let configuration = config();
+        let observer = Node::new(configuration.clone()).unwrap();
+        let clock = observer.subscribe(topic, "gz.msgs.Clock").unwrap();
+        let mut server = Server::new(
+            Simulation::new(Duration::from_millis(1)).unwrap(),
+            name,
+            configuration,
+            NonZeroUsize::new(1).unwrap(),
+        )
+        .unwrap();
+        assert!(
+            server.prepare_run(Duration::from_secs(5)).unwrap(),
+            "{name}"
+        );
+        server.tick().unwrap();
+        let sample = clock.recv_timeout(Duration::from_secs(5)).unwrap();
+        assert!(Clock::decode(sample.data.as_slice()).unwrap().sim.is_some());
+    }
 }
 
 #[test]

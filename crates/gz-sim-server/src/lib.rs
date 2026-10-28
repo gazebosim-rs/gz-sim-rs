@@ -230,7 +230,9 @@ impl Server {
     ) -> Result<Self, Error> {
         time(simulation.elapsed().as_nanos() as i128)?;
         poses::packet(simulation.world(), simulation.elapsed())?;
-        if world_name.is_empty() || world_name.contains('/') {
+        // Like native Gazebo, sanitize the SDF name once for every world endpoint.
+        let world_name = gz_transport::as_valid_topic(world_name);
+        if world_name.is_empty() {
             return Err(TransportError::InvalidName.into());
         }
         let partition = config.partition.clone();
@@ -243,7 +245,7 @@ impl Server {
             "gz.msgs.Boolean",
         )?;
         let poses = node.advertise(&format!("/world/{world_name}/pose/info"), "gz.msgs.Pose_V")?;
-        let removals = removals::Removals::new(&node, world_name)?;
+        let removals = removals::Removals::new(&node, &world_name)?;
         let mut imus = Vec::new();
         let mut imu_publishers: BTreeMap<String, Weak<Publisher>> = BTreeMap::new();
         for entity in simulation.world().iter_entities() {
