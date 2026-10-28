@@ -1,6 +1,7 @@
 # Headless integration
 
-IO-01 and P2 remain in progress. The server joins an SDF/Bevy/Rapier world to
+P2 is closed for the selected headless world (see
+[acceptance/P2.md](acceptance/P2.md)); IO-01 remains in progress. The server joins an SDF/Bevy/Rapier world to
 independent Rust message and transport libraries. It owns these endpoints:
 
 | Endpoint under `/world/<name>` | Contract |

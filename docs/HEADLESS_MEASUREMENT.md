@@ -14,7 +14,7 @@ pacing and does not measure unpaced throughput.
 The paired Rust/native geometric ratio is 0.56948, with paired bootstrap 95%
 interval [0.55765, 0.58286]. This is lower observed work latency for this selected
 fixture. It does not establish balanced robotics performance, general simulator
-speedup, dedicated-hardware behavior or formal P2 acceptance.
+speedup or dedicated-hardware behavior.
 
 The run retains eleven alternating process pairs on shared-host CPU31. Each
 process receives an initial warmup sample outside timing, then 128 timed requests.

@@ -1,13 +1,9 @@
 # Implementation status
 
-The networked headless CLI draft now passes independent focused runtime review:
-one pacing unit test, ten CLI tests, a real-process finite-budget regression
-across pause/reset, a real C++ executable test on TPE and Rapier, consuming server shutdown, and a
-blocked-output repeated-signal regression. All fifteen focused tests pass after
-the signal fix. Root/world
-Clock bytes match at 0/1/2 ms; SIGINT and SIGTERM exit cleanly. Strict coverage,
-mandatory hooks and exact hosted CI remain pending for this draft. See
-[LIVE_CLI.md](LIVE_CLI.md). This does not complete P2 or broader CLI parity.
+P2 is closed for the selected headless world; see [acceptance/P2.md](acceptance/P2.md).
+The networked headless CLI server mode is published with real C++ client tests on
+TPE and Rapier; see [LIVE_CLI.md](LIVE_CLI.md). Broader CLI parity remains open.
+Work continues in P3, starting with the DART adapter (PHY-03).
 
 Root-clock preparation is published as `f3cd6d67d0bd0e8d69a11de0c11930b8e1e7db23`.
 Independent source and ordinary hook reviews passed 286 Rust tests and 88 tooling
@@ -116,7 +112,7 @@ staged246 Rust/41 tooling/15 unchanged C++ child clients passed; all crates
 exceed95% lines and regions, workspace3548/3584 and5419/5538, changedTPE27/27
 and scene11/11. [TPE_POLICY.md](TPE_POLICY.md) records retained native differences,
 the reviewed guard correction and remaining frame scope. Normal protected commit
-and exact hosted verification remain separate requirements. Full PHY02/P2 remain
+and exact hosted verification remain separate requirements. Full PHY02 remains
 open; no new performance result is claimed.
 
 ## Ownership and model routing
@@ -136,7 +132,7 @@ presence policy: four actual native Server controls and all fifteen real C++
 client scenarios pass. Exact staged checks pass with every crate above95% lines
 and regions, workspace3516/3552lines5369/5486regions and changed scene2/2,server3/3.
 See IMU_ORIENTATION.md and planning/reviews/imu-orientation.json. Runtime toggling
-and full SENSOR01/P2 remain open.
+and full SENSOR01 remains open.
 
 ## Cylinder geometry
 
@@ -148,7 +144,7 @@ crate exceeds 95%, with changed Rapier9/9 and scene12/12 covered.
 [CYLINDERS.md](CYLINDERS.md) records the bounded contract and native controls;
 planning/reviews/cylinder.json records the review and test dispositions. Normal
 protected commit and exact hosted verification remain separate requirements.
-Broader LOAD/PHY packets and P2 remain open.
+Broader LOAD/PHY packets remain open.
 
 ## Reviewed Transport consumer integration
 
@@ -203,7 +199,7 @@ scenarios; coverage3513/3549 lines5366/5483 regions, every crate above95%,
 changed scene8/8. [TYPED_SENSOR_ADOPTION.md](TYPED_SENSOR_ADOPTION.md) records
 explicit unsupported sensor/joint boundaries and the qualified static-frame
 native replay. Normal protected hook, exact hosted and publication remain
-separate qualification requirements; broad LOAD-01/P2 remain open.
+separate qualification requirements; broad LOAD-01 remains open.
 
 Subscriber-driven pose/IMU work passed independent native/source/assertion review
 and the exact staged gate:227 Rust tests, sixteen tooling checks and eleven actual
@@ -211,7 +207,7 @@ C++ scenarios; coverage3505/3541 lines5353/5470 regions, every crate above95%,
 changed scene/server33/33 each. [SUBSCRIBER_DEMAND.md](SUBSCRIBER_DEMAND.md)
 records the global native rule, atomic-only transport pin and preserved workload
 policies. Normal protected hook and exact hosted qualification are separate
-requirements; broad IO-01/SENSOR-01/P2 remain open.
+requirements; broad IO-01/SENSOR-01 remain open.
 
 Gaussian IMU noise passed independent source/native/assertion review and the
 exact staged gate: 221 Rust tests, sixteen tooling checks, eleven actual C++
@@ -468,12 +464,9 @@ mutants validate the scoped protocol. STREAM_OBSERVATIONS.md records all fields,
 opaque ID-byte accounting, large timing outliers and the remaining P2 matrix.
 
 
-## Selected milestone and formal prerequisite audit
+## Selected milestone
 
-Independent review accepts the selected headless integration evidence across
-fifteen qualified contract rows and 85 hashed source/reference files. It does not
-accept formal P2 or SLICE-01: P0 image/inventory and named LOAD/PHY/SENSOR/IO
-prerequisites remain open, including default pose cadence and noise/activation.
-docs/acceptance/P2.md records the concrete gaps and unchanged task DAG.
-Implementation continues through those requirements; phase/packet states stay
-in progress. Publication and hosted checks for the audit metadata remain pending.
+The owner closed P2 on 2026-10-28 for the selected headless world on the fifteen
+contract rows in docs/acceptance/P2.md. SLICE-01 is complete. The named broader
+packets (P0, LOAD-01, PHY-02, PHY-03/05, SENSOR-01, IO-01) keep their own exit
+criteria and remain in progress.

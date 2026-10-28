@@ -28,7 +28,7 @@ and producer evidence are in planning/reference/local-clients.json.
 The producer retains per-Node discovery UUIDs and service workers. Its documented
 identical-payload/address-reuse and bounded fingerprint limits remain applicable;
 see the pinned producer's NET-02-process-local-direct.md. Cross-process readiness,
-full sensor lifecycle, native callback scheduling and broad IO01/P2 remain open.
+full sensor lifecycle, native callback scheduling and broad IO01 remain open.
 The initial adoption gate is retained as a failure: under publication load a
 service response could hit the shared bounded command queue and strand its
 request. The producer now admits responses through a separate bounded lane;

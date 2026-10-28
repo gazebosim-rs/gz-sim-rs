@@ -68,5 +68,5 @@ C++ child-client scenarios. Every production crate exceeds 95% lines and regions
 workspace coverage is 3548/3584 lines and 5419/5538 regions, with changed TPE27/27
 and scene11/11. The receipt is planning/reviews/tpe-policy.json. Final metadata
 binding, normal protected commit and exact hosted verification remain separate
-requirements. Full PHY02 and P2 remain open. No new performance claim is made;
+requirements. Full PHY02 remains open. No new performance claim is made;
 prior reports remain tied to their recorded source revisions.

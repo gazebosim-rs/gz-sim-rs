@@ -27,7 +27,7 @@ fifteen unchanged real C++ client scenarios. Every production crate exceeds 95%
 line and region coverage: workspace 3569/3605 lines and 5446/5565 regions; changed
 Rapier lines are 6/6 and scene lines 13/13. Final metadata review, the mandatory
 normal hook and exact hosted qualification remain separate requirements. Offset/multiple collision geometry, general physics
-conformance, other backends and formal P2 remain open.
+conformance and other backends remain open.
 
 
 Reproduce the pinned native original and controls with

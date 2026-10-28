@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "current_selected_evidence_reviewed_formal_exits_in_progress",
+  "status": "closed_for_selected_world",
   "implementation_commit": "8d065a1a3750d282bada085df4a29a8139a3e875",
   "implementation_tree": "97448c9658966e8cbed9ec6379258ef4682136a5",
   "scope": "Selected Linux x86_64 no-renderer headless first vertical slice using TPE and full-f64 Rapier; not complete retained simulator, repository, P0 or release acceptance.",
@@ -1014,7 +1014,7 @@
     "Complete retained upstream/feature/platform/release matrix and balanced robotics performance.",
     "Remaining independent-repository contracts and final integration qualification."
   ],
-  "formal_exit_status": "in_progress",
+  "formal_exit_status": "complete",
   "review_receipt": "planning/acceptance/p2-exit-review.json",
   "prerequisites_remaining": [
     {
@@ -1218,5 +1218,10 @@
     "normal_package_count": 259,
     "normalized_tree_sha256": "30da94272daafc065b91f1c260c7432294eca1ab9002b0f5b3b2029178e8d7c9"
   },
-  "scope_dispositions_review": "Independent review eba4e604 verifies current facts and preservation of formal prerequisites/history. No broad prerequisite or formal phase exit is approved by this refresh."
+  "scope_dispositions_review": "Independent review eba4e604 verifies current facts and preservation of formal prerequisites/history. No broad prerequisite or formal phase exit is approved by this refresh.",
+  "closure": {
+    "decided_by": "owner",
+    "date": "2026-10-28",
+    "scope": "P2 and SLICE-01 for the selected headless world on the fifteen contract rows. prerequisites_remaining and remaining list broader packets that keep their own exit criteria."
+  }
 }

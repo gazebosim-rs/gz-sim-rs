@@ -63,7 +63,7 @@ are separate publication requirements.
 interest policy: no pose construction or timer consumption without known
 subscribers, with an explicit local Always override. Root clock election,
 dynamic_pose/info, other controls/services, ordering/backpressure and the full
-IO-01 packet remain open. This change is not formal P2 acceptance.
+IO-01 packet remain open.
 
 Reproduce with `python3 scripts/probe-pose-rate.py --help`, using the pinned native
 sources, existing Release simulator build and dependency prefix. Native networking
