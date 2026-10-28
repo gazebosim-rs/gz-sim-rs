@@ -147,7 +147,7 @@ fn tpe_selection_preserves_headless_output_and_rejects_unknown_engines() {
     assert!(
         String::from_utf8(result.stderr)
             .unwrap()
-            .contains("expected rapier or tpe")
+            .contains("expected rapier, mujoco or tpe")
     );
     assert!(result.stdout.is_empty());
 }
@@ -443,4 +443,45 @@ fn server_rejects_invalid_pacing_and_transport_configuration_before_running() {
         .unwrap();
     assert_eq!(result.status.code(), Some(1), "{result:?}");
     assert!(result.stdout.is_empty(), "{result:?}");
+}
+
+#[test]
+fn native_engines_and_upstream_plugin_names_select_dynamic_backends() {
+    // A 0.5 m sphere dropped from 5 m rests on the ground after 2 s.
+    for engine in ["mujoco", "gz-physics-mujoco-plugin"] {
+        let result = command(&[
+            fixture(),
+            "--physics-engine",
+            engine,
+            "--iterations",
+            "2000",
+        ]);
+        assert!(result.status.success(), "{engine}: {result:?}");
+        let text = String::from_utf8(result.stdout).unwrap();
+        let lines = text.lines().collect::<Vec<_>>();
+        assert_eq!(lines[0], "simulation_ns=2000000000 iterations=2000");
+        let z = lines[1]
+            .strip_prefix("default::ball::body 0 0 ")
+            .unwrap()
+            .parse::<f64>()
+            .unwrap();
+        assert!((0.49..0.501).contains(&z), "{engine}: {z}");
+        assert_eq!(lines[2], "default::ground::base 0 0 -0.5");
+    }
+    let tpe = command(&[
+        fixture(),
+        "--physics-engine",
+        "gz-physics-tpe-plugin",
+        "--iterations",
+        "1",
+    ]);
+    assert!(String::from_utf8_lossy(&tpe.stdout).contains("default::ball::body 0 0 5"));
+    for unsupported in ["bullet", "gz-physics-bullet-featherstone-plugin", "dart"] {
+        assert_eq!(
+            command(&[fixture(), "--physics-engine", unsupported])
+                .status
+                .code(),
+            Some(2)
+        );
+    }
 }

@@ -29,6 +29,8 @@ Status as of 2026-10-24. `Confirmed` means the owner specified or answered it.
 | D21 | Confirmed | Balanced robotics is the primary performance workload: articulated robots, many entities, and camera/lidar sensors. Also benchmark batch/headless and large worlds. |
 | D22 | Confirmed | The Rust physics backend must use a full-f64 solver. Prioritize Rapier f64 and validate its capabilities, integration, accuracy, and performance with probes. |
 | D23 | Confirmed | Correct native TPE static-model motion and rotated-link world-velocity quirks. Keep static models immobile and honor world axes; preserve existing assertions and record native differences. Implementation and verification remain required. |
+| D24 | Confirmed | Native MuJoCo 3.11.0 is loaded at run time and built from upstream gz-physics' vendored commit (b85fdca5) with its CMake options by scripts/bootstrap-physics.py; parity fixtures compare to 1e-14, so prebuilt releases are not substituted. |
+| D25 | Confirmed | DART uses the packaged OSRF 6.13.2 build (assertions enabled). The adapter rejects inputs that would reach those assertions with explicit, documented admission limits rather than linking a different DART build; these limits may be stricter than Rapier and MuJoCo. |
 
 ## Outstanding questions and decision triggers
 

@@ -38,13 +38,19 @@ Updated 2026-10-28. Read this first when resuming coordination of the rewrite.
 
 ## Next
 
-1. Start P3 with PHY-03, the DART adapter. Plan the native build (DART version
-   matching the pinned gz-physics dartsim plugin), a small cxx bridge with
-   panic/exception containment, ownership and thread rules, and batched state
-   IO. Exit evidence is same-version parity with upstream DART on the selected
-   worlds; see DEPENDENCIES.md and IMPLEMENTATION_TASKS.md.
-2. Then PHY-04 (MuJoCo) and the broader P2-adjacent packets as P3 needs them.
-3. Optional cleanup the owner may approve: about 190 uncommitted worktrees under
-   each repository's ignored `artifacts/` (old prototype and review copies),
-   plus unpushed branches `work/reset-identities` (gz-sim-rs) and
-   `socket2-fuel-compat` (gz-transport-rs). Archive before deleting.
+1. Land the DART adapter (PHY-03), branch `worktree-agent-a5488f384295773d9`
+   once its review passes: packaged OSRF DART with conditioning admission limits
+   (decision D25). Then add `PhysicsEngine::Dart`, the CLI `dart` /
+   `gz-physics-dartsim-plugin` names, the OSRF apt repository and DART packages in
+   CI, and a gz-sim-cli build.rs that applies the DART rpath via DEP_DART_LIBDIR.
+   Switch the "dartsim" native comparisons in gz-sim-scene/tests/input_imu.rs and
+   gz-sim-server/tests/private/reset.rs from Rapier to DART for same-engine checks.
+2. MuJoCo follow-ups (low): bound or document admitted extreme inertial-centre
+   offsets that fault the first step; `remove_joint` can create a free velocity
+   above mjMAXVAL; like-for-like hinged load comparison; drive the real
+   contact-overflow test through `MujocoBackend::step`.
+3. Remaining P3: articulation beyond world revolutes, contacts/joint limits and
+   damping, meshes/planes, and per-backend conformance against gz-physics
+   test/common_test.
+4. Run MuJoCo tests with `MUJOCO_PREFIX=<repo>/artifacts/physics-reference/mujoco`
+   after `python3 scripts/bootstrap-physics.py`.

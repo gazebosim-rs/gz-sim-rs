@@ -947,6 +947,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "gz-physics-mujoco"
+version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "gz-physics",
+ "gz-sim-core",
+ "libloading",
+ "serde_json",
+]
+
+[[package]]
 name = "gz-physics-rapier"
 version = "0.1.0"
 dependencies = [
@@ -1016,6 +1027,7 @@ dependencies = [
  "gz-assets",
  "gz-fuel-tools",
  "gz-physics",
+ "gz-physics-mujoco",
  "gz-physics-rapier",
  "gz-physics-tpe",
  "gz-sensors",
@@ -1390,6 +1402,16 @@ name = "libc"
 version = "0.2.191"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a"
+
+[[package]]
+name = "libloading"
+version = "0.8.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7c4b02199fee7c5d21a5ae7d8cfa79a6ef5bb2fc834d6e9058e89c825efdc55"
+dependencies = [
+ "cfg-if",
+ "windows-link",
+]
 
 [[package]]
 name = "libm"

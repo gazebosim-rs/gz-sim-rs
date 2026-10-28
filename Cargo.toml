@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/gz-assets", "crates/gz-physics-tpe", "crates/gz-physics", "crates/gz-sim-core", "crates/gz-physics-rapier", "crates/gz-sensors", "crates/gz-sim-scene", "crates/gz-sim-cli", "crates/gz-sim-server"]
+members = ["crates/gz-assets", "crates/gz-physics-tpe", "crates/gz-physics", "crates/gz-sim-core", "crates/gz-physics-rapier", "crates/gz-physics-mujoco", "crates/gz-sensors", "crates/gz-sim-scene", "crates/gz-sim-cli", "crates/gz-sim-server"]
 resolver = "3"
 
 [workspace.package]

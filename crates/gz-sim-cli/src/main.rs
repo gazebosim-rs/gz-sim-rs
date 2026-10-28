@@ -48,11 +48,13 @@ struct Args {
     step_ns: Option<NonZeroU64>,
 }
 
+/// Accepts short names and the upstream `gz sim --physics-engine` plugin names.
 fn parse_engine(value: &str) -> Result<PhysicsEngine, String> {
     match value {
         "rapier" => Ok(PhysicsEngine::Rapier),
-        "tpe" => Ok(PhysicsEngine::Tpe),
-        _ => Err("expected rapier or tpe".into()),
+        "mujoco" | "gz-physics-mujoco-plugin" => Ok(PhysicsEngine::Mujoco),
+        "tpe" | "gz-physics-tpe-plugin" => Ok(PhysicsEngine::Tpe),
+        _ => Err("expected rapier, mujoco or tpe".into()),
     }
 }
 

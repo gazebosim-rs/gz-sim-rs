@@ -443,6 +443,9 @@ fn run_native_schedule_case(engine: PhysicsEngine, noisy: bool, orientation: boo
                 (PhysicsEngine::Rapier, true, true) => "--noisy-schedule",
                 (PhysicsEngine::Tpe, false, true) => "--tpe-schedule",
                 (PhysicsEngine::Rapier, false, true) => "--schedule",
+                (PhysicsEngine::Mujoco, ..) => {
+                    unreachable!("scheduled C++ peers cover TPE and Rapier")
+                }
             })
             .env("GZ_PARTITION", &config.partition)
             .env("GZ_IP", config.interface.to_string())

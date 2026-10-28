@@ -12,6 +12,8 @@ use std::sync::Arc;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PhysicsEngine {
     Rapier,
+    /// Native MuJoCo 3.11.0, loaded at run time.
+    Mujoco,
     Tpe,
 }
 
