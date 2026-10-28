@@ -52,9 +52,22 @@ struct Args {
 fn parse_engine(value: &str) -> Result<PhysicsEngine, String> {
     match value {
         "rapier" => Ok(PhysicsEngine::Rapier),
+        "dart" | "gz-physics-dartsim-plugin" => Ok(PhysicsEngine::Dart),
         "mujoco" | "gz-physics-mujoco-plugin" => Ok(PhysicsEngine::Mujoco),
         "tpe" | "gz-physics-tpe-plugin" => Ok(PhysicsEngine::Tpe),
-        _ => Err("expected rapier, mujoco or tpe".into()),
+        _ => Err("expected rapier, dart, mujoco or tpe".into()),
+    }
+}
+
+/// Reports the failed system's own diagnostic, such as a physics engine error,
+/// instead of the generic terminal step error that wraps it.
+fn with_fault(
+    simulation: &gz_sim_core::Simulation,
+    error: impl Into<Box<dyn Error>>,
+) -> Box<dyn Error> {
+    match simulation.fault() {
+        Some(fault) => fault.to_string().into(),
+        None => error.into(),
     }
 }
 
@@ -118,7 +131,9 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         result.1
     } else {
         let count = args.iterations.unwrap_or(1000);
-        simulation.step_exact(count)?;
+        simulation
+            .step_exact(count)
+            .map_err(|error| with_fault(&simulation, error))?;
         count
     };
     let elapsed = simulation.elapsed().as_nanos();

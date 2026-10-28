@@ -11,7 +11,12 @@ jobs:
       - name: Install native client build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libssl-dev cmake
+          sudo apt-get install -y libssl-dev cmake curl gnupg pkg-config
+          # DART 6.13.2 from the same OSRF build that upstream gz-physics links.
+          sudo curl -fsSL https://packages.osrfoundation.org/gazebo.gpg -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable noble main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list
+          sudo apt-get update
+          sudo apt-get install -y libdart6.13-dev libdart6.13-collision-ode-dev
           python3 -c 'import json, subprocess; subprocess.run(["sudo", "apt-get", "install", "-y", *json.load(open("planning/transport-reference-lock.json"))["apt_dependencies"]], check=True)'
       - run: python3 scripts/bootstrap-native.py --jobs 2
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684

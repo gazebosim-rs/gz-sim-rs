@@ -34,6 +34,7 @@ use glam::{DQuat, DVec3};
 use gz_physics::{
     BodyId, BodySpec, Inertia, PhysicsBackend, PhysicsError, PhysicsReset, RotationSpec, Shape,
 };
+use gz_physics_dart::DartBackend;
 use gz_physics_mujoco::MujocoBackend;
 use gz_physics_rapier::RapierBackend;
 use gz_sensors::{ImuInput, ImuReading, InvalidImuInput};
@@ -388,6 +389,7 @@ fn load_world_configured(
     });
     let mut backend = match engine {
         PhysicsEngine::Rapier => Some(RapierBackend::new(world.gravity)?.into()),
+        PhysicsEngine::Dart => Some(DartBackend::new(world.gravity)?.into()),
         PhysicsEngine::Mujoco => Some(MujocoBackend::new(world.gravity)?.into()),
         PhysicsEngine::Tpe => None,
     };

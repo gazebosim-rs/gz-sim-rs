@@ -29,65 +29,68 @@ fn velocity_replacement_is_not_an_imu_force_and_real_wrench_acceleration_remains
         ]
     );
     for control in controls {
-        let engine = match control["engine"].as_str().unwrap() {
-            "dartsim" => PhysicsEngine::Rapier,
-            "tpe" => PhysicsEngine::Tpe,
+        // DART is the engine that recorded the native rows; Rapier is a cross-engine check.
+        let engines: &[PhysicsEngine] = match control["engine"].as_str().unwrap() {
+            "dartsim" => &[PhysicsEngine::Rapier, PhysicsEngine::Dart],
+            "tpe" => &[PhysicsEngine::Tpe],
             other => panic!("unknown reference engine {other}"),
         };
-        let mut sim = load_world_with_sdf_step(
-            include_str!("fixtures/headless_imu.sdf"),
-            "input_imu.sdf",
-            "default",
-            &NoResources,
-            engine,
-        )
-        .unwrap();
-        let link = sim
-            .world()
-            .iter_entities()
-            .find(|e| {
-                e.get::<Name>()
-                    .is_some_and(|n| n.0 == "default::ball::body")
-            })
-            .unwrap()
-            .get::<EntityId>()
-            .unwrap()
-            .get();
-        queue_link_world_velocity(&mut sim, link, [1.0, 0.0, 0.0], [0.0; 3]).unwrap();
-        let rows = control["native"].as_array().unwrap();
-        assert_eq!(rows.len(), 100);
-        for (index, row) in rows.iter().enumerate() {
-            if index == 1 && control["mode"] == "velocity_force" {
-                queue_link_world_wrench(&mut sim, link, [2.0, 0.0, 0.0], [0.0; 3]).unwrap();
-            }
-            sim.step_exact(1).unwrap();
-            let samples: Vec<_> = sim
+        for &engine in engines {
+            let mut sim = load_world_with_sdf_step(
+                include_str!("fixtures/headless_imu.sdf"),
+                "input_imu.sdf",
+                "default",
+                &NoResources,
+                engine,
+            )
+            .unwrap();
+            let link = sim
                 .world()
                 .iter_entities()
-                .filter_map(|e| e.get::<ImuSample>())
-                .collect();
-            assert_eq!(samples.len(), 1);
-            let sample = samples[0];
-            assert_eq!(
-                sample.time.as_nanos(),
-                row["time_ns"].as_u64().unwrap() as u128
-            );
-            assert_eq!(sample.time.as_nanos(), ((index + 1) * 1_000_000) as u128);
-            let reading = sample.reading.as_ref().unwrap();
-            for (values, key) in [
-                (reading.specific_force.as_slice(), "specific_force"),
-                (reading.angular_velocity.as_slice(), "angular_velocity"),
-                (reading.orientation.as_slice(), "orientation"),
-            ] {
-                let expected = row[key].as_array().unwrap();
-                assert_eq!(values.len(), expected.len());
-                for (actual, expected) in values.iter().zip(expected) {
-                    assert!(
-                        (actual - expected.as_f64().unwrap()).abs() < 1e-9,
-                        "{engine:?}/{} sample{} {key}: {actual} vs {expected}",
-                        control["mode"],
-                        index + 1
-                    );
+                .find(|e| {
+                    e.get::<Name>()
+                        .is_some_and(|n| n.0 == "default::ball::body")
+                })
+                .unwrap()
+                .get::<EntityId>()
+                .unwrap()
+                .get();
+            queue_link_world_velocity(&mut sim, link, [1.0, 0.0, 0.0], [0.0; 3]).unwrap();
+            let rows = control["native"].as_array().unwrap();
+            assert_eq!(rows.len(), 100);
+            for (index, row) in rows.iter().enumerate() {
+                if index == 1 && control["mode"] == "velocity_force" {
+                    queue_link_world_wrench(&mut sim, link, [2.0, 0.0, 0.0], [0.0; 3]).unwrap();
+                }
+                sim.step_exact(1).unwrap();
+                let samples: Vec<_> = sim
+                    .world()
+                    .iter_entities()
+                    .filter_map(|e| e.get::<ImuSample>())
+                    .collect();
+                assert_eq!(samples.len(), 1);
+                let sample = samples[0];
+                assert_eq!(
+                    sample.time.as_nanos(),
+                    row["time_ns"].as_u64().unwrap() as u128
+                );
+                assert_eq!(sample.time.as_nanos(), ((index + 1) * 1_000_000) as u128);
+                let reading = sample.reading.as_ref().unwrap();
+                for (values, key) in [
+                    (reading.specific_force.as_slice(), "specific_force"),
+                    (reading.angular_velocity.as_slice(), "angular_velocity"),
+                    (reading.orientation.as_slice(), "orientation"),
+                ] {
+                    let expected = row[key].as_array().unwrap();
+                    assert_eq!(values.len(), expected.len());
+                    for (actual, expected) in values.iter().zip(expected) {
+                        assert!(
+                            (actual - expected.as_f64().unwrap()).abs() < 1e-9,
+                            "{engine:?}/{} sample{} {key}: {actual} vs {expected}",
+                            control["mode"],
+                            index + 1
+                        );
+                    }
                 }
             }
         }

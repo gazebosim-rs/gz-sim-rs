@@ -97,7 +97,9 @@ pub(super) fn run(
     let mut completed = 0_u64;
     while !termination.requested() && (iterations == 0 || completed < iterations) {
         let started = Instant::now();
-        let info = server.tick()?;
+        let info = server
+            .tick()
+            .map_err(|error| super::with_fault(server.simulation(), error))?;
         if !info.dt.is_zero() {
             // Overflow would need 2^64 advancing ticks.
             completed += 1;

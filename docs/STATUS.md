@@ -7,7 +7,12 @@ Work continues in P3; see [HANDOFF.md](HANDOFF.md). Every dynamic engine now
 implements the shared `gz_physics::DynamicBackend` contract. The native MuJoCo
 3.11.0 adapter (PHY-04 first slice) is selectable with `--physics-engine mujoco`
 and matches the native gz-physics MuJoCo plugin within 1e-14 on its parity
-scenarios; see [MUJOCO.md](MUJOCO.md). The DART adapter (PHY-03) is in review.
+scenarios; see [MUJOCO.md](MUJOCO.md). The native DART 6.13.2 adapter (PHY-03
+first slice) is selectable with `--physics-engine dart` and matches the native
+dartsim plugin bit for bit or within 1e-14 on its parity scenarios. It uses the
+packaged OSRF DART and documented admission limits (decision D25); see
+[DART.md](DART.md). The native headless IMU reference rows, recorded with DART,
+now also run against the DART adapter at their existing 1e-9 tolerance.
 
 Root-clock preparation is published as `f3cd6d67d0bd0e8d69a11de0c11930b8e1e7db23`.
 Independent source and ordinary hook reviews passed 286 Rust tests and 88 tooling

@@ -1,0 +1,32 @@
+[package]
+name = "gz-physics-dart"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Native DART 6.13 integration for the Gazebo Bevy runtime"
+links = "dart"
+
+[dependencies]
+gz-physics = { path = "../gz-physics" }
+cxx = "=1.0.205"
+nalgebra = "=0.35.0"
+
+[build-dependencies]
+cxx-build = "=1.0.205"
+pkg-config = "=0.3.34"
+
+[dev-dependencies]
+cxx-build = "=1.0.205"
+gz-physics-rapier = { path = "../gz-physics-rapier" }
+gz-sim-core = { path = "../gz-sim-core" }
+pkg-config = "=0.3.34"
+serde_json = { version = "=1.0.149", features = ["float_roundtrip"] }
+
+# The workspace forbids unsafe code, which a crate cannot relax. This copy differs
+# only by denying it, so the audited cxx bridge module alone can allow it.
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

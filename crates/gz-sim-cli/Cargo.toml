@@ -15,6 +15,8 @@ clap.workspace = true
 gz-assets = { path = "../gz-assets" }
 gz-sim-scene = { path = "../gz-sim-scene" }
 gz-sim-core = { path = "../gz-sim-core" }
+# Direct dependency so build.rs receives DEP_DART_LIBDIR.
+gz-physics-dart = { path = "../gz-physics-dart" }
 gz-sim-server = { path = "../gz-sim-server" }
 gz-transport.workspace = true
 signal-hook = "=0.3.18"
