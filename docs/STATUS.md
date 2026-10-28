@@ -3,7 +3,7 @@
 P2 is closed for the selected headless world; see [acceptance/P2.md](acceptance/P2.md).
 The networked headless CLI server mode is published with real C++ client tests on
 TPE and Rapier; see [LIVE_CLI.md](LIVE_CLI.md). Broader CLI parity remains open.
-Work continues in P3, starting with the DART adapter (PHY-03).
+Work continues in P3, starting with the DART adapter (PHY-03); see [HANDOFF.md](HANDOFF.md).
 
 Root-clock preparation is published as `f3cd6d67d0bd0e8d69a11de0c11930b8e1e7db23`.
 Independent source and ordinary hook reviews passed 286 Rust tests and 88 tooling
