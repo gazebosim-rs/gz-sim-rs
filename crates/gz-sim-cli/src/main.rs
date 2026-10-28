@@ -1,5 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
+mod live;
+
 use clap::Parser;
 use gz_sim_scene::{EntityKind, Name, PhysicsEngine, WorldPose};
 use std::{
@@ -11,7 +13,7 @@ use std::{
     time::Duration,
 };
 
-/// Run exact headless steps of a supported SDF world.
+/// Run a supported SDF world headlessly, offline or as a transport server.
 #[derive(Parser)]
 #[command(name = "gz-sim-rs", version)]
 struct Args {
@@ -32,8 +34,15 @@ struct Args {
     physics_engine: PhysicsEngine,
     #[arg(long, default_value = "default")]
     world: String,
-    #[arg(long, default_value_t = 1000)]
-    iterations: u64,
+    /// Advancing steps: offline default 1000; server default 0 means unlimited.
+    #[arg(long)]
+    iterations: Option<u64>,
+    /// Publish clock, poses and IMU, and accept remote world controls.
+    #[arg(short = 's', long)]
+    server: bool,
+    /// Start the server running instead of paused.
+    #[arg(short = 'r', long, requires = "server")]
+    run: bool,
     /// Override the SDF physics step, in nanoseconds.
     #[arg(long)]
     step_ns: Option<NonZeroU64>,
@@ -96,7 +105,20 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         eprintln!("resource warning: {warning:?}");
     }
     let mut simulation = loaded?;
-    simulation.step_exact(args.iterations)?;
+    let iterations = if args.server {
+        let result = live::run(
+            simulation,
+            &args.world,
+            args.run,
+            args.iterations.unwrap_or(0),
+        )?;
+        simulation = result.0;
+        result.1
+    } else {
+        let count = args.iterations.unwrap_or(1000);
+        simulation.step_exact(count)?;
+        count
+    };
     let elapsed = simulation.elapsed().as_nanos();
     let mut poses = simulation
         .world_mut()
@@ -107,11 +129,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         .collect::<Vec<_>>();
     poses.sort_by(|a, b| a.0.cmp(&b.0));
     let mut output = io::stdout().lock();
-    writeln!(
-        output,
-        "simulation_ns={elapsed} iterations={}",
-        args.iterations
-    )?;
+    writeln!(output, "simulation_ns={elapsed} iterations={}", iterations)?;
     for (name, [x, y, z]) in poses {
         writeln!(output, "{name} {x} {y} {z}")?;
     }

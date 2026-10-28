@@ -1,16 +1,21 @@
 # Implementation status
 
-The root-clock candidate now passes real C++ interoperability in an author run
-and a fresh independent SDK run: nineteen functional scenarios and three separate
-lifecycle controls. The added cases compare complete root/world Clock messages
-at zero, one and two milliseconds on both TPE and Rapier. The accepted Transport
-revision is pinned in the candidate; all other dependency pins are unchanged.
-Full candidate coverage, equal-work performance, the normal hook and exact hosted
-CI remain pending. This functional result does not complete P2 or publish the
-candidate. See [ROOT_CLOCK.md](ROOT_CLOCK.md).
+The networked headless CLI draft now passes independent focused runtime review:
+one pacing unit test, ten CLI tests, a real-process finite-budget regression
+across pause/reset, a real C++ executable test on TPE and Rapier, consuming server shutdown, and a
+blocked-output repeated-signal regression. All fifteen focused tests pass after
+the signal fix. Root/world
+Clock bytes match at 0/1/2 ms; SIGINT and SIGTERM exit cleanly. Strict coverage,
+mandatory hooks and exact hosted CI remain pending for this draft. See
+[LIVE_CLI.md](LIVE_CLI.md). This does not complete P2 or broader CLI parity.
 
-The measurements below describe their historical source revisions. They do not
-qualify the candidate's additional root publication work.
+Root-clock preparation is published as `f3cd6d67d0bd0e8d69a11de0c11930b8e1e7db23`.
+Independent source and ordinary hook reviews passed 286 Rust tests and 88 tooling
+tests; all nine production crates exceed 95% line and region coverage, with
+44/44 changed executable lines covered. Exact hosted run 40594126244 passed.
+Selected author and independent SDK runs passed nineteen C++ functional scenarios
+and three separate lifecycle controls. See [ROOT_CLOCK.md](ROOT_CLOCK.md).
+Historical measurements below retain their original source qualifications.
 
 Local IMU activation passes independent source/runtime review and the canonical
 staged gate: 279 Rust tests, 88 tooling tests, seventeen functional C++ scenarios

@@ -1194,3 +1194,15 @@ mod activation_tests;
 
 #[path = "root_clock.rs"]
 mod root_clock_tests;
+
+#[test]
+fn finishing_joins_workers_and_returns_the_final_simulation() {
+    let config = config();
+    let mut server = server(config, Duration::from_millis(1));
+    server.simulation.set_paused(false);
+    server.tick().unwrap();
+    let simulation = server.into_simulation();
+    assert_eq!(simulation.elapsed(), Duration::from_millis(1));
+    assert!(!simulation.is_paused());
+    simulation.validate_steps(1).unwrap();
+}

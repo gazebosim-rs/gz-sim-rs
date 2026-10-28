@@ -14,8 +14,13 @@ gz-fuel-tools.workspace = true
 clap.workspace = true
 gz-assets = { path = "../gz-assets" }
 gz-sim-scene = { path = "../gz-sim-scene" }
+gz-sim-core = { path = "../gz-sim-core" }
+gz-sim-server = { path = "../gz-sim-server" }
+gz-transport.workspace = true
+signal-hook = "=0.3.18"
 
 [dev-dependencies]
+gz-msgs.workspace = true
 tempfile = "=3.25.0"
 
 [lints]

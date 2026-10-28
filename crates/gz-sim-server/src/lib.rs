@@ -622,6 +622,12 @@ impl Server {
         true
     }
 
+    /// Stop and join all IO workers, returning the final simulation for inspection.
+    pub fn into_simulation(mut self) -> Simulation {
+        self.shutdown();
+        self.simulation
+    }
+
     /// Join the IO worker outside stepping. Dropping the server also joins it.
     pub fn shutdown(&mut self) {
         self.rates.shutdown();

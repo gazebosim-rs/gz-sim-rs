@@ -392,3 +392,55 @@ fn sdf_first_profile_step_and_explicit_cli_override_have_clear_precedence() {
         }
     }
 }
+
+#[test]
+fn server_running_steps_keep_the_offline_state_contract() {
+    for engine in ["rapier", "tpe"] {
+        let result = command(&[
+            fixture(),
+            "--server",
+            "--run",
+            "--physics-engine",
+            engine,
+            "--iterations",
+            "3",
+        ]);
+        assert!(result.status.success(), "{result:?}");
+        assert!(
+            String::from_utf8_lossy(&result.stdout)
+                .starts_with("simulation_ns=3000000 iterations=3\n")
+        );
+        assert!(result.stderr.is_empty(), "{result:?}");
+    }
+    let invalid = command(&[fixture(), "--run"]);
+    assert_eq!(invalid.status.code(), Some(2));
+    assert!(invalid.stdout.is_empty());
+}
+
+#[test]
+fn server_rejects_invalid_pacing_and_transport_configuration_before_running() {
+    let temp = tempfile::TempDir::new().unwrap();
+    let path = temp.path().join("pacing.sdf");
+    // A 1 ms step at 1e-22 fits Duration but not Instant; 1e-30 fits neither.
+    for (factor, message) in [
+        ("-1", "real_time_factor must be finite and nonnegative"),
+        ("1e-30", "unrepresentable real-time update period"),
+        ("1e-22", "real-time update period exceeds wall-clock range"),
+    ] {
+        std::fs::write(&path, format!("<sdf version='1.12'><world name='default'><physics name='p' type='ode'><max_step_size>0.001</max_step_size><real_time_factor>{factor}</real_time_factor></physics></world></sdf>")).unwrap();
+        let result = command(&[path.to_str().unwrap(), "--server", "--run"]);
+        assert_eq!(result.status.code(), Some(1), "{factor}: {result:?}");
+        assert!(result.stdout.is_empty(), "{factor}: {result:?}");
+        assert!(
+            String::from_utf8_lossy(&result.stderr).contains(message),
+            "{factor}: {result:?}"
+        );
+    }
+    let result = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
+        .args([fixture(), "--server", "--run", "--iterations", "1"])
+        .env("GZ_IP", "not-an-ip")
+        .output()
+        .unwrap();
+    assert_eq!(result.status.code(), Some(1), "{result:?}");
+    assert!(result.stdout.is_empty(), "{result:?}");
+}

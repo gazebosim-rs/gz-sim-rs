@@ -3,7 +3,7 @@
 
 # Root clock run preparation
 
-The candidate server adds `/clock` alongside `/world/<name>/clock`. Call
+The server adds `/clock` alongside `/world/<name>/clock`. Call
 `Server::prepare_run(timeout)` at a run boundary, before stepping. Discovery and
 connection refresh share one deadline and stay outside `tick`.
 
@@ -42,7 +42,9 @@ code, fixtures, assertions or tolerances.
 
 See [the scoped record](../planning/reference/root-clock.json). The upstream
 `SimulationRunnerTest.Time` case still has wider assertions, including mutable
-step sizes and complete frame counts; these new tests do not retire it. Current
-full workspace coverage, normal publication checks and performance evidence are
-separate requirements. Earlier speedup reports do not qualify the added root
-publication work; the refreshed benchmark must account for both endpoints.
+step sizes and complete frame counts; these new tests do not retire it. Published commit `f3cd6d67d0bd0e8d69a11de0c11930b8e1e7db23` passed the
+independently reviewed source and mandatory commit-hook checks: 286 Rust tests,
+88 tooling tests, and every production crate strictly above 95% line and region
+coverage. [Exact hosted CI](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/40594126244)
+also passed. Earlier speedup reports retain their original source scope; refreshed
+root-publication performance evidence is a separate record.

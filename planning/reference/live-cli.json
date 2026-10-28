@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "status": "focused_runtime_independently_verified_canonical_gates_pending",
+  "upstream": {
+    "repository": "gz-sim",
+    "revision": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+    "sources": [
+      "src/cmd/sim_main.cc",
+      "src/SimulationRunner.cc"
+    ],
+    "contracts": [
+      "server defaults paused; run flag starts advancing",
+      "zero live iterations means unlimited",
+      "processed iteration budget counts unpaused updates independently of resettable simulation iteration"
+    ]
+  },
+  "preserved": [
+    "all existing offline CLI assertions",
+    "all existing server test bodies",
+    "dependency pins other than the two new signal-handling packages"
+  ],
+  "focused_evidence": {
+    "rust_tests": {
+      "pacing_unit": 1,
+      "cli_integration": 10,
+      "finite_budget_process": 1,
+      "cpp_executable_test": 1,
+      "blocked_output_second_signal": 1,
+      "server_consuming_shutdown": 1
+    },
+    "engines": [
+      "tpe",
+      "rapier3d-f64"
+    ],
+    "cpp_profile": "transport-client-v1",
+    "cpp_contracts": [
+      "complete root/world Clock serialized equality at0/1/2ms",
+      "remote exact stepping",
+      "unlimited initial paused server remains alive",
+      "SIGINT/SIGTERM exit0 with final simulation2ms and advancing count2"
+    ],
+    "reviews": {
+      "static": "625ca546ba2db36e658c711bf0b801b38f0d855f9ed694e6b418e7ebfb2a5b79",
+      "signal_source": "e89090f6a595a6c1167879e077a1c0b56561a5b7aa26a34aab92958492fb8f39",
+      "signal_fix_all_focused_actual": "514561df7e38580c1c436a4c7aa96586ede55df80982b38cd2e5dbb808b1cd3a",
+      "previous_draft_focused_actual": "8c92b56d17bad841293857d3699c45b24e89a6a630167a5c249b26610e8c1fe5",
+      "previous_draft_cpp_actual": "10818ddac68b337d811e3d1d31d73f93e1defa082547fe9766a0d16f03c667bc"
+    },
+    "signal_contracts": [
+      "first SIGINT/SIGTERM gracefully joins workers and prints state",
+      "second termination signal forces process exit128+signal, including blocked final output",
+      "partial handler initialization unregisters only installed actions"
+    ]
+  },
+  "qualifications": [
+    "no new original test retirement or coverage exclusion",
+    "per-engine child output consumed by assertions; no separate frame trace",
+    "legacy qualified C++ transport peer, not full SDK execution closure",
+    "canonical coverage, ordinary mandatory hook and exact hosted CI pending",
+    "no hard real-time or lossless final delivery claim",
+    "formal P2 and broad CLI parity remain open",
+    "earlier draft signal unregistration bug reproduced with preserved executable; first fixture setup failure retained separately"
+  ]
+}
