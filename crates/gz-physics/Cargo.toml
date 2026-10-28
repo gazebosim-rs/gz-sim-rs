@@ -5,5 +5,12 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+description = "Shared physics values and the dynamic backend contract for the Gazebo Bevy runtime"
+
+[dependencies]
+bevy_ecs.workspace = true
+gz-sim-core = { path = "../gz-sim-core" }
+thiserror.workspace = true
+
 [lints]
 workspace = true

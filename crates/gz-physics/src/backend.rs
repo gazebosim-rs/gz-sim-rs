@@ -1,0 +1,301 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+//! The contract every dynamic engine adapter (Rapier, DART, MuJoCo) implements.
+
+use crate::{BodySpec, BodyState, Inertia, RotationSpec};
+use bevy_ecs::prelude::*;
+use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo};
+use std::{any::Any, sync::Arc, time::Duration};
+
+/// A backend-local stable body identifier. Always pair it with its owning backend.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct BodyId(u64);
+
+/// A backend-local joint identifier. Always pair it with its owning backend.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct JointId(u64);
+
+macro_rules! ids {
+    ($($name:ident),*) => {$(
+        impl $name {
+            /// Backends allocate identifiers monotonically from zero.
+            pub fn from_raw(value: u64) -> Self {
+                Self(value)
+            }
+
+            pub fn raw(self) -> u64 {
+                self.0
+            }
+        }
+    )*};
+}
+ids!(BodyId, JointId);
+
+/// Angle from construction pose, in radians, and world-axis angular velocity in rad/s.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct JointState {
+    pub position: f64,
+    pub velocity: f64,
+}
+
+#[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
+pub enum PhysicsError {
+    #[error("body or gravity contains an invalid numeric value")]
+    InvalidValue,
+    #[error("body identifier space exhausted")]
+    IdOverflow,
+    #[error("a physics backend is already installed in this world")]
+    AlreadyInstalled,
+    #[error("body identifier is not present in this backend")]
+    MissingBody,
+    #[error("initial physics state belongs to a different backend")]
+    ForeignInitialState,
+    #[error("joint requires a dynamic child and representable finite anchor/axis")]
+    InvalidJoint,
+    #[error("joint construction is closed until physics reset")]
+    JointConstructionClosed,
+    #[error("joint identifier space exhausted")]
+    JointIdOverflow,
+    /// The selected engine does not implement this capability; nothing changed.
+    #[error("{engine} does not support {capability}")]
+    Unsupported {
+        engine: &'static str,
+        capability: &'static str,
+    },
+    /// A native engine reported a failure; the message is the engine's diagnostic.
+    #[error("{engine} failed: {message}")]
+    Native {
+        engine: &'static str,
+        message: String,
+    },
+}
+
+/// Remaining bodies' construction records, owned by the backend that captured them.
+/// Capture before stepping to define an initial scene; this is not a runtime snapshot.
+#[derive(Clone)]
+pub struct InitialPhysicsState {
+    owner: Arc<()>,
+    data: Arc<dyn Any + Send + Sync>,
+}
+
+/// A fully constructed reset state, ready to commit without further fallible work.
+pub struct PreparedPhysicsReset {
+    owner: Arc<()>,
+    data: Box<dyn Any + Send + Sync>,
+}
+
+impl InitialPhysicsState {
+    pub fn new(owner: &Arc<()>, data: impl Any + Send + Sync) -> Self {
+        Self {
+            owner: owner.clone(),
+            data: Arc::new(data),
+        }
+    }
+
+    /// The captured data when `owner` captured it as type `T`.
+    pub fn data<T: Any>(&self, owner: &Arc<()>) -> Result<&T, PhysicsError> {
+        if !Arc::ptr_eq(&self.owner, owner) {
+            return Err(PhysicsError::ForeignInitialState);
+        }
+        self.data
+            .downcast_ref()
+            .ok_or(PhysicsError::ForeignInitialState)
+    }
+
+    pub fn is_owned_by(&self, owner: &Arc<()>) -> bool {
+        Arc::ptr_eq(&self.owner, owner)
+    }
+}
+
+impl PreparedPhysicsReset {
+    pub fn new(owner: &Arc<()>, data: impl Any + Send + Sync) -> Self {
+        Self {
+            owner: owner.clone(),
+            data: Box::new(data),
+        }
+    }
+
+    /// The prepared data when `owner` prepared it as type `T`.
+    pub fn into_data<T: Any>(self, owner: &Arc<()>) -> Result<T, PhysicsError> {
+        if !Arc::ptr_eq(&self.owner, owner) {
+            return Err(PhysicsError::ForeignInitialState);
+        }
+        self.data
+            .downcast()
+            .map(|data| *data)
+            .map_err(|_| PhysicsError::ForeignInitialState)
+    }
+}
+
+/// A dynamic engine stepped by the simulator's Bevy schedule.
+///
+/// Positions and velocities use world axes, SI units and Gazebo's Z-up convention;
+/// quaternions are [x,y,z,w]. Failed calls leave the backend unchanged unless a
+/// method documents otherwise. Unimplemented features return
+/// [`PhysicsError::Unsupported`] rather than approximating them.
+pub trait DynamicBackend: Send + Sync + 'static {
+    /// Short engine name used in diagnostics, such as "rapier".
+    fn engine(&self) -> &'static str;
+
+    /// Creates one centered collider with optional explicit link inertia.
+    fn spawn_link(
+        &mut self,
+        spec: BodySpec,
+        rotation: RotationSpec,
+        inertia: Option<Inertia>,
+    ) -> Result<BodyId, PhysicsError>;
+
+    /// Whether a registered body has dynamic mass rather than a fixed solver body.
+    fn is_dynamic(&self, id: BodyId) -> Option<bool>;
+
+    fn state(&self, id: BodyId) -> Option<BodyState>;
+
+    fn remove(&mut self, id: BodyId) -> bool;
+
+    /// Replaces world-frame velocities of a dynamic body. Fixed bodies stay fixed.
+    fn set_world_velocity(
+        &mut self,
+        id: BodyId,
+        linear: [f64; 3],
+        angular: [f64; 3],
+    ) -> Result<(), PhysicsError>;
+
+    /// Accumulates world force at the center of mass and world torque for the next
+    /// advancing step only.
+    fn add_world_wrench(
+        &mut self,
+        id: BodyId,
+        force: [f64; 3],
+        torque: [f64; 3],
+    ) -> Result<(), PhysicsError>;
+
+    /// Applies linear and angular impulses in world axes.
+    fn apply_impulse(
+        &mut self,
+        id: BodyId,
+        linear: [f64; 3],
+        angular: [f64; 3],
+    ) -> Result<(), PhysicsError>;
+
+    /// Constructs an unbounded revolute joint from a dynamic body to the world.
+    /// Anchor/axis use world coordinates; the construction pose is angle zero.
+    /// Construction closes at the first advancing step and reopens after reset.
+    fn add_world_revolute(
+        &mut self,
+        child: BodyId,
+        anchor: [f64; 3],
+        axis: [f64; 3],
+    ) -> Result<JointId, PhysicsError>;
+
+    /// Registered dynamic endpoint of a world-anchored joint.
+    fn joint_child(&self, id: JointId) -> Option<BodyId>;
+
+    fn joint_state(&self, id: JointId) -> Option<JointState>;
+
+    fn remove_joint(&mut self, id: JointId) -> bool;
+
+    /// Whether a registered body participates in a solver constraint.
+    fn is_jointed(&self, id: BodyId) -> Option<bool>;
+
+    /// Advances by `dt`. A zero step changes nothing.
+    fn step(&mut self, dt: Duration) -> Result<(), PhysicsError>;
+
+    /// Restores remaining bodies and joints to their construction state.
+    fn reset(&mut self) -> Result<(), PhysicsError>;
+
+    fn initial_state(&self) -> InitialPhysicsState;
+
+    fn owns_initial_state(&self, initial: &InitialPhysicsState) -> bool;
+
+    /// Builds an independent engine state before any scene or backend mutation.
+    fn prepare_initial(
+        &self,
+        initial: &InitialPhysicsState,
+    ) -> Result<PreparedPhysicsReset, PhysicsError>;
+
+    /// Restores initial IDs and retires runtime bodies; later IDs remain monotonic.
+    fn apply_initial(&mut self, prepared: PreparedPhysicsReset) -> Result<(), PhysicsError>;
+
+    fn as_any(&self) -> &dyn Any;
+
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+}
+
+/// The single dynamic engine installed in a simulation.
+#[derive(Resource)]
+pub struct PhysicsBackend(Box<dyn DynamicBackend>);
+
+impl PhysicsBackend {
+    /// The concrete adapter, for engine-specific operations and tests.
+    pub fn downcast_ref<T: DynamicBackend>(&self) -> Option<&T> {
+        self.0.as_any().downcast_ref()
+    }
+
+    pub fn downcast_mut<T: DynamicBackend>(&mut self) -> Option<&mut T> {
+        self.0.as_any_mut().downcast_mut()
+    }
+}
+
+impl std::ops::Deref for PhysicsBackend {
+    type Target = dyn DynamicBackend;
+
+    fn deref(&self) -> &Self::Target {
+        self.0.as_ref()
+    }
+}
+
+impl std::ops::DerefMut for PhysicsBackend {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.0.as_mut()
+    }
+}
+
+/// Orders reset handlers that depend on restored physics.
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct PhysicsReset;
+
+/// Marks physics already restored by a validated transaction for one reset epoch.
+/// The transaction removes this after Reset handlers finish. Other epochs rebuild.
+#[derive(Resource)]
+pub struct RestoredPhysics {
+    pub epoch: u64,
+}
+
+/// Installs one backend into the simulation's physics and reset phases.
+/// Step and reset failures are reported through [`StepFault`].
+pub fn install(sim: &mut Simulation, backend: impl DynamicBackend) -> Result<(), PhysicsError> {
+    if sim.world().contains_resource::<PhysicsBackend>()
+        || !sim.register_extension::<crate::PhysicsInstallation>()
+    {
+        return Err(PhysicsError::AlreadyInstalled);
+    }
+    sim.world_mut()
+        .insert_resource(PhysicsBackend(Box::new(backend)));
+    sim.add_systems(
+        Phase::PhysicsStep,
+        |time: Res<UpdateInfo>, fault: Res<StepFault>, mut backend: ResMut<PhysicsBackend>| {
+            if let Err(error) = backend.step(time.dt) {
+                fault.report(error);
+            }
+        },
+    );
+    sim.add_systems(
+        Phase::Reset,
+        (|time: Res<UpdateInfo>,
+          restored: Option<Res<RestoredPhysics>>,
+          fault: Res<StepFault>,
+          mut backend: ResMut<PhysicsBackend>| {
+            if restored.is_none_or(|state| state.epoch != time.epoch)
+                && let Err(error) = backend.reset()
+            {
+                fault.report(error);
+            }
+        })
+        .in_set(PhysicsReset),
+    );
+    Ok(())
+}
+
+#[cfg(test)]
+#[path = "../tests/private/backend.rs"]
+mod tests;

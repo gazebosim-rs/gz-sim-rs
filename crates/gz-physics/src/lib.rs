@@ -1,6 +1,12 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Shared f64 construction and state values for physics adapters.
+//! Shared f64 construction and state values, and the dynamic backend contract.
+
+mod backend;
+pub use backend::{
+    BodyId, DynamicBackend, InitialPhysicsState, JointId, JointState, PhysicsBackend, PhysicsError,
+    PhysicsReset, PreparedPhysicsReset, RestoredPhysics, install,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Shape {

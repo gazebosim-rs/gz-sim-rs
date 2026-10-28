@@ -940,6 +940,11 @@ dependencies = [
 [[package]]
 name = "gz-physics"
 version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "gz-sim-core",
+ "thiserror",
+]
 
 [[package]]
 name = "gz-physics-rapier"
