@@ -66,6 +66,7 @@ pub struct DartBackend {
     joints_open: bool,
     /// Accumulated world force (linear) and torque (angular) for the next step.
     pending: BTreeMap<BodyId, Twist>,
+    joint_efforts: BTreeMap<JointId, f64>,
 }
 
 fn finite(values: [f64; 3]) -> bool {
@@ -244,6 +245,7 @@ impl DartBackend {
             next_joint: 0,
             joints_open: true,
             pending: BTreeMap::new(),
+            joint_efforts: BTreeMap::new(),
         })
     }
 
@@ -259,6 +261,7 @@ impl DartBackend {
     fn replace(&mut self, built: Built) {
         self.world = built;
         self.pending.clear();
+        self.joint_efforts.clear();
         self.joints_open = true;
     }
 }
@@ -302,6 +305,8 @@ impl DynamicBackend for DartBackend {
         }
         self.world.bodies.remove(&id);
         self.world.joints.retain(|_, joint| joint.child != id);
+        self.joint_efforts
+            .retain(|id, _| self.world.joints.contains_key(id));
         self.pending.remove(&id);
         true
     }
@@ -430,6 +435,21 @@ impl DynamicBackend for DartBackend {
         Ok(id)
     }
 
+    fn add_joint_effort(&mut self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
+        if !self.world.joints.contains_key(&id) {
+            return Err(PhysicsError::MissingJoint);
+        }
+        if !torque.is_finite() || torque.abs() > body::MAGNITUDE_LIMIT {
+            return Err(PhysicsError::InvalidValue);
+        }
+        let next = self.joint_efforts.get(&id).copied().unwrap_or(0.0) + torque;
+        if !next.is_finite() || next.abs() > body::MAGNITUDE_LIMIT {
+            return Err(PhysicsError::InvalidValue);
+        }
+        self.joint_efforts.insert(id, next);
+        Ok(())
+    }
+
     fn joint_child(&self, id: JointId) -> Option<BodyId> {
         self.world.joints.get(&id).map(|joint| joint.child)
     }
@@ -458,6 +478,7 @@ impl DynamicBackend for DartBackend {
             return false;
         }
         joints.remove(&id);
+        self.joint_efforts.remove(&id);
         read(native, body).is_ok()
     }
 
@@ -473,13 +494,36 @@ impl DynamicBackend for DartBackend {
         if dt.is_zero() {
             return Ok(());
         }
+        // Prepare all commands without mutating either pending queue or native state.
+        let combined = if self.joint_efforts.is_empty() {
+            None
+        } else {
+            let mut pending = self.pending.clone();
+            for (&id, &effort) in &self.joint_efforts {
+                let joint = &self.world.joints[&id];
+                let wrench = pending.entry(joint.child).or_insert(Twist {
+                    linear: [0.0; 3],
+                    angular: [0.0; 3],
+                });
+                let next = add(
+                    wrench.angular,
+                    joint.anchor_axis.angular.map(|v| v * effort),
+                );
+                if !body::small(next) {
+                    return Err(PhysicsError::InvalidValue);
+                }
+                wrench.angular = next;
+            }
+            Some(pending)
+        };
+        let pending = combined.as_ref().unwrap_or(&self.pending);
         // Removal drops a body's pending wrench, so every entry has a body.
         let wrenches: Vec<Wrench> = self
             .world
             .bodies
             .iter()
             .filter_map(|(id, body)| {
-                self.pending.get(id).map(|wrench| Wrench {
+                pending.get(id).map(|wrench| Wrench {
                     slot: body.slot,
                     force: wrench.linear,
                     torque: wrench.angular,
@@ -499,6 +543,7 @@ impl DynamicBackend for DartBackend {
             });
         }
         self.pending.clear();
+        self.joint_efforts.clear();
         self.joints_open = false;
         self.world.refresh_all()
     }

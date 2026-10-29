@@ -17,6 +17,35 @@ current state and the next tasks. Update both when either changes.
   networked CLI, closed P2, added the shared physics backend contract and the
   native DART and MuJoCo adapters. The commits are listed below.
 
+## Current P3 follow-up
+
+The reviewed joint-effort slice adds `DynamicBackend::add_joint_effort` and a
+DART world-hinge implementation. Commands are deferred by joint ID, consumed only
+by a successful advancing step, and retired with the joint/body or either reset.
+The temporary world-wrench overlay is checked before any native mutation. Nine
+public controls and six real C++ plugin force pulses are documented in
+[JOINT_EFFORT.md](JOINT_EFFORT.md). Other adapters retain explicit `Unsupported`;
+there is no moving-parent or finite-limit claim. Required staged/hosted evidence
+and accepted status are recorded on the public dashboard.
+
+Finite position limits remain open. Preserve the existing strong first-crossing
+controls rather than publishing a direct maintained `set_limits` wrapper:
+
+- Rapier impulse angles lose winding; near-PI limits can miss the excluded arc.
+  Reduced coordinates preserve winding, but Rapier 0.36.1 only enables its internal
+  limit row once the coordinate is already outside the interval. At 12 rad/s and
+  1 ms, an upper bound of 0.0106 rad is crossed to 0.012 rad on the first step,
+  beyond the retained 1e-3 tolerance. Removing implicit damping and adding solver iterations did not
+  resolve that predicate. Unbounded reduced construction is accepted at 50b28e5;
+  keep existing scene solver selection unchanged.
+- DART 6.13.2 tiny contacting bodies with finite limits can abort inside ODE.
+  Private equilibration experiments address selected failures and have atomic
+  failure/retry controls, but physical accuracy, native assertion domains and
+  cost remain unqualified. Dantzig freezes friction bounds during its pivot
+  sequence; a final-normal cone defect is not its frozen boxed-LCP residual.
+  Do not invent a cutoff, change tolerances/settings, or claim broad safety
+  from successful subprocess exits alone.
+
 ## Where things stand
 
 | Commit | Change |

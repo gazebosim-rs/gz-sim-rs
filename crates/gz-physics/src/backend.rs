@@ -48,6 +48,8 @@ pub enum PhysicsError {
     AlreadyInstalled,
     #[error("body identifier is not present in this backend")]
     MissingBody,
+    #[error("joint identifier is not present in this backend")]
+    MissingJoint,
     #[error("initial physics state belongs to a different backend")]
     ForeignInitialState,
     #[error("joint requires a dynamic child and representable finite anchor/axis")]
@@ -236,6 +238,16 @@ pub trait DynamicBackend: Send + Sync + 'static {
         Err(PhysicsError::Unsupported {
             engine: self.engine(),
             capability: "self-collision groups",
+        })
+    }
+
+    /// Accumulates generalized torque in Nm, positive along increasing joint angle.
+    /// The next successful nonzero step consumes it. Joint retirement or either
+    /// reset discards it; rejected inputs and failed steps preserve pending commands.
+    fn add_joint_effort(&mut self, _id: JointId, _torque: f64) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "joint effort commands",
         })
     }
 

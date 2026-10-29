@@ -348,3 +348,12 @@ files: on Ubuntu 24.04 from packages.osrfoundation.org, `libdart6.13-dev`,
 `libdart6.13-collision-ode-dev` (pulls `libode-dev`), `pkg-config` and a C++17
 compiler. Regenerating the reference additionally needs the gz-physics dartsim
 plugin, gz-plugin, sdformat and gz-math development files.
+
+## Generalized joint effort
+
+World hinges accept deferred additive Nm commands through
+`DynamicBackend::add_joint_effort`. Preparation, native refusal, retirement and
+both reset paths preserve the command lifecycle described in
+[JOINT_EFFORT.md](JOINT_EFFORT.md). The six-row C++ plugin pulse oracle uses actual
+`SetForce`; rotated offset-hinge controls additionally check analytic inertia,
+world pose and COM twist. Finite limit editing remains unsupported.
