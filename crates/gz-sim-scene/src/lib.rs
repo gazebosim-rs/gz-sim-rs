@@ -588,7 +588,9 @@ fn build_model(
                     tensor: link.inertial.inertia,
                 }),
             )?;
-            if backend.engine() == "rapier" && !model.joints.is_empty() {
+            if backend.engine() == "rapier"
+                && (!model.joints.is_empty() || (top_level && model.links.len() > 1))
+            {
                 let group = sim
                     .world()
                     .get::<EntityId>(model_entity)

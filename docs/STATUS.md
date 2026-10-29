@@ -30,8 +30,9 @@ see [ARTICULATED_SCENES.md](ARTICULATED_SCENES.md). Cycle detection uses an
 iterative maintained algorithm, with a 20,000-edge admission regression.
 This remains a bounded P3 capability: native body-joint adapters, aliases as
 physical endpoints, nested/static articulations, limits/dynamics and full
-backend conformance remain open. Existing unarticulated multi-link contact
-behavior is unchanged and separately unqualified. No new speedup is claimed.
+backend conformance remain open. Top-level unarticulated multi-link models also use default self-contact
+exclusion; see [MODEL_CONTACT_DEFAULTS.md](MODEL_CONTACT_DEFAULTS.md).
+Nested-model contact policy remains separately unqualified. No new speedup is claimed.
 
 The sections below retain historical evidence and its original limitations.
 The current phase state above supersedes historical statements about P2 being

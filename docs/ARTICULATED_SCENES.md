@@ -11,8 +11,9 @@ The loader uses the already locked petgraph library for cycle detection.
 Every articulated model receives its own backend-local contact-exclusion group.
 Admitted links have self collision disabled; model-level self-collision settings
 are still rejected by the producer. Contacts with other models remain enabled.
-Existing unarticulated multi-link contact behavior is unchanged and remains
-separately unqualified. This does not add general collision layers or query
+Top-level multi-link contact defaults also cover unarticulated models; see
+[MODEL_CONTACT_DEFAULTS.md](MODEL_CONTACT_DEFAULTS.md). Nested-model contact
+policy remains separately unqualified. This does not add general collision layers or query
 filtering.
 
 World and body joints resolve initial anchors/axes through the SDF graph.
