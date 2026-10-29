@@ -7,7 +7,7 @@
 DART 6.13.2, the release the upstream gz-physics dartsim plugin links. A small
 cxx bridge (`src/ffi.rs`, `src/bridge.cc`, `include/bridge.h`) owns one DART
 world; Rust validates every input before a native call. The coordinator owns
-scene/CLI selection; this slice adds no `PhysicsEngine::Dart` wiring.
+scene/CLI selection through `PhysicsEngine::Dart` and `--physics-engine dart`.
 
 ## Supported scope
 

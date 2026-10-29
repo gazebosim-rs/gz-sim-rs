@@ -22,6 +22,7 @@ gz-transport.workspace = true
 signal-hook = "=0.3.18"
 
 [dev-dependencies]
+socket2 = { version = "=0.6.5", features = ["all"] }
 gz-msgs.workspace = true
 tempfile = "=3.25.0"
 

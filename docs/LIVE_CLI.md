@@ -38,6 +38,14 @@ Like native Gazebo, the server sanitizes the SDF world name with the transport
 topic rules before naming world endpoints: `bad world` serves
 `/world/bad_world/clock`. A name that sanitizes to nothing fails startup.
 
+## Native backend interoperability
+
+The real C++ executable test and finite-budget/reset regression also run on
+DART and MuJoCo, preserving all TPE/Rapier assertions and timeouts. See
+[NATIVE_BACKEND_INTEROP.md](NATIVE_BACKEND_INTEROP.md) for the four-engine
+matrix, native-library qualification and remaining scope. Evidence below records
+the original TPE/Rapier slice separately.
+
 ## Focused evidence and remaining scope
 
 Independent review verified one pacing unit test, all ten CLI integration tests,

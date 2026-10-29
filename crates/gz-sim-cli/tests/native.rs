@@ -8,6 +8,20 @@ use std::{
     time::{Duration, Instant},
 };
 
+// Keep the port reserved while transport binds its reusable discovery socket.
+// A bare temporary socket dropped before startup leaves a port-stealing race.
+fn discovery_socket() -> UdpSocket {
+    let socket = UdpSocket::bind("0.0.0.0:0").unwrap();
+    socket2::SockRef::from(&socket)
+        .set_reuse_address(true)
+        .unwrap();
+    #[cfg(target_os = "linux")]
+    socket2::SockRef::from(&socket)
+        .set_multicast_all_v4(false)
+        .unwrap();
+    socket
+}
+
 struct Process(Option<Child>);
 
 impl Process {
@@ -42,9 +56,14 @@ fn cpp_peer_steps_the_paused_executable_and_signals_shutdown_cleanly() {
     let prefix = std::env::var_os("GZ_REFERENCE_PREFIX")
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
-    for (engine, signal) in [("tpe", "-INT"), ("rapier", "-TERM")] {
-        let message = UdpSocket::bind("127.0.0.1:0").unwrap();
-        let service = UdpSocket::bind("127.0.0.1:0").unwrap();
+    for (engine, signal) in [
+        ("tpe", "-INT"),
+        ("rapier", "-TERM"),
+        ("dart", "-INT"),
+        ("mujoco", "-TERM"),
+    ] {
+        let message = discovery_socket();
+        let service = discovery_socket();
         let environment = [
             (
                 "GZ_PARTITION",
@@ -62,7 +81,6 @@ fn cpp_peer_steps_the_paused_executable_and_signals_shutdown_cleanly() {
                 service.local_addr().unwrap().port().to_string(),
             ),
         ];
-        drop((message, service));
         let configure = |command: &mut Command| {
             command
                 .envs(environment.iter().map(|(key, value)| (key, value)))
@@ -124,16 +142,15 @@ fn finite_budget_counts_advancing_steps_across_pause_and_reset() {
         prost::Message,
     };
     use gz_transport::{Config, Node};
-    for engine in ["tpe", "rapier"] {
-        let message = UdpSocket::bind("127.0.0.1:0").unwrap();
-        let service = UdpSocket::bind("127.0.0.1:0").unwrap();
+    for engine in ["tpe", "rapier", "dart", "mujoco"] {
+        let message = discovery_socket();
+        let service = discovery_socket();
         let config = Config {
             partition: format!("cli-budget-{}-{engine}", std::process::id()),
             message_port: message.local_addr().unwrap().port(),
             service_port: service.local_addr().unwrap().port(),
             ..Config::default()
         };
-        drop((message, service));
         let node = Node::new(config.clone()).unwrap();
         let clock = node
             .subscribe("/world/default/clock", "gz.msgs.Clock")
@@ -230,15 +247,14 @@ fn second_termination_signal_exits_when_final_output_is_blocked() {
     let world = directory.path().join("large.sdf");
     let links = (0..5000).map(|index| format!("<link name='link{index}'><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link>")).collect::<String>();
     std::fs::write(&world, format!("<sdf version='1.12'><world name='default'><model name='large'><static>true</static>{links}</model></world></sdf>")).unwrap();
-    let message = UdpSocket::bind("127.0.0.1:0").unwrap();
-    let service = UdpSocket::bind("127.0.0.1:0").unwrap();
+    let message = discovery_socket();
+    let service = discovery_socket();
     let config = Config {
         partition: format!("cli-output-{}", std::process::id()),
         message_port: message.local_addr().unwrap().port(),
         service_port: service.local_addr().unwrap().port(),
         ..Config::default()
     };
-    drop((message, service));
     let node = Node::new(config.clone()).unwrap();
     let clock = node
         .subscribe("/world/default/clock", "gz.msgs.Clock")

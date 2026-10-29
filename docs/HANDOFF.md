@@ -105,8 +105,10 @@ Recorded here and, where they are product decisions, in DECISIONS.md.
    Published `9cbb7cb` rejects MuJoCo hinge removal above mjMAXVAL and preserves
    projected velocity when removing an unstepped hinge. Both regressions were
    reproduced before the fix; independent review and the full staged gate passed.
-   Exact hosted run 40873469093 is pending. The next test extends actual contact
-   arena exhaustion coverage through backend steps, warning exposure and reset.
+   Exact hosted run 40873469093 passed. Published `0312c3c` also exercises real
+   contact arena exhaustion through backend steps and reset; its exact hosted
+   run 40875528990 passed. The next slice extends unchanged real C++ CLI/server
+   assertions to DART and MuJoCo; see NATIVE_BACKEND_INTEROP.md.
 2. MuJoCo follow-ups (low, not reachable through the scene today): extreme
    inertial-centre offsets are admitted but fault the first step; the hinged load
    comparison against the native plugin is not like-for-like (the plugin adds

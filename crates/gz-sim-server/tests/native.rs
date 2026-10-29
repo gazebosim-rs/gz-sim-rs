@@ -13,6 +13,20 @@ use std::{
     time::{Duration, Instant},
 };
 
+// Keep the port reserved while transport binds its reusable discovery socket.
+// A bare temporary socket dropped before startup leaves a port-stealing race.
+fn discovery_socket() -> UdpSocket {
+    let socket = UdpSocket::bind("0.0.0.0:0").unwrap();
+    socket2::SockRef::from(&socket)
+        .set_reuse_address(true)
+        .unwrap();
+    #[cfg(target_os = "linux")]
+    socket2::SockRef::from(&socket)
+        .set_multicast_all_v4(false)
+        .unwrap();
+    socket
+}
+
 struct Peer(Child);
 impl Drop for Peer {
     fn drop(&mut self) {
@@ -33,16 +47,20 @@ fn run_native_root_clock_cases() {
     let prefix = std::env::var_os("GZ_REFERENCE_PREFIX")
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
-    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
-        let message = UdpSocket::bind("127.0.0.1:0").unwrap();
-        let service = UdpSocket::bind("127.0.0.1:0").unwrap();
+    for engine in [
+        PhysicsEngine::Rapier,
+        PhysicsEngine::Tpe,
+        PhysicsEngine::Dart,
+        PhysicsEngine::Mujoco,
+    ] {
+        let message = discovery_socket();
+        let service = discovery_socket();
         let config = Config {
             partition: format!("native-root-{}-{engine:?}", std::process::id()),
             message_port: message.local_addr().unwrap().port(),
             service_port: service.local_addr().unwrap().port(),
             ..Config::default()
         };
-        drop((message, service));
         let simulation = load_world_with_engine(
             include_str!("../../gz-sim-scene/tests/fixtures/fall.sdf"),
             "fall.sdf",
@@ -123,26 +141,34 @@ fn run_native_root_clock_cases() {
 
 #[test]
 fn cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time() {
-    run_native_world(false, None, false, false, false, PhysicsEngine::Rapier);
-    run_native_world(true, None, false, false, false, PhysicsEngine::Rapier);
-    run_native_world(
-        true,
-        Some("robot ~imu//@:= sensor"),
-        false,
-        false,
-        false,
+    for engine in [
         PhysicsEngine::Rapier,
-    );
-    run_native_world(false, None, true, false, false, PhysicsEngine::Rapier);
-    run_native_world(true, None, false, true, false, PhysicsEngine::Rapier);
-    run_native_world(true, None, false, false, true, PhysicsEngine::Rapier);
+        PhysicsEngine::Dart,
+        PhysicsEngine::Mujoco,
+    ] {
+        run_native_world(false, None, false, false, false, engine);
+        run_native_world(true, None, false, false, false, engine);
+        run_native_world(
+            true,
+            Some("robot ~imu//@:= sensor"),
+            false,
+            false,
+            false,
+            engine,
+        );
+        run_native_world(false, None, true, false, false, engine);
+        run_native_world(true, None, false, true, false, engine);
+        run_native_world(true, None, false, false, true, engine);
+    }
     run_native_world(true, None, false, false, true, PhysicsEngine::Tpe);
-    run_native_schedule_world(PhysicsEngine::Rapier, false);
-    run_native_schedule_world(PhysicsEngine::Tpe, false);
-    run_native_schedule_world(PhysicsEngine::Rapier, true);
-    run_native_schedule_world(PhysicsEngine::Tpe, true);
-    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+    for engine in [
+        PhysicsEngine::Rapier,
+        PhysicsEngine::Tpe,
+        PhysicsEngine::Dart,
+        PhysicsEngine::Mujoco,
+    ] {
         for noisy in [false, true] {
+            run_native_schedule_world(engine, noisy);
             run_native_schedule_case(engine, noisy, false);
         }
     }
@@ -167,8 +193,8 @@ fn run_native_world(
         "{}",
         String::from_utf8_lossy(&build.stderr)
     );
-    let message = UdpSocket::bind("127.0.0.1:0").unwrap();
-    let service = UdpSocket::bind("127.0.0.1:0").unwrap();
+    let message = discovery_socket();
+    let service = discovery_socket();
     let config = Config {
         partition: format!("native-sim-{}", std::process::id()),
         message_port: message.local_addr().unwrap().port(),
@@ -180,7 +206,6 @@ fn run_native_world(
         },
         ..Config::default()
     };
-    drop((message, service));
     let mut xml = include_str!("../../gz-sim-scene/tests/fixtures/fall.sdf").to_owned();
     if let Some(topic) = topic {
         xml = xml.replace(
@@ -384,15 +409,14 @@ fn run_native_schedule_case(engine: PhysicsEngine, noisy: bool, orientation: boo
         "{}",
         String::from_utf8_lossy(&build.stderr)
     );
-    let message = UdpSocket::bind("127.0.0.1:0").unwrap();
-    let service = UdpSocket::bind("127.0.0.1:0").unwrap();
+    let message = discovery_socket();
+    let service = discovery_socket();
     let config = Config {
         partition: format!("native-schedule-{}", std::process::id()),
         message_port: message.local_addr().unwrap().port(),
         service_port: service.local_addr().unwrap().port(),
         ..Config::default()
     };
-    drop((message, service));
     let mut xml = include_str!("../../gz-sim-scene/tests/fixtures/fall.sdf").replace(
         "<update_rate>1000</update_rate>",
         "<update_rate>10</update_rate>",
@@ -434,18 +458,15 @@ fn run_native_schedule_case(engine: PhysicsEngine, noisy: bool, orientation: boo
         .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
     let mut peer = Peer(
         Command::new(root.join("artifacts/native-peer/clock-client"))
-            .arg(match (engine, noisy, orientation) {
-                (PhysicsEngine::Tpe, true, false) => "--tpe-disabled-noisy-schedule",
-                (PhysicsEngine::Rapier, true, false) => "--disabled-noisy-schedule",
-                (PhysicsEngine::Tpe, false, false) => "--tpe-disabled-schedule",
-                (PhysicsEngine::Rapier, false, false) => "--disabled-schedule",
-                (PhysicsEngine::Tpe, true, true) => "--tpe-noisy-schedule",
-                (PhysicsEngine::Rapier, true, true) => "--noisy-schedule",
-                (PhysicsEngine::Tpe, false, true) => "--tpe-schedule",
-                (PhysicsEngine::Rapier, false, true) => "--schedule",
-                (PhysicsEngine::Dart | PhysicsEngine::Mujoco, ..) => {
-                    unreachable!("scheduled C++ peers cover TPE and Rapier")
-                }
+            .arg(match (engine == PhysicsEngine::Tpe, noisy, orientation) {
+                (true, true, false) => "--tpe-disabled-noisy-schedule",
+                (false, true, false) => "--disabled-noisy-schedule",
+                (true, false, false) => "--tpe-disabled-schedule",
+                (false, false, false) => "--disabled-schedule",
+                (true, true, true) => "--tpe-noisy-schedule",
+                (false, true, true) => "--noisy-schedule",
+                (true, false, true) => "--tpe-schedule",
+                (false, false, true) => "--schedule",
             })
             .env("GZ_PARTITION", &config.partition)
             .env("GZ_IP", config.interface.to_string())
@@ -523,4 +544,43 @@ fn run_native_schedule_case(engine: PhysicsEngine, noisy: bool, orientation: boo
     assert_eq!(server.counters().imu_failures, 0);
     assert_eq!(server.counters().invalid_imu_samples, 0);
     server.shutdown();
+}
+
+#[test]
+fn discovery_reservations_allow_transport_binding_without_releasing_the_ports() {
+    let message = discovery_socket();
+    let service = discovery_socket();
+    let config = Config {
+        partition: format!("reserved-discovery-{}", std::process::id()),
+        message_port: message.local_addr().unwrap().port(),
+        service_port: service.local_addr().unwrap().port(),
+        ..Config::default()
+    };
+    for port in [config.message_port, config.service_port] {
+        for address in ["127.0.0.1", "0.0.0.0"] {
+            assert_eq!(
+                UdpSocket::bind((address, port)).unwrap_err().kind(),
+                std::io::ErrorKind::AddrInUse
+            );
+        }
+    }
+    let simulation = gz_sim_core::Simulation::new(Duration::from_millis(1)).unwrap();
+    let mut server = Server::new(
+        simulation,
+        "default",
+        config.clone(),
+        NonZeroUsize::new(4).unwrap(),
+    )
+    .unwrap();
+    server.tick().unwrap();
+    server.shutdown();
+    drop(server);
+    for port in [config.message_port, config.service_port] {
+        for address in ["127.0.0.1", "0.0.0.0"] {
+            assert_eq!(
+                UdpSocket::bind((address, port)).unwrap_err().kind(),
+                std::io::ErrorKind::AddrInUse
+            );
+        }
+    }
 }

@@ -20,6 +20,20 @@ use std::{
     time::{Duration, Instant},
 };
 
+// Keep the port reserved while transport binds its reusable discovery socket.
+// A bare temporary socket dropped before startup leaves a port-stealing race.
+fn discovery_socket() -> UdpSocket {
+    let socket = UdpSocket::bind("0.0.0.0:0").unwrap();
+    socket2::SockRef::from(&socket)
+        .set_reuse_address(true)
+        .unwrap();
+    #[cfg(target_os = "linux")]
+    socket2::SockRef::from(&socket)
+        .set_multicast_all_v4(false)
+        .unwrap();
+    socket
+}
+
 struct Peer {
     child: Child,
     lines: mpsc::Receiver<String>,
@@ -254,12 +268,14 @@ fn actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences() 
     for (engine, delayed, fail) in [
         (PhysicsEngine::Tpe, false, None),
         (PhysicsEngine::Rapier, false, None),
+        (PhysicsEngine::Dart, false, None),
+        (PhysicsEngine::Mujoco, false, None),
         (PhysicsEngine::Tpe, true, None),
         (PhysicsEngine::Tpe, false, Some("exit")),
         (PhysicsEngine::Tpe, false, Some("panic")),
     ] {
-        let message = UdpSocket::bind("127.0.0.1:0").unwrap();
-        let service = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let message = discovery_socket();
+        let service = discovery_socket();
         let config = Config {
             partition: format!(
                 "native-rate-{}-{engine:?}-{delayed}-{}",
@@ -270,7 +286,6 @@ fn actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences() 
             service_port: service.local_addr().unwrap().port(),
             ..Config::default()
         };
-        drop((message, service));
         let simulation = load_world_with_engine(
             include_str!("../../gz-sim-scene/tests/fixtures/headless_imu.sdf"),
             "rate.sdf",

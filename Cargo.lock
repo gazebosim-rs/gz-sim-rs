@@ -1095,6 +1095,7 @@ dependencies = [
  "gz-sim-server",
  "gz-transport",
  "signal-hook",
+ "socket2 0.6.5",
  "tempfile",
 ]
 
@@ -1141,6 +1142,7 @@ dependencies = [
  "gz-transport",
  "sdformat",
  "serde_json",
+ "socket2 0.6.5",
  "tempfile",
  "thiserror",
 ]

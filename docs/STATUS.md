@@ -17,6 +17,12 @@ The native server lifecycle fixture also runs its five DART rows on both DART
 and Rapier, retaining the five TPE rows and every existing assertion. Server
 runtime-library pinning has direct subprocess tests; see [DART.md](DART.md).
 
+The selected real C++ CLI/server matrix now also runs with DART and MuJoCo,
+preserving all prior TPE/Rapier assertions. Author and independent CLI,
+39-scenario server and four-engine rate/reset runs pass; see
+[the scope](NATIVE_BACKEND_INTEROP.md). Mandatory staged/hosted verification
+remains required for that change.
+
 The sections below retain historical evidence and its original limitations.
 The current phase state above supersedes historical statements about P2 being
 open or CLI server mode being unimplemented.
