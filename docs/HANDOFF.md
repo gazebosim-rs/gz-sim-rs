@@ -82,12 +82,27 @@ Recorded here and, where they are product decisions, in DECISIONS.md.
   `worktree-agent-a542e16c2bd136546`, worktrees under `.claude/worktrees/`) were
   squash-merged into `85dd4ab` and `074c29b`. They can be removed.
 
+## Known tooling issues (2026-10-29)
+
+- The owner guidance in AGENTS.md was also added to gz-msgs-rs and the tracker,
+  but not to sdformat-rs or gz-transport-rs:
+  - sdformat-rs's hook treats AGENTS.md as protected policy and requires an
+    independent-review receipt (the hash-bound review step the owner asked to
+    drop). Changing that hook is the owner's decision.
+  - gz-transport-rs's hook fails in a shell with ROS Jazzy sourced: its native
+    C++ test binaries in `gz-transport/build/bin` resolve `libgz-transport` and
+    zenoh from `LD_LIBRARY_PATH` and fail to load, so the reference-ledger check
+    reports every case missing. Its C++ peer build also needs
+    `GZ_REFERENCE_PREFIX=<gz-transport-rs>/artifacts/reference/install`. Fix the
+    environment (or the hook's library path handling) before the next
+    transport commit.
+
 ## Next
 
-1. DART: run the server reset native comparison
-   (`gz-sim-server/tests/private/reset.rs`, the "dartsim" rows) against DART as
-   well as Rapier. gz-sim-server needs the same small DEP_DART_LIBDIR build
-   script that gz-sim-cli and gz-sim-scene have.
+1. DART server reset comparisons now cover both DART and Rapier, preserving
+   TPE and all original assertions. The server pins the native library with
+   DEP_DART_LIBDIR and tests it under a shadowing library path. Author and
+   independent focused runs pass; the staged hook and hosted CI remain required.
 2. MuJoCo follow-ups (low, not reachable through the scene today): extreme
    inertial-centre offsets are admitted but fault the first step; `remove_joint`
    on a fast hinge can create a free velocity above mjMAXVAL; the hinged load

@@ -325,6 +325,22 @@ clean. Measured crate coverage: 815/832 lines, 1278/1326 regions; uncovered
 Rust is build-script `main`, a few error closures and native-error propagation
 that valid records cannot reach. Re-review of these fixes is pending.
 
+## Server reset integration
+
+The server replays the five `dartsim` rows in
+`planning/reference/lifecycle-controls.json` on both DART and Rapier, and the
+five TPE rows on TPE. The fifteen executions retain the original control
+precedence, removal, identity restoration, reset-callback, timestamp and pose
+assertions. DART uses the existing 1e-12 pose tolerance; only Rapier retains its
+previous step-reset integration allowance. These are comparisons to recorded
+native DART observations, not a claim of identical native library builds.
+
+Server binaries pin DART with the same DT_RPATH directives as the CLI and scene.
+Tests run the build-script entry point in a child and construct DART with a decoy
+`libdart.so.6.13` first on `LD_LIBRARY_PATH`. Author and independent focused runs
+pass the reset comparison and all four runtime tests; the ignored build-script
+helper is executed explicitly by its parent test.
+
 ## Native dependencies
 
 Build and test need DART 6.13.2 with its ODE collision component and pkg-config

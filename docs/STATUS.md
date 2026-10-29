@@ -13,6 +13,13 @@ dartsim plugin bit for bit or within 1e-14 on its parity scenarios. It uses the
 packaged OSRF DART and documented admission limits (decision D25); see
 [DART.md](DART.md). The native headless IMU reference rows, recorded with DART,
 now also run against the DART adapter at their existing 1e-9 tolerance.
+The native server lifecycle fixture also runs its five DART rows on both DART
+and Rapier, retaining the five TPE rows and every existing assertion. Server
+runtime-library pinning has direct subprocess tests; see [DART.md](DART.md).
+
+The sections below retain historical evidence and its original limitations.
+The current phase state above supersedes historical statements about P2 being
+open or CLI server mode being unimplemented.
 
 Root-clock preparation is published as `f3cd6d67d0bd0e8d69a11de0c11930b8e1e7db23`.
 Independent source and ordinary hook reviews passed 286 Rust tests and 88 tooling

@@ -10,10 +10,13 @@ gz-msgs.workspace = true
 gz-transport.workspace = true
 gz-sim-core = { path = "../gz-sim-core" }
 gz-sim-scene = { path = "../gz-sim-scene" }
+# Direct dependency so build.rs receives DEP_DART_LIBDIR.
+gz-physics-dart = { path = "../gz-physics-dart" }
 bevy_ecs.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+tempfile = "=3.25.0"
 serde_json = "=1.0.149"
 sdformat.workspace = true
 gz-sensors = { path = "../gz-sensors" }

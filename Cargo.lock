@@ -1134,12 +1134,14 @@ version = "0.1.0"
 dependencies = [
  "bevy_ecs",
  "gz-msgs",
+ "gz-physics-dart",
  "gz-sensors",
  "gz-sim-core",
  "gz-sim-scene",
  "gz-transport",
  "sdformat",
  "serde_json",
+ "tempfile",
  "thiserror",
 ]
 

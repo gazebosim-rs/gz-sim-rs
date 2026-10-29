@@ -592,13 +592,19 @@ fn shared_sdf_native_control_precedence_removal_and_reset_observations_match() {
         })
         .collect();
     assert_eq!(variants, expected);
-    for row in rows {
-        let mode = row["mode"].as_str().unwrap();
-        let engine = match row["engine"].as_str().unwrap() {
-            "dartsim" => gz_sim_scene::PhysicsEngine::Rapier,
-            "tpe" => gz_sim_scene::PhysicsEngine::Tpe,
+    let cases = rows.iter().flat_map(|row| {
+        let engines: &[_] = match row["engine"].as_str().unwrap() {
+            "dartsim" => &[
+                gz_sim_scene::PhysicsEngine::Rapier,
+                gz_sim_scene::PhysicsEngine::Dart,
+            ],
+            "tpe" => &[gz_sim_scene::PhysicsEngine::Tpe],
             other => panic!("unknown reference engine {other}"),
         };
+        engines.iter().map(move |&engine| (row, engine))
+    });
+    for (row, engine) in cases {
+        let mode = row["mode"].as_str().unwrap();
         let cfg = config();
         let mut simulation = gz_sim_scene::load_world_with_sdf_step(
             include_str!("../../../gz-sim-scene/tests/fixtures/headless_imu.sdf"),
