@@ -1,6 +1,7 @@
 # Instructions for implementation agents
 
-Read `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
+Read `docs/HANDOFF.md` first for the current state and next tasks, then
+`docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
 Confirmed owner decisions override proposals. Do not resolve an outstanding
 product decision by silently deleting behavior. Read `docs/STATUS.md` to distinguish
 implemented behavior and checks from planned release requirements.
@@ -115,3 +116,48 @@ changes and incomplete compatibility evidence visible. Do useful independent
 work while reviews or CI run, and repair actual failures without weakening gates.
 Update the dashboard when evidence changes. Notify the owner for significant
 milestones, failures needing attention or decisions that require their input.
+
+## Owner guidance (2026-10-27)
+
+These answers from the owner apply to every agent, Claude or ChatGPT.
+
+- Keep the real gates: tests, coverage above 95% per crate, the staged
+  pre-commit hook, hosted CI, real C++ interoperability and preserved upstream
+  test intent. Do not add process on top of them: no frozen proposal files,
+  hash-bound review receipts, CPU/disk slot reservations, versioned reruns of
+  the same check, or archiving every failed build. Keep `artifacts/` small.
+- The coordinator may commit and push reviewed work to main, publish dashboard
+  status, and edit sdformat-rs, gz-msgs-rs and gz-transport-rs. Never edit
+  gz-fuel-tools-rs. List non-regenerable files for the owner before deleting.
+- Ask the owner only for real product or dependency decisions, such as which
+  native library build to depend on or what to reject; record each answer in
+  DECISIONS.md. Make routine engineering choices yourself.
+- Write status and reports in plain sentences. Earlier compressed shorthand
+  could not be read by the next agent or the owner.
+
+## Lessons from the P2 and P3 work
+
+- Review catches real defects. Every adapter needed several fix rounds before an
+  independent reviewer approved it. Give the reviewer the code and the author's
+  claims to verify, not your conclusion, and have it re-check each fix commit.
+- Native libraries differ by build. A test that passes against one library on
+  `LD_LIBRARY_PATH` may abort against the pinned one (DART assertions). Pin the
+  runtime library (DT_RPATH, run-time `dladdr` check) and test which file loaded.
+- Treat a process abort from admitted input as a blocking bug, including inside
+  third-party code. Search for them with child-process fuzz tests at the
+  admission bounds, not only with hand-picked cases.
+- Compare against the native engine before calling a behaviour a bug: the DART
+  divergence reproduced exactly in the native plugin.
+- Parity fixtures need the generating program, exact command and library
+  hashes checked in, and must regenerate byte for byte.
+- Lazy or batched work must not move a failure from the call that caused it to
+  a later step; admitted edits must always compile and step.
+- Changed-line coverage counts build scripts. Keep `main` in build.rs to one
+  line over a tested function, and test it the way Cargo runs it.
+- Measure performance claims against the native plugin with equal settings, and
+  include the scene's real access pattern (queries after each edit), not only
+  the easy case.
+- Parallel agents each work in their own git worktree on separate crates. The
+  coordinator owns shared files (workspace members, Cargo.lock, scene, CLI, CI)
+  and lands each piece as one squashed commit through the hook.
+
