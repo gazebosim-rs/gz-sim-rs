@@ -253,7 +253,7 @@ impl Engine {
                 pose[qpos..qpos + 3].copy_from_slice(&snapshot.position);
                 pose[qpos + 3..qpos + 7].copy_from_slice(&snapshot.quaternion);
                 let [wx, wy, wz, vx, vy, vz] = snapshot.velocity;
-                // Bounded by the admitted center and MuJoCo's own velocity limit.
+                // remove_joint checks this conversion before admitting the edit.
                 let free = free_coordinates(
                     wxyz_to_xyzw(snapshot.quaternion),
                     next.records.bodies[&id].inertial.center,
@@ -709,11 +709,28 @@ impl DynamicBackend for MujocoBackend {
     }
 
     /// Restores the child's free joint, keeping its current world pose and velocity.
+    /// Refuses removal if that velocity exceeds MuJoCo's free-joint limits.
     fn remove_joint(&mut self, id: JointId) -> bool {
-        let Some(joint) = self.records.joints.remove(&id) else {
+        let Some(joint) = self.records.joints.get(&id) else {
             return false;
         };
-        self.records.hinges.remove(&joint.child);
+        let child = joint.child;
+        if !self.state(child).is_some_and(|state| {
+            representable(&free_coordinates(
+                state.orientation,
+                self.records.bodies[&child].inertial.center,
+                state.velocity,
+                state.angular_velocity,
+            ))
+        }) || self.settle().is_err()
+        {
+            return false;
+        }
+        // Even an unstepped hinge has projected the construction velocity.
+        // Retain its compiled state instead of restoring the free start record.
+        self.pristine.remove(&child);
+        self.records.joints.remove(&id);
+        self.records.hinges.remove(&child);
         self.mark(Edit::Transfer);
         true
     }

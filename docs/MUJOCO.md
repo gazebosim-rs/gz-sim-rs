@@ -54,14 +54,19 @@ to `nbody^2 * 8` bytes when that exceeds MuJoCo's default.
 ## Topology edits
 
 The compiled model is immutable. As in upstream, where edits mark the spec
-dirty and `RecompileSpec` runs at the next `WorldForwardStep`, spawn, removal
-and joint edits here only update construction records and mark the model dirty.
+dirty and `RecompileSpec` runs at the next `WorldForwardStep`, spawn, body
+removal and joint construction here update records and mark the model dirty.
 One compile happens at the next advancing `step` or velocity/impulse input, or
 at a query that cannot be answered without one (below). Building a scene of N
 bodies and joints, querying each joint after adding it as the scene does, costs
 one compile; a private test counts compiles for 200 bodies and 50 joints.
 `reset` is lazy too. `prepare_initial` compiles eagerly so that `apply_initial`
-cannot fail.
+cannot fail. Hinge removal first validates the current velocity in free-joint
+coordinates, refusing the edit if MuJoCo would reset it above `mjMAXVAL`. It
+settles the current model before removing the hinge, so even an unstepped body
+keeps its projected velocity instead of reverting to its original free velocity.
+The resulting free model is compiled when next needed. A failed removal keeps
+the joint and physical state unchanged.
 
 Queries avoid compiles. A body not stepped and given no input since spawn or
 reset reports its construction state from the records: the given pose and its
@@ -176,7 +181,8 @@ stack exhaustion reported through `mju_error`, abort the process.
 - A second world joint on one body returns `PhysicsError::Unsupported`
   (`"more than one world joint on a body"`): MuJoCo joints add degrees of
   freedom, while Rapier joints add constraints.
-- `remove` and `remove_joint` return `false` only when the target is absent.
+- `remove` returns `false` when the body is absent. `remove_joint` also refuses
+  a free velocity beyond MuJoCo's limits or a failed compile of the current model.
 - Fixed bodies carry a placeholder inertial instead of MuJoCo's geom-derived
   one; it has no dynamic effect.
 - No meshes, planes, contact properties, joint limits, damping, actuators,

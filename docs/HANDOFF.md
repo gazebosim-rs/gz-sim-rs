@@ -102,10 +102,13 @@ Recorded here and, where they are product decisions, in DECISIONS.md.
 1. DART server reset comparisons now cover both DART and Rapier, preserving
    TPE and all original assertions. The server pins the native library with
    DEP_DART_LIBDIR and tests it under a shadowing library path. Author and
-   independent focused runs pass; the staged hook and hosted CI remain required.
+   independent focused runs and the mandatory staged hook passed in published
+   `c9449ac`; exact hosted run 40871693297 is pending.
+   The next MuJoCo slice rejects hinge removal above mjMAXVAL and preserves
+   projected velocity when removing an unstepped hinge. Both regressions were
+   reproduced before the fix; review and full staged acceptance remain required.
 2. MuJoCo follow-ups (low, not reachable through the scene today): extreme
-   inertial-centre offsets are admitted but fault the first step; `remove_joint`
-   on a fast hinge can create a free velocity above mjMAXVAL; the hinged load
+   inertial-centre offsets are admitted but fault the first step; the hinged load
    comparison against the native plugin is not like-for-like (the plugin adds
    actuators); the real contact-overflow test bypasses `MujocoBackend::step`.
 3. P3 capabilities, one reviewed slice at a time: general articulation (model

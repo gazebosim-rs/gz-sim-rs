@@ -594,3 +594,80 @@ fn backends_are_sendable_shareable_and_drop_independently() {
     std::thread::spawn(move || drop(backends)).join().unwrap();
     drop(shared);
 }
+
+#[test]
+fn hinge_removal_rejects_unrepresentable_free_velocity_without_mutation() {
+    for advance in [false, true] {
+        let mut mujoco = MujocoBackend::new([0.0; 3]).unwrap();
+        let body = mujoco
+            .spawn_link(
+                BodySpec {
+                    velocity: [0.0; 3],
+                    ..ball([0.0; 3])
+                },
+                RotationSpec {
+                    angular_velocity: [0.0, 0.0, 8e9],
+                    ..Default::default()
+                },
+                Some(Inertia {
+                    center: [0.0; 3],
+                    orientation: [0.0, 0.0, 0.0, 1.0],
+                    tensor: [1e6, 1e6, 1e6, 0.0, 0.0, 0.0],
+                }),
+            )
+            .unwrap();
+        let joint = mujoco
+            .add_world_revolute(body, [10.0, 0.0, 0.0], [0.0, 0.0, 1.0])
+            .unwrap();
+        if advance {
+            mujoco.step(Duration::from_nanos(1)).unwrap();
+        }
+        let before = mujoco.state(body).unwrap();
+        let hinge = mujoco.joint_state(joint).unwrap();
+        assert!(before.velocity.into_iter().any(|v| v.abs() > 1e10));
+        assert!(!mujoco.remove_joint(joint));
+        assert_eq!(mujoco.is_jointed(body), Some(true));
+        assert_eq!(mujoco.joint_state(joint), Some(hinge));
+        assert_eq!(mujoco.state(body), Some(before));
+
+        mujoco.set_world_velocity(body, [0.0; 3], [0.0; 3]).unwrap();
+        assert!(mujoco.remove_joint(joint));
+        assert_eq!(mujoco.is_jointed(body), Some(false));
+        mujoco.step(Duration::from_nanos(1)).unwrap();
+        assert_eq!(mujoco.state(body).unwrap().velocity, [0.0; 3]);
+    }
+}
+
+#[test]
+fn removing_an_unstepped_hinge_keeps_its_projected_velocity() {
+    let mut mujoco = MujocoBackend::new([0.0; 3]).unwrap();
+    let body = mujoco
+        .spawn(BodySpec {
+            velocity: [0.0, 2.0, 0.0],
+            ..ball([1.0, 0.0, 0.0])
+        })
+        .unwrap();
+    let joint = mujoco
+        .add_world_revolute(body, [0.0; 3], [0.0, 0.0, 1.0])
+        .unwrap();
+    let before = mujoco.state(body).unwrap();
+    assert!(before.velocity[1] > 0.0 && before.velocity[1] < 2.0);
+    assert!(mujoco.remove_joint(joint));
+    let after = mujoco.state(body).unwrap();
+    assert_eq!(after.orientation, before.orientation);
+    for (actual, expected) in [
+        (after.position, before.position),
+        (after.velocity, before.velocity),
+        (after.angular_velocity, before.angular_velocity),
+    ] {
+        for (actual, expected) in actual.into_iter().zip(expected) {
+            assert!((actual - expected).abs() < 1e-12);
+        }
+    }
+    mujoco.step(DT).unwrap();
+    let advanced = mujoco.state(body).unwrap();
+    for axis in 0..3 {
+        let expected = before.position[axis] + before.velocity[axis] * DT.as_secs_f64();
+        assert!((advanced.position[axis] - expected).abs() < 1e-12);
+    }
+}
