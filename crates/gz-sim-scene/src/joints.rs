@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
-use gz_physics::{JointId, JointState, PhysicsBackend};
+use gz_physics::{BodyId, JointId, JointState, PhysicsBackend};
 use gz_sim_core::entity_by_id;
 use std::collections::BTreeSet;
 
@@ -17,6 +17,9 @@ pub(super) struct JointNode;
 pub struct JointHandle {
     id: JointId,
     child: u64,
+    child_pose: Option<WorldPose>,
+    parent: Option<(u64, BodyId)>,
+    model: u64,
 }
 impl JointHandle {
     pub fn id(&self) -> JointId {
@@ -58,7 +61,7 @@ pub(super) fn validate_model(
         top_level
             && !is_static
             && model.models.is_empty()
-            && model.links.len() == 1
+            && (model.links.len() == 1 || model.links.len() == 2)
             && model.joints.len() == 1,
         &model.scoped_name,
         "joint topology (expected one dynamic world-anchored link)",
@@ -70,9 +73,13 @@ pub(super) fn validate_model(
         &name,
         "joints (unsupported type)",
     )?;
+    let parent = sdf.resolve_name(&model.scoped_name, &joint.parent)?;
+    let child = sdf.resolve_name(&model.scoped_name, &joint.child)?;
+    let local_link = |name: &str| model.links.iter().any(|link| link.scoped_name == name);
     require(
-        sdf.resolve_name(&model.scoped_name, &joint.parent)? == world
-            && sdf.resolve_name(&model.scoped_name, &joint.child)? == model.links[0].scoped_name,
+        local_link(&child)
+            && ((model.links.len() == 1 && parent == world)
+                || (model.links.len() == 2 && parent != child && local_link(&parent))),
         &name,
         "joint endpoints (expected world and sole link)",
     )?;
@@ -111,7 +118,8 @@ pub(super) fn build(
 ) -> Result<(), LoadError> {
     for joint in &model.joints {
         let name = format!("{}::{}", model.scoped_name, joint.name);
-        let child = context.links[&model.links[0].scoped_name];
+        let child_name = sdf.resolve_name(&model.scoped_name, &joint.child)?;
+        let child = context.links[&child_name];
         let entity = entity_by_id(sim.world(), child).expect("loader constructed joint child");
         let body = sim
             .world()
@@ -124,7 +132,25 @@ pub(super) fn build(
             &name,
             context.world,
         )?;
-        let id = backend.add_world_revolute(body, pose.translation, axis)?;
+        let parent_name = sdf.resolve_name(&model.scoped_name, &joint.parent)?;
+        let (id, parent) = if parent_name == context.world {
+            (
+                backend.add_world_revolute(body, pose.translation, axis)?,
+                None,
+            )
+        } else {
+            let parent = entity_by_id(sim.world(), context.links[&parent_name])
+                .expect("loader constructed joint parent");
+            let parent_body = sim
+                .world()
+                .get::<BodyHandle>(parent)
+                .expect("dynamic-engine link owns body")
+                .id();
+            (
+                backend.add_revolute(parent_body, body, pose.translation, axis)?,
+                Some((context.links[&parent_name], parent_body)),
+            )
+        };
         let local = sdf.pose_of(&name, &model.scoped_name)?;
         let entity = spawn_node(
             sim,
@@ -134,11 +160,24 @@ pub(super) fn build(
             local,
             pose,
         )?;
+        let model_id = sim
+            .world()
+            .get::<EntityId>(model_entity)
+            .expect("loader constructed joint model")
+            .get();
         sim.world_mut().entity_mut(entity).insert((
             AttachedPose,
             JointNode,
             JointDefinition(Box::new(joint.clone())),
-            JointHandle { id, child },
+            JointHandle {
+                id,
+                child,
+                parent,
+                model: model_id,
+                child_pose: (parent_name != context.world)
+                    .then(|| sdf.pose_of(&name, &child_name).map(WorldPose::from))
+                    .transpose()?,
+            },
             JointSample {
                 state: backend.joint_state(id).expect("constructed joint"),
                 time: Duration::ZERO,
@@ -175,10 +214,38 @@ pub(super) fn bindings_valid(world: &World) -> bool {
             return false;
         };
         entity.get::<EntityKind>() == Some(&EntityKind::Joint)
+            && entity.contains::<JointNode>()
+            && entity.contains::<JointSample>()
+            && entity.contains::<LocalPose>()
+            && entity.contains::<WorldPose>()
+            && entity.get::<ChildOf>().is_some_and(|parent| {
+                let model = world.entity(parent.parent());
+                model
+                    .get::<EntityId>()
+                    .is_some_and(|id| id.get() == handle.model)
+                    && model.get::<EntityKind>() == Some(&EntityKind::Model)
+                    && model.contains::<ModelAnchor>()
+                    && model.contains::<WorldPose>()
+                    && !model.contains::<JointNode>()
+                    && !model.contains::<AttachedPose>()
+            })
+            && handle.parent.is_none_or(|(id, expected)| {
+                entity_by_id(world, id).is_some_and(|parent| {
+                    world
+                        .get::<BodyHandle>(parent)
+                        .is_some_and(|body| body.id() == expected)
+                        && world.get::<WorldPose>(parent).is_some()
+                        && world.get::<Velocity>(parent).is_some()
+                        && world.get::<ChildOf>(parent).map(ChildOf::parent)
+                            == entity.get::<ChildOf>().map(ChildOf::parent)
+                })
+            })
             && seen.insert(handle.id)
             && entity_by_id(world, handle.child).is_some_and(|child| {
                 world.get::<ChildOf>(child).map(ChildOf::parent)
                     == entity.get::<ChildOf>().map(ChildOf::parent)
+                    && world.get::<WorldPose>(child).is_some()
+                    && world.get::<Velocity>(child).is_some()
                     && world
                         .get::<BodyHandle>(child)
                         .is_some_and(|body| backend.joint_child(handle.id) == Some(body.id()))
@@ -193,8 +260,24 @@ type JointBindings<'w, 's> = Query<
         Option<&'static EntityKind>,
         Option<&'static JointHandle>,
         Option<&'static ChildOf>,
+        Has<JointNode>,
+        Has<JointSample>,
+        Has<LocalPose>,
+        Has<WorldPose>,
     ),
     Or<(With<JointNode>, With<JointHandle>)>,
+>;
+
+type JointModels<'w, 's> = Query<
+    'w,
+    's,
+    (
+        &'static EntityId,
+        &'static EntityKind,
+        &'static WorldPose,
+        &'static ModelAnchor,
+    ),
+    (Without<JointNode>, Without<AttachedPose>),
 >;
 
 pub(super) fn preflight(
@@ -203,7 +286,8 @@ pub(super) fn preflight(
     fault: Res<StepFault>,
     identities: EntityLookup,
     joints: JointBindings,
-    children: Query<(&BodyHandle, &ChildOf)>,
+    children: Query<(&BodyHandle, &ChildOf, &WorldPose, &Velocity)>,
+    models: JointModels,
 ) {
     if joints.is_empty() {
         return;
@@ -214,20 +298,37 @@ pub(super) fn preflight(
     };
     let mut seen = BTreeSet::new();
     let valid = initial.is_some_and(|initial| initial.owns_backend(&backend))
-        && joints.iter().all(|(kind, handle, parent)| {
-            let (Some(handle), Some(parent)) = (handle, parent) else {
-                return false;
-            };
-            kind == Some(&EntityKind::Joint)
-                && seen.insert(handle.id)
-                && identities
-                    .get(handle.child)
-                    .and_then(|child| children.get(child).ok())
-                    .is_some_and(|(body, child_parent)| {
-                        child_parent.parent() == parent.parent()
-                            && backend.joint_child(handle.id) == Some(body.id())
+        && joints
+            .iter()
+            .all(|(kind, handle, parent, node, sample, local, pose)| {
+                let (Some(handle), Some(parent)) = (handle, parent) else {
+                    return false;
+                };
+                kind == Some(&EntityKind::Joint)
+                    && node
+                    && sample
+                    && local
+                    && pose
+                    && models.get(parent.parent()).is_ok_and(|(id, kind, _, _)| {
+                        id.get() == handle.model && *kind == EntityKind::Model
                     })
-        });
+                    && handle.parent.is_none_or(|(id, expected)| {
+                        identities
+                            .get(id)
+                            .and_then(|parent| children.get(parent).ok())
+                            .is_some_and(|(body, endpoint_parent, _, _)| {
+                                body.id() == expected && endpoint_parent.parent() == parent.parent()
+                            })
+                    })
+                    && seen.insert(handle.id)
+                    && identities
+                        .get(handle.child)
+                        .and_then(|child| children.get(child).ok())
+                        .is_some_and(|(body, child_parent, _, _)| {
+                            child_parent.parent() == parent.parent()
+                                && backend.joint_child(handle.id) == Some(body.id())
+                        })
+            });
     if !valid {
         fault.report(JointBindingFault);
     }
@@ -236,9 +337,32 @@ pub(super) fn preflight(
 pub(super) fn sample(
     time: Res<UpdateInfo>,
     backend: Res<PhysicsBackend>,
-    mut joints: Query<(&JointHandle, &mut JointSample)>,
+    identities: EntityLookup,
+    poses: Query<&WorldPose, Without<JointNode>>,
+    mut joints: Query<
+        (
+            &JointHandle,
+            &mut JointSample,
+            &ChildOf,
+            &mut LocalPose,
+            &mut WorldPose,
+        ),
+        With<JointNode>,
+    >,
 ) {
-    for (handle, mut sample) in &mut joints {
+    for (handle, mut sample, model, mut local, mut pose) in &mut joints {
+        if let Some(child_pose) = handle.child_pose {
+            let child = identities.get(handle.child).expect("validated joint child");
+            *pose = poses
+                .get(child)
+                .expect("validated child pose")
+                .compose(child_pose);
+            local.0 = poses
+                .get(model.parent())
+                .expect("scene owns joint model")
+                .inverse()
+                .compose(*pose);
+        }
         sample.state = backend
             .joint_state(handle.id)
             .expect("joint preflight precedes stepping");

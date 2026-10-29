@@ -420,8 +420,11 @@ fn load_world_configured(
         Some(backend) => {
             gz_physics::install(&mut sim, backend)?;
             sim.add_systems(Phase::PhysicsPrepare, joints::preflight);
-            sim.add_systems(Phase::PhysicsCommit, joints::sample);
-            sim.add_systems(Phase::Reset, joints::sample.after(PhysicsReset));
+            sim.add_systems(
+                Phase::PhysicsCommit,
+                joints::sample.after(sync_attached_poses),
+            );
+            sim.add_systems(Phase::Reset, joints::sample.after(sync_attached_poses));
             sim.add_systems(Phase::PhysicsCommit, sync_bodies.before(sync_models));
             sim.add_systems(
                 Phase::Reset,
