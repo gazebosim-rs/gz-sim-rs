@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
-type Construction = (BodySpec, RotationSpec, Option<Inertia>);
+type Construction = (BodySpec, RotationSpec, Option<Inertia>, Option<u64>);
 
 /// Captured spawn states and engine settings; wrapped in [`InitialPhysicsState`].
 struct InitialData {
@@ -31,7 +31,9 @@ impl RapierBackend {
                 bodies: self
                     .bodies
                     .iter()
-                    .map(|(&id, &(_, spec, rotation, inertia))| (id, (spec, rotation, inertia)))
+                    .map(|(&id, &(_, spec, rotation, inertia, group))| {
+                        (id, (spec, rotation, inertia, group))
+                    })
                     .collect(),
                 joints: self.joints.initial(),
                 next_id: self.next_id,
@@ -50,9 +52,10 @@ impl RapierBackend {
             ..PhysicsWorld::new()
         };
         let mut bodies = BTreeMap::new();
-        for (&id, &(spec, rotational, inertia)) in &initial.bodies {
+        for (&id, &(spec, rotational, inertia, group)) in &initial.bodies {
             let handle = insert_initial(&mut world, spec, rotational, inertia);
-            bodies.insert(id, (handle, spec, rotational, inertia));
+            collision::assign(&mut world, handle, group);
+            bodies.insert(id, (handle, spec, rotational, inertia, group));
         }
         let joints = joints::Joints::restore(&initial.joints, &mut world, &bodies);
         Ok(PreparedPhysicsReset::new(

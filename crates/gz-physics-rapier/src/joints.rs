@@ -59,6 +59,9 @@ impl Joints {
             joint.previous_angle = current;
         }
     }
+    pub(super) fn construction_open(&self) -> bool {
+        self.open
+    }
     pub(super) fn close(&mut self) {
         self.open = false;
     }

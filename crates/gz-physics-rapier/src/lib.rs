@@ -10,6 +10,7 @@ use std::{
     time::Duration,
 };
 
+mod collision;
 mod initial;
 mod joints;
 
@@ -20,7 +21,13 @@ pub use gz_physics::{
 };
 use std::any::Any;
 
-type BodyEntry = (RigidBodyHandle, BodySpec, RotationSpec, Option<Inertia>);
+type BodyEntry = (
+    RigidBodyHandle,
+    BodySpec,
+    RotationSpec,
+    Option<Inertia>,
+    Option<u64>,
+);
 
 pub struct RapierBackend {
     owner: Arc<()>,
@@ -220,7 +227,8 @@ impl DynamicBackend for RapierBackend {
             .ok_or(PhysicsError::IdOverflow)?;
         let id = BodyId::from_raw(self.next_id);
         let handle = insert(&mut self.world, spec, rotational, shape, properties);
-        self.bodies.insert(id, (handle, spec, rotational, inertia));
+        self.bodies
+            .insert(id, (handle, spec, rotational, inertia, None));
         self.next_id = next;
         Ok(id)
     }
@@ -326,6 +334,23 @@ impl DynamicBackend for RapierBackend {
         Ok(())
     }
 
+    fn set_self_collision_group(
+        &mut self,
+        id: BodyId,
+        group: Option<u64>,
+    ) -> Result<(), PhysicsError> {
+        if !self.joints.construction_open() {
+            return Err(PhysicsError::Unsupported {
+                engine: "rapier",
+                capability: "runtime self-collision group edits",
+            });
+        }
+        let entry = self.bodies.get_mut(&id).ok_or(PhysicsError::MissingBody)?;
+        collision::assign(&mut self.world, entry.0, group);
+        entry.4 = group;
+        Ok(())
+    }
+
     /// Restores remaining bodies to their spawn state. Removed bodies stay removed.
     fn reset(&mut self) -> Result<(), PhysicsError> {
         let joints = self.joints.initial();
@@ -335,8 +360,9 @@ impl DynamicBackend for RapierBackend {
             integration_parameters: self.world.integration_parameters,
             ..PhysicsWorld::new()
         };
-        for (handle, spec, rotational, inertia) in self.bodies.values_mut() {
+        for (handle, spec, rotational, inertia, group) in self.bodies.values_mut() {
             *handle = initial::insert_initial(&mut self.world, *spec, *rotational, *inertia);
+            collision::assign(&mut self.world, *handle, *group);
         }
         self.joints = joints::Joints::restore(&joints, &mut self.world, &self.bodies);
         Ok(())
@@ -346,7 +372,7 @@ impl DynamicBackend for RapierBackend {
         if !dt.is_zero() {
             self.joints.close();
             self.world.integration_parameters.dt = dt.as_secs_f64();
-            self.world.step();
+            self.world.step_with_events(&collision::Groups, &());
             self.joints.update(&self.world, &self.bodies);
             for id in std::mem::take(&mut self.pending_wrenches) {
                 if let Some((handle, ..)) = self.bodies.get(&id) {

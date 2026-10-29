@@ -701,6 +701,13 @@ fn body_revolutes_are_rejected_explicitly_without_changing_endpoints() {
             capability: "body-to-body revolute joint"
         })
     );
+    assert_eq!(
+        backend.set_self_collision_group(parent, Some(u64::MAX)),
+        Err(PhysicsError::Unsupported {
+            engine: "dart",
+            capability: "self-collision groups"
+        })
+    );
     assert_eq!([backend.state(parent), backend.state(child)], before);
     assert_eq!(backend.is_jointed(parent), Some(false));
     assert_eq!(backend.is_jointed(child), Some(false));

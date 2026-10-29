@@ -205,6 +205,20 @@ pub trait DynamicBackend: Send + Sync + 'static {
         })
     }
 
+    /// Excludes mutual contacts between bodies with the same assigned group.
+    /// `None` restores ordinary contact filtering. Group IDs are backend-local.
+    /// This is a construction property; runtime edits may be unsupported.
+    fn set_self_collision_group(
+        &mut self,
+        _body: BodyId,
+        _group: Option<u64>,
+    ) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "self-collision groups",
+        })
+    }
+
     /// Registered child endpoint of a joint.
     fn joint_child(&self, id: JointId) -> Option<BodyId>;
 
