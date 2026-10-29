@@ -561,3 +561,32 @@ fn invalid_and_overflowing_wrenches_preserve_admitted_force_and_torque() {
     assert_eq!(mujoco.state(id).unwrap().velocity, [0.0; 3]);
     assert_eq!(mujoco.state(id).unwrap().angular_velocity, [0.0; 3]);
 }
+
+#[test]
+fn body_revolutes_are_rejected_explicitly_without_changing_endpoints() {
+    let mut backend = MujocoBackend::new([0.0; 3]).unwrap();
+    let parent = backend
+        .spawn_link(ball(), RotationSpec::default(), None)
+        .unwrap();
+    let child = backend
+        .spawn_link(
+            BodySpec {
+                position: [2.0, 0.0, 5.0],
+                ..ball()
+            },
+            RotationSpec::default(),
+            None,
+        )
+        .unwrap();
+    let before = [backend.state(parent), backend.state(child)];
+    assert_eq!(
+        backend.add_revolute(parent, child, [0.0, 0.0, 5.0], [0.0, 1.0, 0.0]),
+        Err(PhysicsError::Unsupported {
+            engine: "mujoco",
+            capability: "body-to-body revolute joint"
+        })
+    );
+    assert_eq!([backend.state(parent), backend.state(child)], before);
+    assert_eq!(backend.is_jointed(parent), Some(false));
+    assert_eq!(backend.is_jointed(child), Some(false));
+}

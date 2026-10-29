@@ -17,7 +17,7 @@ struct InitialData {
 struct PreparedData {
     world: PhysicsWorld,
     bodies: BTreeMap<BodyId, BodyEntry>,
-    joints: joints::WorldJoints,
+    joints: joints::Joints,
     next_id: u64,
 }
 
@@ -54,7 +54,7 @@ impl RapierBackend {
             let handle = insert_initial(&mut world, spec, rotational, inertia);
             bodies.insert(id, (handle, spec, rotational, inertia));
         }
-        let joints = joints::WorldJoints::restore(&initial.joints, &mut world, &bodies);
+        let joints = joints::Joints::restore(&initial.joints, &mut world, &bodies);
         Ok(PreparedPhysicsReset::new(
             &self.owner,
             PreparedData {

@@ -676,3 +676,32 @@ fn out_of_bound_steps_fault_the_simulation_and_restore_the_previous_state() {
     }
     assert!(failed.state(tumbling).unwrap().position[2] < 5.0);
 }
+
+#[test]
+fn body_revolutes_are_rejected_explicitly_without_changing_endpoints() {
+    let mut backend = DartBackend::new([0.0; 3]).unwrap();
+    let parent = backend
+        .spawn_link(ball(), RotationSpec::default(), None)
+        .unwrap();
+    let child = backend
+        .spawn_link(
+            BodySpec {
+                position: [2.0, 0.0, 5.0],
+                ..ball()
+            },
+            RotationSpec::default(),
+            None,
+        )
+        .unwrap();
+    let before = [backend.state(parent), backend.state(child)];
+    assert_eq!(
+        backend.add_revolute(parent, child, [0.0, 0.0, 5.0], [0.0, 1.0, 0.0]),
+        Err(PhysicsError::Unsupported {
+            engine: "dart",
+            capability: "body-to-body revolute joint"
+        })
+    );
+    assert_eq!([backend.state(parent), backend.state(child)], before);
+    assert_eq!(backend.is_jointed(parent), Some(false));
+    assert_eq!(backend.is_jointed(child), Some(false));
+}

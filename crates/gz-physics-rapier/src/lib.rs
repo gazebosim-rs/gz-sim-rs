@@ -26,7 +26,7 @@ pub struct RapierBackend {
     owner: Arc<()>,
     world: PhysicsWorld,
     bodies: BTreeMap<BodyId, BodyEntry>,
-    joints: joints::WorldJoints,
+    joints: joints::Joints,
     next_id: u64,
     pending_wrenches: BTreeSet<BodyId>,
 }
@@ -178,7 +178,7 @@ impl RapierBackend {
                 ..PhysicsWorld::new()
             },
             bodies: BTreeMap::new(),
-            joints: joints::WorldJoints::default(),
+            joints: joints::Joints::default(),
             next_id: 0,
             pending_wrenches: BTreeSet::new(),
         })
@@ -246,8 +246,11 @@ impl DynamicBackend for RapierBackend {
     fn remove(&mut self, id: BodyId) -> bool {
         if let Some((handle, ..)) = self.bodies.remove(&id) {
             self.pending_wrenches.remove(&id);
-            self.joints.forget_body(id);
+            let survivors = self.joints.forget_body(id);
             self.world.remove_body(handle);
+            for survivor in survivors {
+                self.release_unconstrained_body(survivor);
+            }
             self.joints.release_unused_anchor(&mut self.world);
             true
         } else {
@@ -335,7 +338,7 @@ impl DynamicBackend for RapierBackend {
         for (handle, spec, rotational, inertia) in self.bodies.values_mut() {
             *handle = initial::insert_initial(&mut self.world, *spec, *rotational, *inertia);
         }
-        self.joints = joints::WorldJoints::restore(&joints, &mut self.world, &self.bodies);
+        self.joints = joints::Joints::restore(&joints, &mut self.world, &self.bodies);
         Ok(())
     }
 
@@ -363,6 +366,16 @@ impl DynamicBackend for RapierBackend {
         axis: [f64; 3],
     ) -> Result<JointId, PhysicsError> {
         self.insert_world_revolute(child, anchor, axis)
+    }
+
+    fn add_revolute(
+        &mut self,
+        parent: BodyId,
+        child: BodyId,
+        anchor: [f64; 3],
+        axis: [f64; 3],
+    ) -> Result<JointId, PhysicsError> {
+        self.insert_revolute(Some(parent), child, anchor, axis)
     }
 
     fn joint_child(&self, id: JointId) -> Option<BodyId> {

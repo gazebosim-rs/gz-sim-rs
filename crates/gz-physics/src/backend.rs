@@ -187,7 +187,25 @@ pub trait DynamicBackend: Send + Sync + 'static {
         axis: [f64; 3],
     ) -> Result<JointId, PhysicsError>;
 
-    /// Registered dynamic endpoint of a world-anchored joint.
+    /// Constructs an unbounded revolute between registered parent and child bodies.
+    /// The child must be dynamic; the distinct parent may be fixed or dynamic.
+    /// Anchor/axis use world coordinates; the construction pose is angle zero.
+    /// Construction closes at the first advancing step and reopens after reset.
+    /// Engines without this capability reject it before argument validation.
+    fn add_revolute(
+        &mut self,
+        _parent: BodyId,
+        _child: BodyId,
+        _anchor: [f64; 3],
+        _axis: [f64; 3],
+    ) -> Result<JointId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "body-to-body revolute joint",
+        })
+    }
+
+    /// Registered child endpoint of a joint.
     fn joint_child(&self, id: JointId) -> Option<BodyId>;
 
     fn joint_state(&self, id: JointId) -> Option<JointState>;
