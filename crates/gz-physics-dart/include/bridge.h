@@ -14,6 +14,7 @@
 #include <vector>
 
 #include <dart/collision/CollisionResult.hpp>
+#include <dart/constraint/ConstrainedGroup.hpp>
 #include <dart/dynamics/Skeleton.hpp>
 #include <dart/simulation/World.hpp>
 
@@ -64,6 +65,8 @@ class World {
   bool contactsWithin(const dart::collision::CollisionResult &result) const;
   // Whether every generalized velocity is finite and within the bound.
   bool velocitiesWithin() const;
+  // Angular unit responses in actual mixed contact/limit groups.
+  bool jointsWithin(const dart::constraint::ConstrainedGroup &group) const;
   rust::Vec<rust::String> library_paths() const;
 
  private:

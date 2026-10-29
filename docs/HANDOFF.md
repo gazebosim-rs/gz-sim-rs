@@ -30,6 +30,11 @@ controls and both C++ pulse oracles are documented in
 there is no moving-parent or finite-limit claim. Required staged/hosted evidence
 and accepted status are recorded on the public dashboard.
 
+The DART runtime guard also checks active angular rows in contact-bearing groups
+against the existing native-coordinate inverse-response ceiling. This addresses
+implicit default-limit activation with tiny inertia; it does not enable finite
+limits or change solver settings. See [DART_JOINT_BOUNDARY.md](DART_JOINT_BOUNDARY.md).
+
 Finite position limits remain open. Preserve the existing strong first-crossing
 controls rather than publishing a direct maintained `set_limits` wrapper:
 

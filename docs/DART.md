@@ -86,8 +86,8 @@ a NaN in its dynamics (`updateTransmittedForceFD`, `updateBiasForce`,
 within an absolute 1e-6 (`BoxedLcpConstraintSolver.cpp:229`), and on a zero
 pivot in its Dantzig LDLT (`_dLDLTRemove`); ODE aborts when a collision bound
 leaves its hash grid (`aabbBound`). None is a C++ exception. The owner chose to
-keep this package, so the adapter keeps every state it hands DART inside bounds
-where none of these occur. Admission rejects with `InvalidValue` (a hinge with
+keep this package, so the adapter checks input and runtime numerical domains
+before constrained solves. Admission rejects with `InvalidValue` (a hinge with
 `InvalidJoint`), before any change:
 
 | Quantity | Admitted range |
@@ -102,6 +102,7 @@ where none of these occur. Admission rejects with `InvalidValue` (a hinge with
 | Dynamic body origin-inertia conditioning: m·\|c\|²/λ_min | ≤ K |
 | World revolute: ρ_a²/I_axis and m·ρ_a²/I_axis | ≤ K |
 | Summed inverse effective mass of the two bodies at every contact | ≤ 4K = 4e5 /kg |
+| Active world-hinge angular row in a contact-bearing group | Finite positive 1/I_axis ≤ 4K / (kg m²) |
 
 Here λ_i are the principal moments with axes u_i, e_j = \|c·u_j\| plus the
 shape's half-width along u_j is the shape's extent from the COM along that axis,
@@ -135,6 +136,16 @@ On a violation it skips the solve and the step is refused and restored. This
 replaces a second collision pass. Spawning a body and removing a hinge run one
 collision pass and refuse the change if a contact would exceed 4K; adding a
 hinge only constrains a body, which cannot raise the inverse effective mass.
+
+A contact-bearing group can also contain active joint-limit rows from the SDF
+default ±1e16 bounds. Their angular unit-impulse response is 1/I_axis, which the
+contact lever-arm bound does not constrain for tiny geometry. Before native LCP
+assembly, the bridge checks these rows against the existing numerical ceiling
+4K, in angular SI coordinates. It checks the actual active group and each row's
+own one-DOF skeleton; isolated scalar solves and unrelated islands are unchanged.
+This is an additional numerical-domain bound, not a unit-invariant condition
+number proof or finite-limit support. [DART_JOINT_BOUNDARY.md](DART_JOINT_BOUNDARY.md)
+records the native failure, rollback/command controls and remaining scope.
 
 The 1e60 bound keeps products of up to five such factors (I·ω², m·c·ω², F/m,
 τ/λ_min, m·g, a hinge's m·r·ω² and r×(m·r·ω²)) below 1e300. The 5e8 m bound

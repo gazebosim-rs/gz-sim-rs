@@ -534,6 +534,7 @@ impl DynamicBackend for DartBackend {
             0 => None,
             1 => Some("a velocity became nonfinite or exceeded 1e60"),
             2 => Some("a collision bound left the 5e8 m grid"),
+            4 => Some("an active joint limit exceeded the inverse-inertia bound"),
             _ => Some("a contact exceeded the inverse-mass bound"),
         };
         if let Some(reason) = refusal {

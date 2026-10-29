@@ -22,6 +22,12 @@ with adapter-specific native failure behavior and reset/retirement controls.
 Other adapters currently report this capability unsupported; see
 [JOINT_EFFORT.md](JOINT_EFFORT.md). Finite limit editing is still unimplemented.
 
+The DART solve boundary also bounds active angular inverse response in mixed
+contact groups. Tiny geometry can otherwise hide that response from the contact
+lever-arm bound when default position-limit rows activate. Existing solver settings
+and tests remain; isolated scalar rows keep native behavior. See
+[DART_JOINT_BOUNDARY.md](DART_JOINT_BOUNDARY.md) for the limited safety scope.
+
 The selected real C++ CLI/server matrix now also runs with DART and MuJoCo,
 preserving all prior TPE/Rapier assertions. Author and independent CLI,
 39-scenario server and four-engine rate/reset runs pass; see
