@@ -17,9 +17,9 @@ The native server lifecycle fixture also runs its five DART rows on both DART
 and Rapier, retaining the five TPE rows and every existing assertion. Server
 runtime-library pinning has direct subprocess tests; see [DART.md](DART.md).
 
-DART's existing world hinges also accept deferred additive generalized effort
-commands, with atomic world-wrench preparation, retry and reset/retirement
-controls. Other adapters currently report this capability unsupported; see
+DART and MuJoCo world hinges accept deferred additive generalized effort commands,
+with adapter-specific native failure behavior and reset/retirement controls.
+Other adapters currently report this capability unsupported; see
 [JOINT_EFFORT.md](JOINT_EFFORT.md). Finite limit editing is still unimplemented.
 
 The selected real C++ CLI/server matrix now also runs with DART and MuJoCo,

@@ -299,6 +299,7 @@ pub struct MujocoBackend {
     joints_open: bool,
     /// Pending world [force, torque] per body, applied at the COM for one step.
     wrenches: BTreeMap<BodyId, [f64; 6]>,
+    joint_efforts: BTreeMap<JointId, f64>,
     timestep: f64,
     warnings: Vec<&'static str>,
     compiles: AtomicU64,
@@ -332,6 +333,7 @@ impl MujocoBackend {
             pristine: BTreeSet::new(),
             joints_open: true,
             wrenches: BTreeMap::new(),
+            joint_efforts: BTreeMap::new(),
             timestep: DEFAULT_TIMESTEP,
             warnings: Vec::new(),
             compiles: AtomicU64::new(1),
@@ -508,6 +510,7 @@ impl DynamicBackend for MujocoBackend {
         }
         if let Some(joint) = self.records.hinges.remove(&id) {
             self.records.joints.remove(&joint);
+            self.joint_efforts.remove(&joint);
         }
         self.wrenches.remove(&id);
         self.pristine.remove(&id);
@@ -681,6 +684,18 @@ impl DynamicBackend for MujocoBackend {
         Ok(id)
     }
 
+    fn add_joint_effort(&mut self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
+        if !self.records.joints.contains_key(&id) {
+            return Err(PhysicsError::MissingJoint);
+        }
+        let next = self.joint_efforts.get(&id).copied().unwrap_or(0.0) + torque;
+        if !torque.is_finite() || !next.is_finite() {
+            return Err(PhysicsError::InvalidValue);
+        }
+        self.joint_efforts.insert(id, next);
+        Ok(())
+    }
+
     fn joint_child(&self, id: JointId) -> Option<BodyId> {
         self.records.joints.get(&id).map(|joint| joint.child)
     }
@@ -730,6 +745,7 @@ impl DynamicBackend for MujocoBackend {
         // Retain its compiled state instead of restoring the free start record.
         self.pristine.remove(&child);
         self.records.joints.remove(&id);
+        self.joint_efforts.remove(&id);
         self.records.hinges.remove(&child);
         self.mark(Edit::Transfer);
         true
@@ -754,7 +770,27 @@ impl DynamicBackend for MujocoBackend {
         self.joints_open = false;
         self.pristine.clear();
         self.timestep = dt.as_secs_f64();
+        let efforts: Vec<_> = self
+            .joint_efforts
+            .iter()
+            .map(|(&id, &effort)| {
+                let body = self.engine.slots[&self.records.joints[&id].child];
+                // Every admitted world hinge compiles to one generalized coordinate.
+                let (_, dof) = self
+                    .engine
+                    .world
+                    .joint_address(body)
+                    .expect("compiled hinge");
+                (dof, effort)
+            })
+            .collect();
         let engine = &mut self.engine;
+        if !efforts.is_empty() {
+            let applied = engine.world.qfrc_applied_mut();
+            for &(dof, effort) in &efforts {
+                applied[dof] = effort;
+            }
+        }
         let applied = engine.world.xfrc_applied_mut();
         for (id, wrench) in &self.wrenches {
             let body = engine.slots[id];
@@ -764,6 +800,12 @@ impl DynamicBackend for MujocoBackend {
         let start = engine.world.time();
         engine.world.step(self.timestep);
         engine.world.xfrc_applied_mut().fill(0.0);
+        if !efforts.is_empty() {
+            let applied = engine.world.qfrc_applied_mut();
+            for &(dof, _) in &efforts {
+                applied[dof] = 0.0;
+            }
+        }
         // MuJoCo's own reset after a bad state zeroes time and all counts, then
         // counts the cause once; time going back reveals a repeated reset.
         let reset = engine.world.time() < start + 0.5 * self.timestep;
@@ -772,6 +814,7 @@ impl DynamicBackend for MujocoBackend {
         let (fatal, recoverable) = native::classify_warnings(counts, previous, reset);
         self.warnings = recoverable;
         if fatal.is_empty() {
+            self.joint_efforts.clear();
             return Ok(());
         }
         Err(native_error(format!(
@@ -787,6 +830,7 @@ impl DynamicBackend for MujocoBackend {
         self.mark(Edit::Fresh);
         self.pristine = self.records.bodies.keys().copied().collect();
         self.wrenches.clear();
+        self.joint_efforts.clear();
         self.warnings.clear();
         self.joints_open = true;
         Ok(())
@@ -827,6 +871,7 @@ impl DynamicBackend for MujocoBackend {
         self.edit = None;
         self.pending = OnceLock::new();
         self.wrenches.clear();
+        self.joint_efforts.clear();
         self.warnings.clear();
         self.joints_open = true;
         Ok(())

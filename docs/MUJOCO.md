@@ -228,3 +228,13 @@ or the gz-physics vendored build) on the loader path or via `MUJOCO_PREFIX`;
 without it every backend test fails at `MujocoBackend::new`. Regenerating the
 parity fixture additionally needs gz-physics with its MuJoCo plugin, gz-plugin
 and sdformat.
+
+## Generalized joint effort
+
+World hinges accept deferred `DynamicBackend::add_joint_effort` commands through
+MuJoCo's native generalized-force array. They accumulate before an advancing
+step, resolve DOF addresses after pending topology changes, and consume once on
+success. The existing fatal-warning data reset is preserved, with pending effort
+available for explicit cancellation; body-wrench behavior is unchanged. See
+[JOINT_EFFORT.md](JOINT_EFFORT.md) for numeric, retirement/reset and C++ oracle
+controls. This does not add actuators, finite limits or moving-parent joints.

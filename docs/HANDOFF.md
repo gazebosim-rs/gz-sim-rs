@@ -19,11 +19,13 @@ current state and the next tasks. Update both when either changes.
 
 ## Current P3 follow-up
 
-The reviewed joint-effort slice adds `DynamicBackend::add_joint_effort` and a
-DART world-hinge implementation. Commands are deferred by joint ID, consumed only
+The joint-effort API adds `DynamicBackend::add_joint_effort`; its DART world-hinge
+implementation was accepted at 1982aa0. The current extension supports MuJoCo's
+world hinges through its native generalized-force array. Commands are deferred by joint ID, consumed only
 by a successful advancing step, and retired with the joint/body or either reset.
-The temporary world-wrench overlay is checked before any native mutation. Nine
-public controls and six real C++ plugin force pulses are documented in
+DART checks its temporary world-wrench overlay before native mutation; MuJoCo
+resolves current DOF addresses after model settlement. Public lifecycle/physical
+controls and both C++ pulse oracles are documented in
 [JOINT_EFFORT.md](JOINT_EFFORT.md). Other adapters retain explicit `Unsupported`;
 there is no moving-parent or finite-limit claim. Required staged/hosted evidence
 and accepted status are recorded on the public dashboard.

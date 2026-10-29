@@ -361,3 +361,28 @@ fn real_contact_exhaustion_is_reported_by_backend_steps_and_reset_recovers() {
     assert_eq!(mujoco.engine.world.time(), 0.001);
     assert_eq!(mujoco.state(bodies[0]).unwrap().position, [0.0; 3]);
 }
+
+#[test]
+fn changing_joint_efforts_do_not_recompile_the_native_model() {
+    let mut b = MujocoBackend::new([0.0; 3]).unwrap();
+    let joints: Vec<_> = (0..20)
+        .map(|i| {
+            let position = [2.0 * i as f64, 0.0, 0.0];
+            let child = b.spawn(BodySpec { position, ..ball() }).unwrap();
+            b.add_world_revolute(child, position, [0.0, 1.0, 0.0])
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(compiles(&b), 1);
+    for step in 0..100 {
+        let effort = if step % 2 == 0 { 1.0 } else { -0.5 };
+        for &joint in &joints {
+            b.add_joint_effort(joint, effort).unwrap();
+        }
+        b.step(Duration::from_millis(1)).unwrap();
+        assert_eq!(compiles(&b), 2);
+    }
+    for joint in joints {
+        assert!((b.joint_state(joint).unwrap().velocity - 0.25).abs() < 1e-12);
+    }
+}

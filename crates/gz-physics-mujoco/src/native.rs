@@ -449,6 +449,11 @@ impl World {
         self.array_mut(pointer, nbody, 6)
     }
 
+    pub(crate) fn qfrc_applied_mut(&mut self) -> &mut [f64] {
+        let (pointer, nv) = (self.data().qfrc_applied, self.nv());
+        self.array_mut(pointer, nv, 1)
+    }
+
     /// Joint address of `body`, as (qpos address, dof address), when it has one.
     pub(crate) fn joint_address(&self, body: usize) -> Option<(usize, usize)> {
         let jntadr = self.array(self.model().body_jntadr, self.nbody(), 1)[body];
