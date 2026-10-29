@@ -84,12 +84,10 @@ Recorded here and, where they are product decisions, in DECISIONS.md.
 
 ## Known tooling issues (2026-10-29)
 
-- The owner guidance in AGENTS.md was also added to gz-msgs-rs and the tracker,
-  but not to sdformat-rs or gz-transport-rs:
-  - sdformat-rs's hook treats AGENTS.md as protected policy and requires an
-    independent-review receipt (the hash-bound review step the owner asked to
-    drop). Changing that hook is the owner's decision.
-  - gz-transport-rs's hook fails in a shell with ROS Jazzy sourced: its native
+- Shared owner guidance is installed in every coordinator-managed repository.
+  SDF's existing hook still requires independent review for protected files;
+  reviewers satisfy that check without adding frozen proposals or build archives.
+- gz-transport-rs's hook fails in a shell with ROS Jazzy sourced: its native
     C++ test binaries in `gz-transport/build/bin` resolve `libgz-transport` and
     zenoh from `LD_LIBRARY_PATH` and fail to load, so the reference-ledger check
     reports every case missing. Its C++ peer build also needs
@@ -103,14 +101,16 @@ Recorded here and, where they are product decisions, in DECISIONS.md.
    TPE and all original assertions. The server pins the native library with
    DEP_DART_LIBDIR and tests it under a shadowing library path. Author and
    independent focused runs and the mandatory staged hook passed in published
-   `c9449ac`; exact hosted run 40871693297 is pending.
-   The next MuJoCo slice rejects hinge removal above mjMAXVAL and preserves
+   `c9449ac`; exact hosted run 40871693297 passed.
+   Published `9cbb7cb` rejects MuJoCo hinge removal above mjMAXVAL and preserves
    projected velocity when removing an unstepped hinge. Both regressions were
-   reproduced before the fix; review and full staged acceptance remain required.
+   reproduced before the fix; independent review and the full staged gate passed.
+   Exact hosted run 40873469093 is pending. The next test extends actual contact
+   arena exhaustion coverage through backend steps, warning exposure and reset.
 2. MuJoCo follow-ups (low, not reachable through the scene today): extreme
    inertial-centre offsets are admitted but fault the first step; the hinged load
    comparison against the native plugin is not like-for-like (the plugin adds
-   actuators); the real contact-overflow test bypasses `MujocoBackend::step`.
+   actuators). Contact exhaustion now also has a real backend-step regression.
 3. P3 capabilities, one reviewed slice at a time: general articulation (model
    joint trees, not only world revolutes), joint limits/damping/effort, contact
    surface properties, mesh/plane/heightmap shapes. Port the matching

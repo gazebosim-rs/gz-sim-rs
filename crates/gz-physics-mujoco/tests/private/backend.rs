@@ -310,3 +310,54 @@ fn native_readback_agrees_with_answers_given_before_compiling() {
         }
     }
 }
+
+#[test]
+fn real_contact_exhaustion_is_reported_by_backend_steps_and_reset_recovers() {
+    let mut mujoco = MujocoBackend::new([0.0; 3]).unwrap();
+    let bodies: Vec<_> = (0..60)
+        .map(|i| {
+            mujoco
+                .spawn(BodySpec {
+                    shape: Shape::Sphere { radius: 0.1 },
+                    position: [0.0, 0.0, i as f64 * 1e-3],
+                    ..ball()
+                })
+                .unwrap()
+        })
+        .collect();
+    mujoco.settle().unwrap();
+    // Keep the real model and body mapping; constrain only its native arena.
+    mujoco.engine.world = native::World::compile_with_arena(
+        mujoco.records.gravity,
+        &mujoco.records.models(),
+        1 << 20,
+    )
+    .unwrap();
+    mujoco.engine.warnings = mujoco.engine.world.warnings();
+    let dt = Duration::from_millis(1);
+    for step in 1..=2 {
+        mujoco.step(dt).unwrap();
+        assert_eq!(mujoco.step_warnings(), ["contact buffer full"]);
+        assert_eq!(mujoco.engine.world.time(), 0.001 * step as f64);
+        for body in &bodies {
+            let state = mujoco.state(*body).unwrap();
+            assert!(state.position.into_iter().all(f64::is_finite));
+            assert!(state.velocity.into_iter().all(f64::is_finite));
+            assert!(state.orientation.into_iter().all(f64::is_finite));
+            assert!(state.angular_velocity.into_iter().all(f64::is_finite));
+        }
+    }
+    mujoco.step(Duration::ZERO).unwrap();
+    assert_eq!(mujoco.step_warnings(), ["contact buffer full"]);
+    assert_eq!(mujoco.engine.world.time(), 0.002);
+
+    for body in &bodies[1..] {
+        assert!(mujoco.remove(*body));
+    }
+    mujoco.reset().unwrap();
+    assert!(mujoco.step_warnings().is_empty());
+    mujoco.step(dt).unwrap();
+    assert!(mujoco.step_warnings().is_empty());
+    assert_eq!(mujoco.engine.world.time(), 0.001);
+    assert_eq!(mujoco.state(bodies[0]).unwrap().position, [0.0; 3]);
+}

@@ -172,6 +172,13 @@ rose in the last step. Counts are cumulative, so MuJoCo logs only the first
 occurrence of each per compiled model through the installed handler. A private
 test overflows a real 1 MiB contact arena with sixty overlapping spheres: each
 step reports "contact buffer full" and time advances without a reset.
+A backend-level regression also runs sixty admitted, overlapping spheres through
+`MujocoBackend::step` with an explicitly reduced 1 MiB test arena. Two real
+advancing steps expose the warning without resetting time or losing body state;
+a zero-duration call retains the last warning, and removal/reset recompiles
+with the normal arena and restores a warning-free run. No warning counters are injected in this test. The reduced
+arena exercises the actual recovery path; it does not characterize the default
+arena's capacity or contact accuracy when contacts are dropped.
 
 Fatal MuJoCo errors, including allocation failure in `mj_makeData` or arena and
 stack exhaustion reported through `mju_error`, abort the process.
