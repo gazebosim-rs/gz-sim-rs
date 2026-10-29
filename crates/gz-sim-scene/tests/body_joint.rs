@@ -279,17 +279,24 @@ fn parent_and_sampling_corruption_faults_before_removal_or_time_advances() {
 }
 
 #[test]
-fn larger_or_aliased_topologies_are_rejected_explicitly() {
+fn unsupported_links_and_endpoint_aliases_are_rejected_explicitly() {
     use gz_sim_scene::LoadError;
     for xml in [
         XML.replace("</model>", "<link name='extra'/></model>"),
-        XML.replace("<parent>parent</parent>", "<parent>world</parent>"),
-        XML.replace("<model name='robot'>", "<model name='robot'><frame name='mount' attached_to='parent'/>")
-            .replace("<parent>parent</parent>", "<parent>mount</parent>"),
-        XML.replace("</model>", "<joint name='other' type='revolute'><parent>world</parent><child>parent</child><axis><xyz>0 1 0</xyz></axis></joint></model>"),
+        XML.replace(
+            "<model name='robot'>",
+            "<model name='robot'><frame name='mount' attached_to='parent'/>",
+        )
+        .replace("<parent>parent</parent>", "<parent>mount</parent>"),
     ] {
         assert!(matches!(
-            load_world_with_sdf_step(&xml, "body_joint.sdf", "default", &NoResources, PhysicsEngine::Rapier),
+            load_world_with_sdf_step(
+                &xml,
+                "body_joint.sdf",
+                "default",
+                &NoResources,
+                PhysicsEngine::Rapier
+            ),
             Err(LoadError::Unsupported { .. })
         ));
     }
@@ -446,4 +453,229 @@ fn joint_endpoint_group_cannot_use_another_joint_as_its_model() {
         );
         assert_eq!(sim.elapsed().as_nanos(), 0);
     }
+}
+
+#[test]
+fn previously_rejected_world_root_and_forest_inputs_preserve_physics_and_reset() {
+    use glam::{DQuat, DVec3};
+    for (rooted, xml) in [
+        (false, XML.replace("<parent>parent</parent>", "<parent>world</parent>")),
+        (true, XML.replace("</model>", "<joint name='other' type='revolute'><parent>world</parent><child>parent</child><axis><xyz>0 1 0</xyz></axis></joint></model>")),
+    ] {
+        let mut sim = load_world_with_sdf_step(&xml, "body_joint.sdf", "default", &NoResources, PhysicsEngine::Rapier).unwrap();
+        let parent = named(&sim, "default::robot::parent");
+        let child = named(&sim, "default::robot::child");
+        let joint = named(&sim, "default::robot::hinge");
+        let initial_joint = *sim.world().get::<WorldPose>(joint).unwrap();
+        let parent_pose = *sim.world().get::<WorldPose>(parent).unwrap();
+        let parent_body = sim.world().get::<BodyHandle>(parent).unwrap().id();
+        let child_body = sim.world().get::<BodyHandle>(child).unwrap().id();
+        if rooted {
+            let axis = DQuat::from_array(parent_pose.rotation) * DVec3::Y;
+            let arm = DVec3::from_array(sim.world().get::<WorldPose>(child).unwrap().translation)
+                - DVec3::from_array(parent_pose.translation);
+            sim.world_mut().resource_mut::<PhysicsBackend>().set_world_velocity(child_body, axis.cross(arm).to_array(), axis.to_array()).unwrap();
+        } else {
+            assert_eq!(sim.world().resource::<PhysicsBackend>().is_jointed(parent_body), Some(false));
+            sim.world_mut().resource_mut::<PhysicsBackend>().set_world_velocity(parent_body, [1.0, 0.0, 0.0], [0.0; 3]).unwrap();
+        }
+        sim.step_exact(100).unwrap();
+        let joint_pose = sim.world().get::<WorldPose>(joint).unwrap();
+        assert!((DVec3::from_array(joint_pose.translation) - DVec3::from_array(initial_joint.translation)).length() < 1e-4);
+        if rooted {
+            assert!(sim.world().get::<JointSample>(joint).unwrap().state.position > 0.05);
+            assert!((sim.world().get::<WorldPose>(parent).unwrap().translation[0] - parent_pose.translation[0]).abs() < 1e-5);
+        } else {
+            assert!((sim.world().get::<WorldPose>(parent).unwrap().translation[0] - parent_pose.translation[0] - 0.1).abs() < 1e-10);
+            assert!(sim.world().get::<JointSample>(joint).unwrap().state.position.abs() < 1e-12);
+        }
+        reset_loaded_world(&mut sim, |_| ()).unwrap();
+        let joint = named(&sim, "default::robot::hinge");
+        assert_eq!(sim.world().get::<JointSample>(joint).unwrap().state.position, 0.0);
+        assert_eq!(sim.world().get::<JointSample>(joint).unwrap().epoch, 1);
+        sim.step_exact(10).unwrap();
+        assert!(sim.world().get::<JointSample>(joint).unwrap().state.position.abs() < 1e-12);
+    }
+}
+
+#[test]
+fn three_link_revolutes_keep_relative_motion_contacts_and_loaded_lifecycle() {
+    use glam::{DQuat, DVec3};
+    let xml = XML.replace("0 0 -1 0 0 0", "0 0 0 0 0 0")
+        .replace("</model>", "<link name='third'><collision name='shape'><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link><joint name='second' type='revolute'><parent>child</parent><child>third</child><axis><xyz expressed_in='__model__'>0 1 0</xyz></axis></joint></model>");
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "articulated.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let model = named(&sim, "default::robot");
+    let model_id = sim.world().get::<EntityId>(model).unwrap().get();
+    let parent = named(&sim, "default::robot::parent");
+    let initial = *sim.world().get::<WorldPose>(parent).unwrap();
+    let axis = DQuat::from_array(initial.rotation) * DVec3::Y;
+    for (name, speed) in [("parent", 1.0), ("child", 2.0), ("third", 3.0)] {
+        let entity = named(&sim, &format!("default::robot::{name}"));
+        let body = sim.world().get::<BodyHandle>(entity).unwrap().id();
+        sim.world_mut()
+            .resource_mut::<PhysicsBackend>()
+            .set_world_velocity(body, [0.3, 0.0, 0.0], (axis * speed).to_array())
+            .unwrap();
+    }
+    sim.step_exact(100).unwrap();
+    let mut joints = Vec::new();
+    for name in ["hinge", "second"] {
+        let joint = named(&sim, &format!("default::robot::{name}"));
+        let sample = sim.world().get::<JointSample>(joint).unwrap();
+        assert!((sample.state.position - 0.1).abs() < 1e-7);
+        assert!((sample.state.velocity - 1.0).abs() < 1e-10);
+        joints.push(sim.world().get::<JointHandle>(joint).unwrap().id());
+    }
+    for name in ["parent", "child", "third"] {
+        let entity = named(&sim, &format!("default::robot::{name}"));
+        let position = sim.world().get::<WorldPose>(entity).unwrap().translation;
+        assert!(
+            (DVec3::from_array(position)
+                - DVec3::from_array(initial.translation)
+                - DVec3::new(0.03, 0.0, 0.0))
+            .length()
+                < 1e-10
+        );
+    }
+    remove_model(&mut sim, model_id).unwrap();
+    for joint in joints {
+        assert!(
+            sim.world()
+                .resource::<PhysicsBackend>()
+                .joint_state(joint)
+                .is_none()
+        );
+    }
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    sim.step_exact(100).unwrap();
+    for name in ["hinge", "second"] {
+        let joint = named(&sim, &format!("default::robot::{name}"));
+        assert!(
+            sim.world()
+                .get::<JointSample>(joint)
+                .unwrap()
+                .state
+                .position
+                .abs()
+                < 1e-12
+        );
+    }
+}
+
+#[test]
+fn cycles_and_multiple_parent_joints_are_explicitly_rejected() {
+    use gz_sim_scene::LoadError;
+    for (extra, feature) in [
+        (
+            "<joint name='other' type='revolute'><parent>child</parent><child>parent</child><axis><xyz>0 1 0</xyz></axis></joint>",
+            "closed joint loops",
+        ),
+        (
+            "<joint name='other' type='revolute'><parent>world</parent><child>child</child><axis><xyz>0 1 0</xyz></axis></joint>",
+            "multiple parent joints",
+        ),
+    ] {
+        let xml = XML.replace("</model>", &format!("{extra}</model>"));
+        assert!(
+            matches!(load_world_with_sdf_step(&xml, "articulated.sdf", "default", &NoResources, PhysicsEngine::Rapier), Err(LoadError::Unsupported { feature: f, .. }) if f == feature)
+        );
+    }
+}
+
+#[test]
+fn deep_valid_joint_graph_reaches_geometry_checks_without_recursion() {
+    use gz_sim_scene::LoadError;
+    let mut xml = String::from("<sdf version='1.12'><world name='default'><model name='chain'>");
+    for index in 0..=20_000 {
+        xml.push_str(&format!("<link name='l{index}'/>"));
+        if index != 0 {
+            xml.push_str(&format!("<joint name='j{index}' type='revolute'><parent>l{}</parent><child>l{index}</child><axis><xyz>0 1 0</xyz></axis></joint>", index - 1));
+        }
+    }
+    xml.push_str("</model></world></sdf>");
+    assert!(matches!(
+        load_world_with_sdf_step(
+            &xml,
+            "deep.sdf",
+            "default",
+            &NoResources,
+            PhysicsEngine::Rapier
+        ),
+        Err(LoadError::Unsupported {
+            feature: "collision count (expected one)",
+            ..
+        })
+    ));
+}
+
+#[test]
+fn separate_articulated_models_keep_external_contacts_and_distinct_groups() {
+    let body = XML
+        .split_once("<model name='robot'>")
+        .unwrap()
+        .1
+        .split_once("</model>")
+        .unwrap()
+        .0
+        .replace(
+            "<pose>2 -3 4 0.2 -0.3 0.4</pose>",
+            "<pose>0 0 0 0 0 0</pose>",
+        )
+        .replace("0 0 -1 0 0 0", "0 0 0 0 0 0");
+    let other = body.replacen("<pose>0 0 0 0 0 0</pose>", "<pose>0.15 0 0 0 0 0</pose>", 1);
+    let xml = format!(
+        "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.001</max_step_size></physics><model name='a'>{body}</model><model name='b'>{other}</model></world></sdf>"
+    );
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "models.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let a = named(&sim, "default::a::parent");
+    let b = named(&sim, "default::b::parent");
+    let model_b = named(&sim, "default::b");
+    let model_b_id = sim.world().get::<EntityId>(model_b).unwrap().get();
+    sim.step_exact(100).unwrap();
+    assert!(sim.world().get::<WorldPose>(a).unwrap().translation[0] < -1e-4);
+    assert!(sim.world().get::<WorldPose>(b).unwrap().translation[0] > 0.1501);
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    remove_model(&mut sim, model_b_id).unwrap();
+    let a = named(&sim, "default::a::parent");
+    sim.step_exact(100).unwrap();
+    assert!(sim.world().get::<WorldPose>(a).unwrap().translation[0].abs() < 1e-12);
+}
+
+#[test]
+fn unconstrained_links_in_an_articulated_model_share_its_contact_group() {
+    use glam::DVec3;
+    let xml = XML.replace("0 0 -1 0 0 0", "0 0 0 0 0 0")
+        .replace("</model>", "<link name='free'><collision name='shape'><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link></model>");
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "forest.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let free = named(&sim, "default::robot::free");
+    let body = sim.world().get::<BodyHandle>(free).unwrap().id();
+    assert_eq!(
+        sim.world().resource::<PhysicsBackend>().is_jointed(body),
+        Some(false)
+    );
+    let initial = sim.world().get::<WorldPose>(free).unwrap().translation;
+    sim.step_exact(100).unwrap();
+    let actual = sim.world().get::<WorldPose>(free).unwrap().translation;
+    assert!((DVec3::from_array(actual) - DVec3::from_array(initial)).length() < 1e-10);
 }

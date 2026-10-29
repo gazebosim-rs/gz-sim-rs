@@ -25,16 +25,15 @@ for this new capability; their existing world-revolute behavior is unchanged.
 Tests use actual native backends to verify rejection leaves both bodies unchanged.
 TPE has no dynamic-joint support. There is no world-anchor fallback.
 
-This is a programmatic backend primitive. The SDF scene loader still supports its
-previous single world-anchored revolute topology. General SDF link trees, native
-body-joint adapters, loop/collision policies, limits, motors and full per-backend
-conformance remain separate P3 work. No upstream case is retired and no new
+This primitive also backs the bounded SDF articulation loader described in
+[ARTICULATED_SCENES.md](ARTICULATED_SCENES.md). Native body-joint adapters,
+loop/collision policies, limits, motors and full per-backend conformance remain
+separate P3 work. No upstream case is retired and no new
 performance or native cross-engine numerical-parity result is claimed.
 
 The new Rapier tests exercise moving/rotated parents, a hinge axis rotating in
 world space with angle/velocity consistency, relative complete turns,
 a fixed-parent pendulum, mixed world/body constraints, endpoint removal,
 prepared reset, ID retirement and atomic invalid/overflowing-frame rejection.
-The existing world-joint/native-reference tests remain unchanged. This candidate
-requires independent review and the mandatory strict staged/hosted gates before
-acceptance.
+The existing world-joint/native-reference tests remain unchanged. The primitive
+passed independent review and strict staged/hosted checks at `26ca44f`.

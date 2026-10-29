@@ -1,9 +1,9 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-# Two-link SDF revolute loading
+# Initial two-link SDF qualification
 
-The candidate scene loader admits one revolute connecting two direct links of a
+The initial qualification at `9e8e056` admitted one revolute connecting two direct links of a
 single top-level dynamic model on Rapier. Both endpoint names must resolve to
 those links. SDF graph transforms resolve the initial world anchor and axis;
 the backend constructs both local frames. The existing one-link world revolute
@@ -31,5 +31,7 @@ world-joint/native-reference tests are retained. These are supplemental
 capability tests, not completion of an upstream articulation test family.
 No new cross-engine accuracy or equal-work performance claim is made.
 
-Independent review and the normal strict staged and hosted checks are required
-before this candidate is accepted.
+That slice passed independent review and the normal strict staged/hosted checks.
+Expanded local-link graph support is described in
+[ARTICULATED_SCENES.md](ARTICULATED_SCENES.md); the restrictions above record
+this earlier qualification's scope.

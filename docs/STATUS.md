@@ -2,7 +2,7 @@
 
 P2 is closed for the selected headless world; see [acceptance/P2.md](acceptance/P2.md).
 The networked headless CLI server mode is published with real C++ client tests on
-TPE and Rapier; see [LIVE_CLI.md](LIVE_CLI.md). Broader CLI parity remains open.
+TPE, Rapier, DART and MuJoCo; see [LIVE_CLI.md](LIVE_CLI.md). Broader CLI parity remains open.
 Work continues in P3; see [HANDOFF.md](HANDOFF.md). Every dynamic engine now
 implements the shared `gz_physics::DynamicBackend` contract. The native MuJoCo
 3.11.0 adapter (PHY-04 first slice) is selectable with `--physics-engine mujoco`
@@ -20,8 +20,18 @@ runtime-library pinning has direct subprocess tests; see [DART.md](DART.md).
 The selected real C++ CLI/server matrix now also runs with DART and MuJoCo,
 preserving all prior TPE/Rapier assertions. Author and independent CLI,
 39-scenario server and four-engine rate/reset runs pass; see
-[the scope](NATIVE_BACKEND_INTEROP.md). Mandatory staged/hosted verification
-remains required for that change.
+[the scope](NATIVE_BACKEND_INTEROP.md). Its normal staged hook and exact hosted
+run 40884876987 passed.
+
+Rapier supports programmatic body-to-body revolutes and construction-time
+contact-exclusion groups. Scene loading supports top-level dynamic acyclic
+local-link revolute graphs with world roots and disconnected components;
+see [ARTICULATED_SCENES.md](ARTICULATED_SCENES.md). Cycle detection uses an
+iterative maintained algorithm, with a 20,000-edge admission regression.
+This remains a bounded P3 capability: native body-joint adapters, aliases as
+physical endpoints, nested/static articulations, limits/dynamics and full
+backend conformance remain open. Existing unarticulated multi-link contact
+behavior is unchanged and separately unqualified. No new speedup is claimed.
 
 The sections below retain historical evidence and its original limitations.
 The current phase state above supersedes historical statements about P2 being

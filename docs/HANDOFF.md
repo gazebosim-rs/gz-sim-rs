@@ -28,17 +28,25 @@ current state and the next tasks. Update both when either changes.
 | `8e9cf52` | Rapier and the scene moved onto that contract |
 | `074c29b` | Native MuJoCo 3.11.0 adapter ([MUJOCO.md](MUJOCO.md)), `--physics-engine mujoco` |
 | `85dd4ab` | Native DART 6.13.2 adapter ([DART.md](DART.md)), `--physics-engine dart` |
+| `ca37d5c` | Real C++ headless interoperability qualified on all four retained engines |
+| `26ca44f` | Programmatic Rapier body-to-body revolutes |
+| `9e8e056` | Initial two-link SDF articulation and endpoint/model lifecycle validation |
+| `675c4e0` | Programmatic Rapier contact-exclusion groups and lifecycle evidence |
 
-- All of them passed the staged pre-commit gate and hosted CI. `main` is clean
-  and pushed in every repository. The [dashboard](https://gazebosim-rs.github.io/rewrite-progress/)
+- The commits listed above passed the staged pre-commit gate and hosted CI. The [dashboard](https://gazebosim-rs.github.io/rewrite-progress/)
   shows P2 complete and P3 in progress.
 - Engines: Rapier (full f64), DART, MuJoCo and TPE are selectable in the scene
   and CLI; the CLI also accepts the upstream `gz-physics-*-plugin` names.
   DART and MuJoCo match the native gz-physics plugins bit for bit or within
   1e-14 on their parity fixtures. Bullet stays rejected (decision D04).
-- P3 remains open: articulation beyond world revolute joints, joint limits and
-  damping, contact properties, meshes/planes/heightmaps, and conformance against
-  gz-physics `test/common_test` for each backend.
+- Rapier now has body-to-body revolutes and construction-time contact exclusion
+  groups. Its scene loader supports top-level dynamic acyclic local-link revolute
+  graphs, including world roots and disconnected components. See
+  [ARTICULATED_SCENES.md](ARTICULATED_SCENES.md) for exact boundaries and evidence.
+  Native DART/MuJoCo body-joint adapters remain unsupported.
+- P3 remains open: native larger articulations, joint limits and damping,
+  contact properties, meshes/planes/heightmaps, and conformance against
+  gz-physics `test/common_test` for each backend. No general speedup is claimed.
 
 ## Owner decisions made during this handoff
 
@@ -57,6 +65,11 @@ Recorded here and, where they are product decisions, in DECISIONS.md.
   (minimum mass 1e-5 kg, anisotropy cap, conditioning rule) instead of linking
   a different DART. Where native DART itself diverges, the adapter returns a
   typed error; native Gazebo aborts.
+
+Before changing the SDF consumer pin, audit newly admitted coupling metadata.
+The current pin rejects mimic declarations before scene loading; a future
+mimic-capable producer needs an explicit scene rejection until a solver implements
+that coupling. Declared child frames must remain distinct from physical bodies.
 
 ## Local setup
 

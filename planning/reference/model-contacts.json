@@ -1,0 +1,176 @@
+{
+  "scope": "Native default model self-contact exclusion, distinct-model contact, link-only flag, model flag and three-link articulated nonadjacent counts with an enabled-contact control. Contact presence only; no numerical or performance parity claim.",
+  "revision": "b44cd0d0ea6606b6c98320c0c87a5670d4fc6be6",
+  "sources": {
+    "dartsim/src/AddedMassFeatures.cc": "0b96c82cf9738d288535dac3b6acebaf1cff442438c87815ed349647072f5b08",
+    "dartsim/src/AddedMassFeatures.hh": "b38ac885ac56995f060abc25f1b0e81866ee8ebdd8e594c458671f22543e238a",
+    "dartsim/src/AddedMassFeatures_TEST.cc": "c8455d9d75c416514aa2b29dc697bb3f2dd825d7de11703f0159cd7622bd3a9c",
+    "dartsim/src/Base.hh": "4600ff9990a7aae15ea768f2f6253f3bbcf9e73ac7cd354752b3d203db4cabe3",
+    "dartsim/src/Base_TEST.cc": "11d6af09248ef7f0223580117dcde9a421927361109e18fc27e59555ec06ca6d",
+    "dartsim/src/CustomConeMeshShape.cc": "7adb5f09ca0ce88a2909347f852f10a1976e530b5171bd46e066f38c31c4f416",
+    "dartsim/src/CustomConeMeshShape.hh": "8ae1203a43ee75ff0b115d1e3bd3f4ab34263073baa48cf6ca7e95ab1307c977",
+    "dartsim/src/CustomFeatures.cc": "618e975c49180581e57d83d538cf0fa0df1dd2385829a9b079b6a64296a7aad0",
+    "dartsim/src/CustomFeatures.hh": "e43ac5da4af6b803de275443c2dffa517a26441585e642567f639b3a226ce717",
+    "dartsim/src/CustomHeightmapShape.cc": "b55c638c393c270bee0c03d538503cabc549ea04adce2492ecb44e8501a8c013",
+    "dartsim/src/CustomHeightmapShape.hh": "c4f822ab769ce80081e75f5a86438585cf06d704e17cbaa8407d904aee22c791",
+    "dartsim/src/CustomMeshShape.cc": "80b940d5959d1af4adba84cbb17ab229d76b819e382e9b0caf1a0b0eb2099ae6",
+    "dartsim/src/CustomMeshShape.hh": "3378cc066cf1558a7f3bea67785d6a628899bcf4eddaa1efc3f34fcaa8ed5d34",
+    "dartsim/src/CustomMeshShape_TEST.cc": "937effed9d510ae992b35114bd5a04345eccd1fa441b7d1abfb6d3f91749a3b2",
+    "dartsim/src/EntityManagementFeatures.cc": "24e27c79be8ea9d1462e8dc42bfd9720749c8a04ada10f2466de7b312d06dfb9",
+    "dartsim/src/EntityManagementFeatures.hh": "42cf9deb77dd611206d99c39ba8e3f0299f8f91f99aed9d7c5c580dc152b025d",
+    "dartsim/src/EntityManagement_TEST.cc": "b0b43daea2f31fae072e176435a4cee1efffe12d38830995b1c012e56ff2c7cb",
+    "dartsim/src/FreeGroupFeatures.cc": "d034e6b5824fd7e6a15dbc30cdecac76c3ff54a10375e36dd9fc9fc77944fa76",
+    "dartsim/src/FreeGroupFeatures.hh": "301b79e43c4eb9765aa83845cb9e92a7d36891deaa06724642179eccc93cf32a",
+    "dartsim/src/GzCollisionDetector.cc": "abebf627590ac3bb90f34d439772e794f4b2f5545fd64aad14459d98890d1327",
+    "dartsim/src/GzCollisionDetector.hh": "13b85aaf258388a3fd14026b7829215dd08423355997aac8e3903e7a8dc8b4d3",
+    "dartsim/src/JointFeatures.cc": "e2990c391b5fd015c41c15b84bed955736f8bcda531f699b16d2b0e9258afa40",
+    "dartsim/src/JointFeatures.hh": "fd7dcaf1ded0ae78c3a028da4228c113aa0c3cd9eebe9f64c318400669f5067e",
+    "dartsim/src/KinematicsFeatures.cc": "00649874ad3768bc5554aee4ba7b12a99f186def559bdbbe19366322ae306b90",
+    "dartsim/src/KinematicsFeatures.hh": "c9717847214fbf58b6a9526145e6a71d64b4a63fd00f0d06437b3a7c9d0b6f29",
+    "dartsim/src/LinkFeatures.cc": "f5524289c585c3f5a315d6962cc7704d8491c46e4ffd61367c269c1c5e1bd54a",
+    "dartsim/src/LinkFeatures.hh": "3eabc117bdae63aa7fe93924d558a9d1727261fc98f43df7abf89f645a8a8aa8",
+    "dartsim/src/ModelFeatures.cc": "502483199fd189d3a02be8d0f8c842f5a1a39988e5535348f826ca069c0ee3b3",
+    "dartsim/src/ModelFeatures.hh": "17afe4f67c1488b2c664a5d818e7a5907aa077d6de5b28cb1fc61a8c51170555",
+    "dartsim/src/SDFFeatures.cc": "e230d9c3bc6451e199d1472f2f08475900d3f387dc3de9179f78ce9a5b15511c",
+    "dartsim/src/SDFFeatures.hh": "532eecb81000e1fc5bbc5b8aa5931ef5ea28676e90e31f867ec6f5e6ca71e9a1",
+    "dartsim/src/SDFFeatures_TEST.cc": "eab89656c1cc8b4c2adad1fe2dbbab55827ce1dd9d13192e8e7e70ee5d3877d9",
+    "dartsim/src/ShapeFeatures.cc": "a29bddc7f26f674ea82eab97beff9dc33cbc8afab7c42079362021cda52e377f",
+    "dartsim/src/ShapeFeatures.hh": "b56d4cb8221d71927890395f09bffd148f5da648c13963021faa6fa0d804e78a",
+    "dartsim/src/SimulationFeatures.cc": "81ac192130d9a05028d78f733b0805ddfe4ac3fcf4b61cf80464d738551e3c1a",
+    "dartsim/src/SimulationFeatures.hh": "1084e82da28c8a3a243e163b0dbbb19ecc0477fc33ae455677e81812e2fda881",
+    "dartsim/src/World.hh": "d052c92e9d35214fe5f33fd1e82b9c6d4e1f64773b48d51e4ce9f98e9f324030",
+    "dartsim/src/WorldFeatures.cc": "5e25633faf1a864e0a282c6342300ee6857e49f296b5032968fecff92410b4ce",
+    "dartsim/src/WorldFeatures.hh": "7f4dfaff3a6b19ac064556aa94102ebe5ae42b10d2d566f5e3295224ea5e3e55",
+    "dartsim/src/WorldFeatures_TEST.cc": "188b6bb9068dd92947a51c8367a8d8e4a03b63238159cdf75f3195cb7d86a1dd",
+    "dartsim/src/Worlds.hh": "3862484c27c84867ac09ec725c9b01fb972efbb87bc9a3d5e3234a5c78dee38e",
+    "dartsim/src/plugin.cc": "01a45b94410b1b2e62efbd4676db51efdbc2ebf0aa89d5d8c9c718172e3d1df9"
+  },
+  "cmake_cache_sha256": "34a0683935aea3c19e16b92d0efd4578ef25a43c25235dfb428f8c2e8261c578",
+  "build_command": [
+    "cmake",
+    "--build",
+    "/home/nkoenig/work/gazebo/rust/gz-physics/build",
+    "--target",
+    "gz-physics-dartsim-plugin",
+    "--parallel",
+    "2"
+  ],
+  "compile_command": [
+    "c++",
+    "-std=c++17",
+    "-O2",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/articulated-scene-worktree/crates/gz-sim-scene/tests/native_model_contacts.cc",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/physics10",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/cmake6",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/common8",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/utils5",
+    "-I/usr/include/uuid",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/math10",
+    "-I/usr/include/eigen3",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/plugin5",
+    "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/sdformat17",
+    "-std=c++17",
+    "-L/home/nkoenig/local/lib/pkgconfig/../../lib",
+    "-lgz-physics",
+    "-lgz-common",
+    "-luuid",
+    "-lgz-plugin-loader",
+    "-lgz-plugin",
+    "-lsdformat",
+    "-ltinyxml2",
+    "-lgz-math",
+    "-lgz-utils",
+    "-Wl,-rpath,/home/nkoenig/local/lib",
+    "-o",
+    "/tmp/gz-model-contacts-qualified/native-model-contacts"
+  ],
+  "compiler": "c++ (Ubuntu 11.5.0-1ubuntu1~24.04.1) 11.5.0",
+  "package_versions": {
+    "gz-physics": "10.0.0",
+    "gz-physics-sdf": "10.0.0",
+    "gz-plugin-loader": "5.0.0",
+    "sdformat": "17.0.0",
+    "gz-math-eigen3": "10.0.0"
+  },
+  "helper_sha256": "799f09300c94416f571e9cdc7eb38e124a51cf1858d0dc7cf1fdc23a94ab950f",
+  "binary_sha256": "ecd2c5e63dc436611a14acd1db75957048c76d6fab0e248f84879f6b58bca834",
+  "libraries": {
+    "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2": "288c6f52fac45359f5de67d97e0069b7f37420f5f78888e61406b8f565656c4f",
+    "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2": "bcc864bcee56b49c13081e29722051e26c036260e3dd037e7736aa2b8620358f",
+    "/home/nkoenig/work/gazebo/rust/gz-physics/build/lib/libgz-physics-dartsim-plugin.so.10.0.0~pre2": "7a28d3cd63634dc3dd3d42d423b35b0c6949963572ded7f8cb8f3eb02caf7dfe",
+    "/home/nkoenig/work/gazebo/rust/gz-physics/build/lib/libgz-physics.so.10.0.0~pre2": "cbbdc53e0558b0e3deacb45f7b2a077e90705d62b5e4635203d6a41728b89910",
+    "/opt/ros/jazzy/opt/gz_dartsim_vendor/lib/libdart-collision-bullet.so.6.13.2": "0ca5fa82b2d37e86e6aa4fcd38ba43d4b51f82b4cae2dff4c53b569b86e51a33",
+    "/opt/ros/jazzy/opt/gz_dartsim_vendor/lib/libdart-collision-ode.so.6.13.2": "b50d9d8174333d857ec04bdca0699db7921101bccef05ce2c5010bd265b9deb6",
+    "/opt/ros/jazzy/opt/gz_dartsim_vendor/lib/libdart.so.6.13.2": "cb4f008188d1ea13cba9b43470c9d46cf819e8df0e4fdc818fa1e4f81b396426",
+    "/usr/lib/x86_64-linux-gnu/libdart-external-odelcpsolver.so.6.13.2": "b890ed6936ea7cf486303fc5101ee5ff68356fc89596273ebaef83671aa4cb16",
+    "/usr/lib/x86_64-linux-gnu/libode.so.8.0.2": "c511d66333708785c1a22f6cd572c4c84495a535566c9c80eb37d8e0f67bc469"
+  },
+  "observations": [
+    {
+      "mode": 0,
+      "first_x": 0.0,
+      "second_link": "l1",
+      "second_x": 0.75,
+      "contacts": 0,
+      "contact_pairs": []
+    },
+    {
+      "mode": 1,
+      "first_x": -4.9999994999999914e-05,
+      "second_link": "l1",
+      "second_x": 0.750049999994996,
+      "contacts": 1,
+      "contact_pairs": [
+        [
+          "l0",
+          "l1"
+        ]
+      ]
+    },
+    {
+      "mode": 2,
+      "first_x": 0.0,
+      "second_link": "l1",
+      "second_x": 0.75,
+      "contacts": 0,
+      "contact_pairs": []
+    },
+    {
+      "mode": 3,
+      "first_x": -4.9999994999999914e-05,
+      "second_link": "l1",
+      "second_x": 0.750049999994996,
+      "contacts": 1,
+      "contact_pairs": [
+        [
+          "l0",
+          "l1"
+        ]
+      ]
+    },
+    {
+      "mode": 4,
+      "first_x": 0.0,
+      "second_link": "l2",
+      "second_x": 0.0,
+      "contacts": 0,
+      "contact_pairs": []
+    },
+    {
+      "mode": 5,
+      "first_x": 0.0,
+      "second_link": "l2",
+      "second_x": 0.0,
+      "contacts": 1,
+      "contact_pairs": [
+        [
+          "l0",
+          "l2"
+        ]
+      ]
+    }
+  ]
+}

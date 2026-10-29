@@ -3,7 +3,8 @@
 use super::*;
 use gz_physics::{BodyId, JointId, JointState, PhysicsBackend};
 use gz_sim_core::entity_by_id;
-use std::collections::BTreeSet;
+use petgraph::{algo::toposort, graphmap::DiGraphMap};
+use std::collections::{BTreeMap, BTreeSet};
 
 /// Owned SDF construction metadata; editing it does not reconfigure the solver.
 #[derive(Component, Clone, Debug)]
@@ -43,7 +44,7 @@ pub(super) fn validate_model(
     model: &Model,
     world: &str,
     top_level: bool,
-    rapier: bool,
+    engine: Option<&str>,
     is_static: bool,
 ) -> Result<(), LoadError> {
     for joint in &model.joints {
@@ -56,35 +57,69 @@ pub(super) fn validate_model(
     if model.joints.is_empty() {
         return Ok(());
     }
-    require(rapier, &model.scoped_name, "TPE joints")?;
+    require(engine.is_some(), &model.scoped_name, "TPE joints")?;
+    let rapier = engine == Some("rapier");
     require(
         top_level
             && !is_static
             && model.models.is_empty()
-            && (model.links.len() == 1 || model.links.len() == 2)
-            && model.joints.len() == 1,
+            && (rapier
+                || ((model.links.len() == 1 || model.links.len() == 2) && model.joints.len() == 1)),
         &model.scoped_name,
         "joint topology (expected one dynamic world-anchored link)",
     )?;
-    let joint = &model.joints[0];
-    let name = format!("{}::{}", model.scoped_name, joint.name);
+    let links: BTreeMap<_, _> = model
+        .links
+        .iter()
+        .enumerate()
+        .map(|(index, link)| (link.scoped_name.as_str(), index))
+        .collect();
+    let mut graph = DiGraphMap::<usize, ()>::new();
+    let mut children = BTreeSet::new();
+    for joint in &model.joints {
+        let name = format!("{}::{}", model.scoped_name, joint.name);
+        require(
+            joint.kind == sdformat::JointKind::Revolute && joint.axis2.is_none(),
+            &name,
+            "joints (unsupported type)",
+        )?;
+        let parent = sdf.resolve_name(&model.scoped_name, &joint.parent)?;
+        let child = sdf.resolve_name(&model.scoped_name, &joint.child)?;
+        let parent_index = if parent == world {
+            Some(model.links.len())
+        } else {
+            links.get(parent.as_str()).copied()
+        };
+        let child_index = links.get(child.as_str()).copied();
+        require(
+            parent_index.is_some()
+                && child_index.is_some()
+                && parent != child
+                && (rapier
+                    || ((model.links.len() == 1 && parent == world)
+                        || (model.links.len() == 2 && parent != world))),
+            &name,
+            "joint endpoints (expected world and sole link)",
+        )?;
+        let child_index = child_index.expect("validated local child");
+        require(
+            children.insert(child_index),
+            &name,
+            "multiple parent joints",
+        )?;
+        graph.add_edge(parent_index.expect("validated parent"), child_index, ());
+        validate_axis(joint, &name)?;
+    }
     require(
-        joint.kind == sdformat::JointKind::Revolute && joint.axis2.is_none(),
-        &name,
-        "joints (unsupported type)",
-    )?;
-    let parent = sdf.resolve_name(&model.scoped_name, &joint.parent)?;
-    let child = sdf.resolve_name(&model.scoped_name, &joint.child)?;
-    let local_link = |name: &str| model.links.iter().any(|link| link.scoped_name == name);
-    require(
-        local_link(&child)
-            && ((model.links.len() == 1 && parent == world)
-                || (model.links.len() == 2 && parent != child && local_link(&parent))),
-        &name,
-        "joint endpoints (expected world and sole link)",
-    )?;
+        toposort(&graph, None).is_ok(),
+        &model.scoped_name,
+        "closed joint loops",
+    )
+}
+
+fn validate_axis(joint: &sdformat::Joint, name: &str) -> Result<(), LoadError> {
     let axis = joint.axis.as_ref().ok_or_else(|| LoadError::Unsupported {
-        entity: name.clone(),
+        entity: name.to_owned(),
         feature: "joint without axis",
     })?;
     require(
@@ -94,7 +129,7 @@ pub(super) fn validate_model(
             && axis.velocity == f64::INFINITY
             && axis.stiffness == 1e8
             && axis.dissipation == 1.0,
-        &name,
+        name,
         "joint limits",
     )?;
     let dynamics = &axis.dynamics;
@@ -103,7 +138,7 @@ pub(super) fn validate_model(
             && dynamics.friction == 0.0
             && dynamics.spring_reference == 0.0
             && dynamics.spring_stiffness == 0.0,
-        &name,
+        name,
         "joint dynamics",
     )
 }
@@ -174,7 +209,7 @@ pub(super) fn build(
                 child,
                 parent,
                 model: model_id,
-                child_pose: (parent_name != context.world)
+                child_pose: (parent_name != context.world || model.links.len() > 1)
                     .then(|| sdf.pose_of(&name, &child_name).map(WorldPose::from))
                     .transpose()?,
             },

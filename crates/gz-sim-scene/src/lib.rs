@@ -474,7 +474,7 @@ fn build_model(
         model,
         context.world,
         top_level,
-        backend.is_some(),
+        backend.as_ref().map(|backend| backend.engine()),
         parent.is_static || model.is_static,
     )?;
     require(
@@ -576,21 +576,27 @@ fn build_model(
             mass: (!is_static).then_some(link.inertial.mass),
         };
         let (id, tpe_link) = if let Some(backend) = backend {
-            (
-                Some(backend.spawn_link(
-                    spec,
-                    RotationSpec {
-                        orientation: pose.rotation,
-                        ..Default::default()
-                    },
-                    Some(Inertia {
-                        center: inertial_pose.translation,
-                        orientation: inertial_pose.rotation,
-                        tensor: link.inertial.inertia,
-                    }),
-                )?),
-                None,
-            )
+            let id = backend.spawn_link(
+                spec,
+                RotationSpec {
+                    orientation: pose.rotation,
+                    ..Default::default()
+                },
+                Some(Inertia {
+                    center: inertial_pose.translation,
+                    orientation: inertial_pose.rotation,
+                    tensor: link.inertial.inertia,
+                }),
+            )?;
+            if backend.engine() == "rapier" && !model.joints.is_empty() {
+                let group = sim
+                    .world()
+                    .get::<EntityId>(model_entity)
+                    .expect("loader constructed model")
+                    .get();
+                backend.set_self_collision_group(id, Some(group))?;
+            }
+            (Some(id), None)
         } else {
             (None, Some(tpe::validate_link(spec, pose)?))
         };

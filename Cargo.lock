@@ -1123,6 +1123,7 @@ dependencies = [
  "gz-sensors",
  "gz-sim-core",
  "parry3d-f64",
+ "petgraph",
  "sdformat",
  "serde_json",
  "tempfile",

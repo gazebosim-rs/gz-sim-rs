@@ -9,6 +9,7 @@ rust-version = "1.95"
 license = "Apache-2.0"
 
 [workspace.dependencies]
+petgraph = "=0.8.1"
 gz-fuel-tools = { git = "https://github.com/gazebosim-rs/gz-fuel-tools-rs", rev = "3747086ed13b59d2f7701eedc11329ebd7c9df3a" }
 bevy_ecs = { version = "=0.20.0", default-features = false, features = ["std", "multi_threaded"] }
 thiserror = "=2.0.18"

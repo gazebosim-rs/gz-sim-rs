@@ -6,6 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+petgraph.workspace = true
 bevy_ecs.workspace = true
 glam.workspace = true
 parry3d-f64 = "=0.31.1"
