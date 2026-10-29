@@ -37,3 +37,7 @@ a fixed-parent pendulum, mixed world/body constraints, endpoint removal,
 prepared reset, ID retirement and atomic invalid/overflowing-frame rejection.
 The existing world-joint/native-reference tests remain unchanged. The primitive
 passed independent review and strict staged/hosted checks at `26ca44f`.
+
+The separate additive reduced-coordinate API is described in
+[REDUCED_REVOLUTES.md](REDUCED_REVOLUTES.md). It does not migrate these accepted
+impulse constraints or the loader, and does not imply finite-limit support.

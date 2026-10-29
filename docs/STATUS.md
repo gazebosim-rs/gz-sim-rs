@@ -34,6 +34,11 @@ backend conformance remain open. Top-level unarticulated multi-link models also 
 exclusion; see [MODEL_CONTACT_DEFAULTS.md](MODEL_CONTACT_DEFAULTS.md).
 Nested-model contact policy remains separately unqualified. No new speedup is claimed.
 
+An additive programmatic unbounded reduced-coordinate Rapier primitive is
+implemented; see [REDUCED_REVOLUTES.md](REDUCED_REVOLUTES.md). It preserves
+impulse APIs and loader selection. Finite-limit prototypes remain unaccepted
+because stronger torque and first-crossing tests expose solver fidelity gaps.
+
 The sections below retain historical evidence and its original limitations.
 The current phase state above supersedes historical statements about P2 being
 open or CLI server mode being unimplemented.

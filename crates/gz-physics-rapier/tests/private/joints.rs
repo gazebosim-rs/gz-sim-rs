@@ -119,3 +119,50 @@ fn linked_sleep_policy_rebuilds_and_restores_only_when_the_last_constraint_retir
     assert!(backend.joints.anchor.is_none());
     assert_eq!(backend.world.bodies.len(), 0);
 }
+
+#[test]
+fn reduced_world_roots_are_independent_and_retire_without_changing_solver_work() {
+    let mut backend = RapierBackend::new([0.0; 3]).unwrap();
+    let a = backend.spawn(spec()).unwrap();
+    let b = backend.spawn(spec()).unwrap();
+    let first = backend
+        .add_reduced_revolute(None, a, [0.0; 3], [0.0, 1.0, 0.0])
+        .unwrap();
+    let second = backend
+        .add_reduced_revolute(None, b, [0.0; 3], [0.0, 1.0, 0.0])
+        .unwrap();
+    assert_eq!(backend.joints.world_roots.len(), 2);
+    assert!(backend.joints.anchor.is_none());
+    assert_eq!(backend.world.bodies.len(), 4);
+    let left = backend
+        .world
+        .multibody_joints
+        .rigid_body_link(backend.bodies[&a].0)
+        .unwrap()
+        .multibody;
+    let right = backend
+        .world
+        .multibody_joints
+        .rigid_body_link(backend.bodies[&b].0)
+        .unwrap()
+        .multibody;
+    assert_ne!(left, right);
+    assert_eq!(
+        backend.world.integration_parameters.num_solver_iterations,
+        4
+    );
+    for body in backend.world.bodies.iter().map(|(_, body)| body) {
+        assert_eq!(body.additional_solver_iterations(), 0);
+    }
+    backend.reset().unwrap();
+    assert_eq!(backend.joints.world_roots.len(), 2);
+    assert_eq!(backend.world.bodies.len(), 4);
+    assert!(backend.remove_joint(first));
+    assert_eq!(backend.world.bodies.len(), 3);
+    assert_eq!(backend.joints.world_roots.len(), 1);
+    assert!(backend.joint_state(second).is_some());
+    assert!(backend.remove(b));
+    assert_eq!(backend.world.bodies.len(), 1);
+    assert!(backend.joints.world_roots.is_empty());
+    assert!(backend.joint_state(second).is_none());
+}

@@ -586,6 +586,15 @@ fn body_revolutes_are_rejected_explicitly_without_changing_endpoints() {
             capability: "body-to-body revolute joint"
         })
     );
+    for anchor in [[0.0; 3], [f64::NAN; 3]] {
+        assert_eq!(
+            backend.add_reduced_revolute(Some(parent), child, anchor, [0.0, 1.0, 0.0]),
+            Err(PhysicsError::Unsupported {
+                engine: "mujoco",
+                capability: "reduced-coordinate revolute joint"
+            })
+        );
+    }
     assert_eq!(
         backend.set_self_collision_group(parent, Some(u64::MAX)),
         Err(PhysicsError::Unsupported {

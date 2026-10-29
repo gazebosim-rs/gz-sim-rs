@@ -253,6 +253,11 @@ impl DynamicBackend for RapierBackend {
 
     fn remove(&mut self, id: BodyId) -> bool {
         if let Some((handle, ..)) = self.bodies.remove(&id) {
+            let reduced = self
+                .world
+                .multibody_joints
+                .rigid_body_link(handle)
+                .is_some();
             self.pending_wrenches.remove(&id);
             let survivors = self.joints.forget_body(id);
             self.world.remove_body(handle);
@@ -260,6 +265,9 @@ impl DynamicBackend for RapierBackend {
                 self.release_unconstrained_body(survivor);
             }
             self.joints.release_unused_anchor(&mut self.world);
+            if reduced {
+                self.joints.initialize_velocities(&mut self.world);
+            }
             true
         } else {
             false
@@ -278,6 +286,12 @@ impl DynamicBackend for RapierBackend {
             return Err(PhysicsError::InvalidValue);
         }
         let (handle, ..) = self.bodies.get(&id).ok_or(PhysicsError::MissingBody)?;
+        if self.world.multibody_joints_with(*handle).next().is_some() {
+            return Err(PhysicsError::Unsupported {
+                engine: "rapier",
+                capability: "direct reduced-coordinate velocity edits and impulses",
+            });
+        }
         let body = &mut self.world.bodies[*handle];
         body.set_linvel(Vector::from(linear), true);
         body.set_angvel(Vector::from(angular), true);
@@ -322,6 +336,12 @@ impl DynamicBackend for RapierBackend {
             return Err(PhysicsError::InvalidValue);
         }
         let (handle, ..) = self.bodies.get(&id).ok_or(PhysicsError::MissingBody)?;
+        if self.world.multibody_joints_with(*handle).next().is_some() {
+            return Err(PhysicsError::Unsupported {
+                engine: "rapier",
+                capability: "direct reduced-coordinate velocity edits and impulses",
+            });
+        }
         let body = &mut self.world.bodies[*handle];
         let mass = body.mass_properties();
         let next_linear = body.linvel() + Vector::from(linear) * mass.effective_inv_mass;
@@ -370,9 +390,13 @@ impl DynamicBackend for RapierBackend {
 
     fn step(&mut self, dt: Duration) -> Result<(), PhysicsError> {
         if !dt.is_zero() {
+            if self.joints.construction_open() {
+                self.joints.initialize_velocities(&mut self.world);
+            }
             self.joints.close();
             self.world.integration_parameters.dt = dt.as_secs_f64();
             self.world.step_with_events(&collision::Groups, &());
+            self.joints.finish_velocities(&mut self.world);
             self.joints.update(&self.world, &self.bodies);
             for id in std::mem::take(&mut self.pending_wrenches) {
                 if let Some((handle, ..)) = self.bodies.get(&id) {
@@ -401,7 +425,17 @@ impl DynamicBackend for RapierBackend {
         anchor: [f64; 3],
         axis: [f64; 3],
     ) -> Result<JointId, PhysicsError> {
-        self.insert_revolute(Some(parent), child, anchor, axis)
+        self.insert_revolute(Some(parent), child, anchor, axis, joints::Solver::Impulse)
+    }
+
+    fn add_reduced_revolute(
+        &mut self,
+        parent: Option<BodyId>,
+        child: BodyId,
+        anchor: [f64; 3],
+        axis: [f64; 3],
+    ) -> Result<JointId, PhysicsError> {
+        self.insert_revolute(parent, child, anchor, axis, joints::Solver::Reduced)
     }
 
     fn joint_child(&self, id: JointId) -> Option<BodyId> {

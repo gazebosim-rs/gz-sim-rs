@@ -205,6 +205,26 @@ pub trait DynamicBackend: Send + Sync + 'static {
         })
     }
 
+    /// Constructs an unbounded reduced-coordinate revolute in an acyclic articulation.
+    /// `None` parent anchors to the world; the construction pose is angle zero.
+    /// Current and reset construction velocities must satisfy the joint constraints.
+    /// Engines may
+    /// reject offset centers of mass, mixed impulse constraints and direct
+    /// articulated velocity edits.
+    /// Errors leave the backend unchanged.
+    fn add_reduced_revolute(
+        &mut self,
+        _parent: Option<BodyId>,
+        _child: BodyId,
+        _anchor: [f64; 3],
+        _axis: [f64; 3],
+    ) -> Result<JointId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "reduced-coordinate revolute joint",
+        })
+    }
+
     /// Excludes mutual contacts between bodies with the same assigned group.
     /// `None` restores ordinary contact filtering. Group IDs are backend-local.
     /// This is a construction property; runtime edits may be unsupported.

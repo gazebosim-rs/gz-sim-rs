@@ -2,12 +2,25 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
+mod reduced;
+
+#[derive(Clone, Copy)]
+pub(crate) enum Solver {
+    Impulse,
+    Reduced,
+}
+#[derive(Clone, Copy)]
+enum Handle {
+    Impulse(ImpulseJointHandle),
+    Reduced(MultibodyJointHandle),
+}
 #[derive(Clone, Copy)]
 struct Construction {
     parent: Option<BodyId>,
     child: BodyId,
     frame1: Pose,
     frame2: Pose,
+    solver: Solver,
 }
 impl Construction {
     fn data(self) -> GenericJoint {
@@ -17,9 +30,30 @@ impl Construction {
             .contacts_enabled(false)
             .build()
     }
+    fn insert(
+        self,
+        world: &mut PhysicsWorld,
+        parent: RigidBodyHandle,
+        child: RigidBodyHandle,
+    ) -> Handle {
+        match self.solver {
+            Solver::Impulse => {
+                Handle::Impulse(world.insert_impulse_joint(parent, child, self.data()))
+            }
+            Solver::Reduced => Handle::Reduced(
+                world
+                    .insert_multibody_joint(parent, child, self.data())
+                    .expect("preflighted articulation topology"),
+            ),
+        }
+    }
+}
+struct WorldRoot {
+    handle: RigidBodyHandle,
+    joint: JointId,
 }
 struct Joint {
-    handle: ImpulseJointHandle,
+    handle: Handle,
     initial: Construction,
     previous_angle: f64,
     position: f64,
@@ -28,6 +62,7 @@ struct Joint {
 pub(super) struct Joints {
     records: BTreeMap<JointId, Joint>,
     anchor: Option<RigidBodyHandle>,
+    world_roots: BTreeMap<BodyId, WorldRoot>,
     next: u64,
     open: bool,
 }
@@ -36,6 +71,7 @@ impl Default for Joints {
         Self {
             records: BTreeMap::new(),
             anchor: None,
+            world_roots: BTreeMap::new(),
             next: 0,
             open: true,
         }
@@ -50,6 +86,10 @@ impl Joints {
     pub(super) fn update(&mut self, world: &PhysicsWorld, bodies: &BTreeMap<BodyId, BodyEntry>) {
         for joint in self.records.values_mut() {
             let current = angle(world, joint.handle, joint.initial, bodies);
+            if matches!(joint.handle, Handle::Reduced(_)) {
+                joint.position = current;
+                continue;
+            }
             // Each body's full-step rotation is capped at pi/4, hence relative
             // rotation stays below pi and nearest-angle unwrapping is unambiguous.
             let delta = (current - joint.previous_angle + std::f64::consts::PI)
@@ -83,8 +123,9 @@ impl Joints {
         let anchor = initial
             .records
             .values()
-            .any(|joint| joint.parent.is_none())
+            .any(|joint| joint.parent.is_none() && matches!(joint.solver, Solver::Impulse))
             .then(|| world.insert_body(RigidBodyBuilder::fixed()));
+        let mut world_roots = BTreeMap::new();
         let records = initial
             .records
             .iter()
@@ -96,13 +137,27 @@ impl Joints {
                     .0;
                 *world.bodies[child].activation_mut() = RigidBodyActivation::cannot_sleep();
                 let parent = construction.parent.map_or_else(
-                    || anchor.expect("world joint owns an anchor"),
+                    || {
+                        if matches!(construction.solver, Solver::Reduced) {
+                            let root = world.insert_body(RigidBodyBuilder::fixed());
+                            world_roots.insert(
+                                construction.child,
+                                WorldRoot {
+                                    handle: root,
+                                    joint: id,
+                                },
+                            );
+                            root
+                        } else {
+                            anchor.expect("world joint owns an anchor")
+                        }
+                    },
                     |parent| bodies[&parent].0,
                 );
                 if world.bodies[parent].is_dynamic() {
                     *world.bodies[parent].activation_mut() = RigidBodyActivation::cannot_sleep();
                 }
-                let handle = world.insert_impulse_joint(parent, child, construction.data());
+                let handle = construction.insert(world, parent, child);
                 (
                     id,
                     Joint {
@@ -117,6 +172,7 @@ impl Joints {
         Self {
             records,
             anchor,
+            world_roots,
             next: initial.next,
             open: true,
         }
@@ -141,11 +197,16 @@ impl Joints {
         survivors
     }
     pub(super) fn release_unused_anchor(&mut self, world: &mut PhysicsWorld) {
-        if self
-            .records
-            .values()
-            .all(|joint| joint.initial.parent.is_some())
-            && let Some(anchor) = self.anchor.take()
+        self.world_roots.retain(|_, root| {
+            let retained = self.records.contains_key(&root.joint);
+            if !retained {
+                world.remove_body(root.handle);
+            }
+            retained
+        });
+        if self.records.values().all(|joint| {
+            joint.initial.parent.is_some() || matches!(joint.initial.solver, Solver::Reduced)
+        }) && let Some(anchor) = self.anchor.take()
         {
             world.remove_body(anchor);
         }
@@ -154,10 +215,24 @@ impl Joints {
 
 fn angle(
     world: &PhysicsWorld,
-    handle: ImpulseJointHandle,
+    handle: Handle,
     construction: Construction,
     bodies: &BTreeMap<BodyId, BodyEntry>,
 ) -> f64 {
+    let handle = match handle {
+        Handle::Reduced(handle) => {
+            let (multibody, link) = world
+                .multibody_joints
+                .get(handle)
+                .expect("registered articulation handle");
+            return multibody
+                .link(link)
+                .expect("registered articulation link")
+                .joint
+                .coords()[3];
+        }
+        Handle::Impulse(handle) => handle,
+    };
     let parent_rotation = construction.parent.map_or(Rotation::IDENTITY, |parent| {
         *world.bodies[bodies[&parent].0].rotation()
     });
@@ -185,7 +260,7 @@ impl RapierBackend {
         anchor: [f64; 3],
         axis: [f64; 3],
     ) -> Result<JointId, PhysicsError> {
-        self.insert_revolute(None, child, anchor, axis)
+        self.insert_revolute(None, child, anchor, axis, Solver::Impulse)
     }
 
     pub(crate) fn insert_revolute(
@@ -194,6 +269,7 @@ impl RapierBackend {
         child: BodyId,
         anchor: [f64; 3],
         axis: [f64; 3],
+        solver: Solver,
     ) -> Result<JointId, PhysicsError> {
         if !self.joints.open {
             return Err(PhysicsError::JointConstructionClosed);
@@ -213,6 +289,7 @@ impl RapierBackend {
         if spec.mass.is_none() || !finite(anchor) || !finite(axis) {
             return Err(PhysicsError::InvalidJoint);
         }
+        self.preflight_solver(parent, child, solver)?;
         let axis = Vector::from_array(axis)
             .try_normalize()
             .ok_or(PhysicsError::InvalidJoint)?;
@@ -229,6 +306,9 @@ impl RapierBackend {
         {
             return Err(PhysicsError::InvalidJoint);
         }
+        if matches!(solver, Solver::Reduced) {
+            self.preflight_velocities(parent, child, Vector::from_array(anchor), axis)?;
+        }
         let next = self
             .joints
             .next
@@ -239,20 +319,33 @@ impl RapierBackend {
             child,
             frame1,
             frame2,
+            solver,
         };
         let world = &mut self.world;
         let parent = parent_handle.unwrap_or_else(|| {
-            *self
-                .joints
-                .anchor
-                .get_or_insert_with(|| world.insert_body(RigidBodyBuilder::fixed()))
+            if matches!(solver, Solver::Reduced) {
+                let root = world.insert_body(RigidBodyBuilder::fixed());
+                self.joints.world_roots.insert(
+                    child,
+                    WorldRoot {
+                        handle: root,
+                        joint: JointId::from_raw(self.joints.next),
+                    },
+                );
+                root
+            } else {
+                *self
+                    .joints
+                    .anchor
+                    .get_or_insert_with(|| world.insert_body(RigidBodyBuilder::fixed()))
+            }
         });
         if world.bodies[parent].is_dynamic() {
             *world.bodies[parent].activation_mut() = RigidBodyActivation::cannot_sleep();
         }
         // Default sleeping would stop low-amplitude articulated motion mid-cycle.
         *world.bodies[*handle].activation_mut() = RigidBodyActivation::cannot_sleep();
-        let handle = world.insert_impulse_joint(parent, *handle, construction.data());
+        let handle = construction.insert(world, parent, *handle);
         let id = JointId::from_raw(self.joints.next);
         self.joints.records.insert(
             id,
@@ -298,7 +391,12 @@ impl RapierBackend {
         let Some(joint) = self.joints.records.remove(&id) else {
             return false;
         };
-        self.world.remove_impulse_joint(joint.handle);
+        match joint.handle {
+            Handle::Impulse(handle) => {
+                self.world.remove_impulse_joint(handle);
+            }
+            Handle::Reduced(handle) => self.world.remove_multibody_joint(handle),
+        }
         for body in joint
             .initial
             .parent
@@ -308,6 +406,9 @@ impl RapierBackend {
             self.release_unconstrained_body(body);
         }
         self.joints.release_unused_anchor(&mut self.world);
+        if matches!(joint.handle, Handle::Reduced(_)) {
+            self.joints.initialize_velocities(&mut self.world);
+        }
         true
     }
 
@@ -315,7 +416,7 @@ impl RapierBackend {
         // Construction records retain registered endpoints; removal excludes its retired body.
         let handle = self.bodies[&id].0;
         if self.world.bodies[handle].is_dynamic()
-            && self.world.impulse_joints_with(handle).next().is_none()
+            && !self.has_joint(id).expect("registered endpoint")
         {
             *self.world.bodies[handle].activation_mut() = RigidBodyActivation::active();
         }
@@ -324,7 +425,10 @@ impl RapierBackend {
     /// Whether a registered body participates in a solver constraint.
     pub(crate) fn has_joint(&self, id: BodyId) -> Option<bool> {
         let (handle, ..) = self.bodies.get(&id)?;
-        Some(self.world.impulse_joints_with(*handle).next().is_some())
+        Some(
+            self.world.impulse_joints_with(*handle).next().is_some()
+                || self.world.multibody_joints_with(*handle).next().is_some(),
+        )
     }
 }
 
