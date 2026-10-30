@@ -16,13 +16,13 @@ pub enum RemoveError {
     InvalidPhysics,
     #[error("scene schedule initialization failed: {0}")]
     Schedule(String),
-    #[error("model was removed but IMU schedule retirement failed: {0}")]
+    #[error("model was removed but system schedule retirement failed: {0}")]
     CommittedSchedule(String),
 }
 
 /// Removes a top-level model, its descendants and their physics bodies.
 /// Call at a lifecycle boundary, outside an executing simulation schedule.
-/// All checks precede model/physics mutation. Retiring the last IMU initializes
+/// All checks precede model/physics mutation. Retiring the last IMU or joint initializes
 /// pending schedules without running callbacks; arbitrary Local initializers
 /// follow the core initialization contract. Returned public IDs retire here.
 /// Schedule-built observers run before final validation or after body commit.
@@ -30,6 +30,44 @@ pub enum RemoveError {
 /// This does not restore removed models during the existing core time reset.
 pub fn remove_model(sim: &mut Simulation, id: u64) -> Result<Vec<u64>, RemoveError> {
     remove_model_checked(sim, id, false)
+}
+
+#[derive(Debug, thiserror::Error)]
+pub(super) enum SystemRetirementError {
+    #[error(transparent)]
+    Schedule(#[from] bevy_ecs::schedule::ScheduleError),
+    #[error("a schedule observer added consumers while their callbacks were being retired")]
+    AddedConsumer,
+}
+
+pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRetirementError> {
+    loop {
+        let before = (
+            sim.world()
+                .contains_resource::<crate::imu_lifecycle::Installed>(),
+            sim.world()
+                .contains_resource::<crate::joint_lifecycle::Installed>(),
+        );
+        crate::imu_lifecycle::retire_if_unused(sim)?;
+        crate::joint_lifecycle::retire_if_unused(sim)?;
+        let after = (
+            sim.world()
+                .contains_resource::<crate::imu_lifecycle::Installed>(),
+            sim.world()
+                .contains_resource::<crate::joint_lifecycle::Installed>(),
+        );
+        if before == after {
+            if sim.world().iter_entities().any(|entity| {
+                !after.0 && entity.contains::<crate::Imu>()
+                    || !after.1 && entity.contains::<crate::JointHandle>()
+            }) {
+                return Err(SystemRetirementError::AddedConsumer);
+            }
+            return Ok(());
+        }
+        // A schedule build may remove the other family's last consumer.
+        // Markers only retire here, so at most two rounds can change them.
+    }
 }
 
 fn remove_model_checked(
@@ -93,7 +131,11 @@ fn remove_model_checked(
         && !world
             .iter_entities()
             .any(|entity| entity.contains::<crate::Imu>() && !subtree.contains(&entity.id()));
-    if retire_imu && !schedules_ready {
+    let retire_joint = world.contains_resource::<crate::joint_lifecycle::Installed>()
+        && !world.iter_entities().any(|entity| {
+            entity.contains::<crate::JointHandle>() && !subtree.contains(&entity.id())
+        });
+    if (retire_imu || retire_joint) && !schedules_ready {
         sim.initialize_schedules()
             .map_err(|error| RemoveError::Schedule(error.to_string()))?;
         // Builds synchronously notify World observers. Their mutations must
@@ -113,7 +155,7 @@ fn remove_model_checked(
     ids.sort_unstable();
     // No schedule build may intervene between final validation and body commit.
     // Teardown observers now see the committed removal, not stale body handles.
-    if let Err(error) = crate::imu_lifecycle::retire_if_unused(sim) {
+    if let Err(error) = retire_unused_systems(sim) {
         let message = error.to_string();
         sim.world()
             .resource::<gz_sim_core::StepFault>()

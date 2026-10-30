@@ -394,6 +394,7 @@ pub fn reset_loaded_world<R>(
     });
     world.insert_resource(RestoredPhysics { epoch });
     crate::imu_lifecycle::install(sim);
+    crate::joint_lifecycle::install(sim);
     let reset = sim.reset();
     sim.world_mut().remove_resource::<RestoredPhysics>();
     let result = reset
@@ -404,7 +405,7 @@ pub fn reset_loaded_world<R>(
             sim.world_mut().entity_mut(entity).despawn();
         }
     }
-    if let Err(error) = crate::imu_lifecycle::retire_if_unused(sim) {
+    if let Err(error) = crate::lifecycle::retire_unused_systems(sim) {
         sim.world().resource::<StepFault>().report(error);
         return Err(SceneResetError::CommittedReset);
     }

@@ -193,6 +193,16 @@ and regions, workspace3516/3552lines5369/5486regions and changed scene2/2,server
 See IMU_ORIENTATION.md and planning/reviews/imu-orientation.json. Runtime toggling
 and full SENSOR01 remains open.
 
+## Loaded-joint callback lifecycle
+
+Joint binding preflight and committed/reset sampling are absent in jointless
+loaded worlds, retire after the last joint model and restore on loaded reset.
+Lifecycle-boundary reconciliation handles observers removing the other family's
+last joint or IMU; unsupported observer additions that would strand consumers
+report a terminal committed fault. See [JOINT_SYSTEM_LIFECYCLE.md](JOINT_SYSTEM_LIFECYCLE.md).
+Persistent force/input/physics callbacks and server worker demand remain open;
+this bounded increment does not claim measured CPU/RSS improvement.
+
 ## Bounded DART static planes
 
 DART and its scene loader support centered local +Z plane collisions on
