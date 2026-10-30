@@ -122,33 +122,14 @@ fn full_and_closed_input_returns_the_original_request() {
 }
 
 #[cfg(unix)]
-fn executable_peer(script: &str) -> PathBuf {
-    use std::io::Write;
-    use std::os::unix::fs::PermissionsExt;
-    static SERIAL: AtomicU64 = AtomicU64::new(0);
-    let path = std::env::temp_dir().join(format!(
-        "gz-render-test-peer-{}-{}",
-        std::process::id(),
-        SERIAL.fetch_add(1, Ordering::Relaxed)
-    ));
-    let pending = path.with_extension("pending");
-    let mut file = std::fs::OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(&pending)
-        .unwrap();
-    file.write_all(script.as_bytes()).unwrap();
-    file.sync_all().unwrap();
-    drop(file);
-    std::fs::set_permissions(&pending, std::fs::Permissions::from_mode(0o700)).unwrap();
-    std::fs::rename(&pending, &path).unwrap();
-    path
+fn fixture_peer(name: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures")
+        .join(name)
 }
 #[cfg(unix)]
 fn delayed_peer() -> PathBuf {
-    executable_peer(
-        "#!/bin/bash\nsleep 0.2\nprintf '\\027\\000\\000\\000{\"Ready\":{\"version\":1}}'\nIFS= read -r -n 1 _\nprintf '\\045\\000\\000\\000{\"SnapshotAccepted\":{\"request_id\":1}}'\nexec sleep 60\n",
-    )
+    fixture_peer("delayed-peer.sh")
 }
 #[cfg(unix)]
 fn wait_error(client: &Client, expected: fn(&ClientError) -> bool) {
@@ -174,7 +155,6 @@ fn reader_reports_a_disconnected_reply_consumer() {
     drop(std::mem::replace(&mut client.output, replacement));
     wait_error(&client, |error| matches!(error, ClientError::Closed));
     client.shutdown(Duration::from_secs(5)).unwrap();
-    std::fs::remove_file(path).unwrap();
 }
 #[cfg(unix)]
 #[test]
@@ -204,7 +184,6 @@ fn reader_reports_poisoned_correlation_state() {
         matches!(error, ClientError::ProtocolCorrelation)
     });
     client.shutdown(Duration::from_secs(5)).unwrap();
-    std::fs::remove_file(path).unwrap();
 }
 
 #[test]
@@ -250,7 +229,6 @@ fn reader_commits_matching_snapshot_from_a_live_peer() {
     }
     client.try_send(capture()).unwrap();
     client.shutdown(Duration::from_secs(5)).unwrap();
-    std::fs::remove_file(path).unwrap();
 }
 
 #[cfg(unix)]
@@ -345,16 +323,13 @@ fn monitor_reports_when_its_own_child_was_already_reaped() {
 #[cfg(unix)]
 #[test]
 fn live_peer_with_wrong_protocol_version_is_rejected() {
-    let path = executable_peer(
-        "#!/bin/sh\nprintf '\\027\\000\\000\\000{\"Ready\":{\"version\":2}}'\nexec sleep 60\n",
-    );
+    let path = fixture_peer("wrong-version-peer.sh");
     let mut client =
         Client::start(TrustedWorker::from_operator_config(path.clone()).unwrap()).unwrap();
     wait_error(&client, |error| {
         matches!(error, ClientError::ProtocolVersion)
     });
     client.shutdown(Duration::from_secs(5)).unwrap();
-    std::fs::remove_file(path).unwrap();
 }
 
 #[cfg(unix)]
