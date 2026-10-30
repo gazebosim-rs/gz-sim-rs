@@ -566,3 +566,15 @@ pending.
 Full REF-02, alternate profiles and source-ledger reconciliation remain open;
 there is no added Rust original credit or retirement. See
 [the bounded report](REF02_REGISTRATION_BASELINE.md).
+
+
+## Native math runtime baseline
+
+The configured immutable headless SDK executes all 135 native math CTest
+registrations and 658 expanded gtest cases successfully. Independent replay and
+source/data review passed. The retained raw corpus and validator preserve every
+case identity and completion result; see [the scope](NATIVE_MATH_RUNTIME.md).
+This is native reference evidence, with no Rust port credit or broader REF-02
+completion. Its exact staged/hosted qualification is recorded on the tracker.
+The ABI guard overlaps the separate non-gtest baseline and is not a new unique
+registration when totals are combined.
