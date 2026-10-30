@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "status": "proposed clean native DART profile; full build/runtime qualification pending",
+  "profile": "headless-dart-osrf-6.13.2",
+  "base_image_tag": "gazebosim-rs-reference:headless-tpe-v6",
+  "base_image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+  "base_environment_sha256": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f",
+  "baseline_sha256": "0cb03b9b3f87d6ca6a9068262ff60cbf7ba7f095916d93dceaec4cdb4b79fe55",
+  "ubuntu_snapshot": "20261024T000000Z",
+  "osrf_url": "https://packages.osrfoundation.org/gazebo/ubuntu-stable/",
+  "signing_fingerprint": "D2486D2DD83DB69272AFE98867170598AF249743",
+  "metadata_sha256": {
+    "reference/osrf-dart/InRelease": "35df855616b53648c60381b39ce27e2a28a034bcbaf49e27a80d8eec5c020003",
+    "reference/osrf-dart/Packages.gz": "e224f400965100de5dd82e50c80ba0551e5f4f989594056ac9324987aece198b",
+    "reference/osrf-dart/archive-keyring.gpg": "15d0300460e0c9c0efb21fa9770c0bf228988a07d71c4fac985c2161954a25a4",
+    "reference/osrf-dart/Sources.gz": "67c623171995ed45aa273ad8e6be7712a499cdeb8459624075ad2c78a2eedb9d"
+  },
+  "packages": [
+    {
+      "Package": "libdart-core+collisions+odelcpsolver6.13",
+      "Version": "6.13.2+ds1-1~osrf2~noble",
+      "Architecture": "amd64",
+      "Source": "dart",
+      "Filename": "pool/main/d/dart/libdart-core+collisions+odelcpsolver6.13_6.13.2+ds1-1~osrf2~noble_amd64.deb",
+      "Size": "1469456",
+      "SHA256": "7602bf8695cb1e673be9008ed17222e9ff1a08b3bbaa211a05a4ce73c579037e"
+    },
+    {
+      "Package": "libdart-utils-urdf6.13",
+      "Version": "6.13.2+ds1-1~osrf2~noble",
+      "Architecture": "amd64",
+      "Source": "dart",
+      "Filename": "pool/main/d/dart/libdart-utils-urdf6.13_6.13.2+ds1-1~osrf2~noble_amd64.deb",
+      "Size": "127508",
+      "SHA256": "3b557b844dbb6c30160c81e7c722b8f00856425de092df2114c0a446c01f3b9e"
+    },
+    {
+      "Package": "libdart-utils6.13",
+      "Version": "6.13.2+ds1-1~osrf2~noble",
+      "Architecture": "amd64",
+      "Source": "dart",
+      "Filename": "pool/main/d/dart/libdart-utils6.13_6.13.2+ds1-1~osrf2~noble_amd64.deb",
+      "Size": "344580",
+      "SHA256": "5e10c6f134f74f3e6100131f0db2b210affe20036de05539545fbf4e14fd7d35"
+    },
+    {
+      "Package": "libdart6.13-collision-bullet-dev",
+      "Version": "6.13.2+ds1-1~osrf2~noble",
+      "Architecture": "amd64",
+      "Source": "dart",
+      "Filename": "pool/main/d/dart/libdart6.13-collision-bullet-dev_6.13.2+ds1-1~osrf2~noble_amd64.deb",
+      "Size": "12634",
+      "SHA256": "77d4eb08a749799c7a3eaabf1e09416d6c84dcc0f75a7f571136ab2051873f41"
+    },
+    {
+      "Package": "libdart6.13-collision-ode-dev",
+      "Version": "6.13.2+ds1-1~osrf2~noble",
+      "Architecture": "amd64",
+      "Source": "dart",
+      "Filename": "pool/main/d/dart/libdart6.13-collision-ode-dev_6.13.2+ds1-1~osrf2~noble_amd64.deb",
+      "Size": "12098",
+      "SHA256": "a7a5687783f203d6d3e2cdb8e2f9692d2a15866f3df2d93de38745db207e36eb"
+    },
+    {
+      "Package": "libdart6.13-dev",
+      "Version": "6.13.2+ds1-1~osrf2~noble",
+      "Architecture": "amd64",
+      "Source": "dart",
+      "Filename": "pool/main/d/dart/libdart6.13-dev_6.13.2+ds1-1~osrf2~noble_amd64.deb",
+      "Size": "216658",
+      "SHA256": "6ff3749ca0bf18b47604a2d480d9eadb301100641893fc1a5dcde4e4c8baaba2"
+    },
+    {
+      "Package": "libdart6.13-external-convhull-3d-dev",
+      "Version": "6.13.2+ds1-1~osrf2~noble",
+      "Architecture": "amd64",
+      "Source": "dart",
+      "Filename": "pool/main/d/dart/libdart6.13-external-convhull-3d-dev_6.13.2+ds1-1~osrf2~noble_amd64.deb",
+      "Size": "19456",
+      "SHA256": "9386428b8aeceb4a117fce4840633f90368569ba94cfa5bfc20311d8b7827e49"
+    },
+    {
+      "Package": "libdart6.13-external-odelcpsolver-dev",
+      "Version": "6.13.2+ds1-1~osrf2~noble",
+      "Architecture": "amd64",
+      "Source": "dart",
+      "Filename": "pool/main/d/dart/libdart6.13-external-odelcpsolver-dev_6.13.2+ds1-1~osrf2~noble_amd64.deb",
+      "Size": "18434",
+      "SHA256": "0b84a40ce11bad777c103297e92e23721c2ea14aa37df60a4257fc751a644f6a"
+    },
+    {
+      "Package": "libdart6.13-utils-dev",
+      "Version": "6.13.2+ds1-1~osrf2~noble",
+      "Architecture": "amd64",
+      "Source": "dart",
+      "Filename": "pool/main/d/dart/libdart6.13-utils-dev_6.13.2+ds1-1~osrf2~noble_amd64.deb",
+      "Size": "18010",
+      "SHA256": "73f7f573aea947218098b5bb3ed88bccb488ac9e06a597f0ead58df0238df6dc"
+    },
+    {
+      "Package": "libdart6.13-utils-urdf-dev",
+      "Version": "6.13.2+ds1-1~osrf2~noble",
+      "Architecture": "amd64",
+      "Source": "dart",
+      "Filename": "pool/main/d/dart/libdart6.13-utils-urdf-dev_6.13.2+ds1-1~osrf2~noble_amd64.deb",
+      "Size": "13480",
+      "SHA256": "3dd0348a294184ca3357d4f20089aa0a5d01a83e9d14325fb6314bbaadc905b2"
+    }
+  ],
+  "builds": [
+    "gz-physics",
+    "gz-sim"
+  ],
+  "prefix": "/reference/dart-install",
+  "build_root": "/reference/dart-builds",
+  "DART_DIR": "/usr/share/dart/cmake",
+  "remaining": [
+    "No new image ID or runtime results exist until actual build and independent qualification.",
+    "OSRF packages are signed binary dependencies, not a claim that DART itself was rebuilt from source.",
+    "Other backends, language/rendering profiles and full REF01/P0 remain open."
+  ],
+  "source_package": {
+    "Package": "dart",
+    "Version": "6.13.2+ds1-1~osrf2~noble",
+    "Directory": "pool/main/d/dart",
+    "Checksums-Sha256": "b900820b71463476463b9daeb31e81c74ebf59bd95139b7f833f5f6bb9b8058e 10968976 dart_6.13.2+ds1.orig.tar.xz\n 6e9049fcf7c5ddf507dcebd51ccc4e39059376f0e802f7d60398251474295092 13584 dart_6.13.2+ds1-1~osrf2~noble.debian.tar.xz\n 15e661dc0b2ac663ae9466bf34347aef87e94b667d62a267f482f5294160b6b3 6165 dart_6.13.2+ds1-1~osrf2~noble.dsc"
+  },
+  "dart_files_sha256": {
+    "usr/include/dart/config.hpp": "3a7b692406e7433e08fef91619b25d93fa0b6fcdcfb08d8752a0872bddd73309",
+    "usr/include/dart/constraint/ContactSurface.hpp": "2a9c3eb7a4737765aca16cdfc861210833f44e96b03c548761d4812598bc0aea",
+    "usr/lib/x86_64-linux-gnu/pkgconfig/dart.pc": "b655d373ba2523edab6b0d6b663699a9e191a48370e6ee845ac38b79b26a4a7f",
+    "usr/lib/x86_64-linux-gnu/libdart.so.6.13.2": "f74f4ec9820aee785ef94fb7bedafa7e4c832f209675a8ca1d35019c72b48e06",
+    "usr/lib/x86_64-linux-gnu/libdart-collision-ode.so.6.13.2": "2940e0bd6b056f186d3596e051a26ec25f1c27add88d870cdfe673785dad4b44",
+    "usr/lib/x86_64-linux-gnu/libdart-external-odelcpsolver.so.6.13.2": "b890ed6936ea7cf486303fc5101ee5ff68356fc89596273ebaef83671aa4cb16"
+  }
+}

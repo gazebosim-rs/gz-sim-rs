@@ -587,3 +587,15 @@ from collision construction, with original-value restoration through loaded
 reset. No renderer dependency or scheduled work is added. Source review,
 five focused controls and Clippy passed; exact staged/hosted qualification is
 recorded by revision on the tracker. See [the contract](VISUAL_GEOMETRY.md).
+
+## Clean native DART reference recipe
+
+The reviewed `reference/Dockerfile.dart` recipe builds fresh pinned physics and
+simulator trees against signed, checksum-pinned OSRF DART 6.13.2 packages. Eight
+focused controls and direct checks of all ten package payloads pass. The private
+image built successfully and completed bounded articulated smoke; native physics
+execution records 155 successful CTest registrations, 318 completed gtest cases
+and 171 explicit skips. These observations do not close REF-01, REF-02 or P0.
+The recipe changes no Rust engine, producer pin or runtime configuration. See
+[DART_REFERENCE_PROFILE.md](DART_REFERENCE_PROFILE.md) for provenance, limitations
+and remaining runtime qualification.

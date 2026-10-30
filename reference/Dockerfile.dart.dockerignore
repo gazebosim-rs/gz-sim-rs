@@ -1,0 +1,16 @@
+# Copyright (C) 2026 Open Source Robotics Foundation
+# SPDX-License-Identifier: Apache-2.0
+**
+!reference/
+!reference/build-reference.py
+!reference/build-dart-reference.py
+!reference/headless-dart.lock.json
+!reference/Dockerfile.dart
+!reference/Dockerfile.dart.dockerignore
+!reference/osrf-dart/
+!reference/osrf-dart/InRelease
+!reference/osrf-dart/archive-keyring.gpg
+!reference/osrf-dart/Packages.gz
+!reference/osrf-dart/Sources.gz
+!planning/
+!planning/baseline.json
