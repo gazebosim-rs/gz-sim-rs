@@ -36,6 +36,12 @@ Do not claim the previous bounded-force acceptance proves zero-cost absence.
 
 ## Current P3 follow-up
 
+Empty canonical Physics world metadata now maps to the existing built-in physics
+system; see WORLD_SYSTEM_CONFIGURATION.md. Explicit backend selection is retained,
+with no dynamic system loader or duplicate callback installation. Child engine
+configuration, plane geometry and moving-parent actuation remain open, so the
+complete original ApplyJointForce fixture is still unqualified.
+
 The joint-effort API adds `DynamicBackend::add_joint_effort`; its DART world-hinge
 implementation was accepted at 1982aa0. The current extension supports MuJoCo's
 world hinges through its native generalized-force array. Commands are deferred by joint ID, consumed only
