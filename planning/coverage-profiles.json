@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "profiles": {
+    "headless": {
+      "exclude_packages": [
+        "gz-render-client",
+        "gz-render-frame",
+        "gz-render-protocol",
+        "gz-render-test-support",
+        "gz-render-worker",
+        "gz-renderer"
+      ],
+      "runner": "cpu"
+    },
+    "renderer": {
+      "packages": [
+        "gz-render-client",
+        "gz-render-frame",
+        "gz-render-protocol",
+        "gz-render-worker",
+        "gz-renderer",
+        "gz-sim-core"
+      ],
+      "features": [
+        "gz-renderer/gpu"
+      ],
+      "runner": "vulkan"
+    }
+  },
+  "excluded_sources": [],
+  "test_support_packages": [
+    "gz-render-test-support"
+  ]
+}

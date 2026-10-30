@@ -1,0 +1,13 @@
+[package]
+name = "gz-render-protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = { version = "=1.0.149", features = ["float_roundtrip"] }
+
+[lints]
+workspace = true

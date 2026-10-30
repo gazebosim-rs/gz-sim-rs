@@ -11,7 +11,7 @@ jobs:
       - name: Install native client build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libssl-dev cmake curl gnupg pkg-config
+          sudo apt-get install -y libssl-dev cmake curl gnupg pkg-config mesa-vulkan-drivers libvulkan1
           # DART 6.13.2 from the same OSRF build that upstream gz-physics links.
           sudo curl -fsSL https://packages.osrfoundation.org/gazebo.gpg -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
           echo "deb [arch=amd64 signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable noble main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list
@@ -24,8 +24,25 @@ jobs:
           path: artifacts/physics-reference/mujoco
           key: mujoco-${{ hashFiles('scripts/bootstrap-physics.py') }}
       - run: python3 scripts/bootstrap-physics.py --jobs 2
+      - name: Verify isolated process-limit controls are available
+        run: unshare -Ur true
+      - name: Select the software Vulkan adapter
+        shell: bash
+        run: |
+          shopt -s nullglob
+          icds=(/usr/share/vulkan/icd.d/lvp_icd*.json)
+          test "${#icds[@]}" -eq 1
+          echo "VK_ICD_FILENAMES=${icds[0]}" >> "$GITHUB_ENV"
+          echo "GZ_RENDER_REQUIRE_LLVMPIPE=1" >> "$GITHUB_ENV"
       - run: python3 scripts/verify.py
         env:
           GZ_COVERAGE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           GZ_REFERENCE_PREFIX: ${{ github.workspace }}/artifacts/native-reference/install
           MUJOCO_PREFIX: ${{ github.workspace }}/artifacts/physics-reference/mujoco
+      - name: Retain separate coverage profiles
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: render-coverage-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/coverage/
+          if-no-files-found: error

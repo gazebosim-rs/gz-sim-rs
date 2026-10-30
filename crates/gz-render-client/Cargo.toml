@@ -1,0 +1,15 @@
+[package]
+name = "gz-render-client"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+gz-render-protocol = { path = "../gz-render-protocol" }
+
+[dev-dependencies]
+rustix = { version = "=1.1.5", features = ["process"] }
+
+[lints]
+workspace = true
