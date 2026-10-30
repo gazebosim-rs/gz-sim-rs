@@ -144,6 +144,33 @@ impl Simulation {
         }
     }
 
+    /// Retires all systems in a Bevy set while retaining ordering for reactivation.
+    /// Owned system and per-system condition state is released before success.
+    /// Collective/set-level condition state remains with retained ordering sets.
+    /// `phase` selects the tick schedule or the separate reset schedule.
+    /// Call at a lifecycle boundary outside schedule execution. Bevy may initialize
+    /// pending registrations; removal errors follow its schedule error contract.
+    pub fn remove_systems_in_set<M>(
+        &mut self,
+        phase: Phase,
+        set: impl IntoSystemSet<M>,
+    ) -> Result<usize, bevy_ecs::schedule::ScheduleError> {
+        let schedule = if phase == Phase::Reset {
+            &mut self.reset_schedule
+        } else {
+            &mut self.schedule
+        };
+        let removed = schedule.remove_systems_in_set(
+            set,
+            &mut self.world,
+            bevy_ecs::schedule::ScheduleCleanupPolicy::RemoveSystemsOnly,
+        )?;
+        // Rebuild now so retired executable systems release Local/query state
+        // before the lifecycle boundary returns, even if no later tick runs.
+        schedule.initialize(&mut self.world)?;
+        Ok(removed)
+    }
+
     pub fn world(&self) -> &World {
         &self.world
     }
