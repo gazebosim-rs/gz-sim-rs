@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! The contract every dynamic engine adapter (Rapier, DART, MuJoCo) implements.
 
-use crate::{BodySpec, BodyState, Inertia, RotationSpec};
+use crate::{BodySpec, BodyState, Inertia, PlaneSpec, RotationSpec};
 use bevy_ecs::prelude::*;
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo};
 use std::{any::Any, sync::Arc, time::Duration};
@@ -146,6 +146,15 @@ pub trait DynamicBackend: Send + Sync + 'static {
         rotation: RotationSpec,
         inertia: Option<Inertia>,
     ) -> Result<BodyId, PhysicsError>;
+
+    /// Construct a fixed local Z-up plane without shifting its reported link frame.
+    /// Unsupported engines return an explicit error without allocating a body.
+    fn spawn_static_plane(&mut self, _spec: PlaneSpec) -> Result<BodyId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "static plane collider",
+        })
+    }
 
     /// Whether a registered body has dynamic mass rather than a fixed solver body.
     fn is_dynamic(&self, id: BodyId) -> Option<bool>;

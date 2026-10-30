@@ -72,6 +72,7 @@ dart::dynamics::ShapePtr shape(const BodyConfig &config) {
     case 0:
       return std::make_shared<dart::dynamics::SphereShape>(d[0]);
     case 1:
+    case 4:
       return std::make_shared<dart::dynamics::BoxShape>(vector(d));
     case 2:
       return std::make_shared<dart::dynamics::CylinderShape>(d[0], d[1]);
@@ -318,7 +319,10 @@ void World::build(dart::dynamics::Skeleton &skeleton,
       collision, name + ":collision");
   // SDF's default <ode><mu> is 1; other surface values keep DART defaults.
   shapeNode->getDynamicsAspect()->setFrictionCoeff(1.0);
-  shapeNode->setRelativeTransform(Eigen::Isometry3d::Identity());
+  Eigen::Isometry3d collisionPose = Eigen::Isometry3d::Identity();
+  if (config.shape == 4)
+    collisionPose.translation().z() = -0.5 * config.dimensions[2];
+  shapeNode->setRelativeTransform(collisionPose);
 
   if (config.mobile) {
     setFreeVelocity(*node, config.velocity);

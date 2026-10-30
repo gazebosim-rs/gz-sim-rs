@@ -193,6 +193,17 @@ and regions, workspace3516/3552lines5369/5486regions and changed scene2/2,server
 See IMU_ORIENTATION.md and planning/reviews/imu-orientation.json. Runtime toggling
 and full SENSOR01 remains open.
 
+## Bounded DART static planes
+
+DART and its scene loader support centered local +Z plane collisions on
+static links, including inherited model static state, with default inertia.
+The native 2,100 m shifted cube, size-independent collision extent and original
+link frame are retained. See [DART_PLANES.md](DART_PLANES.md) and
+[SCENE_PLANES.md](SCENE_PLANES.md) for admission bounds, 49 native reference
+samples, reset/removal controls and explicit unsupported inputs. Other engines,
+arbitrary collision offsets/normals and the full original ApplyJointForce
+fixture remain open. Required gate outcomes are recorded on the public tracker.
+
 ## Cylinder geometry
 
 Centered Z-axis cylinder loading, Rapier dynamics and native TPE AABB contacts

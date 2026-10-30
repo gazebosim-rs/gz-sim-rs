@@ -8,7 +8,7 @@
 
 use gz_physics::{
     BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId, JointState,
-    PhysicsError, PreparedPhysicsReset, RotationSpec,
+    PhysicsError, PlaneSpec, PreparedPhysicsReset, RotationSpec,
 };
 use std::{any::Any, collections::BTreeMap, path::Path, sync::Arc, time::Duration};
 
@@ -228,6 +228,17 @@ impl Built {
 }
 
 impl DartBackend {
+    fn insert_config(&mut self, config: BodyConfig) -> Result<BodyId, PhysicsError> {
+        let next = self
+            .next_body
+            .checked_add(1)
+            .ok_or(PhysicsError::IdOverflow)?;
+        let id = BodyId::from_raw(self.next_body);
+        self.world.insert(id, config)?;
+        self.next_body = next;
+        Ok(id)
+    }
+
     /// Gravity uses Gazebo's Z-up coordinate convention; no implicit axis conversion.
     /// Its magnitude is at most 1e60 m/s². Fails with [`PhysicsError::Native`] if
     /// the loaded DART is not the one this crate was built against.
@@ -277,15 +288,11 @@ impl DynamicBackend for DartBackend {
         rotation: RotationSpec,
         inertia: Option<Inertia>,
     ) -> Result<BodyId, PhysicsError> {
-        let config = body::config(spec, rotation, inertia)?;
-        let next = self
-            .next_body
-            .checked_add(1)
-            .ok_or(PhysicsError::IdOverflow)?;
-        let id = BodyId::from_raw(self.next_body);
-        self.world.insert(id, config)?;
-        self.next_body = next;
-        Ok(id)
+        self.insert_config(body::config(spec, rotation, inertia)?)
+    }
+
+    fn spawn_static_plane(&mut self, spec: PlaneSpec) -> Result<BodyId, PhysicsError> {
+        self.insert_config(body::plane_config(spec)?)
     }
 
     fn is_dynamic(&self, id: BodyId) -> Option<bool> {

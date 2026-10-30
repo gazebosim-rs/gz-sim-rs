@@ -40,8 +40,10 @@ Canonical Physics world metadata now maps to the existing built-in physics
 system; see WORLD_SYSTEM_CONFIGURATION.md. Explicit backend selection is retained,
 with no dynamic system loader or duplicate callback installation. A bounded canonical engine filename is accepted under that explicit override,
 so native input fixtures now load without removing the record. Automatic engine
-selection, plane geometry and moving-parent actuation remain open, so the
-complete original ApplyJointForce fixture is still unqualified.
+selection and moving-parent actuation remain open, so the complete original
+ApplyJointForce fixture is still unqualified. Bounded static local +Z planes
+now load through DART; see SCENE_PLANES.md for the default-inertia, centered
+collision and backend restrictions and retained native finite-footprint behavior.
 
 The joint-effort API adds `DynamicBackend::add_joint_effort`; its DART world-hinge
 implementation was accepted at 1982aa0. The current extension supports MuJoCo's

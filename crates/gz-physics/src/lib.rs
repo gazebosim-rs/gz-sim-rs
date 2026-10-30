@@ -28,6 +28,15 @@ pub enum Shape {
     },
 }
 
+/// Fixed local Z-up plane. `size` is the SDF XY metadata; collision extent is
+/// backend-specific. `position` and XYZW `orientation` locate the link frame.
+#[derive(Debug, Clone, Copy)]
+pub struct PlaneSpec {
+    pub position: [f64; 3],
+    pub orientation: [f64; 4],
+    pub size: [f64; 2],
+}
+
 /// Initial state, in meters, kilograms, and meters per second. `None` mass is fixed.
 #[derive(Debug, Clone, Copy)]
 pub struct BodySpec {

@@ -9,7 +9,8 @@
 #[cxx::bridge(namespace = "gz_physics_dart")]
 pub(crate) mod bridge {
     /// One rigid body. Shape codes: 0 sphere [r], 1 box [full x,y,z],
-    /// 2 cylinder [r, length], 3 capsule [r, cylindrical length].
+    /// 2 cylinder [r, length], 3 capsule [r, cylindrical length],
+    /// 4 fixed SDF plane represented by the native translated cube.
     #[derive(Clone)]
     struct BodyConfig {
         shape: u8,

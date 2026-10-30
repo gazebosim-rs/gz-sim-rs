@@ -9,7 +9,7 @@
 //! tests/bounds.rs establish these limits against the real library.
 
 use crate::ffi::bridge::{BodyConfig, Twist};
-use gz_physics::{BodySpec, Inertia, PhysicsError, RotationSpec, Shape};
+use gz_physics::{BodySpec, Inertia, PhysicsError, PlaneSpec, RotationSpec, Shape};
 use nalgebra::{Matrix3, Quaternion, UnitQuaternion, Vector3};
 
 /// Largest admitted magnitude of mass, inertia, length, velocity, force, torque
@@ -352,3 +352,43 @@ pub(crate) fn config(
 #[cfg(test)]
 #[path = "../tests/private/body.rs"]
 mod tests;
+
+/// The pinned dartsim SDF constructor uses a 2100m cube translated below the
+/// local plane; SDF size does not change its physical collision extent.
+pub(crate) fn plane_config(spec: PlaneSpec) -> Result<BodyConfig, PhysicsError> {
+    if !spec.size.into_iter().all(bounded) {
+        return Err(PhysicsError::InvalidValue);
+    }
+    let shape = Shape::Box {
+        half_extents: [1050.0; 3],
+    };
+    let orientation = rotation(spec.orientation)?.to_rotation_matrix();
+    let mut result = config(
+        BodySpec {
+            shape,
+            position: spec.position,
+            velocity: [0.0; 3],
+            mass: None,
+        },
+        RotationSpec {
+            orientation: spec.orientation,
+            angular_velocity: [0.0; 3],
+        },
+        Some(Inertia {
+            center: [0.0; 3],
+            orientation: [0.0, 0.0, 0.0, 1.0],
+            tensor: [1.0, 1.0, 1.0, 0.0, 0.0, 0.0],
+        }),
+    )?;
+    let offset = [0.0, 0.0, -1050.0];
+    let center = Vector3::from(spec.position) + orientation * Vector3::from(offset);
+    let (_, _, extents) = geometry(shape, orientation.matrix())?;
+    for (center, extent) in center.iter().zip(extents) {
+        let (low, high) = (center - extent, center + extent);
+        if !inside([low, high, 0.0]) || !positive(high - low) {
+            return Err(PhysicsError::InvalidValue);
+        }
+    }
+    result.shape = 4;
+    Ok(result)
+}

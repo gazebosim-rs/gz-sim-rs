@@ -1,0 +1,3584 @@
+{
+  "scope": "Installed pinned native dartsim engine; fixed local +Z SDF planes, link frames and trajectories. Selected source/headers/runtime libraries verified; no fresh engine build or other-normal/backend/performance claim.",
+  "source_revision": "b44cd0d0ea6606b6c98320c0c87a5670d4fc6be6",
+  "sources_sha256": {
+    "dartsim/src/SDFFeatures.cc": "e230d9c3bc6451e199d1472f2f08475900d3f387dc3de9179f78ce9a5b15511c",
+    "dartsim/src/ShapeFeatures.cc": "a29bddc7f26f674ea82eab97beff9dc33cbc8afab7c42079362021cda52e377f",
+    "dartsim/src/SimulationFeatures.cc": "81ac192130d9a05028d78f733b0805ddfe4ac3fcf4b61cf80464d738551e3c1a",
+    "dartsim/src/WorldFeatures.cc": "5e25633faf1a864e0a282c6342300ee6857e49f296b5032968fecff92410b4ce",
+    "include/gz/physics/ForwardStep.hh": "cac6761d3b187be7d703d57f400dbc5cac3441e7534d5e48f688d560cce06cd6",
+    "include/gz/physics/FrameSemantics.hh": "e6abfacf56f79de0607d3f9f3099336772e0142e77fec90f60949becd1370991"
+  },
+  "probe_sha256": "9d3e059e074cfd0c560ed0dd176f615c501bed7440ac8b7f4babddc766fab2fa",
+  "runner_sha256": "45817a28a133c6e7d5c4ec701837241a2f49389bb942ba700ddb5cbbd074f409",
+  "dart_version": "6.13.2",
+  "libraries_sha256": {
+    "libgz-common.so.8.0.0~pre2": "93d9c64716d8b5efdb5862630cc33e62da97785d55e401ed19e4571c9b03df8d",
+    "libgz-utils.so.5.0.0~pre2": "2e91419fd59b6995ee8fada80e106dac5644d3d44cd2e8bc6655547433e51ae6",
+    "libdraco.so.8.0.0": "b368d354f2778606b2553037fc8a3212719ee76a82711c60f7c72de49818e781",
+    "libspdlog.so.1.12.0": "62bb2fbc92edc05b35888e624882b78f5b38c0aca6a3df7ab7db32bb9c2629b6",
+    "libassimp.so.5.3.0": "f5524225032201d129cac2adf305af9c7ffcf612d8662f3c87a2d891d5cd3d18",
+    "liboctomap.so.1.9.7": "ec8bfd6cce31e7fd3dced8d5489109f6bca3d066c8ac3035b032940a8eb9ef50",
+    "libLinearMath.so.3.24": "31c7e0d2d17efc3924613bf561a645a4258f2d8df54167c162c490ed7fe84fea",
+    "libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+    "liburdfdom_model.so.4.0": "ac27f211accb66a3f461d8d0b09b9ff123e306e68a0bac0f7c502203d7cbb34e",
+    "libuuid.so.1.3.0": "78d7f4d6f27b7dffc1c84dfe2f83e84aefa6f6ceeffc6ac4bc41f9fbc61cb84e",
+    "libgz-physics-dartsim-plugin.so.10.0.0~pre2": "31e4c16d27053202b3dac1099c0397e2a6748ffd957d1db6df49df6c38befe31",
+    "libconsole_bridge.so.1.0": "bb9ced68ce1209c48b55ddcebe913542197dc745c71febd65205ff0a4d833651",
+    "libpugixml.so.1.14": "b5493d9c8c6e36e3b72e38564b7e287ad925ab717577ded997465f9ac9da1c9e",
+    "libz.so.1.3": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+    "libgcc_s.so.1": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+    "libgz-plugin-loader.so.5.0.0~pre2": "b8b880f8f67a35b81400a5efe24746c503e8e6265688fdf297e6129b2494823e",
+    "liboctomath.so.1.9.7": "efd1dcfc111d271e13173f02153c0a950bbce9ccd53d1319990a5e6ff56c8dca",
+    "libfmt.so.9.1.0": "da008b908b32e428eaa1c09e36d6894c8f88362e254b503c7c2c6112b4ec9ed0",
+    "libgz-physics.so.10.0.0~pre2": "cbbdc53e0558b0e3deacb45f7b2a077e90705d62b5e4635203d6a41728b89910",
+    "libgz-math.so.10.0.0~pre2": "288c6f52fac45359f5de67d97e0069b7f37420f5f78888e61406b8f565656c4f",
+    "libBulletCollision.so.3.24": "a356d9ef207a31737b91a39c4c75a43b05a49cde51891cfa13b4b1c71c223f0a",
+    "libdart-collision-ode.so.6.13.2": "2940e0bd6b056f186d3596e051a26ec25f1c27add88d870cdfe673785dad4b44",
+    "libdart-collision-bullet.so.6.13.2": "897709e0c988e9e562c662292ed5bc860bce70ee2c64499501f54a6b5ca02201",
+    "libgz-common-graphics.so.8.0.0~pre2": "092dc2f86ca64905722d5fb2775934b696e20e0d64b2d0578ba097ccf025c41a",
+    "libfcl.so.0.7.0": "3436bd79e03ed39efce6f7abfd64ed35429d5574bd76337b90edb1fb85506afb",
+    "libccd.so.2.0": "aa285639c8e4fa83f5987357fdc882e6df614949e40a7e85676b640ffb25f4f1",
+    "libminizip.so.1.0.0": "7397458805900a67287673a7d469d1ff207525ae7694ed885e8603d0164828bf",
+    "libgz-utils-log.so.5.0.0~pre2": "9de1010066534024cb88512faf663bc6cf4362f08ed2865c9399e02aab8e51d4",
+    "ld-linux-x86-64.so.2": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+    "libode.so.8.0.2": "c511d66333708785c1a22f6cd572c4c84495a535566c9c80eb37d8e0f67bc469",
+    "libm.so.6": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+    "libtinyxml2.so.10.0.0": "f9e01d87fb78af744a426af8c992e94abf8cd3810a256e117bcc94cd84d2be6d",
+    "libstdc++.so.6.0.33": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+    "libsdformat.so.17.0.0~pre2": "bcc864bcee56b49c13081e29722051e26c036260e3dd037e7736aa2b8620358f",
+    "libdart.so.6.13.2": "f74f4ec9820aee785ef94fb7bedafa7e4c832f209675a8ca1d35019c72b48e06",
+    "libgz-plugin.so.5.0.0~pre2": "1adf86c64ac236357b75c9052e2c2252bfa7f5d50140be266be41560451bfeb3",
+    "libdart-external-odelcpsolver.so.6.13.2": "b890ed6936ea7cf486303fc5101ee5ff68356fc89596273ebaef83671aa4cb16"
+  },
+  "rows": [
+    {
+      "case": "center",
+      "step": 0,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          3
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "center",
+      "step": 1,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          2.99999019
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.009810000000000001
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "center",
+      "step": 10,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          2.9994604499999995
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.0981
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "center",
+      "step": 100,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          2.9504594999999996
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.9809999999999991
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "center",
+      "step": 500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          1.7712975000000013
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -4.904999999999972
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "center",
+      "step": 1000,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          1.4977412918899797
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0.000999901899999999
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "center",
+      "step": 1500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          1.4982412428399523
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0.000999901899999999
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "small_size",
+      "step": 0,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          1,
+          1
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          3
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "small_size",
+      "step": 1,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          1,
+          1
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          2.99999019
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.009810000000000001
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "small_size",
+      "step": 10,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          1,
+          1
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          2.9994604499999995
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.0981
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "small_size",
+      "step": 100,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          1,
+          1
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          2.9504594999999996
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.9809999999999991
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "small_size",
+      "step": 500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          1,
+          1
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          1.7712975000000013
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -4.904999999999972
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "small_size",
+      "step": 1000,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          1,
+          1
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          1.4977412918899797
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0.000999901899999999
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "small_size",
+      "step": 1500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          1,
+          1
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          1.4982412428399523
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0.000999901899999999
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "large_size",
+      "step": 0,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          100000,
+          100000
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          3
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "large_size",
+      "step": 1,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          100000,
+          100000
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          2.99999019
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.009810000000000001
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "large_size",
+      "step": 10,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          100000,
+          100000
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          2.9994604499999995
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.0981
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "large_size",
+      "step": 100,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          100000,
+          100000
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          2.9504594999999996
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.9809999999999991
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "large_size",
+      "step": 500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          100000,
+          100000
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          1.7712975000000013
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -4.904999999999972
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "large_size",
+      "step": 1000,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          100000,
+          100000
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          1.4977412918899797
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0.000999901899999999
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "large_size",
+      "step": 1500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          100000,
+          100000
+        ],
+        "ball": [
+          50,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          50,
+          0,
+          1.4982412428399523
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0.000999901899999999
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "outside_cube",
+      "step": 0,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1100,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1100,
+          0,
+          3
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "outside_cube",
+      "step": 1,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1100,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1100,
+          0,
+          2.99999019
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.009810000000000001
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "outside_cube",
+      "step": 10,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1100,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1100,
+          0,
+          2.9994604499999995
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.0981
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "outside_cube",
+      "step": 100,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1100,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1100,
+          0,
+          2.9504594999999996
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.9809999999999991
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "outside_cube",
+      "step": 500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1100,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1100,
+          0,
+          1.7712975000000013
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -4.904999999999972
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "outside_cube",
+      "step": 1000,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1100,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1100,
+          0,
+          -1.909904999999969
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -9.80999999999991
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "outside_cube",
+      "step": 1500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1100,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1100,
+          0,
+          -8.04360749999991
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -14.714999999999847
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "footprint_edge",
+      "step": 0,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1049.75,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1049.75,
+          0,
+          3
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "footprint_edge",
+      "step": 1,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1049.75,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1049.75,
+          0,
+          2.99999019
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.009810000000000001
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "footprint_edge",
+      "step": 10,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1049.75,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1049.75,
+          0,
+          2.9994604499999995
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.0981
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "footprint_edge",
+      "step": 100,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1049.75,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1049.75,
+          0,
+          2.9504594999999996
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.9809999999999991
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "footprint_edge",
+      "step": 500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1049.75,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1049.75,
+          0,
+          1.7712975000000013
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -4.904999999999972
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "footprint_edge",
+      "step": 1000,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1049.75,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1049.75,
+          0,
+          1.4977412918899797
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0.000999901899999999
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "footprint_edge",
+      "step": 1500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          1049.75,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1049.75,
+          0,
+          1.4982412428399523
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0.000999901899999999
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "tilted",
+      "step": 0,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682815,
+          0,
+          0.9950041652780258
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682817,
+          0,
+          0.9950041652780257
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          3
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "tilted",
+      "step": 1,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682815,
+          0,
+          0.9950041652780258
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682817,
+          0,
+          0.9950041652780257
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          2.99999019
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.009810000000000001
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "tilted",
+      "step": 10,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682815,
+          0,
+          0.9950041652780258
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682817,
+          0,
+          0.9950041652780257
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          2.9994604499999995
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.0981
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "tilted",
+      "step": 100,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682815,
+          0,
+          0.9950041652780258
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682817,
+          0,
+          0.9950041652780257
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          2.9504594999999996
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.9809999999999991
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "tilted",
+      "step": 500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682815,
+          0,
+          0.9950041652780258
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682817,
+          0,
+          0.9950041652780257
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0,
+          0,
+          1.7712975000000013
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -4.904999999999972
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "tilted",
+      "step": 1000,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682815,
+          0,
+          0.9950041652780258
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682817,
+          0,
+          0.9950041652780257
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          0.4744546467456096,
+          1.8200327804697314e-24,
+          1.4124157557421293
+        ],
+        "orientation": [
+          3.684683388547202e-24,
+          0.46683846726043615,
+          -2.4159724711652048e-24,
+          0.8843426063952402
+        ],
+        "velocity": [
+          1.3618626601069732,
+          1.8627155959161973e-24,
+          -0.2750429874432586
+        ],
+        "angular_velocity": [
+          9.082588898144856e-24,
+          2.787338645656187,
+          -1.8411319148014463e-24
+        ]
+      }
+    },
+    {
+      "case": "tilted",
+      "step": 1500,
+      "input": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682815,
+          0,
+          0.9950041652780258
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          0,
+          0,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "orientation": [
+          0,
+          0.09983341664682817,
+          0,
+          0.9950041652780257
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          1.3261158174978755,
+          2.3355651184717617e-24,
+          1.2402856099500612
+        ],
+        "orientation": [
+          1.6155284174586307e-24,
+          0.9771949190623367,
+          -4.115814808055421e-24,
+          0.21234427272416226
+        ],
+        "velocity": [
+          2.043516454916884,
+          1.2407242190321327e-24,
+          -0.4132210523937965
+        ],
+        "angular_velocity": [
+          6.04507274935546e-24,
+          4.178499138949317,
+          -1.2253969094267536e-24
+        ]
+      }
+    },
+    {
+      "case": "translated",
+      "step": 0,
+      "input": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          2,
+          -3,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          2,
+          -3,
+          3
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "translated",
+      "step": 1,
+      "input": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          2,
+          -3,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          2,
+          -3,
+          2.99999019
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.009810000000000001
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "translated",
+      "step": 10,
+      "input": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          2,
+          -3,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          2,
+          -3,
+          2.9994604499999995
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.0981
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "translated",
+      "step": 100,
+      "input": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          2,
+          -3,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          2,
+          -3,
+          2.9504594999999996
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -0.9809999999999991
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "translated",
+      "step": 500,
+      "input": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          2,
+          -3,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          2,
+          -3,
+          1.7712975000000013
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          -4.904999999999972
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "translated",
+      "step": 1000,
+      "input": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          2,
+          -3,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          2,
+          -3,
+          1.4977412918899797
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0.000999901899999999
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "case": "translated",
+      "step": 1500,
+      "input": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "ball": [
+          2,
+          -3,
+          3
+        ]
+      },
+      "ground": {
+        "position": [
+          2,
+          -3,
+          1
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ball": {
+        "position": [
+          2,
+          -3,
+          1.4982412428399523
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocity": [
+          0,
+          0,
+          0.000999901899999999
+        ],
+        "angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  ]
+}

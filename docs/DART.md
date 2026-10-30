@@ -11,12 +11,17 @@ scene/CLI selection through `PhysicsEngine::Dart` and `--physics-engine dart`.
 
 ## Supported scope
 
-The scope equals the Rapier backend's: free and static bodies with sphere, box,
+The shared solid-body scope covers free and static bodies with sphere, box,
 cylinder or capsule collision; mass with shape-derived or explicit inertia
 (offset center, rotated inertial frame); gravity; contacts; world velocity,
 one-step COM force/world torque and impulses; one unbounded world revolute per
 body with continuous position/velocity readback; removal; retained reset and
 owner-bound prepared initial-state reset. Each body is one DART skeleton.
+
+DART also supports fixed local +Z planes through the native shifted-cube
+construction; see [DART_PLANES.md](DART_PLANES.md). The bounded scene loader
+accepts centered planes with default inertia on effectively static links;
+see [SCENE_PLANES.md](SCENE_PLANES.md). Other engines remain unsupported.
 
 ## Settings matched to upstream
 

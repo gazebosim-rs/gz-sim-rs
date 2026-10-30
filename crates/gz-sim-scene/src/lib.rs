@@ -40,7 +40,8 @@ pub use initial::{
 use bevy_ecs::prelude::*;
 use glam::{DQuat, DVec3};
 use gz_physics::{
-    BodyId, BodySpec, Inertia, PhysicsBackend, PhysicsError, PhysicsReset, RotationSpec, Shape,
+    BodyId, BodySpec, Inertia, PhysicsBackend, PhysicsError, PhysicsReset, PlaneSpec, RotationSpec,
+    Shape,
 };
 use gz_physics_dart::DartBackend;
 use gz_physics_mujoco::MujocoBackend;
@@ -547,19 +548,24 @@ fn build_model(
         )?;
         let local = sdf.resolve_pose(&collision.pose, &model.scoped_name, name, name)?;
         require(identity(local), name, "offset collision pose")?;
-        let shape = match collision.geometry {
-            Geometry::Sphere { radius } => Shape::Sphere { radius },
-            Geometry::Cylinder { radius, length } => Shape::Cylinder {
+        enum LinkCollision {
+            Solid(Shape),
+            Plane { normal: [f64; 3], size: [f64; 2] },
+        }
+        let geometry = match collision.geometry {
+            Geometry::Sphere { radius } => LinkCollision::Solid(Shape::Sphere { radius }),
+            Geometry::Cylinder { radius, length } => LinkCollision::Solid(Shape::Cylinder {
                 radius,
                 half_height: length * 0.5,
-            },
-            Geometry::Capsule { radius, length } => Shape::Capsule {
+            }),
+            Geometry::Capsule { radius, length } => LinkCollision::Solid(Shape::Capsule {
                 radius,
                 half_length: length * 0.5,
-            },
-            Geometry::Box { size } => Shape::Box {
+            }),
+            Geometry::Box { size } => LinkCollision::Solid(Shape::Box {
                 half_extents: size.map(|v| v * 0.5),
-            },
+            }),
+            Geometry::Plane { normal, size } => LinkCollision::Plane { normal, size },
             _ => {
                 return Err(LoadError::Unsupported {
                     entity: name.clone(),
@@ -575,38 +581,67 @@ fn build_model(
             name,
             "offset center of mass",
         )?;
-        let spec = BodySpec {
-            shape,
-            position: pose.translation,
-            velocity: [0.0; 3],
-            mass: (!is_static).then_some(link.inertial.mass),
-        };
-        let (id, tpe_link) = if let Some(backend) = backend {
-            let id = backend.spawn_link(
-                spec,
-                RotationSpec {
+        let (id, tpe_link) = match geometry {
+            LinkCollision::Plane { normal, size } => {
+                require(is_static, name, "dynamic plane collision geometry")?;
+                require(
+                    normal == [0.0, 0.0, 1.0],
+                    name,
+                    "plane normal (expected local +Z)",
+                )?;
+                require(
+                    link.inertial.mass == 1.0
+                        && link.inertial.inertia == [1.0, 1.0, 1.0, 0.0, 0.0, 0.0]
+                        && identity(inertial_pose),
+                    name,
+                    "custom plane inertia",
+                )?;
+                let backend = backend.as_mut().ok_or_else(|| LoadError::Unsupported {
+                    entity: name.clone(),
+                    feature: "TPE plane collision",
+                })?;
+                let id = backend.spawn_static_plane(PlaneSpec {
+                    position: pose.translation,
                     orientation: pose.rotation,
-                    ..Default::default()
-                },
-                Some(Inertia {
-                    center: inertial_pose.translation,
-                    orientation: inertial_pose.rotation,
-                    tensor: link.inertial.inertia,
-                }),
-            )?;
-            if backend.engine() == "rapier"
-                && (!model.joints.is_empty() || (top_level && model.links.len() > 1))
-            {
-                let group = sim
-                    .world()
-                    .get::<EntityId>(model_entity)
-                    .expect("loader constructed model")
-                    .get();
-                backend.set_self_collision_group(id, Some(group))?;
+                    size,
+                })?;
+                (Some(id), None)
             }
-            (Some(id), None)
-        } else {
-            (None, Some(tpe::validate_link(spec, pose)?))
+            LinkCollision::Solid(shape) => {
+                let spec = BodySpec {
+                    shape,
+                    position: pose.translation,
+                    velocity: [0.0; 3],
+                    mass: (!is_static).then_some(link.inertial.mass),
+                };
+                if let Some(backend) = backend {
+                    let id = backend.spawn_link(
+                        spec,
+                        RotationSpec {
+                            orientation: pose.rotation,
+                            ..Default::default()
+                        },
+                        Some(Inertia {
+                            center: inertial_pose.translation,
+                            orientation: inertial_pose.rotation,
+                            tensor: link.inertial.inertia,
+                        }),
+                    )?;
+                    if backend.engine() == "rapier"
+                        && (!model.joints.is_empty() || (top_level && model.links.len() > 1))
+                    {
+                        let group = sim
+                            .world()
+                            .get::<EntityId>(model_entity)
+                            .expect("loader constructed model")
+                            .get();
+                        backend.set_self_collision_group(id, Some(group))?;
+                    }
+                    (Some(id), None)
+                } else {
+                    (None, Some(tpe::validate_link(spec, pose)?))
+                }
+            }
         };
         let local = sdf.pose_of(name, &model.scoped_name)?;
         let link_entity = spawn_node(sim, Some(model_entity), name, EntityKind::Link, local, pose)?;
