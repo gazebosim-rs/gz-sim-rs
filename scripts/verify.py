@@ -70,7 +70,7 @@ def changed_lines(diff):
     result, path = {}, None
     old_left = new_left = 0
     have_file = expect_new = False
-    for line in diff.splitlines():
+    for line in diff.split("\n"):
         if line == "\\ No newline at end of file":
             continue
         if old_left or new_left:
@@ -111,6 +111,12 @@ def changed_lines(diff):
     return result
 
 
+def source_line_numbers(path):
+    data = path.read_bytes()
+    count = data.count(b"\n") + bool(data and not data.endswith(b"\n"))
+    return set(range(1, count + 1))
+
+
 def changed_sources(sources, index=False):
     files = {str(path.relative_to(ROOT)): path for paths in sources.values() for path in paths}
     base = os.environ.get("GZ_COVERAGE_BASE") if not index else None
@@ -122,32 +128,32 @@ def changed_sources(sources, index=False):
         if not re.fullmatch(r"[0-9a-f]{40}", base):
             raise ValueError("invalid coverage base SHA")
         if base == "0" * 40:
-            return {name: set(range(1, len(path.read_text().splitlines()) + 1)) for name, path in files.items()}
+            return {name: source_line_numbers(path) for name, path in files.items()}
         run(["git", "cat-file", "-e", f"{base}^{{commit}}"], capture_output=True)
         command += [base, "HEAD"]
     else:
         if head.returncode != 0:
-            return {name: set(range(1, len(path.read_text().splitlines()) + 1)) for name, path in files.items()}
+            return {name: source_line_numbers(path) for name, path in files.items()}
         command += [head.stdout.strip()]
-    diff = run([*command, "--", "*.rs"], capture_output=True, text=True).stdout
+    diff = run([*command, "--", "*.rs"], capture_output=True).stdout.decode("utf-8")
     changed = changed_lines(diff)
     if not index and not base:
-        untracked = run(["git", "ls-files", "--others", "--exclude-standard", "-z"], capture_output=True, text=True).stdout.split("\0")
+        untracked = run(["git", "ls-files", "--others", "--exclude-standard", "-z"], capture_output=True).stdout.decode("utf-8").split("\0")
         for name in set(untracked) & files.keys():
-            changed[name] = set(range(1, len(files[name].read_text().splitlines()) + 1))
+            changed[name] = source_line_numbers(files[name])
         if not changed:
             # A clean checkout validates its latest commit; CI supplies the full push/PR base.
             parent = subprocess.run(["git", "rev-parse", "--verify", "HEAD^"], cwd=ROOT, capture_output=True, text=True)
             if parent.returncode == 0:
-                changed = changed_lines(run([*command[:-1], "HEAD^", "HEAD", "--", "*.rs"], capture_output=True, text=True).stdout)
+                changed = changed_lines(run([*command[:-1], "HEAD^", "HEAD", "--", "*.rs"], capture_output=True).stdout.decode("utf-8"))
             else:
-                changed = {name: set(range(1, len(path.read_text().splitlines()) + 1)) for name, path in files.items()}
+                changed = {name: source_line_numbers(path) for name, path in files.items()}
     return changed
 
 
 def check_changed_coverage(lcov, changed, crates, executable_counts=None):
     lines, source = {}, None
-    for line in lcov.splitlines():
+    for line in lcov.split("\n"):
         if line.startswith("SF:"):
             source = Path(line[3:]).resolve()
             if source in lines:
@@ -198,7 +204,7 @@ def coverage(changed_file=None):
         result = run(["cargo", "test", "--locked", "--workspace", "--all-targets", "--message-format=json"], env=env, capture_output=True, text=True)
         (out / "test-output.log").write_text(result.stdout + result.stderr)
         objects = []
-        for line in result.stdout.splitlines():
+        for line in result.stdout.split("\n"):
             try:
                 item = json.loads(line)
             except json.JSONDecodeError:
@@ -221,7 +227,7 @@ def coverage(changed_file=None):
             command += ["-object", binary]
         with (out / "coverage.json").open("w") as output:
             run(command, stdout=output)
-        lcov = run([*command, "-format=lcov"], capture_output=True, text=True).stdout
+        lcov = run([*command, "-format=lcov"], capture_output=True).stdout.decode("utf-8")
         (out / "coverage.lcov").write_text(lcov)
     report = json.loads((out / "coverage.json").read_text())
     sources = production_sources()

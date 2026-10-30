@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 import unittest
+from unittest import mock
 
 spec = importlib.util.spec_from_file_location("verify", Path(__file__).resolve().parents[1] / "scripts/verify.py")
 verify = importlib.util.module_from_spec(spec)
@@ -117,6 +118,83 @@ class CoverageGate(unittest.TestCase):
             path.write_text("\n".join(modified) + "\n")
             diff = git("diff", "--no-ext-diff", "--unified=0")
             self.assertEqual(verify.changed_lines(diff), {"real.rs": {2, 16}})
+
+    def test_hunk_text_separators_remain_one_git_line(self):
+        for separator in ("\v", "\f", "\r", "\x85", "\u2028", "\u2029"):
+            with self.subTest(separator=repr(separator)):
+                diff = ("--- a/real.rs\n+++ b/real.rs\n@@ -1 +1 @@\n-old\n"
+                        "+data" + separator + "diff --git a/fake.rs b/fake.rs" + separator
+                        + "--- a/fake.rs" + separator + "+++ b/fake.rs\n"
+                        "@@ -8 +8 @@\n-old\n+new\n")
+                self.assertEqual(verify.changed_lines(diff), {"real.rs": {1, 8}})
+
+    def test_separator_data_cannot_hide_later_uncovered_executable_line(self):
+        diff = ("--- a/real.rs\n+++ b/real.rs\n@@ -1 +1 @@\n-old\n"
+                "+data\u2028diff --git a/fake.rs b/fake.rs\u2028--- a/fake.rs\u2028+++ b/fake.rs\n"
+                "@@ -8 +8 @@\n-old\n+new\n")
+        source = verify.ROOT / "real.rs"
+        lcov = f"SF:{source}\nDA:1,1\nDA:8,0\nend_of_record\n"
+        with self.assertRaisesRegex(ValueError, "changed executable lines 1/2"):
+            verify.check_changed_coverage(lcov, verify.changed_lines(diff), {"real": [source]})
+
+    def test_source_line_numbers_use_only_lf_and_preserve_exact_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "a.rs"
+            for data, expected in [(b"", set()), (b"x", {1}), (b"x\n", {1}),
+                                   (b"x\r\ny\r", {1, 2}),
+                                   ("// a\u2028b\nfn f() {}\n".encode(), {1, 2})]:
+                path.write_bytes(data)
+                self.assertEqual(verify.source_line_numbers(path), expected)
+
+    def test_changed_sources_reads_git_bytes_without_newline_conversion(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return subprocess.check_output(["git", *args], cwd=root)
+            git("init", "-q")
+            source = root / "real.rs"
+            original = ['const TEXT: &str = r#"', 'before', '"#;'] + ['// gap'] * 12 + ['fn f() { old(); }']
+            source.write_text("\n".join(original) + "\n")
+            git("add", "real.rs")
+            git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "baseline")
+            modified = original.copy()
+            modified[1] = "before\u2028diff --git a/fake.rs b/fake.rs\u2028--- a/fake.rs\u2028+++ b/fake.rs"
+            modified[-1] = 'fn f() { changed(); }'
+            source.write_bytes(("\r\n".join(modified) + "\r\n").encode())
+            # Disable Git newline conversion as well as Python's text-mode conversion.
+            git("config", "core.autocrlf", "false")
+            git("add", "real.rs")
+            expected = set(range(1, 17))
+            with mock.patch.object(verify, "ROOT", root), mock.patch.dict("os.environ", {}, clear=False):
+                with mock.patch.object(verify, "changed_lines", wraps=verify.changed_lines) as parsed:
+                    self.assertEqual(verify.changed_sources({}, index=True), {"real.rs": expected})
+                    self.assertIn("\r\n", parsed.call_args.args[0])
+                git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "candidate")
+                with mock.patch.dict("os.environ", {"GZ_COVERAGE_BASE": git("rev-parse", "HEAD^").decode().strip()}):
+                    self.assertEqual(verify.changed_sources({}), {"real.rs": expected})
+
+    def test_untracked_source_path_bytes_are_not_newline_normalized(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return subprocess.check_output(["git", *args], cwd=root)
+            git("init", "-q")
+            for value in ("first", "second"):
+                (root / "readme").write_text(value)
+                git("add", "readme")
+                git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", value)
+            source = root / "src/a\rb.rs"
+            source.parent.mkdir()
+            source.write_bytes(b"// header\nfn extra() {}\n")
+            with mock.patch.object(verify, "ROOT", root), mock.patch.dict("os.environ", {"GZ_COVERAGE_BASE": ""}):
+                self.assertEqual(verify.changed_sources({"crate": [source]}), {"src/a\rb.rs": {1, 2}})
+
+    def test_lcov_source_names_preserve_non_lf_separators(self):
+        for separator in ("\r", "\u2028", "\u2029"):
+            source = verify.ROOT / f"a{separator}b.rs"
+            lcov = f"SF:{source}\nDA:1,1\nend_of_record\n"
+            changed = {str(source.relative_to(verify.ROOT)): {1}}
+            self.assertEqual(verify.check_changed_coverage(lcov, changed, {"crate": [source]}), {"crate": [1, 1]})
 
     def test_changed_coverage_is_strict_and_independent_per_crate(self):
         a, b = verify.ROOT / "a.rs", verify.ROOT / "b.rs"
