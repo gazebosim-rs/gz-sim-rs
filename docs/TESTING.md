@@ -267,3 +267,10 @@ selected index remains untouched. Generated coverage metadata lives outside the
 exported source directory, so a tracked changed-lines.json cannot be overwritten.
 Tests exercise the real worktree hook with export-ignore and that filename, then
 check raw roundtrips, checkout conversion and deliberate byte/mode/type/path errors.
+
+The Ubuntu 24.04 hosted job temporarily enables user-namespace capabilities for
+the process-limit controls, then restores the prior AppArmor kernel policy in an
+always-run cleanup step. Ubuntu documents this restriction and its kernel switch
+in the [24.04 release notes](https://documentation.ubuntu.com/release-notes/24.04/).
+The real `unshare -Ur true` check and all process-exhaustion assertions remain
+mandatory; an unavailable namespace still fails the job.

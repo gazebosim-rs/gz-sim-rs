@@ -24,8 +24,15 @@ jobs:
           path: artifacts/physics-reference/mujoco
           key: mujoco-${{ hashFiles('scripts/bootstrap-physics.py') }}
       - run: python3 scripts/bootstrap-physics.py --jobs 2
-      - name: Verify isolated process-limit controls are available
-        run: unshare -Ur true
+      - name: Enable isolated process-limit controls on the hosted runner
+        id: userns
+        shell: bash
+        run: |
+          policy=$(sysctl -n kernel.apparmor_restrict_unprivileged_userns)
+          case "$policy" in 0|1) ;; *) exit 1 ;; esac
+          echo "policy=$policy" >> "$GITHUB_OUTPUT"
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare -Ur true
       - name: Select the software Vulkan adapter
         shell: bash
         run: |
@@ -39,6 +46,15 @@ jobs:
           GZ_COVERAGE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           GZ_REFERENCE_PREFIX: ${{ github.workspace }}/artifacts/native-reference/install
           MUJOCO_PREFIX: ${{ github.workspace }}/artifacts/physics-reference/mujoco
+      - name: Restore the hosted runner user-namespace policy
+        if: always()
+        env:
+          ORIGINAL_USERNS_POLICY: ${{ steps.userns.outputs.policy }}
+        shell: bash
+        run: |
+          if [ -n "$ORIGINAL_USERNS_POLICY" ]; then
+            sudo sysctl -w "kernel.apparmor_restrict_unprivileged_userns=$ORIGINAL_USERNS_POLICY"
+          fi
       - name: Retain separate coverage profiles
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
