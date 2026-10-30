@@ -25,6 +25,8 @@ pub enum InputError {
     MissingEntity(u64),
     #[error("entity {0} is not a supported top-level single-link model's link")]
     NotFreeLink(u64),
+    #[error("entity {0} is not a loaded joint")]
+    NotJoint(u64),
     #[error("scene physics bindings are incomplete or inconsistent")]
     InvalidPhysics,
     #[error("unsupported physics input: {0}")]
@@ -161,6 +163,33 @@ pub fn queue_link_world_wrench(
     pending.wrench = Some((force, torque));
     sim.world_mut().entity_mut(entity).insert(pending);
     Ok(())
+}
+
+/// Accumulates one-step generalized effort for a loaded revolute's public entity ID.
+/// Paused ticks retain commands; successful steps consume them. Reset and retirement
+/// discard them. Validation errors preserve admitted commands; runtime faults stop the run.
+pub fn queue_joint_effort(sim: &mut Simulation, id: u64, torque: f64) -> Result<(), InputError> {
+    sim.validate_steps(1)?;
+    if !torque.is_finite() {
+        return Err(InputError::InvalidValue);
+    }
+    let world = sim.world();
+    let entity = entity_by_id(world, id).ok_or(InputError::MissingEntity(id))?;
+    if world.get::<EntityKind>(entity) != Some(&EntityKind::Joint) {
+        return Err(InputError::NotJoint(id));
+    }
+    if !world.contains_resource::<InputsInstalled>() || world.contains_resource::<tpe::TpeWorld>() {
+        return Err(InputError::InvalidPhysics);
+    }
+    let joint = crate::joints::input_binding(world, entity).ok_or(InputError::InvalidPhysics)?;
+    match sim
+        .world_mut()
+        .resource_mut::<PhysicsBackend>()
+        .add_joint_effort(joint, torque)
+    {
+        Err(gz_physics::PhysicsError::InvalidValue) => Err(InputError::InvalidValue),
+        result => result.map_err(InputError::Physics),
+    }
 }
 
 pub(super) fn install(sim: &mut Simulation) {

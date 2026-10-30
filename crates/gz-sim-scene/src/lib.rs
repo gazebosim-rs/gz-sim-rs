@@ -7,7 +7,9 @@ mod noise;
 pub use joints::{JointDefinition, JointHandle, JointSample};
 
 mod inputs;
-pub use inputs::{InputError, queue_link_world_velocity, queue_link_world_wrench};
+pub use inputs::{
+    InputError, queue_joint_effort, queue_link_world_velocity, queue_link_world_wrench,
+};
 
 mod schedule;
 use schedule::{SampleSchedule, ScheduleError};

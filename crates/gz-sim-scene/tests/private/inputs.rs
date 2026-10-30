@@ -275,3 +275,58 @@ fn failed_velocity_execution_preserves_attached_imu_history() {
         assert_eq!(sim.elapsed(), std::time::Duration::from_millis(1));
     }
 }
+
+#[test]
+fn joint_admission_rejects_missing_input_installation_and_mixed_physics_resources() {
+    let loaded = || {
+        let sim = load_world_with_sdf_step(
+            include_str!("../fixtures/pendulum.sdf"),
+            "joint-input-boundaries.sdf",
+            "default",
+            &NoResources,
+            PhysicsEngine::Rapier,
+        )
+        .unwrap();
+        let joint = sim
+            .world()
+            .iter_entities()
+            .find(|e| {
+                e.get::<Name>()
+                    .is_some_and(|name| name.0 == "default::robot::hinge")
+            })
+            .unwrap()
+            .id();
+        let id = sim.world().get::<EntityId>(joint).unwrap().get();
+        (sim, joint, id)
+    };
+    for mixed in [false, true] {
+        let (mut control, control_joint, control_id) = loaded();
+        let (mut sim, joint, id) = loaded();
+        queue_joint_effort(&mut control, control_id, 2.0).unwrap();
+        queue_joint_effort(&mut sim, id, 2.0).unwrap();
+        if mixed {
+            sim.world_mut().insert_resource(tpe::TpeWorld(Arc::new(())));
+        } else {
+            sim.world_mut().remove_resource::<InputsInstalled>();
+        }
+        assert!(matches!(
+            queue_joint_effort(&mut sim, id, 5.0),
+            Err(InputError::InvalidPhysics)
+        ));
+        if mixed {
+            sim.world_mut().remove_resource::<tpe::TpeWorld>();
+        } else {
+            sim.world_mut().insert_resource(InputsInstalled);
+        }
+        control.step_exact(1).unwrap();
+        sim.step_exact(1).unwrap();
+        assert_eq!(
+            sim.world().get::<crate::JointSample>(joint).unwrap().state,
+            control
+                .world()
+                .get::<crate::JointSample>(control_joint)
+                .unwrap()
+                .state
+        );
+    }
+}

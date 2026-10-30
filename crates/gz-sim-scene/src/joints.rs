@@ -17,6 +17,7 @@ pub(super) struct JointNode;
 #[derive(Component, Clone, Copy)]
 pub struct JointHandle {
     id: JointId,
+    entity: u64,
     child: u64,
     child_pose: Option<WorldPose>,
     parent: Option<(u64, BodyId)>,
@@ -200,12 +201,18 @@ pub(super) fn build(
             .get::<EntityId>(model_entity)
             .expect("loader constructed joint model")
             .get();
+        let public_id = sim
+            .world()
+            .get::<EntityId>(entity)
+            .expect("loader constructed joint identity")
+            .get();
         sim.world_mut().entity_mut(entity).insert((
             AttachedPose,
             JointNode,
             JointDefinition(Box::new(joint.clone())),
             JointHandle {
                 id,
+                entity: public_id,
                 child,
                 parent,
                 model: model_id,
@@ -245,16 +252,27 @@ pub(super) fn bindings_valid(world: &World) -> bool {
     }
     let mut seen = BTreeSet::new();
     joints.into_iter().all(|entity| {
-        let Some(handle) = entity.get::<JointHandle>() else {
-            return false;
-        };
-        entity.get::<EntityKind>() == Some(&EntityKind::Joint)
-            && entity.contains::<JointNode>()
-            && entity.contains::<JointSample>()
-            && entity.contains::<LocalPose>()
-            && entity.contains::<WorldPose>()
-            && entity.get::<ChildOf>().is_some_and(|parent| {
-                let model = world.entity(parent.parent());
+        valid_binding(world, backend, entity)
+            && entity
+                .get::<JointHandle>()
+                .is_some_and(|handle| seen.insert(handle.id))
+    })
+}
+
+fn valid_binding(world: &World, backend: &PhysicsBackend, entity: EntityRef<'_>) -> bool {
+    let Some(handle) = entity.get::<JointHandle>() else {
+        return false;
+    };
+    entity.get::<EntityKind>() == Some(&EntityKind::Joint)
+        && entity
+            .get::<EntityId>()
+            .is_some_and(|id| id.get() == handle.entity)
+        && entity.contains::<JointNode>()
+        && entity.contains::<JointSample>()
+        && entity.contains::<LocalPose>()
+        && entity.contains::<WorldPose>()
+        && entity.get::<ChildOf>().is_some_and(|parent| {
+            world.get_entity(parent.parent()).is_ok_and(|model| {
                 model
                     .get::<EntityId>()
                     .is_some_and(|id| id.get() == handle.model)
@@ -264,28 +282,40 @@ pub(super) fn bindings_valid(world: &World) -> bool {
                     && !model.contains::<JointNode>()
                     && !model.contains::<AttachedPose>()
             })
-            && handle.parent.is_none_or(|(id, expected)| {
-                entity_by_id(world, id).is_some_and(|parent| {
-                    world
-                        .get::<BodyHandle>(parent)
-                        .is_some_and(|body| body.id() == expected)
-                        && world.get::<WorldPose>(parent).is_some()
-                        && world.get::<Velocity>(parent).is_some()
-                        && world.get::<ChildOf>(parent).map(ChildOf::parent)
-                            == entity.get::<ChildOf>().map(ChildOf::parent)
-                })
+        })
+        && handle.parent.is_none_or(|(id, expected)| {
+            entity_by_id(world, id).is_some_and(|parent| {
+                world
+                    .get::<BodyHandle>(parent)
+                    .is_some_and(|body| body.id() == expected)
+                    && world.get::<WorldPose>(parent).is_some()
+                    && world.get::<Velocity>(parent).is_some()
+                    && world.get::<ChildOf>(parent).map(ChildOf::parent)
+                        == entity.get::<ChildOf>().map(ChildOf::parent)
             })
-            && seen.insert(handle.id)
-            && entity_by_id(world, handle.child).is_some_and(|child| {
-                world.get::<ChildOf>(child).map(ChildOf::parent)
-                    == entity.get::<ChildOf>().map(ChildOf::parent)
-                    && world.get::<WorldPose>(child).is_some()
-                    && world.get::<Velocity>(child).is_some()
-                    && world
-                        .get::<BodyHandle>(child)
-                        .is_some_and(|body| backend.joint_child(handle.id) == Some(body.id()))
-            })
-    })
+        })
+        && entity_by_id(world, handle.child).is_some_and(|child| {
+            world.get::<ChildOf>(child).map(ChildOf::parent)
+                == entity.get::<ChildOf>().map(ChildOf::parent)
+                && world.get::<WorldPose>(child).is_some()
+                && world.get::<Velocity>(child).is_some()
+                && world
+                    .get::<BodyHandle>(child)
+                    .is_some_and(|body| backend.joint_child(handle.id) == Some(body.id()))
+        })
+}
+
+pub(super) fn input_binding(world: &World, entity: Entity) -> Option<JointId> {
+    if !initial::matches_physics_owner(world) {
+        return None;
+    }
+    let backend = world.get_resource::<PhysicsBackend>()?;
+    let entity = world.get_entity(entity).ok()?;
+    if valid_binding(world, backend, entity) {
+        entity.get::<JointHandle>().map(|handle| handle.id)
+    } else {
+        None
+    }
 }
 
 type JointBindings<'w, 's> = Query<

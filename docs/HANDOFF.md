@@ -30,6 +30,15 @@ controls and both C++ pulse oracles are documented in
 impulse and reduced hinges. Moving-parent effort and finite limits remain open. Required staged/hosted evidence
 and accepted status are recorded on the public dashboard.
 
+Loaded scene input now exposes `queue_joint_effort` by public entity ID. It
+checks the loaded joint's bindings and original backend owner before forwarding
+to the existing deferred backend queue. No shadow queue or stepping system is
+added. Scene controls exercise all three dynamic engines, pause/reset/retirement,
+invalid admission and native pulse-rate parity. Core runtime faults are terminal;
+there is no same-simulation retry contract. The next actuator slice is persistent
+ApplyJointForce behavior with bounded transport input; this API alone does not
+implement that system or justify original-test credit.
+
 The DART runtime guard also checks active angular rows in contact-bearing groups
 against the existing native-coordinate inverse-response ceiling. This addresses
 implicit default-limit activation with tiny inertia; it does not enable finite

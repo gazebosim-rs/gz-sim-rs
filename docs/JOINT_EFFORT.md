@@ -61,6 +61,31 @@ solver stages and native integration fidelity remain unqualified. Moving-parent
 effort stays unsupported until that conformance work is complete. Solver and
 integrator settings remain unchanged.
 
+## Loaded scene input
+
+`gz_sim_scene::queue_joint_effort(&mut sim, entity_id, torque)` accepts a loaded
+joint's public entity ID and torque in Nm. It validates that joint's scene
+bindings and backend ownership, then uses the backend's existing deferred queue.
+It introduces no second command buffer or additional stepping system. Additive
+commands survive paused ticks and are consumed by the next successful advancing
+step; reset and model retirement cancel them through existing backend lifecycle
+operations. Backend capability and accumulation errors are reported on admission.
+A simulation runtime fault is terminal; this API does not retry a failed run.
+
+Loaded world revolutes are supported by DART, MuJoCo and Rapier. Rapier loaded
+joints with dynamic parents retain their explicit unsupported-effort error.
+Invalid IDs, incorrect entity roles, missing or inconsistent bindings, foreign
+backend replacement and nonfinite input reject commands without discarding an
+already admitted effort. Joint handles remain backend-owned implementation data.
+
+Scene controls cover all three engines, additive and opposite-sign commands,
+pause, both reset paths, retirement, stale IDs, binding corruption, backend
+replacement and overflow. Loaded DART and Rapier also match the existing native
+DART six-pulse rate fixture at its unchanged 1e-12 tolerance. This is one-shot
+programmatic input. Persistent ApplyJointForce controllers, their SDF plugin
+configuration and transport subscriptions remain separate work; no system or
+upstream test completion is claimed by this wrapper.
+
 ## Evidence
 
 The public controls cover analytic inertia/sign, accumulation, normalized axes,
