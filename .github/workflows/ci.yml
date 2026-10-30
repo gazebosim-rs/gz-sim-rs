@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-      - run: rustup toolchain install 1.95.0 --profile minimal --component clippy,rustfmt,llvm-tools-preview
+      - run: rustup toolchain install 1.97.1 --profile minimal --component clippy,rustfmt,llvm-tools-preview
       - name: Install native client build dependencies
         run: |
           sudo apt-get update

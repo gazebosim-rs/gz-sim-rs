@@ -32,6 +32,7 @@ Updated with the owner’s built-in system decision on 2026-10-30. `Confirmed` m
 | D24 | Confirmed | Native MuJoCo 3.11.0 is loaded at run time and built from upstream gz-physics' vendored commit (b85fdca5) with its CMake options by scripts/bootstrap-physics.py; parity fixtures compare to 1e-14, so prebuilt releases are not substituted. |
 | D25 | Confirmed | DART uses the packaged OSRF 6.13.2 build (assertions enabled). The adapter rejects inputs that would reach those assertions with explicit, documented admission limits rather than linking a different DART build; these limits may be stricter than Rapier and MuJoCo. |
 | D26 | Confirmed | All simulation systems are built into gz-sim-rs and activated by loaded world/model requirements. No dynamically loaded system libraries, system plugin host or system C ABI. An absent system has no scheduled work or system-specific runtime allocations, workers or endpoints; teardown follows its last consumer. Native engine FFI remains allowed. |
+| D27 | Confirmed | Upgrade gz-sim-rs to Rust 1.97.1 for Bevy 0.20 rendering. Independent repository toolchains stay unchanged. Requalify the existing headless, native interoperability, coverage and hosted CI gates; preserve historical compiler-specific evidence. Default headless builds remain free of rendering/GPU dependencies. |
 
 ## Outstanding questions and decision triggers
 

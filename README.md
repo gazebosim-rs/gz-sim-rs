@@ -13,7 +13,7 @@ its original license and attribution notices.
 
 Run `python3 scripts/verify.py` for formatting, lint, tests, and strict per-crate
 coverage checks. Install the commit hook with `git config core.hooksPath .githooks`;
-it checks an isolated copy of the staged tree. Rust 1.95.0 is pinned.
+it checks an isolated copy of the staged tree. Rust 1.97.1 is pinned.
 The [scene contract](docs/SCENE.md) describes the working SDF-to-ECS path and its
 explicit limitations. Run `cargo test --locked -p gz-sim-scene` to exercise it.
 
