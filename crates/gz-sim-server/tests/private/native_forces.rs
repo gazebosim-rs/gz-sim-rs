@@ -37,12 +37,20 @@ struct Peer {
 }
 impl Peer {
     fn start(binary: &str, config: &Config, topic: &str) -> Self {
+        let prefix = std::env::var_os("GZ_REFERENCE_PREFIX")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("../../artifacts/native-reference/install")
+            });
         let mut child = Command::new(binary)
             .arg(topic)
             .env("GZ_PARTITION", &config.partition)
             .env("GZ_DISCOVERY_MSG_PORT", config.message_port.to_string())
             .env("GZ_DISCOVERY_SRV_PORT", config.service_port.to_string())
             .env("GZ_IP", "127.0.0.1")
+            // Native SDK dependencies are transitive; executable RUNPATH is not.
+            .env("LD_LIBRARY_PATH", prefix.join("lib"))
             .env_remove("GZ_TRANSPORT_TOPIC_STATISTICS")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
