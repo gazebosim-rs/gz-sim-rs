@@ -103,8 +103,9 @@ commands are applied. Failure there makes the simulation terminal before native
 stepping; this is not an atomic transaction across multiple controllers.
 
 This is a programmatic Bevy control primitive, not the complete ApplyJointForce
-system. SDF plugin configuration, initial zero-valued controller installation,
-transport subscriptions and the original dynamic-parent/plane fixture remain
+system. A recognized model configuration now installs initial zero-valued
+controllers and reset metadata; see [configuration](APPLY_JOINT_FORCE_CONFIGURATION.md).
+Transport subscriptions and the original dynamic-parent/plane fixture remain
 open. No original-system credit or performance improvement is claimed.
 
 ## Evidence

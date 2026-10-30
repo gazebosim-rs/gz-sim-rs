@@ -167,7 +167,7 @@ pub fn queue_link_world_wrench(
 
 /// Latest persistent generalized torque in Nm, applied once per advancing step.
 /// Set through `set_joint_force`; reset clears it and retirement removes it.
-#[derive(Component, Clone, Copy, Debug)]
+#[derive(Component, Clone, Copy, Debug, Default)]
 pub struct JointForceCommand(f64);
 
 impl JointForceCommand {

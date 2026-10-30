@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
+mod joint_forces;
+pub use joint_forces::JointForceConfiguration;
+
 mod joints;
 mod noise;
 pub use joints::{JointDefinition, JointHandle, JointSample};
@@ -483,11 +486,7 @@ fn build_model(
         backend.as_ref().map(|backend| backend.engine()),
         parent.is_static || model.is_static,
     )?;
-    require(
-        model.plugins.is_empty(),
-        &model.scoped_name,
-        "model plugins",
-    )?;
+    let force_configurations = joint_forces::parse(model)?;
     let is_static = parent.is_static || model.is_static;
     let model_topic = format!("{}/model/{}", parent.topic, model.name);
     let parent_name = &sim
@@ -754,6 +753,7 @@ fn build_model(
     }
     if let Some(backend) = backend {
         joints::build(sdf, model, context, model_entity, sim, backend)?;
+        joint_forces::install(sim, model, model_entity, backend, &force_configurations)?;
     }
     for child in &model.models {
         build_model(sdf, child, context, &parent, sim, backend)?;

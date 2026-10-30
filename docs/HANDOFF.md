@@ -38,9 +38,12 @@ invalid admission and native pulse-rate parity. Core runtime faults are terminal
 there is no same-simulation retry contract. Programmatic `set_joint_force` now
 stores a latest persistent value in a Bevy component and adds it once per
 advancing step after preflight. Pure backend scalar validation preserves old
-settings and pending inputs on admission failure. Both resets clear it. The next
-actuator slice is ApplyJointForce SDF configuration and bounded transport input;
-these primitives alone do not implement that system or justify original-test credit.
+settings and pending inputs on admission failure. Both resets clear it. Recognized
+ApplyJointForce model configuration now installs zero commands and captures only
+immutable metadata for loaded reset. Native text probes require ASCII whitespace
+rules and rejection of split lexical values; see APPLY_JOINT_FORCE_CONFIGURATION.md.
+The next actuator slice is bounded transport input and native topic normalization.
+These primitives do not justify complete original-system credit.
 
 The DART runtime guard also checks active angular rows in contact-bearing groups
 against the existing native-coordinate inverse-response ceiling. This addresses

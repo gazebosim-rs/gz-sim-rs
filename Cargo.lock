@@ -1124,6 +1124,8 @@ dependencies = [
  "gz-sim-core",
  "parry3d-f64",
  "petgraph",
+ "quick-xml",
+ "roxmltree",
  "sdformat",
  "serde_json",
  "tempfile",

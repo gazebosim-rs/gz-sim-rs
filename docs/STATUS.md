@@ -24,8 +24,10 @@ hinges, with explicit moving-parent refusal; see [JOINT_EFFORT.md](JOINT_EFFORT.
 Loaded scene joints expose the same one-step queue through their public entity
 IDs, with scene-binding validation and no extra command buffer. A programmatic
 persistent force component now applies the latest setting once per advancing
-step through Bevy. SDF controller configuration and joint command transport
-remain open, along with finite limit editing and moving-parent actuation.
+step through Bevy. The recognized ApplyJointForce model configuration installs
+zero-valued commands and immutable reset metadata; see
+[the exact scope](APPLY_JOINT_FORCE_CONFIGURATION.md). Joint command transport
+remains open, along with finite limit editing and moving-parent actuation.
 
 The DART solve boundary also bounds active angular inverse response in mixed
 contact groups. Tiny geometry can otherwise hide that response from the contact

@@ -52,6 +52,7 @@ struct Node {
     body: Option<BodyId>,
     joint: Option<JointHandle>,
     joint_definition: Option<JointDefinition>,
+    joint_force: Option<JointForceConfiguration>,
     joint_sample: Option<JointSample>,
     motion: Option<gz_physics_tpe::Motion>,
     tpe_link: Option<tpe::TpeLink>,
@@ -132,6 +133,7 @@ pub(super) fn capture(sim: &mut Simulation) {
             body: entity.get::<BodyHandle>().map(BodyHandle::id),
             joint: entity.get::<JointHandle>().copied(),
             joint_definition: entity.get::<JointDefinition>().cloned(),
+            joint_force: entity.get::<JointForceConfiguration>().cloned(),
             joint_sample: entity.get::<JointSample>().copied(),
             motion: entity.get::<gz_physics_tpe::Motion>().cloned(),
             tpe_link: entity.get::<tpe::TpeLink>().cloned(),
@@ -300,6 +302,9 @@ pub fn reset_loaded_world<R>(
         }
         if let Some(definition) = &node.joint_definition {
             entity.insert(definition.clone());
+        }
+        if let Some(configuration) = &node.joint_force {
+            entity.insert((configuration.clone(), JointForceCommand::default()));
         }
         if let Some(sample) = node.joint_sample {
             entity.insert(sample);

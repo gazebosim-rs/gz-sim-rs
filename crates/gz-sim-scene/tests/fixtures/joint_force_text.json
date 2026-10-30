@@ -1,0 +1,106 @@
+{
+  "source_sha256": "628098160bac2055c7d4e8676722deffc662cf445a4ec3aebcc585fd7ff70d91",
+  "script_sha256": "2d45ee235796b40a15e43a61c3d33701f2aaa9659ca16055b69892cd83e42d06",
+  "sdformat_commit": "1249805d9fceeff94ca1fe63e26ab9c051cea24e",
+  "sim_commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+  "observations": [
+    {
+      "name": "plain",
+      "xml": "<joint_name>hinge</joint_name>",
+      "supported": true,
+      "stdout": "1 0\n68696e6765\n",
+      "stderr": ""
+    },
+    {
+      "name": "ascii_edges",
+      "xml": "<joint_name> \t hinge \n </joint_name>",
+      "supported": true,
+      "stdout": "1 0\n68696e6765\n",
+      "stderr": ""
+    },
+    {
+      "name": "ordinary_spaces",
+      "xml": "<joint_name>hi   nge</joint_name>",
+      "supported": true,
+      "stdout": "1 0\n6869206e6765\n",
+      "stderr": ""
+    },
+    {
+      "name": "ordinary_tabs",
+      "xml": "<joint_name>hi\t\nnge</joint_name>",
+      "supported": true,
+      "stdout": "1 0\n6869206e6765\n",
+      "stderr": ""
+    },
+    {
+      "name": "cdata",
+      "xml": "<joint_name><![CDATA[hinge]]></joint_name>",
+      "supported": true,
+      "stdout": "1 0\n68696e6765\n",
+      "stderr": ""
+    },
+    {
+      "name": "cdata_spaces",
+      "xml": "<joint_name><![CDATA[ hi   nge ]]></joint_name>",
+      "supported": true,
+      "stdout": "1 0\n68692020206e6765\n",
+      "stderr": ""
+    },
+    {
+      "name": "leading_comment",
+      "xml": "<joint_name><!--leading-->hinge</joint_name>",
+      "supported": true,
+      "stdout": "1 0\n68696e6765\n",
+      "stderr": ""
+    },
+    {
+      "name": "trailing_comment",
+      "xml": "<joint_name>hinge<!--trailing--></joint_name>",
+      "supported": true,
+      "stdout": "1 0\n68696e6765\n",
+      "stderr": ""
+    },
+    {
+      "name": "entity",
+      "xml": "<joint_name>hi&#110;ge</joint_name>",
+      "supported": true,
+      "stdout": "1 0\n68696e6765\n",
+      "stderr": ""
+    },
+    {
+      "name": "nbsp",
+      "xml": "<joint_name>\u00a0hinge\u00a0</joint_name>",
+      "supported": true,
+      "stdout": "1 0\nc2a068696e6765c2a0\n",
+      "stderr": ""
+    },
+    {
+      "name": "split_cdata",
+      "xml": "<joint_name><![CDATA[hi]]><![CDATA[nge]]></joint_name>",
+      "supported": false,
+      "stdout": "1 0\n6869\n",
+      "stderr": ""
+    },
+    {
+      "name": "split_comment",
+      "xml": "<joint_name>hi<!--split-->nge</joint_name>",
+      "supported": false,
+      "stdout": "1 0\n6869\n",
+      "stderr": ""
+    },
+    {
+      "name": "mixed",
+      "xml": "<joint_name>hi<![CDATA[nge]]></joint_name>",
+      "supported": false,
+      "stdout": "1 0\n6869\n",
+      "stderr": ""
+    },
+    {
+      "name": "processing_instruction",
+      "xml": "<joint_name><?instruction value?>hinge</joint_name>",
+      "supported": false,
+      "stdout": "0 1\n",
+      "stderr": ""
+    }
+  ]
+}

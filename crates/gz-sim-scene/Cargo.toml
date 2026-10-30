@@ -6,6 +6,8 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+roxmltree = "=0.20.0"
+quick-xml = "=0.38.3"
 petgraph.workspace = true
 bevy_ecs.workspace = true
 glam.workspace = true
