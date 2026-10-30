@@ -16,8 +16,11 @@ FFI remains allowed. ACT-01 defines activation, last-consumer teardown and zero 
 system resource/work evidence.
 
 The current implementation does not yet meet the full absence requirement:
-joint/IMU callbacks are installed unconditionally, empty force ingress is still
+joint callbacks remain installed unconditionally, empty force ingress is still
 polled, and force workers/templates survive last-consumer removal for reset.
+The bounded IMU Scene lifecycle now installs sampling/reset callbacks only for
+live sensors and retires them and interest state after the final consumer; see
+IMU_SYSTEM_LIFECYCLE.md for reset, failure and remaining server-worker scope.
 Audit all implemented families and fix these through reviewed lifecycle slices.
 Do not claim the previous bounded-force acceptance proves zero-cost absence.
 

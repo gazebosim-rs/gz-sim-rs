@@ -300,3 +300,37 @@ fn collective_condition_state_belongs_to_retained_ordering_sets() {
     drop(sim);
     assert_eq!(dropped.load(Ordering::SeqCst), 2);
 }
+
+#[test]
+fn initialization_validates_both_schedules_without_running_callbacks() {
+    fn extra(mut counts: ResMut<Counts>) {
+        counts.calls.push(99);
+    }
+    let mut sim = simulation();
+    assert_eq!(sim.scheduled_system_counts(), (0, 0));
+    sim.add_systems(Phase::PreStep, controller);
+    sim.add_systems(Phase::Reset, controller);
+    assert_eq!(sim.scheduled_system_counts(), (1, 1));
+    sim.initialize_schedules().unwrap();
+    assert!(sim.world().resource::<Counts>().calls.is_empty());
+    assert_eq!(
+        sim.world()
+            .resource::<Counts>()
+            .created
+            .load(Ordering::SeqCst),
+        2
+    );
+    sim.add_systems(Phase::Publish, extra);
+    assert_eq!(sim.scheduled_system_counts(), (2, 1));
+    sim.initialize_schedules().unwrap();
+    sim.step_exact(1).unwrap();
+    sim.reset().unwrap();
+    assert_eq!(sim.world().resource::<Counts>().calls, [1, 99, 1]);
+    assert_eq!(
+        sim.world()
+            .resource::<Counts>()
+            .created
+            .load(Ordering::SeqCst),
+        2
+    );
+}

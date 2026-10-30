@@ -144,6 +144,22 @@ impl Simulation {
         }
     }
 
+    /// Initializes pending registrations without running tick/reset callbacks.
+    /// Use before a lifecycle transaction that changes both schedules.
+    pub fn initialize_schedules(&mut self) -> Result<(), bevy_ecs::schedule::ScheduleError> {
+        self.schedule.initialize(&mut self.world)?;
+        self.reset_schedule.initialize(&mut self.world)?;
+        Ok(())
+    }
+
+    /// Registered (tick, reset) system counts, including pending registrations.
+    pub fn scheduled_system_counts(&self) -> (usize, usize) {
+        (
+            self.schedule.graph().systems.len(),
+            self.reset_schedule.graph().systems.len(),
+        )
+    }
+
     /// Retires all systems in a Bevy set while retaining ordering for reactivation.
     /// Owned system and per-system condition state is released before success.
     /// Collective/set-level condition state remains with retained ordering sets.

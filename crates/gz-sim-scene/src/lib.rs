@@ -29,6 +29,7 @@ pub use tpe::PhysicsEngine;
 
 mod lifecycle;
 pub use lifecycle::{RemoveError, remove_model};
+mod imu_lifecycle;
 mod initial;
 pub use initial::{
     PendingResetRemoval, SceneResetError, SceneResetInfo, initial_imu_publications,
@@ -222,6 +223,10 @@ struct ImuInterest(Vec<u64>);
 /// contribute no interest. Its public IDs preserve the selection across reset.
 pub fn set_imu_interest(sim: &mut Simulation, connected: impl IntoIterator<Item = Entity>) {
     let world = sim.world_mut();
+    if !world.contains_resource::<imu_lifecycle::Installed>() {
+        world.remove_resource::<ImuInterest>();
+        return;
+    }
     world.init_resource::<ImuInterest>();
     world.resource_scope(|world, mut interest: Mut<ImuInterest>| {
         interest.0.clear();
@@ -446,18 +451,13 @@ fn load_world_configured(
         Phase::PhysicsCommit,
         (sync_models, sync_local_poses, sync_attached_poses).chain(),
     );
-    sim.add_systems(Phase::PostStep, sample_imus);
     sim.add_systems(
         Phase::Reset,
-        (
-            sync_models,
-            sync_local_poses,
-            sync_attached_poses,
-            reset_imus,
-        )
+        (sync_models, sync_local_poses, sync_attached_poses)
             .chain()
             .after(PhysicsReset),
     );
+    imu_lifecycle::install(&mut sim);
     initial::capture(&mut sim);
     Ok(sim)
 }

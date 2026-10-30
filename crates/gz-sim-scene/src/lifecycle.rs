@@ -14,13 +14,29 @@ pub enum RemoveError {
     NotWorldModel(u64),
     #[error("scene physics bindings are incomplete or inconsistent")]
     InvalidPhysics,
+    #[error("scene schedule initialization failed: {0}")]
+    Schedule(String),
+    #[error("model was removed but IMU schedule retirement failed: {0}")]
+    CommittedSchedule(String),
 }
 
 /// Removes a top-level model, its descendants and their physics bodies.
 /// Call at a lifecycle boundary, outside an executing simulation schedule.
-/// All checks precede mutation. The returned public IDs are retired in this world.
+/// All checks precede model/physics mutation. Retiring the last IMU initializes
+/// pending schedules without running callbacks; arbitrary Local initializers
+/// follow the core initialization contract. Returned public IDs retire here.
+/// Schedule-built observers run before final validation or after body commit.
+/// CommittedSchedule reports teardown failure after removal and faults the run.
 /// This does not restore removed models during the existing core time reset.
 pub fn remove_model(sim: &mut Simulation, id: u64) -> Result<Vec<u64>, RemoveError> {
+    remove_model_checked(sim, id, false)
+}
+
+fn remove_model_checked(
+    sim: &mut Simulation,
+    id: u64,
+    schedules_ready: bool,
+) -> Result<Vec<u64>, RemoveError> {
     let world = sim.world();
     let root = entity_by_id(world, id).ok_or(RemoveError::MissingEntity(id))?;
     let parent = world.get::<ChildOf>(root).map(ChildOf::parent);
@@ -73,6 +89,17 @@ pub fn remove_model(sim: &mut Simulation, id: u64) -> Result<Vec<u64>, RemoveErr
     }) {
         return Err(RemoveError::InvalidPhysics);
     }
+    let retire_imu = world.contains_resource::<crate::imu_lifecycle::Installed>()
+        && !world
+            .iter_entities()
+            .any(|entity| entity.contains::<crate::Imu>() && !subtree.contains(&entity.id()));
+    if retire_imu && !schedules_ready {
+        sim.initialize_schedules()
+            .map_err(|error| RemoveError::Schedule(error.to_string()))?;
+        // Builds synchronously notify World observers. Their mutations must
+        // precede the final hierarchy, binding and native-body validation.
+        return remove_model_checked(sim, id, true);
+    }
     if let Some(mut backend) = sim.world_mut().get_resource_mut::<PhysicsBackend>() {
         for body in bodies {
             assert!(
@@ -84,5 +111,14 @@ pub fn remove_model(sim: &mut Simulation, id: u64) -> Result<Vec<u64>, RemoveErr
     // ChildOf's linked-spawn relationship also removes descendants and ID hooks.
     sim.world_mut().entity_mut(root).despawn();
     ids.sort_unstable();
+    // No schedule build may intervene between final validation and body commit.
+    // Teardown observers now see the committed removal, not stale body handles.
+    if let Err(error) = crate::imu_lifecycle::retire_if_unused(sim) {
+        let message = error.to_string();
+        sim.world()
+            .resource::<gz_sim_core::StepFault>()
+            .report(error);
+        return Err(RemoveError::CommittedSchedule(message));
+    }
     Ok(ids)
 }
