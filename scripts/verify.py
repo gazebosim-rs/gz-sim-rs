@@ -243,7 +243,7 @@ def check_changed_coverage(lcov, changed, crates, executable_counts=None, zero_e
 # These names are the proposed production package contract, not yet adopted.
 RENDER_PACKAGES = frozenset({
     "gz-render-frame", "gz-renderer", "gz-render-protocol",
-    "gz-render-client", "gz-render-worker",
+    "gz-render-client", "gz-render-worker", "gz-render-scene",
 })
 
 
@@ -256,7 +256,7 @@ def load_profile_contract():
         "version": 1,
         "profiles": {
             "headless": {"exclude_packages": sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}), "runner": "cpu"},
-            "renderer": {"packages": sorted(RENDER_PACKAGES) + ["gz-sim-core"],
+            "renderer": {"packages": sorted(RENDER_PACKAGES) + ["gz-sim-core", "gz-sim-scene"],
                          "features": ["gz-renderer/gpu"], "runner": "vulkan"},
         },
         "excluded_sources": [],
@@ -268,15 +268,15 @@ def load_profile_contract():
 
 
 def profile_plan(sources):
-    """Partition every production crate and retain core in the feature-unified run."""
-    missing = (RENDER_PACKAGES | {"gz-sim-core"}) - sources.keys()
+    """Partition every production crate and retain core and scene in the renderer run."""
+    missing = (RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene"}) - sources.keys()
     if missing:
         raise ValueError(f"required renderer profile packages missing: {sorted(missing)}")
     unexpected = {name for name in sources if name.startswith("gz-render") and name not in RENDER_PACKAGES}
     if unexpected:
         raise ValueError(f"undeclared renderer packages: {sorted(unexpected)}")
     headless = {name: files for name, files in sources.items() if name not in RENDER_PACKAGES}
-    render = {name: sources[name] for name in sorted(RENDER_PACKAGES | {"gz-sim-core"})}
+    render = {name: sources[name] for name in sorted(RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene"})}
     if not headless or any(not files for files in sources.values()):
         raise ValueError("empty production crate or headless profile")
     owners = {}
@@ -700,11 +700,11 @@ def main():
     if not args.coverage_only:
         run(["cargo", "fmt", "--all", "--", "--check"])
         run(["cargo", "clippy", "--locked", "--workspace", "--all-targets", "--", "-D", "warnings"])
-        render_packages = sorted(RENDER_PACKAGES | {"gz-sim-core"})
+        render_packages = sorted(RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene"})
         selected = sum((["--package", name] for name in [*render_packages, TEST_SUPPORT_PACKAGE]), [])
         run(["cargo", "clippy", "--locked", "--all-targets", *selected,
              "--features", "gz-renderer/gpu", "--", "-D", "warnings"])
-        doc_packages = sorted((RENDER_PACKAGES - {"gz-render-worker"}) | {"gz-sim-core"})
+        doc_packages = sorted((RENDER_PACKAGES - {"gz-render-worker"}) | {"gz-sim-core", "gz-sim-scene"})
         doc_selected = sum((["--package", name] for name in doc_packages), [])
         run(["cargo", "test", "--locked", "--doc", *doc_selected, "--features", "gz-renderer/gpu"])
         run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"])

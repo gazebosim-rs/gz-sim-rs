@@ -22,7 +22,7 @@ def report(crates, covered=100):
 
 def sources():
     return {name: [Path("/virtual") / name / "src/lib.rs"]
-            for name in verify.RENDER_PACKAGES | {"gz-sim-core", "gz-sim-cli"}}
+            for name in verify.RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", "gz-sim-cli"}}
 
 
 class FeatureProfiles(unittest.TestCase):
@@ -126,14 +126,22 @@ class FeatureProfiles(unittest.TestCase):
         crates = sources()
         plan = verify.profile_plan(crates)
         self.assertEqual(set(plan), {"headless", "renderer"})
-        self.assertEqual(set(plan["headless"][0]), {"gz-sim-core", "gz-sim-cli"})
-        self.assertEqual(set(plan["renderer"][0]), verify.RENDER_PACKAGES | {"gz-sim-core"})
+        self.assertEqual(set(plan["headless"][0]), {"gz-sim-core", "gz-sim-scene", "gz-sim-cli"})
+        self.assertEqual(set(plan["renderer"][0]), verify.RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene"})
         self.assertEqual(set(plan["headless"][0]) | set(plan["renderer"][0]), set(crates))
         self.assertIn("gz-renderer/gpu", plan["renderer"][1])
         self.assertEqual(plan["headless"][1].count("--exclude"), len(verify.RENDER_PACKAGES) + 1)
         self.assertIn(verify.TEST_SUPPORT_PACKAGE, plan["renderer"][1])
 
     def test_missing_package_empty_source_and_duplicate_ownership_fail(self):
+        crates = sources()
+        del crates["gz-render-scene"]
+        with self.assertRaisesRegex(ValueError, "packages missing"):
+            verify.profile_plan(crates)
+        crates = sources()
+        del crates["gz-sim-scene"]
+        with self.assertRaisesRegex(ValueError, "packages missing"):
+            verify.profile_plan(crates)
         crates = sources()
         del crates["gz-render-worker"]
         with self.assertRaisesRegex(ValueError, "packages missing"):

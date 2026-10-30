@@ -9,7 +9,18 @@ boxes, a rebasing origin, an epoch and committed simulation time. It derives
 render transforms using `gz-render-frame`, updates or removes its private Bevy
 entities, and renders an unlit 64×64 scene to an offscreen image. The camera is
 fixed at render (0,0,5), looking at the origin. This is not a calibrated sensor
-or a GUI, and no simulator code is yet connected to the snapshot producer.
+or a GUI. The optional `gz-render-scene` crate can explicitly extract a snapshot
+from a simulation; it does not schedule rendering or start a worker.
+
+`gz-render-scene::extract` reads live visual geometry and world poses from the
+canonical ECS, validates owned public IDs, sorts them, and stamps the request
+with committed integer epoch and simulation time. It accepts at most 128 boxes
+with explicit opaque diffuse colors and default remaining material and visual
+properties. Missing materials or unsupported geometry, material and visibility
+settings return errors. Diffuse RGB is mapped to the renderer's unlit color;
+this is a bounded visual approximation, not SDF material or shadow parity. The
+caller chooses the origin and runs the renderer outside simulation steps. No
+assets are loaded and no implicit renderer state or callbacks are installed.
 
 One readback may be in flight. Replacing a snapshot or explicitly cancelling
 suppresses delivery; the slot remains occupied until the GPU operation retires.
@@ -24,6 +35,13 @@ errors and Bevy device errors stop the renderer. This readiness approach and
 its timestamp correspondence need independent review and further qualification.
 Device loss can prevent a readback from retiring; the caller must drop the
 failed renderer. A cancelled operation is not a guarantee that GPU work stopped.
+
+Bevy's mesh instance and phase preprocessing use its CPU path. In the combined
+physics and renderer graph, Rapier's deterministic scalar-math feature gives
+Bevy's native mesh uniform a different size from its shader layout; the GPU
+preprocessor's native-sized allocation then fails validation. CPU preprocessing
+writes the shader layout; Vulkan still renders and reads back the image. This
+configuration is not a hardware-performance qualification.
 
 The default CLI does not depend on this crate or the GPU stack. Construction
 requests a Vulkan adapter and device explicitly and reports their errors. The

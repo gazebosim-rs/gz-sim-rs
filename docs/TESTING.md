@@ -164,7 +164,8 @@ percentages across reports. A missing backend/GPU profile blocks qualification.
 
 The experimental RENDER-01 verifier declares separate headless and renderer
 profiles in `planning/coverage-profiles.json`. It keeps their raw profiles and
-reports separate, includes the simulator core in the renderer feature union, and
+reports separate, includes the full simulator core and scene crates in the renderer
+feature union along with `gz-render-scene`, and
 requires the actual worker binary and worker-produced raw data. The explicitly
 identified test-support package contains only helper fixtures and is not a
 production package; it is still built and tested in the renderer profile. No
@@ -177,8 +178,8 @@ retained evidence fails the gate.
 The CI renderer run selects Mesa llvmpipe and asserts its CPU adapter identity.
 That is software Vulkan evidence only. It does not qualify a physical GPU, and
 RENDER-01 remains unaccepted while its simulator integration, independent review,
-and complete staged/hosted checks remain incomplete. A local renderer profile
-passes its line and region thresholds; it does not replace those checks.
+and complete staged/hosted checks remain incomplete. The earlier local renderer profile predates the scene producer; the expanded
+profile must pass independently and does not replace those checks.
 
 ## Pre-commit and CI
 

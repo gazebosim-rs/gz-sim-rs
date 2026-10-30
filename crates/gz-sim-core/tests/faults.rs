@@ -140,3 +140,24 @@ fn reset_callback_failure_is_terminal_after_reset_time_and_mutations_commit() {
     assert_eq!(*sim.world().resource::<UpdateInfo>(), committed);
     assert_eq!(sim.tick(), Err(StepError::Faulted));
 }
+
+#[test]
+fn committed_epoch_and_terminal_status_do_not_follow_mutable_update_metadata() {
+    let mut sim = Simulation::new(Duration::from_millis(1)).unwrap();
+    assert_eq!(sim.epoch(), 0);
+    assert!(!sim.is_faulted());
+    sim.world_mut().resource_mut::<UpdateInfo>().epoch = 42;
+    assert_eq!(sim.epoch(), 0);
+    sim.tick().unwrap();
+    assert_eq!(sim.epoch(), 0);
+    sim.reset().unwrap();
+    assert_eq!(sim.epoch(), 1);
+    sim.world()
+        .resource::<StepFault>()
+        .report(FixtureFault(Phase::Ingress));
+    assert!(sim.is_faulted());
+    assert_eq!(sim.tick(), Err(StepError::Faulted));
+    sim.world_mut().insert_resource(StepFault::default());
+    assert!(sim.is_faulted());
+    assert_eq!(sim.epoch(), 1);
+}

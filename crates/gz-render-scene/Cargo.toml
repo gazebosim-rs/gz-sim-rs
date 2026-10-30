@@ -1,0 +1,21 @@
+[package]
+name = "gz-render-scene"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+gz-sim-core = { path = "../gz-sim-core" }
+gz-sim-scene = { path = "../gz-sim-scene" }
+gz-render-frame = { path = "../gz-render-frame" }
+gz-render-protocol = { path = "../gz-render-protocol" }
+glam.workspace = true
+sdformat.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+bevy_ecs.workspace = true
+
+[lints]
+workspace = true

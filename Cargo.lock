@@ -2263,6 +2263,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "gz-render-scene"
+version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "glam 0.33.12",
+ "gz-render-frame",
+ "gz-render-protocol",
+ "gz-sim-core",
+ "gz-sim-scene",
+ "sdformat",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "gz-render-test-support"
 version = "0.1.0"
 dependencies = [
@@ -2280,8 +2294,12 @@ dependencies = [
  "gz-render-client",
  "gz-render-frame",
  "gz-render-protocol",
+ "gz-render-scene",
  "gz-renderer",
+ "gz-sim-core",
+ "gz-sim-scene",
  "rustix",
+ "sdformat",
 ]
 
 [[package]]

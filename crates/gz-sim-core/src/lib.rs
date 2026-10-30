@@ -208,6 +208,16 @@ impl Simulation {
         self.elapsed
     }
 
+    /// Epoch of the committed simulation state.
+    pub fn epoch(&self) -> u64 {
+        self.epoch
+    }
+
+    /// Whether the current run has failed and cannot advance or reset.
+    pub fn is_faulted(&self) -> bool {
+        self.faulted || self.fault().is_some()
+    }
+
     pub fn step_duration(&self) -> Duration {
         self.step_duration
     }

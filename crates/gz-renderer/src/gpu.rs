@@ -8,7 +8,8 @@ use bevy::{
     pbr::{PreparedMaterial, RenderMaterialInstances},
     prelude::*,
     render::{
-        RenderApp, RenderPlugin,
+        RenderApp, RenderPlugin, RenderStartup,
+        batching::gpu_preprocessing::{GpuPreprocessingMode, GpuPreprocessingSupport},
         erased_render_asset::ErasedRenderAssets,
         error_handler::{RenderErrorHandler, RenderErrorPolicy},
         mesh::RenderMesh,
@@ -187,6 +188,12 @@ impl Renderer {
                 exit_condition: ExitCondition::DontExit,
                 ..default()
             })
+            // Scalar-math builds can give MeshUniform a smaller native size
+            // than its shader layout. Bevy's CPU builder writes shader layout.
+            .set(bevy::pbr::PbrPlugin {
+                use_gpu_instance_buffer_builder: false,
+                ..default()
+            })
             .disable::<bevy::log::LogPlugin>()
             .disable::<bevy::app::PanicHandlerPlugin>()
             .disable::<bevy::app::TerminalCtrlCHandlerPlugin>()
@@ -208,6 +215,13 @@ impl Renderer {
             RenderErrorPolicy::StopRendering
         }));
         app.finish();
+        app.sub_app_mut(RenderApp).add_systems(
+            RenderStartup,
+            (|mut support: ResMut<GpuPreprocessingSupport>| {
+                support.max_supported_mode = GpuPreprocessingMode::None;
+            })
+            .after(bevy::render::init_gpu_resource::<GpuPreprocessingSupport>),
+        );
         app.cleanup();
         let world = app.world_mut();
         let mut image =

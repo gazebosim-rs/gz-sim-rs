@@ -14,6 +14,10 @@ rustix = { version = "=1.1.5", features = ["process"] }
 
 [dev-dependencies]
 gz-render-client = { path = "../gz-render-client" }
+gz-render-scene = { path = "../gz-render-scene" }
+gz-sim-core = { path = "../gz-sim-core" }
+gz-sim-scene = { path = "../gz-sim-scene" }
+sdformat.workspace = true
 rustix = { version = "=1.1.5", features = ["event", "process"] }
 
 [lints]

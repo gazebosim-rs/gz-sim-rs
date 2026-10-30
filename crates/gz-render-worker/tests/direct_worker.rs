@@ -900,3 +900,147 @@ fn worker_exits_after_parent_death_with_capture_requested() {
     }
     assert!(fds[0].revents().contains(PollFlags::IN));
 }
+
+#[test]
+fn canonical_scene_snapshots_render_remove_and_reset() {
+    use gz_sim_core::EntityId;
+    use gz_sim_scene::{
+        Name, PhysicsEngine, VisualMaterial, load_world_with_sdf_step, remove_model,
+        reset_loaded_world,
+    };
+    let xml = r#"<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity>
+      <model name='robot'><static>true</static><link name='body'>
+      <collision name='collision'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision>
+      <visual name='box'><geometry><box><size>2 2 2</size></box></geometry>
+      <material><diffuse>1 0 0 1</diffuse></material></visual>
+      </link></model></world></sdf>"#;
+    let mut sim = load_world_with_sdf_step(
+        xml,
+        "render-scene",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let model = sim
+        .world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<Name>()
+                .is_some_and(|name| name.0 == "default::robot")
+        })
+        .unwrap();
+    let model_id = model.get::<EntityId>().unwrap().get();
+    let mut worker = Worker::start();
+    assert!(matches!(worker.next(), Reply::Ready { version: 1 }));
+    worker.send(gz_render_scene::extract(&sim, 1, [0.0; 3]).unwrap());
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 1 }
+    ));
+    worker.send(Request::Capture { request_id: 2 });
+    match worker.next() {
+        Reply::Frame {
+            request_id: 2,
+            stamp,
+            rgba,
+        } => {
+            assert_eq!(
+                stamp,
+                Stamp {
+                    epoch: 0,
+                    seconds: 0,
+                    nanoseconds: 0
+                }
+            );
+            let offset = (32 * 64 + 32) * 4;
+            assert_eq!(&rgba[offset..offset + 4], &[255, 0, 0, 255]);
+        }
+        other => panic!("unexpected initial frame: {other:?}"),
+    }
+    let visual = sim
+        .world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<Name>()
+                .is_some_and(|name| name.0 == "default::robot::body::box")
+        })
+        .unwrap()
+        .id();
+    sim.world_mut()
+        .get_mut::<VisualMaterial>(visual)
+        .unwrap()
+        .0
+        .diffuse = [0.0, 1.0, 0.0, 1.0];
+    sim.step_exact(1).unwrap();
+    worker.send(gz_render_scene::extract(&sim, 3, [0.0; 3]).unwrap());
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 3 }
+    ));
+    worker.send(Request::Capture { request_id: 4 });
+    match worker.next() {
+        Reply::Frame {
+            request_id: 4,
+            stamp,
+            rgba,
+        } => {
+            assert_eq!(stamp.epoch, 0);
+            assert_eq!(stamp.nanoseconds, sim.elapsed().subsec_nanos());
+            let offset = (32 * 64 + 32) * 4;
+            assert_eq!(&rgba[offset..offset + 4], &[0, 255, 0, 255]);
+        }
+        other => panic!("unexpected updated frame: {other:?}"),
+    }
+    sim.step_exact(1).unwrap();
+    remove_model(&mut sim, model_id).unwrap();
+    worker.send(gz_render_scene::extract(&sim, 5, [0.0; 3]).unwrap());
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 5 }
+    ));
+    worker.send(Request::Capture { request_id: 6 });
+    match worker.next() {
+        Reply::Frame {
+            request_id: 6,
+            stamp,
+            rgba,
+        } => {
+            assert_eq!(stamp.epoch, 0);
+            assert_eq!(stamp.nanoseconds, sim.elapsed().subsec_nanos());
+            let offset = (32 * 64 + 32) * 4;
+            assert_ne!(&rgba[offset..offset + 4], &[255, 0, 0, 255]);
+            assert_ne!(&rgba[offset..offset + 4], &[0, 255, 0, 255]);
+        }
+        other => panic!("unexpected removed frame: {other:?}"),
+    }
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    worker.send(gz_render_scene::extract(&sim, 7, [0.0; 3]).unwrap());
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 7 }
+    ));
+    worker.send(Request::Capture { request_id: 8 });
+    match worker.next() {
+        Reply::Frame {
+            request_id: 8,
+            stamp,
+            rgba,
+        } => {
+            assert_eq!(
+                stamp,
+                Stamp {
+                    epoch: 1,
+                    seconds: 0,
+                    nanoseconds: 0
+                }
+            );
+            let offset = (32 * 64 + 32) * 4;
+            assert_eq!(&rgba[offset..offset + 4], &[255, 0, 0, 255]);
+        }
+        other => panic!("unexpected reset frame: {other:?}"),
+    }
+    worker.finish();
+}

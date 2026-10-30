@@ -6,6 +6,7 @@
         "gz-render-client",
         "gz-render-frame",
         "gz-render-protocol",
+        "gz-render-scene",
         "gz-render-test-support",
         "gz-render-worker",
         "gz-renderer"
@@ -17,9 +18,11 @@
         "gz-render-client",
         "gz-render-frame",
         "gz-render-protocol",
+        "gz-render-scene",
         "gz-render-worker",
         "gz-renderer",
-        "gz-sim-core"
+        "gz-sim-core",
+        "gz-sim-scene"
       ],
       "features": [
         "gz-renderer/gpu"
