@@ -175,6 +175,26 @@ when the actual GPU module is independently instrumented and passes both coverag
 thresholds. An inactive GPU module, unproven facade, missing raw profile, or missing
 retained evidence fails the gate.
 
+The earlier client teardown test counted named `/proc/self/task` entries
+immediately after `Drop`. A separate Linux pthread experiment observed joined
+threads still visible there (including as running and accepting signal zero),
+so that count is not a valid join-completion witness. Teardown controls retain
+an immediate zero assertion using a non-owning supervisor lifetime witness and
+independently check the exact worker is reaped with pidfd `waitid` using
+`WNOHANG | WNOWAIT | WEXITED`; the test never consumes the child. Explicit
+shutdown controls also check supervisor join, I/O retirement and child reaping
+before dropping the client, so final Drop cannot hide a shutdown regression. A gated
+supervisor control tests timeout ownership, and a real stalled worker exercises
+forced termination. Uninterruptible kernel/driver stalls can delay final Drop;
+no hard deadline is claimed. A caller that retains the witness also retains the
+existing Arc allocation until the witness is dropped, but not the client, threads,
+child, pipes or live atomic value. The original hosted failure is retained in its CI
+record and has not been attributed to a specific interleaving. The separate
+`tests/support/render-fixtures/tests/fixtures/pthread_join_proc.cc` diagnostic
+can be compiled with `c++ -O2 -Wall -Wextra -Werror -pthread` and run on Linux;
+its observation is scheduling-dependent, so an unobserved race is not a pass
+or a reason to restore the proc assertion.
+
 The CI renderer run selects Mesa llvmpipe and asserts its CPU adapter identity.
 That is software Vulkan evidence only. It does not qualify a physical GPU, and
 RENDER-01 remains unaccepted while its simulator integration, independent review,

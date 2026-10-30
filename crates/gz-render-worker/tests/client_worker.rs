@@ -7,6 +7,28 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+// The pidfd pins the exact worker identity. WNOWAIT observes without reaping.
+fn live_worker_fd(client: &Client) -> rustix::fd::OwnedFd {
+    use rustix::fd::AsFd;
+    use rustix::process::{Pid, PidfdFlags, WaitId, WaitIdOptions, pidfd_open, waitid};
+    let pid = Pid::from_raw(client.worker_pid().unwrap() as i32).unwrap();
+    let fd = pidfd_open(pid, PidfdFlags::empty()).unwrap();
+    let options = WaitIdOptions::EXITED | WaitIdOptions::NOHANG | WaitIdOptions::NOWAIT;
+    assert!(matches!(
+        waitid(WaitId::PidFd(fd.as_fd()), options),
+        Ok(None)
+    ));
+    fd
+}
+fn assert_reaped(fd: &rustix::fd::OwnedFd) {
+    use rustix::fd::AsFd;
+    use rustix::process::{WaitId, WaitIdOptions, waitid};
+    let options = WaitIdOptions::EXITED | WaitIdOptions::NOHANG | WaitIdOptions::NOWAIT;
+    assert!(matches!(
+        waitid(WaitId::PidFd(fd.as_fd()), options),
+        Err(rustix::io::Errno::CHILD)
+    ));
+}
 fn start(binary: PathBuf) -> Result<Client, ClientError> {
     Client::start(TrustedWorker::from_operator_config(binary)?)
 }
@@ -25,16 +47,10 @@ fn wait(client: &Client) -> Reply {
 fn real_worker_roundtrip_and_join() {
     let binary = PathBuf::from(env!("CARGO_BIN_EXE_gz-render-worker"));
     let mut client = start(binary).unwrap();
-    let prefix = client.diagnostic_thread_prefix();
-    let owned_threads = || {
-        std::fs::read_dir("/proc/self/task")
-            .unwrap()
-            .filter_map(Result::ok)
-            .filter_map(|entry| std::fs::read_to_string(entry.path().join("comm")).ok())
-            .filter(|name| name.starts_with(&prefix))
-            .count()
-    };
+    let lifetime = client.diagnostic_lifetime();
+    assert!(!lifetime.is_retired());
     assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    let worker = live_worker_fd(&client);
     assert!(matches!(
         client.try_send(Request::Capture { request_id: 4 }),
         Err(SubmitError::NoSnapshot(Request::Capture { request_id: 4 }))
@@ -126,22 +142,25 @@ fn real_worker_roundtrip_and_join() {
         client.shutdown(Duration::from_secs(10)).unwrap(),
         ShutdownOutcome::Graceful
     );
-    assert_eq!(owned_threads(), 0);
+    assert!(client.diagnostic_shutdown_complete());
+    assert_reaped(&worker);
+    drop(client);
+    let remaining = usize::from(!lifetime.is_retired());
+    assert_eq!(remaining, 0);
+    assert_reaped(&worker);
 }
 #[test]
 fn last_handle_drop_shuts_down_worker_and_joins_threads() {
     let binary = PathBuf::from(env!("CARGO_BIN_EXE_gz-render-worker"));
     let client = start(binary).unwrap();
-    let prefix = client.diagnostic_thread_prefix();
+    let lifetime = client.diagnostic_lifetime();
+    assert!(!lifetime.is_retired());
     assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    let worker = live_worker_fd(&client);
     drop(client);
-    let remaining = std::fs::read_dir("/proc/self/task")
-        .unwrap()
-        .filter_map(Result::ok)
-        .filter_map(|entry| std::fs::read_to_string(entry.path().join("comm")).ok())
-        .filter(|name| name.starts_with(&prefix))
-        .count();
+    let remaining = usize::from(!lifetime.is_retired());
     assert_eq!(remaining, 0);
+    assert_reaped(&worker);
 }
 
 #[test]

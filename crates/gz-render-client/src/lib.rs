@@ -9,7 +9,7 @@ use std::{
     path::PathBuf,
     process::{Child, Command, Stdio},
     sync::{
-        Arc, Mutex, TryLockError,
+        Arc, Mutex, TryLockError, Weak,
         atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering},
         mpsc::{self, Receiver, SyncSender, TryRecvError, TrySendError},
     },
@@ -47,6 +47,22 @@ pub enum ShutdownOutcome {
     Exited(Option<i32>),
 }
 
+/// Non-owning diagnostic for the client, supervisor, and I/O thread lifetime.
+///
+/// Retirement does not attest that an OS task has disappeared from `/proc`,
+/// nor does it independently prove that a failed child wait reaped the process.
+/// Keeping this witness retains the existing Arc allocation until it is dropped;
+/// it does not retain the client, threads, child, pipes, or live atomic value.
+#[derive(Debug, Clone)]
+pub struct ClientLifetime(Weak<AtomicBool>);
+
+impl ClientLifetime {
+    /// True once the client and all its supervisor and I/O threads release their state.
+    pub fn is_retired(&self) -> bool {
+        self.0.upgrade().is_none()
+    }
+}
+
 static NEXT_CLIENT: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Default)]
@@ -77,6 +93,10 @@ impl TrustedWorker {
     }
 }
 
+/// A bounded worker client. Destroy it outside simulation's critical step.
+///
+/// `Drop` attempts shutdown, then joins the supervisor if the attempt times out.
+/// A stalled kernel or driver can delay that final join indefinitely.
 pub struct Client {
     token: u64,
     worker_pid: Arc<AtomicU32>,
@@ -158,9 +178,11 @@ impl Client {
                 let mut stdout = child.stdout.take().expect("piped stdout");
                 let input_stop = stop_supervisor.clone();
                 let input_fail = fail_tx.clone();
+                let writer_lifetime = done_supervisor.clone();
                 let writer = thread::Builder::new()
                     .name(format!("r{token:013x}w"))
                     .spawn(move || {
+                        let _lifetime = writer_lifetime;
                         while !input_stop.load(Ordering::Acquire) {
                             match rx.recv_timeout(Duration::from_millis(5)) {
                                 Ok(request) => {
@@ -189,9 +211,11 @@ impl Client {
                 };
                 let output_stop = stop_supervisor.clone();
                 let output_fail = fail_tx.clone();
+                let reader_lifetime = done_supervisor.clone();
                 let reader = thread::Builder::new()
                     .name(format!("r{token:013x}r"))
                     .spawn(move || {
+                        let _lifetime = reader_lifetime;
                         let mut first = true;
                         let mut startup_failed = false;
                         loop {
@@ -442,6 +466,15 @@ impl Client {
     pub fn diagnostic_thread_prefix(&self) -> String {
         format!("r{:013x}", self.token)
     }
+    /// Observe client/supervisor retirement without keeping either alive.
+    pub fn diagnostic_lifetime(&self) -> ClientLifetime {
+        ClientLifetime(Arc::downgrade(&self.done))
+    }
+    /// True after the supervisor is joined and its I/O owners have retired.
+    /// This does not independently establish that the child was reaped.
+    pub fn diagnostic_shutdown_complete(&self) -> bool {
+        self.supervisor.is_none() && Arc::strong_count(&self.done) == 1
+    }
     /// A rejected request is returned intact so callers can retry or discard it.
     pub fn try_send(&self, request: Request) -> Result<(), SubmitError> {
         if !request.wire_valid() {
@@ -603,7 +636,12 @@ impl Client {
 impl Drop for Client {
     fn drop(&mut self) {
         // Callers needing the result use shutdown explicitly, outside physics steps.
-        let _ = self.shutdown(Duration::from_secs(3));
+        if self.shutdown(Duration::from_secs(3)).is_err() {
+            self.stop.store(true, Ordering::Release);
+            if let Some(handle) = self.supervisor.take() {
+                let _ = handle.join();
+            }
+        }
     }
 }
 

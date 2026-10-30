@@ -7,6 +7,28 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+// Pin the exact worker identity and observe it without reaping it.
+fn live_worker_fd(client: &Client) -> rustix::fd::OwnedFd {
+    use rustix::fd::AsFd;
+    use rustix::process::{Pid, PidfdFlags, WaitId, WaitIdOptions, pidfd_open, waitid};
+    let pid = Pid::from_raw(client.worker_pid().unwrap() as i32).unwrap();
+    let fd = pidfd_open(pid, PidfdFlags::empty()).unwrap();
+    let options = WaitIdOptions::EXITED | WaitIdOptions::NOHANG | WaitIdOptions::NOWAIT;
+    assert!(matches!(
+        waitid(WaitId::PidFd(fd.as_fd()), options),
+        Ok(None)
+    ));
+    fd
+}
+fn assert_reaped(fd: &rustix::fd::OwnedFd) {
+    use rustix::fd::AsFd;
+    use rustix::process::{WaitId, WaitIdOptions, waitid};
+    let options = WaitIdOptions::EXITED | WaitIdOptions::NOHANG | WaitIdOptions::NOWAIT;
+    assert!(matches!(
+        waitid(WaitId::PidFd(fd.as_fd()), options),
+        Err(rustix::io::Errno::CHILD)
+    ));
+}
 fn start(binary: PathBuf) -> Result<Client, ClientError> {
     Client::start(TrustedWorker::from_operator_config(binary)?)
 }
@@ -42,8 +64,10 @@ fn failed_worker_start_is_reported_and_reaped() {
 fn stalled_worker_is_killed_and_threads_join() {
     let path = PathBuf::from(env!("CARGO_BIN_EXE_stall_fixture"));
     let mut client = start(path.clone()).unwrap();
-    let prefix = client.diagnostic_thread_prefix();
+    let lifetime = client.diagnostic_lifetime();
+    assert!(!lifetime.is_retired());
     assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    let worker = live_worker_fd(&client);
     let make_snapshot = |request_id| Request::Snapshot {
         request_id,
         stamp: Stamp {
@@ -84,13 +108,12 @@ fn stalled_worker_is_killed_and_threads_join() {
         ShutdownOutcome::Forced
     );
     assert!(start.elapsed() < Duration::from_secs(5));
-    let remaining = std::fs::read_dir("/proc/self/task")
-        .unwrap()
-        .filter_map(Result::ok)
-        .filter_map(|entry| std::fs::read_to_string(entry.path().join("comm")).ok())
-        .filter(|name| name.starts_with(&prefix))
-        .count();
+    assert!(client.diagnostic_shutdown_complete());
+    assert_reaped(&worker);
+    drop(client);
+    let remaining = usize::from(!lifetime.is_retired());
     assert_eq!(remaining, 0);
+    assert_reaped(&worker);
 }
 
 fn prepare_cancel_burst(client: &Client) {
@@ -155,8 +178,10 @@ fn unexpected_child_exit_is_reported() {
 fn shutdown_unblocks_a_full_output_slot() {
     let path = PathBuf::from(env!("CARGO_BIN_EXE_overflow_fixture"));
     let mut client = start(path).unwrap();
-    let prefix = client.diagnostic_thread_prefix();
+    let lifetime = client.diagnostic_lifetime();
+    assert!(!lifetime.is_retired());
     prepare_cancel_burst(&client);
+    let worker = live_worker_fd(&client);
     let deadline = Instant::now() + Duration::from_secs(5);
     while !client.is_output_blocked() && Instant::now() < deadline {
         thread::sleep(Duration::from_millis(5));
@@ -166,13 +191,12 @@ fn shutdown_unblocks_a_full_output_slot() {
         client.shutdown(Duration::from_secs(3)).unwrap(),
         ShutdownOutcome::Forced
     );
-    let remaining = std::fs::read_dir("/proc/self/task")
-        .unwrap()
-        .filter_map(Result::ok)
-        .filter_map(|entry| std::fs::read_to_string(entry.path().join("comm")).ok())
-        .filter(|name| name.starts_with(&prefix))
-        .count();
+    assert!(client.diagnostic_shutdown_complete());
+    assert_reaped(&worker);
+    drop(client);
+    let remaining = usize::from(!lifetime.is_retired());
     assert_eq!(remaining, 0);
+    assert_reaped(&worker);
 }
 
 #[test]
@@ -792,4 +816,18 @@ fn shutdown_releases_a_fatal_reply_blocked_by_output_backpressure() {
     }
     assert!(client.is_output_blocked());
     client.shutdown(Duration::from_secs(5)).unwrap();
+}
+
+#[test]
+fn dropping_a_stalled_worker_forces_exit_reaps_and_retires_ownership() {
+    let path = PathBuf::from(env!("CARGO_BIN_EXE_stall_fixture"));
+    let client = start(path).unwrap();
+    let lifetime = client.diagnostic_lifetime();
+    assert!(!lifetime.is_retired());
+    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    let worker = live_worker_fd(&client);
+    drop(client);
+    let remaining = usize::from(!lifetime.is_retired());
+    assert_eq!(remaining, 0);
+    assert_reaped(&worker);
 }

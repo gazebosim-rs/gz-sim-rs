@@ -53,9 +53,12 @@ With multithreaded Bevy tasks, its process-global pools remain after an in-proce
 renderer is dropped. The experimental `gz-render-worker` isolates those pools in a
 child process started by `gz-render-client`; its executable is selected only through
 an explicit trusted operator configuration. The parent uses bounded request/reply
-channels and the last client attempts shutdown and reaping. A kernel or driver stall
-can prevent bounded reaping, and `Drop` cannot report its timeout. The worker currently
-uses Linux parent-death signaling and has not been qualified on other platforms.
+channels. Explicit `shutdown(timeout)` retains its supervisor handle on timeout.
+On final `Drop`, the client requests shutdown and, if that bounded attempt times
+out, forces stop and joins the retained supervisor. A kernel or driver stall may
+therefore delay `Drop` indefinitely; callers must destroy it outside physics steps.
+The worker currently uses Linux parent-death signaling and has not been qualified
+on other platforms.
 This lifecycle is not yet integrated with the simulator or accepted. The default Bevy panic hook,
 Ctrl-C handler and log plugin are disabled in the renderer.
 

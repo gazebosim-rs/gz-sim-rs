@@ -422,3 +422,77 @@ fn stale_and_overlapping_requests_preserve_their_identity() {
         Err(SubmitError::Busy(Request::Cancel { request_id: 1 }))
     ));
 }
+
+#[test]
+fn timeout_keeps_supervisor_owned_until_drop_can_join_it() {
+    let (mut client, _input) = client();
+    let lifetime = client.diagnostic_lifetime();
+    let (release, blocked) = mpsc::sync_channel::<()>(0);
+    let (finished, result) = mpsc::sync_channel(1);
+    let supervisor_lifetime = client.done.clone();
+    client.finished = result;
+    client.supervisor = Some(thread::spawn(move || {
+        if blocked.recv().is_ok() {
+            supervisor_lifetime.store(true, Ordering::Release);
+            let _ = finished.send(Some(0));
+        }
+    }));
+    assert!(!lifetime.is_retired());
+    assert!(matches!(
+        client.shutdown(Duration::ZERO),
+        Err(ClientError::Timeout)
+    ));
+    assert!(client.supervisor.is_some());
+    assert!(!client.diagnostic_shutdown_complete());
+    assert!(!lifetime.is_retired());
+    let (started, start_rx) = mpsc::sync_channel(0);
+    let (dropped, drop_rx) = mpsc::sync_channel(1);
+    let owner = thread::spawn(move || {
+        started.send(()).unwrap();
+        drop(client);
+        dropped.send(()).unwrap();
+    });
+    start_rx.recv().unwrap();
+    // The gate stays closed beyond Drop's existing 3 s bounded shutdown attempt.
+    // Returning here would detach the still-live supervisor.
+    assert!(matches!(
+        drop_rx.recv_timeout(Duration::from_millis(3200)),
+        Err(mpsc::RecvTimeoutError::Timeout)
+    ));
+    assert!(!lifetime.is_retired());
+    release.send(()).unwrap();
+    drop_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+    owner.join().unwrap();
+    assert!(lifetime.is_retired());
+}
+
+#[test]
+fn lifetime_witness_does_not_keep_state_alive_or_miss_a_live_io_owner() {
+    let (client, _input) = client();
+    let witness = client.diagnostic_lifetime();
+    let io_owner = client.done.clone();
+    assert!(!witness.is_retired());
+    drop(client);
+    assert!(!witness.is_retired());
+    drop(io_owner);
+    assert!(witness.is_retired());
+}
+
+#[test]
+fn shutdown_diagnostic_requires_both_join_and_io_retirement() {
+    let (mut client, _input) = client();
+    let io_owner = client.done.clone();
+    let (finished, result) = mpsc::sync_channel(1);
+    client.finished = result;
+    client.supervisor = Some(thread::spawn(move || {
+        finished.send(Some(0)).unwrap();
+    }));
+    assert!(!client.diagnostic_shutdown_complete());
+    drop(io_owner);
+    assert!(!client.diagnostic_shutdown_complete());
+    let io_owner = client.done.clone();
+    client.shutdown(Duration::from_secs(5)).unwrap();
+    assert!(!client.diagnostic_shutdown_complete());
+    drop(io_owner);
+    assert!(client.diagnostic_shutdown_complete());
+}
