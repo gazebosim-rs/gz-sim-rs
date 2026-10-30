@@ -163,6 +163,22 @@ pub(super) fn capture(sim: &mut Simulation) {
         .insert_resource(InitialScene(Arc::new(initial)));
 }
 
+/// Original configured controllers, including retired entities restored by a loaded reset.
+/// The iterator borrows the immutable loader blueprint; it performs no IO.
+pub fn initial_joint_force_configurations(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = (u64, &JointForceConfiguration)>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.0.nodes.iter().filter_map(|node| {
+        node.joint_force
+            .as_ref()
+            .map(|configuration| (node.id.get(), configuration))
+    }))
+}
+
 /// Initial stream configuration, including sensors whose runtime entities were removed.
 /// The iterator borrows the immutable loader blueprint; it performs no IO.
 pub fn initial_imu_publications(

@@ -1234,3 +1234,6 @@ fn finishing_joins_workers_and_returns_the_final_simulation() {
     assert!(!simulation.is_paused());
     simulation.validate_steps(1).unwrap();
 }
+
+#[path = "native_forces.rs"]
+mod native_force_tests;

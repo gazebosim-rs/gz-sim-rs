@@ -42,8 +42,12 @@ settings and pending inputs on admission failure. Both resets clear it. Recogniz
 ApplyJointForce model configuration now installs zero commands and captures only
 immutable metadata for loaded reset. Native text probes require ASCII whitespace
 rules and rejection of split lexical values; see APPLY_JOINT_FORCE_CONFIGURATION.md.
-The next actuator slice is bounded transport input and native topic normalization.
-These primitives do not justify complete original-system credit.
+Bounded Double topic input now normalizes/remaps endpoints, fans out shared
+subscriptions and updates these commands within a finite ingress budget. Prepared
+workers survive loaded reset while old receiver queues and command values retire;
+see JOINT_FORCE_TRANSPORT.md for wire epoch and failure limits. These primitives
+do not justify complete original-system credit. Continue with the missing native
+fixture capabilities and broader articulation/limit domains after qualification.
 
 The DART runtime guard also checks active angular rows in contact-bearing groups
 against the existing native-coordinate inverse-response ceiling. This addresses

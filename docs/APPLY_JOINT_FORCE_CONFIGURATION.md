@@ -55,8 +55,8 @@ SDK observations, not a fresh SDK build or the complete simulator system. The
 normal tooling gate checks source/script/baseline bindings; independent review
 and staged/hosted qualification remain required before acceptance.
 
-Transport subscriptions, native topic normalization and bounded command polling
-remain separate work. Stored model/joint names are configuration parts, not an
-implemented endpoint. The genuine upstream fixture also needs plane geometry,
-world-system selection and moving-parent actuation which remain unqualified.
+Bounded transport subscriptions and topic normalization are described in
+[JOINT_FORCE_TRANSPORT.md](JOINT_FORCE_TRANSPORT.md). The genuine upstream fixture
+also needs plane geometry, world-system selection and moving-parent actuation
+which remain unqualified.
 No performance improvement or complete ApplyJointForce migration is claimed.

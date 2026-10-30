@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Bounded world-clock publication and control around an explicitly stepped simulation.
 
+mod forces;
 mod poses;
 mod rates;
 mod removals;
@@ -41,6 +42,8 @@ pub enum Error {
     PoseData,
     #[error("IMU publication lacks a unique public identity")]
     ImuIdentity,
+    #[error("joint-force controller lacks its original identity, configuration or command")]
+    JointForceIdentity,
     #[error(transparent)]
     ImuActivation(#[from] gz_sim_scene::ImuActivationError),
 }
@@ -85,6 +88,12 @@ pub struct Counters {
     pub imu_rates_applied: u64,
     pub imu_rates_ignored: u64,
     pub imu_rates_rejected: u64,
+    /// Double packets consumed within the joint-force ingress budget.
+    pub force_messages_received: u64,
+    /// Malformed packets or packets with at least one rejected target.
+    pub force_messages_rejected: u64,
+    /// Successful persistent-command updates, including shared endpoint fanout.
+    pub joint_forces_applied: u64,
 }
 
 struct ImuStream {
@@ -210,6 +219,7 @@ pub struct Server {
     controls: Service,
     removals: removals::Removals,
     rates: rates::Rates,
+    forces: forces::Forces,
     command_budget: NonZeroUsize,
     pending_steps: u64,
     pending_reset: bool,
@@ -278,6 +288,16 @@ impl Server {
             Err(error) => return Err(error.into()),
         };
         rates.bind(&simulation)?;
+        let configurations: Vec<_> =
+            match gz_sim_scene::initial_joint_force_configurations(&simulation) {
+                Ok(values) => values
+                    .map(|(id, configuration)| (id, configuration.clone()))
+                    .collect(),
+                Err(gz_sim_scene::SceneResetError::MissingInitialState) => Vec::new(),
+                Err(error) => return Err(error.into()),
+            };
+        let mut forces = forces::Forces::prepare(&config, configurations)?;
+        forces.bind(&simulation)?;
         Ok(Self {
             simulation,
             node,
@@ -289,6 +309,7 @@ impl Server {
             controls,
             removals,
             rates,
+            forces,
             command_budget,
             pending_steps: 0,
             pending_reset: false,
@@ -373,10 +394,11 @@ impl Server {
     pub fn counters(&self) -> Counters {
         self.counters
     }
-    /// Aggregate counters from the world and all IMU-rate workers.
+    /// Aggregate counters from the world and all controller workers.
     pub fn transport_statistics(&self) -> Statistics {
         let mut total = self.node.statistics();
         self.rates.add_statistics(&mut total);
+        self.forces.add_statistics(&mut total);
         total
     }
     pub fn pending_steps(&self) -> u64 {
@@ -445,6 +467,7 @@ impl Server {
                 .is_some()
         });
         self.rates.retire(&self.simulation);
+        self.forces.retire(&self.simulation);
         if !info.paused && self.pending_steps > 0 {
             self.pending_steps -= 1;
             if self.pending_steps == 0 {
@@ -466,6 +489,11 @@ impl Server {
         )?;
         self.removals
             .poll(self.command_budget, &mut self.counters)?;
+        self.forces.poll(
+            &mut self.simulation,
+            self.command_budget,
+            &mut self.counters,
+        )?;
         Ok(info)
     }
 
@@ -633,8 +661,19 @@ impl Server {
     /// Join the IO worker outside stepping. Dropping the server also joins it.
     pub fn shutdown(&mut self) {
         self.rates.shutdown();
+        self.forces.shutdown();
         self.node.shutdown();
     }
+}
+
+fn add_transport_statistics(total: &mut Statistics, stats: Statistics) {
+    total.queue_drops = total.queue_drops.saturating_add(stats.queue_drops);
+    total.malformed_frames = total
+        .malformed_frames
+        .saturating_add(stats.malformed_frames);
+    total.send_failures = total.send_failures.saturating_add(stats.send_failures);
+    total.reply_timeouts = total.reply_timeouts.saturating_add(stats.reply_timeouts);
+    total.routing_errors = total.routing_errors.saturating_add(stats.routing_errors);
 }
 
 #[cfg(test)]

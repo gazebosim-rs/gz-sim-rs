@@ -26,8 +26,11 @@ IDs, with scene-binding validation and no extra command buffer. A programmatic
 persistent force component now applies the latest setting once per advancing
 step through Bevy. The recognized ApplyJointForce model configuration installs
 zero-valued commands and immutable reset metadata; see
-[the exact scope](APPLY_JOINT_FORCE_CONFIGURATION.md). Joint command transport
-remains open, along with finite limit editing and moving-parent actuation.
+[the exact scope](APPLY_JOINT_FORCE_CONFIGURATION.md). Bounded native Double topic
+input now updates these commands, with endpoint fanout, finite ingress budgets
+and reset/retirement controls; see [transport scope](JOINT_FORCE_TRANSPORT.md).
+Full original-system compatibility, finite limits and moving-parent actuation
+remain open.
 
 The DART solve boundary also bounds active angular inverse response in mixed
 contact groups. Tiny geometry can otherwise hide that response from the contact

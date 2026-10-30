@@ -157,14 +157,7 @@ impl Rates {
 
     pub(crate) fn add_statistics(&self, total: &mut Statistics) {
         for worker in self.workers.values() {
-            let stats = worker.statistics();
-            total.queue_drops = total.queue_drops.saturating_add(stats.queue_drops);
-            total.malformed_frames = total
-                .malformed_frames
-                .saturating_add(stats.malformed_frames);
-            total.send_failures = total.send_failures.saturating_add(stats.send_failures);
-            total.reply_timeouts = total.reply_timeouts.saturating_add(stats.reply_timeouts);
-            total.routing_errors = total.routing_errors.saturating_add(stats.routing_errors);
+            crate::add_transport_statistics(total, worker.statistics());
         }
     }
 

@@ -12,7 +12,7 @@ import subprocess
 from native_reference import LEGACY, SDK, builder, compiler_identity, validate_reference
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--client', choices=['clock', 'rate'], default='clock')
+parser.add_argument('--client', choices=['clock', 'rate', 'force'], default='clock')
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[1]
 prefix = Path(os.environ.get('GZ_REFERENCE_PREFIX', root / 'artifacts/native-reference/install')).resolve()
@@ -29,7 +29,7 @@ actual = subprocess.check_output(['pkg-config', '--variable=prefix', 'gz-transpo
 assert Path(actual).resolve() == prefix, 'pkg-config selected a different native installation'
 flags = shlex.split(subprocess.check_output(['pkg-config', '--cflags', '--libs', 'gz-transport'], env=env, text=True))
 source = root / f'crates/gz-sim-server/tests/{args.client}_client.cc'
-out = root / ('artifacts/native-peer' if args.client == 'clock' else 'artifacts/native-rate-peer')
+out = root / ('artifacts/native-peer' if args.client == 'clock' else f'artifacts/native-{args.client}-peer')
 out.mkdir(parents=True, exist_ok=True)
 source_bytes = source.read_bytes()
 captured_source = out / f'{args.client}-client-source.cc'
