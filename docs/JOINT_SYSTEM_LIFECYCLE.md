@@ -32,7 +32,8 @@ observers, combined and cross-family teardown, post-reset cleanup and committed 
 Initial absence also covers TPE. Full scene regressions, independent review and
 normal staged/hosted qualification remain required before acceptance.
 
-Persistent effort application, generic input callbacks, server workers and
-physics activation remain separate unfinished demand work. Bevy may retain
+Persistent effort application has a separate controller-demand lifecycle; see
+JOINT_FORCE_SYSTEM_LIFECYCLE.md. Generic input callbacks, server workers and
+physics activation remain unfinished demand work. Bevy may retain
 empty set/ordering metadata after removing a system; this increment does not
 claim whole-schedule zero memory or measured CPU/RSS improvement.

@@ -32,6 +32,7 @@ mod lifecycle;
 pub use lifecycle::{RemoveError, remove_model};
 mod imu_lifecycle;
 mod initial;
+mod joint_force_lifecycle;
 mod joint_lifecycle;
 pub use initial::{
     PendingResetRemoval, SceneResetError, SceneResetInfo, initial_imu_publications,
@@ -433,7 +434,6 @@ fn load_world_configured(
     match backend {
         Some(backend) => {
             gz_physics::install(&mut sim, backend)?;
-            sim.add_systems(Phase::PhysicsPrepare, inputs::apply_joint_forces);
             sim.add_systems(Phase::PhysicsCommit, sync_bodies.before(sync_models));
             sim.add_systems(
                 Phase::Reset,
@@ -454,6 +454,7 @@ fn load_world_configured(
     );
     imu_lifecycle::install(&mut sim);
     joint_lifecycle::install(&mut sim);
+    joint_force_lifecycle::install(&mut sim);
     initial::capture(&mut sim);
     Ok(sim)
 }

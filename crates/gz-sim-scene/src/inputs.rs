@@ -212,6 +212,7 @@ pub fn set_joint_force(sim: &mut Simulation, id: u64, torque: f64) -> Result<(),
     sim.world_mut()
         .entity_mut(entity)
         .insert(JointForceCommand(torque));
+    crate::joint_force_lifecycle::install(sim);
     Ok(())
 }
 

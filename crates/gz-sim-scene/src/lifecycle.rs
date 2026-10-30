@@ -47,26 +47,32 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
                 .contains_resource::<crate::imu_lifecycle::Installed>(),
             sim.world()
                 .contains_resource::<crate::joint_lifecycle::Installed>(),
+            sim.world()
+                .contains_resource::<crate::joint_force_lifecycle::Installed>(),
         );
         crate::imu_lifecycle::retire_if_unused(sim)?;
         crate::joint_lifecycle::retire_if_unused(sim)?;
+        crate::joint_force_lifecycle::retire_if_unused(sim)?;
         let after = (
             sim.world()
                 .contains_resource::<crate::imu_lifecycle::Installed>(),
             sim.world()
                 .contains_resource::<crate::joint_lifecycle::Installed>(),
+            sim.world()
+                .contains_resource::<crate::joint_force_lifecycle::Installed>(),
         );
         if before == after {
             if sim.world().iter_entities().any(|entity| {
                 !after.0 && entity.contains::<crate::Imu>()
                     || !after.1 && entity.contains::<crate::JointHandle>()
+                    || !after.2 && entity.contains::<crate::JointForceCommand>()
             }) {
                 return Err(SystemRetirementError::AddedConsumer);
             }
             return Ok(());
         }
-        // A schedule build may remove the other family's last consumer.
-        // Markers only retire here, so at most two rounds can change them.
+        // A schedule build may remove another family's last consumer.
+        // Markers only retire here, so at most three rounds can change them.
     }
 }
 
@@ -135,7 +141,11 @@ fn remove_model_checked(
         && !world.iter_entities().any(|entity| {
             entity.contains::<crate::JointHandle>() && !subtree.contains(&entity.id())
         });
-    if (retire_imu || retire_joint) && !schedules_ready {
+    let retire_force = world.contains_resource::<crate::joint_force_lifecycle::Installed>()
+        && !world.iter_entities().any(|entity| {
+            entity.contains::<crate::JointForceCommand>() && !subtree.contains(&entity.id())
+        });
+    if (retire_imu || retire_joint || retire_force) && !schedules_ready {
         sim.initialize_schedules()
             .map_err(|error| RemoveError::Schedule(error.to_string()))?;
         // Builds synchronously notify World observers. Their mutations must

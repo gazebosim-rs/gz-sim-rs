@@ -395,6 +395,7 @@ pub fn reset_loaded_world<R>(
     world.insert_resource(RestoredPhysics { epoch });
     crate::imu_lifecycle::install(sim);
     crate::joint_lifecycle::install(sim);
+    crate::joint_force_lifecycle::install(sim);
     let reset = sim.reset();
     sim.world_mut().remove_resource::<RestoredPhysics>();
     let result = reset

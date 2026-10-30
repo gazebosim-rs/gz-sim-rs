@@ -200,8 +200,10 @@ loaded worlds, retire after the last joint model and restore on loaded reset.
 Lifecycle-boundary reconciliation handles observers removing the other family's
 last joint or IMU; unsupported observer additions that would strand consumers
 report a terminal committed fault. See [JOINT_SYSTEM_LIFECYCLE.md](JOINT_SYSTEM_LIFECYCLE.md).
-Persistent force/input/physics callbacks and server worker demand remain open;
-this bounded increment does not claim measured CPU/RSS improvement.
+Persistent effort application has its own configured/typed controller lifecycle;
+see [JOINT_FORCE_SYSTEM_LIFECYCLE.md](JOINT_FORCE_SYSTEM_LIFECYCLE.md).
+Generic input/physics callbacks and server worker demand remain open;
+these bounded increments do not claim measured CPU/RSS improvement.
 
 ## Bounded DART static planes
 
