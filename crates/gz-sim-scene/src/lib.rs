@@ -8,7 +8,8 @@ pub use joints::{JointDefinition, JointHandle, JointSample};
 
 mod inputs;
 pub use inputs::{
-    InputError, queue_joint_effort, queue_link_world_velocity, queue_link_world_wrench,
+    InputError, JointForceCommand, queue_joint_effort, queue_link_world_velocity,
+    queue_link_world_wrench, set_joint_force,
 };
 
 mod schedule;
@@ -421,7 +422,10 @@ fn load_world_configured(
     match backend {
         Some(backend) => {
             gz_physics::install(&mut sim, backend)?;
-            sim.add_systems(Phase::PhysicsPrepare, joints::preflight);
+            sim.add_systems(
+                Phase::PhysicsPrepare,
+                (joints::preflight, inputs::apply_joint_forces).chain(),
+            );
             sim.add_systems(
                 Phase::PhysicsCommit,
                 joints::sample.after(sync_attached_poses),

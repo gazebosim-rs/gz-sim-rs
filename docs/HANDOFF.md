@@ -35,9 +35,12 @@ checks the loaded joint's bindings and original backend owner before forwarding
 to the existing deferred backend queue. No shadow queue or stepping system is
 added. Scene controls exercise all three dynamic engines, pause/reset/retirement,
 invalid admission and native pulse-rate parity. Core runtime faults are terminal;
-there is no same-simulation retry contract. The next actuator slice is persistent
-ApplyJointForce behavior with bounded transport input; this API alone does not
-implement that system or justify original-test credit.
+there is no same-simulation retry contract. Programmatic `set_joint_force` now
+stores a latest persistent value in a Bevy component and adds it once per
+advancing step after preflight. Pure backend scalar validation preserves old
+settings and pending inputs on admission failure. Both resets clear it. The next
+actuator slice is ApplyJointForce SDF configuration and bounded transport input;
+these primitives alone do not implement that system or justify original-test credit.
 
 The DART runtime guard also checks active angular rows in contact-bearing groups
 against the existing native-coordinate inverse-response ceiling. This addresses

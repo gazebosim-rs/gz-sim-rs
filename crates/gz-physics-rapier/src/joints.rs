@@ -85,8 +85,8 @@ pub(super) struct InitialJoints {
     next: u64,
 }
 impl Joints {
-    pub(super) fn add_effort(
-        &mut self,
+    pub(super) fn validate_effort(
+        &self,
         id: JointId,
         torque: f64,
         bodies: &BTreeMap<BodyId, BodyEntry>,
@@ -103,8 +103,21 @@ impl Joints {
                 capability: "moving-parent joint effort commands",
             });
         }
+        if !torque.is_finite() {
+            return Err(PhysicsError::InvalidValue);
+        }
+        Ok(())
+    }
+
+    pub(super) fn add_effort(
+        &mut self,
+        id: JointId,
+        torque: f64,
+        bodies: &BTreeMap<BodyId, BodyEntry>,
+    ) -> Result<(), PhysicsError> {
+        self.validate_effort(id, torque, bodies)?;
         let next = self.efforts.get(&id).copied().unwrap_or(0.0) + torque;
-        if !torque.is_finite() || !next.is_finite() {
+        if !next.is_finite() {
             return Err(PhysicsError::InvalidValue);
         }
         self.efforts.insert(id, next);

@@ -86,6 +86,27 @@ programmatic input. Persistent ApplyJointForce controllers, their SDF plugin
 configuration and transport subscriptions remain separate work; no system or
 upstream test completion is claimed by this wrapper.
 
+## Persistent programmatic force
+
+`set_joint_force(&mut sim, entity_id, torque)` replaces a loaded joint's persistent
+force. `JointForceCommand::torque()` exposes that latest value. The Bevy preparation
+system adds it to the existing one-step backend queue once per advancing step,
+after joint preflight. Paused ticks retain the value without accumulating effort.
+Zero stops future forcing; unrelated one-step commands remain additive. Both
+reset paths clear persistent force, and model retirement removes the component.
+
+`DynamicBackend::validate_joint_effort` checks an individual torque without
+changing pending commands. The setter uses it before replacing a value, so
+unsupported joints and invalid scalars preserve both the old setting and queued
+one-step input. Accumulation and combined world-wrench checks still occur when
+commands are applied. Failure there makes the simulation terminal before native
+stepping; this is not an atomic transaction across multiple controllers.
+
+This is a programmatic Bevy control primitive, not the complete ApplyJointForce
+system. SDF plugin configuration, initial zero-valued controller installation,
+transport subscriptions and the original dynamic-parent/plane fixture remain
+open. No original-system credit or performance improvement is claimed.
+
 ## Evidence
 
 The public controls cover analytic inertia/sign, accumulation, normalized axes,

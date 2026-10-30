@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use crate::{BodyHandle, EntityKind, LocalPose, WorldPose, tpe};
 use bevy_ecs::prelude::*;
-use gz_physics::{BodyId, PhysicsBackend};
+use gz_physics::{BodyId, JointId, PhysicsBackend, PhysicsError};
 use gz_physics_tpe::{ModelBounds, Motion};
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo, entity_by_id};
 
@@ -165,10 +165,18 @@ pub fn queue_link_world_wrench(
     Ok(())
 }
 
-/// Accumulates one-step generalized effort for a loaded revolute's public entity ID.
-/// Paused ticks retain commands; successful steps consume them. Reset and retirement
-/// discard them. Validation errors preserve admitted commands; runtime faults stop the run.
-pub fn queue_joint_effort(sim: &mut Simulation, id: u64, torque: f64) -> Result<(), InputError> {
+/// Latest persistent generalized torque in Nm, applied once per advancing step.
+/// Set through `set_joint_force`; reset clears it and retirement removes it.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct JointForceCommand(f64);
+
+impl JointForceCommand {
+    pub fn torque(&self) -> f64 {
+        self.0
+    }
+}
+
+fn joint_target(sim: &Simulation, id: u64, torque: f64) -> Result<(Entity, JointId), InputError> {
     sim.validate_steps(1)?;
     if !torque.is_finite() {
         return Err(InputError::InvalidValue);
@@ -182,13 +190,63 @@ pub fn queue_joint_effort(sim: &mut Simulation, id: u64, torque: f64) -> Result<
         return Err(InputError::InvalidPhysics);
     }
     let joint = crate::joints::input_binding(world, entity).ok_or(InputError::InvalidPhysics)?;
-    match sim
-        .world_mut()
+    Ok((entity, joint))
+}
+
+fn effort_error(error: PhysicsError) -> InputError {
+    match error {
+        PhysicsError::InvalidValue => InputError::InvalidValue,
+        error => InputError::Physics(error),
+    }
+}
+
+/// Replaces the persistent force on a loaded joint, without changing one-step inputs.
+/// Paused ticks retain the latest value; zero stops future forcing. Individual
+/// admission errors preserve the prior value. Combined inputs are checked at stepping.
+pub fn set_joint_force(sim: &mut Simulation, id: u64, torque: f64) -> Result<(), InputError> {
+    let (entity, joint) = joint_target(sim, id, torque)?;
+    sim.world()
+        .resource::<PhysicsBackend>()
+        .validate_joint_effort(joint, torque)
+        .map_err(effort_error)?;
+    sim.world_mut()
+        .entity_mut(entity)
+        .insert(JointForceCommand(torque));
+    Ok(())
+}
+
+/// Accumulates one-step generalized effort for a loaded revolute's public entity ID.
+/// Paused ticks retain commands; successful steps consume them. Reset and retirement
+/// discard them. Validation errors preserve admitted commands; runtime faults stop the run.
+pub fn queue_joint_effort(sim: &mut Simulation, id: u64, torque: f64) -> Result<(), InputError> {
+    let (_, joint) = joint_target(sim, id, torque)?;
+    sim.world_mut()
         .resource_mut::<PhysicsBackend>()
         .add_joint_effort(joint, torque)
-    {
-        Err(gz_physics::PhysicsError::InvalidValue) => Err(InputError::InvalidValue),
-        result => result.map_err(InputError::Physics),
+        .map_err(effort_error)
+}
+
+pub(super) fn apply_joint_forces(
+    time: Res<UpdateInfo>,
+    mut backend: ResMut<PhysicsBackend>,
+    commands: Query<(Option<&crate::JointHandle>, &JointForceCommand)>,
+    fault: Res<StepFault>,
+) {
+    if time.dt.is_zero() {
+        return;
+    }
+    for (handle, command) in &commands {
+        let Some(handle) = handle else {
+            fault.report(InputError::InvalidPhysics);
+            return;
+        };
+        if command.0 == 0.0 {
+            continue;
+        }
+        if let Err(error) = backend.add_joint_effort(handle.id(), command.0) {
+            fault.report(error);
+            return;
+        }
     }
 }
 
@@ -260,9 +318,16 @@ fn apply(world: &mut World) {
     }
 }
 
-fn clear(mut commands: Commands, inputs: Query<Entity, With<PendingInput>>) {
+fn clear(
+    mut commands: Commands,
+    inputs: Query<Entity, With<PendingInput>>,
+    mut forces: Query<&mut JointForceCommand>,
+) {
     for entity in &inputs {
         commands.entity(entity).remove::<PendingInput>();
+    }
+    for mut force in &mut forces {
+        force.0 = 0.0;
     }
 }
 

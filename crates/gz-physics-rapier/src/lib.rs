@@ -415,6 +415,10 @@ impl DynamicBackend for RapierBackend {
         Ok(())
     }
 
+    fn validate_joint_effort(&self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
+        self.joints.validate_effort(id, torque, &self.bodies)
+    }
+
     fn add_joint_effort(&mut self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
         self.joints.add_effort(id, torque, &self.bodies)
     }

@@ -22,9 +22,10 @@ with adapter-specific native failure behavior and reset/retirement controls.
 Rapier also supports world/fixed-parent effort on impulse and reduced-coordinate
 hinges, with explicit moving-parent refusal; see [JOINT_EFFORT.md](JOINT_EFFORT.md).
 Loaded scene joints expose the same one-step queue through their public entity
-IDs, with scene-binding validation and no extra command buffer. Persistent
-controllers and joint command transport remain open, along with finite limit
-editing and moving-parent actuation.
+IDs, with scene-binding validation and no extra command buffer. A programmatic
+persistent force component now applies the latest setting once per advancing
+step through Bevy. SDF controller configuration and joint command transport
+remain open, along with finite limit editing and moving-parent actuation.
 
 The DART solve boundary also bounds active angular inverse response in mixed
 contact groups. Tiny geometry can otherwise hide that response from the contact

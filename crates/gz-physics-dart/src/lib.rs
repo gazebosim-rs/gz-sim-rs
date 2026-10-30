@@ -435,13 +435,18 @@ impl DynamicBackend for DartBackend {
         Ok(id)
     }
 
-    fn add_joint_effort(&mut self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
+    fn validate_joint_effort(&self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
         if !self.world.joints.contains_key(&id) {
             return Err(PhysicsError::MissingJoint);
         }
         if !torque.is_finite() || torque.abs() > body::MAGNITUDE_LIMIT {
             return Err(PhysicsError::InvalidValue);
         }
+        Ok(())
+    }
+
+    fn add_joint_effort(&mut self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
+        self.validate_joint_effort(id, torque)?;
         let next = self.joint_efforts.get(&id).copied().unwrap_or(0.0) + torque;
         if !next.is_finite() || next.abs() > body::MAGNITUDE_LIMIT {
             return Err(PhysicsError::InvalidValue);

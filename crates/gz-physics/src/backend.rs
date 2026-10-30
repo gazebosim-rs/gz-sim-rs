@@ -241,6 +241,15 @@ pub trait DynamicBackend: Send + Sync + 'static {
         })
     }
 
+    /// Checks a single generalized torque without changing pending commands.
+    /// This excludes accumulation and later combined world-wrench validation.
+    fn validate_joint_effort(&self, _id: JointId, _torque: f64) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "joint effort commands",
+        })
+    }
+
     /// Accumulates generalized torque in Nm, positive along increasing joint angle.
     /// The next successful nonzero step consumes it. Joint retirement or either
     /// reset discards it; rejected inputs and failed steps preserve pending commands.

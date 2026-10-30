@@ -243,3 +243,15 @@ fn identifiers_round_trip_and_errors_name_the_engine() {
         "recorder does not support bodies"
     );
 }
+
+#[test]
+fn default_joint_effort_validation_is_an_explicit_capability_error() {
+    let backend = Recorder::default();
+    assert!(matches!(
+        backend.validate_joint_effort(JointId::from_raw(0), 1.0),
+        Err(PhysicsError::Unsupported {
+            engine: "recorder",
+            capability: "joint effort commands"
+        })
+    ));
+}

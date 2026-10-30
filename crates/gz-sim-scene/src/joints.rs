@@ -264,9 +264,7 @@ fn valid_binding(world: &World, backend: &PhysicsBackend, entity: EntityRef<'_>)
         return false;
     };
     entity.get::<EntityKind>() == Some(&EntityKind::Joint)
-        && entity
-            .get::<EntityId>()
-            .is_some_and(|id| id.get() == handle.entity)
+        && entity_by_id(world, handle.entity) == Some(entity.id())
         && entity.contains::<JointNode>()
         && entity.contains::<JointSample>()
         && entity.contains::<LocalPose>()
@@ -322,6 +320,7 @@ type JointBindings<'w, 's> = Query<
     'w,
     's,
     (
+        Entity,
         Option<&'static EntityKind>,
         Option<&'static JointHandle>,
         Option<&'static ChildOf>,
@@ -363,13 +362,13 @@ pub(super) fn preflight(
     };
     let mut seen = BTreeSet::new();
     let valid = initial.is_some_and(|initial| initial.owns_backend(&backend))
-        && joints
-            .iter()
-            .all(|(kind, handle, parent, node, sample, local, pose)| {
+        && joints.iter().all(
+            |(entity, kind, handle, parent, node, sample, local, pose)| {
                 let (Some(handle), Some(parent)) = (handle, parent) else {
                     return false;
                 };
-                kind == Some(&EntityKind::Joint)
+                identities.get(handle.entity) == Some(entity)
+                    && kind == Some(&EntityKind::Joint)
                     && node
                     && sample
                     && local
@@ -393,7 +392,8 @@ pub(super) fn preflight(
                             child_parent.parent() == parent.parent()
                                 && backend.joint_child(handle.id) == Some(body.id())
                         })
-            });
+            },
+        );
     if !valid {
         fault.report(JointBindingFault);
     }

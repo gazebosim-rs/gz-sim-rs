@@ -684,12 +684,20 @@ impl DynamicBackend for MujocoBackend {
         Ok(id)
     }
 
-    fn add_joint_effort(&mut self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
+    fn validate_joint_effort(&self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
         if !self.records.joints.contains_key(&id) {
             return Err(PhysicsError::MissingJoint);
         }
+        if !torque.is_finite() {
+            return Err(PhysicsError::InvalidValue);
+        }
+        Ok(())
+    }
+
+    fn add_joint_effort(&mut self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
+        self.validate_joint_effort(id, torque)?;
         let next = self.joint_efforts.get(&id).copied().unwrap_or(0.0) + torque;
-        if !torque.is_finite() || !next.is_finite() {
+        if !next.is_finite() {
             return Err(PhysicsError::InvalidValue);
         }
         self.joint_efforts.insert(id, next);
