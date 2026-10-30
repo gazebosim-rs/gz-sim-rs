@@ -552,3 +552,17 @@ The owner closed P2 on 2026-10-28 for the selected headless world on the fifteen
 contract rows in docs/acceptance/P2.md. SLICE-01 is complete. The named broader
 packets (P0, LOAD-01, PHY-02, PHY-03/05, SENSOR-01, IO-01) keep their own exit
 criteria and remain in progress.
+## Bounded REF-02 registration baseline candidate
+
+Ten previously unclassified registrations in the selected immutable SDK now have
+exact source/command/property contracts and separate actual passing runtime
+results. The exact thirteen-case Zenoh-gated registration is profile-blocked;
+the collector still exits 1. All 1,175 identities, 578 gtest configurations,
+4,589 cases, 579 result guards and seven compiler-diagnostic registrations are
+preserved. The guards/compiler registrations were not executed by this slice.
+Author and independent checks pass 112 Python controls and the ten unchanged
+native commands. Source review passed; normal staged/exact hosted checks remain
+pending.
+Full REF-02, alternate profiles and source-ledger reconciliation remain open;
+there is no added Rust original credit or retirement. See
+[the bounded report](REF02_REGISTRATION_BASELINE.md).

@@ -1,0 +1,345 @@
+{
+  "scope": "ten audited native registrations only; no gtest listing-to-pass conversion, Rust port or retirement",
+  "acceptance": "bounded_native_runtime_only",
+  "observed_at": "2026-10-30T14:18:17.004147+00:00",
+  "image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+  "environment_sha256": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f",
+  "inventory_sha256": "8c65d95314c7a0a3a2122b0e62bf4694bb78002b48e2a2de64b99adaaf84c4ff",
+  "registration_contracts_sha256": "74a3c2cf52ff9f74737eafbed31341bfe0527827e72b243bd30e7347c804a7f8",
+  "runner_sha256": "ed32ccafe2a14983eaba11283a7301121b1a9fdccbb36b86bb6deb13319ae946",
+  "collector_sha256": "662bda5107173075fedfb6146ed53e4b763a1b0fd3cc0be309088c0a245eb7a5",
+  "repositories": [
+    {
+      "repository": "gz-cmake",
+      "source_revision": "ca67ea8460fc03da062780805feb01cb20f4e0ba",
+      "cmake_cache_sha256": "978ab5e0f8709a0e0e66e184acde36c7456c752cb2bf2a6c77519ca2a6d35fd7",
+      "ctest_sha256": "80083b72b9d9dbe3ee639034d735fde9ec811a7a174312f5e6ba64f0a93ad382",
+      "registered_entries": 1
+    },
+    {
+      "repository": "gz-utils",
+      "source_revision": "eafd2035e344eeb28ccab03409093637b89bee35",
+      "cmake_cache_sha256": "43f4a0e88e16edf19e1912c830639fcd48389e9962c5222b62c1b150edc0f619",
+      "ctest_sha256": "437753e00e58cdc09fbc518389183374b5f03af2723df6faadfe919e08a8fa0a",
+      "registered_entries": 19
+    },
+    {
+      "repository": "gz-math",
+      "source_revision": "1316ed334f4d5bda7be59aae07cd6e8ff31cfe13",
+      "cmake_cache_sha256": "34377d4dc447539781509d5de68a57a5814035b204a91d68b3792ddc60b8fefa",
+      "ctest_sha256": "178dedaf6c9026db741619276f64e643869a4f22b33426b2b6e94f934ac35b62",
+      "registered_entries": 135
+    },
+    {
+      "repository": "gz-tools",
+      "source_revision": "832ff554af2605667bfebbbe7b794741d00d9c2f",
+      "cmake_cache_sha256": "e530caa8cf921bfe57064748950a33b1e483238877f19538e93402b8150245ab",
+      "ctest_sha256": "86f591520625a027c267a485a95b93f68f4fcfc3121f083987c7e0bdfcfb07f2",
+      "registered_entries": 1
+    },
+    {
+      "repository": "gz-plugin",
+      "source_revision": "1667852f9063cd5ebd954e2beefcc932f9698f88",
+      "cmake_cache_sha256": "d511a99829bb0be4d9f79dd3803879d7af85ccbffeb8f718e6ac849a03a7cfcc",
+      "ctest_sha256": "2c0d5aa58319935e849eb9a6dce7c50456362e8c6dba030921d96c1316018218",
+      "registered_entries": 32
+    },
+    {
+      "repository": "gz-common",
+      "source_revision": "4daa84f2e7e23eed296d6b997fac88e63b0a450d",
+      "cmake_cache_sha256": "67ba4c3620728794efc9a83355d5fa5aa2576e904493950c0716bb04d95009d0",
+      "ctest_sha256": "e9773913c7829b784f9df8e8b8f107868e5574dd1d20fea86c4a29002d42c44c",
+      "registered_entries": 104
+    },
+    {
+      "repository": "gz-msgs",
+      "source_revision": "89c0c3d1474f545cb889335daf930bfdab6ab852",
+      "cmake_cache_sha256": "09cb2fc71e7abbcdd79acc62900b23c3254892949fd6f9ff5957ec7b6672c5a0",
+      "ctest_sha256": "eb5269b86e7713a2dee5f85180c80b45222419f94d1795df8e0369f6e1043131",
+      "registered_entries": 21
+    },
+    {
+      "repository": "gz-transport",
+      "source_revision": "41913b9dfc3dbce33ac5464ddcb427cc82450f26",
+      "cmake_cache_sha256": "927915a3e8e5335309fa48fae534b25253348c2022d1812b01a42ba42fe027b4",
+      "ctest_sha256": "03418c6c702ccf86bbe733104a44dba0e08447494d087af5cc43ac4ea2d3b0c7",
+      "registered_entries": 112
+    },
+    {
+      "repository": "sdformat",
+      "source_revision": "1249805d9fceeff94ca1fe63e26ab9c051cea24e",
+      "cmake_cache_sha256": "2fef067809b11803f085a4412deff2f480b33e34382ec960654caeb9d51f14f6",
+      "ctest_sha256": "a2ce28e200a782940eac4ba4dee3a1595a3719895d02f3cde1b80d492cb9f068",
+      "registered_entries": 257
+    },
+    {
+      "repository": "gz-fuel-tools",
+      "source_revision": "6ac62b01d7d8af3ab23fd2239728a791704a3f09",
+      "cmake_cache_sha256": "921876c8e629ab66a7bf7fa85c9197bd43d16a2aedf03e34a3f724cfc63ee78f",
+      "ctest_sha256": "8b1acd89635cd88b9896f83cc0fa66dc833089b695cd8379d438b797b2f43f03",
+      "registered_entries": 38
+    },
+    {
+      "repository": "gz-rendering",
+      "source_revision": "fb8e38cee4dad491f95f205afe6697b6a5d0f5fa",
+      "cmake_cache_sha256": "bb50626c7b77f71e02848136082a831661c51cbcc6a5744a416e76d9fcbb0d50",
+      "ctest_sha256": "716268be8932b16970798a59c114c09dae2fd9354ff00c395155594f33fcec78",
+      "registered_entries": 15
+    },
+    {
+      "repository": "gz-sensors",
+      "source_revision": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+      "cmake_cache_sha256": "847f941ef16cd17a9304cf0e6133c28c10e173c8ebd9868e0fa93d0951008a1b",
+      "ctest_sha256": "ce102e242504615019a5a5a60ddc8a74016b06d4b41259e4e767e60c2fc6d521",
+      "registered_entries": 57
+    },
+    {
+      "repository": "gz-physics",
+      "source_revision": "b44cd0d0ea6606b6c98320c0c87a5670d4fc6be6",
+      "cmake_cache_sha256": "74251d7395be284f24d7e70e7fb7675a4e4f43307faab7cfe2f42e222c56cc2d",
+      "ctest_sha256": "4594516b99229e896f69a369f5402576280645ce2d2b70af34810ee61d4b2dc7",
+      "registered_entries": 107
+    },
+    {
+      "repository": "gz-sim",
+      "source_revision": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "cmake_cache_sha256": "51b1c17bca52af0f0d3b04a6d82dd1bb89b92551cc83eab7685baa20a449ce57",
+      "ctest_sha256": "c66ea208f24a3518cbe97c6853f3f5c50749c0667f7d034491f8950745e2c34f",
+      "registered_entries": 276
+    }
+  ],
+  "results": [
+    {
+      "repository": "gz-cmake",
+      "ctest": "cmake_minimum_required_match",
+      "scope": "native_reference_runtime_only_no_rust_credit",
+      "framework": "cmake_policy_xml",
+      "configuration": "8105031b00b33872c7678b21f8909c09037083aa9e2b55797026aa4d44211ca5",
+      "input_sha256": {
+        "source:CMakeLists.txt": "0048b751ddb1bb71091ae3b7b85456c1e8707c7c5e70c7b51c54f3408a2e87eb",
+        "source:cmake/gz-all-config.cmake.in": "03ce613f4c776e261a0535c26b5e879676a9eed1be777286672611a84861037e",
+        "source:cmake/gz-component-config.cmake.in": "dfcb4a531aca495897708843c9a5b912626f3d7cfbb3b38cf7d93f986dd15472",
+        "source:cmake/gz-config.cmake.in": "f53d58a8ea444acd3011c2faac62f09cb0005c2079fb56e2317ef2ae78e177d6",
+        "source:config/gz-cmake-config.cmake.in": "c7d30f5fc3fd2963ec2212bd0d6b5770fce91d4eee7ddc66c4a9ae5a9a6e83aa",
+        "source:test/CMakeLists.txt": "25b2c644dcdb451444a1d4ca28bc39c0cd0de5e39ed39dd25f32478c0d9691eb",
+        "source:test/cmake_minimum_required.bash": "8647f95d16a8c16ce29f72dc820ac04df33b5dc8aa292fc8baaa6b187bcca04d"
+      },
+      "exit_code": 0,
+      "result": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "classname": "cmake_minimum_required",
+        "name": "make"
+      },
+      "xml_sha256": "bf63625caacbaa3bd8db8e7bb5546c48df8ea0f1b2f8da92fd750fd991b73996",
+      "state": "executed_pass",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "repository": "gz-utils",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "scope": "native_reference_runtime_only_no_rust_credit",
+      "framework": "abi_symbols",
+      "configuration": "0e73e33ecca9b3a38acb4720ac77e40a1038d6a54665e9d6bc9cb6ea6818ea53",
+      "input_sha256": {
+        "build:lib/libgz-utils.so.5.0.0~pre2": "e5e4ad155f68074b4ec3c22416aee25755a6670641dd89032453e43eb3759952",
+        "build:test/integration/all_symbols_have_version.bash": "e7b3a20ed1c75008a4245ee67c614e5ca9a08082b150b29b9054d553473b51a8",
+        "source:test/integration/CMakeLists.txt": "b1d2cdb210c2d713640856e49afaa4765e81f2ce88fdba4d329128bc235833c7"
+      },
+      "exit_code": 0,
+      "versioned_symbols": 14,
+      "state": "executed_pass",
+      "stdout_sha256": "e2f0147fb8a2ec68a51a002e1fe5fffa1ef37e78bf5c6954e9668ce1e5c2e2bb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "repository": "gz-math",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "scope": "native_reference_runtime_only_no_rust_credit",
+      "framework": "abi_symbols",
+      "configuration": "930f3c1dd5095bbc3aa0257539ca6ad0fd0b6538079076cd5f38b4bc713ef2cb",
+      "input_sha256": {
+        "build:lib/libgz-math.so.10.0.0~pre2": "6729db06624f9d03d955091ec6463df6fb052e552ae5a3488d81a28bfa786d4c",
+        "build:test/integration/all_symbols_have_version.bash": "e5e9f2153d612214e3bd9d591492f6dc01054b88184f40e364296dd879d4312d",
+        "source:test/integration/CMakeLists.txt": "1cfd58319e9059a8bb03100169f8bb24f26de85c929d9ddcfb2a7ba7153b3bde"
+      },
+      "exit_code": 0,
+      "versioned_symbols": 810,
+      "state": "executed_pass",
+      "stdout_sha256": "8b9ad2617af0ec727a7661ca32edade58e32060e02ba9afbede5d8277b16df3c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "repository": "gz-tools",
+      "ctest": "UNIT_gz_TEST",
+      "scope": "native_reference_runtime_only_no_rust_credit",
+      "framework": "cli_dispatch_xml",
+      "configuration": "81ba1ab639436463eef2cb1d93664683ccf0760ea7e16a0119f562c056b88a13",
+      "input_sha256": {
+        "build:Release/test/bin/gz": "7fa34c137218350842e587a8bff0e0f626e292caf8b9e103266df14b0a3b9f6f",
+        "build:src/UNIT_gz_TEST_fail.xml.configured": "9e6a50617ba2e44ead481e343a1fc0207861a69acb52a5df220087f1ab7f70a5",
+        "build:src/UNIT_gz_TEST_pass.xml.configured": "1f9a7335fb48c85d256b5dec7a2965d52f29f0eb96059756fa4fdc736b5013de",
+        "build:test/conf/Release/UNIT_gz_TEST.yaml": "ab280066ce5681ad24c2b7e55a814010a921d4b9cf2ce79ed9c575834829ab79",
+        "source:cmake/run_test.cmake": "716352758d35dfb61c21c7802430ad4bd6fe5d58b8a275fb759ac99758df8f74",
+        "source:src/CMakeLists.txt": "d7e636a6a65fc0aa916817c98b269b8d378900293ccc8f80131f5eddb63c2c23"
+      },
+      "exit_code": 0,
+      "result": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "classname": "UNIT_gz_TEST",
+        "name": "GZ_SCRIPT"
+      },
+      "xml_sha256": "1f9a7335fb48c85d256b5dec7a2965d52f29f0eb96059756fa4fdc736b5013de",
+      "state": "executed_pass",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "repository": "gz-msgs",
+      "ctest": "basic_TEST.py",
+      "scope": "native_reference_runtime_only_no_rust_credit",
+      "framework": "pytest_xml",
+      "configuration": "cde11566145f3c313895a916ace2df9d210578c4f7023e53ca1efbd64e903004",
+      "input_sha256": {
+        "source:python/CMakeLists.txt": "27eac3b3ad0cb5ca53199229489999c74246cf0a63e5b915f2d9f7a444818523",
+        "source:python/test/basic_TEST.py": "ccd0c5d21d3845261263289b5481189e56452a7d8912595b3afac9fcf76e315c"
+      },
+      "exit_code": 0,
+      "result": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "classname": "basic_TEST.BasicTest",
+        "name": "test_serialization"
+      },
+      "xml_sha256": "cb3d8b6d31ca7c8c72f13d15773155c62cc7f613bf8247183dfbe5437baff1db",
+      "state": "executed_pass",
+      "stdout_sha256": "14c9379fceb40fe5e54ade608d87c4f52de334c0166ebf5c0f738f0413e74929",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "repository": "gz-transport",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "scope": "native_reference_runtime_only_no_rust_credit",
+      "framework": "abi_symbols",
+      "configuration": "8680da9b8d394225b25f5f9bb2a3e489f327bce2fb9cfeaeefe3050719b6b53e",
+      "input_sha256": {
+        "build:lib/libgz-transport.so.16.0.0~pre2": "cc0aa8a4349f4ec9af95b6fcbc115fada4704f831a837ddd1f96e04b37ca069a",
+        "build:test/integration/all_symbols_have_version.bash": "9f499957a1bd38ea46fd4ce46a78bbc5bbae577f1ee01ea118371a563743f484",
+        "source:test/integration/CMakeLists.txt": "f9fd29d50dfa15ae6a26b9be355a27f631127f4a9ce10a50a046f46129b8ee16"
+      },
+      "exit_code": 0,
+      "versioned_symbols": 1123,
+      "state": "executed_pass",
+      "stdout_sha256": "415efdc30fe3c701ff697c8f027b4c510e18d6939ddaa62633ef93f571843797",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "repository": "gz-transport",
+      "ctest": "INTEGRATION_log_versioned_symbols",
+      "scope": "native_reference_runtime_only_no_rust_credit",
+      "framework": "abi_symbols",
+      "configuration": "2684224b2a262931b693babd5fd5b0ec3162ec85045939c6d3162afa109e24c4",
+      "input_sha256": {
+        "build:lib/libgz-transport-log.so.16.0.0~pre2": "b1de905f86eb51493aff2f653faa49fd09c4b4ecd4b2a6a3d69cf05c9a39195b",
+        "build:test/integration/all_symbols_have_version.bash": "9f499957a1bd38ea46fd4ce46a78bbc5bbae577f1ee01ea118371a563743f484",
+        "source:log/test/integration/CMakeLists.txt": "1e4dbb03caed79baa1d2398b81a76026a79ae56fc09a6ce4917f00b7d37e16e3"
+      },
+      "exit_code": 0,
+      "versioned_symbols": 577,
+      "state": "executed_pass",
+      "stdout_sha256": "db2979d136f1b021cff5a1f9bc6cc5642c6a787afa1c5a01c927f3ab25338b02",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "repository": "sdformat",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "scope": "native_reference_runtime_only_no_rust_credit",
+      "framework": "abi_symbols",
+      "configuration": "dc19c2f3bbaa8be8c1828695809b1b1f67fb0cbe34287213f1bc42f265276cc4",
+      "input_sha256": {
+        "build:lib/libsdformat.so.17.0.0~pre2": "f75fee9a4e931f3cc7997b0d946de8e1ba2bb54b40a16b2248cd2cf8c933f1b9",
+        "build:test/integration/all_symbols_have_version.bash": "91a361583a0bb7083508cc76ea45bf469a6713925a995ca231bc4523a327bda9",
+        "source:test/integration/CMakeLists.txt": "8cb6cc4ac808a5021aa87b37da12428604213c94811f871696ae43304da6e672"
+      },
+      "exit_code": 0,
+      "versioned_symbols": 2194,
+      "state": "executed_pass",
+      "stdout_sha256": "84b240f834c75da54b37f279c8aa474df4f9bc39faf27c06b942c214cf769803",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "repository": "gz-rendering",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "scope": "native_reference_runtime_only_no_rust_credit",
+      "framework": "abi_symbols",
+      "configuration": "dfce8aa588bc0c4c362bc740faf9448c706daed599ec8d3d12869dea1ea81a12",
+      "input_sha256": {
+        "build:lib/libgz-rendering.so.11.0.0~pre2": "1a411d990f88744e9a964f142d9b41649c78309f2ca2b2af0a5f6c6fa0196fe3",
+        "build:test/integration/all_symbols_have_version.bash": "bdea400633b59bb2042b30a335a993125f9eca15659206813d823ce1d3d6dcce",
+        "source:test/integration/CMakeLists.txt": "fec2e8a480763bbdf8b9e7ed3b87bfc1078628eb9a36069c6a27e8a7decaf853"
+      },
+      "exit_code": 0,
+      "versioned_symbols": 2048,
+      "state": "executed_pass",
+      "stdout_sha256": "900f02cec137e6f0747c10e54767d121f027d6b2c3afa7d1acf65a4a5c644df5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "repository": "gz-sensors",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "scope": "native_reference_runtime_only_no_rust_credit",
+      "framework": "abi_symbols",
+      "configuration": "e08842d7c23ff83f4ba398593a199a91df75398ab5314a097a0e3e5b18edfbd9",
+      "input_sha256": {
+        "build:lib/libgz-sensors.so.11.0.0~pre2": "3be2c4245553eed32e121eb049352ba40a10a8827e8ba55bbf390ecc798787e2",
+        "build:test/integration/all_symbols_have_version.bash": "515905a3cd8694ec986bbeb1653dd83bd17918b9282781f4c7259467e391b117",
+        "source:test/integration/CMakeLists.txt": "262cd2c8a8bc4fcfa9838ae767b616c6d170451d1cc9923bf22c704bb43f67e2"
+      },
+      "exit_code": 0,
+      "versioned_symbols": 214,
+      "state": "executed_pass",
+      "stdout_sha256": "839fd0ef06f938af02761d2ed042ce9617bcbdcfa3a334699ba6b2de32333615",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "executed_pass": 10,
+  "profile_blocked": [
+    {
+      "repository": "gz-transport",
+      "ctest": "UNIT_NodeShared_TEST",
+      "binary": "UNIT_NodeShared_TEST",
+      "binary_sha256": "4e165d41ffba9db6fa057ee12b31219d6105eb868300abc575ac94666bb3505b",
+      "configuration": "f679ed5975c8dd83203c6be9d64d5446a35f0ba43392f2134cd7f1c056e23253",
+      "ctest_disabled": false,
+      "stdout_sha256": "b402f50312e9cb09af46556c7d7d7a65d85448b118f2ff6c80a245d17c8fdd88",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "state": "profile_blocked",
+      "profile_gate": {
+        "framework": "profile_blocked_zenoh",
+        "scope": "registration_only_not_executed",
+        "configuration": "daf8a35fe271dd177f413317b9a2d7e06b1841e70205b36da7aa0b45e13a786f",
+        "input_sha256": {
+          "build:include/gz/transport/config.hh": "2f5887709cb4f036fdf37808ec1fa7e60b2522454cfa0bef32fb991396efa701",
+          "build:src/CMakeFiles/UNIT_NodeShared_TEST.dir/flags.make": "738608eb9ed24251e2d4be8cefad16d1ca4f7018bf4c743625294add12899ef2",
+          "source:src/CMakeLists.txt": "97744cc02244e7c7b2e69b97d60b3e8a2ad88841b4714f420769873732ddff88",
+          "source:src/NodeShared_TEST.cc": "d1a28d1e0bbb40778068fd8ad418d6b7e718e87d094e35b2414cdd44aea84c4b"
+        },
+        "registration_contracts_sha256": "74a3c2cf52ff9f74737eafbed31341bfe0527827e72b243bd30e7347c804a7f8",
+        "required_define": "HAVE_ZENOH",
+        "guarded_source_cases": 13,
+        "expected_empty_stdout_sha256": "b402f50312e9cb09af46556c7d7d7a65d85448b118f2ff6c80a245d17c8fdd88"
+      },
+      "scope": "profile_blocked_not_executed"
+    }
+  ],
+  "remaining": "Other profiles, all listed gtest execution, result/compile guards and complete source-ledger reconciliation remain open."
+}

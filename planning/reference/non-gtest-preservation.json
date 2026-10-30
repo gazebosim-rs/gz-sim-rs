@@ -1,0 +1,78 @@
+{
+  "scope": "Parsed registration/configuration/case preservation; raw GetParam address comments need not match. No added Rust credit or retirement.",
+  "old_inventory_sha256": "5004b283382ef73b9760cc1203960c54956875f0a0090cdb726f44b6b2c54469",
+  "new_inventory_sha256": "8c65d95314c7a0a3a2122b0e62bf4694bb78002b48e2a2de64b99adaaf84c4ff",
+  "preserved_registration_identities": 1175,
+  "preserved_gtest_configurations": 578,
+  "preserved_case_expansions": 4589,
+  "unchanged_result_guards": 579,
+  "unchanged_compile_diagnostic_registrations": 7,
+  "changed_states": [
+    {
+      "repository": "gz-cmake",
+      "ctest": "cmake_minimum_required_match",
+      "before": "wrapper_or_unrecognized_binary",
+      "after": "registered_native_wrapper"
+    },
+    {
+      "repository": "gz-math",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "before": "wrapper_or_unrecognized_binary",
+      "after": "registered_native_wrapper"
+    },
+    {
+      "repository": "gz-msgs",
+      "ctest": "basic_TEST.py",
+      "before": "wrapper_or_unrecognized_binary",
+      "after": "registered_native_wrapper"
+    },
+    {
+      "repository": "gz-rendering",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "before": "wrapper_or_unrecognized_binary",
+      "after": "registered_native_wrapper"
+    },
+    {
+      "repository": "gz-sensors",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "before": "wrapper_or_unrecognized_binary",
+      "after": "registered_native_wrapper"
+    },
+    {
+      "repository": "gz-tools",
+      "ctest": "UNIT_gz_TEST",
+      "before": "wrapper_or_unrecognized_binary",
+      "after": "registered_native_wrapper"
+    },
+    {
+      "repository": "gz-transport",
+      "ctest": "INTEGRATION_log_versioned_symbols",
+      "before": "wrapper_or_unrecognized_binary",
+      "after": "registered_native_wrapper"
+    },
+    {
+      "repository": "gz-transport",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "before": "wrapper_or_unrecognized_binary",
+      "after": "registered_native_wrapper"
+    },
+    {
+      "repository": "gz-transport",
+      "ctest": "UNIT_NodeShared_TEST",
+      "before": "enumeration_failed",
+      "after": "profile_blocked"
+    },
+    {
+      "repository": "gz-utils",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "before": "wrapper_or_unrecognized_binary",
+      "after": "registered_native_wrapper"
+    },
+    {
+      "repository": "sdformat",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "before": "wrapper_or_unrecognized_binary",
+      "after": "registered_native_wrapper"
+    }
+  ]
+}

@@ -64,7 +64,7 @@ def validate_recipe(lock, bootstrap, recipe):
 
 
 def provenance_inputs(root):
-    names = ["reference/Dockerfile", "reference/Dockerfile.dockerignore", "reference/apt-sources.sh", "reference/build-reference.py", "reference/headless-tpe.lock.json", "reference/ubuntu-bootstrap.json", "planning/baseline.json", "scripts/inventory-native-tests.py", "LICENSE", "NOTICE"]
+    names = ["reference/Dockerfile", "reference/Dockerfile.dockerignore", "reference/apt-sources.sh", "reference/build-reference.py", "reference/headless-tpe.lock.json", "reference/ubuntu-bootstrap.json", "planning/baseline.json", "planning/reference/non-gtest-registration-contracts.json", "scripts/inventory-native-tests.py", "LICENSE", "NOTICE"]
     return {name: digest(root / name) for name in names}
 
 

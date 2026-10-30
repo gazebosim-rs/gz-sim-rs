@@ -10,6 +10,8 @@
 !reference/ubuntu-bootstrap.json
 !planning/
 !planning/baseline.json
+!planning/reference/
+!planning/reference/non-gtest-registration-contracts.json
 !scripts/
 !scripts/inventory-native-tests.py
 !LICENSE

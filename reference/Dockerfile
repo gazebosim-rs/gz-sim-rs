@@ -24,6 +24,7 @@ FROM reference-deps AS headless-tpe
 COPY planning/baseline.json /reference/planning/baseline.json
 COPY reference/build-reference.py reference/Dockerfile reference/Dockerfile.dockerignore reference/ubuntu-bootstrap.json /reference/reference/
 COPY scripts/inventory-native-tests.py /reference/scripts/inventory-native-tests.py
+COPY planning/reference/non-gtest-registration-contracts.json /reference/planning/reference/
 COPY LICENSE NOTICE /reference/
 ARG BUILD_JOBS=2
 RUN python3 /reference/reference/build-reference.py --jobs "$BUILD_JOBS"

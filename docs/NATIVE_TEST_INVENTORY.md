@@ -1,5 +1,12 @@
 # Configured native test inventory
 
+The bounded [non-gtest registration baseline](REF02_REGISTRATION_BASELINE.md)
+now has a separate candidate listing and actual runtime report: ten audited
+commands pass and one exact Zenoh-disabled registration remains profile-blocked.
+All 1,175 registration identities and existing configuration/case payloads are
+preserved. The historical observations below and their receipts remain unchanged;
+independent review passed; normal staged/hosted qualification remains pending.
+
 `python3 scripts/inventory-native-tests.py --help` collects CTest JSON from
 configured native builds and lists recognized gtest executables. Each source
 checkout must match its baseline commit without tracked changes. Repository-local

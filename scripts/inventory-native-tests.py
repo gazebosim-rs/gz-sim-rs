@@ -6,6 +6,7 @@ import argparse
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
+from functools import lru_cache
 import json
 import os
 from pathlib import Path
@@ -142,6 +143,68 @@ def result_guard(test, tests, known_gtests, build):
             "configuration": configuration_key(command, properties)}
 
 
+
+@lru_cache(maxsize=1)
+def registration_contracts():
+    path = ROOT / "planning/reference/non-gtest-registration-contracts.json"
+    data = path.read_bytes()
+    document = json.loads(data)
+    if document["schema_version"] != 1:
+        raise ValueError("unsupported audited contract version")
+    contracts = {(row["repository"], row["ctest"]): row for row in document["contracts"]}
+    if not len(contracts) == len(document["contracts"]) == 11:
+        raise ValueError("duplicate or incomplete audited contracts")
+    return digest(data), contracts
+
+
+def audited_registration(repository, test, tests, build, source):
+    """Recognize only the eleven source/command contracts audited in the SDK."""
+    contract = registration_contracts()[1].get((repository, test["name"]))
+    if contract is None or sum(row["name"] == test["name"] for row in tests) != 1:
+        return None
+    cache = (build / "CMakeCache.txt").read_text()
+    prefixes = [line.split("=", 1)[1] for line in cache.splitlines()
+                if line.startswith("CMAKE_INSTALL_PREFIX:PATH=")]
+    if len(prefixes) != 1:
+        return None
+    anchors = {"source": source, "build": build, "install": Path(prefixes[0])}
+    def expand(value):
+        if isinstance(value, str):
+            return value.format(**{key: str(path) for key, path in anchors.items()})
+        if isinstance(value, list):
+            return [expand(item) for item in value]
+        if isinstance(value, dict):
+            return {key: expand(item) for key, item in value.items()}
+        return value
+    command, properties = expand(contract["command"]), expand(contract["properties"])
+    if test.get("command") != command or test.get("properties", []) != properties:
+        return None
+    if "interpreter_sha256" in contract and digest(Path(command[0]).read_bytes()) != contract["interpreter_sha256"]:
+        return None
+    hashes = {}
+    for item in contract["files"]:
+        base = anchors[item["anchor"]]
+        path = base / item["path"]
+        if (path.is_symlink() or not path.is_file()
+                or not path.resolve().is_relative_to(base.resolve())):
+            return None
+        actual = digest(path.read_bytes())
+        if actual != item["sha256"]:
+            return None
+        hashes[item["anchor"] + ":" + item["path"]] = actual
+    result = {"framework": contract["framework"], "scope": "registration_only_not_executed",
+              "configuration": configuration_key(command, properties), "input_sha256": hashes,
+              "registration_contracts_sha256": registration_contracts()[0]}
+    if contract["framework"] == "profile_blocked_zenoh":
+        if (digest(Path(command[0]).read_bytes()) != contract["binary_sha256"]
+                or cache.splitlines().count(contract["cache_flag"]) != 1):
+            return None
+        return {"_known_profile_gate": result | {"required_define": "HAVE_ZENOH",
+                "guarded_source_cases": contract["guarded_cases"],
+                "expected_empty_stdout_sha256": contract["empty_stdout_sha256"]}}
+    return result | {"state": "registered_native_wrapper"}
+
+
 def environment_list(properties, name):
     value = properties.get(name, [])
     if not isinstance(value, list) or any(not isinstance(s, str) for s in value):
@@ -151,6 +214,9 @@ def environment_list(properties, name):
 
 def enumerate_job(job, raw, base_env):
     row, command, properties, cwd = job
+    row = dict(row)
+    profile_gate = row.pop("_known_profile_gate", None)
+    profile_context = row.pop("_profile_context", None)
     env = base_env.copy()
     binary = Path(command[0])
     try:
@@ -175,7 +241,17 @@ def enumerate_job(job, raw, base_env):
             return row | {"state": "enumeration_failed"}
         if "binary_sha256" in row and digest(binary.read_bytes()) != row["binary_sha256"]:
             return row | {"state": "enumeration_failed", "reason": "binary_changed"}
-        cases = parse_cases(result.stdout.decode("utf-8"))
+        try:
+            cases = parse_cases(result.stdout.decode("utf-8"))
+        except ValueError as error:
+            if (str(error) == "empty_list" and profile_gate and not result.stderr
+                    and digest(result.stdout) == profile_gate["expected_empty_stdout_sha256"]):
+                if (profile_context is None or
+                        audited_registration(*profile_context) != {"_known_profile_gate": profile_gate}):
+                    raise ValueError("profile_inputs_changed")
+                return row | {"state": "profile_blocked", "profile_gate": profile_gate,
+                              "scope": "profile_blocked_not_executed"}
+            raise
         return row | {"state": "listed", "cases": cases}
     except subprocess.TimeoutExpired as error:
         stem = raw / (row["repository"] + "-" + row["configuration"])
@@ -228,6 +304,10 @@ def collect(repository, build, baseline, raw):
         command = [str(binary), *arguments, "--gtest_list_tests", "--gtest_color=no"]
         key = configuration_key(command, properties)
         row.update(configuration=key, ctest_disabled=bool(properties.get("DISABLED", False)))
+        profile = audited_registration(repository, test, data["tests"], build, source)
+        if profile is not None and "_known_profile_gate" in profile:
+            row.update(profile)
+            row["_profile_context"] = (repository, test, data["tests"], build, source)
         if key in seen:
             rows.append(row | {"state": "duplicate_configuration"})
             continue
@@ -240,6 +320,8 @@ def collect(repository, build, baseline, raw):
             guard = result_guard(registrations[row["ctest"]], data["tests"], known_gtests, build)
             if guard is None:
                 guard = compile_failure_registration(repository, registrations[row["ctest"]], data["tests"], build, source)
+            if guard is None:
+                guard = audited_registration(repository, registrations[row["ctest"]], data["tests"], build, source)
             if guard is not None:
                 row.update(guard)
     reference = {
@@ -282,8 +364,13 @@ def main():
     with ThreadPoolExecutor(max_workers=args.jobs) as pool:
         rows.extend(pool.map(lambda job: enumerate_job(job, raw, env), jobs))
     failed = sum(r.get("state") == "unqualified_build" for r in repositories) + sum(r["state"] == "enumeration_failed" for r in rows)
+    contract_sha = registration_contracts()[0]
+    if digest((ROOT / "planning/reference/non-gtest-registration-contracts.json").read_bytes()) != contract_sha:
+        raise ValueError("audited registration contracts changed during collection")
+    blocked = sum(r["state"] == "profile_blocked" for r in rows)
     report = {
-        "scope": "Available configured native CTest/gtest lists only. Listed cases are not executed passes. Exact pinned result-file and compiler-diagnostic guards are registered separately, never executed or counted as gtest cases. Other wrappers, unrecognized shared-gtest binaries and unavailable builds remain gaps. Checkout/cache/binary hashes are not clean-build attestation; full runtime inventory and immutable dependency image remain open.",
+        "registration_contracts_sha256": contract_sha,
+        "scope": "Available configured native CTest/gtest lists only. Listed cases are not executed passes. Exact pinned result-file, compiler-diagnostic and audited non-gtest wrappers are registered separately, never executed or counted as gtest cases. An exact source/flags/binary-proven empty Zenoh configuration is profile-blocked, never passed. Other wrappers, unrecognized shared-gtest binaries and unavailable builds remain gaps. Checkout/cache/binary hashes are not clean-build attestation; full runtime inventory and immutable dependency image remain open.",
         "acceptance": "inventory_only",
         "enumerated_at": datetime.now(timezone.utc).isoformat(),
         "collector_sha256": digest(Path(__file__).read_bytes()),
@@ -291,7 +378,9 @@ def main():
         "tool_versions": {name: subprocess.check_output([name, "--version"], text=True).splitlines()[0] for name in ["cmake", "ctest"]},
         "repositories": repositories,
         "entries": sorted(rows, key=lambda r: (r["repository"], r["ctest"])),
-        "unqualified_entries": sum(r["state"] not in {"listed", "duplicate_configuration", "registered_result_guard", "registered_compile_failure"} for r in rows),
+        "unqualified_entries": sum(r["state"] not in {"listed", "duplicate_configuration", "registered_result_guard", "registered_compile_failure", "registered_native_wrapper", "profile_blocked"} for r in rows),
+        "registered_native_wrappers": sum(r["state"] == "registered_native_wrapper" for r in rows),
+        "profile_blocked_entries": blocked,
         "registered_result_guards": sum(r["state"] == "registered_result_guard" for r in rows),
         "registered_compile_failures": sum(r["state"] == "registered_compile_failure" for r in rows),
         "listed_configurations": sum(r["state"] == "listed" for r in rows),
@@ -301,9 +390,9 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n")
     (raw / "inventory.json").write_bytes(args.output.read_bytes())
-    summary = ["registered_result_guards", "registered_compile_failures", "listed_configurations", "listed_case_expansions", "unqualified_entries", "failed_or_unqualified_builds"]
+    summary = ["registered_native_wrappers", "profile_blocked_entries", "registered_result_guards", "registered_compile_failures", "listed_configurations", "listed_case_expansions", "unqualified_entries", "failed_or_unqualified_builds"]
     print(json.dumps({k: report[k] for k in summary}))
-    return bool(failed)
+    return bool(failed or blocked)
 
 
 if __name__ == "__main__":

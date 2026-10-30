@@ -115,6 +115,29 @@ class ReferenceBuildTests(unittest.TestCase):
                 path.write_bytes(saved)
             self.assertEqual(reference.provenance_inputs(root), initial)
 
+    def test_embedded_collector_requires_its_contract_and_rejects_mutation(self):
+        name = "planning/reference/non-gtest-registration-contracts.json"
+        initial = reference.provenance_inputs(ROOT)
+        self.assertEqual(initial[name], reference.digest(ROOT / name))
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for entry in initial:
+                path = root / entry
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes((ROOT / entry).read_bytes())
+            manifest = root / name
+            saved = manifest.read_bytes()
+            manifest.unlink()
+            with self.assertRaises(FileNotFoundError):
+                reference.provenance_inputs(root)
+            manifest.write_bytes(saved)
+            reference.verify_inputs(root, initial)
+            changed = json.loads(saved)
+            changed["contracts"][0]["command"].append("--changed")
+            manifest.write_text(json.dumps(changed))
+            with self.assertRaisesRegex(ValueError, "reference input changed"):
+                reference.verify_inputs(root, initial)
+
     def test_failing_and_malformed_discovery_keep_both_raw_streams(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "ctest.json"

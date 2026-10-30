@@ -1,0 +1,461 @@
+{
+  "schema_version": 1,
+  "scope": "exact selected clean-headless SDK registration contracts only; recognition is not execution",
+  "image_id": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+  "environment_sha256": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f",
+  "contracts": [
+    {
+      "repository": "gz-cmake",
+      "ctest": "cmake_minimum_required_match",
+      "framework": "cmake_policy_xml",
+      "command": [
+        "/usr/bin/bash",
+        "{source}/test/cmake_minimum_required.bash",
+        "{source}",
+        "--xml_output_dir",
+        "{build}/test_results"
+      ],
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "{build}/test"
+        }
+      ],
+      "files": [
+        {
+          "anchor": "source",
+          "path": "CMakeLists.txt",
+          "sha256": "0048b751ddb1bb71091ae3b7b85456c1e8707c7c5e70c7b51c54f3408a2e87eb"
+        },
+        {
+          "anchor": "source",
+          "path": "cmake/gz-all-config.cmake.in",
+          "sha256": "03ce613f4c776e261a0535c26b5e879676a9eed1be777286672611a84861037e"
+        },
+        {
+          "anchor": "source",
+          "path": "cmake/gz-component-config.cmake.in",
+          "sha256": "dfcb4a531aca495897708843c9a5b912626f3d7cfbb3b38cf7d93f986dd15472"
+        },
+        {
+          "anchor": "source",
+          "path": "cmake/gz-config.cmake.in",
+          "sha256": "f53d58a8ea444acd3011c2faac62f09cb0005c2079fb56e2317ef2ae78e177d6"
+        },
+        {
+          "anchor": "source",
+          "path": "config/gz-cmake-config.cmake.in",
+          "sha256": "c7d30f5fc3fd2963ec2212bd0d6b5770fce91d4eee7ddc66c4a9ae5a9a6e83aa"
+        },
+        {
+          "anchor": "source",
+          "path": "test/CMakeLists.txt",
+          "sha256": "25b2c644dcdb451444a1d4ca28bc39c0cd0de5e39ed39dd25f32478c0d9691eb"
+        },
+        {
+          "anchor": "source",
+          "path": "test/cmake_minimum_required.bash",
+          "sha256": "8647f95d16a8c16ce29f72dc820ac04df33b5dc8aa292fc8baaa6b187bcca04d"
+        }
+      ],
+      "interpreter_sha256": "bc5945feb8bd26203ebfafea5ce1878bb2e32cb8fb50ab7ae395cfb1e1aaaef1",
+      "result_xml": "{build}/test_results/cmake_minimum_required.xml",
+      "case_class_suffix": "cmake_minimum_required",
+      "case_name": "make"
+    },
+    {
+      "repository": "gz-math",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "framework": "abi_symbols",
+      "command": [
+        "/usr/bin/bash",
+        "{build}/test/integration/all_symbols_have_version.bash",
+        "{build}/lib/libgz-math.so.10.0.0~pre2"
+      ],
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "{build}/test/integration"
+        }
+      ],
+      "files": [
+        {
+          "anchor": "build",
+          "path": "lib/libgz-math.so.10.0.0~pre2",
+          "sha256": "6729db06624f9d03d955091ec6463df6fb052e552ae5a3488d81a28bfa786d4c"
+        },
+        {
+          "anchor": "build",
+          "path": "test/integration/all_symbols_have_version.bash",
+          "sha256": "e5e9f2153d612214e3bd9d591492f6dc01054b88184f40e364296dd879d4312d"
+        },
+        {
+          "anchor": "source",
+          "path": "test/integration/CMakeLists.txt",
+          "sha256": "1cfd58319e9059a8bb03100169f8bb24f26de85c929d9ddcfb2a7ba7153b3bde"
+        }
+      ],
+      "interpreter_sha256": "bc5945feb8bd26203ebfafea5ce1878bb2e32cb8fb50ab7ae395cfb1e1aaaef1"
+    },
+    {
+      "repository": "gz-msgs",
+      "ctest": "basic_TEST.py",
+      "framework": "pytest_xml",
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "pytest",
+        "{source}/python/test/basic_TEST.py",
+        "--junitxml",
+        "{build}/test_results/basic_TEST.xml"
+      ],
+      "properties": [
+        {
+          "name": "ENVIRONMENT_MODIFICATION",
+          "value": [
+            "PYTHONPATH=path_list_prepend:{install}/lib/python/",
+            "PYTHONPATH=path_list_prepend:{build}/gz_msgs_gen/python/",
+            "LD_LIBRARY_PATH=path_list_prepend:{install}/lib",
+            "LD_LIBRARY_PATH=path_list_prepend:{build}/lib"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "{build}/python"
+        }
+      ],
+      "files": [
+        {
+          "anchor": "source",
+          "path": "python/CMakeLists.txt",
+          "sha256": "27eac3b3ad0cb5ca53199229489999c74246cf0a63e5b915f2d9f7a444818523"
+        },
+        {
+          "anchor": "source",
+          "path": "python/test/basic_TEST.py",
+          "sha256": "ccd0c5d21d3845261263289b5481189e56452a7d8912595b3afac9fcf76e315c"
+        }
+      ],
+      "interpreter_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+      "result_xml": "{build}/test_results/basic_TEST.xml",
+      "case_class_suffix": "basic_TEST.BasicTest",
+      "case_name": "test_serialization"
+    },
+    {
+      "repository": "gz-rendering",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "framework": "abi_symbols",
+      "command": [
+        "/usr/bin/bash",
+        "{build}/test/integration/all_symbols_have_version.bash",
+        "{build}/lib/libgz-rendering.so.11.0.0~pre2"
+      ],
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "{build}/test/integration"
+        }
+      ],
+      "files": [
+        {
+          "anchor": "build",
+          "path": "lib/libgz-rendering.so.11.0.0~pre2",
+          "sha256": "1a411d990f88744e9a964f142d9b41649c78309f2ca2b2af0a5f6c6fa0196fe3"
+        },
+        {
+          "anchor": "build",
+          "path": "test/integration/all_symbols_have_version.bash",
+          "sha256": "bdea400633b59bb2042b30a335a993125f9eca15659206813d823ce1d3d6dcce"
+        },
+        {
+          "anchor": "source",
+          "path": "test/integration/CMakeLists.txt",
+          "sha256": "fec2e8a480763bbdf8b9e7ed3b87bfc1078628eb9a36069c6a27e8a7decaf853"
+        }
+      ],
+      "interpreter_sha256": "bc5945feb8bd26203ebfafea5ce1878bb2e32cb8fb50ab7ae395cfb1e1aaaef1"
+    },
+    {
+      "repository": "gz-sensors",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "framework": "abi_symbols",
+      "command": [
+        "/usr/bin/bash",
+        "{build}/test/integration/all_symbols_have_version.bash",
+        "{build}/lib/libgz-sensors.so.11.0.0~pre2"
+      ],
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "{build}/test/integration"
+        }
+      ],
+      "files": [
+        {
+          "anchor": "build",
+          "path": "lib/libgz-sensors.so.11.0.0~pre2",
+          "sha256": "3be2c4245553eed32e121eb049352ba40a10a8827e8ba55bbf390ecc798787e2"
+        },
+        {
+          "anchor": "build",
+          "path": "test/integration/all_symbols_have_version.bash",
+          "sha256": "515905a3cd8694ec986bbeb1653dd83bd17918b9282781f4c7259467e391b117"
+        },
+        {
+          "anchor": "source",
+          "path": "test/integration/CMakeLists.txt",
+          "sha256": "262cd2c8a8bc4fcfa9838ae767b616c6d170451d1cc9923bf22c704bb43f67e2"
+        }
+      ],
+      "interpreter_sha256": "bc5945feb8bd26203ebfafea5ce1878bb2e32cb8fb50ab7ae395cfb1e1aaaef1"
+    },
+    {
+      "repository": "gz-tools",
+      "ctest": "UNIT_gz_TEST",
+      "framework": "cli_dispatch_xml",
+      "command": [
+        "/usr/bin/cmake",
+        "-DTEST_NAME=UNIT_gz_TEST",
+        "-DGZ_SCRIPT={build}/Release/test/bin/gz",
+        "-P",
+        "{source}/cmake/run_test.cmake"
+      ],
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "GZ_CONFIG_PATH={build}/test/conf/Release"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "{build}/src"
+        }
+      ],
+      "files": [
+        {
+          "anchor": "build",
+          "path": "Release/test/bin/gz",
+          "sha256": "7fa34c137218350842e587a8bff0e0f626e292caf8b9e103266df14b0a3b9f6f"
+        },
+        {
+          "anchor": "build",
+          "path": "src/UNIT_gz_TEST_fail.xml.configured",
+          "sha256": "9e6a50617ba2e44ead481e343a1fc0207861a69acb52a5df220087f1ab7f70a5"
+        },
+        {
+          "anchor": "build",
+          "path": "src/UNIT_gz_TEST_pass.xml.configured",
+          "sha256": "1f9a7335fb48c85d256b5dec7a2965d52f29f0eb96059756fa4fdc736b5013de"
+        },
+        {
+          "anchor": "build",
+          "path": "test/conf/Release/UNIT_gz_TEST.yaml",
+          "sha256": "ab280066ce5681ad24c2b7e55a814010a921d4b9cf2ce79ed9c575834829ab79"
+        },
+        {
+          "anchor": "source",
+          "path": "cmake/run_test.cmake",
+          "sha256": "716352758d35dfb61c21c7802430ad4bd6fe5d58b8a275fb759ac99758df8f74"
+        },
+        {
+          "anchor": "source",
+          "path": "src/CMakeLists.txt",
+          "sha256": "d7e636a6a65fc0aa916817c98b269b8d378900293ccc8f80131f5eddb63c2c23"
+        }
+      ],
+      "interpreter_sha256": "1c5227af4edd22d8d689def545e18ee458260c0fd579eba2187967f38817e638",
+      "result_xml": "{build}/test_results/UNIT_gz_TEST.xml",
+      "case_class_suffix": "UNIT_gz_TEST",
+      "case_name": "GZ_SCRIPT"
+    },
+    {
+      "repository": "gz-transport",
+      "ctest": "INTEGRATION_log_versioned_symbols",
+      "framework": "abi_symbols",
+      "command": [
+        "/usr/bin/bash",
+        "{build}/test/integration/all_symbols_have_version.bash",
+        "{build}/lib/libgz-transport-log.so.16.0.0~pre2"
+      ],
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "{build}/log/test/integration"
+        }
+      ],
+      "files": [
+        {
+          "anchor": "build",
+          "path": "lib/libgz-transport-log.so.16.0.0~pre2",
+          "sha256": "b1de905f86eb51493aff2f653faa49fd09c4b4ecd4b2a6a3d69cf05c9a39195b"
+        },
+        {
+          "anchor": "build",
+          "path": "test/integration/all_symbols_have_version.bash",
+          "sha256": "9f499957a1bd38ea46fd4ce46a78bbc5bbae577f1ee01ea118371a563743f484"
+        },
+        {
+          "anchor": "source",
+          "path": "log/test/integration/CMakeLists.txt",
+          "sha256": "1e4dbb03caed79baa1d2398b81a76026a79ae56fc09a6ce4917f00b7d37e16e3"
+        }
+      ],
+      "interpreter_sha256": "bc5945feb8bd26203ebfafea5ce1878bb2e32cb8fb50ab7ae395cfb1e1aaaef1"
+    },
+    {
+      "repository": "gz-transport",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "framework": "abi_symbols",
+      "command": [
+        "/usr/bin/bash",
+        "{build}/test/integration/all_symbols_have_version.bash",
+        "{build}/lib/libgz-transport.so.16.0.0~pre2"
+      ],
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "{build}/test/integration"
+        }
+      ],
+      "files": [
+        {
+          "anchor": "build",
+          "path": "lib/libgz-transport.so.16.0.0~pre2",
+          "sha256": "cc0aa8a4349f4ec9af95b6fcbc115fada4704f831a837ddd1f96e04b37ca069a"
+        },
+        {
+          "anchor": "build",
+          "path": "test/integration/all_symbols_have_version.bash",
+          "sha256": "9f499957a1bd38ea46fd4ce46a78bbc5bbae577f1ee01ea118371a563743f484"
+        },
+        {
+          "anchor": "source",
+          "path": "test/integration/CMakeLists.txt",
+          "sha256": "f9fd29d50dfa15ae6a26b9be355a27f631127f4a9ce10a50a046f46129b8ee16"
+        }
+      ],
+      "interpreter_sha256": "bc5945feb8bd26203ebfafea5ce1878bb2e32cb8fb50ab7ae395cfb1e1aaaef1"
+    },
+    {
+      "repository": "gz-transport",
+      "ctest": "UNIT_NodeShared_TEST",
+      "framework": "profile_blocked_zenoh",
+      "command": [
+        "{build}/bin/UNIT_NodeShared_TEST",
+        "--gtest_output=xml:{build}/test_results/UNIT_NodeShared_TEST.xml"
+      ],
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "GZ_IP=127.0.0.1",
+            "GZ_VERBOSE=1"
+          ]
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 240.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "{build}/src"
+        }
+      ],
+      "files": [
+        {
+          "anchor": "build",
+          "path": "include/gz/transport/config.hh",
+          "sha256": "2f5887709cb4f036fdf37808ec1fa7e60b2522454cfa0bef32fb991396efa701"
+        },
+        {
+          "anchor": "build",
+          "path": "src/CMakeFiles/UNIT_NodeShared_TEST.dir/flags.make",
+          "sha256": "738608eb9ed24251e2d4be8cefad16d1ca4f7018bf4c743625294add12899ef2"
+        },
+        {
+          "anchor": "source",
+          "path": "src/CMakeLists.txt",
+          "sha256": "97744cc02244e7c7b2e69b97d60b3e8a2ad88841b4714f420769873732ddff88"
+        },
+        {
+          "anchor": "source",
+          "path": "src/NodeShared_TEST.cc",
+          "sha256": "d1a28d1e0bbb40778068fd8ad418d6b7e718e87d094e35b2414cdd44aea84c4b"
+        }
+      ],
+      "binary_sha256": "4e165d41ffba9db6fa057ee12b31219d6105eb868300abc575ac94666bb3505b",
+      "empty_stdout_sha256": "b402f50312e9cb09af46556c7d7d7a65d85448b118f2ff6c80a245d17c8fdd88",
+      "guarded_cases": 13,
+      "cache_flag": "GZ_TRANSPORT_ENABLE_ZENOH:BOOL=OFF"
+    },
+    {
+      "repository": "gz-utils",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "framework": "abi_symbols",
+      "command": [
+        "/usr/bin/bash",
+        "{build}/test/integration/all_symbols_have_version.bash",
+        "{build}/lib/libgz-utils.so.5.0.0~pre2"
+      ],
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "{build}/test/integration"
+        }
+      ],
+      "files": [
+        {
+          "anchor": "build",
+          "path": "lib/libgz-utils.so.5.0.0~pre2",
+          "sha256": "e5e4ad155f68074b4ec3c22416aee25755a6670641dd89032453e43eb3759952"
+        },
+        {
+          "anchor": "build",
+          "path": "test/integration/all_symbols_have_version.bash",
+          "sha256": "e7b3a20ed1c75008a4245ee67c614e5ca9a08082b150b29b9054d553473b51a8"
+        },
+        {
+          "anchor": "source",
+          "path": "test/integration/CMakeLists.txt",
+          "sha256": "b1d2cdb210c2d713640856e49afaa4765e81f2ce88fdba4d329128bc235833c7"
+        }
+      ],
+      "interpreter_sha256": "bc5945feb8bd26203ebfafea5ce1878bb2e32cb8fb50ab7ae395cfb1e1aaaef1"
+    },
+    {
+      "repository": "sdformat",
+      "ctest": "INTEGRATION_versioned_symbols",
+      "framework": "abi_symbols",
+      "command": [
+        "/usr/bin/bash",
+        "{build}/test/integration/all_symbols_have_version.bash",
+        "{build}/lib/libsdformat.so.17.0.0~pre2"
+      ],
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "{build}/test/integration"
+        }
+      ],
+      "files": [
+        {
+          "anchor": "build",
+          "path": "lib/libsdformat.so.17.0.0~pre2",
+          "sha256": "f75fee9a4e931f3cc7997b0d946de8e1ba2bb54b40a16b2248cd2cf8c933f1b9"
+        },
+        {
+          "anchor": "build",
+          "path": "test/integration/all_symbols_have_version.bash",
+          "sha256": "91a361583a0bb7083508cc76ea45bf469a6713925a995ca231bc4523a327bda9"
+        },
+        {
+          "anchor": "source",
+          "path": "test/integration/CMakeLists.txt",
+          "sha256": "8cb6cc4ac808a5021aa87b37da12428604213c94811f871696ae43304da6e672"
+        }
+      ],
+      "interpreter_sha256": "bc5945feb8bd26203ebfafea5ce1878bb2e32cb8fb50ab7ae395cfb1e1aaaef1"
+    }
+  ]
+}

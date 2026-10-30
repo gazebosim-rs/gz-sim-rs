@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 use std::{
+    cell::RefCell,
     net::UdpSocket,
     sync::atomic::{AtomicU64, Ordering},
     thread,
@@ -9,19 +10,55 @@ use std::{
 
 static ID: AtomicU64 = AtomicU64::new(0);
 
+thread_local! {
+    // Keep discovery ports unavailable to exclusive binds throughout each test.
+    static DISCOVERY_RESERVATIONS: RefCell<Vec<UdpSocket>> = const { RefCell::new(Vec::new()) };
+}
+
 fn config() -> Config {
-    let message = UdpSocket::bind("127.0.0.1:0").unwrap();
-    let service = UdpSocket::bind("127.0.0.1:0").unwrap();
-    Config {
+    let ports = std::array::from_fn::<_, 2, _>(|_| {
+        let socket = UdpSocket::bind("0.0.0.0:0").unwrap();
+        socket2::SockRef::from(&socket)
+            .set_reuse_address(true)
+            .unwrap();
+        #[cfg(target_os = "linux")]
+        socket2::SockRef::from(&socket)
+            .set_multicast_all_v4(false)
+            .unwrap();
+        socket
+    });
+    let config = Config {
         partition: format!(
             "sim-{}-{}",
             std::process::id(),
             ID.fetch_add(1, Ordering::Relaxed)
         ),
-        message_port: message.local_addr().unwrap().port(),
-        service_port: service.local_addr().unwrap().port(),
+        message_port: ports[0].local_addr().unwrap().port(),
+        service_port: ports[1].local_addr().unwrap().port(),
         ..Config::default()
-    }
+    };
+    DISCOVERY_RESERVATIONS.with(|held| held.borrow_mut().extend(ports));
+    config
+}
+
+#[test]
+fn test_discovery_ports_remain_reserved_while_transport_can_bind() {
+    let config = config();
+    let exclusive_bind_fails = || {
+        for port in [config.message_port, config.service_port] {
+            for address in ["127.0.0.1", "0.0.0.0"] {
+                assert_eq!(
+                    UdpSocket::bind((address, port)).unwrap_err().kind(),
+                    std::io::ErrorKind::AddrInUse
+                );
+            }
+        }
+    };
+    exclusive_bind_fails();
+    let node = Node::new(config.clone()).unwrap();
+    exclusive_bind_fails();
+    drop(node);
+    exclusive_bind_fails();
 }
 
 fn server(config: Config, step: Duration) -> Server {
