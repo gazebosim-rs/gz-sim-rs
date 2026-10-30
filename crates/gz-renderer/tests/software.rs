@@ -207,3 +207,154 @@ fn software_box_snapshot_and_cancellation() {
     let replacement = Renderer::new().unwrap();
     assert!(!replacement.adapter_info().name.is_empty());
 }
+
+#[test]
+fn calibrated_camera_projects_boxes_and_enforces_clip_planes() {
+    use gz_render_frame::camera::{Calibration, CameraConfig};
+    let mut renderer = Renderer::new().unwrap();
+    println!("calibrated adapter: {:?}", renderer.adapter_info());
+    if std::env::var_os("GZ_RENDER_REQUIRE_LLVMPIPE").is_some() {
+        assert_eq!(renderer.adapter_info().device_type, wgpu::DeviceType::Cpu);
+        assert!(
+            renderer
+                .adapter_info()
+                .name
+                .to_ascii_lowercase()
+                .contains("llvmpipe")
+        );
+    }
+    let origin = DVec3::splat(1e12);
+    let camera_pose = WorldPose {
+        translation: origin,
+        rotation: DQuat::IDENTITY,
+    };
+    let mut snapshot = Snapshot {
+        epoch: 2,
+        time: Duration::from_millis(7),
+        origin,
+        visuals: vec![BoxVisual {
+            id: 1,
+            pose: WorldPose {
+                translation: origin + DVec3::new(4.0, 0.0, 0.0),
+                rotation: DQuat::IDENTITY,
+            },
+            size: DVec3::ONE,
+            color: [1.0, 0.0, 0.0],
+        }],
+    };
+    let config = CameraConfig {
+        width: 64,
+        height: 64,
+        fx: 32.0,
+        fy: 32.0,
+        cx: 32.0,
+        cy: 32.0,
+        skew: 0.0,
+        tx: 0.0,
+        ty: 0.0,
+        near: 0.1,
+        far: 10.0,
+    };
+    let center = (32 * 64 + 32) * 4;
+    renderer
+        .set_calibrated_snapshot(&snapshot, Calibration::new(config).unwrap(), camera_pose)
+        .unwrap();
+    assert!(matches!(
+        renderer.set_calibrated_snapshot(&snapshot, Calibration::new(config).unwrap(), camera_pose),
+        Err(RenderError::SnapshotBusy)
+    ));
+    let mut replacement = snapshot.clone();
+    replacement.visuals[0].color = [0.0, 1.0, 0.0];
+    let shifted_camera = CameraConfig {
+        cx: 16.0,
+        cy: 40.0,
+        ..config
+    };
+    assert!(matches!(
+        renderer.set_calibrated_snapshot(
+            &replacement,
+            Calibration::new(shifted_camera).unwrap(),
+            camera_pose,
+        ),
+        Err(RenderError::SnapshotBusy)
+    ));
+    let initial = image(&mut renderer);
+    assert_eq!((initial.epoch, initial.time), (2, Duration::from_millis(7)));
+    assert_eq!(&initial.rgba[center..center + 4], &[255, 0, 0, 255]);
+    let shifted_pixel = (40 * 64 + 16) * 4;
+    assert_ne!(
+        &initial.rgba[shifted_pixel..shifted_pixel + 4],
+        &[0, 255, 0, 255]
+    );
+    assert_ne!(
+        &initial.rgba[shifted_pixel..shifted_pixel + 4],
+        &[255, 0, 0, 255]
+    );
+    let invalid_pose = WorldPose {
+        rotation: DQuat::from_xyzw(0.0, 0.0, 0.0, 0.0),
+        ..camera_pose
+    };
+    assert!(matches!(
+        renderer.set_calibrated_snapshot(
+            &snapshot,
+            Calibration::new(config).unwrap(),
+            invalid_pose
+        ),
+        Err(RenderError::Pose(_))
+    ));
+    let unchanged = image(&mut renderer);
+    assert_eq!(
+        (unchanged.epoch, unchanged.time),
+        (2, Duration::from_millis(7))
+    );
+    assert_eq!(&unchanged.rgba[center..center + 4], &[255, 0, 0, 255]);
+    snapshot.time += Duration::from_millis(1);
+    let shifted = CameraConfig {
+        cx: 16.0,
+        cy: 40.0,
+        ..config
+    };
+    renderer
+        .set_calibrated_snapshot(&snapshot, Calibration::new(shifted).unwrap(), camera_pose)
+        .unwrap();
+    let frame = image(&mut renderer);
+    let shifted_pixel = (40 * 64 + 16) * 4;
+    assert_eq!(
+        &frame.rgba[shifted_pixel..shifted_pixel + 4],
+        &[255, 0, 0, 255]
+    );
+    assert_ne!(&frame.rgba[center..center + 4], &[255, 0, 0, 255]);
+    for clipped in [
+        CameraConfig { far: 3.0, ..config },
+        CameraConfig {
+            near: 5.0,
+            ..config
+        },
+    ] {
+        snapshot.time += Duration::from_millis(1);
+        renderer
+            .set_calibrated_snapshot(&snapshot, Calibration::new(clipped).unwrap(), camera_pose)
+            .unwrap();
+        let frame = image(&mut renderer);
+        assert_ne!(&frame.rgba[center..center + 4], &[255, 0, 0, 255]);
+    }
+    let wrong_size = Calibration::new(CameraConfig {
+        width: 65,
+        ..config
+    })
+    .unwrap();
+    assert!(matches!(
+        renderer.set_calibrated_snapshot(&snapshot, wrong_size, camera_pose),
+        Err(RenderError::InvalidCameraDimensions)
+    ));
+    let unchanged = image(&mut renderer);
+    assert_eq!(
+        (unchanged.epoch, unchanged.time),
+        (snapshot.epoch, snapshot.time)
+    );
+    assert_ne!(&unchanged.rgba[center..center + 4], &[255, 0, 0, 255]);
+    snapshot.visuals[0].pose.translation = origin;
+    renderer.set_snapshot(&snapshot).unwrap();
+    let legacy = image(&mut renderer);
+    assert_eq!(&legacy.rgba[center..center + 4], &[255, 0, 0, 255]);
+}

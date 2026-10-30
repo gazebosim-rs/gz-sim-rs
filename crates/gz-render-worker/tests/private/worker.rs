@@ -275,3 +275,39 @@ fn readback_transition_correlates_and_releases_capture() {
     assert_eq!(request_id, Some(5));
     assert_eq!(slot.active(), None);
 }
+
+#[test]
+fn busy_snapshot_reply_preserves_committed_state_and_capture() {
+    let previous = Stamp {
+        epoch: 3,
+        seconds: 4,
+        nanoseconds: 5,
+    };
+    let candidate = Stamp {
+        epoch: 3,
+        seconds: 4,
+        nanoseconds: 6,
+    };
+    let mut accepted = Some(previous);
+    let mut needs_update = true;
+    let mut capture = CaptureSlot::default();
+    assert!(capture.begin(17));
+    let reply = snapshot_reply(
+        42,
+        candidate,
+        Err(SnapshotFailure::from(RenderError::SnapshotBusy)),
+        &mut accepted,
+        &mut needs_update,
+        &mut capture,
+    );
+    assert!(matches!(reply, Reply::SnapshotBusy { request_id: 42 }));
+    assert_eq!(accepted, Some(previous));
+    assert!(needs_update);
+    assert_eq!(
+        capture.active(),
+        Some(Capture {
+            request_id: 17,
+            cancelled: false
+        })
+    );
+}

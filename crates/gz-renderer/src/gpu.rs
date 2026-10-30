@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use bevy::{
     asset::RenderAssetUsages,
-    camera::RenderTarget,
+    camera::{CameraProjection, RenderTarget, SubCameraView},
     core_pipeline::tonemapping::Tonemapping,
     image::Image,
     pbr::{PreparedMaterial, RenderMaterialInstances},
@@ -27,7 +27,11 @@ use bevy::{
     window::ExitCondition,
 };
 use glam::DVec3;
-use gz_render_frame::{ConversionError, WorldPose, to_render_pose};
+use gz_render_frame::{
+    ConversionError, WorldPose,
+    camera::{Calibration, to_render_camera_pose},
+    to_render_pose,
+};
 use std::{
     collections::{BTreeMap, BTreeSet},
     sync::{
@@ -100,6 +104,61 @@ pub enum RenderError {
     ReadbackPoisoned,
     #[error("no scene snapshot is installed")]
     NoSnapshot,
+    #[error("this renderer supports only a 64 by 64 calibrated target")]
+    InvalidCameraDimensions,
+}
+
+#[derive(Debug, Clone)]
+struct CalibratedProjection(Calibration);
+
+impl CameraProjection for CalibratedProjection {
+    fn get_clip_from_view(&self) -> Mat4 {
+        self.0.render_projection()
+    }
+
+    fn get_clip_from_view_for_sub(&self, sub: &SubCameraView) -> Mat4 {
+        let full = sub.full_size.as_vec2();
+        let size = sub.size.as_vec2();
+        let scale = full / size;
+        let offset = (full - 2.0 * sub.offset - size) / size;
+        let crop = Mat4::from_cols(
+            Vec4::new(scale.x, 0.0, 0.0, 0.0),
+            Vec4::new(0.0, scale.y, 0.0, 0.0),
+            Vec4::Z,
+            Vec4::new(offset.x, -offset.y, 0.0, 1.0),
+        );
+        crop * self.get_clip_from_view()
+    }
+
+    fn update(&mut self, _width: f32, _height: f32) {
+        // The renderer's target and calibrated dimensions are fixed at 64×64.
+    }
+
+    fn far(&self) -> f32 {
+        self.0.config().far as f32
+    }
+
+    fn get_frustum_corners(&self, z_near: f32, z_far: f32) -> [bevy::math::Vec3A; 8] {
+        let config = self.0.config();
+        let corners = |z: f32| {
+            let distance = f64::from(z.abs());
+            let left = (-config.cx * distance / config.fx) as f32;
+            let right = ((f64::from(config.width) - config.cx) * distance / config.fx) as f32;
+            let bottom = (-(f64::from(config.height) - config.cy) * distance / config.fy) as f32;
+            let top = (config.cy * distance / config.fy) as f32;
+            [
+                bevy::math::Vec3A::new(right, bottom, z),
+                bevy::math::Vec3A::new(right, top, z),
+                bevy::math::Vec3A::new(left, top, z),
+                bevy::math::Vec3A::new(left, bottom, z),
+            ]
+        };
+        let near = corners(z_near);
+        let far = corners(z_far);
+        [
+            near[0], near[1], near[2], near[3], far[0], far[1], far[2], far[3],
+        ]
+    }
 }
 
 #[derive(Clone)]
@@ -141,10 +200,12 @@ pub enum UpdateStatus {
 
 /// Owns all renderer state. Drive it outside simulation stepping.
 ///
-/// The target and camera are currently fixed at 64×64, looking from (0,0,5)
-/// towards the render origin. Only boxes are supported. This is not a sensor API.
+/// The target is fixed at 64×64. The default camera looks from (0,0,5) toward
+/// the render origin; calibrated snapshots supply an explicit pose. Only boxes
+/// are supported. This is not a sensor API.
 pub struct Renderer {
     app: App,
+    camera: Entity,
     target: Handle<Image>,
     mesh: Handle<Mesh>,
     visuals: BTreeMap<u64, VisualEntity>,
@@ -228,18 +289,21 @@ impl Renderer {
             Image::new_target_texture(WIDTH, HEIGHT, TextureFormat::Rgba8UnormSrgb, None);
         image.asset_usage = RenderAssetUsages::RENDER_WORLD;
         let target = world.resource_mut::<Assets<Image>>().add(image);
-        world.spawn((
-            Camera3d::default(),
-            Tonemapping::None,
-            DebandDither::Disabled,
-            RenderTarget::Image(target.clone().into()),
-            Transform::from_xyz(0.0, 0.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ));
+        let camera = world
+            .spawn((
+                Camera3d::default(),
+                Tonemapping::None,
+                DebandDither::Disabled,
+                RenderTarget::Image(target.clone().into()),
+                Transform::from_xyz(0.0, 0.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+            ))
+            .id();
         let mesh = world
             .resource_mut::<Assets<Mesh>>()
             .add(Cuboid::new(1.0, 1.0, 1.0));
         Ok(Self {
             app,
+            camera,
             target,
             mesh,
             visuals: BTreeMap::new(),
@@ -259,6 +323,7 @@ impl Renderer {
     }
 
     /// Atomically replaces the derived scene after validating the entire snapshot.
+    /// Install a scene using the legacy fixed camera, even after a calibrated snapshot.
     pub fn set_snapshot(&mut self, snapshot: &Snapshot) -> Result<(), RenderError> {
         self.check_device()?;
         if snapshot.visuals.len() > MAX_OBJECTS {
@@ -348,9 +413,35 @@ impl Renderer {
             }
         }
         self.stamp = Some((snapshot.epoch, snapshot.time));
+        self.app.world_mut().entity_mut(self.camera).insert((
+            Transform::from_xyz(0.0, 0.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+            Projection::Perspective(default()),
+        ));
         self.snapshot_dirty = true;
         self.ready_last_update = false;
         self.ready = false;
+        Ok(())
+    }
+
+    /// Install a calibrated 64×64 camera with this complete scene snapshot.
+    /// The pose is a Gazebo camera world pose, rebased at the snapshot origin.
+    pub fn set_calibrated_snapshot(
+        &mut self,
+        snapshot: &Snapshot,
+        calibration: Calibration,
+        pose: WorldPose,
+    ) -> Result<(), RenderError> {
+        self.check_device()?;
+        let config = calibration.config();
+        if config.width != WIDTH || config.height != HEIGHT {
+            return Err(RenderError::InvalidCameraDimensions);
+        }
+        let camera = to_render_camera_pose(pose, snapshot.origin)?;
+        self.set_snapshot(snapshot)?;
+        self.app.world_mut().entity_mut(self.camera).insert((
+            Transform::from_translation(camera.translation).with_rotation(camera.rotation),
+            Projection::custom(CalibratedProjection(calibration)),
+        ));
         Ok(())
     }
 

@@ -1,9 +1,12 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use glam::{DQuat, DVec3};
-use gz_render_frame::WorldPose;
+use gz_render_frame::{
+    WorldPose,
+    camera::{Calibration, CameraConfig},
+};
 use gz_render_protocol::{
-    FailureKind, PROTOCOL_VERSION, Reply, Request, Stamp, read_request, write_reply,
+    Camera, FailureKind, PROTOCOL_VERSION, Reply, Request, Stamp, Visual, read_request, write_reply,
 };
 use gz_renderer::{BoxVisual, Frame, RenderError, Renderer, Snapshot, UpdateStatus};
 use rustix::process::{Signal, getppid, set_parent_process_death_signal};
@@ -12,6 +15,58 @@ use std::{
     sync::mpsc::{self, RecvTimeoutError},
     time::Duration,
 };
+
+// Both wire snapshot variants use the same ordering and lifecycle boundary.
+enum WorkerRequest {
+    Snapshot {
+        request_id: u64,
+        stamp: Stamp,
+        origin: [f64; 3],
+        visuals: Vec<Visual>,
+        camera: Option<Box<Camera>>,
+    },
+    Capture {
+        request_id: u64,
+    },
+    Cancel {
+        request_id: u64,
+    },
+    Shutdown,
+}
+impl From<Request> for WorkerRequest {
+    fn from(request: Request) -> Self {
+        match request {
+            Request::Snapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+            } => Self::Snapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera: None,
+            },
+            Request::CalibratedSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera,
+            } => Self::Snapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera: Some(camera),
+            },
+            Request::Capture { request_id } => Self::Capture { request_id },
+            Request::Cancel { request_id } => Self::Cancel { request_id },
+            Request::Shutdown => Self::Shutdown,
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Capture {
@@ -88,6 +143,41 @@ impl CaptureSlot {
         };
         self.clear();
         outcome
+    }
+}
+
+enum SnapshotFailure {
+    Busy,
+    Invalid(String),
+}
+impl From<RenderError> for SnapshotFailure {
+    fn from(error: RenderError) -> Self {
+        match error {
+            RenderError::SnapshotBusy => Self::Busy,
+            other => Self::Invalid(other.to_string()),
+        }
+    }
+}
+
+fn snapshot_reply(
+    request_id: u64,
+    stamp: Stamp,
+    result: Result<(), SnapshotFailure>,
+    last_accepted_stamp: &mut Option<Stamp>,
+    scene_needs_update: &mut bool,
+    capture: &mut CaptureSlot,
+) -> Reply {
+    match result {
+        Ok(()) => {
+            *last_accepted_stamp = Some(stamp);
+            *scene_needs_update = true;
+            capture.snapshot_replaced();
+            Reply::SnapshotAccepted { request_id }
+        }
+        Err(SnapshotFailure::Busy) => Reply::SnapshotBusy { request_id },
+        Err(SnapshotFailure::Invalid(error)) => {
+            failure(FailureKind::InvalidSnapshot, Some(request_id), error)
+        }
     }
 }
 
@@ -206,12 +296,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             };
             let (reply, skip_update) = 'dispatch: {
-                match request {
-                    Request::Snapshot {
+                match WorkerRequest::from(request) {
+                    WorkerRequest::Snapshot {
                         request_id,
                         stamp,
                         origin,
                         visuals,
+                        camera,
                     } => {
                         if request_id <= last_snapshot_id {
                             break 'dispatch (
@@ -251,26 +342,54 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 })
                                 .collect(),
                         };
-                        let reply = match renderer.set_snapshot(&snapshot) {
-                            Ok(()) => {
-                                last_accepted_stamp = Some(stamp);
-                                scene_needs_update = true;
-                                capture.snapshot_replaced();
-                                Reply::SnapshotAccepted { request_id }
+                        let result = if let Some(camera) = camera {
+                            let config = CameraConfig {
+                                width: camera.width,
+                                height: camera.height,
+                                fx: camera.fx,
+                                fy: camera.fy,
+                                cx: camera.cx,
+                                cy: camera.cy,
+                                skew: camera.skew,
+                                tx: camera.tx,
+                                ty: camera.ty,
+                                near: camera.near,
+                                far: camera.far,
+                            };
+                            match Calibration::new(config) {
+                                Ok(calibration) => renderer
+                                    .set_calibrated_snapshot(
+                                        &snapshot,
+                                        calibration,
+                                        WorldPose {
+                                            translation: DVec3::from_array(camera.translation),
+                                            rotation: DQuat::from_array(camera.rotation),
+                                        },
+                                    )
+                                    .map_err(SnapshotFailure::from),
+                                Err(error) => Err(SnapshotFailure::Invalid(error.to_string())),
                             }
-                            Err(RenderError::SnapshotBusy) => Reply::SnapshotBusy { request_id },
-                            Err(error) => {
-                                failure(FailureKind::InvalidSnapshot, Some(request_id), error)
-                            }
+                        } else {
+                            renderer
+                                .set_snapshot(&snapshot)
+                                .map_err(SnapshotFailure::from)
                         };
+                        let reply = snapshot_reply(
+                            request_id,
+                            stamp,
+                            result,
+                            &mut last_accepted_stamp,
+                            &mut scene_needs_update,
+                            &mut capture,
+                        );
                         (Some(reply), false)
                     }
-                    Request::Capture { request_id } => {
+                    WorkerRequest::Capture { request_id } => {
                         let reply =
                             (!capture.begin(request_id)).then_some(Reply::Busy { request_id });
                         (reply, false)
                     }
-                    Request::Cancel { request_id } => {
+                    WorkerRequest::Cancel { request_id } => {
                         let reply = if capture.cancel(request_id) {
                             renderer.cancel_readback();
                             Reply::CancelAccepted { request_id }
@@ -283,7 +402,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         };
                         (Some(reply), false)
                     }
-                    Request::Shutdown => break 'worker,
+                    WorkerRequest::Shutdown => break 'worker,
                 }
             };
             if let Some(reply) = reply {

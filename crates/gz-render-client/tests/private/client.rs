@@ -496,3 +496,54 @@ fn shutdown_diagnostic_requires_both_join_and_io_retirement() {
     drop(io_owner);
     assert!(client.diagnostic_shutdown_complete());
 }
+
+#[test]
+fn calibrated_snapshot_uses_snapshot_correlation_and_backpressure() {
+    let (client, rx) = client();
+    let request = Request::CalibratedSnapshot {
+        request_id: 1,
+        stamp: Stamp {
+            epoch: 1,
+            seconds: 0,
+            nanoseconds: 0,
+        },
+        origin: [0.0; 3],
+        visuals: vec![],
+        camera: Box::new(gz_render_protocol::Camera {
+            width: 64,
+            height: 64,
+            fx: 32.0,
+            fy: 32.0,
+            cx: 32.0,
+            cy: 32.0,
+            skew: 0.0,
+            tx: 0.0,
+            ty: 0.0,
+            near: 0.1,
+            far: 10.0,
+            translation: [0.0; 3],
+            rotation: [0.0, 0.0, 0.0, 1.0],
+        }),
+    };
+    client.try_send(request).unwrap();
+    assert!(matches!(
+        rx.recv().unwrap(),
+        Request::CalibratedSnapshot { request_id: 1, .. }
+    ));
+    assert!(matches!(
+        client.try_send(snapshot()),
+        Err(SubmitError::Stale(_))
+    ));
+    let mut next = snapshot();
+    if let Request::Snapshot {
+        ref mut request_id, ..
+    } = next
+    {
+        *request_id = 2;
+    }
+    assert!(matches!(client.try_send(next), Err(SubmitError::Busy(_))));
+    assert!(matches!(
+        client.try_send(capture()),
+        Err(SubmitError::Busy(_))
+    ));
+}

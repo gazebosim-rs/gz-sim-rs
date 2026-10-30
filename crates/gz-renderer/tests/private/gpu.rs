@@ -279,3 +279,44 @@ fn destroyed_device_is_reported_by_renderer() {
     assert!(String::from_utf8_lossy(&output.stdout).contains("1 passed; 0 failed"));
     assert!(String::from_utf8_lossy(&output.stderr).contains("destroyed device reported:"));
 }
+
+#[test]
+fn calibrated_projection_subview_and_corners_match_pixels() {
+    use gz_render_frame::camera::CameraConfig;
+    let calibration = Calibration::new(CameraConfig {
+        width: 64,
+        height: 64,
+        fx: 32.0,
+        fy: 32.0,
+        cx: 16.0,
+        cy: 40.0,
+        skew: 0.0,
+        tx: 0.0,
+        ty: 0.0,
+        near: 0.1,
+        far: 10.0,
+    })
+    .unwrap();
+    let mut projection = CalibratedProjection(calibration);
+    projection.update(64.0, 64.0);
+    assert_eq!(projection.far(), 10.0);
+    let corners = projection.get_frustum_corners(-1.0, -2.0);
+    assert_eq!(corners[0], bevy::math::Vec3A::new(1.5, -0.75, -1.0));
+    assert_eq!(corners[1], bevy::math::Vec3A::new(1.5, 1.25, -1.0));
+    assert_eq!(corners[2], bevy::math::Vec3A::new(-0.5, 1.25, -1.0));
+    assert_eq!(corners[3], bevy::math::Vec3A::new(-0.5, -0.75, -1.0));
+    assert_eq!(corners[4], bevy::math::Vec3A::new(3.0, -1.5, -2.0));
+    assert_eq!(corners[5], bevy::math::Vec3A::new(3.0, 2.5, -2.0));
+    assert_eq!(corners[6], bevy::math::Vec3A::new(-1.0, 2.5, -2.0));
+    assert_eq!(corners[7], bevy::math::Vec3A::new(-1.0, -1.5, -2.0));
+    let sub = SubCameraView {
+        full_size: UVec2::new(64, 64),
+        offset: Vec2::new(8.0, 8.0),
+        size: UVec2::new(32, 32),
+    };
+    // Full-image pixel (24,24) is the centre of this 32×32 subview.
+    let view = Vec4::new(0.25, 0.5, -1.0, 1.0);
+    let clip = projection.get_clip_from_view_for_sub(&sub) * view;
+    assert!((clip.x / clip.w).abs() < 1e-6);
+    assert!((clip.y / clip.w).abs() < 1e-6);
+}

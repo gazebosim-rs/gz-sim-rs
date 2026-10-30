@@ -66,7 +66,7 @@ fn stalled_worker_is_killed_and_threads_join() {
     let mut client = start(path.clone()).unwrap();
     let lifetime = client.diagnostic_lifetime();
     assert!(!lifetime.is_retired());
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     let worker = live_worker_fd(&client);
     let make_snapshot = |request_id| Request::Snapshot {
         request_id,
@@ -117,7 +117,7 @@ fn stalled_worker_is_killed_and_threads_join() {
 }
 
 fn prepare_cancel_burst(client: &Client) {
-    assert!(matches!(wait(client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(client), Reply::Ready { version: 2 }));
     client.try_send(empty_snapshot(1)).unwrap();
     assert!(matches!(
         wait(client),
@@ -257,7 +257,7 @@ fn supervisor_thread_exhaustion_is_returned() {
 fn closed_worker_input_reports_broken_pipe_and_reaps() {
     let binary = PathBuf::from(env!("CARGO_BIN_EXE_closed_input_fixture"));
     let mut client = start(binary).unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     client.try_send(empty_snapshot(9)).unwrap();
     let deadline = Instant::now() + Duration::from_secs(5);
     loop {
@@ -315,7 +315,7 @@ fn requests_before_handshake_are_returned_untouched() {
         client.try_send(Request::Capture { request_id: 123 }),
         Err(SubmitError::NotReady(Request::Capture { request_id: 123 }))
     ));
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     client.shutdown(Duration::from_secs(3)).unwrap();
 }
 
@@ -363,7 +363,7 @@ fn duplicate_snapshot_reply_is_rejected() {
         "CARGO_BIN_EXE_duplicate_snapshot_fixture"
     )))
     .unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     client.try_send(empty_snapshot(10)).unwrap();
     assert!(matches!(
         wait(&client),
@@ -378,7 +378,7 @@ fn mismatched_snapshot_reply_is_rejected() {
         "CARGO_BIN_EXE_mismatched_snapshot_fixture"
     )))
     .unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     client.try_send(empty_snapshot(10)).unwrap();
     correlation_error(&client);
     client.shutdown(Duration::from_secs(5)).unwrap();
@@ -390,7 +390,7 @@ fn snapshots_are_distinct_at_equal_time_and_cannot_overlap() {
         "CARGO_BIN_EXE_delayed_snapshot_fixture"
     )))
     .unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     client.try_send(empty_snapshot(10)).unwrap();
     assert!(matches!(
         client.try_send(empty_snapshot(10)),
@@ -459,7 +459,7 @@ fn mismatched_frame_id_is_rejected() {
         "CARGO_BIN_EXE_mismatched_frame_fixture"
     )))
     .unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     send_snapshot_and_capture(&client);
     correlation_error(&client);
     client.shutdown(Duration::from_secs(5)).unwrap();
@@ -467,7 +467,7 @@ fn mismatched_frame_id_is_rejected() {
 #[test]
 fn mismatched_frame_timestamp_is_rejected() {
     let mut client = start(PathBuf::from(env!("CARGO_BIN_EXE_stale_frame_fixture"))).unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     send_snapshot_and_capture(&client);
     correlation_error(&client);
     client.shutdown(Duration::from_secs(5)).unwrap();
@@ -475,7 +475,7 @@ fn mismatched_frame_timestamp_is_rejected() {
 #[test]
 fn duplicate_frame_is_rejected() {
     let mut client = start(PathBuf::from(env!("CARGO_BIN_EXE_duplicate_frame_fixture"))).unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     send_snapshot_and_capture(&client);
     assert!(matches!(wait(&client), Reply::Frame { request_id: 5, .. }));
     correlation_error(&client);
@@ -488,7 +488,7 @@ fn frame_invalidated_by_newer_snapshot_is_rejected_even_at_equal_time() {
         "CARGO_BIN_EXE_invalidated_frame_fixture"
     )))
     .unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     client.try_send(empty_snapshot(1)).unwrap();
     assert!(matches!(
         wait(&client),
@@ -580,7 +580,7 @@ fn snapshot_cancellation_can_precede_explicit_cancel() {
         "CARGO_BIN_EXE_snapshot_cancel_race_fixture"
     )))
     .unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     send_snapshot_and_capture(&client);
     for mut request in [empty_snapshot(2), Request::Cancel { request_id: 5 }] {
         let deadline = Instant::now() + Duration::from_secs(5);
@@ -630,7 +630,7 @@ fn failed_snapshots_and_captures_release_their_reservations() {
         "CARGO_BIN_EXE_failure_sequence_fixture"
     )))
     .unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     client.try_send(empty_snapshot(1)).unwrap();
     assert!(matches!(
         wait(&client),
@@ -676,7 +676,7 @@ fn failed_snapshots_and_captures_release_their_reservations() {
 #[test]
 fn duplicate_ready_handshake_is_rejected() {
     let mut client = start(PathBuf::from(env!("CARGO_BIN_EXE_duplicate_ready_fixture"))).unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     let deadline = Instant::now() + Duration::from_secs(5);
     loop {
         match client.try_reply() {
@@ -714,7 +714,7 @@ fn isolated_process_and_io_thread_exhaustion_are_reported_and_reaped() {
 
 fn fatal_fixture(mode: f64) -> Client {
     let client = start(PathBuf::from(env!("CARGO_BIN_EXE_fatal_reply_fixture"))).unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     let Request::Snapshot {
         request_id,
         stamp,
@@ -824,7 +824,7 @@ fn dropping_a_stalled_worker_forces_exit_reaps_and_retires_ownership() {
     let client = start(path).unwrap();
     let lifetime = client.diagnostic_lifetime();
     assert!(!lifetime.is_retired());
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     let worker = live_worker_fd(&client);
     drop(client);
     let remaining = usize::from(!lifetime.is_retired());

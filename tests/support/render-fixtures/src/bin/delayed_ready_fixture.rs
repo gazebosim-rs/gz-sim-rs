@@ -3,7 +3,7 @@
 use std::io::Write;
 fn main() {
     std::thread::sleep(std::time::Duration::from_millis(200));
-    let message = b"{\"Ready\":{\"version\":1}}";
+    let message = b"{\"Ready\":{\"version\":2}}";
     let mut out = std::io::stdout().lock();
     out.write_all(&(message.len() as u32).to_le_bytes())
         .unwrap();

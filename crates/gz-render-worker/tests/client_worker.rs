@@ -49,7 +49,7 @@ fn real_worker_roundtrip_and_join() {
     let mut client = start(binary).unwrap();
     let lifetime = client.diagnostic_lifetime();
     assert!(!lifetime.is_retired());
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     let worker = live_worker_fd(&client);
     assert!(matches!(
         client.try_send(Request::Capture { request_id: 4 }),
@@ -155,7 +155,7 @@ fn last_handle_drop_shuts_down_worker_and_joins_threads() {
     let client = start(binary).unwrap();
     let lifetime = client.diagnostic_lifetime();
     assert!(!lifetime.is_retired());
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     let worker = live_worker_fd(&client);
     drop(client);
     let remaining = usize::from(!lifetime.is_retired());
@@ -168,7 +168,7 @@ fn killed_real_worker_is_reported_and_reaped() {
     use rustix::process::{Pid, PidfdFlags, Signal, pidfd_open, pidfd_send_signal};
     let binary = PathBuf::from(env!("CARGO_BIN_EXE_gz-render-worker"));
     let mut client = start(binary).unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 1 }));
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
     let pid = Pid::from_raw(client.worker_pid().unwrap() as i32).unwrap();
     let fd = pidfd_open(pid, PidfdFlags::empty()).unwrap();
     pidfd_send_signal(&fd, Signal::KILL).unwrap();
@@ -189,4 +189,67 @@ fn killed_real_worker_is_reported_and_reaped() {
         ShutdownOutcome::Exited(None)
     );
     assert_eq!(client.worker_pid(), None);
+}
+
+#[test]
+fn calibrated_snapshot_roundtrips_through_client_and_worker() {
+    use gz_render_protocol::Camera;
+    let binary = PathBuf::from(env!("CARGO_BIN_EXE_gz-render-worker"));
+    let mut client = start(binary).unwrap();
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
+    let stamp = Stamp {
+        epoch: 9,
+        seconds: 4,
+        nanoseconds: 5,
+    };
+    client
+        .try_send(Request::CalibratedSnapshot {
+            request_id: 1,
+            stamp,
+            origin: [1e12; 3],
+            visuals: vec![Visual {
+                id: 1,
+                translation: [1e12 + 4.0, 1e12, 1e12],
+                rotation: [0.0, 0.0, 0.0, 1.0],
+                size: [1.0; 3],
+                color: [1.0, 0.0, 0.0],
+            }],
+            camera: Box::new(Camera {
+                width: 64,
+                height: 64,
+                fx: 32.0,
+                fy: 32.0,
+                cx: 16.0,
+                cy: 40.0,
+                skew: 0.0,
+                tx: 0.0,
+                ty: 0.0,
+                near: 0.1,
+                far: 10.0,
+                translation: [1e12; 3],
+                rotation: [0.0, 0.0, 0.0, 1.0],
+            }),
+        })
+        .unwrap();
+    assert!(matches!(
+        wait(&client),
+        Reply::SnapshotAccepted { request_id: 1 }
+    ));
+    client.try_send(Request::Capture { request_id: 2 }).unwrap();
+    match wait(&client) {
+        Reply::Frame {
+            request_id: 2,
+            stamp: actual,
+            rgba,
+        } => {
+            assert_eq!(actual, stamp);
+            let shifted = (40 * 64 + 16) * 4;
+            assert_eq!(&rgba[shifted..shifted + 4], &[255, 0, 0, 255]);
+        }
+        reply => panic!("unexpected reply: {reply:?}"),
+    }
+    assert_eq!(
+        client.shutdown(Duration::from_secs(10)).unwrap(),
+        ShutdownOutcome::Graceful
+    );
 }

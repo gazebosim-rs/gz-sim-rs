@@ -456,3 +456,43 @@ fn frame_rejects_zero_id_and_invalid_time_even_with_full_image() {
         );
     }
 }
+
+#[test]
+fn calibrated_snapshot_roundtrips_and_rejects_invalid_wire_fields() {
+    let mut request = Request::CalibratedSnapshot {
+        request_id: 3,
+        stamp: Stamp {
+            epoch: 2,
+            seconds: 7,
+            nanoseconds: 9,
+        },
+        origin: [1e12, -1e12, 0.5],
+        visuals: vec![],
+        camera: Box::new(Camera {
+            width: 64,
+            height: 64,
+            fx: 32.0,
+            fy: 31.0,
+            cx: 16.0,
+            cy: 40.0,
+            skew: 0.0,
+            tx: 0.0,
+            ty: 0.0,
+            near: 0.1,
+            far: 10.0,
+            translation: [1e12 + 0.25, -1e12, 0.5],
+            rotation: [0.0, 0.0, 0.0, 1.0],
+        }),
+    };
+    let mut wire = Vec::new();
+    write_request(&mut wire, &request).unwrap();
+    assert_eq!(
+        read_request(&mut wire.as_slice()).unwrap().as_ref(),
+        Some(&request)
+    );
+    if let Request::CalibratedSnapshot { ref mut camera, .. } = request {
+        camera.fx = f64::NAN;
+    }
+    assert!(!request.wire_valid());
+    assert!(write_request(&mut Vec::new(), &request).is_err());
+}

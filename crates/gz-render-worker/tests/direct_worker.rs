@@ -92,7 +92,7 @@ impl Drop for Worker {
 #[test]
 fn direct_worker_renders_a_stamped_snapshot_and_exits() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 1 }));
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
     worker.send(Request::Cancel { request_id: 99 });
     assert!(matches!(
         worker.next(),
@@ -295,7 +295,7 @@ fn renderer_startup_failure_with_full_output_exits_with_io_error() {
 #[test]
 fn oversized_wire_frame_reports_protocol_failure() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 1 }));
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
     let stdin = worker.child.stdin.as_mut().unwrap();
     stdin.write_all(&131_073_u32.to_le_bytes()).unwrap();
     stdin.flush().unwrap();
@@ -335,7 +335,7 @@ fn missing_or_invalid_parent_argument_is_rejected() {
 #[test]
 fn eof_exits_cleanly_and_a_wrong_parent_is_rejected() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 1 }));
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
     drop(worker.child.stdin.take());
     assert!(worker.wait_exit().success());
     let status = Command::new(env!("CARGO_BIN_EXE_gz-render-worker"))
@@ -350,7 +350,7 @@ fn eof_exits_cleanly_and_a_wrong_parent_is_rejected() {
 #[test]
 fn disconnected_output_reports_failure_and_worker_exits() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 1 }));
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
     drop(worker.replies.take());
     worker.send(Request::Cancel { request_id: 99 });
     worker.reader.take().unwrap().join().unwrap();
@@ -361,7 +361,7 @@ fn disconnected_output_reports_failure_and_worker_exits() {
 #[test]
 fn disconnected_output_after_frame_terminates_worker_on_next_frame() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 1 }));
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
     let stamp = Stamp {
         epoch: 3,
         seconds: 2,
@@ -437,7 +437,7 @@ fn closed_output_terminates_worker_on_deterministic_error_replies() {
         let mut output = worker.child.stdout.take().unwrap();
         assert!(matches!(
             read_reply(&mut output).unwrap(),
-            Some(Reply::Ready { version: 1 })
+            Some(Reply::Ready { version: 2 })
         ));
         if index == 2 {
             worker.send(Request::Snapshot {
@@ -474,7 +474,7 @@ fn closed_output_terminates_on_protocol_stale_time_and_snapshot_replies() {
         let mut output = worker.child.stdout.take().unwrap();
         assert!(matches!(
             read_reply(&mut output).unwrap(),
-            Some(Reply::Ready { version: 1 })
+            Some(Reply::Ready { version: 2 })
         ));
         if case == 1 {
             worker.send(Request::Snapshot {
@@ -528,7 +528,7 @@ fn closed_output_terminates_on_protocol_stale_time_and_snapshot_replies() {
 #[test]
 fn overlapping_capture_and_cancellation_replies_are_coherent() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 1 }));
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
     worker.send(Request::Snapshot {
         request_id: 1,
         stamp: Stamp {
@@ -629,7 +629,7 @@ fn overlapping_capture_and_cancellation_replies_are_coherent() {
 #[test]
 fn replacement_snapshot_invalidates_pending_capture_and_removes_visual() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 1 }));
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
     let old_stamp = Stamp {
         epoch: 1,
         seconds: 1,
@@ -765,7 +765,7 @@ fn startup_output_failure_exits_without_ready() {
 #[test]
 fn burst_of_snapshots_has_correlated_bounded_outcomes() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 1 }));
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
     let stamp = Stamp {
         epoch: 9,
         seconds: 1,
@@ -821,7 +821,7 @@ fn worker_exits_after_parent_death_with_capture_requested() {
         let mut output = worker.child.stdout.take().unwrap();
         assert!(matches!(
             read_reply(&mut output).unwrap(),
-            Some(Reply::Ready { version: 1 })
+            Some(Reply::Ready { version: 2 })
         ));
         let stdin = worker.child.stdin.as_mut().unwrap();
         write_request(
@@ -933,7 +933,7 @@ fn canonical_scene_snapshots_render_remove_and_reset() {
         .unwrap();
     let model_id = model.get::<EntityId>().unwrap().get();
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 1 }));
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
     worker.send(gz_render_scene::extract(&sim, 1, [0.0; 3]).unwrap());
     assert!(matches!(
         worker.next(),
@@ -1041,6 +1041,279 @@ fn canonical_scene_snapshots_render_remove_and_reset() {
             assert_eq!(&rgba[offset..offset + 4], &[255, 0, 0, 255]);
         }
         other => panic!("unexpected reset frame: {other:?}"),
+    }
+    worker.finish();
+}
+
+#[test]
+fn calibrated_snapshot_renders_shifted_pixels_and_rejects_unsupported_projection() {
+    use gz_render_protocol::Camera;
+    let mut worker = Worker::start();
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    let stamp = Stamp {
+        epoch: 2,
+        seconds: 0,
+        nanoseconds: 7_000_000,
+    };
+    let origin = [1e12; 3];
+    let camera = Camera {
+        width: 64,
+        height: 64,
+        fx: 32.0,
+        fy: 32.0,
+        cx: 16.0,
+        cy: 40.0,
+        skew: 0.0,
+        tx: 0.0,
+        ty: 0.0,
+        near: 0.1,
+        far: 10.0,
+        translation: origin,
+        rotation: [0.0, 0.0, 0.0, 1.0],
+    };
+    let visual = Visual {
+        id: 1,
+        translation: [1e12 + 4.0, 1e12, 1e12],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+        size: [1.0; 3],
+        color: [1.0, 0.0, 0.0],
+    };
+    worker.send(Request::CalibratedSnapshot {
+        request_id: 1,
+        stamp,
+        origin,
+        visuals: vec![visual],
+        camera: Box::new(camera),
+    });
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 1 }
+    ));
+    worker.send(Request::Capture { request_id: 2 });
+    match worker.next() {
+        Reply::Frame {
+            request_id: 2,
+            stamp: actual,
+            rgba,
+        } => {
+            assert_eq!(actual, stamp);
+            let shifted = (40 * 64 + 16) * 4;
+            let center = (32 * 64 + 32) * 4;
+            assert_eq!(&rgba[shifted..shifted + 4], &[255, 0, 0, 255]);
+            assert_ne!(&rgba[center..center + 4], &[255, 0, 0, 255]);
+        }
+        reply => panic!("unexpected reply: {reply:?}"),
+    }
+    let camera = Camera {
+        width: 64,
+        height: 64,
+        fx: 32.0,
+        fy: 32.0,
+        cx: 16.0,
+        cy: 40.0,
+        skew: 1.0,
+        tx: 0.0,
+        ty: 0.0,
+        near: 0.1,
+        far: 10.0,
+        translation: origin,
+        rotation: [0.0, 0.0, 0.0, 1.0],
+    };
+    worker.send(Request::CalibratedSnapshot {
+        request_id: 3,
+        stamp,
+        origin,
+        visuals: vec![],
+        camera: Box::new(camera),
+    });
+    assert!(matches!(
+        worker.next(),
+        Reply::Error {
+            kind: FailureKind::InvalidSnapshot,
+            request_id: Some(3),
+            ..
+        }
+    ));
+    worker.send(Request::Capture { request_id: 4 });
+    match worker.next() {
+        Reply::Frame {
+            request_id: 4,
+            stamp: actual,
+            rgba,
+        } => {
+            assert_eq!(actual, stamp);
+            let shifted = (40 * 64 + 16) * 4;
+            assert_eq!(&rgba[shifted..shifted + 4], &[255, 0, 0, 255]);
+        }
+        reply => panic!("unexpected reply: {reply:?}"),
+    }
+    let base = Camera {
+        width: 64,
+        height: 64,
+        fx: 32.0,
+        fy: 32.0,
+        cx: 16.0,
+        cy: 40.0,
+        skew: 0.0,
+        tx: 0.0,
+        ty: 0.0,
+        near: 0.1,
+        far: 10.0,
+        translation: origin,
+        rotation: [0.0, 0.0, 0.0, 1.0],
+    };
+    let mut invalid_dimensions = base.clone();
+    invalid_dimensions.width = 65;
+    let mut invalid_pose = base;
+    invalid_pose.rotation = [0.0; 4];
+    for (request_id, camera) in [(5, invalid_dimensions), (6, invalid_pose)] {
+        worker.send(Request::CalibratedSnapshot {
+            request_id,
+            stamp,
+            origin,
+            visuals: vec![],
+            camera: Box::new(camera),
+        });
+        assert!(matches!(worker.next(), Reply::Error {
+            kind: FailureKind::InvalidSnapshot, request_id: Some(actual), ..
+        } if actual == request_id));
+    }
+    worker.send(Request::Capture { request_id: 7 });
+    match worker.next() {
+        Reply::Frame {
+            request_id: 7,
+            stamp: actual,
+            rgba,
+        } => {
+            assert_eq!(actual, stamp);
+            let shifted = (40 * 64 + 16) * 4;
+            assert_eq!(&rgba[shifted..shifted + 4], &[255, 0, 0, 255]);
+        }
+        reply => panic!("unexpected reply: {reply:?}"),
+    }
+    let clipped_camera = Camera {
+        width: 64,
+        height: 64,
+        fx: 32.0,
+        fy: 32.0,
+        cx: 16.0,
+        cy: 40.0,
+        skew: 0.0,
+        tx: 0.0,
+        ty: 0.0,
+        near: 0.1,
+        far: 3.0,
+        translation: origin,
+        rotation: [0.0, 0.0, 0.0, 1.0],
+    };
+    let visual = Visual {
+        id: 1,
+        translation: [1e12 + 4.0, 1e12, 1e12],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+        size: [1.0; 3],
+        color: [1.0, 0.0, 0.0],
+    };
+    worker.send(Request::CalibratedSnapshot {
+        request_id: 8,
+        stamp,
+        origin,
+        visuals: vec![visual],
+        camera: Box::new(clipped_camera),
+    });
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 8 }
+    ));
+    worker.send(Request::Capture { request_id: 9 });
+    match worker.next() {
+        Reply::Frame {
+            request_id: 9,
+            stamp: actual,
+            rgba,
+        } => {
+            assert_eq!(actual, stamp);
+            let shifted = (40 * 64 + 16) * 4;
+            assert_ne!(&rgba[shifted..shifted + 4], &[255, 0, 0, 255]);
+        }
+        reply => panic!("unexpected reply: {reply:?}"),
+    }
+    worker.finish();
+}
+
+#[test]
+fn calibrated_camera_renders_canonical_scene_snapshot() {
+    use gz_render_protocol::Camera;
+    use gz_sim_scene::{PhysicsEngine, load_world_with_sdf_step};
+    let xml = r#"<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity>
+      <model name='robot'><static>true</static><pose>4 0 0 0 0 0</pose><link name='body'>
+      <collision name='collision'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision>
+      <visual name='box'><geometry><box><size>1 1 1</size></box></geometry>
+      <material><diffuse>1 0 0 1</diffuse></material></visual>
+      </link></model></world></sdf>"#;
+    let mut sim = load_world_with_sdf_step(
+        xml,
+        "camera-scene",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    sim.step_exact(1).unwrap();
+    assert!(!sim.elapsed().is_zero());
+    let request = gz_render_scene::extract(&sim, 1, [0.0; 3]).unwrap();
+    let Request::Snapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+    } = request
+    else {
+        panic!("scene extraction did not produce a snapshot");
+    };
+    assert_eq!(stamp.seconds, sim.elapsed().as_secs());
+    assert_eq!(stamp.nanoseconds, sim.elapsed().subsec_nanos());
+    let camera = Camera {
+        width: 64,
+        height: 64,
+        fx: 32.0,
+        fy: 32.0,
+        cx: 16.0,
+        cy: 40.0,
+        skew: 0.0,
+        tx: 0.0,
+        ty: 0.0,
+        near: 0.1,
+        far: 10.0,
+        translation: [0.0; 3],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+    };
+    let mut worker = Worker::start();
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    worker.send(Request::CalibratedSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        camera: Box::new(camera),
+    });
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 1 }
+    ));
+    worker.send(Request::Capture { request_id: 2 });
+    match worker.next() {
+        Reply::Frame {
+            request_id: 2,
+            stamp: actual,
+            rgba,
+        } => {
+            assert_eq!(actual, stamp);
+            let shifted = (40 * 64 + 16) * 4;
+            let center = (32 * 64 + 32) * 4;
+            assert_eq!(&rgba[shifted..shifted + 4], &[255, 0, 0, 255]);
+            assert_ne!(&rgba[center..center + 4], &[255, 0, 0, 255]);
+        }
+        reply => panic!("unexpected reply: {reply:?}"),
     }
     worker.finish();
 }

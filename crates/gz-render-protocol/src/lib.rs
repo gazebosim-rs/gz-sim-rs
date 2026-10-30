@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::io::{self, Read, Write};
 
-pub const PROTOCOL_VERSION: u16 = 1;
+pub const PROTOCOL_VERSION: u16 = 2;
 const MAX_MESSAGE: usize = 131_072;
 const MAX_VISUALS: usize = 128;
 const PIXELS: usize = 64 * 64 * 4;
@@ -22,6 +22,27 @@ pub struct Stamp {
     pub seconds: u64,
     pub nanoseconds: u32,
 }
+/// Pinhole calibration and Gazebo-frame world pose for one snapshot.
+///
+/// Pixels start at the upper left. The pose uses Gazebo's +X forward,
+/// +Y left, +Z up camera axes. This worker currently supports 64×64 output
+/// and rejects nonzero skew or projection translation.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Camera {
+    pub width: u32,
+    pub height: u32,
+    pub fx: f64,
+    pub fy: f64,
+    pub cx: f64,
+    pub cy: f64,
+    pub skew: f64,
+    pub tx: f64,
+    pub ty: f64,
+    pub near: f64,
+    pub far: f64,
+    pub translation: [f64; 3],
+    pub rotation: [f64; 4],
+}
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Request {
     Snapshot {
@@ -29,6 +50,13 @@ pub enum Request {
         stamp: Stamp,
         origin: [f64; 3],
         visuals: Vec<Visual>,
+    },
+    CalibratedSnapshot {
+        request_id: u64,
+        stamp: Stamp,
+        origin: [f64; 3],
+        visuals: Vec<Visual>,
+        camera: Box<Camera>,
     },
     Capture {
         request_id: u64,
@@ -88,6 +116,21 @@ fn invalid(message: &'static str) -> io::Error {
 fn valid_stamp(stamp: &Stamp) -> bool {
     stamp.nanoseconds < 1_000_000_000
 }
+fn valid_snapshot(request_id: u64, stamp: &Stamp, origin: &[f64; 3], visuals: &[Visual]) -> bool {
+    request_id != 0
+        && valid_stamp(stamp)
+        && origin.iter().all(|x| x.is_finite())
+        && visuals.len() <= MAX_VISUALS
+        && visuals.iter().all(|v| {
+            v.id != 0
+                && v.translation
+                    .iter()
+                    .chain(&v.rotation)
+                    .chain(&v.size)
+                    .all(|x| x.is_finite())
+                && v.color.iter().all(|x| x.is_finite())
+        })
+}
 impl Request {
     /// Checks wire bounds and finite values; the renderer validates scene semantics separately.
     pub fn wire_valid(&self) -> bool {
@@ -97,20 +140,30 @@ impl Request {
                 stamp,
                 origin,
                 visuals,
+            } => valid_snapshot(*request_id, stamp, origin, visuals),
+            Self::CalibratedSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera,
             } => {
-                *request_id != 0
-                    && valid_stamp(stamp)
-                    && origin.iter().all(|x| x.is_finite())
-                    && visuals.len() <= MAX_VISUALS
-                    && visuals.iter().all(|v| {
-                        v.id != 0
-                            && v.translation
-                                .iter()
-                                .chain(&v.rotation)
-                                .chain(&v.size)
-                                .all(|x| x.is_finite())
-                            && v.color.iter().all(|x| x.is_finite())
-                    })
+                valid_snapshot(*request_id, stamp, origin, visuals)
+                    && [
+                        camera.fx,
+                        camera.fy,
+                        camera.cx,
+                        camera.cy,
+                        camera.skew,
+                        camera.tx,
+                        camera.ty,
+                        camera.near,
+                        camera.far,
+                    ]
+                    .iter()
+                    .chain(&camera.translation)
+                    .chain(&camera.rotation)
+                    .all(|x| x.is_finite())
             }
             Self::Capture { request_id } | Self::Cancel { request_id } => *request_id != 0,
             Self::Shutdown => true,

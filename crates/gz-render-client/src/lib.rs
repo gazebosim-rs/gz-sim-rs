@@ -491,6 +491,9 @@ impl Client {
         }
         if let Request::Snapshot {
             request_id, stamp, ..
+        }
+        | Request::CalibratedSnapshot {
+            request_id, stamp, ..
         } = &request
         {
             let id = *request_id;

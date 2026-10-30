@@ -7,6 +7,8 @@
 //! Subtract the origin in f64 before narrowing to f32. The caller must use the
 //! same origin for all objects and cameras in a frame.
 
+pub mod camera;
+
 use glam::{DQuat, DVec3, Quat, Vec3};
 
 /// A world-space f64 pose. Quaternion components are in x, y, z, w order.

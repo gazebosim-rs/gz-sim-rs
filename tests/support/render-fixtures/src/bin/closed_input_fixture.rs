@@ -4,7 +4,7 @@ use std::os::unix::process::CommandExt;
 fn main() {
     let error = std::process::Command::new("/bin/sh")
         .arg("-c")
-        .arg("exec 0<&-; printf '\\027\\000\\000\\000{\"Ready\":{\"version\":1}}'; exec sleep 60")
+        .arg("exec 0<&-; printf '\\027\\000\\000\\000{\"Ready\":{\"version\":2}}'; exec sleep 60")
         .exec();
     panic!("exec failed: {error}");
 }
