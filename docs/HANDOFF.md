@@ -36,10 +36,11 @@ Do not claim the previous bounded-force acceptance proves zero-cost absence.
 
 ## Current P3 follow-up
 
-Empty canonical Physics world metadata now maps to the existing built-in physics
+Canonical Physics world metadata now maps to the existing built-in physics
 system; see WORLD_SYSTEM_CONFIGURATION.md. Explicit backend selection is retained,
-with no dynamic system loader or duplicate callback installation. Child engine
-configuration, plane geometry and moving-parent actuation remain open, so the
+with no dynamic system loader or duplicate callback installation. A bounded canonical engine filename is accepted under that explicit override,
+so native input fixtures now load without removing the record. Automatic engine
+selection, plane geometry and moving-parent actuation remain open, so the
 complete original ApplyJointForce fixture is still unqualified.
 
 The joint-effort API adds `DynamicBackend::add_joint_effort`; its DART world-hinge

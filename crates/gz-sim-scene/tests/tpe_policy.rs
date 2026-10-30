@@ -160,7 +160,7 @@ fn original_rotated_native_rows_remain_evidence_with_explicit_world_axis_differe
         let xml = row["xml"].as_str().unwrap();
         assert_eq!(xml.matches(plugin).count(), 1);
         let mut sim = load_world_with_sdf_step(
-            &xml.replace(plugin, ""),
+            xml,
             "d23-native",
             "default",
             &NoResources,

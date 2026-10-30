@@ -69,13 +69,13 @@ fn physics_metadata_reuses_selected_backend_and_reset_without_duplicate_systems(
 }
 
 #[test]
-fn only_empty_canonical_configuration_is_accepted() {
+fn canonical_configuration_guards_remain_strict() {
     let with_comment = PHYSICS.replace("/>", "> \n<!-- legacy metadata -->\t</plugin>");
     load(&configured(&with_comment), PhysicsEngine::Rapier).unwrap();
     for record in [
         PHYSICS.replace(
             "/>",
-            "><engine><filename>gz-physics-dartsim-plugin</filename></engine></plugin>",
+            "><engine><filename>unknown-engine</filename></engine></plugin>",
         ),
         PHYSICS.replace("/>", ">text</plugin>"),
         PHYSICS.replace("/>", ">\u{a0}</plugin>"),
@@ -113,4 +113,76 @@ fn only_empty_canonical_configuration_is_accepted() {
             ..
         })
     ));
+}
+
+#[test]
+fn explicit_backend_has_priority_over_canonical_legacy_engine_metadata() {
+    for selected in [
+        PhysicsEngine::Rapier,
+        PhysicsEngine::Dart,
+        PhysicsEngine::Mujoco,
+        PhysicsEngine::Tpe,
+    ] {
+        for legacy in ["dartsim", "mujoco", "tpe"] {
+            let record = PHYSICS.replace("/>", &format!("><engine><!-- configuration --><filename> \ngz-physics-{legacy}-plugin\t</filename></engine></plugin>"));
+            let mut explicit = load(WORLD, selected).unwrap();
+            let mut metadata = load(&configured(&record), selected).unwrap();
+            assert_eq!(
+                explicit
+                    .world()
+                    .get_resource::<gz_physics::PhysicsBackend>()
+                    .map(|backend| backend.engine()),
+                metadata
+                    .world()
+                    .get_resource::<gz_physics::PhysicsBackend>()
+                    .map(|backend| backend.engine()),
+            );
+            assert_eq!(
+                explicit.scheduled_system_counts(),
+                metadata.scheduled_system_counts()
+            );
+            for _ in 0..2 {
+                explicit.step_exact(3).unwrap();
+                metadata.step_exact(3).unwrap();
+                assert_eq!(states(&mut explicit), states(&mut metadata));
+                assert_eq!(explicit.elapsed(), metadata.elapsed());
+                reset_loaded_world(&mut explicit, |_| ()).unwrap();
+                reset_loaded_world(&mut metadata, |_| ()).unwrap();
+            }
+        }
+    }
+}
+
+#[test]
+fn engine_metadata_rejects_ambiguous_or_unsupported_payloads() {
+    for payload in [
+        "<engine/>",
+        "<engine><filename/></engine>",
+        "<engine>text<filename>gz-physics-dartsim-plugin</filename></engine>",
+        "<engine flag='x'><filename>gz-physics-dartsim-plugin</filename></engine>",
+        "<engine xmlns:extra='urn:x'><filename>gz-physics-dartsim-plugin</filename></engine>",
+        "<engine><filename extra='x'>gz-physics-dartsim-plugin</filename></engine>",
+        "<engine><filename xmlns:extra='urn:x'>gz-physics-dartsim-plugin</filename></engine>",
+        "<engine><filename><![CDATA[gz-physics-dartsim-plugin]]></filename></engine>",
+        "<engine><filename>gz-physics-<!--split-->dartsim-plugin</filename></engine>",
+        "<engine><filename>gz&#45;physics-dartsim-plugin</filename></engine>",
+        "<engine><filename>gz-physics-bullet-plugin</filename></engine>",
+        "<engine><filename>/tmp/libgz-physics-dartsim-plugin.so</filename></engine>",
+        "<engine><filename><nested/></filename></engine>",
+        "<engine><filename>gz-physics-dartsim-plugin</filename><filename>gz-physics-tpe-plugin</filename></engine>",
+        "<engine><filename>gz-physics-dartsim-plugin</filename></engine><engine/>",
+        "<unknown/>",
+    ] {
+        let record = PHYSICS.replace("/>", &format!(">{payload}</plugin>"));
+        assert!(
+            matches!(
+                load(&configured(&record), PhysicsEngine::Rapier),
+                Err(LoadError::Unsupported {
+                    feature: "Physics system configuration",
+                    ..
+                })
+            ),
+            "{payload}"
+        );
+    }
 }

@@ -135,20 +135,15 @@ fn native_world_velocity_and_wrench_controls_match_supported_observations() {
         } else {
             PhysicsEngine::Tpe
         };
-        // Replace only native host-plugin selection with the explicit Rust backend API.
+        // Preserve the complete native world; the explicit Rust backend has priority.
         let plugin = format!(
             "<plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'><engine><filename>gz-physics-{native_engine}-plugin</filename></engine></plugin>"
         );
         let xml = row["xml"].as_str().unwrap();
         assert_eq!(xml.matches(&plugin).count(), 1);
-        let mut sim = load_world_with_sdf_step(
-            &xml.replace(&plugin, ""),
-            "native-inputs",
-            "default",
-            &NoResources,
-            engine,
-        )
-        .unwrap();
+        let mut sim =
+            load_world_with_sdf_step(xml, "native-inputs", "default", &NoResources, engine)
+                .unwrap();
         let link = id(&sim, "default::robot::body");
         let mode = row["mode"].as_str().unwrap();
         let linear = if matches!(mode, "velocity" | "both") {
