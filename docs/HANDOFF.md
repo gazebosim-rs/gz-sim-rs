@@ -7,6 +7,20 @@ Updated 2026-10-29. Read this first when resuming coordination of the rewrite,
 whichever agent you are. AGENTS.md has the standing rules; this file has the
 current state and the next tasks. Update both when either changes.
 
+## Owner correction: built-in systems
+
+D26 supersedes the earlier system C ABI/host plan. All simulation systems live in
+gz-sim-rs and participate only when loaded world/models need them. Keep legacy SDF
+plugin metadata/configuration mapping; do not load system libraries. Native engine
+FFI remains allowed. ACT-01 defines activation, last-consumer teardown and zero idle
+system resource/work evidence.
+
+The current implementation does not yet meet the full absence requirement:
+joint/IMU callbacks are installed unconditionally, empty force ingress is still
+polled, and force workers/templates survive last-consumer removal for reset.
+Audit all implemented families and fix these through reviewed lifecycle slices.
+Do not claim the previous bounded-force acceptance proves zero-cost absence.
+
 ## History
 
 - 2026-10-24 to 2026-10-27: a ChatGPT/Codex coordinator ran P0-P2 with one

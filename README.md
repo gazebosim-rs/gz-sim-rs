@@ -41,7 +41,9 @@ plan does not modify that work.
 
 The owner has confirmed behavioral, file-format, protocol, and test compatibility
 with new Rust APIs, and Linux first with headless and Bevy rendering support.
-Native runtime plugins use a versioned C ABI. The Rust physics backend must use
+Simulation systems are built into gz-sim-rs and activated only by loaded world/model
+requirements; unused systems have no scheduled work or owned runtime resources.
+The Rust physics backend must use
 a full-f64 solver; prioritize Rapier and validate it with probes. Balanced robotics
 is the primary performance workload. Remaining proposals and validation choices are in
 [the decision register](docs/DECISIONS.md). Review those before implementation.
@@ -58,7 +60,7 @@ Start with [the implementation plan](docs/PLAN.md), then use these documents:
 | --- | --- |
 | [Agent instructions](AGENTS.md) | Mandatory implementation and writing rules |
 | [Repository audit](docs/REPOSITORY_AUDIT.md) | What moves, what disappears, and why |
-| [Architecture](docs/ARCHITECTURE.md) | ECS, time, physics, rendering, sensors, and extensions |
+| [Architecture](docs/ARCHITECTURE.md) | ECS, time, physics, rendering, sensors, and built-in system activation |
 | [Dependency decisions](docs/DEPENDENCIES.md) | Reuse candidates and semantic gaps |
 | [Independent repositories](docs/EXTERNAL_REPOS.md) | Deliverables and integration contracts |
 | [Test and coverage policy](docs/TESTING.md) | Existing tests, strict >95% coverage, pre-commit, and CI |

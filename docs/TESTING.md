@@ -100,7 +100,7 @@ Add analytic checks: free fall, pendulum, conservation where applicable, inertia
 transforms, contact normals/friction, joint motor/limit behavior, wheel odometry,
 and IMU gravity conventions. Use property tests for transform composition,
 serialization, resource resolution, and degenerate inputs. Fuzz SDF, transport,
-image/mesh entry points, and native-plugin boundary validation.
+image/mesh entry points, and native-engine boundary validation and built-in system activation.
 
 GPU outputs need dedicated tests: known geometric depth/range; calibrated camera
 projection; exact categorical IDs for segmentation; distortion/inverse mapping;
@@ -151,7 +151,7 @@ GPU shaders cannot be measured by Rust LLVM coverage; list every shader entry
 point and required analytic/image tests separately. Be explicit about this limit.
 
 Required coverage profiles include core/no renderer, every retained physics
-adapter, rendered sensors, native extension host, and logging/transport bindings.
+adapter, rendered sensors, demand-driven system lifecycle, and logging/transport bindings.
 Keep independently useful configurations (e.g. headless TPE and headless DART)
 tested rather than compiling only one all-features binary. Features may be mutually
 exclusive; `--all-features` is not a universal verification strategy.
@@ -178,7 +178,7 @@ cargo xtask verify --profile headless-dart
 cargo xtask verify --profile headless-mujoco
 cargo xtask verify --profile headless-rust-physics
 cargo xtask verify --profile rendered-sensors
-cargo xtask verify --profile native-extensions
+cargo xtask verify --profile system-activation
 cargo xtask verify --release-matrix
 ```
 

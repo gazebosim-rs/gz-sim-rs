@@ -22,7 +22,6 @@ checks before publishing; repository names keep the required `-rs` suffix.
 | gz-sim-core | Bevy world, schedules, lifecycle, stable-ID lookup, system registration | Second ECS, presentation UI, synchronous network IO |
 | gz-sim-systems | Cohesive controller/environment/system modules | Unstructured utility collection |
 | gz-sim-io | Transport adapters, services, logs, scene protocol, external GUI contract | Transport wire protocol implementation |
-| gz-extension-api / host | Versioned native plugin contract and lifecycle | Rust ABI promises or unbounded raw access to World |
 | gz-sim | Server library and executable composition | Monolithic implementation of all domain code |
 | gz-cli | CLI parsing/dispatch and command manifests | Ruby library loading or simulator dependency for independent commands |
 | xtask / test-support | Check orchestration, fixture/probe runners, parity reports | Production behavior hidden from coverage |
@@ -37,7 +36,6 @@ flowchart TD
     Server --> Systems["gz-sim-systems"]
     Server --> IO["gz-sim-io"]
     Server --> Render["gz-render: Bevy"]
-    Server --> Extensions["extension host"]
     Core --> Types["gz-sim-types / residual gz-math"]
     Systems --> Physics["gz-physics contracts"]
     Systems --> Sensors["gz-sensors"]
@@ -70,7 +68,7 @@ exchange protocol state; they do not share raw ECS entities.
 Assign stable domain IDs independently of Bevy's generational Entity values.
 Maintain a compact ID-to-entity index; never serialize Bevy's internal IDs as a
 wire or log contract. Runtime creation/removal commits at defined boundaries.
-Handle generation checks prevent stale plugin/backend references from resolving
+Handle generation checks prevent stale entity/backend references from resolving
 to newly created objects. Names, scoped names, SDF IDs, and public IDs are distinct.
 
 Separate model ownership, joint graph, SDF frame graph, and render transform
@@ -176,8 +174,7 @@ supported features, not identical trajectories across different solvers.
   turn TPE into Rapier or promise articulated dynamics it did not provide.
 - **Rust backend:** the owner requires a full-f64 solver and prioritizes Rapier,
   subject to the probes in DEPENDENCIES.md. Integrate its f64 engine through a
-  Bevy plugin in this workspace. Source registration and scheduling remain native
-  Bevy. Avian 0.8's mixed-precision solver does not meet the selection gate.
+  built-in workspace module. Registration and scheduling use Bevy directly. Avian 0.8's mixed-precision solver does not meet the selection gate.
 
 Each world owns its backend instance. Native objects stay on their documented
 thread; use a Bevy non-send resource or dedicated worker if needed. No blanket
@@ -236,28 +233,33 @@ protocol versions and provide resynchronization after dropped deltas. Keep curre
 Gazebo clients supported where part of the baseline. Server rendering for sensors
 does not imply building a GUI inside the server.
 
-## Native extension ABI
+## Built-in systems and demand
 
-The owner requires native systems to load without rebuilding the simulator.
-Built-ins remain source-built Bevy plugins. External plugins use a narrow C ABI
-maintained in this workspace, with a Rust convenience SDK over the same boundary.
+D26 supersedes the former native system extension ABI. Implement systems as
+built-in Rust modules using Bevy ECS. Do not create a dynamic system loader,
+external system descriptor ABI or system plugin SDK. Native engine FFI is a
+separate dependency boundary.
 
-An entry point returns a descriptor containing ABI major/minor, structure sizes,
-plugin identity/version, required capabilities, lifecycle callbacks, and function
-tables. Version mismatches fail before callbacks run. Define ownership, alignment,
-length, UTF-8 policy, allocator/free pairing, callback duration, and thread affinity.
-Use opaque generational handles and caller-owned buffers or explicit release
-functions. A major version is needed for incompatible layouts or semantics.
+Resolve loaded world/model requirements into system participation and per-entity
+configuration. Legacy SDF plugin names/filenames can identify a known built-in;
+unsupported configurations fail explicitly rather than loading arbitrary code.
+Independent sdformat-rs continues to preserve opaque plugin metadata.
 
-Plugins declare scheduling phases and read/write interests. Native callbacks
-operate on versioned batch views and command buffers, not arbitrary ECS pointers.
-Start with a serialized external-plugin phase unless conflict-free access is
-proven; performance is measured. Typed component schemas/extensions need explicit
-IDs and serialization contracts, not Rust TypeId across libraries.
+Maintain demand at structural lifecycle boundaries, not by scanning every system
+on every tick. Install only required schedule entries and system-owned resources.
+When the final consumer disappears, remove those entries and release owned state,
+workers, timers and endpoints. Reset or later loads restore demand before advancing.
+Use Bevy scheduling and lifecycle facilities; do not add another ECS or generic
+plugin framework. Preserve phase ordering and atomic failure behavior during changes.
 
-Test load/configure/step/reset/destroy, partial construction, missing symbols,
-wrong versions, malformed lengths, stale handles, failed callbacks, and shutdown
-with outstanding work. The default lifetime is process/world-scoped with no hot
-unload. Native plugins are trusted code; this ABI is not a memory-safety sandbox.
-Old C++ gz-plugin binaries require a separate explicit compatibility bridge if
-ever requested. Do not confuse native DART linking with this extension protocol.
+Shared systems may serve multiple consumers, with entity-local state where needed.
+Removing one consumer must preserve the others. Each world owns its demand and
+resources. Dependencies activate only when required and retire when no remaining
+consumer requires them. Statically compiled code and shared core bookkeeping do
+not imply an allocation for every possible system.
+
+An empty query, no-op callback or run condition evaluated every frame still costs
+CPU. Acceptance requires zero invocations and zero system-specific runtime
+allocations/workers/endpoints when absent, plus last-consumer teardown, reactivation,
+reset and multiworld tests. Measure allocator/resource counts and CPU/memory at
+matched scene fidelity; do not infer performance from an empty callback alone.

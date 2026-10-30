@@ -10,7 +10,7 @@ fit. This is a redesign of the implementation, not a translation of C++ classes.
 The required end state is five repositories in `gazebosim-rs`:
 
 1. `gz-sim-rs`: simulator runtime, systems, sensors, physics adapters, residual
-   robotics math, asset integration, CLI, and extension host.
+   robotics math, asset integration, CLI, and demand-driven built-in systems.
 2. `sdformat-rs`: SDF syntax, schema conversion, semantic graphs, and model DOM.
 3. `gz-msgs-rs`: message schemas, generated Rust types, descriptors, conversions,
    and message tooling.
@@ -37,7 +37,7 @@ tests wherever a small harness can exercise the replacement. A source-code port
 is not evidence until both behavior and assertion equivalence have been reviewed.
 
 Tests solely about removed Bullet, Ogre, GUI, or CMake internals get explicit
-scope dispositions. Tests covering retained rendering, sensor, CLI, or plugin
+scope dispositions. Tests covering retained rendering, sensor, CLI, or system
 behavior are rehosted, even if the old implementation disappears. Tests solely
 about the C++ ECS's storage mechanics need a reviewed mapping to Bevy-facing
 contracts. Never claim every literal C++ test runs unchanged when it does not.
@@ -47,6 +47,24 @@ headless server with no rendering sensors must not need a GPU or display. A
 headless server with cameras may need an offscreen GPU. macOS/Windows follow
 after platform-neutral boundaries and Linux acceptance are established.
 
+## Built-in system activation
+
+All simulation systems are integrated into gz-sim-rs. Loaded world/model needs
+select their configuration, ECS state and schedule participation. Recognized
+legacy SDF `<plugin>` records configure built-ins; they never load a system
+library. D26 supersedes the earlier external system C ABI requirement. Native
+DART/MuJoCo engine adapters remain ordinary backend integration boundaries.
+
+An absent system has no scheduled callback, idle polling, system-owned heap state,
+worker, timer, subscription or publisher. Shared simulator infrastructure and
+compiled code are separate from per-system runtime state. Maintain demand on
+load/spawn/remove/reset events, remove participation after the last consumer,
+and reconstruct resources before the next step when demand returns. Activation
+must preserve phase order, pause/reset behavior, multiworld isolation and failures.
+Verify absence with invocation/resource counters and lifecycle checks, then measure
+CPU and memory on equal-work reference workloads. Empty ECS queries alone do not
+satisfy this requirement. See ACT-01 in IMPLEMENTATION_TASKS.md.
+
 ## Sequence and gates
 
 Each phase exits on evidence, not elapsed time. No reliable calendar estimate
@@ -55,7 +73,7 @@ CI hardware. Re-estimate after the first vertical slice.
 
 | Phase | Work | Exit evidence |
 | --- | --- | --- |
-| P0: Freeze and measure | Pin upstream main SHAs, build the C++ reference, enumerate tests and system behavior, collect baseline workloads, evaluate Avian/Rapier, resolve extension policy | Reproducible reference image and commands; complete test ledger; benchmark raw data; backend decision; explicit environment failures |
+| P0: Freeze and measure | Pin upstream main SHAs, build the C++ reference, enumerate tests and system behavior, collect baseline workloads, evaluate Avian/Rapier, define demand-driven system activation | Reproducible reference image and commands; complete test ledger; benchmark raw data; backend decision; explicit environment failures |
 | P1: Foundations and gates | Create Cargo workspace and independent repo contracts, pin versions/toolchain, implement required pre-commit/CI, time/frames/IDs, message and SDF minimums | Gate failure demonstrations; >95% coverage on initial production code; dependency graph checks; no window/GPU dependency in the core build |
 | P2: End-to-end server | Load a simple SDF world, spawn entities, step TPE and one dynamic backend, publish clock/poses and IMU through transport, pause/reset/remove | Original and Rust runs agree on selected assertions; legacy C++ transport peer interoperates; bounded queues; first measured performance report |
 | P3: Physics and robotics | Complete capability-based DART, MuJoCo, TPE, and chosen Rust integration; controllers, joints, contacts, lifecycle | Per-backend conformance results and negative capability tests; DART same-engine parity; no silent fallback; articulation and dynamic topology probes |

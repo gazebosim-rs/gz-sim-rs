@@ -21,7 +21,7 @@ The task author cannot independently retire tests or approve coverage exclusions
 | API-01 | REF-02 | Freeze minimal IDs/time/frames/errors, SDF resolver, message/transport and Fuel integration contracts | Contract fixtures; independent repos compile without Bevy; no reverse dependency |
 | QLT-01 | REF-02 | Implement staged-tree pre-commit, profile matrix, CI, coverage accounting, ledger checks | Known-bad fixtures fail; exactly 95% fails; missing profile fails; no false success from empty code |
 | CORE-01 | API-01, QLT-01 | Create minimal Cargo workspace, f64 values, stable IDs, simulation epochs and clock | Unit/property tests >95%; no-render dependency closure; documented toolchain/Bevy pairing |
-| EXT-01 | API-01 | Specify and implement native extension ABI descriptor, lifecycle and plugin host | Rust and small C/C++ sample plugins load; mismatch/stale handle/teardown tests; no Rust layouts exported |
+| EXT-01 | Superseded by D26 | Retired external system-loader task; implement ACT-01 instead | Record explicit dispositions for loader-only tests; retained system behavior remains required |
 
 ## Independent repository tasks
 
@@ -44,11 +44,12 @@ is complete. QLT-01's policy must be applied in each independent repository.
 | ID | Depends on | Assignment | Exit evidence |
 | --- | --- | --- | --- |
 | CORE-02 | CORE-01 | Bevy schedules, world ownership, spawn/remove transactions, pause/step/reset | Priority/load-order, deferred-command, timestamp, epoch, multiworld isolation tests |
+| ACT-01 | CORE-02, LOAD-01 | Built-in system demand from loaded world/models; activate/retire schedules and owned resources on structural lifecycle transitions | Absent-system zero invocation/allocation/worker/endpoint controls; last-consumer teardown; dependency/shared-consumer behavior; reactivation/reset/multiworld and equal-work CPU/memory evidence |
 | PHY-01 | CORE-01, PHY-00 | Capability API, normalized construction/command/state/query contracts | Tested unsupported-feature diagnostics; no template-framework port |
 | PHY-02 | PHY-01 | TPE behavior port using reusable geometry | Upstream TPE motion/contact/lifecycle tests and benchmark |
 | PHY-03 | PHY-01 | DART native adapter and safe ownership/threads, batched IO | Same-version upstream DART parity, FFI tests, >95% Rust and bridge evidence |
 | PHY-04 | PHY-01 | MuJoCo adapter, SDF lowering, model/state mapping and topology edits | Actual supported features verified; state preservation/rollback; native lifetime tests |
-| PHY-05 | PHY-00, PHY-01, CORE-02 | Selected Rust engine plugin and explicit stepping/precision | Capability probes, accuracy tests, sync overhead and deterministic-profile evidence |
+| PHY-05 | PHY-00, PHY-01, CORE-02 | Built-in Rust engine adapter and explicit stepping/precision | Capability probes, accuracy tests, sync overhead and deterministic-profile evidence |
 | SENSOR-01 | CORE-02, PHY-01 | Sensor scheduler, streams/seeds, shared models, IMU first | Rate/pause/reset/noise/frame tests and timestamp correctness |
 | IO-01 | CORE-02, MSG-01, NET-01 | Clock/pose publication, commands/services and bounded transport integration | Actual legacy client interoperability; ordering/backpressure/shutdown cases |
 | LOAD-01 | SDF-01, FUEL-01, CORE-02 | Validated semantic scene to ECS/backend construction; local/offline resources | Original world fixtures, failure atomicity, frame and ID checks |
@@ -88,7 +89,7 @@ fixtures, and tests before converting it.
 | SYS-WORLD | CORE-02, IO-01, ASSET-01 | Commands, scene/pose/state, attachment, lifecycle, labels and world services |
 | SYS-COMMS | IO-01, NET-02 | Acoustic/RF/perfect communications, endpoint and triggered publishing semantics |
 | SYS-MEDIA | RENDER-03, NET-02, ASSET-01 | Recording, replay, exporting, effects and scene assets; no GUI dependency |
-| SYS-EXTENSION | EXT-01 | Python/system extension migration and external-language lifecycle contract |
+| SYS-EXTENSION | API-01, ACT-01 | Retained external-language workflows and lifecycle mapping; no dynamic simulation system loader |
 
 Family completion requires all its directory entries and associated tests, not
 just one representative implementation. Split each family into individual system
@@ -101,7 +102,7 @@ or tightly coupled system packets for independent implementation/review.
 | WORLD-01 | CORE-02, IO-01 | Server configuration, world services, entity factory, assets, multiworld lifecycle | Public API/service inventory mapped; concurrent lifecycle tests |
 | WORLD-02 | WORLD-01, SYS-WORLD, NET-02 | Levels, performers, distributed stepping/state and resource behavior | Baseline distributed/levels tests; partition/disconnect/recovery and exact-step evidence |
 | LOG-01 | NET-02, IO-01, SYS-MEDIA | State and transport recording/replay, format migration | Existing logs readable, ordering/time/seek/reset and output fidelity tests |
-| SCRIPT-01 | EXT-01, WORLD-01 | Inventory Python workflows; choose focused bindings and migration path | Retained Python tests/workflows; no accidental GIL on numerical hot paths |
+| SCRIPT-01 | API-01, WORLD-01 | Inventory Python workflows; choose focused bindings and migration path | Retained Python tests/workflows; no accidental GIL on numerical hot paths |
 | CLI-01 | IO-01, MSG-02, NET-02, SDF-02 | CLI grammar, discovery/dispatch, version/help, package ownership | Existing Ruby/CLI assertions ported; direct independent commands work |
 | GUI-API-01 | WORLD-01, RENDER-01 | External GUI scene/control/asset/sensor protocol and version negotiation | Separate minimal protocol client tests; snapshot/delta resync; no GUI implementation |
 | MATH-01 | REF-02; domain demand | Audit every math header; reuse or implement documented semantic gap | Complete reuse map, exact tests, no redundant generic math library |

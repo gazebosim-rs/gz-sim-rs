@@ -25,6 +25,14 @@ implemented behavior and checks from planned release requirements.
   the exact missing semantics and tests before adding residual math or utilities.
 - Keep independent repositories free of Bevy and simulator dependencies. Shared
   value types must not create a dependency cycle through this monorepo.
+- Build simulation systems into this workspace. Do not implement a dynamic system
+  plugin loader, native system C ABI, extension host or replacement gz-plugin.
+  Recognized legacy SDF plugin records are configuration for built-in systems.
+- Activate systems only for loaded world/model requirements. An absent system has
+  no scheduled callbacks, per-tick polling, owned heap state, workers or endpoints.
+  Maintain demand through load/spawn/remove/reset transitions; release resources
+  after the last consumer and reconstruct them outside stepping when needed.
+  An empty query or a per-tick run condition alone does not meet absence criteria.
 - Use f64 for authoritative physical state, SI units, explicit frame conventions,
   and integer simulation timestamps. Rendering transforms are derived data.
 - Keep network, filesystem, and GPU waits outside the simulation's critical step.

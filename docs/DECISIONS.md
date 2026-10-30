@@ -1,6 +1,6 @@
 # Decision register
 
-Status as of 2026-10-24. `Confirmed` means the owner specified or answered it.
+Updated with the owner’s built-in system decision on 2026-10-30. `Confirmed` means the owner specified or answered it.
 `Proposed` is an architecture recommendation, not permission to remove behavior.
 `Open` blocks only the implementation that depends on that decision.
 
@@ -14,12 +14,12 @@ Status as of 2026-10-24. `Confirmed` means the owner specified or answered it.
 | D06 | Confirmed | Preserve behavior, file formats, protocols, and existing tests; new Rust APIs are allowed. No general C++ ABI promise. |
 | D07 | Confirmed | Linux first, headless and Bevy rendering; design for later macOS/Windows. |
 | D08 | Confirmed | Require >95% coverage, pre-commit enforcement, concise human code/comments, and measured performance improvement. |
-| D09 | Proposed | Retire gz-utils; retain CLI dispatch and runtime extension responsibilities as focused workspace crates. No new standalone utils/tools/plugin/common repositories. |
+| D09 | Proposed | Retire gz-utils; retain CLI dispatch and required common behavior as focused workspace modules. No new standalone utils/tools/plugin/common repositories. |
 | D10 | Proposed | Evaluate Avian and Rapier as requested. Recommend Rapier f64 after finding Avian 0.8's mixed-precision solver change; confirm with P0 probes. DART remains the parity reference where upstream uses DART. |
 | D11 | Proposed | f64 canonical state; integer simulation time; Z-up physics; explicit render-frame conversion and origin rebasing. |
 | D12 | Proposed | >95% line AND region coverage per production crate and workspace; branch coverage is additional, toolchain-dependent evidence. |
 | D13 | Confirmed | Use Gazebo main branches. Pin the inspected local main SHAs in planning/baseline.json; verify and review updates in P0 before baseline execution. |
-| D14 | Confirmed | Third-party native systems must load without rebuilding the simulator, through a narrow versioned C ABI. Built-ins use source-built Bevy plugins. |
+| D14 | Superseded by D26 | Earlier runtime-loaded system C ABI requirement is withdrawn. |
 | D15 | Confirmed | New GitHub repositories are public. Authentication now works; existing Fuel repository remains independently owned. |
 | D16 | Proposed | Linux x86_64 is the initial required execution target; add Linux aarch64 after backend/GPU availability review. Confirm supported distro and hardware during P0. |
 | D17 | Confirmed | Faithful Rust test ports may preserve fixtures, assertions, edge cases, and tolerances, verified against C++ reference runs. Explicitly dropped internals receive recorded dispositions. |
@@ -31,6 +31,7 @@ Status as of 2026-10-24. `Confirmed` means the owner specified or answered it.
 | D23 | Confirmed | Correct native TPE static-model motion and rotated-link world-velocity quirks. Keep static models immobile and honor world axes; preserve existing assertions and record native differences. Implementation and verification remain required. |
 | D24 | Confirmed | Native MuJoCo 3.11.0 is loaded at run time and built from upstream gz-physics' vendored commit (b85fdca5) with its CMake options by scripts/bootstrap-physics.py; parity fixtures compare to 1e-14, so prebuilt releases are not substituted. |
 | D25 | Confirmed | DART uses the packaged OSRF 6.13.2 build (assertions enabled). The adapter rejects inputs that would reach those assertions with explicit, documented admission limits rather than linking a different DART build; these limits may be stricter than Rapier and MuJoCo. |
+| D26 | Confirmed | All simulation systems are built into gz-sim-rs and activated by loaded world/model requirements. No dynamically loaded system libraries, system plugin host or system C ABI. An absent system has no scheduled work or system-specific runtime allocations, workers or endpoints; teardown follows its last consumer. Native engine FFI remains allowed. |
 
 ## Outstanding questions and decision triggers
 
@@ -40,8 +41,9 @@ Status as of 2026-10-24. `Confirmed` means the owner specified or answered it.
   Validate articulation, contact, determinism, integration, and latency. Avian 0.8
   does not satisfy the full-f64 solver gate; record that result without treating
   it as a release candidate. Do not assume latest means most mature.
-- Runtime plugins: the C ABI requirement is confirmed. Freeze the descriptor,
-  ownership, callback, threading, and lifecycle contracts during P1.
+- System activation: D26 supersedes D14. Implement demand-driven Bevy schedule
+  composition and resource lifetime; legacy SDF plugin records select recognized
+  built-ins without loading libraries. Preserve independent SDF metadata.
 - Test fidelity: assertion-preserving ports are confirmed. Do not build a universal
   C++ facade unless a later explicit use case justifies its cost.
 - Performance: select representative worlds and hardware in P0. Numeric targets

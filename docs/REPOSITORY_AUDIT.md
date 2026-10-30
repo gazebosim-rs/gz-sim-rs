@@ -23,12 +23,12 @@ It deliberately does not claim runtime tests have been enumerated or passed.
 | gz-gui | Out of scope | Separate user-owned replacement; retain server-facing contracts it needs |
 | gz-utils | Retire | std, clap, tracing, and ordinary Rust ownership cover the examined functionality |
 | gz-tools | Retire repo; CLI crate in workspace | Preserve dispatcher, command discovery/help/version selection where required; use executable subcommands |
-| gz-plugin | Retire repo; extension crates in workspace if runtime loading required | Bevy plugins for source integration; narrow versioned ABI for dynamic integration |
+| gz-plugin | Retire; no successor host or system ABI | Built-in demand-driven Bevy systems; recognize legacy configuration without loading libraries |
 
-The last three are architecture recommendations subject to the decision register.
-There is no demonstrated cross-project reason for another general utility or
-plugin repository at this stage. Extract one later only after at least two real,
-independent consumers establish a stable shared contract.
+gz-plugin retirement and built-in system activation are confirmed by D26.
+Remaining utility/CLI proposals follow the decision register. A general utility
+repository would need at least two independent consumers and a stable shared
+contract; this does not reopen the retired system plugin host.
 
 ## gz-utils review
 
@@ -62,7 +62,7 @@ Retain user-facing discovery and dispatch in workspace `gz-cli`, but launch
 independent executable subcommands with argument arrays, not a shell. Define a
 small versioned command manifest and collision rules. Keep help, exit status,
 stdout/stderr, signal forwarding, and version selection traceable to old tests.
-Legacy YAML support is a compatibility adapter, not the new extension ABI.
+Legacy YAML support is a configuration compatibility adapter for built-in behavior.
 
 Independent repos can ship `gz-fuel`, `gz-topic`, `gz-service`, `gz-msg`, or
 `gz-sdf`-style executables without depending on the monorepo. Final names require
@@ -75,16 +75,12 @@ The old library registers classes, queries interfaces, loads shared libraries,
 manages library/object lifetimes, supports factories, and exposes `gz plugin`.
 These behaviors are not all replaced by implementing Bevy's `Plugin` trait.
 
-Built-in systems should be source-built Bevy plugins. If runtime loading is
-required, place `gz-extension-api` and `gz-extension-host` in the workspace.
-Export opaque handles, fixed-width values, slices with explicit ownership, and
-versioned function tables through a C ABI. Never export Bevy World/Entity memory
-layouts, Rust trait objects, Vec, String, or references across that ABI.
-
-Keep loaded libraries alive until their callbacks, data, tasks, and objects are
-destroyed. Prefer no unload during a running world in the first release. Do not
-claim hot unload or binary compatibility with old gz-plugin libraries. Preserve
-configuration discovery and useful inspection through the new contract.
+D26 replaces runtime system loading with built-in gz-sim-rs modules selected by
+loaded world/model requirements. No gz-extension-api/host or system plugin SDK is
+planned. Preserve configuration discovery, inspection and retained system behavior
+through built-ins. Keep opaque SDF plugin metadata in sdformat-rs. Loader-only
+binary discovery/lifetime tests need explicit dispositions; they are not evidence
+that retained system behavior may be dropped. Native DART/MuJoCo FFI stays allowed.
 
 ## gz-common review
 
