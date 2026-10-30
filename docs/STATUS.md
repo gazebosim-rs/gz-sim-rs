@@ -578,3 +578,12 @@ This is native reference evidence, with no Rust port credit or broader REF-02
 completion. Its exact staged/hosted qualification is recorded on the tracker.
 The ABI guard overlaps the separate non-gtest baseline and is not a new unique
 registration when totals are combined.
+
+
+## Owned visual geometry
+
+Loaded visual geometry is retained as shared Bevy scene metadata, separately
+from collision construction, with original-value restoration through loaded
+reset. No renderer dependency or scheduled work is added. Source review,
+five focused controls and Clippy passed; exact staged/hosted qualification is
+recorded by revision on the tracker. See [the contract](VISUAL_GEOMETRY.md).

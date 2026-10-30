@@ -54,7 +54,7 @@ use gz_sim_core::{
     assign_id,
 };
 use sdformat::{Geometry, Model, ResourceResolver, Sdf, Transform};
-use std::{collections::BTreeMap, time::Duration};
+use std::{collections::BTreeMap, sync::Arc, time::Duration};
 
 // Semantic frame composition introduces rounding even for coincident frames.
 const POSE_TOLERANCE: f64 = 1e-12;
@@ -106,6 +106,11 @@ pub struct VisualProperties(pub sdformat::VisualProperties);
 /// Owned material data; rendering and resource loading are separate systems.
 #[derive(Component, Debug, Clone)]
 pub struct VisualMaterial(pub Box<sdformat::Material>);
+
+/// Parsed visual geometry, shared with the reset blueprint; not a collision shape.
+/// Editing this metadata does not reconfigure physics or load rendering assets.
+#[derive(Component, Debug, Clone)]
+pub struct VisualGeometry(pub Arc<Geometry>);
 
 /// Construction metadata. Editing it does not reconfigure an installed backend.
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
@@ -209,6 +214,7 @@ pub struct ImuPublication {
 struct SceneContext<'a> {
     world: &'a str,
     links: BTreeMap<String, u64>,
+    visuals: Vec<Entity>,
     noise_seed: [u8; 32],
 }
 
@@ -366,13 +372,14 @@ fn load_world_configured(
     engine: PhysicsEngine,
     noise_seed: [u8; 32],
 ) -> Result<Simulation, LoadError> {
-    let sdf = sdformat::load_str(xml, source, resolver)?;
+    let mut sdf = sdformat::load_str(xml, source, resolver)?;
     sdf.validate_non_frame_poses()?;
-    let world = sdf
+    let world_index = sdf
         .worlds
         .iter()
-        .find(|world| world.name == world_name)
+        .position(|world| world.name == world_name)
         .ok_or_else(|| LoadError::MissingWorld(world_name.into()))?;
+    let world = &sdf.worlds[world_index];
     world_systems::validate(world)?;
     // The pinned parser supplies an implicit profile when none is declared.
     let profile = world
@@ -411,6 +418,7 @@ fn load_world_configured(
     let mut context = SceneContext {
         world: world_name,
         links: BTreeMap::new(),
+        visuals: Vec::new(),
         noise_seed,
     };
     let world_entity = spawn_node(
@@ -430,6 +438,13 @@ fn load_world_configured(
         build_model(&sdf, model, &mut context, &parent, &mut sim, &mut backend)?;
     }
     sim.world_mut().insert_resource(Gravity(world.gravity));
+    let mut visuals = context.visuals.into_iter();
+    retain_visual_geometry(
+        &mut sdf.worlds[world_index].models,
+        &mut visuals,
+        sim.world_mut(),
+    );
+    debug_assert!(visuals.next().is_none());
     inputs::install(&mut sim);
     match backend {
         Some(backend) => {
@@ -457,6 +472,29 @@ fn load_world_configured(
     joint_force_lifecycle::install(&mut sim);
     initial::capture(&mut sim);
     Ok(sim)
+}
+
+fn retain_visual_geometry(
+    models: &mut [Model],
+    visuals: &mut impl Iterator<Item = Entity>,
+    world: &mut World,
+) {
+    // Frame resolution borrows the DOM. Move geometry afterward, in build_model order.
+    for model in models {
+        for link in &mut model.links {
+            for visual in &mut link.visuals {
+                let entity = visuals
+                    .next()
+                    .expect("visual was constructed from this SDF");
+                if let Some(geometry) = visual.geometry.take() {
+                    world
+                        .entity_mut(entity)
+                        .insert(VisualGeometry(Arc::new(geometry)));
+                }
+            }
+        }
+        retain_visual_geometry(&mut model.models, visuals, world);
+    }
 }
 
 fn build_model(
@@ -682,6 +720,7 @@ fn build_model(
             )?;
             sim.world_mut().entity_mut(entity).insert(AttachedPose);
             if let Some(visual) = visual {
+                context.visuals.push(entity);
                 let mut entity = sim.world_mut().entity_mut(entity);
                 entity.insert(VisualProperties(visual.properties.clone()));
                 if let Some(material) = &visual.material {

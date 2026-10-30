@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 use gz_sim_core::{EntityId, Simulation};
 use gz_sim_scene::{
-    LinkProperties, LoadError, Name, PhysicsEngine, VisualMaterial, load_world_with_sdf_step,
-    remove_model, reset_loaded_world,
+    LinkProperties, LoadError, Name, PhysicsEngine, VisualGeometry, VisualMaterial,
+    load_world_with_sdf_step, remove_model, reset_loaded_world,
 };
 use sdformat::NoResources;
+use std::sync::Arc;
 
 fn xml(flags: &str, material: &str) -> String {
     format!(
@@ -18,6 +19,134 @@ fn named(sim: &Simulation, name: &str) -> bevy_ecs::entity::Entity {
         .find(|e| e.get::<Name>().is_some_and(|n| n.0 == name))
         .unwrap()
         .id()
+}
+
+#[test]
+fn visual_geometry_is_owned_separately_from_collision_and_restored_after_edits_and_removal() {
+    for engine in [
+        PhysicsEngine::Rapier,
+        PhysicsEngine::Tpe,
+        PhysicsEngine::Dart,
+        PhysicsEngine::Mujoco,
+    ] {
+        let source = xml("", "").replace(
+            "<visual name='view'><geometry><sphere><radius>0.5</radius></sphere>",
+            "<visual name='view'><geometry><box><size>1 2 3</size></box>",
+        );
+        let mut sim =
+            load_world_with_sdf_step(&source, "geometry-source", "default", &NoResources, engine)
+                .unwrap();
+        drop(source);
+        let model = named(&sim, "default::robot");
+        let model_id = sim.world().get::<EntityId>(model).unwrap().get();
+        let visual = named(&sim, "default::robot::body::view");
+        let id = sim.world().get::<EntityId>(visual).unwrap().get();
+        let original = sim.world().get::<VisualGeometry>(visual).unwrap().0.clone();
+        assert_eq!(*original, sdformat::Geometry::Box { size: [1., 2., 3.] });
+        let weak = Arc::downgrade(&original);
+        sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+            Arc::new(sdformat::Geometry::Sphere { radius: 2.0 });
+        assert_eq!(*original, sdformat::Geometry::Box { size: [1., 2., 3.] });
+        sim.step_exact(1).unwrap();
+        reset_loaded_world(&mut sim, |_| ()).unwrap();
+        let visual = named(&sim, "default::robot::body::view");
+        assert_eq!(
+            *sim.world().get::<VisualGeometry>(visual).unwrap().0,
+            *original
+        );
+        remove_model(&mut sim, model_id).unwrap();
+        assert!(sim.world().get_entity(visual).is_err());
+        reset_loaded_world(&mut sim, |_| ()).unwrap();
+        let restored = named(&sim, "default::robot::body::view");
+        assert_eq!(sim.world().get::<EntityId>(restored).unwrap().get(), id);
+        assert_eq!(
+            *sim.world().get::<VisualGeometry>(restored).unwrap().0,
+            *original
+        );
+        drop(original);
+        drop(sim);
+        assert!(weak.upgrade().is_none());
+    }
+}
+
+#[test]
+fn absent_visual_geometry_stays_absent_after_runtime_addition_and_loaded_reset() {
+    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+        let source = xml("", "").replace(
+            "<visual name='view'><geometry><sphere><radius>0.5</radius></sphere></geometry>",
+            "<visual name='view'>",
+        );
+        let mut sim =
+            load_world_with_sdf_step(&source, "absent-geometry", "default", &NoResources, engine)
+                .unwrap();
+        let visual = named(&sim, "default::robot::body::view");
+        assert!(sim.world().get::<VisualGeometry>(visual).is_none());
+        sim.world_mut()
+            .entity_mut(visual)
+            .insert(VisualGeometry(Arc::new(sdformat::Geometry::Sphere {
+                radius: 4.0,
+            })));
+        reset_loaded_world(&mut sim, |_| ()).unwrap();
+        assert!(
+            sim.world()
+                .get::<VisualGeometry>(named(&sim, "default::robot::body::view"))
+                .is_none()
+        );
+    }
+}
+
+#[test]
+fn nested_visual_geometry_keeps_order_absence_and_unresolved_mesh_metadata() {
+    let source = include_str!("fixtures/nested.sdf")
+        .replace("<visual name=\"v\">", "<visual name=\"absent\"/><visual name=\"v\">")
+        .replace(
+            "<geometry><sphere/></geometry></visual>",
+            "<geometry><mesh><uri>file:///missing.dae</uri><scale>2 3 4</scale></mesh></geometry></visual><visual name='box'><geometry><box><size>1 2 3</size></box></geometry></visual>",
+        )
+        .replace("<link name=\"c\">", "<link name=\"c\"><visual name='other'><geometry><sphere><radius>4</radius></sphere></geometry></visual>");
+    let mut sim = load_world_with_sdf_step(
+        &source,
+        "nested-geometry",
+        "default",
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    drop(source);
+    for reset in [false, true] {
+        if reset {
+            reset_loaded_world(&mut sim, |_| ()).unwrap();
+        }
+        assert!(
+            sim.world()
+                .get::<VisualGeometry>(named(&sim, "default::outer::inner::a::absent"))
+                .is_none()
+        );
+        let geometry = sim
+            .world()
+            .get::<VisualGeometry>(named(&sim, "default::outer::inner::a::v"))
+            .unwrap();
+        let sdformat::Geometry::Mesh(mesh) = geometry.0.as_ref() else {
+            panic!("visual mesh metadata was replaced by another visual's geometry")
+        };
+        assert_eq!(mesh.uri, "file:///missing.dae");
+        assert_eq!(mesh.scale, [2., 3., 4.]);
+        assert_eq!(mesh.source.uri, "nested-geometry");
+        assert_eq!(
+            *sim.world()
+                .get::<VisualGeometry>(named(&sim, "default::outer::inner::a::box"))
+                .unwrap()
+                .0,
+            sdformat::Geometry::Box { size: [1., 2., 3.] }
+        );
+        assert_eq!(
+            *sim.world()
+                .get::<VisualGeometry>(named(&sim, "default::outer::other::c::other"))
+                .unwrap()
+                .0,
+            sdformat::Geometry::Sphere { radius: 4. }
+        );
+    }
 }
 
 #[test]

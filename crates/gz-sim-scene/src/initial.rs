@@ -64,6 +64,7 @@ struct Node {
     publication: Option<ImuPublication>,
     visual: Option<VisualProperties>,
     material: Option<VisualMaterial>,
+    visual_geometry: Option<VisualGeometry>,
     link_properties: Option<LinkProperties>,
 }
 
@@ -145,6 +146,7 @@ pub(super) fn capture(sim: &mut Simulation) {
             publication: entity.get::<ImuPublication>().cloned(),
             visual: entity.get::<VisualProperties>().cloned(),
             material: entity.get::<VisualMaterial>().cloned(),
+            visual_geometry: entity.get::<VisualGeometry>().cloned(),
             link_properties: entity.get::<LinkProperties>().copied(),
         });
     }
@@ -345,6 +347,9 @@ pub fn reset_loaded_world<R>(
         }
         if let Some(material) = &node.material {
             entity.insert(material.clone());
+        }
+        if let Some(geometry) = &node.visual_geometry {
+            entity.insert(geometry.clone());
         }
         if let Some(properties) = node.link_properties {
             entity.insert(properties);
