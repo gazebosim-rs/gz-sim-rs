@@ -390,14 +390,20 @@ impl DynamicBackend for RapierBackend {
 
     fn step(&mut self, dt: Duration) -> Result<(), PhysicsError> {
         if !dt.is_zero() {
+            let torques = self.joints.prepare_efforts(&self.world, &self.bodies)?;
             if self.joints.construction_open() {
                 self.joints.initialize_velocities(&mut self.world);
             }
             self.joints.close();
+            for (id, torque) in torques {
+                self.world.bodies[self.bodies[&id].0].add_torque(torque, true);
+                self.pending_wrenches.insert(id);
+            }
             self.world.integration_parameters.dt = dt.as_secs_f64();
             self.world.step_with_events(&collision::Groups, &());
             self.joints.finish_velocities(&mut self.world);
             self.joints.update(&self.world, &self.bodies);
+            self.joints.consume_efforts();
             for id in std::mem::take(&mut self.pending_wrenches) {
                 if let Some((handle, ..)) = self.bodies.get(&id) {
                     let body = &mut self.world.bodies[*handle];
@@ -407,6 +413,10 @@ impl DynamicBackend for RapierBackend {
             }
         }
         Ok(())
+    }
+
+    fn add_joint_effort(&mut self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
+        self.joints.add_effort(id, torque, &self.bodies)
     }
 
     fn add_world_revolute(

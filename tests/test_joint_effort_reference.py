@@ -31,3 +31,9 @@ class JointEffortReference(unittest.TestCase):
         self.assertEqual(fixture['mujoco_commit'], bootstrap.MUJOCO_COMMIT)
         self.assertEqual(fixture['version'], bootstrap.MUJOCO_VERSION)
         self.assertEqual([row['effort'] for row in fixture['observations']], [1.5, 0, -3, 0, 2, 0])
+
+    def test_rapier_rate_fixture_is_the_bound_native_dart_oracle(self):
+        relative = 'tests/fixtures/joint_effort.json'
+        native = ROOT / 'crates/gz-physics-dart' / relative
+        rapier = ROOT / 'crates/gz-physics-rapier' / relative
+        self.assertEqual(rapier.read_bytes(), native.read_bytes())

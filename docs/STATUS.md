@@ -19,8 +19,9 @@ runtime-library pinning has direct subprocess tests; see [DART.md](DART.md).
 
 DART and MuJoCo world hinges accept deferred additive generalized effort commands,
 with adapter-specific native failure behavior and reset/retirement controls.
-Other adapters currently report this capability unsupported; see
-[JOINT_EFFORT.md](JOINT_EFFORT.md). Finite limit editing is still unimplemented.
+Rapier also supports world/fixed-parent effort on impulse and reduced-coordinate
+hinges, with explicit moving-parent refusal; see [JOINT_EFFORT.md](JOINT_EFFORT.md).
+Finite limit editing and moving-parent actuation remain unimplemented.
 
 The DART solve boundary also bounds active angular inverse response in mixed
 contact groups. Tiny geometry can otherwise hide that response from the contact

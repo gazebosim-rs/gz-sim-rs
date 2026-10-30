@@ -61,6 +61,7 @@ struct Joint {
 
 pub(super) struct Joints {
     records: BTreeMap<JointId, Joint>,
+    efforts: BTreeMap<JointId, f64>,
     anchor: Option<RigidBodyHandle>,
     world_roots: BTreeMap<BodyId, WorldRoot>,
     next: u64,
@@ -70,6 +71,7 @@ impl Default for Joints {
     fn default() -> Self {
         Self {
             records: BTreeMap::new(),
+            efforts: BTreeMap::new(),
             anchor: None,
             world_roots: BTreeMap::new(),
             next: 0,
@@ -83,6 +85,62 @@ pub(super) struct InitialJoints {
     next: u64,
 }
 impl Joints {
+    pub(super) fn add_effort(
+        &mut self,
+        id: JointId,
+        torque: f64,
+        bodies: &BTreeMap<BodyId, BodyEntry>,
+    ) -> Result<(), PhysicsError> {
+        let joint = self.records.get(&id).ok_or(PhysicsError::MissingJoint)?;
+        // Holding a world couple does not qualify effort on a moving joint axis.
+        if joint
+            .initial
+            .parent
+            .is_some_and(|parent| bodies[&parent].1.mass.is_some())
+        {
+            return Err(PhysicsError::Unsupported {
+                engine: "rapier",
+                capability: "moving-parent joint effort commands",
+            });
+        }
+        let next = self.efforts.get(&id).copied().unwrap_or(0.0) + torque;
+        if !torque.is_finite() || !next.is_finite() {
+            return Err(PhysicsError::InvalidValue);
+        }
+        self.efforts.insert(id, next);
+        Ok(())
+    }
+
+    pub(super) fn prepare_efforts(
+        &self,
+        world: &PhysicsWorld,
+        bodies: &BTreeMap<BodyId, BodyEntry>,
+    ) -> Result<BTreeMap<BodyId, Vector>, PhysicsError> {
+        let mut torques = BTreeMap::<BodyId, Vector>::new();
+        for (&id, &effort) in &self.efforts {
+            let joint = self.records[&id].initial;
+            let rotation = joint.parent.map_or(Rotation::IDENTITY, |parent| {
+                *world.bodies[bodies[&parent].0].rotation()
+            });
+            let torque = rotation * joint.frame1.rotation * Vector::X * effort;
+            let next = torques.entry(joint.child).or_default();
+            *next += torque;
+            if !finite(next.to_array()) {
+                return Err(PhysicsError::InvalidValue);
+            }
+        }
+        for (&id, torque) in &torques {
+            if !finite((world.bodies[bodies[&id].0].user_torque() + *torque).to_array()) {
+                return Err(PhysicsError::InvalidValue);
+            }
+        }
+        Ok(torques)
+    }
+
+    pub(super) fn consume_efforts(&mut self) {
+        self.efforts.clear();
+    }
+
     pub(super) fn update(&mut self, world: &PhysicsWorld, bodies: &BTreeMap<BodyId, BodyEntry>) {
         for joint in self.records.values_mut() {
             let current = angle(world, joint.handle, joint.initial, bodies);
@@ -171,6 +229,7 @@ impl Joints {
             .collect();
         Self {
             records,
+            efforts: BTreeMap::new(),
             anchor,
             world_roots,
             next: initial.next,
@@ -194,6 +253,7 @@ impl Joints {
                 true
             }
         });
+        self.efforts.retain(|id, _| self.records.contains_key(id));
         survivors
     }
     pub(super) fn release_unused_anchor(&mut self, world: &mut PhysicsWorld) {
@@ -391,6 +451,7 @@ impl RapierBackend {
         let Some(joint) = self.joints.records.remove(&id) else {
             return false;
         };
+        self.joints.efforts.remove(&id);
         match joint.handle {
             Handle::Impulse(handle) => {
                 self.world.remove_impulse_joint(handle);

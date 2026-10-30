@@ -5,8 +5,9 @@
 
 `DynamicBackend::add_joint_effort(id, torque)` accumulates generalized torque in
 Nm, positive along increasing joint angle. DART and MuJoCo support their existing
-world revolutes. Other adapters currently return `Unsupported`; no backend is selected
-implicitly. This API does not enable finite position limits or new joint types.
+world revolutes. Rapier supports world and fixed-parent revolutes with either
+impulse or reduced coordinates. Moving-parent Rapier effort remains explicitly
+unsupported. This API does not enable finite position limits or new joint types.
 
 DART stores commands by stable joint ID, separately from world wrenches. Scalar
 inputs and their accumulated sum must be finite and at most 1e60 in magnitude.
@@ -40,17 +41,37 @@ or retry, while world wrenches keep their existing attempted-step consumption.
 This is not DART's previous-state rollback. No automatic retry or new solver
 setting is introduced.
 
+## Rapier
+
+Rapier stores finite scalar commands with finite accumulation by stable joint ID.
+For world and fixed-parent hinges, the joint axis stays fixed in world coordinates;
+a world torque along that axis is the work-conjugate generalized force. The
+mapping uses the parent's actual rotation and the stored joint frame. Before
+stepping, it validates all accumulated child torques and their combination with
+existing world wrenches. A failed combination preserves state and both queues.
+The advancing step consumes effort once and clears the touched user wrenches
+through the existing path. Zero steps preserve it; joint/body retirement and
+both reset paths discard it. Initial-state capture excludes pending commands,
+and foreign reset errors leave them intact.
+
+Joints with dynamic parents reject effort before scalar validation, even when
+currently stationary. A private world-couple prototype passed simple coaxial
+controls but failed a retained rotating-parent physical probe. The mapping across
+solver stages and native integration fidelity remain unqualified. Moving-parent
+effort stays unsupported until that conformance work is complete. Solver and
+integrator settings remain unchanged.
+
 ## Evidence
 
 The public controls cover analytic inertia/sign, accumulation, normalized axes,
 rotated offset-hinge pose/twist, combined world torque, both reset paths, joint
 and body retirement, stale IDs, scalar and combined overflow, zero steps, native
-refusal/retry and the explicit unsupported adapter path. Existing assertions and
+refusal/retry and the explicit unsupported capability path. Existing assertions and
 solver settings are unchanged. No original-test credit is added by these controls.
 
 `tests/fixtures/joint_effort.cc` uses the actual pinned Gazebo DART plugin's
 `SetForce`, then `ForwardStep` at 1 ms. Six positive/negative/zero force pulses
-match Rust joint position and velocity within 1e-12. The oracle binds its C++
+match DART adapter joint position and velocity within 1e-12. The oracle binds its C++
 source hash and upstream physics SHA; the normal tooling suite checks both.
 
 Reproduce from the repository root with the pinned native source/build/install:
@@ -82,3 +103,23 @@ python3 scripts/probe-mujoco-effort.py \
 
 The SDK root is the source/build/install tree made by `bootstrap-physics.py`.
 These are functional and lifetime controls, not performance acceptance.
+
+The Rapier controls cover both solver representations, analytic world/fixed-parent
+rates, rotated parent/child frames, scalar and shared-child overflow, world-wrench
+combination, zero steps, capture/preparation/reset, foreign owners, joint/body
+retirement and retained effort after unrelated retirement. The former temporary
+Rapier Unsupported predicate was changed only after an independent fresh replay
+approved the identical input, unchanged immediate-state/motion predicates and
+added analytic 10.3125 rad/s result. Broader moving-parent probes remain private
+failure evidence, not passing acceptance or an original-test mapping.
+
+Rapier also matches the six existing DART C++ force-pulse velocities within
+1e-12 for both solver representations. Its packaged fixture is byte-identical
+to the native oracle checked against source and baseline; tooling rejects a stale copy. This
+compares rates only: each engine retains its own position integration, and no
+cross-engine position equivalence is inferred from this control.
+
+Independent final review passed the whole 69-test Rapier suite, a final replay of
+all ten new controls, the folded DART predicate, three fixture checks and six
+fresh C++ plugin observations with native provenance checks. The normal staged
+hook and exact hosted qualification remain required before acceptance.

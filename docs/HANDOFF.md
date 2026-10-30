@@ -26,8 +26,8 @@ by a successful advancing step, and retired with the joint/body or either reset.
 DART checks its temporary world-wrench overlay before native mutation; MuJoCo
 resolves current DOF addresses after model settlement. Public lifecycle/physical
 controls and both C++ pulse oracles are documented in
-[JOINT_EFFORT.md](JOINT_EFFORT.md). Other adapters retain explicit `Unsupported`;
-there is no moving-parent or finite-limit claim. Required staged/hosted evidence
+[JOINT_EFFORT.md](JOINT_EFFORT.md). Rapier's extension covers world/fixed-parent
+impulse and reduced hinges. Moving-parent effort and finite limits remain open. Required staged/hosted evidence
 and accepted status are recorded on the public dashboard.
 
 The DART runtime guard also checks active angular rows in contact-bearing groups

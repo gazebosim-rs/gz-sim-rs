@@ -152,7 +152,7 @@ fn native_refusal_preserves_effort_and_unrelated_body_wrench_for_retry() {
     assert!((b.state(free).unwrap().velocity[0] - 0.001).abs() < 1e-12);
 }
 #[test]
-fn unsupported_rapier_effort_rejects_without_changing_motion() {
+fn rapier_effort_is_deferred_with_precise_input_errors() {
     let mut b = gz_physics_rapier::RapierBackend::new([0.0; 3]).unwrap();
     let body = b
         .spawn_link(
@@ -176,18 +176,20 @@ fn unsupported_rapier_effort_rejects_without_changing_motion() {
     for id in [joint, JointId::from_raw(u64::MAX)] {
         for value in [0.0, 5.0, f64::NAN] {
             let engine: &mut dyn DynamicBackend = &mut b;
-            assert!(matches!(
-                engine.add_joint_effort(id, value),
-                Err(PhysicsError::Unsupported {
-                    engine: "rapier",
-                    ..
-                })
-            ));
+            let result = engine.add_joint_effort(id, value);
+            if id == JointId::from_raw(u64::MAX) {
+                assert_eq!(result, Err(PhysicsError::MissingJoint));
+            } else if value.is_nan() {
+                assert_eq!(result, Err(PhysicsError::InvalidValue));
+            } else {
+                assert_eq!(result, Ok(()));
+            }
             assert_eq!((engine.state(body), engine.joint_state(joint)), before);
         }
     }
     b.step(Duration::from_millis(1)).unwrap();
     assert!(b.joint_state(joint).unwrap().position > 0.005);
+    assert!((b.joint_state(joint).unwrap().velocity - 10.3125).abs() < 1e-12);
 }
 
 #[test]
