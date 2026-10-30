@@ -264,11 +264,11 @@ std::unique_ptr<World> new_world(const Twist &gravity, const Limits &limits) {
 }
 
 dart::dynamics::BodyNode &World::body(std::size_t slot) const {
-  const auto &skeleton = slots_.at(slot);
-  if (!skeleton) {
+  const auto &node = slots_.at(slot);
+  if (!node) {
     throw std::out_of_range("removed body slot " + std::to_string(slot));
   }
-  return *skeleton->getRootBodyNode();
+  return *node;
 }
 
 std::size_t World::add_body(const BodyConfig &config) {
@@ -283,7 +283,7 @@ std::size_t World::add_body(const BodyConfig &config) {
     world_->removeSkeleton(skeleton);
     throw;
   }
-  slots_.push_back(skeleton);
+  slots_.emplace_back(skeleton->getRootBodyNode());
   return slots_.size() - 1;
 }
 
@@ -336,9 +336,12 @@ void World::build(dart::dynamics::Skeleton &skeleton,
 }
 
 void World::remove_body(std::size_t slot) {
-  principal_.erase(&body(slot));
+  auto &node = body(slot);
+  principal_.erase(&node);
   OdeLock lock(odeMutex());
-  world_->removeSkeleton(slots_[slot]);
+  // Current admission keeps one body per skeleton. Articulation needs subtree
+  // retirement instead of removing the whole skeleton from the world.
+  world_->removeSkeleton(node.getSkeleton());
   slots_[slot] = nullptr;
 }
 

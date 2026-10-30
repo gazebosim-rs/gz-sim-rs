@@ -94,7 +94,8 @@ class World {
   dart::simulation::WorldPtr world_;
   // Owned by world_.
   GuardedSolver *solver_ = nullptr;
-  std::vector<dart::dynamics::SkeletonPtr> slots_;
+  // Native body references follow a body when DART moves it between skeletons.
+  std::vector<dart::dynamics::BodyNodePtr> slots_;
 };
 
 std::unique_ptr<World> new_world(const Twist &gravity, const Limits &limits);

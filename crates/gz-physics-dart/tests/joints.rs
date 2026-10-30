@@ -60,6 +60,46 @@ fn pendulum() -> (Simulation, BodyId, JointId) {
 }
 
 #[test]
+fn retiring_one_slot_does_not_change_other_body_handles_across_joint_rebuilds() {
+    let mut backend = DartBackend::new([0.0; 3]).unwrap();
+    let mut bodies = Vec::new();
+    for x in [0.0, 10.0, 20.0] {
+        bodies.push(
+            backend
+                .spawn_link(
+                    BodySpec {
+                        shape: Shape::Sphere { radius: 0.1 },
+                        position: [x, 0.0, 0.0],
+                        velocity: [0.0; 3],
+                        mass: Some(1.0),
+                    },
+                    RotationSpec::default(),
+                    None,
+                )
+                .unwrap(),
+        );
+    }
+    let bodies: [BodyId; 3] = bodies.try_into().unwrap();
+    let before = bodies.map(|id| backend.state(id).unwrap());
+    let initial = backend.initial_state();
+    let joint = backend
+        .add_world_revolute(bodies[1], [10.0, 0.0, 0.0], [0.0, 0.0, 1.0])
+        .unwrap();
+    assert_eq!(backend.state(bodies[0]), Some(before[0]));
+    assert_eq!(backend.state(bodies[2]), Some(before[2]));
+    assert!(backend.remove(bodies[0]));
+    assert!(!backend.remove(bodies[0]));
+    assert!(backend.remove_joint(joint));
+    assert_eq!(backend.state(bodies[1]), Some(before[1]));
+    assert_eq!(backend.state(bodies[2]), Some(before[2]));
+    let prepared = backend.prepare_initial(&initial).unwrap();
+    backend.apply_initial(prepared).unwrap();
+    for (id, expected) in bodies.into_iter().zip(before) {
+        assert_eq!(backend.state(id), Some(expected));
+    }
+}
+
+#[test]
 fn world_revolute_keeps_anchor_and_small_angle_energy_and_resets_its_reference() {
     let (mut sim, body, joint) = pendulum();
     let initial = dart(&sim).state(body).unwrap();
