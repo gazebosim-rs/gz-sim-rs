@@ -1,6 +1,8 @@
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
 import importlib.util
+import subprocess
+import tempfile
 from pathlib import Path
 import unittest
 
@@ -50,18 +52,71 @@ class CoverageGate(unittest.TestCase):
         diff = """--- a/src/one.rs
 +++ b/src/one.rs
 @@ -3,2 +3,3 @@
+-old
+-old
++new
++new
++new
 @@ -8 +9 @@
+-old
++new
 --- a/src/old.rs
 +++ /dev/null
 @@ -1,8 +0,0 @@
+-a
+-b
+-c
+-d
+-e
+-f
+-g
+-h
 --- /dev/null
 +++ b/src/new.rs
 @@ -0,0 +1,2 @@
++first
++second
 """
         self.assertEqual(verify.changed_lines(diff), {
             "src/one.rs": {3, 4, 5, 9}, "src/new.rs": {1, 2}})
         with self.assertRaises(ValueError):
             verify.changed_lines('+++ "unsupported path"\n@@ -0,0 +1 @@')
+        with self.assertRaisesRegex(ValueError, "unsupported quoted diff path"):
+            verify.changed_lines('--- /dev/null\n+++ "unsupported path"\n@@ -0,0 +1 @@\n+x\n')
+
+    def test_hunk_data_cannot_impersonate_headers(self):
+        diff = "--- a/real.rs\n+++ b/real.rs\n@@ -1 +1 @@\n--- a/fake.rs\n+++ b/fake.rs\n@@ -8 +8 @@\n-old\n+new\n"
+        self.assertEqual(verify.changed_lines(diff), {"real.rs": {1, 8}})
+        context = "--- a/a.rs\n+++ b/a.rs\n@@ -1,2 +1,2 @@\n same\n-old\n+new\n\\ No newline at end of file\n"
+        self.assertEqual(verify.changed_lines(context), {"a.rs": {1, 2}})
+
+    def test_malformed_hunks_fail_closed(self):
+        header = "--- a/a.rs\n+++ b/a.rs\n"
+        for body in ("@@ -1 +1 @@\n", "@@ -1 +1 @@\n+x\n",
+                     "@@ -0,0 +1 @@\n+x\n+extra\n",
+                     "@@ -1,0 +1 @@\n-old\n+new\n",
+                     "@@ nonsense\n", "@@ -1 +1 @@\n-old\n@@ -2 +2 @@\n"):
+            with self.subTest(body=body), self.assertRaises(ValueError):
+                verify.changed_lines(header + body)
+        with self.assertRaises(ValueError):
+            verify.changed_lines("@@ -0,0 +1 @@\n+x\n")
+
+    def test_real_git_raw_string_preserves_later_hunk_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return subprocess.check_output(["git", *args], cwd=root, text=True)
+            git("init", "-q")
+            path = root / "real.rs"
+            original = ['const TEXT: &str = r#"', "before", '"#;'] + ["// gap"] * 12 + ["fn f() { old(); }"]
+            path.write_text("\n".join(original) + "\n")
+            git("add", "real.rs")
+            modified = original.copy()
+            modified[1] = "++ b/fake.rs"
+            modified[-1] = "fn f() { changed(); }"
+            path.write_text("\n".join(modified) + "\n")
+            diff = git("diff", "--no-ext-diff", "--unified=0")
+            self.assertEqual(verify.changed_lines(diff), {"real.rs": {2, 16}})
 
     def test_changed_coverage_is_strict_and_independent_per_crate(self):
         a, b = verify.ROOT / "a.rs", verify.ROOT / "b.rs"
