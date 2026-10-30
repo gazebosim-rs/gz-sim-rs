@@ -10,6 +10,7 @@
 #include <cmath>
 #include <iostream>
 #include "body_revolute_identity.hh"
+#include "../../src/joint_state.hh"
 
 int main() {
   using namespace dart::dynamics;
@@ -70,6 +71,31 @@ int main() {
       assert(impulse.dot(observed) <= bound + 1e-10);
       skeleton->setVelocities(initial);
     }
+  }
+  // Exercise both a terminal and a nonterminal joint with moving ancestors.
+  // Targets made from the native Jacobian have known joint rates.
+  for (const auto &entry : {std::pair<BodyNode *, Joint *>{upper, upper_joint},
+                            {lower, lower_joint}}) {
+    const auto jacobian = entry.first->getWorldJacobian(entry.first->getLocalCOM());
+    const auto joint_index = entry.second->getIndexInSkeleton(0);
+    Eigen::VectorXd target_rates = initial;
+    target_rates[joint_index] = 1.25;
+    Eigen::Vector6d target_twist = Eigen::Vector6d::Zero();
+    for (std::size_t i = 0; i < entry.first->getNumDependentGenCoords(); ++i)
+      target_twist += jacobian.col(i) * target_rates[entry.first->getDependentGenCoordIndex(i)];
+    gz_physics_dart::setJointTwist(*entry.first, target_twist);
+    assert((skeleton->getVelocities() - target_rates).norm() < 1e-10);
+    skeleton->setVelocities(initial);
+  }
+  Eigen::Vector6d impulse;
+  impulse << 0.2, -0.4, 0.1, -0.3, 0.5, 0.7;
+  for (auto *node : {upper, lower}) {
+    const auto jacobian = node->getWorldJacobian(node->getLocalCOM());
+    Eigen::MatrixXd expanded = Eigen::MatrixXd::Zero(6, 8);
+    for (std::size_t i = 0; i < node->getNumDependentGenCoords(); ++i)
+      expanded.col(node->getDependentGenCoordIndex(i)) = jacobian.col(i);
+    const Eigen::VectorXd expected = initial + factor.solve(expanded.transpose() * impulse);
+    assert((gz_physics_dart::impulseVelocity(*node, impulse) - expected).norm() < 1e-10);
   }
   std::cout << "expanded dependent Jacobians match native point impulse response\n";
 }

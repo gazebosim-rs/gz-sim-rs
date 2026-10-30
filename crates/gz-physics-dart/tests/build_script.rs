@@ -67,6 +67,7 @@ fn link_directives_pin_the_libdir_ahead_of_ld_library_path() {
     position("cargo:rustc-env=GZ_PHYSICS_DART_ODE_LIBDIR=/opt/ode/lib");
     position("cargo:rustc-link-lib=dart-external-odelcpsolver");
     position("cargo:rerun-if-changed=src/bridge.cc");
+    position("cargo:rerun-if-changed=src/joint_state.hh");
     for package in ["dart", "ode"] {
         let error = build_script::variable(package, "no-such-variable").unwrap_err();
         assert!(error.starts_with(&format!("{package}.pc")), "{error}");

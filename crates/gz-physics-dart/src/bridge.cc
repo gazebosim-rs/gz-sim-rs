@@ -6,6 +6,7 @@
 // for the subset of features the Rust adapter exposes.
 
 #include "gz-physics-dart/include/bridge.h"
+#include "joint_state.hh"
 
 #include <cmath>
 #include <dlfcn.h>
@@ -147,15 +148,6 @@ bool bounded(dart::dynamics::BodyNode &body, double limit, Change change) {
   }
   skeleton->setVelocities(previous);
   return false;
-}
-
-// A world revolute takes the joint rate whose COM twist best fits `velocity`.
-void setHingeVelocity(dart::dynamics::BodyNode &body, const Twist &velocity) {
-  const dart::math::Jacobian jacobian =
-      body.getWorldJacobian(body.getLocalCOM());
-  const double rate =
-      jacobian.col(0).dot(spatial(velocity)) / jacobian.col(0).squaredNorm();
-  body.getSkeleton()->setVelocities(Eigen::VectorXd::Constant(1, rate));
 }
 
 Twist comTwist(const dart::dynamics::BodyNode &body) {
@@ -354,7 +346,7 @@ bool World::set_velocity(std::size_t slot, const Twist &velocity) {
     if (isFree(node)) {
       setFreeVelocity(node, velocity);
     } else {
-      setHingeVelocity(node, velocity);
+      setJointTwist(node, spatial(velocity));
     }
   });
 }
@@ -379,11 +371,7 @@ bool World::apply_impulse(std::size_t slot, const Twist &impulse) {
                    [&] { setFreeVelocity(node, next); });
   }
   auto skeleton = node.getSkeleton();
-  const Eigen::VectorXd next =
-      skeleton->getVelocities() +
-      skeleton->getInvMassMatrix() *
-          node.getWorldJacobian(node.getLocalCOM()).transpose() *
-          spatial(impulse);
+  const Eigen::VectorXd next = impulseVelocity(node, spatial(impulse));
   if (!within(next, limits_.magnitude)) {
     return false;
   }
@@ -430,7 +418,7 @@ bool World::add_revolute(std::size_t slot, const Twist &anchor_axis) {
   // moveTo starts the new joint at rest; keep the motion the hinge allows.
   // A constraint only lowers the inverse effective mass at existing contacts,
   // which the spawn check already bounded, so no new contact check is needed.
-  setHingeVelocity(child, velocity);
+  setJointTwist(child, spatial(velocity));
   return true;
 }
 
@@ -439,22 +427,21 @@ bool World::remove_revolute(std::size_t slot) {
   if (isFree(child)) {
     throw std::logic_error("body has no world revolute");
   }
-  const auto skeleton = child.getSkeleton();
   auto &hinge = static_cast<dart::dynamics::RevoluteJoint &>(*child.getParentJoint());
   const auto hingeProperties = hinge.getRevoluteJointProperties();
   const Eigen::Isometry3d parent = hinge.getTransformFromParentBodyNode();
   const Eigen::Isometry3d attached = hinge.getTransformFromChildBodyNode();
-  const Eigen::VectorXd positions = skeleton->getPositions();
-  const Eigen::VectorXd velocities = skeleton->getVelocities();
+  const double position = hinge.getPosition(0);
+  const double velocity = hinge.getVelocity(0);
   const Eigen::Isometry3d pose = child.getWorldTransform();
-  const Twist velocity = comTwist(child);
+  const Twist twist = comTwist(child);
   dart::dynamics::FreeJoint::Properties properties;
   properties.mName = child.getName() + "_FreeJoint";
   std::unique_lock<std::mutex> lock(odeMutex());
   auto *joint =
       child.moveTo<dart::dynamics::FreeJoint>(nullptr, properties);
   joint->setTransform(pose);
-  setFreeVelocity(child, velocity);
+  setFreeVelocity(child, twist);
   lock.unlock();
   // Freed, the body meets its contacts with a larger inverse effective mass.
   if (contactsConditioned()) {
@@ -464,8 +451,8 @@ bool World::remove_revolute(std::size_t slot) {
   auto *restored = child.moveTo<dart::dynamics::RevoluteJoint>(nullptr, hingeProperties);
   restored->setTransformFromParentBodyNode(parent);
   restored->setTransformFromChildBodyNode(attached);
-  skeleton->setPositions(positions);
-  skeleton->setVelocities(velocities);
+  restored->setPosition(0, position);
+  restored->setVelocity(0, velocity);
   return false;
 }
 

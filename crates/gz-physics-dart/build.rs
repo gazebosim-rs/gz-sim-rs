@@ -116,7 +116,12 @@ pub(crate) fn link_directives(libdir: &Path, ode_libdir: &Path) -> Vec<String> {
         // Downstream build scripts read this as DEP_DART_LIBDIR to pin binaries.
         format!("cargo:libdir={libdir}"),
     ];
-    for path in ["src/ffi.rs", "src/bridge.cc", "include/bridge.h"] {
+    for path in [
+        "src/ffi.rs",
+        "src/bridge.cc",
+        "src/joint_state.hh",
+        "include/bridge.h",
+    ] {
         lines.push(format!("cargo:rerun-if-changed={path}"));
     }
     lines

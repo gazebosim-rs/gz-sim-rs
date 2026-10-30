@@ -400,3 +400,44 @@ fn hinge_construction_keeps_the_body_motion_it_allows_like_rapier() {
         "{dart:?} versus {rapier:?}"
     );
 }
+
+#[test]
+fn rotated_offset_hinge_projects_velocity_and_impulse_at_current_pose() {
+    let mut backend = DartBackend::new([0.0; 3]).unwrap();
+    let body = backend
+        .spawn_link(
+            BodySpec {
+                shape: Shape::Sphere { radius: 0.1 },
+                position: [1.0, 0.0, 0.0],
+                velocity: [0.0; 3],
+                mass: Some(1.0),
+            },
+            RotationSpec::default(),
+            Some(Inertia {
+                center: [0.0; 3],
+                orientation: [0.0, 0.0, 0.0, 1.0],
+                tensor: [0.004, 0.004, 0.004, 0.0, 0.0, 0.0],
+            }),
+        )
+        .unwrap();
+    let joint = backend
+        .add_world_revolute(body, [0.0; 3], [0.0, 0.0, 1.0])
+        .unwrap();
+    backend
+        .set_world_velocity(body, [0.0, 1.0, 0.0], [0.0, 0.0, 1.0])
+        .unwrap();
+    for _ in 0..100 {
+        backend.step(Duration::from_millis(10)).unwrap();
+    }
+    let position = backend.state(body).unwrap().position;
+    assert!(position[1] > 0.8);
+    let tangent = [-position[1], position[0], 0.0];
+    backend
+        .set_world_velocity(body, tangent.map(|v| 2.0 * v), [0.0, 0.0, 2.0])
+        .unwrap();
+    assert!((backend.joint_state(joint).unwrap().velocity - 2.0).abs() < 1e-12);
+    backend
+        .apply_impulse(body, tangent.map(|v| 1.004 * v), [0.0; 3])
+        .unwrap();
+    assert!((backend.joint_state(joint).unwrap().velocity - 3.0).abs() < 1e-12);
+}
