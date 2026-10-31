@@ -1,26 +1,16 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use std::{
-    net::UdpSocket,
     path::Path,
-    process::{Child, Command, Output, Stdio},
+    process::{Child, Command, Output},
     thread,
     time::{Duration, Instant},
 };
 
-// Keep the port reserved while transport binds its reusable discovery socket.
-// A bare temporary socket dropped before startup leaves a port-stealing race.
-fn discovery_socket() -> UdpSocket {
-    let socket = UdpSocket::bind("0.0.0.0:0").unwrap();
-    socket2::SockRef::from(&socket)
-        .set_reuse_address(true)
-        .unwrap();
-    #[cfg(target_os = "linux")]
-    socket2::SockRef::from(&socket)
-        .set_multicast_all_v4(false)
-        .unwrap();
-    socket
-}
+mod support;
+#[path = "../../../tests/support/zenoh_peer.rs"]
+mod zenoh_peer;
+use support::{Network, Samples};
 
 struct Process(Option<Child>);
 
@@ -45,64 +35,41 @@ impl Drop for Process {
     }
 }
 
+// ZEN-01 (Root): direct root-clock election must meet this retained C++ contract.
 #[test]
 fn cpp_peer_steps_the_paused_executable_and_signals_shutdown_cleanly() {
+    use gz_sim_proto::{msgs::Clock, prost::Message};
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let build = Command::new("python3")
-        .arg(root.join("scripts/native-peer.py"))
-        .output()
-        .unwrap();
-    assert!(build.status.success(), "{build:?}");
-    let prefix = std::env::var_os("GZ_REFERENCE_PREFIX")
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
+    let native = zenoh_peer::NativePeer::build(&root, "clock");
     for (engine, signal) in [
         ("tpe", "-INT"),
         ("rapier", "-TERM"),
         ("dart", "-INT"),
         ("mujoco", "-TERM"),
     ] {
-        let message = discovery_socket();
-        let service = discovery_socket();
-        let environment = [
-            (
-                "GZ_PARTITION",
-                format!("cli-native-{}-{engine}", std::process::id()),
-            ),
-            ("GZ_IP", "127.0.0.1".to_owned()),
-            ("GZ_TRANSPORT_IMPLEMENTATION", "zeromq".to_owned()),
-            ("GZ_TRANSPORT_TOPIC_STATISTICS", "0".to_owned()),
-            (
-                "GZ_DISCOVERY_MSG_PORT",
-                message.local_addr().unwrap().port().to_string(),
-            ),
-            (
-                "GZ_DISCOVERY_SRV_PORT",
-                service.local_addr().unwrap().port().to_string(),
-            ),
-        ];
-        let configure = |command: &mut Command| {
-            command
-                .envs(environment.iter().map(|(key, value)| (key, value)))
-                .env_remove("GZ_TRANSPORT_USERNAME")
-                .env_remove("GZ_TRANSPORT_PASSWORD")
-                .env_remove("GZ_RELAY")
-                .env_remove("SDF_PATH")
-                .env_remove("GZ_SIM_RESOURCE_PATH")
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped());
-        };
+        let mut network = Network::new();
         let mut command = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"));
         command
             .arg(root.join("crates/gz-sim-scene/tests/fixtures/fall.sdf"))
             .args(["--server", "--physics-engine", engine]);
-        configure(&mut command);
-        let mut server = Process(Some(command.spawn().unwrap()));
-        let mut command = Command::new(root.join("artifacts/native-peer/clock-client"));
         command
-            .arg("--root-clock")
-            .env("LD_LIBRARY_PATH", prefix.join("lib"));
-        configure(&mut command);
+            .env_remove("SDF_PATH")
+            .env_remove("GZ_SIM_RESOURCE_PATH");
+        let mut server = Process(Some(network.spawn_server(&mut command)));
+        // Fence actual listener/publication readiness before native startup. This
+        // never advances the paused world or replaces the native paired-clock checks.
+        let readiness = network.session();
+        let clock = Samples::new(&readiness, network.key("/world/default/clock"));
+        let sample = clock.recv_timeout(Duration::from_secs(8));
+        let time = Clock::decode(sample.payload().to_bytes().as_ref())
+            .unwrap()
+            .sim
+            .unwrap();
+        assert_eq!((time.sec, time.nsec), (0, 0));
+        drop((clock, readiness));
+        let mut command = Command::new(&native.binary);
+        command.arg("--root-clock");
+        network.configure_native(&mut command, &native);
         let mut peer = Process(Some(command.spawn().unwrap()));
         let observed = peer.wait(Duration::from_secs(45));
         assert!(observed.status.success(), "{observed:?}");
@@ -136,53 +103,30 @@ fn cpp_peer_steps_the_paused_executable_and_signals_shutdown_cleanly() {
 
 #[test]
 fn finite_budget_counts_advancing_steps_across_pause_and_reset() {
-    use gz_msgs::{
-        Clock,
-        msgs::{Boolean, WorldControl, WorldReset},
+    use gz_sim_proto::{
+        msgs::{Clock, WorldControl, WorldReset},
         prost::Message,
     };
-    use gz_transport::{Config, Node};
     for engine in ["tpe", "rapier", "dart", "mujoco"] {
-        let message = discovery_socket();
-        let service = discovery_socket();
-        let config = Config {
-            partition: format!("cli-budget-{}-{engine}", std::process::id()),
-            message_port: message.local_addr().unwrap().port(),
-            service_port: service.local_addr().unwrap().port(),
-            ..Config::default()
-        };
-        let node = Node::new(config.clone()).unwrap();
-        let clock = node
-            .subscribe("/world/default/clock", "gz.msgs.Clock")
-            .unwrap();
+        let mut network = Network::new();
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-        let mut server = Process(Some(
-            Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
-                .arg(root.join("crates/gz-sim-scene/tests/fixtures/fall.sdf"))
-                .args(["--server", "--iterations", "3", "--physics-engine", engine])
-                .env("GZ_PARTITION", &config.partition)
-                .env("GZ_IP", config.interface.to_string())
-                .env("GZ_DISCOVERY_MSG_PORT", config.message_port.to_string())
-                .env("GZ_DISCOVERY_SRV_PORT", config.service_port.to_string())
-                .env("GZ_TRANSPORT_IMPLEMENTATION", "zeromq")
-                .env("GZ_TRANSPORT_TOPIC_STATISTICS", "0")
-                .env_remove("GZ_TRANSPORT_USERNAME")
-                .env_remove("GZ_TRANSPORT_PASSWORD")
-                .env_remove("GZ_RELAY")
-                .env_remove("SDF_PATH")
-                .env_remove("GZ_SIM_RESOURCE_PATH")
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .spawn()
-                .unwrap(),
-        ));
+        let mut command = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"));
+        command
+            .arg(root.join("crates/gz-sim-scene/tests/fixtures/fall.sdf"))
+            .args(["--server", "--iterations", "3", "--physics-engine", engine])
+            .env_remove("SDF_PATH")
+            .env_remove("GZ_SIM_RESOURCE_PATH");
+        let mut server = Process(Some(network.spawn_server(&mut command)));
+        let session = network.session();
+        let clock = Samples::new(&session, network.key("/world/default/clock"));
         let wait = |nanoseconds| {
             let deadline = Instant::now() + Duration::from_secs(8);
             loop {
-                let bytes = clock
-                    .recv_timeout(deadline.saturating_duration_since(Instant::now()))
+                let bytes = clock.recv_timeout(deadline.saturating_duration_since(Instant::now()));
+                let observed = Clock::decode(bytes.payload().to_bytes().as_ref())
+                    .unwrap()
+                    .sim
                     .unwrap();
-                let observed = Clock::decode(bytes.data.as_slice()).unwrap().sim.unwrap();
                 assert_eq!(observed.sec, 0);
                 if observed.nsec == nanoseconds {
                     break;
@@ -190,18 +134,7 @@ fn finite_budget_counts_advancing_steps_across_pause_and_reset() {
                 assert!(Instant::now() < deadline);
             }
         };
-        let control = |request: WorldControl| {
-            let (bytes, result) = node
-                .request(
-                    "/world/default/control",
-                    "gz.msgs.WorldControl",
-                    "gz.msgs.Boolean",
-                    request.encode_to_vec(),
-                    Duration::from_secs(5),
-                )
-                .unwrap();
-            assert!(result && Boolean::decode(bytes.as_slice()).unwrap().data);
-        };
+        let control = |request: WorldControl| network.control(&session, request.encode_to_vec());
         wait(0);
         control(WorldControl {
             pause: true,
@@ -237,8 +170,7 @@ fn finite_budget_counts_advancing_steps_across_pause_and_reset() {
 
 #[test]
 fn second_termination_signal_exits_when_final_output_is_blocked() {
-    use gz_msgs::{Clock, prost::Message};
-    use gz_transport::{Config, Node};
+    use gz_sim_proto::{msgs::Clock, prost::Message};
     use std::{
         io::{BufRead, BufReader},
         sync::mpsc,
@@ -247,40 +179,21 @@ fn second_termination_signal_exits_when_final_output_is_blocked() {
     let world = directory.path().join("large.sdf");
     let links = (0..5000).map(|index| format!("<link name='link{index}'><collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link>")).collect::<String>();
     std::fs::write(&world, format!("<sdf version='1.12'><world name='default'><model name='large'><static>true</static>{links}</model></world></sdf>")).unwrap();
-    let message = discovery_socket();
-    let service = discovery_socket();
-    let config = Config {
-        partition: format!("cli-output-{}", std::process::id()),
-        message_port: message.local_addr().unwrap().port(),
-        service_port: service.local_addr().unwrap().port(),
-        ..Config::default()
-    };
-    let node = Node::new(config.clone()).unwrap();
-    let clock = node
-        .subscribe("/world/default/clock", "gz.msgs.Clock")
+    let mut network = Network::new();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"));
+    command
+        .arg(&world)
+        .args(["--server", "--physics-engine", "tpe"])
+        .env_remove("SDF_PATH")
+        .env_remove("GZ_SIM_RESOURCE_PATH");
+    let mut server = Process(Some(network.spawn_server(&mut command)));
+    let session = network.session();
+    let clock = Samples::new(&session, network.key("/world/default/clock"));
+    let bytes = clock.recv_timeout(Duration::from_secs(20));
+    let time = Clock::decode(bytes.payload().to_bytes().as_ref())
+        .unwrap()
+        .sim
         .unwrap();
-    let mut server = Process(Some(
-        Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
-            .arg(&world)
-            .args(["--server", "--physics-engine", "tpe"])
-            .env("GZ_PARTITION", &config.partition)
-            .env("GZ_IP", config.interface.to_string())
-            .env("GZ_DISCOVERY_MSG_PORT", config.message_port.to_string())
-            .env("GZ_DISCOVERY_SRV_PORT", config.service_port.to_string())
-            .env("GZ_TRANSPORT_IMPLEMENTATION", "zeromq")
-            .env("GZ_TRANSPORT_TOPIC_STATISTICS", "0")
-            .env_remove("GZ_TRANSPORT_USERNAME")
-            .env_remove("GZ_TRANSPORT_PASSWORD")
-            .env_remove("GZ_RELAY")
-            .env_remove("SDF_PATH")
-            .env_remove("GZ_SIM_RESOURCE_PATH")
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .unwrap(),
-    ));
-    let bytes = clock.recv_timeout(Duration::from_secs(20)).unwrap();
-    let time = Clock::decode(bytes.data.as_slice()).unwrap().sim.unwrap();
     assert_eq!((time.sec, time.nsec), (0, 0));
     let child = server.0.as_mut().unwrap();
     assert!(

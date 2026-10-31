@@ -1,102 +1,124 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use crate::{Counters, Error};
-use gz_msgs::{msgs::Double, prost::Message};
+use crate::{Counters, Error, world_io};
+use crate::{ServerOptions, SetupError};
 use gz_sim_core::{EntityId, Simulation, entity_by_id};
+use gz_sim_proto::{
+    msgs::{Double, Empty},
+    prost::{Message, Name},
+};
 use gz_sim_scene::{ImuPublication, RateChange, set_imu_rate};
-use gz_transport::{Config, Error as TransportError, Node, Service, Statistics};
-use std::{collections::BTreeMap, num::NonZeroUsize, time::Duration};
+use std::{
+    collections::BTreeMap,
+    num::NonZeroUsize,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, AtomicU64, Ordering},
+        mpsc,
+    },
+};
+use zenoh::{
+    Wait,
+    liveliness::LivelinessToken,
+    query::{Query, Queryable},
+};
 
-#[derive(Clone)]
 struct ProviderSpec {
-    topic: String,
     name: String,
 }
 
-fn plan<'a>(
-    config: &Config,
+fn endpoint_groups<'a>(
+    config: &ServerOptions,
     sensors: impl IntoIterator<Item = &'a ImuPublication>,
-) -> Result<Vec<Vec<ProviderSpec>>, TransportError> {
-    if config.capacity == 0 {
-        return Err(TransportError::InvalidConfig);
+) -> Result<BTreeMap<String, Vec<ProviderSpec>>, SetupError> {
+    if config.capacity == 0
+        || config.capacity > i32::MAX as usize
+        || config.max_message_bytes == 0
+        || config.max_message_bytes > i64::MAX as usize
+    {
+        return Err(SetupError::InvalidConfig);
     }
     let mut groups: BTreeMap<String, Vec<ProviderSpec>> = BTreeMap::new();
     for sensor in sensors {
-        let topic = format!("{}/set_rate", gz_transport::as_valid_topic(&sensor.topic));
+        let topic = format!("{}/set_rate", crate::options::as_valid_topic(&sensor.topic));
         let remapped = config.topic_remap(&topic).unwrap_or(&topic);
         let endpoint =
-            gz_transport::qualified_name(&config.partition, &config.namespace, remapped)?;
+            crate::options::qualified_name(&config.partition, &config.namespace, remapped)?;
         groups.entry(endpoint).or_default().push(ProviderSpec {
-            topic,
             name: sensor.entity_name.clone(),
         });
     }
-    let total: usize = groups.values().map(Vec::len).sum();
-    let count = groups
-        .values()
-        .map(Vec::len)
-        .max()
-        .unwrap_or(0)
-        .max(total.div_ceil(config.capacity));
-    let mut workers: Vec<Vec<ProviderSpec>> = (0..count).map(|_| Vec::new()).collect();
-    for group in groups.into_values() {
-        // Distinct workers per endpoint; least-loaded placement minimizes IO threads.
-        let mut slots: Vec<_> = (0..count).collect();
-        slots.sort_by_key(|index| workers[*index].len());
-        for (provider, index) in group.into_iter().zip(slots) {
-            workers[index].push(provider);
-        }
-    }
-    Ok(workers)
+    Ok(groups)
 }
 
 pub(crate) struct Provider {
     name: String,
     id: Option<u64>,
-    service: Service,
+    input: mpsc::Receiver<Option<f64>>,
+    active: Arc<AtomicBool>,
+}
+impl Drop for Provider {
+    fn drop(&mut self) {
+        self.active.store(false, Ordering::Release);
+    }
 }
 
-struct Template {
-    worker: usize,
-    spec: ProviderSpec,
+struct DeclarationSpec {
+    key: String,
+    input: mpsc::SyncSender<Option<f64>>,
+    active: Arc<AtomicBool>,
 }
 
+/// Plain data only: a failed command enqueue/drop cannot finalize a Query.
+pub(super) struct RateSetup {
+    providers: Vec<DeclarationSpec>,
+    max_bytes: usize,
+    ingress_drops: Arc<AtomicU64>,
+}
+impl RateSetup {
+    pub(super) fn is_empty(&self) -> bool {
+        self.providers.is_empty()
+    }
+}
+
+/// CPU state. No Query, declaration, Session or transport-owned payload lives here.
 pub(crate) struct Rates {
-    // Drop leases before their worker Nodes.
     providers: Vec<Provider>,
-    workers: BTreeMap<usize, Node>,
-    templates: Vec<Template>,
     next: usize,
 }
-
 impl Rates {
     pub(crate) fn prepare<'a>(
-        config: &Config,
+        config: &ServerOptions,
         sensors: impl IntoIterator<Item = &'a ImuPublication>,
-    ) -> Result<Self, Error> {
-        let mut rates = Self {
-            providers: Vec::new(),
-            workers: BTreeMap::new(),
-            templates: Vec::new(),
-            next: 0,
-        };
-        for (index, providers) in plan(config, sensors)?.into_iter().enumerate() {
-            let node = Node::new(config.clone())?;
-            for provider in providers {
-                let service = node.serve(&provider.topic, "gz.msgs.Double", "gz.msgs.Empty")?;
-                rates.templates.push(Template {
-                    worker: index,
-                    spec: provider.clone(),
-                });
-                rates.providers.push(Provider {
-                    name: provider.name,
+        ingress_drops: &Arc<AtomicU64>,
+    ) -> Result<(Self, RateSetup), Error> {
+        let mut providers = Vec::new();
+        let mut declarations = Vec::new();
+        for (key, specs) in endpoint_groups(config, sensors)? {
+            for spec in specs {
+                let (input, receiver) = mpsc::sync_channel(config.capacity);
+                let active = Arc::new(AtomicBool::new(true));
+                providers.push(Provider {
+                    name: spec.name,
                     id: None,
-                    service,
+                    input: receiver,
+                    active: Arc::clone(&active),
+                });
+                declarations.push(DeclarationSpec {
+                    key: key.clone(),
+                    input,
+                    active,
                 });
             }
-            rates.workers.insert(index, node);
         }
-        Ok(rates)
+        Ok((
+            Self { providers, next: 0 },
+            RateSetup {
+                providers: declarations,
+                max_bytes: config.max_message_bytes,
+                ingress_drops: Arc::clone(ingress_drops),
+            },
+        ))
     }
 
     pub(crate) fn bind(&mut self, sim: &Simulation) -> Result<(), Error> {
@@ -127,49 +149,43 @@ impl Rates {
                 .and_then(|entity| sim.world().get::<ImuPublication>(entity))
                 .is_some_and(|sensor| sensor.entity_name == provider.name)
         });
+        if self.providers.is_empty() {
+            self.providers = Vec::new();
+            self.next = 0;
+        }
     }
 
-    pub(crate) fn restart(&mut self, sim: &Simulation) -> Result<(), Error> {
-        // Native plugin reload retires handlers and queued controls from the old epoch.
+    /// Produce replacement plain setup. IO installation/acknowledgment belongs
+    /// outside stepping; the caller must not advance before that phase completes.
+    pub(crate) fn restart(
+        &mut self,
+        config: &ServerOptions,
+        sim: &Simulation,
+        ingress_drops: &Arc<AtomicU64>,
+    ) -> Result<RateSetup, Error> {
         self.clear();
-        self.providers = self
-            .templates
-            .iter()
-            .map(|template| {
-                let service = self.workers[&template.worker].serve(
-                    &template.spec.topic,
-                    "gz.msgs.Double",
-                    "gz.msgs.Empty",
-                )?;
-                Ok(Provider {
-                    name: template.spec.name.clone(),
-                    id: None,
-                    service,
-                })
-            })
-            .collect::<Result<_, Error>>()?;
-        if let Err(error) = self.bind(sim) {
-            self.clear();
-            return Err(error);
-        }
-        Ok(())
-    }
-
-    pub(crate) fn add_statistics(&self, total: &mut Statistics) {
-        for worker in self.workers.values() {
-            crate::add_transport_statistics(total, worker.statistics());
-        }
+        let sensors: Vec<_> = match gz_sim_scene::initial_imu_publications(sim) {
+            Ok(sensors) => sensors.cloned().collect(),
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => sim
+                .world()
+                .iter_entities()
+                .filter(|entity| !entity.contains::<gz_sim_scene::PendingResetRemoval>())
+                .filter_map(|entity| entity.get::<ImuPublication>().cloned())
+                .collect(),
+            Err(error) => return Err(error.into()),
+        };
+        let (mut replacement, setup) = Self::prepare(config, &sensors, ingress_drops)?;
+        replacement.bind(sim)?;
+        *self = replacement;
+        Ok(setup)
     }
 
     pub(crate) fn clear(&mut self) {
-        self.providers.clear();
+        self.providers = Vec::new();
+        self.next = 0;
     }
-
     pub(crate) fn shutdown(&mut self) {
         self.clear();
-        for node in self.workers.values_mut() {
-            node.shutdown();
-        }
     }
 
     pub(crate) fn poll(
@@ -184,27 +200,223 @@ impl Rates {
                 self.next %= self.providers.len();
                 let provider = &self.providers[self.next];
                 self.next += 1;
-                match provider.service.recv_timeout(Duration::ZERO) {
-                    Ok(request) => {
-                        received = Some((provider.id, request));
+                if !provider.active.load(Ordering::Acquire) {
+                    continue;
+                }
+                match provider.input.try_recv() {
+                    Ok(value) => {
+                        received = Some((provider.id, value));
                         break;
                     }
-                    Err(TransportError::Timeout) => {}
-                    Err(error) => return Err(error.into()),
+                    Err(mpsc::TryRecvError::Empty) => {}
+                    Err(mpsc::TryRecvError::Disconnected) => {
+                        return Err(Error::WorldNetwork("rate ingress closed".into()));
+                    }
                 }
             }
-            let Some((id, request)) = received else { break };
-            let change = Double::decode(request.data.as_slice())
-                .ok()
-                .and_then(|message| id.and_then(|id| set_imu_rate(sim, id, message.data).ok()));
+            let Some((id, value)) = received else { break };
+            let change =
+                value.and_then(|value| id.and_then(|id| set_imu_rate(sim, id, value).ok()));
             match change {
                 Some(RateChange::Applied) => counters.imu_rates_applied += 1,
                 Some(RateChange::Ignored) => counters.imu_rates_ignored += 1,
                 None => counters.imu_rates_rejected += 1,
             }
-            // Empty response services are one-way; handler outcomes stay local.
         }
         Ok(())
+    }
+}
+
+// Every callback capture is inside this Arc. Its final non-owner reference
+// therefore accounts for queued requests AND the actual callback capture exit.
+struct RateCallbackState {
+    active: Arc<AtomicBool>,
+    input: mpsc::SyncSender<Option<f64>>,
+    ingress: mpsc::SyncSender<world_io::ControlWork>,
+    ingress_drops: Arc<AtomicU64>,
+    max_bytes: usize,
+}
+
+/// IO-only work. Field order ensures cancellation drops Query before the state
+/// reference used to observe completion. CPU queues contain only Option<f64>.
+pub(super) struct RateRequest {
+    query: Option<Query>,
+    state: Arc<RateCallbackState>,
+}
+impl RateRequest {
+    pub(super) fn execute(self) -> Result<(), Error> {
+        // The called function owns and finalizes Query before this Arc can drop.
+        execute_query(self.query, &self.state)
+    }
+}
+
+fn execute_query(query: Option<Query>, state: &RateCallbackState) -> Result<(), Error> {
+    if !state.active.load(Ordering::Acquire) {
+        return Ok(());
+    }
+    let value = query.as_ref().and_then(|query| {
+        let bytes = query
+            .payload()
+            .map(|payload| payload.to_bytes())
+            .unwrap_or_default();
+        Double::decode(bytes.as_ref()).ok().map(|value| value.data)
+    });
+    if !state.active.load(Ordering::Acquire) {
+        return Ok(());
+    }
+    match state.input.try_send(value) {
+        Ok(()) => {
+            if let Some(query) = &query {
+                // Native Empty has no type attachment/envelope. The receipt is
+                // queue handoff, not parse success or the later CPU outcome.
+                // Native CreateMsg logs malformed input but still returns a
+                // message, so the retained malformed receipt also stays Empty.
+                // BLOCK may wait here; this function must run on the dedicated IO owner.
+                query
+                    .reply(query.key_expr().clone(), Vec::<u8>::new())
+                    .wait()
+                    .map_err(|error| Error::WorldNetwork(error.to_string()))?;
+            }
+        }
+        Err(mpsc::TrySendError::Full(_)) => {
+            state.ingress_drops.fetch_add(1, Ordering::Relaxed);
+            if let Some(query) = &query {
+                query
+                    .reply_err("rate ingress full")
+                    .wait()
+                    .map_err(|error| Error::WorldNetwork(error.to_string()))?;
+            }
+        }
+        Err(mpsc::TrySendError::Disconnected(_)) => {} // Receiver retired; no new mutation.
+    }
+    Ok(())
+}
+
+struct Declaration {
+    queryable: Option<Queryable<()>>,
+    presence: Option<LivelinessToken>,
+    state: Arc<RateCallbackState>,
+}
+impl Drop for Declaration {
+    fn drop(&mut self) {
+        self.state.active.store(false, Ordering::Release);
+    }
+}
+
+/// Owned and reconciled only by the application IO owner. Dropping a declaration
+/// or a final Query may perform blocking protocol IO; neither belongs in tick.
+pub(super) struct RateDeclarations {
+    providers: Vec<Declaration>,
+}
+impl RateDeclarations {
+    pub(super) fn new(
+        session: &zenoh::Session,
+        setup: RateSetup,
+        ingress: mpsc::SyncSender<world_io::ControlWork>,
+    ) -> Result<Self, Error> {
+        if session.is_closed() {
+            return Err(Error::WorldClosed);
+        }
+        let mut result = Self {
+            providers: Vec::new(),
+        };
+        let process = session.zid().to_string();
+        let types = format!("{}&{}", Double::full_name(), Empty::full_name());
+        for provider in setup.providers {
+            if !provider.active.load(Ordering::Acquire) {
+                continue;
+            }
+            let state = Arc::new(RateCallbackState {
+                active: provider.active,
+                input: provider.input,
+                ingress: ingress.clone(),
+                ingress_drops: Arc::clone(&setup.ingress_drops),
+                max_bytes: setup.max_bytes,
+            });
+            let mut declaration = Declaration {
+                queryable: None,
+                presence: None,
+                state,
+            };
+            let node = uuid::Uuid::new_v4().to_string();
+            let token = world_io::presence(&provider.key, &process, &node, "SS", &types)
+                .map_err(|error| Error::WorldNetwork(error.to_string()))?;
+            let callback = Arc::clone(&declaration.state);
+            let queryable = session
+                .declare_queryable(provider.key)
+                .callback(move |query: Query| {
+                    if !callback.active.load(Ordering::Acquire) {
+                        return;
+                    }
+                    let mut query = Some(query);
+                    if query
+                        .as_ref()
+                        .and_then(|query| query.payload())
+                        .is_some_and(|payload| payload.len() > callback.max_bytes)
+                    {
+                        // Never retain an oversized payload in the bounded IO queue.
+                        // Rejected finalization stays on this upstream callback,
+                        // outside CPU execution; pressure qualification is separate.
+                        drop(query.take());
+                    }
+                    let request = RateRequest {
+                        query,
+                        state: Arc::clone(&callback),
+                    };
+                    match callback
+                        .ingress
+                        .try_send(world_io::ControlWork::Rate(request))
+                    {
+                        Ok(()) => {}
+                        Err(mpsc::TrySendError::Full(rejected)) => {
+                            callback.ingress_drops.fetch_add(1, Ordering::Relaxed);
+                            drop(rejected);
+                        }
+                        Err(mpsc::TrySendError::Disconnected(_)) => {}
+                    }
+                })
+                .wait()
+                .map_err(|error| Error::WorldNetwork(error.to_string()))?;
+            declaration.queryable = Some(queryable);
+            let presence = session
+                .liveliness()
+                .declare_token(token)
+                .wait()
+                .map_err(|error| Error::WorldNetwork(error.to_string()))?;
+            declaration.presence = Some(presence);
+            result.providers.push(declaration);
+        }
+        Ok(result)
+    }
+
+    /// Retire disabled endpoints and report whether all observed retirements
+    /// have completed, including queued Query finalization and capture release.
+    pub(super) fn reconcile(&mut self) -> bool {
+        for provider in &mut self.providers {
+            if !provider.state.active.load(Ordering::Acquire) {
+                drop(provider.queryable.take());
+                drop(provider.presence.take());
+            }
+        }
+        self.providers.retain(|provider| {
+            provider.state.active.load(Ordering::Acquire) || Arc::strong_count(&provider.state) != 1
+        });
+        self.providers
+            .iter()
+            .all(|provider| provider.state.active.load(Ordering::Acquire))
+    }
+    pub(super) fn is_empty(&self) -> bool {
+        self.providers.is_empty()
+    }
+    pub(super) fn begin_shutdown(&self) {
+        for provider in &self.providers {
+            provider.state.active.store(false, Ordering::Release);
+        }
+    }
+}
+impl Drop for RateDeclarations {
+    fn drop(&mut self) {
+        self.begin_shutdown();
     }
 }
 

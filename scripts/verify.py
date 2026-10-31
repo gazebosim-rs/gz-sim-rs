@@ -13,6 +13,11 @@ import subprocess
 import sys
 import tempfile
 
+# Keep the source-bound proto proof independent of renderer test support.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import proto_inputs
+import zenoh_peer
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -20,12 +25,33 @@ def run(command, **kwargs):
     return subprocess.run(command, cwd=ROOT, check=True, **kwargs)
 
 
+def owned_coverage(report, lcov, crates):
+    """Select whole owned records without merging aliases or changing counters."""
+    owned = {path for paths in crates.values() for path in paths}
+    view = {"data": [{"files": [file for file in data["files"]
+                               if Path(file["filename"]).resolve() in owned]}
+                     for data in report["data"]]}
+    records, block = [], []
+    for line in lcov.split("\n"):
+        block.append(line)
+        if line == "end_of_record":
+            sources = [value[3:] for value in block if value.startswith("SF:")]
+            if len(sources) != 1:
+                raise ValueError("LCOV record must have exactly one source")
+            if Path(sources[0]).resolve() in owned:
+                records.append("\n".join(block) + "\n")
+            block = []
+    if any(block):
+        raise ValueError("unterminated LCOV record")
+    return view, "".join(records)
+
+
 def check_coverage(report, crates, zero_executable=frozenset()):
     """Reject missing instrumentation and enforce each crate independently."""
     facade = (ROOT / "crates/gz-renderer/src/lib.rs").resolve()
-    if not set(zero_executable) <= {facade}:
+    if not set(zero_executable) <= {facade, (ROOT / proto_inputs.FACADE).resolve()}:
         raise ValueError("unrecognized zero-executable source")
-    if zero_executable:
+    if facade in zero_executable:
         check_gpu_source(report)
     files = {}
     for data in report["data"]:
@@ -254,10 +280,11 @@ def load_profile_contract():
         raise ValueError("missing or unsafe coverage profile contract")
     contract = json.loads(path.read_text())
     expected = {
-        "version": 1,
+        "version": 2,
+        "native_reference": "gazebo-zenoh-client-v1",
         "profiles": {
             "headless": {"exclude_packages": sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}), "runner": "cpu"},
-            "renderer": {"packages": sorted(RENDER_PACKAGES) + ["gz-sim-core", "gz-sim-scene"],
+            "renderer": {"packages": sorted(RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", proto_inputs.PACKAGE}),
                          "features": ["gz-renderer/gpu"], "runner": "vulkan"},
         },
         "excluded_sources": [],
@@ -270,14 +297,14 @@ def load_profile_contract():
 
 def profile_plan(sources):
     """Partition every production crate and retain core and scene in the renderer run."""
-    missing = (RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene"}) - sources.keys()
+    missing = (RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", proto_inputs.PACKAGE}) - sources.keys()
     if missing:
         raise ValueError(f"required renderer profile packages missing: {sorted(missing)}")
     unexpected = {name for name in sources if name.startswith("gz-render") and name not in RENDER_PACKAGES}
     if unexpected:
         raise ValueError(f"undeclared renderer packages: {sorted(unexpected)}")
     headless = {name: files for name, files in sources.items() if name not in RENDER_PACKAGES}
-    render = {name: sources[name] for name in sorted(RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene"})}
+    render = {name: sources[name] for name in sorted(RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", proto_inputs.PACKAGE})}
     if not headless or any(not files for files in sources.values()):
         raise ValueError("empty production crate or headless profile")
     owners = {}
@@ -302,7 +329,8 @@ def check_profile_reports(plan, reports, zero_sources=None):
     if set(plan) != {"headless", "renderer"} or set(reports) != set(plan):
         raise ValueError("missing or unexpected required coverage profiles")
     zero_sources = zero_sources or {}
-    if set(zero_sources) - {"renderer"}:
+    if (set(zero_sources) - {"headless", "renderer"}
+            or set(zero_sources.get("headless", ())) - {(ROOT / proto_inputs.FACADE).resolve()}):
         raise ValueError("zero-executable classification in an unexpected profile")
     return {name: check_coverage(reports[name], crates, zero_sources.get(name, frozenset()))
             for name, (crates, _) in plan.items()}
@@ -346,7 +374,48 @@ def require_toolchain(version, environment):
         raise ValueError("unverified compiler override")
 
 
-def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, version):
+def native_peer_inputs():
+    return [ROOT / path for path in zenoh_peer.CLIENTS.values()]
+
+
+def check_native_peer_evidence(directory, expected, binding=None):
+    """Require the actual C++ source, executable and selected-reference binding."""
+    if binding is None:
+        reference, _ = selected_native_reference()
+        binding = {"reference_sha256": hashlib.sha256((reference / "environment.json").read_bytes()).hexdigest(),
+                   "helper_sha256": hashlib.sha256((ROOT / "scripts/zenoh_peer.py").read_bytes()).hexdigest(),
+                   "fixtures": {name: hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+                                for name, path in zenoh_peer.CLIENTS.items()}}
+    found, records = set(), []
+    for path in sorted(directory.glob("*/provenance.json")):
+        if path.is_symlink() or not path.resolve().is_relative_to(directory.resolve()):
+            raise ValueError("unsafe native peer provenance")
+        data = json.loads(path.read_text())
+        client = data.get("client")
+        if (data.get("profile") != zenoh_peer.PROFILE or client not in zenoh_peer.CLIENTS
+                or data.get("reference_sha256") != binding["reference_sha256"]
+                or data.get("source") != zenoh_peer.CLIENTS[client]
+                or data.get("helper_sha256") != binding["helper_sha256"]):
+            raise ValueError("native peer reference or fixture binding differs")
+        source = path.parent / "source.cc"
+        binary = path.parent / (client + "-client")
+        for artifact, expected_hash in [(source, data.get("source_sha256")),
+                                        (binary, data.get("binary_sha256"))]:
+            if (not artifact.is_file() or artifact.is_symlink()
+                    or not artifact.resolve().is_relative_to(directory.resolve())
+                    or hashlib.sha256(artifact.read_bytes()).hexdigest() != expected_hash):
+                raise ValueError("native peer artifact is missing or changed")
+        if hashlib.sha256(source.read_bytes()).hexdigest() != binding["fixtures"][client]:
+            raise ValueError("native peer captured source differs")
+        found.add(client)
+        records.append({"client": client, "provenance": str(path.relative_to(directory)),
+                        "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
+    if not expected <= found:
+        raise ValueError(f"missing native conformance clients: {sorted(expected - found)}")
+    return records
+
+
+def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, version, target=None):
     directory.mkdir(parents=True)
     raw_dir = directory / "raw"
     raw_dir.mkdir()
@@ -355,12 +424,15 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
     auditor_source = ROOT / "tests/support/render-fixtures/src/bin/source_audit.rs"
     auditor_source_hash = (hashlib.sha256(auditor_source.read_bytes()).hexdigest()
                            if name == "renderer" and auditor_source.is_file() else None)
+    proto_auditor_hash = (hashlib.sha256((ROOT / proto_inputs.AUDITOR).read_bytes()).hexdigest()
+                          if proto_inputs.PACKAGE in crates else None)
     env = os.environ.copy()
-    env["CARGO_TARGET_DIR"] = str(ROOT / "target/coverage")
+    env["CARGO_TARGET_DIR"] = str(target or ROOT / "target/coverage")
     env["RUSTFLAGS"] = ""
     env.pop("CARGO_ENCODED_RUSTFLAGS", None)
     env["RUSTC_WORKSPACE_WRAPPER"] = str(wrapper)
     env["LLVM_PROFILE_FILE"] = str(raw_dir / "%p-%m.profraw")
+    env["GZ_ZENOH_PEER_EVIDENCE_DIR"] = str(directory / "native-peers")
     if name == "renderer":
         # Worker integration tests pass this exact path as the child's LLVM_PROFILE_FILE.
         env["GZ_RENDER_WORKER_PROFILE"] = str(raw_dir / "worker-%p-%m.profraw")
@@ -372,15 +444,31 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
     (directory / "test-output.log").write_text(result.stdout + result.stderr)
     if result.returncode:
         raise subprocess.CalledProcessError(result.returncode, result.args, result.stdout, result.stderr)
+    contract_path = ROOT / "planning/coverage-profiles.json"
+    if contract_path.is_file() and json.loads(contract_path.read_text()).get("version") == 2:
+        expected = {"camera"} if name == "renderer" else {"clock", "rate", "force"}
+        peers = check_native_peer_evidence(directory / "native-peers", expected)
+        (directory / "native-peers.json").write_text(json.dumps(peers, indent=2) + "\n")
     objects = []
     artifacts = []
     worker_objects = []
     audit_objects = []
+    proto_auditors, proto_ids, build_events = [], set(), []
     for line in result.stdout.splitlines():
         try:
             item = json.loads(line)
         except json.JSONDecodeError:
             continue
+        if item.get("reason") == "build-script-executed":
+            build_events.append(item)
+        if item.get("reason") == "compiler-artifact":
+            target = item.get("target", {})
+            source = Path(target.get("src_path", "")).resolve()
+            if source == (ROOT / proto_inputs.BUILD).resolve() and "custom-build" in target.get("kind", []):
+                proto_ids.add(item["package_id"])
+            if (source == (ROOT / proto_inputs.AUDITOR).resolve()
+                    and "test" in target.get("kind", []) and item.get("executable")):
+                proto_auditors.append(Path(item["executable"]))
         if item.get("reason") == "compiler-artifact" and item.get("executable"):
             objects.append(item["executable"])
             artifacts.append(item)
@@ -418,6 +506,31 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                                    capture_output=True, text=True)
             if audit.returncode == 0 and audit.stdout == "renderer-facade-v1\n":
                 facade_audit = auditor
+    proto_audit, proto_proof = None, None
+    if proto_inputs.PACKAGE in crates:
+        if hashlib.sha256((ROOT / proto_inputs.AUDITOR).read_bytes()).hexdigest() != proto_auditor_hash:
+            raise ValueError("proto source auditor changed during profile")
+        generated = [Path(item["out_dir"]) for item in build_events if item.get("package_id") in proto_ids]
+        if len(proto_ids) != 1 or len(generated) != 1 or len(proto_auditors) != 1:
+            raise ValueError("missing or duplicate proto build/auditor artifacts")
+        target_root = Path(env["CARGO_TARGET_DIR"]).resolve()
+        proto_evidence = proto_inputs.generated_inputs(ROOT, target_root, generated[0])
+        (directory / "proto-generated.json").write_text(json.dumps(proto_evidence, indent=2) + "\n")
+        (directory / "proto-generated.rs").write_bytes((generated[0] / "gz.msgs.rs").read_bytes())
+        (directory / "proto-descriptor.pb").write_bytes((generated[0] / "schema-descriptor.pb").read_bytes())
+        proto_audit = proto_auditors[0]
+        if (not proto_audit.is_file() or proto_audit.is_symlink()
+                or not proto_audit.resolve().is_relative_to(target_root)):
+            raise ValueError("proto auditor is outside the owned target")
+        proof_path = directory / "proto-facade-audit.json"
+        audit_env = dict(env, GZ_PROTO_FACADE=str((ROOT / proto_inputs.FACADE).resolve()),
+                         GZ_PROTO_FACADE_PROOF=str(proof_path))
+        audit = subprocess.run([str(proto_audit), "--exact", "source_audit_child", "--ignored", "--nocapture"],
+                               cwd=ROOT, env=audit_env, capture_output=True, text=True)
+        (directory / "proto-facade-audit-output.log").write_text(audit.stdout + audit.stderr)
+        if audit.returncode or not proof_path.is_file() or proof_path.is_symlink():
+            raise ValueError("proto facade syntax proof failed")
+        proto_proof = json.loads(proof_path.read_text())
     raw = sorted(raw_dir.glob("*.profraw"))
     if not raw:
         raise ValueError(f"{name}: no raw coverage profiles")
@@ -428,11 +541,16 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
     export = [str(llvm / "llvm-cov"), "export", "--fatal-warnings", "-instr-profile=" + str(merged)]
     for binary in dict.fromkeys(objects):
         export += ["-object", binary]
-    with (directory / "coverage.json").open("w") as output:
+    with (directory / "proto-coverage.json").open("w") as output:
         run(export, stdout=output)
+    unfiltered = json.loads((directory / "proto-coverage.json").read_text())
+    if proto_proof is not None:
+        proto_inputs.generated_report(unfiltered, proto_evidence)
     lcov = run([*export, "-format=lcov"], capture_output=True).stdout.decode("utf-8")
+    (directory / "coverage-unfiltered.lcov").write_text(lcov)
+    report, lcov = owned_coverage(unfiltered, lcov, crates)
+    (directory / "coverage.json").write_text(json.dumps(report) + "\n")
     (directory / "coverage.lcov").write_text(lcov)
-    report = json.loads((directory / "coverage.json").read_text())
     zero_executable = frozenset()
     if name == "renderer":
         check_gpu_source(report)
@@ -453,6 +571,8 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
             audit_evidence["proof"] = "syn2-renderer-facade-v1"
             audit_evidence["auditor_source_sha256"] = auditor_source_hash
         (directory / "facade-audit.json").write_text(json.dumps(audit_evidence, indent=2) + "\n")
+    if proto_inputs.PACKAGE in crates:
+        zero_executable |= proto_inputs.zero_facade(ROOT, report, lcov, crates, proto_proof)
     summary = check_coverage(report, crates, zero_executable)
     counts = {Path(file["filename"]).resolve(): file["summary"]["lines"]["count"]
               for data in report["data"] for file in data["files"]}
@@ -469,15 +589,24 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
     evidence = {"profile": name, "rustc": version, "coverage": summary,
                 "changed_lines": changed_totals, "sources": source_hashes,
                 "zero_executable_sources": {str(path.relative_to(ROOT)): {
-                    "proof": "syn2-renderer-facade-v1", "source_sha256": source_hashes[str(path.relative_to(ROOT))],
-                    "auditor": str(facade_audit)} for path in zero_executable},
+                    "proof": (proto_inputs.PROOF if path == (ROOT / proto_inputs.FACADE).resolve() else "syn2-renderer-facade-v1"),
+                    "source_sha256": source_hashes[str(path.relative_to(ROOT))],
+                    "auditor": str(proto_audit if path == (ROOT / proto_inputs.FACADE).resolve() else facade_audit)} for path in zero_executable},
                 "objects": object_evidence}
     (directory / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     (directory / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n")
     return report, zero_executable
 
 
+def selected_native_reference():
+    reference = Path(os.environ.get("GZ_ZENOH_REFERENCE_ROOT",
+                                   ROOT / "artifacts/zenoh-native-reference")).absolute()
+    return reference, zenoh_peer.bootstrap.validate_reference(reference)
+
+
 def coverage(changed_file=None):
+    native_root, native_metadata = selected_native_reference()
+    native_bytes = (native_root / "environment.json").read_bytes()
     out = ROOT / "artifacts/coverage"
     out.mkdir(parents=True, exist_ok=True)
     load_profile_contract()
@@ -504,8 +633,20 @@ def coverage(changed_file=None):
     manifests = [Path(package["manifest_path"]) for package in metadata["packages"]
                  if package["id"] in members]
     inputs = list(dict.fromkeys([ROOT / "Cargo.toml", ROOT / "Cargo.lock", ROOT / "rust-toolchain.toml",
+                                 ROOT / ".cargo/config.toml",
+                                 ROOT / "scripts/zenoh_peer.py", ROOT / "scripts/native-peer.py",
+                                 ROOT / "tests/support/zenoh_peer.rs",
+                                 *[ROOT / name for name in zenoh_peer.bootstrap.INPUTS],
+                                 *native_peer_inputs(),
                                  wrapper, ROOT / "scripts/verify.py",
-                                 ROOT / "planning/coverage-profiles.json",
+                                 ROOT / "planning/coverage-profiles.json", ROOT / "scripts/proto_inputs.py",
+                                 ROOT / proto_inputs.AUDITOR,
+                                 ROOT / "crates/gz-sim-proto/schema-source.json",
+                                 ROOT / "crates/gz-sim-proto/schemas/manifest.json",
+                                 ROOT / "third_party/prost-derive-0.14.4/Cargo.toml",
+                                 ROOT / "third_party/prost-derive-0.14.4/LICENSE",
+                                 *sorted((ROOT / "third_party/prost-derive-0.14.4/src").rglob("*.rs")),
+                                 *sorted((ROOT / "crates/gz-sim-proto/schemas").rglob("*.proto")),
                                  ROOT / "tests/support/render-fixtures/src/bin/source_audit.rs", *manifests]))
     input_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                     for path in inputs}
@@ -513,8 +654,11 @@ def coverage(changed_file=None):
     llvm = sysroot / "lib/rustlib" / host / "bin"
     run_dir = Path(tempfile.mkdtemp(prefix="profiles-", dir=out))
     index = {"run": run_dir.name, "profiles": sorted(plan), "rustc": version,
-             "sources": hashes, "inputs": input_hashes}
+             "sources": hashes, "inputs": input_hashes,
+             "zenoh_reference": {"root": str(native_root),
+                                  "environment_sha256": hashlib.sha256(native_bytes).hexdigest()}}
     (out / "profile-index.json").write_text(json.dumps(index, indent=2) + "\n")
+    (run_dir / "zenoh-native-reference.json").write_bytes(native_bytes)
     reports, zero_sources = {}, {}
     for name, (crates, command) in plan.items():
         reports[name], proof = profile_coverage(name, crates, command, run_dir / name,
@@ -522,6 +666,9 @@ def coverage(changed_file=None):
         if proof:
             zero_sources[name] = proof
     summaries = check_profile_reports(plan, reports, zero_sources)
+    if (selected_native_reference() != (native_root, native_metadata)
+            or (native_root / "environment.json").read_bytes() != native_bytes):
+        raise ValueError("selected Zenoh reference changed between profiles")
     final_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                     for paths in sources.values() for path in paths}
     final_inputs = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
@@ -593,12 +740,58 @@ def retain_profile_evidence(candidate, output, hashes, missing):
         raise ValueError("invalid staged profile index")
     (output / "profile-index.json").write_bytes(index.read_bytes())
     hashes["profile-index.json"] = hashlib.sha256(index.read_bytes()).hexdigest()
+    contract_path = candidate / "planning/coverage-profiles.json"
+    if contract_path.is_file():
+        if contract_path.is_symlink() or not contract_path.resolve().is_relative_to(candidate.resolve()):
+            raise ValueError("unsafe staged coverage contract")
+        contract = json.loads(contract_path.read_text())
+        if contract.get("version") == 2 and "zenoh_reference" not in data:
+            missing.append("zenoh_reference")
+    if "zenoh_reference" in data:
+        name = "zenoh-native-reference.json"
+        source = coverage / run_name / name
+        if (not source.is_file() or source.is_symlink()
+                or not source.resolve().is_relative_to(candidate.resolve())):
+            missing.append(name)
+        else:
+            blob = source.read_bytes()
+            digest = hashlib.sha256(blob).hexdigest()
+            if digest != data["zenoh_reference"].get("environment_sha256"):
+                raise ValueError("staged selected Zenoh reference metadata differs")
+            (output / name).write_bytes(blob)
+            hashes[name] = digest
     for profile in data["profiles"]:
         base = coverage / run_name / profile
         required = ["test-output.log", "coverage.json", "coverage.lcov", "summary.json",
-                    "evidence.json", "merged.profdata"]
+                    "evidence.json", "merged.profdata", "proto-generated.json",
+                    "proto-facade-audit.json", "proto-facade-audit-output.log", "proto-generated.rs", "proto-descriptor.pb", "proto-coverage.json", "coverage-unfiltered.lcov"]
         if profile == "renderer":
             required.append("facade-audit.json")
+        if "zenoh_reference" in data:
+            required.append("native-peers.json")
+            peers = base / "native-peers"
+            if not peers.is_dir() or peers.is_symlink():
+                missing.append(f"{run_name}/{profile}/native-peers")
+            else:
+                peer_index = base / "native-peers.json"
+                if peer_index.is_file() and not peer_index.is_symlink():
+                    expected = {"camera"} if profile == "renderer" else {"clock", "rate", "force"}
+                    try:
+                        actual = check_native_peer_evidence(peers, expected, {
+                            "reference_sha256": data["zenoh_reference"]["environment_sha256"],
+                            "helper_sha256": data["inputs"]["scripts/zenoh_peer.py"],
+                            "fixtures": {client: data["inputs"][path]
+                                         for client, path in zenoh_peer.CLIENTS.items()},
+                        })
+                        if json.loads(peer_index.read_text()) != actual:
+                            raise ValueError("native peer index differs")
+                    except (ValueError, KeyError):
+                        missing.append(f"{run_name}/{profile}/native-peers evidence")
+                for artifact in sorted(peers.rglob("*")):
+                    if artifact.is_symlink() or not artifact.resolve().is_relative_to(candidate.resolve()):
+                        raise ValueError("unsafe native peer artifact")
+                    if artifact.is_file():
+                        required.append(str(artifact.relative_to(base)))
         raw = base / "raw"
         if (not raw.is_dir() or raw.is_symlink()
                 or not raw.resolve().is_relative_to(candidate.resolve())):
@@ -690,6 +883,7 @@ def staged():
 def main():
     os.environ["RUSTUP_TOOLCHAIN"] = "1.97.1"
     os.environ.setdefault("GZ_REFERENCE_PREFIX", str(ROOT / "artifacts/native-reference/install"))
+    os.environ.setdefault("GZ_ZENOH_REFERENCE_ROOT", str(ROOT / "artifacts/zenoh-native-reference"))
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--staged", action="store_true")
     parser.add_argument("--coverage-only", action="store_true")
@@ -701,7 +895,7 @@ def main():
     if not args.coverage_only:
         run(["cargo", "fmt", "--all", "--", "--check"])
         run(["cargo", "clippy", "--locked", "--workspace", "--all-targets", "--", "-D", "warnings"])
-        render_packages = sorted(RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene"})
+        render_packages = sorted(RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", proto_inputs.PACKAGE})
         selected = sum((["--package", name] for name in [*render_packages, TEST_SUPPORT_PACKAGE]), [])
         run(["cargo", "clippy", "--locked", "--all-targets", *selected,
              "--features", "gz-renderer/gpu", "--", "-D", "warnings"])

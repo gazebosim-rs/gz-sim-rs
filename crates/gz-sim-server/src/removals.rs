@@ -1,49 +1,47 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use crate::{Counters, Error};
+use crate::{
+    Counters, Error,
+    world_io::{ControlRequest, WorldIo},
+};
 use bevy_ecs::hierarchy::ChildOf;
-use gz_msgs::{
-    msgs::{Boolean, Entity, entity::Type},
+use gz_sim_core::{EntityId, Simulation, entity_by_id};
+use gz_sim_proto::{
+    msgs::{Entity, entity::Type},
     prost::Message,
 };
-use gz_sim_core::{EntityId, Simulation, entity_by_id};
 use gz_sim_scene::{EntityKind, LocalName, remove_model};
-use gz_transport::{Error as TransportError, Node, Request, Service};
-use std::{collections::BTreeMap, num::NonZeroUsize, time::Duration};
+use std::{collections::BTreeMap, num::NonZeroUsize, sync::mpsc};
 
 struct Pending {
     entity: Entity,
-    reply: Option<Request>,
+    reply: Option<ControlRequest>,
 }
 
 pub(crate) struct Removals {
-    services: [Service; 2],
+    inputs: [mpsc::Receiver<ControlRequest>; 2],
     pending: Vec<Pending>,
     next: usize,
 }
 
 impl Removals {
-    pub(crate) fn new(node: &Node, world: &str) -> Result<Self, Error> {
-        let topic = format!("/world/{world}/remove");
-        Ok(Self {
-            services: [
-                node.serve(&topic, "gz.msgs.Entity", "gz.msgs.Boolean")?,
-                node.serve(
-                    &format!("{topic}/blocking"),
-                    "gz.msgs.Entity",
-                    "gz.msgs.Boolean",
-                )?,
-            ],
+    pub(crate) fn new(inputs: [mpsc::Receiver<ControlRequest>; 2]) -> Self {
+        Self {
+            inputs,
             pending: Vec::new(),
             next: 0,
-        })
+        }
     }
 
     pub(crate) fn poll(
         &mut self,
+        io: &WorldIo,
         budget: NonZeroUsize,
         counters: &mut Counters,
     ) -> Result<(), Error> {
+        if io.session.is_closed() {
+            return Err(Error::WorldClosed);
+        }
         for _ in 0..budget.get() {
             if self.pending.len() == budget.get() {
                 break;
@@ -52,48 +50,53 @@ impl Removals {
             for _ in 0..2 {
                 let index = self.next;
                 self.next ^= 1;
-                match self.services[index].recv_timeout(Duration::ZERO) {
+                match self.inputs[index].try_recv() {
                     Ok(request) => {
                         received = Some((index, request));
                         break;
                     }
-                    Err(TransportError::Timeout) => {}
-                    Err(error) => return Err(error.into()),
+                    Err(mpsc::TryRecvError::Empty) => {}
+                    Err(mpsc::TryRecvError::Disconnected) => return Err(Error::WorldClosed),
                 }
             }
             let Some((index, request)) = received else {
                 break;
             };
-            match Entity::decode(request.data.as_slice()) {
-                Ok(entity) => {
+            let entity = if request.payload.len() <= io.max_message_bytes {
+                Entity::decode(request.payload.as_slice()).ok()
+            } else {
+                None
+            };
+            match entity {
+                Some(entity) => {
                     counters.removals_queued += 1;
                     let reply = if index == 1 {
                         Some(request)
                     } else {
-                        respond(request, true, counters);
+                        respond(io, request, true, counters);
                         None
                     };
                     self.pending.push(Pending { entity, reply });
                 }
-                Err(_) => {
+                None => {
                     counters.removals_rejected += 1;
-                    respond(request, false, counters);
+                    respond(io, request, false, counters);
                 }
             }
         }
         Ok(())
     }
 
-    pub(crate) fn cancel_for_reset(&mut self, counters: &mut Counters) {
+    pub(crate) fn cancel_for_reset(&mut self, io: &WorldIo, counters: &mut Counters) {
         for pending in self.pending.drain(..) {
             counters.removals_cancelled += 1;
             if let Some(reply) = pending.reply {
-                respond(reply, false, counters);
+                respond(io, reply, false, counters);
             }
         }
     }
 
-    pub(crate) fn execute(&mut self, sim: &mut Simulation, counters: &mut Counters) {
+    pub(crate) fn execute(&mut self, io: &WorldIo, sim: &mut Simulation, counters: &mut Counters) {
         // Native commands resolve before deferred deletion; duplicate targets succeed together.
         let targets: Vec<_> = self
             .pending
@@ -113,7 +116,7 @@ impl Removals {
                 counters.removals_failed += 1;
             }
             if let Some(reply) = pending.reply {
-                respond(reply, removed, counters);
+                respond(io, reply, removed, counters);
             }
         }
     }
@@ -150,18 +153,8 @@ fn target(sim: &Simulation, request: &Entity) -> Option<u64> {
 #[path = "../tests/private/removals.rs"]
 mod tests;
 
-fn respond(request: Request, accepted: bool, counters: &mut Counters) {
-    if request
-        .respond(
-            Boolean {
-                data: accepted,
-                ..Default::default()
-            }
-            .encode_to_vec(),
-            true,
-        )
-        .is_err()
-    {
+fn respond(io: &WorldIo, request: ControlRequest, accepted: bool, counters: &mut Counters) {
+    if io.reply_boolean(request, accepted).is_err() {
         counters.response_failures += 1;
     }
 }

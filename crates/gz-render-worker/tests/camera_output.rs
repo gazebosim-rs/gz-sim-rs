@@ -1,16 +1,17 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use gz_camera_output::{CameraOutput, CameraOutputError, Progress};
-use gz_msgs::prost::Message;
+use gz_camera_output::{
+    CameraOutput, CameraOutputConfig, CameraOutputError, CameraWriterScope, Progress,
+};
 use gz_sim_core::{EntityId, Simulation};
+use gz_sim_proto::prost::Message;
 use gz_sim_scene::{Name, PhysicsEngine, load_world_with_sdf_step, reset_loaded_world};
-use gz_transport::{Config, Node};
-use socket2::{Domain, Protocol, Socket, Type};
 use std::{
-    net::{Ipv4Addr, SocketAddrV4},
+    num::NonZeroUsize,
     thread,
     time::{Duration, Instant},
 };
+use zenoh::Wait;
 
 fn simulation() -> (Simulation, u64) {
     let source = include_str!("../../gz-sim-scene/tests/fixtures/camera-binding.sdf").replace(
@@ -36,50 +37,58 @@ fn simulation() -> (Simulation, u64) {
     (sim, id)
 }
 
-fn node() -> (Node, [Socket; 2], Config) {
-    node_with_max(16 * 1024 * 1024)
+fn session() -> (zenoh::Session, CameraWriterScope, NonZeroUsize) {
+    session_with_max(16 * 1024 * 1024)
 }
 
-fn node_with_max(max_message_bytes: usize) -> (Node, [Socket; 2], Config) {
-    let reserve = || {
-        let socket = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP)).unwrap();
-        socket.set_reuse_address(true).unwrap();
-        #[cfg(target_os = "linux")]
-        socket.set_multicast_all_v4(false).unwrap();
-        socket
-            .bind(&SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0).into())
-            .unwrap();
-        socket
-    };
-    let held = [reserve(), reserve()];
-    let ports = held.each_ref().map(|socket| {
-        socket
-            .local_addr()
-            .unwrap()
-            .as_socket_ipv4()
-            .unwrap()
-            .port()
-    });
-    assert_ne!(ports[0], ports[1]);
-    let config = Config {
-        partition: format!("camera-output-{}-{}", std::process::id(), ports[0]),
-        message_port: ports[0],
-        service_port: ports[1],
-        max_message_bytes,
-        ..Default::default()
-    };
-    (Node::new(config.clone()).unwrap(), held, config)
+fn session_with_max(max_message_bytes: usize) -> (zenoh::Session, CameraWriterScope, NonZeroUsize) {
+    session_at(max_message_bytes, "tcp/127.0.0.1:0", false)
 }
 
-fn owner(sim: &Simulation, id: u64, node: &Node) -> CameraOutput {
+fn session_at(
+    max_message_bytes: usize,
+    endpoint: &str,
+    connect: bool,
+) -> (zenoh::Session, CameraWriterScope, NonZeroUsize) {
+    let mut config = zenoh::Config::default();
+    let endpoints = format!("[\"{endpoint}\"]");
+    for (path, value) in [
+        ("mode", "\"peer\""),
+        ("listen/endpoints", if connect { "[]" } else { &endpoints }),
+        ("connect/endpoints", if connect { &endpoints } else { "[]" }),
+        ("connect/timeout_ms", "2000"),
+        ("scouting/multicast/enabled", "false"),
+        ("scouting/gossip/enabled", "false"),
+    ] {
+        config.insert_json5(path, value).unwrap();
+    }
+    (
+        zenoh::open(config).wait().unwrap(),
+        CameraWriterScope::new(NonZeroUsize::new(4).unwrap()),
+        NonZeroUsize::new(max_message_bytes).unwrap(),
+    )
+}
+
+fn owner(
+    sim: &Simulation,
+    id: u64,
+    session: &zenoh::Session,
+    scope: &CameraWriterScope,
+    limit: NonZeroUsize,
+) -> CameraOutput {
     CameraOutput::new(
         sim,
-        node,
+        session,
+        scope,
         id,
-        [1_000_000_000.0, 0.0, 0.0],
-        "camera_frame".into(),
-        ("/image", "/info"),
-        env!("CARGO_BIN_EXE_gz-render-worker").into(),
+        CameraOutputConfig {
+            origin: [1_000_000_000.0, 0.0, 0.0],
+            frame_id: "camera_frame".into(),
+            image_key: "@/camera@/image".into(),
+            info_key: "@/camera@/info".into(),
+            worker_path: env!("CARGO_BIN_EXE_gz-render-worker").into(),
+            max_message_bytes: limit,
+        },
     )
     .unwrap()
 }
@@ -128,10 +137,13 @@ fn committed_acquisition_stamp_survives_later_step_through_real_worker() {
     let (mut sim, id) = simulation();
     sim.step_exact(1).unwrap();
     let acquired = sim.elapsed();
-    let (node, _held, _config) = node();
-    let images = node.subscribe("/image", "gz.msgs.Image").unwrap();
-    let infos = node.subscribe("/info", "gz.msgs.CameraInfo").unwrap();
-    let mut output = owner(&sim, id, &node);
+    let (session, scope, limit) = session();
+    let images = session
+        .declare_subscriber("@/camera@/image")
+        .wait()
+        .unwrap();
+    let infos = session.declare_subscriber("@/camera@/info").wait().unwrap();
+    let mut output = owner(&sim, id, &session, &scope, limit);
     assert_eq!(output.request(&sim).unwrap(), Progress::Pending);
     assert!(matches!(output.request(&sim), Err(CameraOutputError::Busy)));
     sim.step_exact(1).unwrap();
@@ -149,20 +161,24 @@ fn committed_acquisition_stamp_survives_later_step_through_real_worker() {
         }
         assert!(Instant::now() < deadline);
     }
-    let image = gz_msgs::msgs::Image::decode(
+    let image = gz_sim_proto::msgs::Image::decode(
         images
             .recv_timeout(Duration::from_secs(5))
             .unwrap()
-            .data
-            .as_slice(),
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
     )
     .unwrap();
-    let info = gz_msgs::msgs::CameraInfo::decode(
+    let info = gz_sim_proto::msgs::CameraInfo::decode(
         infos
             .recv_timeout(Duration::from_secs(5))
             .unwrap()
-            .data
-            .as_slice(),
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
     )
     .unwrap();
     let image_header = image.header.unwrap();
@@ -184,7 +200,10 @@ fn committed_acquisition_stamp_survives_later_step_through_real_worker() {
     drop(infos);
     assert_eq!(output.request(&sim).unwrap(), Progress::RetireRequired);
     output.retire();
-    let images = node.subscribe("/image", "gz.msgs.Image").unwrap();
+    let images = session
+        .declare_subscriber("@/camera@/image")
+        .wait()
+        .unwrap();
     assert_eq!(output.request(&sim).unwrap(), Progress::Pending);
     let deadline = Instant::now() + Duration::from_secs(20);
     loop {
@@ -199,12 +218,14 @@ fn committed_acquisition_stamp_survives_later_step_through_real_worker() {
         }
         assert!(Instant::now() < deadline);
     }
-    let second = gz_msgs::msgs::Image::decode(
+    let second = gz_sim_proto::msgs::Image::decode(
         images
             .recv_timeout(Duration::from_secs(5))
             .unwrap()
-            .data
-            .as_slice(),
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
     )
     .unwrap();
     assert_eq!(second.header.unwrap().data[1].value, ["1"]);
@@ -225,9 +246,12 @@ fn committed_acquisition_stamp_survives_later_step_through_real_worker() {
 #[test]
 fn reset_invalidates_pending_acquisition_before_publication() {
     let (mut sim, id) = simulation();
-    let (node, _held, _config) = node();
-    let images = node.subscribe("/image", "gz.msgs.Image").unwrap();
-    let mut output = owner(&sim, id, &node);
+    let (session, scope, limit) = session();
+    let images = session
+        .declare_subscriber("@/camera@/image")
+        .wait()
+        .unwrap();
+    let mut output = owner(&sim, id, &session, &scope, limit);
     assert_eq!(output.request(&sim).unwrap(), Progress::Pending);
     await_buffered_frame(&mut output, &sim);
     reset_loaded_world(&mut sim, |_| ()).unwrap();
@@ -237,35 +261,53 @@ fn reset_invalidates_pending_acquisition_before_publication() {
         Err(CameraOutputError::OwnerInvalid)
     ));
     output.retire();
-    assert!(images.recv_timeout(Duration::from_millis(100)).is_err());
+    assert!(
+        images
+            .recv_timeout(Duration::from_millis(100))
+            .unwrap()
+            .is_none()
+    );
     assert!(matches!(
         CameraOutput::new(
             &sim,
-            &node,
+            &session,
+            &scope,
             id,
-            [1_000_000_000.0, 0.0, 0.0],
-            "camera_frame".into(),
-            ("/image", "/info"),
-            env!("CARGO_BIN_EXE_gz-render-worker").into()
+            CameraOutputConfig {
+                origin: [1_000_000_000.0, 0.0, 0.0],
+                frame_id: "camera_frame".into(),
+                image_key: "@/camera@/image".into(),
+                info_key: "@/camera@/info".into(),
+                worker_path: env!("CARGO_BIN_EXE_gz-render-worker").into(),
+                max_message_bytes: limit
+            }
         ),
-        Err(CameraOutputError::Transport(_))
+        Err(CameraOutputError::AlreadyPublishing)
     ));
     drop(output);
-    let _replacement = owner(&sim, id, &node);
+    let _replacement = owner(&sim, id, &session, &scope, limit);
 }
 
 #[test]
 fn reset_after_capture_submission_discards_any_later_frame() {
     let (mut sim, id) = simulation();
-    let (node, _held, _config) = node();
-    let images = node.subscribe("/image", "gz.msgs.Image").unwrap();
-    let mut output = owner(&sim, id, &node);
+    let (session, scope, limit) = session();
+    let images = session
+        .declare_subscriber("@/camera@/image")
+        .wait()
+        .unwrap();
+    let mut output = owner(&sim, id, &session, &scope, limit);
     assert_eq!(output.request(&sim).unwrap(), Progress::Pending);
     await_submitted_capture(&mut output, &sim);
     reset_loaded_world(&mut sim, |_| ()).unwrap();
     assert_eq!(output.pump(&sim).unwrap(), Progress::RetireRequired);
     output.retire();
-    assert!(images.recv_timeout(Duration::from_millis(100)).is_err());
+    assert!(
+        images
+            .recv_timeout(Duration::from_millis(100))
+            .unwrap()
+            .is_none()
+    );
 }
 
 struct NativePeer(Option<std::process::Child>);
@@ -284,56 +326,122 @@ fn native_subscriber_receives_actual_sdf_camera_frame_and_info() {
         path::PathBuf,
         process::{Command, Stdio},
     };
-    let prefix = PathBuf::from(
-        std::env::var_os("GZ_REFERENCE_PREFIX").expect("native reference prefix required"),
-    );
-    let pkg = Command::new("pkg-config")
-        .args(["--cflags", "--libs", "gz-transport"])
-        .env("PKG_CONFIG_PATH", prefix.join("lib/pkgconfig"))
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let built = Command::new("python3")
+        .arg(root.join("scripts/native-peer.py"))
+        .args([
+            "--client",
+            "camera",
+            "--profile",
+            "gazebo-zenoh-client-v1",
+            "--json",
+        ])
         .output()
         .unwrap();
     assert!(
-        pkg.status.success(),
+        built.status.success(),
         "{}",
-        String::from_utf8_lossy(&pkg.stderr)
+        String::from_utf8_lossy(&built.stderr)
+    );
+    let reference: serde_json::Value = serde_json::from_slice(&built.stdout).unwrap();
+    assert_eq!(reference["profile"], "gazebo-zenoh-client-v1");
+    let executable = PathBuf::from(reference["binary"].as_str().unwrap());
+    let prefix = PathBuf::from(reference["prefix"].as_str().unwrap());
+    let vendor = PathBuf::from(reference["vendor_prefix"].as_str().unwrap());
+    let provenance = PathBuf::from(reference["provenance"].as_str().unwrap());
+    for path in [&executable, &prefix, &vendor, &provenance] {
+        assert!(
+            path.is_absolute(),
+            "selected native path is not absolute: {path:?}"
+        );
+    }
+    assert!(executable.is_file() && provenance.is_file());
+    assert!(prefix.is_dir() && vendor.is_dir());
+    let runtime = std::env::join_paths([prefix.join("lib"), vendor.join("lib")]).unwrap();
+    let linkage = Command::new("ldd")
+        .arg(&executable)
+        .env("LD_LIBRARY_PATH", &runtime)
+        .env_remove("LD_PRELOAD")
+        .env_remove("LD_AUDIT")
+        .output()
+        .unwrap();
+    assert!(
+        linkage.status.success(),
+        "{}",
+        String::from_utf8_lossy(&linkage.stderr)
+    );
+    let linkage = std::str::from_utf8(&linkage.stdout).unwrap();
+    let selected = prefix.canonicalize().unwrap();
+    for library in ["libgz-transport", "libgz-msgs"] {
+        assert!(
+            linkage
+                .lines()
+                .any(|line| line.trim_start().starts_with(library)),
+            "{library} is linked: {linkage}"
+        );
+    }
+    for line in linkage
+        .lines()
+        .filter(|line| line.trim_start().starts_with("libgz-"))
+    {
+        let path = line
+            .split("=>")
+            .nth(1)
+            .unwrap()
+            .split_whitespace()
+            .next()
+            .unwrap();
+        assert!(
+            PathBuf::from(path)
+                .canonicalize()
+                .unwrap()
+                .starts_with(&selected),
+            "{line}"
+        );
+    }
+    let zenoh = linkage
+        .lines()
+        .find(|line| line.trim_start().starts_with("libzenohc.so "))
+        .expect("selected native client must link Zenoh C");
+    let loaded = PathBuf::from(
+        zenoh
+            .split("=>")
+            .nth(1)
+            .unwrap()
+            .split_whitespace()
+            .next()
+            .unwrap(),
+    );
+    assert!(
+        loaded
+            .canonicalize()
+            .unwrap()
+            .starts_with(vendor.canonicalize().unwrap()),
+        "{zenoh}"
     );
     let directory = tempfile::tempdir().unwrap();
-    let executable = directory.path().join("camera-subscriber");
-    let flags = std::str::from_utf8(&pkg.stdout).unwrap();
-    let compiled = Command::new("c++")
-        .args(["-std=c++17", "-Wall", "-Wextra", "-Werror"])
-        .arg(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/fixtures/camera_subscriber.cc"
-        ))
-        .args(flags.split_whitespace())
-        .arg(format!("-Wl,-rpath,{}", prefix.join("lib").display()))
-        .arg("-o")
-        .arg(&executable)
-        .output()
-        .unwrap();
-    assert!(
-        compiled.status.success(),
-        "{}",
-        String::from_utf8_lossy(&compiled.stderr)
-    );
     let (mut sim, id) = simulation();
     sim.step_exact(1).unwrap();
     let acquired = sim.elapsed();
-    let (node, _held, config) = node();
-    let mut output = owner(&sim, id, &node);
+    // Stable Zenoh 1.8 does not expose a TCP:0 locator. Reserve a unique
+    // loopback address, then release it immediately before the library binds.
+    // A collision is a visible setup error, never a retry or readiness claim.
+    let reservation = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let endpoint = format!("tcp/{}", reservation.local_addr().unwrap());
+    let native_config = directory.path().join("zenoh.json");
+    std::fs::write(&native_config, format!(r#"{{"mode":"peer","listen":{{"endpoints":["{endpoint}"]}},"connect":{{"endpoints":[]}},"scouting":{{"multicast":{{"enabled":false}},"gossip":{{"enabled":false}}}},"transport":{{"shared_memory":{{"enabled":false}}}}}}"#)).unwrap();
+    drop(reservation);
     let child = Command::new(executable)
-        .env("GZ_PARTITION", &config.partition)
-        .env("GZ_IP", "127.0.0.1")
-        .env("GZ_DISCOVERY_MSG_PORT", config.message_port.to_string())
-        .env("GZ_DISCOVERY_SRV_PORT", config.service_port.to_string())
-        .env("GZ_DISCOVERY_MULTICAST_IP", config.multicast.to_string())
-        .env("GZ_TRANSPORT_IMPLEMENTATION", "zeromq")
+        .env("GZ_PARTITION", "camera")
+        .env("GZ_TRANSPORT_IMPLEMENTATION", "zenoh")
+        .env("RUST_LOG", "error")
+        .env("ZENOH_CONFIG", &native_config)
+        .env_remove("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE")
         .env("GZ_TRANSPORT_TOPIC_STATISTICS", "0")
         .env_remove("GZ_TRANSPORT_USERNAME")
         .env_remove("GZ_TRANSPORT_PASSWORD")
         .env_remove("GZ_RELAY")
-        .env("LD_LIBRARY_PATH", prefix.join("lib"))
+        .env("LD_LIBRARY_PATH", &runtime)
         .env_remove("LD_PRELOAD")
         .env_remove("LD_AUDIT")
         .stdout(Stdio::piped())
@@ -342,6 +450,28 @@ fn native_subscriber_receives_actual_sdf_camera_frame_and_info() {
         .unwrap();
     let mut peer = NativePeer(Some(child));
     let deadline = Instant::now() + Duration::from_secs(20);
+    let mut ready = [0; 6];
+    for byte in &mut ready {
+        use rustix::event::{PollFd, PollFlags, Timespec, poll};
+        use std::io::Read;
+        let stdout = peer.0.as_mut().unwrap().stdout.as_mut().unwrap();
+        let remaining = deadline
+            .checked_duration_since(Instant::now())
+            .expect("native READY timeout");
+        let timeout = Timespec {
+            tv_sec: remaining.as_secs().try_into().unwrap(),
+            tv_nsec: remaining.subsec_nanos().into(),
+        };
+        assert_eq!(
+            poll(&mut [PollFd::new(&*stdout, PollFlags::IN)], Some(&timeout)).unwrap(),
+            1,
+            "native READY timeout"
+        );
+        stdout.read_exact(std::slice::from_mut(byte)).unwrap();
+    }
+    assert_eq!(&ready, b"ready\n");
+    let (session, scope, limit) = session_at(16 * 1024 * 1024, &endpoint, true);
+    let mut output = owner(&sim, id, &session, &scope, limit);
     while output.demand().unwrap() != (true, true) {
         assert!(
             peer.0.as_mut().unwrap().try_wait().unwrap().is_none(),
@@ -375,7 +505,7 @@ fn native_subscriber_receives_actual_sdf_camera_frame_and_info() {
         String::from_utf8_lossy(&result.stderr)
     );
     assert_eq!(
-        String::from_utf8(result.stdout).unwrap(),
+        String::from_utf8([ready.as_slice(), result.stdout.as_slice()].concat()).unwrap(),
         format!(
             "ready\n{} {}\n",
             acquired.as_secs(),
@@ -389,9 +519,14 @@ fn native_subscriber_receives_actual_sdf_camera_frame_and_info() {
 fn removed_camera_fault_and_lost_demand_retire_pending_worker() {
     for case in ["removed", "replacement", "fault", "demand"] {
         let (mut sim, id) = simulation();
-        let (node, _held, _config) = node();
-        let mut images = Some(node.subscribe("/image", "gz.msgs.Image").unwrap());
-        let mut output = owner(&sim, id, &node);
+        let (session, scope, limit) = session();
+        let mut images = Some(
+            session
+                .declare_subscriber("@/camera@/image")
+                .wait()
+                .unwrap(),
+        );
+        let mut output = owner(&sim, id, &session, &scope, limit);
         assert_eq!(output.request(&sim).unwrap(), Progress::Pending);
         await_buffered_frame(&mut output, &sim);
         match case {
@@ -432,7 +567,10 @@ fn removed_camera_fault_and_lost_demand_retire_pending_worker() {
         output.retire();
         if let Some(images) = images {
             assert!(
-                images.recv_timeout(Duration::from_millis(100)).is_err(),
+                images
+                    .recv_timeout(Duration::from_millis(100))
+                    .unwrap()
+                    .is_none(),
                 "{case}"
             );
         }
@@ -442,17 +580,23 @@ fn removed_camera_fault_and_lost_demand_retire_pending_worker() {
 #[test]
 fn oversized_real_frame_is_reported_without_publication() {
     let (sim, id) = simulation();
-    let (node, _held, _config) = node_with_max(1024);
-    let images = node.subscribe("/image", "gz.msgs.Image").unwrap();
-    let mut output = owner(&sim, id, &node);
+    let (session, scope, limit) = session_with_max(1024);
+    let images = session
+        .declare_subscriber("@/camera@/image")
+        .wait()
+        .unwrap();
+    let mut output = owner(&sim, id, &session, &scope, limit);
     assert_eq!(output.request(&sim).unwrap(), Progress::Pending);
     await_buffered_frame(&mut output, &sim);
     assert!(matches!(
         output.pump(&sim),
-        Err(CameraOutputError::Transport(
-            gz_transport::Error::InvalidFrame
-        ))
+        Err(CameraOutputError::PublicationTooLarge { .. })
     ));
-    assert!(images.recv_timeout(Duration::from_millis(100)).is_err());
+    assert!(
+        images
+            .recv_timeout(Duration::from_millis(100))
+            .unwrap()
+            .is_none()
+    );
     output.retire();
 }

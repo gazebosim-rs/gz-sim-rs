@@ -2,67 +2,176 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 use std::{
-    cell::RefCell,
-    net::UdpSocket,
-    sync::atomic::{AtomicU64, Ordering},
+    sync::{
+        atomic::{AtomicBool, AtomicU64, Ordering},
+        mpsc,
+    },
     thread,
+};
+use zenoh::{
+    pubsub::Subscriber,
+    sample::{Locality, Sample},
 };
 
 static ID: AtomicU64 = AtomicU64::new(0);
 
-thread_local! {
-    // Keep discovery ports unavailable to exclusive binds throughout each test.
-    static DISCOVERY_RESERVATIONS: RefCell<Vec<UdpSocket>> = const { RefCell::new(Vec::new()) };
-}
-
-fn config() -> Config {
-    let ports = std::array::from_fn::<_, 2, _>(|_| {
-        let socket = UdpSocket::bind("0.0.0.0:0").unwrap();
-        socket2::SockRef::from(&socket)
-            .set_reuse_address(true)
-            .unwrap();
-        #[cfg(target_os = "linux")]
-        socket2::SockRef::from(&socket)
-            .set_multicast_all_v4(false)
-            .unwrap();
-        socket
-    });
-    let config = Config {
+fn config() -> ServerOptions {
+    ServerOptions {
         partition: format!(
             "sim-{}-{}",
             std::process::id(),
             ID.fetch_add(1, Ordering::Relaxed)
         ),
-        message_port: ports[0].local_addr().unwrap().port(),
-        service_port: ports[1].local_addr().unwrap().port(),
-        ..Config::default()
-    };
-    DISCOVERY_RESERVATIONS.with(|held| held.borrow_mut().extend(ports));
+        ..ServerOptions::default()
+    }
+}
+
+// Concrete test clients; production ownership stays with Server and WorldIo.
+pub(super) fn isolated_zenoh_config() -> zenoh::Config {
+    let mut config = zenoh::Config::default();
+    for (path, value) in [
+        ("mode", "\"peer\""),
+        ("listen/endpoints", "[\"tcp/127.0.0.1:0\"]"),
+        ("connect/endpoints", "[]"),
+        ("scouting/multicast/enabled", "false"),
+        ("scouting/gossip/enabled", "false"),
+    ] {
+        config.insert_json5(path, value).unwrap();
+    }
     config
 }
 
-#[test]
-fn test_discovery_ports_remain_reserved_while_transport_can_bind() {
-    let config = config();
-    let exclusive_bind_fails = || {
-        for port in [config.message_port, config.service_port] {
-            for address in ["127.0.0.1", "0.0.0.0"] {
-                assert_eq!(
-                    UdpSocket::bind((address, port)).unwrap_err().kind(),
-                    std::io::ErrorKind::AddrInUse
-                );
-            }
-        }
-    };
-    exclusive_bind_fails();
-    let node = Node::new(config.clone()).unwrap();
-    exclusive_bind_fails();
-    drop(node);
-    exclusive_bind_fails();
+pub(super) fn isolated_server(
+    simulation: Simulation,
+    name: &str,
+    config: ServerOptions,
+    budget: NonZeroUsize,
+) -> Result<Server, Error> {
+    Server::with_zenoh_config(simulation, name, config, isolated_zenoh_config(), budget)
 }
 
-fn server(config: Config, step: Duration) -> Server {
-    let mut server = Server::new(
+pub(super) struct SampleReceiver {
+    _subscriber: Subscriber<()>,
+    incoming: mpsc::Receiver<Sample>,
+    overflow: Arc<AtomicBool>,
+    key: String,
+    message_type: String,
+}
+impl SampleReceiver {
+    pub(super) fn recv_timeout(&self, timeout: Duration) -> Result<Sample, mpsc::RecvTimeoutError> {
+        assert!(
+            !self.overflow.load(Ordering::Acquire),
+            "sample observation overflowed"
+        );
+        let received = self.incoming.recv_timeout(timeout);
+        assert!(
+            !self.overflow.load(Ordering::Acquire),
+            "sample observation overflowed"
+        );
+        let sample = received?;
+        assert_eq!(sample.key_expr().as_str(), self.key);
+        assert_eq!(
+            sample.attachment().unwrap().to_bytes().as_ref(),
+            self.message_type.as_bytes()
+        );
+        Ok(sample)
+    }
+}
+
+pub(super) fn sample_channel(
+    session: &zenoh::Session,
+    key: String,
+    message_type: &str,
+    capacity: usize,
+) -> SampleReceiver {
+    let (sender, incoming) = mpsc::sync_channel(capacity);
+    let overflow = Arc::new(AtomicBool::new(false));
+    let failed = Arc::clone(&overflow);
+    let subscriber = session
+        .declare_subscriber(key.clone())
+        // D28 preserves direct local delivery through actual Session locality,
+        // rather than inventing the discarded SDK MessageInfo boolean.
+        .allowed_origin(Locality::SessionLocal)
+        .callback(move |sample| {
+            if sender.try_send(sample).is_err() {
+                failed.store(true, Ordering::Release);
+            }
+        })
+        .wait()
+        .unwrap();
+    SampleReceiver {
+        _subscriber: subscriber,
+        incoming,
+        overflow,
+        key,
+        message_type: message_type.into(),
+    }
+}
+pub(super) fn samples(server: &Server, topic: &str, message_type: &str) -> SampleReceiver {
+    let config = &server.network_config;
+    let key = crate::options::qualified_name(
+        &config.partition,
+        &config.namespace,
+        config.topic_remap(topic).unwrap_or(topic),
+    )
+    .unwrap();
+    let samples = sample_channel(&server.world_io.session, key, message_type, config.capacity);
+    wait_imu_interest(server, topic, true);
+    samples
+}
+
+// Zenoh dispatches matching changes asynchronously. Establish test-client
+// readiness outside stepping before asserting the next committed sample.
+pub(super) fn wait_imu_interest(server: &Server, topic: &str, expected: bool) {
+    let config = &server.network_config;
+    let key = crate::options::qualified_name(
+        &config.partition,
+        &config.namespace,
+        config.topic_remap(topic).unwrap_or(topic),
+    )
+    .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    for stream in server.imus.iter().filter(|stream| stream.endpoint == key) {
+        while stream.publisher.matching().unwrap() != expected {
+            assert!(
+                Instant::now() < deadline,
+                "IMU interest did not become {expected}: {topic}"
+            );
+            thread::sleep(Duration::from_millis(1));
+        }
+    }
+}
+
+#[test]
+fn tcp_listener_reservation_tracks_actual_session_lifecycle() {
+    // D28 replaces the discarded SDK's reusable UDP discovery-port fixture.
+    // A stolen port at the explicit handoff fails setup; there is no retry.
+    let reserved = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = reserved.local_addr().unwrap();
+    assert_eq!(
+        std::net::TcpListener::bind(address).unwrap_err().kind(),
+        std::io::ErrorKind::AddrInUse
+    );
+    let mut config = isolated_zenoh_config();
+    config
+        .insert_json5(
+            "listen/endpoints",
+            &serde_json::to_string(&[format!("tcp/{address}")]).unwrap(),
+        )
+        .unwrap();
+    drop(reserved);
+    let session = zenoh::open(config).wait().unwrap();
+    assert_eq!(
+        std::net::TcpListener::bind(address).unwrap_err().kind(),
+        std::io::ErrorKind::AddrInUse
+    );
+    session.close().wait().unwrap();
+    let released = std::net::TcpListener::bind(address).unwrap();
+    assert_eq!(released.local_addr().unwrap(), address);
+}
+
+fn server(config: ServerOptions, step: Duration) -> Server {
+    let mut server = isolated_server(
         Simulation::new(step).unwrap(),
         "test",
         config,
@@ -146,7 +255,7 @@ fn clock_fields_retain_distinct_times_and_signed_epoch_boundaries() {
 #[test]
 fn native_pause_and_step_precedence_preserve_pending_counts() {
     let mut server = server(config(), Duration::from_millis(1));
-    assert_eq!(server.tick().unwrap().sim_time, Duration::ZERO);
+    assert_eq!(server.update().unwrap().sim_time, Duration::ZERO);
     assert!(server.apply_control(WorldControl {
         pause: true,
         step: true,
@@ -155,17 +264,20 @@ fn native_pause_and_step_precedence_preserve_pending_counts() {
     }));
     assert_eq!(server.pending_steps(), 3);
     for step in 1..=3 {
-        assert_eq!(server.tick().unwrap().sim_time, Duration::from_millis(step));
+        assert_eq!(
+            server.update().unwrap().sim_time,
+            Duration::from_millis(step)
+        );
     }
     assert!(server.simulation().is_paused());
     assert_eq!(server.pending_steps(), 0);
-    assert_eq!(server.tick().unwrap().sim_time, Duration::from_millis(3));
+    assert_eq!(server.update().unwrap().sim_time, Duration::from_millis(3));
     assert!(server.apply_control(WorldControl {
         pause: false,
         multi_step: 17,
         ..Default::default()
     }));
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.pending_steps(), 0);
     assert!(!server.simulation().is_paused());
     assert!(server.apply_control(WorldControl {
@@ -173,7 +285,7 @@ fn native_pause_and_step_precedence_preserve_pending_counts() {
         step: true,
         ..Default::default()
     }));
-    server.tick().unwrap();
+    server.update().unwrap();
     assert!(server.simulation().is_paused());
     assert!(server.apply_control(WorldControl {
         pause: true,
@@ -190,16 +302,25 @@ fn native_pause_and_step_precedence_preserve_pending_counts() {
         pause: true,
         ..Default::default()
     }));
-    assert_eq!(server.tick().unwrap().sim_time, Duration::from_millis(5));
+    assert_eq!(server.update().unwrap().sim_time, Duration::from_millis(5));
     assert_eq!(server.pending_steps(), 5);
     assert!(server.apply_control(WorldControl::default()));
     for _ in 0..5 {
-        server.tick().unwrap();
+        server.update().unwrap();
     }
     assert_eq!(server.simulation().elapsed(), Duration::from_millis(10));
     assert!(server.simulation().is_paused());
     assert!(server.counters().clocks_queued > 0);
-    assert_eq!(server.transport_statistics().send_failures, 0);
+    let counters = server.counters();
+    assert_eq!(
+        (
+            counters.clock_failures,
+            counters.pose_failures,
+            counters.imu_failures,
+            counters.root_clock_failures
+        ),
+        (0, 0, 0, 0)
+    );
     server.shutdown();
 }
 
@@ -216,14 +337,14 @@ fn unsupported_and_overflowing_controls_leave_state_unchanged() {
             ..Default::default()
         },
         WorldControl {
-            reset: Some(gz_msgs::msgs::WorldReset {
+            reset: Some(gz_sim_proto::msgs::WorldReset {
                 all: true,
                 ..Default::default()
             }),
             ..Default::default()
         },
         WorldControl {
-            reset: Some(gz_msgs::msgs::WorldReset {
+            reset: Some(gz_sim_proto::msgs::WorldReset {
                 time_only: true,
                 ..Default::default()
             }),
@@ -258,20 +379,19 @@ fn unsupported_and_overflowing_controls_leave_state_unchanged() {
         ..Default::default()
     }));
     huge.simulation.set_paused(false);
-    assert!(matches!(huge.tick(), Err(Error::TimeRange)));
+    assert!(matches!(huge.update(), Err(Error::TimeRange)));
     assert_eq!(huge.simulation().elapsed(), Duration::ZERO);
     huge.simulation.step_exact(1).unwrap();
-    assert!(matches!(huge.tick(), Err(Error::Step(StepError::Overflow))));
+    assert!(matches!(
+        huge.update(),
+        Err(Error::Step(StepError::Overflow))
+    ));
     assert!(
         Error::Step(StepError::Overflow)
             .to_string()
             .contains("overflow")
     );
-    assert!(
-        Error::Transport(TransportError::Shutdown)
-            .to_string()
-            .contains("Shutdown")
-    );
+    assert!(Error::WorldClosed.to_string().contains("closed"));
 }
 
 #[test]
@@ -279,7 +399,7 @@ fn setup_rejects_invalid_names_configuration_and_unrepresentable_time() {
     // These sanitize to an empty or invalid topic, which native Gazebo also rejects.
     for name in ["", "/", "//", "@~", ":="] {
         assert!(
-            Server::new(
+            isolated_server(
                 Simulation::new(Duration::from_millis(1)).unwrap(),
                 name,
                 config(),
@@ -288,46 +408,117 @@ fn setup_rejects_invalid_names_configuration_and_unrepresentable_time() {
             .is_err()
         );
     }
-    for config in [
-        Config {
-            capacity: 0,
-            ..config()
-        },
-        Config {
+    let invalid = ServerOptions {
+        capacity: 0,
+        ..config()
+    };
+    assert!(matches!(
+        isolated_server(
+            Simulation::new(Duration::from_millis(1)).unwrap(),
+            "test",
+            invalid,
+            NonZeroUsize::new(1).unwrap()
+        ),
+        Err(Error::Setup(SetupError::InvalidConfig))
+    ));
+
+    // D28 retires the SDK shared endpoint quota: clock held its first lease and
+    // control registration exhausted capacity1. Capacity now bounds input work.
+    let mut one = server(
+        ServerOptions {
             capacity: 1,
             ..config()
         },
-    ] {
-        assert!(
-            Server::new(
-                Simulation::new(Duration::from_millis(1)).unwrap(),
-                "test",
-                config,
-                NonZeroUsize::new(1).unwrap()
-            )
-            .is_err()
-        );
+        Duration::from_millis(1),
+    );
+    one.command_budget = NonZeroUsize::new(1).unwrap();
+    let clocks = samples(&one, "/world/test/clock", "gz.msgs.Clock");
+    let first = WorldControl {
+        pause: true,
+        multi_step: 1,
+        ..Default::default()
     }
+    .encode_to_vec();
+    let accepted = request(&one, first.clone());
+    let pending = one
+        .world_io
+        .controls
+        .recv_timeout(Duration::from_secs(5))
+        .unwrap();
+    assert_eq!(pending.payload, first);
+    let rejected = request(
+        &one,
+        WorldControl {
+            pause: true,
+            multi_step: 9,
+            ..Default::default()
+        }
+        .encode_to_vec(),
+    );
+    assert!(rejected.join().unwrap().is_err());
+    assert_eq!(one.ingress_statistics().queue_drops, 1);
+    assert_eq!(one.pending_steps(), 0);
+    assert_eq!(one.counters().controls_accepted, 0);
+    one.respond(pending);
+    let (bytes, success) = accepted.join().unwrap().unwrap();
+    assert!(success && Boolean::decode(bytes.as_slice()).unwrap().data);
+    assert_eq!(one.pending_steps(), 1);
+    let info = one.update().unwrap();
+    assert_eq!(info.sim_time, Duration::from_millis(1));
+    assert_eq!(one.pending_steps(), 0);
+    assert!(one.simulation().is_paused());
+    let frame = clocks.recv_timeout(Duration::from_secs(5)).unwrap();
+    assert_eq!(
+        Clock::decode(frame.payload().to_bytes().as_ref())
+            .unwrap()
+            .sim,
+        Some(Time {
+            sec: 0,
+            nsec: 1_000_000
+        })
+    );
+    assert_eq!(
+        (
+            one.counters().controls_accepted,
+            one.counters().controls_rejected,
+            one.counters().clocks_queued,
+            one.counters().clock_failures
+        ),
+        (1, 1, 1, 0)
+    );
+    assert!(matches!(
+        one.world_io.controls.try_recv(),
+        Err(mpsc::TryRecvError::Empty)
+    ));
+    one.shutdown();
     let mut huge = Simulation::new(Duration::MAX).unwrap();
     huge.step_exact(1).unwrap();
     assert!(matches!(
-        Server::new(huge, "test", config(), NonZeroUsize::new(1).unwrap()),
+        isolated_server(huge, "test", config(), NonZeroUsize::new(1).unwrap()),
         Err(Error::TimeRange)
     ));
 }
 
-fn request(
-    client: Node,
-    bytes: Vec<u8>,
-) -> thread::JoinHandle<Result<(Vec<u8>, bool), TransportError>> {
+fn request(server: &Server, bytes: Vec<u8>) -> thread::JoinHandle<Result<(Vec<u8>, bool), String>> {
+    let session = server.world_io.session.clone();
+    let config = &server.network_config;
+    let topic = config
+        .topic_remap("/world/test/control")
+        .unwrap_or("/world/test/control");
+    let key = crate::options::qualified_name(&config.partition, &config.namespace, topic).unwrap();
     thread::spawn(move || {
-        client.request(
-            "/world/test/control",
-            "gz.msgs.WorldControl",
-            "gz.msgs.Boolean",
-            bytes,
-            Duration::from_secs(5),
-        )
+        let replies = session
+            .get(key)
+            .payload(bytes)
+            .timeout(Duration::from_secs(5))
+            .wait()
+            .map_err(|error| error.to_string())?;
+        let reply = replies
+            .recv_timeout(Duration::from_secs(5))
+            .map_err(|error| error.to_string())?
+            .ok_or("control timed out")?;
+        let sample = reply.result().map_err(|error| format!("{error:?}"))?;
+        Ok((sample.payload().to_bytes().into_owned(), true))
     })
 }
 
@@ -339,22 +530,33 @@ fn world_names_are_sanitized_like_native_topics() {
         ("nested/world", "/world/nested/world/clock"),
     ] {
         let configuration = config();
-        let observer = Node::new(configuration.clone()).unwrap();
-        let clock = observer.subscribe(topic, "gz.msgs.Clock").unwrap();
-        let mut server = Server::new(
+        let mut server = isolated_server(
             Simulation::new(Duration::from_millis(1)).unwrap(),
             name,
             configuration,
             NonZeroUsize::new(1).unwrap(),
         )
         .unwrap();
+        let key =
+            crate::options::qualified_name(&server.partition, &server.namespace, topic).unwrap();
+        let clock = server
+            .world_io
+            .session
+            .declare_subscriber(key)
+            .wait()
+            .unwrap();
         assert!(
             server.prepare_run(Duration::from_secs(5)).unwrap(),
             "{name}"
         );
-        server.tick().unwrap();
-        let sample = clock.recv_timeout(Duration::from_secs(5)).unwrap();
-        assert!(Clock::decode(sample.data.as_slice()).unwrap().sim.is_some());
+        server.update().unwrap();
+        let sample = clock.recv_timeout(Duration::from_secs(5)).unwrap().unwrap();
+        assert!(
+            Clock::decode(sample.payload().to_bytes().as_ref())
+                .unwrap()
+                .sim
+                .is_some()
+        );
     }
 }
 
@@ -362,16 +564,18 @@ fn world_names_are_sanitized_like_native_topics() {
 fn real_transport_commands_report_acceptance_and_exact_step_completion() {
     let config = config();
     let mut server = server(config.clone(), Duration::from_millis(1));
-    let client = Node::new(config.clone()).unwrap();
-    let subscription = client
-        .subscribe("/world/test/clock", "gz.msgs.Clock")
+    let subscription = server
+        .world_io
+        .session
+        .declare_subscriber(server.world_io.clock.key_expr().clone().into_owned())
+        .wait()
         .unwrap();
     let mut first = None;
     let deadline = Instant::now() + Duration::from_secs(5);
     while first.is_none() && Instant::now() < deadline {
-        server.tick().unwrap();
-        if let Ok(message) = subscription.recv_timeout(Duration::from_millis(2)) {
-            first = Some(Clock::decode(message.data.as_slice()).unwrap());
+        server.update().unwrap();
+        if let Ok(Some(message)) = subscription.recv_timeout(Duration::from_millis(2)) {
+            first = Some(Clock::decode(message.payload().to_bytes().as_ref()).unwrap());
         }
     }
     assert_eq!(first.unwrap().sim.unwrap(), Time::default());
@@ -395,10 +599,10 @@ fn real_transport_commands_report_acceptance_and_exact_step_completion() {
             true,
         ),
     ] {
-        let result = request(Node::new(config.clone()).unwrap(), bytes);
+        let result = request(&server, bytes);
         let deadline = Instant::now() + Duration::from_secs(5);
         while !result.is_finished() && Instant::now() < deadline {
-            server.tick().unwrap();
+            server.update().unwrap();
             thread::yield_now();
         }
         let (bytes, success) = result.join().unwrap().unwrap();
@@ -406,15 +610,15 @@ fn real_transport_commands_report_acceptance_and_exact_step_completion() {
         assert_eq!(Boolean::decode(bytes.as_slice()).unwrap().data, accepted);
     }
     while server.pending_steps() > 0 {
-        server.tick().unwrap();
+        server.update().unwrap();
     }
     assert_eq!(server.simulation().elapsed(), Duration::from_millis(3));
     let deadline = Instant::now() + Duration::from_secs(5);
     let final_clock = loop {
         assert!(Instant::now() < deadline);
-        server.tick().unwrap();
-        if let Ok(message) = subscription.recv_timeout(Duration::from_millis(2)) {
-            let clock = Clock::decode(message.data.as_slice()).unwrap();
+        server.update().unwrap();
+        if let Ok(Some(message)) = subscription.recv_timeout(Duration::from_millis(2)) {
+            let clock = Clock::decode(message.payload().to_bytes().as_ref()).unwrap();
             if clock
                 .sim
                 .as_ref()
@@ -429,10 +633,7 @@ fn real_transport_commands_report_acceptance_and_exact_step_completion() {
     assert_eq!(server.counters().controls_rejected, 2);
     assert_eq!(server.counters().controls_accepted, 1);
     server.shutdown();
-    assert!(matches!(
-        server.tick(),
-        Err(Error::Transport(TransportError::Shutdown))
-    ));
+    assert!(matches!(server.update(), Err(Error::WorldClosed)));
     assert!(server.counters().clock_failures > 0);
 }
 
@@ -440,15 +641,13 @@ fn real_transport_commands_report_acceptance_and_exact_step_completion() {
 fn shutdown_after_receipt_reports_reply_failure_without_waiting() {
     let config = config();
     let mut server = server(config.clone(), Duration::from_millis(1));
-    let result = request(
-        Node::new(config).unwrap(),
-        WorldControl::default().encode_to_vec(),
-    );
+    let result = request(&server, WorldControl::default().encode_to_vec());
     let received = server
+        .world_io
         .controls
         .recv_timeout(Duration::from_secs(5))
         .unwrap();
-    server.node.cancel();
+    server.world_io.session.close().wait().unwrap();
     server.respond(received);
     assert_eq!(server.counters().response_failures, 1);
     assert_eq!(server.counters().controls_accepted, 1);
@@ -456,7 +655,7 @@ fn shutdown_after_receipt_reports_reply_failure_without_waiting() {
     assert!(result.join().unwrap().is_err());
 }
 
-fn imu_server(config: Config) -> Server {
+fn imu_server(config: ServerOptions) -> Server {
     let simulation = gz_sim_scene::load_world(
         include_str!("../../../gz-sim-scene/tests/fixtures/fall.sdf"),
         "fall.sdf",
@@ -466,7 +665,7 @@ fn imu_server(config: Config) -> Server {
     )
     .unwrap();
     let mut server =
-        Server::new(simulation, "default", config, NonZeroUsize::new(2).unwrap()).unwrap();
+        isolated_server(simulation, "default", config, NonZeroUsize::new(2).unwrap()).unwrap();
     server.set_pose_publication_period(Duration::ZERO);
     server.set_interest_policy(InterestPolicy::Always);
     server
@@ -530,11 +729,11 @@ fn imu_message_matches_native_metadata_presence_covariance_and_sequence() {
 
 #[test]
 fn imu_publication_tracks_new_samples_epochs_and_rejected_payloads() {
-    let mut server = imu_server(Config {
+    let mut server = imu_server(ServerOptions {
         max_message_bytes: 1,
         ..config()
     });
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(
         server.counters().imus_queued + server.counters().imu_failures,
         0
@@ -545,11 +744,11 @@ fn imu_publication_tracks_new_samples_epochs_and_rejected_payloads() {
         ..Default::default()
     }));
     for _ in 0..3 {
-        server.tick().unwrap();
+        server.update().unwrap();
     }
     assert_eq!(server.counters().imu_failures, 3);
     assert_eq!(server.imus[0].sequence, 3);
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.counters().imu_failures, 3);
     for _ in 0..2 {
         server.simulation.reset().unwrap();
@@ -586,7 +785,7 @@ fn valid_imu_samples_are_queued_and_invalid_topics_fail_setup() {
         step: true,
         ..Default::default()
     }));
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.counters().imus_queued, 1);
     assert_eq!(server.counters().imu_failures, 0);
     let mut simulation = Simulation::new(Duration::from_millis(1)).unwrap();
@@ -597,8 +796,8 @@ fn valid_imu_samples_are_queued_and_invalid_topics_fail_setup() {
         topic: "~@:=//".into(),
     });
     assert!(matches!(
-        Server::new(simulation, "test", config(), NonZeroUsize::new(2).unwrap()),
-        Err(Error::Transport(TransportError::InvalidName))
+        isolated_server(simulation, "test", config(), NonZeroUsize::new(2).unwrap()),
+        Err(Error::Setup(SetupError::InvalidName))
     ));
 }
 
@@ -608,11 +807,11 @@ fn pose_publication_reports_invalid_frames_and_bounded_transport_failure() {
     let mut malformed = Simulation::new(Duration::from_millis(1)).unwrap();
     malformed.world_mut().spawn(EntityKind::Model);
     assert!(matches!(
-        Server::new(malformed, "test", config(), NonZeroUsize::new(2).unwrap()),
+        isolated_server(malformed, "test", config(), NonZeroUsize::new(2).unwrap()),
         Err(Error::PoseData)
     ));
     let mut valid = imu_server(config());
-    valid.tick().unwrap();
+    valid.update().unwrap();
     assert_eq!(valid.counters().poses_queued, 1);
     assert_eq!(valid.counters().pose_failures, 0);
     let entity = valid
@@ -627,14 +826,14 @@ fn pose_publication_reports_invalid_frames_and_bounded_transport_failure() {
         .world_mut()
         .entity_mut(entity)
         .remove::<LocalName>();
-    valid.tick().unwrap();
+    valid.update().unwrap();
     assert_eq!(valid.counters().invalid_pose_frames, 1);
     assert_eq!(valid.counters().poses_queued, 1);
-    let mut bounded = imu_server(Config {
+    let mut bounded = imu_server(ServerOptions {
         max_message_bytes: 1,
         ..config()
     });
-    bounded.tick().unwrap();
+    bounded.update().unwrap();
     assert_eq!(bounded.counters().pose_failures, 1);
     assert_eq!(bounded.counters().poses_queued, 0);
 }
@@ -652,22 +851,36 @@ fn public_id(server: &Server, name: &str) -> u64 {
 }
 
 fn removal_request(
-    config: Config,
+    server: &Server,
+    config: ServerOptions,
     blocking: bool,
     bytes: Vec<u8>,
-) -> thread::JoinHandle<Result<(Vec<u8>, bool), TransportError>> {
+) -> thread::JoinHandle<Result<(Vec<u8>, bool), String>> {
+    let session = server.world_io.session.clone();
+    let topic = if blocking {
+        "/world/default/remove/blocking"
+    } else {
+        "/world/default/remove"
+    };
+    let key = crate::options::qualified_name(
+        &config.partition,
+        &config.namespace,
+        config.topic_remap(topic).unwrap_or(topic),
+    )
+    .unwrap();
     thread::spawn(move || {
-        Node::new(config).unwrap().request(
-            if blocking {
-                "/world/default/remove/blocking"
-            } else {
-                "/world/default/remove"
-            },
-            "gz.msgs.Entity",
-            "gz.msgs.Boolean",
-            bytes,
-            Duration::from_secs(5),
-        )
+        let replies = session
+            .get(key)
+            .payload(bytes)
+            .timeout(Duration::from_secs(5))
+            .wait()
+            .map_err(|error| error.to_string())?;
+        let reply = replies
+            .recv_timeout(Duration::from_secs(5))
+            .map_err(|error| error.to_string())?
+            .ok_or("removal reply timed out")?;
+        let sample = reply.into_result().map_err(|error| format!("{error:?}"))?;
+        Ok((sample.payload().to_bytes().into_owned(), true))
     })
 }
 
@@ -677,13 +890,17 @@ fn poll_removals(server: &mut Server, count: u64) {
         assert!(Instant::now() < deadline);
         server
             .removals
-            .poll(server.command_budget, &mut server.counters)
+            .poll(
+                &server.world_io,
+                server.command_budget,
+                &mut server.counters,
+            )
             .unwrap();
         thread::yield_now();
     }
 }
 
-fn removal_result(request: thread::JoinHandle<Result<(Vec<u8>, bool), TransportError>>) -> bool {
+fn removal_result(request: thread::JoinHandle<Result<(Vec<u8>, bool), String>>) -> bool {
     let (bytes, success) = request.join().unwrap().unwrap();
     assert!(success);
     Boolean::decode(bytes.as_slice()).unwrap().data
@@ -691,13 +908,14 @@ fn removal_result(request: thread::JoinHandle<Result<(Vec<u8>, bool), TransportE
 
 #[test]
 fn queued_removal_preserves_final_publication_and_retires_sensor_streams() {
-    use gz_msgs::msgs::{Entity, entity::Type};
+    use gz_sim_proto::msgs::{Entity, entity::Type};
     let config = config();
     let mut server = imu_server(config.clone());
     server.simulation.set_paused(false);
-    server.tick().unwrap();
+    server.update().unwrap();
     let ball = public_id(&server, "default::ball");
     let request = removal_request(
+        &server,
         config,
         false,
         Entity {
@@ -712,14 +930,14 @@ fn queued_removal_preserves_final_publication_and_retires_sensor_streams() {
     assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_some());
     let samples = server.counters.imus_queued;
     let poses = server.counters.poses_queued;
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.simulation.elapsed(), Duration::from_millis(2));
     assert_eq!(server.counters.imus_queued, samples + 1);
     assert_eq!(server.counters.poses_queued, poses + 1);
     assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_none());
     assert!(server.imus.is_empty());
     assert_eq!(server.counters.removals_completed, 1);
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.counters.imus_queued, samples + 1);
     assert_eq!(
         poses::packet(server.simulation.world(), server.simulation.elapsed())
@@ -732,11 +950,12 @@ fn queued_removal_preserves_final_publication_and_retires_sensor_streams() {
 
 #[test]
 fn blocking_removal_reports_execution_and_duplicates_resolve_before_deletion() {
-    use gz_msgs::msgs::{Entity, entity::Type};
+    use gz_sim_proto::msgs::{Entity, entity::Type};
     let config = config();
     let mut server = imu_server(config.clone());
     let ball = public_id(&server, "default::ball");
     let first = removal_request(
+        &server,
         config.clone(),
         true,
         Entity {
@@ -748,6 +967,7 @@ fn blocking_removal_reports_execution_and_duplicates_resolve_before_deletion() {
         .encode_to_vec(),
     );
     let second = removal_request(
+        &server,
         config,
         true,
         Entity {
@@ -761,7 +981,7 @@ fn blocking_removal_reports_execution_and_duplicates_resolve_before_deletion() {
     assert!(!first.is_finished());
     assert!(!second.is_finished());
     assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_some());
-    server.tick().unwrap();
+    server.update().unwrap();
     assert!(removal_result(first));
     assert!(removal_result(second));
     assert_eq!(server.counters.removals_completed, 2);
@@ -772,7 +992,7 @@ fn blocking_removal_reports_execution_and_duplicates_resolve_before_deletion() {
 
 #[test]
 fn malformed_and_invalid_removal_requests_preserve_acceptance_semantics() {
-    use gz_msgs::msgs::{Entity, entity::Type};
+    use gz_sim_proto::msgs::{Entity, entity::Type};
     let config = config();
     let mut server = imu_server(config.clone());
     let body = public_id(&server, "default::ball::body");
@@ -810,15 +1030,15 @@ fn malformed_and_invalid_removal_requests_preserve_acceptance_semantics() {
             .encode_to_vec(),
         ] {
             let malformed = bytes == [0x80];
-            let request = removal_request(config.clone(), blocking, bytes);
+            let request = removal_request(&server, config.clone(), blocking, bytes);
             count += 1;
             poll_removals(&mut server, count);
             if !blocking || malformed {
                 assert_eq!(removal_result(request), !malformed);
-                server.tick().unwrap();
+                server.update().unwrap();
             } else {
                 assert!(!request.is_finished());
-                server.tick().unwrap();
+                server.update().unwrap();
                 assert!(!removal_result(request));
             }
             assert!(gz_sim_core::entity_by_id(server.simulation.world(), body).is_some());
@@ -831,12 +1051,13 @@ fn malformed_and_invalid_removal_requests_preserve_acceptance_semantics() {
 
 #[test]
 fn removal_polling_is_bounded_and_shutdown_does_not_undo_accepted_execution() {
-    use gz_msgs::msgs::Entity;
+    use gz_sim_proto::msgs::Entity;
     let config = config();
     let mut server = imu_server(config.clone());
     server.command_budget = NonZeroUsize::new(1).unwrap();
     let ball = public_id(&server, "default::ball");
     let request = removal_request(
+        &server,
         config,
         true,
         Entity {
@@ -849,14 +1070,20 @@ fn removal_polling_is_bounded_and_shutdown_does_not_undo_accepted_execution() {
     for _ in 0..3 {
         server
             .removals
-            .poll(server.command_budget, &mut server.counters)
+            .poll(
+                &server.world_io,
+                server.command_budget,
+                &mut server.counters,
+            )
             .unwrap();
     }
     assert_eq!(server.counters.removals_queued, 1);
-    server.node.cancel();
-    server
-        .removals
-        .execute(&mut server.simulation, &mut server.counters);
+    server.world_io.session.close().wait().unwrap();
+    server.removals.execute(
+        &server.world_io,
+        &mut server.simulation,
+        &mut server.counters,
+    );
     assert_eq!(server.counters.removals_completed, 1);
     assert_eq!(server.counters.response_failures, 1);
     assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_none());
@@ -865,14 +1092,18 @@ fn removal_polling_is_bounded_and_shutdown_does_not_undo_accepted_execution() {
     assert!(
         server
             .removals
-            .poll(server.command_budget, &mut server.counters)
+            .poll(
+                &server.world_io,
+                server.command_budget,
+                &mut server.counters
+            )
             .is_err()
     );
 }
 
 #[test]
 fn each_removal_batch_is_bounded_when_both_services_have_work() {
-    use gz_msgs::msgs::Entity;
+    use gz_sim_proto::msgs::Entity;
     let config = config();
     let mut server = imu_server(config.clone());
     server.command_budget = NonZeroUsize::new(1).unwrap();
@@ -880,6 +1111,7 @@ fn each_removal_batch_is_bounded_when_both_services_have_work() {
         .into_iter()
         .map(|blocking| {
             removal_request(
+                &server,
                 config.clone(),
                 blocking,
                 Entity {
@@ -897,13 +1129,19 @@ fn each_removal_batch_is_bounded_when_both_services_have_work() {
         for _ in 0..3 {
             server
                 .removals
-                .poll(server.command_budget, &mut server.counters)
+                .poll(
+                    &server.world_io,
+                    server.command_budget,
+                    &mut server.counters,
+                )
                 .unwrap();
         }
         assert_eq!(server.counters.removals_queued, count);
-        server
-            .removals
-            .execute(&mut server.simulation, &mut server.counters);
+        server.removals.execute(
+            &server.world_io,
+            &mut server.simulation,
+            &mut server.counters,
+        );
         assert_eq!(server.counters.removals_failed, count);
     }
     for (request, blocking) in requests.into_iter().zip([false, true, false, true]) {
@@ -914,30 +1152,42 @@ fn each_removal_batch_is_bounded_when_both_services_have_work() {
 
 #[test]
 fn client_timeout_does_not_cancel_an_accepted_removal() {
-    use gz_msgs::msgs::Entity;
+    use gz_sim_proto::msgs::Entity;
     let config = config();
     let mut server = imu_server(config.clone());
     let ball = public_id(&server, "default::ball");
+    let session = server.world_io.session.clone();
+    let topic = "/world/default/remove/blocking";
+    let key = crate::options::qualified_name(
+        &config.partition,
+        &config.namespace,
+        config.topic_remap(topic).unwrap_or(topic),
+    )
+    .unwrap();
     let request = thread::spawn(move || {
-        Node::new(config).unwrap().request(
-            "/world/default/remove/blocking",
-            "gz.msgs.Entity",
-            "gz.msgs.Boolean",
-            Entity {
-                id: ball,
-                ..Default::default()
-            }
-            .encode_to_vec(),
-            Duration::from_secs(2),
-        )
+        let replies = session
+            .get(key)
+            .payload(
+                Entity {
+                    id: ball,
+                    ..Default::default()
+                }
+                .encode_to_vec(),
+            )
+            .timeout(Duration::from_secs(5))
+            .wait()
+            .unwrap();
+        // Keep the original two-second application receive window. The query
+        // stays bounded by the normal five-second IO limit after the caller leaves.
+        assert!(matches!(
+            replies.recv_timeout(Duration::from_secs(2)),
+            Ok(None)
+        ));
     });
     poll_removals(&mut server, 1);
-    assert!(matches!(
-        request.join().unwrap(),
-        Err(TransportError::Timeout)
-    ));
+    request.join().unwrap();
     assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_some());
-    server.tick().unwrap();
+    server.update().unwrap();
     assert!(gz_sim_core::entity_by_id(server.simulation.world(), ball).is_none());
     assert_eq!(server.counters.removals_completed, 1);
     assert!(server.imus.is_empty());
@@ -945,9 +1195,9 @@ fn client_timeout_does_not_cancel_an_accepted_removal() {
 
 #[test]
 fn shared_imu_topic_preserves_each_source_and_retires_only_the_last_publisher() {
-    use gz_msgs::msgs::Imu;
+    use gz_sim_proto::msgs::Imu;
     use std::collections::BTreeSet;
-    let config = Config {
+    let config = ServerOptions {
         namespace: "/robot".into(),
         ..config()
     };
@@ -962,7 +1212,7 @@ fn shared_imu_topic_preserves_each_source_and_retires_only_the_last_publisher() 
         &sdformat::NoResources,
     )
     .unwrap();
-    let mut server = Server::new(
+    let mut server = isolated_server(
         sim,
         "default",
         config.clone(),
@@ -975,16 +1225,15 @@ fn shared_imu_topic_preserves_each_source_and_retires_only_the_last_publisher() 
         &server.imus[1].publisher
     ));
     let endpoint = Arc::downgrade(&server.imus[0].publisher);
-    let client = Node::new(config).unwrap();
-    let subscriber = client.subscribe("/robot/shared", "gz.msgs.IMU").unwrap();
+    let subscriber = samples(&server, "/robot/shared", "gz.msgs.IMU");
     server.simulation.set_paused(false);
     let deadline = Instant::now() + Duration::from_secs(5);
     let mut sources = BTreeSet::new();
     while sources.len() < 2 {
         assert!(Instant::now() < deadline);
-        server.tick().unwrap();
+        server.update().unwrap();
         if let Ok(message) = subscriber.recv_timeout(Duration::from_millis(2)) {
-            let imu = Imu::decode(message.data.as_slice()).unwrap();
+            let imu = Imu::decode(message.payload().to_bytes().as_ref()).unwrap();
             let frame = &imu.header.as_ref().unwrap().data[0].value[0];
             assert!(matches!(
                 (imu.entity_name.as_str(), frame.as_str()),
@@ -1002,15 +1251,15 @@ fn shared_imu_topic_preserves_each_source_and_retires_only_the_last_publisher() 
         .entity;
     let removed_at = server.simulation.elapsed();
     server.simulation.world_mut().entity_mut(first).despawn();
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.imus.len(), 1);
     assert_eq!(endpoint.strong_count(), 1);
     let deadline = Instant::now() + Duration::from_secs(5);
     loop {
         assert!(Instant::now() < deadline);
-        server.tick().unwrap();
+        server.update().unwrap();
         if let Ok(message) = subscriber.recv_timeout(Duration::from_millis(2)) {
-            let imu = Imu::decode(message.data.as_slice()).unwrap();
+            let imu = Imu::decode(message.payload().to_bytes().as_ref()).unwrap();
             let stamp = imu.header.as_ref().unwrap().stamp.as_ref().unwrap();
             let time = Duration::new(
                 stamp.sec.try_into().unwrap(),
@@ -1024,9 +1273,11 @@ fn shared_imu_topic_preserves_each_source_and_retires_only_the_last_publisher() 
         }
     }
     let ball = public_id(&server, "default::ball");
+    assert!(server.imus.capacity() > 0);
     gz_sim_scene::remove_model(&mut server.simulation, ball).unwrap();
-    server.tick().unwrap();
+    server.update().unwrap();
     assert!(server.imus.is_empty());
+    assert_eq!(server.imus.capacity(), 0);
     assert!(endpoint.upgrade().is_none());
     assert_eq!(server.counters.imu_failures, 0);
 }
@@ -1036,7 +1287,7 @@ mod reset_tests;
 
 #[test]
 fn native_default_pose_period_does_not_pace_clock_imu_or_reset_the_wall_gate() {
-    let mut default = Server::new(
+    let mut default = isolated_server(
         Simulation::new(Duration::from_millis(1)).unwrap(),
         "test",
         config(),
@@ -1052,27 +1303,21 @@ fn native_default_pose_period_does_not_pace_clock_imu_or_reset_the_wall_gate() {
     let mut server = imu_server(config());
     // A long explicit period makes the integration boundary independent of host scheduling.
     server.set_pose_publication_period(Duration::from_secs(86_400));
-    let poses = server
-        .node
-        .subscribe("/world/default/pose/info", "gz.msgs.Pose_V")
-        .unwrap();
-    let clocks = server
-        .node
-        .subscribe("/world/default/clock", "gz.msgs.Clock")
-        .unwrap();
-    let imus = server
-        .node
-        .subscribe(&server.imus[0].metadata.topic, "gz.msgs.IMU")
-        .unwrap();
+    let poses = samples(&server, "/world/default/pose/info", "gz.msgs.Pose_V");
+    let clocks = samples(&server, "/world/default/clock", "gz.msgs.Clock");
+    let imus = samples(&server, &server.imus[0].metadata.topic, "gz.msgs.IMU");
     assert!(server.apply_control(WorldControl {
         pause: false,
         ..Default::default()
     }));
     for step in 1..=3 {
-        assert_eq!(server.tick().unwrap().sim_time, Duration::from_millis(step));
+        assert_eq!(
+            server.update().unwrap().sim_time,
+            Duration::from_millis(step)
+        );
         let message = clocks.recv_timeout(Duration::from_secs(5)).unwrap();
         assert_eq!(
-            Clock::decode(message.data.as_slice())
+            Clock::decode(message.payload().to_bytes().as_ref())
                 .unwrap()
                 .sim
                 .unwrap()
@@ -1081,7 +1326,7 @@ fn native_default_pose_period_does_not_pace_clock_imu_or_reset_the_wall_gate() {
         );
         let message = imus.recv_timeout(Duration::from_secs(5)).unwrap();
         assert_eq!(
-            gz_msgs::msgs::Imu::decode(message.data.as_slice())
+            gz_sim_proto::msgs::Imu::decode(message.payload().to_bytes().as_ref())
                 .unwrap()
                 .header
                 .unwrap()
@@ -1093,7 +1338,7 @@ fn native_default_pose_period_does_not_pace_clock_imu_or_reset_the_wall_gate() {
     }
     let message = poses.recv_timeout(Duration::from_secs(5)).unwrap();
     assert_eq!(
-        gz_msgs::msgs::PoseV::decode(message.data.as_slice())
+        gz_sim_proto::msgs::PoseV::decode(message.payload().to_bytes().as_ref())
             .unwrap()
             .header
             .unwrap()
@@ -1104,27 +1349,27 @@ fn native_default_pose_period_does_not_pace_clock_imu_or_reset_the_wall_gate() {
     );
     assert!(matches!(
         poses.recv_timeout(Duration::from_millis(1)),
-        Err(TransportError::Timeout)
+        Err(mpsc::RecvTimeoutError::Timeout)
     ));
     assert_eq!(server.counters().poses_queued, 1);
     assert_eq!(server.counters().poses_throttled, 2);
     assert_eq!(server.counters().pose_failures, 0);
     assert!(server.apply_control(WorldControl {
         pause: true,
-        reset: Some(gz_msgs::msgs::WorldReset {
+        reset: Some(gz_sim_proto::msgs::WorldReset {
             all: true,
             ..Default::default()
         }),
         ..Default::default()
     }));
-    assert_eq!(server.tick().unwrap().sim_time, Duration::ZERO);
+    assert_eq!(server.update().unwrap().sim_time, Duration::ZERO);
     assert_eq!(server.counters().poses_queued, 1);
     assert_eq!(server.counters().poses_throttled, 3);
     server.set_pose_publication_period(Duration::ZERO);
-    server.tick().unwrap();
+    server.update().unwrap();
     let message = poses.recv_timeout(Duration::from_secs(5)).unwrap();
     assert_eq!(
-        gz_msgs::msgs::PoseV::decode(message.data.as_slice())
+        gz_sim_proto::msgs::PoseV::decode(message.payload().to_bytes().as_ref())
             .unwrap()
             .header
             .unwrap()
@@ -1143,8 +1388,8 @@ fn failed_pose_enqueue_consumes_its_wall_publication_slot() {
     config.max_message_bytes = 1;
     let mut server = imu_server(config);
     server.set_pose_publication_period(Duration::from_secs(86_400));
-    server.tick().unwrap();
-    server.tick().unwrap();
+    server.update().unwrap();
+    server.update().unwrap();
     assert_eq!(server.counters().pose_failures, 1);
     assert_eq!(server.counters().poses_throttled, 1);
     assert_eq!(server.counters().poses_queued, 0);
@@ -1168,7 +1413,7 @@ fn invalid_pose_packet_does_not_consume_the_next_publication_slot() {
         .entity_mut(entity)
         .take::<LocalName>()
         .unwrap();
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.counters().invalid_pose_frames, 1);
     assert_eq!(server.counters().poses_queued, 0);
     server
@@ -1176,7 +1421,7 @@ fn invalid_pose_packet_does_not_consume_the_next_publication_slot() {
         .world_mut()
         .entity_mut(entity)
         .insert(name);
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.counters().poses_queued, 1);
     assert_eq!(server.counters().poses_throttled, 0);
 }
@@ -1265,7 +1510,7 @@ fn finishing_joins_workers_and_returns_the_final_simulation() {
     let config = config();
     let mut server = server(config, Duration::from_millis(1));
     server.simulation.set_paused(false);
-    server.tick().unwrap();
+    server.update().unwrap();
     let simulation = server.into_simulation();
     assert_eq!(simulation.elapsed(), Duration::from_millis(1));
     assert!(!simulation.is_paused());
@@ -1274,3 +1519,61 @@ fn finishing_joins_workers_and_returns_the_final_simulation() {
 
 #[path = "native_forces.rs"]
 mod native_force_tests;
+
+#[test]
+fn control_response_obeys_exact_size_limit() {
+    for (limit, succeeds) in [(2, true), (1, false)] {
+        let mut settings = config();
+        settings.max_message_bytes = limit;
+        let mut server = server(settings, Duration::from_millis(1));
+        let response = request(&server, WorldControl::default().encode_to_vec());
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !response.is_finished() {
+            assert!(Instant::now() < deadline, "control reply did not finish");
+            server.update().unwrap();
+            thread::yield_now();
+        }
+        let result = response.join().unwrap();
+        assert_eq!(server.counters().controls_accepted, 1);
+        assert_eq!(server.counters().controls_rejected, 0);
+        assert_eq!(server.counters().response_failures, u64::from(!succeeds));
+        if succeeds {
+            let (bytes, success) = result.unwrap();
+            assert!(success);
+            assert_eq!(bytes.len(), 2);
+            assert!(Boolean::decode(bytes.as_slice()).unwrap().data);
+        } else {
+            assert!(result.is_err(), "oversized Boolean must not be delivered");
+        }
+        server.shutdown();
+    }
+}
+
+#[test]
+fn remaps_cannot_mix_world_publisher_message_types() {
+    let mut settings = config();
+    settings
+        .add_topic_remap("/world/test/pose/info", "/world/test/clock")
+        .unwrap();
+    assert!(matches!(
+        isolated_server(Simulation::new(Duration::from_millis(1)).unwrap(), "test", settings,
+                    NonZeroUsize::new(2).unwrap()),
+        Err(Error::WorldNetwork(message)) if message.contains("publisher keys collide")
+    ));
+    for topic in ["/world/default/clock", "/world/default/pose/info"] {
+        let mut settings = config();
+        settings.add_topic_remap("/p2/imu", topic).unwrap();
+        let simulation = gz_sim_scene::load_world_with_sdf_step(
+            include_str!("../../../gz-sim-scene/tests/fixtures/headless_imu.sdf"),
+            "headless_imu.sdf",
+            "default",
+            &sdformat::NoResources,
+            gz_sim_scene::PhysicsEngine::Tpe,
+        )
+        .unwrap();
+        assert!(matches!(
+            isolated_server(simulation, "default", settings, NonZeroUsize::new(2).unwrap()),
+            Err(Error::WorldNetwork(message)) if message.contains("IMU key collides")
+        ));
+    }
+}

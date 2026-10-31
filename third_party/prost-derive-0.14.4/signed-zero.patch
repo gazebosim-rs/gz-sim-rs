@@ -1,0 +1,34 @@
+--- a/src/field/scalar.rs
++++ b/src/field/scalar.rs
+@@ -118,8 +118,14 @@
+         match self.kind {
+             Kind::Plain(ref default) => {
+                 let default = default.typed();
++                let non_default = match self.ty {
++                    Ty::Float | Ty::Double => {
++                        quote!(#ident != #default || #ident.to_bits() != (#default).to_bits())
++                    }
++                    _ => quote!(#ident != #default),
++                };
+                 quote! {
+-                    if #ident != #default {
++                    if #non_default {
+                         #encode_fn(#tag, &#ident, buf);
+                     }
+                 }
+@@ -172,8 +178,14 @@
+         match self.kind {
+             Kind::Plain(ref default) => {
+                 let default = default.typed();
++                let non_default = match self.ty {
++                    Ty::Float | Ty::Double => {
++                        quote!(#ident != #default || #ident.to_bits() != (#default).to_bits())
++                    }
++                    _ => quote!(#ident != #default),
++                };
+                 quote! {
+-                    if #ident != #default {
++                    if #non_default {
+                         #encoded_len_fn(#tag, &#ident)
+                     } else {
+                         0

@@ -17,8 +17,52 @@ jobs:
           echo "deb [arch=amd64 signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable noble main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list
           sudo apt-get update
           sudo apt-get install -y libdart6.13-dev libdart6.13-collision-ode-dev
-          python3 -c 'import json, subprocess; subprocess.run(["sudo", "apt-get", "install", "-y", *json.load(open("planning/transport-reference-lock.json"))["apt_dependencies"]], check=True)'
-      - run: python3 scripts/bootstrap-native.py --jobs 2
+      - name: Install the locked native client packages from the signed snapshot
+        shell: bash
+        run: |
+          python3 - <<'PYCODE'
+          import json
+          from pathlib import Path
+          import subprocess
+          lock = json.loads(Path('planning/zenoh-native-lock.json').read_text())
+          apt = Path('artifacts/zenoh-ci-apt').resolve()
+          subprocess.run(['sh', 'reference/apt-sources.sh', str(apt), lock['platform']['ubuntu_snapshot']], check=True)
+          for name in ['lists/partial', 'archives/partial', 'preferences.d']:
+              (apt / name).mkdir(parents=True, exist_ok=True)
+          preferences = apt / 'snapshot.pref'
+          preferences.write_text('Package: *\nPin: origin snapshot.ubuntu.com\nPin-Priority: 1001\n')
+          options = ['-o', 'Dir::Etc::sourcelist=/dev/null',
+                     '-o', f'Dir::Etc::preferences={preferences}',
+                     '-o', f'Dir::Etc::preferencesparts={apt}/preferences.d',
+                     '-o', f'Dir::Etc::sourceparts={apt}/sources.list.d',
+                     '-o', f'Dir::State::lists={apt}/lists',
+                     '-o', f'Dir::Cache::archives={apt}/archives']
+          subprocess.run(['sudo', 'apt-get', *options, 'update'], check=True)
+          packages = [f'{name}={version}' for name, version in lock['packages'].items()]
+          subprocess.run(['sudo', 'apt-get', *options, 'install', '-y', '--allow-downgrades', *packages], check=True)
+          PYCODE
+      - name: Build and validate the selected Zenoh client reference
+        shell: bash
+        run: |
+          python3 scripts/bootstrap-zenoh-native.py --verify-packages-only
+          python3 - <<'PYCODE'
+          import hashlib
+          import json
+          from pathlib import Path
+          import subprocess
+          lock = json.loads(Path('planning/zenoh-native-lock.json').read_text())
+          vendor = lock['vendor']
+          filename = vendor['url'].rsplit('/', 1)[1]
+          archive = Path('artifacts/zenoh-ci-downloads') / filename
+          archive.parent.mkdir(parents=True, exist_ok=True)
+          # The canonical ROS URL currently has a TLS hostname mismatch.
+          mirror = 'https://repo.ros2.org/ubuntu/main/pool/main/r/ros-jazzy-zenoh-cpp-vendor/' + filename
+          subprocess.run(['curl', '--fail', '--location', mirror, '--output', str(archive)], check=True)
+          if hashlib.sha256(archive.read_bytes()).hexdigest() != vendor['sha256']:
+              raise ValueError('Zenoh vendor archive differs from the locked bytes')
+          subprocess.run(['python3', 'scripts/bootstrap-zenoh-native.py', '--jobs', '2', '--vendor-archive', str(archive.resolve())], check=True)
+          subprocess.run(['python3', 'scripts/bootstrap-zenoh-native.py', '--validate-only'], check=True)
+          PYCODE
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: artifacts/physics-reference/mujoco
@@ -44,7 +88,7 @@ jobs:
       - run: python3 scripts/verify.py
         env:
           GZ_COVERAGE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-          GZ_REFERENCE_PREFIX: ${{ github.workspace }}/artifacts/native-reference/install
+          GZ_ZENOH_REFERENCE_ROOT: ${{ github.workspace }}/artifacts/zenoh-native-reference
           MUJOCO_PREFIX: ${{ github.workspace }}/artifacts/physics-reference/mujoco
       - name: Restore the hosted runner user-namespace policy
         if: always()

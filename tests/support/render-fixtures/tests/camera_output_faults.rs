@@ -1,40 +1,44 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use gz_camera_output::{CameraOutput, CameraOutputError, Progress};
+use gz_camera_output::{
+    CameraOutput, CameraOutputConfig, CameraOutputError, CameraWriterScope, Progress,
+};
 use gz_render_protocol::FailureKind;
 use gz_sim_core::EntityId;
 use gz_sim_scene::{Name, PhysicsEngine, load_world_with_sdf_step};
-use gz_transport::{Config, Node};
-use socket2::{Domain, Protocol, Socket, Type};
 use std::{
-    net::{Ipv4Addr, SocketAddrV4},
+    num::NonZeroUsize,
+    sync::mpsc,
     thread,
     time::{Duration, Instant},
 };
 
-fn node() -> (Node, [Socket; 2]) {
-    let reserve = || {
-        let socket = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP)).unwrap();
-        socket.set_reuse_address(true).unwrap();
-        #[cfg(target_os = "linux")]
-        socket.set_multicast_all_v4(false).unwrap();
-        socket
-            .bind(&SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0).into())
-            .unwrap();
-        socket
-    };
-    let held = [reserve(), reserve()];
-    let ports = held
-        .each_ref()
-        .map(|s| s.local_addr().unwrap().as_socket_ipv4().unwrap().port());
-    assert_ne!(ports[0], ports[1]);
-    let config = Config {
-        partition: format!("camera-fault-{}-{}", std::process::id(), ports[0]),
-        message_port: ports[0],
-        service_port: ports[1],
-        ..Default::default()
-    };
-    (Node::new(config).unwrap(), held)
+use zenoh::Wait;
+
+fn session() -> zenoh::Session {
+    let mut config = zenoh::Config::default();
+    for (path, value) in [
+        ("listen/endpoints", "[\"tcp/127.0.0.1:0\"]"),
+        ("connect/endpoints", "[]"),
+        ("scouting/multicast/enabled", "false"),
+        ("scouting/gossip/enabled", "false"),
+    ] {
+        config.insert_json5(path, value).unwrap();
+    }
+    zenoh::open(config).wait().unwrap()
+}
+
+fn image_observer(session: &zenoh::Session) -> (zenoh::pubsub::Subscriber<()>, mpsc::Receiver<()>) {
+    let (published, image) = mpsc::sync_channel(1);
+    let subscriber = session
+        .declare_subscriber("@/camera-fault@/image")
+        .allowed_origin(zenoh::sample::Locality::SessionLocal)
+        .callback(move |_: zenoh::sample::Sample| {
+            let _ = published.try_send(());
+        })
+        .wait()
+        .unwrap();
+    (subscriber, image)
 }
 
 #[test]
@@ -60,16 +64,22 @@ fn real_client_pipes_propagate_typed_worker_failures_and_retire() {
                     .then(|| entity.get::<EntityId>().unwrap().get())
             })
             .unwrap();
-        let (node, _held) = node();
-        let image = node.subscribe("/image", "gz.msgs.Image").unwrap();
+        let session = session();
+        let scope = CameraWriterScope::new(NonZeroUsize::new(1).unwrap());
+        let (_subscription, image) = image_observer(&session);
         let mut owner = CameraOutput::new(
             &sim,
-            &node,
+            &session,
+            &scope,
             id,
-            [1_000_000_000.0, f64::from(mode), 0.0],
-            "frame".into(),
-            ("/image", "/info"),
-            env!("CARGO_BIN_EXE_camera_fault_fixture").into(),
+            CameraOutputConfig {
+                origin: [1_000_000_000.0, f64::from(mode), 0.0],
+                frame_id: "frame".into(),
+                image_key: "@/camera-fault@/image".into(),
+                info_key: "@/camera-fault@/info".into(),
+                worker_path: env!("CARGO_BIN_EXE_camera_fault_fixture").into(),
+                max_message_bytes: NonZeroUsize::new(16 * 1024 * 1024).unwrap(),
+            },
         )
         .unwrap();
         assert_eq!(owner.request(&sim).unwrap(), Progress::Pending);
@@ -152,16 +162,22 @@ fn startup_failure_and_protocol_version_error_reach_the_output_owner() {
                     .then(|| entity.get::<EntityId>().unwrap().get())
             })
             .unwrap();
-        let (node, _held) = node();
-        let image = node.subscribe("/image", "gz.msgs.Image").unwrap();
+        let session = session();
+        let scope = CameraWriterScope::new(NonZeroUsize::new(1).unwrap());
+        let (_subscription, image) = image_observer(&session);
         let mut owner = CameraOutput::new(
             &sim,
-            &node,
+            &session,
+            &scope,
             id,
-            [1_000_000_000.0, 0.0, 0.0],
-            "frame".into(),
-            ("/image", "/info"),
-            path.into(),
+            CameraOutputConfig {
+                origin: [1_000_000_000.0, 0.0, 0.0],
+                frame_id: "frame".into(),
+                image_key: "@/camera-fault@/image".into(),
+                info_key: "@/camera-fault@/info".into(),
+                worker_path: path.into(),
+                max_message_bytes: NonZeroUsize::new(16 * 1024 * 1024).unwrap(),
+            },
         )
         .unwrap();
         assert_eq!(owner.request(&sim).unwrap(), Progress::Pending);

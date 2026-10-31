@@ -6,10 +6,33 @@ use std::{
 };
 
 fn command(args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
-        .args(args)
-        .output()
-        .unwrap()
+    let directory = tempfile::tempdir().unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"));
+    if args.contains(&"--server") {
+        let config = directory.path().join("zenoh.json");
+        std::fs::write(
+            &config,
+            serde_json::to_vec(&serde_json::json!({
+                "mode":"peer", "listen":{"endpoints":["tcp/127.0.0.1:0"]},
+                "scouting":{"multicast":{"enabled":false},"gossip":{"enabled":false}}
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+        command
+            .env("ZENOH_CONFIG", &config)
+            .env(
+                "GZ_PARTITION",
+                format!(
+                    "cli-command-{}-{}",
+                    std::process::id(),
+                    directory.path().file_name().unwrap().to_str().unwrap()
+                ),
+            )
+            .env_remove("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE")
+            .env_remove("GZ_RELAY");
+    }
+    command.args(args).output().unwrap()
 }
 fn fixture() -> &'static str {
     concat!(
@@ -436,9 +459,11 @@ fn server_rejects_invalid_pacing_and_transport_configuration_before_running() {
             "{factor}: {result:?}"
         );
     }
+    let network = temp.path().join("invalid-network.json");
+    std::fs::write(&network, r#"{"mode":"peer","listen":{"endpoints":["tcp/127.0.0.1:not-a-port"]},"scouting":{"multicast":{"enabled":false},"gossip":{"enabled":false}}}"#).unwrap();
     let result = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
         .args([fixture(), "--server", "--run", "--iterations", "1"])
-        .env("GZ_IP", "not-an-ip")
+        .env("ZENOH_CONFIG", &network)
         .output()
         .unwrap();
     assert_eq!(result.status.code(), Some(1), "{result:?}");

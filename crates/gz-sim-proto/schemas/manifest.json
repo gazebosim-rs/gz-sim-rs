@@ -1,0 +1,870 @@
+{
+  "upstream": "https://github.com/gazebosim/gz-msgs",
+  "commit": "89c0c3d1474f545cb889335daf930bfdab6ab852",
+  "schemas": [
+    {
+      "path": "schemas/gz/msgs/actor.proto",
+      "sha256": "56126b278ea53224dde1027a7def583b0f966f8b1eddb90f53c94cd74dfcd35a"
+    },
+    {
+      "path": "schemas/gz/msgs/actuators.proto",
+      "sha256": "a7769670f7aed38f5b5208f8bdfd622f8c82bf1b9b62a6f65b0b601e6324a82b"
+    },
+    {
+      "path": "schemas/gz/msgs/air_pressure_sensor.proto",
+      "sha256": "763c1e86b90b0ba607ec62e881d442845d7553fde96b9d57d057fd587901b46d"
+    },
+    {
+      "path": "schemas/gz/msgs/air_speed.proto",
+      "sha256": "b82947d98fd295994278aad64b6fc29f4902a511da8df646a4401e8d7f2d6474"
+    },
+    {
+      "path": "schemas/gz/msgs/air_speed_sensor.proto",
+      "sha256": "ba51a6011f329bbf2e6cff3513263cc298ab683b0e514c9e507facfe71857468"
+    },
+    {
+      "path": "schemas/gz/msgs/altimeter.proto",
+      "sha256": "e83d6c9452685d905069d860bce1acd1c4e57ad60c700bcab6ce5b57740434c9"
+    },
+    {
+      "path": "schemas/gz/msgs/altimeter_sensor.proto",
+      "sha256": "0ef3802b2a0172478c069a98138f00e856dc3916193fc9fa579429354912ffc5"
+    },
+    {
+      "path": "schemas/gz/msgs/annotated_axis_aligned_2d_box.proto",
+      "sha256": "d5f0e35b436f462c3ba97a42ffbb1807d2d8afcb6261f73277b6d9c302cb260a"
+    },
+    {
+      "path": "schemas/gz/msgs/annotated_axis_aligned_2d_box_v.proto",
+      "sha256": "0afae59d17c997bbc7562ee825721468705b4c9b23ddfb1aa7889804f1f4f91f"
+    },
+    {
+      "path": "schemas/gz/msgs/annotated_oriented_3d_box.proto",
+      "sha256": "6d295e4dd0c7695dcd8b91d47913e9a0ebe464cf34561b67c40a60b6978808a8"
+    },
+    {
+      "path": "schemas/gz/msgs/annotated_oriented_3d_box_v.proto",
+      "sha256": "b0595a26dcb2c911967b9717e0b77ad4abb75061f7c062f5e061fc80b0c10067"
+    },
+    {
+      "path": "schemas/gz/msgs/any.proto",
+      "sha256": "0bce3bf8bdd87df76bcfff6e30250b98ade510b2356f86b3e6f2d65a89e970c1"
+    },
+    {
+      "path": "schemas/gz/msgs/atmosphere.proto",
+      "sha256": "782e74cdffed9501312b4de3185765a6d7eaccc706db50ed8a37a9eea66b4ef5"
+    },
+    {
+      "path": "schemas/gz/msgs/axis.proto",
+      "sha256": "d4c80590a55633d455aca90589ddc4f8b43f36989556ff15c908ffd6ba560f5d"
+    },
+    {
+      "path": "schemas/gz/msgs/axis_aligned_2d_box.proto",
+      "sha256": "33009585e4748db0cf31316c7ef6aa0a49b6530c27b59262dbe7570891babf7f"
+    },
+    {
+      "path": "schemas/gz/msgs/axis_aligned_box.proto",
+      "sha256": "42aaa77c902918bcc289e8a9a1cd0e7ca7a0783bdc646e7a78f5312b84e764fd"
+    },
+    {
+      "path": "schemas/gz/msgs/battery.proto",
+      "sha256": "368b595b8960eb6b4a8e7ead0073d763b876ed772a3abe851ef323457a37d5ba"
+    },
+    {
+      "path": "schemas/gz/msgs/battery_state.proto",
+      "sha256": "d8605ffadb3c91965a500bd330d951cf2fa2af55b474c5b682ce62951522c510"
+    },
+    {
+      "path": "schemas/gz/msgs/boolean.proto",
+      "sha256": "6da43729bbcb12442a7191f169d6a44eae15c848dca92f40251fbfe594a96fb5"
+    },
+    {
+      "path": "schemas/gz/msgs/boxgeom.proto",
+      "sha256": "b1fe7320090239ca55b755841c7b7b4de6c702c7975914ae7d889ebc39886063"
+    },
+    {
+      "path": "schemas/gz/msgs/bytes.proto",
+      "sha256": "1f58687a0642808db292da937b1b4242b4b16a4557158f38c50d5d716f79d0cc"
+    },
+    {
+      "path": "schemas/gz/msgs/camera_cmd.proto",
+      "sha256": "194f942d8e54119011891984ceee8d676d84eecc6f6474aa8fcf2f6c5bd634b4"
+    },
+    {
+      "path": "schemas/gz/msgs/camera_info.proto",
+      "sha256": "8c7a4fbb1051e6d3f19725a745311b184b1869252654bf2aab395e5c104ebb81"
+    },
+    {
+      "path": "schemas/gz/msgs/camera_lens.proto",
+      "sha256": "3a4c7078ba5784b54fcb6ff8d29c9018d897f2fd5bab20b312ff8f4097159acc"
+    },
+    {
+      "path": "schemas/gz/msgs/camerasensor.proto",
+      "sha256": "6b3e1586078b0962fb04de0a6e4a324f3b6f36801891828030529f9110e7b8bc"
+    },
+    {
+      "path": "schemas/gz/msgs/cameratrack.proto",
+      "sha256": "8535b013a8c6ed4a5562d26c4c3fc07df22e122cd001ec83e899fa5e42f43cef"
+    },
+    {
+      "path": "schemas/gz/msgs/capsulegeom.proto",
+      "sha256": "5ed5309fbfde9df07182fe67b0c8196602fec0ba449a002622edb0b3d260711f"
+    },
+    {
+      "path": "schemas/gz/msgs/cessna.proto",
+      "sha256": "4b4c367496952015654e650dbe37f21c3772a49121256c40c04734cef85f9dd8"
+    },
+    {
+      "path": "schemas/gz/msgs/clock.proto",
+      "sha256": "0c4c09348e4fecd10cff7286ec340fa1e177c391a4690e7bffad75a0efe24ce5"
+    },
+    {
+      "path": "schemas/gz/msgs/cmd_vel2d.proto",
+      "sha256": "5a3a5574bcf1e5852a5698d58f02a27486fe8c255d2a783b42c8530f9ae1abd3"
+    },
+    {
+      "path": "schemas/gz/msgs/collision.proto",
+      "sha256": "ddf673214faa1f4da6c91fcd68a4cbb8f68d730cb9d8c5df3546e3471e9b2ae0"
+    },
+    {
+      "path": "schemas/gz/msgs/color.proto",
+      "sha256": "d3c678fbc6cef881887d0e65b90747d1b67c9419d396561f81c37173bf01622c"
+    },
+    {
+      "path": "schemas/gz/msgs/conegeom.proto",
+      "sha256": "090d85800ac23f9244338c3336bdfa475a2bd7f197d32c22458b237fa2b28836"
+    },
+    {
+      "path": "schemas/gz/msgs/contact.proto",
+      "sha256": "561b4e04a41791da958e9ce5c9c3fbb07b92694556650902b61213b0d14b0736"
+    },
+    {
+      "path": "schemas/gz/msgs/contacts.proto",
+      "sha256": "64836a4b1ba7f7321309393e4ca4ec62ebe37a707537aa211e7f398fd3a30758"
+    },
+    {
+      "path": "schemas/gz/msgs/contactsensor.proto",
+      "sha256": "a4e68fe5ff256cf79fc140d3012e6a33f258011b635e1cf22aaafe0fa42ee765"
+    },
+    {
+      "path": "schemas/gz/msgs/cylindergeom.proto",
+      "sha256": "7f73fd1ce890712ab79f90a7974d52ef14c5eb0515a13f1b890ea4be5cee3615"
+    },
+    {
+      "path": "schemas/gz/msgs/data_load_options.proto",
+      "sha256": "2f095da098d98ddec2a64c98294e650a2ab9e86c29849f7a1cfb2d72685cf654"
+    },
+    {
+      "path": "schemas/gz/msgs/dataframe.proto",
+      "sha256": "0d78d9eb37c4070563aaf4870deae32ce4a0fafed37bb66d177abb5114ce182a"
+    },
+    {
+      "path": "schemas/gz/msgs/density.proto",
+      "sha256": "0b95b921434e6d84c94bc375e971603c64de7955b0bcf72708383ec1785b2cb1"
+    },
+    {
+      "path": "schemas/gz/msgs/diagnostics.proto",
+      "sha256": "b5067836e0dabd44a1fab15d1b8700f83f436d0c11de19dfaabf3b16f3dfa337"
+    },
+    {
+      "path": "schemas/gz/msgs/discovery.proto",
+      "sha256": "80f5ed8ee40725b4b3aa027c9d68d92ffc7a5b6f49ccdc9a1352c81dfb19b32b"
+    },
+    {
+      "path": "schemas/gz/msgs/distortion.proto",
+      "sha256": "6f453f5a189d7312da34f808d6c5660243d516f65925d1bbe5da7fb62b3d326a"
+    },
+    {
+      "path": "schemas/gz/msgs/double.proto",
+      "sha256": "82090ec48e1af63273e91e1e6c52be4c1a5b25ced2b7f55c569cbac9f4ab2589"
+    },
+    {
+      "path": "schemas/gz/msgs/double_v.proto",
+      "sha256": "da01e2cf3b6c15e7356ac9e53672ad1ce16a5a617d9dc812e874b9b7a52e2f4a"
+    },
+    {
+      "path": "schemas/gz/msgs/duration.proto",
+      "sha256": "6ed386ce02f9116c37d5964e267e360d972dbb974eab56957ded105c8cce398f"
+    },
+    {
+      "path": "schemas/gz/msgs/dvl_beam_state.proto",
+      "sha256": "2ebb143c2ad52cccc577624b39c2026d6e9cb6d0c8ed751b3148acebfb6abf1c"
+    },
+    {
+      "path": "schemas/gz/msgs/dvl_kinematic_estimate.proto",
+      "sha256": "8c9528fcc39dd50707ff6b5d1e67455419e36ba38ded8ec8abe2e2693fdebefa"
+    },
+    {
+      "path": "schemas/gz/msgs/dvl_range_estimate.proto",
+      "sha256": "29060d4e30fa2f54bcf93f55e0bb8628ea974c5539a6779cfd48858c87f34a81"
+    },
+    {
+      "path": "schemas/gz/msgs/dvl_tracking_target.proto",
+      "sha256": "586350f0a29a720f3152a940bcc3ab193f3afba137fc68e32f9d5334f5e957d5"
+    },
+    {
+      "path": "schemas/gz/msgs/dvl_velocity_tracking.proto",
+      "sha256": "29f116d5f5f912f8236f4b8525790bb6c0772fc72d09aa8b96f840c2975bd33d"
+    },
+    {
+      "path": "schemas/gz/msgs/dynamic_detachable_joint.proto",
+      "sha256": "510ea84dfdd3bbda340c0a0b9c49bd49b8b029a66a8fab43b0a11fee46a77904"
+    },
+    {
+      "path": "schemas/gz/msgs/ellipsoidgeom.proto",
+      "sha256": "b282a3c27eb9568f75986be0f969f3ed6903e6e982c207cbbf680b3db43da597"
+    },
+    {
+      "path": "schemas/gz/msgs/empty.proto",
+      "sha256": "564398e174deff11b740ddb25364925ca8f46c5860b5c466daf600ebd145ef16"
+    },
+    {
+      "path": "schemas/gz/msgs/entity.proto",
+      "sha256": "1eed1b0b838f00a6c174562e95496ba15248f9ef41833313cb416d981024af33"
+    },
+    {
+      "path": "schemas/gz/msgs/entity_factory.proto",
+      "sha256": "4c23e0e7cb9a8d350eb655804e9d7413f059da29d1c9c073cb4352cd30c93cf5"
+    },
+    {
+      "path": "schemas/gz/msgs/entity_factory_v.proto",
+      "sha256": "451723fe9332626fa35ef95a6c29cf2689130dab868faf0beb470af9342c3ada"
+    },
+    {
+      "path": "schemas/gz/msgs/entity_factory_with_ns.proto",
+      "sha256": "f81ec11f865df1704273186da04eaec9d1493110188d37f0418b8d5ac816d69c"
+    },
+    {
+      "path": "schemas/gz/msgs/entity_factory_with_ns_v.proto",
+      "sha256": "ded0c7eb6a223bb3261b194df1b767c82be658f7d46a15fe9f9c814db569a94a"
+    },
+    {
+      "path": "schemas/gz/msgs/entity_plugin_v.proto",
+      "sha256": "9748c16a5795150a59e2b25866196680b9ac160354ed8d5a7e0e3bbe09d35006"
+    },
+    {
+      "path": "schemas/gz/msgs/entity_wrench.proto",
+      "sha256": "e3e891feb1af8cecd87db2e129186d9d0625b26e8386e1c2c15b782e206aaf76"
+    },
+    {
+      "path": "schemas/gz/msgs/entity_wrench_map.proto",
+      "sha256": "21cea0144a263b62232b04a3b138ea2910182e94f8ee24783a1dd4ca714a08f8"
+    },
+    {
+      "path": "schemas/gz/msgs/float.proto",
+      "sha256": "486612636025f3b7d8fd12af7293bcfd0b2b43c85025c99b798bd66c3b90699e"
+    },
+    {
+      "path": "schemas/gz/msgs/float_v.proto",
+      "sha256": "ac3ef676aa7745b62ec16b6efb32c532a7cf9539f5899ed94ec7fc8e89b17890"
+    },
+    {
+      "path": "schemas/gz/msgs/fluid.proto",
+      "sha256": "aee89d69606dbc07d5ab2d44e62433ccc09986d31143b41acda76ac2807e20b7"
+    },
+    {
+      "path": "schemas/gz/msgs/fluid_pressure.proto",
+      "sha256": "3aeb8995d0b67976d8da3c19a0e7a3dad056159a0e4ed973ae55e25f52a5ab82"
+    },
+    {
+      "path": "schemas/gz/msgs/fog.proto",
+      "sha256": "896f4325f5f45a3d2cbc73472ce4be4a38ad815e80e771e3e488212eea88ee03"
+    },
+    {
+      "path": "schemas/gz/msgs/friction.proto",
+      "sha256": "53b84ade215bc57347841a23d4fac0bc98896399eed80770713a4072dd812663"
+    },
+    {
+      "path": "schemas/gz/msgs/fuel_metadata.proto",
+      "sha256": "6c08b50b4c9df6364acd383e45e904d99b8f4ed8f5a19c5d33ea8a269f63999f"
+    },
+    {
+      "path": "schemas/gz/msgs/geometry.proto",
+      "sha256": "ef7e2951b53ebe1d51002ab1d8e2e7aa6af24cfef0f506e1141ba498c58cb463"
+    },
+    {
+      "path": "schemas/gz/msgs/gps.proto",
+      "sha256": "e9c4b899a0434deb4f0d7bb09cc83d1d9b8216159365fa181d96544885b705d2"
+    },
+    {
+      "path": "schemas/gz/msgs/gps_sensor.proto",
+      "sha256": "d4ea7a59a0d3224614b627cf5ece70105a041d667388b971904e175f6e7c694b"
+    },
+    {
+      "path": "schemas/gz/msgs/gui.proto",
+      "sha256": "afe90ba5461c7b8406e359f520f0f40de71f863fe1f8b0225c9e73a15399b248"
+    },
+    {
+      "path": "schemas/gz/msgs/gui_camera.proto",
+      "sha256": "1512041c44894f2a406736a6f447c49dcac591fe9fedcac4ae3a385e921fe532"
+    },
+    {
+      "path": "schemas/gz/msgs/header.proto",
+      "sha256": "d2c2ec8cec48a020825d3d6d871fe70a0942ee05ab0d3ddb28f98b87cef5481f"
+    },
+    {
+      "path": "schemas/gz/msgs/heightmapgeom.proto",
+      "sha256": "ed69e675f970c2e5fc4962a667f36914e6f8207d7ef7395000831d1faa1a9ef3"
+    },
+    {
+      "path": "schemas/gz/msgs/hydra.proto",
+      "sha256": "63f23d78c10009be2d79b098dc8fd905bfb05fa6fb7200874392f18a4806c175"
+    },
+    {
+      "path": "schemas/gz/msgs/image.proto",
+      "sha256": "6e4801a7d82c46211f6eb554a27c5cd81648ddaf066ffeae9d66e863ba7b9e59"
+    },
+    {
+      "path": "schemas/gz/msgs/imagegeom.proto",
+      "sha256": "ae60823da1246ae2968fb6047b9643271707fea375e8e80463448668a251ea46"
+    },
+    {
+      "path": "schemas/gz/msgs/imu.proto",
+      "sha256": "200c10009100ea111e33b2a88990862e62bb1375c6d48346c130ed966596281b"
+    },
+    {
+      "path": "schemas/gz/msgs/imu_sensor.proto",
+      "sha256": "7c7cbe781224adc42e7612c199c782a4bdfda97d46bd7bef9884f1bbcdd8e757"
+    },
+    {
+      "path": "schemas/gz/msgs/inertial.proto",
+      "sha256": "0c57f0d404ec9862927e02ac0ca0be3e5bf7895eaa0ba667fda6d1cc26558541"
+    },
+    {
+      "path": "schemas/gz/msgs/int32.proto",
+      "sha256": "f5d3f40ff41e645f544661527b233358c7cb2be8397755e5a12f74d13f112048"
+    },
+    {
+      "path": "schemas/gz/msgs/int32_v.proto",
+      "sha256": "039ab8030dc71295c411e1eb3d4b10d97d65f1c743a3f2fceeb78c45f72036fc"
+    },
+    {
+      "path": "schemas/gz/msgs/int64.proto",
+      "sha256": "f146a449c72730cfa0bb1c8804a35957bbbef3f210c6a207c448066f1684c58b"
+    },
+    {
+      "path": "schemas/gz/msgs/int64_v.proto",
+      "sha256": "978541eaac4ac863d03b5c6690cc732fbd262731b6920526cdfcb2cc4ab68fd1"
+    },
+    {
+      "path": "schemas/gz/msgs/joint.proto",
+      "sha256": "ea79ce814e8e987035a73dad4da8e8dbaec11bcdaa44b50a7a0b033776c919d0"
+    },
+    {
+      "path": "schemas/gz/msgs/joint_animation.proto",
+      "sha256": "b84ac475616dc93bc1d41f5264c9669529cc1a1066183e4670d64ef51be155b2"
+    },
+    {
+      "path": "schemas/gz/msgs/joint_cmd.proto",
+      "sha256": "4dea547d78fc70e960cbb2773f9e42c0dfb965752f071ed304d5446283376af6"
+    },
+    {
+      "path": "schemas/gz/msgs/joint_trajectory.proto",
+      "sha256": "87d75a6d62966bd4ff444d26ff4ae0b021ce9dbe02eba6e92f2705b34db5198c"
+    },
+    {
+      "path": "schemas/gz/msgs/joint_trajectory_point.proto",
+      "sha256": "dbaece49003eccc92b599db0cd6ebf491ba4d21463368fbfa82fb81f19729fea"
+    },
+    {
+      "path": "schemas/gz/msgs/joint_wrench.proto",
+      "sha256": "bea8ab3836196144bdc6b5f6750d8d8eeb628837114534475f13a04f50e7d822"
+    },
+    {
+      "path": "schemas/gz/msgs/joy.proto",
+      "sha256": "9330bff90bfde9ebf77d9b9bbe06cd19b9f142cd6e5bd3f066499d4fba0cf681"
+    },
+    {
+      "path": "schemas/gz/msgs/joystick.proto",
+      "sha256": "c3dbc5ecf06cba835a29b79edab64cb1b9f5106699dc10a4917a188670f31bc8"
+    },
+    {
+      "path": "schemas/gz/msgs/laserscan.proto",
+      "sha256": "1527f391bad08deb09dd83fa1abf94c3eeea5888d033cc52c17bf3a4702ea0b0"
+    },
+    {
+      "path": "schemas/gz/msgs/lens.proto",
+      "sha256": "5122c1f789503abb6378d359c6641c40222f13fbac25ef10afd363447fe98d7b"
+    },
+    {
+      "path": "schemas/gz/msgs/lidar_sensor.proto",
+      "sha256": "9517bc105bfd5b5f451dc443de819e7b8845300bd83aa3a76139c5420b632615"
+    },
+    {
+      "path": "schemas/gz/msgs/light.proto",
+      "sha256": "eeacd8cbd1992a9660fcce034260e05b965528817034b2c816e45edd959618fe"
+    },
+    {
+      "path": "schemas/gz/msgs/link.proto",
+      "sha256": "5a1ace9710f707a29fc01df4fdaf2f6683a42808c519aaa026066a83691cce73"
+    },
+    {
+      "path": "schemas/gz/msgs/link_data.proto",
+      "sha256": "206427922cb085d8c960b2612b0efa9328270b30fb21d28e6abcd730a2a36992"
+    },
+    {
+      "path": "schemas/gz/msgs/log_control.proto",
+      "sha256": "399bcec432bc59076ce9593a1da6aaed069763116ae30747ea6ca94c370f08cf"
+    },
+    {
+      "path": "schemas/gz/msgs/log_playback_control.proto",
+      "sha256": "deb75da5231c4a4272ec7ebb3f2a5bb7c8562a38513b3b48a10e4e15bcdceab1"
+    },
+    {
+      "path": "schemas/gz/msgs/log_playback_stats.proto",
+      "sha256": "19429274674afa24913c38dd02c50df66aa1a3db9d8c7607a6e2d71748ee8c39"
+    },
+    {
+      "path": "schemas/gz/msgs/log_status.proto",
+      "sha256": "0f2cfeaa9e8506fb8a2d1b2c5029948849de999369fc9cba39e789dfd507d21b"
+    },
+    {
+      "path": "schemas/gz/msgs/logical_camera_image.proto",
+      "sha256": "074a6215f0be8e0585ac530455e81e6f28cd4906039e2d6f3d9b6abd53bd60ab"
+    },
+    {
+      "path": "schemas/gz/msgs/logical_camera_sensor.proto",
+      "sha256": "25344f661ed3a622e2fdea606bb6fc58d5912fcd62c5a4100cd0507e5c81fd11"
+    },
+    {
+      "path": "schemas/gz/msgs/magnetometer.proto",
+      "sha256": "1a6e2ae95ea555f9880b95a88c90dbdcae06a17b4c8d39c07e87eb84a4192a94"
+    },
+    {
+      "path": "schemas/gz/msgs/magnetometer_sensor.proto",
+      "sha256": "ce3ee7a3041b22ad5742b9e646c26dbeb0ed72bab2cfb9a284912e3de3894063"
+    },
+    {
+      "path": "schemas/gz/msgs/marker.proto",
+      "sha256": "d563b9b6693c17f1f20b6b4ba02704fafe2d17e2b1ab91b210a24fe772f0f023"
+    },
+    {
+      "path": "schemas/gz/msgs/marker_v.proto",
+      "sha256": "c3e7521c2cda9e64c1d28d714dd49d283943f33daa10b1ee2ba6a11ad96a5d17"
+    },
+    {
+      "path": "schemas/gz/msgs/material.proto",
+      "sha256": "6e3c1bc5dcc7b50e87fe6fc5a7576baf5561534a20aa845ccfb4928ba4f40079"
+    },
+    {
+      "path": "schemas/gz/msgs/material_color.proto",
+      "sha256": "bc136d6b35bd26f73441a51829e4de5878aa7a567bcedbd1e8841188a6ff5199"
+    },
+    {
+      "path": "schemas/gz/msgs/meshgeom.proto",
+      "sha256": "9f10515cc04d6da15892851d3efa5e92f03816bb461d59310d16e4f469b5ad14"
+    },
+    {
+      "path": "schemas/gz/msgs/model.proto",
+      "sha256": "8ccb38346ec9e81eefd90112c66ce4472b1727e63c8c508ee0c683a0b9848d5e"
+    },
+    {
+      "path": "schemas/gz/msgs/model_configuration.proto",
+      "sha256": "c6237bcf6b991973ecb7d67365e91dc1ccccdcc22ba30e6d40ec0ae4034de1d6"
+    },
+    {
+      "path": "schemas/gz/msgs/model_v.proto",
+      "sha256": "4ee693b6861cf7df82a9d5f2c6fc06a4f0cbddda75ea07597e87ee2e25ddf8d5"
+    },
+    {
+      "path": "schemas/gz/msgs/navsat.proto",
+      "sha256": "c1ebbfbefdd66f6aa72341e199d18794ad64eb1a905af067a56a7e7e32b10a81"
+    },
+    {
+      "path": "schemas/gz/msgs/navsat_sensor.proto",
+      "sha256": "6ccc8d1ee8f303d99aa7697a73714744eb9bf826a49f598471195eb820dec713"
+    },
+    {
+      "path": "schemas/gz/msgs/navsat_with_covariance.proto",
+      "sha256": "54192e801be361986e22f02127ca757033c9200084e232dee13c4c91a07db2f8"
+    },
+    {
+      "path": "schemas/gz/msgs/occupancy_grid.proto",
+      "sha256": "4aa833fb88b0496fc9f55bd3200e861ec5d0822c23ac35bc8e0684c8d25ed89e"
+    },
+    {
+      "path": "schemas/gz/msgs/odometry.proto",
+      "sha256": "a3d30115dcf3e49aba66d4740f0ef287e926b5d669bd938b48cb84e2769ee70e"
+    },
+    {
+      "path": "schemas/gz/msgs/odometry_with_covariance.proto",
+      "sha256": "37d5f3223ad6395aec05c72c4445088c5ea9aff7c6f1756f87a0d59f87628b53"
+    },
+    {
+      "path": "schemas/gz/msgs/oriented_3d_box.proto",
+      "sha256": "cf71a521e86a1d2053625d8d35b7b732432bd742fb629ee23e0f97d6c106715f"
+    },
+    {
+      "path": "schemas/gz/msgs/packet.proto",
+      "sha256": "6cc7629a98827cfb29668871f4ca7e4fdefb28681f469a6c677791dcf94e60d0"
+    },
+    {
+      "path": "schemas/gz/msgs/param.proto",
+      "sha256": "99eb092ca4976371f8cc6ab4380ca4860cae2bde07aa311dc23288d76cdd28d0"
+    },
+    {
+      "path": "schemas/gz/msgs/param_v.proto",
+      "sha256": "6feb4016975aae4b9c4ba451d3e0261f449d57c010743abc37fba6776e2222a8"
+    },
+    {
+      "path": "schemas/gz/msgs/parameter.proto",
+      "sha256": "119a62dd3b81614d921a2b9013642ee68e74acf5477a4103eb5c88258cddd409"
+    },
+    {
+      "path": "schemas/gz/msgs/parameter_declaration.proto",
+      "sha256": "df14c207ebe9faa24b16426605126a1b92296ec4aabda3d0d597949ef13a58e1"
+    },
+    {
+      "path": "schemas/gz/msgs/parameter_declarations.proto",
+      "sha256": "efac649ddddf89dfdc18b26085c2794574c00ee919c13f35908f2e2d956c047a"
+    },
+    {
+      "path": "schemas/gz/msgs/parameter_error.proto",
+      "sha256": "7df96fa223f3d6c8ba003eb14c5811ff65749a32c2b97460edfbad301ee599a1"
+    },
+    {
+      "path": "schemas/gz/msgs/parameter_name.proto",
+      "sha256": "838f0a0afeaa4251a9b5a0709a5e9eb4b1f19f130ce93bb39d7e1443ecaa3e25"
+    },
+    {
+      "path": "schemas/gz/msgs/parameter_value.proto",
+      "sha256": "5d4b243eba9e8c5d45d03ac34aaa8f8db1caee893bd37444a884d651464ccd8a"
+    },
+    {
+      "path": "schemas/gz/msgs/particle_emitter.proto",
+      "sha256": "4dd95f8e4f94d519844612575ed242f7b12ee06b7e735983c1cc8bf08edf2dab"
+    },
+    {
+      "path": "schemas/gz/msgs/particle_emitter_v.proto",
+      "sha256": "cedcb98ab089017cf597d19566fa2d3a0e869161e44b8952518438d2da27bf89"
+    },
+    {
+      "path": "schemas/gz/msgs/performance_sensor_metrics.proto",
+      "sha256": "17dfb65665ac5832d3d9ee11b19fdcca93f7672ce78f14c484a97c6940ca5bf5"
+    },
+    {
+      "path": "schemas/gz/msgs/physics.proto",
+      "sha256": "33a276599d521ecfea29d43a83662c423cd7bd739ce66f0207bfbb821d31c220"
+    },
+    {
+      "path": "schemas/gz/msgs/pid.proto",
+      "sha256": "b0416a50a1d7da6f3bf6f7daefe8fdc6522fd53741ced8e50ff2ee2eec63a665"
+    },
+    {
+      "path": "schemas/gz/msgs/planegeom.proto",
+      "sha256": "fea61cea184c61464a0e19d06a0347e9350595d05cbab27c093316a9926e9ab3"
+    },
+    {
+      "path": "schemas/gz/msgs/plugin.proto",
+      "sha256": "63146ab7054257b86cb0e76280ac7725008310b1abb95e99d94c297dacfb4069"
+    },
+    {
+      "path": "schemas/gz/msgs/plugin_v.proto",
+      "sha256": "881195bebb42c4e76303a7a4b86b42d417b51a8b9586e38804437a2f177033f4"
+    },
+    {
+      "path": "schemas/gz/msgs/pointcloud.proto",
+      "sha256": "c89bfc5ca1d681d3a7d1df2a25d8d14205f3795686a13c7df70e78a7ac0d610e"
+    },
+    {
+      "path": "schemas/gz/msgs/pointcloud_packed.proto",
+      "sha256": "21360fcd43d239b607a446291e1f63a89f85974f428a4507274da206ef7524cb"
+    },
+    {
+      "path": "schemas/gz/msgs/polylinegeom.proto",
+      "sha256": "3c1965735c02c84234895b22ade39e0643e63d9545ad878e40576adb9f2ae85b"
+    },
+    {
+      "path": "schemas/gz/msgs/pose.proto",
+      "sha256": "14674323d955042fc361cf6a8bdf48370b9888323aeac47d06f8f7d3bc69c7ef"
+    },
+    {
+      "path": "schemas/gz/msgs/pose_animation.proto",
+      "sha256": "2ff88b88dadef9cfb48f6b47390e5a7fb6e661e281a64a576505ee67500a1482"
+    },
+    {
+      "path": "schemas/gz/msgs/pose_trajectory.proto",
+      "sha256": "77a1863e343bd29c6e21316560a03f75d8b642b8786337694c1649ea3b66eab1"
+    },
+    {
+      "path": "schemas/gz/msgs/pose_v.proto",
+      "sha256": "16e559038aab91953a4a0cd27db0ac034c1463ee644bd110081a224bf2c8da35"
+    },
+    {
+      "path": "schemas/gz/msgs/pose_with_covariance.proto",
+      "sha256": "e4ef75202a169b096066bfdefc78fc355c48767ad372c3be25b1a41f99d72c76"
+    },
+    {
+      "path": "schemas/gz/msgs/projector.proto",
+      "sha256": "93513738c837adcc5d3e5bb156251b82b72d4ce875a875a89027d6ee1f5b9897"
+    },
+    {
+      "path": "schemas/gz/msgs/propagation_grid.proto",
+      "sha256": "5cd814ce577104ca76e82211cbcb3261d8facde1d9906273e3ebc090ea2bc738"
+    },
+    {
+      "path": "schemas/gz/msgs/propagation_particle.proto",
+      "sha256": "4ef548b537a44a5fe2c3bedee30e458b86c8bc68e8ce703bf6641a9a8aa6da2f"
+    },
+    {
+      "path": "schemas/gz/msgs/publish.proto",
+      "sha256": "103da25491fb4531598da723ece2540447d0fce30314682b75fa72187e6182fa"
+    },
+    {
+      "path": "schemas/gz/msgs/publishers.proto",
+      "sha256": "9052ef209b1b9c3314a847bb7e313d7ef4471bbde002ddfe60bbb05a68a47485"
+    },
+    {
+      "path": "schemas/gz/msgs/quaternion.proto",
+      "sha256": "7e805b9a62f7ee265dd2e797204dc060306c9ef70bd353f7447605ec70cac76e"
+    },
+    {
+      "path": "schemas/gz/msgs/raysensor.proto",
+      "sha256": "97c553395f008c151604f4fbd13f1feff09b6179d66cbe9c416957c370297ec9"
+    },
+    {
+      "path": "schemas/gz/msgs/request.proto",
+      "sha256": "990bea04b8d2d118e9d2a42a00624d9fd5398704509063d667d57ef3299c44a1"
+    },
+    {
+      "path": "schemas/gz/msgs/response.proto",
+      "sha256": "757e343c48a53e47074a418ed34b4d09aa65f876708a8f2251df2d6f6e087fee"
+    },
+    {
+      "path": "schemas/gz/msgs/rest_login.proto",
+      "sha256": "b67fe1dd9f302b2a7470fb011cc15d61bdb183b7f3129b4e8425dcd88c503aa0"
+    },
+    {
+      "path": "schemas/gz/msgs/rest_logout.proto",
+      "sha256": "1a830ed002c263211e28f27702ce9304509da9525e0f48f9f7dd74a2ef67d084"
+    },
+    {
+      "path": "schemas/gz/msgs/rest_post.proto",
+      "sha256": "96507aa818f3bfbe761e37ddadb2a24636ba13252624369757e4a558a9d2057f"
+    },
+    {
+      "path": "schemas/gz/msgs/rest_response.proto",
+      "sha256": "bdb5109ec401c9e908a24068f3426377db4a861d9fea0288ccf12dcee159b426"
+    },
+    {
+      "path": "schemas/gz/msgs/result.proto",
+      "sha256": "20e743d3ac552646083b9a623b56d474706e17a58fee4c6bb2e6481f1c133e93"
+    },
+    {
+      "path": "schemas/gz/msgs/road.proto",
+      "sha256": "29c80238d2fa5d0dd8dc8f8b7ade41845ace3324dfeeefcc6586fea9f37d16c1"
+    },
+    {
+      "path": "schemas/gz/msgs/scene.proto",
+      "sha256": "31a6284d1558bbe7df309f7b479257b6d858c4862c3b242fba787465c5a6b58c"
+    },
+    {
+      "path": "schemas/gz/msgs/sdf_generator_config.proto",
+      "sha256": "e5547a2c727783a489da1dd6028cbd1581d289a29b75078b357ec6c55b3bbb13"
+    },
+    {
+      "path": "schemas/gz/msgs/selection.proto",
+      "sha256": "5a37424c71580cc4ca690d42a9fb110939f2702e665b45b30fb92ab4cf448a31"
+    },
+    {
+      "path": "schemas/gz/msgs/sensor.proto",
+      "sha256": "77fe713f8961220ccd72b85d52f183b593fd9099d932617d84bbc8e93af08f3c"
+    },
+    {
+      "path": "schemas/gz/msgs/sensor_noise.proto",
+      "sha256": "a7ae803e43e2b8d868c184618ec978e0c5823d5a2324dbf0ff1f1334304de4e1"
+    },
+    {
+      "path": "schemas/gz/msgs/sensor_v.proto",
+      "sha256": "d332b3d873d3eff87f0a364cb4e2fd215b757af7dda9c4de696ccae8f1cca774"
+    },
+    {
+      "path": "schemas/gz/msgs/serialized.proto",
+      "sha256": "5dd9ecb6adab020b862eec43471643cfeffb365d8af7614d1c273f056d27d53c"
+    },
+    {
+      "path": "schemas/gz/msgs/serialized_map.proto",
+      "sha256": "72518562d1e84b3088a15762bd3908f07c07010828c2b2b7e42edac519db0f16"
+    },
+    {
+      "path": "schemas/gz/msgs/server_control.proto",
+      "sha256": "74b1d1c0c34bea61280f470903433301d8828cd535e18ddfb70fa4f39ce06a0e"
+    },
+    {
+      "path": "schemas/gz/msgs/shadows.proto",
+      "sha256": "2a68da5b26d2b899ff846a5c77feae3ac58f3ac8999c2e095c42893eb0c1933e"
+    },
+    {
+      "path": "schemas/gz/msgs/sim_event.proto",
+      "sha256": "d96cb301ffe83c73797438853fabf73deea64edbc78c3bb7314c5d9f63b2bf6a"
+    },
+    {
+      "path": "schemas/gz/msgs/sky.proto",
+      "sha256": "380d30b1b7e6f6fd07b879ac72fd83c01b6d06b56e0a7478e955e9001bec26a1"
+    },
+    {
+      "path": "schemas/gz/msgs/sonar.proto",
+      "sha256": "b0461afab5db20c4272af0e1afd24686be4d34fd8fe84df06e3a3feee94a7165"
+    },
+    {
+      "path": "schemas/gz/msgs/spheregeom.proto",
+      "sha256": "4ca19a82cb7577287d9b47fabe56296dc5adf4777cd9517fc99bc5ac6e9018ed"
+    },
+    {
+      "path": "schemas/gz/msgs/spherical_coordinates.proto",
+      "sha256": "09531c9fe36c9ccb38e1963bdc455578b790fc2a462be2089d13e7659d321597"
+    },
+    {
+      "path": "schemas/gz/msgs/statistic.proto",
+      "sha256": "0ce41de0110089a76e1ab2b7a7352c604229f92555a7d4e637a08fd14beb4107"
+    },
+    {
+      "path": "schemas/gz/msgs/stringmsg.proto",
+      "sha256": "65cb2ab04fefa06acad3a849c9a0dfaba5bed611164ed1a1db8b8a91f8a36009"
+    },
+    {
+      "path": "schemas/gz/msgs/stringmsg_v.proto",
+      "sha256": "2dc166b122783e283e1e18fc6d1155675b24962f570e0f952ce414cfc683ce82"
+    },
+    {
+      "path": "schemas/gz/msgs/subscribe.proto",
+      "sha256": "b71cb3a705d93f88f4047ff5fe1c8db8b47b97478bc591438dcd498d1f8f063d"
+    },
+    {
+      "path": "schemas/gz/msgs/surface.proto",
+      "sha256": "8974cd327243151781d8e624ce1f06f121958a0dd768966ec304d34aaf3017ee"
+    },
+    {
+      "path": "schemas/gz/msgs/tactile.proto",
+      "sha256": "767326d75fe724e93ca43c8b56150677c9a7a65f10e1694634c4e8b385deeeb5"
+    },
+    {
+      "path": "schemas/gz/msgs/test.proto",
+      "sha256": "0c860da68edbc3e9d08be89ff7e7a453d1e8ed482a2e6cb6af7c58df84a7d948"
+    },
+    {
+      "path": "schemas/gz/msgs/time.proto",
+      "sha256": "f797892ab6d1194fd72812d24c0fa4d13e7f752e7379c249ba5be63621d47a6d"
+    },
+    {
+      "path": "schemas/gz/msgs/topic_info.proto",
+      "sha256": "6dbcb57c04286436b2799bbbb8369818914b83a09b822fbb9861632437723041"
+    },
+    {
+      "path": "schemas/gz/msgs/track_visual.proto",
+      "sha256": "110ea6cbd0ec0e90103d21b04880253057a19d83c9fff8b361454515c374b967"
+    },
+    {
+      "path": "schemas/gz/msgs/twist.proto",
+      "sha256": "5c729143f18a5fe9ee6ef36a4b5ca403590176b85625de4559d8c6d298a925f4"
+    },
+    {
+      "path": "schemas/gz/msgs/twist_with_covariance.proto",
+      "sha256": "6c017a389c82f1878aef673f7bb48274ab05b3a0b992678912158f183f83ff73"
+    },
+    {
+      "path": "schemas/gz/msgs/uint32.proto",
+      "sha256": "b52ade14879065ed7fb217c627a91d2569037db085b88249abed969db88b8f40"
+    },
+    {
+      "path": "schemas/gz/msgs/uint32_v.proto",
+      "sha256": "e094a152d474e916e7c38d3d83e7cf42cbef15acf937727ccd88a0154d19192e"
+    },
+    {
+      "path": "schemas/gz/msgs/uint64.proto",
+      "sha256": "3c71158199c0def0141fd24b37633a219e0f59957f64d6647e929cf380c5f4b3"
+    },
+    {
+      "path": "schemas/gz/msgs/uint64_v.proto",
+      "sha256": "bf5cd0c83f650eb4382fa1f2e6d0981651d798643522f717745800dd47fb960b"
+    },
+    {
+      "path": "schemas/gz/msgs/undo_redo.proto",
+      "sha256": "a98ef5c9c53ad27aeb0e4c1e5a6743c9c4f8d2c83d52a525bb8158db1700b0a6"
+    },
+    {
+      "path": "schemas/gz/msgs/user_cmd.proto",
+      "sha256": "d8e36a535dfebb0ea2a774926ca07356e5aced088862f7bef54a55adea04e8f7"
+    },
+    {
+      "path": "schemas/gz/msgs/user_cmd_stats.proto",
+      "sha256": "a78840579b8bef2456d8e7e9f2972b66aab311fe323d28783fec32b6109ee503"
+    },
+    {
+      "path": "schemas/gz/msgs/vector2d.proto",
+      "sha256": "20b0fd06f36f6607b06d219b278b9e8883628c0ba55cd06a57c131bf2e2ae402"
+    },
+    {
+      "path": "schemas/gz/msgs/vector3d.proto",
+      "sha256": "1de6693c4d1c6520e25c1a310e667155df3bd0ef36e86d5988f5acd0ef81bf8c"
+    },
+    {
+      "path": "schemas/gz/msgs/version.proto",
+      "sha256": "eb9106fa30b10379da0c9e40f653f48f47a3c56f84c07363c0be64430badb7d6"
+    },
+    {
+      "path": "schemas/gz/msgs/version_range.proto",
+      "sha256": "c8110c183b65cac7dc043c17ff3fbc8066f7a083b9a7c9051852d3ef34a468c5"
+    },
+    {
+      "path": "schemas/gz/msgs/versioned_name.proto",
+      "sha256": "b825498ba60a9916d44cee2b89613163fe6cb365ab3f403f6429727af51698ce"
+    },
+    {
+      "path": "schemas/gz/msgs/video_record.proto",
+      "sha256": "2394b33565375d18f6c437dd2556b2efabe9ac8d7909d1bbaee9715728460403"
+    },
+    {
+      "path": "schemas/gz/msgs/visual.proto",
+      "sha256": "6c6841086e407af93fb5e45026b42c223aea1048c8e9b617619f5db15418af9e"
+    },
+    {
+      "path": "schemas/gz/msgs/visual_v.proto",
+      "sha256": "32e35e1234dd1a0b3200f7a3eabc947b1b490bef343b8fab0c7c07cb4df1d89b"
+    },
+    {
+      "path": "schemas/gz/msgs/web_request.proto",
+      "sha256": "bb6c52429d30afa71109833ee8ef936f850297d4a595e76869271c3fec1ad9b7"
+    },
+    {
+      "path": "schemas/gz/msgs/wheel_slip_parameters_cmd.proto",
+      "sha256": "dff1c8ac41b9700fbcea55b9577a8cd190a080cff70626b9d2582598a385e8f2"
+    },
+    {
+      "path": "schemas/gz/msgs/wind.proto",
+      "sha256": "a36da81a907b51a6e7aa46516f5ce0cae8b6c626e596f79a15001f4c72dca7eb"
+    },
+    {
+      "path": "schemas/gz/msgs/wireless_node.proto",
+      "sha256": "b2d2cfa7b52dd816024dbcd71ef0a9900ba075fe1eb71970670e900f74cbd17d"
+    },
+    {
+      "path": "schemas/gz/msgs/wireless_nodes.proto",
+      "sha256": "2f96fa4c890ab39cce60cc272aea5297c4ccd689b907cbfdba2206fa94647636"
+    },
+    {
+      "path": "schemas/gz/msgs/world_control.proto",
+      "sha256": "ed3e825c4a0df67b0fad78e60db6c122fcefe399e85ec5b687b67fa8c5347c02"
+    },
+    {
+      "path": "schemas/gz/msgs/world_control_state.proto",
+      "sha256": "d8a99c0f7c32ede2d42d883cda2986a10fe8d6545f9a4ec1fb4b27182c4e73fd"
+    },
+    {
+      "path": "schemas/gz/msgs/world_modify.proto",
+      "sha256": "1868a0bc46a918cd522ff700d28af4ab059c2572fdbc0a6dd5d4da3e52345566"
+    },
+    {
+      "path": "schemas/gz/msgs/world_reset.proto",
+      "sha256": "74783e9726038250923c48c060a1ea787e528a9adb656bfed250b061b8321f57"
+    },
+    {
+      "path": "schemas/gz/msgs/world_stats.proto",
+      "sha256": "3a4019f84dd6db618ba7cf620728f9b9a8edbb2ebd5f16cece9c71b5b3ad5be8"
+    },
+    {
+      "path": "schemas/gz/msgs/wrench.proto",
+      "sha256": "db91c7a2ce0c0dc46761c171ef557f9e0d5be13387e89aa87a1532d1a1e73a24"
+    }
+  ]
+}

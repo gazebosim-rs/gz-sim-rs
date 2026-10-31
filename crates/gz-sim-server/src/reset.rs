@@ -27,13 +27,20 @@ impl Server {
             .collect();
         let mut publishers = BTreeMap::new();
         for metadata in initial_imu_publications(&self.simulation)? {
-            let topic = gz_transport::as_valid_topic(&metadata.topic);
-            let key = gz_transport::qualified_name(&self.partition, &self.namespace, &topic)?;
+            let topic = crate::options::as_valid_topic(&metadata.topic);
+            let key = crate::options::qualified_name(
+                &self.partition,
+                &self.namespace,
+                self.network_config.topic_remap(&topic).unwrap_or(&topic),
+            )?;
             if let std::collections::btree_map::Entry::Vacant(entry) = publishers.entry(key.clone())
             {
                 let publisher = match existing.get(&key) {
                     Some(publisher) => Arc::clone(publisher),
-                    None => Arc::new(self.node.advertise(&topic, "gz.msgs.IMU")?),
+                    None => self
+                        .world_io
+                        .imu_output(key.clone())
+                        .map_err(|error| Error::WorldNetwork(error.to_string()))?,
                 };
                 entry.insert(publisher);
             }
@@ -49,10 +56,11 @@ impl Server {
                 let Some(metadata) = entity.get::<ImuPublication>() else {
                     continue;
                 };
-                let endpoint = gz_transport::qualified_name(
+                let topic = crate::options::as_valid_topic(&metadata.topic);
+                let endpoint = crate::options::qualified_name(
                     &self.partition,
                     &self.namespace,
-                    &gz_transport::as_valid_topic(&metadata.topic),
+                    self.network_config.topic_remap(&topic).unwrap_or(&topic),
                 )?;
                 let publisher = publishers.get(&endpoint).ok_or(Error::ResetStreams)?;
                 streams.push(ImuStream {
@@ -64,18 +72,25 @@ impl Server {
                     last_sample: None,
                 });
             }
-            rates.restart(sim)?;
-            forces.restart(sim)?;
+            let setup = rates.restart(&self.network_config, sim, &self.world_io.ingress_drops)?;
+            self.world_io.install_rates(setup)?;
+            let setup = forces.restart(&self.network_config, sim, &self.world_io.ingress_drops)?;
+            self.world_io.install_forces(setup)?;
             Ok::<_, Error>((*sim.world().resource::<UpdateInfo>(), streams))
         });
+        self.world_io.epoch.store(
+            self.simulation.world().resource::<UpdateInfo>().epoch,
+            std::sync::atomic::Ordering::Release,
+        );
         let result = match reset {
             Ok(result) => result,
             Err(error @ gz_sim_scene::SceneResetError::CommittedReset) => {
                 self.pending_reset = false;
-                self.imus.clear();
+                self.imus = Vec::new();
                 self.rates.clear();
                 self.forces.clear();
-                self.removals.cancel_for_reset(&mut self.counters);
+                self.removals
+                    .cancel_for_reset(&self.world_io, &mut self.counters);
                 return Err(error.into());
             }
             Err(error) => return Err(error.into()),
@@ -85,12 +100,13 @@ impl Server {
         self.active_time = ActiveTime::default();
         self.active_time
             .set_running(!self.simulation.is_paused(), Instant::now());
-        self.removals.cancel_for_reset(&mut self.counters);
+        self.removals
+            .cancel_for_reset(&self.world_io, &mut self.counters);
         let (info, streams) = match result {
             Ok(result) => result,
             Err(error) => {
                 self.reset_failed = true;
-                self.imus.clear();
+                self.imus = Vec::new();
                 self.rates.clear();
                 self.forces.clear();
                 return Err(error);

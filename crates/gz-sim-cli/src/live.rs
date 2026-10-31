@@ -90,13 +90,16 @@ pub(super) fn run(
     let mut server = Server::new(
         simulation,
         world,
-        gz_transport::Config::from_env()?,
+        gz_sim_server::ServerOptions::from_env()?,
         NonZeroUsize::new(64).expect("nonzero command budget"),
     )?;
     server.prepare_run(Duration::from_secs(5))?;
     let mut completed = 0_u64;
     while !termination.requested() && (iterations == 0 || completed < iterations) {
         let started = Instant::now();
+        server
+            .prepare_io()
+            .map_err(|error| super::with_fault(server.simulation(), error))?;
         let info = server
             .tick()
             .map_err(|error| super::with_fault(server.simulation(), error))?;

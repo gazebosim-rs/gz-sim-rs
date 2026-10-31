@@ -1,82 +1,97 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use crate::{Counters, Error, add_transport_statistics};
-use gz_msgs::{msgs::Double, prost::Message};
+use crate::{
+    Counters, Error,
+    force_io::{ForceEndpoint, ForceSetup},
+};
+use crate::{ServerOptions, SetupError};
 use gz_sim_core::{EntityId, Simulation, entity_by_id};
 use gz_sim_scene::{
     EntityKind, JointForceCommand, JointForceConfiguration, JointHandle, set_joint_force,
 };
-use gz_transport::{Config, Error as TransportError, Node, Statistics, Subscription};
-use std::{collections::BTreeMap, num::NonZeroUsize, time::Duration};
+use std::{
+    collections::BTreeMap,
+    num::NonZeroUsize,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, AtomicU64, Ordering},
+        mpsc,
+    },
+};
 
-struct Template {
-    worker: usize,
-    topic: String,
-    ids: Vec<u64>,
-}
 struct Stream {
     ids: Vec<u64>,
-    subscription: Subscription,
+    receiver: mpsc::Receiver<Option<f64>>,
+    active: Arc<AtomicBool>,
+}
+impl Drop for Stream {
+    fn drop(&mut self) {
+        self.active.store(false, Ordering::Release);
+    }
 }
 
 pub(crate) struct Forces {
-    // Retire subscriptions before their prepared worker Nodes.
     streams: Vec<Stream>,
-    workers: Vec<Node>,
-    templates: Vec<Template>,
     expected: BTreeMap<u64, JointForceConfiguration>,
     next: usize,
+    // The active world owns this metric across endpoint and reset generations.
+    drops: Arc<AtomicU64>,
 }
+
 impl Forces {
     pub(crate) fn prepare(
-        config: &Config,
+        config: &ServerOptions,
         configurations: impl IntoIterator<Item = (u64, JointForceConfiguration)>,
-    ) -> Result<Self, Error> {
-        if config.capacity == 0 {
-            return Err(TransportError::InvalidConfig.into());
+        drops: &Arc<AtomicU64>,
+    ) -> Result<(Self, ForceSetup), Error> {
+        if config.capacity == 0
+            || config.capacity > i32::MAX as usize
+            || config.max_message_bytes == 0
+            || config.max_message_bytes > i64::MAX as usize
+        {
+            return Err(SetupError::InvalidConfig.into());
         }
-        let mut groups: BTreeMap<String, (String, Vec<u64>)> = BTreeMap::new();
+        let mut groups: BTreeMap<String, Vec<u64>> = BTreeMap::new();
         let mut expected = BTreeMap::new();
         for (id, configuration) in configurations {
-            let topic = gz_transport::as_valid_topic(&format!(
+            let topic = crate::options::as_valid_topic(&format!(
                 "/model/{}/joint/{}/cmd_force",
                 configuration.model_name(),
                 configuration.joint_name()
             ));
             if topic.is_empty() {
-                return Err(TransportError::InvalidName.into());
+                return Err(SetupError::InvalidName.into());
             }
             let remapped = config.topic_remap(&topic).unwrap_or(&topic);
-            let key = gz_transport::qualified_name(&config.partition, &config.namespace, remapped)?;
-            groups
-                .entry(key)
-                .or_insert_with(|| (topic, Vec::new()))
-                .1
-                .push(id);
+            let key =
+                crate::options::qualified_name(&config.partition, &config.namespace, remapped)?;
+            groups.entry(key).or_default().push(id);
             if expected.insert(id, configuration).is_some() {
                 return Err(Error::JointForceIdentity);
             }
         }
         let mut result = Self {
             streams: Vec::new(),
-            workers: Vec::new(),
-            templates: Vec::new(),
             expected,
             next: 0,
+            drops: Arc::clone(drops),
         };
-        for (index, (topic, ids)) in groups.into_values().enumerate() {
-            let worker = index / config.capacity;
-            if worker == result.workers.len() {
-                result.workers.push(Node::new(config.clone())?);
-            }
-            let subscription = result.workers[worker].subscribe(&topic, "gz.msgs.Double")?;
+        let mut setup = ForceSetup {
+            endpoints: Vec::new(),
+            max_bytes: config.max_message_bytes,
+            ingress_drops: Arc::clone(drops),
+        };
+        for (key, ids) in groups {
+            let (input, receiver) = mpsc::sync_channel(config.capacity);
+            let active = Arc::new(AtomicBool::new(true));
             result.streams.push(Stream {
-                ids: ids.clone(),
-                subscription,
+                ids,
+                receiver,
+                active: Arc::clone(&active),
             });
-            result.templates.push(Template { worker, topic, ids });
+            setup.endpoints.push(ForceEndpoint { key, input, active });
         }
-        Ok(result)
+        Ok((result, setup))
     }
 
     pub(crate) fn bind(&mut self, sim: &Simulation) -> Result<(), Error> {
@@ -112,46 +127,55 @@ impl Forces {
             });
         }
         self.streams.retain(|stream| !stream.ids.is_empty());
+        self.expected.retain(|id, configuration| {
+            entity_by_id(sim.world(), *id).is_some_and(|entity| {
+                sim.world().get::<JointForceConfiguration>(entity) == Some(configuration)
+                    && sim.world().get::<JointForceCommand>(entity).is_some()
+            })
+        });
+        if self.streams.is_empty() {
+            self.streams = Vec::new();
+            self.expected = BTreeMap::new();
+            self.next = 0;
+        }
     }
 
-    pub(crate) fn restart(&mut self, sim: &Simulation) -> Result<(), Error> {
+    pub(crate) fn restart(
+        &mut self,
+        config: &ServerOptions,
+        sim: &Simulation,
+        drops: &Arc<AtomicU64>,
+    ) -> Result<ForceSetup, Error> {
         self.clear();
-        // Reuse workers prepared outside stepping; drop old queued epoch inputs.
-        for template in &self.templates {
-            let subscription =
-                match self.workers[template.worker].subscribe(&template.topic, "gz.msgs.Double") {
-                    Ok(subscription) => subscription,
-                    Err(error) => {
-                        self.clear();
-                        return Err(error.into());
-                    }
-                };
-            self.streams.push(Stream {
-                ids: template.ids.clone(),
-                subscription,
-            });
-        }
-        if let Err(error) = self.bind(sim) {
-            self.clear();
-            return Err(error);
-        }
-        Ok(())
+        // Loaded Scene metadata, not retained endpoint templates, owns reset demand.
+        let configurations: Vec<_> = match gz_sim_scene::initial_joint_force_configurations(sim) {
+            Ok(values) => values
+                .filter(|(id, _)| {
+                    entity_by_id(sim.world(), *id).is_some_and(|entity| {
+                        sim.world().get::<JointForceConfiguration>(entity).is_some()
+                    })
+                })
+                .map(|(id, configuration)| (id, configuration.clone()))
+                .collect(),
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => Vec::new(),
+            Err(error) => return Err(error.into()),
+        };
+        let (mut replacement, setup) = Self::prepare(config, configurations, drops)?;
+        replacement.bind(sim)?;
+        *self = replacement;
+        Ok(setup)
     }
 
     pub(crate) fn clear(&mut self) {
-        self.streams.clear();
+        self.streams = Vec::new();
+        self.expected = BTreeMap::new();
         self.next = 0;
     }
     pub(crate) fn shutdown(&mut self) {
         self.clear();
-        for worker in &mut self.workers {
-            worker.shutdown();
-        }
     }
-    pub(crate) fn add_statistics(&self, total: &mut Statistics) {
-        for worker in &self.workers {
-            add_transport_statistics(total, worker.statistics());
-        }
+    pub(crate) fn queue_drops(&self) -> u64 {
+        self.drops.load(Ordering::Relaxed)
     }
 
     pub(crate) fn poll(
@@ -166,29 +190,28 @@ impl Forces {
                 self.next %= self.streams.len();
                 let index = self.next;
                 self.next += 1;
-                match self.streams[index]
-                    .subscription
-                    .recv_timeout(Duration::ZERO)
-                {
+                match self.streams[index].receiver.try_recv() {
                     Ok(message) => {
                         received = Some((index, message));
                         break;
                     }
-                    Err(TransportError::Timeout) => {}
-                    Err(error) => return Err(error.into()),
+                    Err(mpsc::TryRecvError::Empty) => {}
+                    Err(mpsc::TryRecvError::Disconnected) => {
+                        return Err(Error::WorldClosed);
+                    }
                 }
             }
             let Some((index, message)) = received else {
                 break;
             };
             counters.force_messages_received += 1;
-            let Ok(value) = Double::decode(message.data.as_slice()) else {
+            let Some(value) = message else {
                 counters.force_messages_rejected += 1;
                 continue;
             };
             let mut rejected = false;
             for id in &self.streams[index].ids {
-                if set_joint_force(sim, *id, value.data).is_ok() {
+                if set_joint_force(sim, *id, value).is_ok() {
                     counters.joint_forces_applied += 1;
                 } else {
                     rejected = true;

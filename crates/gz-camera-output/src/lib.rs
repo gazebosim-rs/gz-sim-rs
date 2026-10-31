@@ -15,9 +15,16 @@ use gz_render_client::{Client, ClientError, SubmitError, TrustedWorker};
 use gz_render_protocol::{FailureKind, Reply, Request, Stamp};
 use gz_render_scene::{SnapshotError, extract_camera};
 use gz_sim_core::{Simulation, entity_by_id};
+use gz_sim_proto::prost::{Message, Name};
 use gz_sim_scene::CameraSensor;
-use gz_transport::{Node, Publisher};
-use std::{path::PathBuf, time::Duration};
+use std::{
+    collections::BTreeSet,
+    num::NonZeroUsize,
+    path::PathBuf,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+use zenoh::{Session, Wait, liveliness::LivelinessToken, pubsub::Publisher};
 
 #[derive(Debug, thiserror::Error)]
 pub enum CameraOutputError {
@@ -25,8 +32,20 @@ pub enum CameraOutputError {
     Snapshot(#[from] SnapshotError),
     #[error("camera message: {0}")]
     Message(#[from] CameraMessageError),
-    #[error("transport: {0}")]
-    Transport(#[from] gz_transport::Error),
+    #[error("Zenoh: {0}")]
+    Zenoh(#[from] zenoh::Error),
+    #[error("Zenoh session is closed")]
+    SessionClosed,
+    #[error("camera topics must be distinct")]
+    DuplicateTopics,
+    #[error("camera publication key must be an exact native-qualified partition/topic")]
+    InvalidPublicationKey,
+    #[error("camera topic is already reserved in this writer scope")]
+    AlreadyPublishing,
+    #[error("camera writer scope is full")]
+    WriterLimit,
+    #[error("publication is {size} bytes, exceeding the configured {limit} bytes")]
+    PublicationTooLarge { size: usize, limit: usize },
     #[error("renderer client: {0:?}")]
     Client(ClientError),
     #[error("renderer rejected the request or returned an unexpected reply")]
@@ -75,6 +94,145 @@ enum Phase {
     PublishFrame { stamp: Stamp, rgba: Vec<u8> },
 }
 
+/// Focused, bounded admission for camera writers sharing one application owner.
+/// Clones share reservations. Drop the final scope after the last camera to
+/// release its allocation; this manual API alone does not install ECS demand.
+#[derive(Clone)]
+pub struct CameraWriterScope {
+    entries: Arc<Mutex<BTreeSet<(String, String)>>>,
+    max_live_cameras: NonZeroUsize,
+}
+
+impl CameraWriterScope {
+    pub fn new(max_live_cameras: NonZeroUsize) -> Self {
+        Self {
+            entries: Arc::new(Mutex::new(BTreeSet::new())),
+            max_live_cameras,
+        }
+    }
+
+    fn reserve(
+        &self,
+        session: &Session,
+        keys: [&str; 2],
+    ) -> Result<WriterReservation, CameraOutputError> {
+        if keys[0] == keys[1] {
+            return Err(CameraOutputError::DuplicateTopics);
+        }
+        let zid = session.zid().to_string();
+        let entries = [(zid.clone(), keys[0].to_owned()), (zid, keys[1].to_owned())];
+        let mut held = self
+            .entries
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        if entries.iter().any(|entry| held.contains(entry)) {
+            return Err(CameraOutputError::AlreadyPublishing);
+        }
+        if held.len() / 2 >= self.max_live_cameras.get() {
+            return Err(CameraOutputError::WriterLimit);
+        }
+        held.extend(entries.iter().cloned());
+        Ok(WriterReservation {
+            scope: self.clone(),
+            entries,
+        })
+    }
+}
+
+struct WriterReservation {
+    scope: CameraWriterScope,
+    entries: [(String, String); 2],
+}
+
+impl Drop for WriterReservation {
+    fn drop(&mut self) {
+        let mut held = self
+            .scope
+            .entries
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        for entry in &self.entries {
+            held.remove(entry);
+        }
+    }
+}
+
+/// Explicit application configuration; keys are already qualified native Zenoh
+/// keys, e.g. `@/partition@/image`, with nonempty slash-prefixed partition
+/// and topic and no wildcards. No environment or name resolver is installed.
+pub struct CameraOutputConfig {
+    pub origin: [f64; 3],
+    pub frame_id: String,
+    pub image_key: String,
+    pub info_key: String,
+    pub worker_path: PathBuf,
+    /// Encoded protobuf payload limit; Zenoh framing and attachment are separate.
+    pub max_message_bytes: NonZeroUsize,
+}
+
+fn publisher_token(
+    key: &str,
+    session: &Session,
+    node: &str,
+    message: &str,
+) -> Result<String, CameraOutputError> {
+    let Some((partition, topic)) = key.strip_prefix('@').and_then(|rest| rest.split_once('@'))
+    else {
+        return Err(CameraOutputError::InvalidPublicationKey);
+    };
+    // Empty partitions cannot form the native liveliness expression. Do not
+    // silently substitute another partition or normalize caller-owned keys.
+    // TopicUtils::{IsValidNamespace,FullyQualifiedName} at the pinned native
+    // source rejects these bytes even when Zenoh accepts the expression.
+    if !partition.starts_with('/')
+        || !topic.starts_with('/')
+        || key.len() > usize::from(u16::MAX)
+        || [partition, topic].iter().any(|name| {
+            *name == "/"
+                || name.contains(['~', ' ', '@'])
+                || name.contains("//")
+                || name.contains(":=")
+        })
+    {
+        return Err(CameraOutputError::InvalidPublicationKey);
+    }
+    let key = zenoh::key_expr::KeyExpr::try_from(key)
+        .map_err(|_| CameraOutputError::InvalidPublicationKey)?;
+    if key.is_wild() {
+        return Err(CameraOutputError::InvalidPublicationKey);
+    }
+    // The native process-ID slot carries this owned session's zid; the node
+    // UUID belongs to this output. This does not recreate native global Nodes.
+    let token = format!(
+        "@gz/{}/{}/{node}/{node}/MP/%/%/%/{}/{message}/%/%",
+        partition.replace('/', "%"),
+        session.zid(),
+        topic.replace('/', "%")
+    );
+    zenoh::key_expr::KeyExpr::try_from(token.as_str())
+        .map_err(|_| CameraOutputError::InvalidPublicationKey)?;
+    Ok(token)
+}
+
+fn publish<M: Message + Name>(
+    publisher: &Publisher<'_>,
+    message: M,
+    limit: NonZeroUsize,
+) -> Result<(), CameraOutputError> {
+    let size = message.encoded_len();
+    if size > limit.get() {
+        return Err(CameraOutputError::PublicationTooLarge {
+            size,
+            limit: limit.get(),
+        });
+    }
+    publisher
+        .put(message.encode_to_vec())
+        .attachment(M::full_name())
+        .wait()?;
+    Ok(())
+}
+
 /// One explicitly constructed sensor output. The caller owns topic and frame
 /// naming and trusted executable configuration; these are never read from SDF.
 /// Dropping or retiring this owner can wait and must happen outside physics.
@@ -85,36 +243,53 @@ pub struct CameraOutput {
     origin: [f64; 3],
     frame_id: String,
     worker: TrustedWorker,
-    image: Publisher,
-    info: Publisher,
+    image: Publisher<'static>,
+    info: Publisher<'static>,
+    _image_token: LivelinessToken,
+    _info_token: LivelinessToken,
+    max_message_bytes: NonZeroUsize,
     client: Option<Client>,
     acquisition: Option<Acquisition>,
     retiring: bool,
     invalidated: bool,
     next_id: u64,
     sequence: u64,
+    session: Session,
+    _reservation: WriterReservation,
 }
 
 impl CameraOutput {
     /// Return cached image and camera-info interest without a worker query.
     /// The values are advisory and do not acknowledge delivery.
     pub fn demand(&self) -> Result<(bool, bool), CameraOutputError> {
+        if self.session.is_closed() {
+            return Err(CameraOutputError::SessionClosed);
+        }
+        // Zenoh 1.8 resolves this ready value directly from local routing tables:
+        // there is no network wait or async listener lag. Local drop/rebind is
+        // visible immediately; remote discovery remains advisory.
         Ok((
-            self.image.connection_snapshot()?,
-            self.info.connection_snapshot()?,
+            self.image.matching_status().wait()?.matching(),
+            self.info.matching_status().wait()?.matching(),
         ))
     }
 
     /// Validate the camera and worker before advertising the (image, info) topics.
     pub fn new(
         sim: &Simulation,
-        node: &Node,
+        session: &Session,
+        scope: &CameraWriterScope,
         sensor_id: u64,
-        origin: [f64; 3],
-        frame_id: String,
-        topics: (&str, &str),
-        worker_path: PathBuf,
+        config: CameraOutputConfig,
     ) -> Result<Self, CameraOutputError> {
+        let CameraOutputConfig {
+            origin,
+            frame_id,
+            image_key,
+            info_key,
+            worker_path,
+            max_message_bytes,
+        } = config;
         extract_camera(sim, sensor_id, 1, origin)?;
         let bound_entity =
             entity_by_id(sim.world(), sensor_id).ok_or(SnapshotError::MissingCamera(sensor_id))?;
@@ -128,8 +303,33 @@ impl CameraOutput {
         }
         let worker =
             TrustedWorker::from_operator_config(worker_path).map_err(CameraOutputError::Client)?;
-        let image = node.advertise_typed::<gz_msgs::msgs::Image>(topics.0)?;
-        let info = node.advertise_typed::<gz_msgs::msgs::CameraInfo>(topics.1)?;
+        if session.is_closed() {
+            return Err(CameraOutputError::SessionClosed);
+        }
+        let node = uuid::Uuid::new_v4().to_string();
+        let image_token = publisher_token(
+            &image_key,
+            session,
+            &node,
+            &gz_sim_proto::msgs::Image::full_name(),
+        )?;
+        let info_token = publisher_token(
+            &info_key,
+            session,
+            &node,
+            &gz_sim_proto::msgs::CameraInfo::full_name(),
+        )?;
+        let reservation = scope.reserve(session, [&image_key, &info_key])?;
+        let image = session
+            .declare_publisher(image_key)
+            .congestion_control(zenoh::qos::CongestionControl::Drop)
+            .wait()?;
+        let info = session
+            .declare_publisher(info_key)
+            .congestion_control(zenoh::qos::CongestionControl::Drop)
+            .wait()?;
+        let image_token = session.liveliness().declare_token(image_token).wait()?;
+        let info_token = session.liveliness().declare_token(info_token).wait()?;
         Ok(Self {
             sensor_id,
             bound_entity,
@@ -139,6 +339,11 @@ impl CameraOutput {
             worker,
             image,
             info,
+            _image_token: image_token,
+            _info_token: info_token,
+            max_message_bytes,
+            session: session.clone(),
+            _reservation: reservation,
             client: None,
             acquisition: None,
             retiring: false,
@@ -197,7 +402,7 @@ impl CameraOutput {
             },
         )?;
         if info_demand {
-            self.info.publish_typed(&info)?;
+            publish(&self.info, info, self.max_message_bytes)?;
         }
         if !image_demand {
             return Ok(Progress::InfoPublished);
@@ -232,7 +437,7 @@ impl CameraOutput {
             return Ok(Progress::RetireRequired);
         }
         if self.client.is_some()
-            && (!self.image.connection_snapshot()?
+            && (!self.demand()?.0
                 || self
                     .acquisition
                     .as_ref()
@@ -357,7 +562,7 @@ impl CameraOutput {
                     self.sequence,
                 )?;
                 self.sequence = self.sequence.wrapping_add(1);
-                self.image.publish_typed(&image)?;
+                publish(&self.image, image, self.max_message_bytes)?;
                 return Ok(Progress::ImagePublished);
             }
         }

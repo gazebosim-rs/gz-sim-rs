@@ -1,0 +1,297 @@
+{
+  "schema_version": 1,
+  "profile": "ubuntu-zenoh-native-packages-v1",
+  "snapshot": "20261024T000000Z",
+  "signing_key": "F6ECB3762474EDA9D21B7022871920D1991BC93C",
+  "releases": [
+    {
+      "suite": "noble",
+      "url": "https://snapshot.ubuntu.com/ubuntu/20261024T000000Z/dists/noble/InRelease",
+      "sha256": "cdb2f31d809f589719a53c6ad15f255b27569c4059542ada282aaa21b8e164b0",
+      "signature_keys": [
+        "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+      ],
+      "indexes": [
+        {
+          "component": "main",
+          "path": "main/binary-amd64/Packages.xz",
+          "sha256": "2a6a199e1031a5c279cb346646d594993f35b1c03dd4a82aaa0323980dd92451",
+          "size": 1401160
+        },
+        {
+          "component": "universe",
+          "path": "universe/binary-amd64/Packages.xz",
+          "sha256": "ba9057fa1b91438cc8a1d26808d00c85389fe101d0c1496254df97236405599a",
+          "size": 15037908
+        }
+      ]
+    },
+    {
+      "suite": "noble-updates",
+      "url": "https://snapshot.ubuntu.com/ubuntu/20261024T000000Z/dists/noble-updates/InRelease",
+      "sha256": "4fcba3fb02086679f7e86677e320b92e0d076a8c02e30dc0abbbe06b67640db7",
+      "signature_keys": [
+        "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+      ],
+      "indexes": [
+        {
+          "component": "main",
+          "path": "main/binary-amd64/Packages.xz",
+          "sha256": "d0b639b8d595c448980c171d7a2d197db2fda7d34122c9468fb9ba2f32e62aba",
+          "size": 1400216
+        },
+        {
+          "component": "universe",
+          "path": "universe/binary-amd64/Packages.xz",
+          "sha256": "cb4e519b8a6565aa8cb10d3866e55831bb3efee0344ff1204ed831d6f58d19b4",
+          "size": 1705924
+        }
+      ]
+    },
+    {
+      "suite": "noble-security",
+      "url": "https://snapshot.ubuntu.com/ubuntu/20261024T000000Z/dists/noble-security/InRelease",
+      "sha256": "e56daa3c9903f06da8161b4f0e61a747aab215647f4bfabbecd5655631200f09",
+      "signature_keys": [
+        "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+      ],
+      "indexes": [
+        {
+          "component": "main",
+          "path": "main/binary-amd64/Packages.xz",
+          "sha256": "c53b5309c8002317a835d695237d46b10d9da10c33420aa4d819ba7bfadb8afd",
+          "size": 1145772
+        },
+        {
+          "component": "universe",
+          "path": "universe/binary-amd64/Packages.xz",
+          "sha256": "d0d62e01efe4cf8ede2d8d636d3375c532e63f70f5202f72e9e8de4aa3529c79",
+          "size": 1222216
+        }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "suite": "noble",
+      "component": "main",
+      "Package": "build-essential",
+      "Version": "12.10ubuntu1",
+      "Architecture": "amd64",
+      "Filename": "pool/main/b/build-essential/build-essential_12.10ubuntu1_amd64.deb",
+      "SHA256": "9b2159b95a4c01937309783c7c8a6ec8dfbcb7ffd604951c9713ac52ee9c7268",
+      "Size": "4928"
+    },
+    {
+      "suite": "noble",
+      "component": "main",
+      "Package": "cmake",
+      "Version": "3.28.3-1build7",
+      "Architecture": "amd64",
+      "Filename": "pool/main/c/cmake/cmake_3.28.3-1build7_amd64.deb",
+      "SHA256": "4b0a7f8c0daf27b26b46997d994ae5d1ee7a3d11dfcda9f7627bb1462c162295",
+      "Size": "11190006"
+    },
+    {
+      "suite": "noble",
+      "component": "main",
+      "Package": "pkg-config",
+      "Version": "1.8.1-2build1",
+      "Architecture": "amd64",
+      "Filename": "pool/main/p/pkgconf/pkg-config_1.8.1-2build1_amd64.deb",
+      "SHA256": "16bda455d9216da31ad55d72df5a7380cb9d5ac32a2393941cab262a4e5b526f",
+      "Size": "7264"
+    },
+    {
+      "suite": "noble",
+      "component": "main",
+      "Package": "ruby",
+      "Version": "1:3.2~ubuntu1",
+      "Architecture": "amd64",
+      "Filename": "pool/main/r/ruby-defaults/ruby_3.2~ubuntu1_amd64.deb",
+      "SHA256": "b4e5390889e4502ce1e88ea016c5fe1ddf2cc4886df5b0652c0dd1eb06fbbf3a",
+      "Size": "3466"
+    },
+    {
+      "suite": "noble",
+      "component": "universe",
+      "Package": "cppzmq-dev",
+      "Version": "4.10.0-1build1",
+      "Architecture": "amd64",
+      "Filename": "pool/universe/c/cppzmq/cppzmq-dev_4.10.0-1build1_amd64.deb",
+      "SHA256": "81375971369a7856a6007a8f4a4b84ecf59a1c03aadb391b204a9100a3909173",
+      "Size": "25954"
+    },
+    {
+      "suite": "noble",
+      "component": "universe",
+      "Package": "libspdlog-dev",
+      "Version": "1:1.12.0+ds-2build1",
+      "Architecture": "amd64",
+      "Filename": "pool/universe/s/spdlog/libspdlog-dev_1.12.0+ds-2build1_amd64.deb",
+      "SHA256": "850b97a93e252c1d2f9d8e9f59cac919015efb56241138098637f84a188ae3a0",
+      "Size": "83504"
+    },
+    {
+      "suite": "noble",
+      "component": "universe",
+      "Package": "libtinyxml2-dev",
+      "Version": "10.0.0+dfsg-2",
+      "Architecture": "amd64",
+      "Filename": "pool/universe/t/tinyxml2/libtinyxml2-dev_10.0.0+dfsg-2_amd64.deb",
+      "SHA256": "cbdab1d3cb31a306f485c4158cc9072763647eb75090d0a55b70778a927d9387",
+      "Size": "21488"
+    },
+    {
+      "suite": "noble",
+      "component": "universe",
+      "Package": "libzmq3-dev",
+      "Version": "4.3.5-1build2",
+      "Architecture": "amd64",
+      "Filename": "pool/universe/z/zeromq3/libzmq3-dev_4.3.5-1build2_amd64.deb",
+      "SHA256": "51d4da55be33741d4e74ca4724accfcf8c1f035167e338420b12fcf3cb45f62b",
+      "Size": "527228"
+    },
+    {
+      "suite": "noble-updates",
+      "component": "main",
+      "Package": "binutils",
+      "Version": "2.42-4ubuntu2.10",
+      "Architecture": "amd64",
+      "Filename": "pool/main/b/binutils/binutils_2.42-4ubuntu2.10_amd64.deb",
+      "SHA256": "b3b5a84181a38fd191820b2cdcc1a3eeb1cd6333ad472f2092f96e81047e9c74",
+      "Size": "18154"
+    },
+    {
+      "suite": "noble-updates",
+      "component": "main",
+      "Package": "git",
+      "Version": "1:2.43.0-1ubuntu7.4",
+      "Architecture": "amd64",
+      "Filename": "pool/main/g/git/git_2.43.0-1ubuntu7.4_amd64.deb",
+      "SHA256": "c79b7948ef9860c97ec74293a90178676e63368a0711c95c28a55af4edf1adab",
+      "Size": "3680654"
+    },
+    {
+      "suite": "noble-updates",
+      "component": "main",
+      "Package": "libprotobuf-dev",
+      "Version": "3.21.12-8.2ubuntu0.4",
+      "Architecture": "amd64",
+      "Filename": "pool/main/p/protobuf/libprotobuf-dev_3.21.12-8.2ubuntu0.4_amd64.deb",
+      "SHA256": "acc0ec3dee7e496451656170e0210c56efd49ffcff243df8ce9893aa55f44e24",
+      "Size": "1413370"
+    },
+    {
+      "suite": "noble-updates",
+      "component": "main",
+      "Package": "libprotoc-dev",
+      "Version": "3.21.12-8.2ubuntu0.4",
+      "Architecture": "amd64",
+      "Filename": "pool/main/p/protobuf/libprotoc-dev_3.21.12-8.2ubuntu0.4_amd64.deb",
+      "SHA256": "99e219d77db02b7eae82be2660945582c29322d61092846320f7eb4ca10a24de",
+      "Size": "1055416"
+    },
+    {
+      "suite": "noble-updates",
+      "component": "main",
+      "Package": "libsqlite3-dev",
+      "Version": "3.45.1-1ubuntu2.8",
+      "Architecture": "amd64",
+      "Filename": "pool/main/s/sqlite3/libsqlite3-dev_3.45.1-1ubuntu2.8_amd64.deb",
+      "SHA256": "61e688e7ced1c6f7c0b66721e46fd996f891489654dbf382daa98e17ee3ae192",
+      "Size": "910716"
+    },
+    {
+      "suite": "noble-updates",
+      "component": "main",
+      "Package": "uuid-dev",
+      "Version": "2.39.3-9ubuntu6.6",
+      "Architecture": "amd64",
+      "Filename": "pool/main/u/util-linux/uuid-dev_2.39.3-9ubuntu6.6_amd64.deb",
+      "SHA256": "266115cc3bcecef70b9f75c0cf8ca4daccd40958bf7872f8ccebec50502d2a13",
+      "Size": "33546"
+    },
+    {
+      "suite": "noble-updates",
+      "component": "universe",
+      "Package": "libeigen3-dev",
+      "Version": "3.4.0-4build0.1",
+      "Architecture": "all",
+      "Filename": "pool/universe/e/eigen3/libeigen3-dev_3.4.0-4build0.1_all.deb",
+      "SHA256": "56c05756bd5bf1e7d1c30ea545786a51684b3c796f8289b20cc803b2f1e6f754",
+      "Size": "1056510"
+    },
+    {
+      "suite": "noble-updates",
+      "component": "universe",
+      "Package": "protobuf-compiler",
+      "Version": "3.21.12-8.2ubuntu0.4",
+      "Architecture": "amd64",
+      "Filename": "pool/universe/p/protobuf/protobuf-compiler_3.21.12-8.2ubuntu0.4_amd64.deb",
+      "SHA256": "10dc45fcc354dcddb50f35b73ec11ed67f55053476ddc8d3f520e2bfcfbc8016",
+      "Size": "28964"
+    },
+    {
+      "suite": "noble-security",
+      "component": "main",
+      "Package": "git",
+      "Version": "1:2.43.0-1ubuntu7.4",
+      "Architecture": "amd64",
+      "Filename": "pool/main/g/git/git_2.43.0-1ubuntu7.4_amd64.deb",
+      "SHA256": "c79b7948ef9860c97ec74293a90178676e63368a0711c95c28a55af4edf1adab",
+      "Size": "3680654"
+    },
+    {
+      "suite": "noble-security",
+      "component": "main",
+      "Package": "libprotobuf-dev",
+      "Version": "3.21.12-8.2ubuntu0.4",
+      "Architecture": "amd64",
+      "Filename": "pool/main/p/protobuf/libprotobuf-dev_3.21.12-8.2ubuntu0.4_amd64.deb",
+      "SHA256": "acc0ec3dee7e496451656170e0210c56efd49ffcff243df8ce9893aa55f44e24",
+      "Size": "1413370"
+    },
+    {
+      "suite": "noble-security",
+      "component": "main",
+      "Package": "libprotoc-dev",
+      "Version": "3.21.12-8.2ubuntu0.4",
+      "Architecture": "amd64",
+      "Filename": "pool/main/p/protobuf/libprotoc-dev_3.21.12-8.2ubuntu0.4_amd64.deb",
+      "SHA256": "99e219d77db02b7eae82be2660945582c29322d61092846320f7eb4ca10a24de",
+      "Size": "1055416"
+    },
+    {
+      "suite": "noble-security",
+      "component": "main",
+      "Package": "libsqlite3-dev",
+      "Version": "3.45.1-1ubuntu2.8",
+      "Architecture": "amd64",
+      "Filename": "pool/main/s/sqlite3/libsqlite3-dev_3.45.1-1ubuntu2.8_amd64.deb",
+      "SHA256": "61e688e7ced1c6f7c0b66721e46fd996f891489654dbf382daa98e17ee3ae192",
+      "Size": "910716"
+    },
+    {
+      "suite": "noble-security",
+      "component": "main",
+      "Package": "uuid-dev",
+      "Version": "2.39.3-9ubuntu6.6",
+      "Architecture": "amd64",
+      "Filename": "pool/main/u/util-linux/uuid-dev_2.39.3-9ubuntu6.6_amd64.deb",
+      "SHA256": "266115cc3bcecef70b9f75c0cf8ca4daccd40958bf7872f8ccebec50502d2a13",
+      "Size": "33546"
+    },
+    {
+      "suite": "noble-security",
+      "component": "universe",
+      "Package": "protobuf-compiler",
+      "Version": "3.21.12-8.2ubuntu0.4",
+      "Architecture": "amd64",
+      "Filename": "pool/universe/p/protobuf/protobuf-compiler_3.21.12-8.2ubuntu0.4_amd64.deb",
+      "SHA256": "10dc45fcc354dcddb50f35b73ec11ed67f55053476ddc8d3f520e2bfcfbc8016",
+      "Size": "28964"
+    }
+  ],
+  "scope": "Direct build package availability verified from signed Ubuntu snapshot indexes. No host package installation or Zenoh SDK build is claimed."
+}

@@ -20,7 +20,7 @@ fn local_pose_packet_preserves_native_groups_presence_names_and_time() {
     let message = packet(sim.world(), sim.elapsed()).unwrap();
     assert_eq!(
         message.header.as_ref().unwrap().stamp,
-        Some(gz_msgs::Time {
+        Some(gz_sim_proto::msgs::Time {
             sec: 0,
             nsec: 3_000_000
         })

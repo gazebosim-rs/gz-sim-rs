@@ -18,12 +18,13 @@ gz-sim-core = { path = "../gz-sim-core" }
 # Direct dependency so build.rs receives DEP_DART_LIBDIR.
 gz-physics-dart = { path = "../gz-physics-dart" }
 gz-sim-server = { path = "../gz-sim-server" }
-gz-transport.workspace = true
 signal-hook = "=0.3.18"
 
 [dev-dependencies]
+zenoh.workspace = true
+serde_json = "=1.0.149"
 socket2 = { version = "=0.6.5", features = ["all"] }
-gz-msgs.workspace = true
+gz-sim-proto.workspace = true
 tempfile = "=3.25.0"
 
 [lints]

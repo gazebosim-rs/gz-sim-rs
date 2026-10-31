@@ -1,13 +1,13 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use crate::Server;
+use crate::ServerOptions;
 use gz_sim_core::EntityId;
 use gz_sim_scene::{JointForceCommand, JointSample, Name, PhysicsEngine, load_world_with_sdf_step};
-use gz_transport::Config;
 use sdformat::NoResources;
 use std::{
     io::{BufRead, BufReader, Read, Write},
-    net::UdpSocket,
+    net::TcpListener,
     num::NonZeroUsize,
     path::Path,
     process::{Child, Command, Stdio},
@@ -15,20 +15,65 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+#[path = "../../../../tests/support/zenoh_peer.rs"]
+mod zenoh_peer;
+
 const XML: &str = include_str!("../fixtures/joint_force.sdf");
 const PLUGIN: &str = "<plugin filename='gz-sim-apply-joint-force-system' name='gz::sim::systems::ApplyJointForce'><joint_name>hinge</joint_name></plugin>";
 
-fn socket() -> UdpSocket {
-    let socket = UdpSocket::bind("0.0.0.0:0").unwrap();
-    socket2::SockRef::from(&socket)
-        .set_reuse_address(true)
-        .unwrap();
-    #[cfg(target_os = "linux")]
-    socket2::SockRef::from(&socket)
-        .set_multicast_all_v4(false)
-        .unwrap();
-    socket
+// Process-local configuration prevents concurrent tests from mutating global
+// Zenoh settings. A held loopback port is released only for this child's bind.
+fn isolate(name: &str) -> bool {
+    const CHILD: &str = "GZ_FORCE_ZENOH_CASE";
+    if std::env::var(CHILD).as_deref() == Ok(name) {
+        return false;
+    }
+    let directory = tempfile::tempdir().unwrap();
+    let reservation = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = format!("tcp/127.0.0.1:{}", reservation.local_addr().unwrap().port());
+    let rust = directory.path().join("rust.json");
+    let native = directory.path().join("native.json");
+    let scouting = serde_json::json!({"multicast":{"enabled":false},"gossip":{"enabled":false}});
+    std::fs::write(&rust, serde_json::to_vec(&serde_json::json!({"mode":"peer","listen":{"endpoints":[address]},"scouting":scouting})).unwrap()).unwrap();
+    std::fs::write(&native, serde_json::to_vec(&serde_json::json!({"mode":"peer","listen":{"endpoints":["tcp/127.0.0.1:0"]},"connect":{"endpoints":[address],"timeout_ms":2000},"scouting":scouting,"transport":{"shared_memory":{"enabled":false}}})).unwrap()).unwrap();
+    let mut child = Command::new(std::env::current_exe().unwrap());
+    let module = module_path!().split_once("::").unwrap().1;
+    child
+        .args([
+            "--exact",
+            &format!("{module}::{name}"),
+            "--nocapture",
+            "--test-threads=1",
+        ])
+        .env(CHILD, name)
+        .env("ZENOH_CONFIG", rust)
+        .env("GZ_FORCE_ZENOH_NATIVE_CONFIG", native)
+        .env_remove("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE")
+        .env_remove("LD_PRELOAD")
+        .env_remove("LD_AUDIT");
+    drop(reservation);
+    let result = child.output().unwrap();
+    assert!(
+        result.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert!(String::from_utf8_lossy(&result.stdout).contains("1 passed"));
+    true
 }
+fn force_owner(config: &ServerOptions) -> crate::world_io::WorldIo {
+    let prefix = format!("@/native-force-owner-{}@", std::process::id());
+    crate::world_io::WorldIo::new(
+        format!("{prefix}/clock"),
+        format!("{prefix}/control"),
+        format!("{prefix}/poses"),
+        config.capacity,
+        config.max_message_bytes,
+    )
+    .unwrap()
+}
+
 struct Peer {
     child: Child,
     lines: mpsc::Receiver<String>,
@@ -36,27 +81,26 @@ struct Peer {
     stderr: Option<thread::JoinHandle<String>>,
 }
 impl Peer {
-    fn start(binary: &str, config: &Config, topic: &str) -> Self {
-        let prefix = std::env::var_os("GZ_REFERENCE_PREFIX")
-            .map(std::path::PathBuf::from)
-            .unwrap_or_else(|| {
-                Path::new(env!("CARGO_MANIFEST_DIR"))
-                    .join("../../artifacts/native-reference/install")
-            });
-        let mut child = Command::new(binary)
+    fn start(native: &zenoh_peer::NativePeer, config: &ServerOptions, topic: &str) -> Self {
+        let mut command = Command::new(&native.binary);
+        command
             .arg(topic)
             .env("GZ_PARTITION", &config.partition)
-            .env("GZ_DISCOVERY_MSG_PORT", config.message_port.to_string())
-            .env("GZ_DISCOVERY_SRV_PORT", config.service_port.to_string())
-            .env("GZ_IP", "127.0.0.1")
-            // Native SDK dependencies are transitive; executable RUNPATH is not.
-            .env("LD_LIBRARY_PATH", prefix.join("lib"))
+            .env("GZ_TRANSPORT_IMPLEMENTATION", "zenoh")
+            .env(
+                "ZENOH_CONFIG",
+                std::env::var_os("GZ_FORCE_ZENOH_NATIVE_CONFIG").unwrap(),
+            )
+            .env_remove("GZ_RELAY")
+            .env_remove("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE")
+            .env_remove("LD_PRELOAD")
+            .env_remove("LD_AUDIT")
             .env_remove("GZ_TRANSPORT_TOPIC_STATISTICS")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .unwrap();
+            .stderr(Stdio::piped());
+        native.configure_runtime(&mut command);
+        let mut child = command.spawn().unwrap();
         let out = child.stdout.take().unwrap();
         let mut err = child.stderr.take().unwrap();
         let (tx, lines) = mpsc::sync_channel(16);
@@ -117,34 +161,24 @@ impl Drop for Peer {
 fn received(server: &mut Server, count: u64) {
     let deadline = Instant::now() + Duration::from_secs(3);
     while server.counters().force_messages_received < count {
-        server.tick().unwrap();
+        server.update().unwrap();
         assert!(Instant::now() < deadline, "force timeout");
         thread::sleep(Duration::from_millis(1));
     }
 }
-fn native_client() -> &'static str {
-    static CLIENT: std::sync::OnceLock<String> = std::sync::OnceLock::new();
-    CLIENT
-        .get_or_init(|| {
-            let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-            let build = Command::new("python3")
-                .arg(root.join("scripts/native-peer.py"))
-                .args(["--client", "force"])
-                .output()
-                .unwrap();
-            assert!(
-                build.status.success(),
-                "{}",
-                String::from_utf8_lossy(&build.stderr)
-            );
-            let binary = String::from_utf8(build.stdout).unwrap();
-            binary.trim().to_owned()
-        })
-        .as_str()
+fn native_client() -> &'static zenoh_peer::NativePeer {
+    static CLIENT: std::sync::OnceLock<zenoh_peer::NativePeer> = std::sync::OnceLock::new();
+    CLIENT.get_or_init(|| {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        zenoh_peer::NativePeer::build(&root, "force")
+    })
 }
 
 #[test]
 fn real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines() {
+    if isolate("real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines") {
+        return;
+    }
     let binary = native_client();
     for (index, engine) in [
         PhysicsEngine::Rapier,
@@ -154,13 +188,9 @@ fn real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines() {
     .into_iter()
     .enumerate()
     {
-        let msg = socket();
-        let srv = socket();
-        let config = Config {
+        let config = ServerOptions {
             partition: format!("force-cpp-{}-{index}", std::process::id()),
-            message_port: msg.local_addr().unwrap().port(),
-            service_port: srv.local_addr().unwrap().port(),
-            ..Config::default()
+            ..ServerOptions::default()
         };
         let source = XML.replace("</model>", &format!("{PLUGIN}</model>"));
         let sim = load_world_with_sdf_step(&source, "force.sdf", "default", &NoResources, engine)
@@ -185,7 +215,7 @@ fn real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines() {
         let mut peer = Peer::start(binary, &config, "/model/rotor/joint/hinge/cmd_force");
         peer.line("READY");
         for _ in 0..10 {
-            server.tick().unwrap();
+            server.update().unwrap();
         }
         assert_eq!(
             server
@@ -219,7 +249,7 @@ fn real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines() {
         );
         server.set_paused(false);
         for _ in 0..10 {
-            server.tick().unwrap();
+            server.update().unwrap();
         }
         server.set_paused(true);
         let velocity = server
@@ -289,7 +319,7 @@ fn real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines() {
         );
         server.set_paused(false);
         for _ in 0..3 {
-            server.tick().unwrap();
+            server.update().unwrap();
         }
         assert_eq!(
             server
@@ -312,7 +342,7 @@ fn real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines() {
             .unwrap()
             .get();
         gz_sim_scene::remove_model(&mut server.simulation, model).unwrap();
-        server.tick().unwrap();
+        server.update().unwrap();
         assert!(gz_sim_core::entity_by_id(server.simulation().world(), id).is_none());
         server.reset_scene().unwrap();
         let restored = gz_sim_core::entity_by_id(server.simulation().world(), id).unwrap();
@@ -331,14 +361,13 @@ fn real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines() {
 
 #[test]
 fn unread_native_force_queue_is_discarded_when_subscriptions_restart() {
-    let message = socket();
-    let service = socket();
-    let config = Config {
+    if isolate("unread_native_force_queue_is_discarded_when_subscriptions_restart") {
+        return;
+    }
+    let config = ServerOptions {
         capacity: 1,
         partition: format!("force-unread-{}", std::process::id()),
-        message_port: message.local_addr().unwrap().port(),
-        service_port: service.local_addr().unwrap().port(),
-        ..Config::default()
+        ..ServerOptions::default()
     };
     let source = XML.replace("</model>", &format!("{PLUGIN}</model>"));
     let mut sim = load_world_with_sdf_step(
@@ -353,8 +382,11 @@ fn unread_native_force_queue_is_discarded_when_subscriptions_restart() {
         .unwrap()
         .map(|(id, cfg)| (id, cfg.clone()))
         .collect();
-    let mut forces = crate::forces::Forces::prepare(&config, definitions).unwrap();
+    let io = force_owner(&config);
+    let (mut forces, setup) =
+        crate::forces::Forces::prepare(&config, definitions, &io.ingress_drops).unwrap();
     forces.bind(&sim).unwrap();
+    io.install_forces(setup).unwrap();
     let mut peer = Peer::start(
         native_client(),
         &config,
@@ -363,23 +395,23 @@ fn unread_native_force_queue_is_discarded_when_subscriptions_restart() {
     peer.line("READY");
     let deadline = Instant::now() + Duration::from_secs(3);
     loop {
-        let mut stats = gz_transport::Statistics::default();
-        forces.add_statistics(&mut stats);
-        if stats.queue_drops >= 2 {
+        let queue_drops = forces.queue_drops();
+        if queue_drops >= 2 {
             break;
         }
         assert!(
             Instant::now() < deadline,
-            "native frames did not fill old bounded receiver: {stats:?}"
+            "native frames did not fill old bounded receiver: {queue_drops} drops"
         );
-        // PUB connection discovery precedes socket readiness. Retry until
-        // observable overflow proves that the old receiver contains wire data.
+        // Native MS discovery precedes delivery readiness. Observable overflow
+        // proves that actual wire samples reached the old bounded receiver.
         peer.send("1.0");
         thread::sleep(Duration::from_millis(10));
     }
     peer.finish();
     sim.reset().unwrap();
-    forces.restart(&sim).unwrap();
+    let setup = forces.restart(&config, &sim, &io.ingress_drops).unwrap();
+    io.install_forces(setup).unwrap();
     let mut counters = crate::Counters::default();
     forces
         .poll(&mut sim, NonZeroUsize::new(4).unwrap(), &mut counters)
@@ -400,14 +432,13 @@ fn unread_native_force_queue_is_discarded_when_subscriptions_restart() {
 // Assertion port of ApplyJointForceTestFixture.JointVelocityCommand.
 #[test]
 fn original_ground_world_accepts_cpp_joint_force_with_original_sample_bounds() {
+    if isolate("original_ground_world_accepts_cpp_joint_force_with_original_sample_bounds") {
+        return;
+    }
     let source = include_str!("../fixtures/apply_joint_force_original.sdf");
-    let msg = socket();
-    let srv = socket();
-    let config = Config {
+    let config = ServerOptions {
         partition: format!("original-force-cpp-{}", std::process::id()),
-        message_port: msg.local_addr().unwrap().port(),
-        service_port: srv.local_addr().unwrap().port(),
-        ..Config::default()
+        ..ServerOptions::default()
     };
     let sim = load_world_with_sdf_step(
         source,
@@ -449,7 +480,7 @@ fn original_ground_world_accepts_cpp_joint_force_with_original_sample_bounds() {
         if let Some(command) = server.simulation().world().get::<JointForceCommand>(joint) {
             samples.push(command.torque());
         }
-        server.tick().unwrap();
+        server.update().unwrap();
         thread::sleep(Duration::from_millis(1));
     }
     assert_eq!(samples.len(), 10);
@@ -468,7 +499,7 @@ fn original_ground_world_accepts_cpp_joint_force_with_original_sample_bounds() {
         if let Some(command) = server.simulation().world().get::<JointForceCommand>(joint) {
             samples.push(command.torque());
         }
-        server.tick().unwrap();
+        server.update().unwrap();
         thread::sleep(Duration::from_millis(1));
         if samples
             .last()

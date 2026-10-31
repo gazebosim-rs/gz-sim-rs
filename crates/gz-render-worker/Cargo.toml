@@ -13,14 +13,14 @@ glam.workspace = true
 rustix = { version = "=1.1.5", features = ["process"] }
 
 [dev-dependencies]
+serde_json = "=1.0.149"
+zenoh.workspace = true
 gz-render-client = { path = "../gz-render-client" }
 gz-render-scene = { path = "../gz-render-scene" }
 gz-sim-core = { path = "../gz-sim-core" }
 gz-sim-scene = { path = "../gz-sim-scene" }
 gz-camera-output = { path = "../gz-camera-output" }
-gz-msgs.workspace = true
-gz-transport.workspace = true
-socket2 = { version = "=0.6.5", features = ["all"] }
+gz-sim-proto.workspace = true
 tempfile = "=3.25.0"
 sdformat.workspace = true
 rustix = { version = "=1.1.5", features = ["event", "process"] }

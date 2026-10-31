@@ -1,8 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
-use gz_msgs::msgs::{Entity, WorldReset};
 use gz_sim_core::{EntityId, entity_by_id};
+use gz_sim_proto::msgs::{Entity, WorldReset};
 
 fn rewind(reset: WorldReset, steps: u32) -> WorldControl {
     WorldControl {
@@ -16,6 +16,7 @@ fn rewind(reset: WorldReset, steps: u32) -> WorldControl {
 #[test]
 fn reset_restores_removed_scene_ids_and_restarts_sensor_instances() {
     let mut server = imu_server(config());
+    assert!(server.imus.capacity() > 0);
     let mut initial: Vec<_> = server
         .simulation
         .world()
@@ -27,12 +28,13 @@ fn reset_restores_removed_scene_ids_and_restarts_sensor_instances() {
     let old_sensor = server.imus[0].entity;
     server.simulation.set_paused(false);
     for _ in 0..3 {
-        server.tick().unwrap();
+        server.update().unwrap();
     }
     assert_eq!(server.imus[0].sequence, 3);
     gz_sim_scene::remove_model(&mut server.simulation, ball).unwrap();
-    server.tick().unwrap();
+    server.update().unwrap();
     assert!(server.imus.is_empty());
+    assert_eq!(server.imus.capacity(), 0);
     assert!(server.apply_control(rewind(
         WorldReset {
             all: true,
@@ -40,7 +42,7 @@ fn reset_restores_removed_scene_ids_and_restarts_sensor_instances() {
         },
         0
     )));
-    let info = server.tick().unwrap();
+    let info = server.update().unwrap();
     assert_eq!(
         (info.sim_time, info.iteration, info.epoch, info.paused),
         (Duration::ZERO, 0, 1, true)
@@ -77,7 +79,7 @@ fn reset_restores_removed_scene_ids_and_restarts_sensor_instances() {
         step: true,
         ..Default::default()
     }));
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.imus[0].sequence, 1);
     assert_eq!(
         server.imus[0].last_sample,
@@ -97,7 +99,7 @@ fn native_reset_flags_overwrite_and_pending_iteration_accounting() {
         3
     )));
     for (millis, epoch) in [(0, 1), (1, 1), (2, 1)] {
-        let info = server.tick().unwrap();
+        let info = server.update().unwrap();
         assert_eq!(
             (info.sim_time, info.epoch),
             (Duration::from_millis(millis), epoch)
@@ -127,7 +129,7 @@ fn native_reset_flags_overwrite_and_pending_iteration_accounting() {
             0
         )));
         assert!(server.apply_control(cancelling));
-        assert_eq!(server.tick().unwrap().epoch, 1);
+        assert_eq!(server.update().unwrap().epoch, 1);
     }
     assert!(server.apply_control(rewind(
         WorldReset {
@@ -140,7 +142,7 @@ fn native_reset_flags_overwrite_and_pending_iteration_accounting() {
         seed: 7,
         ..Default::default()
     }));
-    assert_eq!(server.tick().unwrap().epoch, 2);
+    assert_eq!(server.update().unwrap().epoch, 2);
     assert_eq!(server.simulation.elapsed(), Duration::ZERO);
     assert!(server.apply_control(WorldControl {
         reset: Some(WorldReset {
@@ -149,13 +151,13 @@ fn native_reset_flags_overwrite_and_pending_iteration_accounting() {
         }),
         ..Default::default()
     }));
-    let info = server.tick().unwrap();
+    let info = server.update().unwrap();
     assert_eq!(
         (info.epoch, info.paused, info.sim_time),
         (3, false, Duration::ZERO)
     );
     assert!(!server.simulation.is_paused());
-    assert_eq!(server.tick().unwrap().sim_time, Duration::from_millis(1));
+    assert_eq!(server.update().unwrap().sim_time, Duration::from_millis(1));
     let mut unloaded = super::server(config(), Duration::from_millis(1));
     assert!(unloaded.apply_control(rewind(
         WorldReset {
@@ -164,7 +166,7 @@ fn native_reset_flags_overwrite_and_pending_iteration_accounting() {
         },
         0
     )));
-    assert_eq!(unloaded.tick().unwrap().epoch, 0);
+    assert_eq!(unloaded.update().unwrap().epoch, 0);
 }
 
 #[test]
@@ -174,6 +176,7 @@ fn reset_cancels_only_admitted_removals_after_commit_and_preserves_live_endpoint
     let ball = public_id(&server, "default::ball");
     let endpoint = Arc::clone(&server.imus[0].publisher);
     let ordinary = removal_request(
+        &server,
         cfg.clone(),
         false,
         Entity {
@@ -183,6 +186,7 @@ fn reset_cancels_only_admitted_removals_after_commit_and_preserves_live_endpoint
         .encode_to_vec(),
     );
     let blocking = removal_request(
+        &server,
         cfg,
         true,
         Entity {
@@ -201,7 +205,7 @@ fn reset_cancels_only_admitted_removals_after_commit_and_preserves_live_endpoint
         },
         0
     )));
-    server.tick().unwrap();
+    server.update().unwrap();
     assert!(!removal_result(blocking));
     assert_eq!(server.counters.removals_cancelled, 2);
     assert_eq!(
@@ -228,6 +232,7 @@ fn failed_reset_keeps_clock_streams_and_admitted_removals() {
         .entity_mut(registered.entity())
         .insert(ChildOf(ball_entity));
     let request = removal_request(
+        &server,
         cfg,
         true,
         Entity {
@@ -247,7 +252,7 @@ fn failed_reset_keeps_clock_streams_and_admitted_removals() {
     let before = *server.simulation.world().resource::<UpdateInfo>();
     let endpoint = Arc::clone(&server.imus[0].publisher);
     assert!(matches!(
-        server.tick(),
+        server.update(),
         Err(Error::Reset(
             gz_sim_scene::SceneResetError::InfrastructureOwnership
         ))
@@ -263,7 +268,7 @@ fn failed_reset_keeps_clock_streams_and_admitted_removals() {
         .world_mut()
         .entity_mut(registered.entity())
         .remove::<ChildOf>();
-    server.tick().unwrap();
+    server.update().unwrap();
     assert!(!removal_result(request));
     assert_eq!(server.counters.removals_cancelled, 1);
     assert_eq!(server.simulation.elapsed(), Duration::ZERO);
@@ -309,7 +314,7 @@ fn rewind_validation_uses_zero_clock_and_checks_full_future_range() {
         },
         1
     )));
-    assert_eq!(huge.tick().unwrap().sim_time, Duration::ZERO);
+    assert_eq!(huge.update().unwrap().sim_time, Duration::ZERO);
     assert!(huge.simulation.is_paused());
     assert!(!huge.apply_control(rewind(
         WorldReset {
@@ -327,6 +332,7 @@ fn reset_handler_stream_changes_are_explicit_committed_errors() {
     use bevy_ecs::prelude::*;
     for topic in ["/unprepared", "~@:=//"] {
         let mut server = imu_server(config());
+        assert!(server.imus.capacity() > 0);
         server.simulation.add_systems(
             gz_sim_core::Phase::Reset,
             move |mut streams: Query<&mut ImuPublication>| {
@@ -342,31 +348,29 @@ fn reset_handler_stream_changes_are_explicit_committed_errors() {
             },
             0
         )));
-        let error = server.tick().unwrap_err();
+        let error = server.update().unwrap_err();
         if topic == "/unprepared" {
             assert!(matches!(error, Error::ResetStreams));
         } else {
-            assert!(matches!(
-                error,
-                Error::Transport(TransportError::InvalidName)
-            ));
+            assert!(matches!(error, Error::Setup(SetupError::InvalidName)));
         }
         assert_eq!(server.simulation.world().resource::<UpdateInfo>().epoch, 1);
         assert!(!server.pending_reset);
         assert_eq!(server.simulation.elapsed(), Duration::ZERO);
-        assert!(matches!(server.tick(), Err(Error::ResetStreams)));
+        assert!(matches!(server.update(), Err(Error::ResetStreams)));
         assert!(matches!(
             server.prepare_run(Duration::from_secs(5)),
             Err(Error::ResetStreams)
         ));
         assert!(server.imus.is_empty());
+        assert_eq!(server.imus.capacity(), 0);
         assert_eq!(server.simulation.world().resource::<UpdateInfo>().epoch, 1);
     }
 }
 
 #[test]
 fn reset_stream_reconciliation_preserves_shared_publishers_and_retires_additions() {
-    let cfg = Config {
+    let cfg = ServerOptions {
         namespace: "/robot".into(),
         ..config()
     };
@@ -403,7 +407,7 @@ fn reset_stream_reconciliation_preserves_shared_publishers_and_retires_additions
         },
         0
     )));
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.imus.len(), 2);
     assert!(
         server
@@ -429,7 +433,7 @@ fn reported_step_failure_stops_server_publications_and_future_controls() {
     use gz_sim_core::StepFault;
     let mut server = imu_server(config());
     server.simulation.set_paused(false);
-    server.tick().unwrap();
+    server.update().unwrap();
     let before = server.counters;
     let committed = *server.simulation.world().resource::<UpdateInfo>();
     server
@@ -438,7 +442,7 @@ fn reported_step_failure_stops_server_publications_and_future_controls() {
             fault.report(std::io::Error::other("physics step failed"));
         });
     assert!(matches!(
-        server.tick(),
+        server.update(),
         Err(Error::Step(StepError::Faulted))
     ));
     assert_eq!(
@@ -478,7 +482,7 @@ fn reported_step_failure_stops_server_publications_and_future_controls() {
     );
     assert!(!server.apply_control(WorldControl::default()));
     assert!(matches!(
-        server.tick(),
+        server.update(),
         Err(Error::Step(StepError::Faulted))
     ));
     assert_eq!(server.counters.clocks_queued, before.clocks_queued);
@@ -491,12 +495,14 @@ fn committed_reset_fault_cancels_admitted_removals_and_retires_stale_streams() {
     use gz_sim_core::StepFault;
     let cfg = config();
     let mut server = imu_server(cfg.clone());
+    assert!(server.imus.capacity() > 0);
     server.simulation.step_exact(2).unwrap();
-    server.tick().unwrap();
+    server.update().unwrap();
     let before = server.counters;
     let endpoint = Arc::downgrade(&server.imus[0].publisher);
     let ball = public_id(&server, "default::ball");
     let request = removal_request(
+        &server,
         cfg,
         true,
         Entity {
@@ -519,7 +525,7 @@ fn committed_reset_fault_cancels_admitted_removals_and_retires_stale_streams() {
         0
     )));
     assert!(matches!(
-        server.tick(),
+        server.update(),
         Err(Error::Reset(gz_sim_scene::SceneResetError::CommittedReset))
     ));
     assert!(!removal_result(request));
@@ -530,6 +536,7 @@ fn committed_reset_fault_cancels_admitted_removals_and_retires_stale_streams() {
     );
     assert!(!server.pending_reset);
     assert!(server.imus.is_empty());
+    assert_eq!(server.imus.capacity(), 0);
     assert!(endpoint.upgrade().is_none());
     assert!(entity_by_id(server.simulation.world(), ball).is_some());
     assert_eq!(
@@ -552,7 +559,7 @@ fn committed_reset_fault_cancels_admitted_removals_and_retires_stale_streams() {
         )
     );
     assert!(matches!(
-        server.tick(),
+        server.update(),
         Err(Error::Step(StepError::Faulted))
     ));
     assert!(!server.apply_control(WorldControl::default()));
@@ -631,7 +638,7 @@ fn shared_sdf_native_control_precedence_removal_and_reset_observations_match() {
         )
         .unwrap();
         let original = public_id(&server, "default::ball");
-        server.tick().unwrap();
+        server.update().unwrap();
         let reset = |time_only: bool| {
             rewind(
                 WorldReset {
@@ -647,11 +654,12 @@ fn shared_sdf_native_control_precedence_removal_and_reset_observations_match() {
         }
         if mode == "ordinary" || mode == "model-only" || mode == "time-only" {
             let request = removal_request(
+                &server,
                 cfg,
                 false,
                 Entity {
                     name: "ball".into(),
-                    r#type: gz_msgs::msgs::entity::Type::Model as i32,
+                    r#type: gz_sim_proto::msgs::entity::Type::Model as i32,
                     ..Default::default()
                 }
                 .encode_to_vec(),
@@ -659,8 +667,8 @@ fn shared_sdf_native_control_precedence_removal_and_reset_observations_match() {
             poll_removals(&mut server, 1);
             assert!(removal_result(request));
             if mode != "ordinary" {
-                server.tick().unwrap();
-                server.tick().unwrap();
+                server.update().unwrap();
+                server.update().unwrap();
                 assert!(entity_by_id(server.simulation.world(), original).is_none());
             }
         }
@@ -688,7 +696,7 @@ fn shared_sdf_native_control_precedence_removal_and_reset_observations_match() {
             _ => panic!("unknown reference mode {mode}"),
         }
         for _ in 0..if mode == "step-reset" { 3 } else { 2 } {
-            server.tick().unwrap();
+            server.update().unwrap();
         }
         assert!(server.simulation.is_paused());
         assert_eq!(

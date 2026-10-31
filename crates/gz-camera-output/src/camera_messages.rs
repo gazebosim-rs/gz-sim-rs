@@ -4,7 +4,7 @@
 //!
 //! These functions do not schedule sensors, create publishers or start a renderer.
 
-use gz_msgs::msgs::{
+use gz_sim_proto::msgs::{
     CameraInfo, Header, Image, PixelFormatType, Time,
     camera_info::{Distortion, Intrinsics, Projection, distortion::DistortionModelType},
     header::Map,

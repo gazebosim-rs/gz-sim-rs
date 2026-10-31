@@ -2,32 +2,43 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Bounded world-clock publication and control around an explicitly stepped simulation.
 
+mod force_io;
 mod forces;
+mod imu_io;
+mod options;
 mod poses;
 mod rates;
 mod removals;
 mod reset;
+mod world_io;
+
+pub use options::{ServerOptions, SetupError};
 
 use bevy_ecs::entity::Entity;
-use gz_msgs::{
-    Clock, Time,
-    msgs::{Boolean, WorldControl},
+use gz_sim_core::{Simulation, StepError, UpdateInfo};
+use gz_sim_proto::{
+    msgs::{Boolean, Clock, Time, WorldControl},
     prost::Message,
 };
-use gz_sim_core::{Simulation, StepError, UpdateInfo};
 use gz_sim_scene::{ImuPublication, ImuSample};
-use gz_transport::{Config, Error as TransportError, Node, Publisher, Service, Statistics};
 use std::{
     collections::BTreeMap,
     num::NonZeroUsize,
     sync::{Arc, Weak},
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
+use zenoh::Wait;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    Transport(#[from] TransportError),
+    Setup(#[from] SetupError),
+    #[error("Zenoh world endpoint: {0}")]
+    WorldNetwork(String),
+    #[error("world Zenoh session is closed")]
+    WorldClosed,
+    #[error("pending reset requires IO preparation before ticking")]
+    IoPreparationRequired,
     #[error(transparent)]
     Step(#[from] StepError),
     #[error("timestamp exceeds the signed protobuf seconds range")]
@@ -56,6 +67,12 @@ pub enum InterestPolicy {
     Subscribers,
     /// Explicit local acquisition/publication, including without subscribers.
     Always,
+}
+
+/// Locally observed loss at the shared bounded world-input queues.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct IngressStatistics {
+    pub queue_drops: u64,
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -100,7 +117,7 @@ struct ImuStream {
     entity: Entity,
     metadata: ImuPublication,
     endpoint: String,
-    publisher: Arc<Publisher>,
+    publisher: Arc<world_io::ImuOutput>,
     sequence: u64,
     last_sample: Option<(u64, Duration)>,
 }
@@ -109,11 +126,8 @@ fn imu_packet(
     metadata: &ImuPublication,
     sample: &ImuSample,
     sequence: u64,
-) -> Option<gz_msgs::msgs::Imu> {
-    use gz_msgs::{
-        msgs::{FloatV, Header, header::Map},
-        quaternion, vector3,
-    };
+) -> Option<gz_sim_proto::msgs::Imu> {
+    use gz_sim_proto::msgs::{FloatV, Header, header::Map};
     let reading = sample.reading.as_ref().ok()?;
     let covariance = |diagonal: [f64; 3]| {
         Some(FloatV {
@@ -131,7 +145,7 @@ fn imu_packet(
             ..Default::default()
         })
     };
-    Some(gz_msgs::msgs::Imu {
+    Some(gz_sim_proto::msgs::Imu {
         header: Some(Header {
             stamp: Some(time(sample.time.as_nanos() as i128).ok()?),
             data: vec![
@@ -155,6 +169,25 @@ fn imu_packet(
         linear_acceleration: Some(vector3(reading.specific_force)),
         linear_acceleration_covariance: covariance(reading.linear_acceleration_covariance),
     })
+}
+
+fn vector3([x, y, z]: [f64; 3]) -> gz_sim_proto::msgs::Vector3d {
+    gz_sim_proto::msgs::Vector3d {
+        x,
+        y,
+        z,
+        ..Default::default()
+    }
+}
+
+fn quaternion([x, y, z, w]: [f64; 4]) -> gz_sim_proto::msgs::Quaternion {
+    gz_sim_proto::msgs::Quaternion {
+        x,
+        y,
+        z,
+        w,
+        ..Default::default()
+    }
 }
 
 #[derive(Default)]
@@ -206,23 +239,22 @@ fn clock(sim: Duration, real: Duration, system: SystemTime) -> Result<Clock, Err
 }
 
 /// Owns network endpoints and polls a finite number of controls after each tick.
-/// Construction and shutdown may wait for OS resources; `tick` never waits for IO.
+/// Construction, shutdown and network replies run outside the core simulation step.
 /// Control acknowledgements report acceptance, not completion of requested steps.
 pub struct Server {
     simulation: Simulation,
-    node: Node,
-    publisher: Publisher,
-    root_clock: Option<Publisher>,
-    poses: Publisher,
+    world_io: world_io::WorldIo,
+    network_config: ServerOptions,
+    root_clock: Option<world_io::RootClock>,
     pose_rate: poses::PublicationRate,
     interest_policy: InterestPolicy,
-    controls: Service,
     removals: removals::Removals,
     rates: rates::Rates,
     forces: forces::Forces,
     command_budget: NonZeroUsize,
     pending_steps: u64,
     pending_reset: bool,
+    prepared_reset: Option<UpdateInfo>,
     reset_failed: bool,
     partition: String,
     namespace: String,
@@ -235,37 +267,94 @@ impl Server {
     pub fn new(
         simulation: Simulation,
         world_name: &str,
-        config: Config,
+        config: ServerOptions,
+        command_budget: NonZeroUsize,
+    ) -> Result<Self, Error> {
+        Self::build(simulation, world_name, config, None, command_budget)
+    }
+
+    /// Supplies an upstream Zenoh configuration without reading ZENOH_CONFIG.
+    pub fn with_zenoh_config(
+        simulation: Simulation,
+        world_name: &str,
+        config: ServerOptions,
+        zenoh_config: zenoh::Config,
+        command_budget: NonZeroUsize,
+    ) -> Result<Self, Error> {
+        Self::build(
+            simulation,
+            world_name,
+            config,
+            Some(zenoh_config),
+            command_budget,
+        )
+    }
+
+    fn build(
+        simulation: Simulation,
+        world_name: &str,
+        config: ServerOptions,
+        zenoh_config: Option<zenoh::Config>,
         command_budget: NonZeroUsize,
     ) -> Result<Self, Error> {
         time(simulation.elapsed().as_nanos() as i128)?;
         poses::packet(simulation.world(), simulation.elapsed())?;
         // Like native Gazebo, sanitize the SDF name once for every world endpoint.
-        let world_name = gz_transport::as_valid_topic(world_name);
+        let world_name = options::as_valid_topic(world_name);
         if world_name.is_empty() {
-            return Err(TransportError::InvalidName.into());
+            return Err(SetupError::InvalidName.into());
         }
         let partition = config.partition.clone();
         let namespace = config.namespace.clone();
-        let node = Node::new(config.clone())?;
-        let publisher = node.advertise(&format!("/world/{world_name}/clock"), "gz.msgs.Clock")?;
-        let controls = node.serve(
-            &format!("/world/{world_name}/control"),
-            "gz.msgs.WorldControl",
-            "gz.msgs.Boolean",
-        )?;
-        let poses = node.advertise(&format!("/world/{world_name}/pose/info"), "gz.msgs.Pose_V")?;
-        let removals = removals::Removals::new(&node, &world_name)?;
+        config.validate()?;
+        let world_key = |topic: &str| {
+            crate::options::qualified_name(
+                &partition,
+                &namespace,
+                config.topic_remap(topic).unwrap_or(topic),
+            )
+        };
+        let clock_key = world_key(&format!("/world/{world_name}/clock"))?;
+        let control_key = world_key(&format!("/world/{world_name}/control"))?;
+        let poses_key = world_key(&format!("/world/{world_name}/pose/info"))?;
+        let world_io = match zenoh_config {
+            Some(zenoh_config) => world_io::WorldIo::new_with_config(
+                clock_key,
+                control_key,
+                poses_key,
+                config.capacity,
+                config.max_message_bytes,
+                zenoh_config,
+            ),
+            None => world_io::WorldIo::new(
+                clock_key,
+                control_key,
+                poses_key,
+                config.capacity,
+                config.max_message_bytes,
+            ),
+        }
+        .map_err(|error| Error::WorldNetwork(error.to_string()))?;
+        let removals = removals::Removals::new(world_io.removal_inputs([
+            world_key(&format!("/world/{world_name}/remove"))?,
+            world_key(&format!("/world/{world_name}/remove/blocking"))?,
+        ])?);
         let mut imus = Vec::new();
-        let mut imu_publishers: BTreeMap<String, Weak<Publisher>> = BTreeMap::new();
+        let mut imu_publishers: BTreeMap<String, Weak<world_io::ImuOutput>> = BTreeMap::new();
         for entity in simulation.world().iter_entities() {
             if let Some(metadata) = entity.get::<ImuPublication>() {
-                let topic = gz_transport::as_valid_topic(&metadata.topic);
-                let key = gz_transport::qualified_name(&partition, &namespace, &topic)?;
+                let topic = options::as_valid_topic(&metadata.topic);
+                let key = crate::options::qualified_name(
+                    &partition,
+                    &namespace,
+                    config.topic_remap(&topic).unwrap_or(&topic),
+                )?;
                 let publisher = match imu_publishers.get(&key).and_then(Weak::upgrade) {
                     Some(publisher) => publisher,
                     None => {
-                        let publisher = Arc::new(node.advertise(&topic, "gz.msgs.IMU")?);
+                        let publisher = world_io
+                            .imu_output(key.clone())
+                            .map_err(|error| Error::WorldNetwork(error.to_string()))?;
                         imu_publishers.insert(key.clone(), Arc::downgrade(&publisher));
                         publisher
                     }
@@ -280,14 +369,17 @@ impl Server {
                 });
             }
         }
-        let mut rates = match gz_sim_scene::initial_imu_publications(&simulation) {
-            Ok(sensors) => rates::Rates::prepare(&config, sensors)?,
-            Err(gz_sim_scene::SceneResetError::MissingInitialState) => {
-                rates::Rates::prepare(&config, imus.iter().map(|stream| &stream.metadata))?
-            }
+        let (mut rates, rate_setup) = match gz_sim_scene::initial_imu_publications(&simulation) {
+            Ok(sensors) => rates::Rates::prepare(&config, sensors, &world_io.ingress_drops)?,
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => rates::Rates::prepare(
+                &config,
+                imus.iter().map(|stream| &stream.metadata),
+                &world_io.ingress_drops,
+            )?,
             Err(error) => return Err(error.into()),
         };
         rates.bind(&simulation)?;
+        world_io.install_rates(rate_setup)?;
         let configurations: Vec<_> =
             match gz_sim_scene::initial_joint_force_configurations(&simulation) {
                 Ok(values) => values
@@ -296,23 +388,24 @@ impl Server {
                 Err(gz_sim_scene::SceneResetError::MissingInitialState) => Vec::new(),
                 Err(error) => return Err(error.into()),
             };
-        let mut forces = forces::Forces::prepare(&config, configurations)?;
+        let (mut forces, force_setup) =
+            forces::Forces::prepare(&config, configurations, &world_io.ingress_drops)?;
         forces.bind(&simulation)?;
+        world_io.install_forces(force_setup)?;
         Ok(Self {
             simulation,
-            node,
-            publisher,
+            world_io,
+            network_config: config,
             root_clock: None,
-            poses,
             pose_rate: poses::PublicationRate::default(),
             interest_policy: InterestPolicy::default(),
-            controls,
             removals,
             rates,
             forces,
             command_budget,
             pending_steps: 0,
             pending_reset: false,
+            prepared_reset: None,
             reset_failed: false,
             partition,
             namespace,
@@ -332,28 +425,26 @@ impl Server {
             return Err(Error::ResetStreams);
         }
         self.simulation.validate_steps(0)?;
-        let deadline = Instant::now()
-            .checked_add(timeout)
-            .ok_or(TransportError::InvalidConfig)?;
-        let remaining = || {
-            deadline
-                .checked_duration_since(Instant::now())
-                .filter(|remaining| !remaining.is_zero())
-                .ok_or(TransportError::Timeout)
-        };
-        if self.root_clock.is_none()
-            && self
-                .node
-                .topic_info("/clock", remaining()?)?
-                .publishers
-                .is_empty()
-        {
-            self.root_clock = Some(self.node.advertise("/clock", "gz.msgs.Clock")?);
+        if timeout.is_zero() {
+            return Err(SetupError::Timeout.into());
         }
-        self.publisher.refresh_connection_snapshot(remaining()?)?;
-        if let Some(publisher) = &self.root_clock {
-            publisher.refresh_connection_snapshot(remaining()?)?;
+        if Instant::now().checked_add(timeout).is_none() {
+            return Err(SetupError::InvalidConfig.into());
         }
+        if self.root_clock.is_none() {
+            let topic = self
+                .network_config
+                .topic_remap("/clock")
+                .unwrap_or("/clock");
+            let key = crate::options::qualified_name(&self.partition, &self.namespace, topic)?;
+            self.root_clock = self
+                .world_io
+                .prepare_root_clock(key, timeout)
+                .map_err(|error| Error::WorldNetwork(error.to_string()))?;
+        }
+        self.world_io
+            .clock_interest()
+            .map_err(|error| Error::WorldNetwork(error.to_string()))?;
         Ok(self.root_clock.is_some())
     }
 
@@ -392,36 +483,76 @@ impl Server {
         Ok(())
     }
     pub fn counters(&self) -> Counters {
-        self.counters
+        let mut counters = self.counters;
+        counters.response_failures = counters.response_failures.saturating_add(
+            self.world_io
+                .reply_failures
+                .load(std::sync::atomic::Ordering::Relaxed),
+        );
+        let failures = &self.world_io.publication_failures;
+        counters.clock_failures = counters
+            .clock_failures
+            .saturating_add(failures[0].load(std::sync::atomic::Ordering::Relaxed));
+        counters.pose_failures = counters
+            .pose_failures
+            .saturating_add(failures[1].load(std::sync::atomic::Ordering::Relaxed));
+        counters.imu_failures = counters
+            .imu_failures
+            .saturating_add(failures[2].load(std::sync::atomic::Ordering::Relaxed));
+        counters.root_clock_failures = counters
+            .root_clock_failures
+            .saturating_add(failures[3].load(std::sync::atomic::Ordering::Relaxed));
+        counters
     }
-    /// Aggregate counters from the world and all controller workers.
-    pub fn transport_statistics(&self) -> Statistics {
-        let mut total = self.node.statistics();
-        self.rates.add_statistics(&mut total);
-        self.forces.add_statistics(&mut total);
-        total
+    /// Return observed bounded-input losses, independent of remote delivery.
+    pub fn ingress_statistics(&self) -> IngressStatistics {
+        IngressStatistics {
+            queue_drops: self.forces.queue_drops(),
+        }
     }
     pub fn pending_steps(&self) -> u64 {
         self.pending_steps
     }
 
-    /// The caller supplies pacing and cancellation outside the simulation's step.
-    /// Call `prepare_run` at the run boundary to establish root clock ownership.
+    /// Prepare pending reset resources outside the simulation's critical section.
+    /// This phase can wait for IO; the following tick publishes the reset snapshot.
+    pub fn prepare_io(&mut self) -> Result<(), Error> {
+        if self.reset_failed {
+            return Err(Error::ResetStreams);
+        }
+        if self.pending_reset {
+            self.prepared_reset = Some(self.reset_scene()?);
+        }
+        Ok(())
+    }
+
+    /// Run a complete frame, including potentially waiting reset preparation.
+    /// Use separate `prepare_io` and `tick` calls for a critical ticking section.
+    pub fn update(&mut self) -> Result<UpdateInfo, Error> {
+        self.prepare_io()?;
+        self.tick()
+    }
+
+    /// Tick without performing reset setup or waiting for network operations.
+    /// Call `prepare_run` at the run boundary and `prepare_io` before ticking.
     pub fn tick(&mut self) -> Result<UpdateInfo, Error> {
         if self.reset_failed {
             return Err(Error::ResetStreams);
         }
+        if self.pending_reset {
+            return Err(Error::IoPreparationRequired);
+        }
         self.simulation.validate_steps(0)?;
-        if !self.pending_reset {
+        if self.prepared_reset.is_none() {
             self.validate_steps(u64::from(!self.simulation.is_paused()))?;
         }
         let now = Instant::now();
         self.active_time
             .set_running(!self.simulation.is_paused(), now);
         self.refresh_imu_interest();
-        let resetting = self.pending_reset;
-        let info = if resetting {
-            self.reset_scene()?
+        let resetting = self.prepared_reset.is_some();
+        let info = if let Some(info) = self.prepared_reset.take() {
+            info
         } else {
             self.simulation.tick()?
         };
@@ -434,8 +565,12 @@ impl Server {
         let data = message.encode_to_vec();
         let root_data = self.root_clock.as_ref().and_then(|publisher| {
             match (
-                publisher.connection_snapshot(),
-                self.publisher.connection_snapshot(),
+                publisher
+                    .publisher
+                    .matching_status()
+                    .wait()
+                    .map(|status| status.matching()),
+                self.world_io.clock_interest(),
             ) {
                 (Ok(root), Ok(world)) => (root || world).then(|| data.clone()),
                 _ => {
@@ -444,13 +579,13 @@ impl Server {
                 }
             }
         });
-        if self.publisher.publish(data).is_ok() {
+        if self.world_io.publish_clock(data).is_ok() {
             self.counters.clocks_queued += 1;
         } else {
             self.counters.clock_failures += 1;
         }
         if let (Some(publisher), Some(data)) = (&self.root_clock, root_data) {
-            if publisher.publish(data).is_ok() {
+            if self.world_io.publish_root_clock(publisher, data).is_ok() {
                 self.counters.root_clocks_queued += 1;
             } else {
                 self.counters.root_clock_failures += 1;
@@ -459,13 +594,16 @@ impl Server {
         self.publish_poses(info.sim_time);
         self.publish_imus();
         self.removals
-            .execute(&mut self.simulation, &mut self.counters);
+            .execute(&self.world_io, &mut self.simulation, &mut self.counters);
         self.imus.retain(|stream| {
             self.simulation
                 .world()
                 .get::<ImuPublication>(stream.entity)
                 .is_some()
         });
+        if self.imus.is_empty() {
+            self.imus = Vec::new();
+        }
         self.rates.retire(&self.simulation);
         self.forces.retire(&self.simulation);
         if !info.paused && self.pending_steps > 0 {
@@ -474,11 +612,21 @@ impl Server {
                 self.set_paused(true);
             }
         }
+        self.counters.controls_rejected = self.counters.controls_rejected.saturating_add(
+            self.world_io
+                .rejected
+                .swap(0, std::sync::atomic::Ordering::Relaxed),
+        );
+        if self.world_io.session.is_closed() {
+            return Err(Error::WorldClosed);
+        }
         for _ in 0..self.command_budget.get() {
-            let request = match self.controls.recv_timeout(Duration::ZERO) {
+            let request = match self.world_io.controls.try_recv() {
                 Ok(request) => request,
-                Err(TransportError::Timeout) => break,
-                Err(error) => return Err(error.into()),
+                Err(std::sync::mpsc::TryRecvError::Empty) => break,
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                    return Err(Error::WorldNetwork("world control receiver closed".into()));
+                }
             };
             self.respond(request);
         }
@@ -488,7 +636,7 @@ impl Server {
             &mut self.counters,
         )?;
         self.removals
-            .poll(self.command_budget, &mut self.counters)?;
+            .poll(&self.world_io, self.command_budget, &mut self.counters)?;
         self.forces.poll(
             &mut self.simulation,
             self.command_budget,
@@ -497,24 +645,22 @@ impl Server {
         Ok(info)
     }
 
-    fn respond(&mut self, request: gz_transport::Request) {
-        let accepted = WorldControl::decode(request.data.as_slice())
+    fn respond(&mut self, request: world_io::ControlRequest) {
+        let accepted = WorldControl::decode(request.payload.as_slice())
             .is_ok_and(|control| self.apply_control(control));
         if accepted {
             self.counters.controls_accepted += 1;
         } else {
             self.counters.controls_rejected += 1;
         }
-        if request
-            .respond(
-                Boolean {
-                    data: accepted,
-                    ..Default::default()
-                }
-                .encode_to_vec(),
-                true,
-            )
-            .is_err()
+        let bytes = Boolean {
+            data: accepted,
+            ..Default::default()
+        }
+        .encode_to_vec();
+        if bytes.len() > self.world_io.max_message_bytes
+            || self.world_io.session.is_closed()
+            || request.reply(bytes).is_err()
         {
             self.counters.response_failures += 1;
         }
@@ -528,22 +674,35 @@ impl Server {
         let counters = &mut self.counters;
         gz_sim_scene::set_imu_interest(
             &mut self.simulation,
-            self.imus
-                .iter()
-                .filter_map(|stream| match stream.publisher.connection_snapshot() {
+            self.imus.iter().filter_map(|stream| {
+                match if self.world_io.session.is_closed() {
+                    Err("world session is closed")
+                } else {
+                    stream.publisher.matching()
+                } {
                     Ok(true) => Some(stream.entity),
                     Ok(false) => None,
                     Err(_) => {
                         counters.interest_failures += 1;
                         None
                     }
-                }),
+                }
+            }),
         );
     }
 
     fn publish_poses(&mut self, time: Duration) {
         if self.interest_policy == InterestPolicy::Subscribers {
-            match self.poses.connection_snapshot() {
+            let interest = if self.world_io.session.is_closed() {
+                Err("world session is closed".into())
+            } else {
+                self.world_io
+                    .poses
+                    .matching_status()
+                    .wait()
+                    .map(|status| status.matching())
+            };
+            match interest {
                 Ok(true) => {}
                 Ok(false) => {
                     self.counters.poses_unobserved += 1;
@@ -562,7 +721,8 @@ impl Server {
         match poses::packet(self.simulation.world(), time) {
             Ok(packet) => {
                 self.pose_rate.attempted(Instant::now());
-                if self.poses.publish(packet.encode_to_vec()).is_ok() {
+                let bytes = packet.encode_to_vec();
+                if self.world_io.publish_poses(bytes).is_ok() {
                     self.counters.poses_queued += 1;
                 } else {
                     self.counters.pose_failures += 1;
@@ -588,7 +748,8 @@ impl Server {
             };
             // Native Sensor::AddSequence counts attempts and wraps its unsigned counter.
             stream.sequence = stream.sequence.wrapping_add(1);
-            if stream.publisher.publish(message.encode_to_vec()).is_ok() {
+            let bytes = message.encode_to_vec();
+            if self.world_io.publish_imu(&stream.publisher, bytes).is_ok() {
                 self.counters.imus_queued += 1;
             } else {
                 self.counters.imu_failures += 1;
@@ -662,18 +823,8 @@ impl Server {
     pub fn shutdown(&mut self) {
         self.rates.shutdown();
         self.forces.shutdown();
-        self.node.shutdown();
+        self.world_io.shutdown();
     }
-}
-
-fn add_transport_statistics(total: &mut Statistics, stats: Statistics) {
-    total.queue_drops = total.queue_drops.saturating_add(stats.queue_drops);
-    total.malformed_frames = total
-        .malformed_frames
-        .saturating_add(stats.malformed_frames);
-    total.send_failures = total.send_failures.saturating_add(stats.send_failures);
-    total.reply_timeouts = total.reply_timeouts.saturating_add(stats.reply_timeouts);
-    total.routing_errors = total.routing_errors.saturating_add(stats.routing_errors);
 }
 
 #[cfg(test)]

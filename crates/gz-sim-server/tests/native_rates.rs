@@ -1,17 +1,17 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use gz_msgs::{
+use gz_sim_core::{EntityId, UpdateInfo};
+use gz_sim_proto::{
     msgs::{Boolean, Imu, WorldControl, WorldReset},
     prost::Message,
 };
-use gz_sim_core::{EntityId, UpdateInfo};
 use gz_sim_scene::{ImuPublication, PhysicsEngine, imu_rate, load_world_with_engine};
 use gz_sim_server::Server;
-use gz_transport::{Config, Node};
+use gz_sim_server::ServerOptions;
 use sdformat::NoResources;
 use std::{
     io::{BufRead, BufReader, Read, Write},
-    net::UdpSocket,
+    net::TcpListener,
     num::NonZeroUsize,
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
@@ -19,20 +19,10 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+use zenoh::Wait;
 
-// Keep the port reserved while transport binds its reusable discovery socket.
-// A bare temporary socket dropped before startup leaves a port-stealing race.
-fn discovery_socket() -> UdpSocket {
-    let socket = UdpSocket::bind("0.0.0.0:0").unwrap();
-    socket2::SockRef::from(&socket)
-        .set_reuse_address(true)
-        .unwrap();
-    #[cfg(target_os = "linux")]
-    socket2::SockRef::from(&socket)
-        .set_multicast_all_v4(false)
-        .unwrap();
-    socket
-}
+#[path = "../../../tests/support/zenoh_peer.rs"]
+mod zenoh_peer;
 
 struct Peer {
     child: Child,
@@ -89,7 +79,7 @@ impl Peer {
                 ),
             }
             assert!(Instant::now() < deadline, "native rate client timed out");
-            server.tick().unwrap();
+            server.update().unwrap();
             thread::sleep(Duration::from_millis(1));
         }
     }
@@ -127,7 +117,7 @@ impl Peer {
                 Instant::now() < deadline,
                 "native rate request not consumed"
             );
-            server.tick().unwrap();
+            server.update().unwrap();
             thread::sleep(Duration::from_millis(1));
         }
         assert_eq!(imu_rate(server.simulation(), id).unwrap().rate_hz, expected);
@@ -144,18 +134,47 @@ fn decode(wire: &str) -> Imu {
     Imu::decode(bytes.as_slice()).unwrap()
 }
 
-fn control(server: &mut Server, node: &Arc<Node>, message: WorldControl) {
+fn control(
+    server: &mut Server,
+    node: &Arc<zenoh::Session>,
+    partition: &str,
+    message: WorldControl,
+) {
     let epoch = server.simulation().world().resource::<UpdateInfo>().epoch;
     let resetting = message.reset.is_some();
     let client = Arc::clone(node);
-    let request = thread::spawn(move || {
-        client.request(
-            "/world/default/control",
-            "gz.msgs.WorldControl",
-            "gz.msgs.Boolean",
-            message.encode_to_vec(),
-            Duration::from_secs(7),
-        )
+    let partition = partition.to_owned();
+    let request = thread::spawn(move || -> Result<(Vec<u8>, bool), String> {
+        let key = format!("@/{}@/world/default/control", partition);
+        // Native419 ReqHandler retains Querier interest across cold starts.
+        // Establish actual matching before the single request, never retry it.
+        let ready_by = Instant::now() + Duration::from_secs(7);
+        let querier = client
+            .declare_querier(key)
+            .timeout(Duration::from_secs(7))
+            .wait()
+            .map_err(|error| error.to_string())?;
+        while !querier
+            .matching_status()
+            .wait()
+            .map_err(|error| error.to_string())?
+            .matching()
+        {
+            if Instant::now() >= ready_by {
+                return Err("world control Queryable did not become ready".into());
+            }
+            thread::yield_now();
+        }
+        let replies = querier
+            .get()
+            .payload(message.encode_to_vec())
+            .wait()
+            .map_err(|error| error.to_string())?;
+        let reply = replies.recv().map_err(|error| error.to_string())?;
+        match reply.result() {
+            Ok(sample) => Ok((sample.payload().to_bytes().into_owned(), true)),
+            Err(_) => Ok((Vec::new(), false)),
+        }
     });
     let deadline = Instant::now() + Duration::from_secs(8);
     while !request.is_finished()
@@ -163,7 +182,7 @@ fn control(server: &mut Server, node: &Arc<Node>, message: WorldControl) {
         || (resetting && server.simulation().world().resource::<UpdateInfo>().epoch == epoch)
     {
         assert!(Instant::now() < deadline, "rate test control timed out");
-        server.tick().unwrap();
+        server.update().unwrap();
         // Pacing stays outside simulation work; it does not establish delivery.
         thread::sleep(Duration::from_millis(1));
     }
@@ -171,11 +190,12 @@ fn control(server: &mut Server, node: &Arc<Node>, message: WorldControl) {
     assert!(success && Boolean::decode(bytes.as_slice()).unwrap().data);
     assert!(server.simulation().is_paused());
 }
-fn step(server: &mut Server, node: &Arc<Node>, count: u32) {
+fn step(server: &mut Server, node: &Arc<zenoh::Session>, partition: &str, count: u32) {
     let before = server.simulation().elapsed();
     control(
         server,
         node,
+        partition,
         WorldControl {
             pause: true,
             multi_step: count,
@@ -187,10 +207,11 @@ fn step(server: &mut Server, node: &Arc<Node>, count: u32) {
         before + Duration::from_millis(u64::from(count))
     );
 }
-fn reset(server: &mut Server, node: &Arc<Node>, all: bool) {
+fn reset(server: &mut Server, node: &Arc<zenoh::Session>, partition: &str, all: bool) {
     control(
         server,
         node,
+        partition,
         WorldControl {
             pause: true,
             reset: Some(WorldReset {
@@ -253,16 +274,7 @@ fn check_frames(frames: &[Imu], times: &serde_json::Value, sequence: usize, engi
 #[test]
 fn actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let build = Command::new("python3")
-        .arg(root.join("scripts/native-peer.py"))
-        .args(["--client", "rate"])
-        .output()
-        .unwrap();
-    assert!(
-        build.status.success(),
-        "{}",
-        String::from_utf8_lossy(&build.stderr)
-    );
+    let native = zenoh_peer::NativePeer::build(&root, "rate");
     let reference: serde_json::Value =
         serde_json::from_str(include_str!("fixtures/runtime_imu_rate_reset.json")).unwrap();
     for (engine, delayed, fail) in [
@@ -274,17 +286,13 @@ fn actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences() 
         (PhysicsEngine::Tpe, false, Some("exit")),
         (PhysicsEngine::Tpe, false, Some("panic")),
     ] {
-        let message = discovery_socket();
-        let service = discovery_socket();
-        let config = Config {
+        let config = ServerOptions {
             partition: format!(
                 "native-rate-{}-{engine:?}-{delayed}-{}",
                 std::process::id(),
                 fail.unwrap_or("ok")
             ),
-            message_port: message.local_addr().unwrap().port(),
-            service_port: service.local_addr().unwrap().port(),
-            ..Config::default()
+            ..ServerOptions::default()
         };
         let simulation = load_world_with_engine(
             include_str!("../../gz-sim-scene/tests/fixtures/headless_imu.sdf"),
@@ -303,34 +311,50 @@ fn actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences() 
             .get::<EntityId>()
             .unwrap()
             .get();
-        let mut server = Server::new(
+        let directory = tempfile::tempdir().unwrap();
+        let reservation = TcpListener::bind("127.0.0.1:0").unwrap();
+        let endpoint = format!("tcp/{}", reservation.local_addr().unwrap());
+        let scouting =
+            serde_json::json!({"multicast":{"enabled":false},"gossip":{"enabled":false}});
+        let server_value = serde_json::json!({"mode":"peer","listen":{"endpoints":[endpoint]},"connect":{"endpoints":[]},"scouting":scouting});
+        let client_value = serde_json::json!({"mode":"peer","listen":{"endpoints":[]},"connect":{"endpoints":[endpoint],"timeout_ms":2000},"scouting":scouting,"transport":{"shared_memory":{"enabled":false}}});
+        let native_config = directory.path().join("native.json");
+        std::fs::write(&native_config, serde_json::to_vec(&client_value).unwrap()).unwrap();
+        let server_config_path = directory.path().join("server.json");
+        std::fs::write(
+            &server_config_path,
+            serde_json::to_vec(&server_value).unwrap(),
+        )
+        .unwrap();
+        let server_config = zenoh::Config::from_file(&server_config_path).unwrap();
+        let client_config = zenoh::Config::from_file(&native_config).unwrap();
+        drop(reservation);
+        let mut server = Server::with_zenoh_config(
             simulation,
             "default",
             config.clone(),
+            server_config,
             NonZeroUsize::new(4).unwrap(),
         )
         .unwrap();
-        let prefix = std::env::var_os("GZ_REFERENCE_PREFIX")
-            .map(std::path::PathBuf::from)
-            .unwrap_or_else(|| root.join("artifacts/native-reference/install"));
-        let mut child = Command::new(root.join("artifacts/native-rate-peer/rate-client"))
+        let mut command = Command::new(&native.binary);
+        command
             .args(delayed.then_some("--delay-first"))
             .env("GZ_PARTITION", &config.partition)
-            .env("GZ_IP", config.interface.to_string())
-            .env("GZ_TRANSPORT_IMPLEMENTATION", "zeromq")
-            .env("GZ_TRANSPORT_TOPIC_STATISTICS", "0")
-            .env("GZ_DISCOVERY_MULTICAST_IP", config.multicast.to_string())
-            .env("GZ_DISCOVERY_MSG_PORT", config.message_port.to_string())
-            .env("GZ_DISCOVERY_SRV_PORT", config.service_port.to_string())
+            .env("GZ_TRANSPORT_IMPLEMENTATION", "zenoh")
+            .env("ZENOH_CONFIG", &native_config)
+            .env("RUST_LOG", "error")
+            .env_remove("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE")
             .env_remove("GZ_TRANSPORT_USERNAME")
             .env_remove("GZ_TRANSPORT_PASSWORD")
             .env_remove("GZ_RELAY")
-            .env("LD_LIBRARY_PATH", prefix.join("lib"))
+            .env_remove("LD_PRELOAD")
+            .env_remove("LD_AUDIT")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .unwrap();
+            .stderr(Stdio::piped());
+        native.configure_runtime(&mut command);
+        let mut child = command.spawn().unwrap();
         let run = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -420,12 +444,12 @@ fn actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences() 
             }
             continue;
         }
-        let node = Arc::new(Node::new(config).unwrap());
+        let node = Arc::new(zenoh::open(client_config).wait().unwrap());
         // Prove actual IMU delivery before resetting the still-live publication lease.
         let mut connected = false;
         for _ in 0..100 {
             peer.arm(&mut server);
-            step(&mut server, &node, 1);
+            step(&mut server, &node, &config.partition, 1);
             peer.send("snapshot");
             let wires: Vec<String> = serde_json::from_str(&peer.line(&mut server)).unwrap();
             let latest = wires
@@ -443,9 +467,9 @@ fn actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences() 
         }
         assert!(connected, "native IMU connection not established");
         for case in reference["observations"].as_array().unwrap() {
-            reset(&mut server, &node, true);
+            reset(&mut server, &node, &config.partition, true);
             peer.arm(&mut server);
-            step(&mut server, &node, 10);
+            step(&mut server, &node, &config.partition, 10);
             check_frames(
                 &peer.samples(&mut server, 10),
                 &case["phases"][0],
@@ -454,7 +478,7 @@ fn actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences() 
             );
             peer.rate(&mut server, id, 200.0, 200.0);
             peer.arm(&mut server);
-            step(&mut server, &node, 20);
+            step(&mut server, &node, &config.partition, 20);
             check_frames(
                 &peer.samples(&mut server, 4),
                 &case["phases"][1],
@@ -462,11 +486,11 @@ fn actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences() 
                 engine,
             );
             peer.rate(&mut server, id, 0.0, 200.0);
-            reset(&mut server, &node, case["mode"] == "all");
+            reset(&mut server, &node, &config.partition, case["mode"] == "all");
             assert_eq!(imu_rate(server.simulation(), id).unwrap().rate_hz, 1000.0);
             peer.arm(&mut server);
             // Native's chunk30 contains one reset iteration, then29 advancing steps.
-            step(&mut server, &node, 29);
+            step(&mut server, &node, &config.partition, 29);
             check_frames(
                 &peer.samples(&mut server, 29),
                 &case["phases"][2],
@@ -475,7 +499,7 @@ fn actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences() 
             );
             peer.rate(&mut server, id, 500.0, 500.0);
             peer.arm(&mut server);
-            step(&mut server, &node, 10);
+            step(&mut server, &node, &config.partition, 10);
             check_frames(
                 &peer.samples(&mut server, 5),
                 &case["phases"][3],

@@ -1,8 +1,9 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
-use gz_msgs::msgs::{Imu, PoseV};
+use crate::tests::{isolated_server, samples};
 use gz_sim_core::EntityId;
+use gz_sim_proto::msgs::{Imu, PoseV};
 use gz_sim_scene::{
     Name, PhysicsEngine, WorldPose, load_world_with_sdf_step, queue_link_world_velocity,
 };
@@ -75,7 +76,7 @@ fn check_pose(
             [rotation.x, rotation.y, rotation.z, rotation.w],
             [0.0, 0.0, 0.0, 1.0]
         );
-        id_bytes += gz_msgs::prost::encoding::encoded_len_varint(u64::from(pose.id));
+        id_bytes += gz_sim_proto::prost::encoding::encoded_len_varint(u64::from(pose.id));
     }
     assert_eq!(names, BTreeSet::from(["ground", "ball", "base", "body"]));
     (time, id_bytes)
@@ -147,10 +148,10 @@ fn tpe_clock_pose_imu_complete_lockstep() {
         .iter_entities()
         .find_map(|entity| entity.get::<ImuPublication>().cloned())
         .unwrap();
-    let mut server = Server::new(
+    let mut server = isolated_server(
         sim,
         "default",
-        Config {
+        ServerOptions {
             partition: format!(
                 "streams-{}-{}",
                 std::process::id(),
@@ -159,24 +160,15 @@ fn tpe_clock_pose_imu_complete_lockstep() {
                     .unwrap()
                     .as_nanos()
             ),
-            interface: std::net::Ipv4Addr::LOCALHOST,
-            ..Config::default()
+
+            ..ServerOptions::default()
         },
         NonZeroUsize::new(64).unwrap(),
     )
     .unwrap();
-    let imus = server
-        .node
-        .subscribe(&metadata.topic, "gz.msgs.IMU")
-        .unwrap();
-    let clocks = server
-        .node
-        .subscribe("/world/default/clock", "gz.msgs.Clock")
-        .unwrap();
-    let poses = server
-        .node
-        .subscribe("/world/default/pose/info", "gz.msgs.Pose_V")
-        .unwrap();
+    let imus = samples(&server, &metadata.topic, "gz.msgs.IMU");
+    let clocks = samples(&server, "/world/default/clock", "gz.msgs.Clock");
+    let poses = samples(&server, "/world/default/pose/info", "gz.msgs.Pose_V");
     // With /clock vacant, native Run admits it even with only a world reader.
     assert!(server.prepare_run(Duration::from_secs(5)).unwrap());
     assert!(server.apply_control(WorldControl {
@@ -191,8 +183,9 @@ fn tpe_clock_pose_imu_complete_lockstep() {
             clocks
                 .recv_timeout(Duration::from_secs(5))
                 .unwrap()
-                .data
-                .as_slice(),
+                .payload()
+                .to_bytes()
+                .as_ref(),
         )
         .unwrap(),
         0,
@@ -203,8 +196,9 @@ fn tpe_clock_pose_imu_complete_lockstep() {
             poses
                 .recv_timeout(Duration::from_secs(5))
                 .unwrap()
-                .data
-                .as_slice(),
+                .payload()
+                .to_bytes()
+                .as_ref(),
         )
         .unwrap(),
         0,
@@ -213,8 +207,9 @@ fn tpe_clock_pose_imu_complete_lockstep() {
     let first = Imu::decode(
         imus.recv_timeout(Duration::from_secs(5))
             .unwrap()
-            .data
-            .as_slice(),
+            .payload()
+            .to_bytes()
+            .as_ref(),
     )
     .unwrap();
     check_imu(&first, 0, &metadata);
@@ -253,25 +248,25 @@ fn tpe_clock_pose_imu_complete_lockstep() {
         assert!((body.translation[0] - (sequence + 1) as f64 * 0.001).abs() < 1e-9);
         assert_eq!([body.translation[1], body.translation[2]], [0.0, 5.0]);
         let clock = clocks.recv_timeout(Duration::from_secs(5)).unwrap();
-        clock_bytes += clock.data.len();
+        clock_bytes += clock.payload().len();
         clock_time_sum += check_clock(
-            &Clock::decode(clock.data.as_slice()).unwrap(),
+            &Clock::decode(clock.payload().to_bytes().as_ref()).unwrap(),
             sequence,
             &mut last_real,
         );
         let pose = poses.recv_timeout(Duration::from_secs(5)).unwrap();
-        pose_bytes += pose.data.len();
+        pose_bytes += pose.payload().len();
         let (time, id_bytes) = check_pose(
-            &PoseV::decode(pose.data.as_slice()).unwrap(),
+            &PoseV::decode(pose.payload().to_bytes().as_ref()).unwrap(),
             sequence,
             &mut identities,
         );
         pose_time_sum += time;
-        normalized_pose_bytes += pose.data.len() - id_bytes;
+        normalized_pose_bytes += pose.payload().len() - id_bytes;
         let imu = imus.recv_timeout(Duration::from_secs(5)).unwrap();
-        logical_bytes += imu.data.len();
+        logical_bytes += imu.payload().len();
         let (time, force) = check_imu(
-            &Imu::decode(imu.data.as_slice()).unwrap(),
+            &Imu::decode(imu.payload().to_bytes().as_ref()).unwrap(),
             sequence,
             &metadata,
         );
@@ -285,7 +280,7 @@ fn tpe_clock_pose_imu_complete_lockstep() {
     for stream in [&clocks, &poses, &imus] {
         assert!(matches!(
             stream.recv_timeout(Duration::from_millis(1)),
-            Err(TransportError::Timeout)
+            Err(std::sync::mpsc::RecvTimeoutError::Timeout)
         ));
     }
     let counters = server.counters();
@@ -309,7 +304,7 @@ fn tpe_clock_pose_imu_complete_lockstep() {
         ),
         (0, 0, 0, 0, 0)
     );
-    assert_eq!(server.transport_statistics(), Statistics::default());
+    assert_eq!(server.ingress_statistics(), IngressStatistics::default());
     let final_x = server
         .simulation
         .world()

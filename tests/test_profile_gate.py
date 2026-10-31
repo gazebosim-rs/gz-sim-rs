@@ -1,6 +1,7 @@
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -22,7 +23,7 @@ def report(crates, covered=100):
 
 def sources():
     return {name: [Path("/virtual") / name / "src/lib.rs"]
-            for name in verify.RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", "gz-sim-cli"}}
+            for name in verify.RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", "gz-sim-cli", "gz-sim-proto"}}
 
 
 class FeatureProfiles(unittest.TestCase):
@@ -126,8 +127,8 @@ class FeatureProfiles(unittest.TestCase):
         crates = sources()
         plan = verify.profile_plan(crates)
         self.assertEqual(set(plan), {"headless", "renderer"})
-        self.assertEqual(set(plan["headless"][0]), {"gz-sim-core", "gz-sim-scene", "gz-sim-cli"})
-        self.assertEqual(set(plan["renderer"][0]), verify.RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene"})
+        self.assertEqual(set(plan["headless"][0]), {"gz-sim-core", "gz-sim-scene", "gz-sim-cli", "gz-sim-proto"})
+        self.assertEqual(set(plan["renderer"][0]), verify.RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", "gz-sim-proto"})
         self.assertEqual(set(plan["headless"][0]) | set(plan["renderer"][0]), set(crates))
         self.assertIn("gz-renderer/gpu", plan["renderer"][1])
         self.assertEqual(plan["headless"][1].count("--exclude"), len(verify.RENDER_PACKAGES) + 1)
@@ -263,6 +264,173 @@ class FeatureProfiles(unittest.TestCase):
                     verify.profile_coverage("headless", {"crate": [source]}, ["cargo"], output, {}, root / "wrapper", root, "rustc")
             self.assertTrue((output / "test-output.log").is_file())
 
+    def test_profile_export_keeps_all_owned_sources_and_strict_instrumentation_checks(self):
+        # Model LLVM's source selection, not a successful Cargo or LLVM execution.
+        # Shared test support has multiple mappings; every owned mapping, including
+        # a completely uncovered source and build.rs, must still reach the checks.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            library = root / "src/lib.rs"
+            build = root / "build.rs"
+            cold = root / "src/cold.rs"
+            shared = root / "tests/support/shared.rs"
+            for path in (library, build, cold, shared):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("// nonexecuted coverage fixture\n")
+            binary = root / "test-elf"
+            binary.write_bytes(b"nonexecuted test executable fixture")
+            facade = root / verify.proto_inputs.FACADE
+            proto_build = root / verify.proto_inputs.BUILD
+            auditor_source = root / verify.proto_inputs.AUDITOR
+            auditor = root / "target/coverage/source-auditor"
+            generated = root / "target/coverage/build/proto/out"
+            generated.mkdir(parents=True)
+            binding = generated / "gz.msgs.rs"
+            for path in (facade, proto_build, auditor_source, auditor, binding):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(b"nonexecuted generator/auditor fixture")
+            (generated / "schema-descriptor.pb").write_bytes(b"descriptor fixture")
+            proto_evidence = {"generated": {"path": str(binding)}}
+
+            def mapping(path, covered, count):
+                return {"filename": str(path), "summary": {
+                    metric: {"count": count, "covered": covered}
+                    for metric in ("lines", "regions")}}
+
+            for scenario in ("shared_uncovered", "shared_covered", "missing_owned", "duplicate_owned", "uncovered_build",
+                             "lexical_build", "duplicate_owned_alias",
+                             "proto_valid", "proto_missing", "proto_extra"):
+                with self.subTest(scenario=scenario):
+                    output = root / scenario
+                    crates = {"owned": [library, build, cold]}
+                    records = [mapping(library, 20, 20), mapping(build, 20, 20), mapping(cold, 0, 1)]
+                    support = mapping(shared, int(scenario == "shared_covered"), 1)
+                    records += [support, support]
+                    if scenario == "missing_owned":
+                        records = [row for row in records if row["filename"] != str(cold)]
+                    elif scenario == "duplicate_owned":
+                        records.append(mapping(build, 20, 20))
+                    elif scenario == "uncovered_build":
+                        records[1] = mapping(build, 0, 20)
+                    elif scenario == "lexical_build":
+                        records[1] = mapping(root / "tests/../build.rs", 20, 20)
+                    elif scenario == "duplicate_owned_alias":
+                        records.append(mapping(root / "tests/../build.rs", 20, 20))
+                    if scenario.startswith("proto_"):
+                        crates[verify.proto_inputs.PACKAGE] = [facade, proto_build]
+                        records.append(mapping(proto_build, 20, 20))
+                        if scenario != "proto_missing":
+                            records.append(mapping(binding, 1, 1))
+                        if scenario == "proto_extra":
+                            records.append(mapping(generated / "unexpected.rs", 1, 1))
+
+                    def cargo(*args, **kwargs):
+                        if args[0][0] == str(auditor):
+                            proof = {"proof": verify.proto_inputs.PROOF, "source": str(facade),
+                                     "source_sha256": verify.proto_inputs.digest(facade)}
+                            Path(kwargs["env"]["GZ_PROTO_FACADE_PROOF"]).write_text(json.dumps(proof))
+                            return SimpleNamespace(returncode=0, stdout="", stderr="")
+                        raw = Path(kwargs["env"]["LLVM_PROFILE_FILE"]).parent
+                        (raw / "fixture.profraw").write_bytes(b"nonexecuted raw fixture")
+                        artifact = {"reason": "compiler-artifact", "executable": str(binary)}
+                        events = [artifact]
+                        if scenario.startswith("proto_"):
+                            events += [
+                                {"reason": "compiler-artifact", "package_id": "proto-fixture",
+                                 "target": {"src_path": str(proto_build), "kind": ["custom-build"]}},
+                                {"reason": "build-script-executed", "package_id": "proto-fixture", "out_dir": str(generated)},
+                                {"reason": "compiler-artifact", "executable": str(auditor),
+                                 "target": {"src_path": str(auditor_source), "kind": ["test"]}},
+                            ]
+                        return SimpleNamespace(returncode=0, stdout="\n".join(map(json.dumps, events)), stderr="", args=["cargo"])
+
+                    def llvm(command, **kwargs):
+                        if command[:2] == ["rustc", "-vV"]:
+                            return SimpleNamespace(stdout="fixture rustc")
+                        if command[1] == "merge":
+                            Path(command[command.index("-o") + 1]).write_bytes(b"nonexecuted merged fixture")
+                            return SimpleNamespace()
+                        self.assertEqual(command[1], "export")
+                        selected = records
+                        if "--sources" in command:
+                            # Real LLVM normalizes requested paths but can retain
+                            # lexical tests/../build.rs spellings in its mapping.
+                            paths = {str(Path(value).resolve()) for value in command[command.index("--sources") + 1:]
+                                     if not value.startswith("-")}
+                            selected = [row for row in records if row["filename"] in paths]
+                        if "-format=lcov" in command:
+                            lcov = "".join(f"SF:{row['filename']}\nDA:1,{int(row['summary']['lines']['covered'] > 0)}\nend_of_record\n"
+                                           for row in selected)
+                            return SimpleNamespace(stdout=lcov.encode())
+                        json.dump({"data": [{"files": selected}]}, kwargs["stdout"])
+                        return SimpleNamespace()
+
+                    with patch.object(verify, "ROOT", root), \
+                         patch.object(verify.subprocess, "run", side_effect=cargo), \
+                         patch.object(verify, "run", side_effect=llvm), \
+                         patch.object(verify.proto_inputs, "generated_inputs", return_value=proto_evidence):
+                        def profile():
+                            return verify.profile_coverage(
+                                "headless", crates, ["cargo"], output, {"src/lib.rs": [1]},
+                                root / "wrapper", root, "fixture rustc")
+
+                        if scenario == "missing_owned":
+                            with self.assertRaisesRegex(ValueError, "uninstrumented source"):
+                                profile()
+                        elif scenario in ("duplicate_owned", "duplicate_owned_alias"):
+                            with self.assertRaisesRegex(ValueError, "duplicate coverage"):
+                                profile()
+                        elif scenario == "uncovered_build":
+                            with self.assertRaisesRegex(ValueError, "must exceed 95%"):
+                                profile()
+                        elif scenario in ("proto_missing", "proto_extra"):
+                            with self.assertRaisesRegex(ValueError, "generated source is absent or unexpected"):
+                                profile()
+                            self.assertTrue((output / "proto-coverage.json").is_file())
+                            self.assertFalse((output / "coverage.json").exists())
+                        else:
+                            profile()
+                            summary = json.loads((output / "summary.json").read_text())
+                            self.assertEqual(summary["owned"], {"lines": [40, 41], "regions": [40, 41]})
+                            exported = json.loads((output / "coverage.json").read_text())
+                            expected = {str(path) for path in crates["owned"]}
+                            if scenario == "proto_valid":
+                                expected.add(str(proto_build))
+                                self.assertEqual(summary[verify.proto_inputs.PACKAGE],
+                                                 {"lines": [20, 20], "regions": [20, 20]})
+                                unfiltered = json.loads((output / "proto-coverage.json").read_text())
+                                self.assertIn(str(binding), {row["filename"] for row in unfiltered["data"][0]["files"]})
+                            self.assertEqual({str(Path(row["filename"]).resolve()) for row in exported["data"][0]["files"]}, expected)
+                            if scenario == "lexical_build":
+                                self.assertIn(str(root / "tests/../build.rs"),
+                                              {row["filename"] for row in exported["data"][0]["files"]})
+
+    def test_owned_view_preserves_whole_alias_records_and_refuses_malformed_lcov(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            build = root / "build.rs"
+            alias = root / "tests/../build.rs"
+            support = root / "tests/helper.rs"
+            owned = {"crate": [build]}
+            mapping = {"filename": str(alias), "segments": [[1, 1, 0, True, True, False]],
+                       "summary": {metric: {"count": 1, "covered": 0} for metric in ("lines", "regions")}}
+            shared = {"filename": str(support), "summary": {}}
+            raw = {"data": [{"files": [shared, mapping, shared]}]}
+            before = json.dumps(raw, sort_keys=True)
+            block = f"TN:fixture\nSF:{alias}\nFN:1,uncovered\nFNDA:0,uncovered\nDA:1,0\nBRDA:1,0,0,-\nend_of_record\n"
+            external = f"SF:{support}\nDA:1,1\nend_of_record\n"
+            view, lcov = verify.owned_coverage(raw, external + block + external, owned)
+            self.assertEqual(view, {"data": [{"files": [mapping]}]})
+            self.assertEqual(lcov, block)
+            self.assertEqual(json.dumps(raw, sort_keys=True), before)
+            for invalid in ["DA:1,0\nend_of_record\n",
+                            f"SF:{build}\nSF:{support}\nend_of_record\n",
+                            f"SF:{build}\nDA:1,0\n",
+                            block.replace("\n", "\r\n"),
+                            block + "DA:2,0\n"]:
+                with self.subTest(lcov=invalid), self.assertRaises(ValueError):
+                    verify.owned_coverage(raw, invalid, owned)
+
     def test_renderer_requires_worker_binary_and_its_own_raw_profile(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -355,7 +523,7 @@ class FeatureProfiles(unittest.TestCase):
             for profile in ("headless", "renderer"):
                 base = coverage / "profiles-test" / profile
                 (base / "raw").mkdir(parents=True)
-                for name in ("test-output.log", "coverage.json", "coverage.lcov", "summary.json", "evidence.json", "merged.profdata"):
+                for name in ("test-output.log", "coverage.json", "coverage.lcov", "summary.json", "evidence.json", "merged.profdata", "proto-generated.json", "proto-facade-audit.json", "proto-facade-audit-output.log", "proto-generated.rs", "proto-descriptor.pb", "proto-coverage.json", "coverage-unfiltered.lcov"):
                     (base / name).write_text(profile)
                 (base / "raw" / "one.profraw").write_text(profile)
                 if profile == "renderer":
@@ -365,10 +533,36 @@ class FeatureProfiles(unittest.TestCase):
             self.assertEqual(missing, [])
             self.assertEqual((output / "profiles-test/headless/raw/one.profraw").read_text(), "headless")
             self.assertEqual((output / "profiles-test/renderer/raw/one.profraw").read_text(), "renderer")
+            for name in ("proto-coverage.json", "coverage-unfiltered.lcov"):
+                relative = "profiles-test/headless/" + name
+                self.assertEqual((output / relative).read_bytes(), b"headless")
+                self.assertEqual(hashes[relative], hashlib.sha256(b"headless").hexdigest())
             (coverage / "profiles-test/renderer/raw/one.profraw").unlink()
             hashes, missing = {}, []
             verify.retain_profile_evidence(candidate, output, hashes, missing)
             self.assertIn("profiles-test/renderer/raw/*.profraw", missing)
+            (coverage / "profiles-test/renderer/raw/one.profraw").write_text("renderer")
+            for name in ("proto-coverage.json", "coverage-unfiltered.lcov"):
+                with self.subTest(artifact=name):
+                    relative = "profiles-test/headless/" + name
+                    proof = coverage / relative
+                    proof.unlink()
+                    incomplete = Path(tmp) / ("missing-" + name)
+                    incomplete.mkdir()
+                    hashes, missing = {}, []
+                    verify.retain_profile_evidence(candidate, incomplete, hashes, missing)
+                    self.assertEqual(missing, [relative])
+                    foreign = Path(tmp) / ("foreign-" + name)
+                    foreign.write_text("unqualified unfiltered report")
+                    proof.symlink_to(foreign)
+                    unsafe = Path(tmp) / ("linked-" + name)
+                    unsafe.mkdir()
+                    hashes, missing = {}, []
+                    verify.retain_profile_evidence(candidate, unsafe, hashes, missing)
+                    self.assertEqual(missing, [relative])
+                    self.assertFalse((unsafe / relative).exists())
+                    proof.unlink()
+                    proof.write_text("headless")
 
     def test_successful_stage_requires_profile_index_when_contract_exists(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -416,7 +610,7 @@ class FeatureProfiles(unittest.TestCase):
             for profile in ("headless", "renderer"):
                 base = coverage / "profiles-test" / profile
                 (base / "raw").mkdir(parents=True)
-                for name in ("test-output.log", "coverage.json", "coverage.lcov", "summary.json", "evidence.json", "merged.profdata"):
+                for name in ("test-output.log", "coverage.json", "coverage.lcov", "summary.json", "evidence.json", "merged.profdata", "proto-generated.json", "proto-facade-audit.json", "proto-facade-audit-output.log", "proto-generated.rs", "proto-descriptor.pb", "proto-coverage.json", "coverage-unfiltered.lcov"):
                     (base / name).write_text(profile)
                 if profile == "renderer":
                     (base / "facade-audit.json").write_text("proof")
@@ -458,6 +652,56 @@ class FeatureProfiles(unittest.TestCase):
             (coverage / "profile-index.json").write_text(json.dumps({"run": "../outside", "profiles": ["headless", "renderer"]}))
             with self.assertRaisesRegex(ValueError, "invalid staged"):
                 verify.retain_profile_evidence(candidate, output, {}, [])
+
+    def test_selected_native_metadata_is_retained_and_cannot_be_substituted(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            candidate = root / "candidate"
+            planning = candidate / "planning"
+            planning.mkdir(parents=True)
+            (planning / "coverage-profiles.json").write_text(json.dumps({
+                "version": 2, "native_reference": "gazebo-zenoh-client-v1",
+            }))
+            coverage = candidate / "artifacts/coverage"
+            run = coverage / "profiles-test"
+            run.mkdir(parents=True)
+            output = root / "out"
+            output.mkdir()
+            blob = b'{"profile":"gazebo-zenoh-client-v1"}\n'
+            expected = hashlib.sha256(blob).hexdigest()
+            (coverage / "profile-index.json").write_text(json.dumps({
+                "run": "profiles-test", "profiles": ["headless", "renderer"],
+                "zenoh_reference": {"environment_sha256": expected},
+            }))
+            metadata = run / "zenoh-native-reference.json"
+            metadata.write_bytes(blob)
+            hashes, missing = {}, []
+            verify.retain_profile_evidence(candidate, output, hashes, missing)
+            self.assertEqual((output / metadata.name).read_bytes(), blob)
+            self.assertEqual(hashes[metadata.name], expected)
+            metadata.write_bytes(blob + b" ")
+            with self.assertRaisesRegex(ValueError, "reference metadata differs"):
+                verify.retain_profile_evidence(candidate, output, {}, [])
+            metadata.unlink()
+            missing = []
+            verify.retain_profile_evidence(candidate, output, {}, missing)
+            self.assertIn(metadata.name, missing)
+            foreign = root / "foreign.json"
+            foreign.write_bytes(blob)
+            metadata.symlink_to(foreign)
+            missing = []
+            verify.retain_profile_evidence(candidate, output, {}, missing)
+            self.assertIn(metadata.name, missing)
+
+            metadata.unlink()
+            (coverage / "profile-index.json").write_text(json.dumps({
+                "run": "profiles-test", "profiles": ["headless", "renderer"],
+            }))
+            missing = []
+            verify.retain_profile_evidence(candidate, output, {}, missing)
+            self.assertIn("zenoh_reference", missing)
+
 
 class RealInstrumentation(unittest.TestCase):
     def test_disabled_feature_cannot_borrow_enabled_profile_coverage(self):

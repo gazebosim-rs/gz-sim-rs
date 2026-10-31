@@ -1,8 +1,14 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
+use gz_sim_proto::{
+    msgs::Double,
+    prost::{Message, Name},
+};
 use gz_sim_scene::{PhysicsEngine, load_world_with_sdf_step};
 use sdformat::NoResources;
+use std::time::Duration;
+use zenoh::{Wait, sample::Sample};
 
 fn scene() -> Simulation {
     let xml = include_str!("../fixtures/joint_force.sdf").replace(
@@ -27,49 +33,138 @@ fn definitions(sim: &Simulation) -> Vec<(u64, JointForceConfiguration)> {
 fn detached(sim: &Simulation) -> Forces {
     Forces {
         streams: Vec::new(),
-        workers: Vec::new(),
-        templates: Vec::new(),
         expected: definitions(sim).into_iter().collect(),
         next: 0,
+        drops: Arc::new(AtomicU64::new(0)),
     }
 }
+fn prepare(
+    io: &crate::world_io::WorldIo,
+    config: &ServerOptions,
+    configurations: impl IntoIterator<Item = (u64, JointForceConfiguration)>,
+) -> Result<Forces, Error> {
+    let (mut forces, setup) = Forces::prepare(config, configurations, &io.ingress_drops)?;
+    if let Err(error) = io.install_forces(setup) {
+        forces.clear();
+        return Err(error);
+    }
+    Ok(forces)
+}
+fn restart(
+    forces: &mut Forces,
+    io: &crate::world_io::WorldIo,
+    config: &ServerOptions,
+    sim: &Simulation,
+) -> Result<(), Error> {
+    let setup = forces.restart(config, sim, &io.ingress_drops)?;
+    if let Err(error) = io.install_forces(setup) {
+        forces.clear();
+        return Err(error);
+    }
+    Ok(())
+}
+fn local_io() -> crate::world_io::WorldIo {
+    let prefix = format!("@/force-owner-{}@", uuid::Uuid::new_v4());
+    let mut config = zenoh::Config::default();
+    config.insert_json5("mode", "\"peer\"").unwrap();
+    config.insert_json5("listen/endpoints", "[]").unwrap();
+    config
+        .insert_json5("scouting/multicast/enabled", "false")
+        .unwrap();
+    config
+        .insert_json5("scouting/gossip/enabled", "false")
+        .unwrap();
+    crate::world_io::WorldIo::new_with_config(
+        format!("{prefix}/clock"),
+        format!("{prefix}/control"),
+        format!("{prefix}/poses"),
+        64,
+        16 * 1024 * 1024,
+        config,
+    )
+    .unwrap()
+}
+fn config() -> ServerOptions {
+    ServerOptions {
+        partition: format!("force-unit-{}", uuid::Uuid::new_v4()),
+        ..ServerOptions::default()
+    }
+}
+fn local_session() -> zenoh::Session {
+    let mut config = zenoh::Config::default();
+    config.insert_json5("mode", "\"peer\"").unwrap();
+    config.insert_json5("listen/endpoints", "[]").unwrap();
+    config
+        .insert_json5("scouting/multicast/enabled", "false")
+        .unwrap();
+    config
+        .insert_json5("scouting/gossip/enabled", "false")
+        .unwrap();
+    zenoh::open(config).wait().unwrap()
+}
+fn put(session: &zenoh::Session, config: &ServerOptions, topic: &str, bytes: Vec<u8>) {
+    let key = crate::options::qualified_name(
+        &config.partition,
+        &config.namespace,
+        config.topic_remap(topic).unwrap_or(topic),
+    )
+    .unwrap();
+    session
+        .put(key, bytes)
+        .attachment(Double::full_name())
+        .wait()
+        .unwrap();
+}
 #[test]
-fn invalid_configuration_and_duplicate_identity_fail_before_allocating_workers() {
-    assert!(matches!(
-        Forces::prepare(
-            &Config {
-                capacity: 0,
-                ..Config::default()
-            },
-            []
-        ),
-        Err(Error::Transport(TransportError::InvalidConfig))
-    ));
+fn invalid_configuration_and_duplicate_identity_fail_before_declaring_endpoints() {
+    let io = local_io();
+    for (capacity, max_message_bytes) in [(0, 100), (1, 0), (usize::MAX, 100), (1, usize::MAX)] {
+        assert!(matches!(
+            prepare(
+                &io,
+                &ServerOptions {
+                    capacity,
+                    max_message_bytes,
+                    ..config()
+                },
+                []
+            ),
+            Err(Error::Setup(SetupError::InvalidConfig))
+        ));
+    }
     let sim = scene();
     let defs = definitions(&sim);
     assert!(matches!(
-        Forces::prepare(&Config::default(), [defs[0].clone(), defs[0].clone()]),
+        prepare(&io, &config(), [defs[0].clone(), defs[0].clone()]),
         Err(Error::JointForceIdentity)
     ));
     assert!(matches!(
-        Forces::prepare(
-            &Config {
+        prepare(
+            &io,
+            &ServerOptions {
                 partition: "invalid partition".into(),
-                ..Config::default()
+                ..config()
             },
             defs
         ),
-        Err(Error::Transport(TransportError::InvalidName))
+        Err(Error::Setup(SetupError::InvalidName))
     ));
-    let mut forces = Forces::prepare(&Config::default(), []).unwrap();
-    assert!(forces.workers.is_empty());
+    let config = config();
+    let world_drops = Arc::new(AtomicU64::new(0));
+    let (mut forces, setup) = Forces::prepare(&config, [], &world_drops).unwrap();
+    assert!(setup.is_empty());
+    io.install_forces(setup).unwrap();
+    assert!(Arc::ptr_eq(&forces.drops, &world_drops));
+    assert_eq!(Arc::strong_count(&world_drops), 2);
+    assert!(forces.streams.is_empty() && forces.expected.is_empty());
+    assert_eq!(forces.streams.capacity(), 0);
     let mut counters = Counters::default();
     let mut empty = Simulation::new(Duration::from_millis(1)).unwrap();
     forces
         .poll(&mut empty, NonZeroUsize::new(1).unwrap(), &mut counters)
         .unwrap();
     assert_eq!(counters.force_messages_received, 0);
-    forces.restart(&empty).unwrap();
+    restart(&mut forces, &io, &config, &empty).unwrap();
     forces.shutdown();
 }
 #[test]
@@ -130,36 +225,6 @@ fn binding_rejects_corrupted_controller_identity_and_components() {
     }
 }
 
-fn network() -> (Config, std::net::UdpSocket, std::net::UdpSocket) {
-    use std::sync::atomic::{AtomicUsize, Ordering};
-    static ID: AtomicUsize = AtomicUsize::new(0);
-    let message = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
-    let service = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
-    for socket in [&message, &service] {
-        socket2::SockRef::from(socket)
-            .set_reuse_address(true)
-            .unwrap();
-        #[cfg(target_os = "linux")]
-        socket2::SockRef::from(socket)
-            .set_multicast_all_v4(false)
-            .unwrap();
-    }
-    (
-        Config {
-            partition: format!(
-                "force-unit-{}-{}",
-                std::process::id(),
-                ID.fetch_add(1, Ordering::Relaxed)
-            ),
-            message_port: message.local_addr().unwrap().port(),
-            service_port: service.local_addr().unwrap().port(),
-            ..Config::default()
-        },
-        message,
-        service,
-    )
-}
-
 fn pair_scene(other: &str) -> Simulation {
     let source = include_str!("../fixtures/joint_force.sdf");
     let first = &source[source.find("<model ").unwrap()..source.find("</model>").unwrap() + 8];
@@ -179,7 +244,9 @@ fn pair_scene(other: &str) -> Simulation {
 #[test]
 fn normalized_and_remapped_endpoint_collisions_fan_out_one_message_to_both_joints() {
     for other in ["rotor~", "other"] {
-        let (mut config, _message, _service) = network();
+        let io = local_io();
+        let session = &io.session;
+        let mut config = config();
         let topic = "/model/rotor/joint/hinge/cmd_force";
         if other == "other" {
             config
@@ -188,28 +255,20 @@ fn normalized_and_remapped_endpoint_collisions_fan_out_one_message_to_both_joint
         }
         let mut sim = pair_scene(other);
         config.capacity = 1;
-        let mut forces = Forces::prepare(&config, definitions(&sim)).unwrap();
+        let mut forces = prepare(&io, &config, definitions(&sim)).unwrap();
         forces.bind(&sim).unwrap();
-        assert_eq!(forces.workers.len(), 1);
         assert_eq!(forces.streams.len(), 1);
         assert_eq!(forces.streams[0].ids.len(), 2);
-        let mut sender = Node::new(Config {
-            capacity: 16,
-            ..config
-        })
-        .unwrap();
-        let publisher = sender.advertise(topic, "gz.msgs.Double").unwrap();
-        publisher
-            .publish(
-                Double {
-                    data: 0.001,
-                    ..Default::default()
-                }
-                .encode_to_vec(),
-            )
-            .unwrap();
-        // A query queued after publication fences the sender's local routing.
-        sender.known_publisher_topics().unwrap();
+        put(
+            session,
+            &config,
+            topic,
+            Double {
+                data: 0.001,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+        );
         let mut counters = Counters::default();
         forces
             .poll(&mut sim, NonZeroUsize::new(1).unwrap(), &mut counters)
@@ -227,8 +286,7 @@ fn normalized_and_remapped_endpoint_collisions_fan_out_one_message_to_both_joint
                 0.001
             );
         }
-        publisher.publish(vec![0xff]).unwrap();
-        sender.known_publisher_topics().unwrap();
+        put(session, &config, topic, vec![0xff]);
         forces
             .poll(&mut sim, NonZeroUsize::new(1).unwrap(), &mut counters)
             .unwrap();
@@ -248,16 +306,16 @@ fn normalized_and_remapped_endpoint_collisions_fan_out_one_message_to_both_joint
         let ids: Vec<_> = definitions(&sim).into_iter().map(|(id, _)| id).collect();
         let invalid = entity_by_id(sim.world(), ids[0]).unwrap();
         sim.world_mut().entity_mut(invalid).remove::<JointHandle>();
-        publisher
-            .publish(
-                Double {
-                    data: 0.002,
-                    ..Default::default()
-                }
-                .encode_to_vec(),
-            )
-            .unwrap();
-        sender.known_publisher_topics().unwrap();
+        put(
+            session,
+            &config,
+            topic,
+            Double {
+                data: 0.002,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+        );
         forces
             .poll(&mut sim, NonZeroUsize::new(1).unwrap(), &mut counters)
             .unwrap();
@@ -280,76 +338,84 @@ fn normalized_and_remapped_endpoint_collisions_fan_out_one_message_to_both_joint
             0.002
         );
         forces.shutdown();
-        sender.shutdown();
     }
 }
 
 #[test]
-fn failed_restart_clears_leases_and_shutdown_poll_is_an_error() {
-    let (config, _message, _service) = network();
+fn failed_restart_clears_leases_and_closed_session_poll_is_an_error() {
+    // CPU polling observes a closed scalar ingress. Actual IO shutdown and setup
+    // receipts, not a Session handle in Forces, establish the transport failure.
+    let mut io = local_io();
+    let config = config();
     let mut sim = scene();
-    let mut forces = Forces::prepare(&config, definitions(&sim)).unwrap();
-    forces.workers[0].shutdown();
+    let mut forces = prepare(&io, &config, definitions(&sim)).unwrap();
+    io.shutdown();
     assert!(matches!(
         forces.poll(
             &mut sim,
             NonZeroUsize::new(1).unwrap(),
             &mut Counters::default()
         ),
-        Err(Error::Transport(TransportError::Shutdown))
+        Err(Error::WorldClosed)
     ));
     assert!(matches!(
-        forces.restart(&sim),
-        Err(Error::Transport(TransportError::Shutdown))
+        restart(&mut forces, &io, &config, &sim),
+        Err(Error::WorldClosed)
     ));
-    assert!(forces.streams.is_empty());
-    let mut forces = Forces::prepare(&config, definitions(&sim)).unwrap();
+    assert!(forces.streams.is_empty() && forces.expected.is_empty());
+    let io = local_io();
+    let mut forces = prepare(&io, &config, definitions(&sim)).unwrap();
     let id = definitions(&sim)[0].0;
     let joint = entity_by_id(sim.world(), id).unwrap();
     sim.world_mut().entity_mut(joint).remove::<JointHandle>();
     assert!(matches!(
-        forces.restart(&sim),
+        restart(&mut forces, &io, &config, &sim),
         Err(Error::JointForceIdentity)
     ));
-    assert!(forces.streams.is_empty());
+    assert!(forces.streams.is_empty() && forces.expected.is_empty());
     forces.shutdown();
 }
 
 #[test]
-fn finite_budget_rotates_between_ready_endpoints_and_workers() {
+fn finite_budget_rotates_between_ready_bounded_endpoints() {
+    // Worker grouping is an explicit D28 retirement. Endpoint count, bounded
+    // queued work, rotation, values and exact per-message budget remain asserted.
     for capacity in [1, 2] {
-        let (mut config, _message, _service) = network();
+        let io = local_io();
+        let session = &io.session;
+        let mut config = config();
         config.capacity = capacity;
         let mut sim = pair_scene("other");
-        let mut forces = Forces::prepare(&config, definitions(&sim)).unwrap();
+        let mut forces = prepare(&io, &config, definitions(&sim)).unwrap();
         forces.bind(&sim).unwrap();
-        assert_eq!(forces.workers.len(), 2usize.div_ceil(capacity));
         assert_eq!(forces.streams.len(), 2);
         let ids: Vec<_> = forces.streams.iter().map(|s| s.ids[0]).collect();
-        let mut sender = Node::new(Config {
-            capacity: 16,
-            ..config
+        let keys: Vec<_> = [
+            "/model/other/joint/hinge/cmd_force",
+            "/model/rotor/joint/hinge/cmd_force",
+        ]
+        .into_iter()
+        .map(|topic| {
+            crate::options::qualified_name(&config.partition, &config.namespace, topic).unwrap()
         })
-        .unwrap();
-        let publishers: Vec<_> = forces
-            .templates
-            .iter()
-            .map(|t| sender.advertise(&t.topic, "gz.msgs.Double").unwrap())
-            .collect();
-        for (index, publisher) in publishers.iter().enumerate() {
+        .collect();
+        for (index, key) in keys.iter().enumerate() {
             for value in 1..=capacity {
-                publisher
-                    .publish(
+                session
+                    .put(
+                        key.clone(),
                         Double {
                             data: (index * 10 + value) as f64,
                             ..Default::default()
                         }
                         .encode_to_vec(),
                     )
+                    .attachment(Double::full_name())
+                    .wait()
                     .unwrap();
             }
         }
-        sender.known_publisher_topics().unwrap();
+        assert_eq!(forces.queue_drops(), 0);
         let mut counters = Counters::default();
         for step in 0..capacity * 2 {
             forces
@@ -380,17 +446,176 @@ fn finite_budget_rotates_between_ready_endpoints_and_workers() {
             .unwrap();
         assert_eq!(counters.force_messages_received, (capacity * 2) as u64);
         forces.shutdown();
-        sender.shutdown();
     }
 }
 
 #[test]
-fn force_worker_failure_during_committed_server_reset_is_terminal() {
-    use gz_msgs::msgs::{WorldControl, WorldReset};
-    let (config, _message, _service) = network();
+fn malformed_type_oversize_nonfinite_and_zero_keep_bounded_command_semantics() {
+    let io = local_io();
+    let session = &io.session;
+    let config = ServerOptions {
+        capacity: 1,
+        max_message_bytes: 32,
+        ..config()
+    };
+    let mut sim = scene();
+    let topic = "/model/rotor/joint/hinge/cmd_force";
+    let mut forces = prepare(&io, &config, definitions(&sim)).unwrap();
+    forces.bind(&sim).unwrap();
+    let mut counters = Counters::default();
+    for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, 0.0, -0.0] {
+        put(
+            session,
+            &config,
+            topic,
+            Double {
+                data: value,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+        );
+        forces
+            .poll(&mut sim, NonZeroUsize::new(1).unwrap(), &mut counters)
+            .unwrap();
+    }
+    assert_eq!(counters.force_messages_received, 5);
+    assert_eq!(counters.force_messages_rejected, 3);
+    assert_eq!(counters.joint_forces_applied, 2);
+    let key = crate::options::qualified_name(&config.partition, &config.namespace, topic).unwrap();
+    for (bytes, attachment) in [
+        (vec![0; 64], Double::full_name()),
+        (Vec::new(), "gz.msgs.Float".into()),
+    ] {
+        session
+            .put(key.clone(), bytes)
+            .attachment(attachment)
+            .wait()
+            .unwrap();
+        forces
+            .poll(&mut sim, NonZeroUsize::new(1).unwrap(), &mut counters)
+            .unwrap();
+    }
+    assert_eq!(counters.force_messages_received, 7);
+    assert_eq!(counters.force_messages_rejected, 5);
+    for _ in 0..3 {
+        put(session, &config, topic, Vec::new());
+    }
+    assert_eq!(forces.queue_drops(), 2);
+    forces.clear();
+    assert!(forces.streams.is_empty() && forces.expected.is_empty());
+    assert_eq!(forces.streams.capacity(), 0);
+    assert_eq!(forces.queue_drops(), 2);
+    forces
+        .poll(&mut sim, NonZeroUsize::new(2).unwrap(), &mut counters)
+        .unwrap();
+    assert_eq!(counters.force_messages_received, 7);
+    restart(&mut forces, &io, &config, &sim).unwrap();
+    for _ in 0..3 {
+        put(session, &config, topic, Vec::new());
+    }
+    assert_eq!(forces.queue_drops(), 4);
+    restart(&mut forces, &io, &config, &sim).unwrap();
+    assert_eq!(forces.queue_drops(), 4);
+}
+
+#[test]
+fn last_consumer_releases_endpoints_and_loaded_scene_reconstructs_demand() {
+    let io = local_io();
+    let session = &io.session;
+    let config = config();
+    let mut sim = pair_scene("other");
+    let presence_count = || {
+        session
+            .liveliness()
+            .get(format!("@gz/%{}/**", config.partition))
+            .timeout(Duration::from_millis(100))
+            .wait()
+            .unwrap()
+            .into_iter()
+            .fold(0, |count, reply| {
+                reply.into_result().unwrap();
+                count + 1
+            })
+    };
+    let assert_presence = |expected| {
+        let deadline = std::time::Instant::now() + Duration::from_secs(3);
+        loop {
+            let actual = presence_count();
+            if actual == expected {
+                break;
+            }
+            assert!(
+                std::time::Instant::now() < deadline,
+                "MS presence {actual}, expected {expected}"
+            );
+            std::thread::sleep(Duration::from_millis(1));
+        }
+    };
+    let mut forces = prepare(&io, &config, definitions(&sim)).unwrap();
+    forces.bind(&sim).unwrap();
+    let models: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter(|e| e.get::<EntityKind>() == Some(&EntityKind::Model))
+        .map(|e| e.get::<EntityId>().unwrap().get())
+        .collect();
+    assert_eq!(models.len(), 2);
+    assert_eq!(forces.streams.len(), 2);
+    assert_presence(2);
+    gz_sim_scene::remove_model(&mut sim, models[0]).unwrap();
+    forces.retire(&sim);
+    assert_eq!(forces.streams.len(), 1);
+    assert_eq!(forces.expected.len(), 1);
+    assert_presence(1);
+    gz_sim_scene::remove_model(&mut sim, models[1]).unwrap();
+    forces.retire(&sim);
+    assert!(forces.streams.is_empty() && forces.expected.is_empty());
+    assert_eq!(forces.streams.capacity(), 0);
+    assert_presence(0);
+    restart(&mut forces, &io, &config, &sim).unwrap();
+    assert!(forces.streams.is_empty() && forces.expected.is_empty());
+    assert_eq!(forces.streams.capacity(), 0);
+    assert_presence(0);
+    gz_sim_scene::reset_loaded_world(&mut sim, |_| ()).unwrap();
+    restart(&mut forces, &io, &config, &sim).unwrap();
+    assert_eq!(forces.streams.len(), 2);
+    assert_eq!(forces.expected.len(), 2);
+    assert_presence(2);
+    forces.shutdown();
+}
+
+fn isolate_server(name: &str) -> bool {
+    const CHILD: &str = "GZ_FORCE_RESET_CHILD";
+    if std::env::var(CHILD).as_deref() == Ok(name) {
+        return false;
+    }
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("zenoh.json");
+    std::fs::write(&path, r#"{"mode":"peer","listen":{"endpoints":[]},"scouting":{"multicast":{"enabled":false},"gossip":{"enabled":false}}}"#).unwrap();
+    let output = std::process::Command::new(std::env::current_exe().unwrap())
+        .args(["--exact", &format!("forces::tests::{name}"), "--nocapture"])
+        .env(CHILD, name)
+        .env("ZENOH_CONFIG", path)
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{output:?}");
+    assert!(
+        String::from_utf8(output.stdout)
+            .unwrap()
+            .contains("1 passed")
+    );
+    true
+}
+#[test]
+fn force_session_failure_during_committed_server_reset_is_terminal() {
+    if isolate_server("force_session_failure_during_committed_server_reset_is_terminal") {
+        return;
+    }
+    use gz_sim_proto::msgs::{WorldControl, WorldReset};
     let mut server =
-        crate::Server::new(scene(), "default", config, NonZeroUsize::new(2).unwrap()).unwrap();
-    server.forces.workers[0].cancel();
+        crate::Server::new(scene(), "default", config(), NonZeroUsize::new(2).unwrap()).unwrap();
+    // A closed actual Session replaces the retired worker-cancel mechanic.
+    server.world_io.session.close().wait().unwrap();
     assert!(server.apply_control(WorldControl {
         pause: true,
         reset: Some(WorldReset {
@@ -399,10 +624,7 @@ fn force_worker_failure_during_committed_server_reset_is_terminal() {
         }),
         ..Default::default()
     }));
-    assert!(matches!(
-        server.tick(),
-        Err(Error::Transport(TransportError::Shutdown))
-    ));
+    assert!(matches!(server.update(), Err(Error::WorldClosed)));
     assert_eq!(
         server
             .simulation
@@ -412,6 +634,216 @@ fn force_worker_failure_during_committed_server_reset_is_terminal() {
         1
     );
     assert!(server.forces.streams.is_empty());
-    assert!(server.tick().is_err());
+    assert!(server.update().is_err());
+    server.shutdown();
+}
+
+#[test]
+fn in_flight_overflow_remains_counted_after_retirement_and_restart() {
+    for clear in [false, true] {
+        let session = local_session();
+        let key = format!("force-race/{}", uuid::Uuid::new_v4());
+        let (sender, receiver) = mpsc::sync_channel(1);
+        sender.try_send(None).unwrap();
+        let drops = Arc::new(AtomicU64::new(0));
+        let overflow = Arc::clone(&drops);
+        let active = Arc::new(AtomicBool::new(true));
+        let release = Arc::new((std::sync::Mutex::new(false), std::sync::Condvar::new()));
+        let callback_release = Arc::clone(&release);
+        let (started, ready) = mpsc::sync_channel(1);
+        let (installed, prepared) = mpsc::sync_channel(1);
+        let (finish, finished) = mpsc::sync_channel(1);
+        let io_session = session.clone();
+        let io_key = key.clone();
+        let io = std::thread::spawn(move || {
+            let _subscriber = io_session
+                .declare_subscriber(io_key)
+                .callback(move |_: Sample| {
+                    assert!(matches!(
+                        sender.try_send(None),
+                        Err(mpsc::TrySendError::Full(_))
+                    ));
+                    started.send(()).unwrap();
+                    let (lock, condition) = &*callback_release;
+                    drop(
+                        condition
+                            .wait_while(lock.lock().unwrap(), |released| !*released)
+                            .unwrap(),
+                    );
+                    overflow.fetch_add(1, Ordering::Relaxed);
+                })
+                .wait()
+                .unwrap();
+            let _presence = io_session
+                .liveliness()
+                .declare_token(format!("force-race/presence/{}", uuid::Uuid::new_v4()))
+                .wait()
+                .unwrap();
+            installed.send(()).unwrap();
+            finished.recv().unwrap();
+        });
+        prepared.recv_timeout(Duration::from_secs(3)).unwrap();
+        let mut forces = Forces {
+            streams: vec![Stream {
+                ids: vec![1],
+                receiver,
+                active,
+            }],
+            expected: BTreeMap::new(),
+            next: 0,
+            drops: Arc::clone(&drops),
+        };
+        let writer = session.clone();
+        let putter = std::thread::spawn(move || writer.put(key, vec![1u8]).wait().unwrap());
+        ready.recv_timeout(Duration::from_secs(3)).unwrap();
+        let (retired, result) = mpsc::sync_channel(1);
+        let retired_drops = Arc::clone(&drops);
+        let retirer = std::thread::spawn(move || {
+            let empty = Simulation::new(Duration::from_millis(1)).unwrap();
+            if clear {
+                forces.clear();
+            } else {
+                forces.retire(&empty);
+            }
+            assert!(forces.streams.is_empty() && forces.expected.is_empty());
+            assert_eq!(forces.streams.capacity(), 0);
+            assert!(
+                forces
+                    .restart(&config(), &empty, &retired_drops)
+                    .unwrap()
+                    .is_empty()
+            );
+            retired.send(forces).unwrap();
+        });
+        let retired_while_callback_running = result.recv_timeout(Duration::from_secs(2));
+        *release.0.lock().unwrap() = true;
+        release.1.notify_all();
+        putter.join().unwrap();
+        retirer.join().unwrap();
+        finish.send(()).unwrap();
+        io.join().unwrap();
+        let forces = retired_while_callback_running
+            .expect("CPU retirement waited for an in-flight callback");
+        assert!(Arc::ptr_eq(&forces.drops, &drops));
+        assert_eq!(drops.load(Ordering::Relaxed), 1);
+        assert_eq!(forces.queue_drops(), 1);
+    }
+}
+
+#[test]
+fn raw_tick_refuses_unprepared_reset_and_consumes_prepared_snapshot_without_advancing() {
+    if isolate_server(
+        "raw_tick_refuses_unprepared_reset_and_consumes_prepared_snapshot_without_advancing",
+    ) {
+        return;
+    }
+    use gz_sim_proto::msgs::{WorldControl, WorldReset};
+    use gz_sim_scene::JointSample;
+    let mut server =
+        crate::Server::new(scene(), "default", config(), NonZeroUsize::new(2).unwrap()).unwrap();
+    let (id, _) = definitions(server.simulation()).remove(0);
+    let joint = entity_by_id(server.simulation().world(), id).unwrap();
+    set_joint_force(&mut server.simulation, id, 0.001).unwrap();
+    server.set_paused(false);
+    server.update().unwrap();
+    assert!(server.apply_control(WorldControl {
+        pause: false,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    let before = *server
+        .simulation
+        .world()
+        .resource::<gz_sim_core::UpdateInfo>();
+    let counters = format!("{:?}", server.counters());
+    let velocity = server
+        .simulation
+        .world()
+        .get::<JointSample>(joint)
+        .unwrap()
+        .state
+        .velocity;
+    assert!(matches!(server.tick(), Err(Error::IoPreparationRequired)));
+    assert_eq!(
+        *server
+            .simulation
+            .world()
+            .resource::<gz_sim_core::UpdateInfo>(),
+        before
+    );
+    assert_eq!(format!("{:?}", server.counters()), counters);
+    assert_eq!(
+        server
+            .simulation
+            .world()
+            .get::<JointSample>(joint)
+            .unwrap()
+            .state
+            .velocity,
+        velocity
+    );
+    assert_eq!(
+        server
+            .simulation
+            .world()
+            .get::<JointForceCommand>(joint)
+            .unwrap()
+            .torque(),
+        0.001
+    );
+    server.prepare_io().unwrap();
+    let prepared = *server
+        .simulation
+        .world()
+        .resource::<gz_sim_core::UpdateInfo>();
+    assert_eq!(prepared.epoch, before.epoch + 1);
+    assert_eq!(
+        (prepared.sim_time, prepared.dt, prepared.iteration),
+        (Duration::ZERO, Duration::ZERO, 0)
+    );
+    assert!(!prepared.paused);
+    server.prepare_io().unwrap();
+    assert_eq!(
+        *server
+            .simulation
+            .world()
+            .resource::<gz_sim_core::UpdateInfo>(),
+        prepared
+    );
+    assert_eq!(server.tick().unwrap(), prepared);
+    assert_eq!(
+        *server
+            .simulation
+            .world()
+            .resource::<gz_sim_core::UpdateInfo>(),
+        prepared
+    );
+    let restored = entity_by_id(server.simulation.world(), id).unwrap();
+    assert_eq!(
+        server
+            .simulation
+            .world()
+            .get::<JointForceCommand>(restored)
+            .unwrap()
+            .torque(),
+        0.0
+    );
+    assert_eq!(
+        server
+            .simulation
+            .world()
+            .get::<JointSample>(restored)
+            .unwrap()
+            .state
+            .velocity,
+        0.0
+    );
+    let next = server.tick().unwrap();
+    assert_eq!(next.epoch, prepared.epoch);
+    assert_eq!(next.iteration, 1);
+    assert_eq!(next.sim_time, Duration::from_millis(1));
     server.shutdown();
 }

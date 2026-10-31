@@ -1,0 +1,7 @@
+# Copyright (C) 2026 Open Source Robotics Foundation
+# SPDX-License-Identifier: Apache-2.0
+
+[env]
+# Zenoh reads this when compiling zenoh-link-tcp, not when starting a server.
+# Shutdown cancels unsent work; it must not linger waiting for a stopped peer.
+TCP_LINGER_TIMEOUT = { value = "0", force = true }

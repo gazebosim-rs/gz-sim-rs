@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "profiles": {
     "headless": {
       "exclude_packages": [
@@ -24,6 +24,7 @@
         "gz-render-worker",
         "gz-renderer",
         "gz-sim-core",
+        "gz-sim-proto",
         "gz-sim-scene"
       ],
       "features": [
@@ -35,5 +36,6 @@
   "excluded_sources": [],
   "test_support_packages": [
     "gz-render-test-support"
-  ]
+  ],
+  "native_reference": "gazebo-zenoh-client-v1"
 }

@@ -22,7 +22,8 @@ fn configured_interest_server(noisy: bool) -> Server {
         gz_sim_scene::PhysicsEngine::Tpe,
     )
     .unwrap();
-    let mut server = Server::new(sim, "default", config(), NonZeroUsize::new(2).unwrap()).unwrap();
+    let mut server =
+        isolated_server(sim, "default", config(), NonZeroUsize::new(2).unwrap()).unwrap();
     assert_eq!(server.interest_policy(), InterestPolicy::Subscribers);
     assert!(server.apply_control(WorldControl {
         pause: false,
@@ -31,9 +32,9 @@ fn configured_interest_server(noisy: bool) -> Server {
     server
 }
 
-fn received_imu(subscription: &gz_transport::Subscription, milliseconds: i32, sequence: u64) {
+fn received_imu(subscription: &SampleReceiver, milliseconds: i32, sequence: u64) {
     let received = subscription.recv_timeout(Duration::from_secs(5)).unwrap();
-    let message = gz_msgs::msgs::Imu::decode(received.data.as_slice()).unwrap();
+    let message = gz_sim_proto::msgs::Imu::decode(received.payload().to_bytes().as_ref()).unwrap();
     let header = message.header.unwrap();
     assert_eq!(
         header.stamp.unwrap(),
@@ -54,7 +55,7 @@ fn received_imu(subscription: &gz_transport::Subscription, milliseconds: i32, se
     assert_eq!(message.linear_acceleration.unwrap().z, 9.81);
     assert!(matches!(
         subscription.recv_timeout(Duration::from_millis(1)),
-        Err(TransportError::Timeout)
+        Err(mpsc::RecvTimeoutError::Timeout)
     ));
 }
 
@@ -62,19 +63,15 @@ fn received_imu(subscription: &gz_transport::Subscription, milliseconds: i32, se
 fn native_late_and_shared_interest_preserve_unobserved_sequences_and_idle_phase() {
     for shared in [false, true] {
         let mut server = native_interest_server();
-        let slow = shared.then(|| {
-            server
-                .node
-                .subscribe("/activation/slow", "gz.msgs.IMU")
-                .unwrap()
-        });
+        let slow = shared.then(|| samples(&server, "/activation/slow", "gz.msgs.IMU"));
         let initial = if shared { 100 } else { 50 };
         for _ in 0..initial {
-            server.tick().unwrap();
+            server.update().unwrap();
         }
         if let Some(slow) = &slow {
             let first = slow.recv_timeout(Duration::from_secs(5)).unwrap();
-            let message = gz_msgs::msgs::Imu::decode(first.data.as_slice()).unwrap();
+            let message =
+                gz_sim_proto::msgs::Imu::decode(first.payload().to_bytes().as_ref()).unwrap();
             let header = message.header.unwrap();
             assert_eq!(header.stamp.unwrap().nsec, 1_000_000);
             assert_eq!(
@@ -99,24 +96,20 @@ fn native_late_and_shared_interest_preserve_unobserved_sequences_and_idle_phase(
                     .all(|e| !e.contains::<ImuSample>())
             );
         }
-        let fast = server
-            .node
-            .subscribe("/activation/fast", "gz.msgs.IMU")
-            .unwrap();
-        server.tick().unwrap();
+        let fast = samples(&server, "/activation/fast", "gz.msgs.IMU");
+        server.update().unwrap();
         received_imu(&fast, initial + 1, if shared { 2 } else { 0 });
         let before = server.counters().imus_queued;
         drop(slow);
         drop(fast);
+        wait_imu_interest(&server, "/activation/slow", false);
+        wait_imu_interest(&server, "/activation/fast", false);
         for _ in 0..10 {
-            server.tick().unwrap();
+            server.update().unwrap();
         }
         assert_eq!(server.counters().imus_queued, before);
-        let fast = server
-            .node
-            .subscribe("/activation/fast", "gz.msgs.IMU")
-            .unwrap();
-        server.tick().unwrap();
+        let fast = samples(&server, "/activation/fast", "gz.msgs.IMU");
+        server.update().unwrap();
         received_imu(&fast, initial + 12, if shared { 3 } else { 1 });
         assert_eq!(server.counters().pose_failures, 0);
         assert_eq!(server.counters().poses_queued, 0);
@@ -128,38 +121,32 @@ fn native_late_and_shared_interest_preserve_unobserved_sequences_and_idle_phase(
 fn uninterested_poses_neither_consume_nor_reset_the_wall_slot() {
     let mut server = native_interest_server();
     server.set_pose_publication_period(Duration::from_secs(86_400));
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.counters().poses_unobserved, 1);
-    let poses = server
-        .node
-        .subscribe("/world/default/pose/info", "gz.msgs.Pose_V")
-        .unwrap();
-    server.tick().unwrap();
+    let poses = samples(&server, "/world/default/pose/info", "gz.msgs.Pose_V");
+    server.update().unwrap();
     poses.recv_timeout(Duration::from_secs(5)).unwrap();
     assert_eq!(server.counters().poses_queued, 1);
     drop(poses);
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.counters().poses_unobserved, 2);
-    let poses = server
-        .node
-        .subscribe("/world/default/pose/info", "gz.msgs.Pose_V")
-        .unwrap();
-    server.tick().unwrap();
+    let poses = samples(&server, "/world/default/pose/info", "gz.msgs.Pose_V");
+    server.update().unwrap();
     assert!(matches!(
         poses.recv_timeout(Duration::from_millis(1)),
-        Err(TransportError::Timeout)
+        Err(mpsc::RecvTimeoutError::Timeout)
     ));
     assert_eq!(server.counters().poses_queued, 1);
     assert_eq!(server.counters().poses_throttled, 1);
     assert!(server.apply_control(WorldControl {
         pause: true,
-        reset: Some(gz_msgs::msgs::WorldReset {
+        reset: Some(gz_sim_proto::msgs::WorldReset {
             all: true,
             ..Default::default()
         }),
         ..Default::default()
     }));
-    server.tick().unwrap();
+    server.update().unwrap();
     assert_eq!(server.counters().poses_throttled, 2);
     assert_eq!(server.counters().poses_queued, 1);
 }
@@ -167,11 +154,8 @@ fn uninterested_poses_neither_consume_nor_reset_the_wall_slot() {
 #[test]
 fn stopped_interest_is_observable_and_does_not_stop_physics() {
     let mut server = native_interest_server();
-    server.node.shutdown();
-    assert!(matches!(
-        server.tick(),
-        Err(Error::Transport(TransportError::Shutdown))
-    ));
+    server.world_io.session.close().wait().unwrap();
+    assert!(matches!(server.update(), Err(Error::WorldClosed)));
     assert_eq!(server.simulation().elapsed(), Duration::from_millis(1));
     assert_eq!(server.counters().interest_failures, 3);
     assert_eq!(server.counters().poses_unobserved, 0);
@@ -183,13 +167,10 @@ fn stopped_interest_is_observable_and_does_not_stop_physics() {
 fn idle_ticks_preserve_noise_stream_and_use_the_full_acquisition_gap() {
     let mut server = configured_interest_server(true);
     for _ in 0..50 {
-        server.tick().unwrap();
+        server.update().unwrap();
     }
     assert_eq!(server.counters().imus_queued, 0);
-    let fast = server
-        .node
-        .subscribe("/activation/fast", "gz.msgs.IMU")
-        .unwrap();
+    let fast = samples(&server, "/activation/fast", "gz.msgs.IMU");
     let identity = server
         .simulation()
         .world()
@@ -213,27 +194,25 @@ fn idle_ticks_preserve_noise_stream_and_use_the_full_acquisition_gap() {
         &mut random,
     )
     .unwrap();
-    server.tick().unwrap();
+    server.update().unwrap();
     let raw = fast.recv_timeout(Duration::from_secs(5)).unwrap();
-    let first = gz_msgs::msgs::Imu::decode(raw.data.as_slice()).unwrap();
+    let first = gz_sim_proto::msgs::Imu::decode(raw.payload().to_bytes().as_ref()).unwrap();
     assert_eq!(first.header.unwrap().stamp.unwrap().nsec, 51_000_000);
     assert_eq!(
         first.angular_velocity.unwrap().x,
         oracle.apply(0.0, 0.0, &mut random).unwrap()
     );
     drop(fast);
+    wait_imu_interest(&server, "/activation/fast", false);
     let queued = server.counters().imus_queued;
     for _ in 0..10 {
-        server.tick().unwrap();
+        server.update().unwrap();
     }
     assert_eq!(server.counters().imus_queued, queued);
-    let fast = server
-        .node
-        .subscribe("/activation/fast", "gz.msgs.IMU")
-        .unwrap();
-    server.tick().unwrap();
+    let fast = samples(&server, "/activation/fast", "gz.msgs.IMU");
+    server.update().unwrap();
     let raw = fast.recv_timeout(Duration::from_secs(5)).unwrap();
-    let second = gz_msgs::msgs::Imu::decode(raw.data.as_slice()).unwrap();
+    let second = gz_sim_proto::msgs::Imu::decode(raw.payload().to_bytes().as_ref()).unwrap();
     assert_eq!(second.header.unwrap().stamp.unwrap().nsec, 62_000_000);
     assert_eq!(
         second.angular_velocity.unwrap().x,
@@ -259,15 +238,23 @@ fn separate_node_receives_first_imu_frame_directly_and_once_after_reset() {
             engine,
         )
         .unwrap();
-        let mut server = Server::new(
+        let mut server = isolated_server(
             sim,
             "default",
             settings.clone(),
             NonZeroUsize::new(2).unwrap(),
         )
         .unwrap();
-        let mut client = Node::new(settings.clone()).unwrap();
-        let subscription = client.subscribe("/activation/fast", "gz.msgs.IMU").unwrap();
+        // A SessionLocal-only subscription preserves the original direct-delivery
+        // intent without fabricating the discarded SDK MessageInfo flag.
+        let client = server.world_io.session.clone();
+        let key = crate::options::qualified_name(
+            &settings.partition,
+            &settings.namespace,
+            "/activation/fast",
+        )
+        .unwrap();
+        let subscription = sample_channel(&client, key, "gz.msgs.IMU", settings.capacity);
         let publisher = &server
             .imus
             .iter()
@@ -275,10 +262,10 @@ fn separate_node_receives_first_imu_frame_directly_and_once_after_reset() {
             .unwrap()
             .publisher;
         let deadline = Instant::now() + Duration::from_secs(5);
-        while !publisher.connection_snapshot().unwrap() {
+        while !publisher.matching().unwrap() {
             assert!(
                 Instant::now() < deadline,
-                "separate Node registration did not arrive"
+                "session-local subscription did not arrive"
             );
             thread::sleep(Duration::from_millis(1));
         }
@@ -290,22 +277,24 @@ fn separate_node_receives_first_imu_frame_directly_and_once_after_reset() {
                 multi_step: 1,
                 ..Default::default()
             }));
-            server.tick().unwrap();
+            server.update().unwrap();
             assert_eq!(server.simulation().elapsed(), Duration::from_millis(1));
-            let received = subscription
-                .recv_with_info_timeout(Duration::from_secs(5))
+            let received = subscription.recv_timeout(Duration::from_secs(5)).unwrap();
+            let (partition, topic) = received
+                .key_expr()
+                .as_str()
+                .strip_prefix('@')
+                .unwrap()
+                .rsplit_once('@')
                 .unwrap();
-            assert!(
-                received.info().intra_process,
-                "another Node in this process must use native direct delivery"
-            );
+            assert_eq!(partition, format!("/{}", settings.partition));
+            assert_eq!(topic, "/activation/fast");
             assert_eq!(
-                received.info().partition,
-                format!("/{}", settings.partition)
+                received.attachment().unwrap().to_bytes().as_ref(),
+                b"gz.msgs.IMU"
             );
-            assert_eq!(received.info().topic, "/activation/fast");
-            assert_eq!(received.info().type_name, "gz.msgs.IMU");
-            let frame = gz_msgs::msgs::Imu::decode(received.data.as_slice()).unwrap();
+            let frame =
+                gz_sim_proto::msgs::Imu::decode(received.payload().to_bytes().as_ref()).unwrap();
             let header = frame.header.as_ref().unwrap();
             assert_eq!(
                 header.stamp,
@@ -354,7 +343,7 @@ fn separate_node_receives_first_imu_frame_directly_and_once_after_reset() {
             }
             assert!(matches!(
                 subscription.recv_timeout(Duration::from_millis(50)),
-                Err(TransportError::Timeout)
+                Err(mpsc::RecvTimeoutError::Timeout)
             ));
             assert_eq!(server.counters().imu_failures, 0);
             assert_eq!(server.counters().invalid_imu_samples, 0);
@@ -365,17 +354,18 @@ fn separate_node_receives_first_imu_frame_directly_and_once_after_reset() {
             );
             assert!(server.apply_control(WorldControl {
                 pause: true,
-                reset: Some(gz_msgs::msgs::WorldReset {
+                reset: Some(gz_sim_proto::msgs::WorldReset {
                     all: true,
                     ..Default::default()
                 }),
                 ..Default::default()
             }));
-            server.tick().unwrap();
+            server.update().unwrap();
             assert_eq!(server.simulation().elapsed(), Duration::ZERO);
         }
-        assert_eq!(server.transport_statistics().routing_errors, 0);
+        // D28 has no SDK routing_errors metric. Actual SessionLocal-only
+        // delivery, exact raw key/type, frames and 50ms absence are asserted above.
         server.shutdown();
-        client.shutdown();
+        drop(client);
     }
 }

@@ -7,6 +7,125 @@ Updated 2026-10-31. Read this first when resuming coordination of the rewrite,
 whichever agent you are. AGENTS.md has the standing rules; this file has the
 current state and the next tasks. Update both when either changes.
 
+## Current private Zenoh integration (2026-10-31)
+
+The migration remains an unaccepted working tree at
+`artifacts/direct-zenoh-consumer-worktree`. Public Main e945288 and hosted run
+41206243415 describe the historical runtime. Root owns integration; never edit
+Fuel. The Rust workspace no longer depends on gz-transport, the old Messages
+runtime or ZeroMQ. Consumers use standard generated protobuf bindings.
+
+Reviewed runtime work includes ServerOptions, IO-owned control/removal queries,
+clock/pose/IMU publication, scalar rate/force ingress and bounded response
+channels. `prepare_io` performs reset setup outside raw ticking; `update` combines
+phases. Real controls cover rate retirement, canceled setup, queued shutdown and
+admitted-response discard accounting. Complete ACT-01 absence and stopped-peer
+pressure acceptance remain open. An earlier native rate no-reply failure has
+unknown cause; its fixture now follows the actual persistent-querier readiness
+contract before one request, without retries or relaxed deadlines.
+
+The real source-built `gazebo-zenoh-client-v1` reference is qualified at
+`artifacts/zenoh-native-reference`. Signed snapshot packages, source/tool identity,
+installed closure and the locked ROS archive are checked. Identical archive bytes
+were recovered over valid official mirror HTTPS after the canonical URL's TLS
+hostname failure; no verification or pin was weakened. Keep SDK bootstrap inputs
+unchanged while using this reference. Copied snapshots set
+`GZ_ZENOH_REFERENCE_ROOT` to its qualified absolute root.
+
+All four retained C++ fixtures compile through the selected-reference builder.
+Real server, rate, force and CLI scenarios pass against this actual reference;
+current camera worker/GPU replay is still required. Nine direct same-session
+camera fault scenarios pass. The CLI's removed invalid-GZ_IP option has a reviewed
+translation to malformed explicit TCP configuration, retaining exit/no-output
+assertions.
+
+A complete local headless execution now passes 783 tests, all three original
+timing controls and real C++ peer checks. Five delegated child entrypoints are
+verified through their harnesses, not counted as skipped domain cases. All 12
+headless crates pass strict line and region coverage: workspace 9757/9931 lines
+and 14931/15372 regions; server 2401/2491 and 3478/3655. Changed coverage passes:
+proto 177/178, CLI 4/4 and server 1591/1654. Evidence is under
+`/tmp/sdf-full-headless-8u55xnn1`; this is local qualification, not a staged,
+hosted, renderer or comparative-performance pass.
+
+Two findings were repaired without changing production assertions or thresholds.
+A serial orchestration override changed libtest's child receipt formatting; it
+was removed after a real one-seed comparison. Zenoh matching callbacks are
+asynchronous: test clients now await actual IMU readiness outside stepping, and
+last-drop retirement before the original idle steps. Frame deadlines, timestamps,
+sequences, counters, noise oracles and advancing-step counts remain unchanged.
+All 141 server controls and the five focused interest controls pass.
+
+Coverage export exposed a shared unowned test module with three mappings. LLVM's
+source filters also hid legitimate build-script aliases, so do not use them.
+The reviewed `owned_coverage` helper selects whole JSON and LF LCOV records by
+membership in the complete owned set. It never merges aliases or edits counters;
+strict duplicate, missing-source, DA0 and >95% checks remain unchanged. The
+original full JSON first passes the generated-binding guard, including rejection
+of unexpected generated siblings. Both unfiltered artifacts are retained. All
+57 executable owned JSON records and LCOV blocks match the original data exactly,
+including 122 zero-hit entries; only the syntax-audited proto facade is absent.
+New integrity controls and independent replay pass.
+
+The complete renderer diagnostic also passes: 435 tests, all ten production
+crates above the unchanged strict thresholds, 5058/5191 lines and 7523/7830
+regions. Actual software Vulkan worker and C++ camera evidence are retained.
+Two reviewed camera boundary tests raised camera regions from 555/586 to 557/586
+with unchanged production code and prior tests. Their real Image wire, payload
+budget, closed-publisher and constructor-cleanup assertions pass. The renderer
+uses the frozen production snapshot plus those tests; it is not a combined-tree
+staged or hosted result.
+
+A separate reviewed follow-up releases the CPU IMU stream buffer after the last
+consumer and on both committed-reset failures. Four strengthened existing
+lifecycle controls each reproduced retained capacity four before the fix and now
+pass with capacity zero, including independent retained-ELF replay. Original
+Weak-lease, frame, epoch, ID restoration, sequence and physical assertions remain.
+This is bounded allocation retirement; full ACT-01 and shutdown remain open.
+
+The real `gazebo-zenoh-headless-v1` application build is qualified locally. Its
+separate same-image client, rebuilt Sensors/Sim, unchanged Physics and stationary
+Clock/Pose/IMU smoke passed. The immutable local image is
+`sha256:bae6ddc3a806532805a8103967d7ab353fdaf14ab0fcb957343f8f32bece11da`;
+fresh read-only validation passed. Proof is under
+`artifacts/zenoh-headless-build/qualified-evidence`. The new overlay build paths
+avoid a reproduced Docker lower-directory EXDEV error. A root-owned in-container
+copy of six source caches resolved Git ownership rejection without a global
+ownership bypass, host chown, package change or input waiver.
+
+The untimed smoke proves a common stationary 1ms sample and bound native library
+closure. It does not replace the unchanged moving benchmark's stronger metadata,
+covariance, header, timing and motion predicates. No comparative performance or
+native gtest execution credit comes from compiling the application targets.
+
+Current lanes:
+- SDF independently checks the native reference/image evidence after completing
+  both profile diagnostics and preserving their source/object/raw bindings.
+- The former Transport owner qualifies a disposable runtime container for the
+  actual optimized Rust benchmark ELF. Only eight missing DART-family shared
+  libraries may be bound read-only; existing common libraries must stay unchanged.
+- The former Messages owner independently reviews the runtime mounts, exact ELF
+  closure and source-bound release record. Root coordinates measurements and the
+  combined-tree staged/hosted gates.
+
+A release server test executable has built with the pinned Rust compiler,
+optimization level three, no debug assertions and no instrumentation. A complete
+source/Git-tree/Cargo-JSON/ELF record must match the final source before measurement.
+Its DART bridge requires eight additional runtime files even for loading this
+TPE-only test binary. Loader qualification must precede any Rust test main; do not
+replace the immutable image's common libraries or relax the benchmark checks.
+MuJoCo is lazy-loaded and is not a dependency of this TPE workload.
+
+The CI workflow uses exact signed snapshot packages in private APT state and
+verifies the ROS archive. Resolver and integrity controls pass; the complete local
+tooling suite passes 217 tests. Current normal staged verification and hosted CI
+are still required. Next: qualify the runtime overlay, run quiet equal-work
+comparisons with the unchanged workload, finish pressure/absence work, and run the
+normal staged hook and exact hosted gates. Publish only reviewed checked changes.
+Never run comparative timings during native or Rust builds. Keep at least 1 GiB
+host free space; reclaim only confirmed inactive compiler caches and preserve
+source, ELF, dep-info, native objects, raw profiles and reports.
+
 ## Owner correction: Zenoh and schema-only Messages
 
 D28/D29 supersede the transport and Messages runtime rewrite. Stop all old

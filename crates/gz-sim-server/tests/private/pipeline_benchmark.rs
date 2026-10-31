@@ -1,8 +1,10 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
-use gz_msgs::msgs::Imu;
+use crate::tests::{isolated_server, isolated_zenoh_config, sample_channel, samples};
 use gz_sim_core::EntityId;
+use gz_sim_proto::msgs::Imu;
+use gz_sim_proto::prost::Name as ProtoName;
 use gz_sim_scene::{
     Name, PhysicsEngine, WorldPose, load_world_with_sdf_step, queue_link_world_velocity,
 };
@@ -94,7 +96,7 @@ fn tpe_imu_process_local_pipeline() {
         .unwrap();
     assert_eq!(metadata.entity_name, "ball::body::imu");
     assert_eq!(metadata.frame_id, "ball::body::imu");
-    let mut node = Node::new(Config {
+    let config = ServerOptions {
         partition: format!(
             "pipeline-{}-{}",
             std::process::id(),
@@ -103,17 +105,22 @@ fn tpe_imu_process_local_pipeline() {
                 .unwrap()
                 .as_nanos()
         ),
-        interface: std::net::Ipv4Addr::LOCALHOST,
-        ..Config::default()
-    })
-    .unwrap();
-    let subscription = node.subscribe(&metadata.topic, "gz.msgs.IMU").unwrap();
-    let publisher = node.advertise(&metadata.topic, "gz.msgs.IMU").unwrap();
+        ..ServerOptions::default()
+    };
+    let session = zenoh::open(isolated_zenoh_config()).wait().unwrap();
+    let key = crate::options::qualified_name(&config.partition, &config.namespace, &metadata.topic)
+        .unwrap();
+    let subscription = sample_channel(&session, key.clone(), &Imu::full_name(), config.capacity);
+    let publisher = session.declare_publisher(key).wait().unwrap();
     sim.step_exact(1).unwrap();
     let first = imu_packet(&metadata, sim.world().get::<ImuSample>(entity).unwrap(), 0).unwrap();
-    publisher.publish(first.encode_to_vec()).unwrap();
+    publisher
+        .put(first.encode_to_vec())
+        .attachment(Imu::full_name())
+        .wait()
+        .unwrap();
     let first = subscription.recv_timeout(Duration::from_secs(5)).unwrap();
-    let first_message = Imu::decode(first.data.as_slice()).unwrap();
+    let first_message = Imu::decode(first.payload().to_bytes().as_ref()).unwrap();
     let warmup_force_x = first_message.linear_acceleration.as_ref().unwrap().x;
     check(&first_message, 0, &metadata);
     let start = Instant::now();
@@ -131,15 +138,19 @@ fn tpe_imu_process_local_pipeline() {
         .unwrap();
         let bytes = packet.encode_to_vec();
         sent_bytes += bytes.len();
-        publisher.publish(bytes).unwrap();
+        publisher
+            .put(bytes)
+            .attachment(Imu::full_name())
+            .wait()
+            .unwrap();
     }
     let mut received_bytes = 0;
     let mut time_sum = 0;
     let mut force_sum = 0.0;
     for sequence in 1..=steps {
         let received = subscription.recv_timeout(Duration::from_secs(5)).unwrap();
-        received_bytes += received.data.len();
-        let message = Imu::decode(received.data.as_slice()).unwrap();
+        received_bytes += received.payload().len();
+        let message = Imu::decode(received.payload().to_bytes().as_ref()).unwrap();
         let (time, force) = check(&message, sequence, &metadata);
         time_sum += time;
         force_sum += force;
@@ -148,7 +159,7 @@ fn tpe_imu_process_local_pipeline() {
     assert_eq!(received_bytes, sent_bytes);
     assert!(matches!(
         subscription.recv_timeout(Duration::from_millis(1)),
-        Err(TransportError::Timeout)
+        Err(std::sync::mpsc::RecvTimeoutError::Timeout)
     ));
     assert_eq!(sim.elapsed(), Duration::from_millis(steps + 1));
     let final_x = sim
@@ -161,7 +172,7 @@ fn tpe_imu_process_local_pipeline() {
             .iter()
             .map(|byte| format!("{byte:02x}"))
             .collect();
-    node.shutdown();
+    session.close().wait().unwrap();
     println!(
         "PIPELINE {{\"steps\":{steps},\"nanos\":{nanos},\"logical_bytes\":{received_bytes},\"time_sum\":{time_sum},\"force_sum\":{force_sum:.17},\"final_x\":{final_x:.17},\"warmup_force_x\":{warmup_force_x:.17},\"fixture_hex\":\"{fixture_hex}\"}}"
     );
@@ -208,10 +219,10 @@ fn tpe_imu_full_server_pipeline() {
         .iter_entities()
         .find_map(|entity| entity.get::<ImuPublication>().cloned())
         .unwrap();
-    let mut server = Server::new(
+    let mut server = isolated_server(
         sim,
         "default",
-        Config {
+        ServerOptions {
             partition: format!(
                 "full-pipeline-{}-{}",
                 std::process::id(),
@@ -220,8 +231,7 @@ fn tpe_imu_full_server_pipeline() {
                     .unwrap()
                     .as_nanos()
             ),
-            interface: std::net::Ipv4Addr::LOCALHOST,
-            ..Config::default()
+            ..ServerOptions::default()
         },
         NonZeroUsize::new(64).unwrap(),
     )
@@ -229,17 +239,14 @@ fn tpe_imu_full_server_pipeline() {
     // Preserve the historical unpaced workload, including an unobserved pose each tick.
     server.set_pose_publication_period(Duration::ZERO);
     server.set_interest_policy(InterestPolicy::Always);
-    let subscription = server
-        .node
-        .subscribe(&metadata.topic, "gz.msgs.IMU")
-        .unwrap();
+    let subscription = samples(&server, &metadata.topic, &Imu::full_name());
     assert!(server.apply_control(WorldControl {
         pause: false,
         ..Default::default()
     }));
-    server.tick().unwrap();
+    server.update().unwrap();
     let first = subscription.recv_timeout(Duration::from_secs(5)).unwrap();
-    let first_message = Imu::decode(first.data.as_slice()).unwrap();
+    let first_message = Imu::decode(first.payload().to_bytes().as_ref()).unwrap();
     let warmup_force_x = first_message.linear_acceleration.as_ref().unwrap().x;
     check(&first_message, 0, &metadata);
     let mut received_bytes = 0;
@@ -247,7 +254,7 @@ fn tpe_imu_full_server_pipeline() {
     let mut force_sum = 0.0;
     let start = Instant::now();
     for sequence in 1..=steps {
-        let info = server.tick().unwrap();
+        let info = server.update().unwrap();
         assert!(!info.paused);
         assert_eq!(info.sim_time, Duration::from_millis(sequence + 1));
         let pose = server
@@ -259,8 +266,8 @@ fn tpe_imu_full_server_pipeline() {
         assert_eq!([pose.translation[1], pose.translation[2]], [0.0, 5.0]);
         // Complete each requested observation before admitting another step.
         let received = subscription.recv_timeout(Duration::from_secs(5)).unwrap();
-        received_bytes += received.data.len();
-        let message = Imu::decode(received.data.as_slice()).unwrap();
+        received_bytes += received.payload().len();
+        let message = Imu::decode(received.payload().to_bytes().as_ref()).unwrap();
         let (time, force) = check(&message, sequence, &metadata);
         time_sum += time;
         force_sum += force;
@@ -268,7 +275,7 @@ fn tpe_imu_full_server_pipeline() {
     let nanos = start.elapsed().as_nanos();
     assert!(matches!(
         subscription.recv_timeout(Duration::from_millis(1)),
-        Err(TransportError::Timeout)
+        Err(std::sync::mpsc::RecvTimeoutError::Timeout)
     ));
     assert_eq!(
         server.simulation().elapsed(),
@@ -282,7 +289,7 @@ fn tpe_imu_full_server_pipeline() {
     assert_eq!(counters.poses_queued, steps + 1);
     assert_eq!(counters.clock_failures, 0);
     assert_eq!(counters.pose_failures, 0);
-    assert_eq!(server.transport_statistics(), Statistics::default());
+    assert_eq!(server.ingress_statistics(), IngressStatistics::default());
     let final_x = server
         .simulation()
         .world()

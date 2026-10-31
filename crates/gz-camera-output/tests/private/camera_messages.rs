@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
-use gz_msgs::prost::Message;
+use gz_sim_proto::prost::Message;
 
 #[test]
 fn rgb_frame_strips_alpha_preserves_rows_header_and_roundtrips() {

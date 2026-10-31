@@ -1,12 +1,9 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use crate::{Error, time};
+use crate::{Error, quaternion, time, vector3};
 use bevy_ecs::world::World;
-use gz_msgs::{
-    msgs::{Header, Pose, PoseV},
-    quaternion, vector3,
-};
 use gz_sim_core::{EntityId, entity_by_id};
+use gz_sim_proto::msgs::{Header, Pose, PoseV};
 use gz_sim_scene::{EntityKind, LocalName, LocalPose, WorldPose};
 use std::time::{Duration, Instant};
 

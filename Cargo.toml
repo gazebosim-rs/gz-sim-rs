@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/gz-assets", "crates/gz-physics-tpe", "crates/gz-physics", "crates/gz-sim-core", "crates/gz-physics-rapier", "crates/gz-physics-dart", "crates/gz-physics-mujoco", "crates/gz-sensors", "crates/gz-sim-scene", "crates/gz-sim-cli", "crates/gz-sim-server", "crates/gz-camera-output", "crates/gz-render-scene", "crates/gz-render-frame", "crates/gz-renderer", "crates/gz-render-protocol", "crates/gz-render-client", "crates/gz-render-worker", "tests/support/render-fixtures"]
+members = ["crates/gz-sim-proto", "crates/gz-assets", "crates/gz-physics-tpe", "crates/gz-physics", "crates/gz-sim-core", "crates/gz-physics-rapier", "crates/gz-physics-dart", "crates/gz-physics-mujoco", "crates/gz-sensors", "crates/gz-sim-scene", "crates/gz-sim-cli", "crates/gz-sim-server", "crates/gz-camera-output", "crates/gz-render-scene", "crates/gz-render-frame", "crates/gz-renderer", "crates/gz-render-protocol", "crates/gz-render-client", "crates/gz-render-worker", "tests/support/render-fixtures"]
 default-members = ["crates/gz-assets", "crates/gz-physics-tpe", "crates/gz-physics", "crates/gz-sim-core", "crates/gz-physics-rapier", "crates/gz-physics-dart", "crates/gz-physics-mujoco", "crates/gz-sensors", "crates/gz-sim-scene", "crates/gz-sim-cli", "crates/gz-sim-server"]
 resolver = "3"
 
@@ -9,16 +9,20 @@ edition = "2024"
 rust-version = "1.97.1"
 license = "Apache-2.0"
 
+[patch.crates-io]
+prost-derive = { path = "third_party/prost-derive-0.14.4" }
+
 [workspace.dependencies]
-petgraph = "=0.8.1"
+uuid = { version = "=1.23.1", features = ["v4"] }
+zenoh = { version = "=1.8.0", default-features = false, features = ["transport_tcp"] }
+gz-sim-proto = { path = "crates/gz-sim-proto" }
+petgraph = "=0.8.3"
 gz-fuel-tools = { git = "https://github.com/gazebosim-rs/gz-fuel-tools-rs", rev = "3747086ed13b59d2f7701eedc11329ebd7c9df3a" }
 bevy_ecs = { version = "=0.20.0", default-features = false, features = ["std", "multi_threaded"] }
 thiserror = "=2.0.18"
 glam = "=0.33.12"
 clap = { version = "=4.6.7", features = ["derive"] }
-sdformat = { git = "https://github.com/gazebosim-rs/sdformat-rs", rev = "8b17dfd7171688626bcf0f045ba3493cd262f8a2" }
-gz-msgs = { git = "https://github.com/gazebosim-rs/gz-msgs-rs", rev = "2cea810e929adb4f925750b325265a99f9ae78b4" }
-gz-transport = { git = "https://github.com/gazebosim-rs/gz-transport-rs", rev = "cffaca6cf90d493911191a4bd6b1ed04da93b74b" }
+sdformat = { git = "https://github.com/gazebosim-rs/sdformat-rs", rev = "0437a54a0b546aea646e9574fe96f977a3e65f21" }
 rapier3d-f64 = { version = "=0.36.1", features = ["enhanced-determinism"] }
 
 [workspace.lints.rust]

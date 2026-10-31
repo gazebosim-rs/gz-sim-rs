@@ -1,0 +1,18 @@
+{
+  "producer": "standard native protoc 3.21.12, canonical Gazebo schemas at 89c0c3d1474f545cb889335daf930bfdab6ab852",
+  "scope": "11 canonical wire fixtures; camera-info.bin retains the exact325-byte existing simulator CameraInfo fixture. Domain snapshots are not a generic message SDK conformance claim.",
+  "files_sha256": {
+    "camera-info.bin": "672c054dd340890150450aee40a80f105b25810165e8ff98161e60e842997e39",
+    "clock.bin": "efc5a63f029652cf079702da3a67abc8be02b28a598c7c65c5cf9b4aa78c6e5a",
+    "double-negative-zero.bin": "a68a0ffdef0df3b51f57ef05eaf4819f92dff18e16c502af248f42ef4164db45",
+    "double-positive-zero.bin": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "float-negative-zero.bin": "1916e571fcb67d340eed7a76e0195b17eef81f561925f29dd81eed36a647426c",
+    "float-positive-zero.bin": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "imu.bin": "823748bac1476b58c44b48c200560373d5ed39f828581c9729ee9b0fc3b8c4a4",
+    "quaternion-negative-zero.bin": "357d0e19a7ecac830329e176a6d81e553f08ed57360802b1191edff8a2b170d0",
+    "quaternion-positive-zero.bin": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "vector3d-negative-zero.bin": "8853279f9cde15fa4e215bcb77cc633a644986a77acf23aa13abdedf6a4b042f",
+    "vector3d-positive-zero.bin": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "qualification": "Author Google consumer probe separately verified Rust outputs with native parse/re-encode. This candidate reuses unchanged raw fixture bytes; actual generated Rust values are checked locally."
+}
