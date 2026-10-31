@@ -3,6 +3,9 @@
 
 # PHY-03 moving-parent revolute slice
 
+This records the initial world-rooted slice. The bounded seven-coordinate
+free-root extension is described in [FREE_PARENT.md](FREE_PARENT.md).
+
 This private slice starts at `5669d79` and owns only
 `crates/gz-physics-dart/{src,include,tests,docs}`. Independent source review has passed; strict staged coverage, full mandatory
 gates and hosted checks remain required.

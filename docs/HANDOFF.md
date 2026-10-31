@@ -230,8 +230,8 @@ hosted run `41168474334`. Downloaded evidence matches all 60 source hashes and
 25 build/check inputs against that commit, plus both local profile summaries.
 This accepts a DART world hinge with one dynamic revolute child, including
 coupled effort, reset and guarded topology changes. External articulation
-contacts, active multibody limit rows, free-root chains and larger graphs remain
-unsupported. The native oracle records its verified hybrid SDK provenance;
+contacts, active multibody limit rows and larger graphs remain unsupported.
+The free-root follow-up is described below. The native oracle records its verified hybrid SDK provenance;
 it is not a clean homogeneous reference build or performance qualification.
 
 Scene commit `506f94a` preserves SDF declaration identities while constructing
@@ -242,6 +242,18 @@ scene lines. Exact hosted run `41169945049` passed, with both downloaded profile
 source hashes matching local evidence. The original
 ApplyJointForce world has a free root and ground contact; adding a world hinge
 would create a different fixture and earns no original-system completion.
+
+The bounded free-root follow-up supports one dynamic parent and one revolute
+child, with seven generalized coordinates. It preserves the extraction-cache
+repair below and the existing guards on external contacts and active limits.
+The exact previously rejected Scene XML now checks both endpoints, free-parent
+translation and rotation under internal effort, sampling, loaded reset and
+removal. Independent review regenerated all 34 native observations and approved
+only three explicit rejection-to-positive transitions. Full unfiltered backend
+and Scene body-joint tests pass. Ordinary strict staged and exact hosted evidence
+must be checked before marking this slice accepted on the dashboard. See
+[FREE_PARENT.md](../crates/gz-physics-dart/docs/FREE_PARENT.md). The original
+ground-contact ApplyJointForce world remains unqualified.
 
 Follow-up review found a DART extraction bug: rejected attachments and leaf
 retirement could leave surviving native Jacobian caches zero while Rust state

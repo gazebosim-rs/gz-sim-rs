@@ -170,10 +170,15 @@ fn native_body_joint_preflight_and_retirement_preserve_skeleton_ownership() {
         linear: [0.0; 3],
         angular: [0.0, 0.0, 1.0],
     };
-    assert!(
-        message(world.add_body_revolute(parent, child, &axis))
-            .contains("unsupported body revolute topology")
-    );
+    let initial = [world.read(parent).unwrap(), world.read(child).unwrap()];
+    assert!(world.add_body_revolute(parent, child, &axis).unwrap());
+    assert_eq!(world.skeleton_count().unwrap(), 1);
+    for (slot, before) in [parent, child].into_iter().zip(initial) {
+        let state = world.read(slot).unwrap();
+        assert_eq!(state.position, before.position);
+        assert_eq!(state.velocity, before.velocity);
+    }
+    assert!(world.remove_revolute(child).unwrap());
     assert_eq!(world.skeleton_count().unwrap(), 2);
     assert!(world.add_revolute(parent, &axis).unwrap());
     assert!(world.add_body_revolute(parent, child, &axis).unwrap());
@@ -190,6 +195,41 @@ fn native_body_joint_preflight_and_retirement_preserve_skeleton_ownership() {
     assert_eq!(world.skeleton_count().unwrap(), 1);
     assert!(world.remove_revolute(child).unwrap());
     assert_eq!(world.skeleton_count().unwrap(), 2);
+    assert!(world.remove_revolute(parent).unwrap());
+    world.remove_body(parent).unwrap();
+    world.remove_body(child).unwrap();
+    assert_eq!(world.skeleton_count().unwrap(), 0);
+}
+
+#[test]
+fn prepared_native_free_pair_exact_old_input_preserves_ownership_on_retirement() {
+    let mut world = NativeWorld::new([0.0; 3]).unwrap();
+    let parent = world.add_body(&sphere()).unwrap();
+    let child = world
+        .add_body(&BodyConfig {
+            position: [3.0, 0.0, 0.0],
+            ..sphere()
+        })
+        .unwrap();
+    let axis = Twist {
+        linear: [0.0; 3],
+        angular: [0.0, 0.0, 1.0],
+    };
+    let before = [world.read(parent).unwrap(), world.read(child).unwrap()];
+    assert!(world.add_body_revolute(parent, child, &axis).unwrap());
+    assert_eq!(world.skeleton_count().unwrap(), 1);
+    for (slot, initial) in [parent, child].into_iter().zip(before) {
+        let state = world.read(slot).unwrap();
+        assert_eq!(state.position, initial.position);
+        assert_eq!(state.velocity, initial.velocity);
+    }
+    assert!(world.remove_revolute(child).unwrap());
+    assert_eq!(world.skeleton_count().unwrap(), 2);
+    assert!(world.add_revolute(parent, &axis).unwrap());
+    assert!(world.add_body_revolute(parent, child, &axis).unwrap());
+    assert_eq!(world.skeleton_count().unwrap(), 1);
+    assert!(!world.remove_revolute(parent).unwrap());
+    assert!(world.remove_revolute(child).unwrap());
     assert!(world.remove_revolute(parent).unwrap());
     world.remove_body(parent).unwrap();
     world.remove_body(child).unwrap();

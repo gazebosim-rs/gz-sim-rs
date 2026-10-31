@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Native DART 6.13 rigid bodies configured like the gz-physics dartsim plugin.
 //!
-//! Bodies start as independent skeletons. A world-hinged dynamic parent may take
-//! one dynamic revolute child. Body and joint states are read back after each
+//! Bodies start as independent skeletons. A free or world-hinged dynamic parent
+//! may take one dynamic revolute child. Body and joint states are read back after each
 //! mutation, so queries never enter native code.
 
 use gz_physics::{
@@ -388,8 +388,8 @@ impl DynamicBackend for DartBackend {
         Ok(())
     }
 
-    /// Free bodies change COM and angular velocity by m⁻¹·linear and I⁻¹·angular;
-    /// a world-revolute body changes its joint rate by M⁻¹·Jᵀ·impulse. A result
+    /// Isolated free bodies use m⁻¹·linear and I⁻¹·angular; articulated bodies
+    /// change their coupled generalized rates by M⁻¹·Jᵀ·impulse. A result
     /// above 1e60 is rejected and leaves the velocities unchanged.
     fn apply_impulse(
         &mut self,
@@ -478,7 +478,7 @@ impl DynamicBackend for DartBackend {
             .bodies
             .get(&child)
             .ok_or(PhysicsError::MissingBody)?;
-        // One world root and one new leaf. This also excludes cycles and branches.
+        // One isolated free or world-hinged root and one new leaf.
         let world_root = self
             .world
             .joints
@@ -487,7 +487,7 @@ impl DynamicBackend for DartBackend {
         if parent == child
             || !parent_body.config.mobile
             || !child_body.config.mobile
-            || !world_root
+            || (!world_root && self.is_jointed(parent) == Some(true))
             || self.is_jointed(child) == Some(true)
             || self.world.joints.values().any(|j| j.parent == Some(parent))
         {

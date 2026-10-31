@@ -68,7 +68,7 @@ def installed_header_identity(source_root, installed_root):
             'tree_sha256': hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()}
 
 
-def main():
+def main(stem="moving_parent"):
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ['physics-source', 'build', 'prefix', 'work-dir', 'report']:
         parser.add_argument('--' + name, type=Path, required=True)
@@ -81,7 +81,7 @@ def main():
     assert subprocess.check_output(['git', '-C', str(source), 'rev-parse', 'HEAD'], text=True).strip() == lock
     subprocess.run(['git', '-C', str(source), 'diff', '--quiet', lock, '--'], check=True)
     sources = {}
-    for name in ['dartsim/src/JointFeatures.cc', 'dartsim/src/SimulationFeatures.cc', 'dartsim/src/SDFFeatures.cc']:
+    for name in ['dartsim/src/JointFeatures.cc', 'dartsim/src/SimulationFeatures.cc', 'dartsim/src/SDFFeatures.cc', 'dartsim/src/FreeGroupFeatures.cc']:
         assert (source / name).read_bytes() == subprocess.check_output(['git', '-C', str(source), 'show', lock + ':' + name])
         sources[name] = digest(source / name)
     cache = (build / 'CMakeCache.txt').read_text()
@@ -100,7 +100,7 @@ def main():
         ['pkg-config', '--variable=includedir', 'gz-physics'], env=env, text=True).strip()).resolve()
     sdk_headers = {name: installed_header_identity(source / relative, installed_headers)
                    for name, relative in [('core', 'include'), ('sdf', 'sdf/include')]}
-    cpp, binary, maps = FIXTURES / 'moving_parent.cc', work / 'moving-parent', work / 'loaded.maps'
+    cpp, binary, maps = FIXTURES / (stem + '.cc'), work / stem.replace('_', '-'), work / 'loaded.maps'
     command = ['c++', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', str(cpp), '-o', str(binary),
                *flags, '-Wl,-rpath,' + str(prefix / 'lib')]
     subprocess.run(command, check=True)
@@ -146,7 +146,7 @@ def main():
         libraries[actual.name] = digest(actual)
     fixture = {'source_sha256': digest(cpp), 'physics_commit': lock,
                'dart_version': '6.13.2', 'observations': observations}
-    path = FIXTURES / 'moving_parent.json'
+    path = FIXTURES / (stem + '.json')
     if args.write_fixture:
         path.write_text(json.dumps(fixture, indent=2) + '\n')
     else:
@@ -161,7 +161,7 @@ def main():
                   binary_sha256=digest(binary), stderr=result.stderr)
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + '\n')
-    print('34 native moving-parent observations passed')
+    print(f'34 native {stem} observations passed')
 
 
 if __name__ == '__main__':

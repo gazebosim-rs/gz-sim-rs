@@ -464,7 +464,7 @@ bool World::add_body_revolute(std::size_t parentSlot, std::size_t childSlot,
   const auto destination = parent.getSkeleton();
   if (&parent == &child || source == destination || !isFree(child) ||
       source->getNumBodyNodes() != 1 || destination->getNumBodyNodes() != 1 ||
-      isFree(parent) || !source->isMobile() || !destination->isMobile())
+      !source->isMobile() || !destination->isMobile())
     throw std::logic_error("unsupported body revolute topology");
 
   const Eigen::Isometry3d pose = child.getWorldTransform();
@@ -526,7 +526,7 @@ bool World::remove_revolute(std::size_t slot) {
   if (isFree(child)) {
     throw std::logic_error("body has no world revolute");
   }
-  // Releasing this root would create an unqualified free-root articulation.
+  // Root-joint conversion with a live child is not a supported topology edit.
   if (!child.getParentBodyNode() && child.getNumChildBodyNodes() != 0)
     return false;
   auto &hinge = static_cast<dart::dynamics::RevoluteJoint &>(*child.getParentJoint());

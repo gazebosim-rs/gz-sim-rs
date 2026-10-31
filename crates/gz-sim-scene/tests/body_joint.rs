@@ -27,6 +27,116 @@ fn named(sim: &Simulation, name: &str) -> Entity {
 }
 
 #[test]
+fn prepared_dart_free_root_exact_old_input_keeps_sampling_reset_and_removal() {
+    let mut sim = load_world_with_sdf_step(
+        XML,
+        "body_joint.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::Dart,
+    )
+    .unwrap();
+    let names = ["default::robot::parent", "default::robot::child"];
+    let initial = names.map(|name| *sim.world().get::<WorldPose>(named(&sim, name)).unwrap());
+    let model_id = sim
+        .world()
+        .get::<EntityId>(named(&sim, "default::robot"))
+        .unwrap()
+        .get();
+    let joint = named(&sim, "default::robot::hinge");
+    let joint_id = sim.world().get::<EntityId>(joint).unwrap().get();
+    let handle = *sim.world().get::<JointHandle>(joint).unwrap();
+    let child = sim
+        .world()
+        .get::<BodyHandle>(named(&sim, names[1]))
+        .unwrap()
+        .id();
+    let parent = sim
+        .world()
+        .get::<BodyHandle>(named(&sim, names[0]))
+        .unwrap()
+        .id();
+    assert_eq!(
+        sim.world()
+            .resource::<PhysicsBackend>()
+            .joint_child(handle.id()),
+        Some(child)
+    );
+    sim.step_exact(10).unwrap();
+    for (name, pose) in names.into_iter().zip(initial) {
+        let current = sim.world().get::<WorldPose>(named(&sim, name)).unwrap();
+        for (actual, expected) in current.translation.into_iter().zip(pose.translation) {
+            assert!((actual - expected).abs() < 1e-12);
+        }
+    }
+    assert!(
+        sim.world()
+            .get::<JointSample>(joint)
+            .unwrap()
+            .state
+            .position
+            .abs()
+            < 1e-12
+    );
+    gz_sim_scene::queue_joint_effort(&mut sim, joint_id, 0.1).unwrap();
+    sim.step_exact(1).unwrap();
+    let parent_state = sim
+        .world()
+        .resource::<PhysicsBackend>()
+        .state(parent)
+        .unwrap();
+    assert!(
+        parent_state
+            .angular_velocity
+            .into_iter()
+            .any(|value| value.abs() > 1e-12)
+    );
+    assert!(
+        parent_state
+            .position
+            .into_iter()
+            .zip(initial[0].translation)
+            .any(|(actual, expected)| (actual - expected).abs() > 1e-12)
+    );
+    assert!(
+        sim.world()
+            .get::<JointSample>(joint)
+            .unwrap()
+            .state
+            .velocity
+            > 0.0
+    );
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    let joint = named(&sim, "default::robot::hinge");
+    assert_eq!(sim.world().get::<EntityId>(joint).unwrap().get(), joint_id);
+    assert_eq!(
+        sim.world()
+            .get::<JointSample>(joint)
+            .unwrap()
+            .state
+            .position,
+        0.0
+    );
+    sim.step_exact(1).unwrap();
+    assert!(
+        sim.world()
+            .get::<JointSample>(joint)
+            .unwrap()
+            .state
+            .velocity
+            .abs()
+            < 1e-12
+    );
+    remove_model(&mut sim, model_id).unwrap();
+    assert!(
+        sim.world()
+            .iter_entities()
+            .all(|entity| entity.get::<JointHandle>().is_none())
+    );
+    sim.step_exact(1).unwrap();
+}
+
+#[test]
 fn two_link_body_hinge_uses_both_endpoints_and_survives_loaded_reset() {
     let mut sim = load_world_with_sdf_step(
         XML,
@@ -182,7 +292,8 @@ fn moving_endpoints_sample_relative_angle_and_joint_pose_follows_child() {
 fn unsupported_engines_do_not_fall_back_to_world_anchoring() {
     use gz_physics::PhysicsError;
     use gz_sim_scene::LoadError;
-    for engine in [PhysicsEngine::Dart, PhysicsEngine::Mujoco] {
+    {
+        let engine = PhysicsEngine::Mujoco;
         let result =
             load_world_with_sdf_step(XML, "body_joint.sdf", "default", &NoResources, engine);
         assert!(matches!(

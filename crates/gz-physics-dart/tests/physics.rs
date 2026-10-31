@@ -678,7 +678,7 @@ fn out_of_bound_steps_fault_the_simulation_and_restore_the_previous_state() {
 }
 
 #[test]
-fn body_revolutes_are_rejected_explicitly_without_changing_endpoints() {
+fn body_revolute_retirement_restores_endpoints_and_keeps_unsupported_input_errors() {
     let mut backend = DartBackend::new([0.0; 3]).unwrap();
     let parent = backend
         .spawn_link(ball(), RotationSpec::default(), None)
@@ -694,13 +694,14 @@ fn body_revolutes_are_rejected_explicitly_without_changing_endpoints() {
         )
         .unwrap();
     let before = [backend.state(parent), backend.state(child)];
-    assert_eq!(
-        backend.add_revolute(parent, child, [0.0, 0.0, 5.0], [0.0, 1.0, 0.0]),
-        Err(PhysicsError::Unsupported {
-            engine: "dart",
-            capability: "body-to-body revolute joint"
-        })
-    );
+    let joint = backend
+        .add_revolute(parent, child, [0.0, 0.0, 5.0], [0.0, 1.0, 0.0])
+        .unwrap();
+    assert_eq!(backend.joint_child(joint), Some(child));
+    assert_eq!([backend.state(parent), backend.state(child)], before);
+    assert_eq!(backend.is_jointed(parent), Some(true));
+    assert_eq!(backend.is_jointed(child), Some(true));
+    assert!(backend.remove_joint(joint));
     for anchor in [[0.0; 3], [f64::NAN; 3]] {
         assert_eq!(
             backend.add_reduced_revolute(Some(parent), child, anchor, [0.0, 1.0, 0.0]),
