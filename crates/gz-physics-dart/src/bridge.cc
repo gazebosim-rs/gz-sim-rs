@@ -151,6 +151,16 @@ bool bounded(dart::dynamics::BodyNode &body, double limit, Change change) {
   return false;
 }
 
+// DART 6.13 reinitializes surviving bodies when a subtree leaves, zeroing
+// their Jacobians without dirtying an already-clean Jacobian cache.
+void invalidateJacobians(dart::dynamics::Skeleton &skeleton) {
+  for (std::size_t i = 0; i < skeleton.getNumBodyNodes(); ++i) {
+    auto *node = skeleton.getBodyNode(i);
+    node->dirtyJacobian();
+    node->dirtyJacobianDeriv();
+  }
+}
+
 Twist comTwist(const dart::dynamics::BodyNode &body) {
   return {array(body.getCOMLinearVelocity()), array(body.getAngularVelocity())};
 }
@@ -353,6 +363,7 @@ void World::remove_body(std::size_t slot) {
   if (node.getParentBodyNode()) {
     // The detached skeleton is never registered and dies with the last slot.
     node.split<dart::dynamics::FreeJoint>(node.getName() + "_removed");
+    invalidateJacobians(*skeleton);
   } else {
     world_->removeSkeleton(skeleton);
   }
@@ -489,6 +500,7 @@ bool World::add_body_revolute(std::size_t parentSlot, std::size_t childSlot,
   const auto restore = [&] {
     lock.lock();
     auto *restored = child.moveTo<dart::dynamics::FreeJoint>(source, nullptr);
+    invalidateJacobians(*destination);
     restored->setTransform(pose);
     setFreeVelocity(child, twist);
   };
@@ -533,6 +545,7 @@ bool World::remove_revolute(std::size_t slot) {
   dart::dynamics::SkeletonPtr detached;
   if (parentBody) {
     detached = child.split<dart::dynamics::FreeJoint>(child.getName() + "_detached", properties);
+    invalidateJacobians(*originalSkeleton);
     world_->addSkeleton(detached);
   } else {
     child.moveTo<dart::dynamics::FreeJoint>(nullptr, properties);
