@@ -2138,6 +2138,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "gz-camera-output"
+version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "gz-msgs",
+ "gz-render-client",
+ "gz-render-protocol",
+ "gz-render-scene",
+ "gz-sim-core",
+ "gz-sim-scene",
+ "gz-transport",
+ "rustix",
+ "sdformat",
+ "socket2 0.6.5",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "gz-fuel-tools"
 version = "12.0.0-pre.2"
 source = "git+https://github.com/gazebosim-rs/gz-fuel-tools-rs?rev=3747086ed13b59d2f7701eedc11329ebd7c9df3a#3747086ed13b59d2f7701eedc11329ebd7c9df3a"
@@ -2280,9 +2298,15 @@ dependencies = [
 name = "gz-render-test-support"
 version = "0.1.0"
 dependencies = [
+ "gz-camera-output",
  "gz-render-client",
  "gz-render-protocol",
+ "gz-sim-core",
+ "gz-sim-scene",
+ "gz-transport",
  "rustix",
+ "sdformat",
+ "socket2 0.6.5",
  "syn 2.0.119",
 ]
 
@@ -2291,6 +2315,8 @@ name = "gz-render-worker"
 version = "0.1.0"
 dependencies = [
  "glam 0.33.12",
+ "gz-camera-output",
+ "gz-msgs",
  "gz-render-client",
  "gz-render-frame",
  "gz-render-protocol",
@@ -2298,8 +2324,11 @@ dependencies = [
  "gz-renderer",
  "gz-sim-core",
  "gz-sim-scene",
+ "gz-transport",
  "rustix",
  "sdformat",
+ "socket2 0.6.5",
+ "tempfile",
 ]
 
 [[package]]

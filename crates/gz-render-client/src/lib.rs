@@ -81,7 +81,7 @@ struct SnapshotCorrelation {
 /// The caller is responsible for trusting the installation and maintaining its
 /// permissions. This does not authenticate the file or protect against replacement.
 /// Resolve this configuration before starting simulation work.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TrustedWorker(PathBuf);
 
 impl TrustedWorker {

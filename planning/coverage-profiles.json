@@ -3,6 +3,7 @@
   "profiles": {
     "headless": {
       "exclude_packages": [
+        "gz-camera-output",
         "gz-render-client",
         "gz-render-frame",
         "gz-render-protocol",
@@ -15,6 +16,7 @@
     },
     "renderer": {
       "packages": [
+        "gz-camera-output",
         "gz-render-client",
         "gz-render-frame",
         "gz-render-protocol",

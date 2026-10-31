@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/gz-assets", "crates/gz-physics-tpe", "crates/gz-physics", "crates/gz-sim-core", "crates/gz-physics-rapier", "crates/gz-physics-dart", "crates/gz-physics-mujoco", "crates/gz-sensors", "crates/gz-sim-scene", "crates/gz-sim-cli", "crates/gz-sim-server", "crates/gz-render-scene", "crates/gz-render-frame", "crates/gz-renderer", "crates/gz-render-protocol", "crates/gz-render-client", "crates/gz-render-worker", "tests/support/render-fixtures"]
+members = ["crates/gz-assets", "crates/gz-physics-tpe", "crates/gz-physics", "crates/gz-sim-core", "crates/gz-physics-rapier", "crates/gz-physics-dart", "crates/gz-physics-mujoco", "crates/gz-sensors", "crates/gz-sim-scene", "crates/gz-sim-cli", "crates/gz-sim-server", "crates/gz-camera-output", "crates/gz-render-scene", "crates/gz-render-frame", "crates/gz-renderer", "crates/gz-render-protocol", "crates/gz-render-client", "crates/gz-render-worker", "tests/support/render-fixtures"]
 default-members = ["crates/gz-assets", "crates/gz-physics-tpe", "crates/gz-physics", "crates/gz-sim-core", "crates/gz-physics-rapier", "crates/gz-physics-dart", "crates/gz-physics-mujoco", "crates/gz-sensors", "crates/gz-sim-scene", "crates/gz-sim-cli", "crates/gz-sim-server"]
 resolver = "3"
 

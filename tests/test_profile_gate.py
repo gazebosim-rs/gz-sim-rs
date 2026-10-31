@@ -135,6 +135,10 @@ class FeatureProfiles(unittest.TestCase):
 
     def test_missing_package_empty_source_and_duplicate_ownership_fail(self):
         crates = sources()
+        del crates["gz-camera-output"]
+        with self.assertRaisesRegex(ValueError, "packages missing"):
+            verify.profile_plan(crates)
+        crates = sources()
         del crates["gz-render-scene"]
         with self.assertRaisesRegex(ValueError, "packages missing"):
             verify.profile_plan(crates)

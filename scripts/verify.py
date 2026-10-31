@@ -242,6 +242,7 @@ def check_changed_coverage(lcov, changed, crates, executable_counts=None, zero_e
 
 # These names are the proposed production package contract, not yet adopted.
 RENDER_PACKAGES = frozenset({
+    "gz-camera-output",
     "gz-render-frame", "gz-renderer", "gz-render-protocol",
     "gz-render-client", "gz-render-worker", "gz-render-scene",
 })

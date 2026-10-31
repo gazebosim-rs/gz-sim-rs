@@ -15,6 +15,12 @@ gz-render-protocol = { path = "../../../crates/gz-render-protocol" }
 syn = { version = "=2.0.119", features = ["full"] }
 
 [dev-dependencies]
+gz-camera-output = { path = "../../../crates/gz-camera-output" }
+gz-sim-core = { path = "../../../crates/gz-sim-core" }
+gz-sim-scene = { path = "../../../crates/gz-sim-scene" }
+gz-transport.workspace = true
+sdformat.workspace = true
+socket2 = { version = "=0.6.5", features = ["all"] }
 rustix = { version = "=1.1.5", features = ["process"] }
 
 [lints]

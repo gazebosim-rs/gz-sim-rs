@@ -3,7 +3,7 @@
 
 # Coordinator handoff
 
-Updated 2026-10-29. Read this first when resuming coordination of the rewrite,
+Updated 2026-10-31. Read this first when resuming coordination of the rewrite,
 whichever agent you are. AGENTS.md has the standing rules; this file has the
 current state and the next tasks. Update both when either changes.
 
@@ -45,8 +45,8 @@ Canonical Physics world metadata now maps to the existing built-in physics
 system; see WORLD_SYSTEM_CONFIGURATION.md. Explicit backend selection is retained,
 with no dynamic system loader or duplicate callback installation. A bounded canonical engine filename is accepted under that explicit override,
 so native input fixtures now load without removing the record. Automatic engine
-selection and moving-parent actuation remain open, so the complete original
-ApplyJointForce fixture is still unqualified. Bounded static local +Z planes
+selection remains open. Bounded moving-parent support is described below;
+the complete original ApplyJointForce fixture is still unqualified. Bounded static local +Z planes
 now load through DART; see SCENE_PLANES.md for the default-inertia, centered
 collision and backend restrictions and retained native finite-footprint behavior.
 
@@ -58,7 +58,8 @@ DART checks its temporary world-wrench overlay before native mutation; MuJoCo
 resolves current DOF addresses after model settlement. Public lifecycle/physical
 controls and both C++ pulse oracles are documented in
 [JOINT_EFFORT.md](JOINT_EFFORT.md). Rapier's extension covers world/fixed-parent
-impulse and reduced hinges. Moving-parent effort and finite limits remain open. Required staged/hosted evidence
+impulse and reduced hinges; its moving-parent effort remains open. DART's bounded
+extension is recorded below. Finite limits remain open. Required staged/hosted evidence
 and accepted status are recorded on the public dashboard.
 
 Loaded scene input now exposes `queue_joint_effort` by public entity ID. It
@@ -129,7 +130,10 @@ controls rather than publishing a direct maintained `set_limits` wrapper:
   groups. Its scene loader supports top-level dynamic acyclic local-link revolute
   graphs, including world roots and disconnected components. See
   [ARTICULATED_SCENES.md](ARTICULATED_SCENES.md) for exact boundaries and evidence.
-  Native DART/MuJoCo body-joint adapters remain unsupported.
+  DART's bounded world-rooted parent/child backend is accepted at `f60d3a3`;
+  its scene integration at `506f94a` passed full local and hosted gates.
+  Jacobian-cache repair `c5f73a1` is also qualified. MuJoCo body-joint
+  construction remains unsupported.
 - P3 remains open: native larger articulations, joint limits and damping,
   contact properties, meshes/planes/heightmaps, and conformance against
   gz-physics `test/common_test` for each backend. No general speedup is claimed.
@@ -206,8 +210,8 @@ that coupling. Declared child frames must remain distinct from physical bodies.
    reproduced before the fix; independent review and the full staged gate passed.
    Exact hosted run 40873469093 passed. Published `0312c3c` also exercises real
    contact arena exhaustion through backend steps and reset; its exact hosted
-   run 40875528990 passed. The next slice extends unchanged real C++ CLI/server
-   assertions to DART and MuJoCo; see NATIVE_BACKEND_INTEROP.md.
+   run 40875528990 passed. Unchanged real C++ CLI/server assertions are now
+   qualified on DART and MuJoCo at `ca37d5c`; see NATIVE_BACKEND_INTEROP.md.
 2. MuJoCo follow-ups (low, not reachable through the scene today): extreme
    inertial-centre offsets are admitted but fault the first step; the hinged load
    comparison against the native plugin is not like-for-like (the plugin adds
@@ -217,4 +221,43 @@ that coupling. Declared child frames must remain distinct from physical bodies.
    surface properties, mesh/plane/heightmap shapes. Port the matching
    gz-physics `test/common_test` cases per backend; the upstream binaries are
    built in `gz-physics/build/bin/COMMON_TEST_*` and take a plugin path.
-4. Then P4 (Bevy rendering and sensors) per PLAN.md.
+4. Continue P4 in parallel with P3, preserving the headless dependency boundary.
+
+## Latest bounded qualifications
+
+`f60d3a3` passed independent review, the unchanged full staged gate and exact
+hosted run `41168474334`. Downloaded evidence matches all 60 source hashes and
+25 build/check inputs against that commit, plus both local profile summaries.
+This accepts a DART world hinge with one dynamic revolute child, including
+coupled effort, reset and guarded topology changes. External articulation
+contacts, active multibody limit rows, free-root chains and larger graphs remain
+unsupported. The native oracle records its verified hybrid SDK provenance;
+it is not a clean homogeneous reference build or performance qualification.
+
+Scene commit `506f94a` preserves SDF declaration identities while constructing
+the DART world hinge first, and removes physical leaves before parents. Its
+four new analytical controls and existing body-joint assertions passed independent
+review. Full local headless and renderer gates passed, including 60/60 changed
+scene lines. Exact hosted run `41169945049` passed, with both downloaded profiles and
+source hashes matching local evidence. The original
+ApplyJointForce world has a free root and ground contact; adding a world hinge
+would create a different fixture and earns no original-system completion.
+
+Follow-up review found a DART extraction bug: rejected attachments and leaf
+retirement could leave surviving native Jacobian caches zero while Rust state
+appeared unchanged. Repair `c5f73a1` invalidates those caches at three structural
+boundaries, preserving the admission domain and solver settings. Independent
+clean-baseline regressions, 119 standard/native tests, native bridge coverage
+498/521 lines and all nine changed executable lines passed. The full staged gate
+and exact hosted run `41173269592` passed; downloaded Rust profiles and native
+source hashes match the commit. See [TOPOLOGY_CACHE.md](../crates/gz-physics-dart/docs/TOPOLOGY_CACHE.md).
+
+Canonical SDF camera snapshots are accepted at `5669d79`. An optional CPU-only
+camera-output crate adds explicit acquisition and bounded publication through
+the real Bevy worker, with actual C++ Image/CameraInfo delivery on software
+Vulkan. Its private renderer profile and independent software-worker replay passed;
+full Main headless/staged/hosted qualification remains pending. Keep real buffered-frame reset/removal/replacement controls and
+independent protocol-error tests; those peers do not inject physical GPU faults.
+Automatic cadence, native image parity, physical GPU qualification and full
+sensor-family migration remain open. Read the tracker and retained evidence
+before advancing these statuses.
