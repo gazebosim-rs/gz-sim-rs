@@ -27,15 +27,17 @@ The task author cannot independently retire tests or approve coverage exclusions
 
 | ID | Depends on | Assignment | Exit evidence |
 | --- | --- | --- | --- |
-| MSG-01 | REF-01, API-01 | Schema inventory, codegen/runtime/reflection evaluation, descriptors, basic conversions | Canonical schema hashes and mixed-language conformance corpus |
-| MSG-02 | MSG-01 | Complete conversions, message CLI/tooling, unknown-field and formatting contracts | Full retained msgs ledger, coverage and packaging |
+| MSG-01 | REF-01, API-01 | D29: preserve canonical proto definitions, imports/options, tags/defaults and notices; remove the repository runtime after consumer migration | Schema hashes/import closure, standard protoc validation and consumer-owned generated binding checks |
+| MSG-02 | Superseded by D29 | Stop custom runtime/reflection/conversions/CLI/codec parity and optimization | Explicit dispositions; retain consumer schema/wire semantics; no library-completion claim |
 | SDF-01 | REF-02, API-01 | XML/schema infrastructure and minimal validated semantic world/model/link/joint/sensor | Includes/frames/defaults/error cases and C++ differential tests |
 | SDF-02 | SDF-01 | Complete version conversions, nested/merge/frame/inertia/import/export semantics | Full retained sdformat ledger, fuzzing and large-model benchmarks |
-| NET-01 | MSG-01, API-01 | Protocol inventory and minimal discovery/pub-sub/service Rust API | Real C++↔Rust peers in both directions; timeout/reconnect/shutdown tests |
-| NET-02 | NET-01 | Complete logging, statistics, auth/config behavior and CLI | Full retained transport ledger; load/overload/log interoperability |
+| NET-01 | Superseded by D28 | Stop gz-transport-rs and ZeroMQ protocol implementation | Preserve historical evidence; remove consumer dependency through ZEN-01 |
+| NET-02 | Superseded by D28 | Stop standalone transport runtime, parity and CLI work | Retained simulator networking/logging requirements map to focused Zenoh consumer tasks |
+| ZEN-01 | MSG-01, API-01 | In gz-sim-rs, use upstream Zenoh directly; replace legacy transport and packaged Messages dependencies | Pinned Zenoh/proto/codegen inputs; real C++ Zenoh pub/sub/query/reply; bounded queues, reset/removal/shutdown, schema fidelity, strict owned coverage and equal-work measurements |
 | FUEL-01 | API-01; Fuel owner readiness | Consume existing Rust API, offline cache/resource identity, cancel/error contract | Local fixture integration; pinned owner-provided revision; no reimplementation |
 
-Independent repo maintainers own these tasks; gz-sim-rs owns acceptance at the
+SDF, Fuel and schema maintainers own their repository tasks. ZEN-01 belongs to
+gz-sim-rs; it does not create a transport successor. gz-sim-rs owns acceptance at the
 integration boundary. P0 contract coordination can proceed before any producer
 is complete. QLT-01's policy must be applied in each independent repository.
 
@@ -51,13 +53,14 @@ is complete. QLT-01's policy must be applied in each independent repository.
 | PHY-04 | PHY-01 | MuJoCo adapter, SDF lowering, model/state mapping and topology edits | Actual supported features verified; state preservation/rollback; native lifetime tests |
 | PHY-05 | PHY-00, PHY-01, CORE-02 | Built-in Rust engine adapter and explicit stepping/precision | Capability probes, accuracy tests, sync overhead and deterministic-profile evidence |
 | SENSOR-01 | CORE-02, PHY-01 | Sensor scheduler, streams/seeds, shared models, IMU first | Rate/pause/reset/noise/frame tests and timestamp correctness |
-| IO-01 | CORE-02, MSG-01, NET-01 | Clock/pose publication, commands/services and bounded transport integration | Actual legacy client interoperability; ordering/backpressure/shutdown cases |
+| IO-01 | CORE-02, MSG-01, ZEN-01 | Clock/pose publication, commands/services and bounded transport integration | Actual C++ Zenoh client interoperability; ordering/backpressure/shutdown cases |
 | LOAD-01 | SDF-01, FUEL-01, CORE-02 | Validated semantic scene to ECS/backend construction; local/offline resources | Original world fixtures, failure atomicity, frame and ID checks |
 | SLICE-01 | LOAD-01, PHY-02, PHY-03 or PHY-05, SENSOR-01, IO-01 | First complete exact-step SDF world | P2 report with C++ comparison, >95% code coverage, performance data and remaining scope |
 
 PHY-03 is required for final DART parity even if PHY-05 brings up the first dynamic
 slice sooner. PHY-04 and PHY-05 are both required release backends alongside TPE.
-Temporary SDF/transport bridges require their own explicit removal tasks.
+Temporary SDF bridges require explicit removal tasks. Existing ZeroMQ/runtime
+consumer pins remain historical transition inputs until ZEN-01 replaces them.
 
 ## Assets, rendering, and complete sensors
 
@@ -87,8 +90,8 @@ fixtures, and tests before converting it.
 | SYS-DYNAMICS | Physics forces/contacts, residual math | Aero/hydrodynamics, buoyancy, propulsion, slip, energy and battery behavior |
 | SYS-SENSOR | Sensor packets | Sensor registration/configuration, topics, frames, labels and timing |
 | SYS-WORLD | CORE-02, IO-01, ASSET-01 | Commands, scene/pose/state, attachment, lifecycle, labels and world services |
-| SYS-COMMS | IO-01, NET-02 | Acoustic/RF/perfect communications, endpoint and triggered publishing semantics |
-| SYS-MEDIA | RENDER-03, NET-02, ASSET-01 | Recording, replay, exporting, effects and scene assets; no GUI dependency |
+| SYS-COMMS | IO-01, ZEN-01 | Acoustic/RF/perfect communications, endpoint and triggered publishing semantics |
+| SYS-MEDIA | RENDER-03, ZEN-01, ASSET-01 | Recording, replay, exporting, effects and scene assets; no GUI dependency |
 | SYS-EXTENSION | API-01, ACT-01 | Retained external-language workflows and lifecycle mapping; no dynamic simulation system loader |
 
 Family completion requires all its directory entries and associated tests, not
@@ -100,10 +103,10 @@ or tightly coupled system packets for independent implementation/review.
 | ID | Depends on | Assignment | Exit evidence |
 | --- | --- | --- | --- |
 | WORLD-01 | CORE-02, IO-01 | Server configuration, world services, entity factory, assets, multiworld lifecycle | Public API/service inventory mapped; concurrent lifecycle tests |
-| WORLD-02 | WORLD-01, SYS-WORLD, NET-02 | Levels, performers, distributed stepping/state and resource behavior | Baseline distributed/levels tests; partition/disconnect/recovery and exact-step evidence |
-| LOG-01 | NET-02, IO-01, SYS-MEDIA | State and transport recording/replay, format migration | Existing logs readable, ordering/time/seek/reset and output fidelity tests |
+| WORLD-02 | WORLD-01, SYS-WORLD, ZEN-01 | Levels, performers, distributed stepping/state and resource behavior | Baseline distributed/levels tests; partition/disconnect/recovery and exact-step evidence |
+| LOG-01 | ZEN-01, IO-01, SYS-MEDIA | State and transport recording/replay, format migration | Existing logs readable, ordering/time/seek/reset and output fidelity tests |
 | SCRIPT-01 | API-01, WORLD-01 | Inventory Python workflows; choose focused bindings and migration path | Retained Python tests/workflows; no accidental GIL on numerical hot paths |
-| CLI-01 | IO-01, MSG-02, NET-02, SDF-02 | CLI grammar, discovery/dispatch, version/help, package ownership | Existing Ruby/CLI assertions ported; direct independent commands work |
+| CLI-01 | IO-01, MSG-01, ZEN-01, SDF-02 | CLI grammar, discovery/dispatch, version/help, package ownership | Retained simulator/SDF/Fuel command assertions ported; no standalone Messages/transport CLI |
 | GUI-API-01 | WORLD-01, RENDER-01 | External GUI scene/control/asset/sensor protocol and version negotiation | Separate minimal protocol client tests; snapshot/delta resync; no GUI implementation |
 | MATH-01 | REF-02; domain demand | Audit every math header; reuse or implement documented semantic gap | Complete reuse map, exact tests, no redundant generic math library |
 | PERF-01 | REF-03, SLICE-01 onward | Profile and optimize measured bottlenecks continuously | Equal-work before/after evidence; representative release targets met |

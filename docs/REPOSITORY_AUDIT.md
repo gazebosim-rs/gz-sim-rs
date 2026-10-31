@@ -16,8 +16,8 @@ It deliberately does not claim runtime tests have been enumerated or passed.
 | gz-common | Focused workspace modules plus dependencies | Resource resolution, assets, terrain, media, batteries, and domain semantics remain; generic utilities disappear |
 | sdformat | sdformat-rs | Independent XML/schema/semantic model support; no ECS or rendering dependency |
 | gz-fuel-tools | gz-fuel-tools-rs | Independent, actively owned; consume Rust API and agreed fixtures |
-| gz-transport | gz-transport-rs | Independent interoperable networking and logging |
-| gz-msgs | gz-msgs-rs | Independent schemas/code generation/descriptors/tooling |
+| gz-transport | Drop Rust successor (D28) | Use upstream Zenoh directly in consumers; no ZeroMQ compatibility |
+| gz-msgs | Schema-only gz-msgs-rs (D29) | Canonical proto definitions/imports/options; consumers generate bindings |
 | gz-cmake | Drop | Cargo and focused native build support replace Gazebo's build abstraction |
 | gz-rendering | Drop implementation | Bevy rendering; preserve retained scene/sensor capabilities and their tests |
 | gz-gui | Out of scope | Separate user-owned replacement; retain server-facing contracts it needs |

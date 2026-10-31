@@ -8,7 +8,12 @@ implemented behavior and checks from planned release requirements.
 
 ## Architecture
 
-- Keep sdformat-rs, gz-fuel-tools-rs, gz-transport-rs, and gz-msgs-rs independent.
+- D28/D29 supersede earlier transport/Messages scope: keep sdformat-rs,
+  gz-fuel-tools-rs and schema-only gz-msgs-rs independent. Use upstream Zenoh
+  directly; no gz-transport-rs target, ZeroMQ compatibility, successor transport
+  facade, custom Messages runtime, reflection framework, message CLI or codec work.
+  Consumers generate bindings from pinned proto sources with maintained tools.
+  Preserve historical work; migrate consumers before removing old runtime trees.
   Do not edit the active Fuel rewrite without an explicit handoff from its owner.
 - Put simulator, sensors, physics integration, and residual math in this Cargo
   workspace. Do not copy the old repository layout into four isolated ports.

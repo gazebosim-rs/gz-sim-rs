@@ -6,7 +6,7 @@ Updated with the owner’s built-in system decision on 2026-10-30. `Confirmed` m
 
 | ID | Status | Decision |
 | --- | --- | --- |
-| D01 | Confirmed | Organization: gazebosim-rs. Independent repos: sdformat-rs, gz-fuel-tools-rs, gz-transport-rs, gz-msgs-rs. |
+| D01 | Amended by D28/D29 | Organization: gazebosim-rs. Independent repos: sdformat-rs, gz-fuel-tools-rs, and schema-only gz-msgs-rs. No Rust transport repository in the target architecture. |
 | D02 | Confirmed | gz-sim-rs contains simulator, sensors, physics, and residual math responsibilities. |
 | D03 | Confirmed | Use Bevy ECS and renderer; remove gz-cmake and gz-rendering; separate GUI is out of scope. |
 | D04 | Confirmed | Support DART, MuJoCo, TPE, and a Bevy-integrated physics option; remove both Bullet backends. |
@@ -33,6 +33,9 @@ Updated with the owner’s built-in system decision on 2026-10-30. `Confirmed` m
 | D25 | Confirmed | DART uses the packaged OSRF 6.13.2 build (assertions enabled). The adapter rejects inputs that would reach those assertions with explicit, documented admission limits rather than linking a different DART build; these limits may be stricter than Rapier and MuJoCo. |
 | D26 | Confirmed | All simulation systems are built into gz-sim-rs and activated by loaded world/model requirements. No dynamically loaded system libraries, system plugin host or system C ABI. An absent system has no scheduled work or system-specific runtime allocations, workers or endpoints; teardown follows its last consumer. Native engine FFI remains allowed. |
 | D27 | Confirmed | Upgrade gz-sim-rs to Rust 1.97.1 for Bevy 0.20 rendering. Independent repository toolchains stay unchanged. Requalify the existing headless, native interoperability, coverage and hosted CI gates; preserve historical compiler-specific evidence. Default headless builds remain free of rendering/GPU dependencies. |
+
+| D28 | Confirmed | Use upstream Zenoh directly in simulator consumers. Drop gz-transport-rs from the target architecture and drop ZeroMQ compatibility. Match C++ Gazebo over Zenoh, including topic keys, discovery/type metadata and service contracts. Stop its implementation, legacy protocol parity and optimization work. Preserve historical repositories/results while consumers migrate; no replacement transport framework. |
+| D29 | Confirmed | gz-msgs-rs contains canonical protobuf definitions, their imported options/import closure, schema identity and licensing. Consumers generate their own bindings with maintained tools. Stop custom message runtime, reflection, conversion framework, CLI and codec optimization work. Preserve protobuf schema semantics and consumer behavior; do not move the discarded framework into gz-sim-rs. |
 
 ## Outstanding questions and decision triggers
 

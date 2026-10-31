@@ -7,6 +7,17 @@ Updated 2026-10-31. Read this first when resuming coordination of the rewrite,
 whichever agent you are. AGENTS.md has the standing rules; this file has the
 current state and the next tasks. Update both when either changes.
 
+## Owner correction: Zenoh and schema-only Messages
+
+D28/D29 supersede the transport and Messages runtime rewrite. Stop all old
+ZeroMQ parity and message codec/runtime/CLI work. Use upstream Zenoh directly in
+gz-sim-rs; gz-msgs-rs retains only canonical proto sources and required schema
+metadata/licensing. Generate bindings in each consumer. See
+ZENOH_SCHEMA_MIGRATION.md for the staged transition and acceptance criteria.
+Existing checked-in pins and historical C++ peer results still describe the old
+runtime; they do not qualify Zenoh. Preserve them until migration is verified.
+SDF, Fuel, physics, rendering and built-in activation work continue.
+
 ## Owner correction: built-in systems
 
 D26 supersedes the earlier system C ABI/host plan. All simulation systems live in
