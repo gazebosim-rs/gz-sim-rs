@@ -1,0 +1,1211 @@
+gz-assets v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-assets)
+gz-fuel-tools v12.0.0-pre.2 (https://github.com/gazebosim-rs/gz-fuel-tools-rs?rev=3747086ed13b59d2f7701eedc11329ebd7c9df3a#3747086e)
+bytes v1.12.1
+chrono v0.4.45
+num-traits v0.2.19
+libm v0.2.16
+autocfg v1.5.1
+http-body v1.1.0
+bytes v1.12.1
+http v1.5.0
+bytes v1.12.1
+itoa v1.0.18
+libc v0.2.191
+percent-encoding v2.3.2
+prost v0.14.4
+bytes v1.12.1
+prost-derive v0.14.4 (proc-macro) (<SIM_SOURCE_5870373>/third_party/prost-derive-0.14.4)
+anyhow v1.0.104
+itertools v0.14.0
+either v1.19.0
+proc-macro2 v1.0.107
+unicode-ident v1.0.27
+quote v1.0.47
+proc-macro2 v1.0.107 (*)
+syn v2.0.119
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+unicode-ident v1.0.27
+prost-reflect v0.16.5
+logos v0.16.1
+logos-derive v0.16.1 (proc-macro)
+logos-codegen v0.16.1
+fnv v1.0.7
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+regex-automata v0.4.18
+aho-corasick v1.1.5
+memchr v2.8.3
+memchr v2.8.3
+regex-syntax v0.8.11
+regex-syntax v0.8.11
+syn v2.0.119 (*)
+prost v0.14.4 (*)
+prost-types v0.14.4
+prost v0.14.4 (*)
+reqwest v0.12.28
+base64 v0.22.1
+bytes v1.12.1
+futures-channel v0.3.34
+futures-core v0.3.34
+futures-sink v0.3.34
+futures-core v0.3.34
+futures-util v0.3.34
+futures-channel v0.3.34 (*)
+futures-core v0.3.34
+futures-io v0.3.34
+futures-macro v0.3.34 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+unicode-ident v1.0.27
+futures-sink v0.3.34
+futures-task v0.3.34
+memchr v2.8.3
+pin-project-lite v0.2.17
+slab v0.4.12
+http v1.5.0 (*)
+http-body v1.1.0 (*)
+http-body-util v0.1.5
+bytes v1.12.1
+futures-core v0.3.34
+http v1.5.0 (*)
+http-body v1.1.0 (*)
+pin-project-lite v0.2.17
+hyper v1.12.0
+atomic-waker v1.1.2
+bytes v1.12.1
+futures-core v0.3.34
+http v1.5.0 (*)
+http-body v1.1.0 (*)
+httparse v1.10.1
+itoa v1.0.18
+pin-project-lite v0.2.17
+smallvec v1.16.4
+tokio v1.54.1
+bytes v1.12.1
+libc v0.2.191
+mio v1.2.4
+libc v0.2.191
+pin-project-lite v0.2.17
+socket2 v0.6.5
+libc v0.2.191
+tokio-macros v2.7.2 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+want v0.3.2
+try-lock v0.2.5
+hyper-tls v0.6.0
+bytes v1.12.1
+http-body-util v0.1.5 (*)
+hyper v1.12.0 (*)
+hyper-util v0.1.15
+base64 v0.22.1
+bytes v1.12.1
+futures-channel v0.3.34 (*)
+futures-core v0.3.34
+futures-util v0.3.34 (*)
+http v1.5.0 (*)
+http-body v1.1.0 (*)
+hyper v1.12.0 (*)
+ipnet v2.12.2
+libc v0.2.191
+percent-encoding v2.3.2
+pin-project-lite v0.2.17
+socket2 v0.5.10
+libc v0.2.191
+tokio v1.54.1 (*)
+tower-service v0.3.3
+tracing v0.1.44
+pin-project-lite v0.2.17
+tracing-attributes v0.1.31 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+tracing-core v0.1.36
+once_cell v1.21.4
+native-tls v0.2.18
+log v0.4.34
+openssl v0.10.81
+bitflags v2.13.2
+serde_core v1.0.229
+cfg-if v1.0.5
+foreign-types v0.3.2
+foreign-types-shared v0.1.1
+libc v0.2.191
+openssl-macros v0.1.1 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+openssl-sys v0.9.117
+libc v0.2.191
+cc v1.10.0
+find-msvc-tools v0.1.15
+shlex v2.0.1
+pkg-config v0.3.34
+vcpkg v0.2.15
+openssl-probe v0.2.1
+openssl-sys v0.9.117 (*)
+tokio v1.54.1 (*)
+tokio-native-tls v0.3.1
+native-tls v0.2.18 (*)
+tokio v1.54.1 (*)
+tower-service v0.3.3
+hyper-util v0.1.15 (*)
+log v0.4.34
+mime_guess v2.0.5
+mime v0.3.17
+unicase v2.10.0
+unicase v2.10.0
+native-tls v0.2.18 (*)
+percent-encoding v2.3.2
+pin-project-lite v0.2.17
+rustls-pki-types v1.15.1
+zeroize v1.9.1
+serde v1.0.229
+serde_core v1.0.229
+serde_derive v1.0.229 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+serde_urlencoded v0.7.1
+form_urlencoded v1.2.2
+percent-encoding v2.3.2
+itoa v1.0.18
+ryu v1.0.23
+serde v1.0.229 (*)
+sync_wrapper v1.0.2
+futures-core v0.3.34
+tokio v1.54.1 (*)
+tokio-native-tls v0.3.1 (*)
+tower v0.5.3
+futures-core v0.3.34
+futures-util v0.3.34 (*)
+pin-project-lite v0.2.17
+sync_wrapper v1.0.2 (*)
+tokio v1.54.1 (*)
+tower-layer v0.3.3
+tower-service v0.3.3
+tower-http v0.6.11
+bitflags v2.13.2 (*)
+bytes v1.12.1
+futures-util v0.3.34 (*)
+http v1.5.0 (*)
+http-body v1.1.0 (*)
+pin-project-lite v0.2.17
+tower v0.5.3 (*)
+tower-layer v0.3.3
+tower-service v0.3.3
+url v2.5.8
+form_urlencoded v1.2.2 (*)
+idna v1.1.0
+idna_adapter v1.2.2
+icu_normalizer v2.4.0
+icu_collections v2.4.0
+displaydoc v0.2.7 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+potential_utf v0.1.6
+zerovec v0.11.9
+yoke v0.8.4
+stable_deref_trait v1.2.1
+yoke-derive v0.8.4 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+synstructure v0.14.0
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+zerofrom v0.1.8
+zerofrom-derive v0.1.8 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+synstructure v0.14.0 (*)
+zerofrom v0.1.8 (*)
+zerovec-derive v0.11.7 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+utf8_iter v1.0.4
+yoke v0.8.4 (*)
+zerofrom v0.1.8 (*)
+zerovec v0.11.9 (*)
+icu_normalizer_data v2.4.0
+icu_provider v2.4.0
+displaydoc v0.2.7 (proc-macro) (*)
+icu_locale_core v2.4.0
+displaydoc v0.2.7 (proc-macro) (*)
+litemap v0.8.3
+tinystr v0.8.5
+displaydoc v0.2.7 (proc-macro) (*)
+zerovec v0.11.9 (*)
+writeable v0.6.4
+zerovec v0.11.9 (*)
+writeable v0.6.4
+yoke v0.8.4 (*)
+zerofrom v0.1.8 (*)
+zerotrie v0.2.5
+displaydoc v0.2.7 (proc-macro) (*)
+yoke v0.8.4 (*)
+zerofrom v0.1.8 (*)
+zerovec v0.11.9 (*)
+smallvec v1.16.4
+zerovec v0.11.9 (*)
+icu_properties v2.4.0
+displaydoc v0.2.7 (proc-macro) (*)
+icu_collections v2.4.0 (*)
+icu_locale_core v2.4.0 (*)
+icu_properties_data v2.4.0
+icu_provider v2.4.0 (*)
+zerotrie v0.2.5 (*)
+zerovec v0.11.9 (*)
+smallvec v1.16.4
+utf8_iter v1.0.4
+percent-encoding v2.3.2
+tower-service v0.3.3
+url v2.5.8 (*)
+roxmltree v0.20.0
+serde v1.0.229 (*)
+serde-saphyr v2.0.0
+annotate-snippets v0.12.17
+anstyle v1.0.14
+unicode-width v0.2.2
+base64 v0.22.1
+encoding_rs_io v0.1.8
+encoding_rs v0.8.42
+cfg-if v1.0.5
+core_detect v1.0.0
+multiversion_no_op v1.0.0 (proc-macro)
+scopeguard v1.2.0
+simdutf8 v0.1.5
+rustversion v1.0.23 (proc-macro)
+granit-parser v2.0.0
+arraydeque v0.5.1
+smallvec v1.16.4
+nohash-hasher v0.2.0
+num-traits v0.2.19 (*)
+serde_core v1.0.229
+smallvec v1.16.4
+zmij v1.0.23
+serde_json v1.0.149
+itoa v1.0.18
+memchr v2.8.3
+serde_core v1.0.229
+zmij v1.0.23
+tempfile v3.25.0
+fastrand v2.5.0
+getrandom v0.4.3
+cfg-if v1.0.5
+libc v0.2.191
+once_cell v1.21.4
+rustix v1.1.5
+bitflags v2.13.2 (*)
+linux-raw-sys v0.12.1
+tokio v1.54.1 (*)
+url v2.5.8 (*)
+zip v9.1.0
+crc32fast v1.5.3
+cfg-if v1.0.5
+flate2 v1.1.10
+crc32fast v1.5.3 (*)
+miniz_oxide v0.9.1
+adler2 v2.0.1
+simd-adler32 v0.3.10
+zlib-rs v0.6.8
+getrandom v0.4.3 (*)
+indexmap v2.14.2
+equivalent v1.0.3
+hashbrown v0.17.1
+foldhash v0.2.0
+serde_core v1.0.229
+memchr v2.8.3
+typed-path v0.13.0
+zopfli v0.8.4
+bumpalo v3.20.3
+crc32fast v1.5.3 (*)
+log v0.4.34
+simd-adler32 v0.3.10
+sdformat v0.1.0 (https://github.com/gazebosim-rs/sdformat-rs?rev=0437a54a0b546aea646e9574fe96f977a3e65f21#0437a54a)
+errno v0.3.14
+libc v0.2.191
+glam v0.30.9
+libc v0.2.191
+petgraph v0.8.3
+fixedbitset v0.5.7
+hashbrown v0.15.5
+foldhash v0.1.5
+indexmap v2.14.2 (*)
+quick-xml v0.38.3
+memchr v2.8.3
+urdf-rs v0.10.0
+RustyXML v0.3.0
+quick-xml v0.39.4
+memchr v2.8.3
+serde v1.0.229 (*)
+regex v1.13.1
+aho-corasick v1.1.5
+memchr v2.8.3
+memchr v2.8.3
+regex-automata v0.4.18
+aho-corasick v1.1.5 (*)
+memchr v2.8.3
+regex-syntax v0.8.11
+regex-syntax v0.8.11
+serde v1.0.229 (*)
+serde-xml-rs v0.6.0
+log v0.4.34
+serde v1.0.229 (*)
+thiserror v1.0.69
+thiserror-impl v1.0.69 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+xml-rs v0.8.29
+thiserror v2.0.18
+thiserror-impl v2.0.18 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+xmlparser v0.13.6
+thiserror v2.0.18 (*)
+url v2.5.8 (*)
+
+gz-physics v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics)
+bevy_ecs v0.20.0
+arrayvec v0.7.8
+bevy_ecs_macros v0.20.0 (proc-macro)
+bevy_ecs_macro_logic v0.20.0
+bevy_macro_utils v0.20.0
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+toml_edit v0.25.17+spec-1.1.0
+indexmap v2.14.2
+equivalent v1.0.3
+hashbrown v0.17.1
+toml_datetime v1.1.2+spec-1.1.0
+toml_parser v1.1.5+spec-1.1.0
+winnow v1.0.4
+winnow v1.0.4
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+bevy_macro_utils v0.20.0 (*)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+bevy_platform v0.20.0
+foldhash v0.2.0
+futures-lite v2.6.1
+fastrand v2.5.0
+futures-core v0.3.34
+futures-io v0.3.34
+parking v2.2.1
+pin-project-lite v0.2.17
+hashbrown v0.16.1
+allocator-api2 v0.2.21
+equivalent v1.0.3
+foldhash v0.2.0
+spin v0.12.3
+bevy_ptr v0.20.0
+bevy_tasks v0.20.0
+async-channel v2.5.0
+concurrent-queue v2.5.0
+crossbeam-utils v0.8.23
+event-listener-strategy v0.5.4
+event-listener v5.4.2
+parking v2.2.1
+pin-project-lite v0.2.17
+pin-project-lite v0.2.17
+futures-core v0.3.34
+pin-project-lite v0.2.17
+async-executor v1.14.0
+async-task v4.7.1
+concurrent-queue v2.5.0 (*)
+fastrand v2.5.0
+futures-lite v2.6.1 (*)
+pin-project-lite v0.2.17
+slab v0.4.12
+async-task v4.7.1
+atomic-waker v1.1.2
+bevy_platform v0.20.0 (*)
+concurrent-queue v2.5.0 (*)
+crossbeam-queue v0.3.14
+crossbeam-utils v0.8.23
+derive_more v2.1.1
+derive_more-impl v2.1.1 (proc-macro)
+convert_case v0.10.0
+unicode-segmentation v1.13.3
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+unicode-xid v0.2.6
+rustc_version v0.4.1
+semver v1.0.28
+futures-lite v2.6.1 (*)
+bevy_utils v0.20.0
+bevy_platform v0.20.0 (*)
+disqualified v1.1.0
+indexmap v2.14.2 (*)
+thread_local v1.1.10
+cfg-if v1.0.5
+bitflags v2.13.2 (*)
+bumpalo v3.20.3
+concurrent-queue v2.5.0 (*)
+derive_more v2.1.1 (*)
+fixedbitset v0.5.7
+indexmap v2.14.2 (*)
+log v0.4.34
+nonmax v0.5.5
+slotmap v1.1.1
+version_check v0.9.5
+smallvec v1.16.4
+thiserror v2.0.18 (*)
+variadics_please v2.0.0 (proc-macro)
+quote v1.0.47 (*)
+unsynn v0.3.0
+mutants v0.0.3 (proc-macro)
+proc-macro2 v1.0.107 (*)
+rustc-hash v2.1.3
+gz-sim-core v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-core)
+bevy_ecs v0.20.0 (*)
+thiserror v2.0.18 (*)
+thiserror v2.0.18 (*)
+
+gz-physics-dart v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics-dart)
+cxx v1.0.205
+cxxbridge-macro v1.0.205 (proc-macro)
+indexmap v2.14.2 (*)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+foldhash v0.2.0
+link-cplusplus v1.0.12
+cc v1.10.0 (*)
+cc v1.10.0 (*)
+cxxbridge-flags v1.0.205
+gz-physics v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics) (*)
+nalgebra v0.35.0
+approx v0.5.1
+num-traits v0.2.19 (*)
+glam v0.33.12
+approx v0.5.1 (*)
+libm v0.2.16
+matrixmultiply v0.3.11
+rawpointer v0.2.1
+autocfg v1.5.1
+nalgebra-macros v0.3.0 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+num-complex v0.4.6
+num-traits v0.2.19 (*)
+num-rational v0.4.2
+num-integer v0.1.47
+num-traits v0.2.19 (*)
+num-traits v0.2.19 (*)
+num-traits v0.2.19 (*)
+simba v0.10.2
+approx v0.5.1 (*)
+libm v0.2.16
+num-complex v0.4.6 (*)
+num-traits v0.2.19 (*)
+wide v1.7.1
+bytemuck v1.25.2
+safe_arch v1.2.0
+bytemuck v1.25.2
+typenum v1.20.1
+cxx-build v1.0.205
+cc v1.10.0 (*)
+codespan-reporting v0.13.1
+termcolor v1.4.1
+unicode-width v0.2.2
+indexmap v2.14.2 (*)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+scratch v1.0.9
+syn v3.0.9 (*)
+pkg-config v0.3.34
+
+gz-physics-mujoco v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics-mujoco)
+gz-physics v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics) (*)
+libloading v0.8.9
+cfg-if v1.0.5
+
+gz-physics-rapier v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics-rapier)
+bevy_ecs v0.20.0 (*)
+gz-physics v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics) (*)
+gz-sim-core v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-core) (*)
+rapier3d-f64 v0.36.1
+approx v0.5.1 (*)
+arrayvec v0.7.8
+bitflags v2.13.2 (*)
+glamx v0.3.1
+approx v0.5.1 (*)
+glam v0.33.12 (*)
+nalgebra v0.35.0 (*)
+num-traits v0.2.19 (*)
+simba v0.10.2 (*)
+log v0.4.34
+nalgebra v0.35.0 (*)
+num-traits v0.2.19 (*)
+parry3d-f64 v0.31.1
+approx v0.5.1 (*)
+arrayvec v0.7.8
+bitflags v2.13.2 (*)
+downcast-rs v2.0.2
+either v1.19.0
+ena v0.14.4
+log v0.4.34
+foldhash v0.2.0
+glamx v0.3.1 (*)
+hashbrown v0.17.1 (*)
+indexmap v2.14.2 (*)
+log v0.4.34
+num-derive v0.5.1 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+num-traits v0.2.19 (*)
+ordered-float v5.5.0
+num-traits v0.2.19 (*)
+rstar v0.13.0
+heapless v0.8.0
+hash32 v0.3.1
+byteorder v1.5.0
+stable_deref_trait v1.2.1
+num-traits v0.2.19 (*)
+smallvec v1.16.4
+simba v0.10.2 (*)
+slab v0.4.12
+smallvec v1.16.4
+spade v2.15.1
+hashbrown v0.16.1 (*)
+num-traits v0.2.19 (*)
+robust v1.2.0
+smallvec v1.16.4
+thiserror v2.0.18 (*)
+profiling v1.0.18
+profiling-procmacros v1.0.18 (proc-macro)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+simba v0.10.2 (*)
+static_assertions v1.1.0
+thiserror v2.0.18 (*)
+thiserror v2.0.18 (*)
+
+gz-physics-tpe v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics-tpe)
+bevy_ecs v0.20.0 (*)
+glam v0.33.12 (*)
+gz-physics v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics) (*)
+gz-sim-core v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-core) (*)
+parry3d-f64 v0.31.1 (*)
+thiserror v2.0.18 (*)
+
+gz-sensors v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sensors)
+glam v0.33.12 (*)
+rand_chacha v0.10.0
+ppv-lite86 v0.2.21
+zerocopy v0.8.63
+rand_core v0.10.1
+rand_distr v0.6.0
+num-traits v0.2.19 (*)
+rand v0.10.3
+rand_core v0.10.1
+thiserror v2.0.18 (*)
+
+gz-sim-cli v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-cli)
+clap v4.6.7
+clap_builder v4.6.7
+anstream v1.0.0
+anstyle v1.0.14
+anstyle-parse v1.0.0
+utf8parse v0.2.2
+anstyle-query v1.1.5
+colorchoice v1.0.5
+is_terminal_polyfill v1.70.2
+utf8parse v0.2.2
+anstyle v1.0.14
+clap_lex v1.1.1
+strsim v0.11.1
+clap_derive v4.6.7 (proc-macro)
+heck v0.5.0
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+gz-assets v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-assets) (*)
+gz-fuel-tools v12.0.0-pre.2 (https://github.com/gazebosim-rs/gz-fuel-tools-rs?rev=3747086ed13b59d2f7701eedc11329ebd7c9df3a#3747086e) (*)
+gz-physics-dart v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics-dart) (*)
+gz-sim-core v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-core) (*)
+gz-sim-scene v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-scene)
+bevy_ecs v0.20.0 (*)
+glam v0.33.12 (*)
+gz-physics v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics) (*)
+gz-physics-dart v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics-dart) (*)
+gz-physics-mujoco v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics-mujoco) (*)
+gz-physics-rapier v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics-rapier) (*)
+gz-physics-tpe v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics-tpe) (*)
+gz-sensors v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sensors) (*)
+gz-sim-core v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-core) (*)
+parry3d-f64 v0.31.1 (*)
+petgraph v0.8.3 (*)
+quick-xml v0.38.3 (*)
+roxmltree v0.20.0
+sdformat v0.1.0 (https://github.com/gazebosim-rs/sdformat-rs?rev=0437a54a0b546aea646e9574fe96f977a3e65f21#0437a54a) (*)
+thiserror v2.0.18 (*)
+gz-sim-server v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-server)
+bevy_ecs v0.20.0 (*)
+gz-physics-dart v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-physics-dart) (*)
+gz-sim-core v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-core) (*)
+gz-sim-proto v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-proto)
+prost v0.14.4 (*)
+prost-types v0.14.4 (*)
+prost-build v0.14.4
+heck v0.5.0
+itertools v0.14.0 (*)
+log v0.4.34
+multimap v0.10.1
+petgraph v0.8.3
+fixedbitset v0.5.7
+hashbrown v0.15.5
+foldhash v0.1.5
+indexmap v2.14.2 (*)
+prettyplease v0.2.37
+proc-macro2 v1.0.107 (*)
+syn v2.0.119 (*)
+prost v0.14.4
+bytes v1.12.1
+prost-derive v0.14.4 (proc-macro) (<SIM_SOURCE_5870373>/third_party/prost-derive-0.14.4) (*)
+prost-types v0.14.4
+prost v0.14.4 (*)
+regex v1.13.1
+regex-automata v0.4.18 (*)
+regex-syntax v0.8.11
+syn v2.0.119 (*)
+tempfile v3.25.0
+fastrand v2.5.0
+once_cell v1.21.4
+rustix v1.1.5
+bitflags v2.13.2
+linux-raw-sys v0.12.1
+serde v1.0.229
+serde_core v1.0.229
+serde_derive v1.0.229 (proc-macro) (*)
+serde_json v1.0.149
+itoa v1.0.18
+memchr v2.8.3
+serde_core v1.0.229
+zmij v1.0.23
+sha2 v0.10.9
+cfg-if v1.0.5
+cpufeatures v0.2.17
+digest v0.10.7
+block-buffer v0.10.4
+generic-array v0.14.7
+typenum v1.20.1
+version_check v0.9.5
+crypto-common v0.1.7
+generic-array v0.14.7 (*)
+typenum v1.20.1
+gz-sim-scene v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-scene) (*)
+nix v0.31.3
+bitflags v2.13.2 (*)
+cfg-if v1.0.5
+libc v0.2.191
+cfg_aliases v0.2.2
+thiserror v2.0.18 (*)
+uuid v1.23.1
+getrandom v0.4.3 (*)
+zenoh v1.8.0
+ahash v0.8.12
+cfg-if v1.0.5
+getrandom v0.3.4
+cfg-if v1.0.5
+libc v0.2.191
+once_cell v1.21.4
+zerocopy v0.8.63
+version_check v0.9.5
+arc-swap v1.9.3
+rustversion v1.0.23 (proc-macro)
+async-trait v0.1.92 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+bytes v1.12.1
+const_format v0.2.37
+const_format_proc_macros v0.2.37 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+unicode-xid v0.2.6
+konst v0.2.20
+konst_macro_rules v0.2.19
+flate2 v1.1.10 (*)
+flume v0.11.1
+futures-core v0.3.34
+futures-sink v0.3.34
+nanorand v0.7.0
+getrandom v0.2.17
+cfg-if v1.0.5
+libc v0.2.191
+spin v0.9.9
+lock_api v0.4.14
+scopeguard v1.2.0
+futures v0.3.34
+futures-channel v0.3.34 (*)
+futures-core v0.3.34
+futures-executor v0.3.34
+futures-core v0.3.34
+futures-task v0.3.34
+futures-util v0.3.34 (*)
+futures-io v0.3.34
+futures-sink v0.3.34
+futures-task v0.3.34
+futures-util v0.3.34 (*)
+git-version v0.3.9
+git-version-macro v0.3.9 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+itertools v0.14.0
+either v1.19.0
+json5 v0.4.1
+pest v2.9.5
+memchr v2.8.3
+pest_stack_guard v1.0.0
+psm v0.1.24
+cc v1.10.0 (*)
+stacker v0.1.25
+cfg-if v1.0.5
+libc v0.2.191
+psm v0.1.24 (*)
+cc v1.10.0 (*)
+ucd-trie v0.1.7
+pest_derive v2.9.5 (proc-macro)
+pest v2.9.5
+memchr v2.8.3
+pest_stack_guard v1.0.0
+psm v0.1.24
+cc v1.10.0 (*)
+stacker v0.1.25
+cfg-if v1.0.5
+libc v0.2.191
+psm v0.1.24 (*)
+cc v1.10.0 (*)
+ucd-trie v0.1.7
+pest_generator v2.9.5
+pest v2.9.5 (*)
+pest_meta v2.9.5
+pest v2.9.5 (*)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+serde v1.0.229 (*)
+lazy_static v1.5.1
+nonempty-collections v0.3.1
+serde v1.0.229 (*)
+once_cell v1.21.4
+petgraph v0.8.3 (*)
+phf v0.13.1
+phf_macros v0.13.1 (proc-macro)
+phf_generator v0.13.1
+fastrand v2.5.0
+phf_shared v0.13.1
+siphasher v1.0.4
+phf_shared v0.13.1 (*)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+phf_shared v0.13.1
+siphasher v1.0.4
+rand v0.8.8
+libc v0.2.191
+rand_chacha v0.3.1
+ppv-lite86 v0.2.21 (*)
+rand_core v0.6.4
+getrandom v0.2.17 (*)
+rand_core v0.6.4 (*)
+serde v1.0.229 (*)
+serde_json v1.0.149 (*)
+socket2 v0.5.10 (*)
+tokio v1.54.1 (*)
+tokio-util v0.7.20
+bytes v1.12.1
+futures-core v0.3.34
+futures-sink v0.3.34
+futures-util v0.3.34 (*)
+pin-project-lite v0.2.17
+tokio v1.54.1 (*)
+tracing v0.1.44 (*)
+uhlc v0.8.2
+humantime v2.4.0
+lazy_static v1.5.1
+log v0.4.34
+rand v0.8.8 (*)
+serde v1.0.229 (*)
+spin v0.10.1
+vec_map v0.8.2
+zenoh-buffers v1.8.0
+zenoh-collections v1.8.0
+ahash v0.8.12 (*)
+zenoh-codec v1.8.0
+tracing v0.1.44 (*)
+uhlc v0.8.2 (*)
+zenoh-buffers v1.8.0 (*)
+zenoh-protocol v1.8.0
+const_format v0.2.37 (*)
+serde v1.0.229 (*)
+uhlc v0.8.2 (*)
+zenoh-buffers v1.8.0 (*)
+zenoh-keyexpr v1.8.0
+getrandom v0.2.17 (*)
+hashbrown v0.16.1 (*)
+keyed-set v1.1.0
+hashbrown v0.14.5
+ahash v0.8.12 (*)
+allocator-api2 v0.2.21
+rand v0.8.8 (*)
+schemars v1.2.3
+dyn-clone v1.0.20
+either v1.19.0
+ref-cast v1.0.27
+ref-cast-impl v1.0.27 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+schemars_derive v1.2.3 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+serde_derive_internals v0.30.0
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v3.0.9 (*)
+syn v3.0.9 (*)
+serde v1.0.229 (*)
+serde_json v1.0.149 (*)
+serde v1.0.229 (*)
+token-cell v2.1.1
+paste v1.0.15 (proc-macro)
+portable-atomic v1.15.0
+rustversion v1.0.23 (proc-macro)
+zenoh-result v1.8.0
+anyhow v1.0.104
+zenoh-macros v1.8.0 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+zenoh-keyexpr v1.8.0
+getrandom v0.2.17
+cfg-if v1.0.5
+libc v0.2.191
+hashbrown v0.16.1
+allocator-api2 v0.2.21
+equivalent v1.0.3
+foldhash v0.2.0
+keyed-set v1.1.0
+hashbrown v0.14.5
+ahash v0.8.12
+cfg-if v1.0.5
+once_cell v1.21.4
+zerocopy v0.8.63
+version_check v0.9.5
+allocator-api2 v0.2.21
+rand v0.8.8
+rand_core v0.6.4
+getrandom v0.2.17 (*)
+schemars v1.2.3
+dyn-clone v1.0.20
+either v1.19.0
+ref-cast v1.0.27
+ref-cast-impl v1.0.27 (proc-macro) (*)
+schemars_derive v1.2.3 (proc-macro) (*)
+serde v1.0.229 (*)
+serde_json v1.0.149 (*)
+serde v1.0.229 (*)
+token-cell v2.1.1
+paste v1.0.15 (proc-macro)
+portable-atomic v1.15.0
+rustversion v1.0.23 (proc-macro)
+zenoh-result v1.8.0
+anyhow v1.0.104
+zenoh-result v1.8.0 (*)
+zenoh-collections v1.8.0 (*)
+zenoh-config v1.8.0
+json5 v0.4.1 (*)
+nonempty-collections v0.3.1 (*)
+num_cpus v1.17.0
+libc v0.2.191
+secrecy v0.8.0
+serde v1.0.229 (*)
+zeroize v1.9.1
+serde v1.0.229 (*)
+serde_json v1.0.149 (*)
+serde_with v3.22.0
+serde_core v1.0.229
+serde_with_macros v3.22.0 (proc-macro)
+darling v0.23.0
+darling_core v0.23.0
+ident_case v1.0.1
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+strsim v0.11.1
+syn v2.0.119 (*)
+darling_macro v0.23.0 (proc-macro)
+darling_core v0.23.0 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+serde_yaml v0.9.34+deprecated
+indexmap v2.14.2 (*)
+itoa v1.0.18
+ryu v1.0.23
+serde v1.0.229 (*)
+unsafe-libyaml v0.2.11
+tracing v0.1.44 (*)
+uhlc v0.8.2 (*)
+validated_struct v2.2.0
+json5 v0.4.1 (*)
+serde v1.0.229 (*)
+serde_json v1.0.149 (*)
+validated_struct_macros v2.2.0 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+unzip-n v0.1.4 (proc-macro)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+zenoh-core v1.8.0
+lazy_static v1.5.1
+tokio v1.54.1 (*)
+zenoh-result v1.8.0 (*)
+zenoh-runtime v1.8.0
+lazy_static v1.5.1
+ron v0.12.3
+bitflags v2.13.2 (*)
+serde v1.0.229 (*)
+serde_derive v1.0.229 (proc-macro) (*)
+typeid v1.0.3
+unicode-ident v1.0.27
+serde v1.0.229 (*)
+tokio v1.54.1 (*)
+tracing v0.1.44 (*)
+zenoh-macros v1.8.0 (proc-macro) (*)
+zenoh-result v1.8.0 (*)
+zenoh-keyexpr v1.8.0 (*)
+zenoh-macros v1.8.0 (proc-macro) (*)
+zenoh-protocol v1.8.0 (*)
+zenoh-result v1.8.0 (*)
+zenoh-util v1.8.0
+async-trait v0.1.92 (proc-macro) (*)
+const_format v0.2.37 (*)
+flume v0.11.1 (*)
+home v0.5.12
+humantime v2.4.0
+lazy_static v1.5.1
+libc v0.2.191
+libloading v0.8.9 (*)
+pnet_datalink v0.35.0
+ipnetwork v0.20.0
+serde v1.0.229 (*)
+libc v0.2.191
+pnet_base v0.35.0
+no-std-net v0.6.0
+pnet_sys v0.35.0
+libc v0.2.191
+schemars v1.2.3 (*)
+serde v1.0.229 (*)
+serde_json v1.0.149 (*)
+shellexpand v3.1.2
+dirs v6.0.0
+dirs-sys v0.5.0
+libc v0.2.191
+option-ext v0.2.0
+tokio v1.54.1 (*)
+tracing v0.1.44 (*)
+tracing-subscriber v0.3.23
+matchers v0.2.0
+regex-automata v0.4.18 (*)
+nu-ansi-term v0.50.3
+once_cell v1.21.4
+regex-automata v0.4.18 (*)
+serde v1.0.229 (*)
+serde_json v1.0.149 (*)
+sharded-slab v0.1.7
+lazy_static v1.5.1
+smallvec v1.16.4
+thread_local v1.1.10 (*)
+tracing v0.1.44 (*)
+tracing-core v0.1.36 (*)
+tracing-log v0.2.0
+log v0.4.34
+once_cell v1.21.4
+tracing-core v0.1.36 (*)
+tracing-serde v0.2.0
+serde v1.0.229 (*)
+tracing-core v0.1.36 (*)
+zenoh-core v1.8.0 (*)
+zenoh-result v1.8.0 (*)
+zenoh-core v1.8.0 (*)
+zenoh-keyexpr v1.8.0 (*)
+zenoh-link v1.8.0
+zenoh-config v1.8.0 (*)
+zenoh-link-commons v1.8.0
+async-trait v0.1.92 (proc-macro) (*)
+flume v0.11.1 (*)
+futures v0.3.34 (*)
+serde v1.0.229 (*)
+socket2 v0.5.10 (*)
+time v0.3.55
+deranged v0.5.9
+num-conv v0.2.2
+powerfmt v0.2.1
+time-core v0.1.9
+tokio v1.54.1 (*)
+tokio-util v0.7.20 (*)
+tracing v0.1.44 (*)
+zenoh-buffers v1.8.0 (*)
+zenoh-codec v1.8.0 (*)
+zenoh-core v1.8.0 (*)
+zenoh-protocol v1.8.0 (*)
+zenoh-result v1.8.0 (*)
+zenoh-runtime v1.8.0 (*)
+zenoh-util v1.8.0 (*)
+zenoh-link-tcp v1.8.0
+async-trait v0.1.92 (proc-macro) (*)
+socket2 v0.5.10 (*)
+tokio v1.54.1 (*)
+tokio-util v0.7.20 (*)
+tracing v0.1.44 (*)
+zenoh-config v1.8.0 (*)
+zenoh-core v1.8.0 (*)
+zenoh-link-commons v1.8.0 (*)
+zenoh-protocol v1.8.0 (*)
+zenoh-result v1.8.0 (*)
+zenoh-protocol v1.8.0 (*)
+zenoh-result v1.8.0 (*)
+zenoh-link-commons v1.8.0 (*)
+zenoh-macros v1.8.0 (proc-macro) (*)
+zenoh-plugin-trait v1.8.0
+git-version v0.3.9 (*)
+libloading v0.8.9 (*)
+serde v1.0.229 (*)
+stabby v72.1.16
+rustversion v1.0.23 (proc-macro)
+stabby-abi v72.1.16
+rustversion v1.0.23 (proc-macro)
+sha2-const-stable v0.1.0
+stabby-macros v72.1.16 (proc-macro)
+proc-macro-crate v3.5.0
+toml_edit v0.25.17+spec-1.1.0 (*)
+proc-macro2 v1.0.107 (*)
+quote v1.0.47 (*)
+syn v2.0.119 (*)
+rustc_version v0.4.1 (*)
+tracing v0.1.44 (*)
+zenoh-config v1.8.0 (*)
+zenoh-keyexpr v1.8.0 (*)
+zenoh-macros v1.8.0 (proc-macro) (*)
+zenoh-result v1.8.0 (*)
+zenoh-util v1.8.0 (*)
+zenoh-protocol v1.8.0 (*)
+zenoh-result v1.8.0 (*)
+zenoh-runtime v1.8.0 (*)
+zenoh-sync v1.8.0
+arc-swap v1.9.3 (*)
+event-listener v5.4.2 (*)
+futures v0.3.34 (*)
+tokio v1.54.1 (*)
+zenoh-buffers v1.8.0 (*)
+zenoh-collections v1.8.0 (*)
+zenoh-core v1.8.0 (*)
+zenoh-task v1.8.0
+futures v0.3.34 (*)
+tokio v1.54.1 (*)
+tokio-util v0.7.20 (*)
+tracing v0.1.44 (*)
+zenoh-core v1.8.0 (*)
+zenoh-runtime v1.8.0 (*)
+zenoh-transport v1.8.0
+async-trait v0.1.92 (proc-macro) (*)
+crossbeam-utils v0.8.23
+flume v0.11.1 (*)
+lazy_static v1.5.1
+lz4_flex v0.11.6
+twox-hash v2.1.5
+rand v0.8.8 (*)
+ringbuffer-spsc v0.1.15
+array-init v2.1.0
+crossbeam v0.8.5
+crossbeam-channel v0.5.17
+crossbeam-utils v0.8.23
+crossbeam-deque v0.8.8
+crossbeam-epoch v0.9.21
+crossbeam-utils v0.8.23
+crossbeam-utils v0.8.23
+crossbeam-epoch v0.9.21 (*)
+crossbeam-queue v0.3.14 (*)
+crossbeam-utils v0.8.23
+serde v1.0.229 (*)
+sha3 v0.10.9
+digest v0.10.7
+block-buffer v0.10.4
+generic-array v0.14.7
+typenum v1.20.1
+version_check v0.9.5
+crypto-common v0.1.7
+generic-array v0.14.7 (*)
+typenum v1.20.1
+subtle v2.6.1
+keccak v0.1.6
+tokio v1.54.1 (*)
+tokio-util v0.7.20 (*)
+tracing v0.1.44 (*)
+zenoh-buffers v1.8.0 (*)
+zenoh-codec v1.8.0 (*)
+zenoh-config v1.8.0 (*)
+zenoh-core v1.8.0 (*)
+zenoh-crypto v1.8.0
+aes v0.8.4
+cfg-if v1.0.5
+cipher v0.4.4
+crypto-common v0.1.7 (*)
+inout v0.1.4
+generic-array v0.14.7 (*)
+cpufeatures v0.2.17
+hmac v0.12.1
+digest v0.10.7 (*)
+rand v0.8.8 (*)
+rand_chacha v0.3.1 (*)
+sha3 v0.10.9 (*)
+zenoh-result v1.8.0 (*)
+zenoh-link v1.8.0 (*)
+zenoh-link-commons v1.8.0 (*)
+zenoh-protocol v1.8.0 (*)
+zenoh-result v1.8.0 (*)
+zenoh-runtime v1.8.0 (*)
+zenoh-sync v1.8.0 (*)
+zenoh-task v1.8.0 (*)
+zenoh-util v1.8.0 (*)
+zenoh-util v1.8.0 (*)
+rustc_version v0.4.1 (*)
+signal-hook v0.3.18
+libc v0.2.191
+signal-hook-registry v1.4.8
+errno v0.3.14 (*)
+libc v0.2.191
+
+gz-sim-core v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-core) (*)
+
+gz-sim-proto v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-proto) (*)
+
+gz-sim-scene v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-scene) (*)
+
+gz-sim-server v0.1.0 (<SIM_SOURCE_5870373>/crates/gz-sim-server) (*)

@@ -3,8 +3,10 @@
 The historical P2 acceptance covers the earlier transport contract; see
 [acceptance/P2.md](acceptance/P2.md). D28/D29 require fresh Zenoh qualification.
 Published `5870373` passes the complete local staged gate and independent review;
-exact hosted run `41248418524` passed; independent downloaded artifact auditing
-is in progress. See [HANDOFF.md](HANDOFF.md) for
+exact hosted run `41248418524` and independent downloaded artifact auditing
+passed. The [fresh Zenoh P2 report](acceptance/P2_ZENOH.md), current dependency
+receipt and matched observations require their own normal publication checks
+before the coordinator advances the phase. See [HANDOFF.md](HANDOFF.md) for
 current evidence and limitations.
 The networked headless CLI server mode is published with real C++ client tests on
 TPE, Rapier, DART and MuJoCo; see [LIVE_CLI.md](LIVE_CLI.md). Broader CLI parity remains open.

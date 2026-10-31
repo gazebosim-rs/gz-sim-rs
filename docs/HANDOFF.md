@@ -12,9 +12,9 @@ current state and the next tasks. Update both when either changes.
 Commit `5870373f0d8280601b051f2cbb1bb0aba264f70f` replaces the legacy Rust
 Transport and Messages runtime dependencies with upstream Zenoh 1.8 and standard
 consumer-generated protobuf bindings. Root owns simulator integration; never edit
-Fuel. Exact hosted run `41248418524` completed successfully. Independent downloaded
-source/input and coverage auditing is in progress. The dashboard carries current
-acceptance state; a green job alone does not replace that audit.
+Fuel. Exact hosted run `41248418524` and independent downloaded source/input,
+coverage, native and software-renderer auditing passed. Schema-only Messages
+`d030d06` also passed its own exact hosted/source/archive checks.
 
 The complete normal staged hook passes on Git tree
 `5cd4cf6c9b3d6c98300f5820c9e508e0bdc135f9`: 783 headless, 435 renderer and 217
@@ -25,8 +25,7 @@ coverage is 9761/9935 lines and 14935/15376 regions; renderer coverage is 5058/5
 and 7523/7830. Independent review verifies all 1762 artifacts, 68 production
 sources and 272 inputs against exact Git objects. Staged evidence is under
 `artifacts/staged/5cd4cf6c9b3d6c98300f5820c9e508e0bdc135f9-zg8jjfj8` in the
-integration worktree. Hosted profiles still require independent source/input and
-coverage comparison before acceptance.
+integration worktree. Hosted profiles passed independent source/input and coverage comparison.
 
 The selected `gazebo-zenoh-client-v1` reference is locally qualified at
 `artifacts/zenoh-native-reference`. Copied staged snapshots set
@@ -76,16 +75,46 @@ owned records, edit counters or remove uncovered entries. The normal strict
 missing/duplicate/changed-line and >95% checks stay mandatory.
 
 Next tasks:
-- Audit exact hosted run and downloaded profiles for commit `5870373`.
-- After consumer acceptance, publish the independently reviewed schema-only
-  Messages transition. Reconcile its stale migration prose first; preserve
-  historical runtime evidence and all 216 canonical proto bytes.
-- Complete SDF's reviewed legacy world-field slice through its normal strict
-  hook and exact hosted gate; no simulator dependency change is included.
+- Finish exact hosted qualification of the published shutdown follow-up.
+- Publish the independently reviewed P2 record, dependency receipt and matched
+  observations, then verify that publication before phase closure.
+- Audit simulator admission of newly parsed SDF semantics before changing its
+  pinned dependency. The producer slice itself is already accepted.
 - Continue bounded shutdown/activation and pressure controls. The separate
-  source-only publication-staging experiment has no build or performance credit.
+  publication-staging experiment has correctness evidence but no comparative
+  timing or adoption credit.
 - Continue physics, rendering, systems, reference inventory and release work.
-  Whole phases remain open until their acceptance criteria are met.
+  Whole phases remain open until their own acceptance criteria are met.
+
+## Current acceptance publication
+
+The CPU IMU shutdown-storage follow-up is published at `1480725`. Its normal
+staged hook and independent audit passed 784 headless, 435 renderer and 217
+tooling tests, strict per-crate coverage and the new changed executable line.
+Its own exact hosted run `41252543726` is pending. Keep the first capacity-stopped
+attempt separate from the complete retry; only inactive compiler caches were
+reclaimed, preserving source, executables and raw evidence.
+
+The new `docs/acceptance/P2_ZENOH.md`, fifteen-row matrix, dependency receipt and
+matched-stream observations publish the selected Zenoh milestone's evidence.
+Their implementation witness remains `5870373`; their own publication commit
+must pass normal staged and exact hosted/source checks before Root advances P2.
+Historical P2 records remain unchanged. Do not keep this selected milestone open
+for unrelated broad ACT-01 or balanced robotics requirements, and do not extend
+its acceptance to those packets.
+
+The schema source policy retains original minimal-inventory provenance at
+`a39a945` and identifies the equivalent public release at `d030d06`. Canonical
+proto bytes are unchanged; new generated build evidence is required for the
+updated policy. SDF `486b3e0` passed its independent hosted/source qualification,
+but the simulator still pins `0437a54`. Audit consumer admission of newly parsed
+semantics before updating that dependency; do not silently ignore new fields.
+
+Next work includes explicit application-shutdown admission, full demand-only
+activation, the isolated publication-staging performance experiment, physics,
+rendering and remaining systems. Preserve the existing unexpected-session-close
+behavior separately from explicit application shutdown. Do not run comparative
+measurements while builds are active. Fuel remains independently owned.
 
 ## Owner correction: Zenoh and schema-only Messages
 

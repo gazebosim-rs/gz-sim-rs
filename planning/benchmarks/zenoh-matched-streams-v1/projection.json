@@ -1,0 +1,42 @@
+{
+  "scope": "Privacy-only projection of one matched TPE Clock/Pose/IMU benchmark. All JSON fields/ordering/numeric scalars, every stdout/stderr byte, all eight warmup/measured pairs and every map address/offset/inode remain. No outlier or numeric/wire/physical/cadence/sequence observation was dropped.",
+  "path_rules": [
+    {
+      "original_role": "Exact absolute source checkout prefix for published consumer587",
+      "public_token": "<SIM_SOURCE_5870373>",
+      "identity": "https://github.com/gazebosim-rs/gz-sim-rs/commit/5870373f0d8280601b051f2cbb1bb0aba264f70f"
+    },
+    {
+      "original_role": "Exact absolute build target prefix for qualified optimized Rust ELF",
+      "public_token": "<RUST_RELEASE_TARGET_5870373>",
+      "binary_sha256": "af4671de5e5dde69dc7694d07e54edeeeea86036b53fbb194c591e739446e8bf"
+    },
+    {
+      "original_role": "Build-user home prefix after more-specific source/target rules",
+      "public_token": "<BUILD_USER_HOME>"
+    }
+  ],
+  "unchanged_public_native_roots": [
+    "/reference",
+    "/zenoh-client",
+    "/usr"
+  ],
+  "unmodified_native_binary_identity_only": true,
+  "consumer_commit": "5870373f0d8280601b051f2cbb1bb0aba264f70f",
+  "source_tree": "5cd4cf6c9b3d6c98300f5820c9e508e0bdc135f9",
+  "whole_consumer_hosted": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524",
+  "native_image": "sha256:bae6ddc3a806532805a8103967d7ab353fdaf14ab0fcb957343f8f32bece11da",
+  "native_base_image": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+  "rust_build_record_sha256": "f53cf7a838ab01516dfc91d805afb72ae16968143f3d1a9ead45c0232177e397",
+  "native_image_record_sha256": "946a92e5b7489c3ec8b82b0bc736688ccf09554489904a4ff6f09cd8ae095915",
+  "measured_pairs": 7,
+  "excluded_warmup_pairs": 1,
+  "steps": 1000,
+  "request_period_us": 20000,
+  "medians_ns_per_step": {
+    "native": 63289.562,
+    "rust": 58563.369
+  },
+  "rust_lower_latency_percent": 7.467571034857212,
+  "qualification": "One equal-requested-work small TPE Server workload, not throughput/all-engine/robotics or causal optimization evidence. Native local delivery may bypass serialization; Rust currently uses encoded queues. Immutable native image is locally retained, not claimed publicly pullable. Binary and source records are not a claim that debug hosted artifacts are the measured release executable."
+}

@@ -1,6 +1,6 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Simulator-owned generated messages (private migration candidate)
+# Simulator-owned generated messages
 
 This package generates one shared binding set from the pinned canonical schema
 snapshot. It contains no application runtime, conversion framework, reflection,
@@ -8,9 +8,14 @@ CLI, forwarding envelope or custom message traits. `prost` owns serialization;
 its standard `Name` implementation provides native Zenoh type attachments.
 Domain helpers remain in simulator owners.
 
-The schema snapshot is byte-identical to the public revision in schema-source.json
-and to the private schema-only candidate. Standard protoc 3.21.12 and prost-build
-0.14.4 generate the types during this consumer's build. No build downloads code.
+All 216 canonical proto files match both their original public revision in
+schema-source.json and the verified schema-only Messages release
+`d030d06e7d2b83bdd251a24a6e851605ee35a633`. The minimal consumer inventory retains
+its actual `a39a945` provenance; the release adds its own compiler-validation
+catalog. Those manifests and their descriptors are distinct, while canonical
+sources are unchanged. The source-policy release anchor requires fresh generated
+build evidence when updated. Standard protoc 3.21.12 and prost-build 0.14.4
+generate the types during this consumer's build. No build downloads code.
 Original schema notices remain unchanged. The only third-party repair is the
 explicit two-predicate signed-zero fix in third_party/prost-derive-0.14.4.
 
@@ -34,13 +39,22 @@ receive its absent-source classification. Generated output accounting binds the
 actual Cargo output to pinned inputs and its exact source hash. See
 [the build and coverage contract](../../docs/PROTO_GENERATION.md).
 
-This is not production adoption. Independent fresh-source review and replay pass
-14 regular Rust tests, 24 retained profile controls, eight proto policy controls
-and Clippy. Two delegated child entry points are explicitly executed by their
-parent tests and the verifier. Isolated real LLVM reports owned build.rs coverage
-of 189/190 lines and 329/340 regions. The reviewed schema-root guard also rejects
-an external symlinked schema directory before generation or evidence is produced.
-These are bounded leaf results, not both mandatory workspace profiles. The
-renderer proof is unchanged. Simulator integration, full staged/renderer/hosted
-checks and publication remain pending. Historical consumer dependencies remain
-until actual server/camera/CLI replacement qualifies.
+Consumer adoption is published in simulator commit
+[`5870373`](https://github.com/gazebosim-rs/gz-sim-rs/commit/5870373f0d8280601b051f2cbb1bb0aba264f70f).
+Server, camera and CLI consumers use these generated bindings. Its ordinary full
+staged gate passed 783 headless tests, 435 renderer tests and 217 tooling checks,
+including actual native interoperability and software-Vulkan GPU-worker execution.
+Both required profiles passed strict owned line and region coverage. Exact hosted
+[run 41248418524](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524)
+passed, and its downloaded source, inputs, coverage and native/GPU evidence were
+independently audited. These results qualify this consumer integration; they do
+not expand the bounded schema or serialization contract.
+
+The earlier independent leaf review passed 14 regular Rust tests, 24 retained
+profile controls, eight proto policy controls and Clippy. Two delegated child
+entry points were explicitly executed by their parent tests and the verifier.
+That isolated real LLVM report measured owned build.rs coverage of 189/190 lines
+and 329/340 regions. The schema-root guard rejects an external symlinked schema
+directory before generation or evidence is produced. Those initial leaf numbers
+remain source-bound evidence, separate from the complete integration profiles.
+The renderer proof and generated-output exclusions remain unchanged.

@@ -1,0 +1,1634 @@
+{
+  "schema_version": 1,
+  "decision": "Selected P2 assertions have current Zenoh witnesses; recommend closure only after publishing the refreshed report/projection/dependency receipt through normal gates. No phase status changed.",
+  "implementation_commit": "5870373f0d8280601b051f2cbb1bb0aba264f70f",
+  "implementation_tree": "5cd4cf6c9b3d6c98300f5820c9e508e0bdc135f9",
+  "scope": "PLAN P2 / SLICE-01 first no-renderer SDF world: TPE and selected f64 Rapier, local resources, gravity/IMU, selected joint, exact steps, pause/reset/removal, actual C++ Zenoh peers and bounded queues. Not whole ACT-01, P0, IO/SENSOR/LOAD/physics parity, stopped-peer stress, balanced robotics, renderer or release completion.",
+  "current_requirements": {
+    "docs/PLAN.md": "a695f9eb8156802a68c1272decf4f299f024a5631efead88abf1346713cfd020",
+    "docs/IMPLEMENTATION_TASKS.md": "ebf86f008ec26189dde73096a713a84abf6ac2285503e2a387de670de550cd71"
+  },
+  "historical_records_preserved": {
+    "docs/acceptance/P2.md": "2b9de656a62b5a6a1803003fd7c3272cf8aacdf0efcdbd0d2b391e428b70146d",
+    "planning/acceptance/p2.json": "0a0ad19256eafada93f974b7e156c385fa589f186ed17c08756c37d9be089924",
+    "planning/acceptance/p2-exit-review.json": "eba4e604528accb442db0f3cf118f5e7b38e3f13f1379083aa2ef7b1a76193d0",
+    "planning/acceptance/p2-normal-dependencies.json": "09b45e1dbd8e6d8124b42f3afde91f16ff33342cffa074f331948663d956881a"
+  },
+  "contracts": [
+    {
+      "id": "construction",
+      "historical_contract": "Shared SDF creates owned Bevy world/model/link/collision/IMU state with resolved frames, explicit first physics profile and stable role IDs.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/scene.rs",
+          "sha256": "eef144ec4e17f053229aa1cf3544633ae5d8d36974901d29e6061c0d0b9fff09",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/scene.rs",
+          "named_test": "sdf_bevy_physics_and_imu_share_end_step_time_and_reset_epoch",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "sdf_bevy_physics_and_imu_share_end_step_time_and_reset_epoch"
+            ],
+            "renderer": [
+              "sdf_bevy_physics_and_imu_share_end_step_time_and_reset_epoch"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/hierarchy.rs",
+          "sha256": "27548a825bb28ec0f98eb6011628d9531a0f385a115a275ca0373b61e4c7a31a",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/hierarchy.rs",
+          "named_test": "ownership_and_local_poses_preserve_canonical_model_motion_and_ids",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "ownership_and_local_poses_preserve_canonical_model_motion_and_ids"
+            ],
+            "renderer": [
+              "ownership_and_local_poses_preserve_canonical_model_motion_and_ids"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            },
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/nested.sdf",
+              "sha256": "32b2cc37bcc4191712bc54a22004f0795a34a27732914e0b32c24c798e130e4d",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/nested.sdf"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/world_physics.rs",
+          "sha256": "4d8303d8d8ce12af313108636d31f6e593dd7dcea49842e95d79675f7f54297f",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/world_physics.rs",
+          "named_test": "first_profile_and_explicit_override_are_owned_and_restored_on_both_engines",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "first_profile_and_explicit_override_are_owned_and_restored_on_both_engines"
+            ],
+            "renderer": [
+              "first_profile_and_explicit_override_are_owned_and_restored_on_both_engines"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/world_physics.json",
+              "sha256": "3577ef523d9413556798b67fe4f70c8314145754ed4f277ded219da2fdc6e77e",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/world_physics.json"
+            }
+          ]
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reference/headless-imu.json",
+          "sha256": "23e2a38c20ebf863d080f75157be807a2ce93d971f27b72117436b8bc152b75f",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reference/world-physics.json",
+          "sha256": "bc0d61ec1a4053a2167532b3b91e6ea63ef2705ccc53be4cd012b5b5e6d7155f",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/benchmarks/headless-streams.json",
+          "sha256": "fbadeee06dcac94e46269f6408ee933aac5406c0fc8f698fbbb902555016e229",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "historical_scope_limits": "World and role identities are opaque, not equal numeric ECM storage IDs. Supported primitive single-link construction; larger unsupported features remain typed errors.",
+      "current_scope_limits": "Selected local primitive worlds and resolved frames/hierarchy/role identity are qualified. This row does not certify the complete SDF loader, all asset types or general construction domains.",
+      "historical_selected_assertion_intent": "Exact selected SDF bytes/profile, world/model/link/collision/IMU ownership, pre-resolved frames, explicit mass/inertia/gravity, stable opaque role IDs; local resources resolve before stepping.",
+      "current_selected_assertion_intent": "Exact selected SDF bytes/profile, world/model/link/collision/IMU ownership, pre-resolved frames, explicit mass/inertia/gravity, stable opaque role IDs; local resources resolve before stepping."
+    },
+    {
+      "id": "tpe",
+      "historical_contract": "Selected TPE motion, hierarchy, reset and model-bounds contacts agree with retained native controls.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/tpe.rs",
+          "sha256": "2c061fffb4cc19bdb81b7606d9ba08dc785bbce310c46877e65efaa8fe60d738",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/tpe.rs",
+          "named_test": "pinned_native_world_model_and_link_motion_match_loaded_tpe_scene",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "pinned_native_world_model_and_link_motion_match_loaded_tpe_scene"
+            ],
+            "renderer": [
+              "pinned_native_world_model_and_link_motion_match_loaded_tpe_scene"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            },
+            {
+              "source": "planning/reference/tpe-scene-motion.json",
+              "sha256": "38d871c16fd635c170273d98b5e899d3d79298f19ff259b0124add61b5bf7c24",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/planning/reference/tpe-scene-motion.json"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/tpe_contacts.rs",
+          "sha256": "511cdeddcbe990f9347278b6e220c2bf1034530d16486f15b5e775c9f9fc6cca",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/tpe_contacts.rs",
+          "named_test": "loaded_contacts_match_fresh_native_model_bounds_and_filtering",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "loaded_contacts_match_fresh_native_model_bounds_and_filtering"
+            ],
+            "renderer": [
+              "loaded_contacts_match_fresh_native_model_bounds_and_filtering"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "planning/reference/tpe-contacts.json",
+              "sha256": "830c0db7290084c93838ba27229ed62a7382c05a1c133996fd041dd9f12a6fc6",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/planning/reference/tpe-contacts.json"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/tpe.rs",
+          "sha256": "2c061fffb4cc19bdb81b7606d9ba08dc785bbce310c46877e65efaa8fe60d738",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/tpe.rs",
+          "named_test": "selected_tpe_world_has_no_gravity_dynamics_and_restores_removed_entities",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "selected_tpe_world_has_no_gravity_dynamics_and_restores_removed_entities"
+            ],
+            "renderer": [
+              "selected_tpe_world_has_no_gravity_dynamics_and_restores_removed_entities"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            },
+            {
+              "source": "planning/reference/tpe-scene-motion.json",
+              "sha256": "38d871c16fd635c170273d98b5e899d3d79298f19ff259b0124add61b5bf7c24",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/planning/reference/tpe-scene-motion.json"
+            }
+          ]
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reference/tpe-scene-motion.json",
+          "sha256": "38d871c16fd635c170273d98b5e899d3d79298f19ff259b0124add61b5bf7c24",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reference/tpe-contacts.json",
+          "sha256": "830c0db7290084c93838ba27229ed62a7382c05a1c133996fd041dd9f12a6fc6",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "historical_scope_limits": "Native constant motion/no gravity dynamics is intentional. Confirmed D23 fixed-body/world-axis corrections are implemented with recorded native differences; nested models, general link-origin motion and remaining TPE capabilities are not certified.",
+      "current_scope_limits": "Native constant motion/no gravity dynamics is intentional. Confirmed D23 fixed-body/world-axis corrections are implemented with recorded native differences; nested models, general link-origin motion and remaining TPE capabilities are not certified.",
+      "historical_selected_assertion_intent": "Selected native TPE constant-motion/no-gravity-dynamics semantics, declared contact/support bounds, stepping/reset/removal; no TPE wrench/joints/general capability requirement.",
+      "current_selected_assertion_intent": "Selected native TPE constant-motion/no-gravity-dynamics semantics, declared contact/support bounds, stepping/reset/removal; no TPE wrench/joints/general capability requirement."
+    },
+    {
+      "id": "dynamic",
+      "historical_contract": "Full-f64 Rapier provides the first dynamic backend, with gravity, inertial response, ground contact and bounded DART physical reference comparisons.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-physics-rapier/tests/physics.rs",
+          "sha256": "2b8456a87c1012c1082535d8dbadc04602ea95f6dcd2d2bb212edf7b11b23dc7",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-physics-rapier/tests/physics.rs",
+          "named_test": "exact_steps_free_fall_pause_and_reset_use_z_up_and_f64",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "exact_steps_free_fall_pause_and_reset_use_z_up_and_f64"
+            ],
+            "renderer": []
+          },
+          "fixtures": []
+        },
+        {
+          "source": "crates/gz-physics-rapier/tests/physics.rs",
+          "sha256": "2b8456a87c1012c1082535d8dbadc04602ea95f6dcd2d2bb212edf7b11b23dc7",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-physics-rapier/tests/physics.rs",
+          "named_test": "explicit_inertia_and_rotation_control_impulse_response_and_reset",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "explicit_inertia_and_rotation_control_impulse_response_and_reset"
+            ],
+            "renderer": []
+          },
+          "fixtures": []
+        },
+        {
+          "source": "crates/gz-physics-rapier/tests/physics.rs",
+          "sha256": "2b8456a87c1012c1082535d8dbadc04602ea95f6dcd2d2bb212edf7b11b23dc7",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-physics-rapier/tests/physics.rs",
+          "named_test": "bodies_contact_fixed_ground_and_removed_handles_stay_invalid",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "bodies_contact_fixed_ground_and_removed_handles_stay_invalid"
+            ],
+            "renderer": []
+          },
+          "fixtures": []
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reference/headless-imu.json",
+          "sha256": "23e2a38c20ebf863d080f75157be807a2ce93d971f27b72117436b8bc152b75f",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reference/physics-inputs.json",
+          "sha256": "80a1807f907ca40d18bfbfd4d932937877857e0cec7d2eca4a16dc9ae2533638",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "historical_scope_limits": "Rapier is selected by the owner. DART/Rapier comparisons are predeclared cross-engine physical bounds; no same-engine DART adapter or complete conformance claim.",
+      "current_scope_limits": "The selected dynamic witness is f64 Rapier with declared DART cross-engine physical bounds. Current separately implemented DART/MuJoCo capabilities do not enlarge this row into whole-backend or same-engine certification.",
+      "historical_selected_assertion_intent": "Use already selected f64 Rapier via PHY-05. Gravity/free-fall, supported shapes/inertia and bounded accuracy must remain tested; native DART is a cross-engine reference, not a Rust DART adapter.",
+      "current_selected_assertion_intent": "Use already selected f64 Rapier via PHY-05. Gravity/free-fall, supported shapes/inertia and bounded accuracy must remain tested; native DART is a cross-engine reference, not a Rust DART adapter."
+    },
+    {
+      "id": "streams",
+      "historical_contract": "Each selected request yields a complete checked clock, four-role parent-relative pose packet and noise-free IMU through real transport.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-server/tests/private/streams_benchmark.rs",
+          "sha256": "7017e176fbf0bc55d764cb85544a071d62f55e25913584acccffb08671f81969",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/private/streams_benchmark.rs",
+          "named_test": "tpe_clock_pose_imu_complete_lockstep",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "streams_benchmark::tpe_clock_pose_imu_complete_lockstep"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+              "sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/headless_imu.sdf"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/server.rs",
+          "sha256": "539d55a7ec0f920a1b89299c050a3240602ee479635acd0132cd20e62c2733df",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/private/server.rs",
+          "named_test": "imu_message_matches_native_metadata_presence_covariance_and_sequence",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "tests::imu_message_matches_native_metadata_presence_covariance_and_sequence"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/native.rs",
+          "sha256": "6ec3dadcd617196bc309268478dd66afc00c50650d04364140eed716b2ad9166",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/native.rs",
+          "named_test": "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            }
+          ]
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/benchmarks/headless-streams.json",
+          "sha256": "fbadeee06dcac94e46269f6408ee933aac5406c0fc8f698fbbb902555016e229",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reviews/headless-streams.json",
+          "sha256": "fd9e61174246868de529dd2ee40320a5e73a5c5d8e9ac7f7e63a1f200cff1882",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "api_translation": "Same actual Server observation workload uses direct SessionLocal standard-message consumers and explicit preparation before raw ticking; native reference is Zenoh ON. Full timestamp, header, model/local pose, role ID, covariance, sequence, sample count and byte predicates remain in the named tests.",
+      "historical_scope_limits": "128 measured requests per process with20ms post-observation pacing; native60wallHz default and Rust16_666_667ns admission are bound independently. Broader default/reset/server equivalence is not inferred from paced runs. Host clocks differ; opaque-ID byte normalization is explicitly guarded.",
+      "current_scope_limits": "Current matched report uses1000 measured requests per process, seven measured pairs plus one excluded warmup, with at least20ms post-observation pacing. Native60wallHz/Rust16666667ns admission is independently tested; broader reset/default equivalence and unpaced throughput are not inferred. Host clock values differ and opaque-ID byte normalization is explicitly guarded.",
+      "historical_selected_assertion_intent": "At every selected observation boundary require clock/pose/IMU delivery, exact sim stamps/counts, full noise-free IMU components/covariances/frame/sequence, canonical model/local poses and validstable IDs; hostclock domains not equal cross-process values.",
+      "current_selected_assertion_intent": "At every selected observation boundary require clock/pose/IMU delivery, exact sim stamps/counts, full noise-free IMU components/covariances/frame/sequence, canonical model/local poses and validstable IDs; hostclock domains not equal cross-process values."
+    },
+    {
+      "id": "imu",
+      "historical_contract": "Native sensor frame/gravity/readings and rate-phase behavior are checked, including nonphysical velocity replacement versus physical force.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/headless_imu.rs",
+          "sha256": "64921ea5bd1c63d3b734dcd5f8b7bd072e8d2c3d4cd9f970dc1e7067a3491ddf",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/headless_imu.rs",
+          "named_test": "shared_unpaced_sdf_matches_actual_native_acquisition_on_tpe_and_freefall_dynamics",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "shared_unpaced_sdf_matches_actual_native_acquisition_on_tpe_and_freefall_dynamics"
+            ],
+            "renderer": [
+              "shared_unpaced_sdf_matches_actual_native_acquisition_on_tpe_and_freefall_dynamics"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+              "sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/headless_imu.sdf"
+            },
+            {
+              "source": "planning/reference/headless-imu.json",
+              "sha256": "23e2a38c20ebf863d080f75157be807a2ce93d971f27b72117436b8bc152b75f",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/planning/reference/headless-imu.json"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/sensor_schedule.rs",
+          "sha256": "c0e70080cf45376773b37c9005d04811dfbf499d376e895c9ce296b31e0418a3",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/sensor_schedule.rs",
+          "named_test": "native_rates_preserve_phase_derivative_pause_and_reset_for_both_engines",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "native_rates_preserve_phase_derivative_pause_and_reset_for_both_engines"
+            ],
+            "renderer": [
+              "native_rates_preserve_phase_derivative_pause_and_reset_for_both_engines"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/input_imu.rs",
+          "sha256": "749fb5141411c35c05042d77c803df2206e1af0ed6ebe9e5debe8b19d2714ef3",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/input_imu.rs",
+          "named_test": "all_attached_imus_preserve_history_through_pause_replacement_reset_and_removal",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "all_attached_imus_preserve_history_through_pause_replacement_reset_and_removal"
+            ],
+            "renderer": [
+              "all_attached_imus_preserve_history_through_pause_replacement_reset_and_removal"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+              "sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/headless_imu.sdf"
+            },
+            {
+              "source": "planning/reference/input-imu.json",
+              "sha256": "b0251fe350d27624b379bb3f3658b167e8289385fa101406b17fa213a1bb6078",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/planning/reference/input-imu.json"
+            }
+          ]
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reference/headless-imu.json",
+          "sha256": "23e2a38c20ebf863d080f75157be807a2ce93d971f27b72117436b8bc152b75f",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reference/input-imu.json",
+          "sha256": "b0251fe350d27624b379bb3f3658b167e8289385fa101406b17fa213a1bb6078",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reference/sensor-schedule.json",
+          "sha256": "abd930d94095d09125f199fde5c04278d4c02029debcef4e54e95091e2eea703",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reviews/headless-imu.json",
+          "sha256": "0414c2191acbbc1ab0bdcd2daf8c162a4dd857e7b6685d4aefc93b8dfb5f15f4",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reviews/input-imu.json",
+          "sha256": "3d14e0f958020b172480156d60eabfe2acd33fe053845ffaef5316cd1a7ca32c",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "historical_scope_limits": "Qualified frame/gravity/rate/history/noise/local activation contracts. Generic Sensor framework/forced acquisition/metrics and other families remain open; native BaseSensor rows do not prove whole-server activation-reset parity.",
+      "current_scope_limits": "Qualified frame/gravity/rate/history/noise/local activation contracts. Generic Sensor framework/forced acquisition/metrics and other families remain open; native BaseSensor rows do not prove whole-server activation-reset parity.",
+      "historical_selected_assertion_intent": "Same headless_imu.sdf:100 observations1..100ms, every orientation/angular/specific-force component; TPE native semantics, Rapier versus DART bound1e-9 over precontact100ms. Retain pause/no-stale and finite-rate/reset/history assertions.",
+      "current_selected_assertion_intent": "Same headless_imu.sdf:100 observations1..100ms, every orientation/angular/specific-force component; TPE native semantics, Rapier versus DART bound1e-9 over precontact100ms. Retain pause/no-stale and finite-rate/reset/history assertions."
+    },
+    {
+      "id": "pause-step",
+      "historical_contract": "Start-paused, exact N stepping, integer simulation timestamps, epochs, reset and overflow/fault boundaries are checked.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-core/tests/schedule.rs",
+          "sha256": "1076ffded71779bbde40b7e7e55883e3d356aa9f585f6b05a721e713f4333f73",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-core/tests/schedule.rs",
+          "named_test": "pause_exact_steps_and_reset_keep_distinct_clock_contracts",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "pause_exact_steps_and_reset_keep_distinct_clock_contracts"
+            ],
+            "renderer": [
+              "pause_exact_steps_and_reset_keep_distinct_clock_contracts"
+            ]
+          },
+          "fixtures": []
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/server.rs",
+          "sha256": "539d55a7ec0f920a1b89299c050a3240602ee479635acd0132cd20e62c2733df",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/private/server.rs",
+          "named_test": "real_transport_commands_report_acceptance_and_exact_step_completion",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "tests::real_transport_commands_report_acceptance_and_exact_step_completion"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/server.rs",
+          "sha256": "539d55a7ec0f920a1b89299c050a3240602ee479635acd0132cd20e62c2733df",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/private/server.rs",
+          "named_test": "unsupported_and_overflowing_controls_leave_state_unchanged",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "tests::unsupported_and_overflowing_controls_leave_state_unchanged"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            }
+          ]
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reference/world-physics.json",
+          "sha256": "bc0d61ec1a4053a2167532b3b91e6ea63ef2705ccc53be4cd012b5b5e6d7155f",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reference/lifecycle-controls.json",
+          "sha256": "4f9177eb98b78f271c39e9efa6f54ec612a12a9d890cf582c9e765accaa8c188",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "historical_scope_limits": "Unsupported seed/run-to services remain explicit; legacy C++ client negative Rust API guards are not claims of native unsupported behavior.",
+      "current_scope_limits": "Unsupported seed/run-to services remain explicit; legacy C++ client negative Rust API guards are not claims of native unsupported behavior.",
+      "historical_selected_assertion_intent": "Start paused without extra sample, exact requestedN advancing steps and completion pause, control precedence/overflow/unsupportedinputs explicit; actualC++control/service requests.",
+      "current_selected_assertion_intent": "Start paused without extra sample, exact requestedN advancing steps and completion pause, control precedence/overflow/unsupportedinputs explicit; actualC++control/service requests."
+    },
+    {
+      "id": "inputs",
+      "historical_contract": "Free single-link world velocity and one-step COM wrench inputs preserve finite admission, pause retention and reset/removal cancellation.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/inputs.rs",
+          "sha256": "6898bd39e9f36148c49a9cb28944f7e9a24ce396eb4606ccfcea514f4b118859",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/inputs.rs",
+          "named_test": "native_world_velocity_and_wrench_controls_match_supported_observations",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "native_world_velocity_and_wrench_controls_match_supported_observations"
+            ],
+            "renderer": [
+              "native_world_velocity_and_wrench_controls_match_supported_observations"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            },
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/physics_inputs.json",
+              "sha256": "5bd00bf781e061220ac006db7ef0746bb730666b9d5b074ca4a7dc5e0b87bd21",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/physics_inputs.json"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/input_imu.rs",
+          "sha256": "749fb5141411c35c05042d77c803df2206e1af0ed6ebe9e5debe8b19d2714ef3",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/input_imu.rs",
+          "named_test": "velocity_replacement_is_not_an_imu_force_and_real_wrench_acceleration_remains",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "velocity_replacement_is_not_an_imu_force_and_real_wrench_acceleration_remains"
+            ],
+            "renderer": [
+              "velocity_replacement_is_not_an_imu_force_and_real_wrench_acceleration_remains"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+              "sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/headless_imu.sdf"
+            },
+            {
+              "source": "planning/reference/input-imu.json",
+              "sha256": "b0251fe350d27624b379bb3f3658b167e8289385fa101406b17fa213a1bb6078",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/planning/reference/input-imu.json"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/inputs.rs",
+          "sha256": "6898bd39e9f36148c49a9cb28944f7e9a24ce396eb4606ccfcea514f4b118859",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/inputs.rs",
+          "named_test": "admitted_force_is_one_tick_and_bad_inputs_leave_pending_requests_unchanged",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "admitted_force_is_one_tick_and_bad_inputs_leave_pending_requests_unchanged"
+            ],
+            "renderer": [
+              "admitted_force_is_one_tick_and_bad_inputs_leave_pending_requests_unchanged"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            },
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/physics_inputs.json",
+              "sha256": "5bd00bf781e061220ac006db7ef0746bb730666b9d5b074ca4a7dc5e0b87bd21",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/physics_inputs.json"
+            }
+          ]
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reference/physics-inputs.json",
+          "sha256": "80a1807f907ca40d18bfbfd4d932937877857e0cec7d2eca4a16dc9ae2533638",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reference/input-imu.json",
+          "sha256": "b0251fe350d27624b379bb3f3658b167e8289385fa101406b17fa213a1bb6078",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "historical_scope_limits": "Local APIs, not transport input systems. Twenty earlier supported native velocity/angular rows retain comparisons; ten rotated TPE rows remain native observations with the confirmed D23 correction. TPE wrench is unsupported. Force positions retain the declared half-Euler bound.",
+      "current_scope_limits": "Local APIs, not transport input systems. Twenty earlier supported native velocity/angular rows retain comparisons; ten rotated TPE rows remain native observations with the confirmed D23 correction. TPE wrench is unsupported. Force positions retain the declared half-Euler bound.",
+      "historical_selected_assertion_intent": "Local free-body world velocity/angularvelocity and COMforce admission/execution/one-tick semantics; velocityreplacement must not invent IMUacceleration, realforce staysvisible; paused/reset/removal and invalidinput preservation. No new transport wrench/velocity system unless fixture itself needs it.",
+      "current_selected_assertion_intent": "Local free-body world velocity/angularvelocity and COMforce admission/execution/one-tick semantics; velocityreplacement must not invent IMUacceleration, realforce staysvisible; paused/reset/removal and invalidinput preservation. No new transport wrench/velocity system unless fixture itself needs it."
+    },
+    {
+      "id": "joint",
+      "historical_contract": "The simple world-anchored revolute dynamic variant preserves metadata, physical constraint observations, reset and removal.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-physics-rapier/tests/joints.rs",
+          "sha256": "fc53266d9a07670d1f68438adadd80c3c75553d298ed0bedab3cb17c0f2dfad8",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-physics-rapier/tests/joints.rs",
+          "named_test": "real_native_pendulum_joint_observations_and_reset_are_within_declared_bounds",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "real_native_pendulum_joint_observations_and_reset_are_within_declared_bounds"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-physics-rapier/tests/fixtures/world_pendulum.json",
+              "sha256": "0d59d4caf32165dfcf013139cb06776d985b57e4bd34618abd692997e5f9b81c",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-physics-rapier/tests/fixtures/world_pendulum.json"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/joints.rs",
+          "sha256": "a900c4148188b35d882dd8b3fa99a05dbed9fbe93ba7edc613c00c0be1e286a8",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/joints.rs",
+          "named_test": "sdf_world_revolute_preserves_metadata_frames_native_observations_and_loaded_lifecycle",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "sdf_world_revolute_preserves_metadata_frames_native_observations_and_loaded_lifecycle"
+            ],
+            "renderer": [
+              "sdf_world_revolute_preserves_metadata_frames_native_observations_and_loaded_lifecycle"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-physics-rapier/tests/fixtures/world_pendulum.json",
+              "sha256": "0d59d4caf32165dfcf013139cb06776d985b57e4bd34618abd692997e5f9b81c",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-physics-rapier/tests/fixtures/world_pendulum.json"
+            },
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/pendulum.sdf",
+              "sha256": "edc6a2031d2814c987b266a0bbeee7cadbbf706dc6529c531e267c88769f8d11",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/pendulum.sdf"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-physics-rapier/tests/joints.rs",
+          "sha256": "fc53266d9a07670d1f68438adadd80c3c75553d298ed0bedab3cb17c0f2dfad8",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-physics-rapier/tests/joints.rs",
+          "named_test": "world_revolute_tracks_complete_turns_in_both_directions_and_reset",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "world_revolute_tracks_complete_turns_in_both_directions_and_reset"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-physics-rapier/tests/fixtures/world_pendulum.json",
+              "sha256": "0d59d4caf32165dfcf013139cb06776d985b57e4bd34618abd692997e5f9b81c",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-physics-rapier/tests/fixtures/world_pendulum.json"
+            }
+          ]
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reference/world-joints.json",
+          "sha256": "67368ac2348e1d5a005f647b1490cd70ee600931043d2740b6a4a88b6623e097",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reviews/world-joints.json",
+          "sha256": "b8296311d9ae1ce40cee6aa56741cc00c8af994f7842571edd285b2f7535a37b",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "historical_scope_limits": "Rapier variant with declared DART cross-engine q/pose/velocity bounds. Native post-reset samples1/10 after11 total advances, not reset-time-zero. General articulations and TPE joints are not claimed.",
+      "current_scope_limits": "Rapier variant with declared DART cross-engine q/pose/velocity bounds. Native post-reset samples1/10 after11 total advances, not reset-time-zero. General articulations and TPE joints are not claimed.",
+      "historical_selected_assertion_intent": "Separate world-parented revolute Rapier variant: nativeDART4000-step pendulum and boundedreset samples, declaredq/bodypose1e-4 andaxisvelocity3e-4 plusanalyticanchor/energy checks; continuousangle/frames/ownership/loadedreset/removal. No TPEjoint/generalarticulation or jointedfreebodycommands.",
+      "current_selected_assertion_intent": "Separate world-parented revolute Rapier variant: nativeDART4000-step pendulum and boundedreset samples, declaredq/bodypose1e-4 andaxisvelocity3e-4 plusanalyticanchor/energy checks; continuousangle/frames/ownership/loadedreset/removal. No TPEjoint/generalarticulation or jointedfreebodycommands."
+    },
+    {
+      "id": "lifecycle",
+      "historical_contract": "Admitted removal, original identity reconstruction, actual Reset callbacks, control overwrite/model_only/time_only and reset-plus-three iteration observations agree on selected outcomes.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/model_remove.rs",
+          "sha256": "6779139a7227c2715961ac7816b973930a51aa82ce8808d0caa9a6d2469e253b",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/model_remove.rs",
+          "named_test": "removal_retires_model_descendants_bodies_and_samples_without_ghosts",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "removal_retires_model_descendants_bodies_and_samples_without_ghosts"
+            ],
+            "renderer": [
+              "removal_retires_model_descendants_bodies_and_samples_without_ghosts"
+            ]
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            },
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/nested.sdf",
+              "sha256": "32b2cc37bcc4191712bc54a22004f0795a34a27732914e0b32c24c798e130e4d",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/nested.sdf"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/reset.rs",
+          "sha256": "0f43ad40b650c719e2e4ec0b2b08f41537f81490662bb9985aa9ae045e589700",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/private/reset.rs",
+          "named_test": "shared_sdf_native_control_precedence_removal_and_reset_observations_match",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "tests::reset_tests::shared_sdf_native_control_precedence_removal_and_reset_observations_match"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            },
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+              "sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/headless_imu.sdf"
+            },
+            {
+              "source": "planning/reference/lifecycle-controls.json",
+              "sha256": "4f9177eb98b78f271c39e9efa6f54ec612a12a9d890cf582c9e765accaa8c188",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/planning/reference/lifecycle-controls.json"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/reset.rs",
+          "sha256": "0f43ad40b650c719e2e4ec0b2b08f41537f81490662bb9985aa9ae045e589700",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/private/reset.rs",
+          "named_test": "reset_stream_reconciliation_preserves_shared_publishers_and_retires_additions",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "tests::reset_tests::reset_stream_reconciliation_preserves_shared_publishers_and_retires_additions"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            },
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+              "sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/headless_imu.sdf"
+            },
+            {
+              "source": "planning/reference/lifecycle-controls.json",
+              "sha256": "4f9177eb98b78f271c39e9efa6f54ec612a12a9d890cf582c9e765accaa8c188",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/planning/reference/lifecycle-controls.json"
+            }
+          ]
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reference/lifecycle-controls.json",
+          "sha256": "4f9177eb98b78f271c39e9efa6f54ec612a12a9d890cf582c9e765accaa8c188",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reviews/lifecycle-controls.json",
+          "sha256": "8d29f5d82020a3ee51c8db09ecccbea2dd81caf90d7aa657baa0a987830fa23f",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "historical_scope_limits": "Native queued control boundaries and Rust direct admission differ. Native ordinary row proves original identity present after queued remove/reset, not a native cancellation counter; Rust cancelled=1 is additional Rust-only behavior.",
+      "current_scope_limits": "Native queued control boundaries and Rust direct admission differ. Native ordinary row proves original identity present after queued remove/reset, not a native cancellation counter; Rust cancelled=1 is additional Rust-only behavior.",
+      "historical_selected_assertion_intent": "Actualselected native10DART/TPE controls for reset callback/controloverwrite/model_only/time_only/multistep/identity outcome; Rust loadedscene oldIDs+retiredruntimeadditions, removal/no ghosts, sharedstreams and resetreconnection. Do not equate Rustcancellationcounter with native.",
+      "current_selected_assertion_intent": "Actualselected native10DART/TPE controls for reset callback/controloverwrite/model_only/time_only/multistep/identity outcome; Rust loadedscene oldIDs+retiredruntimeadditions, removal/no ghosts, sharedstreams and resetreconnection. Do not equate Rustcancellationcounter with native."
+    },
+    {
+      "id": "resources",
+      "historical_contract": "Local include/configuration resolution and offline Fuel cache integration construct both backends, then step/reset without resolver or source files.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-scene/tests/local_resources.rs",
+          "sha256": "51697ff450f16e7cf07ee2fe240f3a78056d00c935a3cde568c9fb8ab4208972",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/local_resources.rs",
+          "named_test": "configured_local_include_constructs_both_engines_and_preserves_loaded_reset",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "configured_local_include_constructs_both_engines_and_preserves_loaded_reset"
+            ],
+            "renderer": [
+              "configured_local_include_constructs_both_engines_and_preserves_loaded_reset"
+            ]
+          },
+          "fixtures": []
+        },
+        {
+          "source": "crates/gz-sim-scene/tests/local_resources.rs",
+          "sha256": "51697ff450f16e7cf07ee2fe240f3a78056d00c935a3cde568c9fb8ab4208972",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/local_resources.rs",
+          "named_test": "offline_fuel_include_survives_cache_removal_and_loaded_reset_for_both_engines",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "offline_fuel_include_survives_cache_removal_and_loaded_reset_for_both_engines"
+            ],
+            "renderer": [
+              "offline_fuel_include_survives_cache_removal_and_loaded_reset_for_both_engines"
+            ]
+          },
+          "fixtures": []
+        },
+        {
+          "source": "crates/gz-assets/tests/offline_fuel.rs",
+          "sha256": "78ec1b293626e1e8b3397fc7c42c6974aead5c258a37444cad5907c99fa75e1c",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-assets/tests/offline_fuel.rs",
+          "named_test": "actual_fuel_cache_api_selects_exact_and_tip_without_network_on_hit_or_miss",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "actual_fuel_cache_api_selects_exact_and_tip_without_network_on_hit_or_miss"
+            ],
+            "renderer": []
+          },
+          "fixtures": []
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reference/local-resources.json",
+          "sha256": "669498cd23d1a3694b8e5a18bb3f40c427660ed406d649994289f27f103f4581",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reference/offline-fuel.json",
+          "sha256": "d98cb10e31a4fe502549c44c1ebdcda315f6849312e46e9e47bc6aa0f01014c1",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "historical_scope_limits": "Installed SDK lookup/cache controls are qualified. Downloads, cancellation, top-level remote worlds, decoded assets and full filesystem parity remain open. Active Fuel owner/code untouched.",
+      "current_scope_limits": "Installed SDK lookup/cache controls are qualified. Downloads, cancellation, top-level remote worlds, decoded assets and full filesystem parity remain open. Active Fuel owner/code untouched.",
+      "historical_selected_assertion_intent": "Bounded local/offline resources via pinnedproducer APIs; bothbackends construct thenstep/reset withoutresolver/sourcefiles. No downloads/remoteassets requirement.",
+      "current_selected_assertion_intent": "Bounded local/offline resources via pinnedproducer APIs; bothbackends construct thenstep/reset withoutresolver/sourcefiles. No downloads/remoteassets requirement."
+    },
+    {
+      "id": "interop",
+      "historical_contract": "Seventeen actual C++ functional process scenarios plus three separate lifecycle controls verify the current Rust server through native discovery/pub-sub/services.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-server/tests/native.rs",
+          "sha256": "6ec3dadcd617196bc309268478dd66afc00c50650d04364140eed716b2ad9166",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/native.rs",
+          "named_test": "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            }
+          ]
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reviews/native-client-requests.json",
+          "sha256": "8fa7c2e3635e937f0a149aea51bdc67193e206e8a6f6f757ae20f92467056b83",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/transport-reference-lock.json",
+          "sha256": "d3763b54283747d43c0aecbc74b27aec600fa36bba4d8509635f7a83db35e247",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "zenoh_native_scenarios": {
+        "server": {
+          "test": "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time",
+          "source": "crates/gz-sim-server/tests/native.rs",
+          "world_controls": 19,
+          "sensor_schedule_orientation_and_noise": 16,
+          "root_clock_election": 4,
+          "total_cpp_process_cases": 39,
+          "source_sha256": "6ec3dadcd617196bc309268478dd66afc00c50650d04364140eed716b2ad9166",
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/native.rs",
+          "actual_hosted_pass_names": [
+            "cpp_client_controls_a_real_sdf_world_and_observes_exact_clock_time"
+          ]
+        },
+        "cli": {
+          "test": "cpp_peer_steps_the_paused_executable_and_signals_shutdown_cleanly",
+          "source": "crates/gz-sim-cli/tests/native.rs",
+          "backends": [
+            "tpe",
+            "rapier",
+            "dart",
+            "mujoco"
+          ],
+          "cpp_process_cases": 4,
+          "source_sha256": "ffaf4f5c22f29f41c93e4de288d72a8d9c450643c0ff23091fe7e25bae28a84e",
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-cli/tests/native.rs",
+          "actual_hosted_pass_names": [
+            "cpp_peer_steps_the_paused_executable_and_signals_shutdown_cleanly"
+          ]
+        },
+        "rates": {
+          "test": "actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences",
+          "source": "crates/gz-sim-server/tests/native_rates.rs",
+          "cpp_process_cases": 7,
+          "limits": "Includes declared delayed/exit/panic harness paths; outputless rate receipt is not a remote completion acknowledgment.",
+          "source_sha256": "da37bb03e70bffb57a1f3bc2937ad2204abd1b3f6fcbfa9f12e48cf90e62f447",
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/native_rates.rs",
+          "actual_hosted_pass_names": [
+            "actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences"
+          ]
+        },
+        "forces": {
+          "source": "crates/gz-sim-server/tests/private/native_forces.rs",
+          "rust_tests": 3,
+          "cpp_process_cases": 5,
+          "source_sha256": "239a1dacae5b140b19ce4e5d85e509af82b220bbd98fc63224fbd80efd878a94",
+          "source_url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/private/native_forces.rs",
+          "named_tests": [
+            "real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines",
+            "unread_native_force_queue_is_discarded_when_subscriptions_restart",
+            "original_ground_world_accepts_cpp_joint_force_with_original_sample_bounds"
+          ],
+          "actual_hosted_pass_names": [
+            "tests::native_force_tests::original_ground_world_accepts_cpp_joint_force_with_original_sample_bounds",
+            "tests::native_force_tests::real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines",
+            "tests::native_force_tests::unread_native_force_queue_is_discarded_when_subscriptions_restart"
+          ]
+        },
+        "native_profile": "gazebo-zenoh-client-v1",
+        "transport_source": "41913b9dfc3dbce33ac5464ddcb427cc82450f26",
+        "evidence": "Current hosted six native peer-build records source/ELF/reference-bound; case counts come from executed Rust test loops, not artifact count."
+      },
+      "api_translation": "D28 replaces the historical ZeroMQ path with direct upstream Zenoh 1.8 and standard generated messages; actual C++ children explicitly select Zenoh, qualified keys/type metadata and held isolated TCP. Historical17-scenario counts are not relabeled as current.",
+      "current_cpp_fixtures": {
+        "crates/gz-sim-server/tests/clock_client.cc": "3ce6958f8cc8ff727eaacac53b2a634e72d0a6c48fab18e1b8fe18b89942e819",
+        "crates/gz-sim-server/tests/rate_client.cc": "81ad0c6a50df9010a2557c046838d5be67d63e33a79cbf1f3b9eef2748cd2fb7",
+        "crates/gz-sim-server/tests/force_client.cc": "3a8be435d89e40affea5bf7d56bca6f389c76c7d1f1fb307622d2c8b4270ef6d"
+      },
+      "historical_scope_limits": "Actual native transport/messages reference and strict empty stderr. Test client async ownership fixes native blocking cleanup race; no ignored errors or retries. Whole native simulator suite is not claimed.",
+      "current_scope_limits": "Actual selected Zenoh ON C++ clients use explicit TCP, qualified keys and type metadata. Strict process status/stdout/stderr and original physical/wire predicates remain. The39server/4CLI/7rate/5force process cases do not certify the whole native simulator/transport suite or retired Rust SDK.",
+      "historical_selected_assertion_intent": "Actual external legacyC++ process against Rust endpoints, notRust-Rust only. Retain15existing scenarios plus2rate functional scenarios and3separateharnesscontrols at a8; outputlessrate handoff is notremotecompletionack. Process-local SDKbenchmark does notreplace these.",
+      "current_selected_assertion_intent": "Actual external C++ Gazebo peers must interoperate through the selected Zenoh ON contract. Preserve selected control/clock/pose/IMU/rate/force/CLI domain assertions, with exact source/native process and negative harness receipts; neither Rust-only delivery nor local performance callbacks replace remote peers."
+    },
+    {
+      "id": "bounds-shutdown",
+      "historical_contract": "Queues/batches and time/ID/input arithmetic are bounded; publication errors, faulted runs, ownership violations and shutdown are observable and tested.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-server/tests/private/server.rs",
+          "sha256": "539d55a7ec0f920a1b89299c050a3240602ee479635acd0132cd20e62c2733df",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/private/server.rs",
+          "named_test": "shutdown_after_receipt_reports_reply_failure_without_waiting",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "tests::shutdown_after_receipt_reports_reply_failure_without_waiting"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/server.rs",
+          "sha256": "539d55a7ec0f920a1b89299c050a3240602ee479635acd0132cd20e62c2733df",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/private/server.rs",
+          "named_test": "each_removal_batch_is_bounded_when_both_services_have_work",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "tests::each_removal_batch_is_bounded_when_both_services_have_work"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-server/tests/private/reset.rs",
+          "sha256": "0f43ad40b650c719e2e4ec0b2b08f41537f81490662bb9985aa9ae045e589700",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/private/reset.rs",
+          "named_test": "reported_step_failure_stops_server_publications_and_future_controls",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "tests::reset_tests::reported_step_failure_stops_server_publications_and_future_controls"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/fall.sdf",
+              "sha256": "6b05e548efbaf7a9fd025d4d577bcc9d63812642366723b1aa8e5162417a307b",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/fall.sdf"
+            },
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+              "sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/headless_imu.sdf"
+            },
+            {
+              "source": "planning/reference/lifecycle-controls.json",
+              "sha256": "4f9177eb98b78f271c39e9efa6f54ec612a12a9d890cf582c9e765accaa8c188",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/planning/reference/lifecycle-controls.json"
+            }
+          ]
+        },
+        {
+          "source": "crates/gz-sim-core/tests/faults.rs",
+          "sha256": "3b8e0c250f2d4e0326bee648b505c113fb5d663ac100ff9dd1637a8f02e04a88",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-core/tests/faults.rs",
+          "named_test": "every_normal_phase_stops_later_systems_and_keeps_last_committed_time",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "every_normal_phase_stops_later_systems_and_keeps_last_committed_time"
+            ],
+            "renderer": [
+              "every_normal_phase_stops_later_systems_and_keeps_last_committed_time"
+            ]
+          },
+          "fixtures": []
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reviews/lifecycle-controls.json",
+          "sha256": "8d29f5d82020a3ee51c8db09ecccbea2dd81caf90d7aa657baa0a987830fa23f",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reviews/headless-streams.json",
+          "sha256": "fd9e61174246868de529dd2ee40320a5e73a5c5d8e9ac7f7e63a1f200cff1882",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "current_scope": "Bounded plain CPU request/reply/publication handoffs, per-tick budgets, actual queue-full/drop/fault/reset/removal/shutdown controls. Native Query/declaration destruction and owner joins remain outside raw tick. Complete ACT-01 absence and general stopped-peer pressure are broader open packets; CPU IMU storage retained by a live shutdown Server is a separate follow-up and does not retain native IO owners.",
+      "extra_named_passes": [
+        "forces::tests::raw_tick_refuses_unprepared_reset_and_consumes_prepared_snapshot_without_advancing",
+        "rates::tests::full_control_ingress_rejects_query_without_mutating_cpu_or_losing_accepted_query",
+        "retiring_one_slot_does_not_change_other_body_handles_across_joint_rebuilds",
+        "world_io::tests::channel_shutdown_drains_real_rate_queries_after_reply_callback_returns",
+        "world_io::tests::disconnected_removal_input_is_not_capacity_overflow",
+        "world_io::tests::shutdown_releases_force_callback_inputs_and_joins_both_io_owners"
+      ],
+      "additional_current_passes": [
+        "forces::tests::raw_tick_refuses_unprepared_reset_and_consumes_prepared_snapshot_without_advancing",
+        "rates::tests::full_control_ingress_rejects_query_without_mutating_cpu_or_losing_accepted_query",
+        "rates::tests::queued_rate_session_close_preserves_scalar_admission_and_full_queue_accounting",
+        "world_io::tests::channel_shutdown_drains_real_rate_queries_after_reply_callback_returns",
+        "world_io::tests::disconnected_removal_input_is_not_capacity_overflow",
+        "world_io::tests::native_oversize_is_not_copied_or_admitted_and_pending_capacity_recovers",
+        "world_io::tests::publication_caps_and_shutdown_reject_new_frames_and_setup",
+        "world_io::tests::shutdown_releases_force_callback_inputs_and_joins_both_io_owners",
+        "tests::setup_rejects_invalid_names_configuration_and_unrepresentable_time"
+      ],
+      "historical_scope_limits": "The selected publisher/control Node is retained for its leases; bounded dedicated rate-worker Nodes are separately tested. Publisher-after-Node-drop and complete Transport log/auth/distributed behavior are outside this server contract; consult the independent Transport ledger.",
+      "current_scope_limits": "Direct WorldIo owns native declarations and Query finalization off raw ticking; CPU state uses bounded plain channels and leases. Queue admission/fault/reset/removal/teardown witnesses qualify selected P2 only. Complete absent-system allocation/dispatch retirement and general stopped-peer pressure remain separate; the later live-Server IMU storage fix is not borrowed into587 evidence.",
+      "historical_selected_assertion_intent": "Finite publication/service queues and per-tick budgets, overload/errorcounters, invalidrequest/faultatomicity, removal/resetordering and teardown; no socketjoin/filesystem in simulationstep.",
+      "current_selected_assertion_intent": "Finite publication/service queues and per-tick budgets, overload/errorcounters, invalidrequest/faultatomicity, removal/resetordering and teardown; no socketjoin/filesystem in simulationstep."
+    },
+    {
+      "id": "performance",
+      "historical_contract": "Equal requested input/observation work is measured on actual native and Rust servers; every requested sample is validated and all timing samples are retained.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [
+        {
+          "source": "crates/gz-sim-server/tests/private/streams_benchmark.rs",
+          "sha256": "7017e176fbf0bc55d764cb85544a071d62f55e25913584acccffb08671f81969",
+          "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-server/tests/private/streams_benchmark.rs",
+          "named_test": "tpe_clock_pose_imu_complete_lockstep",
+          "actual_hosted_pass_names": {
+            "headless": [
+              "streams_benchmark::tpe_clock_pose_imu_complete_lockstep"
+            ],
+            "renderer": []
+          },
+          "fixtures": [
+            {
+              "source": "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+              "sha256": "2a4233c4a90e8b335ba99aa3ca5141a115c58dbe5f291a8dda17b052b17c6f07",
+              "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/5870373f0d8280601b051f2cbb1bb0aba264f70f/crates/gz-sim-scene/tests/fixtures/headless_imu.sdf"
+            }
+          ]
+        }
+      ],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/benchmarks/headless-streams.json",
+          "sha256": "fbadeee06dcac94e46269f6408ee933aac5406c0fc8f698fbbb902555016e229",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reviews/headless-streams.json",
+          "sha256": "fd9e61174246868de529dd2ee40320a5e73a5c5d8e9ac7f7e63a1f200cff1882",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/benchmarks/full-server-48a.json",
+          "sha256": "3bafc6d58000ca1fd41ea0bfa3dc5711615d873a0f8a311b2f91a3231c0cd32d",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/reviews/full-server-pipeline.json",
+          "sha256": "b027c7d0a00de22e8a79a5a2ab4b4ad146cb38d2d466376c598b985c30423ef1",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/benchmarks/headless-streams-imu-activation-v1.json",
+          "sha256": "c2aaf13f6435bc6b498dd4ea8d9b64b8438b3ac3e6271b236971b11534599de0",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "current_protocol": {
+        "source_commit": "5870373f0d8280601b051f2cbb1bb0aba264f70f",
+        "source_tree": "5cd4cf6c9b3d6c98300f5820c9e508e0bdc135f9",
+        "source_fixture": "crates/gz-sim-scene/tests/fixtures/headless_imu.sdf",
+        "backend": "TPE",
+        "steps_per_sample": 1000,
+        "measured_pairs": 7,
+        "excluded_warmup_pairs": 1,
+        "request_period_us": 20000,
+        "cpu_affinity": 0,
+        "measurement": "Summed server-call plus complete clock/pose/IMU receipt/check latency; declared pacing excluded and wall time retained.",
+        "native_ns_median": 63289.562,
+        "rust_ns_median": 58563.369,
+        "rust_lower_latency_percent": 7.467571034857212,
+        "scope": "First measured equal-requested-work selected TPE report; no all-engine, throughput, causal or balanced-robotics claim. Native local delivery may bypass serialization while Rust uses encoded queues.",
+        "historical_protocol_disposition": "The prior128-step/10-pair/CPU31 captures stay unchanged/historical. Current authorized1000-step/7-pair/CPU0 protocol is separately reported, with all observations/extremes retained; no old timings are relabeled."
+      },
+      "publication_gap": "This publication supplies planning/benchmarks/zenoh-matched-streams-v1, including the privacy-only projection, original raw identities and qualified report. Phase closure still requires normal staged and exact hosted/source checks for the record commit.",
+      "historical_scope_limits": "Current immutable TPE SDK batches retain one warmup plus ten measured128step pairs each; declared pacing excluded and all work/wall observations retained. No activation-toggle, causal, general, unpaced-throughput or balanced-robotics claim. Earlier datasets and legacy installed native references retain separate qualifications.",
+      "current_scope_limits": "The current report is one excluded warmup plus seven measured1000-step alternating pairs, CPU0, at least20ms request pacing. All work/wall observations and extremes remain. It is first selected TPE equal-requested-work evidence, not activation-toggle, causal, all-engine, throughput or balanced-robotics evidence. Historical128-step/10-pair/CPU31 datasets remain separately labeled.",
+      "historical_selected_assertion_intent": "One equal-requested-work current-source report is sufficient forselectedP2, noteverybackendperformance. TPEactualServer+clock/pose/IMU,128steps/10measured+warmup pairs,20msrequestpacing,CPU31,allraw/extrema retained, separateauthor/reviewer statistics. Distinguishlocalserializationpaths andlatencyfromthroughput.",
+      "current_selected_assertion_intent": "One current equal-requested-work report suffices for selected P2: actual TPE Server plus complete Clock/Pose/IMU observations, declared pacing, all samples/extremes, source/native-image/release identities and independent statistics. Current authorized protocol is1000steps, seven measured alternating pairs plus one warmup, CPU0 and20000us request pacing. Publish this fresh record rather than relabeling old128/10/CPU31 captures."
+    },
+    {
+      "id": "headless-closure",
+      "historical_contract": "The normal Linux Rust dependency closure has no renderer/window/GPU packages.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/acceptance/p2-normal-dependencies.json",
+          "sha256": "09b45e1dbd8e6d8124b42f3afde91f16ff33342cffa074f331948663d956881a",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "current_receipt": "planning/acceptance/p2-zenoh-normal-dependencies.json: both CLI and explicit headless workspace normal+build closure have426 packages, no renderer/window/GPU dependency. Old253-package receipt is unchanged/historical. This refreshed receipt must accompany the public phase record.",
+      "historical_scope_limits": "Linux x86_64 normal dependencies only; native SDK reference binaries and unimplemented renderer/platform profiles are separate.",
+      "current_scope_limits": "Current Linux x86_64 CLI and explicitly selected headless normal+build dependency graphs contain426 packages and no renderer/window/GPU dependencies. Native SDK dynamic libraries and the separate renderer feature profile are not that Cargo closure; platform/release qualification remains broader.",
+      "historical_selected_assertion_intent": "Current exact normal Cargo closure excludes renderer/window/GPU dependencies; existing253-package historicalproof must be refreshed forcurrentpins/lock ratherthanrelabeled.",
+      "current_selected_assertion_intent": "Current exact Linux headless/CLI normal and build dependencies exclude renderer/window/GPU packages; capture the actual426-package current graph and lock/manifests instead of relabeling the old253-package proof."
+    },
+    {
+      "id": "quality",
+      "historical_contract": "Accepted source and normal279Rust/88tooling, all9 crates strict>95% lines/regions and exact implementation hostedCI; refresh publication has its own final gates.",
+      "current_state": "selected_contract_requalified_at_5870373",
+      "witnesses": [],
+      "retained_domain_oracles": [
+        {
+          "source": "planning/reviews/headless-streams.json",
+          "sha256": "fd9e61174246868de529dd2ee40320a5e73a5c5d8e9ac7f7e63a1f200cff1882",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        },
+        {
+          "source": "planning/test-ledger.json",
+          "sha256": "a618e400303d998487790491ca9610fd4fb8e1f08d366e270fa1e4333e59e5b8",
+          "classification": "Retained native/domain evidence, not a new Zenoh interoperability run."
+        }
+      ],
+      "hosted_evidence": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524/artifacts/13061106254",
+      "current_qualification": {
+        "commit": "5870373f0d8280601b051f2cbb1bb0aba264f70f",
+        "whole_hosted_run": 41248418524,
+        "headless_tests": 783,
+        "renderer_tests": 435,
+        "tooling_tests": 217,
+        "headless_coverage": {
+          "gz-sim-proto": {
+            "lines": [
+              189,
+              190
+            ],
+            "regions": [
+              329,
+              340
+            ]
+          },
+          "gz-assets": {
+            "lines": [
+              147,
+              148
+            ],
+            "regions": [
+              282,
+              287
+            ]
+          },
+          "gz-physics-tpe": {
+            "lines": [
+              220,
+              221
+            ],
+            "regions": [
+              310,
+              312
+            ]
+          },
+          "gz-physics": {
+            "lines": [
+              133,
+              139
+            ],
+            "regions": [
+              113,
+              116
+            ]
+          },
+          "gz-sim-core": {
+            "lines": [
+              304,
+              304
+            ],
+            "regions": [
+              429,
+              434
+            ]
+          },
+          "gz-physics-rapier": {
+            "lines": [
+              1071,
+              1074
+            ],
+            "regions": [
+              1609,
+              1616
+            ]
+          },
+          "gz-physics-dart": {
+            "lines": [
+              1044,
+              1062
+            ],
+            "regions": [
+              1566,
+              1618
+            ]
+          },
+          "gz-physics-mujoco": {
+            "lines": [
+              1349,
+              1357
+            ],
+            "regions": [
+              2258,
+              2291
+            ]
+          },
+          "gz-sensors": {
+            "lines": [
+              106,
+              106
+            ],
+            "regions": [
+              153,
+              153
+            ]
+          },
+          "gz-sim-scene": {
+            "lines": [
+              2584,
+              2628
+            ],
+            "regions": [
+              4059,
+              4190
+            ]
+          },
+          "gz-sim-cli": {
+            "lines": [
+              209,
+              211
+            ],
+            "regions": [
+              345,
+              360
+            ]
+          },
+          "gz-sim-server": {
+            "lines": [
+              2407,
+              2495
+            ],
+            "regions": [
+              3484,
+              3659
+            ]
+          },
+          "workspace": {
+            "lines": [
+              9763,
+              9935
+            ],
+            "regions": [
+              14937,
+              15376
+            ]
+          }
+        },
+        "renderer_coverage": {
+          "gz-camera-output": {
+            "lines": [
+              420,
+              435
+            ],
+            "regions": [
+              557,
+              586
+            ]
+          },
+          "gz-render-client": {
+            "lines": [
+              404,
+              412
+            ],
+            "regions": [
+              630,
+              644
+            ]
+          },
+          "gz-render-frame": {
+            "lines": [
+              148,
+              148
+            ],
+            "regions": [
+              186,
+              186
+            ]
+          },
+          "gz-render-protocol": {
+            "lines": [
+              123,
+              126
+            ],
+            "regions": [
+              190,
+              196
+            ]
+          },
+          "gz-render-scene": {
+            "lines": [
+              176,
+              177
+            ],
+            "regions": [
+              220,
+              221
+            ]
+          },
+          "gz-render-worker": {
+            "lines": [
+              339,
+              348
+            ],
+            "regions": [
+              426,
+              444
+            ]
+          },
+          "gz-renderer": {
+            "lines": [
+              416,
+              423
+            ],
+            "regions": [
+              567,
+              589
+            ]
+          },
+          "gz-sim-core": {
+            "lines": [
+              304,
+              304
+            ],
+            "regions": [
+              429,
+              434
+            ]
+          },
+          "gz-sim-proto": {
+            "lines": [
+              189,
+              190
+            ],
+            "regions": [
+              329,
+              340
+            ]
+          },
+          "gz-sim-scene": {
+            "lines": [
+              2539,
+              2628
+            ],
+            "regions": [
+              3989,
+              4190
+            ]
+          },
+          "workspace": {
+            "lines": [
+              5058,
+              5191
+            ],
+            "regions": [
+              7523,
+              7830
+            ]
+          }
+        },
+        "changed_lines": {
+          "headless": {
+            "gz-sim-proto": [
+              177,
+              178
+            ],
+            "gz-assets": [
+              0,
+              0
+            ],
+            "gz-physics-tpe": [
+              0,
+              0
+            ],
+            "gz-physics": [
+              0,
+              0
+            ],
+            "gz-sim-core": [
+              0,
+              0
+            ],
+            "gz-physics-rapier": [
+              0,
+              0
+            ],
+            "gz-physics-dart": [
+              0,
+              0
+            ],
+            "gz-physics-mujoco": [
+              0,
+              0
+            ],
+            "gz-sensors": [
+              0,
+              0
+            ],
+            "gz-sim-scene": [
+              0,
+              0
+            ],
+            "gz-sim-cli": [
+              4,
+              4
+            ],
+            "gz-sim-server": [
+              1599,
+              1660
+            ]
+          },
+          "renderer": {
+            "gz-camera-output": [
+              142,
+              142
+            ],
+            "gz-render-client": [
+              0,
+              0
+            ],
+            "gz-render-frame": [
+              0,
+              0
+            ],
+            "gz-render-protocol": [
+              0,
+              0
+            ],
+            "gz-render-scene": [
+              0,
+              0
+            ],
+            "gz-render-worker": [
+              0,
+              0
+            ],
+            "gz-renderer": [
+              0,
+              0
+            ],
+            "gz-sim-core": [
+              0,
+              0
+            ],
+            "gz-sim-proto": [
+              177,
+              178
+            ],
+            "gz-sim-scene": [
+              0,
+              0
+            ]
+          }
+        },
+        "source_bindings": 68,
+        "input_bindings": 272,
+        "downloaded_files": 1767,
+        "independent_audit_sha256": "98dc89c7760d9b9b37e301efc726c1b360e14f4ae22e2cee21a3c5a2f1a04595"
+      },
+      "historical_scope_limits": "Accepted implementation8d065a1:279Rust/88tooling,17functionalC++scenarios plus3separate lifecyclecontrols, all9production crates/workspace strict>95%lines/regions. Complete upstream/platform/feature/native/GPU release qualification remains open; refresh publication has its own final gates.",
+      "current_scope_limits": "Exact consumer587 normal staged and whole hosted/source checks pass783headless,435renderer,217tooling and all current owned thresholds. These counts and the12headless/10renderer crate scopes are separate from old8d/279/88/9-crate evidence. Complete upstream/platform/hardware/native-gtest/release qualification remains open.",
+      "historical_selected_assertion_intent": "Exact chosen revision source/full/protectednormal/hosted pass; strictly>95lines+regions each9productioncrates/workspace andchangedpolicy. Existing271Rust83tooling/17functionalC++ evidence at a8 is historical foractivationcandidate, not automaticnewpass.",
+      "current_selected_assertion_intent": "Exact chosen current source, ordinary protected/full profile gates, whole hosted and source-artifact checks pass; every production crate and both workspace/changed-line policies exceed95percent for lines and regions. Current587 qualification covers783headless/435renderer/217tooling, with separate scopes and delegated children accurately reported."
+    }
+  ],
+  "actual_missing_public_witnesses": [
+    "Reviewed public matched-stream report/privacy projection and original raw SHA manifest bound to587/release/native image.",
+    "Refreshed current dependency receipt and explicit15-row Zenoh phase record, protected commit and exact hosted/source verification."
+  ],
+  "not_p2_exit_blockers": [
+    "Complete ACT-01 zero absence/allocation and all shared-state work.",
+    "General stopped-peer/congestion pressure envelope.",
+    "All sensors, articulation/robotics, backend performance or P0/release completion."
+  ],
+  "native_image": "sha256:bae6ddc3a806532805a8103967d7ab353fdaf14ab0fcb957343f8f32bece11da",
+  "rust_release_elf_sha256": "af4671de5e5dde69dc7694d07e54edeeeea86036b53fbb194c591e739446e8bf",
+  "rust_build_record_sha256": "f53cf7a838ab01516dfc91d805afb72ae16968143f3d1a9ead45c0232177e397",
+  "publication_records": {
+    "phase_report": "docs/acceptance/P2_ZENOH.md",
+    "matched_observations": "planning/benchmarks/zenoh-matched-streams-v1",
+    "normal_dependencies": "planning/acceptance/p2-zenoh-normal-dependencies.json",
+    "publication_gate": "The record commit must pass its normal staged hook and exact hosted/source checks before the coordinator advances P2. Runtime witnesses remain bound to 5870373."
+  }
+}
