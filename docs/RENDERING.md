@@ -7,10 +7,13 @@ The optional `gz-renderer/gpu` feature builds a bounded Bevy 0.20.0 Vulkan
 renderer. A caller can supply a complete snapshot of up to 128 world-space
 boxes, a rebasing origin, an epoch and committed simulation time. It derives
 render transforms using `gz-render-frame`, updates or removes its private Bevy
-entities, and renders an unlit 64×64 scene to an offscreen image. The camera is
-fixed at render (0,0,5), looking at the origin. This is not a calibrated sensor
-or a GUI. The optional `gz-render-scene` crate can explicitly extract a snapshot
-from a simulation; it does not schedule rendering or start a worker.
+entities, and renders an unlit 64×64 scene to an offscreen image. Legacy
+`Snapshot` requests use a fixed camera at render (0,0,5), looking at the origin.
+Protocol v2 also accepts an explicit `CalibratedSnapshot` with a bounded 64×64
+pinhole camera and world pose; see [camera calibration](CAMERA_CALIBRATION.md).
+The optional `gz-render-scene` crate can explicitly extract a snapshot from a
+simulation; it does not schedule rendering or start a worker. This is not a GUI
+or an SDF camera sensor.
 
 `gz-render-scene::extract` reads live visual geometry and world poses from the
 canonical ECS, validates owned public IDs, sorts them, and stamps the request
@@ -67,8 +70,8 @@ explicit cancellation, invalid snapshots, missing readiness resources and
 shader/device error handling on llvmpipe, a CPU Vulkan implementation. An isolated
 test destroys its actual wgpu device and observes a persistent renderer error;
 this does not exercise a device failure in the worker process. The tests do
-not qualify a physical GPU or establish camera, lidar, image timing, performance
-or upstream rendering parity. The simulator integration, supported GPU profile,
+not qualify a physical GPU or establish SDF camera-sensor, lidar, image timing,
+performance or upstream rendering parity. The simulator integration, supported GPU profile,
 feature-aware gate's full staged qualification, and real hardware runner remain incomplete.
 
 ## Related upstream assertions
@@ -82,8 +85,8 @@ has been run for this slice.
 | --- | --- |
 | [`gz-rendering` `CameraTest.CopyIntoExternalBuffer`](https://github.com/gazebosim/gz-rendering/blob/fb8e38cee4dad491f95f205afe6697b6a5d0f5fa/test/integration/camera.cc#L821): a 64×48 RGB green-box capture equals the caller buffer byte-for-byte; undersized or wrong-dimension buffers are rejected, and the first undersized-buffer byte stays `0xFF`; Bayer conversion matches byte-for-byte. | [`software_box_snapshot_and_cancellation`](../crates/gz-renderer/tests/software.rs) checks a 64×64 RGBA frame length and exact red and green center pixels, but has no caller-buffer, RGB or Bayer API. The native assertions remain pending. |
 | [`gz-rendering` `CameraTest.Visibility`](https://github.com/gazebosim/gz-rendering/blob/fb8e38cee4dad491f95f205afe6697b6a5d0f5fa/test/integration/camera.cc#L394): two cameras with visibility masks capture ten times; every pixel's intended green or red channel exceeds the other two, and summed absent channels equal zero while the intended sum is positive. | The software box test checks center-pixel changes on move, restoration and removal, plus projected extents for an asymmetric box and a quarter-turn. There are no camera masks or multi-camera visibility assertions. |
-| [`gz-rendering` `CameraTest.ViewProjectionMatrix` and `RenderTexture`](https://github.com/gazebosim/gz-rendering/blob/fb8e38cee4dad491f95f205afe6697b6a5d0f5fa/test/common_test/Camera_TEST.cc#L36): camera pose, perspective/orthographic projection and projected pixel positions; HFOV and aspect checks use `1e-6`, and texture dimensions, format and memory size are checked. | [`gz-render-frame` conversion tests](../crates/gz-render-frame/tests/conversion.rs) check f64 origin subtraction and a proper basis change, including rotation-vector error below `1e-6`. They do not establish camera forward-axis semantics, calibration, projection, clipping, configurable format or aspect behavior. |
-| [`gz-sensors` `CameraSensorTest.ImagesWithBuiltinSDF`](https://github.com/gazebosim/gz-sensors/blob/8ddf4c17be8a434c51b51d5be7c866fb69aaa54f/test/integration/camera.cc#L102): SDF sensor dimensions 256×257 and frame ID, image publication, active/inactive behavior and sensor removal. Its `CameraIntrinsics` and `CameraProjection` cases check published matrices, including focal length 866.23 with respective tolerances 0.3 and 1.0. | [`direct_worker_renders_a_stamped_snapshot_and_exits`](../crates/gz-render-worker/tests/direct_worker.rs) checks request ID, exact epoch/time and a red center pixel for one explicit snapshot. No SDF camera sensor, image or camera-info publication, sensor lifecycle, intrinsic or projection mapping is implemented. |
+| [`gz-rendering` `CameraTest.ViewProjectionMatrix` and `RenderTexture`](https://github.com/gazebosim/gz-rendering/blob/fb8e38cee4dad491f95f205afe6697b6a5d0f5fa/test/common_test/Camera_TEST.cc#L36): camera pose, perspective/orthographic projection and projected pixel positions; HFOV and aspect checks use `1e-6`, and texture dimensions, format and memory size are checked. | [`gz-render-frame` conversion tests](../crates/gz-render-frame/tests/conversion.rs) check f64 origin subtraction and a proper basis change, including rotation-vector error below `1e-6`. Additional camera controls check an explicit optical basis, asymmetric pinhole projection and finite clipping at 64×64. They do not establish the complete native test, configurable format or variable-resolution behavior. |
+| [`gz-sensors` `CameraSensorTest.ImagesWithBuiltinSDF`](https://github.com/gazebosim/gz-sensors/blob/8ddf4c17be8a434c51b51d5be7c866fb69aaa54f/test/integration/camera.cc#L102): SDF sensor dimensions 256×257 and frame ID, image publication, active/inactive behavior and sensor removal. Its `CameraIntrinsics` and `CameraProjection` cases check published matrices, including focal length 866.23 with respective tolerances 0.3 and 1.0. | [`direct_worker_renders_a_stamped_snapshot_and_exits`](../crates/gz-render-worker/tests/direct_worker.rs) checks request ID, exact epoch/time and a red center pixel for one explicit snapshot. A separate calibrated request exercises explicit intrinsics, projection and clipping at 64×64; it does not implement SDF camera sensors, image or camera-info publication, sensor lifecycle or the original image assertions. |
 | [`gz-sim` `SensorsFixture.UpdateRate`](https://github.com/gazebosim/gz-sim/blob/71c60db31fddd5c98d2aa689e9a2cccb3548a0a3/test/integration/sensors_system_update_rate.cc#L79) checks exact sensor message counts and nonempty timestamp streams, with subsequent intervals compared to `1/rate` using `EXPECT_FLOAT_EQ`. [`ResetFixture.HandleReset`](https://github.com/gazebosim/gz-sim/blob/71c60db31fddd5c98d2aa689e9a2cccb3548a0a3/test/integration/reset_sensors.cc#L95) includes image, simulation and reset lifecycle assertions. | The software test checks epoch/time changes and cancellation of an obsolete readback. It does not schedule or publish cameras, reproduce rate/timestamp streams, or exercise simulator sensor reset. |
 
 Depth, RGBD, segmentation, bounding-box, thermal, wide-angle, distortion and

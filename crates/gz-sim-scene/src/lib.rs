@@ -3,6 +3,7 @@
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
 mod joint_forces;
+mod producer_guard;
 mod world_systems;
 pub use joint_forces::JointForceConfiguration;
 
@@ -380,6 +381,7 @@ fn load_world_configured(
         .position(|world| world.name == world_name)
         .ok_or_else(|| LoadError::MissingWorld(world_name.into()))?;
     let world = &sdf.worlds[world_index];
+    producer_guard::validate(world)?;
     world_systems::validate(world)?;
     // The pinned parser supplies an implicit profile when none is declared.
     let profile = world

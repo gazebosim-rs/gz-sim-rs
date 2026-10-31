@@ -88,6 +88,7 @@ pub fn extract(
             || material.shader != sdformat::ShaderType::Pixel
             || !material.normal_map.is_empty()
             || material.script.is_some()
+            || material.pbr.is_some()
             || material.diffuse[3] != 1.0
             || material.diffuse[..3]
                 .iter()

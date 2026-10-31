@@ -381,3 +381,16 @@ fn restored_identity_sorts_before_newer_ids_regardless_of_entity_order() {
         [reserved.get(), second_id]
     );
 }
+
+#[test]
+fn pbr_material_metadata_is_explicitly_unsupported_by_box_renderer() {
+    let xml = "<sdf version='1.12'><world name='default'><model name='robot'><static>true</static><link name='body'><collision name='c'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision><visual name='view'><geometry><box><size>1 1 1</size></box></geometry><material><diffuse>1 0 0 1</diffuse><pbr><metal><roughness>0.4</roughness><metalness>0.2</metalness></metal></pbr></material></visual></link></model></world></sdf>";
+    let sim =
+        load_world_with_sdf_step(xml, "pbr", "default", &NoResources, PhysicsEngine::Tpe).unwrap();
+    let visual = named(&sim, "default::robot::body::view");
+    let id = sim.world().get::<EntityId>(visual).unwrap().get();
+    assert_eq!(
+        extract(&sim, 1, [0.0; 3]),
+        Err(SnapshotError::UnsupportedMaterial(id))
+    );
+}
