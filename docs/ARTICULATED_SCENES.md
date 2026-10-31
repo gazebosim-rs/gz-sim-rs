@@ -22,8 +22,23 @@ independently of the model's canonical link. Existing captured endpoint/model
 identity, velocity and sampling checks remain in force. Loaded reset and model
 removal preserve their existing public identity and atomicity contracts.
 
-DART and MuJoCo retain their previous scene topology restrictions. TPE has no
-dynamic-joint support. Nested/static articulations, cross-model or frame aliases
+DART additionally admits exactly two dynamic links joined by a world hinge and
+one parent-to-child hinge. It constructs the world hinge first regardless of SDF
+declaration order, then assigns public joint identities in declaration order.
+Model removal orders physical leaves before parents using joint edges, rather
+than numerical body IDs, so it does not temporarily enable contacts between
+retiring endpoints. Loaded reset preserves public and backend joint identities.
+The new analytical scene controls cover separated and overlapping internal
+bodies, both link/joint declaration orders, coupled child effort and restoration
+after model removal. They do not replay the different native moving-parent
+fixture or qualify the original ApplyJointForce world, whose free root and
+external ground contact remain unsupported.
+
+The DART backend refuses actual external articulation contacts and active
+multibody angular-limit rows. A later contact failure faults the simulation;
+it is not a scene retry contract. Distant independent models are not excluded.
+MuJoCo retains its previous scene topology restrictions. TPE has no dynamic-joint
+support. Nested/static articulations, cross-model or frame aliases
 as physical endpoints, loops, multiple incoming joints, other joint kinds,
 limits and nondefault dynamics remain explicit errors. No runtime model-spawn
 API is introduced: loading constructs a new Simulation and does not mutate an

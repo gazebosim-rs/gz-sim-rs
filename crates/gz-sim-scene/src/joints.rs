@@ -60,11 +60,13 @@ pub(super) fn validate_model(
     }
     require(engine.is_some(), &model.scoped_name, "TPE joints")?;
     let rapier = engine == Some("rapier");
+    let dart_chain = engine == Some("dart") && model.links.len() == 2 && model.joints.len() == 2;
     require(
         top_level
             && !is_static
             && model.models.is_empty()
             && (rapier
+                || dart_chain
                 || ((model.links.len() == 1 || model.links.len() == 2) && model.joints.len() == 1)),
         &model.scoped_name,
         "joint topology (expected one dynamic world-anchored link)",
@@ -77,6 +79,8 @@ pub(super) fn validate_model(
         .collect();
     let mut graph = DiGraphMap::<usize, ()>::new();
     let mut children = BTreeSet::new();
+    let mut root_child = None;
+    let mut local_parent = None;
     for joint in &model.joints {
         let name = format!("{}::{}", model.scoped_name, joint.name);
         require(
@@ -97,6 +101,7 @@ pub(super) fn validate_model(
                 && child_index.is_some()
                 && parent != child
                 && (rapier
+                    || dart_chain
                     || ((model.links.len() == 1 && parent == world)
                         || (model.links.len() == 2 && parent != world))),
             &name,
@@ -108,9 +113,20 @@ pub(super) fn validate_model(
             &name,
             "multiple parent joints",
         )?;
-        graph.add_edge(parent_index.expect("validated parent"), child_index, ());
+        let parent_index = parent_index.expect("validated parent");
+        if parent == world {
+            root_child = Some(child_index);
+        } else {
+            local_parent = Some(parent_index);
+        }
+        graph.add_edge(parent_index, child_index, ());
         validate_axis(joint, &name)?;
     }
+    require(
+        !dart_chain || (root_child.is_some() && root_child == local_parent),
+        &model.scoped_name,
+        "DART joint topology (expected a world-rooted two-link chain)",
+    )?;
     require(
         toposort(&graph, None).is_ok(),
         &model.scoped_name,
@@ -152,7 +168,21 @@ pub(super) fn build(
     sim: &mut Simulation,
     backend: &mut PhysicsBackend,
 ) -> Result<(), LoadError> {
-    for joint in &model.joints {
+    let mut order: Vec<_> = (0..model.joints.len()).collect();
+    if backend.engine() == "dart" && model.joints.len() == 2 {
+        let root = model
+            .joints
+            .iter()
+            .position(|joint| {
+                sdf.resolve_name(&model.scoped_name, &joint.parent)
+                    .is_ok_and(|parent| parent == context.world)
+            })
+            .expect("validated DART chain has a world hinge");
+        order.swap(0, root);
+    }
+    let mut built: Vec<_> = (0..model.joints.len()).map(|_| None).collect();
+    for index in order {
+        let joint = &model.joints[index];
         let name = format!("{}::{}", model.scoped_name, joint.name);
         let child_name = sdf.resolve_name(&model.scoped_name, &joint.child)?;
         let child = context.links[&child_name];
@@ -160,7 +190,7 @@ pub(super) fn build(
         let body = sim
             .world()
             .get::<BodyHandle>(entity)
-            .expect("Rapier link owns body")
+            .expect("dynamic-engine link owns body")
             .id();
         let pose = sdf.pose_of(&name, context.world)?;
         let axis = sdf.resolve_axis(
@@ -187,6 +217,14 @@ pub(super) fn build(
                 Some((context.links[&parent_name], parent_body)),
             )
         };
+        built[index] = Some((id, parent, child, child_name, parent_name, pose));
+    }
+    // Solver construction order must not change public declaration identities.
+    for (index, joint) in model.joints.iter().enumerate() {
+        let (id, parent, child, child_name, parent_name, pose) = built[index]
+            .take()
+            .expect("each declared joint was constructed once");
+        let name = format!("{}::{}", model.scoped_name, joint.name);
         let local = sdf.pose_of(&name, &model.scoped_name)?;
         let entity = spawn_node(
             sim,
@@ -233,6 +271,29 @@ pub(super) fn build(
 #[derive(Debug, thiserror::Error)]
 #[error("loaded joint bindings are incomplete or belong to a different backend")]
 struct JointBindingFault;
+
+pub(super) fn removal_order(world: &World, bodies: &BTreeSet<BodyId>) -> Option<Vec<BodyId>> {
+    let mut graph = DiGraphMap::<BodyId, ()>::new();
+    for body in bodies {
+        graph.add_node(*body);
+    }
+    for entity in world.iter_entities() {
+        if let Some(handle) = entity.get::<JointHandle>()
+            && let Some((_, parent)) = handle.parent
+        {
+            let child = world
+                .get::<BodyHandle>(entity_by_id(world, handle.child)?)?
+                .id();
+            if bodies.contains(&parent) && bodies.contains(&child) {
+                graph.add_edge(parent, child, ());
+            }
+        }
+    }
+    // Removing a parent first may temporarily re-enable contacts with its child.
+    let mut order = toposort(&graph, None).ok()?;
+    order.reverse();
+    Some(order)
+}
 
 pub(super) fn bindings_valid(world: &World) -> bool {
     let joints: Vec<_> = world

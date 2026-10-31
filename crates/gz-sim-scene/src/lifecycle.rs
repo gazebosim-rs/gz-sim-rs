@@ -152,8 +152,10 @@ fn remove_model_checked(
         // precede the final hierarchy, binding and native-body validation.
         return remove_model_checked(sim, id, true);
     }
+    let body_order =
+        crate::joints::removal_order(sim.world(), &bodies).ok_or(RemoveError::InvalidPhysics)?;
     if let Some(mut backend) = sim.world_mut().get_resource_mut::<PhysicsBackend>() {
-        for body in bodies {
+        for body in body_order {
             assert!(
                 backend.remove(body),
                 "preflighted bodies remain owned until commit"
