@@ -75,6 +75,7 @@ enum InitialPhysics {
 
 struct Blueprint {
     nodes: Vec<Node>,
+    cameras: Vec<(u64, CameraSensor)>,
     physics: InitialPhysics,
     gravity: [f64; 3],
     world_physics: Option<crate::WorldPhysics>,
@@ -105,9 +106,14 @@ pub(super) fn matches_physics_owner(world: &World) -> bool {
 pub(super) fn capture(sim: &mut Simulation) {
     let world = sim.world();
     let mut nodes = Vec::new();
+    let mut cameras = Vec::new();
     for entity in world.iter_entities().filter(|e| e.contains::<EntityKind>()) {
+        let id = reserve_id(world, entity.id()).expect("loader assigned every scene identity");
+        if let Some(camera) = entity.get::<CameraSensor>() {
+            cameras.push((id.get(), camera.clone()));
+        }
         nodes.push(Node {
-            id: reserve_id(world, entity.id()).expect("loader assigned every scene identity"),
+            id,
             parent: entity.get::<ChildOf>().map(|parent| {
                 world
                     .get::<EntityId>(parent.parent())
@@ -153,6 +159,7 @@ pub(super) fn capture(sim: &mut Simulation) {
     nodes.sort_by_key(|node| node.id.get());
     let initial = Blueprint {
         nodes,
+        cameras,
         physics: if let Some(backend) = world.get_resource::<PhysicsBackend>() {
             InitialPhysics::Dynamic(backend.initial_state())
         } else {
@@ -361,6 +368,9 @@ pub fn reset_loaded_world<R>(
         restore_id(world, entity, &node.id)
             .expect("same allocator and vacant identities were preflighted");
         restored.insert(node.id.get(), entity);
+    }
+    for (id, camera) in &initial.cameras {
+        world.entity_mut(restored[id]).insert(camera.clone());
     }
     for node in &initial.nodes {
         if let Some(parent) = node.parent {

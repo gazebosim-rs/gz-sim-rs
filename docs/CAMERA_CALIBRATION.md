@@ -68,7 +68,27 @@ ECS visual geometry, combines it with an explicit camera request, and checks
 the shifted rendered pixel and committed stamp. These tests are not physical-GPU
 or native sensor image qualifications.
 
-SDF sensor binding, variable-resolution images, RGB publication, camera-info
-and timing semantics, demand activation, distortion, and depth remain separate
-requirements. Full coverage, independent review, staged and hosted gates remain
-pending.
+The scene can retain a complete SDF camera sensor as data and share it with the
+reset blueprint. Camera reset entries are stored separately by stable ID; a
+scene without cameras allocates no camera-entry heap. Its bounded admission
+requires a 64×64 RGB image, four-sample
+anti-aliasing, finite supported HFOV and clips, identity nested camera pose,
+and absent explicit intrinsics and projection. Triggering, saving, noise,
+distortion, unsupported visibility and other sensor effects are rejected.
+For the ordinary camera type, nondefault wide-angle lens mapping metadata is
+retained but not applied: pinned `CameraSensor.cc` reads the lens K/P fields,
+while the separate `WideAngleCameraSensor.cc` consumes the mapping type and
+coefficients. Wide-angle camera sensor types remain unsupported.
+An explicit `extract_camera` request derives the calibrated camera from the
+sensor's canonical world pose and the committed epoch and time; loading alone
+does not start a camera system, worker or endpoint. A same-graph software Vulkan
+control renders a box from this parsed SDF data. Native SDFormat confirms the
+fixture's lens presence and inherited pose; this is not native image parity.
+
+The attempted native Ogre camera precedence control could not initialize its
+graphics stack: the installed plugin mixed Ogre versions, and a coherent
+diagnostic relink subsequently faulted in Mesa/Gallium device initialization.
+No native K/P result was obtained. Variable resolution, explicit K/P lens
+matrices, sensor scheduling, RGB and camera-info publication, image timing,
+demand activation, distortion and depth remain separate requirements. Full
+coverage, independent review, staged and hosted gates remain pending.

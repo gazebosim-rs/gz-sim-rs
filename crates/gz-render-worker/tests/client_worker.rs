@@ -253,3 +253,63 @@ fn calibrated_snapshot_roundtrips_through_client_and_worker() {
         ShutdownOutcome::Graceful
     );
 }
+
+#[test]
+fn sdf_camera_extracts_committed_pose_and_renders_box() {
+    use gz_render_scene::extract_camera;
+    use gz_sim_core::EntityId;
+    use gz_sim_scene::{Name, PhysicsEngine, load_world_with_sdf_step};
+
+    let source = include_str!("../../gz-sim-scene/tests/fixtures/camera-binding.sdf").replace(
+        "</link>",
+        "<visual name='box'><pose>5 0 0 0 0 0</pose><geometry><box><size>1 1 1</size></box></geometry><material><diffuse>1 0 0 1</diffuse></material></visual></link>",
+    );
+    let mut sim = load_world_with_sdf_step(
+        &source,
+        "camera-frame.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let camera_id = sim
+        .world()
+        .iter_entities()
+        .find_map(|entity| {
+            (entity.get::<Name>()?.0 == "default::robot::body::camera")
+                .then(|| entity.get::<EntityId>().unwrap().get())
+        })
+        .unwrap();
+    sim.step_exact(1).unwrap();
+    let stamp = Stamp {
+        epoch: sim.epoch(),
+        seconds: sim.elapsed().as_secs(),
+        nanoseconds: sim.elapsed().subsec_nanos(),
+    };
+    let request = extract_camera(&sim, camera_id, 1, [1_000_000_000.0, 0.0, 0.0]).unwrap();
+    let binary = PathBuf::from(env!("CARGO_BIN_EXE_gz-render-worker"));
+    let mut client = start(binary).unwrap();
+    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
+    client.try_send(request).unwrap();
+    assert!(matches!(
+        wait(&client),
+        Reply::SnapshotAccepted { request_id: 1 }
+    ));
+    client.try_send(Request::Capture { request_id: 2 }).unwrap();
+    match wait(&client) {
+        Reply::Frame {
+            request_id: 2,
+            stamp: actual,
+            rgba,
+        } => {
+            assert_eq!(actual, stamp);
+            let center = (32 * 64 + 32) * 4;
+            assert_eq!(&rgba[center..center + 4], &[255, 0, 0, 255]);
+        }
+        reply => panic!("unexpected reply: {reply:?}"),
+    }
+    assert_eq!(
+        client.shutdown(Duration::from_secs(10)).unwrap(),
+        ShutdownOutcome::Graceful
+    );
+}

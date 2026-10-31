@@ -113,6 +113,46 @@ pub struct VisualMaterial(pub Box<sdformat::Material>);
 #[derive(Component, Debug, Clone)]
 pub struct VisualGeometry(pub Arc<Geometry>);
 
+/// Complete parsed camera sensor metadata, shared with the reset blueprint.
+/// This component does not activate sampling, rendering, or publication.
+#[derive(Component, Debug, Clone)]
+pub struct CameraSensor(pub Arc<sdformat::Sensor>);
+
+/// Whether a sensor is in the current explicit 64×64 RGB camera domain.
+/// This admits metadata only and does not schedule or publish sensor samples.
+pub fn supports_camera_sensor(sensor: &sdformat::Sensor) -> bool {
+    let Some(camera) = sensor.camera() else {
+        return false;
+    };
+    sensor.effective_type() == Some(sdformat::SensorType::Camera)
+        && !sensor.visualize
+        && !sensor.enable_metrics
+        && sensor.plugins.is_empty()
+        && sensor.extensions.is_empty()
+        && camera.image_width == 64
+        && camera.image_height == 64
+        && camera.pixel_format == sdformat::CameraPixelFormat::RgbInt8
+        && camera.anti_aliasing == 4
+        && !camera.triggered
+        && !camera.save_frames
+        && camera.image_noise == sdformat::Noise::default()
+        && camera.distortion == sdformat::CameraDistortion::default()
+        && camera.pose == sdformat::Pose::default()
+        && camera.visibility_mask == u32::MAX
+        && !camera.has_depth_near_clip
+        && !camera.has_depth_far_clip
+        && !camera.has_segmentation_type
+        && !camera.has_bounding_box_type
+        && !camera.lens.has_intrinsics
+        && !camera.lens.has_projection
+        && camera.horizontal_fov.is_finite()
+        && (0.001..std::f64::consts::PI).contains(&camera.horizontal_fov)
+        && camera.near_clip.is_finite()
+        && camera.far_clip.is_finite()
+        && camera.near_clip > 0.0
+        && camera.far_clip > camera.near_clip
+}
+
 /// Construction metadata. Editing it does not reconfigure an installed backend.
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LinkProperties(pub sdformat::LinkProperties);
@@ -216,6 +256,7 @@ struct SceneContext<'a> {
     world: &'a str,
     links: BTreeMap<String, u64>,
     visuals: Vec<Entity>,
+    cameras: Vec<Entity>,
     noise_seed: [u8; 32],
 }
 
@@ -421,6 +462,7 @@ fn load_world_configured(
         world: world_name,
         links: BTreeMap::new(),
         visuals: Vec::new(),
+        cameras: Vec::new(),
         noise_seed,
     };
     let world_entity = spawn_node(
@@ -447,6 +489,13 @@ fn load_world_configured(
         sim.world_mut(),
     );
     debug_assert!(visuals.next().is_none());
+    let mut cameras = context.cameras.into_iter();
+    retain_camera_sensors(
+        &mut sdf.worlds[world_index].models,
+        &mut cameras,
+        sim.world_mut(),
+    );
+    debug_assert!(cameras.next().is_none());
     inputs::install(&mut sim);
     match backend {
         Some(backend) => {
@@ -475,6 +524,32 @@ fn load_world_configured(
     initial::capture(&mut sim);
     Ok(sim)
 }
+
+fn retain_camera_sensors(
+    models: &mut [Model],
+    cameras: &mut impl Iterator<Item = Entity>,
+    world: &mut World,
+) {
+    for model in models {
+        for link in &mut model.links {
+            for sensor in &mut link.sensors {
+                if sensor.camera().is_some() {
+                    let entity = cameras
+                        .next()
+                        .expect("camera was constructed from this SDF");
+                    world
+                        .entity_mut(entity)
+                        .insert(CameraSensor(Arc::new(std::mem::take(sensor))));
+                }
+            }
+        }
+        retain_camera_sensors(&mut model.models, cameras, world);
+    }
+}
+
+#[cfg(test)]
+#[path = "../tests/private/camera_binding.rs"]
+mod camera_binding_tests;
 
 fn retain_visual_geometry(
     models: &mut [Model],
@@ -733,6 +808,31 @@ fn build_model(
         for sensor in &link.sensors {
             let name = format!("{}::{}", link.scoped_name, sensor.name);
             require(!sensor.enable_metrics, &name, "sensor metrics")?;
+            if sensor.camera().is_some() {
+                let local = sdf.resolve_pose(
+                    &sensor.pose,
+                    &model.scoped_name,
+                    &link.scoped_name,
+                    &link.scoped_name,
+                )?;
+                let world = sdf.resolve_pose(
+                    &sensor.pose,
+                    &model.scoped_name,
+                    &link.scoped_name,
+                    context.world,
+                )?;
+                let entity = spawn_node(
+                    sim,
+                    Some(link_entity),
+                    &name,
+                    EntityKind::Sensor,
+                    local,
+                    world,
+                )?;
+                sim.world_mut().entity_mut(entity).insert(AttachedPose);
+                context.cameras.push(entity);
+                continue;
+            }
             let config = sensor.imu().ok_or_else(|| LoadError::Unsupported {
                 entity: name.clone(),
                 feature: "non-IMU sensors",

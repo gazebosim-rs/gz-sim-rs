@@ -78,7 +78,11 @@ fn validate_sensor(sensor: &sdformat::Sensor, parent: &str) -> Result<(), LoadEr
     require(!sensor.visualize, &name, "sensor visualization")?;
     require(sensor.plugins.is_empty(), &name, "sensor plugins")?;
     require(sensor.extensions.is_empty(), &name, "sensor extensions")?;
-    require(sensor.imu().is_some(), &name, "non-IMU sensors")
+    require(
+        sensor.imu().is_some() || crate::supports_camera_sensor(sensor),
+        &name,
+        "non-IMU sensors",
+    )
 }
 
 #[cfg(test)]

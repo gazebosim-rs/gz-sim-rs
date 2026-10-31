@@ -7,10 +7,14 @@
 //! shadow behavior is outside this renderer slice.
 
 use glam::{DQuat, DVec3};
+use gz_render_frame::camera::Calibration;
 use gz_render_frame::{WorldPose as RenderWorldPose, to_render_pose};
 use gz_render_protocol::{Request, Stamp, Visual};
 use gz_sim_core::{EntityId, Simulation, entity_by_id};
-use gz_sim_scene::{EntityKind, VisualGeometry, VisualMaterial, VisualProperties, WorldPose};
+use gz_sim_scene::{
+    CameraSensor, EntityKind, VisualGeometry, VisualMaterial, VisualProperties, WorldPose,
+    supports_camera_sensor,
+};
 
 const MAX_VISUALS: usize = 128;
 
@@ -32,6 +36,88 @@ pub enum SnapshotError {
     InvalidVisual(u64),
     #[error("snapshot exceeds the renderer visual limit")]
     TooManyVisuals,
+    #[error("camera sensor {0} is missing or has invalid identity or pose")]
+    MissingCamera(u64),
+    #[error("camera sensor {0} has unsupported or invalid calibration")]
+    InvalidCamera(u64),
+}
+
+/// Extract an explicit calibrated request from one canonical camera sensor.
+/// This creates no renderer and does not schedule or publish a sensor sample.
+pub fn extract_camera(
+    sim: &Simulation,
+    sensor_id: u64,
+    request_id: u64,
+    origin: [f64; 3],
+) -> Result<Request, SnapshotError> {
+    let request = extract(sim, request_id, origin)?;
+    let world = sim.world();
+    let entity = entity_by_id(world, sensor_id).ok_or(SnapshotError::MissingCamera(sensor_id))?;
+    let entity = world.entity(entity);
+    if entity.get::<EntityKind>() != Some(&EntityKind::Sensor) {
+        return Err(SnapshotError::MissingCamera(sensor_id));
+    }
+    let sensor = entity
+        .get::<CameraSensor>()
+        .ok_or(SnapshotError::MissingCamera(sensor_id))?;
+    if !supports_camera_sensor(&sensor.0) {
+        return Err(SnapshotError::InvalidCamera(sensor_id));
+    }
+    let camera = sensor
+        .0
+        .camera()
+        .expect("supported camera sensor has camera metadata");
+    let pose = entity
+        .get::<WorldPose>()
+        .ok_or(SnapshotError::MissingCamera(sensor_id))?;
+    let invalid = || SnapshotError::InvalidCamera(sensor_id);
+    let config = Calibration::from_horizontal_fov(
+        camera.image_width,
+        camera.image_height,
+        camera.horizontal_fov,
+        camera.near_clip,
+        camera.far_clip,
+    )
+    .map_err(|_| invalid())?
+    .config();
+    gz_render_frame::camera::to_render_camera_pose(
+        RenderWorldPose {
+            translation: DVec3::from_array(pose.translation),
+            rotation: DQuat::from_array(pose.rotation),
+        },
+        DVec3::from_array(origin),
+    )
+    .map_err(|_| invalid())?;
+    let Request::Snapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+    } = request
+    else {
+        unreachable!()
+    };
+    Ok(Request::CalibratedSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        camera: Box::new(gz_render_protocol::Camera {
+            width: config.width,
+            height: config.height,
+            fx: config.fx,
+            fy: config.fy,
+            cx: config.cx,
+            cy: config.cy,
+            skew: config.skew,
+            tx: config.tx,
+            ty: config.ty,
+            near: config.near,
+            far: config.far,
+            translation: pose.translation,
+            rotation: pose.rotation,
+        }),
+    })
 }
 
 /// Build one immutable request from committed simulation state. This function

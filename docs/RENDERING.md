@@ -13,7 +13,7 @@ Protocol v2 also accepts an explicit `CalibratedSnapshot` with a bounded 64×64
 pinhole camera and world pose; see [camera calibration](CAMERA_CALIBRATION.md).
 The optional `gz-render-scene` crate can explicitly extract a snapshot from a
 simulation; it does not schedule rendering or start a worker. This is not a GUI
-or an SDF camera sensor.
+or a scheduled SDF camera sensor.
 
 `gz-render-scene::extract` reads live visual geometry and world poses from the
 canonical ECS, validates owned public IDs, sorts them, and stamps the request
@@ -24,6 +24,10 @@ settings return errors. Diffuse RGB is mapped to the renderer's unlit color;
 this is a bounded visual approximation, not SDF material or shadow parity. The
 caller chooses the origin and runs the renderer outside simulation steps. No
 assets are loaded and no implicit renderer state or callbacks are installed.
+`extract_camera` additionally accepts the stable ID of a loaded, bounded SDF
+camera and uses its live world pose and HFOV to create an explicit calibrated
+request. Loading retains its complete sensor metadata but starts no camera
+system, worker or endpoint; image and camera-info publication remain pending.
 
 One readback may be in flight. Replacing a snapshot or explicitly cancelling
 suppresses delivery; the slot remains occupied until the GPU operation retires.

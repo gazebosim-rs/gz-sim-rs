@@ -14,7 +14,10 @@ magnetic field and explicit atmosphere; model wind, any retained namespace and
 opaque extensions; link lights, emitters and projectors; explicit collision density;
 joint physics metadata, axis mimic, and the newly parsed ball, gearbox and screw
 joint kinds; empty collision geometry; and sensor plugins, opaque extensions,
-visualization requests and non-IMU sensor execution. The implicit native world
+visualization requests and non-IMU sensor execution. A limited 64×64 RGB
+HFOV-only camera may be retained as data for explicit snapshot extraction; it
+does not execute a sensor system. Explicit intrinsics and projection remain
+rejected pending native qualification. The implicit native world
 wind and magnetic defaults remain admitted. The namespace guard rejects every
 `Some` value, including an owned `Some("")`; this producer normalizes an empty
 parsed namespace to `None`. Native creates a namespace component only for a

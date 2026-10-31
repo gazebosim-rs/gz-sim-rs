@@ -20,6 +20,55 @@
 use super::*;
 use gz_sim_core::assign_id;
 
+#[test]
+fn camera_reset_entries_are_sparse_and_share_original_sensor_metadata() {
+    let source = include_str!("../fixtures/camera-binding.sdf");
+    let start = source.find("<sensor name=\"camera\"").unwrap();
+    let end = start + source[start..].find("</sensor>").unwrap() + "</sensor>".len();
+    let empty_source = format!("{}{}", &source[..start], &source[end..]);
+    let empty = load_world_with_sdf_step(
+        &empty_source,
+        "empty.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let empty_cameras = &empty.world().resource::<InitialScene>().0.cameras;
+    assert_eq!(empty_cameras.len(), 0);
+    assert_eq!(empty_cameras.capacity(), 0);
+
+    let two = source.replace("</sensor>", "</sensor><sensor name='second' type='camera'><topic>/second</topic><camera><image><width>64</width><height>64</height></image><clip><near>0.1</near><far>10</far></clip></camera></sensor>");
+    let mut sim = load_world_with_sdf_step(
+        &two,
+        "two.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let first = id(&sim, "default::robot::body::camera");
+    let second = id(&sim, "default::robot::body::second");
+    let initial = sim.world().resource::<InitialScene>().0.clone();
+    assert_eq!(initial.cameras.len(), 2);
+    for (id, sensor) in &initial.cameras {
+        assert!([first, second].contains(id));
+        let entity = entity_by_id(sim.world(), *id).unwrap();
+        assert!(Arc::ptr_eq(
+            &sensor.0,
+            &sim.world().get::<CameraSensor>(entity).unwrap().0
+        ));
+    }
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    for (id, sensor) in &initial.cameras {
+        let entity = entity_by_id(sim.world(), *id).unwrap();
+        assert!(Arc::ptr_eq(
+            &sensor.0,
+            &sim.world().get::<CameraSensor>(entity).unwrap().0
+        ));
+    }
+}
+
 fn load() -> Simulation {
     load_world(
         include_str!("../fixtures/fall.sdf"),

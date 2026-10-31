@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <model name="robot">
+      <static>true</static>
+      <pose>1000000000 2 0 0 0 1.5707963267948966</pose>
+      <link name="body">
+        <collision name="shape"><geometry><sphere><radius>0.5</radius></sphere></geometry></collision>
+        <sensor name="camera" type="camera">
+          <pose>1 0 0 0 0 0</pose>
+          <topic>/explicit-camera</topic>
+          <camera>
+            <horizontal_fov>1.5707963267948966</horizontal_fov>
+            <image><width>64</width><height>64</height><format>R8G8B8</format><anti_aliasing>4</anti_aliasing></image>
+            <clip><near>0.1</near><far>10</far></clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>
