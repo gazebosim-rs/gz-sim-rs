@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="1" failures="0" disabled="0" errors="0" time="2.112" timestamp="2026-10-30T17:45:00.864" name="AllTests">
+  <testsuite name="ApplyJointForceTestFixture" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="2.112" timestamp="2026-10-30T17:45:00.864">
+    <testcase name="JointVelocityCommand" file="/reference/sources/gz-sim/test/integration/apply_joint_force_system.cc" line="51" status="run" result="completed" time="2.112" timestamp="2026-10-30T17:45:00.864" classname="ApplyJointForceTestFixture" />
+  </testsuite>
+</testsuites>

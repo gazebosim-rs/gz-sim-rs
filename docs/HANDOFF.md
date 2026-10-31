@@ -253,7 +253,21 @@ only three explicit rejection-to-positive transitions. Full unfiltered backend
 and Scene body-joint tests pass. Ordinary strict staged and exact hosted evidence
 must be checked before marking this slice accepted on the dashboard. See
 [FREE_PARENT.md](../crates/gz-physics-dart/docs/FREE_PARENT.md). The original
-ground-contact ApplyJointForce world remains unqualified.
+ground-contact ApplyJointForce case is now covered by the bounded follow-up below.
+
+The static-contact follow-up admits only a two-body free-root pair against static
+geometry. It preserves world-root, dynamic external-contact and active-limit
+refusals; the broader world-root experiment reproduced an upstream native abort.
+Independent numerical/native review approved the conservative all-coordinate
+response bound, valid anisotropy and condition-boundary controls, and exactly two
+old static-contact assertion transitions. The unchanged original force-command
+world passes fresh physical parity and a real C++ publisher to the Rust server.
+Its single Linux original case is traced in the ledger with explicit API/component
+translations and retained native baseline evidence. This does not complete the
+system family or zero-cost absence. See
+[APPLY_JOINT_FORCE_ORIGINAL.md](APPLY_JOINT_FORCE_ORIGINAL.md) and
+[ARTICULATED_CONTACTS.md](../crates/gz-physics-dart/docs/ARTICULATED_CONTACTS.md).
+Ordinary strict staged and exact hosted qualification remain mandatory.
 
 Follow-up review found a DART extraction bug: rejected attachments and leaf
 retirement could leave surviving native Jacobian caches zero while Rust state

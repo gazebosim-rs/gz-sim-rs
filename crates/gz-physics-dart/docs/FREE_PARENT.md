@@ -3,6 +3,9 @@
 
 # PHY-03 free-root pair
 
+This records the initial contact-free slice. The later bounded static-contact
+extension is described in [ARTICULATED_CONTACTS.md](ARTICULATED_CONTACTS.md).
+
 The backend candidate started at `506f94a`. Coordinator integration now starts
 at accepted `78b702f`, retaining the extraction-cache repair from `c5f73a1`.
 Owned paths cover `crates/gz-physics-dart/{src,tests,docs}` and the focused Scene

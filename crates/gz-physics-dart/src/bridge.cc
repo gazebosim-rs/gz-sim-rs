@@ -504,7 +504,7 @@ bool World::add_body_revolute(std::size_t parentSlot, std::size_t childSlot,
     restored->setTransform(pose);
     setFreeVelocity(child, twist);
   };
-  // Contact solves involving this articulation are not admitted in this slice.
+  // Attachment must also preserve the bounded external-contact domain.
   bool admitted;
   try {
     admitted = within(destination->getVelocities(), limits_.magnitude) && contactsConditioned();
@@ -663,6 +663,10 @@ double World::inverseMassAt(const dart::dynamics::BodyNode &node,
     return 0.0;
   }
   const double infinity = std::numeric_limits<double>::infinity();
+  if (skeleton->getNumBodyNodes() > 1) {
+    if (!isFree(*skeleton->getRootBodyNode())) return infinity;
+    return articulatedContactResponse(node, point);
+  }
   if (isFree(node)) {
     const auto found = principal_.find(&node);
     if (found == principal_.end()) {
@@ -691,8 +695,11 @@ bool World::contactsWithin(const dart::collision::CollisionResult &result) const
     const auto *first = contact.collisionObject1->getShapeFrame()->asShapeNode();
     const auto *second =
         contact.collisionObject2->getShapeFrame()->asShapeNode();
-    if (first->getBodyNodePtr()->getSkeleton()->getNumBodyNodes() > 1 ||
-        second->getBodyNodePtr()->getSkeleton()->getNumBodyNodes() > 1)
+    const auto firstSkeleton = first->getBodyNodePtr()->getSkeleton();
+    const auto secondSkeleton = second->getBodyNodePtr()->getSkeleton();
+    // Only static external contacts are qualified for the two-body extension.
+    if ((firstSkeleton->getNumBodyNodes() > 1 && secondSkeleton->isMobile()) ||
+        (secondSkeleton->getNumBodyNodes() > 1 && firstSkeleton->isMobile()))
       return false;
     const double inverse =
         inverseMassAt(*first->getBodyNodePtr(), contact.point) +

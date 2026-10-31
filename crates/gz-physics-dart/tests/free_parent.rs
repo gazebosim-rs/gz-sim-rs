@@ -421,8 +421,52 @@ fn obstacle(backend: &mut DartBackend, position: [f64; 3]) -> BodyId {
         .unwrap()
 }
 
+fn check_static_contact_reference(
+    backend: &mut DartBackend,
+    bodies: [BodyId; 2],
+    leaf: JointId,
+    scenario: u64,
+) {
+    let fixture: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/static_contacts.json")).unwrap();
+    let mut tick = 0;
+    let mut observations = 0;
+    for row in fixture["observations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|row| row["scenario"].as_u64().unwrap() == scenario)
+    {
+        while tick < row["tick"].as_u64().unwrap() {
+            tick += 1;
+            if scenario == 3 || tick == 1 {
+                backend.add_joint_effort(leaf, 0.7).unwrap();
+            }
+            backend.step(Duration::from_millis(1)).unwrap();
+        }
+        for (index, id) in bodies.into_iter().enumerate() {
+            let expected = &row["bodies"][index];
+            near_state(
+                backend.state(id).unwrap(),
+                BodyState {
+                    position: array(&expected["position"]),
+                    orientation: array(&expected["orientation"]),
+                    velocity: array(&expected["velocity"]),
+                    angular_velocity: array(&expected["angular_velocity"]),
+                },
+            );
+        }
+        let state = backend.joint_state(leaf).unwrap();
+        assert!((state.position - row["q"].as_f64().unwrap()).abs() < 1e-12);
+        assert!((state.velocity - row["dq"].as_f64().unwrap()).abs() < 1e-12);
+        observations += 1;
+    }
+    assert_eq!(observations, 17);
+    assert_eq!(tick, 100);
+}
+
 #[test]
-fn attachment_contact_rollback_preserves_native_root_motion_and_pending_wrench() {
+fn static_attachment_preserves_native_motion_and_pending_wrench() {
     attachment_rollback(false);
 }
 
@@ -450,6 +494,22 @@ fn attachment_rollback(world_root: bool) {
     }
     let contact = obstacle(&mut failed, [0.15, 0.0, 0.0]);
     let before = sets[0].map(|id| failed.state(id));
+    if !world_root {
+        let joint = failed
+            .add_revolute(sets[0][0], sets[0][1], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0])
+            .unwrap();
+        assert_eq!(joint.raw(), 0);
+        assert_eq!(sets[0].map(|id| failed.state(id)), before);
+        check_static_contact_reference(&mut failed, sets[0], joint, 0);
+        let before = sets[0].map(|id| failed.state(id).unwrap());
+        assert!(failed.remove_joint(joint));
+        for (id, state) in sets[0].into_iter().zip(before) {
+            near_state(failed.state(id).unwrap(), state);
+        }
+        assert!(failed.remove(contact));
+        failed.step(Duration::from_millis(1)).unwrap();
+        return;
+    }
     for _ in 0..2 {
         assert_eq!(
             failed.add_revolute(sets[0][0], sets[0][1], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0]),
@@ -478,7 +538,7 @@ fn attachment_rollback(world_root: bool) {
 }
 
 #[test]
-fn approaching_contact_and_active_limits_roll_back_and_retain_input() {
+fn approaching_static_contact_matches_native_and_active_limits_keep_rollback() {
     for limit in [false, true] {
         let (mut failed, bodies, leaf) = pair(false, false);
         let (mut clean, controls, control_leaf) = pair(false, false);
@@ -495,6 +555,12 @@ fn approaching_contact_and_active_limits_roll_back_and_retain_input() {
             }
             Some(obstacle(&mut failed, [0.205, 0.0, 0.0]))
         };
+        if !limit {
+            check_static_contact_reference(&mut failed, bodies, leaf, 3);
+            assert!(failed.remove(contact.unwrap()));
+            failed.step(Duration::from_millis(1)).unwrap();
+            continue;
+        }
         let mut refused = false;
         for _ in 0..20 {
             failed.add_joint_effort(leaf, 0.7).unwrap();

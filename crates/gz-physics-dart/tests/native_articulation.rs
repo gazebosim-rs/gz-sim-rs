@@ -91,6 +91,10 @@ fn native_revolute_topology_ownership_and_motion() {
             "body_revolute_response.cc",
             "expanded dependent Jacobians match native point impulse response",
         ),
+        (
+            "articulated_contact_response.cc",
+            "bounded full-coordinate contact response matches native impulse propagation",
+        ),
     ] {
         let executable = scratch.0.join(source.trim_end_matches(".cc"));
         let mut compile = Command::new(std::env::var_os("CXX").unwrap_or_else(|| "c++".into()));

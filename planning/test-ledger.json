@@ -171,6 +171,22 @@
       "reviewer": "/root/transport_owner_v3",
       "review": "Independent native/source/runtime/full reviews approved:91 positive checks, six effective production controls and91 restored checks; canonical279 Rust/88 tooling tests pass with all9 production crates above95% lines/regions. V1 history sensitivity hole retained and closed by an added natural Rapier gravity witness. Final metadata, normal hook and exact hosted CI remain pending; no original case retired. Receipt planning/reviews/imu-activation.json.",
       "native_reference": "planning/reference/imu-activation.json"
+    },
+    {
+      "repository": "gz-sim",
+      "upstream_commit": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "source": "test/integration/apply_joint_force_system.cc",
+      "test": "ApplyJointForceTestFixture.JointVelocityCommand",
+      "rust_test": "crates/gz-sim-server/tests/private/native_forces.rs::original_ground_world_accepts_cpp_joint_force_with_original_sample_bounds",
+      "status": "ported_reviewed",
+      "fixtures": {
+        "crates/gz-sim-server/tests/fixtures/apply_joint_force_original.sdf": "a25de92ae735a8b2b349a3e180928c1941153be7a787a1dcd54076c7d5e4d323"
+      },
+      "retained_assertions": "Linux original on unchanged world: server starts without running steps; exactly ten initial force-component observations within1e-4 of zero; real C++ Double0.001 on canonical joint topic; at most1000 paced1ms steps with1e-6 arrival predicate and original four-ULP final equality.",
+      "api_mapping": "Rust Server advances only on explicit tick; initial iteration0 and no pending steps retain the constructor no-running observation. Persistent JointForceCommand sampled before each tick represents the input applied that tick; native additive JointForceCmd is observed in PreUpdate before Physics clears it. No C++ Running API facade.",
+      "scope": "This single Linux original case, not the entire system family, generic articulations, dynamic external contacts, world-root contacts, active multibody limits or zero-cost absence.",
+      "reviewer": "/root/dart_contact_reviewer",
+      "review": "Independent numerical/native/consumer review approved production and exactly two prior-approved static-contact transitions. Fresh exact original-world real C++ publisher control passes. Immutable native DART image baseline already ran unchanged original1/0; fresh plugin original-world physical34 observations are separate evidence. Ordinary full staged/hosted qualification and integration metadata review remain required."
     }
   ],
   "supplementary_tests": {

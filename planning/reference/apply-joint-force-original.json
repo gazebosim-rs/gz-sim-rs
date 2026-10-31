@@ -1,0 +1,26 @@
+{
+  "image_id": "sha256:4ac74e616369164eaba07149e9b98f7594a33cb3ddbbd6a45e0dd43cb688b1d5",
+  "source_revision": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+  "source_test": "test/integration/apply_joint_force_system.cc",
+  "test": "ApplyJointForceTestFixture.JointVelocityCommand",
+  "binary_sha256": "7d3cb5161846ab629747ba3c6ad7599303c5438cad11041ecaca651b99a14acc",
+  "original_sdf": "test/worlds/apply_joint_force.sdf",
+  "original_sdf_sha256": "a25de92ae735a8b2b349a3e180928c1941153be7a787a1dcd54076c7d5e4d323",
+  "xml": "planning/reference/apply-joint-force-original.xml",
+  "xml_sha256": "b7e566a5872466c5025f00b06756b29b92d48643ae389cbba33980f2add75381",
+  "native_passed": 1,
+  "native_failed": 0,
+  "native_skipped": 0,
+  "native_command": [
+    "ctest",
+    "--test-dir",
+    "/reference/dart-builds/gz-sim",
+    "-j1",
+    "--output-on-failure",
+    "--output-junit",
+    "/out/ctest-junit.xml",
+    "-R",
+    "^(check_)?(UNIT_(ServerConfig|TestFixture)_TEST|INTEGRATION_(physics_system|apply_joint_force_system|reset|play_pause|multiple_servers))$"
+  ],
+  "scope": "Previously executed unchanged original in the immutable clean DART reference image. Fresh plugin physical fixtures and C++ to Rust server replay are separate evidence. No whole-family,performance or complete reference-profile acceptance."
+}
