@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Native DART 6.13 rigid bodies configured like the gz-physics dartsim plugin.
 //!
-//! Each body is one DART skeleton with a free root joint, or a world revolute
-//! joint after [`DynamicBackend::add_world_revolute`]. Body and joint states are
-//! read back in one batch after each mutation, so queries never enter native code.
+//! Bodies start as independent skeletons. A world-hinged dynamic parent may take
+//! one dynamic revolute child. Body and joint states are read back after each
+//! mutation, so queries never enter native code.
 
 use gz_physics::{
     BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId, JointState,
@@ -16,7 +16,7 @@ mod body;
 mod ffi;
 mod native;
 
-use ffi::bridge::{BodyConfig, Twist, Wrench};
+use ffi::bridge::{BodyConfig, JointEffort, Twist, Wrench};
 use native::NativeWorld;
 
 const ENGINE: &str = "dart";
@@ -29,6 +29,7 @@ struct Body {
 }
 
 struct Joint {
+    parent: Option<BodyId>,
     child: BodyId,
     /// World anchor (linear) and unit world axis (angular) at construction.
     anchor_axis: Twist,
@@ -44,7 +45,7 @@ struct Built {
 /// Construction records captured by [`DynamicBackend::initial_state`].
 struct Initial {
     bodies: BTreeMap<BodyId, BodyConfig>,
-    joints: BTreeMap<JointId, (BodyId, Twist)>,
+    joints: BTreeMap<JointId, (Option<BodyId>, BodyId, Twist)>,
     next_body: u64,
     next_joint: u64,
 }
@@ -137,7 +138,7 @@ impl Built {
     fn new(
         gravity: [f64; 3],
         bodies: impl IntoIterator<Item = (BodyId, BodyConfig)>,
-        joints: impl IntoIterator<Item = (JointId, (BodyId, Twist))>,
+        joints: impl IntoIterator<Item = (JointId, (Option<BodyId>, BodyId, Twist))>,
     ) -> Result<Self, PhysicsError> {
         let mut built = Self {
             native: NativeWorld::new(gravity)?,
@@ -147,8 +148,8 @@ impl Built {
         for (id, config) in bodies {
             built.insert(id, config)?;
         }
-        for (id, (child, anchor_axis)) in joints {
-            built.attach(id, child, anchor_axis)?;
+        for (id, (parent, child, anchor_axis)) in joints {
+            built.attach(id, parent, child, anchor_axis)?;
         }
         Ok(built)
     }
@@ -182,25 +183,34 @@ impl Built {
     fn attach(
         &mut self,
         id: JointId,
+        parent: Option<BodyId>,
         child: BodyId,
         anchor_axis: Twist,
     ) -> Result<(), PhysicsError> {
+        let parent_slot = parent.map(|id| self.bodies[&id].slot);
         let body = self
             .bodies
             .get_mut(&child)
             .ok_or(PhysicsError::MissingBody)?;
-        // False when the projected rate would exceed the velocity bound; the
-        // body is then unchanged.
-        if !self.native.add_revolute(body.slot, &anchor_axis)? {
+        // A refused rate or articulation contact leaves native topology unchanged.
+        let attached = match parent_slot {
+            Some(parent) => self
+                .native
+                .add_body_revolute(parent, body.slot, &anchor_axis)?,
+            None => self.native.add_revolute(body.slot, &anchor_axis)?,
+        };
+        if !attached {
             return Err(PhysicsError::InvalidJoint);
         }
-        self.joints.insert(id, Joint { child, anchor_axis });
-        read(&mut self.native, body)
-    }
-
-    fn refresh(&mut self, id: BodyId) -> Result<(), PhysicsError> {
-        let body = self.bodies.get_mut(&id).ok_or(PhysicsError::MissingBody)?;
-        read(&mut self.native, body)
+        self.joints.insert(
+            id,
+            Joint {
+                parent,
+                child,
+                anchor_axis,
+            },
+        );
+        self.refresh_all()
     }
 
     fn refresh_all(&mut self) -> Result<(), PhysicsError> {
@@ -219,7 +229,7 @@ impl Built {
             joints: self
                 .joints
                 .iter()
-                .map(|(&id, j)| (id, (j.child, j.anchor_axis)))
+                .map(|(&id, j)| (id, (j.parent, j.child, j.anchor_axis)))
                 .collect(),
             next_body: 0,
             next_joint: 0,
@@ -311,10 +321,16 @@ impl DynamicBackend for DartBackend {
             return false;
         }
         self.world.bodies.remove(&id);
-        self.world.joints.retain(|_, joint| joint.child != id);
+        self.world
+            .joints
+            .retain(|_, joint| joint.child != id && joint.parent != Some(id));
         self.joint_efforts
             .retain(|id, _| self.world.joints.contains_key(id));
         self.pending.remove(&id);
+        // Native removal can release the other endpoint into its own skeleton.
+        if self.world.refresh_all().is_err() {
+            return false;
+        }
         true
     }
 
@@ -338,7 +354,7 @@ impl DynamicBackend for DartBackend {
             {
                 return Err(PhysicsError::InvalidValue);
             }
-            self.world.refresh(id)?;
+            self.world.refresh_all()?;
         }
         Ok(())
     }
@@ -392,7 +408,7 @@ impl DynamicBackend for DartBackend {
             {
                 return Err(PhysicsError::InvalidValue);
             }
-            self.world.refresh(id)?;
+            self.world.refresh_all()?;
         }
         Ok(())
     }
@@ -437,7 +453,71 @@ impl DynamicBackend for DartBackend {
             linear: anchor,
             angular: unit,
         };
-        self.world.attach(id, child, anchor_axis)?;
+        self.world.attach(id, None, child, anchor_axis)?;
+        self.next_joint = next;
+        Ok(id)
+    }
+
+    fn add_revolute(
+        &mut self,
+        parent: BodyId,
+        child: BodyId,
+        anchor: [f64; 3],
+        axis: [f64; 3],
+    ) -> Result<JointId, PhysicsError> {
+        if !self.joints_open {
+            return Err(PhysicsError::JointConstructionClosed);
+        }
+        let parent_body = self
+            .world
+            .bodies
+            .get(&parent)
+            .ok_or(PhysicsError::MissingBody)?;
+        let child_body = self
+            .world
+            .bodies
+            .get(&child)
+            .ok_or(PhysicsError::MissingBody)?;
+        // One world root and one new leaf. This also excludes cycles and branches.
+        let world_root = self
+            .world
+            .joints
+            .values()
+            .any(|j| j.child == parent && j.parent.is_none());
+        if parent == child
+            || !parent_body.config.mobile
+            || !child_body.config.mobile
+            || !world_root
+            || self.is_jointed(child) == Some(true)
+            || self.world.joints.values().any(|j| j.parent == Some(parent))
+        {
+            return Err(PhysicsError::Unsupported {
+                engine: ENGINE,
+                capability: "body-to-body revolute joint",
+            });
+        }
+        let length = axis.into_iter().map(|v| v * v).sum::<f64>().sqrt();
+        if !body::inside(anchor) || !positive_normal(length) {
+            return Err(PhysicsError::InvalidJoint);
+        }
+        let unit = axis.map(|v| v / length);
+        if !body::hinge_conditioned(&child_body.config, anchor, unit) {
+            return Err(PhysicsError::InvalidJoint);
+        }
+        let next = self
+            .next_joint
+            .checked_add(1)
+            .ok_or(PhysicsError::JointIdOverflow)?;
+        let id = JointId::from_raw(self.next_joint);
+        self.world.attach(
+            id,
+            Some(parent),
+            child,
+            Twist {
+                linear: anchor,
+                angular: unit,
+            },
+        )?;
         self.next_joint = next;
         Ok(id)
     }
@@ -473,8 +553,19 @@ impl DynamicBackend for DartBackend {
 
     /// The body keeps its current pose and velocity as a free body. Returns
     /// false, keeping the hinge, if a current contact of the freed body would
-    /// exceed the contact inverse-mass bound.
+    /// exceed the contact inverse-mass bound. A world root with a live body child
+    /// remains attached until that child joint or body is removed.
     fn remove_joint(&mut self, id: JointId) -> bool {
+        if self.world.joints.get(&id).is_some_and(|joint| {
+            joint.parent.is_none()
+                && self
+                    .world
+                    .joints
+                    .values()
+                    .any(|leaf| leaf.parent == Some(joint.child))
+        }) {
+            return false;
+        }
         let Built {
             native,
             bodies,
@@ -491,12 +582,17 @@ impl DynamicBackend for DartBackend {
         }
         joints.remove(&id);
         self.joint_efforts.remove(&id);
-        read(native, body).is_ok()
+        self.world.refresh_all().is_ok()
     }
 
     fn is_jointed(&self, id: BodyId) -> Option<bool> {
         self.world.bodies.get(&id)?;
-        Some(self.world.joints.values().any(|joint| joint.child == id))
+        Some(
+            self.world
+                .joints
+                .values()
+                .any(|joint| joint.child == id || joint.parent == Some(id)),
+        )
     }
 
     /// Wrenches apply all-or-none inside the native step. A step whose result
@@ -513,6 +609,9 @@ impl DynamicBackend for DartBackend {
             let mut pending = self.pending.clone();
             for (&id, &effort) in &self.joint_efforts {
                 let joint = &self.world.joints[&id];
+                if joint.parent.is_some() {
+                    continue;
+                }
                 let wrench = pending.entry(joint.child).or_insert(Twist {
                     linear: [0.0; 3],
                     angular: [0.0; 3],
@@ -542,12 +641,34 @@ impl DynamicBackend for DartBackend {
                 })
             })
             .collect();
-        let refusal = match self.world.native.step(dt.as_secs_f64(), &wrenches)? {
+        let efforts: Vec<JointEffort> = self
+            .joint_efforts
+            .iter()
+            .filter_map(|(id, torque)| {
+                let joint = &self.world.joints[id];
+                joint.parent.map(|_| JointEffort {
+                    slot: self.world.bodies[&joint.child].slot,
+                    torque: *torque,
+                })
+            })
+            .collect();
+        let outcome = if efforts.is_empty() {
+            self.world.native.step(dt.as_secs_f64(), &wrenches)?
+        } else {
+            self.world
+                .native
+                .step_with_efforts(dt.as_secs_f64(), &wrenches, &efforts)?
+        };
+        let refusal = match outcome {
             0 => None,
             1 => Some("a velocity became nonfinite or exceeded 1e60"),
             2 => Some("a collision bound left the 5e8 m grid"),
-            4 => Some("an active joint limit exceeded the inverse-inertia bound"),
-            _ => Some("a contact exceeded the inverse-mass bound"),
+            4 => Some(
+                "an active joint limit exceeded the inverse-inertia bound or involved an unsupported articulation",
+            ),
+            _ => Some(
+                "a contact exceeded the inverse-mass bound or involved an unsupported articulation",
+            ),
         };
         if let Some(reason) = refusal {
             return Err(PhysicsError::Native {

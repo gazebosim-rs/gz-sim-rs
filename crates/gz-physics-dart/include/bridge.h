@@ -39,6 +39,7 @@ namespace gz_physics_dart {
 struct BodyConfig;
 struct Twist;
 struct Wrench;
+struct JointEffort;
 struct Limits;
 struct Readout;
 class GuardedSolver;
@@ -55,8 +56,11 @@ class World {
   bool set_velocity(std::size_t slot, const Twist &velocity);
   bool apply_impulse(std::size_t slot, const Twist &impulse);
   bool add_revolute(std::size_t slot, const Twist &anchor_axis);
+  bool add_body_revolute(std::size_t parent, std::size_t child, const Twist &anchor_axis);
   bool remove_revolute(std::size_t slot);
   std::uint8_t step(double dt, rust::Slice<const Wrench> wrenches);
+  std::uint8_t step_with_efforts(double dt, rust::Slice<const Wrench> wrenches,
+                               rust::Slice<const JointEffort> efforts);
   Readout read(std::size_t slot) const;
   std::size_t skeleton_count() const;
   bool contacts_conditioned();

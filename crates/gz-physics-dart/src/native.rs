@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Exclusive owner of one native DART world.
 
-use crate::ffi::bridge::{self, BodyConfig, Readout, Twist, Wrench};
+use crate::ffi::bridge::{self, BodyConfig, JointEffort, Readout, Twist, Wrench};
 use crate::ffi::native;
 use cxx::UniquePtr;
 use gz_physics::PhysicsError;
@@ -72,6 +72,28 @@ impl NativeWorld {
 
     pub(crate) fn remove_revolute(&mut self, slot: usize) -> Result<bool, PhysicsError> {
         self.world().remove_revolute(slot).map_err(native)
+    }
+
+    pub(crate) fn add_body_revolute(
+        &mut self,
+        parent: usize,
+        child: usize,
+        anchor_axis: &Twist,
+    ) -> Result<bool, PhysicsError> {
+        self.world()
+            .add_body_revolute(parent, child, anchor_axis)
+            .map_err(native)
+    }
+
+    pub(crate) fn step_with_efforts(
+        &mut self,
+        dt: f64,
+        wrenches: &[Wrench],
+        efforts: &[JointEffort],
+    ) -> Result<u8, PhysicsError> {
+        self.world()
+            .step_with_efforts(dt, wrenches, efforts)
+            .map_err(native)
     }
 
     pub(crate) fn step(&mut self, dt: f64, wrenches: &[Wrench]) -> Result<u8, PhysicsError> {

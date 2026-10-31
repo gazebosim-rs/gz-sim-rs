@@ -280,6 +280,7 @@ fn native_refusals_surface_as_typed_errors_and_leave_records_intact() {
     backend.world.joints.insert(
         JointId::from_raw(0),
         Joint {
+            parent: None,
             child: body,
             anchor_axis: Twist {
                 linear: [0.0; 3],
@@ -339,6 +340,7 @@ fn native_rejections_during_rebuild_leave_the_backend_unchanged() {
     backend.world.joints.insert(
         JointId::from_raw(7),
         Joint {
+            parent: None,
             child: body,
             anchor_axis,
         },

@@ -8,6 +8,7 @@
 #include "gz-physics-dart/include/bridge.h"
 #include "joint_state.hh"
 
+#include <algorithm>
 #include <cmath>
 #include <dlfcn.h>
 #include <limits>
@@ -204,6 +205,15 @@ bool World::jointsWithin(const dart::constraint::ConstrainedGroup &group) const 
       break;
     }
   }
+  // Multi-body angular-limit solves are outside this bounded articulation slice.
+  // Even without contacts, two coupled predictive default-limit rows need their
+  // own native numerical qualification before they may enter Dantzig.
+  for (std::size_t i = 0; i < group.getNumConstraints(); ++i) {
+    const auto constraint = group.getConstraint(i);
+    if (constraint->getType() == dart::constraint::JointConstraint::getStaticType() &&
+        constraint->getRootSkeleton()->getNumBodyNodes() > 1)
+      return false;
+  }
   if (!contact) return true;
   for (std::size_t i = 0; i < group.getNumConstraints(); ++i) {
     const auto constraint = group.getConstraint(i);
@@ -329,11 +339,24 @@ void World::build(dart::dynamics::Skeleton &skeleton,
 
 void World::remove_body(std::size_t slot) {
   auto &node = body(slot);
-  principal_.erase(&node);
+  // Admission permits one leaf. Keep it live when its parent retires.
+  if (node.getNumChildBodyNodes() != 0) {
+    auto *child = node.getChildBodyNode(0);
+    const auto found = std::find_if(slots_.begin(), slots_.end(),
+                                  [child](const auto &p) { return p.get() == child; });
+    if (found == slots_.end() ||
+        !remove_revolute(static_cast<std::size_t>(found - slots_.begin())))
+      throw std::runtime_error("cannot release surviving child");
+  }
   OdeLock lock(odeMutex());
-  // Current admission keeps one body per skeleton. Articulation needs subtree
-  // retirement instead of removing the whole skeleton from the world.
-  world_->removeSkeleton(node.getSkeleton());
+  const auto skeleton = node.getSkeleton();
+  if (node.getParentBodyNode()) {
+    // The detached skeleton is never registered and dies with the last slot.
+    node.split<dart::dynamics::FreeJoint>(node.getName() + "_removed");
+  } else {
+    world_->removeSkeleton(skeleton);
+  }
+  principal_.erase(&node);
   slots_[slot] = nullptr;
 }
 
@@ -353,7 +376,7 @@ bool World::set_velocity(std::size_t slot, const Twist &velocity) {
 
 bool World::apply_impulse(std::size_t slot, const Twist &impulse) {
   auto &node = body(slot);
-  if (isFree(node)) {
+  if (isFree(node) && node.getSkeleton()->getNumBodyNodes() == 1) {
     const Eigen::Matrix3d rotation = node.getWorldTransform().linear();
     const Eigen::Matrix3d inertia =
         rotation * node.getInertia().getMoment() * rotation.transpose();
@@ -422,11 +445,78 @@ bool World::add_revolute(std::size_t slot, const Twist &anchor_axis) {
   return true;
 }
 
+bool World::add_body_revolute(std::size_t parentSlot, std::size_t childSlot,
+                              const Twist &anchor_axis) {
+  auto &parent = body(parentSlot);
+  auto &child = body(childSlot);
+  const auto source = child.getSkeleton();
+  const auto destination = parent.getSkeleton();
+  if (&parent == &child || source == destination || !isFree(child) ||
+      source->getNumBodyNodes() != 1 || destination->getNumBodyNodes() != 1 ||
+      isFree(parent) || !source->isMobile() || !destination->isMobile())
+    throw std::logic_error("unsupported body revolute topology");
+
+  const Eigen::Isometry3d pose = child.getWorldTransform();
+  const Twist twist = comTwist(child);
+  const Eigen::Vector3d inheritedAngular = parent.getAngularVelocity();
+  const Eigen::Vector3d inheritedLinear = parent.getCOMLinearVelocity() +
+      inheritedAngular.cross(child.getCOM() - parent.getCOM());
+  const Twist relative = {array(vector(twist.linear) - inheritedLinear),
+                          array(vector(twist.angular) - inheritedAngular)};
+  if (!(std::abs(hingeRate(vector(anchor_axis.angular), vector(anchor_axis.linear),
+                           child.getCOM(), relative)) <= limits_.magnitude))
+    return false;
+
+  Eigen::Isometry3d jointPose = pose;
+  jointPose.translation() = vector(anchor_axis.linear);
+  dart::dynamics::RevoluteJoint::Properties properties;
+  properties.mName = child.getName() + "_body_revolute";
+  properties.mAxis = pose.linear().transpose() * vector(anchor_axis.angular);
+  properties.mPositionLowerLimits[0] = -1e16;
+  properties.mPositionUpperLimits[0] = 1e16;
+  properties.mIsPositionLimitEnforced = true;
+  const double infinity = std::numeric_limits<double>::infinity();
+  properties.mForceLowerLimits[0] = -infinity;
+  properties.mForceUpperLimits[0] = infinity;
+  properties.mVelocityLowerLimits[0] = -infinity;
+  properties.mVelocityUpperLimits[0] = infinity;
+  std::unique_lock<std::mutex> lock(odeMutex());
+  auto *joint = child.moveTo<dart::dynamics::RevoluteJoint>(&parent, properties);
+  joint->setTransformFromParentBodyNode(parent.getWorldTransform().inverse() * jointPose);
+  joint->setTransformFromChildBodyNode(pose.inverse() * jointPose);
+  setJointTwist(child, spatial(twist));
+  lock.unlock();
+  const auto restore = [&] {
+    lock.lock();
+    auto *restored = child.moveTo<dart::dynamics::FreeJoint>(source, nullptr);
+    restored->setTransform(pose);
+    setFreeVelocity(child, twist);
+  };
+  // Contact solves involving this articulation are not admitted in this slice.
+  bool admitted;
+  try {
+    admitted = within(destination->getVelocities(), limits_.magnitude) && contactsConditioned();
+  } catch (...) {
+    restore();
+    throw;
+  }
+  if (admitted) {
+    lock.lock();
+    world_->removeSkeleton(source);
+    return true;
+  }
+  restore();
+  return false;
+}
+
 bool World::remove_revolute(std::size_t slot) {
   auto &child = body(slot);
   if (isFree(child)) {
     throw std::logic_error("body has no world revolute");
   }
+  // Releasing this root would create an unqualified free-root articulation.
+  if (!child.getParentBodyNode() && child.getNumChildBodyNodes() != 0)
+    return false;
   auto &hinge = static_cast<dart::dynamics::RevoluteJoint &>(*child.getParentJoint());
   const auto hingeProperties = hinge.getRevoluteJointProperties();
   const Eigen::Isometry3d parent = hinge.getTransformFromParentBodyNode();
@@ -435,33 +525,60 @@ bool World::remove_revolute(std::size_t slot) {
   const double velocity = hinge.getVelocity(0);
   const Eigen::Isometry3d pose = child.getWorldTransform();
   const Twist twist = comTwist(child);
+  auto *parentBody = child.getParentBodyNode();
+  const auto originalSkeleton = child.getSkeleton();
   dart::dynamics::FreeJoint::Properties properties;
   properties.mName = child.getName() + "_FreeJoint";
   std::unique_lock<std::mutex> lock(odeMutex());
-  auto *joint =
-      child.moveTo<dart::dynamics::FreeJoint>(nullptr, properties);
+  dart::dynamics::SkeletonPtr detached;
+  if (parentBody) {
+    detached = child.split<dart::dynamics::FreeJoint>(child.getName() + "_detached", properties);
+    world_->addSkeleton(detached);
+  } else {
+    child.moveTo<dart::dynamics::FreeJoint>(nullptr, properties);
+  }
+  auto *joint = static_cast<dart::dynamics::FreeJoint *>(child.getParentJoint());
   joint->setTransform(pose);
   setFreeVelocity(child, twist);
   lock.unlock();
+  const auto restore = [&] {
+    lock.lock();
+    auto *restored = child.moveTo<dart::dynamics::RevoluteJoint>(originalSkeleton, parentBody, hingeProperties);
+    restored->setTransformFromParentBodyNode(parent);
+    restored->setTransformFromChildBodyNode(attached);
+    restored->setPosition(0, position);
+    restored->setVelocity(0, velocity);
+    if (detached) world_->removeSkeleton(detached);
+  };
   // Freed, the body meets its contacts with a larger inverse effective mass.
-  if (contactsConditioned()) {
-    return true;
+  try {
+    if (within(child.getSkeleton()->getVelocities(), limits_.magnitude) && contactsConditioned())
+      return true;
+  } catch (...) {
+    restore();
+    throw;
   }
-  lock.lock();
-  auto *restored = child.moveTo<dart::dynamics::RevoluteJoint>(nullptr, hingeProperties);
-  restored->setTransformFromParentBodyNode(parent);
-  restored->setTransformFromChildBodyNode(attached);
-  restored->setPosition(0, position);
-  restored->setVelocity(0, velocity);
+  restore();
   return false;
 }
 
 std::uint8_t World::step(double dt, rust::Slice<const Wrench> wrenches) {
+  return step_with_efforts(dt, wrenches, {});
+}
+
+std::uint8_t World::step_with_efforts(double dt, rust::Slice<const Wrench> wrenches,
+                                     rust::Slice<const JointEffort> efforts) {
   // Resolve every target first so a bad slot applies no force at all.
   std::vector<dart::dynamics::BodyNode *> targets;
   targets.reserve(wrenches.size());
   for (const auto &wrench : wrenches) {
     targets.push_back(&body(wrench.slot));
+  }
+  std::vector<dart::dynamics::Joint *> joints;
+  for (const auto &effort : efforts) {
+    auto &node = body(effort.slot);
+    if (isFree(node)) throw std::logic_error("effort target has no revolute");
+    joints.push_back(node.getParentJoint());
   }
   world_->setTimeStep(dt);
   const double time = world_->getTime();
@@ -475,6 +592,7 @@ std::uint8_t World::step(double dt, rust::Slice<const Wrench> wrenches) {
     for (std::size_t i = 0; i < count; ++i) {
       auto skeleton = world_->getSkeleton(i);
       skeleton->clearExternalForces();
+      skeleton->clearInternalForces();
       skeleton->setPositions(positions[i]);
       skeleton->setVelocities(velocities[i]);
     }
@@ -493,6 +611,8 @@ std::uint8_t World::step(double dt, rust::Slice<const Wrench> wrenches) {
                               targets[i]->getLocalCOM(), false, true);
       targets[i]->addExtTorque(vector(wrenches[i].torque), false);
     }
+    for (std::size_t i = 0; i < joints.size(); ++i)
+      joints[i]->setForce(0, efforts[i].torque);
     try {
       world_->step();  // Clears external forces when it completes.
     } catch (...) {
@@ -558,6 +678,9 @@ bool World::contactsWithin(const dart::collision::CollisionResult &result) const
     const auto *first = contact.collisionObject1->getShapeFrame()->asShapeNode();
     const auto *second =
         contact.collisionObject2->getShapeFrame()->asShapeNode();
+    if (first->getBodyNodePtr()->getSkeleton()->getNumBodyNodes() > 1 ||
+        second->getBodyNodePtr()->getSkeleton()->getNumBodyNodes() > 1)
+      return false;
     const double inverse =
         inverseMassAt(*first->getBodyNodePtr(), contact.point) +
         inverseMassAt(*second->getBodyNodePtr(), contact.point);

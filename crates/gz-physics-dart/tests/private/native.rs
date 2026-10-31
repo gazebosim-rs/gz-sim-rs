@@ -155,3 +155,43 @@ fn freeing_a_hinged_body_into_deep_contact_is_refused_unchanged() {
     assert!(world.contacts_conditioned().unwrap());
     assert_eq!(world.step(0.001, &[]).unwrap(), 0);
 }
+
+#[test]
+fn native_body_joint_preflight_and_retirement_preserve_skeleton_ownership() {
+    let mut world = NativeWorld::new([0.0; 3]).unwrap();
+    let parent = world.add_body(&sphere()).unwrap();
+    let child = world
+        .add_body(&BodyConfig {
+            position: [3.0, 0.0, 0.0],
+            ..sphere()
+        })
+        .unwrap();
+    let axis = Twist {
+        linear: [0.0; 3],
+        angular: [0.0, 0.0, 1.0],
+    };
+    assert!(
+        message(world.add_body_revolute(parent, child, &axis))
+            .contains("unsupported body revolute topology")
+    );
+    assert_eq!(world.skeleton_count().unwrap(), 2);
+    assert!(world.add_revolute(parent, &axis).unwrap());
+    assert!(world.add_body_revolute(parent, child, &axis).unwrap());
+    assert_eq!(world.skeleton_count().unwrap(), 1);
+    assert!(
+        message(world.add_body_revolute(child, parent, &axis))
+            .contains("unsupported body revolute topology")
+    );
+    let before = world.read(parent).unwrap();
+    assert!(!world.remove_revolute(parent).unwrap());
+    let after = world.read(parent).unwrap();
+    assert_eq!(after.position, before.position);
+    assert_eq!(after.velocity, before.velocity);
+    assert_eq!(world.skeleton_count().unwrap(), 1);
+    assert!(world.remove_revolute(child).unwrap());
+    assert_eq!(world.skeleton_count().unwrap(), 2);
+    assert!(world.remove_revolute(parent).unwrap());
+    world.remove_body(parent).unwrap();
+    world.remove_body(child).unwrap();
+    assert_eq!(world.skeleton_count().unwrap(), 0);
+}

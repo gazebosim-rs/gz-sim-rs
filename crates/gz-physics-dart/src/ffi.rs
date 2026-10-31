@@ -44,6 +44,12 @@ pub(crate) mod bridge {
         torque: [f64; 3],
     }
 
+    /// Generalized effort at a body's incoming revolute joint.
+    struct JointEffort {
+        slot: usize,
+        torque: f64,
+    }
+
     /// Admission bounds the native step keeps after each step (see body.rs).
     struct Limits {
         /// Largest generalized velocity entry or impulse result.
@@ -77,12 +83,24 @@ pub(crate) mod bridge {
         fn apply_impulse(self: Pin<&mut World>, slot: usize, impulse: &Twist) -> Result<bool>;
         /// False changes nothing: the projected joint rate would exceed the limit.
         fn add_revolute(self: Pin<&mut World>, slot: usize, anchor_axis: &Twist) -> Result<bool>;
+        fn add_body_revolute(
+            self: Pin<&mut World>,
+            parent: usize,
+            child: usize,
+            anchor_axis: &Twist,
+        ) -> Result<bool>;
         /// False keeps the hinge: freed, the body's contacts would exceed the bound.
         fn remove_revolute(self: Pin<&mut World>, slot: usize) -> Result<bool>;
         /// Applies every wrench or none, then steps. Nonzero restored the
         /// pre-step state: 1 nonfinite or too fast, 2 off the collision grid,
         /// 3 a contact beyond the inverse-mass bound.
         fn step(self: Pin<&mut World>, dt: f64, wrenches: &[Wrench]) -> Result<u8>;
+        fn step_with_efforts(
+            self: Pin<&mut World>,
+            dt: f64,
+            wrenches: &[Wrench],
+            efforts: &[JointEffort],
+        ) -> Result<u8>;
         fn read(self: &World, slot: usize) -> Result<Readout>;
         /// Whether every current contact's inverse effective mass is bounded.
         fn contacts_conditioned(self: Pin<&mut World>) -> Result<bool>;
