@@ -672,6 +672,35 @@ fn imu_server(config: ServerOptions) -> Server {
 }
 
 #[test]
+fn shutdown_releases_imu_leases_and_storage_without_dropping_simulation() {
+    let mut server = imu_server(config());
+    server.simulation.set_paused(false);
+    server.update().unwrap();
+    let leases: Vec<_> = server
+        .imus
+        .iter()
+        .map(|stream| Arc::downgrade(&stream.publisher))
+        .collect();
+    assert!(!leases.is_empty());
+    assert!(server.imus.capacity() > 0);
+    assert!(leases.iter().all(|lease| lease.upgrade().is_some()));
+    let elapsed = server.simulation.elapsed();
+    let entities = server.simulation.world().entities().len();
+    let counters = server.counters();
+
+    for _ in 0..2 {
+        server.shutdown();
+        assert!(server.imus.is_empty());
+        assert_eq!(server.imus.capacity(), 0);
+        assert!(leases.iter().all(|lease| lease.upgrade().is_none()));
+        assert!(server.world_io.session.is_closed());
+        assert_eq!(server.simulation.elapsed(), elapsed);
+        assert_eq!(server.simulation.world().entities().len(), entities);
+        assert_eq!(server.counters().imus_queued, counters.imus_queued);
+    }
+}
+
+#[test]
 fn imu_message_matches_native_metadata_presence_covariance_and_sequence() {
     let metadata = ImuPublication {
         enable_orientation: true,

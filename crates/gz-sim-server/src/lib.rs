@@ -823,6 +823,7 @@ impl Server {
     pub fn shutdown(&mut self) {
         self.rates.shutdown();
         self.forces.shutdown();
+        self.imus = Vec::new();
         self.world_io.shutdown();
     }
 }

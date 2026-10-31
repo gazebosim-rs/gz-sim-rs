@@ -7,124 +7,85 @@ Updated 2026-10-31. Read this first when resuming coordination of the rewrite,
 whichever agent you are. AGENTS.md has the standing rules; this file has the
 current state and the next tasks. Update both when either changes.
 
-## Current private Zenoh integration (2026-10-31)
+## Published Zenoh migration (2026-10-31)
 
-The migration remains an unaccepted working tree at
-`artifacts/direct-zenoh-consumer-worktree`. Public Main e945288 and hosted run
-41206243415 describe the historical runtime. Root owns integration; never edit
-Fuel. The Rust workspace no longer depends on gz-transport, the old Messages
-runtime or ZeroMQ. Consumers use standard generated protobuf bindings.
+Commit `5870373f0d8280601b051f2cbb1bb0aba264f70f` replaces the legacy Rust
+Transport and Messages runtime dependencies with upstream Zenoh 1.8 and standard
+consumer-generated protobuf bindings. Root owns simulator integration; never edit
+Fuel. Exact hosted run `41248418524` completed successfully. Independent downloaded
+source/input and coverage auditing is in progress. The dashboard carries current
+acceptance state; a green job alone does not replace that audit.
 
-Reviewed runtime work includes ServerOptions, IO-owned control/removal queries,
-clock/pose/IMU publication, scalar rate/force ingress and bounded response
-channels. `prepare_io` performs reset setup outside raw ticking; `update` combines
-phases. Real controls cover rate retirement, canceled setup, queued shutdown and
-admitted-response discard accounting. Complete ACT-01 absence and stopped-peer
-pressure acceptance remain open. An earlier native rate no-reply failure has
-unknown cause; its fixture now follows the actual persistent-querier readiness
-contract before one request, without retries or relaxed deadlines.
+The complete normal staged hook passes on Git tree
+`5cd4cf6c9b3d6c98300f5820c9e508e0bdc135f9`: 783 headless, 435 renderer and 217
+tooling tests. Five headless and three renderer helper entrypoints are delegated
+to their parent harnesses. Real C++ Zenoh peers and software Vulkan workers pass.
+All required production crates exceed 95% lines and regions. Workspace headless
+coverage is 9761/9935 lines and 14935/15376 regions; renderer coverage is 5058/5191
+and 7523/7830. Independent review verifies all 1762 artifacts, 68 production
+sources and 272 inputs against exact Git objects. Staged evidence is under
+`artifacts/staged/5cd4cf6c9b3d6c98300f5820c9e508e0bdc135f9-zg8jjfj8` in the
+integration worktree. Hosted profiles still require independent source/input and
+coverage comparison before acceptance.
 
-The real source-built `gazebo-zenoh-client-v1` reference is qualified at
-`artifacts/zenoh-native-reference`. Signed snapshot packages, source/tool identity,
-installed closure and the locked ROS archive are checked. Identical archive bytes
-were recovered over valid official mirror HTTPS after the canonical URL's TLS
-hostname failure; no verification or pin was weakened. Keep SDK bootstrap inputs
-unchanged while using this reference. Copied snapshots set
-`GZ_ZENOH_REFERENCE_ROOT` to its qualified absolute root.
+The selected `gazebo-zenoh-client-v1` reference is locally qualified at
+`artifacts/zenoh-native-reference`. Copied staged snapshots set
+`GZ_ZENOH_REFERENCE_ROOT` to this qualified root. Signed snapshot packages,
+source/tool identities and the locked ROS archive are verified. Identical archive
+bytes were recovered over valid official mirror HTTPS after the canonical URL's
+TLS hostname failure; no verification or pin was weakened.
 
-All four retained C++ fixtures compile through the selected-reference builder.
-Real server, rate, force and CLI scenarios pass against this actual reference;
-current camera worker/GPU replay is still required. Nine direct same-session
-camera fault scenarios pass. The CLI's removed invalid-GZ_IP option has a reviewed
-translation to malformed explicit TCP configuration, retaining exit/no-output
-assertions.
+The source-built `gazebo-zenoh-headless-v1` application is independently qualified
+in immutable image
+`sha256:bae6ddc3a806532805a8103967d7ab353fdaf14ab0fcb957343f8f32bece11da`.
+Its stationary smoke is infrastructure evidence, not moving-workload parity or
+upstream gtest execution. The actual optimized Rust ELF and its runtime overlay
+retain the image's common libraries; eight missing DART-family files are bound
+read-only. Exact source, compiler, ELF and mapped library records accompany the
+release evidence. Do not infer whole-engine qualification from this TPE case.
 
-A complete local headless execution now passes 783 tests, all three original
-timing controls and real C++ peer checks. Five delegated child entrypoints are
-verified through their harnesses, not counted as skipped domain cases. All 12
-headless crates pass strict line and region coverage: workspace 9757/9931 lines
-and 14931/15372 regions; server 2401/2491 and 3478/3655. Changed coverage passes:
-proto 177/178, CLI 4/4 and server 1591/1654. Evidence is under
-`/tmp/sdf-full-headless-8u55xnn1`; this is local qualification, not a staged,
-hosted, renderer or comparative-performance pass.
+Seven alternating measured pairs of 1000 steps with the unchanged driver pass
+all physical, schema, wire, count, cadence and native library checks. The matched
+small TPE Clock/Pose/IMU workload measures native 63289.562ns and Rust 58563.369ns
+median per step: about 7.47% lower Rust latency. Raw samples and independent
+recomputation are under `artifacts/zenoh-equal-work-runs`. The historical direct
+and unpaced Server cases retain unequal-work scope; their ratios are not matched
+speedups or regressions. No balanced robotics performance claim follows.
+Never run comparative timings during builds.
 
-Two findings were repaired without changing production assertions or thresholds.
-A serial orchestration override changed libtest's child receipt formatting; it
-was removed after a real one-seed comparison. Zenoh matching callbacks are
-asynchronous: test clients now await actual IMU readiness outside stepping, and
-last-drop retirement before the original idle steps. Frame deadlines, timestamps,
-sequences, counters, noise oracles and advancing-step counts remain unchanged.
-All 141 server controls and the five focused interest controls pass.
+`prepare_io` reconstructs reset resources outside raw ticking; `update` combines
+both phases. CPU endpoints own scalar data or leases, not native publishers,
+queries or tokens. Tests cover actual rate retirement, canceled setup, bounded
+response discard, queued shutdown and IMU buffer release after last removal and
+both committed-reset failures. Preserve original physical, frame, epoch, identity,
+sequence and Weak-lease assertions. Complete ACT-01 absence and stopped-peer
+pressure remain open. Raw ticking still accesses shared Zenoh state, some absent
+families still receive dispatch, partial declaration failure needs a capture
+barrier probe. A bounded follow-up drops the CPU IMU streams before joining IO
+on shutdown. Its new retained-Server test reproduces the old live leases and
+passes after the fix, alongside all seven shutdown controls; ordinary strict
+staged and hosted qualification remain required. This does not retire the
+simulation or establish full absent-system behavior.
+See `artifacts/act01-source-audit/review.md`; source findings are not reproduced
+races or timing failures.
 
-Coverage export exposed a shared unowned test module with three mappings. LLVM's
-source filters also hid legitimate build-script aliases, so do not use them.
-The reviewed `owned_coverage` helper selects whole JSON and LF LCOV records by
-membership in the complete owned set. It never merges aliases or edits counters;
-strict duplicate, missing-source, DA0 and >95% checks remain unchanged. The
-original full JSON first passes the generated-binding guard, including rejection
-of unexpected generated siblings. Both unfiltered artifacts are retained. All
-57 executable owned JSON records and LCOV blocks match the original data exactly,
-including 122 zero-hit entries; only the syntax-audited proto facade is absent.
-New integrity controls and independent replay pass.
+Coverage retains full JSON and LCOV before selecting complete records from the
+owned source set. Run the generated-binding guard on full JSON first. Never use
+LLVM source filtering to hide lexical build-script aliases, merge duplicate
+owned records, edit counters or remove uncovered entries. The normal strict
+missing/duplicate/changed-line and >95% checks stay mandatory.
 
-The complete renderer diagnostic also passes: 435 tests, all ten production
-crates above the unchanged strict thresholds, 5058/5191 lines and 7523/7830
-regions. Actual software Vulkan worker and C++ camera evidence are retained.
-Two reviewed camera boundary tests raised camera regions from 555/586 to 557/586
-with unchanged production code and prior tests. Their real Image wire, payload
-budget, closed-publisher and constructor-cleanup assertions pass. The renderer
-uses the frozen production snapshot plus those tests; it is not a combined-tree
-staged or hosted result.
-
-A separate reviewed follow-up releases the CPU IMU stream buffer after the last
-consumer and on both committed-reset failures. Four strengthened existing
-lifecycle controls each reproduced retained capacity four before the fix and now
-pass with capacity zero, including independent retained-ELF replay. Original
-Weak-lease, frame, epoch, ID restoration, sequence and physical assertions remain.
-This is bounded allocation retirement; full ACT-01 and shutdown remain open.
-
-The real `gazebo-zenoh-headless-v1` application build is qualified locally. Its
-separate same-image client, rebuilt Sensors/Sim, unchanged Physics and stationary
-Clock/Pose/IMU smoke passed. The immutable local image is
-`sha256:bae6ddc3a806532805a8103967d7ab353fdaf14ab0fcb957343f8f32bece11da`;
-fresh read-only validation passed. Proof is under
-`artifacts/zenoh-headless-build/qualified-evidence`. The new overlay build paths
-avoid a reproduced Docker lower-directory EXDEV error. A root-owned in-container
-copy of six source caches resolved Git ownership rejection without a global
-ownership bypass, host chown, package change or input waiver.
-
-The untimed smoke proves a common stationary 1ms sample and bound native library
-closure. It does not replace the unchanged moving benchmark's stronger metadata,
-covariance, header, timing and motion predicates. No comparative performance or
-native gtest execution credit comes from compiling the application targets.
-
-Current lanes:
-- SDF independently checks the native reference/image evidence after completing
-  both profile diagnostics and preserving their source/object/raw bindings.
-- The former Transport owner qualifies a disposable runtime container for the
-  actual optimized Rust benchmark ELF. Only eight missing DART-family shared
-  libraries may be bound read-only; existing common libraries must stay unchanged.
-- The former Messages owner independently reviews the runtime mounts, exact ELF
-  closure and source-bound release record. Root coordinates measurements and the
-  combined-tree staged/hosted gates.
-
-A release server test executable has built with the pinned Rust compiler,
-optimization level three, no debug assertions and no instrumentation. A complete
-source/Git-tree/Cargo-JSON/ELF record must match the final source before measurement.
-Its DART bridge requires eight additional runtime files even for loading this
-TPE-only test binary. Loader qualification must precede any Rust test main; do not
-replace the immutable image's common libraries or relax the benchmark checks.
-MuJoCo is lazy-loaded and is not a dependency of this TPE workload.
-
-The CI workflow uses exact signed snapshot packages in private APT state and
-verifies the ROS archive. Resolver and integrity controls pass; the complete local
-tooling suite passes 217 tests. Current normal staged verification and hosted CI
-are still required. Next: qualify the runtime overlay, run quiet equal-work
-comparisons with the unchanged workload, finish pressure/absence work, and run the
-normal staged hook and exact hosted gates. Publish only reviewed checked changes.
-Never run comparative timings during native or Rust builds. Keep at least 1 GiB
-host free space; reclaim only confirmed inactive compiler caches and preserve
-source, ELF, dep-info, native objects, raw profiles and reports.
+Next tasks:
+- Audit exact hosted run and downloaded profiles for commit `5870373`.
+- After consumer acceptance, publish the independently reviewed schema-only
+  Messages transition. Reconcile its stale migration prose first; preserve
+  historical runtime evidence and all 216 canonical proto bytes.
+- Complete SDF's reviewed legacy world-field slice through its normal strict
+  hook and exact hosted gate; no simulator dependency change is included.
+- Continue bounded shutdown/activation and pressure controls. The separate
+  source-only publication-staging experiment has no build or performance credit.
+- Continue physics, rendering, systems, reference inventory and release work.
+  Whole phases remain open until their acceptance criteria are met.
 
 ## Owner correction: Zenoh and schema-only Messages
 
