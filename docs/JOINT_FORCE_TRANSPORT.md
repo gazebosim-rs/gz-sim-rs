@@ -23,16 +23,23 @@ with the server's finite command budget. That budget counts received packets;
 fanout is bounded by the immutable loaded controller inventory. Counters distinguish
 received packets, rejected packets and successfully updated joint targets. A
 partially rejected fanout can update valid targets; it is not a transaction across
-all joints. Transport queue drops remain visible in aggregate transport statistics.
+all joints. Real queue-full losses remain visible in the shared world-lifetime ingress
+metric, including late callbacks after CPU retirement.
 
-Worker Nodes are created before stepping, with at most one worker per Transport
-capacity-sized group of endpoints. Tick processing only performs nonblocking
-receives and existing checked scene operations. Removal retires controller targets
-and empty subscriptions. Loaded reset reconstructs the original identities with
-zero commands and replaces subscriptions using the prepared workers. Old bounded
-receiver queues are discarded. A packet arriving after reset has no wire epoch;
+Direct Zenoh subscribers and MS liveliness tokens live on the existing world
+publication IO owner. CPU ingress holds only scalar receivers, active gates and
+fanout identities. A server without configured controllers retains no force CPU
+state and skips its polling/retirement calls; it creates no force channel or native
+declaration. The shared world infrastructure remains independently active.
+
+Tick processing performs nonblocking scalar receives and checked Scene operations.
+Removal retains shared endpoints until their final target disappears, then drops
+the CPU state and disables handoff. Native declaration and callback-capture cleanup
+remain on IO. Loaded reset reconstructs original identities from Scene metadata,
+starts zero commands and prepares replacement declarations outside raw ticking.
+Old bounded receiver queues are discarded. A packet arriving after reset has no wire epoch;
 there is no claim that reset cancels a remote publisher's in-flight messages.
-Shutdown drops subscriptions and joins owned workers outside stepping. Failure
+Shutdown disables CPU ingress and joins the world IO owners outside stepping. Failure
 while reconstructing subscriptions leaves the committed reset terminal, following
 the existing server reset contract.
 
@@ -45,7 +52,15 @@ engines, physical force response, pause, default zero, nonfinite refusal, reset,
 retirement and unread queue cancellation. These additions require independent
 review and the normal staged and hosted gates before acceptance.
 
-This slice does not complete the original ApplyJointForce integration fixture.
-Plane geometry, moving-parent actuation and world physics plugin selection remain
-unqualified. It adds no native plugin ABI, rendering, new backend, broad malformed
-protobuf compatibility claim or performance improvement claim.
+The unchanged original ground-world controls are documented in
+[APPLY_JOINT_FORCE_ORIGINAL.md](APPLY_JOINT_FORCE_ORIGINAL.md). This CPU ownership
+follow-up adds no original-case credit. Moving-parent actuation and complete
+world physics plugin selection remain outside this slice. It adds no native
+plugin ABI, rendering, new backend, broad malformed-protobuf compatibility claim
+or performance improvement claim.
+
+The optional CPU-state follow-up does not replace the shared IO owner's existing
+force-retirement timer or eliminate other always-active server families. It does
+not establish full ACT-01 absence, no-wait shutdown, or a performance improvement.
+Its focused checks and independent review must be followed by the unchanged
+strict staged and hosted gates before acceptance.

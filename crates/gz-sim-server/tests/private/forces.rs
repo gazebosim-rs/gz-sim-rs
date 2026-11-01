@@ -35,7 +35,6 @@ fn detached(sim: &Simulation) -> Forces {
         streams: Vec::new(),
         expected: definitions(sim).into_iter().collect(),
         next: 0,
-        drops: Arc::new(AtomicU64::new(0)),
     }
 }
 fn prepare(
@@ -56,7 +55,9 @@ fn restart(
     config: &ServerOptions,
     sim: &Simulation,
 ) -> Result<(), Error> {
-    let setup = forces.restart(config, sim, &io.ingress_drops)?;
+    forces.clear();
+    let (replacement, setup) = Forces::restart(config, sim, &io.ingress_drops)?;
+    *forces = replacement;
     if let Err(error) = io.install_forces(setup) {
         forces.clear();
         return Err(error);
@@ -153,9 +154,10 @@ fn invalid_configuration_and_duplicate_identity_fail_before_declaring_endpoints(
     let world_drops = Arc::new(AtomicU64::new(0));
     let (mut forces, setup) = Forces::prepare(&config, [], &world_drops).unwrap();
     assert!(setup.is_empty());
-    io.install_forces(setup).unwrap();
-    assert!(Arc::ptr_eq(&forces.drops, &world_drops));
+    assert!(Arc::ptr_eq(&setup.ingress_drops, &world_drops));
     assert_eq!(Arc::strong_count(&world_drops), 2);
+    io.install_forces(setup).unwrap();
+    assert_eq!(Arc::strong_count(&world_drops), 1);
     assert!(forces.streams.is_empty() && forces.expected.is_empty());
     assert_eq!(forces.streams.capacity(), 0);
     let mut counters = Counters::default();
@@ -415,7 +417,7 @@ fn finite_budget_rotates_between_ready_bounded_endpoints() {
                     .unwrap();
             }
         }
-        assert_eq!(forces.queue_drops(), 0);
+        assert_eq!(io.ingress_drops.load(Ordering::Relaxed), 0);
         let mut counters = Counters::default();
         for step in 0..capacity * 2 {
             forces
@@ -500,11 +502,11 @@ fn malformed_type_oversize_nonfinite_and_zero_keep_bounded_command_semantics() {
     for _ in 0..3 {
         put(session, &config, topic, Vec::new());
     }
-    assert_eq!(forces.queue_drops(), 2);
+    assert_eq!(io.ingress_drops.load(Ordering::Relaxed), 2);
     forces.clear();
     assert!(forces.streams.is_empty() && forces.expected.is_empty());
     assert_eq!(forces.streams.capacity(), 0);
-    assert_eq!(forces.queue_drops(), 2);
+    assert_eq!(io.ingress_drops.load(Ordering::Relaxed), 2);
     forces
         .poll(&mut sim, NonZeroUsize::new(2).unwrap(), &mut counters)
         .unwrap();
@@ -513,9 +515,9 @@ fn malformed_type_oversize_nonfinite_and_zero_keep_bounded_command_semantics() {
     for _ in 0..3 {
         put(session, &config, topic, Vec::new());
     }
-    assert_eq!(forces.queue_drops(), 4);
+    assert_eq!(io.ingress_drops.load(Ordering::Relaxed), 4);
     restart(&mut forces, &io, &config, &sim).unwrap();
-    assert_eq!(forces.queue_drops(), 4);
+    assert_eq!(io.ingress_drops.load(Ordering::Relaxed), 4);
 }
 
 #[test]
@@ -633,7 +635,7 @@ fn force_session_failure_during_committed_server_reset_is_terminal() {
             .epoch,
         1
     );
-    assert!(server.forces.streams.is_empty());
+    assert!(server.forces.is_none());
     assert!(server.update().is_err());
     server.shutdown();
 }
@@ -645,7 +647,8 @@ fn in_flight_overflow_remains_counted_after_retirement_and_restart() {
         let key = format!("force-race/{}", uuid::Uuid::new_v4());
         let (sender, receiver) = mpsc::sync_channel(1);
         sender.try_send(None).unwrap();
-        let drops = Arc::new(AtomicU64::new(0));
+        let world_io = local_io();
+        let drops = Arc::clone(&world_io.ingress_drops);
         let overflow = Arc::clone(&drops);
         let active = Arc::new(AtomicBool::new(true));
         let release = Arc::new((std::sync::Mutex::new(false), std::sync::Condvar::new()));
@@ -691,7 +694,6 @@ fn in_flight_overflow_remains_counted_after_retirement_and_restart() {
             }],
             expected: BTreeMap::new(),
             next: 0,
-            drops: Arc::clone(&drops),
         };
         let writer = session.clone();
         let putter = std::thread::spawn(move || writer.put(key, vec![1u8]).wait().unwrap());
@@ -707,12 +709,10 @@ fn in_flight_overflow_remains_counted_after_retirement_and_restart() {
             }
             assert!(forces.streams.is_empty() && forces.expected.is_empty());
             assert_eq!(forces.streams.capacity(), 0);
-            assert!(
-                forces
-                    .restart(&config(), &empty, &retired_drops)
-                    .unwrap()
-                    .is_empty()
-            );
+            let (replacement, setup) = Forces::restart(&config(), &empty, &retired_drops).unwrap();
+            assert!(setup.is_empty());
+            assert!(Arc::ptr_eq(&setup.ingress_drops, &retired_drops));
+            forces = replacement;
             retired.send(forces).unwrap();
         });
         let retired_while_callback_running = result.recv_timeout(Duration::from_secs(2));
@@ -724,9 +724,10 @@ fn in_flight_overflow_remains_counted_after_retirement_and_restart() {
         io.join().unwrap();
         let forces = retired_while_callback_running
             .expect("CPU retirement waited for an in-flight callback");
-        assert!(Arc::ptr_eq(&forces.drops, &drops));
+        assert!(forces.streams.is_empty() && forces.expected.is_empty());
+        assert!(Arc::ptr_eq(&world_io.ingress_drops, &drops));
         assert_eq!(drops.load(Ordering::Relaxed), 1);
-        assert_eq!(forces.queue_drops(), 1);
+        assert_eq!(world_io.ingress_drops.load(Ordering::Relaxed), 1);
     }
 }
 
@@ -845,5 +846,203 @@ fn raw_tick_refuses_unprepared_reset_and_consumes_prepared_snapshot_without_adva
     assert_eq!(next.epoch, prepared.epoch);
     assert_eq!(next.iteration, 1);
     assert_eq!(next.sim_time, Duration::from_millis(1));
+    server.shutdown();
+}
+
+// WorldIo owns the metric itself, its world-control callback and control owner,
+// and the two removal callbacks. Empty force ingress must retain no sixth owner.
+fn assert_only_world_ingress_owners(server: &crate::Server) {
+    let deadline = std::time::Instant::now() + Duration::from_secs(3);
+    loop {
+        let owners = Arc::strong_count(&server.world_io.ingress_drops);
+        if owners == 5 {
+            assert!(server.forces.is_none());
+            return;
+        }
+        assert!(
+            std::time::Instant::now() < deadline,
+            "retained ingress owners: {owners}, expected five world owners"
+        );
+        std::thread::yield_now();
+    }
+}
+
+#[test]
+fn absent_force_ingress_owns_no_metric_lease_across_frames_and_resets() {
+    if isolate_server("absent_force_ingress_owns_no_metric_lease_across_frames_and_resets") {
+        return;
+    }
+    let sim = load_world_with_sdf_step(
+        include_str!("../fixtures/joint_force.sdf"),
+        "unforced.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let scheduled = sim.scheduled_system_counts();
+    let mut server =
+        crate::Server::new(sim, "default", config(), NonZeroUsize::new(2).unwrap()).unwrap();
+    assert_only_world_ingress_owners(&server);
+    let metric = Arc::downgrade(&server.world_io.ingress_drops);
+    for paused in [true, false] {
+        server.set_paused(paused);
+        for _ in 0..3 {
+            server.update().unwrap();
+            assert_only_world_ingress_owners(&server);
+            assert_eq!(server.simulation.scheduled_system_counts(), scheduled);
+        }
+    }
+    server.simulation.reset().unwrap();
+    server.reset_scene().unwrap();
+    assert_only_world_ingress_owners(&server);
+    assert!(std::ptr::eq(
+        metric.as_ptr(),
+        Arc::as_ptr(&server.world_io.ingress_drops)
+    ));
+    assert_eq!(server.ingress_statistics().queue_drops, 0);
+    assert_eq!(server.counters().force_messages_received, 0);
+    assert_eq!(server.counters().joint_forces_applied, 0);
+    server.shutdown();
+}
+
+#[test]
+fn final_force_ingress_consumer_releases_metric_lease_and_loaded_reset_restores_demand() {
+    if isolate_server(
+        "final_force_ingress_consumer_releases_metric_lease_and_loaded_reset_restores_demand",
+    ) {
+        return;
+    }
+    let sim = scene();
+    let model = sim
+        .world()
+        .iter_entities()
+        .find(|e| e.get::<EntityKind>() == Some(&EntityKind::Model))
+        .unwrap()
+        .get::<EntityId>()
+        .unwrap()
+        .get();
+    let mut server =
+        crate::Server::new(sim, "default", config(), NonZeroUsize::new(2).unwrap()).unwrap();
+    let metric = Arc::downgrade(&server.world_io.ingress_drops);
+    assert!(server.forces.is_some());
+    assert!(Arc::strong_count(&server.world_io.ingress_drops) > 5);
+    gz_sim_scene::remove_model(&mut server.simulation, model).unwrap();
+    server.update().unwrap();
+    assert_only_world_ingress_owners(&server);
+    assert_eq!(server.ingress_statistics().queue_drops, 0);
+    server.reset_scene().unwrap();
+    assert!(server.forces.is_some());
+    assert!(Arc::strong_count(&server.world_io.ingress_drops) > 5);
+    assert!(std::ptr::eq(
+        metric.as_ptr(),
+        Arc::as_ptr(&server.world_io.ingress_drops)
+    ));
+    let joint = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|e| e.contains::<JointForceCommand>())
+        .unwrap();
+    assert_eq!(joint.get::<JointForceCommand>().unwrap().torque(), 0.0);
+    assert_eq!(server.ingress_statistics().queue_drops, 0);
+    gz_sim_scene::remove_model(&mut server.simulation, model).unwrap();
+    server.update().unwrap();
+    assert_only_world_ingress_owners(&server);
+    server.shutdown();
+}
+
+#[test]
+fn shared_force_ingress_survives_one_consumer_then_discards_last_unread_command() {
+    if isolate_server(
+        "shared_force_ingress_survives_one_consumer_then_discards_last_unread_command",
+    ) {
+        return;
+    }
+    let mut config = config();
+    let topic = "/model/rotor/joint/hinge/cmd_force";
+    config
+        .add_topic_remap("/model/other/joint/hinge/cmd_force", topic)
+        .unwrap();
+    config.capacity = 1;
+    let sim = pair_scene("other");
+    let models: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter(|e| e.get::<EntityKind>() == Some(&EntityKind::Model))
+        .map(|e| e.get::<EntityId>().unwrap().get())
+        .collect();
+    assert_eq!(models.len(), 2);
+    let mut server = crate::Server::new(
+        sim,
+        "default",
+        config.clone(),
+        NonZeroUsize::new(1).unwrap(),
+    )
+    .unwrap();
+    for (message, expected_applied) in [(1u64, 2u64), (2, 3)] {
+        put(
+            &server.world_io.session,
+            &config,
+            topic,
+            Double {
+                data: message as f64,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+        );
+        let deadline = std::time::Instant::now() + Duration::from_secs(3);
+        while server.counters().force_messages_received < message {
+            assert!(
+                std::time::Instant::now() < deadline,
+                "force command did not arrive"
+            );
+            server.update().unwrap();
+        }
+        assert_eq!(server.counters().joint_forces_applied, expected_applied);
+        assert_eq!(server.counters().force_messages_rejected, 0);
+        if message == 1 {
+            gz_sim_scene::remove_model(&mut server.simulation, models[0]).unwrap();
+            server.update().unwrap();
+            assert!(server.forces.is_some());
+            assert!(Arc::strong_count(&server.world_io.ingress_drops) > 5);
+        }
+    }
+    let survivor = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|e| e.contains::<JointForceCommand>())
+        .unwrap();
+    assert_eq!(survivor.get::<JointForceCommand>().unwrap().torque(), 2.0);
+    // Real Full proves the old receiver holds an unread scalar before retirement.
+    for _ in 0..2 {
+        put(
+            &server.world_io.session,
+            &config,
+            topic,
+            Double {
+                data: 3.0,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+        );
+    }
+    let deadline = std::time::Instant::now() + Duration::from_secs(3);
+    while server.ingress_statistics().queue_drops == 0 {
+        assert!(
+            std::time::Instant::now() < deadline,
+            "unread force scalar did not fill the bounded receiver"
+        );
+        std::thread::yield_now();
+    }
+    assert_eq!(server.ingress_statistics().queue_drops, 1);
+    gz_sim_scene::remove_model(&mut server.simulation, models[1]).unwrap();
+    server.update().unwrap();
+    assert_only_world_ingress_owners(&server);
+    assert_eq!(server.ingress_statistics().queue_drops, 1);
+    assert_eq!(server.counters().force_messages_received, 2);
+    assert_eq!(server.counters().joint_forces_applied, 3);
+    assert_eq!(server.counters().force_messages_rejected, 0);
     server.shutdown();
 }

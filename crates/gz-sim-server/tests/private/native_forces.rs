@@ -395,7 +395,7 @@ fn unread_native_force_queue_is_discarded_when_subscriptions_restart() {
     peer.line("READY");
     let deadline = Instant::now() + Duration::from_secs(3);
     loop {
-        let queue_drops = forces.queue_drops();
+        let queue_drops = io.ingress_drops.load(std::sync::atomic::Ordering::Relaxed);
         if queue_drops >= 2 {
             break;
         }
@@ -410,7 +410,10 @@ fn unread_native_force_queue_is_discarded_when_subscriptions_restart() {
     }
     peer.finish();
     sim.reset().unwrap();
-    let setup = forces.restart(&config, &sim, &io.ingress_drops).unwrap();
+    forces.clear();
+    let (replacement, setup) =
+        crate::forces::Forces::restart(&config, &sim, &io.ingress_drops).unwrap();
+    forces = replacement;
     io.install_forces(setup).unwrap();
     let mut counters = crate::Counters::default();
     forces

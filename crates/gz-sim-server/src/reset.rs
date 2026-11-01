@@ -74,7 +74,11 @@ impl Server {
             }
             let setup = rates.restart(&self.network_config, sim, &self.world_io.ingress_drops)?;
             self.world_io.install_rates(setup)?;
-            let setup = forces.restart(&self.network_config, sim, &self.world_io.ingress_drops)?;
+            // Disable old CPU handoff before preparing a replacement generation.
+            *forces = None;
+            let (replacement, setup) =
+                forces::Forces::restart(&self.network_config, sim, &self.world_io.ingress_drops)?;
+            *forces = replacement.into_active();
             self.world_io.install_forces(setup)?;
             Ok::<_, Error>((*sim.world().resource::<UpdateInfo>(), streams))
         });
@@ -88,7 +92,7 @@ impl Server {
                 self.pending_reset = false;
                 self.imus = Vec::new();
                 self.rates.clear();
-                self.forces.clear();
+                self.forces = None;
                 self.removals
                     .cancel_for_reset(&self.world_io, &mut self.counters);
                 return Err(error.into());
@@ -108,7 +112,7 @@ impl Server {
                 self.reset_failed = true;
                 self.imus = Vec::new();
                 self.rates.clear();
-                self.forces.clear();
+                self.forces = None;
                 return Err(error);
             }
         };

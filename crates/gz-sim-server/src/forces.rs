@@ -34,8 +34,6 @@ pub(crate) struct Forces {
     streams: Vec<Stream>,
     expected: BTreeMap<u64, JointForceConfiguration>,
     next: usize,
-    // The active world owns this metric across endpoint and reset generations.
-    drops: Arc<AtomicU64>,
 }
 
 impl Forces {
@@ -74,7 +72,6 @@ impl Forces {
             streams: Vec::new(),
             expected,
             next: 0,
-            drops: Arc::clone(drops),
         };
         let mut setup = ForceSetup {
             endpoints: Vec::new(),
@@ -141,12 +138,10 @@ impl Forces {
     }
 
     pub(crate) fn restart(
-        &mut self,
         config: &ServerOptions,
         sim: &Simulation,
         drops: &Arc<AtomicU64>,
-    ) -> Result<ForceSetup, Error> {
-        self.clear();
+    ) -> Result<(Self, ForceSetup), Error> {
         // Loaded Scene metadata, not retained endpoint templates, owns reset demand.
         let configurations: Vec<_> = match gz_sim_scene::initial_joint_force_configurations(sim) {
             Ok(values) => values
@@ -162,8 +157,7 @@ impl Forces {
         };
         let (mut replacement, setup) = Self::prepare(config, configurations, drops)?;
         replacement.bind(sim)?;
-        *self = replacement;
-        Ok(setup)
+        Ok((replacement, setup))
     }
 
     pub(crate) fn clear(&mut self) {
@@ -174,8 +168,12 @@ impl Forces {
     pub(crate) fn shutdown(&mut self) {
         self.clear();
     }
-    pub(crate) fn queue_drops(&self) -> u64 {
-        self.drops.load(Ordering::Relaxed)
+    pub(crate) fn is_empty(&self) -> bool {
+        self.streams.is_empty()
+    }
+
+    pub(crate) fn into_active(self) -> Option<Self> {
+        if self.is_empty() { None } else { Some(self) }
     }
 
     pub(crate) fn poll(

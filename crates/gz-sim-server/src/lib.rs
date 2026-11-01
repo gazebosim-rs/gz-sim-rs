@@ -250,7 +250,7 @@ pub struct Server {
     interest_policy: InterestPolicy,
     removals: removals::Removals,
     rates: rates::Rates,
-    forces: forces::Forces,
+    forces: Option<forces::Forces>,
     command_budget: NonZeroUsize,
     pending_steps: u64,
     pending_reset: bool,
@@ -393,6 +393,7 @@ impl Server {
             forces::Forces::prepare(&config, configurations, &world_io.ingress_drops)?;
         forces.bind(&simulation)?;
         world_io.install_forces(force_setup)?;
+        let forces = forces.into_active();
         Ok(Self {
             simulation,
             world_io,
@@ -509,7 +510,10 @@ impl Server {
     /// Return observed bounded-input losses, independent of remote delivery.
     pub fn ingress_statistics(&self) -> IngressStatistics {
         IngressStatistics {
-            queue_drops: self.forces.queue_drops(),
+            queue_drops: self
+                .world_io
+                .ingress_drops
+                .load(std::sync::atomic::Ordering::Relaxed),
         }
     }
     pub fn pending_steps(&self) -> u64 {
@@ -615,7 +619,12 @@ impl Server {
             self.imus = Vec::new();
         }
         self.rates.retire(&self.simulation);
-        self.forces.retire(&self.simulation);
+        if let Some(forces) = &mut self.forces {
+            forces.retire(&self.simulation);
+            if forces.is_empty() {
+                self.forces = None;
+            }
+        }
         if !info.paused && self.pending_steps > 0 {
             self.pending_steps -= 1;
             if self.pending_steps == 0 {
@@ -647,11 +656,13 @@ impl Server {
         )?;
         self.removals
             .poll(&self.world_io, self.command_budget, &mut self.counters)?;
-        self.forces.poll(
-            &mut self.simulation,
-            self.command_budget,
-            &mut self.counters,
-        )?;
+        if let Some(forces) = &mut self.forces {
+            forces.poll(
+                &mut self.simulation,
+                self.command_budget,
+                &mut self.counters,
+            )?;
+        }
         Ok(info)
     }
 
@@ -836,7 +847,9 @@ impl Server {
     pub fn shutdown(&mut self) {
         self.is_shutdown = true;
         self.rates.shutdown();
-        self.forces.shutdown();
+        if let Some(mut forces) = self.forces.take() {
+            forces.shutdown();
+        }
         self.imus = Vec::new();
         self.world_io.shutdown();
     }
