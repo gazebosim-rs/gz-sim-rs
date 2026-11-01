@@ -256,6 +256,7 @@ pub struct Server {
     pending_reset: bool,
     prepared_reset: Option<UpdateInfo>,
     reset_failed: bool,
+    is_shutdown: bool,
     partition: String,
     namespace: String,
     active_time: ActiveTime,
@@ -407,6 +408,7 @@ impl Server {
             pending_reset: false,
             prepared_reset: None,
             reset_failed: false,
+            is_shutdown: false,
             partition,
             namespace,
             active_time: ActiveTime::default(),
@@ -516,7 +518,11 @@ impl Server {
 
     /// Prepare pending reset resources outside the simulation's critical section.
     /// This phase can wait for IO; the following tick publishes the reset snapshot.
+    /// After application shutdown, return `WorldClosed` without preparing a reset.
     pub fn prepare_io(&mut self) -> Result<(), Error> {
+        if self.is_shutdown {
+            return Err(Error::WorldClosed);
+        }
         if self.reset_failed {
             return Err(Error::ResetStreams);
         }
@@ -535,7 +541,11 @@ impl Server {
 
     /// Tick without performing reset setup or waiting for network operations.
     /// Call `prepare_run` at the run boundary and `prepare_io` before ticking.
+    /// Application shutdown rejects frames with `WorldClosed` before any state changes.
     pub fn tick(&mut self) -> Result<UpdateInfo, Error> {
+        if self.is_shutdown {
+            return Err(Error::WorldClosed);
+        }
         if self.reset_failed {
             return Err(Error::ResetStreams);
         }
@@ -819,8 +829,12 @@ impl Server {
         self.simulation
     }
 
-    /// Join the IO worker outside stepping. Dropping the server also joins it.
+    /// End frame admission and join IO outside stepping. Repeated calls are safe.
+    /// `tick`, `update` and `prepare_io` then return `WorldClosed` without changing
+    /// the scene or counters. Dropping the server also joins IO; `into_simulation`
+    /// can still transfer the preserved scene.
     pub fn shutdown(&mut self) {
+        self.is_shutdown = true;
         self.rates.shutdown();
         self.forces.shutdown();
         self.imus = Vec::new();

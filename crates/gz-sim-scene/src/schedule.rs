@@ -3,7 +3,7 @@
 use std::time::Duration;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
-pub(super) enum ScheduleError {
+pub enum ScheduleError {
     #[error("sensor rate has no finite representable sampling period")]
     InvalidRate,
     #[error("sensor sampling time overflow")]
@@ -11,7 +11,8 @@ pub(super) enum ScheduleError {
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct SampleSchedule {
+/// Native nanosecond sensor cadence, without callbacks or an executor.
+pub struct SampleSchedule {
     period: Option<Duration>,
     next: Duration,
 }
@@ -31,11 +32,11 @@ impl SampleSchedule {
         Ok(())
     }
 
-    pub(super) fn reset(&mut self) {
+    pub fn reset(&mut self) {
         self.next = Duration::ZERO;
     }
 
-    pub(super) fn new(rate_hz: f64) -> Result<Self, ScheduleError> {
+    pub fn new(rate_hz: f64) -> Result<Self, ScheduleError> {
         if !rate_hz.is_finite() {
             return Err(ScheduleError::InvalidRate);
         }
@@ -55,15 +56,11 @@ impl SampleSchedule {
         })
     }
 
-    pub(super) fn is_due(&self, now: Duration) -> bool {
+    pub fn is_due(&self, now: Duration) -> bool {
         now >= self.next
     }
 
-    pub(super) fn take_sample(
-        &mut self,
-        now: Duration,
-        forced: bool,
-    ) -> Result<bool, ScheduleError> {
+    pub fn take_sample(&mut self, now: Duration, forced: bool) -> Result<bool, ScheduleError> {
         let Some(period) = self.period else {
             return Ok(true);
         };

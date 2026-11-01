@@ -243,6 +243,334 @@ fn committed_acquisition_stamp_survives_later_step_through_real_worker() {
     output.retire();
 }
 
+fn scheduled_owner(
+    sim: &Simulation,
+    session: &zenoh::Session,
+    scope: &CameraWriterScope,
+    limit: NonZeroUsize,
+) -> gz_camera_output::ScheduledCameraOutput {
+    gz_camera_output::ScheduledCameraOutput::prepare(
+        sim,
+        session,
+        scope,
+        CameraOutputConfig {
+            origin: [1_000_000_000.0, 0.0, 0.0],
+            frame_id: "camera_frame".into(),
+            image_key: "@/camera@/image".into(),
+            info_key: "@/camera@/info".into(),
+            worker_path: env!("CARGO_BIN_EXE_gz-render-worker").into(),
+            max_message_bytes: limit,
+        },
+    )
+    .unwrap()
+    .unwrap()
+}
+
+fn scheduled_frame(
+    output: &mut gz_camera_output::ScheduledCameraOutput,
+    sim: &Simulation,
+    publish: bool,
+) {
+    let deadline = Instant::now() + Duration::from_secs(20);
+    loop {
+        match output.pump(sim).unwrap() {
+            Progress::FrameReady if !publish => return,
+            Progress::ImagePublished if publish => return,
+            Progress::Pending
+            | Progress::Backpressure
+            | Progress::SnapshotAccepted
+            | Progress::CaptureSubmitted
+            | Progress::FrameReady => thread::yield_now(),
+            other => panic!("unexpected scheduled progress: {other:?}"),
+        }
+        assert!(
+            Instant::now() < deadline,
+            "scheduled frame readback timed out"
+        );
+    }
+}
+
+#[test]
+fn scheduled_camera_committed_cadence_preserves_bounded_busy_and_wire_stamps() {
+    let (mut sim, id) = simulation();
+    let entity = gz_sim_core::entity_by_id(sim.world(), id).unwrap();
+    std::sync::Arc::make_mut(
+        &mut sim
+            .world_mut()
+            .get_mut::<gz_sim_scene::CameraSensor>(entity)
+            .unwrap()
+            .0,
+    )
+    .update_rate = 100.0;
+    let (session, scope, limit) = session();
+    let images = session
+        .declare_subscriber("@/camera@/image")
+        .wait()
+        .unwrap();
+    let infos = session.declare_subscriber("@/camera@/info").wait().unwrap();
+    let mut output = scheduled_owner(&sim, &session, &scope, limit);
+    assert_eq!(output.request_due(&sim).unwrap(), None);
+    sim.step_exact(1).unwrap();
+    assert_eq!(output.request_due(&sim).unwrap(), Some(Progress::Pending));
+    assert_eq!(output.request_due(&sim).unwrap(), None);
+    sim.step_exact(9).unwrap();
+    assert!(matches!(
+        output.request_due(&sim),
+        Err(CameraOutputError::Busy)
+    ));
+    // Finish the first captured frame after physics advanced. Its original
+    // acquisition stamp survives; the busy call did not consume the 10ms slot.
+    scheduled_frame(&mut output, &sim, true);
+    for (millis, sequence) in [(1, 0), (10, 1)] {
+        if sequence == 1 {
+            assert_eq!(output.request_due(&sim).unwrap(), Some(Progress::Pending));
+            scheduled_frame(&mut output, &sim, true);
+        }
+        let image = gz_sim_proto::msgs::Image::decode(
+            images
+                .recv_timeout(Duration::from_secs(5))
+                .unwrap()
+                .unwrap()
+                .payload()
+                .to_bytes()
+                .as_ref(),
+        )
+        .unwrap();
+        let info = gz_sim_proto::msgs::CameraInfo::decode(
+            infos
+                .recv_timeout(Duration::from_secs(5))
+                .unwrap()
+                .unwrap()
+                .payload()
+                .to_bytes()
+                .as_ref(),
+        )
+        .unwrap();
+        let header = image.header.as_ref().unwrap();
+        assert_eq!(header.stamp, info.header.unwrap().stamp);
+        let stamp = header.stamp.as_ref().unwrap();
+        assert_eq!((stamp.sec, stamp.nsec), (0, millis * 1_000_000));
+        assert_eq!(header.data[0].value, ["camera_frame"]);
+        assert_eq!(header.data[1].key, "seq");
+        assert_eq!(header.data[1].value, [sequence.to_string()]);
+        assert_eq!((image.width, image.height, image.step), (64, 64, 192));
+        assert_eq!(image.data.len(), 64 * 64 * 3);
+        assert_eq!(
+            &image.data[(32 * 64 + 32) * 3..(32 * 64 + 32) * 3 + 3],
+            &[255, 0, 0]
+        );
+    }
+    assert_eq!(output.request_due(&sim).unwrap(), None);
+    assert!(images.try_recv().unwrap().is_none());
+    assert!(infos.try_recv().unwrap().is_none());
+    drop(images);
+    sim.step_exact(10).unwrap();
+    assert_eq!(
+        output.request_due(&sim).unwrap(),
+        Some(Progress::RetireRequired)
+    );
+    assert_eq!(output.pump(&sim).unwrap(), Progress::RetireRequired);
+    assert!(infos.try_recv().unwrap().is_none());
+    output.retire();
+    // Worker retirement did not consume the 20ms slot. Info-only output at
+    // that same committed time remains eligible and starts no new renderer.
+    assert_eq!(
+        output.request_due(&sim).unwrap(),
+        Some(Progress::InfoPublished)
+    );
+    let info = gz_sim_proto::msgs::CameraInfo::decode(
+        infos
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(info.header.unwrap().stamp.unwrap().nsec, 20_000_000);
+    assert_eq!(output.request_due(&sim).unwrap(), None);
+    let images = session
+        .declare_subscriber("@/camera@/image")
+        .wait()
+        .unwrap();
+    sim.step_exact(10).unwrap();
+    assert_eq!(output.request_due(&sim).unwrap(), Some(Progress::Pending));
+    scheduled_frame(&mut output, &sim, true);
+    let image = gz_sim_proto::msgs::Image::decode(
+        images
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    let header = image.header.unwrap();
+    assert_eq!(header.stamp.unwrap().nsec, 30_000_000);
+    assert_eq!(header.data[1].value, ["2"]);
+    let info = gz_sim_proto::msgs::CameraInfo::decode(
+        infos
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(info.header.unwrap().stamp.unwrap().nsec, 30_000_000);
+    assert!(images.try_recv().unwrap().is_none());
+    assert!(infos.try_recv().unwrap().is_none());
+    output.set_active(false);
+    assert!(matches!(
+        output.request_due(&sim),
+        Err(CameraOutputError::RetireRequired)
+    ));
+    output.retire();
+    assert_eq!(output.request_due(&sim).unwrap(), None);
+}
+
+#[test]
+fn scheduled_camera_never_publishes_buffered_frames_after_reset_or_removal() {
+    let (mut sim, _) = simulation();
+    let (session, scope, limit) = session();
+    let images = session
+        .declare_subscriber("@/camera@/image")
+        .wait()
+        .unwrap();
+    let mut output = scheduled_owner(&sim, &session, &scope, limit);
+    sim.step_exact(1).unwrap();
+    assert_eq!(output.request_due(&sim).unwrap(), Some(Progress::Pending));
+    scheduled_frame(&mut output, &sim, false);
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert_eq!(sim.epoch(), 1);
+    assert_eq!(sim.elapsed(), Duration::ZERO);
+    output.set_active(false);
+    assert!(matches!(
+        output.request_due(&sim),
+        Err(CameraOutputError::OwnerInvalid)
+    ));
+    assert!(matches!(
+        output.pump(&sim),
+        Err(CameraOutputError::OwnerInvalid)
+    ));
+    output.retire();
+    drop(output);
+    assert!(images.try_recv().unwrap().is_none());
+    let mut output = scheduled_owner(&sim, &session, &scope, limit);
+    sim.step_exact(1).unwrap();
+    assert_eq!(output.request_due(&sim).unwrap(), Some(Progress::Pending));
+    scheduled_frame(&mut output, &sim, true);
+    let image = gz_sim_proto::msgs::Image::decode(
+        images
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    let header = image.header.unwrap();
+    assert_eq!(header.stamp.unwrap().nsec, 1_000_000);
+    assert_eq!(header.data[1].value, ["0"]);
+    sim.step_exact(1).unwrap();
+    assert_eq!(output.request_due(&sim).unwrap(), Some(Progress::Pending));
+    scheduled_frame(&mut output, &sim, false);
+    let model = sim
+        .world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<Name>()
+                .is_some_and(|name| name.0 == "default::robot")
+        })
+        .unwrap();
+    let model_id = model.get::<EntityId>().unwrap().get();
+    gz_sim_scene::remove_model(&mut sim, model_id).unwrap();
+    assert!(matches!(
+        output.pump(&sim),
+        Err(CameraOutputError::OwnerInvalid)
+    ));
+    assert!(matches!(
+        output.request_due(&sim),
+        Err(CameraOutputError::OwnerInvalid)
+    ));
+    output.retire();
+    drop(output);
+    assert!(images.try_recv().unwrap().is_none());
+    assert!(
+        gz_camera_output::ScheduledCameraOutput::prepare(
+            &sim,
+            &session,
+            &scope,
+            CameraOutputConfig {
+                origin: [1_000_000_000.0, 0.0, 0.0],
+                frame_id: "camera_frame".into(),
+                image_key: "@/camera@/image".into(),
+                info_key: "@/camera@/info".into(),
+                worker_path: env!("CARGO_BIN_EXE_gz-render-worker").into(),
+                max_message_bytes: limit,
+            },
+        )
+        .unwrap()
+        .is_none()
+    );
+}
+
+#[test]
+fn scheduled_camera_partial_info_then_image_error_does_not_retry_same_stamp() {
+    let (mut sim, _) = simulation();
+    let (session, scope, limit) = session_with_max(1024);
+    let images = session
+        .declare_subscriber("@/camera@/image")
+        .wait()
+        .unwrap();
+    let infos = session.declare_subscriber("@/camera@/info").wait().unwrap();
+    let mut output = scheduled_owner(&sim, &session, &scope, limit);
+    sim.step_exact(1).unwrap();
+    assert_eq!(output.request_due(&sim).unwrap(), Some(Progress::Pending));
+    let info = gz_sim_proto::msgs::CameraInfo::decode(
+        infos
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(info.header.unwrap().stamp.unwrap().nsec, 1_000_000);
+    scheduled_frame(&mut output, &sim, false);
+    assert!(matches!(
+        output.pump(&sim),
+        Err(CameraOutputError::PublicationTooLarge { limit: 1024, .. })
+    ));
+    assert_eq!(output.request_due(&sim).unwrap(), None);
+    assert_eq!(output.pump(&sim).unwrap(), Progress::NoDemand);
+    assert!(infos.try_recv().unwrap().is_none());
+    assert!(images.try_recv().unwrap().is_none());
+    // The next advancing unlimited-rate frame admits a new timestamp, rather
+    // than silently retrying the failed frame or reporting it as successful.
+    sim.step_exact(1).unwrap();
+    assert_eq!(output.request_due(&sim).unwrap(), Some(Progress::Pending));
+    let info = gz_sim_proto::msgs::CameraInfo::decode(
+        infos
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(info.header.unwrap().stamp.unwrap().nsec, 2_000_000);
+    output.retire();
+    assert!(images.try_recv().unwrap().is_none());
+}
+
 #[test]
 fn reset_invalidates_pending_acquisition_before_publication() {
     let (mut sim, id) = simulation();

@@ -91,7 +91,8 @@ Next tasks:
 The CPU IMU shutdown-storage follow-up is published at `1480725`. Its normal
 staged hook and independent audit passed 784 headless, 435 renderer and 217
 tooling tests, strict per-crate coverage and the new changed executable line.
-Its own exact hosted run `41252543726` is pending. Keep the first capacity-stopped
+Its own exact hosted run `41252543726` failed the renderer worker exit bound.
+Keep the first capacity-stopped
 attempt separate from the complete retry; only inactive compiler caches were
 reclaimed, preserving source, executables and raw evidence.
 
@@ -107,8 +108,27 @@ The schema source policy retains original minimal-inventory provenance at
 `a39a945` and identifies the equivalent public release at `d030d06`. Canonical
 proto bytes are unchanged; new generated build evidence is required for the
 updated policy. SDF `486b3e0` passed its independent hosted/source qualification,
-but the simulator still pins `0437a54`. Audit consumer admission of newly parsed
-semantics before updating that dependency; do not silently ignore new fields.
+and the reviewed integration now pins that actual Git revision. Six new Scene
+controls verify legacy gravity/reset on all backends, magnetic-field refusal and
+separate URDF boundaries; the existing 234-test Scene matrix passed in the
+isolated producer-readiness check. No private Cargo path override is adopted.
+The combined actual-Git integration passes those six controls and the seven
+terminal-shutdown controls; full integrated qualification remains pending.
+
+The integrated terminal-frame guard is described in
+`docs/TERMINAL_SHUTDOWN.md`. It preserves direct Session-close behavior while
+rejecting frames after explicit application shutdown. Independent review
+approved the exact implementation and two documented stronger assertion
+transitions. Its combined normal staged and hosted gates remain pending.
+
+The renderer failure remains unresolved. Source-identical local syscall
+controls did not reproduce the hosted ten-second stall. Diagnostic-only branch
+`diagnostic/worker-exit-state` at `75b73d0` passed its full local hook and
+independent audit; exact hosted run `41256735493` is collecting optional PID
+error/scope markers and bounded timeout process state. A green diagnostic run
+would be a non-reproduction, not a cause or fix. Main/P2 publication remains held
+until a reviewed correction passes the required checks. Never relax the retained
+assertions or deadline, or discard the original failed evidence.
 
 Next work includes explicit application-shutdown admission, full demand-only
 activation, the isolated publication-staging performance experiment, physics,
@@ -407,3 +427,12 @@ independent protocol-error tests; those peers do not inject physical GPU faults.
 Automatic cadence, native image parity, physical GPU qualification and full
 sensor-family migration remain open. Read the tracker and retained evidence
 before advancing these statuses.
+
+A private single-camera follow-up adds application-owned admission from loaded
+metadata and the shared integer SensorSchedule. It gates advancing committed
+frames, demand and the single acquisition slot, invalidates stale bindings and
+requires explicit worker retirement outside stepping. Independent source and
+retained-evidence review approved the slice and its observed-demand race fix.
+It adds no automatic Server callbacks or complete sensor-manager claim. Full
+integrated coverage, staged and hosted checks remain pending, as does the
+separate worker exit-timeout investigation. See [CAMERA_SCHEDULING.md](CAMERA_SCHEDULING.md).

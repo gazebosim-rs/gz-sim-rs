@@ -516,9 +516,21 @@ fn stopped_workers_report_admission_and_root_snapshot_failures() {
         admitted.prepare_run(Duration::from_secs(5)),
         Err(Error::WorldNetwork(_))
     ));
-    assert!(admitted.tick().is_err());
-    assert_eq!(admitted.counters().root_clocks_queued, 0);
-    assert_eq!(admitted.counters().root_clock_failures, 1);
+    let stopped_info = *admitted.simulation.world().resource::<UpdateInfo>();
+    let stopped_pending = admitted.pending_steps();
+    let stopped_counters = format!("{:?}", admitted.counters());
+    for _ in 0..3 {
+        assert!(matches!(admitted.tick(), Err(Error::WorldClosed)));
+        assert_eq!(
+            *admitted.simulation.world().resource::<UpdateInfo>(),
+            stopped_info
+        );
+        assert_eq!(admitted.simulation.elapsed(), stopped_info.sim_time);
+        assert_eq!(admitted.pending_steps(), stopped_pending);
+        assert_eq!(format!("{:?}", admitted.counters()), stopped_counters);
+        assert_eq!(admitted.counters().root_clocks_queued, 0);
+        assert_eq!(admitted.counters().root_clock_failures, 0);
+    }
 
     let configuration = config();
     let _foreign = foreign_publisher(&network, &configuration, "/clock", "gz.msgs.Clock");

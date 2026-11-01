@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Explicit, single-camera output. Call only outside the simulation step.
 //!
-//! This owner does not schedule samples. `request` captures committed state;
-//! `pump` advances at most one nonblocking IPC operation. If the worker must be
-//! retired, call `retire` outside the critical step: process teardown can wait.
+//! `CameraOutput` is manual: `request` captures committed state and `pump`
+//! advances at most one nonblocking IPC operation. `ScheduledCameraOutput` adds
+//! opt-in loaded-camera cadence outside stepping. Retirement and destruction
+//! also belong outside the critical step: process teardown can wait.
 
 pub mod camera_messages;
+mod scheduled;
+pub use scheduled::ScheduledCameraOutput;
 
 use crate::camera_messages::{
     CameraMessageError, IntrinsicValues, camera_info_packet, image_packet,
@@ -28,6 +31,10 @@ use zenoh::{Session, Wait, liveliness::LivelinessToken, pubsub::Publisher};
 
 #[derive(Debug, thiserror::Error)]
 pub enum CameraOutputError {
+    #[error("scheduled output supports exactly one loaded camera")]
+    MultipleCameras,
+    #[error("camera cadence: {0}")]
+    Schedule(#[from] gz_sim_scene::SensorScheduleError),
     #[error("camera snapshot: {0}")]
     Snapshot(#[from] SnapshotError),
     #[error("camera message: {0}")]

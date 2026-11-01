@@ -60,8 +60,9 @@ workspace on Linux x86-64, with all 22 manifests and Cargo.lock checked against
 the Cargo closure; native runtime linkage has separate qualified records.
 
 Runtime evidence uses the pinned SDF and Fuel revisions recorded in that
-receipt. This publication does not silently upgrade SDF or change admitted
-scene behavior. It identifies the equivalent-source schema-only Messages
+receipt. The later explicit SDF486 integration has its own six admission
+regressions and pending combined qualification; it does not relabel the earlier
+runtime evidence. This record identifies the equivalent-source schema-only Messages
 release `d030d06`; the original minimal consumer inventory retains its actual
 `a39a945` provenance. The new source-policy record requires fresh build evidence
 in this publication's checks; earlier build and timing records are unchanged.

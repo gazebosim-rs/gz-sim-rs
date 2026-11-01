@@ -1,0 +1,22 @@
+
+    <robot name='test_robot'>
+      <link name='link1'>
+        <inertial>
+          <mass value='0.1' />
+          <origin rpy='1.570796326794895 0 0' xyz='0.123456789123456 0 0.0' />
+          <inertia ixx='0.01' ixy='0' ixz='0' iyy='0.01' iyz='0' izz='0.01' />
+        </inertial>
+      </link>
+      <link name='link2'>
+        <inertial>
+          <mass value='0.1' />
+          <origin rpy='1.570796326794895 0 0' xyz='0.123456789123456 0 0.0' />
+          <inertia ixx='0.01' ixy='0' ixz='0' iyy='0.01' iyz='0' izz='0.01' />
+        </inertial>
+      </link>
+      <joint name='joint1_2' type='continuous'>
+        <parent link='link1' />
+        <child  link='link2' />
+        <origin xyz='1.0 2.0 3.0' rpy='0.0 0.0 1.57'/>
+      </joint>
+    </robot>

@@ -19,6 +19,7 @@ pub use inputs::{
 
 mod schedule;
 use schedule::{SampleSchedule, ScheduleError};
+pub use schedule::{SampleSchedule as SensorSchedule, ScheduleError as SensorScheduleError};
 
 mod rates;
 pub use rates::{ImuRateError, ImuRateInfo, RateChange, imu_rate, set_imu_rate};

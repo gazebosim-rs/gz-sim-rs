@@ -633,8 +633,19 @@ fn real_transport_commands_report_acceptance_and_exact_step_completion() {
     assert_eq!(server.counters().controls_rejected, 2);
     assert_eq!(server.counters().controls_accepted, 1);
     server.shutdown();
-    assert!(matches!(server.update(), Err(Error::WorldClosed)));
-    assert!(server.counters().clock_failures > 0);
+    let stopped_info = *server.simulation.world().resource::<UpdateInfo>();
+    let stopped_pending = server.pending_steps();
+    let stopped_counters = format!("{:?}", server.counters());
+    for _ in 0..3 {
+        assert!(matches!(server.update(), Err(Error::WorldClosed)));
+        assert_eq!(
+            *server.simulation.world().resource::<UpdateInfo>(),
+            stopped_info
+        );
+        assert_eq!(server.simulation.elapsed(), stopped_info.sim_time);
+        assert_eq!(server.pending_steps(), stopped_pending);
+        assert_eq!(format!("{:?}", server.counters()), stopped_counters);
+    }
 }
 
 #[test]
@@ -1606,3 +1617,6 @@ fn remaps_cannot_mix_world_publisher_message_types() {
         ));
     }
 }
+
+#[path = "terminal_admission.rs"]
+mod terminal_admission;
