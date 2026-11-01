@@ -1,0 +1,34 @@
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <frame name="rig"><pose>1 2 3 0 0 1.5707963267948966</pose></frame>
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+    <light name="point" type="point"><pose relative_to="rig">1 0 0 0 0 0</pose></light>
+    <light name="spot" type="spot">
+      <pose relative_to="robot::body">0 1 0 0 0 0</pose>
+      <light_on>false</light_on><visualize>false</visualize><cast_shadows>true</cast_shadows>
+      <diffuse>0.1 0.2 0.3 0.4</diffuse><specular>0.4 0.3 0.2 1</specular>
+      <attenuation><range>42</range><constant>0.5</constant><linear>0.25</linear><quadratic>0.1</quadratic></attenuation>
+      <direction>0 -1 0</direction><intensity>3.5</intensity>
+      <spot><inner_angle>0.1</inner_angle><outer_angle>0.3</outer_angle><falloff>2</falloff></spot>
+    </light>
+    <model name="robot"><pose>2 3 4 0 0 0</pose><link name="body">
+      <inertial><mass>1</mass><inertia><ixx>0.1</ixx><iyy>0.1</iyy><izz>0.1</izz></inertia></inertial>
+      <collision name="shape"><geometry><sphere><radius>0.25</radius></sphere></geometry></collision>
+    </link></model>
+  </world>
+</sdf>

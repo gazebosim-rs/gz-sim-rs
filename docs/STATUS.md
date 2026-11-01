@@ -24,8 +24,17 @@ smoke remains a reviewed continuation; no Rust B03 or timing claim follows.
 This candidate integrates the programmatic [single-camera application](AUTOMATIC_CAMERA.md).
 Its focused source and composed CPU/software/C++ evidence passed independent
 review. The first normal hook failed CameraOutput's strict region gate
-(1267/1365); the stage remains unpublished. Meaningful missing controls are under
-review before a fresh complete normal hook and exact hosted qualification.
+(1267/1365); that stage remains unpublished. Meaningful missing controls were added and
+independently reviewed before the repaired normal-hook result below. Exact hosted qualification subsequently passed before Main acceptance.
+The repaired camera parent `e0b1f6b` later passed the complete normal hook after
+actual disk recovery. Exact hosted run `41307067791` and independent downloaded
+source/profile/native auditing passed before its Main publication. This
+candidate also integrates reviewed [world-light metadata](WORLD_LIGHTS.md), with
+111 Scene, 16 renderer and five Server precursor controls plus Clippy. The shared-reset regression passes on the integrated source; complete
+integration gates remain pending. Core loading
+retains the full Light value, source and identity; renderer extraction and Server
+pose publication refuse unqualified lighting. B03 still reaches the retained
+DART articulation limit, and GUI/full wire behavior remains open.
 Broader P0/P1, P3/P4, built-in activation, balanced robotics measurements and
 release qualification remain open. Accepted P2 does not complete the rewrite.
 

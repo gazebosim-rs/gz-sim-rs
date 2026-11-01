@@ -12,8 +12,8 @@ use gz_render_frame::{WorldPose as RenderWorldPose, to_render_pose};
 use gz_render_protocol::{Request, Stamp, Visual};
 use gz_sim_core::{EntityId, Simulation, entity_by_id};
 use gz_sim_scene::{
-    CameraSensor, EntityKind, VisualGeometry, VisualMaterial, VisualProperties, WorldPose,
-    supports_camera_sensor,
+    CameraSensor, EntityKind, VisualGeometry, VisualMaterial, VisualProperties, WorldLight,
+    WorldPose, supports_camera_sensor,
 };
 
 const MAX_VISUALS: usize = 128;
@@ -40,6 +40,8 @@ pub enum SnapshotError {
     MissingCamera(u64),
     #[error("camera sensor {0} has unsupported or invalid calibration")]
     InvalidCamera(u64),
+    #[error("world lighting is not supported by the renderer")]
+    UnsupportedLighting,
 }
 
 /// Extract an explicit calibrated request from one canonical camera sensor.
@@ -136,6 +138,10 @@ pub fn extract(
     let world = sim.world();
     let mut visuals = Vec::new();
     for entity in world.iter_entities() {
+        if entity.contains::<WorldLight>() || entity.get::<EntityKind>() == Some(&EntityKind::Light)
+        {
+            return Err(SnapshotError::UnsupportedLighting);
+        }
         if entity.get::<EntityKind>() != Some(&EntityKind::Visual) {
             continue;
         }

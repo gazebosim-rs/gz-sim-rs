@@ -6,7 +6,6 @@ use crate::{LoadError, require};
 
 pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
     let name = &world.name;
-    require(world.lights.is_empty(), name, "world lights")?;
     require(world.joints.is_empty(), name, "world joints")?;
     require(world.extensions.is_empty(), name, "world extensions")?;
     require(world.wind_linear_velocity == [0.0; 3], name, "world wind")?;
@@ -94,3 +93,7 @@ fn validate_sensor(sensor: &sdformat::Sensor, parent: &str) -> Result<(), LoadEr
 #[cfg(test)]
 #[path = "../tests/private/producer_guard.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/world_light_guard.rs"]
+mod world_light_tests;

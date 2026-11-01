@@ -126,10 +126,12 @@ capture. Independent final source and composed-evidence review passed. The candi
 Main `3d290ee` preserved collision density and Sensors intent together across
 reset. The first integrated normal hook failed CameraOutput's strict region
 coverage gate at 1267/1365; its failed stage is retained and no commit was
-published. The repair adds meaningful lifecycle and identity/hierarchy controls
-under independent review on accepted Main `ce071305`, without changing
-production behavior, retained assertions, deadlines or coverage policy.
-Complete normal and exact hosted qualification for the repair remain pending. The
+published. The repair added meaningful lifecycle and identity/hierarchy controls,
+independently reviewed on Main `ce071305`, without changing production behavior,
+retained assertions, deadlines or coverage policy. The complete normal hook,
+exact hosted run `41307067791` and independent official source/profile/native
+audit passed before Main `e0b1f6b` publication: 832 headless, 509 renderer and 237
+tooling checks. The
 existing renderer timeout history and unchanged lifecycle deadlines remain part
 of qualification; no new retry, timeout relaxation or coverage exclusion applies.
 

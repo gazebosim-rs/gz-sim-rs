@@ -84,6 +84,7 @@ pub enum EntityKind {
     Visual,
     Sensor,
     Joint,
+    Light,
 }
 
 /// Loaded profiles and the caller's explicit step override. Exact stepping is unpaced.
@@ -113,6 +114,11 @@ pub struct VisualMaterial(pub Box<sdformat::Material>);
 /// Editing it does not recompute inertia or reconfigure the installed backend.
 #[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub struct CollisionDensity(pub f64);
+
+/// Complete owned world-light construction metadata, including raw pose and source.
+/// Editing it does not activate rendering or issue native light commands.
+#[derive(Component, Debug, Clone, PartialEq)]
+pub struct WorldLight(pub Box<sdformat::Light>);
 
 /// Parsed visual geometry, shared with the reset blueprint; not a collision shape.
 /// Editing this metadata does not reconfigure physics or load rendering assets.
@@ -497,6 +503,15 @@ fn load_world_configured(
     };
     for model in &world.models {
         build_model(&sdf, model, &mut context, &parent, &mut sim, &mut backend)?;
+    }
+    let parent = Some(world_entity);
+    for light in &world.lights {
+        let pose = sdf.resolve_pose(&light.pose, world_name, world_name, world_name)?;
+        let name = format!("{world_name}::{}", light.name);
+        let entity = spawn_node(&mut sim, parent, &name, EntityKind::Light, pose, pose)?;
+        sim.world_mut()
+            .entity_mut(entity)
+            .insert(WorldLight(Box::new(light.clone())));
     }
     sim.world_mut().insert_resource(Gravity(world.gravity));
     let mut visuals = context.visuals.into_iter();

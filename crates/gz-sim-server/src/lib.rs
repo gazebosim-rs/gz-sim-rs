@@ -55,6 +55,8 @@ pub enum Error {
     PoseIdRange,
     #[error("pose entity lacks a name, identity or valid parent-relative transform")]
     PoseData,
+    #[error("pose publication does not support world lights and their native visual records")]
+    PoseLighting,
     #[error("IMU publication lacks a unique public identity")]
     ImuIdentity,
     #[error("joint-force controller lacks its original identity, configuration or command")]

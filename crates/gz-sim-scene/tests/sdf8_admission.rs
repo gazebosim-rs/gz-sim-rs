@@ -4,6 +4,8 @@ use gz_sim_scene::{LoadError, Name, PhysicsEngine, load_world_with_sdf_step, res
 use sdformat::{NoResources, Resource, ResourceResolver};
 #[path = "support/collision_density.rs"]
 mod density;
+#[path = "support/world_light.rs"]
+mod light;
 
 fn world(
     extra: &str,
@@ -41,7 +43,12 @@ fn newly_parsed_runtime_effects_are_rejected_before_scene_creation() {
             "world extensions",
         ),
     ] {
-        rejected(&world(extra, "", "", "", "", ""), expected);
+        let xml = world(extra, "", "", "", "", "");
+        if expected == "world lights" {
+            light::assert_static_world_light(&xml, "sdf8");
+        } else {
+            rejected(&xml, expected);
+        }
     }
     rejected(
         &world("", "namespace='robot'", "", "", "", ""),

@@ -71,12 +71,33 @@ The camera source and composed CPU/software/C++ evidence passed independent
 review. Its first integrated normal hook failed strict CameraOutput region
 coverage at 1267/1365, below the required greater-than-95% gate. That failed stage
 remains preserved and unpublished. Meaningful lifecycle and identity/hierarchy
-controls are being added under separate review. The repaired integration still
-requires the complete normal hook, exact hosted checks and downloaded
-source/profile/native audit before Main acceptance. CLI ownership, multiple cameras, native Manager behavior, camera
+controls were added and independently reviewed. The repaired camera candidate
+then passed its complete normal hook, as recorded below. Exact hosted checks and downloaded source/profile/native auditing then passed;
+Main `e0b1f6b` is accepted as recorded below. CLI ownership, multiple cameras, native Manager behavior, camera
 set_rate, broader activation and physical-GPU parity remain open. Earlier failed
 fixture/witness/interface runs remain recorded separately; no assertions,
 deadlines or coverage gates were relaxed.
+
+The camera parent candidate `e0b1f6b` subsequently passed its complete normal
+hook after disk recovery, including strict per-crate coverage and real C++
+Image/CameraInfo receipt. Its exact hosted run `41307067791` and independent downloaded audit also passed
+before publication on Main: 832 headless, 509 renderer and 237 tooling checks. The original strict-coverage failure and
+later capacity stop remain distinct; neither was relabeled as a pass.
+
+This candidate additionally retains complete [world-light metadata](WORLD_LIGHTS.md)
+and reset identity in the Core Scene. The producer's whole Light value and source
+are preserved. Supplemental author checks pass 111 Scene, 16 renderer and five
+Server controls plus Clippy; independent source/evidence review passed. Two
+exact former light refusals have stronger, independently approved positive
+replacements; unrelated assertions and fixtures remain unchanged. Integration
+retains collision density, world Sensors intent and light metadata together in
+the initial-scene blueprint. The additional shared-reset regression passed on the integrated source. Its
+complete normal/exact hosted qualification remains required before acceptance.
+
+Renderer extraction and Server pose publication explicitly refuse unqualified
+lighting. This slice does not fabricate the native GUI-only LightVisual child,
+qualify full wire/render behavior or admit the unchanged B03 DART articulation.
+No light schedule, worker, endpoint or renderer dependency enters headless Scene.
 
 Next work: broader P3/P4 physics and sensors, full ACT-01 resource absence,
 balanced-robotics reference qualification and remaining systems. Fuel is

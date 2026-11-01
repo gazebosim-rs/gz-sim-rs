@@ -46,7 +46,11 @@ fn world_admission_keeps_native_defaults_and_rejects_unconsumed_fields() {
     for (expected, edit) in cases {
         let mut value = world();
         edit(&mut value);
-        failure(&value, expected);
+        if expected == "world lights" {
+            super::world_light_tests::assert_world_light_metadata(&value);
+        } else {
+            failure(&value, expected);
+        }
     }
 }
 #[test]

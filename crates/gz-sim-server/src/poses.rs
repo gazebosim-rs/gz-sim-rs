@@ -4,7 +4,7 @@ use crate::{Error, quaternion, time, vector3};
 use bevy_ecs::world::World;
 use gz_sim_core::{EntityId, entity_by_id};
 use gz_sim_proto::msgs::{Header, Pose, PoseV};
-use gz_sim_scene::{EntityKind, LocalName, LocalPose, WorldPose};
+use gz_sim_scene::{EntityKind, LocalName, LocalPose, WorldLight, WorldPose};
 use std::time::{Duration, Instant};
 
 pub(super) struct PublicationRate {
@@ -69,6 +69,10 @@ fn record(id: u64, name: &str, pose: WorldPose) -> Result<Pose, Error> {
 pub(crate) fn packet(world: &World, stamp: Duration) -> Result<PoseV, Error> {
     let mut records = Vec::new();
     for entity in world.iter_entities() {
+        if entity.contains::<WorldLight>() || entity.get::<EntityKind>() == Some(&EntityKind::Light)
+        {
+            return Err(Error::PoseLighting);
+        }
         let order = match entity.get::<EntityKind>() {
             Some(EntityKind::Model) => 0,
             Some(EntityKind::Link) => 1,

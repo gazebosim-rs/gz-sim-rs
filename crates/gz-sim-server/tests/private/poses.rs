@@ -141,3 +141,66 @@ fn native_wall_rate_ceiling_first_frame_and_explicit_policy_boundaries() {
     rate.attempted(now);
     assert!(!rate.ready(now + Duration::from_secs(1)));
 }
+
+#[test]
+fn world_light_pose_records_fail_before_packet_admission() {
+    let xml = "<sdf version='1.12'><world name='default'><light name='sun' type='directional'><light_on>false</light_on></light></world></sdf>";
+    let mut sim = load_world(
+        xml,
+        "pose-light.sdf",
+        "default",
+        Duration::from_millis(1),
+        &NoResources,
+    )
+    .unwrap();
+    assert!(matches!(
+        packet(sim.world(), Duration::ZERO),
+        Err(Error::PoseLighting)
+    ));
+    let light = sim
+        .world()
+        .iter_entities()
+        .find(|entity| entity.contains::<WorldLight>())
+        .unwrap()
+        .id();
+    let metadata = sim
+        .world_mut()
+        .entity_mut(light)
+        .take::<WorldLight>()
+        .unwrap();
+    assert!(matches!(
+        packet(sim.world(), Duration::ZERO),
+        Err(Error::PoseLighting)
+    ));
+    sim.world_mut()
+        .entity_mut(light)
+        .remove::<EntityKind>()
+        .insert(metadata);
+    assert!(matches!(
+        packet(sim.world(), Duration::ZERO),
+        Err(Error::PoseLighting)
+    ));
+    sim.world_mut().entity_mut(light).despawn();
+    assert!(packet(sim.world(), Duration::ZERO).unwrap().pose.is_empty());
+}
+
+#[test]
+fn cold_server_refuses_lighting_before_world_io_setup() {
+    let xml = "<sdf version='1.12'><world name='default'><light name='sun' type='directional'/></world></sdf>";
+    let sim = load_world(
+        xml,
+        "cold-light.sdf",
+        "default",
+        Duration::from_millis(1),
+        &NoResources,
+    )
+    .unwrap();
+    let invalid = crate::ServerOptions {
+        capacity: 0,
+        ..Default::default()
+    };
+    assert!(matches!(
+        crate::Server::new(sim, "", invalid, std::num::NonZeroUsize::new(1).unwrap()),
+        Err(Error::PoseLighting)
+    ));
+}
