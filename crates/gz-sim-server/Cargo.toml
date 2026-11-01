@@ -6,6 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+crossbeam-channel = { version = "=0.5.17", default-features = false, features = ["std"] }
 uuid.workspace = true
 zenoh.workspace = true
 gz-sim-proto.workspace = true

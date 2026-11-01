@@ -1236,3 +1236,295 @@ fn full_publication_queue_rejects_new_frames_and_recovers_after_callback_release
     io.shutdown();
     drop(clock_observer);
 }
+
+#[derive(Clone, Copy, Debug)]
+enum ColdSetup {
+    Imu,
+    Rates,
+    Forces,
+}
+fn cold_setup(io: &WorldIo, kind: ColdSetup) -> std::result::Result<(), crate::Error> {
+    match kind {
+        ColdSetup::Imu => io
+            .imu_output("@/test@/cold-imu".into())
+            .map(drop)
+            .map_err(|e| crate::Error::WorldNetwork(e.to_string())),
+        ColdSetup::Rates => {
+            let sensor = gz_sim_scene::ImuPublication {
+                entity_name: "sensor".into(),
+                frame_id: "sensor".into(),
+                topic: "/cold-imu".into(),
+                enable_orientation: true,
+            };
+            let options = crate::ServerOptions {
+                partition: "test".into(),
+                capacity: 1,
+                ..Default::default()
+            };
+            let (_rates, setup) =
+                crate::rates::Rates::prepare(&options, [&sensor], &io.ingress_drops).unwrap();
+            io.install_rates(setup)
+        }
+        ColdSetup::Forces => {
+            let (input, _received) = mpsc::sync_channel(1);
+            let active = Arc::new(AtomicBool::new(true));
+            let result = io.install_forces(crate::force_io::ForceSetup {
+                endpoints: vec![crate::force_io::ForceEndpoint {
+                    key: "@/test@/cold-force".into(),
+                    input,
+                    active: Arc::clone(&active),
+                }],
+                max_bytes: 1024,
+                ingress_drops: Arc::clone(&io.ingress_drops),
+            });
+            active.store(false, Ordering::Release);
+            result
+        }
+    }
+}
+struct PublicationRelease(Arc<(std::sync::Mutex<bool>, std::sync::Condvar)>);
+impl Drop for PublicationRelease {
+    fn drop(&mut self) {
+        let (state, wake) = &*self.0;
+        *state.lock().unwrap() = true;
+        wake.notify_one();
+    }
+}
+fn hold_publication(barrier: &Arc<(std::sync::Mutex<bool>, std::sync::Condvar)>) {
+    let (state, wake) = &**barrier;
+    let (state, timeout) = wake
+        .wait_timeout_while(state.lock().unwrap(), Duration::from_secs(8), |released| {
+            !*released
+        })
+        .unwrap();
+    assert!(!timeout.timed_out() && *state);
+}
+
+#[test]
+fn cold_setup_waits_for_publication_capacity_and_preserves_fifo() {
+    for kind in [ColdSetup::Imu, ColdSetup::Rates, ColdSetup::Forces] {
+        std::thread::scope(|scope| {
+            let mut io = isolated_world_with_capacity(1, 1024);
+            let barrier = Arc::new((std::sync::Mutex::new(false), std::sync::Condvar::new()));
+            let release = PublicationRelease(Arc::clone(&barrier));
+            let (entered, observed) = mpsc::sync_channel(1);
+            let clock = io
+                .session
+                .declare_subscriber("@/test@/clock")
+                .allowed_origin(zenoh::sample::Locality::SessionLocal)
+                .callback(move |_| {
+                    entered.try_send(()).unwrap();
+                    hold_publication(&barrier);
+                })
+                .wait()
+                .unwrap();
+            let (pose_sent, poses) = mpsc::sync_channel(1);
+            let pose = io
+                .session
+                .declare_subscriber("@/test@/poses")
+                .allowed_origin(zenoh::sample::Locality::SessionLocal)
+                .callback(move |sample| pose_sent.try_send(sample).unwrap())
+                .wait()
+                .unwrap();
+            io.publish_clock(Clock::default().encode_to_vec()).unwrap();
+            observed.recv_timeout(Duration::from_secs(2)).unwrap();
+            let bytes = PoseV::default().encode_to_vec();
+            io.publish_poses(bytes.clone()).unwrap();
+            let (started, waiting) = mpsc::sync_channel(0);
+            let (finished, completed) = mpsc::sync_channel(1);
+            let worker = scope.spawn(move || {
+                started.send(()).unwrap();
+                let result = cold_setup(&io, kind);
+                let preceding_pose = poses.try_recv().unwrap();
+                assert_eq!(
+                    preceding_pose.payload().to_bytes().as_ref(),
+                    bytes.as_slice()
+                );
+                finished.send(result).unwrap();
+                assert_eq!(io.ingress_drops.load(Ordering::Relaxed), 0);
+                io.shutdown();
+            });
+            waiting.recv_timeout(Duration::from_secs(2)).unwrap();
+            assert!(
+                matches!(
+                    completed.recv_timeout(Duration::from_millis(50)),
+                    Err(mpsc::RecvTimeoutError::Timeout)
+                ),
+                "{kind:?}"
+            );
+            drop(release);
+            completed
+                .recv_timeout(Duration::from_secs(2))
+                .unwrap()
+                .unwrap();
+            worker.join().unwrap();
+            drop((clock, pose));
+        });
+    }
+}
+
+#[test]
+fn cold_setup_uses_one_deadline_for_admission_and_receipt() {
+    for kind in [ColdSetup::Imu, ColdSetup::Rates, ColdSetup::Forces] {
+        std::thread::scope(|scope| {
+            let mut io = isolated_world_with_capacity(1, 1024);
+            let barriers =
+                [0, 1].map(|_| Arc::new((std::sync::Mutex::new(false), std::sync::Condvar::new())));
+            let releases = barriers
+                .each_ref()
+                .map(|b| PublicationRelease(Arc::clone(b)));
+            let (entered, observed) = mpsc::sync_channel(2);
+            let next = AtomicU64::new(0);
+            let clock = io
+                .session
+                .declare_subscriber("@/test@/clock")
+                .allowed_origin(zenoh::sample::Locality::SessionLocal)
+                .callback(move |_| {
+                    let index = next.fetch_add(1, Ordering::Relaxed) as usize;
+                    entered.try_send(index).unwrap();
+                    hold_publication(&barriers[index]);
+                })
+                .wait()
+                .unwrap();
+            io.publish_clock(Clock::default().encode_to_vec()).unwrap();
+            assert_eq!(observed.recv_timeout(Duration::from_secs(2)).unwrap(), 0);
+            io.publish_clock(Clock::default().encode_to_vec()).unwrap();
+            let (started, waiting) = mpsc::sync_channel(0);
+            let (finished, completed) = mpsc::sync_channel(1);
+            let worker = scope.spawn(move || {
+                started.send(()).unwrap();
+                finished.send(cold_setup(&io, kind)).unwrap();
+                io.shutdown();
+            });
+            waiting.recv_timeout(Duration::from_secs(2)).unwrap();
+            // Consume part of the actual setup budget while admission is blocked.
+            assert!(matches!(
+                completed.recv_timeout(Duration::from_secs(3)),
+                Err(mpsc::RecvTimeoutError::Timeout)
+            ));
+            let [first, second] = releases;
+            drop(first);
+            assert_eq!(observed.recv_timeout(Duration::from_secs(2)).unwrap(), 1);
+            // The queued second clock now holds the IO owner after setup admission.
+            // A fresh five-second receipt budget would incorrectly outlive this bound.
+            let error = completed
+                .recv_timeout(Duration::from_secs(3))
+                .unwrap()
+                .unwrap_err()
+                .to_string();
+            assert!(error.contains("timed out"), "{kind:?}: {error}");
+            drop(second);
+            worker.join().unwrap();
+            drop(clock);
+        });
+    }
+}
+
+#[test]
+fn cold_setup_refuses_disconnected_and_closed_owners_without_admission() {
+    let mut io = isolated_world_with_capacity(1, 1024);
+    io.incoming.try_send(WorldWork::Stop).unwrap();
+    io.publication_worker.take().unwrap().join().unwrap();
+    assert!(!io.session.is_closed());
+    for kind in [ColdSetup::Imu, ColdSetup::Rates, ColdSetup::Forces] {
+        let error = cold_setup(&io, kind).unwrap_err().to_string();
+        assert!(error.contains("disconnected"), "{kind:?}: {error}");
+    }
+    io.shutdown();
+    for kind in [ColdSetup::Imu, ColdSetup::Rates, ColdSetup::Forces] {
+        assert!(cold_setup(&io, kind).is_err());
+    }
+}
+
+#[test]
+fn full_cold_admission_expires_without_enqueueing_setup() {
+    std::thread::scope(|scope| {
+        let mut io = isolated_world_with_capacity(1, 1024);
+        let barrier = Arc::new((std::sync::Mutex::new(false), std::sync::Condvar::new()));
+        let release = PublicationRelease(Arc::clone(&barrier));
+        let (entered, observed) = mpsc::sync_channel(1);
+        let clock = io
+            .session
+            .declare_subscriber("@/test@/clock")
+            .allowed_origin(zenoh::sample::Locality::SessionLocal)
+            .callback(move |_| {
+                entered.try_send(()).unwrap();
+                hold_publication(&barrier);
+            })
+            .wait()
+            .unwrap();
+        io.publish_clock(Clock::default().encode_to_vec()).unwrap();
+        observed.recv_timeout(Duration::from_secs(2)).unwrap();
+        io.publish_poses(PoseV::default().encode_to_vec()).unwrap();
+        let (finished, completed) = mpsc::sync_channel(1);
+        let worker = scope.spawn(move || {
+            let error = cold_setup(&io, ColdSetup::Imu).unwrap_err().to_string();
+            assert!(
+                error.contains("IMU setup admission failed") && error.contains("timed out"),
+                "{error}"
+            );
+            assert_eq!(io.incoming.len(), 1);
+            assert!(!io.session.is_closed());
+            finished.send(()).unwrap();
+            io.shutdown();
+        });
+        completed.recv_timeout(Duration::from_secs(6)).unwrap();
+        drop(release);
+        worker.join().unwrap();
+        drop(clock);
+    });
+}
+
+#[test]
+fn session_close_during_cold_admission_preserves_typed_world_closed() {
+    let mut outcomes = Vec::new();
+    for kind in [ColdSetup::Rates, ColdSetup::Forces] {
+        outcomes.push(std::thread::scope(|scope| {
+            let mut io = isolated_world_with_capacity(1, 1024);
+            let session = io.session.clone();
+            let barrier = Arc::new((std::sync::Mutex::new(false), std::sync::Condvar::new()));
+            let release = PublicationRelease(Arc::clone(&barrier));
+            let (entered, observed) = mpsc::sync_channel(1);
+            let observer = io
+                .session
+                .declare_subscriber("@/test@/clock")
+                .allowed_origin(zenoh::sample::Locality::SessionLocal)
+                .callback(move |_| {
+                    entered.try_send(()).unwrap();
+                    hold_publication(&barrier);
+                })
+                .wait()
+                .unwrap();
+            io.publish_clock(Clock::default().encode_to_vec()).unwrap();
+            observed.recv_timeout(Duration::from_secs(2)).unwrap();
+            io.publish_poses(PoseV::default().encode_to_vec()).unwrap();
+            let (started, waiting) = mpsc::sync_channel(0);
+            let (finished, completed) = mpsc::sync_channel(1);
+            let worker = scope.spawn(move || {
+                started.send(()).unwrap();
+                let result = cold_setup(&io, kind);
+                let typed = matches!(result, Err(crate::Error::WorldClosed));
+                finished.send((typed, format!("{result:?}"))).unwrap();
+                io.shutdown();
+            });
+            waiting.recv_timeout(Duration::from_secs(2)).unwrap();
+            assert!(matches!(
+                completed.recv_timeout(Duration::from_millis(50)),
+                Err(mpsc::RecvTimeoutError::Timeout)
+            ));
+            session.close().wait().unwrap();
+            assert!(session.is_closed());
+            // Keep admission full after closure. The original absolute deadline
+            // still applies; closure must win over its later admission error.
+            let result = completed.recv_timeout(Duration::from_secs(6)).unwrap();
+            drop(release);
+            worker.join().unwrap();
+            drop(observer);
+            (kind, result)
+        }));
+    }
+    assert!(
+        outcomes.iter().all(|(_, (typed, _))| *typed),
+        "{outcomes:?}"
+    );
+}

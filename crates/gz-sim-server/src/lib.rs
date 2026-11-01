@@ -249,7 +249,7 @@ pub struct Server {
     pose_rate: poses::PublicationRate,
     interest_policy: InterestPolicy,
     removals: removals::Removals,
-    rates: rates::Rates,
+    rates: Option<rates::Rates>,
     forces: Option<forces::Forces>,
     command_budget: NonZeroUsize,
     pending_steps: u64,
@@ -381,6 +381,7 @@ impl Server {
         };
         rates.bind(&simulation)?;
         world_io.install_rates(rate_setup)?;
+        let rates = rates.into_active();
         let configurations: Vec<_> =
             match gz_sim_scene::initial_joint_force_configurations(&simulation) {
                 Ok(values) => values
@@ -618,7 +619,12 @@ impl Server {
         if self.imus.is_empty() {
             self.imus = Vec::new();
         }
-        self.rates.retire(&self.simulation);
+        if let Some(rates) = &mut self.rates {
+            rates.retire(&self.simulation);
+            if rates.is_empty() {
+                self.rates = None;
+            }
+        }
         if let Some(forces) = &mut self.forces {
             forces.retire(&self.simulation);
             if forces.is_empty() {
@@ -649,11 +655,13 @@ impl Server {
             };
             self.respond(request);
         }
-        self.rates.poll(
-            &mut self.simulation,
-            self.command_budget,
-            &mut self.counters,
-        )?;
+        if let Some(rates) = &mut self.rates {
+            rates.poll(
+                &mut self.simulation,
+                self.command_budget,
+                &mut self.counters,
+            )?;
+        }
         self.removals
             .poll(&self.world_io, self.command_budget, &mut self.counters)?;
         if let Some(forces) = &mut self.forces {
@@ -846,7 +854,9 @@ impl Server {
     /// can still transfer the preserved scene.
     pub fn shutdown(&mut self) {
         self.is_shutdown = true;
-        self.rates.shutdown();
+        if let Some(mut rates) = self.rates.take() {
+            rates.shutdown();
+        }
         if let Some(mut forces) = self.forces.take() {
             forces.shutdown();
         }

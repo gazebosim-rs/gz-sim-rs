@@ -72,7 +72,11 @@ impl Server {
                     last_sample: None,
                 });
             }
-            let setup = rates.restart(&self.network_config, sim, &self.world_io.ingress_drops)?;
+            // Disable old CPU handoff before preparing a replacement generation.
+            *rates = None;
+            let (replacement, setup) =
+                rates::Rates::restart(&self.network_config, sim, &self.world_io.ingress_drops)?;
+            *rates = replacement.into_active();
             self.world_io.install_rates(setup)?;
             // Disable old CPU handoff before preparing a replacement generation.
             *forces = None;
@@ -91,7 +95,7 @@ impl Server {
             Err(error @ gz_sim_scene::SceneResetError::CommittedReset) => {
                 self.pending_reset = false;
                 self.imus = Vec::new();
-                self.rates.clear();
+                self.rates = None;
                 self.forces = None;
                 self.removals
                     .cancel_for_reset(&self.world_io, &mut self.counters);
@@ -111,7 +115,7 @@ impl Server {
             Err(error) => {
                 self.reset_failed = true;
                 self.imus = Vec::new();
-                self.rates.clear();
+                self.rates = None;
                 self.forces = None;
                 return Err(error);
             }

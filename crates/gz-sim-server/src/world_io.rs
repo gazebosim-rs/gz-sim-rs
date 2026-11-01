@@ -14,7 +14,7 @@ use std::{
         mpsc,
     },
     thread,
-    time::Duration,
+    time::{Duration, Instant},
 };
 use zenoh::{
     Wait,
@@ -221,7 +221,7 @@ pub(super) struct WorldIo {
     process: String,
     node: String,
     stop: Arc<AtomicBool>,
-    incoming: mpsc::SyncSender<WorldWork>,
+    incoming: crossbeam_channel::Sender<WorldWork>,
     control_worker: Option<thread::JoinHandle<()>>,
     publication_worker: Option<thread::JoinHandle<()>>,
     control_incoming: mpsc::SyncSender<ControlWork>,
@@ -480,7 +480,7 @@ impl WorldIo {
                     drop(pending);
                     drop(queries);
                 })?;
-        let (incoming, publications) = mpsc::sync_channel(capacity);
+        let (incoming, publications) = crossbeam_channel::bounded(capacity);
         let publication_stop = Arc::clone(&stop);
         let publication_session = session.clone();
         let rate_ingress = control_incoming.clone();
@@ -571,7 +571,7 @@ impl WorldIo {
                     } else {
                         publications
                             .recv()
-                            .map_err(|_| mpsc::RecvTimeoutError::Disconnected)
+                            .map_err(|_| crossbeam_channel::RecvTimeoutError::Disconnected)
                     };
                     match incoming {
                         Ok(WorldWork::Clock(generation, bytes)) => {
@@ -648,8 +648,9 @@ impl WorldIo {
                                     receipt.try_send(Err("force setup is already pending".into()));
                             }
                         }
-                        Ok(WorldWork::Stop) | Err(mpsc::RecvTimeoutError::Disconnected) => break,
-                        Err(mpsc::RecvTimeoutError::Timeout) => {}
+                        Ok(WorldWork::Stop)
+                        | Err(crossbeam_channel::RecvTimeoutError::Disconnected) => break,
+                        Err(crossbeam_channel::RecvTimeoutError::Timeout) => {}
                     }
                 }
                 if let Some(declarations) = &rates {
@@ -782,12 +783,16 @@ impl WorldIo {
         if key == self.clock.key_expr().as_str() || key == self.poses.key_expr().as_str() {
             return Err("IMU key collides with world publication".into());
         }
+        if self.session.is_closed() {
+            return Err("world session is closed".into());
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
         let (receipt, ready) = mpsc::sync_channel(1);
         self.incoming
-            .try_send(WorldWork::InstallImu(key, receipt))
-            .map_err(|_| "world IO setup queue unavailable")?;
+            .send_deadline(WorldWork::InstallImu(key, receipt), deadline)
+            .map_err(|error| format!("IMU setup admission failed: {error}"))?;
         ready
-            .recv_timeout(Duration::from_secs(5))?
+            .recv_timeout(deadline.saturating_duration_since(Instant::now()))?
             .map_err(Into::into)
     }
 
@@ -802,11 +807,18 @@ impl WorldIo {
         if setup.is_empty() {
             return Ok(());
         }
+        let deadline = Instant::now() + Duration::from_secs(5);
         let (receipt, ready) = mpsc::sync_channel(1);
-        self.incoming
-            .try_send(WorldWork::InstallRates(setup, receipt))
-            .map_err(|_| crate::Error::WorldNetwork("world IO setup queue unavailable".into()))?;
-        let result = ready.recv_timeout(Duration::from_secs(5));
+        let admission = self
+            .incoming
+            .send_deadline(WorldWork::InstallRates(setup, receipt), deadline);
+        if self.session.is_closed() {
+            return Err(crate::Error::WorldClosed);
+        }
+        admission.map_err(|error| {
+            crate::Error::WorldNetwork(format!("rates setup admission failed: {error}"))
+        })?;
+        let result = ready.recv_timeout(deadline.saturating_duration_since(Instant::now()));
         if self.session.is_closed() {
             return Err(crate::Error::WorldClosed);
         }
@@ -825,11 +837,18 @@ impl WorldIo {
         if setup.is_empty() {
             return Ok(());
         }
+        let deadline = Instant::now() + Duration::from_secs(5);
         let (receipt, ready) = mpsc::sync_channel(1);
-        self.incoming
-            .try_send(WorldWork::InstallForces(setup, receipt))
-            .map_err(|_| crate::Error::WorldNetwork("world IO setup queue unavailable".into()))?;
-        let result = ready.recv_timeout(Duration::from_secs(5));
+        let admission = self
+            .incoming
+            .send_deadline(WorldWork::InstallForces(setup, receipt), deadline);
+        if self.session.is_closed() {
+            return Err(crate::Error::WorldClosed);
+        }
+        admission.map_err(|error| {
+            crate::Error::WorldNetwork(format!("forces setup admission failed: {error}"))
+        })?;
+        let result = ready.recv_timeout(deadline.saturating_duration_since(Instant::now()));
         if self.session.is_closed() {
             return Err(crate::Error::WorldClosed);
         }
