@@ -95,3 +95,13 @@ fn actual_loaded_camera_also_refuses_world_lighting_before_snapshot_creation() {
         Err(SnapshotError::UnsupportedLighting)
     );
 }
+
+#[test]
+fn orphan_native_light_visual_identity_is_not_renderable_geometry() {
+    let mut sim = scene("<sdf version='1.12'><world name='default'/></sdf>");
+    sim.world_mut().spawn(EntityKind::LightVisual);
+    assert_eq!(
+        extract(&sim, 1, [0.; 3]),
+        Err(SnapshotError::UnsupportedLighting)
+    );
+}

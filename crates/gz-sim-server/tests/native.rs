@@ -571,3 +571,187 @@ fn tcp_reservation_handoff_keeps_the_listener_exclusive_until_shutdown() {
     let replacement = listener(address).unwrap();
     assert_eq!(replacement.local_addr().unwrap(), address);
 }
+
+fn run_native_light_poses(xml: &str, case: &str, engine: PhysicsEngine) {
+    use gz_sim_core::{EntityId, entity_by_id};
+    use gz_sim_proto::prost::Message;
+    use gz_sim_scene::{EntityKind, LocalName};
+    use std::collections::BTreeMap;
+    use std::io::Read;
+    let network = Network::new();
+    let config = ServerOptions {
+        partition: format!("native-light-{}-{engine:?}-{case}", std::process::id()),
+        ..ServerOptions::default()
+    };
+    let simulation = load_world_with_engine(
+        xml,
+        "native-light-poses.sdf",
+        "default",
+        Duration::from_millis(1),
+        &NoResources,
+        engine,
+    )
+    .unwrap();
+    let owned_ids = |simulation: &gz_sim_core::Simulation| {
+        simulation
+            .world()
+            .iter_entities()
+            .filter(|entity| {
+                matches!(
+                    entity.get::<EntityKind>(),
+                    Some(EntityKind::Light | EntityKind::LightVisual)
+                )
+            })
+            .map(|entity| {
+                let id = entity.get::<EntityId>().unwrap().get();
+                assert_eq!(entity_by_id(simulation.world(), id), Some(entity.id()));
+                (
+                    entity.get::<LocalName>().unwrap().0.clone(),
+                    u32::try_from(id).unwrap(),
+                )
+            })
+            .collect::<BTreeMap<_, _>>()
+    };
+    let expected = owned_ids(&simulation);
+    assert_eq!(
+        expected.len(),
+        match case {
+            "twelve" => 24,
+            "empty" => 0,
+            _ => 2,
+        }
+    );
+    let output = native_peer()
+        .binary
+        .parent()
+        .unwrap()
+        .join("light-pose-peer");
+    std::fs::create_dir_all(&output).unwrap();
+    let output = tempfile::Builder::new()
+        .prefix(&format!("{case}-{engine:?}-"))
+        .tempdir_in(output)
+        .unwrap()
+        .keep();
+    std::fs::write(
+        output.join("expected-ids.json"),
+        serde_json::to_vec_pretty(&expected).unwrap(),
+    )
+    .unwrap();
+    let mut server = network.server(simulation, &config);
+    let mut command = Command::new(&native_peer().binary);
+    command.args(["--light-poses", case]).arg(&output);
+    let mut peer = Peer(
+        network
+            .configure_native(&mut command, &config)
+            .spawn()
+            .unwrap(),
+    );
+    let deadline = Instant::now() + Duration::from_secs(20);
+    let status = loop {
+        if let Some(status) = peer.0.try_wait().unwrap() {
+            break status;
+        }
+        assert!(
+            Instant::now() < deadline,
+            "native Light pose client timed out: {}",
+            output.display()
+        );
+        server.update().unwrap();
+        thread::sleep(Duration::from_millis(1));
+    };
+    let mut stdout = String::new();
+    let mut stderr = String::new();
+    peer.0
+        .stdout
+        .take()
+        .unwrap()
+        .read_to_string(&mut stdout)
+        .unwrap();
+    peer.0
+        .stderr
+        .take()
+        .unwrap()
+        .read_to_string(&mut stderr)
+        .unwrap();
+    std::fs::write(output.join("stdout"), &stdout).unwrap();
+    std::fs::write(output.join("stderr"), &stderr).unwrap();
+    assert!(
+        status.success(),
+        "status={status} stdout={stdout} stderr={stderr} output={}",
+        output.display()
+    );
+    assert!(stderr.is_empty(), "{stderr}");
+    let summary = format!(
+        "PASS native light poses case={case} rows={} first=1000000 reset=0",
+        expected.len()
+    );
+    let mut received = BTreeMap::new();
+    for line in stdout.lines() {
+        if line == summary {
+            continue;
+        }
+        let words: Vec<_> = line.split_whitespace().collect();
+        assert_eq!(words.len(), 3, "{line}");
+        assert_eq!(words[0], "ID");
+        assert!(
+            received
+                .insert(words[1].to_owned(), words[2].parse::<u32>().unwrap())
+                .is_none()
+        );
+    }
+    assert_eq!(stdout.lines().filter(|line| *line == summary).count(), 1);
+    assert_eq!(received, expected);
+    for (phase, nanos) in [("initial", 0), ("step", 1_000_000), ("reset", 0)] {
+        let bytes = std::fs::read(output.join(format!("{phase}.pose_v.pb"))).unwrap();
+        let frame = gz_sim_proto::msgs::PoseV::decode(bytes.as_slice()).unwrap();
+        let stamp = frame.header.unwrap().stamp.unwrap();
+        assert_eq!((stamp.sec, stamp.nsec), (0, nanos));
+        assert_eq!(frame.pose.len(), expected.len());
+        assert_eq!(
+            frame
+                .pose
+                .into_iter()
+                .map(|pose| (pose.name, pose.id))
+                .collect::<BTreeMap<_, _>>(),
+            expected
+        );
+    }
+    assert_eq!(owned_ids(server.simulation()), expected);
+    assert_eq!(server.simulation().elapsed(), Duration::ZERO);
+    assert!(server.simulation().is_paused());
+    assert!(server.counters().poses_queued >= 3);
+    assert_eq!(server.counters().pose_failures, 0);
+    assert_eq!(server.counters().invalid_pose_frames, 0);
+    println!(
+        "verified Light pose peer {case} {engine:?}: {}",
+        output.display()
+    );
+}
+
+#[test]
+fn cpp_client_observes_light_pose_groups_owned_ids_and_loaded_reset() {
+    let xml = include_str!("../../gz-sim-scene/tests/fixtures/native_light_visuals.sdf");
+    for engine in [
+        PhysicsEngine::Tpe,
+        PhysicsEngine::Rapier,
+        PhysicsEngine::Dart,
+        PhysicsEngine::Mujoco,
+    ] {
+        run_native_light_poses(xml, "twelve", engine);
+    }
+    run_native_light_poses(
+        "<sdf version='1.12'><world name='default'/></sdf>",
+        "empty",
+        PhysicsEngine::Tpe,
+    );
+    run_native_light_poses(
+        "<sdf version='1.12'><world name='default'><light name='sun' type='directional'><light_on>false</light_on></light></world></sdf>",
+        "sun-off",
+        PhysicsEngine::Tpe,
+    );
+    run_native_light_poses(
+        "<sdf version='1.12'><world name='default'><light name='sun' type='directional'/></world></sdf>",
+        "sun-default",
+        PhysicsEngine::Tpe,
+    );
+}

@@ -43,15 +43,29 @@ TCP setup under sandbox permissions; the complete permission-corrected hook
 passed without changing tests or assertions. Scene topology and its one-collision
 limit remain unchanged; this does not admit B03 or three-body contacts.
 
-The next candidate adopts accepted producer `13adde94` for world Light includes
+Main `a5b296c` adopts accepted producer `13adde94` for world Light includes
 and adds a separate explicit-lux directional-light renderer API. The Scene
 world-light target passes nine controls across the existing backends; the
 renderer package passes nine unit and four software tests under asserted
 llvmpipe. Old tests and imported fixture bytes remain intact. These are separate
 metadata and renderer inputs: no SDF intensity conversion or Scene light-render
-admission is claimed. Full combined staged/hosted qualification is pending.
+admission is claimed. The complete normal hook, exact hosted run `41333890290` and independent official
+source/profile/native audit passed: 855 headless, 526 renderer and 237 tooling
+checks. All required production crates exceed 95% lines and regions.
 See [producer adoption](INCLUDE_LIGHT_ADOPTION.md) and the
 [renderer contract](../crates/gz-renderer/README.md).
+
+A private follow-up constructs the native nongeometric LightVisual child and
+publishes complete world Light pose groups. Focused lifecycle, malformed-hierarchy
+and real C++ Zenoh peer checks pass; complete staged and hosted qualification
+remain pending. Scene rendering still refuses lighting. See
+[world Light poses](WORLD_LIGHT_POSES.md).
+
+The candidate also composes reviewed three-body static-contact backend support.
+Its separate 159-test package, native replay, 96-case numeric boundary matrix and
+Clippy checks pass; complete combined staged/hosted qualification is pending.
+Dynamic external contacts and active-limit refusals remain. See
+[the bounded backend contract](DART_THREE_BODY_STATIC_CONTACTS.md).
 
 Broader P0/P1, P3/P4, built-in activation, balanced robotics measurements and
 release qualification remain open. Accepted P2 does not complete the rewrite.

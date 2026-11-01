@@ -373,3 +373,15 @@ both reset paths preserve the command lifecycle described in
 [JOINT_EFFORT.md](JOINT_EFFORT.md). The six-row C++ plugin pulse oracle uses actual
 `SetForce`; rotated offset-hinge controls additionally check analytic inertia,
 world pose and COM twist. Finite limit editing remains unsupported.
+
+## Prepared three-body static-contact increment
+
+A private candidate changes only the maximum body-count guard for bounded
+external static contacts on the already supported free-root serial topology.
+The exact retained static inputs have prepared stronger positives and separate
+live dynamic/conditioning negatives. Exactly two reviewed static-rejection
+predicates now use the same-input positive helpers; final qualification is pending.
+All inverse-response, condition, velocity, active-limit and topology constraints
+remain. See [DART_THREE_BODY_STATIC_CONTACTS.md](DART_THREE_BODY_STATIC_CONTACTS.md)
+for source-bound native rows, the 96-child result and pending qualification. This
+is backend work, not Scene/B03 or broader contact acceptance.

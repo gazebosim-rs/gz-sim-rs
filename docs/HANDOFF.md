@@ -7,6 +7,36 @@ Updated 2026-11-01. Read this first when resuming coordination of the rewrite,
 whichever agent you are. AGENTS.md has the standing rules; this file has the
 current state and the next tasks. Update both when either changes.
 
+## Current continuation
+
+Main `a5b296c` accepts producer `13adde94` world Light includes and the separate
+explicit-lux directional renderer API. The complete normal hook, exact hosted run
+`41333890290` and independent official source/profile/native audit passed: 855
+headless, 526 renderer and 237 tooling checks. The simulator intentionally retains
+that producer pin; later producer Main changes are not adopted implicitly.
+SDF radiometry, Scene light-render admission, native image parity and B03 remain open.
+
+The private world-light-pose candidate adds required native LightVisual children
+and complete Pose_V groups using existing schedules. Focused Scene, malformed
+hierarchy and real C++ Zenoh peer checks pass. The two packet/setup assertion transitions and the stronger Sdf8 child identity
+expectation had prior independent review; remaining negative assertions are retained.
+The first full hook failed that old five-name list. Its corrected six-name
+expectation adds hierarchy checks while preserving all prior input/reset assertions.
+Later hooks exposed strict changed-line gaps in the child call site and Server
+metadata rejection. The same fallible call was refactored without losing its
+39 cold regions; a real misplaced-metadata regression brings packet controls to
+eight passing tests. All gates remain unchanged. The complete normal hook and exact hosted qualification are still required before
+publication. See [the candidate scope](WORLD_LIGHT_POSES.md) and
+[the native reference](NATIVE_LIGHT_POSES.md). The same candidate now composes the independently reviewed DART static-contact
+extension: only a free-root serial three-body tree against static external
+geometry, with existing dynamic-contact, conditioning and active-limit guards.
+Its unfiltered package passes 159 tests and all-target Clippy; separate native
+replay and 96 bounded children pass. Exactly two prior-reviewed static-contact
+assertion transitions retain their negative contracts in genuine dynamic and
+conditioning controls. Full combined qualification is pending; Scene topology,
+multiple collisions, B03 and performance acceptance remain open. See
+[DART_THREE_BODY_STATIC_CONTACTS.md](DART_THREE_BODY_STATIC_CONTACTS.md).
+
 ## Accepted headless milestone (2026-11-01)
 
 P2 was accepted at `c3f5a2f3c39f27d98314e032e78c39cb44d660a0`. P2 and the current

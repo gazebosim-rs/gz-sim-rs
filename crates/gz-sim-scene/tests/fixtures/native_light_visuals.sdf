@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12"><world name="default">
+<physics name="reference" type="ignored"><max_step_size>0.001</max_step_size></physics>
+<gravity>0 0 0</gravity>
+<frame name="rig"><pose>4 -2 1 .2 -.3 .4</pose></frame>
+<light name="directional_on_visible" type="directional"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>true</light_on><visualize>true</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+<light name="directional_on_hidden" type="directional"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>true</light_on><visualize>false</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+<light name="directional_off_visible" type="directional"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>false</light_on><visualize>true</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+<light name="directional_off_hidden" type="directional"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>false</light_on><visualize>false</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+<light name="point_on_visible" type="point"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>true</light_on><visualize>true</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+<light name="point_on_hidden" type="point"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>true</light_on><visualize>false</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+<light name="point_off_visible" type="point"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>false</light_on><visualize>true</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+<light name="point_off_hidden" type="point"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>false</light_on><visualize>false</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+<light name="spot_on_visible" type="spot"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>true</light_on><visualize>true</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+<light name="spot_on_hidden" type="spot"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>true</light_on><visualize>false</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+<light name="spot_off_visible" type="spot"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>false</light_on><visualize>true</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+<light name="spot_off_hidden" type="spot"><pose relative_to="rig">1 2 3 -.1 .25 -.35</pose><light_on>false</light_on><visualize>false</visualize><cast_shadows>false</cast_shadows><direction>0 0 -1</direction></light>
+</world></sdf>

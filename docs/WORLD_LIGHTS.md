@@ -3,6 +3,11 @@
 
 # Owned world-light construction metadata
 
+The following record describes the metadata slice accepted at `db9d002`.
+The [current pose-publication candidate](WORLD_LIGHT_POSES.md) separately adds
+the native derived visual hierarchy and Server records; its complete qualification
+remains pending. The original refusal evidence below is historical.
+
 This private slice admits direct world lights into the headless Scene loader.
 It does not implement lighting, light commands, the native GUI visual scaffold,
 full Server interoperability or B03 articulation. The unchanged B03 fixture still

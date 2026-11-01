@@ -1,10 +1,13 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use crate::{Error, quaternion, time, vector3};
-use bevy_ecs::world::World;
+use bevy_ecs::{
+    hierarchy::{ChildOf, Children},
+    world::{EntityRef, World},
+};
 use gz_sim_core::{EntityId, entity_by_id};
 use gz_sim_proto::msgs::{Header, Pose, PoseV};
-use gz_sim_scene::{EntityKind, LocalName, LocalPose, WorldLight, WorldPose};
+use gz_sim_scene::{EntityKind, LocalName, LocalPose, VisualProperties, WorldLight, WorldPose};
 use std::time::{Duration, Instant};
 
 pub(super) struct PublicationRate {
@@ -66,17 +69,77 @@ fn record(id: u64, name: &str, pose: WorldPose) -> Result<Pose, Error> {
     })
 }
 
+fn native_light_visual(world: &World, visual: &EntityRef<'_>) -> bool {
+    if visual.get::<EntityKind>() != Some(&EntityKind::LightVisual) {
+        return false;
+    }
+    let Some(parent) = visual.get::<ChildOf>() else {
+        return false;
+    };
+    let Ok(light) = world.get_entity(parent.parent()) else {
+        return false;
+    };
+    if light.get::<EntityKind>() != Some(&EntityKind::Light) || !light.contains::<WorldLight>() {
+        return false;
+    }
+    let Some(name) = light.get::<LocalName>() else {
+        return false;
+    };
+    let Some(child_name) = visual.get::<LocalName>() else {
+        return false;
+    };
+    let Some(local) = visual.get::<LocalPose>() else {
+        return false;
+    };
+    let Some(properties) = visual.get::<VisualProperties>() else {
+        return false;
+    };
+    child_name.0.strip_suffix("Visual") == Some(name.0.as_str())
+        && local.0.translation == [0.0; 3]
+        && local.0.rotation == [0.0, 0.0, 0.0, 1.0]
+        && !properties.0.cast_shadows
+        && properties.0.transparency == 0.0
+        && light
+            .get::<Children>()
+            .is_some_and(|children| children.len() == 1 && children[0] == visual.id())
+}
+
+fn complete_light(world: &World, light: &EntityRef<'_>) -> bool {
+    let Some(parent) = light.get::<ChildOf>() else {
+        return false;
+    };
+    if !world
+        .get_entity(parent.parent())
+        .is_ok_and(|parent| parent.get::<EntityKind>() == Some(&EntityKind::World))
+    {
+        return false;
+    }
+    let Some(children) = light.get::<Children>() else {
+        return false;
+    };
+    children.len() == 1
+        && world
+            .get_entity(children[0])
+            .is_ok_and(|child| native_light_visual(world, &child))
+}
+
 pub(crate) fn packet(world: &World, stamp: Duration) -> Result<PoseV, Error> {
     let mut records = Vec::new();
     for entity in world.iter_entities() {
-        if entity.contains::<WorldLight>() || entity.get::<EntityKind>() == Some(&EntityKind::Light)
+        let kind = entity.get::<EntityKind>();
+        if entity.contains::<WorldLight>() != (kind == Some(&EntityKind::Light)) {
+            return Err(Error::PoseLighting);
+        }
+        if (kind == Some(&EntityKind::Light) && !complete_light(world, &entity))
+            || (kind == Some(&EntityKind::LightVisual) && !native_light_visual(world, &entity))
         {
             return Err(Error::PoseLighting);
         }
-        let order = match entity.get::<EntityKind>() {
+        let order = match kind {
             Some(EntityKind::Model) => 0,
             Some(EntityKind::Link) => 1,
-            Some(EntityKind::Visual) => 2,
+            Some(EntityKind::Visual | EntityKind::LightVisual) => 2,
+            Some(EntityKind::Light) => 3,
             _ => continue,
         };
         let id = entity.get::<EntityId>().ok_or(Error::PoseData)?.get();
@@ -87,7 +150,8 @@ pub(crate) fn packet(world: &World, stamp: Duration) -> Result<PoseV, Error> {
         let pose = entity.get::<LocalPose>().ok_or(Error::PoseData)?.0;
         records.push((order, record(id, name, pose)?));
     }
-    // Native packets group models, links and visuals. Stable IDs order each group.
+    // Native groups models, links, visuals and lights. Within-group ID ordering
+    // is our deterministic choice, not a native traversal-order guarantee.
     records.sort_unstable_by_key(|(order, pose)| (*order, pose.id));
     Ok(PoseV {
         header: Some(Header {

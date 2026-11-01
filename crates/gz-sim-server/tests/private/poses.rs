@@ -143,7 +143,7 @@ fn native_wall_rate_ceiling_first_frame_and_explicit_policy_boundaries() {
 }
 
 #[test]
-fn world_light_pose_records_fail_before_packet_admission() {
+fn complete_world_lights_publish_native_visuals_and_reject_partial_metadata() {
     let xml = "<sdf version='1.12'><world name='default'><light name='sun' type='directional'><light_on>false</light_on></light></world></sdf>";
     let mut sim = load_world(
         xml,
@@ -153,10 +153,28 @@ fn world_light_pose_records_fail_before_packet_admission() {
         &NoResources,
     )
     .unwrap();
-    assert!(matches!(
-        packet(sim.world(), Duration::ZERO),
-        Err(Error::PoseLighting)
-    ));
+    let message = packet(sim.world(), Duration::ZERO).unwrap();
+    assert_eq!(
+        message.header.as_ref().unwrap().stamp,
+        Some(gz_sim_proto::msgs::Time { sec: 0, nsec: 0 })
+    );
+    assert!(message.header.as_ref().unwrap().data.is_empty());
+    assert_eq!(message.pose.len(), 2);
+    assert_eq!(
+        message
+            .pose
+            .iter()
+            .map(|pose| pose.name.as_str())
+            .collect::<Vec<_>>(),
+        ["sunVisual", "sun"]
+    );
+    for pose in &message.pose {
+        assert_ne!(pose.id, 0);
+        let entity = entity_by_id(sim.world(), u64::from(pose.id)).unwrap();
+        assert_eq!(sim.world().get::<LocalName>(entity).unwrap().0, pose.name);
+        assert_eq!(pose.position, Some(vector3([0.0; 3])));
+        assert_eq!(pose.orientation, Some(quaternion([0.0, 0.0, 0.0, 1.0])));
+    }
     let light = sim
         .world()
         .iter_entities()
@@ -185,7 +203,7 @@ fn world_light_pose_records_fail_before_packet_admission() {
 }
 
 #[test]
-fn cold_server_refuses_lighting_before_world_io_setup() {
+fn cold_light_validation_preserves_name_and_metadata_error_order() {
     let xml = "<sdf version='1.12'><world name='default'><light name='sun' type='directional'/></world></sdf>";
     let sim = load_world(
         xml,
@@ -201,6 +219,191 @@ fn cold_server_refuses_lighting_before_world_io_setup() {
     };
     assert!(matches!(
         crate::Server::new(sim, "", invalid, std::num::NonZeroUsize::new(1).unwrap()),
+        Err(Error::Setup(crate::SetupError::InvalidName))
+    ));
+    let mut malformed = load_world(
+        xml,
+        "cold-light.sdf",
+        "default",
+        Duration::from_millis(1),
+        &NoResources,
+    )
+    .unwrap();
+    let light = malformed
+        .world()
+        .iter_entities()
+        .find(|entity| entity.contains::<WorldLight>())
+        .unwrap()
+        .id();
+    malformed
+        .world_mut()
+        .entity_mut(light)
+        .remove::<WorldLight>();
+    assert!(matches!(
+        crate::Server::new(
+            malformed,
+            "",
+            crate::ServerOptions {
+                capacity: 0,
+                ..Default::default()
+            },
+            std::num::NonZeroUsize::new(1).unwrap()
+        ),
         Err(Error::PoseLighting)
     ));
+}
+
+#[test]
+fn incomplete_native_light_children_never_produce_partial_packets() {
+    for fault in 0..16 {
+        let mut sim = load_world(
+            "<sdf version='1.12'><world name='default'><light name='sun' type='directional'/></world></sdf>",
+            "invalid-light-child.sdf", "default", Duration::from_millis(1), &NoResources,
+        ).unwrap();
+        let light = sim
+            .world()
+            .iter_entities()
+            .find(|e| e.contains::<WorldLight>())
+            .unwrap()
+            .id();
+        let child = sim
+            .world()
+            .iter_entities()
+            .find(|e| e.get::<EntityKind>() == Some(&EntityKind::LightVisual))
+            .unwrap()
+            .id();
+        let world = sim
+            .world()
+            .iter_entities()
+            .find(|e| e.get::<EntityKind>() == Some(&EntityKind::World))
+            .unwrap()
+            .id();
+        match fault {
+            0 => {
+                sim.world_mut().entity_mut(child).despawn();
+            }
+            1 => {
+                sim.world_mut()
+                    .spawn((ChildOf(light), EntityKind::LightVisual));
+            }
+            2 => {
+                sim.world_mut().get_mut::<LocalName>(child).unwrap().0 = "wrong".into();
+            }
+            3 => {
+                sim.world_mut()
+                    .entity_mut(child)
+                    .remove::<VisualProperties>();
+            }
+            4 => {
+                sim.world_mut()
+                    .get_mut::<VisualProperties>(child)
+                    .unwrap()
+                    .0
+                    .cast_shadows = true;
+            }
+            5 => {
+                sim.world_mut()
+                    .get_mut::<VisualProperties>(child)
+                    .unwrap()
+                    .0
+                    .transparency = f32::NAN;
+            }
+            6 => {
+                sim.world_mut().entity_mut(child).remove::<ChildOf>();
+            }
+            7 => {
+                sim.world_mut().entity_mut(child).insert(ChildOf(world));
+            }
+            8 => {
+                sim.world_mut()
+                    .get_mut::<LocalPose>(child)
+                    .unwrap()
+                    .0
+                    .translation = [1.0, 0.0, 0.0];
+            }
+            9 => {
+                sim.world_mut().entity_mut(child).insert(EntityKind::Visual);
+            }
+            10 => {
+                sim.world_mut().entity_mut(child).remove::<LocalName>();
+            }
+            11 => {
+                sim.world_mut().entity_mut(child).remove::<LocalPose>();
+            }
+            12 => {
+                sim.world_mut().entity_mut(light).remove::<LocalName>();
+            }
+            13 => {
+                sim.world_mut().entity_mut(world).insert(EntityKind::Model);
+            }
+            14 => {
+                sim.world_mut().entity_mut(light).remove::<ChildOf>();
+            }
+            15 => {
+                let quarter = std::f64::consts::FRAC_1_SQRT_2;
+                sim.world_mut()
+                    .get_mut::<LocalPose>(child)
+                    .unwrap()
+                    .0
+                    .rotation = [0.0, 0.0, quarter, quarter];
+            }
+            _ => unreachable!(),
+        }
+        assert!(
+            matches!(
+                packet(sim.world(), Duration::ZERO),
+                Err(Error::PoseLighting)
+            ),
+            "fault {fault}"
+        );
+    }
+}
+
+#[test]
+fn native_light_child_identity_cannot_be_reinstalled_without_ownership() {
+    let mut sim = load_world("<sdf version='1.12'><world name='default'><light name='sun' type='directional'/></world></sdf>", "light-id.sdf", "default", Duration::from_millis(1), &NoResources).unwrap();
+    let child = sim
+        .world()
+        .iter_entities()
+        .find(|e| e.get::<EntityKind>() == Some(&EntityKind::LightVisual))
+        .unwrap()
+        .id();
+    let identity = sim
+        .world_mut()
+        .entity_mut(child)
+        .take::<EntityId>()
+        .unwrap();
+    sim.world_mut().entity_mut(child).insert(identity);
+    assert!(matches!(
+        packet(sim.world(), Duration::ZERO),
+        Err(Error::PoseData)
+    ));
+}
+
+#[test]
+fn light_metadata_on_a_world_rejects_the_whole_packet() {
+    let mut sim = load_world(
+        "<sdf version='1.12'><world name='default'/></sdf>",
+        "misplaced-light.sdf",
+        "default",
+        Duration::from_millis(1),
+        &NoResources,
+    )
+    .unwrap();
+    assert!(packet(sim.world(), Duration::ZERO).unwrap().pose.is_empty());
+    let world = sim
+        .world()
+        .iter_entities()
+        .find(|entity| entity.get::<EntityKind>() == Some(&EntityKind::World))
+        .unwrap()
+        .id();
+    sim.world_mut()
+        .entity_mut(world)
+        .insert(WorldLight(Box::default()));
+    assert!(matches!(
+        packet(sim.world(), Duration::ZERO),
+        Err(Error::PoseLighting)
+    ));
+    sim.world_mut().entity_mut(world).remove::<WorldLight>();
+    assert!(packet(sim.world(), Duration::ZERO).unwrap().pose.is_empty());
 }

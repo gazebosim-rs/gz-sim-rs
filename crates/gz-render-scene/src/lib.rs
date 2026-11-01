@@ -138,7 +138,11 @@ pub fn extract(
     let world = sim.world();
     let mut visuals = Vec::new();
     for entity in world.iter_entities() {
-        if entity.contains::<WorldLight>() || entity.get::<EntityKind>() == Some(&EntityKind::Light)
+        if entity.contains::<WorldLight>()
+            || matches!(
+                entity.get::<EntityKind>(),
+                Some(EntityKind::Light | EntityKind::LightVisual)
+            )
         {
             return Err(SnapshotError::UnsupportedLighting);
         }

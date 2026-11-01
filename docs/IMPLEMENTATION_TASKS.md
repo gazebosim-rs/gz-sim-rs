@@ -62,6 +62,16 @@ slice sooner. PHY-04 and PHY-05 are both required release backends alongside TPE
 Temporary SDF bridges require explicit removal tasks. Existing ZeroMQ/runtime
 consumer pins remain historical transition inputs until ZEN-01 replaces them.
 
+### Active bounded continuation
+
+Root owns the LOAD-01/IO-01 world Light pose follow-up: Scene child construction,
+Server hierarchy validation/publication, renderer refusal and lifecycle/real C++
+peer tests. It depends on accepted SDF `13adde94`, existing pose ownership and
+Zenoh codegen contracts. Native reference source, commands and library hashes are
+checked in; [WORLD_LIGHT_POSES.md](WORLD_LIGHT_POSES.md) records prior-reviewed
+assertion transitions and exact remaining qualification. This does not advance
+B03, SDF radiometry, original-system completion or performance acceptance.
+
 ## Assets, rendering, and complete sensors
 
 | ID | Depends on | Assignment | Exit evidence |

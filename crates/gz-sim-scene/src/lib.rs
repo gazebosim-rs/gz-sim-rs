@@ -85,6 +85,8 @@ pub enum EntityKind {
     Sensor,
     Joint,
     Light,
+    /// Native Light child identity; it has no renderable geometry.
+    LightVisual,
 }
 
 /// Loaded profiles and the caller's explicit step override. Exact stepping is unpaced.
@@ -512,6 +514,18 @@ fn load_world_configured(
         sim.world_mut()
             .entity_mut(entity)
             .insert(WorldLight(Box::new(light.clone())));
+        let visual_name = format!("{name}::{}Visual", light.name);
+        let kind = EntityKind::LightVisual;
+        let local = Transform::default();
+        let visual = spawn_node(&mut sim, Some(entity), &visual_name, kind, local, pose)?;
+        sim.world_mut().entity_mut(visual).insert((
+            AttachedPose,
+            VisualProperties(sdformat::VisualProperties {
+                cast_shadows: false,
+                transparency: 0.0,
+                ..Default::default()
+            }),
+        ));
     }
     sim.world_mut().insert_resource(Gravity(world.gravity));
     let mut visuals = context.visuals.into_iter();

@@ -11,6 +11,10 @@ use std::time::Duration;
 
 #[path = "support/free_chain.rs"]
 mod free_chain_support;
+#[path = "support/three_body_static_positive.rs"]
+mod three_body_static_positive;
+#[path = "support/three_body_static_contacts.rs"]
+mod three_body_static_support;
 
 const CHILD: &str = "GZ_DART_FREE_CHAIN_CHILD";
 const CASE: &str = "GZ_DART_FREE_CHAIN_CASE";
@@ -441,144 +445,23 @@ fn unrelated_three_body_components_keep_independent_rates_and_surviving_ids() {
 }
 
 #[test]
-fn contact_refused_third_attachment_restores_warm_pair_and_pending_commands() {
-    let test = "contact_refused_third_attachment_restores_warm_pair_and_pending_commands";
+fn static_third_attachment_preserves_warm_pair_and_pending_commands() {
+    let test = "static_third_attachment_preserves_warm_pair_and_pending_commands";
     if !in_child(test) {
         run_child(test, None);
         return;
     }
-    let (mut candidate, bodies, first) = pair(false);
-    let (mut clean, controls, control_first) = pair(false);
-    let obstacle = |backend: &mut DartBackend| {
-        backend
-            .spawn_link(
-                BodySpec {
-                    shape: Shape::Box {
-                        half_extents: [0.25, 0.25, 0.1],
-                    },
-                    position: [10.0, 0.0, -0.15],
-                    velocity: [0.0; 3],
-                    mass: None,
-                },
-                RotationSpec::default(),
-                None,
-            )
-            .unwrap()
-    };
-    let floor = obstacle(&mut candidate);
-    let clean_floor = obstacle(&mut clean);
-    // The isolated third sphere's static contact is allowed before attachment.
-    // Joining it would put that real contact on the unqualified three-body tree.
-    for (world, ids, joint) in [
-        (&mut candidate, bodies, first),
-        (&mut clean, controls, control_first),
-    ] {
-        world.apply_impulse(ids[1], [0.0; 3], [0.0; 3]).unwrap();
-        world
-            .add_world_wrench(ids[0], [0.2, 0.0, 0.0], [0.0, 0.1, 0.0])
-            .unwrap();
-        world.add_joint_effort(joint, 0.7).unwrap();
-    }
-    let before = bodies.map(|id| candidate.state(id));
-    let rate = candidate.joint_state(first);
-    for _ in 0..2 {
-        assert_eq!(
-            candidate.add_revolute(bodies[1], bodies[2], [0.0; 3], [0.0, 1.0, 0.0]),
-            Err(PhysicsError::InvalidJoint)
-        );
-        assert_eq!(bodies.map(|id| candidate.state(id)), before);
-        assert_eq!(candidate.joint_state(first), rate);
-    }
-    assert!(candidate.remove(floor));
-    assert!(clean.remove(clean_floor));
-    let second = finish(&mut candidate, bodies, false);
-    let control_second = finish(&mut clean, controls, false);
-    assert_eq!(second.raw(), first.raw() + 1);
-    for _ in 0..3 {
-        candidate.step(Duration::from_millis(1)).unwrap();
-        clean.step(Duration::from_millis(1)).unwrap();
-        for (a, b) in bodies.into_iter().zip(controls) {
-            near(candidate.state(a).unwrap(), clean.state(b).unwrap());
-        }
-        assert_eq!(
-            candidate.joint_state(second),
-            clean.joint_state(control_second)
-        );
-    }
+    three_body_static_positive::assert_attachment_positive();
 }
 
 #[test]
-fn approaching_three_body_contact_refuses_without_losing_queued_inputs() {
-    let test = "approaching_three_body_contact_refuses_without_losing_queued_inputs";
+fn approaching_three_body_static_contact_matches_native_for_1000_steps() {
+    let test = "approaching_three_body_static_contact_matches_native_for_1000_steps";
     if !in_child(test) {
         run_child(test, None);
         return;
     }
-    let (mut candidate, bodies, _) = pair(false);
-    let (mut clean, controls, _) = pair(false);
-    let second = finish(&mut candidate, bodies, false);
-    let control_second = finish(&mut clean, controls, false);
-    let obstacle = |backend: &mut DartBackend| {
-        backend
-            .spawn_link(
-                BodySpec {
-                    shape: Shape::Box {
-                        half_extents: [20.0, 20.0, 0.1],
-                    },
-                    position: [0.0, 0.0, -3.1],
-                    velocity: [0.0; 3],
-                    mass: None,
-                },
-                RotationSpec::default(),
-                None,
-            )
-            .unwrap()
-    };
-    let floor = obstacle(&mut candidate);
-    let clean_floor = obstacle(&mut clean);
-    candidate
-        .set_world_velocity(bodies[0], [0.0, 0.0, -3.0], [0.0; 3])
-        .unwrap();
-    clean
-        .set_world_velocity(controls[0], [0.0, 0.0, -3.0], [0.0; 3])
-        .unwrap();
-    let mut refused = false;
-    for _ in 0..1000 {
-        for (world, ids, joint) in [
-            (&mut candidate, bodies, second),
-            (&mut clean, controls, control_second),
-        ] {
-            world
-                .add_world_wrench(ids[0], [0.01, 0.0, 0.0], [0.0; 3])
-                .unwrap();
-            world.add_joint_effort(joint, 0.001).unwrap();
-        }
-        let before = bodies.map(|id| candidate.state(id));
-        match candidate.step(Duration::from_millis(1)) {
-            Ok(()) => clean.step(Duration::from_millis(1)).unwrap(),
-            Err(error) => {
-                assert!(error.to_string().contains("a contact exceeded"), "{error}");
-                assert_eq!(bodies.map(|id| candidate.state(id)), before);
-                assert!(candidate.step(Duration::from_millis(1)).is_err());
-                assert_eq!(bodies.map(|id| candidate.state(id)), before);
-                assert!(candidate.remove(floor));
-                assert!(clean.remove(clean_floor));
-                for _ in 0..3 {
-                    candidate.step(Duration::from_millis(1)).unwrap();
-                    clean.step(Duration::from_millis(1)).unwrap();
-                    for (a, b) in bodies.into_iter().zip(controls) {
-                        near(candidate.state(a).unwrap(), clean.state(b).unwrap());
-                    }
-                }
-                refused = true;
-                break;
-            }
-        }
-    }
-    assert!(
-        refused,
-        "the real approaching contact never reached the refusal guard"
-    );
+    three_body_static_positive::assert_approaching_positive();
 }
 
 #[test]

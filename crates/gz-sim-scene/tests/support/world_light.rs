@@ -3,8 +3,9 @@
 use bevy_ecs::hierarchy::ChildOf;
 use gz_sim_core::{EntityId, entity_by_id};
 use gz_sim_scene::{
-    EntityKind, InputError, Name, PhysicsEngine, Velocity, WorldLight, WorldPose,
-    load_world_with_sdf_step, queue_link_world_wrench, reset_loaded_world,
+    EntityKind, InputError, LocalName, LocalPose, Name, PhysicsEngine, Velocity, VisualGeometry,
+    VisualProperties, WorldLight, WorldPose, load_world_with_sdf_step, queue_link_world_wrench,
+    reset_loaded_world,
 };
 use sdformat::{Light, LightType, NoResources, Pose, Source};
 use std::{collections::BTreeMap, time::Duration};
@@ -106,6 +107,7 @@ pub fn assert_static_world_light(xml: &str, uri: &str) {
             [
                 "default",
                 "default::lamp",
+                "default::lamp::lampVisual",
                 "default::robot",
                 "default::robot::body",
                 "default::robot::body::shape"
@@ -115,6 +117,25 @@ pub fn assert_static_world_light(xml: &str, uri: &str) {
         let light = ids["default::lamp"];
         for cycle in 0..2 {
             let entity = entity_by_id(sim.world(), light).unwrap();
+            let visual_id = ids["default::lamp::lampVisual"];
+            assert_ne!(visual_id, light);
+            let visual = entity_by_id(sim.world(), visual_id).unwrap();
+            assert_eq!(
+                sim.world().get::<EntityKind>(visual),
+                Some(&EntityKind::LightVisual)
+            );
+            assert_eq!(
+                sim.world().get::<LocalName>(visual).unwrap().0,
+                "lampVisual"
+            );
+            assert_eq!(sim.world().get::<ChildOf>(visual).unwrap().parent(), entity);
+            let local = sim.world().get::<LocalPose>(visual).unwrap().0;
+            assert_eq!(local.translation, [0.; 3]);
+            assert_eq!(local.rotation, [0., 0., 0., 1.]);
+            let properties = &sim.world().get::<VisualProperties>(visual).unwrap().0;
+            assert!(!properties.cast_shadows);
+            assert_eq!(properties.transparency, 0.);
+            assert!(sim.world().get::<VisualGeometry>(visual).is_none());
             assert_eq!(
                 sim.world().get::<EntityKind>(entity),
                 Some(&EntityKind::Light)

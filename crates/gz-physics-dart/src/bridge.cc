@@ -703,11 +703,11 @@ bool World::contactsWithin(const dart::collision::CollisionResult &result) const
         contact.collisionObject2->getShapeFrame()->asShapeNode();
     const auto firstSkeleton = first->getBodyNodePtr()->getSkeleton();
     const auto secondSkeleton = second->getBodyNodePtr()->getSkeleton();
-    // The three-body extension is contact-free, including static contacts.
-    if (firstSkeleton->getNumBodyNodes() > 2 ||
-        secondSkeleton->getNumBodyNodes() > 2)
+    // Static external contacts are bounded for free-root trees of up to three bodies.
+    if (firstSkeleton->getNumBodyNodes() > 3 ||
+        secondSkeleton->getNumBodyNodes() > 3)
       return false;
-    // Only static external contacts are qualified for the two-body extension.
+    // Dynamic external contacts remain unsupported for articulated bodies.
     if ((firstSkeleton->getNumBodyNodes() > 1 && secondSkeleton->isMobile()) ||
         (secondSkeleton->getNumBodyNodes() > 1 && firstSkeleton->isMobile()))
       return false;

@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 #include <condition_variable>
+#include <fstream>
 #include <algorithm>
 #include <functional>
 #include <future>
@@ -274,11 +275,144 @@ int RunRootClockCase()
   return 0;
 }
 
+// Supplemental Light wire mode; existing clock/IMU modes remain unchanged.
+int RunLightPosesCase(const std::string &mode, const std::string &output)
+{
+  const bool twelve = mode == "twelve";
+  const bool empty = mode == "empty";
+  if (!twelve && !empty && mode != "sun-off" && mode != "sun-default") return 101;
+  struct LightFrames
+  {
+    std::mutex mutex;
+    std::condition_variable changed;
+    bool invalid = false, resetArmed = false;
+    bool initialClock = false, stepClock = false, resetClock = false;
+    bool initialPose = false, stepPose = false, resetPose = false;
+    std::map<std::string, uint32_t> ids;
+    gz::msgs::Pose_V frames[3];
+  };
+  const int count = twelve ? 24 : empty ? 0 : 2;
+  std::set<std::string> expected;
+  if (twelve)
+    for (const std::string type : {"directional", "point", "spot"})
+      for (const std::string on : {"_on_", "_off_"})
+        for (const std::string visible : {"visible", "hidden"})
+        {
+          const auto name = type + on + visible;
+          expected.insert(name); expected.insert(name + "Visual");
+        }
+  else if (!empty) expected = {"sun", "sunVisual"};
+  auto observed = std::make_shared<LightFrames>();
+  gz::transport::Node node;
+  std::function<void(const gz::msgs::Clock &)> clockCallback = [observed](const auto &clock)
+  {
+    std::lock_guard<std::mutex> lock(observed->mutex);
+    if (!clock.has_sim() || !clock.has_real() || !clock.has_system() ||
+        clock.sim().sec() != 0 || (clock.sim().nsec() != 0 && clock.sim().nsec() != 1000000))
+      observed->invalid = true;
+    else if (clock.sim().nsec() == 1000000) observed->stepClock = true;
+    else if (observed->resetArmed) observed->resetClock = true;
+    else observed->initialClock = true;
+    observed->changed.notify_all();
+  };
+  std::function<void(const gz::msgs::Pose_V &)> poseCallback =
+      [observed, expected, count, twelve](const auto &poses)
+  {
+    std::lock_guard<std::mutex> lock(observed->mutex);
+    bool valid = poses.has_header() && poses.header().has_stamp() &&
+        poses.header().data_size() == 0 && poses.header().stamp().sec() == 0 &&
+        (poses.header().stamp().nsec() == 0 || poses.header().stamp().nsec() == 1000000) &&
+        poses.pose_size() == count;
+    std::map<std::string, uint32_t> names;
+    std::set<uint32_t> ids;
+    bool lightSeen = false;
+    const double native[] = {3.44025611409198, -0.7556191885311716, 4.483992419371312,
+        0.09068129542746878, 0.018271207596863924, 0.05842711968717301, 0.9939966485444552};
+    for (const auto &pose : poses.pose())
+    {
+      const auto &name = pose.name();
+      const bool visual = name.size() >= 6 && name.compare(name.size() - 6, 6, "Visual") == 0;
+      if (!visual) lightSeen = true;
+      else if (lightSeen) valid = false;
+      valid = valid && expected.count(name) == 1 && pose.id() != 0 &&
+          names.emplace(name, pose.id()).second && ids.insert(pose.id()).second &&
+          !pose.has_header() && pose.has_position() && pose.has_orientation() &&
+          !pose.position().has_header() && !pose.orientation().has_header();
+      const double actual[] = {pose.position().x(), pose.position().y(), pose.position().z(),
+          pose.orientation().x(), pose.orientation().y(), pose.orientation().z(), pose.orientation().w()};
+      for (unsigned int i = 0; i < 7; ++i)
+      {
+        const double target = visual || !twelve ? (i == 6 ? 1.0 : 0.0) : native[i];
+        valid = valid && std::isfinite(actual[i]) &&
+            (visual || !twelve ? actual[i] == target : std::abs(actual[i] - target) < 1e-12);
+      }
+    }
+    valid = valid && names.size() == expected.size();
+    if (!observed->initialPose) observed->ids = names;
+    else valid = valid && names == observed->ids;
+    observed->invalid = observed->invalid || !valid;
+    if (valid)
+    {
+      if (poses.header().stamp().nsec() == 1000000)
+      { observed->stepPose = true; observed->frames[1] = poses; }
+      else if (observed->resetArmed)
+      { observed->resetPose = true; observed->frames[2] = poses; }
+      else { observed->initialPose = true; observed->frames[0] = poses; }
+    }
+    observed->changed.notify_all();
+  };
+  if (!node.Subscribe("/world/default/clock", clockCallback) ||
+      !node.Subscribe("/world/default/pose/info", poseCallback)) return 102;
+  auto wait = [&](auto ready)
+  {
+    std::unique_lock<std::mutex> lock(observed->mutex);
+    return observed->changed.wait_for(lock, std::chrono::seconds(8), [&]
+        { return observed->invalid || ready(*observed); }) && !observed->invalid;
+  };
+  if (!wait([](const auto &v) { return v.initialClock && v.initialPose; })) return 103;
+  gz::msgs::WorldControl control;
+  control.set_pause(true); control.set_multi_step(1);
+  gz::msgs::Boolean response;
+  bool result = false;
+  if (!request_with_reply(node, "/world/default/control", control, 7000, response, result) ||
+      !result || !response.data()) return 104;
+  if (!wait([](const auto &v) { return v.stepClock && v.stepPose; })) return 105;
+  {
+    std::lock_guard<std::mutex> lock(observed->mutex);
+    observed->resetArmed = true;
+  }
+  control.Clear(); control.set_pause(true); control.mutable_reset()->set_all(true);
+  if (!request_with_reply(node, "/world/default/control", control, 7000, response, result) ||
+      !result || !response.data()) return 106;
+  if (!wait([](const auto &v) { return v.resetClock && v.resetPose; })) return 107;
+  {
+    std::lock_guard<std::mutex> lock(observed->mutex);
+    const std::string names[] = {"initial", "step", "reset"};
+    for (unsigned int i = 0; i < 3; ++i)
+    {
+      std::ofstream raw(output + "/" + names[i] + ".pose_v.pb", std::ios::binary);
+      std::ofstream text(output + "/" + names[i] + ".pose_v.txt");
+      if (!observed->frames[i].SerializeToOstream(&raw)) return 108;
+      text << observed->frames[i].DebugString();
+      if (!raw || !text) return 108;
+    }
+    for (const auto &entry : observed->ids) std::cout << "ID " << entry.first << ' ' << entry.second << '\n';
+  }
+  std::ifstream maps("/proc/self/maps");
+  std::ofstream capture(output + "/maps"); capture << maps.rdbuf();
+  if (!maps || !capture) return 108;
+  std::cout << "PASS native light poses case=" << mode << " rows=" << count
+      << " first=1000000 reset=0\n";
+  return 0;
+}
+
 int main(int argc, char **argv)
 {
   if (argc > 1)
   {
     const std::string mode = argv[1];
+    if (mode == "--light-poses")
+      return argc == 4 ? RunLightPosesCase(argv[2], argv[3]) : 101;
     if (mode == "--root-clock") return RunRootClockCase();
     if (mode == "--disabled-schedule" || mode == "--tpe-disabled-schedule" ||
         mode == "--disabled-noisy-schedule" || mode == "--tpe-disabled-noisy-schedule")
