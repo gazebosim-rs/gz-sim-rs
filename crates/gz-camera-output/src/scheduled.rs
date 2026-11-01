@@ -80,8 +80,16 @@ impl ScheduledCameraOutput {
         }
     }
 
+    pub(crate) fn demand(&self) -> Result<(bool, bool), CameraOutputError> {
+        self.output.demand()
+    }
+
+    pub(crate) fn binding_valid(&self, sim: &Simulation) -> bool {
+        self.epoch == sim.epoch() && self.output.binding_valid(sim)
+    }
+
     fn validate_binding(&mut self, sim: &Simulation) -> Result<(), CameraOutputError> {
-        if self.epoch != sim.epoch() || !self.output.binding_valid(sim) {
+        if !self.binding_valid(sim) {
             self.output.invalidated = true;
             self.output.acquisition = None;
             self.output.retiring |= self.output.client.is_some();
@@ -117,7 +125,7 @@ impl ScheduledCameraOutput {
         if self.output.acquisition.is_some() {
             return Err(CameraOutputError::Busy);
         }
-        let observed = self.output.demand()?;
+        let observed = self.demand()?;
         self.request_observed(sim, observed)
     }
 

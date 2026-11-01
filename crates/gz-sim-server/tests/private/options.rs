@@ -448,3 +448,43 @@ fn setup_errors_explain_application_failures() {
             .contains("hostname unavailable")
     );
 }
+
+#[test]
+fn public_topic_boundary_normalizes_separately_and_remaps_once() {
+    let mut options = ServerOptions {
+        partition: "part".into(),
+        namespace: "ns".into(),
+        ..Default::default()
+    };
+    assert_eq!(as_valid_topic("image with spaces"), "image_with_spaces");
+    assert_eq!(
+        options
+            .topic_key(&as_valid_topic("image with spaces"))
+            .unwrap(),
+        "@/part@/ns/image_with_spaces"
+    );
+    assert_eq!(
+        options.topic_key("/absolute/image").unwrap(),
+        "@/part@/absolute/image"
+    );
+    options
+        .add_topic_remap("/source/image", "relative/image")
+        .unwrap();
+    options
+        .add_topic_remap("relative/image", "/must-not-chain")
+        .unwrap();
+    assert_eq!(
+        options.topic_key("/source/image").unwrap(),
+        "@/part@/ns/relative/image"
+    );
+    assert_eq!(
+        options.topic_key("relative/image").unwrap(),
+        "@/part@/must-not-chain"
+    );
+    for invalid in ["", "@", "bad name", "/", "a//b"] {
+        assert!(
+            matches!(options.topic_key(invalid), Err(SetupError::InvalidName)),
+            "{invalid}"
+        );
+    }
+}

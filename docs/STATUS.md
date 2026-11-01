@@ -1,13 +1,34 @@
 # Implementation status
 
-The historical P2 acceptance covers the earlier transport contract; see
-[acceptance/P2.md](acceptance/P2.md). D28/D29 require fresh Zenoh qualification.
-Published `5870373` passes the complete local staged gate and independent review;
-exact hosted run `41248418524` and independent downloaded artifact auditing
-passed. The [fresh Zenoh P2 report](acceptance/P2_ZENOH.md), current dependency
-receipt and matched observations require their own normal publication checks
-before the coordinator advances the phase. See [HANDOFF.md](HANDOFF.md) for
-current evidence and limitations.
+The Zenoh headless P2 milestone is accepted on Main `c3f5a2f`, following the
+complete normal hook, independent review, exact hosted run `41270504128` and
+downloaded source/profile/native auditing. Its separate Main promotion run also
+passed. See [the fifteen-row acceptance report](acceptance/P2_ZENOH.md). The older
+[ZeroMQ P2 report](acceptance/P2.md) is historical evidence only; D28/D29 replaced
+that transport scope.
+
+The accepted `3d290ee` increment also includes optional CPU rate
+ownership, the cold setup admission fix, the scoped C3 measurement report and
+qualified primitive automatic inertia with collision-density reset metadata.
+Its exact hosted run `41290666226` and downloaded audit passed 825 headless,
+483 renderer and 223 tooling checks, with every required production crate above
+95% lines and regions. The [handoff](HANDOFF.md) distinguishes these accepted
+increments from remaining release work.
+
+Main `ce071305` subsequently qualified publication of the separate
+[Zenoh/DART reference recipe](ZENOH_DART_REFERENCE.md), with 237 tooling checks
+and the existing 825 headless/483 renderer executions. Its exact hosted run
+`41298713640` and independent downloaded audit passed. The local native B03
+smoke remains a reviewed continuation; no Rust B03 or timing claim follows.
+
+This candidate integrates the programmatic [single-camera application](AUTOMATIC_CAMERA.md).
+Its focused source and composed CPU/software/C++ evidence passed independent
+review. The first normal hook failed CameraOutput's strict region gate
+(1267/1365); the stage remains unpublished. Meaningful missing controls are under
+review before a fresh complete normal hook and exact hosted qualification.
+Broader P0/P1, P3/P4, built-in activation, balanced robotics measurements and
+release qualification remain open. Accepted P2 does not complete the rewrite.
+
 The networked headless CLI server mode is published with real C++ client tests on
 TPE, Rapier, DART and MuJoCo; see [LIVE_CLI.md](LIVE_CLI.md). Broader CLI parity remains open.
 Work continues in P3; see [HANDOFF.md](HANDOFF.md). Every dynamic engine now

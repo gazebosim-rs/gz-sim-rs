@@ -12,10 +12,10 @@ mod removals;
 mod reset;
 mod world_io;
 
-pub use options::{ServerOptions, SetupError};
+pub use options::{ServerOptions, SetupError, as_valid_topic};
 
 use bevy_ecs::entity::Entity;
-use gz_sim_core::{Simulation, StepError, UpdateInfo};
+use gz_sim_core::{EntityId, Simulation, StepError, UpdateInfo, entity_by_id};
 use gz_sim_proto::{
     msgs::{Boolean, Clock, Time, WorldControl},
     prost::Message,
@@ -31,6 +31,10 @@ use zenoh::Wait;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("configured camera Sensors execution requires a camera application owner")]
+    CameraOutputRequired,
+    #[error("external camera ownership must match exactly one configured loaded camera")]
+    CameraIdentity,
     #[error(transparent)]
     Setup(#[from] SetupError),
     #[error("Zenoh world endpoint: {0}")]
@@ -271,7 +275,7 @@ impl Server {
         config: ServerOptions,
         command_budget: NonZeroUsize,
     ) -> Result<Self, Error> {
-        Self::build(simulation, world_name, config, None, command_budget)
+        Self::build(simulation, world_name, config, None, command_budget, None)
     }
 
     /// Supplies an upstream Zenoh configuration without reading ZENOH_CONFIG.
@@ -288,6 +292,28 @@ impl Server {
             config,
             Some(zenoh_config),
             command_budget,
+            None,
+        )
+    }
+
+    /// Construct after an external camera application has prepared its actual
+    /// output for this one configured public camera ID. This Server owns no
+    /// renderer or camera publisher; the caller must maintain that ownership.
+    pub fn with_external_camera_output(
+        simulation: Simulation,
+        world_name: &str,
+        config: ServerOptions,
+        zenoh_config: zenoh::Config,
+        command_budget: NonZeroUsize,
+        camera_id: u64,
+    ) -> Result<Self, Error> {
+        Self::build(
+            simulation,
+            world_name,
+            config,
+            Some(zenoh_config),
+            command_budget,
+            Some(camera_id),
         )
     }
 
@@ -297,6 +323,7 @@ impl Server {
         config: ServerOptions,
         zenoh_config: Option<zenoh::Config>,
         command_budget: NonZeroUsize,
+        external_camera: Option<u64>,
     ) -> Result<Self, Error> {
         time(simulation.elapsed().as_nanos() as i128)?;
         poses::packet(simulation.world(), simulation.elapsed())?;
@@ -308,6 +335,29 @@ impl Server {
         let partition = config.partition.clone();
         let namespace = config.namespace.clone();
         config.validate()?;
+        let configured = simulation.world().iter_entities().any(|entity| {
+            entity.get::<gz_sim_scene::EntityKind>() == Some(&gz_sim_scene::EntityKind::World)
+                && entity.contains::<gz_sim_scene::RenderingSensorsConfiguration>()
+        });
+        let mut cameras = simulation
+            .world()
+            .iter_entities()
+            .filter(|entity| entity.contains::<gz_sim_scene::CameraSensor>());
+        match (configured, cameras.next(), external_camera) {
+            (true, Some(_), None) => return Err(Error::CameraOutputRequired),
+            (true, Some(camera), Some(id))
+                if cameras.next().is_none()
+                    && camera.get::<gz_sim_scene::EntityKind>()
+                        == Some(&gz_sim_scene::EntityKind::Sensor)
+                    && camera.get::<EntityId>().map(EntityId::get) == Some(id)
+                    && entity_by_id(simulation.world(), id) == Some(camera.id())
+                    && camera
+                        .get::<gz_sim_scene::CameraSensor>()
+                        .is_some_and(|sensor| gz_sim_scene::supports_camera_sensor(&sensor.0)) => {}
+            (_, _, Some(_)) => return Err(Error::CameraIdentity),
+            _ => {}
+        }
+        drop(cameras);
         let world_key = |topic: &str| {
             crate::options::qualified_name(
                 &partition,
@@ -475,6 +525,23 @@ impl Server {
 
     pub fn simulation(&self) -> &Simulation {
         &self.simulation
+    }
+
+    /// Explicit application shutdown is terminal for frame admission.
+    /// This does not report an unexpected closure of the underlying Session.
+    pub fn is_shutdown(&self) -> bool {
+        self.is_shutdown
+    }
+
+    /// Whether an accepted reset still requires the explicit IO preparation phase.
+    /// Terminal shutdown and reset failures have their own admission errors.
+    pub fn io_preparation_required(&self) -> bool {
+        self.pending_reset
+    }
+
+    /// Immutable application naming and bounds data; no runtime or Session handle.
+    pub fn options(&self) -> &ServerOptions {
+        &self.network_config
     }
 
     /// Changes local IMU acquisition without altering registrations or its phase.
@@ -876,3 +943,7 @@ mod pipeline_benchmark;
 #[cfg(test)]
 #[path = "../tests/private/streams_benchmark.rs"]
 mod streams_benchmark;
+
+#[cfg(test)]
+#[path = "../tests/private/camera_ownership.rs"]
+mod camera_ownership_tests;

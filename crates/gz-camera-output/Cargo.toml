@@ -6,6 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+gz-sim-server = { path = "../gz-sim-server" }
 zenoh.workspace = true
 uuid.workspace = true
 bevy_ecs.workspace = true

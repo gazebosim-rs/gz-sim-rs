@@ -57,22 +57,28 @@ fn engine_metadata(xml: &str, root: roxmltree::Node<'_, '_>) -> bool {
         )
 }
 
-pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
+pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
+    let (mut physics, mut sensors) = (false, false);
     for plugin in &world.plugins {
-        require(
-            plugin.name == "gz::sim::systems::Physics"
-                && plugin.filename == "gz-sim-physics-system",
-            &world.name,
-            "world plugins",
-        )?;
-        require(
-            world.plugins.len() == 1,
-            &world.name,
-            "duplicate Physics configuration",
-        )?;
+        let is_physics = plugin.name == "gz::sim::systems::Physics"
+            && plugin.filename == "gz-sim-physics-system";
+        let is_sensors = plugin.name == "gz::sim::systems::Sensors"
+            && plugin.filename == "gz-sim-sensors-system";
+        require(is_physics || is_sensors, &world.name, "world plugins")?;
+        let (seen, feature) = if is_physics {
+            (&mut physics, "duplicate Physics configuration")
+        } else {
+            (&mut sensors, "duplicate Sensors configuration")
+        };
+        require(!*seen, &world.name, feature)?;
+        *seen = true;
         let invalid = || LoadError::Unsupported {
             entity: world.name.clone(),
-            feature: "Physics system configuration",
+            feature: if is_physics {
+                "Physics system configuration"
+            } else {
+                "Sensors system configuration"
+            },
         };
         let document = roxmltree::Document::parse(&plugin.xml).map_err(|_| invalid())?;
         let root = document.root_element();
@@ -89,14 +95,18 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
                 .attribute("filename")
                 .map(|s| s.trim_matches([' ', '\t', '\r', '\n']))
                 != Some(plugin.filename.as_str())
-            || !engine_metadata(&plugin.xml, root)
+            || if is_physics {
+                !engine_metadata(&plugin.xml, root)
+            } else {
+                content(root).next().is_some()
+            }
         {
             return Err(invalid());
         }
         // The selected backend is already installed once by load_world_configured.
         // Legacy metadata does not create a second system or load a library.
     }
-    Ok(())
+    Ok(sensors)
 }
 
 #[cfg(test)]

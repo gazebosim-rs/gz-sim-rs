@@ -7,6 +7,9 @@
 //! opt-in loaded-camera cadence outside stepping. Retirement and destruction
 //! also belong outside the critical step: process teardown can wait.
 
+mod application;
+pub use application::{CameraServer, CameraServerError, CameraServerOptions, CameraStep};
+
 pub mod camera_messages;
 mod scheduled;
 pub use scheduled::ScheduledCameraOutput;

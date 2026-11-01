@@ -5,7 +5,11 @@
 
 This REF-01 prerequisite prepares the native side of B03. The recipe, native
 build, bounded smoke and fresh read-only image validation have run as described
-below. Independent image/evidence review passed; normal publication gates remain pending.
+below. Independent image/evidence review passed. Recipe publication was accepted
+on Main `ce071305` after the complete normal hook, exact hosted run `41298713640`
+and independent downloaded source/profile/native audit passed. Those ordinary
+hosted profiles verify the selected client and Rust workspace; they do not
+repeat the separate local native application build or B03 smoke.
 It does not qualify Rust articulation, balanced-suite accuracy or performance.
 The existing TPE reference, its validator, immutable image and C3 observations
 remain separate. The eight DART-family library mounts used by a Rust release

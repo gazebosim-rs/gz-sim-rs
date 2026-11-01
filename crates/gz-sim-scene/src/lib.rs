@@ -124,6 +124,12 @@ pub struct VisualGeometry(pub Arc<Geometry>);
 #[derive(Component, Debug, Clone)]
 pub struct CameraSensor(pub Arc<sdformat::Sensor>);
 
+/// Recognized bare world Sensors intent. Metadata alone installs no callbacks,
+/// rendering resources or workers; an explicit camera application consumes it.
+#[derive(Component, Clone, Copy, Debug)]
+#[component(immutable)]
+pub struct RenderingSensorsConfiguration;
+
 /// Whether a sensor is in the current explicit 64×64 RGB camera domain.
 /// This admits metadata only and does not schedule or publish sensor samples.
 pub fn supports_camera_sensor(sensor: &sdformat::Sensor) -> bool {
@@ -429,7 +435,7 @@ fn load_world_configured(
         .ok_or_else(|| LoadError::MissingWorld(world_name.into()))?;
     let world = &sdf.worlds[world_index];
     producer_guard::validate(world)?;
-    world_systems::validate(world)?;
+    let rendering_sensors = world_systems::validate(world)?;
     // The pinned parser supplies an implicit profile when none is declared.
     let profile = world
         .physics
@@ -479,6 +485,11 @@ fn load_world_configured(
         Transform::default(),
         Transform::default(),
     )?;
+    if rendering_sensors {
+        sim.world_mut()
+            .entity_mut(world_entity)
+            .insert(RenderingSensorsConfiguration);
+    }
     let parent = ParentModel {
         entity: world_entity,
         is_static: false,

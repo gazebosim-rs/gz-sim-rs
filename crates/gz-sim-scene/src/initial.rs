@@ -67,6 +67,7 @@ struct Node {
     visual_geometry: Option<VisualGeometry>,
     link_properties: Option<LinkProperties>,
     collision_density: Option<CollisionDensity>,
+    rendering_sensors: bool,
 }
 
 enum InitialPhysics {
@@ -156,6 +157,7 @@ pub(super) fn capture(sim: &mut Simulation) {
             visual_geometry: entity.get::<VisualGeometry>().cloned(),
             link_properties: entity.get::<LinkProperties>().copied(),
             collision_density: entity.get::<CollisionDensity>().copied(),
+            rendering_sensors: entity.contains::<RenderingSensorsConfiguration>(),
         });
     }
     nodes.sort_by_key(|node| node.id.get());
@@ -365,6 +367,9 @@ pub fn reset_loaded_world<R>(
         }
         if let Some(density) = node.collision_density {
             entity.insert(density);
+        }
+        if node.rendering_sensors {
+            entity.insert(RenderingSensorsConfiguration);
         }
         if let Some(publication) = &node.publication {
             entity.insert(publication.clone());

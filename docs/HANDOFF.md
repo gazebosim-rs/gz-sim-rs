@@ -43,12 +43,40 @@ nonblocking at unchanged capacity. The original `aacebc` hosted failure is retai
 a controlled Full-queue reproduction establishes the repaired race class without
 claiming to identify that original interleaving.
 
-This tree adopts accepted SDF `b246a80` and retains explicit collision density;
-see [the adoption boundary](AUTO_INERTIA_ADOPTION.md). Its own complete normal and
-exact hosted/source checks remain required before Main publication. The loaded
-camera frame helper is already qualified. Automatic CameraServer activation,
-native topics and default-path refusal are under separate implementation; camera
-metadata alone does not imply a native Sensors system.
+Main `3d290ee` adopted accepted SDF `b246a80` and retains explicit collision
+density; see [the adoption boundary](AUTO_INERTIA_ADOPTION.md). Its complete normal
+hook, exact hosted run `41290666226` and downloaded source/profile/native audit
+passed: 825 headless, 483 renderer and 223 tooling checks. All required production
+crates exceed 95% lines and regions. Density metadata and presence survive reset;
+metadata edits do not recalculate producer inertia.
+
+Main `ce071305` subsequently published the separate [Zenoh/DART reference
+recipe](ZENOH_DART_REFERENCE.md). The complete normal hook, exact hosted run
+`41298713640` and independent official source/profile/native audit passed: 825
+headless, 483 renderer and 237 tooling checks. The actual local unchanged B03
+smoke passed as a reviewed continuation after two pre-probe layout failures.
+This qualifies one native reference prerequisite; Rust B03 admission, a fresh
+whole-bootstrap run, balanced accuracy/performance and broader P0 remain open.
+
+This candidate adds the programmatic [single-camera application](AUTOMATIC_CAMERA.md)
+on that baseline. Bare world Sensors intent and one supported loaded camera
+activate its existing output owner; camera metadata alone does not. Default Server
+refuses configured camera execution before advertising world IO. The headless
+Server retains no rendering dependency. Camera preparation, demand observation,
+publication and teardown stay outside raw ticking. Pending reset and terminal
+shutdown retire old output before publication. Both world intent and collision
+density remain in the immutable reset blueprint.
+
+The camera source and composed CPU/software/C++ evidence passed independent
+review. Its first integrated normal hook failed strict CameraOutput region
+coverage at 1267/1365, below the required greater-than-95% gate. That failed stage
+remains preserved and unpublished. Meaningful lifecycle and identity/hierarchy
+controls are being added under separate review. The repaired integration still
+requires the complete normal hook, exact hosted checks and downloaded
+source/profile/native audit before Main acceptance. CLI ownership, multiple cameras, native Manager behavior, camera
+set_rate, broader activation and physical-GPU parity remain open. Earlier failed
+fixture/witness/interface runs remain recorded separately; no assertions,
+deadlines or coverage gates were relaxed.
 
 Next work: broader P3/P4 physics and sensors, full ACT-01 resource absence,
 balanced-robotics reference qualification and remaining systems. Fuel is

@@ -104,6 +104,17 @@ impl ServerOptions {
         Ok(())
     }
 
+    /// Apply one remap and qualification to an already normalized native topic.
+    /// The remap destination is validated without recursively remapping or
+    /// normalizing it again. Call during application setup, outside stepping.
+    pub fn topic_key(&self, native_topic: &str) -> Result<String, SetupError> {
+        qualified_name(
+            &self.partition,
+            &self.namespace,
+            self.topic_remap(native_topic).unwrap_or(native_topic),
+        )
+    }
+
     /// Explicitly capture GZ_PARTITION, or the native hostname:USER identity.
     /// An absent USER uses the current UID's account name. Hostname and account
     /// lookup may block; call this during setup, outside stepping.
@@ -183,7 +194,10 @@ fn valid_name(name: &str) -> bool {
         && !["~", " ", "//", "@", ":="].iter().any(|s| name.contains(s))
 }
 
-pub(crate) fn as_valid_topic(topic: &str) -> String {
+/// Native TopicUtils normalization: replace ASCII spaces and remove the exact
+/// forbidden token pairs. Invalid normalized names return an empty string.
+/// This does not qualify, remap or resolve network state.
+pub fn as_valid_topic(topic: &str) -> String {
     let mut result = String::with_capacity(topic.len());
     let mut input = topic.chars().peekable();
     while let Some(c) = input.next() {
