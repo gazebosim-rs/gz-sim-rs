@@ -22,7 +22,7 @@ bevy_ecs = { version = "=0.20.0", default-features = false, features = ["std", "
 thiserror = "=2.0.18"
 glam = "=0.33.12"
 clap = { version = "=4.6.7", features = ["derive"] }
-sdformat = { git = "https://github.com/gazebosim-rs/sdformat-rs", rev = "1b57ab0ce1ce88dddcd0f36a3acd667cb6dff6da" }
+sdformat = { git = "https://github.com/gazebosim-rs/sdformat-rs", rev = "b246a806006550ace0930cd3cd3ecc503b3b1af0" }
 rapier3d-f64 = { version = "=0.36.1", features = ["enhanced-determinism"] }
 
 [workspace.lints.rust]

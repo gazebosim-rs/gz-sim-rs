@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 use gz_sim_scene::{LoadError, Name, PhysicsEngine, load_world_with_sdf_step, reset_loaded_world};
 use sdformat::{NoResources, Resource, ResourceResolver};
+#[path = "support/collision_density.rs"]
+mod density;
 
 fn world(
     extra: &str,
@@ -57,9 +59,9 @@ fn newly_parsed_runtime_effects_are_rejected_before_scene_creation() {
         &world("", "", "", "<light name='lamp' type='point'/>", "", ""),
         "link lights",
     );
-    rejected(
+    density::assert_static_density(
         &world("", "", "", "", "<density>1000</density>", ""),
-        "collision density",
+        "sdf8",
     );
     rejected(
         &world(

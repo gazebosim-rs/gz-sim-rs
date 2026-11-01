@@ -3,8 +3,9 @@
 
 # SDFormat manual inertia and legacy IMU adoption
 
-The workspace pins SDFormat to
+The earlier adoption pinned SDFormat to
 `1b57ab0ce1ce88dddcd0f36a3acd667cb6dff6da`, replacing `486b3e0`.
+The later [automatic-inertia adoption](AUTO_INERTIA_ADOPTION.md) advances that pin.
 The producer adds legacy IMU noise conversion, explicit manual-inertia
 attributes, and standalone lidar aliases. Existing Scene admission and lowering
 already handle these values; this update changes no simulation implementation.

@@ -21,9 +21,10 @@ All required production crates exceed 95% lines and regions. The audit binds
 remerged across the two profiles to the commit. Actual C++ Zenoh peers and software Vulkan pass. See
 [the P2 report](acceptance/P2_ZENOH.md) for the fifteen-row matrix and limits.
 The first matched performance report belongs to `5870373`; a new optimized c3
-ELF has now completed one independently audited matched batch. The two-context
-measurement tooling and published report still need full qualification before
-accepting a new timing claim. Never measure during builds.
+ELF completed one independently audited matched batch. The two-context tooling
+and [C3 report](acceptance/C3_MATCHED_STREAMS.md) are qualified and published;
+that small paced workload does not qualify balanced robotics or later Main
+performance. Never measure during builds.
 
 Terminal admission, optional CPU force ingress and application-owned camera
 cadence are included. Fatal worker reply failures arm an eight-second backstop
@@ -34,18 +35,24 @@ non-reproductions and the first failed TCP fixture run separately; none is
 relabeled as a pass. The reviewed private-network fixture preserves every
 immediate single-bind assertion and rejects zero-test child execution.
 
+The accepted baseline before this adoption is `0608577`. Its optional rate
+owner and bounded cold-I/O admission fix passed the complete normal hook, exact
+hosted run `41287528044` and downloaded source/profile/native audit. Cold setup
+uses one existing five-second enqueue-plus-receipt budget; frame admission stays
+nonblocking at unchanged capacity. The original `aacebc` hosted failure is retained;
+a controlled Full-queue reproduction establishes the repaired race class without
+claiming to identify that original interleaving.
+
+This tree adopts accepted SDF `b246a80` and retains explicit collision density;
+see [the adoption boundary](AUTO_INERTIA_ADOPTION.md). Its own complete normal and
+exact hosted/source checks remain required before Main publication. The loaded
+camera frame helper is already qualified. Automatic CameraServer activation,
+native topics and default-path refusal are under separate implementation; camera
+metadata alone does not imply a native Sensors system.
+
 Next work: broader P3/P4 physics and sensors, full ACT-01 resource absence,
-current-release equal-work measurement, remaining systems and P0 reference
-inventory. The loaded-frame helper passed its full local gate and exact hosted
-run `41274914442` attempt two, followed by an independent downloaded
-source/profile/native audit. It is published on Main at `c98d834`. Its first capacity stop and first hosted snapshot-download
-failure remain distinct. This tree adopts accepted SDF `1b57ab0` and the reviewed
-two-context measurement tooling, with independent code review and individual
-complete local gates. Combined staged and exact hosted qualification are required
-before publishing the integration on Main. See [SDF adoption](SDF1B_ADOPTION.md).
-The automatic-box producer and all broader release gates remain separate; no
-automatic-inertia consumer admission follows from this pin.
-Fuel is independently owned and must not be edited.
+balanced-robotics reference qualification and remaining systems. Fuel is
+independently owned and must not be edited.
 
 ## Published Zenoh migration baseline (2026-10-31)
 

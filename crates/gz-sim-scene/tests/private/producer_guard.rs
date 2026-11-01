@@ -98,7 +98,11 @@ fn model_link_and_sensor_metadata_are_checked_recursively() {
     for (expected, edit) in cases {
         let mut value = world();
         edit(&mut value);
-        failure(&value, expected);
+        if expected == "collision density" {
+            assert_explicit_density_metadata(&value);
+        } else {
+            failure(&value, expected);
+        }
     }
     let mut value = world();
     value.models[0].links[0].sensors[0].config = SensorConfig::Camera(Box::default());
@@ -140,4 +144,25 @@ fn joint_metadata_and_joint_sensor_envelopes_are_not_silently_dropped() {
     };
     value.models[0].joints[0].sensors.push(sensor);
     failure(&value, "joint sensors");
+}
+
+fn assert_explicit_density_metadata(value: &sdformat::World) {
+    let before = format!("{value:?}");
+    validate(value).unwrap();
+    assert_eq!(format!("{value:?}"), before);
+    let link = &value.models[0].links[0];
+    assert_eq!(link.collisions[0].density, Some(1000.0));
+    assert_eq!(link.collisions[0].source.uri, "guard");
+    assert_eq!(link.inertial.mass, 1.0);
+    assert_eq!(link.inertial.inertia, [1., 1., 1., 0., 0., 0.]);
+    assert_eq!(link.inertial.pose, sdformat::Pose::default());
+}
+
+#[test]
+fn explicit_density_guard_refuses_invalid_constructed_values() {
+    for density in [0.0, -1.0, f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        let mut value = world();
+        value.models[0].links[0].collisions[0].density = Some(density);
+        failure(&value, "collision density");
+    }
 }

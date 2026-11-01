@@ -109,6 +109,11 @@ pub struct VisualProperties(pub sdformat::VisualProperties);
 #[derive(Component, Debug, Clone)]
 pub struct VisualMaterial(pub Box<sdformat::Material>);
 
+/// Explicit collision density in kg/m³; absence means omitted source metadata.
+/// Editing it does not recompute inertia or reconfigure the installed backend.
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
+pub struct CollisionDensity(pub f64);
+
 /// Parsed visual geometry, shared with the reset blueprint; not a collision shape.
 /// Editing this metadata does not reconfigure physics or load rendering assets.
 #[derive(Component, Debug, Clone)]
@@ -797,6 +802,13 @@ fn build_model(
                 world,
             )?;
             sim.world_mut().entity_mut(entity).insert(AttachedPose);
+            if kind == EntityKind::Collision
+                && let Some(density) = collision.density
+            {
+                sim.world_mut()
+                    .entity_mut(entity)
+                    .insert(CollisionDensity(density));
+            }
             if let Some(visual) = visual {
                 context.visuals.push(entity);
                 let mut entity = sim.world_mut().entity_mut(entity);

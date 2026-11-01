@@ -35,7 +35,13 @@ fn validate_model(model: &sdformat::Model) -> Result<(), LoadError> {
         require(link.particle_emitters.is_empty(), name, "particle emitters")?;
         require(link.projectors.is_empty(), name, "projectors")?;
         for collision in &link.collisions {
-            require(collision.density.is_none(), name, "collision density")?;
+            require(
+                collision
+                    .density
+                    .is_none_or(|density| density.is_finite() && density > 0.0),
+                name,
+                "collision density",
+            )?;
             require(
                 !matches!(collision.geometry, sdformat::Geometry::Empty),
                 name,
