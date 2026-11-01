@@ -17,6 +17,7 @@ struct Worker {
 fn worker_command() -> Command {
     let mut command = Command::new(env!("CARGO_BIN_EXE_gz-render-worker"));
     command.arg(std::process::id().to_string());
+    command.env("GZ_RENDER_WORKER_DIAGNOSTICS", "1");
     if let Some(profile) = std::env::var_os("GZ_RENDER_WORKER_PROFILE") {
         command.env("LLVM_PROFILE_FILE", profile);
     }
@@ -74,9 +75,50 @@ impl Worker {
             match self.child.try_wait().unwrap() {
                 Some(status) => return status,
                 None if Instant::now() < deadline => thread::sleep(Duration::from_millis(5)),
-                None => panic!("worker shutdown timed out"),
+                None => {
+                    report_timeout(self.child.id());
+                    panic!("worker shutdown timed out");
+                }
             }
         }
+    }
+}
+
+fn report_timeout(pid: u32) {
+    // Read only bounded kernel process metadata, never environment or payloads.
+    fn metadata(path: &std::path::Path) -> String {
+        let mut text = String::new();
+        match std::fs::File::open(path).and_then(|file| file.take(1024).read_to_string(&mut text)) {
+            Ok(_) => text,
+            Err(error) => format!("unavailable: {error}"),
+        }
+    }
+    let root = std::path::PathBuf::from(format!("/proc/{pid}"));
+    eprintln!("worker timeout pid={pid}");
+    for name in ["status", "wchan", "syscall"] {
+        eprintln!("worker {name}: {}", metadata(&root.join(name)));
+    }
+    for fd in [0, 1, 2] {
+        eprintln!(
+            "worker fd{fd}: {:?}",
+            std::fs::read_link(root.join(format!("fd/{fd}")))
+        );
+    }
+    match std::fs::read_dir(root.join("task")) {
+        Ok(tasks) => {
+            for task in tasks.take(64) {
+                match task {
+                    Ok(task) => {
+                        eprintln!("worker task {:?}", task.file_name());
+                        for name in ["comm", "status", "wchan", "syscall"] {
+                            eprintln!("task {name}: {}", metadata(&task.path().join(name)));
+                        }
+                    }
+                    Err(error) => eprintln!("worker task unavailable: {error}"),
+                }
+            }
+        }
+        Err(error) => eprintln!("worker tasks unavailable: {error}"),
     }
 }
 impl Drop for Worker {
@@ -354,7 +396,9 @@ fn disconnected_output_reports_failure_and_worker_exits() {
     drop(worker.replies.take());
     worker.send(Request::Cancel { request_id: 99 });
     worker.reader.take().unwrap().join().unwrap();
+    eprintln!("worker pid={} reader_closed", worker.child.id());
     worker.send(Request::Cancel { request_id: 100 });
+    eprintln!("worker pid={} cancel100_sent", worker.child.id());
     assert!(!worker.wait_exit().success());
 }
 

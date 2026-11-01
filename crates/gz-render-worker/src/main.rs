@@ -181,9 +181,37 @@ fn snapshot_reply(
     }
 }
 
+fn diagnostic(event: &str) {
+    if std::env::var_os("GZ_RENDER_WORKER_DIAGNOSTICS").as_deref()
+        == Some(std::ffi::OsStr::new("1"))
+    {
+        let _ = writeln!(
+            io::stderr().lock(),
+            "render-worker pid={} {event}",
+            std::process::id()
+        );
+    }
+}
+
+// Declared before Renderer: this marker follows its destruction, if construction
+// succeeded. It also runs after a failed construction; it does not imply Ready.
+struct WorkerScope;
+impl Drop for WorkerScope {
+    fn drop(&mut self) {
+        diagnostic("worker_scope_finished");
+    }
+}
+
 fn send(out: &mut impl Write, reply: Reply) -> io::Result<()> {
-    write_reply(out, &reply)?;
-    out.flush()
+    let result = write_reply(out, &reply).and_then(|()| out.flush());
+    if let Err(error) = &result {
+        diagnostic(&format!(
+            "reply_write_failed kind={:?} raw_os_error={:?}",
+            error.kind(),
+            error.raw_os_error()
+        ));
+    }
+    result
 }
 fn failure(kind: FailureKind, request_id: Option<u64>, message: impl ToString) -> Reply {
     let mut message = message.to_string();
@@ -229,6 +257,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if getppid().map(|pid| pid.as_raw_nonzero().get()) != Some(parent) {
         return Err("parent already gone".into());
     }
+    let _worker_scope = WorkerScope;
     let mut output = BufWriter::new(io::stdout().lock());
     let (tx, rx) = mpsc::sync_channel(1);
     let input_thread = std::thread::Builder::new()
