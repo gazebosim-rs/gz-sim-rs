@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "profile": "gazebo-zenoh-dart-app-v1",
+  "base_image_id": "sha256:4ac74e616369164eaba07149e9b98f7594a33cb3ddbbd6a45e0dd43cb688b1d5",
+  "base_dart_environment_sha256": "62b3de04a3aa3d3f86171e5c0da91028da6a70184f307805b08f8dcb60106ce8",
+  "input_sha256": {
+    "reference/headless-dart.lock.json": "158e9edabcc428a2fbfb4bfa02c152365feb996ec7576366d1bf15462b050921",
+    "planning/baseline.json": "0cb03b9b3f87d6ca6a9068262ff60cbf7ba7f095916d93dceaec4cdb4b79fe55",
+    "planning/zenoh-native-lock.json": "9f3d2b56841ee75d33dbc5b69ec1362c6b24a069fd6d10cd0485732d7a369fe2",
+    "planning/zenoh-native-packages.json": "25988a337c4b5133e05ef4378f4b939608ae60db5e0bade8437145d64afcdd3e",
+    "planning/reference/headless-sdk-environment.json": "0775304639aa56e106de8f49802246bb54a16816185cafdc433b0006ddd1f59f"
+  },
+  "client_root": "/zenoh-dart-client",
+  "prefix": "/reference/zenoh-dart-install",
+  "build_root": "/reference/zenoh-dart-builds",
+  "fixture": {
+    "repository": "gz-sim",
+    "path": "test/worlds/double_pendulum.sdf",
+    "sha256": "24e85ff944b5efe2d758fdda543e392f34d59f26297a0a87fafbb41d5a3b16aa"
+  },
+  "repositories": {
+    "gz-sim": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+    "gz-sensors": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+    "gz-physics": "b44cd0d0ea6606b6c98320c0c87a5670d4fc6be6"
+  },
+  "tools_sha256": {
+    "c++": "1353e9bdd29a7295c7226bf6c63abccce056d8cac31f112e5cdbecc3f28c2769",
+    "cmake": "1c5227af4edd22d8d689def545e18ee458260c0fd579eba2187967f38817e638",
+    "git": "eb54b535467e0975c1284d4c4d08eea779aeb248a5d34b02e2ee171382e22201",
+    "python3": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+  },
+  "builds": [
+    "gz-physics",
+    "gz-sensors",
+    "gz-sim"
+  ],
+  "smoke_steps": 100,
+  "smoke_timeout_seconds": 15,
+  "smoke_warmup": 100
+}
