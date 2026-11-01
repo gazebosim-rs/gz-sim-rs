@@ -1,0 +1,19 @@
+<!-- Copyright 2012 Open Source Robotics Foundation -->
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Noise values derive from Converter.IMU_15_to_16; this is a supplemental loader fixture. -->
+<sdf version='1.5'>
+  <model name='robot'>
+    <link name='body'>
+      <inertial auto='false'><mass>2</mass><inertia><ixx>0.2</ixx><iyy>0.2</iyy><izz>0.2</izz></inertia></inertial>
+      <collision name='shape'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision>
+      <sensor name='imu' type='imu'>
+        <always_on>true</always_on><update_rate>1000</update_rate>
+        <imu><noise><type>gaussian</type>
+          <rate><mean>0</mean><stddev>0.0002</stddev><bias_mean>7.5e-06</bias_mean><bias_stddev>8e-07</bias_stddev></rate>
+          <accel><mean>0</mean><stddev>0.017</stddev><bias_mean>0.1</bias_mean><bias_stddev>0.001</bias_stddev></accel>
+        </noise></imu>
+      </sensor>
+    </link>
+  </model>
+</sdf>

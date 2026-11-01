@@ -9,11 +9,11 @@ current state and the next tasks. Update both when either changes.
 
 ## Accepted headless milestone (2026-11-01)
 
-Main is `c3f5a2f3c39f27d98314e032e78c39cb44d660a0`. P2 and the current
+P2 was accepted at `c3f5a2f3c39f27d98314e032e78c39cb44d660a0`. P2 and the current
 consumer migration in ZEN-01 are accepted. The complete local hook, independent
 code review, exact hosted run `41270504128` and downloaded source/profile/native
 audit passed before the fast-forward. The separate Main promotion run
-`41272913232` is still pending; do not call that run passed.
+`41272913232` also passed. Later integrations retain their own acceptance checks.
 
 Hosted checks execute 800 headless and 462 renderer tests plus 217 tooling tests.
 All required production crates exceed 95% lines and regions. The audit binds
@@ -21,7 +21,9 @@ All required production crates exceed 95% lines and regions. The audit binds
 remerged across the two profiles to the commit. Actual C++ Zenoh peers and software Vulkan pass. See
 [the P2 report](acceptance/P2_ZENOH.md) for the fifteen-row matrix and limits.
 The first matched performance report belongs to `5870373`; a new optimized c3
-ELF is prepared, but no c3 timings are claimed. Never measure during builds.
+ELF has now completed one independently audited matched batch. The two-context
+measurement tooling and published report still need full qualification before
+accepting a new timing claim. Never measure during builds.
 
 Terminal admission, optional CPU force ingress and application-owned camera
 cadence are included. Fatal worker reply failures arm an eight-second backstop
@@ -34,10 +36,15 @@ immediate single-bind assertion and rejects zero-test child execution.
 
 Next work: broader P3/P4 physics and sensors, full ACT-01 resource absence,
 current-release equal-work measurement, remaining systems and P0 reference
-inventory. The loaded-frame helper is independently reviewed but not accepted;
-its first full gate stopped for disk reserve. SDF's accepted producer is
-`1b57ab0`, while this simulator pins `486b3e0`; adoption requires its own checks.
-The automatic-box producer and all broader release gates remain in progress.
+inventory. The loaded-frame helper passed its full local gate and exact hosted
+run `41274914442` attempt two, followed by an independent downloaded
+source/profile/native audit. It is published on Main at `c98d834`. Its first capacity stop and first hosted snapshot-download
+failure remain distinct. This tree adopts accepted SDF `1b57ab0` and the reviewed
+two-context measurement tooling, with independent code review and individual
+complete local gates. Combined staged and exact hosted qualification are required
+before publishing the integration on Main. See [SDF adoption](SDF1B_ADOPTION.md).
+The automatic-box producer and all broader release gates remain separate; no
+automatic-inertia consumer admission follows from this pin.
 Fuel is independently owned and must not be edited.
 
 ## Published Zenoh migration baseline (2026-10-31)

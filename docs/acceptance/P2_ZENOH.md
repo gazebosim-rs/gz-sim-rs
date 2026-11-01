@@ -14,7 +14,7 @@ That exact commit passed the full local gate, independent code review,
 [hosted verification](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41270504128)
 and downloaded source/profile/native audit before the Main fast-forward. P2 is
 accepted for this selected contract. The separate Main promotion workflow
-`41272913232` is pending, not counted as another pass.
+`41272913232` also passed after the reviewed fast-forward.
 
 The c3 audit verifies 800 headless and 462 renderer executions, 217 tooling tests,
 70 production sources, 272 inputs and every required crate's strict coverage.

@@ -596,3 +596,202 @@ class AppStaticAndRuntimeLibraries(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'missing or duplicate'):
                 pipeline.require_native_libraries(loaded, required, libraries)
             pipeline.require_native_libraries(libraries, required, libraries)
+
+
+class SeparateSourceContexts(unittest.TestCase):
+    def full_rust_fixture(self, directory):
+        root, record_path, build_json, binary, record = PipelineEvidence().build_fixture(directory)
+        for name in pipeline.APP_BUILD_INPUTS:
+            path = root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('controlled producer input\n')
+        (root / 'Cargo.toml').write_text('[patch.crates-io]\nprost-derive = { path = "third_party/prost-derive-0.14.4" }\n')
+        for name in ['third_party/prost-derive-0.14.4/src/field/scalar.rs',
+                     'crates/gz-sim-proto/schemas/imu.proto', '.cargo/config.toml']:
+            path = root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('controlled build input\n')
+        record['source_sha256'] = {str(p.relative_to(root)): pipeline.digest(p)
+                                  for p in root.rglob('*') if p.is_file()}
+        record_path.write_text(json.dumps(record))
+        return root, record_path, build_json, binary, record
+
+    def test_context_defaults_profile_and_directory_refusals(self):
+        self.assertEqual(pipeline.benchmark_source_roots(pipeline.FULL_APP),
+                         (pipeline.ROOT, pipeline.ROOT))
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            rust, app = root / 'rust', root / 'native'
+            rust.mkdir()
+            app.mkdir()
+            self.assertEqual(pipeline.benchmark_source_roots(pipeline.FULL_APP, rust, app),
+                             (rust, app))
+            for profile in [pipeline.client_reference.SDK, pipeline.client_reference.LEGACY]:
+                with self.subTest(profile=profile), self.assertRaisesRegex(ValueError, 'full-app'):
+                    pipeline.benchmark_source_roots(profile, rust, app)
+            with self.assertRaisesRegex(ValueError, 'real directory'):
+                pipeline.benchmark_source_roots(pipeline.FULL_APP, root / 'missing', app)
+            alias = root / 'symlink'
+            alias.symlink_to(app, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, 'real directory'):
+                pipeline.benchmark_source_roots(pipeline.FULL_APP, rust, alias)
+
+    def test_rust_record_uses_actual_export_without_relabeling_tool_context(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, record_path, build_json, binary, record = self.full_rust_fixture(directory)
+            other = Path(directory) / 'tool'
+            shutil.copytree(root, other)
+            changed = other / 'crates/example/src/lib.rs'
+            changed.write_text('different source export\n')
+            with patch.object(pipeline, 'ROOT', other):
+                self.assertEqual(pipeline.validate_rust_build(
+                    record_path, build_json, binary, pipeline.FULL_APP, source_root=root), record)
+                with self.assertRaisesRegex(ValueError, 'source changed'):
+                    pipeline.validate_rust_build(record_path, build_json, binary, pipeline.FULL_APP)
+            original = root / 'crates/example/src/lib.rs'
+            original.write_text('actual Rust input changed\n')
+            with self.assertRaisesRegex(ValueError, 'source changed'):
+                pipeline.validate_rust_build(record_path, build_json, binary,
+                                             pipeline.FULL_APP, source_root=root)
+
+    def test_native_smoke_keeps_exact_historical_argv_and_source_checks(self):
+        # Controlled files exercise validation only, never native qualification.
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            native, rust, app = parent / 'native-source', parent / 'rust-source', parent / 'app'
+            for root in [native, rust]:
+                (root / 'scripts').mkdir(parents=True)
+                (root / 'scripts/zenoh_headless_probe.cc').write_text('// same probe\n')
+            app.mkdir()
+            paths = {}
+            for name in ['source', 'binary', 'config', 'stdout', 'stderr', 'maps']:
+                paths[name] = app / name
+                paths[name].write_bytes(b'')
+            paths['source'].write_bytes((native / 'scripts/zenoh_headless_probe.cc').read_bytes())
+            paths['config'].write_text(json.dumps({'mode': 'peer', 'listen': {'endpoints': ['tcp/127.0.0.1:0']},
+                'connect': {'endpoints': []}, 'scouting': {'multicast': {'enabled': False}, 'gossip': {'enabled': False}},
+                'transport': {'shared_memory': {'enabled': False}}}))
+            paths['stdout'].write_bytes(b'zenoh headless ready clock=1 pose=1 imu=1 sim_ns=1000000\n')
+            smoke = {'status': 0, 'files': {name: {'path': path.name, 'sha256': pipeline.digest(path)}
+                                          for name, path in paths.items()},
+                     'command': [str(paths['binary']), str(native / 'crates/gz-sim-scene/tests/fixtures/headless_imu.sdf'), str(paths['maps'])],
+                     'timeout_seconds': 15, 'libraries_sha256': {}}
+            with patch.object(pipeline, 'ROOT', rust):
+                self.assertEqual(pipeline.validate_app_smoke(app, smoke, {}, {}, source_root=native), {})
+                with self.assertRaisesRegex(ValueError, 'input-bound'):
+                    pipeline.validate_app_smoke(app, smoke, {}, {})
+            changed = copy.deepcopy(smoke)
+            changed['timeout_seconds'] = 16
+            with self.assertRaisesRegex(ValueError, 'bounded'):
+                pipeline.validate_app_smoke(app, changed, {}, {}, source_root=native)
+            (native / 'scripts/zenoh_headless_probe.cc').write_text('// mutated source\n')
+            with self.assertRaisesRegex(ValueError, 'source differs'):
+                pipeline.validate_app_smoke(app, smoke, {}, {}, source_root=native)
+
+    def test_context_fixture_and_all_native_driver_bytes_must_agree(self):
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            rust, native = parent / 'rust', parent / 'native'
+            names = ['crates/gz-sim-scene/tests/fixtures/headless_imu.sdf',
+                     *('crates/gz-sim-server/tests/' + p for p in ['native_pipeline_benchmark.cc',
+                        'native_lockstep_benchmark.cc', 'native_stream_benchmark.cc'])]
+            for root in [rust, native]:
+                for name in names:
+                    path = root / name
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text('identical workload bytes\n')
+            pipeline.check_benchmark_context_inputs(rust, native)
+            for name in names:
+                path = native / name
+                path.write_text('different workload bytes\n')
+                with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'contexts differ'):
+                    pipeline.check_benchmark_context_inputs(rust, native)
+                path.write_text('identical workload bytes\n')
+
+    def test_native_context_inputs_are_bound_before_importing_its_helper(self):
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            native, app, client = parent / 'native', parent / 'app', parent / 'client'
+            app.mkdir()
+            client.mkdir()
+            for name in pipeline.APP_BUILD_INPUTS:
+                path = native / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text('controlled native input\n')
+            base = native / 'planning/reference/headless-sdk-environment.json'
+            base.write_text('{}')
+            (client / 'environment.json').write_text('{}')
+            helper = native / 'scripts/bootstrap-zenoh-native.py'
+            helper.write_text('raise RuntimeError("selected native context import boundary")\n')
+            metadata = {'schema_version': 1, 'profile': pipeline.FULL_APP,
+                'base_sdk_environment_sha256': pipeline.digest(base),
+                'client_reference': {'root': str(client), 'environment_sha256': pipeline.digest(client / 'environment.json')},
+                'inputs_sha256': {name: pipeline.digest(native / name) for name in pipeline.APP_BUILD_INPUTS}}
+            with self.assertRaisesRegex(RuntimeError, 'selected native context import boundary'):
+                pipeline.validate_app_reference(app, {}, client, app, metadata=metadata, source_root=native)
+            helper.write_text('raise AssertionError("changed helper must never execute")\n')
+            with self.assertRaisesRegex(ValueError, 'changed'):
+                pipeline.validate_app_reference(app, {}, client, app, metadata=metadata, source_root=native)
+
+    def test_main_keeps_actual_cargo_source_and_tool_drift_guards_before_measurement(self):
+        class TimingReached(Exception):
+            pass
+        # No reference is qualified by this wiring stub; taskset is never run.
+        for mutation in ['none', 'wrong-cargo-context', 'changed-tool']:
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
+                root, record_path, build_json, binary, record = self.full_rust_fixture(directory)
+                compiler = Path(directory) / 'c++'
+                compiler.write_text('unexecuted compiler fixture\n')
+                prefix, builds, _ = PipelineEvidence().sdk_fixture(directory, root, compiler)
+                native, tool = Path(directory) / 'native-context', Path(directory) / 'tool-context'
+                shutil.copytree(root, native)
+                shutil.copytree(root, tool)
+                (tool / 'scripts/probe-headless-imu.py').write_text('def checked_sources(*args): return {}\n')
+                (native / 'planning/baseline.json').write_text(json.dumps({'repositories': [
+                    {'name': 'gz-' + name, 'commit': 'c' * 40} for name in ['sim', 'physics', 'sensors']]}))
+                # The tool tree is deliberately not a native source inventory.
+                (tool / 'planning/baseline.json').unlink()
+                for name in ['scripts/native_reference.py', 'reference/build-reference.py']:
+                    (tool / name).write_text('controlled current measurement tool\n')
+                actual_source = root / 'crates/gz-sim-server/src/lib.rs'
+                actual_source.parent.mkdir(parents=True, exist_ok=True)
+                actual_source.write_text('// current Rust source\n')
+                artifact = {'reason': 'compiler-artifact', 'executable': str(binary),
+                    'target': {'name': 'gz_sim_server', 'src_path': str(actual_source if mutation != 'wrong-cargo-context' else native / 'crates/gz-sim-server/src/lib.rs')},
+                    'profile': {'test': True, 'opt_level': '3', 'debug_assertions': False}}
+                build_json.write_text(json.dumps(artifact) + '\n' + json.dumps({'reason': 'build-finished', 'success': True}) + '\n')
+                record.update(build_json_sha256=pipeline.digest(build_json),
+                    source_sha256={str(p.relative_to(root)): pipeline.digest(p) for p in root.rglob('*') if p.is_file()})
+                record_path.write_text(json.dumps(record))
+                app_root = Path(directory) / 'app'
+                app_root.mkdir()
+                (app_root / 'environment.json').write_text('controlled in-memory validation boundary\n')
+                app = {'metadata': {'base_sdk_environment_sha256': 'controlled', 'client_reference': {}},
+                       'environment': {}, 'libraries': {}, 'vendor': Path(directory) / 'vendor', 'compiler': str(compiler)}
+                def validate_native(*args, source_root=None, **kwargs):
+                    self.assertEqual(source_root, native)
+                    return app
+                def child(command, **kwargs):
+                    if command[0] == str(compiler):
+                        Path(command[command.index('-o') + 1]).write_bytes(b'\x7fELFnonexecuted native fixture')
+                        if mutation == 'changed-tool':
+                            path = tool / 'scripts/native_reference.py'
+                            path.write_text('changed actual tool\n')
+                        return subprocess.CompletedProcess(command, 0)
+                    self.assertEqual(command[0], 'taskset')
+                    raise TimingReached()
+                arguments = ['benchmark', '--reference-profile', pipeline.FULL_APP,
+                    '--app-reference', str(app_root), '--app-source-root', str(native), '--rust-source-root', str(root),
+                    '--rust-build-json', str(build_json), '--rust-build-info', str(record_path),
+                    '--reference-prefix', str(prefix), '--dependency-prefix', str(prefix),
+                    '--work-dir', str(Path(directory) / 'work'), '--output', str(Path(directory) / 'result.json'), '--path', 'streams']
+                for name, build in builds.items():
+                    arguments += ['--' + name + '-build', str(build)]
+                with patch.object(pipeline, 'ROOT', tool), patch.object(sys, 'argv', arguments), \
+                     patch.object(pipeline, 'validate_app_reference', side_effect=validate_native), \
+                     patch.object(pipeline, 'validate_app_linkage', return_value={}), \
+                     patch.object(pipeline.subprocess, 'check_output', return_value='controlled compiler\n'), \
+                     patch.object(pipeline.subprocess, 'run', side_effect=child):
+                    with self.assertRaises(TimingReached if mutation == 'none' else ValueError):
+                        pipeline.main()
+                self.assertFalse((Path(directory) / 'result.json').exists())

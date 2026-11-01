@@ -69,8 +69,38 @@ def cache_value(build, key):
                 if line.startswith(prefix))
 
 
-def validate_rust_build(record_path, build_json, binary, profile=None):
+def benchmark_source_roots(profile, rust=None, app=None):
+    if profile != FULL_APP and (rust is not None or app is not None):
+        raise ValueError('explicit source contexts require the Zenoh full-app profile')
+    roots = []
+    for path in [ROOT if rust is None else rust, ROOT if app is None else app]:
+        if path.is_symlink() or not path.is_dir():
+            raise ValueError('benchmark source root must be a real directory')
+        roots.append(path.resolve())
+    return tuple(roots)
+
+
+def check_benchmark_context_inputs(rust, app):
+    # Both programs must still consume the same fixture and native driver bytes.
+    for name in ['crates/gz-sim-scene/tests/fixtures/headless_imu.sdf',
+                 *('crates/gz-sim-server/tests/' + value for value in [
+                     'native_pipeline_benchmark.cc', 'native_lockstep_benchmark.cc',
+                     'native_stream_benchmark.cc'])]:
+        left = client_reference.contained_file(rust, name)
+        right = client_reference.contained_file(app, name)
+        if digest(left) != digest(right):
+            raise ValueError('benchmark source contexts differ: ' + name)
+
+
+def measurement_tool_inputs():
+    return {name: digest(ROOT / name) for name in [
+        'scripts/benchmark-headless-pipeline.py', 'scripts/native_reference.py',
+        'scripts/probe-headless-imu.py', 'reference/build-reference.py']}
+
+
+def validate_rust_build(record_path, build_json, binary, profile=None, *, source_root=None):
     """Check the retained host build record before executing in the compiler-free SDK."""
+    root = ROOT if source_root is None else source_root
     record = json.loads(record_path.read_text())
     for key in ['source_tree', 'git_base']:
         if not re.fullmatch('[0-9a-f]{40}', record[key]):
@@ -83,30 +113,30 @@ def validate_rust_build(record_path, build_json, binary, profile=None):
     messages = [json.loads(line) for line in build_json.read_text().splitlines()]
     if [row.get('success') for row in messages if row.get('reason') == 'build-finished'] != [True]:
         raise ValueError('Rust build did not complete successfully')
-    channel = tomllib.loads((ROOT / 'rust-toolchain.toml').read_text())['toolchain']['channel']
+    channel = tomllib.loads((root / 'rust-toolchain.toml').read_text())['toolchain']['channel']
     if not record['rustc_vv'].startswith('rustc ' + channel + ' '):
         raise ValueError('Rust compiler version differs from the pinned toolchain')
     required = (APP_BUILD_INPUTS if profile == FULL_APP else SDK_BUILD_INPUTS).copy()
     if profile == FULL_APP:
         required |= {'.cargo/config.toml', 'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml'}
-        required |= {str(path.relative_to(ROOT)) for path in (ROOT / 'tests/support').rglob('*.rs')}
-        manifest = tomllib.loads((ROOT / 'Cargo.toml').read_text())
+        required |= {str(path.relative_to(root)) for path in (root / 'tests/support').rglob('*.rs')}
+        manifest = tomllib.loads((root / 'Cargo.toml').read_text())
         patch_path = Path(manifest['patch']['crates-io']['prost-derive']['path'])
         if patch_path.is_absolute() or '..' in patch_path.parts:
             raise ValueError('Rust derive patch escapes source root')
-        for directory in [ROOT / 'crates/gz-sim-proto', ROOT / patch_path]:
-            if directory.is_symlink() or not directory.is_dir() or not directory.resolve().is_relative_to(ROOT.resolve()):
+        for directory in [root / 'crates/gz-sim-proto', root / patch_path]:
+            if directory.is_symlink() or not directory.is_dir() or not directory.resolve().is_relative_to(root.resolve()):
                 raise ValueError('Rust generation/derive input must be a real directory')
-            required |= {str(path.relative_to(ROOT)) for path in directory.rglob('*')
+            required |= {str(path.relative_to(root)) for path in directory.rglob('*')
                          if path.is_file() and (path.suffix in {'.proto', '.rs', '.toml', '.json'}
                                                 or path.name in {'LICENSE', 'NOTICE'})}
-    required |= {str(path.relative_to(ROOT)) for path in (ROOT / 'crates').rglob('*.rs')}
-    required |= {str(path.relative_to(ROOT)) for path in (ROOT / 'crates').rglob('Cargo.toml')}
+    required |= {str(path.relative_to(root)) for path in (root / 'crates').rglob('*.rs')}
+    required |= {str(path.relative_to(root)) for path in (root / 'crates').rglob('Cargo.toml')}
     sources = record['source_sha256']
     if not required.issubset(sources):
         raise ValueError('Rust build record omits required source inputs')
     for name, expected in sources.items():
-        path = client_reference.contained_file(ROOT, name)
+        path = client_reference.contained_file(root, name)
         if path.is_symlink() or digest(path) != expected:
             raise ValueError('Rust build source changed: ' + name)
     return record
@@ -265,7 +295,8 @@ def app_runtime_environment(environment, libdirs, config):
     return env
 
 
-def validate_app_smoke(app, smoke, expected_libraries, required):
+def validate_app_smoke(app, smoke, expected_libraries, required, *, source_root=None):
+    root = ROOT if source_root is None else source_root
     names = {'source', 'binary', 'config', 'stdout', 'stderr', 'maps'}
     if set(smoke['files']) != names or smoke['status'] != 0:
         raise ValueError('app smoke evidence is incomplete')
@@ -273,9 +304,9 @@ def validate_app_smoke(app, smoke, expected_libraries, required):
     for name, record in smoke['files'].items():
         app_files(app, {record['path']: record['sha256']})
         paths[name] = app / record['path']
-    if paths['source'].read_bytes() != (ROOT / 'scripts/zenoh_headless_probe.cc').read_bytes():
+    if paths['source'].read_bytes() != (root / 'scripts/zenoh_headless_probe.cc').read_bytes():
         raise ValueError('app smoke source differs')
-    command = [str(paths['binary']), str(ROOT / 'crates/gz-sim-scene/tests/fixtures/headless_imu.sdf'), str(paths['maps'])]
+    command = [str(paths['binary']), str(root / 'crates/gz-sim-scene/tests/fixtures/headless_imu.sdf'), str(paths['maps'])]
     if smoke.get('command') != command or smoke.get('timeout_seconds') != 15:
         raise ValueError('app smoke launch is not bounded or input-bound')
     isolated = {'mode': 'peer', 'listen': {'endpoints': ['tcp/127.0.0.1:0']},
@@ -297,7 +328,8 @@ def validate_app_smoke(app, smoke, expected_libraries, required):
     return loaded
 
 
-def validate_app_reference(app, builds, prefix, dependency_prefix, metadata=None):
+def validate_app_reference(app, builds, prefix, dependency_prefix, metadata=None, *, source_root=None):
+    root = ROOT if source_root is None else source_root
     if app.is_symlink() or not app.is_dir():
         raise ValueError('app reference root must be a real directory')
     if metadata is None:
@@ -307,17 +339,20 @@ def validate_app_reference(app, builds, prefix, dependency_prefix, metadata=None
         metadata = json.loads(environment.read_text())
     if metadata.get('schema_version') != 1 or metadata.get('profile') != FULL_APP:
         raise ValueError('a Zenoh full-app profile is required, not a client SDK')
-    base_path = ROOT / 'planning/reference/headless-sdk-environment.json'
+    base_path = root / 'planning/reference/headless-sdk-environment.json'
     if metadata['base_sdk_environment_sha256'] != digest(base_path):
         raise ValueError('app base SDK identity differs')
     base = json.loads(base_path.read_text())
-    spec = importlib.util.spec_from_file_location('app_zenoh_reference', ROOT / 'scripts/bootstrap-zenoh-native.py')
-    selected = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(selected)
     client = metadata['client_reference']
     client_root = Path(client['root'])
     if not client_root.is_absolute() or digest(client_root / 'environment.json') != client['environment_sha256']:
         raise ValueError('app selected-client identity differs')
+    if not APP_BUILD_INPUTS.issubset(metadata['inputs_sha256']):
+        raise ValueError('app build omits required source inputs')
+    app_files(root, metadata['inputs_sha256'])
+    spec = importlib.util.spec_from_file_location('app_zenoh_reference', root / 'scripts/bootstrap-zenoh-native.py')
+    selected = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(selected)
     client_metadata = selected.validate_reference(client_root)
     client_prefix = client_root / 'install'
     vendor = client_root / 'vendor' / client_metadata['lock']['vendor']['prefix']
@@ -334,9 +369,6 @@ def validate_app_reference(app, builds, prefix, dependency_prefix, metadata=None
         raise ValueError('app tool identity differs')
     if tools['c++'] != client_metadata['tools']['c++']['sha256']:
         raise ValueError('app compiler differs from selected Zenoh compiler')
-    if not APP_BUILD_INPUTS.issubset(metadata['inputs_sha256']):
-        raise ValueError('app build omits required source inputs')
-    app_files(ROOT, metadata['inputs_sha256'])
     installed = app_directory(app, 'install')
     if selected.inventory(installed) != metadata['installed_files']:
         raise ValueError('app installed inventory changed')
@@ -395,7 +427,7 @@ def validate_app_reference(app, builds, prefix, dependency_prefix, metadata=None
         'libgz-transport.so.': client_prefix / 'lib', 'libgz-msgs.so.': client_prefix / 'lib',
         'libzenohc.so': vendor / 'lib',
     }
-    smoke_libraries = validate_app_smoke(app, metadata['smoke'], libraries, required)
+    smoke_libraries = validate_app_smoke(app, metadata['smoke'], libraries, required, source_root=root)
     libraries.update(smoke_libraries)
     return {'metadata': metadata, 'client_metadata': client_metadata,
             'compiler': client_metadata['tools']['c++']['path'],
@@ -469,6 +501,8 @@ def main():
     parser.add_argument('--reference-profile', choices=[client_reference.LEGACY, client_reference.SDK, FULL_APP], default=client_reference.LEGACY)
     parser.add_argument('--rust-build-info', type=Path)
     parser.add_argument('--app-reference', type=Path)
+    parser.add_argument('--app-source-root', type=Path, help='source view bound to the immutable native app inputs and smoke argv')
+    parser.add_argument('--rust-source-root', type=Path, help='actual source export recorded by the Rust Cargo build')
     args = parser.parse_args()
     if args.reference_profile == client_reference.SDK and args.rust_build_info is None:
         raise ValueError('the SDK profile requires the retained Rust build record')
@@ -478,6 +512,9 @@ def main():
         raise ValueError('the Zenoh profile requires a full-app reference')
     if args.reference_profile != FULL_APP and args.app_reference is not None:
         raise ValueError('an app reference requires the explicit Zenoh full-app profile')
+    rust_root, app_source_root = benchmark_source_roots(
+        args.reference_profile, args.rust_source_root, args.app_source_root)
+    tool_inputs = measurement_tool_inputs() if args.reference_profile == FULL_APP else None
     if args.path == 'streams' and not 20000 <= args.request_period_us <= 1000000:
         raise ValueError('native pose/info requires declared request period of20ms or more')
     if not 1 <= args.steps <= 1000 or args.samples < 7:
@@ -496,8 +533,9 @@ def main():
     spec = importlib.util.spec_from_file_location('native_reference', ROOT / 'scripts/probe-headless-imu.py')
     helper = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(helper)
+    native_inputs = app_source_root if args.reference_profile == FULL_APP else ROOT
     lock = {item['name']: item['commit'] for item in
-            json.loads((ROOT / 'planning/baseline.json').read_text())['repositories']}
+            json.loads((native_inputs / 'planning/baseline.json').read_text())['repositories']}
     source_files = {
         'sim': ['src/Server.cc', 'src/ServerPrivate.cc', 'src/SimulationRunner.cc', 'src/systems/physics/Physics.cc', 'src/systems/imu/Imu.cc'],
         'physics': ['tpe/lib/src/Engine.cc', 'tpe/lib/src/CollisionDetector.cc', 'tpe/plugin/src/SimulationFeatures.cc'],
@@ -515,8 +553,9 @@ def main():
                                     release_flags=cache_value(build, 'CMAKE_CXX_FLAGS_RELEASE'))
     prefix = args.reference_prefix.resolve()
     app_root = args.app_reference.absolute() if args.app_reference is not None else None
-    app = validate_app_reference(app_root, builds, prefix, args.dependency_prefix.resolve()) if app_root is not None else None
+    app = validate_app_reference(app_root, builds, prefix, args.dependency_prefix.resolve(), source_root=app_source_root) if app_root is not None else None
     if app is not None:
+        check_benchmark_context_inputs(rust_root, app_source_root)
         metadata_path = app_root / 'environment.json'
         metadata_bytes = metadata_path.read_bytes()
         reference_identity = {'profile': FULL_APP, 'reference_root': str(app_root), 'environment_sha256': digest(metadata_path),
@@ -548,16 +587,16 @@ def main():
             if item['target']['name'] == 'gz_sim_server' and item['profile']['test']:
                 if item['profile']['opt_level'] != '3' or item['profile']['debug_assertions']:
                     raise ValueError('Rust test executable is not the release profile')
-                if (sdk is not None or app is not None) and Path(item['target']['src_path']).resolve() != ROOT / 'crates/gz-sim-server/src/lib.rs':
+                if (sdk is not None or app is not None) and Path(item['target']['src_path']).resolve() != rust_root / 'crates/gz-sim-server/src/lib.rs':
                     raise ValueError('Rust executable belongs to a different source export')
                 rust_candidates.append(Path(item['executable']).resolve())
     if len(set(rust_candidates)) != 1:
         raise ValueError('expected exactly one release server test executable')
     rust = rust_candidates[0]
     rust_sha256 = digest(rust)
-    rust_build = validate_rust_build(args.rust_build_info, args.rust_build_json, rust, args.reference_profile) if sdk is not None or app is not None else None
+    rust_build = validate_rust_build(args.rust_build_info, args.rust_build_json, rust, args.reference_profile, source_root=rust_root) if sdk is not None or app is not None else None
     rust_build_info_sha256 = digest(args.rust_build_info) if rust_build is not None else None
-    fixture = ROOT / 'crates/gz-sim-scene/tests/fixtures/headless_imu.sdf'
+    fixture = rust_root / 'crates/gz-sim-scene/tests/fixtures/headless_imu.sdf'
     fixture_sha256 = digest(fixture)
     target = builds['sim'] / 'src/CMakeFiles/UNIT_ServerConfig_TEST.dir'
     flags = (target / 'flags.make').read_text()
@@ -566,7 +605,7 @@ def main():
     link = shlex.split((target / 'link.txt').read_text())
     libraries = [str((builds['sim'] / 'src' / item).resolve()) if item.startswith('../') else item
                  for item in link[link.index('-o') + 2:] if 'gtest' not in item]
-    source = ROOT / ('crates/gz-sim-server/tests/native_stream_benchmark.cc' if args.path == 'streams' else 'crates/gz-sim-server/tests/native_lockstep_benchmark.cc' if args.path == 'server' else 'crates/gz-sim-server/tests/native_pipeline_benchmark.cc')
+    source = rust_root / ('crates/gz-sim-server/tests/native_stream_benchmark.cc' if args.path == 'streams' else 'crates/gz-sim-server/tests/native_lockstep_benchmark.cc' if args.path == 'server' else 'crates/gz-sim-server/tests/native_pipeline_benchmark.cc')
     source_bytes = source.read_bytes()
     captured_source = work / 'native-pipeline-source.cc'
     captured_source.write_bytes(source_bytes)
@@ -590,7 +629,10 @@ def main():
         if metadata_path.read_bytes() != metadata_bytes or source.read_bytes() != source_bytes or captured_source.read_bytes() != source_bytes:
             raise ValueError('native benchmark input changed')
         if app is not None:
-            if validate_app_reference(app_root, builds, prefix, args.dependency_prefix.resolve()) != app:
+            check_benchmark_context_inputs(rust_root, app_source_root)
+            if measurement_tool_inputs() != tool_inputs:
+                raise ValueError('measurement tool source changed')
+            if validate_app_reference(app_root, builds, prefix, args.dependency_prefix.resolve(), source_root=app_source_root) != app:
                 raise ValueError('native Zenoh app reference changed')
         elif client_reference.validate_reference(prefix, reference, expected_lock, sdk, args.reference_profile) != reference_identity:
             raise ValueError('native benchmark reference changed')
@@ -600,7 +642,7 @@ def main():
             raise ValueError('native SDK build identity changed')
         if dict(native=digest(native), rust=digest(rust)) != binary_sha256 or digest(fixture) != fixture_sha256:
             raise ValueError('benchmark executable or fixture changed')
-        if rust_build is not None and (digest(args.rust_build_info) != rust_build_info_sha256 or validate_rust_build(args.rust_build_info, args.rust_build_json, rust, args.reference_profile) != rust_build):
+        if rust_build is not None and (digest(args.rust_build_info) != rust_build_info_sha256 or validate_rust_build(args.rust_build_info, args.rust_build_json, rust, args.reference_profile, source_root=rust_root) != rust_build):
             raise ValueError('Rust benchmark build record changed')
 
     recheck_inputs()
@@ -717,13 +759,15 @@ def main():
         sdk_build_registry_sha256=sdk_registry_sha256,
         source_tree=rust_build['source_tree'] if rust_build is not None else None,
         rustc=rust_build['rustc_vv'] if rust_build is not None else subprocess.check_output(['rustc', '-vV'], text=True),
-        fixture_sha256=fixture_sha256, rust_production_sources={str(p.relative_to(ROOT)):digest(p) for p in (ROOT/'crates').rglob('*.rs') if '/src/' in str(p)}, cargo_lock_sha256=digest(ROOT/'Cargo.lock'), git_base=rust_build['git_base'] if rust_build is not None else subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(), source_sha256={str(p.relative_to(ROOT)):digest(p) for p in
-            [source, ROOT/'crates/gz-sim-server/tests/private/pipeline_benchmark.rs',
-             *([ROOT/'crates/gz-sim-server/tests/private/streams_benchmark.rs'] if args.path == 'streams' else []),
-             ROOT/'crates/gz-sim-server/src/lib.rs', ROOT/'crates/gz-sim-core/src/lib.rs', Path(__file__).resolve()]},
+        fixture_sha256=fixture_sha256, rust_production_sources={str(p.relative_to(rust_root)):digest(p) for p in (rust_root/'crates').rglob('*.rs') if '/src/' in str(p)}, cargo_lock_sha256=digest(rust_root/'Cargo.lock'), git_base=rust_build['git_base'] if rust_build is not None else subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(), source_sha256={str(p.relative_to(rust_root)):digest(p) for p in
+            [source, rust_root/'crates/gz-sim-server/tests/private/pipeline_benchmark.rs',
+             *([rust_root/'crates/gz-sim-server/tests/private/streams_benchmark.rs'] if args.path == 'streams' else []),
+             rust_root/'crates/gz-sim-server/src/lib.rs', rust_root/'crates/gz-sim-core/src/lib.rs', rust_root/'scripts/benchmark-headless-pipeline.py']},
         binary_sha256=binary_sha256, native_libraries=native_libs)
     if app is not None:
         report['zenoh_config_sha256'] = zenoh_config_sha256
+        report['source_contexts'] = {'rust': str(rust_root), 'native_app': str(app_source_root), 'measurement_tool': str(ROOT)}
+        report['measurement_tool_inputs_sha256'] = tool_inputs
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report['ns_per_step']))
