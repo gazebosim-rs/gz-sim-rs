@@ -90,6 +90,10 @@ jobs:
           GZ_COVERAGE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           GZ_ZENOH_REFERENCE_ROOT: ${{ github.workspace }}/artifacts/zenoh-native-reference
           MUJOCO_PREFIX: ${{ github.workspace }}/artifacts/physics-reference/mujoco
+      - name: Diagnose worker exit across bounded repeated suites
+        id: worker_exit_stress
+        if: ${{ success() && github.ref == 'refs/heads/diagnostic/worker-exit-state' }}
+        run: python3 scripts/diagnostic-worker-exit.py
       - name: Restore the hosted runner user-namespace policy
         if: always()
         env:
@@ -105,4 +109,11 @@ jobs:
         with:
           name: render-coverage-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/coverage/
+          if-no-files-found: error
+      - name: Retain every worker-exit diagnostic attempt
+        if: ${{ always() && github.ref == 'refs/heads/diagnostic/worker-exit-state' && steps.worker_exit_stress.outcome != 'skipped' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: worker-exit-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/worker-exit-stress/
           if-no-files-found: error
