@@ -311,3 +311,99 @@ fn busy_snapshot_reply_preserves_committed_state_and_capture() {
         })
     );
 }
+
+#[cfg(unix)]
+#[test]
+fn reply_failure_bypasses_a_controlled_rust_destructor() {
+    use std::{
+        os::unix::net::UnixStream,
+        path::PathBuf,
+        process::{Child, Command, Stdio},
+    };
+    struct StalledDrop(PathBuf);
+    impl Drop for StalledDrop {
+        fn drop(&mut self) {
+            std::fs::write(&self.0, b"rust_cleanup_entered\n").unwrap();
+            loop {
+                std::thread::park();
+            }
+        }
+    }
+    fn legacy_return_error(marker: PathBuf) -> io::Result<()> {
+        let _cleanup = StalledDrop(marker);
+        let (mut output, peer) = UnixStream::pair()?;
+        drop(peer);
+        // Model the former ?/return path: its locals are destroyed before the
+        // caller receives the IO error. This is not an injected GPU fault.
+        send(&mut output, Reply::Ready { version: 2 })
+    }
+    if let Some(mode) = std::env::var_os("GZ_RENDER_RUST_DROP_CONTROL") {
+        let marker = PathBuf::from(std::env::var_os("GZ_RENDER_RUST_DROP_MARKER").unwrap());
+        let exit = ExitDeadline::new(getpid()).unwrap();
+        if mode == "legacy" {
+            let _ = legacy_return_error(marker);
+        } else {
+            let _cleanup = StalledDrop(marker);
+            let (mut output, peer) = UnixStream::pair().unwrap();
+            drop(peer);
+            send_or_exit(&mut output, Reply::Ready { version: 2 }, &exit);
+        }
+        panic!("fatal reply unexpectedly returned");
+    }
+    struct ChildOwner(Child);
+    impl Drop for ChildOwner {
+        fn drop(&mut self) {
+            if matches!(self.0.try_wait(), Ok(None)) {
+                let _ = self.0.kill();
+            }
+            let _ = self.0.wait();
+        }
+    }
+    let directory = tempfile::tempdir().unwrap();
+    for mode in ["legacy", "guarded"] {
+        let marker = directory.path().join(mode);
+        let mut child = ChildOwner(
+            Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "tests::reply_failure_bypasses_a_controlled_rust_destructor",
+                    "--nocapture",
+                ])
+                .env("GZ_RENDER_RUST_DROP_CONTROL", mode)
+                .env("GZ_RENDER_RUST_DROP_MARKER", &marker)
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn()
+                .unwrap(),
+        );
+        let deadline = std::time::Instant::now() + Duration::from_secs(10);
+        if mode == "legacy" {
+            while !marker.exists() {
+                assert!(child.0.try_wait().unwrap().is_none());
+                assert!(
+                    std::time::Instant::now() < deadline,
+                    "cleanup control did not enter"
+                );
+                std::thread::sleep(Duration::from_millis(5));
+            }
+            assert_eq!(std::fs::read(marker).unwrap(), b"rust_cleanup_entered\n");
+            assert!(child.0.try_wait().unwrap().is_none());
+            child.0.kill().unwrap();
+            child.0.wait().unwrap();
+        } else {
+            let status = loop {
+                if let Some(status) = child.0.try_wait().unwrap() {
+                    break status;
+                }
+                assert!(
+                    std::time::Instant::now() < deadline,
+                    "guarded reply did not exit"
+                );
+                std::thread::sleep(Duration::from_millis(5));
+            };
+            assert_eq!(status.code(), Some(1));
+            assert!(!marker.exists(), "fatal path entered Rust cleanup");
+        }
+    }
+}

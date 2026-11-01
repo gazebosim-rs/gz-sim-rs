@@ -69,6 +69,34 @@ on other platforms.
 This lifecycle is not yet integrated with the simulator or accepted. The default Bevy panic hook,
 Ctrl-C handler and log plugin are disabled in the renderer.
 
+### Worker reply-channel failure
+
+The peer-loss hardening candidate admits one parked exit-guard thread after the
+input thread starts and before constructing the renderer or sending `Ready`.
+Failure to admit that guard is a startup error; the existing input-thread failure
+still takes precedence. An absent worker owns no guard. The guard does no
+per-frame polling.
+
+On a reply write or flush error, the worker arms an absolute eight-second deadline
+before logging, then calls `process::exit(1)`. This skips Rust renderer destruction
+on the unusable reply path. The independent guard sends self-`SIGKILL` if logging
+or native exit handlers prevent termination; a failed arming handoff signals
+immediately. The deadline starts when the reply error is detected, not when the
+peer disconnects. The retained worker-exit tests still require termination within
+ten seconds. Scheduling and signal delivery remain operating-system assumptions,
+not a hard real-time guarantee.
+
+Normal input EOF and `Shutdown` retain graceful renderer destruction; the unarmed
+guard is canceled and joined on that path. Their driver/kernel stall limitations
+remain unchanged. `process::exit` permits normal exit handlers, including LLVM
+profile flushing, but the `SIGKILL` fallback may lose that child's raw profile.
+Coverage must use actual retained profiles without inventing missing execution.
+Controlled Rust-destructor, native-exit-handler and saturated-stderr regressions
+exercise the failure contract. They do not establish the cause of the original
+hosted ten-second timeout. This candidate still requires independent review,
+the ordinary strict staged hook and exact hosted qualification; it gives no
+broader activation, GPU, performance or phase-completion claim.
+
 Local tests have exercised a red box, color update, removal, reset-epoch and
 explicit cancellation, invalid snapshots, missing readiness resources and
 shader/device error handling on llvmpipe, a CPU Vulkan implementation. An isolated

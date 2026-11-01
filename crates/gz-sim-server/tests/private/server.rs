@@ -144,9 +144,89 @@ pub(super) fn wait_imu_interest(server: &Server, topic: &str, expected: bool) {
 
 #[test]
 fn tcp_listener_reservation_tracks_actual_session_lifecycle() {
+    use std::process::{Child, Command, Stdio};
+    const CHILD_ADDRESS: &str = "GZ_SIM_TCP_LIFECYCLE_ADDRESS";
+    const HOST_NAMESPACE: &str = "GZ_SIM_TCP_LIFECYCLE_HOST_NAMESPACE";
+    if std::env::var_os(CHILD_ADDRESS).is_none() {
+        // Keep this exact address occupied on the host for the child's entire
+        // lifecycle. Its successful binds must occur in a different netns.
+        let host = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = host.local_addr().unwrap();
+        struct OwnedChild(Child);
+        impl Drop for OwnedChild {
+            fn drop(&mut self) {
+                if matches!(self.0.try_wait(), Ok(None)) {
+                    let _ = self.0.kill();
+                }
+                let _ = self.0.wait();
+            }
+        }
+        let mut child = OwnedChild(
+            Command::new("unshare")
+                .args([
+                    "-Urn",
+                    "--",
+                    "sh",
+                    "-c",
+                    "ip link set dev lo up && exec \"$@\"",
+                    "tcp-lifecycle",
+                ])
+                .arg(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "tests::tcp_listener_reservation_tracks_actual_session_lifecycle",
+                    "--nocapture",
+                ])
+                .env(CHILD_ADDRESS, address.to_string())
+                .env(
+                    HOST_NAMESPACE,
+                    std::fs::read_link("/proc/self/ns/net").unwrap(),
+                )
+                .stdin(Stdio::null())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .spawn()
+                .unwrap(),
+        );
+        let deadline = Instant::now() + Duration::from_secs(20);
+        let status = loop {
+            if let Some(status) = child.0.try_wait().unwrap() {
+                break status;
+            }
+            assert!(
+                Instant::now() < deadline,
+                "isolated TCP lifecycle child stalled"
+            );
+            thread::sleep(Duration::from_millis(5));
+        };
+        let mut stdout = String::new();
+        let mut stderr = String::new();
+        std::io::Read::read_to_string(&mut child.0.stdout.take().unwrap(), &mut stdout).unwrap();
+        std::io::Read::read_to_string(&mut child.0.stderr.take().unwrap(), &mut stderr).unwrap();
+        assert!(status.success(), "{status}: {stdout} {stderr}");
+        assert!(
+            stdout.contains(
+                "test tests::tcp_listener_reservation_tracks_actual_session_lifecycle ... ok"
+            ) && stdout.contains("test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured;"),
+            "isolated lifecycle test did not execute: {stdout}"
+        );
+        assert_eq!(host.local_addr().unwrap(), address);
+        assert_eq!(
+            std::net::TcpListener::bind(address).unwrap_err().kind(),
+            std::io::ErrorKind::AddrInUse
+        );
+        return;
+    }
+    let host_namespace = std::env::var_os(HOST_NAMESPACE).unwrap();
+    assert_ne!(
+        std::fs::read_link("/proc/self/ns/net").unwrap(),
+        std::path::PathBuf::from(host_namespace),
+        "TCP lifecycle did not enter a private network namespace"
+    );
     // D28 replaces the discarded SDK's reusable UDP discovery-port fixture.
     // A stolen port at the explicit handoff fails setup; there is no retry.
-    let reserved = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = std::env::var(CHILD_ADDRESS).unwrap();
+    let reserved = std::net::TcpListener::bind(address.as_str()).unwrap();
     let address = reserved.local_addr().unwrap();
     assert_eq!(
         std::net::TcpListener::bind(address).unwrap_err().kind(),

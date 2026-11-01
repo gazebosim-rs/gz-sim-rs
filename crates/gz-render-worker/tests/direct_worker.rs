@@ -28,10 +28,13 @@ impl Worker {
     }
     fn start_with_icd(icd: Option<&str>) -> Self {
         let mut command = worker_command();
-        command.stdin(Stdio::piped()).stdout(Stdio::piped());
         if let Some(icd) = icd {
             command.env("VK_ICD_FILENAMES", icd);
         }
+        Self::from_command(command)
+    }
+    fn from_command(mut command: Command) -> Self {
+        command.stdin(Stdio::piped()).stdout(Stdio::piped());
         let mut child = command.spawn().unwrap();
         let mut stdout = child.stdout.take().unwrap();
         let (tx, replies) = mpsc::sync_channel(1);
@@ -1316,4 +1319,129 @@ fn calibrated_camera_renders_canonical_scene_snapshot() {
         reply => panic!("unexpected reply: {reply:?}"),
     }
     worker.finish();
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn exit_guard_admission_refusal_precedes_gpu_initialization() {
+    let mut command = Command::new("unshare");
+    command
+        .args([
+            "-Ur",
+            "bash",
+            "-c",
+            "ulimit -u 2; exec \"$1\" \"$PPID\"",
+            "fixture",
+            env!("CARGO_BIN_EXE_gz-render-worker"),
+        ])
+        .env("VK_ICD_FILENAMES", "/nonexistent/gz-render-icd.json")
+        .stderr(Stdio::piped());
+    if let Some(profile) = std::env::var_os("GZ_RENDER_WORKER_PROFILE") {
+        command.env("LLVM_PROFILE_FILE", profile);
+    }
+    // Keep stdin open: the first input thread must remain admitted while the
+    // second thread hits its isolated quota, rather than racing with EOF.
+    let mut worker = Worker::from_command(command);
+    assert!(matches!(
+        worker.next(),
+        Reply::Error {
+            kind: FailureKind::Startup,
+            request_id: None,
+            ..
+        }
+    ));
+    assert!(!worker.wait_exit().success());
+    let mut stderr = String::new();
+    worker
+        .child
+        .stderr
+        .take()
+        .unwrap()
+        .read_to_string(&mut stderr)
+        .unwrap();
+    assert!(
+        stderr.contains("exit deadline thread startup failed"),
+        "{stderr}"
+    );
+    assert!(!stderr.contains("renderer startup failed"));
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn lost_reply_peer_does_not_wait_for_a_native_exit_handler() {
+    use std::os::unix::process::ExitStatusExt;
+    let directory = tempfile::tempdir().unwrap();
+    let library = directory.path().join("exit_stall.so");
+    let source =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/exit_stall.c");
+    let compile = Command::new("cc")
+        .args(["-shared", "-fPIC", "-O0", "-Wall", "-Wextra", "-Werror"])
+        .arg(source)
+        .arg("-o")
+        .arg(&library)
+        .env_remove("LD_PRELOAD")
+        .env_remove("LD_AUDIT")
+        .output()
+        .unwrap();
+    assert!(compile.status.success(), "{compile:?}");
+    let marker = directory.path().join("native-exit-entered");
+    let mut command = worker_command();
+    command
+        .env("LD_PRELOAD", &library)
+        .env_remove("LD_AUDIT")
+        .env("GZ_RENDER_NATIVE_EXIT_MARKER", &marker);
+    let mut worker = Worker::from_command(command);
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    drop(worker.replies.take());
+    worker.send(Request::Cancel { request_id: 99 });
+    worker.reader.take().unwrap().join().unwrap();
+    let started = Instant::now();
+    worker.send(Request::Cancel { request_id: 100 });
+    let status = worker.wait_exit();
+    assert_eq!(status.signal(), Some(9));
+    assert!(started.elapsed() < Duration::from_secs(10));
+    assert_eq!(
+        std::fs::read_to_string(marker).unwrap(),
+        format!("native_exit_entered pid={}\n", worker.child.id())
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn lost_reply_peer_cannot_block_termination_on_saturated_stderr() {
+    use std::{os::fd::OwnedFd, os::unix::net::UnixStream, os::unix::process::ExitStatusExt};
+    let (_reader, mut writer) = UnixStream::pair().unwrap();
+    let child_stderr: OwnedFd = writer.try_clone().unwrap().into();
+    let mut command = worker_command();
+    command.stderr(Stdio::from(child_stderr));
+    let mut worker = Worker::from_command(command);
+    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    // This endpoint belongs only to the test and this child. Fill AFTER Ready
+    // so startup logging cannot be the blocked operation under observation.
+    writer.set_nonblocking(true).unwrap();
+    let mut bytes = 0;
+    for data in [&[0xA5; 4096][..], &[0xA5][..]] {
+        loop {
+            match writer.write(data) {
+                Ok(count) => {
+                    assert!(count > 0);
+                    bytes += count;
+                    assert!(bytes < 16 * 1024 * 1024, "stderr fixture did not saturate");
+                }
+                Err(error) if error.kind() == io::ErrorKind::WouldBlock => break,
+                Err(error) => panic!("stderr fill failed: {error}"),
+            }
+        }
+    }
+    assert!(bytes > 0);
+    writer.set_nonblocking(false).unwrap();
+    drop(worker.replies.take());
+    worker.send(Request::Cancel { request_id: 99 });
+    worker.reader.take().unwrap().join().unwrap();
+    let started = Instant::now();
+    worker.send(Request::Cancel { request_id: 100 });
+    let status = worker.wait_exit();
+    assert_eq!(status.signal(), Some(9));
+    assert!(started.elapsed() < Duration::from_secs(10));
+    drop(writer);
 }

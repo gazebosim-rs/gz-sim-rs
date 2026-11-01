@@ -1,5 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
+mod exit_deadline;
+
+use exit_deadline::ExitDeadline;
 use glam::{DQuat, DVec3};
 use gz_render_frame::{
     WorldPose,
@@ -9,7 +12,7 @@ use gz_render_protocol::{
     Camera, FailureKind, PROTOCOL_VERSION, Reply, Request, Stamp, Visual, read_request, write_reply,
 };
 use gz_renderer::{BoxVisual, Frame, RenderError, Renderer, Snapshot, UpdateStatus};
-use rustix::process::{Signal, getppid, set_parent_process_death_signal};
+use rustix::process::{Signal, getpid, getppid, set_parent_process_death_signal};
 use std::{
     io::{self, BufReader, BufWriter, Write},
     sync::mpsc::{self, RecvTimeoutError},
@@ -185,6 +188,16 @@ fn send(out: &mut impl Write, reply: Reply) -> io::Result<()> {
     write_reply(out, &reply)?;
     out.flush()
 }
+fn send_or_exit(out: &mut impl Write, reply: Reply, exit: &ExitDeadline) {
+    if let Err(error) = send(out, reply) {
+        // Arm before stderr or C/LLVM exit handlers can block. The renderer is
+        // process-owned: a broken reply channel cannot wait for its destruction.
+        exit.arm();
+        let _ = writeln!(io::stderr().lock(), "Error: {error:?}");
+        std::process::exit(1);
+    }
+}
+
 fn failure(kind: FailureKind, request_id: Option<u64>, message: impl ToString) -> Reply {
     let mut message = message.to_string();
     if message.len() > 1024 {
@@ -254,19 +267,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         send(&mut output, failure(FailureKind::Startup, None, error))?;
         return Err("input thread startup failed".into());
     }
+    let exit_deadline = match ExitDeadline::new(getpid()) {
+        Ok(exit) => exit,
+        Err(error) => {
+            send(&mut output, failure(FailureKind::Startup, None, error))?;
+            return Err("exit deadline thread startup failed".into());
+        }
+    };
     let mut renderer = match Renderer::new() {
         Ok(renderer) => renderer,
         Err(error) => {
-            send(&mut output, failure(FailureKind::Startup, None, error))?;
+            send_or_exit(
+                &mut output,
+                failure(FailureKind::Startup, None, error),
+                &exit_deadline,
+            );
             return Err("renderer startup failed".into());
         }
     };
-    send(
+    send_or_exit(
         &mut output,
         Reply::Ready {
             version: PROTOCOL_VERSION,
         },
-    )?;
+        &exit_deadline,
+    );
     let mut capture = CaptureSlot::default();
     let mut scene_needs_update = false;
     let mut last_snapshot_id = 0_u64;
@@ -288,10 +313,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let request = match request {
                 Ok(request) => request,
                 Err(_) => {
-                    send(
+                    send_or_exit(
                         &mut output,
                         failure(FailureKind::Protocol, None, "invalid protocol message"),
-                    )?;
+                        &exit_deadline,
+                    );
                     return Err("invalid protocol message".into());
                 }
             };
@@ -406,7 +432,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             };
             if let Some(reply) = reply {
-                send(&mut output, reply)?;
+                send_or_exit(&mut output, reply, &exit_deadline);
             }
             if skip_update {
                 continue;
@@ -419,7 +445,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }) = active
             && !renderer.readback_in_flight()
         {
-            send(&mut output, Reply::Cancelled { request_id })?;
+            send_or_exit(&mut output, Reply::Cancelled { request_id }, &exit_deadline);
             capture.clear();
             continue;
         }
@@ -430,7 +456,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 &mut scene_needs_update,
             )
         {
-            send(&mut output, reply)?;
+            send_or_exit(&mut output, reply, &exit_deadline);
             break;
         }
         if let Some(Capture {
@@ -442,10 +468,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 match renderer.request_readback() {
                     Ok(()) | Err(RenderError::NotReady) => {}
                     Err(error) => {
-                        send(
+                        send_or_exit(
                             &mut output,
                             failure(FailureKind::Capture, Some(request_id), error),
-                        )?;
+                            &exit_deadline,
+                        );
                         capture.clear();
                     }
                 }
@@ -454,9 +481,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let result = renderer.take_frame();
                 match capture.readback(result, renderer.readback_in_flight()) {
                     ReadbackOutcome::Pending => {}
-                    ReadbackOutcome::Complete(reply) => send(&mut output, reply)?,
+                    ReadbackOutcome::Complete(reply) => {
+                        send_or_exit(&mut output, reply, &exit_deadline)
+                    }
                     ReadbackOutcome::Failed(reply) => {
-                        send(&mut output, reply)?;
+                        send_or_exit(&mut output, reply, &exit_deadline);
                         break;
                     }
                 }
