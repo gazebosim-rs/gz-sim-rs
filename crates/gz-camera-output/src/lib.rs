@@ -19,7 +19,7 @@ use gz_render_protocol::{FailureKind, Reply, Request, Stamp};
 use gz_render_scene::{SnapshotError, extract_camera};
 use gz_sim_core::{Simulation, entity_by_id};
 use gz_sim_proto::prost::{Message, Name};
-use gz_sim_scene::CameraSensor;
+use gz_sim_scene::{CameraSensor, EntityKind, Name as SceneName};
 use std::{
     collections::BTreeSet,
     num::NonZeroUsize,
@@ -175,6 +175,45 @@ pub struct CameraOutputConfig {
     pub worker_path: PathBuf,
     /// Encoded protobuf payload limit; Zenoh framing and attachment are separate.
     pub max_message_bytes: NonZeroUsize,
+}
+
+impl CameraOutputConfig {
+    /// Explicitly derive the publication frame from a Scene-loaded camera.
+    /// Native Gazebo removes the world scope from the sensor name before Load.
+    /// Nonempty `frame_id` wins, then a present `gz_frame_id`, including empty.
+    /// An empty result remains subject to `CameraOutput::new`'s existing refusal.
+    ///
+    /// This replaces only this configuration's frame ID; omit it to preserve an
+    /// operator override. It performs no IO or camera admission. It does not
+    /// model a native programmatic Sensor that has no parsed XML Element.
+    pub fn with_loaded_frame_id(
+        mut self,
+        sim: &Simulation,
+        sensor_id: u64,
+    ) -> Result<Self, CameraOutputError> {
+        let world = sim.world();
+        let invalid = || SnapshotError::MissingCamera(sensor_id);
+        let entity = entity_by_id(world, sensor_id).ok_or_else(invalid)?;
+        if world.get::<EntityKind>(entity) != Some(&EntityKind::Sensor) {
+            return Err(invalid().into());
+        }
+        let sensor = world.get::<CameraSensor>(entity).ok_or_else(invalid)?;
+        let fallback = world
+            .get::<SceneName>(entity)
+            .and_then(|name| name.0.split_once("::"))
+            .filter(|(world, name)| {
+                !world.is_empty() && name.split("::").all(|part| !part.is_empty())
+            })
+            .map(|(_, name)| name)
+            .ok_or_else(invalid)?;
+        self.frame_id = if sensor.0.frame_id.is_empty() {
+            sensor.0.gz_frame_id.as_deref().unwrap_or(fallback)
+        } else {
+            &sensor.0.frame_id
+        }
+        .to_owned();
+        Ok(self)
+    }
 }
 
 fn publisher_token(

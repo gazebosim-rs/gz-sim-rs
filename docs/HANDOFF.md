@@ -3,11 +3,44 @@
 
 # Coordinator handoff
 
-Updated 2026-10-31. Read this first when resuming coordination of the rewrite,
+Updated 2026-11-01. Read this first when resuming coordination of the rewrite,
 whichever agent you are. AGENTS.md has the standing rules; this file has the
 current state and the next tasks. Update both when either changes.
 
-## Published Zenoh migration (2026-10-31)
+## Accepted headless milestone (2026-11-01)
+
+Main is `c3f5a2f3c39f27d98314e032e78c39cb44d660a0`. P2 and the current
+consumer migration in ZEN-01 are accepted. The complete local hook, independent
+code review, exact hosted run `41270504128` and downloaded source/profile/native
+audit passed before the fast-forward. The separate Main promotion run
+`41272913232` is still pending; do not call that run passed.
+
+Hosted checks execute 800 headless and 462 renderer tests plus 217 tooling tests.
+All required production crates exceed 95% lines and regions. The audit binds
+70 production sources, 272 inputs, 1,781 retained files and all 1,711 retained raw profiles
+remerged across the two profiles to the commit. Actual C++ Zenoh peers and software Vulkan pass. See
+[the P2 report](acceptance/P2_ZENOH.md) for the fifteen-row matrix and limits.
+The first matched performance report belongs to `5870373`; a new optimized c3
+ELF is prepared, but no c3 timings are claimed. Never measure during builds.
+
+Terminal admission, optional CPU force ingress and application-owned camera
+cadence are included. Fatal worker reply failures arm an eight-second backstop
+before logging or process exit, preserving the existing ten-second assertions.
+Normal EOF/shutdown still destroys the renderer normally. The original renderer
+timeout cause remains unproven. Keep that failure, the diagnostic
+non-reproductions and the first failed TCP fixture run separately; none is
+relabeled as a pass. The reviewed private-network fixture preserves every
+immediate single-bind assertion and rejects zero-test child execution.
+
+Next work: broader P3/P4 physics and sensors, full ACT-01 resource absence,
+current-release equal-work measurement, remaining systems and P0 reference
+inventory. The loaded-frame helper is independently reviewed but not accepted;
+its first full gate stopped for disk reserve. SDF's accepted producer is
+`1b57ab0`, while this simulator pins `486b3e0`; adoption requires its own checks.
+The automatic-box producer and all broader release gates remain in progress.
+Fuel is independently owned and must not be edited.
+
+## Published Zenoh migration baseline (2026-10-31)
 
 Commit `5870373f0d8280601b051f2cbb1bb0aba264f70f` replaces the legacy Rust
 Transport and Messages runtime dependencies with upstream Zenoh 1.8 and standard
@@ -74,19 +107,10 @@ LLVM source filtering to hide lexical build-script aliases, merge duplicate
 owned records, edit counters or remove uncovered entries. The normal strict
 missing/duplicate/changed-line and >95% checks stay mandatory.
 
-Next tasks:
-- Finish exact hosted qualification of the published shutdown follow-up.
-- Publish the independently reviewed P2 record, dependency receipt and matched
-  observations, then verify that publication before phase closure.
-- Audit simulator admission of newly parsed SDF semantics before changing its
-  pinned dependency. The producer slice itself is already accepted.
-- Continue bounded shutdown/activation and pressure controls. The separate
-  publication-staging experiment has correctness evidence but no comparative
-  timing or adoption credit.
-- Continue physics, rendering, systems, reference inventory and release work.
-  Whole phases remain open until their own acceptance criteria are met.
+The current next tasks and accepted revision are at the top of this file.
+Historical evidence below retains its original revision and scope.
 
-## Current acceptance publication
+## Earlier acceptance publication
 
 The CPU IMU shutdown-storage follow-up is published at `1480725`. Its normal
 staged hook and independent audit passed 784 headless, 435 renderer and 217
@@ -113,28 +137,20 @@ controls verify legacy gravity/reset on all backends, magnetic-field refusal and
 separate URDF boundaries; the existing 234-test Scene matrix passed in the
 isolated producer-readiness check. No private Cargo path override is adopted.
 The combined actual-Git integration passes those six controls and the seven
-terminal-shutdown controls; full integrated qualification remains pending.
+terminal-shutdown controls; c3 now passes the full integrated qualification.
 
 The integrated terminal-frame guard is described in
 `docs/TERMINAL_SHUTDOWN.md`. It preserves direct Session-close behavior while
 rejecting frames after explicit application shutdown. Independent review
 approved the exact implementation and two documented stronger assertion
-transitions. Its combined normal staged and hosted gates remain pending.
+transitions. Its combined normal staged and exact hosted gates passed at c3.
 
-The renderer failure remains unresolved. Source-identical local syscall
-controls did not reproduce the hosted ten-second stall. Diagnostic-only branch
-`diagnostic/worker-exit-state` at `75b73d0` passed its full local hook and
-independent audit; exact hosted run `41256735493` is collecting optional PID
-error/scope markers and bounded timeout process state. A green diagnostic run
-would be a non-reproduction, not a cause or fix. Main/P2 publication remains held
-until a reviewed correction passes the required checks. Never relax the retained
-assertions or deadline, or discard the original failed evidence.
-
-Next work includes explicit application-shutdown admission, full demand-only
-activation, the isolated publication-staging performance experiment, physics,
-rendering and remaining systems. Preserve the existing unexpected-session-close
-behavior separately from explicit application shutdown. Do not run comparative
-measurements while builds are active. Fuel remains independently owned.
+The earlier renderer timeout is retained, without a claimed root cause.
+Diagnostic branches75b73d and b46c469 did not reproduce it. The reviewed c3
+peer-loss bound passed controlled cleanup stalls and complete local/hosted gates;
+see RENDERING.md. Full demand-only activation, general pressure, broader physics
+and sensors remain open. Preserve direct Session-close behavior separately from
+explicit application shutdown and do not compare timings during builds.
 
 ## Owner correction: Zenoh and schema-only Messages
 
@@ -143,8 +159,8 @@ ZeroMQ parity and message codec/runtime/CLI work. Use upstream Zenoh directly in
 gz-sim-rs; gz-msgs-rs retains only canonical proto sources and required schema
 metadata/licensing. Generate bindings in each consumer. See
 ZENOH_SCHEMA_MIGRATION.md for the staged transition and acceptance criteria.
-Existing checked-in pins and historical C++ peer results still describe the old
-runtime; they do not qualify Zenoh. Preserve them until migration is verified.
+Historical ZeroMQ/runtime results retain their original scope; they do not
+qualify Zenoh. Current consumers use the independently qualified Zenoh path.
 SDF, Fuel, physics, rendering and built-in activation work continue.
 
 ## Owner correction: built-in systems
@@ -156,9 +172,9 @@ FFI remains allowed. ACT-01 defines activation, last-consumer teardown and zero 
 system resource/work evidence.
 
 The current implementation does not yet meet the full absence requirement:
-empty force ingress is still polled, generic input/physics callbacks
-remain installed, and force workers/templates survive last-consumer removal
-for reset. Joint preflight and committed/reset sampling now follow loaded
+generic input/physics dispatch and shared IO reconciliation still need work.
+Optional CPU force ingress now retires after its final consumer and loaded reset
+reconstructs it from Scene metadata; no old CPU worker/template is retained. Joint preflight and committed/reset sampling now follow loaded
 consumer demand; see JOINT_SYSTEM_LIFECYCLE.md for last-consumer retirement,
 loaded reset, cross-family observer handling and explicit failure scope.
 Persistent effort application now follows configured or typed controller demand;
@@ -422,17 +438,18 @@ Canonical SDF camera snapshots are accepted at `5669d79`. An optional CPU-only
 camera-output crate adds explicit acquisition and bounded publication through
 the real Bevy worker, with actual C++ Image/CameraInfo delivery on software
 Vulkan. Its private renderer profile and independent software-worker replay passed;
-full Main headless/staged/hosted qualification remains pending. Keep real buffered-frame reset/removal/replacement controls and
+full headless/staged/exact-hosted qualification passed at c3. Keep real
+buffered-frame reset/removal/replacement controls and
 independent protocol-error tests; those peers do not inject physical GPU faults.
-Automatic cadence, native image parity, physical GPU qualification and full
+Automatic Server camera management, native image parity, physical GPU qualification and full
 sensor-family migration remain open. Read the tracker and retained evidence
 before advancing these statuses.
 
-A private single-camera follow-up adds application-owned admission from loaded
+The accepted single-camera follow-up adds application-owned admission from loaded
 metadata and the shared integer SensorSchedule. It gates advancing committed
 frames, demand and the single acquisition slot, invalidates stale bindings and
 requires explicit worker retirement outside stepping. Independent source and
 retained-evidence review approved the slice and its observed-demand race fix.
 It adds no automatic Server callbacks or complete sensor-manager claim. Full
-integrated coverage, staged and hosted checks remain pending, as does the
-separate worker exit-timeout investigation. See [CAMERA_SCHEDULING.md](CAMERA_SCHEDULING.md).
+integrated coverage, staged and exact hosted checks passed at c3; the original
+worker timeout cause remains unproven. See [CAMERA_SCHEDULING.md](CAMERA_SCHEDULING.md).

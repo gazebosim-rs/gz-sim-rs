@@ -7,11 +7,21 @@ The selected P2 runtime contract is requalified at
 [5870373](https://github.com/gazebosim-rs/gz-sim-rs/commit/5870373f0d8280601b051f2cbb1bb0aba264f70f).
 Its normal staged hook and
 [exact hosted verification](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41248418524)
-passed. Independent review checked the downloaded source, inputs, coverage,
-native clients and software-renderer evidence. This report publishes the fresh
-Zenoh matrix, dependency receipt and matched performance observations. Its own
-publication commit must pass the normal hook and exact hosted/source checks
-before the coordinator advances P2 on the dashboard.
+passed. The report, matrix, dependency receipt and matched observations are now
+published on Main at
+[c3f5a2f](https://github.com/gazebosim-rs/gz-sim-rs/commit/c3f5a2f3c39f27d98314e032e78c39cb44d660a0).
+That exact commit passed the full local gate, independent code review,
+[hosted verification](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41270504128)
+and downloaded source/profile/native audit before the Main fast-forward. P2 is
+accepted for this selected contract. The separate Main promotion workflow
+`41272913232` is pending, not counted as another pass.
+
+The c3 audit verifies 800 headless and 462 renderer executions, 217 tooling tests,
+70 production sources, 272 inputs and every required crate's strict coverage.
+Later terminal/force/camera/worker lifecycle changes do not relabel the earlier
+performance measurements. The original renderer timeout and first TCP fixture
+failure remain recorded; the reviewed engineering fixes preserve every retained
+assertion and deadline without claiming a retrospective root cause.
 
 The [fifteen-row matrix](../../planning/acceptance/p2-zenoh.json) names the current
 passing witnesses, fixture hashes, protocol translations and limits. The
@@ -53,7 +63,7 @@ The additional renderer evidence does not make rendering a P2 requirement.
 
 Independent audit binds all 1767 hosted files, 68 production sources and 272
 inputs to the runtime commit. The
-[current dependency receipt](../../planning/acceptance/p2-zenoh-normal-dependencies.json)
+[runtime-witness dependency receipt](../../planning/acceptance/p2-zenoh-normal-dependencies.json)
 records 426 normal/build packages for both the CLI and explicit headless
 workspace on Linux x86-64, with all 22 manifests and Cargo.lock checked against
 5870373. Neither closure contains a renderer, window or GPU package. This is
@@ -61,7 +71,7 @@ the Cargo closure; native runtime linkage has separate qualified records.
 
 Runtime evidence uses the pinned SDF and Fuel revisions recorded in that
 receipt. The later explicit SDF486 integration has its own six admission
-regressions and pending combined qualification; it does not relabel the earlier
+regressions and passing c3 combined qualification; it does not relabel the earlier
 runtime evidence. This record identifies the equivalent-source schema-only Messages
 release `d030d06`; the original minimal consumer inventory retains its actual
 `a39a945` provenance. The new source-policy record requires fresh build evidence

@@ -1124,3 +1124,6 @@ fn noncanonical_camera_keys_fail_before_reservation_or_liveliness() {
         }
     }
 }
+
+#[path = "loaded_frame.rs"]
+mod loaded_frame;

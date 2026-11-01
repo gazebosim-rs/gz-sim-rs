@@ -12,6 +12,33 @@ no system, schedule, callback or worker in the simulation. Calling code owns
 all naming, sampling and sequence policy; this does not implement SDF sensor
 scheduling or native default-topic selection.
 
+`CameraOutputConfig::with_loaded_frame_id(&simulation, sensor_id)` explicitly
+replaces only the configured frame ID from a Scene-loaded camera. It verifies
+current public identity, sensor kind, camera metadata and a nonempty world-scoped
+Scene Name before deriving anything. A nonempty canonical `frame_id` takes
+precedence over a present legacy `gz_frame_id`, including an empty legacy value.
+Otherwise it removes the world scope from the Scene name: for example,
+`default::robot::body::camera` becomes `robot::body::camera`.
+
+This follows pinned native SIM `71c60db` RenderUtil's `SetName` preprocessing
+before gz-sensors `8ddf4c1` `CameraSensor::Load` and its common Sensor frame logic.
+It differs from passing the original local sensor name directly to Sensor::Load.
+The CPU characterization covers the three original `Sensor_TEST.FrameIdFromSdf`
+inputs and seven empty/whitespace boundaries, plus actual parsed-DOM `SetName`
+copies. It does not execute RenderUtil, a rendering scene or the complete sensor
+Manager. A native programmatic Sensor without an XML Element has different
+fallback behavior; this convenience method is only for Scene-loaded metadata.
+
+The opt-in method performs no IO, advertisements, worker startup or schedule
+registration. An empty native result stays empty and is refused by the existing
+constructor; it is never replaced with a guessed name. Omit the method to keep
+an explicit operator frame override. Default topic selection, calibration
+admission, manual construction and publication behavior are unchanged. This
+metadata follow-up passes all 39 CPU library tests (five new), all-target Clippy
+and formatting. Independent review and the normal strict staged and hosted gates
+remain pending; it adds no original-case or full-Manager credit. No new GPU or
+software-worker execution is claimed for this metadata-only increment.
+
 `request` samples the committed epoch/time and calibration once. It consults
 cached publisher interest; info-only requests use CPU message construction and
 never start the renderer. They still extract and allocate the CPU scene, and
@@ -42,7 +69,7 @@ kernel stall. There is no hard real-time shutdown guarantee. The owner itself
 must also be dropped outside the critical step. Busy/error paths are observable;
 this API does not queue multiple frames or block a physics tick.
 
-Development checks passed eighteen CPU tests, including four message
+Earlier pump development checks passed eighteen CPU tests, including four message
 controls and fourteen validation, demand and ownership controls. A typed
 protocol peer exercises nine failure sequences without fabricating frames or
 GPU faults. Six same-graph worker tests passed together with the Mesa software
