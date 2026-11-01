@@ -61,12 +61,15 @@ pub(super) fn validate_model(
     require(engine.is_some(), &model.scoped_name, "TPE joints")?;
     let rapier = engine == Some("rapier");
     let dart_chain = engine == Some("dart") && model.links.len() == 2 && model.joints.len() == 2;
+    let dart_free_chain =
+        engine == Some("dart") && model.links.len() == 3 && model.joints.len() == 2;
     require(
         top_level
             && !is_static
             && model.models.is_empty()
             && (rapier
                 || dart_chain
+                || dart_free_chain
                 || ((model.links.len() == 1 || model.links.len() == 2) && model.joints.len() == 1)),
         &model.scoped_name,
         "joint topology (expected one dynamic world-anchored link)",
@@ -102,6 +105,7 @@ pub(super) fn validate_model(
                 && parent != child
                 && (rapier
                     || dart_chain
+                    || (dart_free_chain && parent != world)
                     || ((model.links.len() == 1 && parent == world)
                         || (model.links.len() == 2 && parent != world))),
             &name,
@@ -126,6 +130,13 @@ pub(super) fn validate_model(
         !dart_chain || (root_child.is_some() && root_child == local_parent),
         &model.scoped_name,
         "DART joint topology (expected a world-rooted two-link chain)",
+    )?;
+    require(
+        !dart_free_chain
+            || (graph.node_count() == 3
+                && graph.nodes().all(|node| graph.neighbors(node).count() <= 1)),
+        &model.scoped_name,
+        "DART joint topology (expected a free-root serial three-link chain)",
     )?;
     require(
         toposort(&graph, None).is_ok(),
@@ -170,14 +181,22 @@ pub(super) fn build(
 ) -> Result<(), LoadError> {
     let mut order: Vec<_> = (0..model.joints.len()).collect();
     if backend.engine() == "dart" && model.joints.len() == 2 {
-        let root = model
+        let endpoints: Vec<_> = model
             .joints
             .iter()
-            .position(|joint| {
-                sdf.resolve_name(&model.scoped_name, &joint.parent)
-                    .is_ok_and(|parent| parent == context.world)
+            .map(|joint| {
+                Ok((
+                    sdf.resolve_name(&model.scoped_name, &joint.parent)?,
+                    sdf.resolve_name(&model.scoped_name, &joint.child)?,
+                ))
             })
-            .expect("validated DART chain has a world hinge");
+            .collect::<Result<_, LoadError>>()?;
+        let root = endpoints
+            .iter()
+            .position(|(parent, _)| {
+                parent == context.world || !endpoints.iter().any(|(_, child)| child == parent)
+            })
+            .expect("validated DART serial chain has one root joint");
         order.swap(0, root);
     }
     let mut built: Vec<_> = (0..model.joints.len()).map(|_| None).collect();

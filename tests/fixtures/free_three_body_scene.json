@@ -1,0 +1,2282 @@
+{
+  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
+  "license": "Apache-2.0",
+  "scope": "Actual native Scene observations for exact contact-free three-link/two-revolute inputs; no Rust/native parity or reset qualification",
+  "body_fields": [
+    "position_x",
+    "position_y",
+    "position_z",
+    "quaternion_x",
+    "quaternion_y",
+    "quaternion_z",
+    "quaternion_w",
+    "world_linear_velocity_x",
+    "world_linear_velocity_y",
+    "world_linear_velocity_z",
+    "world_angular_velocity_x",
+    "world_angular_velocity_y",
+    "world_angular_velocity_z"
+  ],
+  "joint_fields": [
+    "position",
+    "velocity"
+  ],
+  "pose_fields": [
+    "x",
+    "y",
+    "z",
+    "quaternion_x",
+    "quaternion_y",
+    "quaternion_z",
+    "quaternion_w"
+  ],
+  "units": {
+    "position": "m",
+    "linear_velocity": "m/s",
+    "joint_position": "rad",
+    "joint_velocity": "rad/s",
+    "effort": "N m",
+    "angular_velocity": "rad/s",
+    "time_step": "s"
+  },
+  "step_seconds": 0.001,
+  "ticks": 10,
+  "generic_joint_traversal_warning": "generic_ecm_world_pose traverses ParentEntity(model), while joint_local_pose is child-relative; it is NOT the semantic joint model/world frame",
+  "historical_materialization": {
+    "source": "crates/gz-sim-scene/tests/free_three_body.rs::xml(reverse)",
+    "source_file_sha256": "a6d3de9b2d5e83db8eee040f04fe5929be2e85e81e9e76e7647b6c49e62a56e3",
+    "role": "Historical extraction provenance only, not a current consumer testfile hash requirement. Future consumer tests compare fixture XML directly with current xml(reverse)."
+  },
+  "cases": [
+    {
+      "name": "forward",
+      "reverse_declarations": false,
+      "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.001</max_step_size></physics><model name='chain'><link name='root'><pose>0 0 0 0 0 0</pose><inertial><mass>1</mass><inertia><ixx>0.004</ixx><iyy>0.004</iyy><izz>0.004</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link><link name='middle'><pose>0 0 -2 0 0 0</pose><inertial><mass>1</mass><inertia><ixx>0.004</ixx><iyy>0.004</iyy><izz>0.004</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link><link name='leaf'><pose>10 0 0 0 0 0</pose><inertial><mass>1</mass><inertia><ixx>0.004</ixx><iyy>0.004</iyy><izz>0.004</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link><joint name='first' type='revolute'><parent>root</parent><child>middle</child><pose relative_to='__model__'>0 0 -1 0 0 0</pose><axis><xyz expressed_in='__model__'>0 1 0</xyz></axis></joint><joint name='second' type='revolute'><parent>middle</parent><child>leaf</child><pose relative_to='__model__'>0 0 0 0 0 0</pose><axis><xyz expressed_in='__model__'>0 1 0</xyz></axis></joint></model></world></sdf>",
+      "xml_sha256": "ba98f96f31d635c73fad67db4775345517987e2cc539fbdfccbece80497b2065",
+      "initial_links": [
+        {
+          "name": "root",
+          "observed_id": 5,
+          "observed_parent_id": 4,
+          "local_pose": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "generic_ecm_world_pose": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "middle",
+          "observed_id": 7,
+          "observed_parent_id": 4,
+          "local_pose": [
+            0.0,
+            0.0,
+            -2.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "generic_ecm_world_pose": [
+            0.0,
+            0.0,
+            -2.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "leaf",
+          "observed_id": 9,
+          "observed_parent_id": 4,
+          "local_pose": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "generic_ecm_world_pose": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "initial_joints": [
+        {
+          "name": "first",
+          "observed_id": 11,
+          "observed_parent_model_id": 4,
+          "parent_link_name": "root",
+          "child_link_name": "middle",
+          "joint_local_pose": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "generic_ecm_world_pose": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "resolved_axis_xyz": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "resolved_axis_expressed_in": ""
+        },
+        {
+          "name": "second",
+          "observed_id": 12,
+          "observed_parent_model_id": 4,
+          "parent_link_name": "middle",
+          "child_link_name": "leaf",
+          "joint_local_pose": [
+            -10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "generic_ecm_world_pose": [
+            -10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "resolved_axis_xyz": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "resolved_axis_expressed_in": ""
+        }
+      ],
+      "commands": [
+        {
+          "tick": 1,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 1,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 2,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 2,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 3,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 3,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 4,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 4,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 5,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 5,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 6,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 6,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 7,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 7,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 8,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 8,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 9,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 9,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 10,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 10,
+          "name": "second",
+          "effort": -0.2
+        }
+      ],
+      "body_states": [
+        {
+          "tick": 1,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -6.958250497017892e-07,
+            0.0,
+            -9.999400035997657e-09,
+            0.0,
+            -5.218687872765079e-07,
+            0.0,
+            0.9999999999998638,
+            -0.0006958250497017892,
+            0.0,
+            -9.999400035997656e-06,
+            0.0,
+            -0.0010437375745526837,
+            0.0
+          ]
+        },
+        {
+          "tick": 1,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -1.0118927155570573e-07,
+            0.0,
+            -2.000000009998755,
+            0.0,
+            2.2455089820340079e-07,
+            0.0,
+            0.9999999999999748,
+            -0.00010118927155681311,
+            0.0,
+            -9.998108955449585e-06,
+            0.0,
+            0.00044910179640718405,
+            0.0
+          ]
+        },
+        {
+          "tick": 1,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.00000079701432,
+            0.0,
+            1.9999243150436814e-08,
+            0.0,
+            -1.4999100055891449e-09,
+            0.0,
+            1.0,
+            0.0007970143211674751,
+            0.0,
+            1.999968776769707e-05,
+            0.0,
+            -2.999820010799283e-06,
+            0.0
+          ]
+        },
+        {
+          "tick": 2,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -2.087475138729537e-06,
+            0.0,
+            -2.999949239359817e-08,
+            0.0,
+            -1.5656063540958662e-06,
+            0.0,
+            0.9999999999987744,
+            -0.0013916500890277478,
+            0.0,
+            -2.0000092357600515e-05,
+            0.0,
+            -0.0020874751336333154,
+            0.0
+          ]
+        },
+        {
+          "tick": 2,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -3.035678265681532e-07,
+            0.0,
+            -2.000000029993682,
+            0.0,
+            6.736526980134085e-07,
+            0.0,
+            0.999999999999773,
+            -0.0002023785550305971,
+            0.0,
+            -1.999234587437755e-05,
+            0.0,
+            0.0008982035996267469,
+            0.0
+          ]
+        },
+        {
+          "tick": 2,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000002391042967,
+            0.0,
+            5.999862162653551e-08,
+            0.0,
+            -4.499705984922297e-09,
+            0.0,
+            0.9999999999999999,
+            0.0015940286436813378,
+            0.0,
+            4.000115333684318e-05,
+            0.0,
+            -5.999591952033419e-06,
+            0.0
+          ]
+        },
+        {
+          "tick": 3,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -4.174950246323554e-06,
+            0.0,
+            -6.000350718903774e-08,
+            0.0,
+            -3.1312126850226305e-06,
+            0.0,
+            0.9999999999950977,
+            -0.0020874751075940167,
+            0.0,
+            -3.0004014795439653e-05,
+            0.0,
+            -0.003131212661816432,
+            0.0
+          ]
+        },
+        {
+          "tick": 3,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -6.071356888017556e-07,
+            0.0,
+            -2.0000000599802674,
+            0.0,
+            1.3473054062476031e-06,
+            0.0,
+            0.9999999999990924,
+            -0.0003035678623492456,
+            0.0,
+            -2.998077534608431e-05,
+            0.0,
+            0.0013473054165151531,
+            0.0
+          ]
+        },
+        {
+          "tick": 3,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000004782085933,
+            0.0,
+            1.1999902715942066e-07,
+            0.0,
+            -8.999327777976503e-09,
+            0.0,
+            0.9999999999999999,
+            0.002391042969051535,
+            0.0,
+            6.0004399126991863e-05,
+            0.0,
+            -8.999243540055947e-06,
+            0.0
+          ]
+        },
+        {
+          "tick": 4,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -6.958250341322577e-06,
+            0.0,
+            -1.0001661236896605e-07,
+            0.0,
+            -5.218687756945211e-06,
+            0.0,
+            0.9999999999863827,
+            -0.0027833000949990232,
+            0.0,
+            -4.001310517992884e-05,
+            0.0,
+            -0.004174950143680671,
+            0.0
+          ]
+        },
+        {
+          "tick": 4,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -1.0118928937806323e-06,
+            0.0,
+            -2.0000000999520586,
+            0.0,
+            2.2455090331088378e-06,
+            0.0,
+            0.9999999999974788,
+            -0.00040475720545470517,
+            0.0,
+            -3.996146196009642e-05,
+            0.0,
+            0.0017964072539270624,
+            0.0
+          ]
+        },
+        {
+          "tick": 4,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000007970143239,
+            0.0,
+            2.0000135547705654e-07,
+            0.0,
+            -1.4998679124412875e-08,
+            0.0,
+            0.9999999999999999,
+            0.0031880572987638945,
+            0.0,
+            8.000942755742989e-05,
+            0.0,
+            -1.1998702491239051e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 5,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -1.0437375382136181e-05,
+            0.0,
+            -1.5004591371010244e-07,
+            0.0,
+            -7.82803153912609e-06,
+            0.0,
+            0.999999999969361,
+            -0.0034791250408136025,
+            0.0,
+            -5.0029301341138625e-05,
+            0.0,
+            -0.005218687563811001,
+            0.0
+          ]
+        },
+        {
+          "tick": 5,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -1.517839488585261e-06,
+            0.0,
+            -2.0000001499006674,
+            0.0,
+            3.3682635921298896e-06,
+            0.0,
+            0.9999999999943274,
+            -0.0005059465963055742,
+            0.0,
+            -4.993247030623578e-05,
+            0.0,
+            0.002245509118714342,
+            0.0
+          ]
+        },
+        {
+          "tick": 5,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000011955214868,
+            0.0,
+            3.0000650630412e-07,
+            0.0,
+            -2.2497627717042365e-08,
+            0.0,
+            0.9999999999999998,
+            0.003985071634272864,
+            0.0,
+            0.00010001624104715466,
+            0.0,
+            -1.4997896521983054e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 6,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -1.4612325316707315e-05,
+            0.0,
+            -2.101004548187661e-07,
+            0.0,
+            -1.0959243993285116e-05,
+            0.0,
+            0.9999999999399475,
+            -0.004174949934571135,
+            0.0,
+            -6.0054541108670984e-05,
+            0.0,
+            -0.00626242490680096,
+            0.0
+          ]
+        },
+        {
+          "tick": 6,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -2.124975531515191e-06,
+            0.0,
+            -2.000000209815772,
+            0.0,
+            4.715569100083346e-06,
+            0.0,
+            0.9999999999888817,
+            -0.0006071360468797111,
+            0.0,
+            -5.989186497468915e-05,
+            0.0,
+            0.002694611017725078,
+            0.0
+          ]
+        },
+        {
+          "tick": 6,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.00001673730085,
+            0.0,
+            4.200153873590564e-07,
+            0.0,
+            -3.149600528938229e-08,
+            0.0,
+            0.9999999999999996,
+            0.004782085976994252,
+            0.0,
+            0.00012002484201477935,
+            0.0,
+            -1.7996753348727308e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 7,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -1.9483100082464986e-05,
+            0.0,
+            -2.8019121713028086e-07,
+            0.0,
+            -1.461232507372445e-05,
+            0.0,
+            0.99999999989324,
+            -0.0048707747657576695,
+            0.0,
+            -7.009076231153502e-05,
+            0.0,
+            -0.007306162157254883,
+            0.0
+          ]
+        },
+        {
+          "tick": 7,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -2.833301091583911e-06,
+            0.0,
+            -2.0000002796851133,
+            0.0,
+            6.287425576848174e-06,
+            0.0,
+            0.999999999980234,
+            -0.0007083255691768402,
+            0.0,
+            -6.983771055607797e-05,
+            0.0,
+            0.0031437129578025845,
+            0.0
+          ]
+        },
+        {
+          "tick": 7,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000022316401179,
+            0.0,
+            5.600289139096062e-07,
+            0.0,
+            -4.1993607745878555e-08,
+            0.0,
+            0.9999999999999991,
+            0.0055791003282979375,
+            0.0,
+            0.0001400352328785307,
+            0.0,
+            -2.0995200687962557e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 8,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -2.5049699606267046e-05,
+            0.0,
+            -3.6033111990825583e-07,
+            0.0,
+            -1.8787274727503636e-05,
+            0.0,
+            0.9999999998235192,
+            -0.005566599523802058,
+            0.0,
+            -8.013990277802418e-05,
+            0.0,
+            -0.008349899299790145,
+            0.0
+          ]
+        },
+        {
+          "tick": 8,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -3.6428162478116035e-06,
+            0.0,
+            -2.0000003594945004,
+            0.0,
+            8.08383304522445e-06,
+            0.0,
+            0.9999999999673258,
+            -0.0008095151752211514,
+            0.0,
+            -7.976807164152894e-05,
+            0.0,
+            0.0035928149457844193,
+            0.0
+          ]
+        },
+        {
+          "tick": 8,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000028692515873,
+            0.0,
+            7.200480136582282e-07,
+            0.0,
+            -5.3990195343306624e-08,
+            0.0,
+            0.9999999999999986,
+            0.006376114689500633,
+            0.0,
+            0.00016004741605612176,
+            0.0,
+            -2.3993166256238742e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 9,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -3.131212380433313e-05,
+            0.0,
+            -4.50535020243743e-07,
+            0.0,
+            -2.348409289467338e-05,
+            0.0,
+            0.9999999997242487,
+            -0.006262424198066087,
+            0.0,
+            -9.020390033559533e-05,
+            0.0,
+            -0.009393636319039384,
+            0.0
+          ]
+        },
+        {
+          "tick": 9,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -4.553521088281738e-06,
+            0.0,
+            -2.0000004492278016,
+            0.0,
+            1.0104791530687796e-05,
+            0.0,
+            0.9999999999489466,
+            -0.0009107048770639103,
+            0.0,
+            -8.968101282274468e-05,
+            0.0,
+            0.004041916988501393,
+            0.0
+          ]
+        },
+        {
+          "tick": 9,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000035865644943,
+            0.0,
+            9.000736298503192e-07,
+            0.0,
+            -6.74854929318312e-08,
+            0.0,
+            0.9999999999999978,
+            0.007173129061858599,
+            0.0,
+            0.0001800613939648254,
+            0.0,
+            -2.699057777017736e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 10,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -3.827037258216773e-05,
+            0.0,
+            -5.508197130542743e-07,
+            0.0,
+            -2.8702779508576483e-05,
+            0.0,
+            0.9999999995880752,
+            -0.0069582487778345956,
+            0.0,
+            -0.00010028469281075068,
+            0.0,
+            -0.010437373199652742,
+            0.0
+          ]
+        },
+        {
+          "tick": 10,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -5.565415708927424e-06,
+            0.0,
+            -2.000000548866953,
+            0.0,
+            1.2350301061074815e-05,
+            0.0,
+            0.999999999923735,
+            -0.001011894686786062,
+            0.0,
+            -9.957459869207558e-05,
+            0.0,
+            0.004491019092776587,
+            0.0
+          ]
+        },
+        {
+          "tick": 10,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000043835788397,
+            0.0,
+            1.1001067319329253e-06,
+            0.0,
+            -8.247919026434263e-08,
+            0.0,
+            0.9999999999999966,
+            0.007970143446560387,
+            0.0,
+            0.00020007716902123847,
+            0.0,
+            -2.998736294647624e-05,
+            0.0
+          ]
+        }
+      ],
+      "joint_states": [
+        {
+          "tick": 1,
+          "name": "second",
+          "observed_id": 12,
+          "values": [
+            -4.5210161641798335e-07,
+            -0.00045210161641798333
+          ]
+        },
+        {
+          "tick": 1,
+          "name": "first",
+          "observed_id": 11,
+          "values": [
+            1.492839370959868e-06,
+            0.0014928393709598678
+          ]
+        },
+        {
+          "tick": 2,
+          "name": "first",
+          "observed_id": 11,
+          "values": [
+            4.47851810421993e-06,
+            0.0029856787332600623
+          ]
+        },
+        {
+          "tick": 2,
+          "name": "second",
+          "observed_id": 12,
+          "values": [
+            -1.3563048079967636e-06,
+            -0.0009042031915787803
+          ]
+        },
+        {
+          "tick": 3,
+          "name": "first",
+          "observed_id": 11,
+          "values": [
+            8.957036182551515e-06,
+            0.004478518078331585
+          ]
+        },
+        {
+          "tick": 3,
+          "name": "second",
+          "observed_id": 12,
+          "values": [
+            -2.712609468051973e-06,
+            -0.001356304660055209
+          ]
+        },
+        {
+          "tick": 4,
+          "name": "first",
+          "observed_id": 11,
+          "values": [
+            1.4928393580159247e-05,
+            0.005971357397607733
+          ]
+        },
+        {
+          "tick": 4,
+          "name": "second",
+          "observed_id": 12,
+          "values": [
+            -4.521015424470274e-06,
+            -0.0018084059564183015
+          ]
+        },
+        {
+          "tick": 5,
+          "name": "first",
+          "observed_id": 11,
+          "values": [
+            2.239259026268459e-05,
+            0.007464196682525343
+          ]
+        },
+        {
+          "tick": 5,
+          "name": "second",
+          "observed_id": 12,
+          "values": [
+            -6.781522439706599e-06,
+            -0.002260507015236325
+          ]
+        },
+        {
+          "tick": 6,
+          "name": "first",
+          "observed_id": 11,
+          "values": [
+            3.134962618721063e-05,
+            0.008957035924526038
+          ]
+        },
+        {
+          "tick": 6,
+          "name": "second",
+          "observed_id": 12,
+          "values": [
+            -9.494130210780405e-06,
+            -0.002712607771073805
+          ]
+        },
+        {
+          "tick": 7,
+          "name": "first",
+          "observed_id": 11,
+          "values": [
+            4.17995013022681e-05,
+            0.010449875115057468
+          ]
+        },
+        {
+          "tick": 7,
+          "name": "second",
+          "observed_id": 12,
+          "values": [
+            -1.2658838369270951e-05,
+            -0.003164708158490547
+          ]
+        },
+        {
+          "tick": 8,
+          "name": "first",
+          "observed_id": 11,
+          "values": [
+            5.3742215547842665e-05,
+            0.011942714245574564
+          ]
+        },
+        {
+          "tick": 8,
+          "name": "second",
+          "observed_id": 12,
+          "values": [
+            -1.6275646481311608e-05,
+            -0.003616808112040658
+          ]
+        },
+        {
+          "tick": 9,
+          "name": "first",
+          "observed_id": 11,
+          "values": [
+            6.717776885538344e-05,
+            0.013435553307540777
+          ]
+        },
+        {
+          "tick": 9,
+          "name": "second",
+          "observed_id": 12,
+          "values": [
+            -2.034455404758318e-05,
+            -0.0040689075662715705
+          ]
+        },
+        {
+          "tick": 10,
+          "name": "first",
+          "observed_id": 11,
+          "values": [
+            8.210616114781276e-05,
+            0.01492839229242933
+          ]
+        },
+        {
+          "tick": 10,
+          "name": "second",
+          "observed_id": 12,
+          "values": [
+            -2.4865560503306244e-05,
+            -0.004521006455723064
+          ]
+        }
+      ],
+      "semantic_joints": [
+        {
+          "name": "first",
+          "raw_pose": [
+            0.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "raw_pose_relative_to": "__model__",
+          "resolved_model_frame_pose": [
+            0.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "resolved_child_frame_pose": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "child_model_pose_times_child_local_pose": [
+            0.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "native_dom_line": 1,
+          "native_dom_file_path": ""
+        },
+        {
+          "name": "second",
+          "raw_pose": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "raw_pose_relative_to": "__model__",
+          "resolved_model_frame_pose": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "resolved_child_frame_pose": [
+            -10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "child_model_pose_times_child_local_pose": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "native_dom_line": 1,
+          "native_dom_file_path": ""
+        }
+      ],
+      "raw_state_sha256": "3f8beaf668ca1dd37c04c155fa61a5458b524117630409be77548cb233d9b88d",
+      "raw_semantic_sha256": "3e157811f75a1f1170243463d10917009691ad6333c74560931d4bffa074a2b3"
+    },
+    {
+      "name": "reverse",
+      "reverse_declarations": true,
+      "xml": "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.001</max_step_size></physics><model name='chain'><link name='root'><pose>0 0 0 0 0 0</pose><inertial><mass>1</mass><inertia><ixx>0.004</ixx><iyy>0.004</iyy><izz>0.004</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link><link name='middle'><pose>0 0 -2 0 0 0</pose><inertial><mass>1</mass><inertia><ixx>0.004</ixx><iyy>0.004</iyy><izz>0.004</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link><link name='leaf'><pose>10 0 0 0 0 0</pose><inertial><mass>1</mass><inertia><ixx>0.004</ixx><iyy>0.004</iyy><izz>0.004</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link><joint name='second' type='revolute'><parent>middle</parent><child>leaf</child><pose relative_to='__model__'>0 0 0 0 0 0</pose><axis><xyz expressed_in='__model__'>0 1 0</xyz></axis></joint><joint name='first' type='revolute'><parent>root</parent><child>middle</child><pose relative_to='__model__'>0 0 -1 0 0 0</pose><axis><xyz expressed_in='__model__'>0 1 0</xyz></axis></joint></model></world></sdf>",
+      "xml_sha256": "91578b2549f13f075e3032ea847d4e9ae3454e69435eeeccda3ca915568f716c",
+      "initial_links": [
+        {
+          "name": "root",
+          "observed_id": 5,
+          "observed_parent_id": 4,
+          "local_pose": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "generic_ecm_world_pose": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "middle",
+          "observed_id": 7,
+          "observed_parent_id": 4,
+          "local_pose": [
+            0.0,
+            0.0,
+            -2.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "generic_ecm_world_pose": [
+            0.0,
+            0.0,
+            -2.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "leaf",
+          "observed_id": 9,
+          "observed_parent_id": 4,
+          "local_pose": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "generic_ecm_world_pose": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "initial_joints": [
+        {
+          "name": "second",
+          "observed_id": 11,
+          "observed_parent_model_id": 4,
+          "parent_link_name": "middle",
+          "child_link_name": "leaf",
+          "joint_local_pose": [
+            -10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "generic_ecm_world_pose": [
+            -10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "resolved_axis_xyz": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "resolved_axis_expressed_in": ""
+        },
+        {
+          "name": "first",
+          "observed_id": 12,
+          "observed_parent_model_id": 4,
+          "parent_link_name": "root",
+          "child_link_name": "middle",
+          "joint_local_pose": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "generic_ecm_world_pose": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "resolved_axis_xyz": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "resolved_axis_expressed_in": ""
+        }
+      ],
+      "commands": [
+        {
+          "tick": 1,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 1,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 2,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 2,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 3,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 3,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 4,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 4,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 5,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 5,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 6,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 6,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 7,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 7,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 8,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 8,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 9,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 9,
+          "name": "first",
+          "effort": 0.7
+        },
+        {
+          "tick": 10,
+          "name": "second",
+          "effort": -0.2
+        },
+        {
+          "tick": 10,
+          "name": "first",
+          "effort": 0.7
+        }
+      ],
+      "body_states": [
+        {
+          "tick": 1,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -6.958250497017892e-07,
+            0.0,
+            -9.999400035997657e-09,
+            0.0,
+            -5.218687872765079e-07,
+            0.0,
+            0.9999999999998638,
+            -0.0006958250497017892,
+            0.0,
+            -9.999400035997656e-06,
+            0.0,
+            -0.0010437375745526837,
+            0.0
+          ]
+        },
+        {
+          "tick": 1,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -1.0118927155570573e-07,
+            0.0,
+            -2.000000009998755,
+            0.0,
+            2.2455089820340079e-07,
+            0.0,
+            0.9999999999999748,
+            -0.00010118927155681311,
+            0.0,
+            -9.998108955449585e-06,
+            0.0,
+            0.00044910179640718405,
+            0.0
+          ]
+        },
+        {
+          "tick": 1,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.00000079701432,
+            0.0,
+            1.9999243150436814e-08,
+            0.0,
+            -1.4999100055891449e-09,
+            0.0,
+            1.0,
+            0.0007970143211674751,
+            0.0,
+            1.999968776769707e-05,
+            0.0,
+            -2.999820010799283e-06,
+            0.0
+          ]
+        },
+        {
+          "tick": 2,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -2.087475138729537e-06,
+            0.0,
+            -2.999949239359817e-08,
+            0.0,
+            -1.5656063540958662e-06,
+            0.0,
+            0.9999999999987744,
+            -0.0013916500890277478,
+            0.0,
+            -2.0000092357600515e-05,
+            0.0,
+            -0.0020874751336333154,
+            0.0
+          ]
+        },
+        {
+          "tick": 2,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -3.035678265681532e-07,
+            0.0,
+            -2.000000029993682,
+            0.0,
+            6.736526980134085e-07,
+            0.0,
+            0.999999999999773,
+            -0.0002023785550305971,
+            0.0,
+            -1.999234587437755e-05,
+            0.0,
+            0.0008982035996267469,
+            0.0
+          ]
+        },
+        {
+          "tick": 2,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000002391042967,
+            0.0,
+            5.999862162653551e-08,
+            0.0,
+            -4.499705984922297e-09,
+            0.0,
+            0.9999999999999999,
+            0.0015940286436813378,
+            0.0,
+            4.000115333684318e-05,
+            0.0,
+            -5.999591952033419e-06,
+            0.0
+          ]
+        },
+        {
+          "tick": 3,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -4.174950246323554e-06,
+            0.0,
+            -6.000350718903774e-08,
+            0.0,
+            -3.1312126850226305e-06,
+            0.0,
+            0.9999999999950977,
+            -0.0020874751075940167,
+            0.0,
+            -3.0004014795439653e-05,
+            0.0,
+            -0.003131212661816432,
+            0.0
+          ]
+        },
+        {
+          "tick": 3,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -6.071356888017556e-07,
+            0.0,
+            -2.0000000599802674,
+            0.0,
+            1.3473054062476031e-06,
+            0.0,
+            0.9999999999990924,
+            -0.0003035678623492456,
+            0.0,
+            -2.998077534608431e-05,
+            0.0,
+            0.0013473054165151531,
+            0.0
+          ]
+        },
+        {
+          "tick": 3,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000004782085933,
+            0.0,
+            1.1999902715942066e-07,
+            0.0,
+            -8.999327777976503e-09,
+            0.0,
+            0.9999999999999999,
+            0.002391042969051535,
+            0.0,
+            6.0004399126991863e-05,
+            0.0,
+            -8.999243540055947e-06,
+            0.0
+          ]
+        },
+        {
+          "tick": 4,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -6.958250341322577e-06,
+            0.0,
+            -1.0001661236896605e-07,
+            0.0,
+            -5.218687756945211e-06,
+            0.0,
+            0.9999999999863827,
+            -0.0027833000949990232,
+            0.0,
+            -4.001310517992884e-05,
+            0.0,
+            -0.004174950143680671,
+            0.0
+          ]
+        },
+        {
+          "tick": 4,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -1.0118928937806323e-06,
+            0.0,
+            -2.0000000999520586,
+            0.0,
+            2.2455090331088378e-06,
+            0.0,
+            0.9999999999974788,
+            -0.00040475720545470517,
+            0.0,
+            -3.996146196009642e-05,
+            0.0,
+            0.0017964072539270624,
+            0.0
+          ]
+        },
+        {
+          "tick": 4,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000007970143239,
+            0.0,
+            2.0000135547705654e-07,
+            0.0,
+            -1.4998679124412875e-08,
+            0.0,
+            0.9999999999999999,
+            0.0031880572987638945,
+            0.0,
+            8.000942755742989e-05,
+            0.0,
+            -1.1998702491239051e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 5,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -1.0437375382136181e-05,
+            0.0,
+            -1.5004591371010244e-07,
+            0.0,
+            -7.82803153912609e-06,
+            0.0,
+            0.999999999969361,
+            -0.0034791250408136025,
+            0.0,
+            -5.0029301341138625e-05,
+            0.0,
+            -0.005218687563811001,
+            0.0
+          ]
+        },
+        {
+          "tick": 5,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -1.517839488585261e-06,
+            0.0,
+            -2.0000001499006674,
+            0.0,
+            3.3682635921298896e-06,
+            0.0,
+            0.9999999999943274,
+            -0.0005059465963055742,
+            0.0,
+            -4.993247030623578e-05,
+            0.0,
+            0.002245509118714342,
+            0.0
+          ]
+        },
+        {
+          "tick": 5,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000011955214868,
+            0.0,
+            3.0000650630412e-07,
+            0.0,
+            -2.2497627717042365e-08,
+            0.0,
+            0.9999999999999998,
+            0.003985071634272864,
+            0.0,
+            0.00010001624104715466,
+            0.0,
+            -1.4997896521983054e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 6,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -1.4612325316707315e-05,
+            0.0,
+            -2.101004548187661e-07,
+            0.0,
+            -1.0959243993285116e-05,
+            0.0,
+            0.9999999999399475,
+            -0.004174949934571135,
+            0.0,
+            -6.0054541108670984e-05,
+            0.0,
+            -0.00626242490680096,
+            0.0
+          ]
+        },
+        {
+          "tick": 6,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -2.124975531515191e-06,
+            0.0,
+            -2.000000209815772,
+            0.0,
+            4.715569100083346e-06,
+            0.0,
+            0.9999999999888817,
+            -0.0006071360468797111,
+            0.0,
+            -5.989186497468915e-05,
+            0.0,
+            0.002694611017725078,
+            0.0
+          ]
+        },
+        {
+          "tick": 6,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.00001673730085,
+            0.0,
+            4.200153873590564e-07,
+            0.0,
+            -3.149600528938229e-08,
+            0.0,
+            0.9999999999999996,
+            0.004782085976994252,
+            0.0,
+            0.00012002484201477935,
+            0.0,
+            -1.7996753348727308e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 7,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -1.9483100082464986e-05,
+            0.0,
+            -2.8019121713028086e-07,
+            0.0,
+            -1.461232507372445e-05,
+            0.0,
+            0.99999999989324,
+            -0.0048707747657576695,
+            0.0,
+            -7.009076231153502e-05,
+            0.0,
+            -0.007306162157254883,
+            0.0
+          ]
+        },
+        {
+          "tick": 7,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -2.833301091583911e-06,
+            0.0,
+            -2.0000002796851133,
+            0.0,
+            6.287425576848174e-06,
+            0.0,
+            0.999999999980234,
+            -0.0007083255691768402,
+            0.0,
+            -6.983771055607797e-05,
+            0.0,
+            0.0031437129578025845,
+            0.0
+          ]
+        },
+        {
+          "tick": 7,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000022316401179,
+            0.0,
+            5.600289139096062e-07,
+            0.0,
+            -4.1993607745878555e-08,
+            0.0,
+            0.9999999999999991,
+            0.0055791003282979375,
+            0.0,
+            0.0001400352328785307,
+            0.0,
+            -2.0995200687962557e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 8,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -2.5049699606267046e-05,
+            0.0,
+            -3.6033111990825583e-07,
+            0.0,
+            -1.8787274727503636e-05,
+            0.0,
+            0.9999999998235192,
+            -0.005566599523802058,
+            0.0,
+            -8.013990277802418e-05,
+            0.0,
+            -0.008349899299790145,
+            0.0
+          ]
+        },
+        {
+          "tick": 8,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -3.6428162478116035e-06,
+            0.0,
+            -2.0000003594945004,
+            0.0,
+            8.08383304522445e-06,
+            0.0,
+            0.9999999999673258,
+            -0.0008095151752211514,
+            0.0,
+            -7.976807164152894e-05,
+            0.0,
+            0.0035928149457844193,
+            0.0
+          ]
+        },
+        {
+          "tick": 8,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000028692515873,
+            0.0,
+            7.200480136582282e-07,
+            0.0,
+            -5.3990195343306624e-08,
+            0.0,
+            0.9999999999999986,
+            0.006376114689500633,
+            0.0,
+            0.00016004741605612176,
+            0.0,
+            -2.3993166256238742e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 9,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -3.131212380433313e-05,
+            0.0,
+            -4.50535020243743e-07,
+            0.0,
+            -2.348409289467338e-05,
+            0.0,
+            0.9999999997242487,
+            -0.006262424198066087,
+            0.0,
+            -9.020390033559533e-05,
+            0.0,
+            -0.009393636319039384,
+            0.0
+          ]
+        },
+        {
+          "tick": 9,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -4.553521088281738e-06,
+            0.0,
+            -2.0000004492278016,
+            0.0,
+            1.0104791530687796e-05,
+            0.0,
+            0.9999999999489466,
+            -0.0009107048770639103,
+            0.0,
+            -8.968101282274468e-05,
+            0.0,
+            0.004041916988501393,
+            0.0
+          ]
+        },
+        {
+          "tick": 9,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000035865644943,
+            0.0,
+            9.000736298503192e-07,
+            0.0,
+            -6.74854929318312e-08,
+            0.0,
+            0.9999999999999978,
+            0.007173129061858599,
+            0.0,
+            0.0001800613939648254,
+            0.0,
+            -2.699057777017736e-05,
+            0.0
+          ]
+        },
+        {
+          "tick": 10,
+          "name": "root",
+          "observed_id": 5,
+          "values": [
+            -3.827037258216773e-05,
+            0.0,
+            -5.508197130542743e-07,
+            0.0,
+            -2.8702779508576483e-05,
+            0.0,
+            0.9999999995880752,
+            -0.0069582487778345956,
+            0.0,
+            -0.00010028469281075068,
+            0.0,
+            -0.010437373199652742,
+            0.0
+          ]
+        },
+        {
+          "tick": 10,
+          "name": "middle",
+          "observed_id": 7,
+          "values": [
+            -5.565415708927424e-06,
+            0.0,
+            -2.000000548866953,
+            0.0,
+            1.2350301061074815e-05,
+            0.0,
+            0.999999999923735,
+            -0.001011894686786062,
+            0.0,
+            -9.957459869207558e-05,
+            0.0,
+            0.004491019092776587,
+            0.0
+          ]
+        },
+        {
+          "tick": 10,
+          "name": "leaf",
+          "observed_id": 9,
+          "values": [
+            10.000043835788397,
+            0.0,
+            1.1001067319329253e-06,
+            0.0,
+            -8.247919026434263e-08,
+            0.0,
+            0.9999999999999966,
+            0.007970143446560387,
+            0.0,
+            0.00020007716902123847,
+            0.0,
+            -2.998736294647624e-05,
+            0.0
+          ]
+        }
+      ],
+      "joint_states": [
+        {
+          "tick": 1,
+          "name": "first",
+          "observed_id": 12,
+          "values": [
+            1.492839370959868e-06,
+            0.0014928393709598678
+          ]
+        },
+        {
+          "tick": 1,
+          "name": "second",
+          "observed_id": 11,
+          "values": [
+            -4.5210161641798335e-07,
+            -0.00045210161641798333
+          ]
+        },
+        {
+          "tick": 2,
+          "name": "second",
+          "observed_id": 11,
+          "values": [
+            -1.3563048079967636e-06,
+            -0.0009042031915787803
+          ]
+        },
+        {
+          "tick": 2,
+          "name": "first",
+          "observed_id": 12,
+          "values": [
+            4.47851810421993e-06,
+            0.0029856787332600623
+          ]
+        },
+        {
+          "tick": 3,
+          "name": "second",
+          "observed_id": 11,
+          "values": [
+            -2.712609468051973e-06,
+            -0.001356304660055209
+          ]
+        },
+        {
+          "tick": 3,
+          "name": "first",
+          "observed_id": 12,
+          "values": [
+            8.957036182551515e-06,
+            0.004478518078331585
+          ]
+        },
+        {
+          "tick": 4,
+          "name": "second",
+          "observed_id": 11,
+          "values": [
+            -4.521015424470274e-06,
+            -0.0018084059564183015
+          ]
+        },
+        {
+          "tick": 4,
+          "name": "first",
+          "observed_id": 12,
+          "values": [
+            1.4928393580159247e-05,
+            0.005971357397607733
+          ]
+        },
+        {
+          "tick": 5,
+          "name": "second",
+          "observed_id": 11,
+          "values": [
+            -6.781522439706599e-06,
+            -0.002260507015236325
+          ]
+        },
+        {
+          "tick": 5,
+          "name": "first",
+          "observed_id": 12,
+          "values": [
+            2.239259026268459e-05,
+            0.007464196682525343
+          ]
+        },
+        {
+          "tick": 6,
+          "name": "second",
+          "observed_id": 11,
+          "values": [
+            -9.494130210780405e-06,
+            -0.002712607771073805
+          ]
+        },
+        {
+          "tick": 6,
+          "name": "first",
+          "observed_id": 12,
+          "values": [
+            3.134962618721063e-05,
+            0.008957035924526038
+          ]
+        },
+        {
+          "tick": 7,
+          "name": "second",
+          "observed_id": 11,
+          "values": [
+            -1.2658838369270951e-05,
+            -0.003164708158490547
+          ]
+        },
+        {
+          "tick": 7,
+          "name": "first",
+          "observed_id": 12,
+          "values": [
+            4.17995013022681e-05,
+            0.010449875115057468
+          ]
+        },
+        {
+          "tick": 8,
+          "name": "second",
+          "observed_id": 11,
+          "values": [
+            -1.6275646481311608e-05,
+            -0.003616808112040658
+          ]
+        },
+        {
+          "tick": 8,
+          "name": "first",
+          "observed_id": 12,
+          "values": [
+            5.3742215547842665e-05,
+            0.011942714245574564
+          ]
+        },
+        {
+          "tick": 9,
+          "name": "second",
+          "observed_id": 11,
+          "values": [
+            -2.034455404758318e-05,
+            -0.0040689075662715705
+          ]
+        },
+        {
+          "tick": 9,
+          "name": "first",
+          "observed_id": 12,
+          "values": [
+            6.717776885538344e-05,
+            0.013435553307540777
+          ]
+        },
+        {
+          "tick": 10,
+          "name": "second",
+          "observed_id": 11,
+          "values": [
+            -2.4865560503306244e-05,
+            -0.004521006455723064
+          ]
+        },
+        {
+          "tick": 10,
+          "name": "first",
+          "observed_id": 12,
+          "values": [
+            8.210616114781276e-05,
+            0.01492839229242933
+          ]
+        }
+      ],
+      "semantic_joints": [
+        {
+          "name": "second",
+          "raw_pose": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "raw_pose_relative_to": "__model__",
+          "resolved_model_frame_pose": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "resolved_child_frame_pose": [
+            -10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "child_model_pose_times_child_local_pose": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "native_dom_line": 1,
+          "native_dom_file_path": ""
+        },
+        {
+          "name": "first",
+          "raw_pose": [
+            0.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "raw_pose_relative_to": "__model__",
+          "resolved_model_frame_pose": [
+            0.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "resolved_child_frame_pose": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "child_model_pose_times_child_local_pose": [
+            0.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "native_dom_line": 1,
+          "native_dom_file_path": ""
+        }
+      ],
+      "raw_state_sha256": "efb7d697f400a10c94e5319add242949ef1c5dc2be2e21284cc67bd4777bd461",
+      "raw_semantic_sha256": "269f1f3bd4e848f577b86d9eae9bd92dfe6dbec1db3bd0dcbad1489c74ad944a"
+    }
+  ]
+}

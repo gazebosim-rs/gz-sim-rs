@@ -145,3 +145,18 @@ Remaining blockers and next bounded task:
 Keep worktree/file ownership explicit when several contributors work at once.
 Integrate shared interfaces before dependent implementations. An agent may not
 change a producer contract solely to make its own consumer tests easier.
+
+## Private Scene continuation: free-root serial three-body DART
+
+Root owns a bounded LOAD-01/PHY-03 consumer follow-up in `joints.rs` and new
+Scene tests. The accepted backend already supports a contact-free free root with
+two serial revolute children. Admit only that topology, preserve the existing
+world-rooted two-link case, construct constraints in parent-first order and keep
+public joint declaration identities. Retain branch, cycle, world-rooted
+three-link, larger-tree, limits and other-backend refusals. Tests must cover
+reversed declarations, actual backend comparison, loaded reset and removal. No
+old refusal assertion changes before independent disposition review. No new
+backend contact admission, B03, multiple collisions or native SDF parity claim.
+Implementation and test-code findings are batched in this candidate; final source
+review and consolidated qualification are pending. See
+[SCENE_FREE_THREE_BODY.md](SCENE_FREE_THREE_BODY.md).
