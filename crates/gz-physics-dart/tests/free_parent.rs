@@ -10,6 +10,9 @@ use gz_physics_dart::DartBackend;
 use nalgebra::{Quaternion, UnitQuaternion, Vector3};
 use std::time::Duration;
 
+#[path = "support/free_chain.rs"]
+mod free_chain_support;
+
 fn spawn(
     backend: &mut DartBackend,
     position: [f64; 3],
@@ -334,6 +337,10 @@ fn unsupported_graphs_keep_endpoints_joint_ids_and_pending_inputs() {
         (bodies[1], bodies[0]),
         (bodies[0], bodies[0]),
     ] {
+        if parent == bodies[1] && child == extra {
+            free_chain_support::assert_exact_stationary_leaf_extension();
+            continue;
+        }
         assert!(matches!(
             backend.add_revolute(parent, child, [0.0; 3], [0.0, 1.0, 0.0]),
             Err(PhysicsError::Unsupported { .. })

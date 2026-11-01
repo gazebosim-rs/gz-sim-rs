@@ -78,3 +78,60 @@ The private boundary probe also ran 192 isolated mass/rotation/rate/timestep cas
 84 advanced and 108 explicitly refused stepping with unchanged public state.
 These bounded diagnostic cases are supplemental, not exhaustive safety coverage
 or a performance comparison. Acceptance still requires the full ordinary gates.
+
+## Three-body investigation
+
+The isolated `dart-free-chain-worktree` contains a native-first control for one
+free root and two serial revolute children. It exercises actual third-body
+`moveTo`, eight-coordinate impulses, immediate rollback with warm ancestor
+Jacobians, contact-free steps and a middle-subtree split with last-owner
+destruction. Its stationary input repeats the exact retained free-pair
+`(existing leaf, extra)` refusal input. The isolated candidate's source-bound
+Rust controls now exercise this input. After independent prior review, only
+this one tuple now invokes the shared exact-input positive on fresh worlds; all
+six tuple inputs, five other refusals and the original world's lifecycle checks
+remain intact.
+
+The actual native control compiled and exited successfully inside the existing
+qualified `cb921f` image, using its unchanged packages and GCC 13.3. All eighteen
+mapped libraries, including DART 6.13.2 and ODE, match that image's qualified
+reference bytes. Two scenarios each perform 1,000 contact-free steps. The native
+impulse path and all attachment, rollback, anchor, finite-state, subtree and
+last-owner assertions pass. Fourteen complete body/joint observations are stored
+in `tests/fixtures/free_chain.json`; the fixture identifies the actual source,
+compiler, command, libraries and raw observation hash. It is direct DART evidence,
+not Gazebo plugin/application parity or a general numeric-domain proof.
+
+The first capture stopped before compilation on a wrapper newline comparison;
+the first compile found a fixture type-name collision. A later native execution
+passed its assertions but produced duplicate default-joint-name messages. These
+outcomes remain separate. Explicit body-specific joint names, matching the
+adapter, produce the final exact success output and empty stderr without filtering.
+Commands, compiler dependency data, maps, executable and original logs are kept
+under ignored `artifacts/native-first`. No SDK or image was rebuilt.
+
+The private candidate changes only the symmetric Rust/native serial-pair
+extension predicate and an earlier contact refusal for trees larger than two
+bodies. Existing pair/static-contact mathematics and all active-limit guards
+remain unchanged. The exact old-row transition was independently approved after
+its literal two-spawns, first-hinge, extra-spawn construction and complete
+snapshot equality passed. The Rust tests
+include source-bound native parity, attachment/contact rollback, reset, queued
+commands, subtree ownership and isolated numeric/contact/limit controls. The
+first focused run passed all eleven controls, including all fourteen native rows
+and forty-eight owned numeric subprocesses: forty-two advanced and six explicitly
+refused. These counts do not imply exhaustive numeric-domain safety. A separate
+exact-input replay then preserved all three complete body states with exact
+snapshot equality, and the private native-owner split/retirement control passed.
+The subsequent full DART package passed all 151 tests across 23 test targets,
+with no failures or ignored tests; this includes the six direct native fixtures.
+Selected DART all-targets Clippy also passed on the folded source. Mandatory
+strict coverage, staged and hosted acceptance remain pending.
+
+The candidate domain does not include a world-rooted three-body chain, branches,
+cycles, four bodies, component merging, three-body contacts or active multibody
+joint-limit solves. Scene topology, its one-collision limit and the complete
+upstream B03 fixture are outside this backend-only slice. Root reviewed the actual
+native evidence before authorizing this isolated admission implementation. Real
+adapter evidence and transition review are complete for this candidate; ordinary
+strict local/hosted gates remain required.

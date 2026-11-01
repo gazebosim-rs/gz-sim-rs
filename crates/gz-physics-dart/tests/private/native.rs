@@ -235,3 +235,48 @@ fn prepared_native_free_pair_exact_old_input_preserves_ownership_on_retirement()
     world.remove_body(child).unwrap();
     assert_eq!(world.skeleton_count().unwrap(), 0);
 }
+
+#[test]
+fn prepared_free_three_body_middle_split_and_retirement_keep_native_owners() {
+    let mut world = NativeWorld::new([0.0; 3]).unwrap();
+    let mut slots = Vec::new();
+    for x in [0.0, 3.0, 6.0] {
+        slots.push(
+            world
+                .add_body(&BodyConfig {
+                    position: [x, 0.0, 0.0],
+                    ..sphere()
+                })
+                .unwrap(),
+        );
+    }
+    let axis = Twist {
+        linear: [0.0; 3],
+        angular: [0.0, 0.0, 1.0],
+    };
+    assert!(world.add_body_revolute(slots[0], slots[1], &axis).unwrap());
+    assert!(world.add_body_revolute(slots[1], slots[2], &axis).unwrap());
+    assert_eq!(world.skeleton_count().unwrap(), 1);
+    let before: Vec<_> = slots
+        .iter()
+        .map(|slot| world.read(*slot).unwrap())
+        .collect();
+    assert!(world.remove_revolute(slots[1]).unwrap());
+    assert_eq!(world.skeleton_count().unwrap(), 2);
+    for (slot, expected) in slots.iter().zip(&before) {
+        let actual = world.read(*slot).unwrap();
+        assert_eq!(actual.position, expected.position);
+        assert_eq!(actual.orientation, expected.orientation);
+        assert_eq!(actual.velocity.linear, expected.velocity.linear);
+        assert_eq!(actual.velocity.angular, expected.velocity.angular);
+    }
+    world.remove_body(slots[1]).unwrap();
+    assert_eq!(world.skeleton_count().unwrap(), 2);
+    assert_eq!(world.step(0.001, &[]).unwrap(), 0);
+    assert_eq!(world.read(slots[0]).unwrap().position, before[0].position);
+    assert_eq!(world.read(slots[2]).unwrap().position, before[2].position);
+    world.remove_body(slots[0]).unwrap();
+    world.remove_body(slots[2]).unwrap();
+    assert_eq!(world.skeleton_count().unwrap(), 0);
+    assert_eq!(world.step(0.001, &[]).unwrap(), 0);
+}

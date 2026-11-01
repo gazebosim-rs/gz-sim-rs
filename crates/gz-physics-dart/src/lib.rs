@@ -478,16 +478,29 @@ impl DynamicBackend for DartBackend {
             .bodies
             .get(&child)
             .ok_or(PhysicsError::MissingBody)?;
-        // One isolated free or world-hinged root and one new leaf.
+        // Existing isolated roots, or the sole leaf of one free-root pair.
         let world_root = self
             .world
             .joints
             .values()
             .any(|j| j.child == parent && j.parent.is_none());
+        let free_pair_leaf = self.world.joints.values().any(|joint| {
+            joint.child == parent
+                && joint.parent.is_some_and(|root| {
+                    !self.world.joints.values().any(|edge| edge.child == root)
+                        && self
+                            .world
+                            .joints
+                            .values()
+                            .filter(|edge| edge.parent == Some(root))
+                            .count()
+                            == 1
+                })
+        });
         if parent == child
             || !parent_body.config.mobile
             || !child_body.config.mobile
-            || (!world_root && self.is_jointed(parent) == Some(true))
+            || (!world_root && !free_pair_leaf && self.is_jointed(parent) == Some(true))
             || self.is_jointed(child) == Some(true)
             || self.world.joints.values().any(|j| j.parent == Some(parent))
         {

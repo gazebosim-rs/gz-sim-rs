@@ -29,12 +29,18 @@ independently reviewed before the repaired normal-hook result below. Exact hoste
 The repaired camera parent `e0b1f6b` later passed the complete normal hook after
 actual disk recovery. Exact hosted run `41307067791` and independent downloaded
 source/profile/native auditing passed before its Main publication. This
-candidate also integrates reviewed [world-light metadata](WORLD_LIGHTS.md), with
-111 Scene, 16 renderer and five Server precursor controls plus Clippy. The shared-reset regression passes on the integrated source; complete
-integration gates remain pending. Core loading
-retains the full Light value, source and identity; renderer extraction and Server
-pose publication refuse unqualified lighting. B03 still reaches the retained
-DART articulation limit, and GUI/full wire behavior remains open.
+parent also accepts [world-light metadata](WORLD_LIGHTS.md) on Main `db9d002`.
+The complete normal hook, exact hosted run `41313302279` and independent
+source/profile/native audit passed: 842 headless, 520 renderer and 237 tooling
+checks. Core loading retains the full Light value, source and identity;
+renderer extraction and Server pose publication still refuse unqualified lighting.
+
+This candidate extends the DART backend to a contact-free free-root serial
+three-body chain. Independent review and all 151 DART package tests pass,
+including native fixture parity and isolated numeric, rollback and lifetime
+controls. Full workspace coverage, the staged hook and exact hosted qualification
+remain pending. Scene topology and its one-collision limit remain unchanged;
+this does not admit B03 or three-body contacts.
 Broader P0/P1, P3/P4, built-in activation, balanced robotics measurements and
 release qualification remain open. Accepted P2 does not complete the rewrite.
 

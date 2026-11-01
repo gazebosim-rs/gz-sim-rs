@@ -92,7 +92,9 @@ exact former light refusals have stronger, independently approved positive
 replacements; unrelated assertions and fixtures remain unchanged. Integration
 retains collision density, world Sensors intent and light metadata together in
 the initial-scene blueprint. The additional shared-reset regression passed on the integrated source. Its
-complete normal/exact hosted qualification remains required before acceptance.
+complete normal hook, exact hosted run `41313302279` and independent downloaded
+source/profile/native audit subsequently passed before Main `db9d002` acceptance:
+842 headless, 520 renderer and 237 tooling checks.
 
 Renderer extraction and Server pose publication explicitly refuse unqualified
 lighting. This slice does not fabricate the native GUI-only LightVisual child,
@@ -461,6 +463,17 @@ scene lines. Exact hosted run `41169945049` passed, with both downloaded profile
 source hashes matching local evidence. The original
 ApplyJointForce world has a free root and ground contact; adding a world hinge
 would create a different fixture and earns no original-system completion.
+
+The current backend-only candidate extends a free-root serial pair with one
+isolated dynamic terminal child (eight generalized coordinates). Its 151 DART
+package tests and final independent source/native evidence review pass. The
+stronger exact-input positive preserves all three old body snapshots, identifiers
+and queued inputs; five other rejection rows remain unchanged. Any contact
+involving a tree larger than two bodies is refused before contact response.
+Existing pair/static-contact and active-limit mathematics remain unchanged.
+Workspace strict coverage, the ordinary staged hook and exact hosted acceptance
+are still pending. No Scene, B03, multiple-collision or performance acceptance
+follows. See [the backend record](../crates/gz-physics-dart/docs/FREE_PARENT.md).
 
 The bounded free-root follow-up supports one dynamic parent and one revolute
 child, with seven generalized coordinates. It preserves the extraction-cache

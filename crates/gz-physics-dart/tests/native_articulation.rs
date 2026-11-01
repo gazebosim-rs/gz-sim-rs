@@ -95,6 +95,10 @@ fn native_revolute_topology_ownership_and_motion() {
             "articulated_contact_response.cc",
             "bounded full-coordinate contact response matches native impulse propagation",
         ),
+        (
+            "body_revolute_free_chain.cc",
+            "free three-body move/rollback/8-DOF impulse/step/subtree lifetime preserved",
+        ),
     ] {
         let executable = scratch.0.join(source.trim_end_matches(".cc"));
         let mut compile = Command::new(std::env::var_os("CXX").unwrap_or_else(|| "c++".into()));
@@ -113,6 +117,14 @@ fn native_revolute_topology_ownership_and_motion() {
             .arg("-std=c++17")
             .arg("-Wl,--disable-new-dtags")
             .arg(format!("-Wl,-rpath,{}", libdir.display()));
+        if source == "body_revolute_free_chain.cc" {
+            compile
+                .arg(format!("-L{}", libdir.display()))
+                .args(["-ldart-collision-ode", "-ldart-external-odelcpsolver"])
+                .arg(format!("-L{}", ode_libdir.display()))
+                .arg("-lode")
+                .arg(format!("-Wl,-rpath,{}", ode_libdir.display()));
+        }
         output(compile);
         if source == "body_revolute_free.cc" {
             let wrong = scratch.0.canonicalize().unwrap();
@@ -131,6 +143,9 @@ fn native_revolute_topology_ownership_and_motion() {
             .env_remove("LD_LIBRARY_PATH")
             .env_remove("LD_AUDIT")
             .env("GZ_DART_PROBE_LIBDIR", &libdir);
+        if source == "body_revolute_free_chain.cc" {
+            native.env("GZ_DART_PROBE_ODE_LIBDIR", &ode_libdir);
+        }
         let result = output(native);
         assert!(String::from_utf8(result.stdout).unwrap().contains(expected));
     }

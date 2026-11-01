@@ -462,8 +462,14 @@ bool World::add_body_revolute(std::size_t parentSlot, std::size_t childSlot,
   auto &child = body(childSlot);
   const auto source = child.getSkeleton();
   const auto destination = parent.getSkeleton();
+  const bool freePairLeaf = destination->getNumBodyNodes() == 2 &&
+      isFree(*destination->getRootBodyNode()) &&
+      destination->getRootBodyNode()->getNumChildBodyNodes() == 1 &&
+      parent.getParentBodyNode() == destination->getRootBodyNode() &&
+      parent.getNumChildBodyNodes() == 0;
   if (&parent == &child || source == destination || !isFree(child) ||
-      source->getNumBodyNodes() != 1 || destination->getNumBodyNodes() != 1 ||
+      source->getNumBodyNodes() != 1 ||
+      (destination->getNumBodyNodes() != 1 && !freePairLeaf) ||
       !source->isMobile() || !destination->isMobile())
     throw std::logic_error("unsupported body revolute topology");
 
@@ -697,6 +703,10 @@ bool World::contactsWithin(const dart::collision::CollisionResult &result) const
         contact.collisionObject2->getShapeFrame()->asShapeNode();
     const auto firstSkeleton = first->getBodyNodePtr()->getSkeleton();
     const auto secondSkeleton = second->getBodyNodePtr()->getSkeleton();
+    // The three-body extension is contact-free, including static contacts.
+    if (firstSkeleton->getNumBodyNodes() > 2 ||
+        secondSkeleton->getNumBodyNodes() > 2)
+      return false;
     // Only static external contacts are qualified for the two-body extension.
     if ((firstSkeleton->getNumBodyNodes() > 1 && secondSkeleton->isMobile()) ||
         (secondSkeleton->getNumBodyNodes() > 1 && firstSkeleton->isMobile()))
