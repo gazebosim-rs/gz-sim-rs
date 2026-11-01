@@ -57,6 +57,74 @@ pub struct BoxVisual {
     pub color: [f32; 3],
 }
 
+/// One explicit directional light, independent of SDF's relative intensity scale.
+///
+/// Rotation maps local Gazebo axes to world axes. Direction is the local
+/// propagation vector; its magnitude has no effect. Color is linear RGB.
+/// Illuminance is in lux. This does not establish native radiometric parity.
+#[derive(Debug, Clone)]
+pub struct DirectionalWorldLight {
+    pub id: u64,
+    pub rotation: glam::DQuat,
+    pub direction: DVec3,
+    pub color: [f64; 3],
+    pub illuminance_lux: f64,
+}
+
+fn derive_light(
+    light: &DirectionalWorldLight,
+) -> Result<(DirectionalLight, Transform), RenderError> {
+    // Reuse the authoritative orientation contract without introducing position.
+    to_render_pose(
+        WorldPose {
+            translation: DVec3::ZERO,
+            rotation: light.rotation,
+        },
+        DVec3::ZERO,
+    )?;
+    let lux = light.illuminance_lux as f32;
+    if light.id == 0
+        || !light.direction.is_finite()
+        || light.direction == DVec3::ZERO
+        || light
+            .color
+            .iter()
+            .any(|c| !c.is_finite() || !(0.0..=1.0).contains(c))
+        || !light.illuminance_lux.is_finite()
+        || light.illuminance_lux < 0.0
+        || !lux.is_finite()
+        || (light.illuminance_lux > 0.0 && lux == 0.0)
+    {
+        return Err(RenderError::InvalidLight);
+    }
+    // Scale before normalizing so finite very large/small vectors remain valid.
+    let local = (light.direction / light.direction.abs().max_element()).normalize();
+    let world = light.rotation * local;
+    let direction = to_render_pose(
+        WorldPose {
+            translation: world,
+            rotation: glam::DQuat::IDENTITY,
+        },
+        DVec3::ZERO,
+    )?
+    .translation
+    .normalize();
+    Ok((
+        DirectionalLight {
+            color: Color::linear_rgb(
+                light.color[0] as f32,
+                light.color[1] as f32,
+                light.color[2] as f32,
+            ),
+            illuminance: lux,
+            shadow_maps_enabled: false,
+            contact_shadows_enabled: false,
+            ..default()
+        },
+        Transform::from_rotation(Quat::from_rotation_arc(Vec3::NEG_Z, direction)),
+    ))
+}
+
 /// A complete committed scene snapshot, with world-local IDs and simulation time.
 #[derive(Debug, Clone)]
 pub struct Snapshot {
@@ -88,6 +156,8 @@ pub enum RenderError {
     InvalidIds,
     #[error("box dimensions and RGB values must be finite and in range")]
     InvalidVisual,
+    #[error("directional light ID, direction, linear RGB or illuminance is invalid")]
+    InvalidLight,
     #[error("a readback is already in flight")]
     Busy,
     #[error("the previous snapshot has not reached a renderer update")]
@@ -202,13 +272,14 @@ pub enum UpdateStatus {
 ///
 /// The target is fixed at 64×64. The default camera looks from (0,0,5) toward
 /// the render origin; calibrated snapshots supply an explicit pose. Only boxes
-/// are supported. This is not a sensor API.
+/// are supported, with optional explicit directional illumination. This is not a sensor API.
 pub struct Renderer {
     app: App,
     camera: Entity,
     target: Handle<Image>,
     mesh: Handle<Mesh>,
     visuals: BTreeMap<u64, VisualEntity>,
+    light: Option<(u64, Entity)>,
     stamp: Option<(u64, Duration)>,
     pending: Option<Pending>,
     ready_last_update: bool,
@@ -307,6 +378,7 @@ impl Renderer {
             target,
             mesh,
             visuals: BTreeMap::new(),
+            light: None,
             stamp: None,
             pending: None,
             ready_last_update: false,
@@ -325,7 +397,26 @@ impl Renderer {
     /// Atomically replaces the derived scene after validating the entire snapshot.
     /// Install a scene using the legacy fixed camera, even after a calibrated snapshot.
     pub fn set_snapshot(&mut self, snapshot: &Snapshot) -> Result<(), RenderError> {
+        self.set_snapshot_with_light(snapshot, None)
+    }
+
+    /// Atomically installs one explicit directional light and a fixed-camera scene.
+    /// Lux and linear light color are Bevy inputs, not SDF intensity conversion.
+    pub fn set_directional_snapshot(
+        &mut self,
+        snapshot: &Snapshot,
+        light: &DirectionalWorldLight,
+    ) -> Result<(), RenderError> {
+        self.set_snapshot_with_light(snapshot, Some(light))
+    }
+
+    fn set_snapshot_with_light(
+        &mut self,
+        snapshot: &Snapshot,
+        light: Option<&DirectionalWorldLight>,
+    ) -> Result<(), RenderError> {
         self.check_device()?;
+        let derived_light = light.map(derive_light).transpose()?;
         if snapshot.visuals.len() > MAX_OBJECTS {
             return Err(RenderError::InvalidIds);
         }
@@ -356,10 +447,45 @@ impl Renderer {
                 },
             ));
         }
+        if light.is_some_and(|light| ids.contains(&light.id)) {
+            return Err(RenderError::InvalidLight);
+        }
         if self.snapshot_dirty {
             return Err(RenderError::SnapshotBusy);
         }
+        let was_lit = self.light.is_some();
+        let lit = light.is_some();
         self.cancel_readback();
+        match (light, derived_light) {
+            (Some(light), Some(derived)) => {
+                if let Some((id, entity)) = self.light {
+                    if id == light.id {
+                        self.app.world_mut().entity_mut(entity).insert(derived);
+                    } else {
+                        self.app.world_mut().despawn(entity);
+                        self.light = Some((light.id, self.app.world_mut().spawn(derived).id()));
+                    }
+                } else {
+                    self.light = Some((light.id, self.app.world_mut().spawn(derived).id()));
+                }
+                self.app
+                    .world_mut()
+                    .entity_mut(self.camera)
+                    .insert(AmbientLight {
+                        brightness: 0.0,
+                        ..default()
+                    });
+            }
+            _ => {
+                if let Some((_, entity)) = self.light.take() {
+                    self.app.world_mut().despawn(entity);
+                    self.app
+                        .world_mut()
+                        .entity_mut(self.camera)
+                        .remove::<AmbientLight>();
+                }
+            }
+        }
         let removed: Vec<_> = self
             .visuals
             .keys()
@@ -388,17 +514,36 @@ impl Renderer {
                     .get_mut(&existing.material)
                 {
                     material.base_color = color;
+                    if lit || was_lit {
+                        material.unlit = !lit;
+                        material.reflectance = if lit {
+                            0.0
+                        } else {
+                            StandardMaterial::default().reflectance
+                        };
+                        material.perceptual_roughness = if lit {
+                            1.0
+                        } else {
+                            StandardMaterial::default().perceptual_roughness
+                        };
+                    }
                 }
             } else {
+                let mut material = StandardMaterial {
+                    base_color: color,
+                    unlit: true,
+                    ..default()
+                };
+                if lit {
+                    material.unlit = false;
+                    material.reflectance = 0.0;
+                    material.perceptual_roughness = 1.0;
+                }
                 let material = self
                     .app
                     .world_mut()
                     .resource_mut::<Assets<StandardMaterial>>()
-                    .add(StandardMaterial {
-                        base_color: color,
-                        unlit: true,
-                        ..default()
-                    });
+                    .add(material);
                 let entity = self
                     .app
                     .world_mut()
@@ -431,13 +576,34 @@ impl Renderer {
         calibration: Calibration,
         pose: WorldPose,
     ) -> Result<(), RenderError> {
+        self.set_calibrated_snapshot_with_light(snapshot, calibration, pose, None)
+    }
+
+    /// Installs a calibrated scene illuminated by one explicit lux-valued light.
+    pub fn set_calibrated_directional_snapshot(
+        &mut self,
+        snapshot: &Snapshot,
+        calibration: Calibration,
+        pose: WorldPose,
+        light: &DirectionalWorldLight,
+    ) -> Result<(), RenderError> {
+        self.set_calibrated_snapshot_with_light(snapshot, calibration, pose, Some(light))
+    }
+
+    fn set_calibrated_snapshot_with_light(
+        &mut self,
+        snapshot: &Snapshot,
+        calibration: Calibration,
+        pose: WorldPose,
+        light: Option<&DirectionalWorldLight>,
+    ) -> Result<(), RenderError> {
         self.check_device()?;
         let config = calibration.config();
         if config.width != WIDTH || config.height != HEIGHT {
             return Err(RenderError::InvalidCameraDimensions);
         }
         let camera = to_render_camera_pose(pose, snapshot.origin)?;
-        self.set_snapshot(snapshot)?;
+        self.set_snapshot_with_light(snapshot, light)?;
         self.app.world_mut().entity_mut(self.camera).insert((
             Transform::from_translation(camera.translation).with_rotation(camera.rotation),
             Projection::custom(CalibratedProjection(calibration)),

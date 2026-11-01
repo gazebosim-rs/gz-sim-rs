@@ -35,12 +35,24 @@ source/profile/native audit passed: 842 headless, 520 renderer and 237 tooling
 checks. Core loading retains the full Light value, source and identity;
 renderer extraction and Server pose publication still refuse unqualified lighting.
 
-This candidate extends the DART backend to a contact-free free-root serial
-three-body chain. Independent review and all 151 DART package tests pass,
-including native fixture parity and isolated numeric, rollback and lifetime
-controls. Full workspace coverage, the staged hook and exact hosted qualification
-remain pending. Scene topology and its one-collision limit remain unchanged;
-this does not admit B03 or three-body contacts.
+Main `f19d195` accepts the contact-free free-root serial three-body DART
+backend extension after independent review, the complete normal hook, exact
+hosted run `41328864338` and official source/profile/native audit: 854 headless,
+520 renderer and 237 tooling checks. The first local attempt failed unchanged
+TCP setup under sandbox permissions; the complete permission-corrected hook
+passed without changing tests or assertions. Scene topology and its one-collision
+limit remain unchanged; this does not admit B03 or three-body contacts.
+
+The next candidate adopts accepted producer `13adde94` for world Light includes
+and adds a separate explicit-lux directional-light renderer API. The Scene
+world-light target passes nine controls across the existing backends; the
+renderer package passes nine unit and four software tests under asserted
+llvmpipe. Old tests and imported fixture bytes remain intact. These are separate
+metadata and renderer inputs: no SDF intensity conversion or Scene light-render
+admission is claimed. Full combined staged/hosted qualification is pending.
+See [producer adoption](INCLUDE_LIGHT_ADOPTION.md) and the
+[renderer contract](../crates/gz-renderer/README.md).
+
 Broader P0/P1, P3/P4, built-in activation, balanced robotics measurements and
 release qualification remain open. Accepted P2 does not complete the rewrite.
 

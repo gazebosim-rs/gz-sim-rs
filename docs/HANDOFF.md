@@ -96,6 +96,15 @@ complete normal hook, exact hosted run `41313302279` and independent downloaded
 source/profile/native audit subsequently passed before Main `db9d002` acceptance:
 842 headless, 520 renderer and 237 tooling checks.
 
+The subsequent candidate combines the reviewed producer `13adde94` consumer pin
+with a separate explicit-lux directional renderer input. The focused Scene
+target passes nine controls, including loaded include provenance, frame override
+and reset identity across all four existing backends. The renderer package
+passes nine unit and four software tests on asserted llvmpipe, including exact
+full-frame unlit restoration. Complete combined strict staged and exact hosted
+qualification remain pending. No SDF radiometric mapping, Scene light-render
+extraction, Server light-pose wire behavior or B03 acceptance follows.
+
 Renderer extraction and Server pose publication explicitly refuse unqualified
 lighting. This slice does not fabricate the native GUI-only LightVisual child,
 qualify full wire/render behavior or admit the unchanged B03 DART articulation.
@@ -464,16 +473,19 @@ source hashes matching local evidence. The original
 ApplyJointForce world has a free root and ground contact; adding a world hinge
 would create a different fixture and earns no original-system completion.
 
-The current backend-only candidate extends a free-root serial pair with one
-isolated dynamic terminal child (eight generalized coordinates). Its 151 DART
-package tests and final independent source/native evidence review pass. The
-stronger exact-input positive preserves all three old body snapshots, identifiers
-and queued inputs; five other rejection rows remain unchanged. Any contact
-involving a tree larger than two bodies is refused before contact response.
-Existing pair/static-contact and active-limit mathematics remain unchanged.
-Workspace strict coverage, the ordinary staged hook and exact hosted acceptance
-are still pending. No Scene, B03, multiple-collision or performance acceptance
-follows. See [the backend record](../crates/gz-physics-dart/docs/FREE_PARENT.md).
+Main `f19d195` accepts the backend extension from a free-root serial pair to
+one isolated dynamic terminal child (eight generalized coordinates). Its complete
+normal hook passed in 616 seconds after correcting the execution permissions;
+the first sandboxed attempt failed unchanged TCP setup before DART tests ran.
+Exact hosted run `41328864338` and independent official source/profile/native
+audit passed: 854 headless, 520 renderer and 237 tooling checks. The earlier
+151-test DART package/native evidence remains distinct from full qualification.
+The stronger exact-input positive preserves all three old body snapshots,
+identifiers and queued inputs; five other rejection rows remain unchanged.
+Any contact involving a tree larger than two bodies is refused before contact
+response. Existing pair/static-contact and active-limit mathematics remain
+unchanged. No Scene, B03, multiple-collision or performance acceptance follows.
+See [the backend record](../crates/gz-physics-dart/docs/FREE_PARENT.md).
 
 The bounded free-root follow-up supports one dynamic parent and one revolute
 child, with seven generalized coordinates. It preserves the extraction-cache

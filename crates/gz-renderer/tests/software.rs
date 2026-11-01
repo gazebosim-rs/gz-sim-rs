@@ -358,3 +358,234 @@ fn calibrated_camera_projects_boxes_and_enforces_clip_planes() {
     let legacy = image(&mut renderer);
     assert_eq!(&legacy.rgba[center..center + 4], &[255, 0, 0, 255]);
 }
+
+#[test]
+fn software_directional_face_response_and_unlit_restoration() {
+    use gz_renderer::DirectionalWorldLight;
+    let mut renderer = Renderer::new().unwrap();
+    if std::env::var_os("GZ_RENDER_REQUIRE_LLVMPIPE").is_some() {
+        assert_eq!(renderer.adapter_info().device_type, wgpu::DeviceType::Cpu);
+        assert!(
+            renderer
+                .adapter_info()
+                .name
+                .to_ascii_lowercase()
+                .contains("llvmpipe")
+        );
+    }
+    let snapshot = Snapshot {
+        epoch: 11,
+        time: Duration::from_millis(9),
+        origin: DVec3::splat(1e12),
+        visuals: vec![BoxVisual {
+            id: 1,
+            pose: WorldPose {
+                translation: DVec3::splat(1e12),
+                rotation: DQuat::IDENTITY,
+            },
+            size: DVec3::splat(2.0),
+            color: [1.0, 0.0, 0.0],
+        }],
+    };
+    let mut light = DirectionalWorldLight {
+        id: 2,
+        rotation: DQuat::IDENTITY,
+        direction: DVec3::Y,
+        color: [1.0; 3],
+        illuminance_lux: 1000.0,
+    };
+    let center = (32 * 64 + 32) * 4;
+    renderer.set_snapshot(&snapshot).unwrap();
+    let unlit = image(&mut renderer);
+    assert_eq!(&unlit.rgba[center..center + 4], &[255, 0, 0, 255]);
+    renderer
+        .set_directional_snapshot(&snapshot, &light)
+        .unwrap();
+    let lit = image(&mut renderer);
+    assert_eq!((lit.epoch, lit.time), (snapshot.epoch, snapshot.time));
+    let red = lit.rgba[center];
+    assert!(
+        red > 20 && red < 250,
+        "expected unsaturated directional response: {red}"
+    );
+    assert_eq!(&lit.rgba[center + 1..center + 4], &[0, 0, 255]);
+    light.illuminance_lux = 200.0;
+    renderer
+        .set_directional_snapshot(&snapshot, &light)
+        .unwrap();
+    let dimmed = image(&mut renderer);
+    assert!(dimmed.rgba[center] > 0 && dimmed.rgba[center] < red);
+    light.rotation = DQuat::from_rotation_z(std::f64::consts::PI);
+    renderer
+        .set_directional_snapshot(&snapshot, &light)
+        .unwrap();
+    let away = image(&mut renderer);
+    assert_eq!(&away.rgba[center..center + 4], &[0, 0, 0, 255]);
+    light.rotation = DQuat::IDENTITY;
+    light.illuminance_lux = 0.0;
+    renderer
+        .set_directional_snapshot(&snapshot, &light)
+        .unwrap();
+    let off = image(&mut renderer);
+    assert_eq!(&off.rgba[center..center + 4], &[0, 0, 0, 255]);
+    renderer.set_snapshot(&snapshot).unwrap();
+    let restored = image(&mut renderer);
+    assert_eq!(restored.rgba, unlit.rgba);
+    use gz_render_frame::camera::{Calibration, CameraConfig};
+    let calibration = Calibration::new(CameraConfig {
+        width: 64,
+        height: 64,
+        fx: 32.0,
+        fy: 32.0,
+        cx: 32.0,
+        cy: 32.0,
+        skew: 0.0,
+        tx: 0.0,
+        ty: 0.0,
+        near: 0.1,
+        far: 10.0,
+    })
+    .unwrap();
+    let camera = WorldPose {
+        translation: snapshot.origin - DVec3::Y * 5.0,
+        rotation: DQuat::from_rotation_z(std::f64::consts::FRAC_PI_2),
+    };
+    light.illuminance_lux = 1000.0;
+    renderer
+        .set_calibrated_directional_snapshot(&snapshot, calibration, camera, &light)
+        .unwrap();
+    let calibrated_lit = image(&mut renderer);
+    assert!(calibrated_lit.rgba[center] > 20 && calibrated_lit.rgba[center] < 250);
+    renderer
+        .set_calibrated_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    let calibrated_unlit = image(&mut renderer);
+    assert_eq!(
+        &calibrated_unlit.rgba[center..center + 4],
+        &[255, 0, 0, 255]
+    );
+}
+
+#[test]
+fn pending_directional_captures_retire_before_replacement_and_unlit_successors() {
+    fn submit_capture(renderer: &mut Renderer) {
+        renderer.request_readback().unwrap();
+        for _ in 0..200 {
+            match renderer.update().unwrap() {
+                gz_renderer::UpdateStatus::Advanced => {
+                    assert!(renderer.readback_in_flight());
+                    return;
+                }
+                gz_renderer::UpdateStatus::Waiting => {
+                    std::thread::sleep(Duration::from_millis(10));
+                }
+            }
+        }
+        panic!("capture submission did not advance");
+    }
+    use gz_render_frame::camera::{Calibration, CameraConfig};
+    use gz_renderer::DirectionalWorldLight;
+    let mut renderer = Renderer::new().unwrap();
+    if std::env::var_os("GZ_RENDER_REQUIRE_LLVMPIPE").is_some() {
+        assert_eq!(renderer.adapter_info().device_type, wgpu::DeviceType::Cpu);
+        assert!(
+            renderer
+                .adapter_info()
+                .name
+                .to_ascii_lowercase()
+                .contains("llvmpipe")
+        );
+    }
+    let calibration = Calibration::new(CameraConfig {
+        width: 64,
+        height: 64,
+        fx: 32.0,
+        fy: 32.0,
+        cx: 32.0,
+        cy: 32.0,
+        skew: 0.0,
+        tx: 0.0,
+        ty: 0.0,
+        near: 0.1,
+        far: 10.0,
+    })
+    .unwrap();
+    let origin = DVec3::splat(1e12);
+    let camera = WorldPose {
+        translation: origin - DVec3::Y * 5.0,
+        rotation: DQuat::from_rotation_z(std::f64::consts::FRAC_PI_2),
+    };
+    let mut snapshot = Snapshot {
+        epoch: 20,
+        time: Duration::from_millis(7),
+        origin,
+        visuals: vec![BoxVisual {
+            id: 1,
+            pose: WorldPose {
+                translation: origin,
+                rotation: DQuat::IDENTITY,
+            },
+            size: DVec3::splat(2.0),
+            color: [0.0, 1.0, 0.0],
+        }],
+    };
+    let mut light = DirectionalWorldLight {
+        id: 2,
+        rotation: DQuat::IDENTITY,
+        direction: DVec3::Y,
+        color: [1.0; 3],
+        illuminance_lux: 1000.0,
+    };
+    renderer
+        .set_calibrated_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    let unlit = image(&mut renderer);
+    let center = (32 * 64 + 32) * 4;
+    assert_eq!(&unlit.rgba[center..center + 4], &[0, 255, 0, 255]);
+    snapshot.visuals[0].color = [1.0, 0.0, 0.0];
+    renderer
+        .set_calibrated_directional_snapshot(&snapshot, calibration, camera, &light)
+        .unwrap();
+    let first = image(&mut renderer);
+    assert!(first.rgba[center] > 20 && first.rgba[center] < 250);
+    assert_eq!((first.epoch, first.time), (20, Duration::from_millis(7)));
+    // Submit a real screenshot to Bevy, retaining its delivery slot even if the
+    // device completes before the next snapshot arrives.
+    submit_capture(&mut renderer);
+    snapshot.epoch = 21;
+    snapshot.time = Duration::ZERO;
+    snapshot.visuals[0].color = [0.0, 1.0, 0.0];
+    light.id = 3;
+    light.illuminance_lux = 200.0;
+    renderer
+        .set_calibrated_directional_snapshot(&snapshot, calibration, camera, &light)
+        .unwrap();
+    assert!(renderer.readback_in_flight());
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    retire_cancelled(&mut renderer);
+    let replacement = image(&mut renderer);
+    assert_eq!((replacement.epoch, replacement.time), (21, Duration::ZERO));
+    assert_eq!(replacement.rgba[center], 0);
+    assert!(replacement.rgba[center + 1] > 0 && replacement.rgba[center + 1] < first.rgba[center]);
+    submit_capture(&mut renderer);
+    snapshot.epoch = 22;
+    snapshot.time = Duration::from_nanos(1);
+    renderer
+        .set_calibrated_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert!(renderer.readback_in_flight());
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    retire_cancelled(&mut renderer);
+    let restored = image(&mut renderer);
+    assert_eq!(
+        (restored.epoch, restored.time),
+        (22, Duration::from_nanos(1))
+    );
+    assert_eq!(restored.rgba, unlit.rgba);
+}

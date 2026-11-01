@@ -395,3 +395,86 @@ fn reset_restores_lights_and_world_sensor_intent_together() {
         assert_eq!(id(&sim, &format!("default::{}", expected.name)), *light_id);
     }
 }
+
+struct ImportedLight;
+impl ResourceResolver for ImportedLight {
+    fn resolve(&self, uri: &str, parent: &str) -> Result<Resource, String> {
+        assert_eq!((uri, parent), ("external-light", "include-light-world.sdf"));
+        Ok(Resource {
+            canonical_uri: "resources/original-light.sdf".into(),
+            xml: include_str!("fixtures/included_light_original.sdf").into(),
+        })
+    }
+}
+
+#[test]
+fn included_native_light_retains_overrides_provenance_and_reset_without_systems() {
+    let xml = "<sdf version='1.12'><world name='default'><frame name='rig'><pose>4 0 0 0 0 0</pose></frame><include><uri>external-light</uri><name>imported</name><pose relative_to='rig'>1 2 3 0 0 0</pose></include></world></sdf>";
+    let empty_xml = "<sdf version='1.12'><world name='default'><frame name='rig'><pose>4 0 0 0 0 0</pose></frame></world></sdf>";
+    let parsed = sdformat::load_str(xml, "include-light-world.sdf", &ImportedLight).unwrap();
+    let expected = &parsed.worlds[0].lights[0];
+    assert_eq!(expected.name, "imported");
+    assert_eq!(
+        expected.source.as_ref().unwrap().uri,
+        "resources/original-light.sdf"
+    );
+    assert_eq!(expected.pose.relative_to, "rig");
+    assert_eq!(expected.light_type, LightType::Point);
+    assert_eq!(expected.diffuse, [1.0, 0.0, 0.5, 1.0]);
+    assert_eq!(expected.attenuation_range, 123.5);
+    for engine in ENGINES {
+        let mut sim = load_world_with_sdf_step(
+            xml,
+            "include-light-world.sdf",
+            "default",
+            &ImportedLight,
+            engine,
+        )
+        .unwrap();
+        let empty = load_world_with_sdf_step(
+            empty_xml,
+            "include-light-world.sdf",
+            "default",
+            &NoResources,
+            engine,
+        )
+        .unwrap();
+        assert_eq!(
+            sim.scheduled_system_counts(),
+            empty.scheduled_system_counts()
+        );
+        let entity = named(&sim, "default::imported");
+        let light_id = sim.world().get::<EntityId>(entity).unwrap().get();
+        assert_eq!(
+            sim.world().get::<WorldLight>(entity).unwrap().0.as_ref(),
+            expected
+        );
+        pose(
+            *sim.world().get::<WorldPose>(entity).unwrap(),
+            [5., 2., 3.],
+            [0., 0., 0., 1.],
+        );
+        sim.world_mut().entity_mut(entity).despawn();
+        assert!(entity_by_id(sim.world(), light_id).is_none());
+        sim.step_exact(1).unwrap();
+        reset_loaded_world(&mut sim, |_| ()).unwrap();
+        let restored = entity_by_id(sim.world(), light_id).unwrap();
+        assert_eq!(
+            sim.world().get::<Name>(restored).unwrap().0,
+            "default::imported"
+        );
+        assert_eq!(
+            sim.world().get::<WorldLight>(restored).unwrap().0.as_ref(),
+            expected
+        );
+        pose(
+            *sim.world().get::<WorldPose>(restored).unwrap(),
+            [5., 2., 3.],
+            [0., 0., 0., 1.],
+        );
+        assert_eq!(
+            sim.scheduled_system_counts(),
+            empty.scheduled_system_counts()
+        );
+    }
+}
