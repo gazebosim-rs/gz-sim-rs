@@ -1,0 +1,27 @@
+{
+  "image_id": "sha256:bae6ddc3a806532805a8103967d7ab353fdaf14ab0fcb957343f8f32bece11da",
+  "parent_image": "sha256:11b7378c7cca2844a4b7b2c9f52525e983b19d6651d33c83375d220672462d1d",
+  "image_size_bytes": 5531606683,
+  "image_layers": 14,
+  "config_sha256": "11c8fc220962946160e6ca545e6649d94409348c685fed8e8d0620145bd0d2ee",
+  "history_sha256": "4a476c9c2025d76b3feafd4384694fba6538850732e96c096f0e82f2e64941dd",
+  "app_manifest_sha256": "ba9d232f953935f80604bb4934f89d3b852be5ec511529c6dea00036b075e2cb",
+  "client_manifest_sha256": "f3dcebc0a653ee285961965456adb416b83f031fc4ed85908c527c41b5e0e846",
+  "smoke_source_sha256": "196da10aee045229cbdd651db0696628281676a6116c01919849c7883a06fdde",
+  "smoke_binary_sha256": "8c90c0f56a5518498bdd9fc6a6011d9744f9e7075766032756eac0c7e2e3c9e7",
+  "fresh_readonly_validation": {
+    "returncode": 0,
+    "stderr_bytes": 0,
+    "source_inputs": 16,
+    "libraries": 151,
+    "smoke_stdout": "zenoh headless ready clock=1 pose=1 imu=1 sim_ns=1000000\n"
+  },
+  "space": {
+    "measured_commit_layer_bytes": 894411001,
+    "min_free_during_commit_bytes": 4233601024,
+    "required_reserve_bytes": 1073741824,
+    "reserve_held": true
+  },
+  "scope": "immutable local reference image and saved artifact qualification only; fresh container did not execute native main/gtest or timing",
+  "first_parser_issue": "Docker printed a deprecated --pause notice before the valid ID on stdout; strict whole-stdout ID parser rejected it, no second commit was run"
+}

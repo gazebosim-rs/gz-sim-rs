@@ -1,0 +1,64 @@
+{
+  "state": "Measurement/raw audit and Tool2 exact hosted/source audit passed; separately reviewed report publication remains pending.",
+  "scope": "Actual Rust Server versus native Server+Physics+Imu+SceneBroadcaster, all three requested clock/pose/IMU streams with prospective20ms-or-greater request pacing and per-step complete receipt; summed work latency excludes declared pacing, walltime recorded separately. Two-model TPE with one constant1m/s free body, one1000Hz noise-free IMU, sharedSDF, internallyunpaced1ms physics and complete decoded local observations. One received warmup excluded; N measured steps. Not network, joints, rendering, balanced robotics or whole-engine speedup.",
+  "path_rules": [
+    {
+      "original_role": "Actual C3 Rust source export",
+      "public_token": "<SIM_SOURCE_C3F5A2F>"
+    },
+    {
+      "original_role": "Reviewed measurement-tool source context",
+      "public_token": "<MEASUREMENT_TOOL_1C70B81>"
+    },
+    {
+      "original_role": "Read-only current-source alias preserving immutable native app argv",
+      "public_token": "<NATIVE_APP_SOURCE_ALIAS_C3F5A2F>"
+    },
+    {
+      "original_role": "Optimized C3 target prefix",
+      "public_token": "<RUST_RELEASE_TARGET_C3F5A2F>"
+    },
+    {
+      "original_role": "C3 review checkout prefix",
+      "public_token": "<SIM_C3_REVIEW_WORKTREE>"
+    },
+    {
+      "original_role": "Build-user home after specific source rules",
+      "public_token": "<BUILD_USER_HOME>"
+    }
+  ],
+  "unchanged_public_native_roots": [
+    "/reference",
+    "/zenoh-client",
+    "/usr",
+    "/tmp/gz-zenoh-c3-equal-work"
+  ],
+  "program_commit": "c3f5a2f3c39f27d98314e032e78c39cb44d660a0",
+  "program_tree": "8b716df8fbdbae35b5cded8173cd3d88359094ea",
+  "program_whole_hosted": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41270504128",
+  "tool_commit": "1c70b81b5af3427b26afe1575844b4f5aea57eeb",
+  "tool_whole_hosted": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41278421417",
+  "tool_inputs_sha256": {
+    "scripts/benchmark-headless-pipeline.py": "4aff65450d89f61a084c032a1a8f8990bcb043069115ef8f386d80332fef0728",
+    "scripts/native_reference.py": "a948581a93ad55f681df9f3ce242ac74b9dfc7984c81fd1d1a8c8733368a79bd",
+    "scripts/probe-headless-imu.py": "afff89d58c84049d33018422adbb488709d9969339ce4c2093edeb8dac1f9faa",
+    "reference/build-reference.py": "ea4c958896f045c8110564cdff9f1bd2bccd47277d85e59c72e43622a977475d"
+  },
+  "rust_binary_sha256": "4c9d40081e0ce8ef9f384d8f120bf74cb1722747f589942395cc96a88833d49e",
+  "native_binary_sha256": "2e26e500d532f07b6b3dbe9049c3b2b99e2654634a428e7d8ea7a59d80948e10",
+  "rust_build_record_sha256": "078b103a8818adac442acb854cf9d3bcdf6d5ce92b083cbd9b23d5eb5e933bf2",
+  "native_image": "sha256:bae6ddc3a806532805a8103967d7ab353fdaf14ab0fcb957343f8f32bece11da",
+  "native_image_qualification_sha256": "946a92e5b7489c3ec8b82b0bc736688ccf09554489904a4ff6f09cd8ae095915",
+  "measured_pairs": 7,
+  "excluded_warmup_pairs": 1,
+  "steps": 1000,
+  "request_period_us": 20000,
+  "medians_ns_per_step": {
+    "native": 63501.247,
+    "rust": 58582.404
+  },
+  "rust_lower_latency_percent": 7.746057333330791,
+  "independent_raw_audit_sha256": "da60023b4f3a1f9fd0ec0f1f94fe44e3d0e6fdacc12fa910fdbe3b26354eba0c",
+  "qualification": "One small matched TPE Server Clock/Pose/IMU workload, not throughput, whole-engine, balanced robotics or causal optimization evidence. Native local delivery may bypass serialization while Rust uses encoded queues. The immutable image is locally retained, not claimed publicly pullable. Debug hosted objects are not the measured release ELF. Old587 measurements remain separate.",
+  "tool_hosted_audit_sha256": "0c6c70df23e311508c53c87679f802142b7df19724f950001ee1fea506be231b"
+}
