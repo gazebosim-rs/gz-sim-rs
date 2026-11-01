@@ -6,9 +6,10 @@ SPDX-License-Identifier: Apache-2.0
 Loaded IMUs expose synchronous `gz_sim_scene::imu_rate` and `set_imu_rate`
 functions using their public entity IDs. `Server` also advertises
 `<sensor-topic>/set_rate`, with `gz.msgs.Double` requests and `gz.msgs.Empty`
-response type. Gazebo treats Empty services as **one-way**. Transport handoff
-success does not confirm application; no completion or rejection reply exists.
-Observe acquisition or query local state when completion matters.
+response type. An Empty receipt acknowledges queue handoff, not the later
+applied, ignored or rejected outcome. Observe acquisition, counters or local
+state when application matters. Full ingress refuses handoff and cannot return
+a successful Empty receipt.
 
 ## Admission and phase
 
@@ -39,18 +40,33 @@ local rejection; it cannot report a fabricated remote error response.
 
 ## Bounded service execution
 
-The server polls a finite number of rate requests after each tick, including
-paused ticks. `Counters` separates applied, ignored and rejected requests.
-`transport_statistics()` aggregates world and rate-worker counters, including
-queue drops. Limits remain explicit `gz_transport::Config` values.
+When configured IMUs remain, the server polls a finite number of rate requests
+after each tick, including paused ticks. `Counters` separates applied, ignored
+and rejected requests. `ingress_statistics()` reports the shared world-lifetime
+queue-drop counter, including actual rate ingress losses. Limits are explicit
+`ServerOptions::capacity` and `max_message_bytes` values.
 
-Distinct sensors sharing a topic advertise distinct service providers. A request
-changes one selected recipient, without fanout or a stable first-created choice.
-A pool minimizes IO workers subject to per-Node capacity and duplicate-topic
-constraints. Workers are created during setup and retained until shutdown;
-reset and stepping replace service leases without creating or joining workers.
-Scenes with many identical topics still require many workers with the current
-Transport API; that scaling limit is not qualified as a performance improvement.
+Distinct sensors sharing a topic advertise distinct service providers. The
+selected direct remote Zenoh contract delivers a matching request to both
+providers in the retained two-provider case, with an Empty handoff receipt from
+each accepted queue. It does not promise the old ZeroMQ single-recipient choice.
+CPU providers retain only scalar receivers and active gates. With no current
+providers there is no retained Rates CPU owner, provider heap or receiver, and
+no Rates poll or retirement call. Removing the last provider drops that CPU
+owner and discards unread scalars. IO sender/callback state can retain the
+disconnected channel allocation until its separate retirement completes.
+A partial removal preserves the surviving providers and their
+round-robin budget. Reset reconstructs demand from loaded Scene metadata rather
+than retaining an empty provider template.
+
+Direct Zenoh queryables, discovery tokens and Query values stay on existing
+world IO owners. Construction and reset installation/acknowledgment occur outside
+raw ticking. CPU retirement disables gates without waiting for callbacks; IO
+retains callback/queued-query completion witnesses until native retirement ends.
+Late Full accounting still uses the shared world metric. This CPU ownership
+change does not establish whole ACT-01 absence, bounded network shutdown or a
+performance improvement; other world work and pending native retirement remain
+separate concerns.
 
 ## Reproducing native references
 
@@ -79,14 +95,18 @@ parity. The standalone base-Sensor getter/phase/shared-provider reproducer is
 `gz-sensors` pkg-config package. Base Update behavior alone does not qualify the
 full IMU system's admission gate.
 
-The real C++ rate client is built by `scripts/native-peer.py --client rate` and
-exercised by `native_rates.rs` on TPE and Rapier. stdin/stdout synchronize the test
-harness; a local processed-counter barrier avoids inventing an Empty response.
+The real C++ rate client is built through `scripts/native-peer.py` with explicit
+`--client rate --profile gazebo-zenoh-client-v1 --json`, using the qualified
+reference root. `native_rates.rs` exercises it on TPE, Rapier, DART and MuJoCo. stdin/stdout
+synchronize the harness. Actual Empty queue-handoff
+receipts and the later local applied/ignored/rejected outcomes are checked
+separately; a receipt does not prove that a rate changed.
 Exact native-derived sample times, sequences, physical readings and covariances
 are checked. Delayed delivery, nonzero exit and Rust-unwind/hung-child cleanup are
 separate controls. Existing clock/control/IMU clients remain mandatory.
 
-This increment covers loaded IMU rates. Activation, triggers, metrics, runtime
-sensor registration, other sensor families and full SENSOR-01/IO-01/P2 acceptance
-remain separate work. Strict coverage, independent review, equal-work performance,
+This increment covers loaded IMU rates. Whole ACT-01, triggers, metrics, runtime
+sensor registration, other sensor families and full SENSOR-01/IO-01 completion
+remain separate work; selected P2 acceptance does not close those packets.
+Strict coverage, independent review, equal-work performance,
 protected normal hooks and exact hosted CI are required before acceptance.

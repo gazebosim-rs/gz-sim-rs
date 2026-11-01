@@ -300,7 +300,7 @@ fn rate_worker_failure_during_committed_reset_is_terminal_and_retires_leases() {
             .epoch,
         1
     );
-    assert!(server.rates.providers.is_empty());
+    assert!(server.rates.is_none());
     assert!(server.reset_failed);
     let id = server
         .simulation
@@ -367,7 +367,7 @@ fn duplicate_sensor_names_from_a_reset_handler_fail_after_commit_without_live_se
             .epoch,
         1
     );
-    assert!(server.rates.providers.is_empty());
+    assert!(server.rates.is_none());
     assert!(server.reset_failed);
     assert!(matches!(server.update(), Err(Error::ResetStreams)));
 }
@@ -805,4 +805,305 @@ fn queued_rate_session_close_preserves_scalar_admission_and_full_queue_accountin
         assert!(declarations.reconcile());
         assert!(declarations.is_empty());
     }
+}
+
+#[test]
+fn absent_rate_ingress_stays_absent_across_frames_and_prepared_resets() {
+    use gz_sim_proto::msgs::{WorldControl, WorldReset};
+    let simulation = gz_sim_scene::load_world(
+        "<sdf version='1.12'><world name='default'/></sdf>",
+        "absent-rates.sdf",
+        "default",
+        Duration::from_millis(1),
+        &sdformat::NoResources,
+    )
+    .unwrap();
+    let scheduled = simulation.scheduled_system_counts();
+    let mut server = crate::Server::with_zenoh_config(
+        simulation,
+        "default",
+        network_config(),
+        zenoh_config(),
+        NonZeroUsize::new(2).unwrap(),
+    )
+    .unwrap();
+    let metric = Arc::downgrade(&server.world_io.ingress_drops);
+    assert!(server.rates.is_none());
+    for paused in [true, false] {
+        server.set_paused(paused);
+        for _ in 0..3 {
+            server.update().unwrap();
+            assert!(server.rates.is_none());
+            assert_eq!(server.simulation.scheduled_system_counts(), scheduled);
+        }
+    }
+    for all in [true, false] {
+        assert!(server.apply_control(WorldControl {
+            pause: true,
+            reset: Some(WorldReset {
+                all,
+                time_only: !all,
+                ..Default::default()
+            }),
+            ..Default::default()
+        }));
+        server.prepare_io().unwrap();
+        assert!(server.rates.is_none());
+        let prepared = server.simulation.elapsed();
+        let info = server.tick().unwrap();
+        assert_eq!(info.sim_time, prepared);
+        assert_eq!(server.simulation.elapsed(), prepared);
+        assert!(server.rates.is_none());
+        assert_eq!(server.simulation.scheduled_system_counts(), scheduled);
+    }
+    assert!(std::ptr::eq(
+        metric.as_ptr(),
+        Arc::as_ptr(&server.world_io.ingress_drops)
+    ));
+    assert_eq!(server.ingress_statistics().queue_drops, 0);
+    assert_eq!(server.counters().imu_rates_applied, 0);
+    assert_eq!(server.counters().imu_rates_ignored, 0);
+    assert_eq!(server.counters().imu_rates_rejected, 0);
+    server.shutdown();
+    assert!(server.rates.is_none());
+}
+
+#[test]
+fn shared_rate_providers_retire_individually_and_loaded_reset_discards_unread_work() {
+    let xml = include_str!("../../../gz-sim-scene/tests/fixtures/headless_imu.sdf").replace(
+        "</sensor>",
+        "</sensor><sensor name='other' type='imu'><topic>/other</topic><update_rate>1000</update_rate></sensor>",
+    );
+    let simulation = gz_sim_scene::load_world(
+        &xml,
+        "shared-rates.sdf",
+        "default",
+        Duration::from_millis(1),
+        &sdformat::NoResources,
+    )
+    .unwrap();
+    let mut config = network_config();
+    config.capacity = 1;
+    config
+        .add_topic_remap("/other/set_rate", "/p2/imu/set_rate")
+        .unwrap();
+    let mut server = crate::Server::with_zenoh_config(
+        simulation,
+        "default",
+        config.clone(),
+        zenoh_config(),
+        NonZeroUsize::new(1).unwrap(),
+    )
+    .unwrap();
+    let metric = Arc::downgrade(&server.world_io.ingress_drops);
+    // Observe real scalar receiver lifetime without retaining a CPU provider.
+    // The retained Query tests separately exercise native ingress and receipts.
+    let sensors: Vec<_> = server
+        .simulation
+        .world()
+        .iter_entities()
+        .filter_map(|entity| entity.get::<ImuPublication>().cloned())
+        .collect();
+    let (mut rates, setup) =
+        Rates::prepare(&config, &sensors, &server.world_io.ingress_drops).unwrap();
+    rates.bind(&server.simulation).unwrap();
+    assert_eq!(rates.providers.len(), 2);
+    assert_eq!(setup.providers[0].key, setup.providers[1].key);
+    let inputs: Vec<_> = setup
+        .providers
+        .iter()
+        .zip(&rates.providers)
+        .map(|(spec, provider)| {
+            (
+                provider.id.unwrap(),
+                spec.input.clone(),
+                Arc::downgrade(&spec.active),
+            )
+        })
+        .collect();
+    server.rates = rates.into_active();
+    server.world_io.install_rates(setup).unwrap();
+    server.set_paused(true);
+    for (index, (_, input, _)) in inputs.iter().enumerate() {
+        input.try_send(Some(100. * (index + 1) as f64)).unwrap();
+    }
+    for expected in [1, 2] {
+        server.update().unwrap();
+        assert_eq!(server.counters().imu_rates_applied, expected);
+        assert_eq!(server.simulation.elapsed(), Duration::ZERO);
+    }
+    for (index, (id, _, _)) in inputs.iter().enumerate() {
+        assert_eq!(
+            gz_sim_scene::imu_rate(server.simulation(), *id)
+                .unwrap()
+                .rate_hz,
+            100. * (index + 1) as f64
+        );
+    }
+    let first = entity_by_id(server.simulation.world(), inputs[0].0).unwrap();
+    server.simulation.world_mut().entity_mut(first).despawn();
+    server.update().unwrap();
+    assert_eq!(server.rates.as_ref().unwrap().providers.len(), 1);
+    assert!(matches!(
+        inputs[0].1.try_send(Some(300.)),
+        Err(mpsc::TrySendError::Disconnected(_))
+    ));
+    assert!(
+        inputs[0]
+            .2
+            .upgrade()
+            .is_none_or(|active| !active.load(Ordering::Acquire))
+    );
+    inputs[1].1.try_send(Some(300.)).unwrap();
+    assert!(matches!(
+        inputs[1].1.try_send(Some(400.)),
+        Err(mpsc::TrySendError::Full(_))
+    ));
+    let last = entity_by_id(server.simulation.world(), inputs[1].0).unwrap();
+    server.simulation.world_mut().entity_mut(last).despawn();
+    server.update().unwrap();
+    assert!(server.rates.is_none());
+    assert!(matches!(
+        inputs[1].1.try_send(Some(500.)),
+        Err(mpsc::TrySendError::Disconnected(_))
+    ));
+    assert!(
+        inputs[1]
+            .2
+            .upgrade()
+            .is_none_or(|active| !active.load(Ordering::Acquire))
+    );
+    assert_eq!(server.counters().imu_rates_applied, 2);
+    server.reset_scene().unwrap();
+    assert_eq!(server.rates.as_ref().unwrap().providers.len(), 2);
+    for provider in &server.rates.as_ref().unwrap().providers {
+        assert!(provider.active.load(Ordering::Acquire));
+        assert_eq!(
+            gz_sim_scene::imu_rate(server.simulation(), provider.id.unwrap())
+                .unwrap()
+                .rate_hz,
+            1000.
+        );
+    }
+    server.update().unwrap();
+    assert_eq!(server.counters().imu_rates_applied, 2);
+    assert_eq!(server.counters().imu_rates_ignored, 0);
+    assert_eq!(server.counters().imu_rates_rejected, 0);
+    assert_eq!(server.ingress_statistics().queue_drops, 0);
+    assert!(std::ptr::eq(
+        metric.as_ptr(),
+        Arc::as_ptr(&server.world_io.ingress_drops)
+    ));
+    for (_, input, _) in &inputs {
+        assert!(matches!(
+            input.try_send(Some(600.)),
+            Err(mpsc::TrySendError::Disconnected(_))
+        ));
+    }
+    server.shutdown();
+    assert!(server.rates.is_none());
+}
+
+#[test]
+fn real_rate_queue_loss_survives_final_cpu_retirement_and_loaded_reset() {
+    let simulation = gz_sim_scene::load_world(
+        include_str!("../../../gz-sim-scene/tests/fixtures/headless_imu.sdf"),
+        "rate-loss.sdf",
+        "default",
+        Duration::from_millis(1),
+        &sdformat::NoResources,
+    )
+    .unwrap();
+    let config = ServerOptions {
+        capacity: 1,
+        ..network_config()
+    };
+    let mut server = crate::Server::with_zenoh_config(
+        simulation,
+        "default",
+        config.clone(),
+        zenoh_config(),
+        NonZeroUsize::new(1).unwrap(),
+    )
+    .unwrap();
+    let metric = Arc::downgrade(&server.world_io.ingress_drops);
+    handoff(
+        &server,
+        &config,
+        Double {
+            data: 200.,
+            ..Default::default()
+        }
+        .encode_to_vec(),
+    )
+    .unwrap();
+    assert!(
+        handoff(
+            &server,
+            &config,
+            Double {
+                data: 300.,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+        )
+        .is_err()
+    );
+    assert_eq!(server.ingress_statistics().queue_drops, 1);
+    assert_eq!(server.counters().imu_rates_applied, 0);
+    let model = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<gz_sim_scene::Name>()
+                .is_some_and(|name| name.0 == "default::ball")
+        })
+        .unwrap()
+        .get::<EntityId>()
+        .unwrap()
+        .get();
+    gz_sim_scene::remove_model(&mut server.simulation, model).unwrap();
+    server.update().unwrap();
+    assert!(server.rates.is_none());
+    assert_eq!(server.ingress_statistics().queue_drops, 1);
+    assert_eq!(server.counters().imu_rates_applied, 0);
+    server.reset_scene().unwrap();
+    assert_eq!(server.rates.as_ref().unwrap().providers.len(), 1);
+    let id = server.rates.as_ref().unwrap().providers[0].id.unwrap();
+    assert_eq!(
+        gz_sim_scene::imu_rate(server.simulation(), id)
+            .unwrap()
+            .rate_hz,
+        1000.
+    );
+    server.update().unwrap();
+    assert_eq!(server.counters().imu_rates_applied, 0);
+    assert_eq!(server.ingress_statistics().queue_drops, 1);
+    assert!(std::ptr::eq(
+        metric.as_ptr(),
+        Arc::as_ptr(&server.world_io.ingress_drops)
+    ));
+    handoff(
+        &server,
+        &config,
+        Double {
+            data: 400.,
+            ..Default::default()
+        }
+        .encode_to_vec(),
+    )
+    .unwrap();
+    server.update().unwrap();
+    assert_eq!(server.counters().imu_rates_applied, 1);
+    assert_eq!(
+        gz_sim_scene::imu_rate(server.simulation(), id)
+            .unwrap()
+            .rate_hz,
+        400.
+    );
+    assert_eq!(server.ingress_statistics().queue_drops, 1);
+    server.shutdown();
+    assert!(server.rates.is_none());
 }

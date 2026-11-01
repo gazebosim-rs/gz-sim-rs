@@ -158,12 +158,10 @@ impl Rates {
     /// Produce replacement plain setup. IO installation/acknowledgment belongs
     /// outside stepping; the caller must not advance before that phase completes.
     pub(crate) fn restart(
-        &mut self,
         config: &ServerOptions,
         sim: &Simulation,
         ingress_drops: &Arc<AtomicU64>,
-    ) -> Result<RateSetup, Error> {
-        self.clear();
+    ) -> Result<(Self, RateSetup), Error> {
         let sensors: Vec<_> = match gz_sim_scene::initial_imu_publications(sim) {
             Ok(sensors) => sensors.cloned().collect(),
             Err(gz_sim_scene::SceneResetError::MissingInitialState) => sim
@@ -176,8 +174,7 @@ impl Rates {
         };
         let (mut replacement, setup) = Self::prepare(config, &sensors, ingress_drops)?;
         replacement.bind(sim)?;
-        *self = replacement;
-        Ok(setup)
+        Ok((replacement, setup))
     }
 
     pub(crate) fn clear(&mut self) {
@@ -186,6 +183,12 @@ impl Rates {
     }
     pub(crate) fn shutdown(&mut self) {
         self.clear();
+    }
+    pub(crate) fn is_empty(&self) -> bool {
+        self.providers.is_empty()
+    }
+    pub(crate) fn into_active(self) -> Option<Self> {
+        if self.is_empty() { None } else { Some(self) }
     }
 
     pub(crate) fn poll(
