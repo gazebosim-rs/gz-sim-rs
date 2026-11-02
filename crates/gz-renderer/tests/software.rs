@@ -589,3 +589,209 @@ fn pending_directional_captures_retire_before_replacement_and_unlit_successors()
     );
     assert_eq!(restored.rgba, unlit.rgba);
 }
+
+fn request_metric_depth(renderer: &mut Renderer) {
+    for _ in 0..300 {
+        match renderer.request_depth_readback() {
+            Ok(()) => return,
+            Err(RenderError::NotReady) => {
+                renderer.update().unwrap();
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            Err(error) => panic!("depth request failed: {error}"),
+        }
+    }
+    panic!("depth scene never became ready");
+}
+
+fn metric_depth(renderer: &mut Renderer) -> gz_renderer::DepthFrame {
+    request_metric_depth(renderer);
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        if let Some(frame) = renderer.take_depth_frame().unwrap() {
+            return frame;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    panic!("metric depth readback did not complete");
+}
+
+#[test]
+fn software_metric_depth_uses_actual_geometry_and_preserves_readback_lifecycle() {
+    use gz_render_frame::camera::{Calibration, CameraConfig};
+    let mut renderer = Renderer::new().unwrap();
+    println!("metric depth adapter: {:?}", renderer.adapter_info());
+    if std::env::var_os("GZ_RENDER_REQUIRE_LLVMPIPE").is_some() {
+        assert_eq!(renderer.adapter_info().device_type, wgpu::DeviceType::Cpu);
+        assert!(
+            renderer
+                .adapter_info()
+                .name
+                .to_ascii_lowercase()
+                .contains("llvmpipe")
+        );
+    }
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NoSnapshot)
+    ));
+    let calibration = Calibration::new(CameraConfig {
+        width: 64,
+        height: 64,
+        fx: 40.,
+        fy: 48.,
+        cx: 29.,
+        cy: 35.,
+        skew: 0.,
+        tx: 0.,
+        ty: 0.,
+        near: 0.1,
+        far: 100.,
+    })
+    .unwrap();
+    let origin = DVec3::splat(1e12);
+    let camera = WorldPose {
+        translation: origin,
+        rotation: DQuat::from_rotation_z(0.3),
+    };
+    let visual = |id, forward| BoxVisual {
+        id,
+        pose: WorldPose {
+            translation: origin + camera.rotation * DVec3::new(forward, 0., 0.),
+            rotation: camera.rotation,
+        },
+        size: DVec3::ONE,
+        color: [1., 0., 0.],
+    };
+    let mut scene = Snapshot {
+        epoch: 4,
+        time: Duration::from_millis(7),
+        origin,
+        visuals: vec![visual(1, 4.)],
+    };
+    renderer
+        .set_calibrated_snapshot(&scene, calibration, camera)
+        .unwrap();
+    let original_rgb = image(&mut renderer);
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NoDepthSnapshot)
+    ));
+    renderer
+        .set_calibrated_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    let first = metric_depth(&mut renderer);
+    assert_eq!((first.epoch, first.time), (scene.epoch, scene.time));
+    assert_eq!(first.metres.len(), 64 * 64);
+    // Match pinned gz-sensors' existing DEPTH_TOL=1e-4 for this BOX face.
+    // Off-principal pixels have the same optical axial depth, not radial range.
+    for (x, y) in [(29, 35), (26, 35), (31, 35), (29, 40)] {
+        assert!((first.metres[y * 64 + x] - 3.5).abs() < 1e-4);
+    }
+    assert_eq!(first.metres[0], f32::INFINITY);
+    assert_eq!(first.metres[63], f32::INFINITY);
+    assert_eq!(first.metres[25 * 64 + 29], f32::INFINITY);
+
+    // Invalid near geometry must leave a real, requested frame deliverable.
+    request_metric_depth(&mut renderer);
+    assert!(renderer.readback_in_flight());
+    let wrong_size = Calibration::new(CameraConfig {
+        width: 65,
+        ..calibration.config()
+    })
+    .unwrap();
+    assert!(matches!(
+        renderer.set_calibrated_depth_snapshot(&scene, wrong_size, camera),
+        Err(RenderError::InvalidCameraDimensions)
+    ));
+    let mut near = scene.clone();
+    near.epoch += 1;
+    near.visuals[0].pose.translation = origin;
+    assert!(matches!(
+        renderer.set_calibrated_depth_snapshot(&near, calibration, camera),
+        Err(RenderError::DepthNearClip)
+    ));
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    let mut delivered = false;
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        if let Some(frame) = renderer.take_depth_frame().unwrap() {
+            assert_eq!((frame.epoch, frame.time), (scene.epoch, scene.time));
+            assert!((frame.metres[35 * 64 + 29] - 3.5).abs() < 1e-4);
+            delivered = true;
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    assert!(
+        delivered,
+        "invalid snapshot cancelled the valid depth capture"
+    );
+
+    // A committed successor cancels delivery but does not free the owned slot.
+    request_metric_depth(&mut renderer);
+    scene.epoch += 1;
+    scene.time += Duration::from_millis(1);
+    scene.visuals.push(visual(2, 2.5));
+    renderer
+        .set_calibrated_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::Busy)
+    ));
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        assert!(renderer.take_depth_frame().unwrap().is_none());
+        if !renderer.readback_in_flight() {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    assert!(!renderer.readback_in_flight());
+    let occluded = metric_depth(&mut renderer);
+    assert_eq!((occluded.epoch, occluded.time), (scene.epoch, scene.time));
+    assert!((occluded.metres[35 * 64 + 29] - 2.).abs() < 1e-4);
+
+    // RGB also reserves the shared slot until its real cancelled delivery retires.
+    renderer.request_readback().unwrap();
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::Busy)
+    ));
+    renderer.cancel_readback();
+    retire_cancelled(&mut renderer);
+    scene.visuals = vec![visual(1, 200.)];
+    scene.time += Duration::from_millis(1);
+    renderer
+        .set_calibrated_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    let far = metric_depth(&mut renderer);
+    assert!(far.metres.iter().all(|value| *value == f32::INFINITY));
+    scene.visuals.clear();
+    scene.time += Duration::from_millis(1);
+    renderer
+        .set_calibrated_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    let empty = metric_depth(&mut renderer);
+    assert!(empty.metres.iter().all(|value| *value == f32::INFINITY));
+
+    scene.visuals = vec![visual(1, 4.)];
+    scene.time += Duration::from_millis(1);
+    renderer
+        .set_calibrated_snapshot(&scene, calibration, camera)
+        .unwrap();
+    let restored = image(&mut renderer);
+    assert_eq!(original_rgb.rgba, restored.rgba);
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NoDepthSnapshot)
+    ));
+}

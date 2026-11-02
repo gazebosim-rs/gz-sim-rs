@@ -660,3 +660,339 @@ fn directional_install_is_atomic_and_retires_owned_entity() {
         )
     );
 }
+
+fn depth_calibration() -> Calibration {
+    Calibration::new(gz_render_frame::camera::CameraConfig {
+        width: 64,
+        height: 64,
+        fx: 40.,
+        fy: 48.,
+        cx: 29.,
+        cy: 35.,
+        skew: 0.,
+        tx: 0.,
+        ty: 0.,
+        near: 0.1,
+        far: 100.,
+    })
+    .unwrap()
+}
+
+#[test]
+fn depth_unprojects_actual_reverse_z_to_axial_metres_and_preserves_background() {
+    let calibration = depth_calibration();
+    let projection = calibration.render_projection();
+    let inverse = projection.as_dmat4().inverse();
+    let z = projection.project_point3(Vec3::new(0., 0., -3.)).z;
+    let raw = z.to_le_bytes().repeat(64 * 64);
+    let metres = depth::decode(&raw, inverse).unwrap();
+    assert_eq!(metres.len(), 64 * 64);
+    assert!(metres.iter().all(|value| (*value - 3.).abs() < 1e-4));
+    let empty = depth::decode(&0_f32.to_le_bytes().repeat(64 * 64), inverse).unwrap();
+    assert!(empty.iter().all(|value| *value == f32::INFINITY));
+    let near = depth::decode(&1_f32.to_le_bytes().repeat(64 * 64), inverse).unwrap();
+    assert!(near.iter().all(|value| (*value - 0.1).abs() < 1e-6));
+    assert!(matches!(
+        depth::decode(&raw[..raw.len() - 1], inverse),
+        Err(RenderError::ReadbackFailed)
+    ));
+    for invalid in [f32::NAN, f32::INFINITY, -0.1, 1.1] {
+        assert!(matches!(
+            depth::decode(&invalid.to_le_bytes().repeat(64 * 64), inverse),
+            Err(RenderError::ReadbackFailed)
+        ));
+    }
+    assert!(matches!(
+        depth::decode(&raw, glam::DMat4::NAN),
+        Err(RenderError::ReadbackFailed)
+    ));
+}
+
+#[test]
+fn depth_near_admission_checks_oriented_boxes_before_touching_renderer_state() {
+    let calibration = depth_calibration();
+    let camera = WorldPose {
+        translation: DVec3::splat(1e12),
+        rotation: glam::DQuat::IDENTITY,
+    };
+    let mut snapshot = Snapshot {
+        epoch: 1,
+        time: Duration::ZERO,
+        origin: camera.translation,
+        visuals: vec![BoxVisual {
+            id: 1,
+            pose: WorldPose {
+                translation: camera.translation + DVec3::new(3., 0., 0.),
+                rotation: glam::DQuat::IDENTITY,
+            },
+            size: DVec3::splat(1.),
+            color: [1., 0., 0.],
+        }],
+    };
+    depth::validate_near(&snapshot, calibration, camera).unwrap();
+    snapshot.visuals[0].pose.translation = camera.translation;
+    assert!(matches!(
+        depth::validate_near(&snapshot, calibration, camera),
+        Err(RenderError::DepthNearClip)
+    ));
+    snapshot.visuals[0].pose.translation = camera.translation + DVec3::new(1., 0., 0.);
+    snapshot.visuals[0].size = DVec3::new(0.1, 4., 0.1);
+    depth::validate_near(&snapshot, calibration, camera).unwrap();
+    snapshot.visuals[0].pose.rotation = glam::DQuat::from_rotation_z(std::f64::consts::FRAC_PI_2);
+    assert!(matches!(
+        depth::validate_near(&snapshot, calibration, camera),
+        Err(RenderError::DepthNearClip)
+    ));
+    snapshot.visuals[0].size.x = f64::NAN;
+    assert!(matches!(
+        depth::validate_near(&snapshot, calibration, camera),
+        Err(RenderError::InvalidVisual)
+    ));
+}
+
+#[test]
+fn depth_admission_and_missing_resources_preserve_single_slot_ownership() {
+    let mut renderer = Renderer::new().unwrap();
+    assert!(renderer.take_depth_frame().unwrap().is_none());
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NoSnapshot)
+    ));
+    let snapshot = Snapshot {
+        epoch: 41,
+        time: Duration::from_millis(17),
+        origin: DVec3::ZERO,
+        visuals: vec![],
+    };
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    renderer.set_snapshot(&snapshot).unwrap();
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NoDepthSnapshot)
+    ));
+    renderer.update().unwrap();
+    renderer
+        .set_calibrated_depth_snapshot(&snapshot, depth_calibration(), camera)
+        .unwrap();
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NotReady)
+    ));
+    assert!(!renderer.readback_in_flight());
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        if renderer.ready {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    assert!(renderer.ready);
+    let camera_entity = renderer
+        .app
+        .world_mut()
+        .entity_mut(renderer.camera)
+        .take::<bevy::render::sync_world::RenderEntity>()
+        .unwrap();
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NotReady)
+    ));
+    assert!(!renderer.readback_in_flight());
+    let render_entity = camera_entity.id();
+    renderer
+        .app
+        .world_mut()
+        .entity_mut(renderer.camera)
+        .insert(camera_entity);
+    let attachment = renderer
+        .app
+        .get_sub_app_mut(RenderApp)
+        .unwrap()
+        .world_mut()
+        .entity_mut(render_entity)
+        .take::<bevy::render::view::ViewDepthStencilTexture>()
+        .unwrap();
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NotReady)
+    ));
+    assert!(!renderer.readback_in_flight());
+    renderer
+        .app
+        .get_sub_app_mut(RenderApp)
+        .unwrap()
+        .world_mut()
+        .entity_mut(render_entity)
+        .insert(attachment);
+    renderer.request_depth_readback().unwrap();
+    let old_slot = renderer
+        .depth_pending
+        .as_ref()
+        .unwrap()
+        .pending
+        .pixels
+        .clone();
+    let mut excessive = snapshot.clone();
+    excessive.visuals = (0..=MAX_OBJECTS)
+        .map(|index| BoxVisual {
+            id: index as u64 + 1,
+            pose: WorldPose {
+                translation: DVec3::new(3., 0., 0.),
+                rotation: glam::DQuat::IDENTITY,
+            },
+            size: DVec3::ONE,
+            color: [1.; 3],
+        })
+        .collect();
+    assert!(matches!(
+        renderer.set_calibrated_depth_snapshot(&excessive, depth_calibration(), camera),
+        Err(RenderError::InvalidIds)
+    ));
+    assert_eq!(renderer.stamp, Some((snapshot.epoch, snapshot.time)));
+    assert!(renderer.depth_pending.as_ref().unwrap().pending.valid);
+    assert!(Arc::ptr_eq(
+        &old_slot,
+        &renderer.depth_pending.as_ref().unwrap().pending.pixels
+    ));
+    renderer.app.world_mut().resource_mut::<DeviceFailure>().0 =
+        Some(StoppedReason::Device("depth device lost".into()));
+    assert!(
+        matches!(renderer.take_depth_frame(), Err(RenderError::RenderStopped(reason)) if reason == "depth device lost")
+    );
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::RenderStopped(_))
+    ));
+    assert!(matches!(
+        renderer.set_calibrated_depth_snapshot(&snapshot, depth_calibration(), camera),
+        Err(RenderError::RenderStopped(_))
+    ));
+    assert!(renderer.readback_in_flight());
+}
+
+#[test]
+fn depth_completed_failures_retire_but_poison_keeps_the_slot_owned() {
+    let mut renderer = Renderer::new().unwrap();
+    let snapshot = Snapshot {
+        epoch: 72,
+        time: Duration::from_millis(9),
+        origin: DVec3::ZERO,
+        visuals: vec![],
+    };
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    renderer
+        .set_calibrated_depth_snapshot(&snapshot, depth_calibration(), camera)
+        .unwrap();
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        if renderer.ready {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    assert!(renderer.ready);
+    for bytes in [None, Some(vec![0; 3])] {
+        renderer.request_depth_readback().unwrap();
+        let slot = renderer
+            .depth_pending
+            .as_ref()
+            .unwrap()
+            .pending
+            .pixels
+            .clone();
+        // Wait for the real callback before injecting a corrupt completion; no
+        // callback may race this fault or write into a retired test slot.
+        for _ in 0..200 {
+            renderer
+                .app
+                .world()
+                .resource::<RenderDevice>()
+                .poll(wgpu::PollType::Poll)
+                .unwrap();
+            if slot.lock().unwrap().is_some() {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        assert!(
+            slot.lock().unwrap().is_some(),
+            "actual depth copy did not complete"
+        );
+        *slot.lock().unwrap() = Some(bytes);
+        assert!(matches!(
+            renderer.take_depth_frame(),
+            Err(RenderError::ReadbackFailed)
+        ));
+        assert!(!renderer.readback_in_flight());
+        assert!(renderer.take_depth_frame().unwrap().is_none());
+    }
+    renderer.request_depth_readback().unwrap();
+    let slot = renderer
+        .depth_pending
+        .as_ref()
+        .unwrap()
+        .pending
+        .pixels
+        .clone();
+    std::thread::scope(|scope| {
+        let slot = slot.clone();
+        assert!(
+            scope
+                .spawn(move || {
+                    let _guard = slot.lock().unwrap();
+                    panic!("poison depth completion");
+                })
+                .join()
+                .is_err()
+        );
+    });
+    assert!(matches!(
+        renderer.take_depth_frame(),
+        Err(RenderError::ReadbackPoisoned)
+    ));
+    assert!(renderer.readback_in_flight());
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::Busy)
+    ));
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    renderer.cancel_readback();
+    assert!(renderer.readback_in_flight());
+    assert!(!renderer.depth_pending.as_ref().unwrap().pending.valid);
+    assert!(matches!(
+        renderer.take_depth_frame(),
+        Err(RenderError::ReadbackPoisoned)
+    ));
+}
+
+#[test]
+fn depth_rejects_finite_unprojection_that_is_not_forward() {
+    let raw = 1_f32.to_le_bytes().repeat(64 * 64);
+    assert!(matches!(
+        depth::decode(&raw, glam::DMat4::IDENTITY),
+        Err(RenderError::ReadbackFailed)
+    ));
+    let snapshot = Snapshot {
+        epoch: 0,
+        time: Duration::ZERO,
+        origin: DVec3::ZERO,
+        visuals: vec![],
+    };
+    let invalid = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::from_xyzw(0., 0., 0., 0.),
+    };
+    assert!(matches!(
+        depth::validate_near(&snapshot, depth_calibration(), invalid),
+        Err(RenderError::Pose(_))
+    ));
+}

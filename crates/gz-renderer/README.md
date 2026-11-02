@@ -62,3 +62,80 @@ removes the ambient override. New unlit materials use the original default
 construction. This avoids unnecessary admission work without a performance claim.
 The unchanged thirteen-test package passes after this adjustment; separate logs
 are retained in `artifacts/explicit-lux-transitions/`.
+
+## Source-only calibrated metric depth
+
+The new `set_calibrated_depth_snapshot`, `request_depth_readback` and
+`take_depth_frame` API is an unqualified RENDER-02 candidate on accepted `c5dd02c0`.
+After the initial attempt described below, the accepted primitive-inertia consumer
+parent was fast-forwarded once. Its producer pin and publication changes touch no
+renderer files. All four reviewed code/test payloads, including the appended
+lifecycle correction controls, remained byte-identical across that integration;
+only this factual README parent note then changed. The affected required gate
+will qualify the corrected feature against the accepted consumer dependencies.
+The first attempt compiled and passed the new depth controls but failed owned
+region coverage. The amended controls and complete corrected qualification remain
+unrun. The earlier light-only package logs above are historical evidence for
+those changes, not depth qualification. No SDF sensor extraction, worker wire
+format, scheduler, server, transport or intensity-to-lux policy changes.
+
+This bounded programmatic API renders the existing opaque box snapshots through
+the existing 64×64 calibrated camera. A `DepthFrame` contains epoch, simulation
+time and 4096 row-major `f32` optical-forward axial distances in metres, starting
+at the upper left. It is not Euclidean range. A zero reverse-Z depth sample maps
+to positive infinity for background/far clipping. Nonfinite/out-of-range raw
+samples or malformed delivery fail the capture rather than generating a frame.
+Unprojection uses maintained glam with the inverse of the actual narrowed
+projection matrix sent to Bevy; it does not ray-cast or synthesize a trajectory.
+Authoritative camera/box transforms remain f64 before render conversion.
+
+Native gz-sensors `8ddf4c17` integration `depth_camera.cc` requires centre-face
+depth within `DEPTH_TOL=1e-4` and background/far positive infinity. Its near-range
+negative-infinity behavior is outside this slice: a single raster depth texture
+cannot distinguish near-clipped geometry from empty background. Every oriented
+box must have all eight f64 camera-local corners strictly beyond the near plane.
+Touching/intersecting/behind boxes are refused before snapshot mutation or
+readback cancellation, even if outside the horizontal/vertical field of view.
+Rotated cameras, world-origin rebasing and asymmetric pinhole intrinsics reuse
+the existing frame/calibration API. No native original-case, native near-range,
+physical GPU or whole depth/RGBD sensor completion is claimed.
+
+Only explicit depth mode sets the camera to one sample and enables COPY_SRC on
+its depth attachment. Bevy 0.20 `core_3d` uses Depth32Float, and the main opaque
+and transparent nodes store that attachment. After an existing non-pipelined
+update, a request copies that actual retained texture into one bounded staging
+buffer; width64 makes its four-byte rows exactly 256-byte aligned. wgpu submits
+the copy after rendering on the same queue. Its asynchronous map callback owns
+the buffer until completion, copies the actual bytes, unmaps, and releases it.
+Device polling is nonblocking and explicitly driven by `update`/delivery calls.
+No render graph node, shader, plugin, scheduled callback, persistent worker,
+background poller or dependency is added. No staging buffer exists without a
+request. Empty optional depth state owns no heap resources.
+
+Depth and RGB share the existing single-slot admission contract. Either pending
+kind makes another request Busy. A new valid snapshot cancels delivery but leaves
+the slot occupied until its actual callback retires. Epoch/time and projection
+are captured at request, so a cancelled old frame cannot acquire successor
+metadata. A poisoned completion lock retains slot ownership. Device loss is
+terminal like the existing RGB path. Legacy snapshot methods restore the
+original camera depth usages and default MSAA when leaving depth mode, and do no
+depth-mode work when none was installed. `Snapshot`, RGBA `Frame`, all old test
+assertions and protocol/client/worker contracts remain unchanged.
+
+Source regression controls cover inverse-projection axial depth and invalid raw
+samples, oriented f64 near-plane admission, actual GPU box-face/background/far
+and empty output, asymmetric intrinsics/camera rotation/origin rebasing,
+occlusion, invalid-admission atomicity during real readback, shared-slot
+cancellation/retirement/successor stamps and full-frame calibrated RGBA restoration.
+Their tolerances do not change any retained assertion. The mapped upstream
+centre/background assertions are source references only until actual software
+GPU execution and complete normal/hosted qualification pass.
+
+The first completed-feature mandatory run compiled and passed all three new depth
+controls (927 headless and 549 renderer tests passed), then stopped at the owned
+renderer region threshold: 1009/1066 regions, below the unchanged >95% requirement.
+It did not qualify the feature. Additional private controls now exercise missing
+camera/attachment admission, terminal-device admission, overcapacity preserving a
+pending capture, corrupt completion retirement and poisoned-slot ownership. These
+amended controls are unrun; numeric bounds, production code and old assertions
+remain unchanged pending the next consolidated required gate.

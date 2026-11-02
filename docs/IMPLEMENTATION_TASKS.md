@@ -341,3 +341,16 @@ measured simulator/producer identities remain `f136e821`/`f0d05146`, distinct fr
 the new consumer pin. Original baseline evidence stays immutable. Both source
 batches are complete before the same required consumer integration gate; no new
 or repeated timing batch is implied.
+
+### RENDER-02: bounded programmatic metric depth (qualification correction)
+
+The renderer owner has completed calibrated 64x64 box depth readback using Bevy's
+actual stored depth texture and projection inverse. Root integrates accepted
+consumer parent `c5dd02c0` and coordinator documentation; executable/test payloads
+remain the reviewed renderer files. The first full gate's 549 renderer passes
+include all three new depth tests, but regions 1009/1066 failed the strict
+per-crate threshold. A reviewed append-only lifecycle/admission/completion-error
+test batch preserves production code, old assertions and numerical bounds.
+Complete this final source batch before one affected normal gate, exact hosted
+qualification and independent official audit. No corrected result is assumed.
+Near-plane intersections and full loaded/native depth sensor behavior remain open.

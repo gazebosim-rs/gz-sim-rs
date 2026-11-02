@@ -9,74 +9,55 @@ current state and the next tasks. Update both when either changes.
 
 ## Current continuation
 
-Main `43cf8e6900ec769815c8a56600b29ae7b93554f7` accepts the B03 Gazebo
-C++ interoperability case after the full local gate, exact hosted run
-`41456359319` and independent official source/profile/native audit. Results:
-924 headless, 546 renderer and 237 tooling tests; every production crate and
-workspace exceeds 95% lines and regions, with all 39 inherited cold spans
-preserved. The six Clock and six Pose receipts prove complete 27-record delivery, stable
-ownership and reset. Seven body world poses match the native projection at
-1/10/100 and post-reset 1 ms at `1e-12`.
-The Rust simulator uses upstream Rust Zenoh directly and without modification;
-C++ is only an external interoperability test peer. Earlier accepted `8ebb02db`
-provides bounded serial assembly and sampled fresh-native B03 motion.
+Qualified integration base `c5dd02c0700baec963464c9e0ce6a8dbc0dfae12` adopts accepted
+SDFormat `a44bf8be` and publishes the immutable contact measurement appendix.
+The complete 646.069-second local gate, exact hosted run `41505982041` and
+independent official source/profile/native/archive audit passed before promotion:
+928 headless, 547 renderer and 254 tooling checks. Every production crate and
+workspace exceeds 95% lines and regions; all 39 inherited cold spans remain cold.
+Centered cylinder/capsule native inputs and observations match the producer's
+accepted source; four-backend force, density, removal and reset controls pass.
+This pin does not implicitly adopt later producer translations or attributes.
 
-The accepted `work/b03-physics-benchmark` slice is a separately configured
-physics-only comparison with no Server/network/IO. Both actors use unlimited
-per-pair contacts, global 10000, ODE/Dantzig and the same physical/query workload.
-Readbacks and source-established settings remain explicitly distinguished.
-All 100 paired frames (16200 values), configuration and actual library bindings
-must pass before timing is eligible. This does not change product defaults or
-qualify original-default/full-Server equal work. See
-[B03_PHYSICS_BENCHMARK.md](B03_PHYSICS_BENCHMARK.md).
+Parent `f136e821` accepts per-pass articulated contact factorization with all
+numerical guards and the historical native oracle retained. The separately
+measured runtime is `f136e821` with producer `f0d05146`, not this later consumer
+pin. One audited physics-only batch matched 129600 values at `1e-12`; native
+median was 11.673473 ms and Rust 17.553577 ms. Rust elapsed time was 26.8443%
+lower than the earlier batch, and still 1.503715 times its paired native time.
+These single-host batches include Rust Scene synchronization and exclude Server,
+network, sensors and rendering. Both original and new raw archives are preserved.
+See [CONTACT_PHYSICS_MEASUREMENT.md](CONTACT_PHYSICS_MEASUREMENT.md).
 
-Main `e829be51d42fed27268606528ba758a93efc37a2` now accepts the configured
-baseline and CI acquisition correction after complete local checks, exact hosted
-run `41481267132` and independent official source/profile/native/archive audit.
-Results: 924 headless, 546 renderer and 249 tooling checks; all per-crate/workspace
-coverage gates and 39 inherited cold spans are preserved. The immutable observation
-archive retains eight configured pairs and 129600 scalar comparisons, maximum
-error `4.440892098500626e-16`. Median windows are 11.743475 ms native and
-23.994811 ms Rust: Rust is 2.043246 times slower here. Three earlier snapshot HTTP
-failures stopped before verification and remain separate. Bounded APT retries,
-omitted translations and strict update error handling retain every package pin,
-signature and required check. This is a physics-only baseline, not a speedup claim.
-Radiometric image parity, broader physics/system completion and matched full
-Server performance remain open. Later sections retain historical investigations;
-use this continuation for accepted revisions and active work.
+Main retains B03 sampled fresh-native motion and actual Gazebo C++ clock, local
+pose, control and reset interoperability. Upstream Rust Zenoh is used directly
+and without modification; C++ is an external test/reference peer. The native
+projection covers seven body world poses at snapshots 1/10/100 and post-reset
+1 ms; broader local pose records use owned Scene/snapshot checks. No all-step
+production-default or full-Server performance qualification is implied.
 
-## Source-ready performance follow-up
+The renderer-only metric-depth candidate is based on accepted `c5dd02c0`.
+Its first normal gate passed 927 headless and 549 renderer tests, including all
+three new depth tests, but failed gz-renderer region coverage at 1009/1066.
+The complete failed stage remains separate. Appended admission, cancellation and
+completion-error controls passed independent source review; production code,
+old assertions, precision bounds and strict coverage gates are unchanged. Complete
+final parent/documentation review before the one affected normal gate, then
+exact hosted and official qualification. No corrected execution or acceptance
+is claimed yet. Near-plane intersections remain explicitly unsupported.
 
-`work/contact-factorization` contains the independently reviewed per-contact-pass
-factorization reuse candidate. It retains all numerical admission guards and
-per-point response arithmetic. Appended lifecycle, owner-isolation and refusal
-regressions preserve the existing test prefix. Root's bridge source binding and
-historical-baseline documentation also passed independent source review.
-The first required candidate gate failed after 316.033 seconds on a historical
-native header binding before replay compilation. All three appended regressions
-passed, but later checks and final coverage remain unrun. The reviewed correction
-retains the original header separately and replays the unchanged oracle in an
-explicit output-only source projection. The failed stage remains distinct from
-the corrected candidate, which has not run qualification. Accepted baseline
-`e829be51` is integrated. Complete the affected required correctness gate before
-any new equal-work timing. The original baseline archive and measurement stay intact.
-See [DART_CONTACT_FACTORIZATION.md](DART_CONTACT_FACTORIZATION.md).
+Root's next `work/metric-depth-worker` source slice extends the private worker,
+client and bounded protocol to carry calibrated depth frames. Its source uses
+internal protocol version 3 and explicit little-endian f32 bytes so +INF survives
+Serde framing; captured kinds must remain stable across replacement/cancellation.
+It is unqualified and must integrate the accepted metric-depth renderer parent
+before checks. It changes no Zenoh or canonical message schema and claims no
+loaded depth sensor or original native sensor parity. See
+`docs/METRIC_DEPTH_WORKER.md` in that source worktree.
 
-## Source-only producer adoption follow-up
-
-Root prepared `work/sdf-capsule-inertia-adoption` on reviewed `f136e821`, advancing
-the exact producer pin from `f0d05146` to accepted `a44bf8be`. Native-backed centered
-cylinder/capsule tests exercise existing four-backend inertia/force/density and
-removal/reset behavior; no old assertions or runtime admission change. Source
-review and verification are pending. The simulator parent `f136e821` is now
-accepted; renderer qualification runs first to fit actual available disk space. Later producer translation support is not included.
-See [SDF_PRIMITIVE_INERTIA_ADOPTION.md](SDF_PRIMITIVE_INERTIA_ADOPTION.md).
-The publication includes the separately audited, source-bound measurement report
-for `f136e821`/`f0d05146`; it does not claim the new producer pin was measured.
-All 141 observation archive members match actual retained bytes, and the original
-baseline archive remains unchanged. Complete one required integration gate after
-source review and renderer resource use, without repeating timings.
-
+Broad physics, sensor families, assets, radiometry, original systems and full
+release performance remain open. Later sections preserve historical evidence;
+use this current continuation and the public dashboard for accepted scope.
 
 ## Accepted headless milestone (2026-11-01)
 

@@ -41,6 +41,10 @@ use std::{
     time::Duration,
 };
 
+#[path = "depth.rs"]
+mod depth;
+pub use depth::DepthFrame;
+
 const WIDTH: u32 = 64;
 const HEIGHT: u32 = 64;
 const MAX_OBJECTS: usize = 128;
@@ -176,6 +180,10 @@ pub enum RenderError {
     NoSnapshot,
     #[error("this renderer supports only a 64 by 64 calibrated target")]
     InvalidCameraDimensions,
+    #[error("metric depth requires every box strictly beyond the calibrated near plane")]
+    DepthNearClip,
+    #[error("no calibrated metric-depth snapshot is installed")]
+    NoDepthSnapshot,
 }
 
 #[derive(Debug, Clone)]
@@ -282,6 +290,8 @@ pub struct Renderer {
     light: Option<(u64, Entity)>,
     stamp: Option<(u64, Duration)>,
     pending: Option<Pending>,
+    depth_pending: Option<depth::DepthPending>,
+    depth_calibration: Option<Calibration>,
     ready_last_update: bool,
     ready: bool,
     adapter_info: wgpu::AdapterInfo,
@@ -381,6 +391,8 @@ impl Renderer {
             light: None,
             stamp: None,
             pending: None,
+            depth_pending: None,
+            depth_calibration: None,
             ready_last_update: false,
             ready: false,
             adapter_info: info,
@@ -452,6 +464,12 @@ impl Renderer {
         }
         if self.snapshot_dirty {
             return Err(RenderError::SnapshotBusy);
+        }
+        if self.depth_calibration.take().is_some() {
+            self.app
+                .world_mut()
+                .entity_mut(self.camera)
+                .insert((Msaa::default(), Camera3d::default()));
         }
         let was_lit = self.light.is_some();
         let lit = light.is_some();
@@ -611,6 +629,119 @@ impl Renderer {
         Ok(())
     }
 
+    /// Install a calibrated, unlit metric-depth scene. Every box must be wholly
+    /// forward of the near plane; near/intersecting/behind geometry is refused.
+    /// This does not implement native near-range -INF sensor semantics.
+    pub fn set_calibrated_depth_snapshot(
+        &mut self,
+        snapshot: &Snapshot,
+        calibration: Calibration,
+        pose: WorldPose,
+    ) -> Result<(), RenderError> {
+        self.check_device()?;
+        if calibration.config().width != WIDTH || calibration.config().height != HEIGHT {
+            return Err(RenderError::InvalidCameraDimensions);
+        }
+        if snapshot.visuals.len() > MAX_OBJECTS {
+            return Err(RenderError::InvalidIds);
+        }
+        depth::validate_near(snapshot, calibration, pose)?;
+        self.set_calibrated_snapshot(snapshot, calibration, pose)?;
+        self.app.world_mut().entity_mut(self.camera).insert((
+            Msaa::Off,
+            Camera3d {
+                depth_texture_usages: (wgpu::TextureUsages::RENDER_ATTACHMENT
+                    | wgpu::TextureUsages::COPY_SRC)
+                    .into(),
+                ..default()
+            },
+        ));
+        self.depth_calibration = Some(calibration);
+        Ok(())
+    }
+
+    /// Copy the actual stored Bevy depth attachment. Shares the single bounded
+    /// readback slot with RGB; it does not run a render or block for the device.
+    pub fn request_depth_readback(&mut self) -> Result<(), RenderError> {
+        self.check_device()?;
+        if self.readback_in_flight() {
+            return Err(RenderError::Busy);
+        }
+        let stamp = self.stamp.ok_or(RenderError::NoSnapshot)?;
+        let calibration = self.depth_calibration.ok_or(RenderError::NoDepthSnapshot)?;
+        if !self.ready {
+            return Err(RenderError::NotReady);
+        }
+        let entity = self
+            .app
+            .world()
+            .get::<bevy::render::sync_world::RenderEntity>(self.camera)
+            .ok_or(RenderError::NotReady)?
+            .id();
+        let texture = self
+            .app
+            .get_sub_app(RenderApp)
+            .and_then(|render| {
+                render
+                    .world()
+                    .get::<bevy::render::view::ViewDepthStencilTexture>(entity)
+            })
+            .ok_or(RenderError::NotReady)?
+            .texture()
+            .clone();
+        let world = self.app.world();
+        self.depth_pending = Some(depth::request(
+            world.resource::<RenderDevice>(),
+            world.resource::<RenderQueue>(),
+            &texture,
+            stamp,
+            calibration,
+        )?);
+        // Extend the same submission fence across the requested depth copy.
+        let done = Arc::new(AtomicBool::new(false));
+        let callback = done.clone();
+        world
+            .resource::<RenderQueue>()
+            .on_submitted_work_done(move || {
+                callback.store(true, Ordering::Release);
+            });
+        self.in_flight = Some(done);
+        Ok(())
+    }
+
+    /// Nonblocking delivery; cancelled copies retire without delivering a frame.
+    pub fn take_depth_frame(&mut self) -> Result<Option<DepthFrame>, RenderError> {
+        self.check_device()?;
+        if self.depth_pending.is_none() {
+            return Ok(None);
+        }
+        if let Err(error) = self
+            .app
+            .world()
+            .resource::<RenderDevice>()
+            .poll(wgpu::PollType::Poll)
+        {
+            let error = error.to_string();
+            self.app.world_mut().resource_mut::<DeviceFailure>().0 =
+                Some(StoppedReason::Device(error.clone()));
+            self.cancel_readback();
+            self.ready = false;
+            return Err(RenderError::RenderStopped(error));
+        }
+        let completed = self
+            .depth_pending
+            .as_ref()
+            .expect("pending was checked")
+            .completed_bytes()?;
+        let Some(bytes) = completed else {
+            return Ok(None);
+        };
+        self.depth_pending
+            .take()
+            .expect("pending was checked")
+            .finish(bytes)
+    }
+
     fn check_device(&self) -> Result<(), RenderError> {
         match &self.app.world().resource::<DeviceFailure>().0 {
             Some(StoppedReason::Device(error)) => Err(RenderError::RenderStopped(error.clone())),
@@ -730,7 +861,7 @@ impl Renderer {
     /// Request one asynchronous readback. A cancelled request occupies the slot until it retires.
     pub fn request_readback(&mut self) -> Result<(), RenderError> {
         self.check_device()?;
-        if self.pending.is_some() {
+        if self.readback_in_flight() {
             return Err(RenderError::Busy);
         }
         let (epoch, time) = self.stamp.ok_or(RenderError::NoSnapshot)?;
@@ -758,11 +889,14 @@ impl Renderer {
 
     /// Whether a readback still occupies the bounded slot, including after cancellation.
     pub fn readback_in_flight(&self) -> bool {
-        self.pending.is_some()
+        self.pending.is_some() || self.depth_pending.is_some()
     }
 
     /// Suppresses delivery of an in-flight frame. The GPU operation may still complete.
     pub fn cancel_readback(&mut self) {
+        if let Some(depth) = &mut self.depth_pending {
+            depth.pending.valid = false;
+        }
         if let Some(pending) = &mut self.pending {
             pending.valid = false;
         }
