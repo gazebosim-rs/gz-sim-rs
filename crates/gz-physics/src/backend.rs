@@ -232,6 +232,41 @@ pub trait DynamicBackend: Send + Sync + 'static {
         })
     }
 
+    /// Atomically constructs root→middle→leaf body revolutes for exactly three
+    /// distinct isolated dynamic bodies. Anchors/axes are world-frame values;
+    /// returned IDs follow the two edges in that order. DART admits this only
+    /// before its first advancing step, under its existing final-state guards.
+    /// A rejected call preserves every body/joint, pending command and next ID.
+    /// Other engines return Unsupported before validating arguments.
+    fn add_serial_revolutes(
+        &mut self,
+        _bodies: [BodyId; 3],
+        _anchors: [[f64; 3]; 2],
+        _axes: [[f64; 3]; 2],
+    ) -> Result<[JointId; 2], PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "atomic two-revolute serial assembly",
+        })
+    }
+
+    /// Atomic three-body serial assembly whose two joint frames have identity
+    /// orientation relative to their respective child bodies. Anchors and axes
+    /// are child/joint-local; finite normal-length axes are normalized at admission.
+    /// This is separate from the world-anchor API. It has the same cold, atomic
+    /// final-state and reset contract; unsupported engines refuse before validation.
+    fn add_serial_revolutes_in_child_frames(
+        &mut self,
+        _bodies: [BodyId; 3],
+        _anchors: [[f64; 3]; 2],
+        _axes: [[f64; 3]; 2],
+    ) -> Result<[JointId; 2], PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "atomic child-frame two-revolute serial assembly",
+        })
+    }
+
     /// Constructs an unbounded reduced-coordinate revolute in an acyclic articulation.
     /// `None` parent anchors to the world; the construction pose is angle zero.
     /// Current and reset construction velocities must satisfy the joint constraints.

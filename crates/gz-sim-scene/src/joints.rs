@@ -179,6 +179,24 @@ pub(super) fn build(
     sim: &mut Simulation,
     backend: &mut PhysicsBackend,
 ) -> Result<(), LoadError> {
+    struct ChildFrame {
+        anchor: [f64; 3],
+        axis: [f64; 3],
+    }
+    struct SerialInput {
+        index: usize,
+        parent: (u64, BodyId),
+        child: u64,
+        body: BodyId,
+        child_name: String,
+        parent_name: String,
+        pose: Transform,
+        axis: [f64; 3],
+        local: Option<ChildFrame>,
+    }
+    let atomic_serial =
+        backend.engine() == "dart" && model.links.len() == 3 && model.joints.len() == 2;
+    let mut serial_inputs = Vec::new();
     let mut order: Vec<_> = (0..model.joints.len()).collect();
     if backend.engine() == "dart" && model.joints.len() == 2 {
         let endpoints: Vec<_> = model
@@ -218,6 +236,49 @@ pub(super) fn build(
             context.world,
         )?;
         let parent_name = sdf.resolve_name(&model.scoped_name, &joint.parent)?;
+        if atomic_serial {
+            // Model validation restricts this path to a local free-root chain.
+            // Keep both intended children free until the backend can qualify
+            // the complete tree, including its final external contacts.
+            let parent_id = context.links[&parent_name];
+            let parent = entity_by_id(sim.world(), parent_id)
+                .expect("loader constructed serial joint parent");
+            let parent_body = sim
+                .world()
+                .get::<BodyHandle>(parent)
+                .expect("dynamic-engine serial parent owns body")
+                .id();
+            let child_pose = sdf.joint_pose(&name, "")?;
+            // Native DART constructs this joint frame from the live child pose.
+            // Preserve that evaluation order only when joint and child axes
+            // share a basis; other orientations keep the world-frame contract.
+            let local = if child_pose.rotation == [0.0, 0.0, 0.0, 1.0]
+                || child_pose.rotation == [0.0, 0.0, 0.0, -1.0]
+            {
+                Some(ChildFrame {
+                    anchor: child_pose.translation,
+                    axis: sdf.resolve_axis(
+                        joint.axis.as_ref().expect("validated revolute axis"),
+                        &name,
+                        &child_name,
+                    )?,
+                })
+            } else {
+                None
+            };
+            serial_inputs.push(SerialInput {
+                index,
+                parent: (parent_id, parent_body),
+                child,
+                body,
+                child_name,
+                parent_name,
+                pose,
+                axis,
+                local,
+            });
+            continue;
+        }
         let (id, parent) = if parent_name == context.world {
             (
                 backend.add_world_revolute(body, pose.translation, axis)?,
@@ -237,6 +298,38 @@ pub(super) fn build(
             )
         };
         built[index] = Some((id, parent, child, child_name, parent_name, pose));
+    }
+    if !serial_inputs.is_empty() {
+        let bodies = [
+            serial_inputs[0].parent.1,
+            serial_inputs[0].body,
+            serial_inputs[1].body,
+        ];
+        let ids = match (&serial_inputs[0].local, &serial_inputs[1].local) {
+            (Some(first), Some(second)) => backend.add_serial_revolutes_in_child_frames(
+                bodies,
+                [first.anchor, second.anchor],
+                [first.axis, second.axis],
+            )?,
+            _ => backend.add_serial_revolutes(
+                bodies,
+                [
+                    serial_inputs[0].pose.translation,
+                    serial_inputs[1].pose.translation,
+                ],
+                [serial_inputs[0].axis, serial_inputs[1].axis],
+            )?,
+        };
+        for (input, id) in serial_inputs.into_iter().zip(ids) {
+            built[input.index] = Some((
+                id,
+                Some(input.parent),
+                input.child,
+                input.child_name,
+                input.parent_name,
+                input.pose,
+            ));
+        }
     }
     // Solver construction order must not change public declaration identities.
     for (index, joint) in model.joints.iter().enumerate() {

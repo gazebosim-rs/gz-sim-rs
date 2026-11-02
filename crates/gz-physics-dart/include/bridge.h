@@ -42,6 +42,7 @@ struct Wrench;
 struct JointEffort;
 struct Limits;
 struct Readout;
+struct SerialEdges;
 class GuardedSolver;
 
 class World {
@@ -57,6 +58,12 @@ class World {
   bool apply_impulse(std::size_t slot, const Twist &impulse);
   bool add_revolute(std::size_t slot, const Twist &anchor_axis);
   bool add_body_revolute(std::size_t parent, std::size_t child, const Twist &anchor_axis);
+  std::unique_ptr<World> prepare_serial_revolutes(
+      std::size_t root, std::size_t middle, std::size_t leaf,
+      const Twist &first, const Twist &second) const;
+  std::unique_ptr<World> prepare_serial_revolutes_in_child_frames(
+      std::size_t root, std::size_t middle, std::size_t leaf,
+      const Twist &first, const Twist &second, SerialEdges &resolved) const;
   bool remove_revolute(std::size_t slot);
   std::uint8_t step(double dt, rust::Slice<const Wrench> wrenches);
   std::uint8_t step_with_efforts(double dt, rust::Slice<const Wrench> wrenches,
@@ -74,6 +81,10 @@ class World {
   rust::Vec<rust::String> library_paths() const;
 
  private:
+  std::unique_ptr<World> prepareSerial(
+      std::size_t root, std::size_t middle, std::size_t leaf,
+      const Twist &first, const Twist &second, bool childFrames,
+      SerialEdges *resolved) const;
   dart::dynamics::BodyNode &body(std::size_t slot) const;
   void build(dart::dynamics::Skeleton &skeleton, const BodyConfig &config);
   bool insideGrid(const dart::dynamics::Skeleton &skeleton) const;

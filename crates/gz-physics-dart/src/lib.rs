@@ -21,6 +21,7 @@ use native::NativeWorld;
 
 const ENGINE: &str = "dart";
 
+#[derive(Clone)]
 struct Body {
     slot: usize,
     config: BodyConfig,
@@ -28,6 +29,7 @@ struct Body {
     joint: JointState,
 }
 
+#[derive(Clone)]
 struct Joint {
     parent: Option<BodyId>,
     child: BodyId,
@@ -35,11 +37,20 @@ struct Joint {
     anchor_axis: Twist,
 }
 
+/// The two accepted IDs and, only for the local API, its exact child inputs.
+/// World edges in Joint remain available when partial retirement breaks a group.
+#[derive(Clone)]
+struct SerialAssembly {
+    ids: [JointId; 2],
+    child_frames: Option<[Twist; 2]>,
+}
+
 /// One native world with its bodies and joints, built before it replaces another.
 struct Built {
     native: NativeWorld,
     bodies: BTreeMap<BodyId, Body>,
     joints: BTreeMap<JointId, Joint>,
+    serial_assemblies: Vec<SerialAssembly>,
 }
 
 /// Construction records captured by [`DynamicBackend::initial_state`].
@@ -48,6 +59,7 @@ struct Initial {
     joints: BTreeMap<JointId, (Option<BodyId>, BodyId, Twist)>,
     next_body: u64,
     next_joint: u64,
+    serial_assemblies: Vec<SerialAssembly>,
 }
 
 struct Prepared {
@@ -139,17 +151,49 @@ impl Built {
         gravity: [f64; 3],
         bodies: impl IntoIterator<Item = (BodyId, BodyConfig)>,
         joints: impl IntoIterator<Item = (JointId, (Option<BodyId>, BodyId, Twist))>,
+        serial_assemblies: &[SerialAssembly],
     ) -> Result<Self, PhysicsError> {
         let mut built = Self {
             native: NativeWorld::new(gravity)?,
             bodies: BTreeMap::new(),
             joints: BTreeMap::new(),
+            serial_assemblies: Vec::new(),
         };
         for (id, config) in bodies {
             built.insert(id, config)?;
         }
-        for (id, (parent, child, anchor_axis)) in joints {
-            built.attach(id, parent, child, anchor_axis)?;
+        let joints: BTreeMap<_, _> = joints.into_iter().collect();
+        for (&id, &(parent, child, anchor_axis)) in &joints {
+            if built.joints.contains_key(&id) {
+                continue;
+            }
+            if let Some(group) = serial_assemblies.iter().find(|group| group.ids[0] == id) {
+                let pair = group.ids;
+                let &(Some(root), middle, first) =
+                    joints.get(&pair[0]).ok_or(PhysicsError::InvalidJoint)?
+                else {
+                    return Err(PhysicsError::InvalidJoint);
+                };
+                let &(Some(second_parent), leaf, second) =
+                    joints.get(&pair[1]).ok_or(PhysicsError::InvalidJoint)?
+                else {
+                    return Err(PhysicsError::InvalidJoint);
+                };
+                if second_parent != middle || pair[0] == pair[1] {
+                    return Err(PhysicsError::InvalidJoint);
+                }
+                built = built.prepare_serial(
+                    pair,
+                    [root, middle, leaf],
+                    [first, second],
+                    group.child_frames,
+                )?;
+            } else {
+                if serial_assemblies.iter().any(|group| group.ids[1] == id) {
+                    return Err(PhysicsError::InvalidJoint);
+                }
+                built.attach(id, parent, child, anchor_axis)?;
+            }
         }
         Ok(built)
     }
@@ -218,6 +262,91 @@ impl Built {
         self.refresh_all()
     }
 
+    fn prepare_serial(
+        &mut self,
+        ids: [JointId; 2],
+        bodies: [BodyId; 3],
+        mut edges: [Twist; 2],
+        child_frames: Option<[Twist; 2]>,
+    ) -> Result<Self, PhysicsError> {
+        let slots = [
+            self.bodies
+                .get(&bodies[0])
+                .ok_or(PhysicsError::MissingBody)?
+                .slot,
+            self.bodies
+                .get(&bodies[1])
+                .ok_or(PhysicsError::MissingBody)?
+                .slot,
+            self.bodies
+                .get(&bodies[2])
+                .ok_or(PhysicsError::MissingBody)?
+                .slot,
+        ];
+        let native = if let Some(local) = child_frames {
+            let (native, resolved) = self
+                .native
+                .prepare_serial_revolutes_in_child_frames(slots, local)?
+                .ok_or(PhysicsError::InvalidJoint)?;
+            // Retain native's actual world edges, not a Rust reconstruction.
+            // All fallible admission/readback stays before the live swap.
+            for index in 0..2 {
+                let edge = resolved[index];
+                let length = edge.angular.into_iter().map(|v| v * v).sum::<f64>().sqrt();
+                if !body::inside(edge.linear)
+                    || !positive_normal(length)
+                    || !body::hinge_conditioned(
+                        &self.bodies[&bodies[index + 1]].config,
+                        edge.linear,
+                        edge.angular.map(|v| v / length),
+                    )
+                {
+                    return Err(PhysicsError::InvalidJoint);
+                }
+            }
+            edges = resolved;
+            native
+        } else {
+            self.native
+                .prepare_serial_revolutes(slots, edges)?
+                .ok_or(PhysicsError::InvalidJoint)?
+        };
+        let mut candidate = Self {
+            native,
+            bodies: self.bodies.clone(),
+            joints: self.joints.clone(),
+            serial_assemblies: self.serial_assemblies.clone(),
+        };
+        for (index, id) in ids.into_iter().enumerate() {
+            candidate.joints.insert(
+                id,
+                Joint {
+                    parent: Some(bodies[index]),
+                    child: bodies[index + 1],
+                    anchor_axis: edges[index],
+                },
+            );
+        }
+        candidate
+            .serial_assemblies
+            .push(SerialAssembly { ids, child_frames });
+        candidate.refresh_all()?;
+        // A mature native clone must preserve unrelated physical state. Refuse
+        // rather than silently change even one cached nonparticipant value.
+        for (id, old) in &self.bodies {
+            if !bodies.contains(id)
+                && (candidate.bodies[id].state != old.state
+                    || candidate.bodies[id].joint != old.joint)
+            {
+                return Err(PhysicsError::Native {
+                    engine: ENGINE,
+                    message: "native serial preparation changed unrelated state".into(),
+                });
+            }
+        }
+        Ok(candidate)
+    }
+
     fn refresh_all(&mut self) -> Result<(), PhysicsError> {
         self.bodies
             .values_mut()
@@ -238,6 +367,7 @@ impl Built {
                 .collect(),
             next_body: 0,
             next_joint: 0,
+            serial_assemblies: self.serial_assemblies.clone(),
         }
     }
 }
@@ -261,7 +391,7 @@ impl DartBackend {
         if !body::small(gravity) {
             return Err(PhysicsError::InvalidValue);
         }
-        let mut world = Built::new(gravity, [], [])?;
+        let mut world = Built::new(gravity, [], [], &[])?;
         check_libraries(world.native.library_paths()?, BUILT_LIBDIRS)?;
         Ok(Self {
             owner: Arc::new(()),
@@ -338,6 +468,12 @@ impl DynamicBackend for DartBackend {
         self.world
             .joints
             .retain(|_, joint| joint.child != id && joint.parent != Some(id));
+        self.world.serial_assemblies.retain(|group| {
+            group
+                .ids
+                .iter()
+                .all(|id| self.world.joints.contains_key(id))
+        });
         self.joint_efforts
             .retain(|id, _| self.world.joints.contains_key(id));
         self.pending.remove(&id);
@@ -549,6 +685,136 @@ impl DynamicBackend for DartBackend {
         Ok(id)
     }
 
+    fn add_serial_revolutes(
+        &mut self,
+        bodies: [BodyId; 3],
+        anchors: [[f64; 3]; 2],
+        axes: [[f64; 3]; 2],
+    ) -> Result<[JointId; 2], PhysicsError> {
+        if !self.joints_open {
+            return Err(PhysicsError::JointConstructionClosed);
+        }
+        for (index, id) in bodies.iter().enumerate() {
+            let body = self.world.bodies.get(id).ok_or(PhysicsError::MissingBody)?;
+            if bodies[..index].contains(id)
+                || !body.config.mobile
+                || self
+                    .world
+                    .joints
+                    .values()
+                    .any(|joint| joint.child == *id || joint.parent == Some(*id))
+            {
+                return Err(PhysicsError::Unsupported {
+                    engine: ENGINE,
+                    capability: "serial assembly requires three isolated dynamic bodies",
+                });
+            }
+        }
+        let mut edges = [Twist {
+            linear: [0.; 3],
+            angular: [0.; 3],
+        }; 2];
+        for index in 0..2 {
+            let length = axes[index].into_iter().map(|v| v * v).sum::<f64>().sqrt();
+            if !body::inside(anchors[index]) || !positive_normal(length) {
+                return Err(PhysicsError::InvalidJoint);
+            }
+            let unit = axes[index].map(|v| v / length);
+            if !body::hinge_conditioned(
+                &self.world.bodies[&bodies[index + 1]].config,
+                anchors[index],
+                unit,
+            ) {
+                return Err(PhysicsError::InvalidJoint);
+            }
+            edges[index] = Twist {
+                linear: anchors[index],
+                angular: unit,
+            };
+        }
+        let next = self
+            .next_joint
+            .checked_add(2)
+            .ok_or(PhysicsError::JointIdOverflow)?;
+        let ids = [
+            JointId::from_raw(self.next_joint),
+            JointId::from_raw(self.next_joint + 1),
+        ];
+        let candidate = self.world.prepare_serial(ids, bodies, edges, None)?;
+        // Every fallible native/readback and metadata operation finished above.
+        self.world = candidate;
+        self.next_joint = next;
+        Ok(ids)
+    }
+
+    fn add_serial_revolutes_in_child_frames(
+        &mut self,
+        bodies: [BodyId; 3],
+        anchors: [[f64; 3]; 2],
+        axes: [[f64; 3]; 2],
+    ) -> Result<[JointId; 2], PhysicsError> {
+        if !self.joints_open {
+            return Err(PhysicsError::JointConstructionClosed);
+        }
+        for (index, id) in bodies.iter().enumerate() {
+            let body = self.world.bodies.get(id).ok_or(PhysicsError::MissingBody)?;
+            if bodies[..index].contains(id)
+                || !body.config.mobile
+                || self
+                    .world
+                    .joints
+                    .values()
+                    .any(|joint| joint.child == *id || joint.parent == Some(*id))
+            {
+                return Err(PhysicsError::Unsupported {
+                    engine: ENGINE,
+                    capability: "serial assembly requires three isolated dynamic bodies",
+                });
+            }
+        }
+        let mut edges = [Twist {
+            linear: [0.; 3],
+            angular: [0.; 3],
+        }; 2];
+        for index in 0..2 {
+            let length = axes[index].into_iter().map(|v| v * v).sum::<f64>().sqrt();
+            if !body::inside(anchors[index]) || !positive_normal(length) {
+                return Err(PhysicsError::InvalidJoint);
+            }
+            let unit = axes[index].map(|v| v / length);
+            edges[index] = Twist {
+                linear: anchors[index],
+                angular: unit,
+            };
+            let config = &self.world.bodies[&bodies[index + 1]].config;
+            let world = body::child_frame(config, edges[index])?;
+            let world_length = world.angular.into_iter().map(|v| v * v).sum::<f64>().sqrt();
+            if !body::inside(world.linear)
+                || !positive_normal(world_length)
+                || !body::hinge_conditioned(
+                    config,
+                    world.linear,
+                    world.angular.map(|v| v / world_length),
+                )
+            {
+                return Err(PhysicsError::InvalidJoint);
+            }
+        }
+        let next = self
+            .next_joint
+            .checked_add(2)
+            .ok_or(PhysicsError::JointIdOverflow)?;
+        let ids = [
+            JointId::from_raw(self.next_joint),
+            JointId::from_raw(self.next_joint + 1),
+        ];
+        let candidate = self.world.prepare_serial(ids, bodies, edges, Some(edges))?;
+        // Every fallible native/readback and metadata operation finished above.
+        self.world = candidate;
+        self.next_joint = next;
+        Ok(ids)
+    }
+
     fn validate_joint_effort(&self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
         if !self.world.joints.contains_key(&id) {
             return Err(PhysicsError::MissingJoint);
@@ -597,6 +863,7 @@ impl DynamicBackend for DartBackend {
             native,
             bodies,
             joints,
+            ..
         } = &mut self.world;
         let Some(body) = joints
             .get(&id)
@@ -608,6 +875,9 @@ impl DynamicBackend for DartBackend {
             return false;
         }
         joints.remove(&id);
+        self.world
+            .serial_assemblies
+            .retain(|group| !group.ids.contains(&id));
         self.joint_efforts.remove(&id);
         self.world.refresh_all().is_ok()
     }
@@ -712,7 +982,12 @@ impl DynamicBackend for DartBackend {
     /// Rebuilds remaining bodies and joints; removed bodies stay removed.
     fn reset(&mut self) -> Result<(), PhysicsError> {
         let records = self.world.records();
-        let built = Built::new(self.gravity, records.bodies, records.joints)?;
+        let built = Built::new(
+            self.gravity,
+            records.bodies,
+            records.joints,
+            &records.serial_assemblies,
+        )?;
         self.replace(built);
         Ok(())
     }
@@ -742,6 +1017,7 @@ impl DynamicBackend for DartBackend {
                 .iter()
                 .map(|(&id, config)| (id, config.clone())),
             records.joints.iter().map(|(&id, &joint)| (id, joint)),
+            &records.serial_assemblies,
         )?;
         Ok(PreparedPhysicsReset::new(
             &self.owner,

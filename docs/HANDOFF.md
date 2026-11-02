@@ -3,43 +3,41 @@
 
 # Coordinator handoff
 
-Updated 2026-11-01. Read this first when resuming coordination of the rewrite,
+Updated 2026-11-02. Read this first when resuming coordination of the rewrite,
 whichever agent you are. AGENTS.md has the standing rules; this file has the
 current state and the next tasks. Update both when either changes.
 
 ## Current continuation
 
-Main `6e330abc` accepts centered-COM DART compound links and the existing
-Scene serial-three-body topology. Its complete normal gate and exact hosted run
-`41369851664` attempt2 passed with an independent official source/profile/native
-audit. Attempt1 stopped on an HTTP503 before feature checks; that failure remains
-separate. Producer pins are unchanged; accepted producer changes are not adopted
-implicitly. Earlier Light poses and DART static-contact work remain accepted.
-B03 whole-world motion, radiometric Scene light rendering, native image parity
-and broader performance acceptance remain open.
+Main `e55356c8` accepts bounded DART compound offset COM and Scene link-origin
+velocity/command/reset handling. Its complete mandatory local gate, exact hosted
+run `41383974766` and independent official source/profile/native audit passed:
+899 headless, 543 renderer and 237 tooling checks. Every required crate exceeds
+95% production lines and regions; all 39 inherited cold regions remain cold.
+The actual six-case COM reference and two-representation native gauge comparison
+passed at unchanged bounds. A new false cross-representation equality was
+replaced only after the actual SDK reproduced its failure. The earlier compile,
+B03 construction-positive and capacity-stop failures are retained separately.
 
-The private offset-COM candidate extends the existing DART compound bounds and
-adapts dynamic Scene origin-velocity consumers, commands and reset metadata. Its
-normal gate reached a runtime failure after253s in a new origin-change experiment,
-after correcting an earlier new-test compile error:
-four new controls passed, while the assumed cross-representation trajectory
-equality failed. The failure is retained. One independently reviewed actual SDK
-capture reproduces both reported first-step values despite matching initial
-physical states; it records two representations at every tick0..10. The corrected
-new regression keeps the exact inputs and1e-12 bound, compares each representation
-against its own native observations, and checks initial world-shape/COM/twist
-equivalence plus one-shot wrench consumption. Those comparisons passed in the
-next ordinary gate; full coverage, renderer and hosted acceptance remain pending. See
-[DART_COMPOUND_OFFSET_COM.md](DART_COMPOUND_OFFSET_COM.md).
+The simulator still pins producer `13adde94`. Producer Main `f0d05146` is
+published and independently qualified, including radian constructor and scoped-root
+joint semantic-pose corrections. Root's isolated `work/producer-joint-pose-adoption`
+candidate adopts it and the reviewed atomic child-frame serial construction.
+The preceding constructor-adoption gate failed strict fresh B03 motion; its
+source, observations and assertions are retained. The joint-pose consumer gate failed after 367 seconds on a newly reached
+serial lifecycle helper that incorrectly unwrapped public names on internal
+Bevy entities. Strict B03 motion passed in that attempt. That helper correction passed in the next gate, which failed after 368 seconds
+at the two analogous B03 world-light identity inventory loops. Root batches
+both loops in `work/b03-public-identities` before independent review and
+affected mandatory verification. See the current continuation detail below and
+[NATIVE_JOINT_POSE_ADOPTION.md](NATIVE_JOINT_POSE_ADOPTION.md).
 
-The corrected COM/gauge native comparisons passed in the next ordinary gate,
-which then failed only the proposed B03 construction positive with typed
-`Physics(InvalidJoint)`. The never-accepted positive is withdrawn after review;
-the unchanged B03 fixture retains its complete sun DTO and explicit next
-joint-admission refusal. Construction, reset, motion and performance remain open.
-A separate B03 observer, Server integration and workload source lane continues
-without execution. A transient sequential-assembly contact is a hypothesis,
-not an established cause. Final COM coverage and hosted acceptance are pending.
+Native and Rust diagnostics passed independent source/data/library audit and
+reproduced their respective saved observations exactly. They show small joint
+semantic-input differences without establishing a dynamics cause. B03 motion,
+its new real C++ interoperability case, radiometric image parity, broad
+physics/system completion and matched performance remain unaccepted. Historical
+correctness captures compiled at O0 are not performance evidence.
 
 ## Accepted headless milestone (2026-11-01)
 
@@ -576,31 +574,68 @@ It adds no automatic Server callbacks or complete sensor-manager claim. Full
 integrated coverage, staged and exact hosted checks passed at c3; the original
 worker timeout cause remains unproven. See [CAMERA_SCHEDULING.md](CAMERA_SCHEDULING.md).
 
-## Accepted continuation and current compound work (2026-11-02)
+## Accepted continuation and current serial assembly work (2026-11-02)
 
-Simulator Main `f00070734f1d889c367c2f908ab3a3c79a61d8e0` accepts the bounded
-DART Scene free-root serial three-link/two-revolute path. Independent source and
-native-input review, the mandatory local gate, exact hosted run `41361046705`
-and the official source/profile/native audit passed. It inherits accepted world
-Light pose streaming over Zenoh and bounded backend static contacts from
-`573da7c`. This is not B03, general topology/contact or performance acceptance.
-The dashboard records each bounded result separately from phase completion.
+Simulator Main `e55356c8d6a80246d67b5bceb37a93faf1508e6b` accepts bounded
+DART compound offset COM and Scene link-origin velocity conversion after the
+mandatory local gate, exact hosted run `41383974766` and independent official
+source/profile/native audit. This includes the earlier bounded compound
+collisions and free-root serial chain paths. It does not accept B03 motion or
+matched performance.
 
-Producer sdformat Main `e196b6875088aeeebbe2baa91a88275f5469b03e` accepts default
-density 1000 in its existing single box/sphere auto-inertia domain after the
-mandatory local gate, exact hosted run `41363205324` and independent official
-artifact audit. The simulator retains its existing older producer pin. A producer
-release alone does not qualify a changed simulator dependency.
+Producer Main `f0d05146300e31237d0cf0a6024fdfd9b0ef4226` now accepts scoped-root
+joint semantic-pose evaluation after its mandatory local gate, exact hosted run
+`41438358157` and independent official audit. It includes the accepted radian
+constructor and bounded automatic-inertia corrections. Simulator Main still
+pins `13adde94`; producer acceptance does not qualify a changed simulator.
 
-The next simulator slice is isolated on `work/dart-compound-collisions`, based on
-`f000707`. Root owns Scene loading; the physics owner owns the concrete API and
-DART adapter. One to three local primitive ShapeNodes share one native link/body
-identity and explicit inertia. COM remains centered. Independent source review approved only the exact B03 test name and
-expected upper-link COM refusal transition, retaining its XML, URI, DART call
-and complete sun assertion; the existing native test constructor also gains
-only an empty legacy collision vector. The reviewed native observer captured six exact inputs and thirty native
-states with qualified library maps. Rust compound comparison and qualification
-remain unrun; native observations alone do not qualify the Rust feature. See DART_COMPOUND_COLLISIONS.md
-and SCENE_COMPOUND_COLLISIONS.md. Finish source, regression code, documentation
-and independent review before consolidated verification. Batch real failures;
-do not run tests or lint after individual edits or comments.
+Root's active consumer slice is `work/producer-joint-pose-adoption`. It preserves
+the failed `05035e96` constructor-adoption source and references, updates only
+the producer revision/lock source to `f0d05146`, and selects the existing
+`Sdf::joint_pose(name, "")` API for serial child-frame input. No package versions,
+dependency edges, numerical bounds, backend guards or world-frame metadata change.
+See [NATIVE_JOINT_POSE_ADOPTION.md](NATIVE_JOINT_POSE_ADOPTION.md).
+
+The prior constructor-adoption gate failed after 359 seconds at the strict
+fresh-native B03 comparison. Two complete audited diagnostics reproduced their
+respective native and Rust observations exactly. Initial rotations match
+bitwise, but small translations and trajectories differ. The current Rust
+comparison first exceeds `1e-12` at step 35 and reaches a transient difference
+of about 0.02225 at step 94. Native joint semantic-pose translations retain two
+scoped-root paths; the old common-ancestor query discarded that arithmetic.
+This input difference motivates the correction without proving a dynamics cause.
+Historical cached and fresh native references remain distinct and unchanged.
+No consumer adoption, B03 motion or matched performance is accepted yet.
+
+Finish implementation, regression code, documentation and independent source
+review before consolidated verification. Batch corrections for actual failures;
+do not repeat tests or lint after individual edits. Preserve Fuel and all
+historical evidence.
+
+### Serial lifecycle identity inventory correction
+
+The `ad718fbf` normal gate failed after 367 seconds without a capacity stop.
+The fresh-native B03 motion test passed all unchanged assertions. The later
+serial lifecycle helper panicked while iterating internal Bevy entities as if
+every entity had a public Scene name and ID. Its external-contact refusal case
+passed; later suites and final coverage were not reached. This partial result
+does not qualify the feature or the new C++ B03 interoperability case.
+
+Root preserves the failed tree and corrects only that helper in
+`work/serial-public-identities`. Public names and IDs must occur together, names
+must remain unique, and entities with neither must have no body, joint or world
+pose. All original ten-public-identity, ordering, lifecycle, motion, reset and
+removal assertions remain. No production code or numerical bounds change.
+
+### B03 world-light identity inventory correction
+
+The `f4db5841` normal gate failed after 368 seconds without a capacity stop.
+The serial lifecycle correction passed; the next newly reached B03 world-light
+reset test contained the same invalid all-ECS-name assumption in both its initial
+and reset inventories. Root preserves that failed tree and batches both loops
+into a helper with the reviewed name/ID pairing, uniqueness and no-physical-state
+checks. All original light, seven-body, four-joint, fifteen-collision, metadata,
+identity equality and reset assertions remain unchanged. Source review also
+checks the other new Scene/Server tests for the same assumption before the next
+affected mandatory pass. Production code, fixtures and numerical bounds remain
+unchanged; later suites and final coverage are still unqualified.

@@ -549,6 +549,139 @@ bool World::add_body_revolute(std::size_t parentSlot, std::size_t childSlot,
   return false;
 }
 
+// This capability prepares an independent world. A partial moveTo, failed
+// contact/rate guard or allocation never needs an allocating rollback on live
+// nodes. Existing single-edge methods retain their original admission behavior.
+std::unique_ptr<World> World::prepare_serial_revolutes(
+    std::size_t rootSlot, std::size_t middleSlot, std::size_t leafSlot,
+    const Twist &first, const Twist &second) const {
+  return prepareSerial(rootSlot, middleSlot, leafSlot, first, second, false, nullptr);
+}
+
+std::unique_ptr<World> World::prepare_serial_revolutes_in_child_frames(
+    std::size_t rootSlot, std::size_t middleSlot, std::size_t leafSlot,
+    const Twist &first, const Twist &second, SerialEdges &resolved) const {
+  return prepareSerial(rootSlot, middleSlot, leafSlot, first, second, true, &resolved);
+}
+
+std::unique_ptr<World> World::prepareSerial(
+    std::size_t rootSlot, std::size_t middleSlot, std::size_t leafSlot,
+    const Twist &first, const Twist &second, bool childFrames,
+    SerialEdges *resolved) const {
+  if (rootSlot == middleSlot || rootSlot == leafSlot || middleSlot == leafSlot)
+    throw std::invalid_argument("serial assembly requires distinct slots");
+  for (const auto slot : {rootSlot, middleSlot, leafSlot}) {
+    const auto &node = body(slot);
+    if (!isFree(node) || node.getSkeleton()->getNumBodyNodes() != 1 ||
+        !node.getSkeleton()->isMobile())
+      throw std::invalid_argument("serial assembly requires isolated dynamic free bodies");
+  }
+  const Twist gravity{array(world_->getGravity()), {0.0, 0.0, 0.0}};
+  const Limits limits{limits_.magnitude, limits_.position, limits_.contact};
+  auto candidate = std::make_unique<World>(gravity, limits);
+  std::array<Twist, 2> worldEdges{first, second};
+  {
+    OdeLock lock(odeMutex());
+    std::unordered_map<const dart::dynamics::Skeleton *, dart::dynamics::SkeletonPtr> clones;
+    for (std::size_t i = 0; i < world_->getNumSkeletons(); ++i) {
+      const auto original = world_->getSkeleton(i);
+      auto copy = original->cloneSkeleton();
+      clones.emplace(original.get(), std::move(copy));
+    }
+    candidate->world_->setTime(world_->getTime());
+    candidate->world_->setTimeStep(world_->getTimeStep());
+    candidate->slots_.resize(slots_.size());
+    for (std::size_t slot = 0; slot < slots_.size(); ++slot) {
+      if (!slots_[slot]) continue;
+      const auto &old = *slots_[slot];
+      const auto &copy = clones.at(old.getSkeleton().get());
+      auto *node = copy->getBodyNode(old.getName());
+      if (node == nullptr) throw std::runtime_error("native clone lost body identity");
+      candidate->slots_[slot] = node;
+      const auto principal = principal_.find(&old);
+      if (principal != principal_.end()) candidate->principal_.emplace(node, principal->second);
+    }
+    auto &root = candidate->body(rootSlot);
+    auto &middle = candidate->body(middleSlot);
+    auto &leaf = candidate->body(leafSlot);
+    const auto middleSource = middle.getSkeleton();
+    const auto leafSource = leaf.getSkeleton();
+    // Same frame/projection operations as the retained single-edge method.
+    // Only the two-edge candidate delays contact validation until its final tree.
+    const auto join = [&](dart::dynamics::BodyNode &parent,
+                          dart::dynamics::BodyNode &child, const Twist &edge, std::size_t index) {
+      // Match native ConstructSdfJoint: snapshot both frames before topology
+      // mutation can invalidate or recompute the parent's kinematic caches.
+      const Eigen::Isometry3d parentPose = parent.getWorldTransform();
+      const Eigen::Isometry3d pose = child.getWorldTransform();
+      const Twist twist = comTwist(child);
+      const Eigen::Vector3d inheritedAngular = parent.getAngularVelocity();
+      const Eigen::Vector3d inheritedLinear = parent.getCOMLinearVelocity() +
+          inheritedAngular.cross(child.getCOM() - parent.getCOM());
+      const Twist relative{array(vector(twist.linear) - inheritedLinear),
+                           array(vector(twist.angular) - inheritedAngular)};
+      Eigen::Isometry3d jointPose = pose;
+      Eigen::Vector3d worldAxis = vector(edge.angular);
+      if (childFrames) {
+        Eigen::Isometry3d local = Eigen::Isometry3d::Identity();
+        local.translation() = vector(edge.linear);
+        // Same native local-pose product, including its floating evaluation.
+        jointPose = pose * local;
+        worldAxis = jointPose.linear() * vector(edge.angular);
+        if (!within(jointPose.translation(), limits_.position)) return false;
+      } else {
+        jointPose.translation() = vector(edge.linear);
+      }
+      if (!(std::abs(hingeRate(worldAxis, jointPose.translation(),
+                              child.getCOM(), relative)) <= limits_.magnitude))
+        return false;
+      dart::dynamics::RevoluteJoint::Properties properties;
+      properties.mName = child.getName() + "_body_revolute";
+      // Native ResolveXyz defaults to the joint frame. Identity relative
+      // orientation makes this directly the child-local unit axis.
+      if (childFrames) properties.mAxis = vector(edge.angular);
+      else properties.mAxis = pose.linear().transpose() * vector(edge.angular);
+      properties.mPositionLowerLimits[0] = -1e16;
+      properties.mPositionUpperLimits[0] = 1e16;
+      properties.mIsPositionLimitEnforced = true;
+      const double infinity = std::numeric_limits<double>::infinity();
+      properties.mForceLowerLimits[0] = -infinity;
+      properties.mForceUpperLimits[0] = infinity;
+      properties.mVelocityLowerLimits[0] = -infinity;
+      properties.mVelocityUpperLimits[0] = infinity;
+      auto *joint = child.moveTo<dart::dynamics::RevoluteJoint>(&parent, properties);
+      if (childFrames) {
+        // Match the native source's child-then-parent inverse products before
+        // assigning either joint transform. Do not simplify identity products.
+        const Eigen::Isometry3d childPostjoint = pose.inverse() * jointPose;
+        const Eigen::Isometry3d parentPrejoint = parentPose.inverse() * jointPose;
+        joint->setTransformFromParentBodyNode(parentPrejoint);
+        joint->setTransformFromChildBodyNode(childPostjoint);
+      } else {
+        joint->setTransformFromParentBodyNode(parentPose.inverse() * jointPose);
+        joint->setTransformFromChildBodyNode(pose.inverse() * jointPose);
+      }
+      setJointTwist(child, spatial(twist));
+      worldEdges[index] = Twist{array(jointPose.translation()), array(worldAxis)};
+      return true;
+    };
+    if (!join(root, middle, first, 0) || !join(middle, leaf, second, 1)) return nullptr;
+    // Register only final skeletons, in the original world order. This avoids
+    // relying on removeSkeleton's ordering or exposing duplicate shape owners.
+    for (std::size_t i = 0; i < world_->getNumSkeletons(); ++i) {
+      const auto &copy = clones.at(world_->getSkeleton(i).get());
+      if (copy != middleSource && copy != leafSource)
+        candidate->world_->addSkeleton(copy);
+    }
+  }
+  if (!candidate->velocitiesWithin()) return nullptr;
+  for (std::size_t i = 0; i < candidate->world_->getNumSkeletons(); ++i)
+    if (!candidate->insideGrid(*candidate->world_->getSkeleton(i))) return nullptr;
+  if (!candidate->contactsConditioned()) return nullptr;
+  if (resolved) *resolved = SerialEdges{worldEdges[0], worldEdges[1]};
+  return candidate;
+}
+
 bool World::remove_revolute(std::size_t slot) {
   auto &child = body(slot);
   if (isFree(child)) {

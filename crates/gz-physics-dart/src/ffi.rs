@@ -42,7 +42,8 @@ pub(crate) mod bridge {
         velocity: Twist,
     }
 
-    /// World-axis vector pair: velocity, impulse, wrench, or anchor and axis.
+    /// Vector pair: world-axis velocity/impulse/wrench, or an anchor and axis
+    /// whose frame is specified by the receiving operation.
     #[derive(Clone, Copy, Debug, PartialEq)]
     struct Twist {
         linear: [f64; 3],
@@ -70,6 +71,13 @@ pub(crate) mod bridge {
         position: f64,
         /// Largest bound on the summed inverse effective mass of a contact.
         contact: f64,
+    }
+
+    /// Actual world frames used by a successful prepared local assembly. Kept
+    /// for partial-retirement reconstruction through the retained single-edge API.
+    struct SerialEdges {
+        first: Twist,
+        second: Twist,
     }
 
     struct Readout {
@@ -101,6 +109,27 @@ pub(crate) mod bridge {
             child: usize,
             anchor_axis: &Twist,
         ) -> Result<bool>;
+        /// A prepared independent clone, or null when final guards refuse.
+        /// The original world is never mutated, including on a C++ exception.
+        fn prepare_serial_revolutes(
+            self: &World,
+            root: usize,
+            middle: usize,
+            leaf: usize,
+            first: &Twist,
+            second: &Twist,
+        ) -> Result<UniquePtr<World>>;
+        /// Identity-oriented child-relative frames; resolved world edges are
+        /// written only on successful preparation, never into the live world.
+        fn prepare_serial_revolutes_in_child_frames(
+            self: &World,
+            root: usize,
+            middle: usize,
+            leaf: usize,
+            first: &Twist,
+            second: &Twist,
+            resolved: &mut SerialEdges,
+        ) -> Result<UniquePtr<World>>;
         /// False keeps the hinge: freed, the body's contacts would exceed the bound.
         fn remove_revolute(self: Pin<&mut World>, slot: usize) -> Result<bool>;
         /// Applies every wrench or none, then steps. Nonzero restored the

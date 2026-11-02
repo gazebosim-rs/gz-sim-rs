@@ -85,6 +85,46 @@ impl NativeWorld {
             .map_err(native)
     }
 
+    pub(crate) fn prepare_serial_revolutes(
+        &mut self,
+        slots: [usize; 3],
+        edges: [Twist; 2],
+    ) -> Result<Option<Self>, PhysicsError> {
+        let candidate = self
+            .world()
+            .prepare_serial_revolutes(slots[0], slots[1], slots[2], &edges[0], &edges[1])
+            .map_err(native)?;
+        Ok((!candidate.is_null()).then(|| Self(Mutex::new(candidate))))
+    }
+
+    pub(crate) fn prepare_serial_revolutes_in_child_frames(
+        &mut self,
+        slots: [usize; 3],
+        edges: [Twist; 2],
+    ) -> Result<Option<(Self, [Twist; 2])>, PhysicsError> {
+        let mut resolved = bridge::SerialEdges {
+            first: edges[0],
+            second: edges[1],
+        };
+        let candidate = self
+            .world()
+            .prepare_serial_revolutes_in_child_frames(
+                slots[0],
+                slots[1],
+                slots[2],
+                &edges[0],
+                &edges[1],
+                &mut resolved,
+            )
+            .map_err(native)?;
+        Ok((!candidate.is_null()).then(|| {
+            (
+                Self(Mutex::new(candidate)),
+                [resolved.first, resolved.second],
+            )
+        }))
+    }
+
     pub(crate) fn step_with_efforts(
         &mut self,
         dt: f64,
@@ -121,3 +161,7 @@ impl NativeWorld {
 #[cfg(test)]
 #[path = "../tests/private/native.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/serial_assembly.rs"]
+mod serial_tests;

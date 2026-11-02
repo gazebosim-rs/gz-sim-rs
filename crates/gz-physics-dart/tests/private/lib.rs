@@ -391,3 +391,51 @@ fn loaded_libraries_must_come_from_the_build_libdir() {
     let error = check_libraries(loaded[..3].to_vec(), BUILT_LIBDIRS).unwrap_err();
     assert!(error.to_string().contains("expected 4"), "{error}");
 }
+
+#[test]
+fn serial_joint_id_exhaustion_keeps_native_state_and_real_pending_work_untouched() {
+    use gz_physics::{BodySpec, DynamicBackend, Inertia, RotationSpec, Shape};
+    let mut backend = DartBackend::new([0.; 3]).unwrap();
+    let ids: [BodyId; 3] = std::array::from_fn(|i| {
+        backend
+            .spawn_link(
+                BodySpec {
+                    shape: Shape::Sphere { radius: 0.2 },
+                    position: [i as f64 * 2., 0., 0.],
+                    velocity: [0.; 3],
+                    mass: Some(1.),
+                },
+                RotationSpec::default(),
+                Some(Inertia {
+                    center: [0.; 3],
+                    orientation: [0., 0., 0., 1.],
+                    tensor: [1., 1., 1., 0., 0., 0.],
+                }),
+            )
+            .unwrap()
+    });
+    backend
+        .add_world_wrench(ids[0], [1., 2., 3.], [0.2, -0.1, 0.3])
+        .unwrap();
+    let pending = backend.pending.clone();
+    let before = ids.map(|id| backend.state(id));
+    backend.next_joint = u64::MAX - 1;
+    assert_eq!(
+        backend.add_serial_revolutes(ids, [[0.; 3]; 2], [[0., 0., 1.]; 2]),
+        Err(PhysicsError::JointIdOverflow)
+    );
+    assert_eq!(backend.next_joint, u64::MAX - 1);
+    assert_eq!(backend.pending, pending);
+    assert_eq!(ids.map(|id| backend.state(id)), before);
+    assert!(backend.world.joints.is_empty() && backend.world.serial_assemblies.is_empty());
+    backend.step(std::time::Duration::from_millis(1)).unwrap();
+    assert!(backend.pending.is_empty());
+    assert!(
+        backend
+            .state(ids[0])
+            .unwrap()
+            .velocity
+            .iter()
+            .any(|v| *v != 0.)
+    );
+}

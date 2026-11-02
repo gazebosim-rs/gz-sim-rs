@@ -271,6 +271,17 @@ pub(crate) fn hinge_conditioned(config: &BodyConfig, anchor: [f64; 3], axis: [f6
     conditioned(arm2 / about_axis) && conditioned(config.mass * arm2 / about_axis)
 }
 
+/// Resolve a local guard input through the same maintained rotation used by
+/// existing admission. Native uses its LIVE frame for actual construction.
+/// This result is not stored as an accepted native joint frame.
+pub(crate) fn child_frame(config: &BodyConfig, local: Twist) -> Result<Twist, PhysicsError> {
+    let rotation = rotation(config.orientation)?.to_rotation_matrix();
+    Ok(Twist {
+        linear: (Vector3::from(config.position) + rotation * Vector3::from(local.linear)).into(),
+        angular: (rotation * Vector3::from(local.angular)).into(),
+    })
+}
+
 /// Validates one link completely and returns its native construction record.
 pub(crate) fn config(
     spec: BodySpec,

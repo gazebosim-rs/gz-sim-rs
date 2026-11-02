@@ -337,46 +337,87 @@ fn included_density_maps_original_resource_to_the_renamed_collision_identity() {
 }
 
 #[test]
-fn producer_numeric_and_structural_refusals_precede_backend_admission() {
+fn producer_numeric_and_structural_dispositions_precede_backend_admission() {
+    enum Disposition {
+        Admitted(Option<f64>),
+        Rejected(ErrorCode),
+    }
     let base = single_model("sphere");
     let cases = [
         (
             base.replace("<density>2170</density>", ""),
-            ErrorCode::Unsupported,
+            Disposition::Admitted(None),
         ),
         (
             base.replace("2170</density>", "0</density>"),
-            ErrorCode::InvalidValue,
+            Disposition::Rejected(ErrorCode::InvalidValue),
         ),
         (
             base.replace("2170</density>", "-1</density>"),
-            ErrorCode::InvalidValue,
+            Disposition::Rejected(ErrorCode::InvalidValue),
         ),
         (
             base.replace("2170</density>", "inf</density>"),
-            ErrorCode::InvalidValue,
+            Disposition::Rejected(ErrorCode::InvalidValue),
         ),
         (
             base.replace(
                 "<collision name='collision'>",
                 "<collision name='collision'><pose>0 0 0 0 0 0</pose>",
             ),
-            ErrorCode::Unsupported,
+            Disposition::Admitted(Some(2170.)),
         ),
         (
             base.replace(
                 "<inertial auto='true'/>",
                 "<inertial auto='true'><mass>1</mass></inertial>",
             ),
-            ErrorCode::Unsupported,
+            Disposition::Rejected(ErrorCode::Unsupported),
         ),
         (
             base.replace("2170</density>", "2.2250738585072014e-308</density>")
                 .replace("0.1</radius>", "0.5</radius>"),
-            ErrorCode::Unsupported,
+            Disposition::Rejected(ErrorCode::Unsupported),
         ),
     ];
     for (xml, expected) in cases {
+        if let Disposition::Admitted(expected_density) = expected {
+            // Preserve the original inputs and URI while checking their newly
+            // accepted producer semantics and all existing backend policies.
+            let parsed = sdformat::load_str(&xml, "rejected.sdf", &NoResources).unwrap();
+            let link = &parsed.worlds[0].models[0].links[0];
+            assert_eq!(link.collisions[0].source.uri, "rejected.sdf");
+            assert_eq!(link.collisions[0].density, expected_density);
+            let reference = if expected_density.is_none() {
+                base.replace("2170</density>", "1000</density>")
+            } else {
+                base.clone()
+            };
+            let value = inertial(&reference);
+            assert_eq!(link.inertial.mass.to_bits(), value.mass.to_bits());
+            assert_eq!(
+                link.inertial.inertia.map(f64::to_bits),
+                value.inertia.map(f64::to_bits)
+            );
+            assert_eq!(link.inertial.pose, value.pose);
+            for engine in ENGINES {
+                let mut sim =
+                    load_world_with_sdf_step(&xml, "rejected.sdf", "default", &NoResources, engine)
+                        .unwrap();
+                exercise(&mut sim, engine, "sphere", &value, expected_density);
+                let collision = id(&sim, "default::sphere::body::collision");
+                let model = id(&sim, "default::sphere");
+                assert!(remove_model(&mut sim, model).unwrap().contains(&collision));
+                assert!(gz_sim_core::entity_by_id(sim.world(), collision).is_none());
+                reset_loaded_world(&mut sim, |_| ()).unwrap();
+                assert_eq!(id(&sim, "default::sphere::body::collision"), collision);
+                assert_eq!(density(&sim, "sphere"), expected_density);
+            }
+            continue;
+        }
+        let Disposition::Rejected(expected) = expected else {
+            unreachable!()
+        };
         for engine in ENGINES {
             let error =
                 load_world_with_sdf_step(&xml, "rejected.sdf", "default", &NoResources, engine)

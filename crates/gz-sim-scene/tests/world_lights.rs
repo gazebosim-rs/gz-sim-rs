@@ -28,6 +28,24 @@ fn named(sim: &Simulation, name: &str) -> bevy_ecs::entity::Entity {
 fn id(sim: &Simulation, name: &str) -> u64 {
     sim.world().get::<EntityId>(named(sim, name)).unwrap().get()
 }
+fn identities(simulation: &Simulation) -> std::collections::BTreeMap<String, u64> {
+    let mut identities = std::collections::BTreeMap::new();
+    for entity in simulation.world().iter_entities() {
+        match (entity.get::<Name>(), entity.get::<EntityId>()) {
+            (Some(name), Some(id)) => {
+                assert!(identities.insert(name.0.clone(), id.get()).is_none());
+            }
+            (None, None) => {
+                // Bevy owns internal system entities outside the public scene.
+                assert!(!entity.contains::<BodyHandle>());
+                assert!(!entity.contains::<gz_sim_scene::JointHandle>());
+                assert!(!entity.contains::<WorldPose>());
+            }
+            _ => panic!("public scene identity must have both a name and an ID"),
+        }
+    }
+    identities
+}
 fn lightless() -> String {
     let doc = roxmltree::Document::parse(XML).unwrap();
     let mut value = XML.to_string();
@@ -89,17 +107,99 @@ fn sun(uri: &str) -> Light {
     }
 }
 #[test]
-fn unchanged_b03_sun_has_complete_native_values_and_keeps_joint_admission_refusal() {
+fn unchanged_b03_sun_and_constructed_physics_survive_loaded_reset() {
     let parsed = sdformat::load_str(B03, "b03.sdf", &NoResources).unwrap();
     assert_eq!(parsed.worlds[0].lights.as_slice(), &[sun("b03.sdf")]);
-    let error =
+    let mut sim =
         load_world_with_sdf_step(B03, "b03.sdf", "default", &NoResources, PhysicsEngine::Dart)
-            .err()
             .unwrap();
-    assert!(matches!(
-        error,
-        gz_sim_scene::LoadError::Physics(gz_physics::PhysicsError::InvalidJoint)
-    ));
+    let original_ids = identities(&sim);
+    let bodies = [
+        "default::ground_plane::link",
+        "default::double_pendulum_with_base0::base",
+        "default::double_pendulum_with_base0::upper_link",
+        "default::double_pendulum_with_base0::lower_link",
+        "default::double_pendulum_with_base1::base",
+        "default::double_pendulum_with_base1::upper_link",
+        "default::double_pendulum_with_base1::lower_link",
+    ];
+    for epoch in 0..2 {
+        assert_eq!(sim.elapsed(), Duration::ZERO);
+        assert_eq!(
+            sim.world()
+                .iter_entities()
+                .filter(|entity| entity.contains::<BodyHandle>())
+                .count(),
+            7
+        );
+        assert_eq!(
+            sim.world()
+                .iter_entities()
+                .filter(|entity| entity.contains::<gz_sim_scene::JointHandle>())
+                .count(),
+            4
+        );
+        assert_eq!(
+            sim.world()
+                .iter_entities()
+                .filter(|entity| entity.get::<EntityKind>() == Some(&EntityKind::Collision))
+                .count(),
+            15
+        );
+        assert_eq!(
+            sim.world()
+                .get::<WorldLight>(named(&sim, "default::sun"))
+                .unwrap()
+                .0
+                .as_ref(),
+            &sun("b03.sdf")
+        );
+        let backend = sim.world().resource::<gz_physics::PhysicsBackend>();
+        let mut body_handles = std::collections::BTreeSet::new();
+        for (index, name) in bodies.iter().enumerate() {
+            let entity = named(&sim, name);
+            let handle = sim.world().get::<BodyHandle>(entity).unwrap().id();
+            assert!(body_handles.insert(handle));
+            assert_eq!(backend.is_dynamic(handle), Some(index != 0));
+            let state = backend.state(handle).unwrap();
+            let expected = parsed.pose_of(name, "default").unwrap();
+            pose(
+                WorldPose {
+                    translation: state.position,
+                    rotation: state.orientation,
+                },
+                expected.translation,
+                expected.rotation,
+            );
+            assert_eq!(state.velocity, [0.; 3]);
+            assert_eq!(state.angular_velocity, [0.; 3]);
+            pose(
+                *sim.world().get::<WorldPose>(entity).unwrap(),
+                expected.translation,
+                expected.rotation,
+            );
+        }
+        for model in ["double_pendulum_with_base0", "double_pendulum_with_base1"] {
+            for (joint, child) in [("upper_joint", "upper_link"), ("lower_joint", "lower_link")] {
+                let entity = named(&sim, &format!("default::{model}::{joint}"));
+                let handle = sim
+                    .world()
+                    .get::<gz_sim_scene::JointHandle>(entity)
+                    .unwrap();
+                assert_eq!(
+                    handle.child(),
+                    original_ids[&format!("default::{model}::{child}")]
+                );
+                let state = backend.joint_state(handle.id()).unwrap();
+                assert_eq!([state.position, state.velocity], [0.; 2]);
+            }
+        }
+        let current_ids = identities(&sim);
+        assert_eq!(current_ids, original_ids);
+        if epoch == 0 {
+            reset_loaded_world(&mut sim, |_| ()).unwrap();
+        }
+    }
 }
 #[test]
 fn whole_typed_metadata_world_ownership_and_semantic_poses_on_all_backends() {

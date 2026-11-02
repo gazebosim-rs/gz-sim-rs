@@ -193,3 +193,67 @@ velocity and COM velocity must be distinguished explicitly. Preserve old tests;
 propose exact same-input stronger-positive transitions for independent review
 before any fold. B03 loading, full native trajectories and equal-work evidence
 remain separate acceptance requirements; do not infer them from this guard.
+
+### PHY-03 / SLICE-01: atomic two-edge serial construction (source in progress)
+
+The offset-COM prerequisite is accepted at `e55356c8`. This next bounded feature
+adds one cold DART operation for three isolated dynamic free bodies and two
+serial revolutes. Candidate preparation uses mature native skeleton cloning;
+all final contact, velocity, grid and conditioning guards remain. Complete
+readback/metadata precede the live swap and two-ID commit. Reset retains only
+accepted pair grouping; partial removal must preserve the existing paths.
+Root owns Scene integration and declaration identity. Independent source review
+approved the exact B03 construction/reset transition, not its execution or
+acceptance. Actual native B03 observations are available, while the new direct
+wrench/contact/reset reference has one successful reviewed-source capture,
+with independent raw/source/library audit passed. Finish all
+source and data review before one consolidated mandatory gate; performance and
+general topology/contact support remain separate.
+
+### SDF-02 / PHY-03: adopt the checked radian constructor correction
+
+Root owns the isolated `work/producer-euler-adoption` consumer batch. It retains
+the independently reviewed child-frame serial construction and fresh-reference
+changes from the failed 361-second qualification without editing that attempt's
+tree or observations. The producer's native radian-Euler constructor difference
+is confirmed by source; its role in B03 divergence remains unproven.
+
+Owned integration paths are the dependency revision and lock source,
+`sdfb246_admission.rs`, and adoption/handoff documentation. The seven supplemental
+inputs retain their order and URI. Omitted density and an explicit identity
+collision pose gain reviewed positive physical, metadata and lifecycle controls;
+the other five producer negatives and manual-density policy remain unchanged.
+No DTO, backend admission, system scheduling or transport rewrite is required.
+
+The corrected producer `c94da539` passed its mandatory local gate, exact hosted
+run `41417270384` and independent official audit before public Main publication.
+Only then did this candidate change the manifest revision and lock source;
+accepted simulator Main remains on `13adde94`. Complete independent review of
+the combined consumer source before one consolidated mandatory verification pass. Retain all fresh B03 fields,
+ticks and `1e-12` bounds, existing native and real C++ Zenoh controls, strict
+coverage and exact hosted qualification. Neither producer acceptance nor this
+source migration completes B03 or equal-work performance acceptance.
+
+### SDF-02 / PHY-03: adopt native joint semantic-pose evaluation
+
+Root owns `work/producer-joint-pose-adoption`, preserving the failed constructor
+adoption source and observations. Owned additions are the minimal producer
+revision/lock update to accepted `f0d05146`, the Scene child-frame query selection,
+and adoption/handoff documentation. The producer passed exact hosted run
+`41438358157` and independent official audit before publication. Complete source
+review, then one consolidated mandatory simulator gate. Preserve every fresh B03
+field, tick and `1e-12` bound, existing guards and strict coverage. Real C++ B03
+interop follows accepted motion; performance remains a separate unmatched scope.
+
+The first joint-pose consumer gate (`ad718fbf`) passed strict B03 motion but failed
+at a later serial lifecycle identity helper after 367 seconds. Root's
+`work/serial-public-identities` correction owns only that helper and factual docs,
+retaining the failed source/evidence and every lifecycle assertion. Independently
+review the complete correction before one affected mandatory rerun; no separate
+preliminary test or lint is required.
+
+The subsequent `f4db5841` gate passed serial lifecycle but failed at the two
+analogous B03 world-light inventory loops. Root's `work/b03-public-identities`
+correction batches both loops with the same strict public-identity helper and
+source review of other new tests for this class. All retained assertions remain;
+finish review before one affected mandatory pass, without preliminary checks.
