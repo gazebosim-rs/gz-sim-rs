@@ -9,35 +9,28 @@ current state and the next tasks. Update both when either changes.
 
 ## Current continuation
 
-Main `e55356c8` accepts bounded DART compound offset COM and Scene link-origin
-velocity/command/reset handling. Its complete mandatory local gate, exact hosted
-run `41383974766` and independent official source/profile/native audit passed:
-899 headless, 543 renderer and 237 tooling checks. Every required crate exceeds
-95% production lines and regions; all 39 inherited cold regions remain cold.
-The actual six-case COM reference and two-representation native gauge comparison
-passed at unchanged bounds. A new false cross-representation equality was
-replaced only after the actual SDK reproduced its failure. The earlier compile,
-B03 construction-positive and capacity-stop failures are retained separately.
+Main `8ebb02dbfa1f3281cd256377f229c0b9f94674ea` now accepts bounded DART
+atomic serial assembly, producer `f0d05146` adoption and strict fresh-native B03
+motion at the unchanged 1/10/100-step snapshots (486 body/joint values, `1e-12`).
+The complete local gate, exact hosted run `41447340434` and independent official
+source/profile/native audit passed: 923 headless, 546 renderer and 237 tooling
+checks. Every production crate and workspace exceeds 95% lines and regions;
+all 39 inherited cold spans remain cold. Earlier failed constructor and test-helper
+attempts remain separate. This does not establish all-101-step numerical parity,
+full upstream physics, matched performance or the new B03 wire scenario.
 
-The simulator still pins producer `13adde94`. Producer Main `f0d05146` is
-published and independently qualified, including radian constructor and scoped-root
-joint semantic-pose corrections. Root's isolated `work/producer-joint-pose-adoption`
-candidate adopts it and the reviewed atomic child-frame serial construction.
-The preceding constructor-adoption gate failed strict fresh B03 motion; its
-source, observations and assertions are retained. The joint-pose consumer gate failed after 367 seconds on a newly reached
-serial lifecycle helper that incorrectly unwrapped public names on internal
-Bevy entities. Strict B03 motion passed in that attempt. That helper correction passed in the next gate, which failed after 368 seconds
-at the two analogous B03 world-light identity inventory loops. Root batches
-both loops in `work/b03-public-identities` before independent review and
-affected mandatory verification. See the current continuation detail below and
-[NATIVE_JOINT_POSE_ADOPTION.md](NATIVE_JOINT_POSE_ADOPTION.md).
+Root's next completed source slice is `work/b03-zenoh-integration`, based directly
+on accepted Main. It adds a Gazebo C++ interoperability test for B03 clock, local
+poses, control, reset and stable ownership. Upstream Rust Zenoh stays unmodified;
+C++ serves only as the external test peer. The two test source files are the
+independently reviewed copies; factual prerequisite documentation is updated.
+Finish integration review before one consolidated mandatory qualification.
+See [B03_NATIVE_INTEROP.md](B03_NATIVE_INTEROP.md).
 
-Native and Rust diagnostics passed independent source/data/library audit and
-reproduced their respective saved observations exactly. They show small joint
-semantic-input differences without establishing a dynamics cause. B03 motion,
-its new real C++ interoperability case, radiometric image parity, broad
-physics/system completion and matched performance remain unaccepted. Historical
-correctness captures compiled at O0 are not performance evidence.
+Radiometric image parity, broad physics/system completion and equal-work reference
+performance remain open. Historical diagnostic captures are correctness evidence,
+not performance measurements. Subsequent sections retain the investigation history;
+use this current continuation for accepted revisions and active work.
 
 ## Accepted headless milestone (2026-11-01)
 

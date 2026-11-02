@@ -1,5 +1,9 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
+#include <array>
+#include <iomanip>
+#include <sstream>
+#include <gz/math/Pose3.hh>
 #include <condition_variable>
 #include <fstream>
 #include <algorithm>
@@ -406,11 +410,206 @@ int RunLightPosesCase(const std::string &mode, const std::string &output)
   return 0;
 }
 
+// Concrete loaded-B03 mode, using the existing selected native transport and messages.
+int RunB03WorldCase(const std::string &output)
+{
+  struct Entity
+  {
+    unsigned int group;
+    uint32_t id, parent;
+    std::string local, scoped;
+  };
+  std::map<uint32_t, Entity> entities;
+  std::map<std::pair<unsigned int, std::string>, std::array<double, 7>> expected;
+  {
+    std::ifstream input(output + "/entities.txt");
+    if (!input) return 111;
+    std::string line;
+    unsigned int groups[4] = {};
+    while (std::getline(input, line))
+    {
+      std::istringstream row(line); Entity e;
+      if (!(row >> e.group >> e.id >> e.parent >> std::quoted(e.local) >> std::quoted(e.scoped)) ||
+          e.group > 3 || !e.id || e.local.empty() || e.scoped.empty()) return 112;
+      std::string extra; if (row >> extra) return 112;
+      if (!entities.emplace(e.id, e).second) return 112;
+      ++groups[e.group];
+    }
+    if (!input.eof() || entities.size() != 27 || groups[0] != 3 || groups[1] != 7 ||
+        groups[2] != 16 || groups[3] != 1) return 112;
+    for (const auto &entry : entities)
+    {
+      const auto &e = entry.second;
+      if (e.parent && entities.count(e.parent) != 1) return 112;
+      auto parent = e.parent;
+      unsigned int hops = 0;
+      while (parent && ++hops <= 27) parent = entities.at(parent).parent;
+      if (parent) return 112;
+    }
+  }
+  {
+    std::ifstream input(output + "/native-body-world.txt");
+    if (!input) return 113;
+    std::string line;
+    while (std::getline(input, line))
+    {
+      std::istringstream row(line); unsigned int tick; std::string name;
+      std::array<double, 7> values;
+      if (!(row >> tick >> std::quoted(name)) || (tick != 1 && tick != 10 && tick != 100)) return 114;
+      for (auto &value : values) if (!(row >> value) || !std::isfinite(value)) return 114;
+      std::string extra; if (row >> extra) return 114;
+      if (!expected.emplace(std::make_pair(tick, name), values).second) return 114;
+    }
+    if (!input.eof() || expected.size() != 21) return 114;
+    for (const auto &entry : entities)
+      if (entry.second.group == 1)
+        for (unsigned int tick : {1U, 10U, 100U})
+          if (!expected.count({tick, entry.second.scoped})) return 114;
+  }
+  struct Frames
+  {
+    std::mutex mutex;
+    std::condition_variable changed;
+    unsigned int phase = 0;
+    bool invalid = false, clockReady = false, poseReady = false;
+    gz::msgs::Clock clock;
+    gz::msgs::Pose_V poses;
+    std::map<uint32_t, std::array<double, 7>> initial;
+    std::vector<uint32_t> orderedIds;
+  };
+  auto observed = std::make_shared<Frames>();
+  const int64_t targets[] = {0, 1000000, 10000000, 100000000, 0, 1000000};
+  const std::string phases[] = {"initial", "step1", "step10", "step100", "reset", "reset_step1"};
+  auto poseValues = [](const gz::msgs::Pose &pose)
+  {
+    return std::array<double, 7>{pose.position().x(), pose.position().y(), pose.position().z(),
+        pose.orientation().x(), pose.orientation().y(), pose.orientation().z(), pose.orientation().w()};
+  };
+  gz::transport::Node node;
+  std::function<void(const gz::msgs::Clock &)> clockCallback = [observed, &targets](const auto &clock)
+  {
+    std::lock_guard<std::mutex> lock(observed->mutex);
+    bool valid = clock.has_sim() && clock.has_real() && clock.has_system() &&
+        clock.sim().sec() == 0 && clock.sim().nsec() >= 0 && clock.sim().nsec() <= 100000000 &&
+        clock.real().sec() >= 0 && clock.real().nsec() >= 0 && clock.real().nsec() < 1000000000 &&
+        clock.system().sec() > 1000000000 && clock.system().nsec() >= 0 && clock.system().nsec() < 1000000000;
+    observed->invalid = observed->invalid || !valid;
+    if (valid && !observed->clockReady && clock.sim().nsec() == targets[observed->phase] &&
+        (observed->phase != 4 || (clock.real().sec() == 0 && clock.real().nsec() == 0)))
+    { observed->clock = clock; observed->clockReady = true; }
+    observed->changed.notify_all();
+  };
+  std::function<void(const gz::msgs::Pose_V &)> poseCallback =
+      [observed, &entities, &expected, &targets, poseValues](const auto &poses)
+  {
+    std::lock_guard<std::mutex> lock(observed->mutex);
+    if (observed->invalid) return;
+    bool valid = poses.has_header() && poses.header().has_stamp() && poses.header().data_size() == 0 &&
+        poses.header().stamp().sec() == 0 && poses.header().stamp().nsec() >= 0 &&
+        poses.header().stamp().nsec() <= 100000000 && poses.pose_size() == 27;
+    std::map<uint32_t, gz::math::Pose3d> local;
+    std::map<uint32_t, std::array<double, 7>> values;
+    std::vector<uint32_t> ordered;
+    unsigned int group = 0;
+    for (const auto &pose : poses.pose())
+    {
+      const auto found = entities.find(pose.id());
+      if (found == entities.end()) { valid = false; continue; }
+      const auto &entity = found->second;
+      valid = valid && entity.group >= group && pose.name() == entity.local && !pose.has_header() &&
+          pose.has_position() && pose.has_orientation() && !pose.position().has_header() && !pose.orientation().has_header();
+      group = entity.group;
+      const auto p = poseValues(pose);
+      double norm = 0;
+      for (unsigned int i = 0; i < 7; ++i)
+      { valid = valid && std::isfinite(p[i]); if (i >= 3) norm += p[i] * p[i]; }
+      valid = valid && std::abs(norm - 1) <= 1e-12 && values.emplace(pose.id(), p).second;
+      local.emplace(pose.id(), gz::math::Pose3d(gz::math::Vector3d(p[0], p[1], p[2]),
+          gz::math::Quaterniond(p[6], p[3], p[4], p[5])));
+      ordered.push_back(pose.id());
+    }
+    valid = valid && values.size() == entities.size();
+    if (!observed->orderedIds.empty()) valid = valid && ordered == observed->orderedIds;
+    const auto nanos = poses.has_header() && poses.header().has_stamp() ? poses.header().stamp().nsec() : -1;
+    const auto tick = static_cast<unsigned int>(nanos >= 0 ? nanos / 1000000 : 0);
+    if (valid && (tick == 1 || tick == 10 || tick == 100))
+      for (const auto &entry : entities)
+        if (entry.second.group == 1)
+        {
+          // Pose_V contains local poses. Reconstruct using the received parent model pose;
+          // never substitute Scene's world state or invent a velocity wire field.
+          auto world = local.at(entry.first);
+          auto parent = entry.second.parent;
+          while (parent) { world = local.at(parent) * world; parent = entities.at(parent).parent; }
+          const auto &target = expected.at({tick, entry.second.scoped});
+          const double actual[] = {world.Pos().X(), world.Pos().Y(), world.Pos().Z(),
+              world.Rot().X(), world.Rot().Y(), world.Rot().Z(), world.Rot().W()};
+          for (unsigned int i = 0; i < 7; ++i)
+            if (!std::isfinite(actual[i]) || std::abs(actual[i] - target[i]) > 1e-12)
+            {
+              std::cerr << std::setprecision(17) << "B03 native-pose comparison tick=" << tick
+                  << " body=" << entry.second.scoped << " field=" << i
+                  << " wire=" << actual[i] << " native=" << target[i] << '\n';
+              valid = false;
+            }
+        }
+    if (valid && observed->phase == 4 && nanos == 0)
+      for (const auto &entry : values)
+        for (unsigned int i = 0; i < 7; ++i)
+          valid = valid && std::abs(entry.second[i] - observed->initial.at(entry.first)[i]) <= 1e-12;
+    observed->invalid = observed->invalid || !valid;
+    if (valid && !observed->poseReady && nanos == targets[observed->phase])
+    {
+      if (observed->phase == 0) { observed->initial = values; observed->orderedIds = ordered; }
+      observed->poses = poses; observed->poseReady = true;
+    }
+    observed->changed.notify_all();
+  };
+  if (!node.Subscribe("/world/default/clock", clockCallback) ||
+      !node.Subscribe("/world/default/pose/info", poseCallback)) return 115;
+  auto waitAndSave = [&]
+  {
+    std::unique_lock<std::mutex> lock(observed->mutex);
+    if (!observed->changed.wait_for(lock, std::chrono::seconds(8), [&]
+        { return observed->invalid || (observed->clockReady && observed->poseReady); }) || observed->invalid) return false;
+    const auto phase = phases[observed->phase];
+    std::ofstream poses(output + "/" + phase + ".pose_v.pb", std::ios::binary);
+    std::ofstream clock(output + "/" + phase + ".clock.pb", std::ios::binary);
+    std::ofstream poseText(output + "/" + phase + ".pose_v.txt");
+    std::ofstream clockText(output + "/" + phase + ".clock.txt");
+    if (!observed->poses.SerializeToOstream(&poses) || !observed->clock.SerializeToOstream(&clock)) return false;
+    poseText << observed->poses.DebugString(); clockText << observed->clock.DebugString();
+    return bool(poses) && bool(clock) && bool(poseText) && bool(clockText);
+  };
+  if (!waitAndSave()) return 116;
+  for (unsigned int phase = 1; phase < 6; ++phase)
+  {
+    {
+      std::lock_guard<std::mutex> lock(observed->mutex);
+      // In particular, observed clock+poses100 precede arming reset, its RPC receipt,
+      // and the new zero snapshot. Startup zero is not reused as reset evidence.
+      observed->phase = phase; observed->clockReady = false; observed->poseReady = false;
+    }
+    gz::msgs::WorldControl request; request.set_pause(true);
+    if (phase == 4) request.mutable_reset()->set_all(true);
+    else request.set_multi_step(phase == 1 || phase == 5 ? 1 : phase == 2 ? 9 : 90);
+    gz::msgs::Boolean response; bool result = false;
+    if (!request_with_reply(node, "/world/default/control", request, 7000, response, result) ||
+        !result || !response.data()) return 117;
+    if (!waitAndSave()) return 118;
+  }
+  std::ifstream maps("/proc/self/maps"); std::ofstream captured(output + "/maps"); captured << maps.rdbuf();
+  if (!maps || !captured) return 119;
+  std::cout << "PASS native B03 groups=3,7,16,1 poses=27 phases=6 controls=5 reset=0 final=1000000\n";
+  return 0;
+}
+
 int main(int argc, char **argv)
 {
   if (argc > 1)
   {
     const std::string mode = argv[1];
+    if (mode == "--b03-world") return argc == 3 ? RunB03WorldCase(argv[2]) : 111;
     if (mode == "--light-poses")
       return argc == 4 ? RunLightPosesCase(argv[2], argv[3]) : 101;
     if (mode == "--root-clock") return RunRootClockCase();

@@ -257,3 +257,17 @@ analogous B03 world-light inventory loops. Root's `work/b03-public-identities`
 correction batches both loops with the same strict public-identity helper and
 source review of other new tests for this class. All retained assertions remain;
 finish review before one affected mandatory pass, without preliminary checks.
+
+### IO-01 / PHY-03: Gazebo C++ B03 interoperability
+
+Root owns the next source slice on accepted Main `8ebb02db` (exact hosted
+`41447340434`, independent official audit passed). Owned files are server
+`tests/native.rs`, `tests/clock_client.cc`, `docs/B03_NATIVE_INTEROP.md` and these
+handoff/task updates. The external Gazebo C++ peer must receive actual six-phase
+clock/local-pose snapshots through control/reset, reconstruct body world poses
+with maintained native math and compare the accepted fresh reference at unchanged
+bounds. Retain all existing peer modes, assertions, new file-backed diagnostics,
+strict coverage and pinned SDK verification. Upstream Rust Zenoh is used directly
+and unmodified; this is interoperability testing, not a C++ transport port.
+Complete final source review before one consolidated local gate, then exact
+hosted qualification and independent official audit before acceptance.

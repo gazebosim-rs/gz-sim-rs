@@ -755,3 +755,348 @@ fn cpp_client_observes_light_pose_groups_owned_ids_and_loaded_reset() {
         PhysicsEngine::Tpe,
     );
 }
+
+// Concrete B03 wire slice; native delivery and native physics expectations are separate.
+#[test]
+fn cpp_peer_controls_loaded_b03_and_receives_complete_pose_groups_through_reset() {
+    use bevy_ecs::hierarchy::ChildOf;
+    use gz_sim_core::{EntityId, Simulation, entity_by_id};
+    use gz_sim_proto::{msgs, prost::Message};
+    use gz_sim_scene::{EntityKind, LocalName, LocalPose, load_world_with_sdf_step};
+    use std::collections::{BTreeMap, BTreeSet};
+    use std::io::Write;
+
+    const XML: &str = include_str!("../../gz-sim-scene/tests/fixtures/b03_double_pendulum.sdf");
+    const FRESH: &[u8] =
+        include_bytes!("../../gz-sim-scene/tests/fixtures/b03_world_fresh_native.json");
+    const PHASES: [(&str, u64, u64); 6] = [
+        ("initial", 0, 0),
+        ("step1", 0, 1),
+        ("step10", 0, 10),
+        ("step100", 0, 100),
+        ("reset", 1, 0),
+        ("reset_step1", 1, 1),
+    ];
+    type Row = (u32, u32, u32, String, String, [f64; 7]);
+    fn rows(sim: &Simulation) -> BTreeMap<u32, Row> {
+        sim.world()
+            .iter_entities()
+            .filter_map(|entity| {
+                let group = match entity.get::<EntityKind>()? {
+                    EntityKind::Model => 0,
+                    EntityKind::Link => 1,
+                    EntityKind::Visual | EntityKind::LightVisual => 2,
+                    EntityKind::Light => 3,
+                    _ => return None,
+                };
+                let id = entity.get::<EntityId>().unwrap().get();
+                assert_eq!(entity_by_id(sim.world(), id), Some(entity.id()));
+                let parent = sim
+                    .world()
+                    .get_entity(entity.get::<ChildOf>().unwrap().parent())
+                    .unwrap();
+                let parent_id = if parent.get::<EntityKind>() == Some(&EntityKind::World) {
+                    0
+                } else {
+                    u32::try_from(parent.get::<EntityId>().unwrap().get()).unwrap()
+                };
+                let pose = entity.get::<LocalPose>().unwrap().0;
+                let values: [f64; 7] = pose
+                    .translation
+                    .into_iter()
+                    .chain(pose.rotation)
+                    .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap();
+                assert!(values.iter().all(|v| v.is_finite()));
+                let id = u32::try_from(id).unwrap();
+                Some((
+                    id,
+                    (
+                        group,
+                        id,
+                        parent_id,
+                        entity.get::<LocalName>().unwrap().0.clone(),
+                        entity.get::<Name>().unwrap().0.clone(),
+                        values,
+                    ),
+                ))
+            })
+            .collect()
+    }
+    fn checksum(bytes: &[u8]) -> String {
+        let mut hash = Command::new("sha256sum")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        hash.stdin.take().unwrap().write_all(bytes).unwrap();
+        let output = hash.wait_with_output().unwrap();
+        assert!(output.status.success() && output.stderr.is_empty());
+        String::from_utf8(output.stdout)
+            .unwrap()
+            .split_whitespace()
+            .next()
+            .unwrap()
+            .to_owned()
+    }
+    assert_eq!(
+        checksum(FRESH),
+        "22c9bf024638fdfac70c366596ecfd359049fe2f53db5486d221168b5402b4ed"
+    );
+    assert_eq!(
+        checksum(XML.as_bytes()),
+        "24e85ff944b5efe2d758fdda543e392f34d59f26297a0a87fafbb41d5a3b16aa"
+    );
+    let native: serde_json::Value = serde_json::from_slice(FRESH).unwrap();
+    assert_eq!(
+        native["xml_sha256"],
+        "24e85ff944b5efe2d758fdda543e392f34d59f26297a0a87fafbb41d5a3b16aa"
+    );
+    assert_eq!(native["body_fields"].as_array().unwrap().len(), 22);
+    let simulation =
+        load_world_with_sdf_step(XML, "b03.sdf", "default", &NoResources, PhysicsEngine::Dart)
+            .unwrap();
+    assert!(simulation.is_paused());
+    let initial = rows(&simulation);
+    let mut expected_names: BTreeSet<String> = [
+        "default::ground_plane",
+        "default::ground_plane::link",
+        "default::ground_plane::link::visual",
+        "default::sun",
+        "default::sun::sunVisual",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect();
+    for model in ["double_pendulum_with_base0", "double_pendulum_with_base1"] {
+        let prefix = format!("default::{model}");
+        expected_names.insert(prefix.clone());
+        for (link, visuals) in [
+            ("base", &["vis_plate_on_ground", "vis_pole"][..]),
+            (
+                "upper_link",
+                &["vis_upper_joint", "vis_lower_joint", "vis_cylinder"][..],
+            ),
+            ("lower_link", &["vis_lower_joint", "vis_cylinder"][..]),
+        ] {
+            expected_names.insert(format!("{prefix}::{link}"));
+            for visual in visuals {
+                expected_names.insert(format!("{prefix}::{link}::{visual}"));
+            }
+        }
+    }
+    assert_eq!(
+        initial
+            .values()
+            .map(|r| r.4.clone())
+            .collect::<BTreeSet<_>>(),
+        expected_names
+    );
+    assert_eq!(initial.len(), 27);
+    for (group, count) in [(0, 3), (1, 7), (2, 16), (3, 1)] {
+        assert_eq!(initial.values().filter(|r| r.0 == group).count(), count);
+    }
+    let output = native_peer()
+        .binary
+        .parent()
+        .unwrap()
+        .join("b03-world-peer");
+    std::fs::create_dir_all(&output).unwrap();
+    let output = tempfile::Builder::new()
+        .prefix("loaded-")
+        .tempdir_in(output)
+        .unwrap()
+        .keep();
+    std::fs::write(output.join("input.sdf"), XML).unwrap();
+    std::fs::write(output.join("native-fixture.json"), FRESH).unwrap();
+    let mut manifest = std::fs::File::create(output.join("entities.txt")).unwrap();
+    for (group, id, parent, local, name, _) in initial.values() {
+        writeln!(manifest, "{group} {id} {parent} {local:?} {name:?}").unwrap();
+    }
+    let mut targets = std::fs::File::create(output.join("native-body-world.txt")).unwrap();
+    let frames = native["frames"].as_array().unwrap();
+    assert_eq!(
+        frames
+            .iter()
+            .map(|f| f["tick"].as_u64().unwrap())
+            .collect::<Vec<_>>(),
+        [1, 10, 100]
+    );
+    for frame in frames {
+        let tick = frame["tick"].as_u64().unwrap();
+        assert_eq!(frame["time_ns"].as_u64(), Some(tick * 1_000_000));
+        let bodies = frame["bodies"].as_array().unwrap();
+        assert_eq!(bodies.len(), 7);
+        assert_eq!(
+            bodies
+                .iter()
+                .map(|b| b["name"].as_str().unwrap().to_owned())
+                .collect::<BTreeSet<_>>(),
+            initial
+                .values()
+                .filter(|r| r.0 == 1)
+                .map(|r| r.4.clone())
+                .collect::<BTreeSet<_>>()
+        );
+        for body in bodies {
+            write!(targets, "{tick} {:?}", body["name"].as_str().unwrap()).unwrap();
+            let values = body["values"].as_array().unwrap();
+            assert_eq!(values.len(), 22);
+            for value in values.iter().take(7) {
+                let value = value.as_f64().unwrap();
+                assert!(value.is_finite());
+                write!(targets, " {value:.17e}").unwrap();
+            }
+            writeln!(targets).unwrap();
+        }
+    }
+    drop(manifest);
+    drop(targets);
+    let network = Network::new();
+    let config = ServerOptions {
+        partition: format!("b03-native-{}-{}", std::process::id(), uuid::Uuid::new_v4()),
+        ..ServerOptions::default()
+    };
+    let mut server = network.server(simulation, &config);
+    // This existing publication setting changes wall-time throttling, not SDF dt or physics.
+    server.set_pose_publication_period(Duration::ZERO);
+    let mut command = Command::new(&native_peer().binary);
+    command.arg("--b03-world").arg(&output);
+    // Retain actual child writes even if an update, assertion or deadline panics.
+    // File-backed streams also avoid pipe backpressure hiding a native failure.
+    let stdout = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(output.join("stdout"))
+        .unwrap();
+    let stderr = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(output.join("stderr"))
+        .unwrap();
+    println!("B03 native peer evidence: {}", output.display());
+    let mut peer = Peer(
+        network
+            .configure_native(&mut command, &config)
+            .stdout(Stdio::from(stdout))
+            .stderr(Stdio::from(stderr))
+            .spawn()
+            .unwrap(),
+    );
+    let mut snapshots = BTreeMap::from([((0, 0), initial.clone())]);
+    let mut advanced = BTreeSet::new();
+    let deadline = Instant::now() + Duration::from_secs(45);
+    let status = loop {
+        if let Some(status) = peer.0.try_wait().unwrap() {
+            break status;
+        }
+        assert!(
+            Instant::now() < deadline,
+            "native B03 peer timed out: {}",
+            output.display()
+        );
+        let info = server.update().unwrap();
+        assert!(info.epoch <= 1);
+        assert!(info.sim_time <= Duration::from_millis(if info.epoch == 0 { 100 } else { 1 }));
+        if info.dt != Duration::ZERO {
+            assert_eq!(info.dt, Duration::from_millis(1));
+            assert!(advanced.insert((info.epoch, info.sim_time.as_millis() as u64)));
+        }
+        let current = rows(server.simulation());
+        assert_eq!(
+            current
+                .iter()
+                .map(|(id, r)| (*id, (r.0, r.1, r.2, r.3.clone(), r.4.clone())))
+                .collect::<BTreeMap<_, _>>(),
+            initial
+                .iter()
+                .map(|(id, r)| (*id, (r.0, r.1, r.2, r.3.clone(), r.4.clone())))
+                .collect::<BTreeMap<_, _>>()
+        );
+        if [0, 1, 10, 100].contains(&(info.sim_time.as_millis() as u64)) {
+            snapshots
+                .entry((info.epoch, info.sim_time.as_millis() as u64))
+                .or_insert(current);
+        }
+        thread::sleep(Duration::from_millis(1));
+    };
+    let stdout = std::fs::read_to_string(output.join("stdout")).unwrap();
+    let stderr = std::fs::read_to_string(output.join("stderr")).unwrap();
+    assert!(
+        status.success(),
+        "{status}: {stdout} {stderr}; {}",
+        output.display()
+    );
+    assert!(stderr.is_empty(), "{stderr}");
+    assert_eq!(
+        stdout,
+        "PASS native B03 groups=3,7,16,1 poses=27 phases=6 controls=5 reset=0 final=1000000\n"
+    );
+    for (phase, epoch, tick) in PHASES {
+        let poses = msgs::PoseV::decode(
+            std::fs::read(output.join(format!("{phase}.pose_v.pb")))
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
+        let clock = msgs::Clock::decode(
+            std::fs::read(output.join(format!("{phase}.clock.pb")))
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
+        let stamp = poses.header.as_ref().unwrap().stamp.as_ref().unwrap();
+        assert_eq!(
+            (stamp.sec, stamp.nsec),
+            (0, i32::try_from(tick * 1_000_000).unwrap())
+        );
+        let sim = clock.sim.unwrap();
+        assert_eq!((sim.sec, sim.nsec), (stamp.sec, stamp.nsec));
+        if phase == "reset" {
+            let real = clock.real.unwrap();
+            assert_eq!((real.sec, real.nsec), (0, 0));
+        }
+        assert_eq!(poses.pose.len(), 27);
+        let expected = &snapshots[&(epoch, tick)];
+        let mut delivered = BTreeSet::new();
+        for pose in poses.pose {
+            assert!(delivered.insert(pose.id));
+            let row = &expected[&pose.id];
+            assert_eq!(pose.name, row.3);
+            let p = pose.position.unwrap();
+            let q = pose.orientation.unwrap();
+            for (actual, target) in [p.x, p.y, p.z, q.x, q.y, q.z, q.w].into_iter().zip(row.5) {
+                assert!(actual.is_finite() && (actual - target).abs() <= 1e-12);
+            }
+        }
+        assert_eq!(delivered, initial.keys().copied().collect());
+    }
+    assert_eq!(
+        advanced,
+        (1..=100).map(|t| (0, t)).chain([(1, 1)]).collect()
+    );
+    assert_eq!(rows(server.simulation()), snapshots[&(1, 1)]);
+    assert_eq!(server.simulation().epoch(), 1);
+    assert_eq!(server.simulation().elapsed(), Duration::from_millis(1));
+    assert!(server.simulation().is_paused());
+    assert_eq!(server.pending_steps(), 0);
+    let counters = server.counters();
+    assert_eq!(counters.controls_accepted, 5);
+    assert_eq!(counters.controls_rejected, 0);
+    assert_eq!(counters.response_failures, 0);
+    assert_eq!(counters.clock_failures, 0);
+    assert_eq!(counters.pose_failures, 0);
+    assert_eq!(counters.invalid_pose_frames, 0);
+    assert_eq!(counters.imus_queued, 0);
+    server.shutdown();
+    assert!(matches!(
+        server.update(),
+        Err(gz_sim_server::Error::WorldClosed)
+    ));
+    println!(
+        "verified loaded B03 native clock/Pose_V/control/reset peer: {}",
+        output.display()
+    );
+}
