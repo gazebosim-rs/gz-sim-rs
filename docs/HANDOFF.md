@@ -7,6 +7,29 @@ Updated 2026-11-02. Read this first when resuming coordination of the rewrite,
 whichever agent you are. AGENTS.md has the standing rules; this file has the
 current state and the next tasks. Update both when either changes.
 
+## Owner priority and paused state (D30)
+
+The current task is the weekly delivery plan, not resuming the old qualification
+queue. Read DELIVERY_PLAN.md. M1 is a Rapier-only primitive world actually visible
+and controlled in gzweb-rs, targeted within five working days after explicit
+resume. Subsequent mesh, sensor and system phases each have at most five working
+days of scope. No M1–M12 delivery has been accepted yet. All implementation
+agents and continuation automation remain paused.
+
+Accepted simulator Main is `386482e5365d827a1c0d1e8ad7ca654fe93902bf`
+(metric box-depth renderer accepted after complete local/hosted review). Accepted
+SDFormat Main is `1594ac3637396d2cc43497abb16b7c2818d999e6`; simulator's
+producer pin remains `a44bf8be`. Pending mass override `154c1cbf` passed its
+local gate and independent retained audit; hosted run 41521742662 was cancelled
+at the owner's pause, so no hosted acceptance/Main promotion is claimed.
+Metric-depth-worker candidate was paused after its formatting-only gate failure
+and correction review; inspect retained state on resume rather than inventing a
+pass. Preserve all pending work and evidence. Neither candidate blocks the
+primitive MVP by default. Fuel remains independently owned and untouched.
+
+The sections below preserve the previous continuation history. Their next-task
+instructions are superseded by this section and D30.
+
 ## Current continuation
 
 Qualified integration base `c5dd02c0700baec963464c9e0ce6a8dbc0dfae12` adopts accepted

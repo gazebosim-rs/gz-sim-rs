@@ -10,6 +10,23 @@ files, upstream test IDs, dependency decisions, code revision, exact check comma
 results, coverage, relevant benchmark data, reviewer, and unresolved limits.
 The task author cannot independently retire tests or approve coverage exclusions.
 
+## Current delivery queue: M1 first
+
+Owner decision D30 supersedes the order of the legacy packets below. Follow
+[DELIVERY_PLAN.md](DELIVERY_PLAN.md) and `planning/delivery-phases.json` for the
+M1–M12 runnable releases, each budgeted at no more than five working days.
+M1 reuses PHY-05/LOAD-01/IO-01 where accepted and adds a real gzweb-rs primitive
+scene/pose/control connection. The browser contract and Rapier-only user setup
+are missing acceptance evidence, so M1 is not started, not accepted.
+
+Implementation remains paused until explicit resume. The first assignment on
+resume is M1 day-one live browser proof, followed by the rest of the same bounded
+MVP. Do not automatically continue native inertia, DART parity or camera-worker
+extensions unless they block M1. Preserve all accepted behavior and pending
+worktrees. Legacy packet IDs stay intact for regression and scope traceability;
+a weekly phase can implement a documented subset without completing its whole
+legacy packet. No original sensor/system/backend is retired by this reorder.
+
 ## Foundation and reference tasks
 
 | ID | Depends on | Assignment | Exit evidence |

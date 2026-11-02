@@ -1,5 +1,13 @@
 # Implementation plan
 
+## Current delivery priority (D30, 2026-11-02)
+
+Ship the [Rapier + gzweb-rs primitive MVP](DELIVERY_PLAN.md) first, targeted at
+five working days after implementation resumes. Follow it with phases of at most
+one working week: mesh visuals, mesh collisions, individual sensors and focused
+Gazebo systems. The complete rewrite is the long-term backlog, not the first
+release. Implementation and all agents remain paused pending explicit resume.
+
 ## Outcome and scope
 
 Build a Rust Gazebo simulator that preserves the supported behavior of the pinned
@@ -70,44 +78,27 @@ Verify absence with invocation/resource counters and lifecycle checks, then meas
 CPU and memory on equal-work reference workloads. Empty ECS queries alone do not
 satisfy this requirement. See ACT-01 in IMPLEMENTATION_TASKS.md.
 
-## Sequence and gates
+## Delivery sequence and legacy gates
 
-Each phase exits on evidence, not elapsed time. No reliable calendar estimate
-exists until P0 measures the suite, assets, backend capabilities, and available
-CI hardware. Re-estimate after the first vertical slice.
+[DELIVERY_PLAN.md](DELIVERY_PLAN.md) and `planning/delivery-phases.json` define
+the current M1–M12 schedule. Every phase is a runnable increment with a budget of
+at most five working days, including required review and verification. M1 needs
+only Rapier f64, boxes/spheres and static ground, plus a real live gzweb-rs view
+and controls. Meshes, sensors and broader systems follow in separate phases.
 
-| Phase | Work | Exit evidence |
-| --- | --- | --- |
-| P0: Freeze and measure | Pin upstream main SHAs, build the C++ reference, enumerate tests and system behavior, collect baseline workloads, evaluate Avian/Rapier, define demand-driven system activation | Reproducible reference image and commands; complete test ledger; benchmark raw data; backend decision; explicit environment failures |
-| P1: Foundations and gates | Create Cargo workspace and independent repo contracts, pin versions/toolchain, implement required pre-commit/CI, time/frames/IDs, message and SDF minimums | Gate failure demonstrations; >95% coverage on initial production code; dependency graph checks; no window/GPU dependency in the core build |
-| P2: End-to-end server | Load a simple SDF world, spawn entities, step TPE and one dynamic backend, publish clock/poses and IMU through Zenoh, pause/reset/remove | Original and Rust runs agree on selected assertions; C++ peer interoperates through the selected Zenoh contract; bounded queues; first measured performance report |
-| P3: Physics and robotics | Complete capability-based DART, MuJoCo, TPE, and chosen Rust integration; controllers, joints, contacts, lifecycle | Per-backend conformance results and negative capability tests; DART same-engine parity; no silent fallback; articulation and dynamic topology probes |
-| P4: Bevy rendering and sensors | Asset pipeline, offscreen rendering, camera family, lidar, scheduling/noise, environmental and non-rendered sensors | Full sensor inventory mapped; GPU fixture tests and analytic tolerances; deterministic timestamps; GPU/CPU overload and reset tests |
-| P5: Remaining simulator behavior | All remaining 78-system inventory entries, world services, levels/distributed behavior, recording/replay, scripting contracts | Every retained behavior has an implementation and tests; no unexplained unmapped cases; legacy client and log compatibility evidence |
-| P6: Integration and optimization | External GUI contract, mixed-version repos, packaging, profiling, bottleneck removal, lifecycle stress | Performance budgets met at equal fidelity; long-run tests; package installation and clean shutdown on supported Linux targets |
-| P7: Release qualification | Full suite, release feature matrix, coverage, documentation, upgrade story, license provenance | All required jobs pass on release commit; >95% thresholds; no unresolved retained-scope test failures; reproducible release artifacts |
+The old P0–P7 names remain stable historical evidence/long-term acceptance gates,
+not scheduling prerequisites for the MVP: P0 reference inventory; P1 foundations;
+P2 qualified headless slice (accepted); P3 broad physics/robotics; P4 broad
+rendering/sensors; P5 remaining simulator behavior; P6 integration/optimization;
+P7 full release qualification. Their unresolved assertions and scope remain in
+the legacy work packets and test ledgers. Do not relabel P2 acceptance as M1
+browser acceptance or remove old requirements to make the new bar advance.
 
-P3 and P4 work can overlap once their P2 contracts are stable. Independent repo
-teams can develop against shared fixtures and versioned contracts during P0/P1.
-Do not let provisional adapters turn into permanent reverse dependencies.
-
-## First vertical slice
-
-Use a small world with gravity, a ground plane, a freely moving body, an IMU,
-and a simple joint variant. Resolve SDF frames before constructing physics.
-Support loading local resources, start-paused, exact N-step execution, clock and
-pose publication, velocity/force input, removal, reset, and shutdown.
-
-Run it in Rust against a real DART or selected Rust backend and against TPE for
-its supported motion semantics. Compare DART to upstream DART at the same
-version, timestep, solver settings, shapes, and precision. Use separate analytic
-expectations for TPE. The network test must involve an actual C++ peer using the selected Zenoh
-contract; a historical ZeroMQ peer result does not qualify the migrated path.
-
-P2 may use an explicitly temporary SDF bridge if the independent
-Rust implementation is not ready. Keep it behind a feature, record the owner and
-removal milestone, test the same contract, and exclude it from any “pure Rust
-stack complete” claim. It must not become the default release dependency.
+Re-estimate after M1's day-one live connection proof. Split any oversized future
+phase before work starts; failed acceptance criteria remain failures regardless
+of its budget. Full rewrite completion has no scheduled date. Current quality
+and coverage gates remain mandatory; batch verification at completed-feature
+boundaries according to AGENTS.md.
 
 ## Repository and release mechanics
 
@@ -157,4 +148,22 @@ benchmarks, and tested versus unsupported feature combinations.
 | Independent repos become coupled | Compile SDF/Fuel independently; generate consumer bindings from schemas | One-way dependency rule and minimal data contracts |
 
 The detailed work packets are in `IMPLEMENTATION_TASKS.md`. Open owner choices
-are recorded in `DECISIONS.md`; they do not prevent unrelated P0 work.
+are recorded in `DECISIONS.md`. After explicit resume, select work that advances
+the current weekly delivery or its concrete dependencies.
+
+
+## Deferred legacy acceptance gates
+
+Retained for final compatibility and historical traceability. These broad gates
+are not the weekly schedule and are not whole-family prerequisites for M1.
+
+| Phase | Work | Exit evidence |
+| --- | --- | --- |
+| P0: Freeze and measure | Pin upstream main SHAs, build the C++ reference, enumerate tests and system behavior, collect baseline workloads, evaluate Avian/Rapier, define demand-driven system activation | Reproducible reference image and commands; complete test ledger; benchmark raw data; backend decision; explicit environment failures |
+| P1: Foundations and gates | Create Cargo workspace and independent repo contracts, pin versions/toolchain, implement required pre-commit/CI, time/frames/IDs, message and SDF minimums | Gate failure demonstrations; >95% coverage on initial production code; dependency graph checks; no window/GPU dependency in the core build |
+| P2: End-to-end server | Load a simple SDF world, spawn entities, step TPE and one dynamic backend, publish clock/poses and IMU through Zenoh, pause/reset/remove | Original and Rust runs agree on selected assertions; C++ peer interoperates through the selected Zenoh contract; bounded queues; first measured performance report |
+| P3: Physics and robotics | Complete capability-based DART, MuJoCo, TPE, and chosen Rust integration; controllers, joints, contacts, lifecycle | Per-backend conformance results and negative capability tests; DART same-engine parity; no silent fallback; articulation and dynamic topology probes |
+| P4: Bevy rendering and sensors | Asset pipeline, offscreen rendering, camera family, lidar, scheduling/noise, environmental and non-rendered sensors | Full sensor inventory mapped; GPU fixture tests and analytic tolerances; deterministic timestamps; GPU/CPU overload and reset tests |
+| P5: Remaining simulator behavior | All remaining 78-system inventory entries, world services, levels/distributed behavior, recording/replay, scripting contracts | Every retained behavior has an implementation and tests; no unexplained unmapped cases; legacy client and log compatibility evidence |
+| P6: Integration and optimization | External GUI contract, mixed-version repos, packaging, profiling, bottleneck removal, lifecycle stress | Performance budgets met at equal fidelity; long-run tests; package installation and clean shutdown on supported Linux targets |
+| P7: Release qualification | Full suite, release feature matrix, coverage, documentation, upgrade story, license provenance | All required jobs pass on release commit; >95% thresholds; no unresolved retained-scope test failures; reproducible release artifacts |

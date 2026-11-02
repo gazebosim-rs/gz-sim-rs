@@ -37,6 +37,15 @@ Updated with the owner’s built-in system decision on 2026-10-30. `Confirmed` m
 | D28 | Confirmed | Use upstream Zenoh directly in simulator consumers. Drop gz-transport-rs from the target architecture and drop ZeroMQ compatibility. Match C++ Gazebo over Zenoh, including topic keys, discovery/type metadata and service contracts. Stop its implementation, legacy protocol parity and optimization work. Preserve historical repositories/results while consumers migrate; no replacement transport framework. |
 | D29 | Confirmed | gz-msgs-rs contains canonical protobuf definitions, their imported options/import closure, schema identity and licensing. Consumers generate their own bindings with maintained tools. Stop custom message runtime, reflection, conversion framework, CLI and codec optimization work. Preserve protobuf schema semantics and consumer behavior; do not move the discarded framework into gz-sim-rs. |
 
+| D30 | Confirmed (2026-11-02) | Deliver a runnable MVP first: Rapier f64 with simple primitive shapes, visualized live using gzweb-rs. Then mesh visuals, mesh collisions, individual sensor models and focused Gazebo systems in phases each budgeted at most five working days, including review and mandatory verification. The full rewrite becomes a deferred backlog, not a prerequisite for a usable release. Preserve existing backends, evidence, assertions and quality gates; do not count deferred work as complete. See DELIVERY_PLAN.md. This request authorizes planning/tracker changes; implementation agents and automation remain paused until explicit resume. |
+
+D30 narrows initial release acceptance without retiring final compatibility scope.
+It supersedes the old P0–P7 execution order and the earlier whole-rewrite-first
+forecast. gzweb-rs is the MVP viewer; Bevy server-side rendering remains the
+sensor implementation for later phases. The observed viewer currently needs a
+live scene/pose/control connection. No new transport framework or system plugin
+architecture is authorized. M1 acceptance must demonstrate the real browser.
+
 ## Outstanding questions and decision triggers
 
 - Baseline: main is confirmed. Freeze one complete compatible set, not a
@@ -52,8 +61,8 @@ Updated with the owner’s built-in system decision on 2026-10-30. `Confirmed` m
   C++ facade unless a later explicit use case justifies its cost.
 - Performance: select representative worlds and hardware in P0. Numeric targets
   remain proposals until baseline variability and achievable budgets are known.
-- External GUI: agree scene, asset, clock, entity, command, and streaming contracts
-  before P4/P6. No implementation of the GUI is part of this migration.
+- MVP viewer (D30): agree the minimal live gzweb-rs scene/pose/control contract
+  in M1. Connecting the existing viewer is in scope; a general GUI rewrite is not.
 
 ## Decision change procedure
 

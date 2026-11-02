@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "decision": "D30",
+  "as_of": "2026-11-02",
+  "execution_state": "paused",
+  "current_phase": "M1",
+  "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
+  "phases": [
+    {
+      "id": "M1",
+      "title": "Runnable primitive MVP",
+      "max_working_days": 5,
+      "depends_on": [],
+      "scope": "One local SDF world, Rapier f64 box/sphere dynamics and static box ground; live gzweb-rs scene and poses; pause, resume and reset.",
+      "acceptance": "On a clean supported Linux setup, documented launch commands start the Rapier-only runtime and gzweb-rs. The real browser shows at least 20 moving primitive bodies and correct transforms; pause/resume/reset, reconnect and clean shutdown work. No C++ engine or GPU is required by the server.",
+      "excluded": "Mesh assets/collisions, joints, sensors, remote Fuel and full Gazebo compatibility."
+    },
+    {
+      "id": "M2",
+      "title": "Local mesh visualization",
+      "max_working_days": 3,
+      "depends_on": [
+        "M1"
+      ],
+      "scope": "Render local glTF 2.0 mesh visuals in gzweb-rs; keep primitive collisions.",
+      "acceptance": "A moving body with a local mesh visual has correct scale, orientation and resource paths in the actual browser; missing or invalid assets fail clearly.",
+      "excluded": "Mesh collisions, texture conversion, remote downloads and general asset formats."
+    },
+    {
+      "id": "M3",
+      "title": "Mesh collisions",
+      "max_working_days": 5,
+      "depends_on": [
+        "M2"
+      ],
+      "scope": "Rapier static triangle-mesh and dynamic convex-hull collision from the admitted local mesh input.",
+      "acceptance": "Static mesh contact and one dynamic convex hull pass geometry/contact and reset tests; unsupported nonconvex dynamic input is explicitly rejected.",
+      "excluded": "Automatic convex decomposition, deformables, heightmaps and arbitrary mesh formats."
+    },
+    {
+      "id": "M4",
+      "title": "IMU sensor model",
+      "max_working_days": 3,
+      "depends_on": [
+        "M3"
+      ],
+      "scope": "Wire the existing IMU model through loaded SDF demand and the live Rapier world; expose its canonical messages.",
+      "acceptance": "One configured IMU publishes correct units, frame, sample count and timestamps; pause/reset and last-consumer teardown pass. A no-IMU world owns no IMU callbacks or buffers.",
+      "excluded": "Other sensor families and full noise-model parity."
+    },
+    {
+      "id": "M5",
+      "title": "RGB camera model",
+      "max_working_days": 5,
+      "depends_on": [
+        "M4"
+      ],
+      "scope": "Activate one SDF RGB camera using existing offscreen Bevy rendering and bounded image delivery.",
+      "acceptance": "A known primitive scene produces real timestamped images at the requested rate; frame, pause/reset, removal and overload controls pass.",
+      "excluded": "Camera arrays, distortion, thermal and segmentation."
+    },
+    {
+      "id": "M6",
+      "title": "Depth camera model",
+      "max_working_days": 5,
+      "depends_on": [
+        "M5"
+      ],
+      "scope": "Connect the existing metric-depth renderer to one loaded SDF camera and a bounded consumer stream.",
+      "acceptance": "A calibrated primitive scene yields metric depths and documented background/clipping behavior; reset epochs, removal and bounded delivery pass.",
+      "excluded": "RGB-D registration, point clouds and depth noise parity."
+    },
+    {
+      "id": "M7",
+      "title": "CPU ray lidar model",
+      "max_working_days": 5,
+      "depends_on": [
+        "M6"
+      ],
+      "scope": "One planar ray lidar using Rapier queries against admitted primitive and mesh collisions.",
+      "acceptance": "Analytic range fixtures, min/max range, frame, acquisition timestamps and pause/reset pass; visualization can inspect the scan.",
+      "excluded": "GPU lidar, intensities, multi-layer scans and all lidar variants."
+    },
+    {
+      "id": "M8",
+      "title": "Differential-drive system",
+      "max_working_days": 5,
+      "depends_on": [
+        "M7"
+      ],
+      "scope": "One two-wheel Rapier robot, velocity command and odometry, visible in gzweb-rs.",
+      "acceptance": "A simple robot drives and turns from real commands; wheel limits, odometry frames, pause/reset and absent-system teardown pass.",
+      "excluded": "Ackermann, tracked vehicles and general drivetrain parity."
+    },
+    {
+      "id": "M9",
+      "title": "Joint controller systems",
+      "max_working_days": 5,
+      "depends_on": [
+        "M8"
+      ],
+      "scope": "One admitted Rapier revolute chain with position and velocity controllers.",
+      "acceptance": "Commands move the displayed joints with documented limits and stable IDs; bad commands, reset and removal pass.",
+      "excluded": "General articulations, mimic/transmission semantics and all controller families."
+    },
+    {
+      "id": "M10",
+      "title": "Interactive world lifecycle",
+      "max_working_days": 5,
+      "depends_on": [
+        "M9"
+      ],
+      "scope": "Expose focused spawn/remove and entity-state operations to the live browser for the admitted MVP scene.",
+      "acceptance": "Spawn and remove primitives and one local mesh without stale IDs or visuals; rejected requests are atomic; reconnect obtains a current snapshot.",
+      "excluded": "Multiworld, levels and distributed stepping."
+    },
+    {
+      "id": "M11",
+      "title": "Focused recording and replay",
+      "max_working_days": 5,
+      "depends_on": [
+        "M10"
+      ],
+      "scope": "Record and replay the admitted scene, poses and controls for one local session.",
+      "acceptance": "A short recorded session reproduces its timestamps and entity lifecycle in gzweb-rs; malformed input and bounded buffering pass.",
+      "excluded": "Compatibility with every historical Gazebo log format and full sensor recording."
+    },
+    {
+      "id": "M12",
+      "title": "Installable integrated preview",
+      "max_working_days": 5,
+      "depends_on": [
+        "M11"
+      ],
+      "scope": "Package the accepted subset and document supported capabilities, setup and a runnable robot demo.",
+      "acceptance": "A clean-machine installation runs the integrated demo; required coverage, CI, licenses and retained regressions pass at the release commit, with a published limitations matrix.",
+      "excluded": "Full rewrite completion and unsupported platforms/backends/features."
+    }
+  ],
+  "later_work": "After M12, select one named sensor, system, asset capability or backend increment per cycle. Scope each cycle to at most five working days before starting; split anything larger. Full compatibility remains an unscheduled backlog, not a promised twelve-week completion.",
+  "status": {
+    "M1": "not_started",
+    "M2": "not_started",
+    "M3": "not_started",
+    "M4": "not_started",
+    "M5": "not_started",
+    "M6": "not_started",
+    "M7": "not_started",
+    "M8": "not_started",
+    "M9": "not_started",
+    "M10": "not_started",
+    "M11": "not_started",
+    "M12": "not_started"
+  }
+}
