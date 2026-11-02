@@ -227,10 +227,22 @@ struct ModelAnchor {
 #[derive(Component)]
 struct AttachedPose;
 
+/// World-axis velocity at the link origin for dynamic backends.
+/// TPE retains its model-motion proxy.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Velocity {
     pub linear: [f64; 3],
     pub angular: [f64; 3],
+}
+
+#[derive(Component, Debug, Clone, Copy)]
+struct LinkCenterOfMass([f64; 3]);
+
+impl LinkCenterOfMass {
+    fn velocity_shift(self, orientation: [f64; 4], angular: [f64; 3]) -> DVec3 {
+        let arm = DQuat::from_array(orientation) * DVec3::from_array(self.0);
+        DVec3::from_array(angular).cross(arm)
+    }
 }
 
 #[derive(Component)]
@@ -752,7 +764,7 @@ fn build_model(
         let inertial_pose =
             sdf.resolve_pose(&link.inertial.pose, &model.scoped_name, name, name)?;
         require(
-            centered(inertial_pose.translation),
+            centered(inertial_pose.translation) || (dart_collisions && plane.is_none()),
             name,
             "offset center of mass",
         )?;
@@ -842,6 +854,11 @@ fn build_model(
             sim.world_mut()
                 .entity_mut(link_entity)
                 .insert(BodyHandle(id));
+            if plane.is_none() && inertial_pose.translation != [0.; 3] {
+                sim.world_mut()
+                    .entity_mut(link_entity)
+                    .insert(LinkCenterOfMass(inertial_pose.translation));
+            }
         } else if let Some(link) = tpe_link {
             sim.world_mut().entity_mut(link_entity).insert(link);
         }
@@ -1128,13 +1145,22 @@ fn sync_attached_poses(
 
 fn sync_bodies(
     backend: Res<PhysicsBackend>,
-    mut bodies: Query<(&BodyHandle, &mut WorldPose, &mut Velocity)>,
+    mut bodies: Query<(
+        &BodyHandle,
+        Option<&LinkCenterOfMass>,
+        &mut WorldPose,
+        &mut Velocity,
+    )>,
 ) {
-    for (body, mut pose, mut velocity) in &mut bodies {
+    for (body, center, mut pose, mut velocity) in &mut bodies {
         let state = backend.state(body.0).expect("scene owns body lifecycle");
         pose.translation = state.position;
         pose.rotation = state.orientation;
-        velocity.linear = state.velocity;
+        velocity.linear = center.map_or(state.velocity, |center| {
+            (DVec3::from_array(state.velocity)
+                - center.velocity_shift(state.orientation, state.angular_velocity))
+            .to_array()
+        });
         velocity.angular = state.angular_velocity;
     }
 }

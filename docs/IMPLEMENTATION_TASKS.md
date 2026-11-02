@@ -177,3 +177,19 @@ source review before one consolidated mandatory verification pass. Meaningful
 controls cover final-shape refusal, local bounds, native body/shape semantics,
 loaded reset/removal and unchanged other-engine refusals. B03 still needs offset
 COM and full trajectory/equal-work evidence; this task does not accept it.
+
+### PHY-03 / SLICE-01: explicit offset COM for DART compounds (source in progress)
+
+This follow-up is isolated from the qualifying centered-COM feature. The physics
+owner extends the existing explicit-inertia COM, origin-conditioning and velocity
+semantics to every local primitive; Root owns Scene integration. Scene admits
+resolved nonzero COM only for DART solid links, including the existing single
+collider path. Other engines and planes keep their prior refusal. No new solver,
+aggregate inertia, dependency, numerical threshold or runtime system is added.
+
+Complete source, regression code, native observer source and independent review
+before verification, and wait for the parent feature's acceptance. Native origin
+velocity and COM velocity must be distinguished explicitly. Preserve old tests;
+propose exact same-input stronger-positive transitions for independent review
+before any fold. B03 loading, full native trajectories and equal-work evidence
+remain separate acceptance requirements; do not infer them from this guard.

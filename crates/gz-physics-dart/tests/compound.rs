@@ -272,23 +272,47 @@ fn invalid_final_collision_and_body_values_preserve_ids_state_and_pending_wrench
             }
             _ => unreachable!(),
         }
-        assert_eq!(
-            backend.spawn_compound_link(
-                CompoundBodySpec {
-                    collisions: &shapes,
-                    position,
-                    velocity,
-                    mass
-                },
-                RotationSpec {
-                    orientation,
-                    ..Default::default()
-                },
-                inertia,
-            ),
-            Err(PhysicsError::InvalidValue),
-            "case {case}"
+        let result = backend.spawn_compound_link(
+            CompoundBodySpec {
+                collisions: &shapes,
+                position,
+                velocity,
+                mass,
+            },
+            RotationSpec {
+                orientation,
+                ..Default::default()
+            },
+            inertia,
         );
+        if case == 7 {
+            // Only this same-input COM refusal changes after prior review. All
+            // thirteen table inputs retain their original indices and values.
+            let id = result.unwrap();
+            assert_eq!(id.raw(), body.raw() + 1);
+            assert_eq!(
+                backend.state(id),
+                Some(BodyState {
+                    position: [0.0; 3],
+                    velocity: [0.0; 3],
+                    orientation: IDENTITY,
+                    angular_velocity: [0.0; 3],
+                })
+            );
+            assert_eq!(backend.state(body), Some(before));
+            backend.step(DT).unwrap();
+            control.step(DT).unwrap();
+            near(
+                backend.state(body).unwrap(),
+                control.state(reference).unwrap(),
+            );
+            assert!(backend.remove(id));
+            let next =
+                compound(&mut backend, &[SPHERE], [-10.0, 0.0, 0.0], IDENTITY, false).unwrap();
+            assert_eq!(next.raw(), id.raw() + 1);
+            continue;
+        }
+        assert_eq!(result, Err(PhysicsError::InvalidValue), "case {case}");
         assert_eq!(backend.state(body), Some(before));
         let next = compound(&mut backend, &[SPHERE], [-10.0, 0.0, 0.0], IDENTITY, true).unwrap();
         assert_eq!(

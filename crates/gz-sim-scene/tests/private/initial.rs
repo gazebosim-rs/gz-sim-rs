@@ -607,3 +607,31 @@ fn reported_reset_fault_cleans_pending_nodes_without_observation_or_retry() {
     assert!(!observed.get());
     assert_eq!(sim.tick(), Err(StepError::Faulted));
 }
+
+#[test]
+fn orphaned_runtime_com_metadata_refuses_reset_before_mutation() {
+    let mut sim = load();
+    sim.step_exact(2).unwrap();
+    let ball = id(&sim, "default::ball");
+    let body = sim
+        .world()
+        .get::<BodyHandle>(named(&sim, "default::ball::body"))
+        .unwrap()
+        .id();
+    let before = sim.world().resource::<PhysicsBackend>().state(body);
+    let extra = sim.world_mut().spawn(LinkCenterOfMass([0.1, 0., 0.])).id();
+    assign_id(sim.world_mut(), extra).unwrap();
+    let observed = std::cell::Cell::new(false);
+    assert!(matches!(
+        reset_loaded_world(&mut sim, |_| observed.set(true)),
+        Err(SceneResetError::RuntimePhysics)
+    ));
+    assert!(!observed.get());
+    assert_eq!(sim.world().resource::<PhysicsBackend>().state(body), before);
+    assert_eq!(sim.elapsed(), Duration::from_millis(2));
+    assert!(entity_by_id(sim.world(), ball).is_some());
+    assert!(sim.world().get::<LinkCenterOfMass>(extra).is_some());
+    sim.world_mut().entity_mut(extra).despawn();
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert_eq!(sim.elapsed(), Duration::ZERO);
+}

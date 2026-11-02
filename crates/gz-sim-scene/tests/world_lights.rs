@@ -89,16 +89,17 @@ fn sun(uri: &str) -> Light {
     }
 }
 #[test]
-fn unchanged_b03_sun_has_complete_native_values_and_keeps_offset_com_refusal() {
+fn unchanged_b03_sun_has_complete_native_values_and_keeps_joint_admission_refusal() {
     let parsed = sdformat::load_str(B03, "b03.sdf", &NoResources).unwrap();
     assert_eq!(parsed.worlds[0].lights.as_slice(), &[sun("b03.sdf")]);
     let error =
         load_world_with_sdf_step(B03, "b03.sdf", "default", &NoResources, PhysicsEngine::Dart)
             .err()
             .unwrap();
-    assert!(
-        matches!(error,gz_sim_scene::LoadError::Unsupported{entity,feature} if entity=="default::double_pendulum_with_base0::upper_link" && feature=="offset center of mass")
-    );
+    assert!(matches!(
+        error,
+        gz_sim_scene::LoadError::Physics(gz_physics::PhysicsError::InvalidJoint)
+    ));
 }
 #[test]
 fn whole_typed_metadata_world_ownership_and_semantic_poses_on_all_backends() {

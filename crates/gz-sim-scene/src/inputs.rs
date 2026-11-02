@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use crate::{BodyHandle, EntityKind, LocalPose, WorldPose, tpe};
+use crate::{BodyHandle, EntityKind, LinkCenterOfMass, LocalPose, WorldPose, tpe};
 use bevy_ecs::prelude::*;
 use gz_physics::{BodyId, JointId, PhysicsBackend, PhysicsError};
 use gz_physics_tpe::{ModelBounds, Motion};
@@ -114,7 +114,9 @@ fn target(world: &World, id: u64, values: Pair) -> Result<(Entity, Binding), Inp
 }
 
 /// Queues world-frame velocities for a free single-link body at the next advancing step.
-/// Replaces a prior velocity request; paused ticks retain it. Reset/removal cancel it.
+/// Dynamic backends interpret linear velocity at the link origin; TPE keeps
+/// its model-motion velocity. Replaces a prior request; paused ticks retain it.
+/// Reset/removal cancel it. Backend COM conversion happens at application.
 /// Fixed bodies reject input. TPE accepts rotated model/link frames in world axes.
 pub fn queue_link_world_velocity(
     sim: &mut Simulation,
@@ -264,8 +266,17 @@ fn execute(world: &mut World, entity: Entity, input: PendingInput) -> Result<(),
         .get();
     match binding(world, entity, id)? {
         Binding::Dynamic(body) => {
+            let center = world.get::<LinkCenterOfMass>(entity).copied();
             let mut backend = world.resource_mut::<PhysicsBackend>();
             if let Some((linear, angular)) = input.velocity {
+                let linear = if let Some(center) = center {
+                    let state = backend.state(body).ok_or(InputError::InvalidPhysics)?;
+                    (glam::DVec3::from_array(linear)
+                        + center.velocity_shift(state.orientation, angular))
+                    .to_array()
+                } else {
+                    linear
+                };
                 backend.set_world_velocity(body, linear, angular)?;
             }
             if let Some((force, torque)) = input.wrench {

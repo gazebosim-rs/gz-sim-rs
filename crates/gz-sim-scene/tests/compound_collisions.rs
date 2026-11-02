@@ -200,7 +200,7 @@ fn other_engines_keep_single_centered_collision_domain() {
 }
 
 #[test]
-fn every_compound_collision_and_center_of_mass_is_validated() {
+fn every_compound_collision_is_validated_and_offset_com_is_preserved() {
     let bad = [
         (
             format!(
@@ -246,13 +246,92 @@ fn every_compound_collision_and_center_of_mass_is_validated() {
     }
     let offset_com = xml(&format!("{FIRST}{SECOND}"))
         .replace("<mass>2</mass>", "<mass>2</mass><pose>0 0 0.5 0 0 0</pose>");
-    assert!(matches!(
-        load(&offset_com, PhysicsEngine::Dart),
-        Err(LoadError::Unsupported {
-            feature: "offset center of mass",
-            ..
-        })
-    ));
+    let mut sim = load(&offset_com, PhysicsEngine::Dart).unwrap();
+    let original_ids = ids(&sim);
+    assert_eq!(original_ids.len(), 5);
+    let link_id = original_ids["default::body::link"];
+    let half = std::f64::consts::FRAC_PI_4;
+    let specs = [
+        CollisionSpec {
+            shape: Shape::Sphere { radius: 0.1 },
+            position: [0.5, 0., 0.],
+            orientation: [0., 0., 0., 1.],
+        },
+        CollisionSpec {
+            shape: Shape::Box {
+                half_extents: [0.1, 0.2, 0.3],
+            },
+            position: [-0.5, 0., 0.],
+            orientation: [0., 0., half.sin(), half.cos()],
+        },
+    ];
+    for epoch in 0..2 {
+        assert_eq!(ids(&sim), original_ids);
+        for (name, density) in [("first", 7.), ("second", 11.)] {
+            let entity = entity_by_id(
+                sim.world(),
+                original_ids[&format!("default::body::link::{name}")],
+            )
+            .unwrap();
+            assert_eq!(
+                sim.world().get::<CollisionDensity>(entity),
+                Some(&CollisionDensity(density))
+            );
+        }
+        let mut control = DartBackend::new([0.; 3]).unwrap();
+        let body = control
+            .spawn_compound_link(
+                CompoundBodySpec {
+                    collisions: &specs,
+                    position: [0., 0., 10.],
+                    velocity: [0.; 3],
+                    mass: Some(2.),
+                },
+                RotationSpec::default(),
+                Inertia {
+                    center: [0., 0., 0.5],
+                    orientation: [0., 0., 0., 1.],
+                    tensor: [1., 1., 1., 0., 0., 0.],
+                },
+            )
+            .unwrap();
+        for _ in 0..3 {
+            queue_link_world_wrench(&mut sim, link_id, [1., 0., 0.], [0., 0.4, 0.2]).unwrap();
+            control
+                .add_world_wrench(body, [1., 0., 0.], [0., 0.4, 0.2])
+                .unwrap();
+            control.step(Duration::from_millis(1)).unwrap();
+            sim.step_exact(1).unwrap();
+            let expected = control.state(body).unwrap();
+            let link = entity_by_id(sim.world(), link_id).unwrap();
+            let handle = sim.world().get::<BodyHandle>(link).unwrap();
+            close(
+                fields(
+                    sim.world()
+                        .resource::<PhysicsBackend>()
+                        .state(handle.id())
+                        .unwrap(),
+                ),
+                fields(expected),
+            );
+            let pose = sim.world().get::<WorldPose>(link).unwrap();
+            close(pose.translation, expected.position);
+            close(pose.rotation, expected.orientation);
+        }
+        if epoch == 0 {
+            reset_loaded_world(&mut sim, |_| ()).unwrap();
+            assert_eq!(sim.elapsed(), Duration::ZERO);
+        }
+    }
+    let link = entity_by_id(sim.world(), link_id).unwrap();
+    let handle = sim.world().get::<BodyHandle>(link).unwrap().id();
+    remove_model(&mut sim, original_ids["default::body"]).unwrap();
+    assert!(
+        sim.world()
+            .resource::<PhysicsBackend>()
+            .state(handle)
+            .is_none()
+    );
 }
 
 #[test]

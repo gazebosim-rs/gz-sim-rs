@@ -149,7 +149,8 @@ pub trait DynamicBackend: Send + Sync + 'static {
 
     /// Creates one link with local collision poses and explicit link inertia.
     /// Unsupported engines refuse before mutation. DART currently admits one to
-    /// three primitives with a centered COM; it does not derive aggregate inertia.
+    /// three primitives with explicit COM under its existing single-body numeric
+    /// limits; it does not derive aggregate inertia.
     fn spawn_compound_link(
         &mut self,
         _spec: CompoundBodySpec<'_>,

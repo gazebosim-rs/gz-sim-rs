@@ -57,6 +57,7 @@ pub struct CollisionSpec {
 
 /// Initial link state with explicitly positioned collision primitives.
 /// Mass and inertia belong to the link, not to the individual collisions.
+/// Position locates the body origin; velocity is the COM velocity in world axes.
 #[derive(Debug, Clone, Copy)]
 pub struct CompoundBodySpec<'a> {
     pub collisions: &'a [CollisionSpec],

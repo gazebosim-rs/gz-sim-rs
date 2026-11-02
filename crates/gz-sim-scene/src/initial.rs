@@ -58,6 +58,7 @@ struct Node {
     tpe_link: Option<tpe::TpeLink>,
     tpe_bounds: Option<gz_physics_tpe::ModelBounds>,
     velocity: Option<Velocity>,
+    center: Option<LinkCenterOfMass>,
     anchor: Option<ModelAnchor>,
     attached: bool,
     imu: Option<Imu>,
@@ -149,6 +150,7 @@ pub(super) fn capture(sim: &mut Simulation) {
             tpe_link: entity.get::<tpe::TpeLink>().cloned(),
             tpe_bounds: entity.get::<gz_physics_tpe::ModelBounds>().cloned(),
             velocity: entity.get::<Velocity>().copied(),
+            center: entity.get::<LinkCenterOfMass>().copied(),
             anchor: entity.get::<ModelAnchor>().cloned(),
             attached: entity.contains::<AttachedPose>(),
             imu: entity.get::<Imu>().cloned(),
@@ -259,6 +261,7 @@ pub fn reset_loaded_world<R>(
                 || entity.contains::<gz_physics_tpe::ModelBounds>()
                 || entity.contains::<JointHandle>()
                 || entity.contains::<BodyHandle>()
+                || entity.contains::<LinkCenterOfMass>()
                 || entity.contains::<ModelAnchor>()
                 || entity.contains::<Imu>()
                 || entity.contains::<AttachedPose>()
@@ -345,6 +348,9 @@ pub fn reset_loaded_world<R>(
         }
         if let Some(velocity) = node.velocity {
             entity.insert(velocity);
+        }
+        if let Some(center) = node.center {
+            entity.insert(center);
         }
         if let Some(anchor) = &node.anchor {
             entity.insert(anchor.clone());

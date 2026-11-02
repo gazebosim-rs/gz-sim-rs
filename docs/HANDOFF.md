@@ -9,33 +9,37 @@ current state and the next tasks. Update both when either changes.
 
 ## Current continuation
 
-Main `a5b296c` accepts producer `13adde94` world Light includes and the separate
-explicit-lux directional renderer API. The complete normal hook, exact hosted run
-`41333890290` and independent official source/profile/native audit passed: 855
-headless, 526 renderer and 237 tooling checks. The simulator intentionally retains
-that producer pin; later producer Main changes are not adopted implicitly.
-SDF radiometry, Scene light-render admission, native image parity and B03 remain open.
+Main `6e330abc` accepts centered-COM DART compound links and the existing
+Scene serial-three-body topology. Its complete normal gate and exact hosted run
+`41369851664` attempt2 passed with an independent official source/profile/native
+audit. Attempt1 stopped on an HTTP503 before feature checks; that failure remains
+separate. Producer pins are unchanged; accepted producer changes are not adopted
+implicitly. Earlier Light poses and DART static-contact work remain accepted.
+B03 whole-world motion, radiometric Scene light rendering, native image parity
+and broader performance acceptance remain open.
 
-The private world-light-pose candidate adds required native LightVisual children
-and complete Pose_V groups using existing schedules. Focused Scene, malformed
-hierarchy and real C++ Zenoh peer checks pass. The two packet/setup assertion transitions and the stronger Sdf8 child identity
-expectation had prior independent review; remaining negative assertions are retained.
-The first full hook failed that old five-name list. Its corrected six-name
-expectation adds hierarchy checks while preserving all prior input/reset assertions.
-Later hooks exposed strict changed-line gaps in the child call site and Server
-metadata rejection. The same fallible call was refactored without losing its
-39 cold regions; a real misplaced-metadata regression brings packet controls to
-eight passing tests. All gates remain unchanged. The complete normal hook and exact hosted qualification are still required before
-publication. See [the candidate scope](WORLD_LIGHT_POSES.md) and
-[the native reference](NATIVE_LIGHT_POSES.md). The same candidate now composes the independently reviewed DART static-contact
-extension: only a free-root serial three-body tree against static external
-geometry, with existing dynamic-contact, conditioning and active-limit guards.
-Its unfiltered package passes 159 tests and all-target Clippy; separate native
-replay and 96 bounded children pass. Exactly two prior-reviewed static-contact
-assertion transitions retain their negative contracts in genuine dynamic and
-conditioning controls. Full combined qualification is pending; Scene topology,
-multiple collisions, B03 and performance acceptance remain open. See
-[DART_THREE_BODY_STATIC_CONTACTS.md](DART_THREE_BODY_STATIC_CONTACTS.md).
+The private offset-COM candidate extends the existing DART compound bounds and
+adapts dynamic Scene origin-velocity consumers, commands and reset metadata. Its
+normal gate reached a runtime failure after253s in a new origin-change experiment,
+after correcting an earlier new-test compile error:
+four new controls passed, while the assumed cross-representation trajectory
+equality failed. The failure is retained. One independently reviewed actual SDK
+capture reproduces both reported first-step values despite matching initial
+physical states; it records two representations at every tick0..10. The corrected
+new regression keeps the exact inputs and1e-12 bound, compares each representation
+against its own native observations, and checks initial world-shape/COM/twist
+equivalence plus one-shot wrench consumption. Those comparisons passed in the
+next ordinary gate; full coverage, renderer and hosted acceptance remain pending. See
+[DART_COMPOUND_OFFSET_COM.md](DART_COMPOUND_OFFSET_COM.md).
+
+The corrected COM/gauge native comparisons passed in the next ordinary gate,
+which then failed only the proposed B03 construction positive with typed
+`Physics(InvalidJoint)`. The never-accepted positive is withdrawn after review;
+the unchanged B03 fixture retains its complete sun DTO and explicit next
+joint-admission refusal. Construction, reset, motion and performance remain open.
+A separate B03 observer, Server integration and workload source lane continues
+without execution. A transient sequential-assembly contact is a hypothesis,
+not an established cause. Final COM coverage and hosted acceptance are pending.
 
 ## Accepted headless milestone (2026-11-01)
 

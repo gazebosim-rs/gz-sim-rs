@@ -360,7 +360,7 @@ pub(crate) fn config(
 }
 
 /// Validate every local primitive against the same explicit link inertia.
-/// This bounded entry point deliberately keeps the COM at the link origin.
+/// COM, spatial conditioning and origin velocity obey the single-body limits.
 pub(crate) fn compound_config(
     spec: CompoundBodySpec<'_>,
     rotational: RotationSpec,
@@ -368,7 +368,7 @@ pub(crate) fn compound_config(
 ) -> Result<BodyConfig, PhysicsError> {
     let fixed = spec.mass.is_none();
     if !(1..=3).contains(&spec.collisions.len())
-        || inertia.center != [0.0; 3]
+        || !small(inertia.center)
         // Retain the original body-origin domain. Huge opposing world/local
         // translations must not pass by cancellation before native ODE bounds.
         || !inside(spec.position)
@@ -387,10 +387,15 @@ pub(crate) fn compound_config(
     check_principal(&tensor)?;
     let moment = frame.matrix() * tensor * frame.matrix().transpose();
     let (moments, axes) = principal(&moment);
-    if !fixed && moments.min() <= 0.0 {
+    let mass = spec.mass.unwrap_or(1.0);
+    if !fixed
+        && (moments.min() <= 0.0
+            || !conditioned(mass * norm(inertia.center).powi(2) / moments.min())
+            || norm(spec.velocity) + norm(rotational.angular_velocity) * norm(inertia.center)
+                > MAGNITUDE_LIMIT)
+    {
         return Err(PhysicsError::InvalidValue);
     }
-    let mass = spec.mass.unwrap_or(1.0);
     let mut collisions = Vec::with_capacity(spec.collisions.len());
     for collision in spec.collisions {
         if !small(collision.position) {
@@ -413,7 +418,9 @@ pub(crate) fn compound_config(
             // point uses the link inertia, never an independently divided mass.
             let extent = |axis: usize| {
                 let u = axes.column(axis).into_owned();
-                Vector3::from(collision.position).dot(&u).abs()
+                (Vector3::from(collision.position) - Vector3::from(inertia.center))
+                    .dot(&u)
+                    .abs()
                     + support(shape, dimensions, &(local.matrix().transpose() * u))
             };
             let e = [extent(0), extent(1), extent(2)].map(|v| v * v);
@@ -443,7 +450,7 @@ pub(crate) fn compound_config(
         orientation: rotational.orientation,
         mobile: !fixed,
         mass,
-        center: [0.0; 3],
+        center: inertia.center,
         moment: [
             moment[(0, 0)],
             moment[(1, 1)],
