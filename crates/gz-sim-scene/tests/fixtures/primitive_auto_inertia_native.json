@@ -1,0 +1,217 @@
+{
+  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
+  "license": "Apache-2.0",
+  "producer_revision": "a44bf8be09aff979449afddc8c75118c4ae1a227",
+  "scope": "Exact selected inputs and original native observations from the independently accepted producer; no new native capture or original test credit. Consumer wraps the unchanged model in a zero-gravity 1ms world for backend lifecycle checks.",
+  "cases": [
+    {
+      "kind": "cylinder",
+      "case": {
+        "name": "original_dimensions",
+        "uri": "original_dimensions.sdf",
+        "pose_text": "0 0 0 0 0 0",
+        "xml": "<sdf version='1.12'><model name='m'><link name='l'><inertial auto='true'/><collision name='c'><pose>0 0 0 0 0 0</pose><density>2170</density><geometry><cylinder><radius>0.1</radius><length>2</length></cylinder></geometry></collision></link></model></sdf>"
+      },
+      "native": {
+        "name": "original_dimensions",
+        "root_values": [
+          [
+            1,
+            1,
+            4639001234039834670,
+            4631641079451714383,
+            4631641079451714383,
+            4604315657914037103,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            4607182418800017408,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            4639001234039834670,
+            4631641079451714383,
+            4631641079451714383,
+            4604315657914037103,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            4607182418800017408,
+            0,
+            0
+          ]
+        ],
+        "root_status": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "collision_values": [
+          4639001234039834670,
+          4631641079451714383,
+          4631641079451714383,
+          4604315657914037103,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          4607182418800017408
+        ],
+        "collision_status": [
+          1,
+          1
+        ],
+        "load_errors": [],
+        "resolve_errors": [],
+        "collision_errors": [],
+        "collision_moi": [
+          4631641079451714383,
+          0,
+          0,
+          0,
+          4631641079451714383,
+          0,
+          0,
+          0,
+          4604315657914037103
+        ],
+        "stdout": "LOAD\nVALUES 1 1 4639001234039834670 4631641079451714383 4631641079451714383 4604315657914037103 0 0 0 0 0 0 0 0 0 4607182418800017408 0 0\nROOT_STATUS 1 1\nCOLLISION_ERRORS\nCOLLISION_VALUES 4639001234039834670 4631641079451714383 4631641079451714383 4604315657914037103 0 0 0 0 0 0 0 0 0 4607182418800017408\nCOLLISION_STATUS 1 1\nCOLLISION_MOI 4631641079451714383 0 0 0 4631641079451714383 0 0 0 4604315657914037103\nRESOLVE\nVALUES 1 1 4639001234039834670 4631641079451714383 4631641079451714383 4604315657914037103 0 0 0 0 0 0 0 0 0 4607182418800017408 0 0\nROOT_STATUS 1 1\n",
+        "stderr": ""
+      },
+      "producer_cases_path": "tests/auto_cylinder_inertial_cases.json",
+      "producer_cases_sha256": "0e4f04b396bf3db33f7e51e221c2405dc4fe06e75ee9568dd4296c7a6db1216a",
+      "producer_native_path": "tests/auto_cylinder_inertial_native.json",
+      "producer_native_sha256": "e25fd1ff6f27c636bf45e903d5c8a75c99898ce3a8adfc99e0259ca6060fedfe"
+    },
+    {
+      "kind": "capsule",
+      "case": {
+        "name": "original_dimensions",
+        "uri": "original_dimensions.sdf",
+        "pose_text": "0 0 0 0 0 0",
+        "xml": "<sdf version='1.12'><model name='m'><link name='l'><inertial auto='true'/><collision name='c'><pose>0 0 0 0 0 0</pose><density>2710</density><geometry><capsule><radius>0.1</radius><length>2</length></capsule></geometry></collision></link></model></sdf>",
+        "density": "2710"
+      },
+      "native": {
+        "name": "original_dimensions",
+        "root_values": [
+          [
+            1,
+            1,
+            4640594411333572742,
+            4634586273137697559,
+            4634586273137697559,
+            4606252678533712520,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            4607182418800017408,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            4640594411333572742,
+            4634586273137697559,
+            4634586273137697559,
+            4606252678533712520,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            4607182418800017408,
+            0,
+            0
+          ]
+        ],
+        "root_status": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "collision_values": [
+          4640594411333572742,
+          4634586273137697559,
+          4634586273137697559,
+          4606252678533712520,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          4607182418800017408
+        ],
+        "collision_status": [
+          1,
+          1
+        ],
+        "load_errors": [],
+        "resolve_errors": [],
+        "collision_errors": [],
+        "collision_moi": [
+          4634586273137697559,
+          0,
+          0,
+          0,
+          4634586273137697559,
+          0,
+          0,
+          0,
+          4606252678533712520
+        ],
+        "stdout": "LOAD\nVALUES 1 1 4640594411333572742 4634586273137697559 4634586273137697559 4606252678533712520 0 0 0 0 0 0 0 0 0 4607182418800017408 0 0\nROOT_STATUS 1 1\nCOLLISION_ERRORS\nCOLLISION_VALUES 4640594411333572742 4634586273137697559 4634586273137697559 4606252678533712520 0 0 0 0 0 0 0 0 0 4607182418800017408\nCOLLISION_STATUS 1 1\nCOLLISION_MOI 4634586273137697559 0 0 0 4634586273137697559 0 0 0 4606252678533712520\nRESOLVE\nVALUES 1 1 4640594411333572742 4634586273137697559 4634586273137697559 4606252678533712520 0 0 0 0 0 0 0 0 0 4607182418800017408 0 0\nROOT_STATUS 1 1\n",
+        "stderr": ""
+      },
+      "producer_cases_path": "tests/auto_capsule_inertial_cases.json",
+      "producer_cases_sha256": "2072a7352cc7e5631d1b923c7c5aee53c952ede226d5604a7935873ee3ce8f9f",
+      "producer_native_path": "tests/auto_capsule_inertial_native.json",
+      "producer_native_sha256": "a3c0bf3d21c662299cce9f96a2f7e6039899f1f147989df6e000fab4c7389917"
+    }
+  ]
+}

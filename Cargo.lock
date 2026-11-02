@@ -5026,7 +5026,7 @@ checksum = "d68f2ec51b097e4c1a75b681a8bec621909b5e91f15bb7b840c4f2f7b01148b2"
 [[package]]
 name = "sdformat"
 version = "0.1.0"
-source = "git+https://github.com/gazebosim-rs/sdformat-rs?rev=f0d05146300e31237d0cf0a6024fdfd9b0ef4226#f0d05146300e31237d0cf0a6024fdfd9b0ef4226"
+source = "git+https://github.com/gazebosim-rs/sdformat-rs?rev=a44bf8be09aff979449afddc8c75118c4ae1a227#a44bf8be09aff979449afddc8c75118c4ae1a227"
 dependencies = [
  "errno",
  "glam 0.30.9",

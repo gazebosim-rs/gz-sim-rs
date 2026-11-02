@@ -62,6 +62,22 @@ the corrected candidate, which has not run qualification. Accepted baseline
 any new equal-work timing. The original baseline archive and measurement stay intact.
 See [DART_CONTACT_FACTORIZATION.md](DART_CONTACT_FACTORIZATION.md).
 
+## Source-only producer adoption follow-up
+
+Root prepared `work/sdf-capsule-inertia-adoption` on reviewed `f136e821`, advancing
+the exact producer pin from `f0d05146` to accepted `a44bf8be`. Native-backed centered
+cylinder/capsule tests exercise existing four-backend inertia/force/density and
+removal/reset behavior; no old assertions or runtime admission change. Source
+review and verification are pending. The simulator parent `f136e821` is now
+accepted; renderer qualification runs first to fit actual available disk space. Later producer translation support is not included.
+See [SDF_PRIMITIVE_INERTIA_ADOPTION.md](SDF_PRIMITIVE_INERTIA_ADOPTION.md).
+The publication includes the separately audited, source-bound measurement report
+for `f136e821`/`f0d05146`; it does not claim the new producer pin was measured.
+All 141 observation archive members match actual retained bytes, and the original
+baseline archive remains unchanged. Complete one required integration gate after
+source review and renderer resource use, without repeating timings.
+
+
 ## Accepted headless milestone (2026-11-01)
 
 P2 was accepted at `c3f5a2f3c39f27d98314e032e78c39cb44d660a0`. P2 and the current

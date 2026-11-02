@@ -320,3 +320,24 @@ The REF-03 configured baseline is now accepted at `e829be51`: complete local
 checks, exact hosted `41481267132` and independent official audit passed. It
 retains 924 headless, 546 renderer and 249 tooling checks. The accepted immutable archive reports the slower Rust result without relabeling
 failed snapshot attempts. Broader P0 and full-Server performance remain open.
+
+### SDF-02 / LOAD-01: accepted primitive inertia consumer adoption
+
+Root owns `work/sdf-capsule-inertia-adoption`, based on reviewed simulator `f136e821`.
+Owned files are Cargo.toml/Cargo.lock (exact accepted producer pin only), the new
+Scene primitive-inertia regression and selected native fixture, this task/handoff
+entry and [SDF_PRIMITIVE_INERTIA_ADOPTION.md](SDF_PRIMITIVE_INERTIA_ADOPTION.md).
+Adopt only producer `a44bf8be`: centered cylinders/capsules and its earlier bounded
+posed box/sphere support. Do not implicitly adopt the later translation candidate.
+Retain all runtime/backend admission and density semantics; check inherited native
+mass/tensor and four-backend force/reset/removal behavior without changing old tests.
+Complete independent source review before one required gate. Parent `f136e821`
+is accepted; coordinate actual disk usage with the running renderer gate. No compiler, tests, lint or native capture has run.
+
+This integration also publishes the independently reviewed contact-factorization
+measurement appendix (`reference/contact_physics_measurement.json`, its separate
+141-member observation archive and `docs/CONTACT_PHYSICS_MEASUREMENT.md`). The
+measured simulator/producer identities remain `f136e821`/`f0d05146`, distinct from
+the new consumer pin. Original baseline evidence stays immutable. Both source
+batches are complete before the same required consumer integration gate; no new
+or repeated timing batch is implied.
