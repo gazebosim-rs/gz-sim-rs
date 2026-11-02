@@ -284,12 +284,39 @@ actual common DART/ODE libraries, full physical ownership and all 16200 values
 across 100 frames at `1e-12` before any timing. Report original-default compatibility
 separately; full-Server equal work remains open. Complete Source review before
 one consolidated build/protocol/correctness/timing qualification and required
-normal hook/hosted checks. Local protocol and paired measurements have passed;
-the required normal hook and exact hosted qualification remain pending.
+normal hook/hosted checks. These checks and independent official audit passed;
+baseline and CI correction `e829be51` are accepted after exact hosted `41481267132`.
 
 The configured local batch and independent data audit passed full100 correctness;
 its measured window shows Rust 2.043246 times slower than native. Actual paired
 observations/build/maps/timing proof is retained in the compact reference archive
-and measurement summary. Finish factual data/documentation review, then the
-required normal hook and exact hosted qualification. No additional timing or
-unchanged successful protocol/native build replay is required.
+and measurement summary. Required local, hosted and independent official
+qualification is complete. No additional timing or unchanged successful
+protocol/native build replay is required.
+
+### PERF-01: per-pass articulated contact factorization
+
+Root owns integration in `work/contact-factorization`; the physics owner supplied
+`joint_state.hh`, `bridge.cc`, appended static-contact regression controls and
+[DART_CONTACT_FACTORIZATION.md](DART_CONTACT_FACTORIZATION.md). The candidate
+reuses validation and LLT factorization only within one immutable contact query
+pass, keyed by skeleton. No persistent state, numerical threshold, response
+expression or supported topology changes. Existing test assertions, fixtures,
+baseline measurement summary and observation archive remain unchanged.
+
+Production and regression source review is complete. Root updated the benchmark's
+source-established bridge binding and documented the historical baseline boundary;
+these changes passed independent source review. The first candidate gate failed on the historical native header binding before
+replay compilation; three new regressions passed, later checks and final coverage
+remain unrun. The correction preserves the exact original oracle and header in
+an explicit output-only replay projection, with source/dependency rejection
+controls. Baseline and CI correction `e829be51` are accepted after exact hosted
+run `41481267132` and independent official audit, and that parent is integrated.
+Complete independent correction review before the affected required gate.
+Only after correctness passes may a newly built, source-bound actor enter one
+reviewed equal-work comparison. No measured hotspot or speedup is claimed yet.
+
+The REF-03 configured baseline is now accepted at `e829be51`: complete local
+checks, exact hosted `41481267132` and independent official audit passed. It
+retains 924 headless, 546 renderer and 249 tooling checks. The accepted immutable archive reports the slower Rust result without relabeling
+failed snapshot attempts. Broader P0 and full-Server performance remain open.

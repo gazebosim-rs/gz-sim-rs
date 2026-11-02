@@ -22,7 +22,7 @@
     "gz-physics/dartsim/src/SDFFeatures.cc": "e230d9c3bc6451e199d1472f2f08475900d3f387dc3de9179f78ce9a5b15511c"
   },
   "source_established_sha256": {
-    "crates/gz-physics-dart/src/bridge.cc": "fe7569fe70658f908e0f89b48877113a3ac4e4b169a86ec0cffcfc6254ca8d62",
+    "crates/gz-physics-dart/src/bridge.cc": "f4a3fb585b4740b73003ddf3bf304515670c2b43c485fb6d39827f5f772db3fa",
     "crates/gz-sim-scene/src/lib.rs": "0674487ee93f0d6e95be1a17bad97a189408c1ca7279f5db184214cc53435154"
   },
   "required_common_libraries_sha256": {

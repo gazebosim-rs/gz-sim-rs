@@ -852,6 +852,17 @@ double World::inverseMassAt(const dart::dynamics::BodyNode &node,
 }
 
 bool World::contactsWithin(const dart::collision::CollisionResult &result) const {
+  ArticulatedContactPass articulated;
+  const auto inverseAt = [&](const dart::dynamics::BodyNode &body,
+                             const Eigen::Vector3d &point) {
+    const auto skeleton = body.getSkeleton();
+    if (skeleton->isMobile() && skeleton->getNumBodyNodes() > 1) {
+      if (!isFree(*skeleton->getRootBodyNode()))
+        return std::numeric_limits<double>::infinity();
+      return articulated.response(body, point);
+    }
+    return inverseMassAt(body, point);
+  };
   for (const auto &contact : result.getContacts()) {
     const auto *first = contact.collisionObject1->getShapeFrame()->asShapeNode();
     const auto *second =
@@ -867,8 +878,8 @@ bool World::contactsWithin(const dart::collision::CollisionResult &result) const
         (secondSkeleton->getNumBodyNodes() > 1 && firstSkeleton->isMobile()))
       return false;
     const double inverse =
-        inverseMassAt(*first->getBodyNodePtr(), contact.point) +
-        inverseMassAt(*second->getBodyNodePtr(), contact.point);
+        inverseAt(*first->getBodyNodePtr(), contact.point) +
+        inverseAt(*second->getBodyNodePtr(), contact.point);
     if (!(inverse >= 0.0 && inverse <= limits_.contact)) {
       return false;
     }

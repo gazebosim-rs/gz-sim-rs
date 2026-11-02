@@ -404,3 +404,230 @@ fn conditioned_approach() -> (DartBackend, [BodyId; 3], [JointId; 2], BodyId) {
         .unwrap();
     (backend, ids, [first, second], floor)
 }
+
+#[test]
+fn contact_mass_rebuilds_after_prepared_reset_and_pending_edits_match_native() {
+    if !child("contact_mass_rebuilds_after_prepared_reset_and_pending_edits_match_native") {
+        return;
+    }
+    let data = support::fixture();
+    for sphere in [true, false] {
+        let (mut backend, ids, joints, _floor) = footprint(sphere);
+        let initial = backend.initial_state();
+        let name = if sphere {
+            "footprint-sphere"
+        } else {
+            "footprint-box"
+        };
+        let rows = data["cases"][name]["rows"].as_array().unwrap();
+        for _epoch in 0..3 {
+            let mut matched = 0;
+            for tick in 0..=100 {
+                if tick > 0 {
+                    backend.step(DT).unwrap();
+                }
+                if let Some(row) = rows
+                    .iter()
+                    .find(|row| row["stage"] == format!("footprint-contact-{tick}"))
+                {
+                    support::native_row(&backend, ids, joints, row);
+                    matched += 1;
+                }
+            }
+            assert_eq!(matched, rows.len());
+            backend
+                .set_world_velocity(ids[0], [0.1, 0., 0.], [0., 0.2, 0.])
+                .unwrap();
+            backend
+                .add_world_wrench(ids[0], [0.2, 0., 0.], [0., 0.1, 0.])
+                .unwrap();
+            backend.add_joint_effort(joints[0], 0.7).unwrap();
+            let reset = backend.prepare_initial(&initial).unwrap();
+            backend.apply_initial(reset).unwrap();
+            assert!(ids.iter().all(|id| backend.state(*id).is_some()));
+            assert!(joints.iter().all(|id| backend.joint_state(*id).is_some()));
+        }
+        // Rebuilding a partially removed articulation must not retain a factor
+        // belonging to the former three-body native skeleton.
+        assert!(backend.remove(ids[2]));
+        backend.reset().unwrap();
+        assert!(backend.state(ids[2]).is_none());
+        assert!(backend.joint_state(joints[1]).is_none());
+        backend.step(DT).unwrap();
+        for id in [ids[0], ids[1]] {
+            let state = backend.state(id).unwrap();
+            assert!(
+                state
+                    .position
+                    .into_iter()
+                    .chain(state.orientation)
+                    .chain(state.velocity)
+                    .chain(state.angular_velocity)
+                    .all(f64::is_finite)
+            );
+        }
+        assert!(backend.remove(ids[0]));
+        assert!(backend.remove(ids[1]));
+        backend.step(DT).unwrap();
+    }
+}
+
+// Separate physical owners with different masses, footprints and world anchors.
+// Comparing each to its isolated world detects accidental factor sharing between
+// skeletons without treating cached/uncached helper equality as an oracle.
+fn contact_owner(
+    backend: &mut DartBackend,
+    x: f64,
+    mass: f64,
+    sphere: bool,
+) -> ([BodyId; 3], [JointId; 2]) {
+    let ids = std::array::from_fn(|i| {
+        backend
+            .spawn_link(
+                BodySpec {
+                    shape: if sphere {
+                        Shape::Sphere { radius: 0.1 }
+                    } else {
+                        Shape::Box {
+                            half_extents: [0.25, 0.25, 0.005],
+                        }
+                    },
+                    position: [x, 0., if sphere { 0.095 } else { 0.0045 } + i as f64 * 0.5],
+                    velocity: [0.; 3],
+                    mass: Some(mass),
+                },
+                RotationSpec::default(),
+                Some(Inertia {
+                    center: [0.; 3],
+                    orientation: [0., 0., 0., 1.],
+                    tensor: [0.004 * mass, 0.004 * mass, 0.004 * mass, 0., 0., 0.],
+                }),
+            )
+            .unwrap()
+    });
+    let first = backend
+        .add_revolute(ids[0], ids[1], [x, 0., 0.25], [0., 1., 0.])
+        .unwrap();
+    let second = backend
+        .add_revolute(ids[1], ids[2], [x, 0., 0.75], [0., 1., 0.])
+        .unwrap();
+    (ids, [first, second])
+}
+
+fn contact_floor(backend: &mut DartBackend) {
+    backend
+        .spawn_link(
+            BodySpec {
+                shape: Shape::Box {
+                    half_extents: [20., 20., 0.1],
+                },
+                position: [0., 0., -0.1],
+                velocity: [0.; 3],
+                mass: None,
+            },
+            RotationSpec::default(),
+            None,
+        )
+        .unwrap();
+}
+
+#[test]
+fn contact_mass_is_owned_by_each_articulation_and_expires_after_removal() {
+    if !child("contact_mass_is_owned_by_each_articulation_and_expires_after_removal") {
+        return;
+    }
+    let mut combined = DartBackend::new([0., 0., -9.8]).unwrap();
+    let mut first = DartBackend::new([0., 0., -9.8]).unwrap();
+    let mut second = DartBackend::new([0., 0., -9.8]).unwrap();
+    let (a, aj) = contact_owner(&mut combined, 0., 1., false);
+    let (b, bj) = contact_owner(&mut combined, 8., 3., true);
+    let (ac, acj) = contact_owner(&mut first, 0., 1., false);
+    let (bc, bcj) = contact_owner(&mut second, 8., 3., true);
+    for world in [&mut combined, &mut first, &mut second] {
+        contact_floor(world);
+    }
+    for _ in 0..100 {
+        combined.step(DT).unwrap();
+        first.step(DT).unwrap();
+        second.step(DT).unwrap();
+        for (ids, joints, controls, control_joints, isolated) in
+            [(a, aj, ac, acj, &first), (b, bj, bc, bcj, &second)]
+        {
+            for (id, control) in ids.into_iter().zip(controls) {
+                support::near(
+                    combined.state(id).unwrap(),
+                    isolated.state(control).unwrap(),
+                );
+            }
+            for (id, control) in joints.into_iter().zip(control_joints) {
+                let actual = combined.joint_state(id).unwrap();
+                let expected = isolated.joint_state(control).unwrap();
+                assert!((actual.position - expected.position).abs() < 1e-12);
+                assert!((actual.velocity - expected.velocity).abs() < 1e-12);
+            }
+        }
+    }
+    for id in a {
+        assert!(combined.remove(id));
+    }
+    combined.reset().unwrap();
+    second.reset().unwrap();
+    for _ in 0..3 {
+        combined.step(DT).unwrap();
+        second.step(DT).unwrap();
+        support::compare(&combined, b, bj, &second, bc, bcj);
+    }
+}
+
+#[test]
+fn contact_mass_condition_refusal_is_recomputed_across_reset_and_floor_removal() {
+    if !child("contact_mass_condition_refusal_is_recomputed_across_reset_and_floor_removal") {
+        return;
+    }
+    let data = support::fixture();
+    assert!(
+        data["cases"]["above-condition"]["conditions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|row| row["condition"].as_f64().unwrap() > 1e8)
+    );
+    let (mut backend, ids, joints, floor) = conditioned_approach();
+    let initial = backend.initial_state();
+    for _epoch in 0..2 {
+        let mut refused = false;
+        for _ in 0..100 {
+            backend
+                .add_world_wrench(ids[0], [1e-5, 0., 0.], [0.; 3])
+                .unwrap();
+            backend.add_joint_effort(joints[1], 1e-5).unwrap();
+            let states = ids.map(|id| backend.state(id));
+            let rates = joints.map(|id| backend.joint_state(id));
+            if let Err(error) = backend.step(DT) {
+                assert!(error.to_string().contains("a contact exceeded"), "{error}");
+                for _ in 0..2 {
+                    assert_eq!(ids.map(|id| backend.state(id)), states);
+                    assert_eq!(joints.map(|id| backend.joint_state(id)), rates);
+                    let repeated = backend.step(DT).unwrap_err();
+                    assert!(
+                        repeated.to_string().contains("a contact exceeded"),
+                        "{repeated}"
+                    );
+                }
+                assert_eq!(ids.map(|id| backend.state(id)), states);
+                assert_eq!(joints.map(|id| backend.joint_state(id)), rates);
+                assert!(backend.remove(floor));
+                backend.step(DT).unwrap();
+                refused = true;
+                break;
+            }
+        }
+        assert!(
+            refused,
+            "the native above-condition contact was not refused"
+        );
+        let reset = backend.prepare_initial(&initial).unwrap();
+        backend.apply_initial(reset).unwrap();
+        assert!(backend.state(floor).is_some());
+    }
+}

@@ -21,7 +21,7 @@ The Rust simulator uses upstream Rust Zenoh directly and without modification;
 C++ is only an external interoperability test peer. Earlier accepted `8ebb02db`
 provides bounded serial assembly and sampled fresh-native B03 motion.
 
-Root's next source slice is `work/b03-physics-benchmark`, a separately configured
+The accepted `work/b03-physics-benchmark` slice is a separately configured
 physics-only comparison with no Server/network/IO. Both actors use unlimited
 per-pair contacts, global 10000, ODE/Dantzig and the same physical/query workload.
 Readbacks and source-established settings remain explicitly distinguished.
@@ -30,14 +30,37 @@ must pass before timing is eligible. This does not change product defaults or
 qualify original-default/full-Server equal work. See
 [B03_PHYSICS_BENCHMARK.md](B03_PHYSICS_BENCHMARK.md).
 
-The configured local batch now passes full paired correctness and independent
-data/SDK/timing audit. Its median window is 11.743475 ms native versus 23.994811 ms
-Rust: Rust is 2.043246 times slower here. The observation archive and documentation
-are prepared for final review before the required normal staged hook and hosted
-qualification. This is an honest baseline, not a speedup claim.
+Main `e829be51d42fed27268606528ba758a93efc37a2` now accepts the configured
+baseline and CI acquisition correction after complete local checks, exact hosted
+run `41481267132` and independent official source/profile/native/archive audit.
+Results: 924 headless, 546 renderer and 249 tooling checks; all per-crate/workspace
+coverage gates and 39 inherited cold spans are preserved. The immutable observation
+archive retains eight configured pairs and 129600 scalar comparisons, maximum
+error `4.440892098500626e-16`. Median windows are 11.743475 ms native and
+23.994811 ms Rust: Rust is 2.043246 times slower here. Three earlier snapshot HTTP
+failures stopped before verification and remain separate. Bounded APT retries,
+omitted translations and strict update error handling retain every package pin,
+signature and required check. This is a physics-only baseline, not a speedup claim.
 Radiometric image parity, broader physics/system completion and matched full
 Server performance remain open. Later sections retain historical investigations;
 use this continuation for accepted revisions and active work.
+
+## Source-ready performance follow-up
+
+`work/contact-factorization` contains the independently reviewed per-contact-pass
+factorization reuse candidate. It retains all numerical admission guards and
+per-point response arithmetic. Appended lifecycle, owner-isolation and refusal
+regressions preserve the existing test prefix. Root's bridge source binding and
+historical-baseline documentation also passed independent source review.
+The first required candidate gate failed after 316.033 seconds on a historical
+native header binding before replay compilation. All three appended regressions
+passed, but later checks and final coverage remain unrun. The reviewed correction
+retains the original header separately and replays the unchanged oracle in an
+explicit output-only source projection. The failed stage remains distinct from
+the corrected candidate, which has not run qualification. Accepted baseline
+`e829be51` is integrated. Complete the affected required correctness gate before
+any new equal-work timing. The original baseline archive and measurement stay intact.
+See [DART_CONTACT_FACTORIZATION.md](DART_CONTACT_FACTORIZATION.md).
 
 ## Accepted headless milestone (2026-11-01)
 
