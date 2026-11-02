@@ -1,0 +1,67 @@
+{
+  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
+  "license": "Apache-2.0",
+  "contract": "b03-physics-unlimited-pair-v1",
+  "state": "Configured contract definition; actual qualification outcomes are recorded by the benchmark driver",
+  "base_commit": "43cf8e6900ec769815c8a56600b29ae7b93554f7",
+  "xml_sha256": "24e85ff944b5efe2d758fdda543e392f34d59f26297a0a87fafbb41d5a3b16aa",
+  "declared_uri": "b03.sdf",
+  "accepted_default_fixture_sha256": "22c9bf024638fdfac70c366596ecfd359049fe2f53db5486d221168b5402b4ed",
+  "native_sdk": {
+    "image": "sha256:cb921fdafe5763b3c9148326dfd93b1cb291099f648702c4e27cc009137037ae",
+    "manifest_sha256": "f770aa807d5aa5f36711e5e8a84cdf2e12afebf9adfeb08fc0601b9e5d49a3c1",
+    "gz_physics_commit": "b44cd0d0ea6606b6c98320c0c87a5670d4fc6be6",
+    "public_api": "Gravity, CollisionDetector, Solver, CollisionPairMaxContacts, ForwardStep, LinkFrameSemantics, GetBasicJointState, ConstructSdfWorld"
+  },
+  "native_source_established_sha256": {
+    "gz-physics/dartsim/src/EntityManagementFeatures.cc": "24e27c79be8ea9d1462e8dc42bfd9720749c8a04ada10f2466de7b312d06dfb9",
+    "gz-physics/dartsim/src/GzCollisionDetector.cc": "abebf627590ac3bb90f34d439772e794f4b2f5545fd64aad14459d98890d1327",
+    "gz-physics/dartsim/src/GzCollisionDetector.hh": "13b85aaf258388a3fd14026b7829215dd08423355997aac8e3903e7a8dc8b4d3",
+    "gz-physics/dartsim/src/WorldFeatures.cc": "5e25633faf1a864e0a282c6342300ee6857e49f296b5032968fecff92410b4ce",
+    "gz-physics/dartsim/src/SimulationFeatures.cc": "81ac192130d9a05028d78f733b0805ddfe4ac3fcf4b61cf80464d738551e3c1a",
+    "gz-physics/dartsim/src/SDFFeatures.cc": "e230d9c3bc6451e199d1472f2f08475900d3f387dc3de9179f78ce9a5b15511c"
+  },
+  "source_established_sha256": {
+    "crates/gz-physics-dart/src/bridge.cc": "fe7569fe70658f908e0f89b48877113a3ac4e4b169a86ec0cffcfc6254ca8d62",
+    "crates/gz-sim-scene/src/lib.rs": "0674487ee93f0d6e95be1a17bad97a189408c1ca7279f5db184214cc53435154"
+  },
+  "required_common_libraries_sha256": {
+    "libdart.so.6.13.2": "f74f4ec9820aee785ef94fb7bedafa7e4c832f209675a8ca1d35019c72b48e06",
+    "libdart-collision-ode.so.6.13.2": "2940e0bd6b056f186d3596e051a26ec25f1c27add88d870cdfe673785dad4b44",
+    "libdart-external-odelcpsolver.so.6.13.2": "b890ed6936ea7cf486303fc5101ee5ff68356fc89596273ebaef83671aa4cb16",
+    "libode.so.8.0.2": "c511d66333708785c1a22f6cd572c4c84495a535566c9c80eb37d8e0f67bc469"
+  },
+  "native_plugin_sha256": "753ef7533f7baaea60e116cf7cf95911d0c15e6ca370a4e9bd0f0d0ee7c1c851",
+  "native_global_contact_cap": {
+    "value": 10000,
+    "evidence": "source-established",
+    "source": "dartsim/src/EntityManagementFeatures.cc ConstructEmptyWorld; selected plugin bound separately; no public getter"
+  },
+  "native_unlimited_pair": {
+    "evidence": "public setter/readback",
+    "source": "dartsim/src/GzCollisionDetector.cc LimitCollisionPairMaxContacts returns before copy/clear/re-add when size_t max"
+  },
+  "solver_iterations": "Dantzig public getter is unsupported and returns warning/sentinel0; actor does not call it or claim zero iterations",
+  "dt": "submitted ForwardStep duration1000000ns; no public actual dt/clock getter",
+  "measurement": {
+    "steps": 100,
+    "body_rows": 700,
+    "body_fields_per_row": 22,
+    "joint_rows": 400,
+    "joint_fields_per_row": 2,
+    "native_calls_per_body_row": "two public Resolve point queries, origin and declared COM; one Eigen-to-gz pose conversion",
+    "native_calls_per_joint_row": "GetPosition(0) and GetVelocity(0)",
+    "storage": "100 fixed frames allocated before window; fill existing slots only; no claim engine internals allocate nothing",
+    "excluded_correctness_warmup_pairs": 1,
+    "alternating_measured_pairs": 7,
+    "tolerance": 1e-12
+  },
+  "limits": [
+    "No Server, transport, sensors, renderer or whole-rewrite performance claim.",
+    "Explicit unlimited native per-pair setting differs from original native Server default20.",
+    "Both global10000 selections are source-established, not getter observations.",
+    "Readback/capability labels are per role; unsupported settings are never manufactured.",
+    "Paired full100/configuration/DSO validation must pass before measured pair1.",
+    "Original sampled1/10/100 fixture comparison becomes a Rust prerequisite only if actual configured native proves compatibility."
+  ]
+}

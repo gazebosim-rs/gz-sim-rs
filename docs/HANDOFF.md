@@ -9,28 +9,35 @@ current state and the next tasks. Update both when either changes.
 
 ## Current continuation
 
-Main `8ebb02dbfa1f3281cd256377f229c0b9f94674ea` now accepts bounded DART
-atomic serial assembly, producer `f0d05146` adoption and strict fresh-native B03
-motion at the unchanged 1/10/100-step snapshots (486 body/joint values, `1e-12`).
-The complete local gate, exact hosted run `41447340434` and independent official
-source/profile/native audit passed: 923 headless, 546 renderer and 237 tooling
-checks. Every production crate and workspace exceeds 95% lines and regions;
-all 39 inherited cold spans remain cold. Earlier failed constructor and test-helper
-attempts remain separate. This does not establish all-101-step numerical parity,
-full upstream physics, matched performance or the new B03 wire scenario.
+Main `43cf8e6900ec769815c8a56600b29ae7b93554f7` accepts the B03 Gazebo
+C++ interoperability case after the full local gate, exact hosted run
+`41456359319` and independent official source/profile/native audit. Results:
+924 headless, 546 renderer and 237 tooling tests; every production crate and
+workspace exceeds 95% lines and regions, with all 39 inherited cold spans
+preserved. The six Clock and six Pose receipts prove complete 27-record delivery, stable
+ownership and reset. Seven body world poses match the native projection at
+1/10/100 and post-reset 1 ms at `1e-12`.
+The Rust simulator uses upstream Rust Zenoh directly and without modification;
+C++ is only an external interoperability test peer. Earlier accepted `8ebb02db`
+provides bounded serial assembly and sampled fresh-native B03 motion.
 
-Root's next completed source slice is `work/b03-zenoh-integration`, based directly
-on accepted Main. It adds a Gazebo C++ interoperability test for B03 clock, local
-poses, control, reset and stable ownership. Upstream Rust Zenoh stays unmodified;
-C++ serves only as the external test peer. The two test source files are the
-independently reviewed copies; factual prerequisite documentation is updated.
-Finish integration review before one consolidated mandatory qualification.
-See [B03_NATIVE_INTEROP.md](B03_NATIVE_INTEROP.md).
+Root's next source slice is `work/b03-physics-benchmark`, a separately configured
+physics-only comparison with no Server/network/IO. Both actors use unlimited
+per-pair contacts, global 10000, ODE/Dantzig and the same physical/query workload.
+Readbacks and source-established settings remain explicitly distinguished.
+All 100 paired frames (16200 values), configuration and actual library bindings
+must pass before timing is eligible. This does not change product defaults or
+qualify original-default/full-Server equal work. See
+[B03_PHYSICS_BENCHMARK.md](B03_PHYSICS_BENCHMARK.md).
 
-Radiometric image parity, broad physics/system completion and equal-work reference
-performance remain open. Historical diagnostic captures are correctness evidence,
-not performance measurements. Subsequent sections retain the investigation history;
-use this current continuation for accepted revisions and active work.
+The configured local batch now passes full paired correctness and independent
+data/SDK/timing audit. Its median window is 11.743475 ms native versus 23.994811 ms
+Rust: Rust is 2.043246 times slower here. The observation archive and documentation
+are prepared for final review before the required normal staged hook and hosted
+qualification. This is an honest baseline, not a speedup claim.
+Radiometric image parity, broader physics/system completion and matched full
+Server performance remain open. Later sections retain historical investigations;
+use this continuation for accepted revisions and active work.
 
 ## Accepted headless milestone (2026-11-01)
 

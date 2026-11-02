@@ -271,3 +271,25 @@ strict coverage and pinned SDK verification. Upstream Rust Zenoh is used directl
 and unmodified; this is interoperability testing, not a C++ transport port.
 Complete final source review before one consolidated local gate, then exact
 hosted qualification and independent official audit before acceptance.
+
+### REF-03: configured physics-only B03 comparison
+
+Root owns `work/b03-physics-benchmark` on accepted `43cf8e69`. The owned slice is
+one Rust Scene example, one public native physics actor/reference, one concrete
+benchmark driver and its protocol controls, and benchmark/handoff/task docs.
+It excludes Server/transport/IO and keeps earlier contextual actors unchanged.
+Explicit unlimited per-pair contacts match the Rust plain-ODE selection without
+changing product defaults. Bind source-established settings honestly; require
+actual common DART/ODE libraries, full physical ownership and all 16200 values
+across 100 frames at `1e-12` before any timing. Report original-default compatibility
+separately; full-Server equal work remains open. Complete Source review before
+one consolidated build/protocol/correctness/timing qualification and required
+normal hook/hosted checks. Local protocol and paired measurements have passed;
+the required normal hook and exact hosted qualification remain pending.
+
+The configured local batch and independent data audit passed full100 correctness;
+its measured window shows Rust 2.043246 times slower than native. Actual paired
+observations/build/maps/timing proof is retained in the compact reference archive
+and measurement summary. Finish factual data/documentation review, then the
+required normal hook and exact hosted qualification. No additional timing or
+unchanged successful protocol/native build replay is required.
