@@ -7,6 +7,7 @@ fn sphere() -> BodyConfig {
     BodyConfig {
         shape: 0,
         dimensions: [0.5, 0.0, 0.0],
+        collisions: Vec::new(),
         position: [0.0; 3],
         orientation: [0.0, 0.0, 0.0, 1.0],
         mobile: true,
@@ -277,6 +278,73 @@ fn prepared_free_three_body_middle_split_and_retirement_keep_native_owners() {
     assert_eq!(world.read(slots[2]).unwrap().position, before[2].position);
     world.remove_body(slots[0]).unwrap();
     world.remove_body(slots[2]).unwrap();
+    assert_eq!(world.skeleton_count().unwrap(), 0);
+    assert_eq!(world.step(0.001, &[]).unwrap(), 0);
+}
+
+#[test]
+fn invalid_final_compound_shape_retires_the_partial_native_body() {
+    use crate::ffi::bridge::CollisionConfig;
+
+    let mut world = NativeWorld::new([0.0; 3]).unwrap();
+    let existing = world.add_body(&sphere()).unwrap();
+    let before = world.read(existing).unwrap();
+    let failed = BodyConfig {
+        position: [3.0, 0.0, 0.0],
+        collisions: vec![
+            CollisionConfig {
+                shape: 0,
+                dimensions: [0.2, 0.0, 0.0],
+                position: [0.0; 3],
+                orientation: [0.0, 0.0, 0.0, 1.0],
+            },
+            CollisionConfig {
+                shape: 255,
+                dimensions: [0.2, 0.0, 0.0],
+                position: [1.0, 0.0, 0.0],
+                orientation: [0.0, 0.0, 0.0, 1.0],
+            },
+        ],
+        ..sphere()
+    };
+    // Unlike the retained legacy shape error, this fails only after a BodyNode
+    // and its first CollisionAspect/DynamicsAspect ShapeNode were constructed.
+    let error = message(world.add_body(&failed));
+    assert!(error.contains("shape code 255"), "{error}");
+    assert_eq!(world.skeleton_count().unwrap(), 1);
+    let after = world.read(existing).unwrap();
+    assert_eq!(after.position, before.position);
+    assert_eq!(after.orientation, before.orientation);
+    assert_eq!(after.velocity, before.velocity);
+    assert_eq!(after.joint_position, before.joint_position);
+    assert_eq!(after.joint_velocity, before.joint_velocity);
+    assert!(!message(world.read(existing + 1)).is_empty());
+    assert!(world.contacts_conditioned().unwrap());
+
+    let mut valid = failed;
+    valid.collisions[1].shape = 0;
+    let next = world.add_body(&valid).unwrap();
+    assert_eq!(next, existing + 1, "partial construction consumed a slot");
+    assert_eq!(world.skeleton_count().unwrap(), 2);
+    assert!(
+        world
+            .set_velocity(
+                next,
+                &Twist {
+                    linear: [0.25, 0.0, 0.0],
+                    angular: [0.0; 3],
+                },
+            )
+            .unwrap()
+    );
+    assert_eq!(world.step(0.001, &[]).unwrap(), 0);
+    assert!(world.read(next).unwrap().position[0] > 3.0);
+    let after_step = world.read(existing).unwrap();
+    assert_eq!(after_step.position, before.position);
+    assert_eq!(after_step.orientation, before.orientation);
+    assert_eq!(after_step.velocity, before.velocity);
+    world.remove_body(next).unwrap();
+    world.remove_body(existing).unwrap();
     assert_eq!(world.skeleton_count().unwrap(), 0);
     assert_eq!(world.step(0.001, &[]).unwrap(), 0);
 }

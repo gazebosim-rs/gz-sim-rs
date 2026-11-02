@@ -8,6 +8,15 @@
 
 #[cxx::bridge(namespace = "gz_physics_dart")]
 pub(crate) mod bridge {
+    /// A solid primitive's dimensions and pose relative to its link.
+    #[derive(Clone)]
+    struct CollisionConfig {
+        shape: u8,
+        dimensions: [f64; 3],
+        position: [f64; 3],
+        orientation: [f64; 4],
+    }
+
     /// One rigid body. Shape codes: 0 sphere [r], 1 box [full x,y,z],
     /// 2 cylinder [r, length], 3 capsule [r, cylindrical length],
     /// 4 fixed SDF plane represented by the native translated cube.
@@ -15,6 +24,9 @@ pub(crate) mod bridge {
     struct BodyConfig {
         shape: u8,
         dimensions: [f64; 3],
+        /// Empty preserves the original single collider/plane construction.
+        /// Otherwise these primitives replace shape/dimensions as collisions.
+        collisions: Vec<CollisionConfig>,
         position: [f64; 3],
         orientation: [f64; 4],
         mobile: bool,

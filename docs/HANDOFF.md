@@ -571,3 +571,32 @@ retained-evidence review approved the slice and its observed-demand race fix.
 It adds no automatic Server callbacks or complete sensor-manager claim. Full
 integrated coverage, staged and exact hosted checks passed at c3; the original
 worker timeout cause remains unproven. See [CAMERA_SCHEDULING.md](CAMERA_SCHEDULING.md).
+
+## Accepted continuation and current compound work (2026-11-02)
+
+Simulator Main `f00070734f1d889c367c2f908ab3a3c79a61d8e0` accepts the bounded
+DART Scene free-root serial three-link/two-revolute path. Independent source and
+native-input review, the mandatory local gate, exact hosted run `41361046705`
+and the official source/profile/native audit passed. It inherits accepted world
+Light pose streaming over Zenoh and bounded backend static contacts from
+`573da7c`. This is not B03, general topology/contact or performance acceptance.
+The dashboard records each bounded result separately from phase completion.
+
+Producer sdformat Main `e196b6875088aeeebbe2baa91a88275f5469b03e` accepts default
+density 1000 in its existing single box/sphere auto-inertia domain after the
+mandatory local gate, exact hosted run `41363205324` and independent official
+artifact audit. The simulator retains its existing older producer pin. A producer
+release alone does not qualify a changed simulator dependency.
+
+The next simulator slice is isolated on `work/dart-compound-collisions`, based on
+`f000707`. Root owns Scene loading; the physics owner owns the concrete API and
+DART adapter. One to three local primitive ShapeNodes share one native link/body
+identity and explicit inertia. COM remains centered. Independent source review approved only the exact B03 test name and
+expected upper-link COM refusal transition, retaining its XML, URI, DART call
+and complete sun assertion; the existing native test constructor also gains
+only an empty legacy collision vector. The reviewed native observer captured six exact inputs and thirty native
+states with qualified library maps. Rust compound comparison and qualification
+remain unrun; native observations alone do not qualify the Rust feature. See DART_COMPOUND_COLLISIONS.md
+and SCENE_COMPOUND_COLLISIONS.md. Finish source, regression code, documentation
+and independent review before consolidated verification. Batch real failures;
+do not run tests or lint after individual edits or comments.

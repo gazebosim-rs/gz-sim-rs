@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! The contract every dynamic engine adapter (Rapier, DART, MuJoCo) implements.
 
-use crate::{BodySpec, BodyState, Inertia, PlaneSpec, RotationSpec};
+use crate::{BodySpec, BodyState, CompoundBodySpec, Inertia, PlaneSpec, RotationSpec};
 use bevy_ecs::prelude::*;
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo};
 use std::{any::Any, sync::Arc, time::Duration};
@@ -146,6 +146,21 @@ pub trait DynamicBackend: Send + Sync + 'static {
         rotation: RotationSpec,
         inertia: Option<Inertia>,
     ) -> Result<BodyId, PhysicsError>;
+
+    /// Creates one link with local collision poses and explicit link inertia.
+    /// Unsupported engines refuse before mutation. DART currently admits one to
+    /// three primitives with a centered COM; it does not derive aggregate inertia.
+    fn spawn_compound_link(
+        &mut self,
+        _spec: CompoundBodySpec<'_>,
+        _rotation: RotationSpec,
+        _inertia: Inertia,
+    ) -> Result<BodyId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "compound link collisions",
+        })
+    }
 
     /// Construct a fixed local Z-up plane without shifting its reported link frame.
     /// Unsupported engines return an explicit error without allocating a body.

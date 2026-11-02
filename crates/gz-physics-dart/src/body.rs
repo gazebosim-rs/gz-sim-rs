@@ -8,8 +8,10 @@
 //! τ/λ, m·g, a hinge's r×(m·r·ω²)) stay below 1e300; the boundary tests in
 //! tests/bounds.rs establish these limits against the real library.
 
-use crate::ffi::bridge::{BodyConfig, Twist};
-use gz_physics::{BodySpec, Inertia, PhysicsError, PlaneSpec, RotationSpec, Shape};
+use crate::ffi::bridge::{BodyConfig, CollisionConfig, Twist};
+use gz_physics::{
+    BodySpec, CompoundBodySpec, Inertia, PhysicsError, PlaneSpec, RotationSpec, Shape,
+};
 use nalgebra::{Matrix3, Quaternion, UnitQuaternion, Vector3};
 
 /// Largest admitted magnitude of mass, inertia, length, velocity, force, torque
@@ -255,7 +257,14 @@ pub(crate) fn hinge_conditioned(config: &BodyConfig, anchor: [f64; 3], axis: [f6
     let perpendicular = arm - axis * arm.dot(&axis);
     let about_axis = axis.dot(&(rotation.matrix() * moment * rotation.matrix().transpose() * axis))
         + config.mass * perpendicular.norm_squared();
-    let farthest = (origin - Vector3::from(anchor)).norm() + reach(config.shape, config.dimensions);
+    let reach = if config.collisions.is_empty() {
+        reach(config.shape, config.dimensions)
+    } else {
+        config.collisions.iter().fold(0.0_f64, |bound, collision| {
+            bound.max(norm(collision.position) + reach(collision.shape, collision.dimensions))
+        })
+    };
+    let farthest = (origin - Vector3::from(anchor)).norm() + reach;
     // DART forms the hinge inertia from origin-based spatial inertia, so m times
     // the squared lever must not swamp I_axis either.
     let arm2 = farthest * farthest;
@@ -329,11 +338,112 @@ pub(crate) fn config(
         axes: std::array::from_fn(|k| axes[k]),
         shape,
         dimensions,
+        collisions: Vec::new(),
         position: spec.position,
         orientation: rotational.orientation,
         mobile: !fixed,
         mass,
         center,
+        moment: [
+            moment[(0, 0)],
+            moment[(1, 1)],
+            moment[(2, 2)],
+            moment[(0, 1)],
+            moment[(0, 2)],
+            moment[(1, 2)],
+        ],
+        velocity: Twist {
+            linear: spec.velocity,
+            angular: rotational.angular_velocity,
+        },
+    })
+}
+
+/// Validate every local primitive against the same explicit link inertia.
+/// This bounded entry point deliberately keeps the COM at the link origin.
+pub(crate) fn compound_config(
+    spec: CompoundBodySpec<'_>,
+    rotational: RotationSpec,
+    inertia: Inertia,
+) -> Result<BodyConfig, PhysicsError> {
+    let fixed = spec.mass.is_none();
+    if !(1..=3).contains(&spec.collisions.len())
+        || inertia.center != [0.0; 3]
+        // Retain the original body-origin domain. Huge opposing world/local
+        // translations must not pass by cancellation before native ODE bounds.
+        || !inside(spec.position)
+        || !small(spec.velocity)
+        || !small(rotational.angular_velocity)
+        || spec.mass.is_some_and(|mass| !bounded(mass))
+        || (fixed && (spec.velocity != [0.0; 3] || rotational.angular_velocity != [0.0; 3]))
+        || !inertia.tensor.iter().map(|v| v * v).sum::<f64>().is_finite()
+    {
+        return Err(PhysicsError::InvalidValue);
+    }
+    let orientation = rotation(rotational.orientation)?.to_rotation_matrix();
+    let frame = rotation(inertia.orientation)?.to_rotation_matrix();
+    let [xx, yy, zz, xy, xz, yz] = inertia.tensor;
+    let tensor = Matrix3::new(xx, xy, xz, xy, yy, yz, xz, yz, zz);
+    check_principal(&tensor)?;
+    let moment = frame.matrix() * tensor * frame.matrix().transpose();
+    let (moments, axes) = principal(&moment);
+    if !fixed && moments.min() <= 0.0 {
+        return Err(PhysicsError::InvalidValue);
+    }
+    let mass = spec.mass.unwrap_or(1.0);
+    let mut collisions = Vec::with_capacity(spec.collisions.len());
+    for collision in spec.collisions {
+        if !small(collision.position) {
+            return Err(PhysicsError::InvalidValue);
+        }
+        let local = rotation(collision.orientation)?.to_rotation_matrix();
+        let world = orientation.matrix() * local.matrix();
+        let (shape, dimensions, extents) = geometry(collision.shape, &world)?;
+        let center =
+            Vector3::from(spec.position) + orientation.matrix() * Vector3::from(collision.position);
+        for axis in 0..3 {
+            let low = center[axis] - extents[axis];
+            let high = center[axis] + extents[axis];
+            if !inside([low, high, 0.0]) || !positive(high - low) {
+                return Err(PhysicsError::InvalidValue);
+            }
+        }
+        if !fixed {
+            // Express each primitive in the link's principal axes. A collision
+            // point uses the link inertia, never an independently divided mass.
+            let extent = |axis: usize| {
+                let u = axes.column(axis).into_owned();
+                Vector3::from(collision.position).dot(&u).abs()
+                    + support(shape, dimensions, &(local.matrix().transpose() * u))
+            };
+            let e = [extent(0), extent(1), extent(2)].map(|v| v * v);
+            let total: f64 = e.iter().sum();
+            let response = 1.0 / mass
+                + (0..3)
+                    .map(|axis| (total - e[axis]) / moments[axis])
+                    .sum::<f64>();
+            if !conditioned(response) {
+                return Err(PhysicsError::InvalidValue);
+            }
+        }
+        collisions.push(CollisionConfig {
+            shape,
+            dimensions,
+            position: collision.position,
+            orientation: collision.orientation,
+        });
+    }
+    Ok(BodyConfig {
+        shape: collisions[0].shape,
+        dimensions: collisions[0].dimensions,
+        collisions,
+        principal: moments.into(),
+        axes: std::array::from_fn(|k| axes[k]),
+        position: spec.position,
+        orientation: rotational.orientation,
+        mobile: !fixed,
+        mass,
+        center: [0.0; 3],
         moment: [
             moment[(0, 0)],
             moment[(1, 1)],

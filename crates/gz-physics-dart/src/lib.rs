@@ -7,8 +7,8 @@
 //! mutation, so queries never enter native code.
 
 use gz_physics::{
-    BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId, JointState,
-    PhysicsError, PlaneSpec, PreparedPhysicsReset, RotationSpec,
+    BodyId, BodySpec, BodyState, CompoundBodySpec, DynamicBackend, Inertia, InitialPhysicsState,
+    JointId, JointState, PhysicsError, PlaneSpec, PreparedPhysicsReset, RotationSpec,
 };
 use std::{any::Any, collections::BTreeMap, path::Path, sync::Arc, time::Duration};
 
@@ -157,10 +157,6 @@ impl Built {
     fn insert(&mut self, id: BodyId, config: BodyConfig) -> Result<(), PhysicsError> {
         let slot = self.native.add_body(&config)?;
         // A body spawned into another can meet contacts far outside its shape.
-        if !self.native.contacts_conditioned()? {
-            self.native.remove_body(slot)?;
-            return Err(PhysicsError::InvalidValue);
-        }
         let mut body = Body {
             slot,
             config,
@@ -175,7 +171,16 @@ impl Built {
                 velocity: 0.0,
             },
         };
-        read(&mut self.native, &mut body)?;
+        let admission = (|| {
+            if !self.native.contacts_conditioned()? {
+                return Err(PhysicsError::InvalidValue);
+            }
+            read(&mut self.native, &mut body)
+        })();
+        if let Err(error) = admission {
+            self.native.remove_body(slot)?;
+            return Err(error);
+        }
         self.bodies.insert(id, body);
         Ok(())
     }
@@ -299,6 +304,15 @@ impl DynamicBackend for DartBackend {
         inertia: Option<Inertia>,
     ) -> Result<BodyId, PhysicsError> {
         self.insert_config(body::config(spec, rotation, inertia)?)
+    }
+
+    fn spawn_compound_link(
+        &mut self,
+        spec: CompoundBodySpec<'_>,
+        rotation: RotationSpec,
+        inertia: Inertia,
+    ) -> Result<BodyId, PhysicsError> {
+        self.insert_config(body::compound_config(spec, rotation, inertia)?)
     }
 
     fn spawn_static_plane(&mut self, spec: PlaneSpec) -> Result<BodyId, PhysicsError> {

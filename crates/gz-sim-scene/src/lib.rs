@@ -44,8 +44,8 @@ pub use initial::{
 use bevy_ecs::prelude::*;
 use glam::{DQuat, DVec3};
 use gz_physics::{
-    BodyId, BodySpec, Inertia, PhysicsBackend, PhysicsError, PhysicsReset, PlaneSpec, RotationSpec,
-    Shape,
+    BodyId, BodySpec, CollisionSpec, CompoundBodySpec, Inertia, PhysicsBackend, PhysicsError,
+    PhysicsReset, PlaneSpec, RotationSpec, Shape,
 };
 use gz_physics_dart::DartBackend;
 use gz_physics_mujoco::MujocoBackend;
@@ -686,8 +686,12 @@ fn build_model(
             name,
             "visual plugins",
         )?;
+        let dart_collisions = backend
+            .as_ref()
+            .is_some_and(|backend| backend.engine() == "dart");
         require(
-            link.collisions.len() == 1,
+            link.collisions.len() == 1
+                || (dart_collisions && (1..=3).contains(&link.collisions.len())),
             name,
             "collision count (expected one)",
         )?;
@@ -696,39 +700,54 @@ fn build_model(
             name,
             "fluid added mass",
         )?;
-        let collision = &link.collisions[0];
-        require(
-            collision.surface.source.is_none(),
-            name,
-            "collision surface parameters",
-        )?;
-        let local = sdf.resolve_pose(&collision.pose, &model.scoped_name, name, name)?;
-        require(identity(local), name, "offset collision pose")?;
-        enum LinkCollision {
-            Solid(Shape),
-            Plane { normal: [f64; 3], size: [f64; 2] },
+        let mut solids = Vec::with_capacity(link.collisions.len());
+        let mut compound = link.collisions.len() > 1;
+        let mut plane = None;
+        for collision in &link.collisions {
+            require(
+                collision.surface.source.is_none(),
+                name,
+                "collision surface parameters",
+            )?;
+            let local = sdf.resolve_pose(&collision.pose, &model.scoped_name, name, name)?;
+            require(
+                identity(local)
+                    || (dart_collisions && !matches!(collision.geometry, Geometry::Plane { .. })),
+                name,
+                "offset collision pose",
+            )?;
+            compound |= !identity(local);
+            let shape = match collision.geometry {
+                Geometry::Sphere { radius } => Shape::Sphere { radius },
+                Geometry::Cylinder { radius, length } => Shape::Cylinder {
+                    radius,
+                    half_height: length * 0.5,
+                },
+                Geometry::Capsule { radius, length } => Shape::Capsule {
+                    radius,
+                    half_length: length * 0.5,
+                },
+                Geometry::Box { size } => Shape::Box {
+                    half_extents: size.map(|v| v * 0.5),
+                },
+                Geometry::Plane { normal, size } => {
+                    require(!compound, name, "compound plane collision geometry")?;
+                    plane = Some((normal, size));
+                    continue;
+                }
+                _ => {
+                    return Err(LoadError::Unsupported {
+                        entity: name.clone(),
+                        feature: "collision geometry",
+                    });
+                }
+            };
+            solids.push(CollisionSpec {
+                shape,
+                position: local.translation,
+                orientation: local.rotation,
+            });
         }
-        let geometry = match collision.geometry {
-            Geometry::Sphere { radius } => LinkCollision::Solid(Shape::Sphere { radius }),
-            Geometry::Cylinder { radius, length } => LinkCollision::Solid(Shape::Cylinder {
-                radius,
-                half_height: length * 0.5,
-            }),
-            Geometry::Capsule { radius, length } => LinkCollision::Solid(Shape::Capsule {
-                radius,
-                half_length: length * 0.5,
-            }),
-            Geometry::Box { size } => LinkCollision::Solid(Shape::Box {
-                half_extents: size.map(|v| v * 0.5),
-            }),
-            Geometry::Plane { normal, size } => LinkCollision::Plane { normal, size },
-            _ => {
-                return Err(LoadError::Unsupported {
-                    entity: name.clone(),
-                    feature: "collision geometry",
-                });
-            }
-        };
         let pose = sdf.pose_of(name, context.world)?;
         let inertial_pose =
             sdf.resolve_pose(&link.inertial.pose, &model.scoped_name, name, name)?;
@@ -737,8 +756,8 @@ fn build_model(
             name,
             "offset center of mass",
         )?;
-        let (id, tpe_link) = match geometry {
-            LinkCollision::Plane { normal, size } => {
+        let (id, tpe_link) = match plane {
+            Some((normal, size)) => {
                 require(is_static, name, "dynamic plane collision geometry")?;
                 require(
                     normal == [0.0, 0.0, 1.0],
@@ -763,26 +782,37 @@ fn build_model(
                 })?;
                 (Some(id), None)
             }
-            LinkCollision::Solid(shape) => {
+            None => {
                 let spec = BodySpec {
-                    shape,
+                    shape: solids[0].shape,
                     position: pose.translation,
                     velocity: [0.0; 3],
                     mass: (!is_static).then_some(link.inertial.mass),
                 };
                 if let Some(backend) = backend {
-                    let id = backend.spawn_link(
-                        spec,
-                        RotationSpec {
-                            orientation: pose.rotation,
-                            ..Default::default()
-                        },
-                        Some(Inertia {
-                            center: inertial_pose.translation,
-                            orientation: inertial_pose.rotation,
-                            tensor: link.inertial.inertia,
-                        }),
-                    )?;
+                    let rotation = RotationSpec {
+                        orientation: pose.rotation,
+                        ..Default::default()
+                    };
+                    let inertia = Inertia {
+                        center: inertial_pose.translation,
+                        orientation: inertial_pose.rotation,
+                        tensor: link.inertial.inertia,
+                    };
+                    let id = if compound {
+                        backend.spawn_compound_link(
+                            CompoundBodySpec {
+                                collisions: &solids,
+                                position: spec.position,
+                                velocity: spec.velocity,
+                                mass: spec.mass,
+                            },
+                            rotation,
+                            inertia,
+                        )?
+                    } else {
+                        backend.spawn_link(spec, rotation, Some(inertia))?
+                    };
                     if backend.engine() == "rapier"
                         && (!model.joints.is_empty() || (top_level && model.links.len() > 1))
                     {
@@ -821,15 +851,27 @@ fn build_model(
             .expect("loader assigned the link identity")
             .get();
         context.links.insert(name.clone(), link_id);
-        for (child_name, child_pose, kind, visual) in link
+        for (child_name, child_pose, kind, visual, density) in link
             .collisions
             .iter()
-            .map(|child| (&child.name, &child.pose, EntityKind::Collision, None))
-            .chain(
-                link.visuals
-                    .iter()
-                    .map(|child| (&child.name, &child.pose, EntityKind::Visual, Some(child))),
-            )
+            .map(|child| {
+                (
+                    &child.name,
+                    &child.pose,
+                    EntityKind::Collision,
+                    None,
+                    child.density,
+                )
+            })
+            .chain(link.visuals.iter().map(|child| {
+                (
+                    &child.name,
+                    &child.pose,
+                    EntityKind::Visual,
+                    Some(child),
+                    None,
+                )
+            }))
         {
             let local = sdf.resolve_pose(child_pose, &model.scoped_name, name, name)?;
             let world = sdf.resolve_pose(child_pose, &model.scoped_name, name, context.world)?;
@@ -842,9 +884,7 @@ fn build_model(
                 world,
             )?;
             sim.world_mut().entity_mut(entity).insert(AttachedPose);
-            if kind == EntityKind::Collision
-                && let Some(density) = collision.density
-            {
+            if let Some(density) = density {
                 sim.world_mut()
                     .entity_mut(entity)
                     .insert(CollisionDensity(density));

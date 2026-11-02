@@ -160,3 +160,20 @@ backend contact admission, B03, multiple collisions or native SDF parity claim.
 Implementation and test-code findings are batched in this candidate; final source
 review and consolidated qualification are pending. See
 [SCENE_FREE_THREE_BODY.md](SCENE_FREE_THREE_BODY.md).
+
+### PHY-03 / SLICE-01: bounded DART compound collisions (in progress)
+
+Root owns Scene loading and regression controls; the physics owner owns the
+existing DART adapter and concrete shared physics contracts. Work is isolated
+from accepted Main. Reuse pinned DART ShapeNodes on one BodyNode, existing shape
+validation, resolved explicit inertia, transaction/reset machinery and numerical
+bounds. Admit one to three primitive shapes with link-local transforms in DART;
+keep the centered-COM restriction and all other backend refusals. Validate every
+collision's geometry, surface and pose and retain each child's density metadata.
+One body/ID represents a link; collision entities keep their declaration IDs.
+
+Complete implementation, regression code, native comparison and independent
+source review before one consolidated mandatory verification pass. Meaningful
+controls cover final-shape refusal, local bounds, native body/shape semantics,
+loaded reset/removal and unchanged other-engine refusals. B03 still needs offset
+COM and full trajectory/equal-work evidence; this task does not accept it.

@@ -1,0 +1,882 @@
+{
+  "schema_version": 1,
+  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
+  "license": "Apache-2.0",
+  "scope": "Native DART compound-link reference; no B03 acceptance.",
+  "generator_sha256": "f8904e7f09e3938ac345e2a97117887761120e0535dc555cb7f3b23cbfb70313",
+  "capture": {
+    "provenance_sha256": "f410209c8234539a39011ce95689994de0c88c9c768172bdb84cc89823161cbc",
+    "stdout_sha256": "74272ffb2e73c9a970a133bb3be3fa64034a47e833919ddd49628ea86f4c484d",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "maps_sha256": {
+      "before": "cbd1b4fc8fb165cd85e5af2f901f3c9b62aca6d3898331d665837061e636282f",
+      "after": "13009b7c39387ab5f5438529d697659f85105d667e150279a48ab1eb22011f4c"
+    }
+  },
+  "cases": [
+    {
+      "scenario": 0,
+      "count": 1,
+      "contact": 0,
+      "xml": "<sdf version='1.11'><world name='w'><gravity>0 0 0</gravity><model name='compound'><link name='body'><pose>0 0 2 0.2 0.1 -0.3</pose><inertial><pose>0 0 0 0.1 0.2 0.3</pose><mass>2</mass><inertia><ixx>1</ixx><iyy>1.5</iyy><izz>2</izz></inertia></inertial><collision name='c0'><pose>0 0 0 0 0 0</pose><geometry><sphere><radius>0.2</radius></sphere></geometry></collision></link></model></world></sdf>",
+      "xml_sha256": "a876b331c9e0d7d38e2030d4bf70e170f922a0f764f143d88e3a80fc84a97af6",
+      "rows": [
+        {
+          "scenario": 0,
+          "count": 1,
+          "contact": 0,
+          "tick": 0,
+          "position": [
+            0,
+            0,
+            2
+          ],
+          "orientation": [
+            0.1060205110617956,
+            0.03427079855048209,
+            -0.15343930202422254,
+            0.981856172866081
+          ],
+          "velocity": [
+            0.19999999999999998,
+            -0.1,
+            0.3
+          ],
+          "angular_velocity": [
+            0.1,
+            0.2,
+            -0.3
+          ]
+        },
+        {
+          "scenario": 0,
+          "count": 1,
+          "contact": 0,
+          "tick": 1,
+          "position": [
+            0.00019999999999999998,
+            -0.0001,
+            2.0003
+          ],
+          "orientation": [
+            0.10605940793297856,
+            0.034360736345947836,
+            -0.15359547367100645,
+            0.9818244100929908
+          ],
+          "velocity": [
+            0.2000000000000007,
+            -0.10000000000000003,
+            0.3000000000000002
+          ],
+          "angular_velocity": [
+            0.10001300630473182,
+            0.19996720508059318,
+            -0.3000190526538037
+          ]
+        },
+        {
+          "scenario": 0,
+          "count": 1,
+          "contact": 0,
+          "tick": 10,
+          "position": [
+            0.0020000000000000304,
+            -0.0010000000000000013,
+            2.003000000000002
+          ],
+          "orientation": [
+            0.10640972689449668,
+            0.03516939637264241,
+            -0.1550011086907132,
+            0.9815369274182568
+          ],
+          "velocity": [
+            0.20000000000000684,
+            -0.10000000000000034,
+            0.300000000000002
+          ],
+          "angular_velocity": [
+            0.1001292107338886,
+            0.19967177233679806,
+            -0.3001907371141368
+          ]
+        },
+        {
+          "scenario": 0,
+          "count": 1,
+          "contact": 0,
+          "tick": 100,
+          "position": [
+            0.0200000000000034,
+            -0.010000000000000191,
+            2.030000000000019
+          ],
+          "orientation": [
+            0.10993634945254774,
+            0.04317777177912004,
+            -0.16906568246061918,
+            0.9785021584582032
+          ],
+          "velocity": [
+            0.20000000000006876,
+            -0.10000000000000413,
+            0.30000000000002014
+          ],
+          "angular_velocity": [
+            0.10120623621022633,
+            0.1966911548455269,
+            -0.3019276928656655
+          ]
+        },
+        {
+          "scenario": 0,
+          "count": 1,
+          "contact": 0,
+          "tick": 600,
+          "position": [
+            0.12000000000012437,
+            -0.06000000000001224,
+            2.1800000000001134
+          ],
+          "orientation": [
+            0.1300938448113591,
+            0.08489278536067642,
+            -0.24733003879929377,
+            0.9563977511702147
+          ],
+          "velocity": [
+            0.20000000000041698,
+            -0.10000000000005219,
+            0.30000000000010785
+          ],
+          "angular_velocity": [
+            0.10427189681510464,
+            0.17952300391302461,
+            -0.31209149862204116
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": 1,
+      "count": 1,
+      "contact": 1,
+      "xml": "<sdf version='1.11'><world name='w'><gravity>0 0 -9.81</gravity><model name='floor'><static>true</static><link name='body'><collision name='plane'><geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry></collision></link></model><model name='compound'><link name='body'><pose>0 0 1 0.2 0.1 -0.3</pose><inertial><pose>0 0 0 0.1 0.2 0.3</pose><mass>2</mass><inertia><ixx>1</ixx><iyy>1.5</iyy><izz>2</izz></inertia></inertial><collision name='c0'><pose>0 0 0 0 0 0</pose><geometry><sphere><radius>0.2</radius></sphere></geometry></collision></link></model></world></sdf>",
+      "xml_sha256": "c9c3dd92376260cd6f44a668a8a9cfb90fbe6ba1c3cceb1041e0f14876d45c9c",
+      "rows": [
+        {
+          "scenario": 1,
+          "count": 1,
+          "contact": 1,
+          "tick": 0,
+          "position": [
+            0,
+            0,
+            1
+          ],
+          "orientation": [
+            0.1060205110617956,
+            0.03427079855048209,
+            -0.15343930202422254,
+            0.981856172866081
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 1,
+          "count": 1,
+          "contact": 1,
+          "tick": 1,
+          "position": [
+            0,
+            4.235164736271502e-22,
+            0.99999019
+          ],
+          "orientation": [
+            0.10602051106179558,
+            0.03427079855048209,
+            -0.15343930202422257,
+            0.981856172866081
+          ],
+          "velocity": [
+            -2.710505431213761e-19,
+            -4.336808689942018e-19,
+            -0.009810000000000001
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 1,
+          "count": 1,
+          "contact": 1,
+          "tick": 10,
+          "position": [
+            -9.211483301390516e-21,
+            -1.2705494208814505e-21,
+            0.9994604500000001
+          ],
+          "orientation": [
+            0.10602051106179558,
+            0.03427079855048209,
+            -0.15343930202422257,
+            0.981856172866081
+          ],
+          "velocity": [
+            -1.734723475976807e-18,
+            0,
+            -0.0981
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 1,
+          "count": 1,
+          "contact": 1,
+          "tick": 100,
+          "position": [
+            -2.9894969082156463e-18,
+            -3.1827262993080335e-18,
+            0.9504595
+          ],
+          "orientation": [
+            0.10602051106179558,
+            0.03427079855048209,
+            -0.15343930202422257,
+            0.981856172866081
+          ],
+          "velocity": [
+            -5.551115123125783e-17,
+            -1.6653345369377348e-16,
+            -0.9810000000000011
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 1,
+          "count": 1,
+          "contact": 1,
+          "tick": 600,
+          "position": [
+            1.18484133332234e-16,
+            -5.762123735781038e-16,
+            0.19763984113000518
+          ],
+          "orientation": [
+            0.10602051106179558,
+            0.03427079855048209,
+            -0.15343930202422257,
+            0.981856172866081
+          ],
+          "velocity": [
+            2.0902740259162722e-16,
+            -2.441081191351113e-16,
+            0.0009999019000000017
+          ],
+          "angular_velocity": [
+            1.2359855822424915e-15,
+            1.0573825561892384e-15,
+            -6.423686882556012e-17
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": 2,
+      "count": 2,
+      "contact": 0,
+      "xml": "<sdf version='1.11'><world name='w'><gravity>0 0 0</gravity><model name='compound'><link name='body'><pose>0 0 2 0.2 0.1 -0.3</pose><inertial><pose>0 0 0 0.1 0.2 0.3</pose><mass>2</mass><inertia><ixx>1</ixx><iyy>1.5</iyy><izz>2</izz></inertia></inertial><collision name='c0'><pose>-0.4 0 0 0 0 0</pose><geometry><box><size>0.6 0.4 0.8</size></box></geometry></collision><collision name='c1'><pose>0.4 0 0 0 1.5708 0.3</pose><geometry><cylinder><radius>0.2</radius><length>1</length></cylinder></geometry></collision></link></model></world></sdf>",
+      "xml_sha256": "9a1501ed9f259736c6077af7d437a886277b589e5982831a597af7d97002c412",
+      "rows": [
+        {
+          "scenario": 2,
+          "count": 2,
+          "contact": 0,
+          "tick": 0,
+          "position": [
+            0,
+            0,
+            2
+          ],
+          "orientation": [
+            0.1060205110617956,
+            0.03427079855048209,
+            -0.15343930202422254,
+            0.981856172866081
+          ],
+          "velocity": [
+            0.19999999999999998,
+            -0.1,
+            0.3
+          ],
+          "angular_velocity": [
+            0.1,
+            0.2,
+            -0.3
+          ]
+        },
+        {
+          "scenario": 2,
+          "count": 2,
+          "contact": 0,
+          "tick": 1,
+          "position": [
+            0.00019999999999999998,
+            -0.0001,
+            2.0003
+          ],
+          "orientation": [
+            0.10605940793297856,
+            0.034360736345947836,
+            -0.15359547367100645,
+            0.9818244100929908
+          ],
+          "velocity": [
+            0.2000000000000007,
+            -0.10000000000000003,
+            0.3000000000000002
+          ],
+          "angular_velocity": [
+            0.10001300630473182,
+            0.19996720508059318,
+            -0.3000190526538037
+          ]
+        },
+        {
+          "scenario": 2,
+          "count": 2,
+          "contact": 0,
+          "tick": 10,
+          "position": [
+            0.0020000000000000304,
+            -0.0010000000000000013,
+            2.003000000000002
+          ],
+          "orientation": [
+            0.10640972689449668,
+            0.03516939637264241,
+            -0.1550011086907132,
+            0.9815369274182568
+          ],
+          "velocity": [
+            0.20000000000000684,
+            -0.10000000000000034,
+            0.300000000000002
+          ],
+          "angular_velocity": [
+            0.1001292107338886,
+            0.19967177233679806,
+            -0.3001907371141368
+          ]
+        },
+        {
+          "scenario": 2,
+          "count": 2,
+          "contact": 0,
+          "tick": 100,
+          "position": [
+            0.0200000000000034,
+            -0.010000000000000191,
+            2.030000000000019
+          ],
+          "orientation": [
+            0.10993634945254774,
+            0.04317777177912004,
+            -0.16906568246061918,
+            0.9785021584582032
+          ],
+          "velocity": [
+            0.20000000000006876,
+            -0.10000000000000413,
+            0.30000000000002014
+          ],
+          "angular_velocity": [
+            0.10120623621022633,
+            0.1966911548455269,
+            -0.3019276928656655
+          ]
+        },
+        {
+          "scenario": 2,
+          "count": 2,
+          "contact": 0,
+          "tick": 600,
+          "position": [
+            0.12000000000012437,
+            -0.06000000000001224,
+            2.1800000000001134
+          ],
+          "orientation": [
+            0.1300938448113591,
+            0.08489278536067642,
+            -0.24733003879929377,
+            0.9563977511702147
+          ],
+          "velocity": [
+            0.20000000000041698,
+            -0.10000000000005219,
+            0.30000000000010785
+          ],
+          "angular_velocity": [
+            0.10427189681510464,
+            0.17952300391302461,
+            -0.31209149862204116
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": 3,
+      "count": 2,
+      "contact": 1,
+      "xml": "<sdf version='1.11'><world name='w'><gravity>0 0 -9.81</gravity><model name='floor'><static>true</static><link name='body'><collision name='plane'><geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry></collision></link></model><model name='compound'><link name='body'><pose>0 0 1 0.2 0.1 -0.3</pose><inertial><pose>0 0 0 0.1 0.2 0.3</pose><mass>2</mass><inertia><ixx>1</ixx><iyy>1.5</iyy><izz>2</izz></inertia></inertial><collision name='c0'><pose>-0.4 0 0 0 0 0</pose><geometry><box><size>0.6 0.4 0.8</size></box></geometry></collision><collision name='c1'><pose>0.4 0 0 0 1.5708 0.3</pose><geometry><cylinder><radius>0.2</radius><length>1</length></cylinder></geometry></collision></link></model></world></sdf>",
+      "xml_sha256": "ed5f13ada7c9229b62b72fd819e8156fafdabfec1c3110bf7768b66dd362acc6",
+      "rows": [
+        {
+          "scenario": 3,
+          "count": 2,
+          "contact": 1,
+          "tick": 0,
+          "position": [
+            0,
+            0,
+            1
+          ],
+          "orientation": [
+            0.1060205110617956,
+            0.03427079855048209,
+            -0.15343930202422254,
+            0.981856172866081
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 3,
+          "count": 2,
+          "contact": 1,
+          "tick": 1,
+          "position": [
+            0,
+            4.235164736271502e-22,
+            0.99999019
+          ],
+          "orientation": [
+            0.10602051106179558,
+            0.03427079855048209,
+            -0.15343930202422257,
+            0.981856172866081
+          ],
+          "velocity": [
+            -2.710505431213761e-19,
+            -4.336808689942018e-19,
+            -0.009810000000000001
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 3,
+          "count": 2,
+          "contact": 1,
+          "tick": 10,
+          "position": [
+            -9.211483301390516e-21,
+            -1.2705494208814505e-21,
+            0.9994604500000001
+          ],
+          "orientation": [
+            0.10602051106179558,
+            0.03427079855048209,
+            -0.15343930202422257,
+            0.981856172866081
+          ],
+          "velocity": [
+            -1.734723475976807e-18,
+            0,
+            -0.0981
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 3,
+          "count": 2,
+          "contact": 1,
+          "tick": 100,
+          "position": [
+            -2.9894969082156463e-18,
+            -3.1827262993080335e-18,
+            0.9504595
+          ],
+          "orientation": [
+            0.10602051106179558,
+            0.03427079855048209,
+            -0.15343930202422257,
+            0.981856172866081
+          ],
+          "velocity": [
+            -5.551115123125783e-17,
+            -1.6653345369377348e-16,
+            -0.9810000000000011
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 3,
+          "count": 2,
+          "contact": 1,
+          "tick": 600,
+          "position": [
+            0.06646798216037497,
+            0.04649230546892741,
+            0.3902978724807116
+          ],
+          "orientation": [
+            0.034788680541425816,
+            0.11053909627045239,
+            -0.1530038930986202,
+            0.9814074916152639
+          ],
+          "velocity": [
+            0.056175747647391146,
+            0.20612013307245589,
+            0.05686207986336521
+          ],
+          "angular_velocity": [
+            -0.6999933641009867,
+            0.16834309414046805,
+            0.08187220501477692
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": 4,
+      "count": 3,
+      "contact": 0,
+      "xml": "<sdf version='1.11'><world name='w'><gravity>0 0 0</gravity><model name='compound'><link name='body'><pose>0 0 2 0.2 0.1 -0.3</pose><inertial><pose>0 0 0 0.1 0.2 0.3</pose><mass>2</mass><inertia><ixx>1</ixx><iyy>1.5</iyy><izz>2</izz></inertia></inertial><collision name='c0'><pose>-0.4 0 0 0 0 0</pose><geometry><box><size>0.6 0.4 0.8</size></box></geometry></collision><collision name='c1'><pose>0 0 0 0 1.5708 0.3</pose><geometry><cylinder><radius>0.2</radius><length>1</length></cylinder></geometry></collision><collision name='c2'><pose>0.4 0 0 0.2 0.4 -0.1</pose><geometry><capsule><radius>0.2</radius><length>0.8</length></capsule></geometry></collision></link></model></world></sdf>",
+      "xml_sha256": "f5515d1eec74b7e214f316ffd65530d841bceed554450094862a354853968993",
+      "rows": [
+        {
+          "scenario": 4,
+          "count": 3,
+          "contact": 0,
+          "tick": 0,
+          "position": [
+            0,
+            0,
+            2
+          ],
+          "orientation": [
+            0.1060205110617956,
+            0.03427079855048209,
+            -0.15343930202422254,
+            0.981856172866081
+          ],
+          "velocity": [
+            0.19999999999999998,
+            -0.1,
+            0.3
+          ],
+          "angular_velocity": [
+            0.1,
+            0.2,
+            -0.3
+          ]
+        },
+        {
+          "scenario": 4,
+          "count": 3,
+          "contact": 0,
+          "tick": 1,
+          "position": [
+            0.00019999999999999998,
+            -0.0001,
+            2.0003
+          ],
+          "orientation": [
+            0.10605940793297856,
+            0.034360736345947836,
+            -0.15359547367100645,
+            0.9818244100929908
+          ],
+          "velocity": [
+            0.2000000000000007,
+            -0.10000000000000003,
+            0.3000000000000002
+          ],
+          "angular_velocity": [
+            0.10001300630473182,
+            0.19996720508059318,
+            -0.3000190526538037
+          ]
+        },
+        {
+          "scenario": 4,
+          "count": 3,
+          "contact": 0,
+          "tick": 10,
+          "position": [
+            0.0020000000000000304,
+            -0.0010000000000000013,
+            2.003000000000002
+          ],
+          "orientation": [
+            0.10640972689449668,
+            0.03516939637264241,
+            -0.1550011086907132,
+            0.9815369274182568
+          ],
+          "velocity": [
+            0.20000000000000684,
+            -0.10000000000000034,
+            0.300000000000002
+          ],
+          "angular_velocity": [
+            0.1001292107338886,
+            0.19967177233679806,
+            -0.3001907371141368
+          ]
+        },
+        {
+          "scenario": 4,
+          "count": 3,
+          "contact": 0,
+          "tick": 100,
+          "position": [
+            0.0200000000000034,
+            -0.010000000000000191,
+            2.030000000000019
+          ],
+          "orientation": [
+            0.10993634945254774,
+            0.04317777177912004,
+            -0.16906568246061918,
+            0.9785021584582032
+          ],
+          "velocity": [
+            0.20000000000006876,
+            -0.10000000000000413,
+            0.30000000000002014
+          ],
+          "angular_velocity": [
+            0.10120623621022633,
+            0.1966911548455269,
+            -0.3019276928656655
+          ]
+        },
+        {
+          "scenario": 4,
+          "count": 3,
+          "contact": 0,
+          "tick": 600,
+          "position": [
+            0.12000000000012437,
+            -0.06000000000001224,
+            2.1800000000001134
+          ],
+          "orientation": [
+            0.1300938448113591,
+            0.08489278536067642,
+            -0.24733003879929377,
+            0.9563977511702147
+          ],
+          "velocity": [
+            0.20000000000041698,
+            -0.10000000000005219,
+            0.30000000000010785
+          ],
+          "angular_velocity": [
+            0.10427189681510464,
+            0.17952300391302461,
+            -0.31209149862204116
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": 5,
+      "count": 3,
+      "contact": 1,
+      "xml": "<sdf version='1.11'><world name='w'><gravity>0 0 -9.81</gravity><model name='floor'><static>true</static><link name='body'><collision name='plane'><geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry></collision></link></model><model name='compound'><link name='body'><pose>0 0 1 0.2 0.1 -0.3</pose><inertial><pose>0 0 0 0.1 0.2 0.3</pose><mass>2</mass><inertia><ixx>1</ixx><iyy>1.5</iyy><izz>2</izz></inertia></inertial><collision name='c0'><pose>-0.4 0 0 0 0 0</pose><geometry><box><size>0.6 0.4 0.8</size></box></geometry></collision><collision name='c1'><pose>0 0 0 0 1.5708 0.3</pose><geometry><cylinder><radius>0.2</radius><length>1</length></cylinder></geometry></collision><collision name='c2'><pose>0.4 0 0 0.2 0.4 -0.1</pose><geometry><capsule><radius>0.2</radius><length>0.8</length></capsule></geometry></collision></link></model></world></sdf>",
+      "xml_sha256": "592896a0c17aff2988d518570f785e3fe1f73ec527f4e30dc14146d9fef5f4cf",
+      "rows": [
+        {
+          "scenario": 5,
+          "count": 3,
+          "contact": 1,
+          "tick": 0,
+          "position": [
+            0,
+            0,
+            1
+          ],
+          "orientation": [
+            0.1060205110617956,
+            0.03427079855048209,
+            -0.15343930202422254,
+            0.981856172866081
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 5,
+          "count": 3,
+          "contact": 1,
+          "tick": 1,
+          "position": [
+            0,
+            4.235164736271502e-22,
+            0.99999019
+          ],
+          "orientation": [
+            0.10602051106179558,
+            0.03427079855048209,
+            -0.15343930202422257,
+            0.981856172866081
+          ],
+          "velocity": [
+            -2.710505431213761e-19,
+            -4.336808689942018e-19,
+            -0.009810000000000001
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 5,
+          "count": 3,
+          "contact": 1,
+          "tick": 10,
+          "position": [
+            -9.211483301390516e-21,
+            -1.2705494208814505e-21,
+            0.9994604500000001
+          ],
+          "orientation": [
+            0.10602051106179558,
+            0.03427079855048209,
+            -0.15343930202422257,
+            0.981856172866081
+          ],
+          "velocity": [
+            -1.734723475976807e-18,
+            0,
+            -0.0981
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 5,
+          "count": 3,
+          "contact": 1,
+          "tick": 100,
+          "position": [
+            -2.9894969082156463e-18,
+            -3.1827262993080335e-18,
+            0.9504595
+          ],
+          "orientation": [
+            0.10602051106179558,
+            0.03427079855048209,
+            -0.15343930202422257,
+            0.981856172866081
+          ],
+          "velocity": [
+            -5.551115123125783e-17,
+            -1.6653345369377348e-16,
+            -0.9810000000000011
+          ],
+          "angular_velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "scenario": 5,
+          "count": 3,
+          "contact": 1,
+          "tick": 600,
+          "position": [
+            -0.12995978916790943,
+            -0.07638603082467724,
+            0.5021970578690047
+          ],
+          "orientation": [
+            0.2032473844222398,
+            -0.07461077777931742,
+            -0.15140337874041532,
+            0.9644691542349448
+          ],
+          "velocity": [
+            -0.18878995523848227,
+            -0.438370370535459,
+            0.06445515699653385
+          ],
+          "angular_velocity": [
+            0.8796788007029123,
+            -0.3778964901874605,
+            0.006553700163626094
+          ]
+        }
+      ]
+    }
+  ]
+}

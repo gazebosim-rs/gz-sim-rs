@@ -68,9 +68,9 @@ std::array<double, 3> array(const Eigen::Vector3d &value) {
   return {value.x(), value.y(), value.z()};
 }
 
-dart::dynamics::ShapePtr shape(const BodyConfig &config) {
-  const auto &d = config.dimensions;
-  switch (config.shape) {
+dart::dynamics::ShapePtr shape(std::uint8_t kind,
+                             const std::array<double, 3> &d) {
+  switch (kind) {
     case 0:
       return std::make_shared<dart::dynamics::SphereShape>(d[0]);
     case 1:
@@ -82,7 +82,7 @@ dart::dynamics::ShapePtr shape(const BodyConfig &config) {
       return std::make_shared<dart::dynamics::CapsuleShape>(d[0], d[1]);
   }
   throw std::invalid_argument("unknown shape code " +
-                              std::to_string(config.shape));
+                              std::to_string(kind));
 }
 
 // Sets a free body's center-of-mass velocity; FreeJoint stores origin velocity.
@@ -288,20 +288,25 @@ std::size_t World::add_body(const BodyConfig &config) {
   const std::string name = "body_" + std::to_string(slots_.size());
   auto skeleton = dart::dynamics::Skeleton::create(name);
   // Same order as upstream: add the skeleton, then its link and collision.
-  world_->addSkeleton(skeleton);
   try {
+    world_->addSkeleton(skeleton);
     build(*skeleton, config);
+    slots_.emplace_back(skeleton->getRootBodyNode());
   } catch (...) {
+    if (skeleton->getNumBodyNodes() != 0)
+      principal_.erase(skeleton->getRootBodyNode());
     world_->removeSkeleton(skeleton);
     throw;
   }
-  slots_.emplace_back(skeleton->getRootBodyNode());
   return slots_.size() - 1;
 }
 
 void World::build(dart::dynamics::Skeleton &skeleton,
                   const BodyConfig &config) {
-  const auto collision = shape(config);
+  // Keep the original primitive/plane path unchanged when no local list exists.
+  const auto collision = config.collisions.empty()
+                             ? shape(config.shape, config.dimensions)
+                             : nullptr;
   const std::string name = skeleton.getName();
   skeleton.setMobile(config.mobile);
   skeleton.setSelfCollisionCheck(false);
@@ -326,15 +331,32 @@ void World::build(dart::dynamics::Skeleton &skeleton,
   pose.translation() = vector(config.position);
   free->setTransform(pose);
 
-  auto *shapeNode = node->createShapeNodeWith<dart::dynamics::CollisionAspect,
-                                              dart::dynamics::DynamicsAspect>(
-      collision, name + ":collision");
-  // SDF's default <ode><mu> is 1; other surface values keep DART defaults.
-  shapeNode->getDynamicsAspect()->setFrictionCoeff(1.0);
-  Eigen::Isometry3d collisionPose = Eigen::Isometry3d::Identity();
-  if (config.shape == 4)
-    collisionPose.translation().z() = -0.5 * config.dimensions[2];
-  shapeNode->setRelativeTransform(collisionPose);
+  const auto attach = [&](const dart::dynamics::ShapePtr &geometry,
+                          const Eigen::Isometry3d &pose,
+                          const std::string &shapeName) {
+    auto *shapeNode = node->createShapeNodeWith<dart::dynamics::CollisionAspect,
+                                                dart::dynamics::DynamicsAspect>(
+        geometry, shapeName);
+    // SDF's default <ode><mu> is 1; other surface values keep DART defaults.
+    shapeNode->getDynamicsAspect()->setFrictionCoeff(1.0);
+    shapeNode->setRelativeTransform(pose);
+  };
+  if (config.collisions.empty()) {
+    Eigen::Isometry3d collisionPose = Eigen::Isometry3d::Identity();
+    if (config.shape == 4)
+      collisionPose.translation().z() = -0.5 * config.dimensions[2];
+    attach(collision, collisionPose, name + ":collision");
+  } else {
+    std::size_t index = 0;
+    for (const auto &local : config.collisions) {
+      const auto &q = local.orientation;
+      Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
+      pose.linear() = Eigen::Quaterniond(q[3], q[0], q[1], q[2]).toRotationMatrix();
+      pose.translation() = vector(local.position);
+      attach(shape(local.shape, local.dimensions), pose,
+             name + ":collision_" + std::to_string(index++));
+    }
+  }
 
   if (config.mobile) {
     setFreeVelocity(*node, config.velocity);

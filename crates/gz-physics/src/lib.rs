@@ -46,6 +46,25 @@ pub struct BodySpec {
     pub mass: Option<f64>,
 }
 
+/// One primitive collision in a link's local frame, in meters and XYZW rotation.
+/// It does not define a separate body, mass or public link identity.
+#[derive(Debug, Clone, Copy)]
+pub struct CollisionSpec {
+    pub shape: Shape,
+    pub position: [f64; 3],
+    pub orientation: [f64; 4],
+}
+
+/// Initial link state with explicitly positioned collision primitives.
+/// Mass and inertia belong to the link, not to the individual collisions.
+#[derive(Debug, Clone, Copy)]
+pub struct CompoundBodySpec<'a> {
+    pub collisions: &'a [CollisionSpec],
+    pub position: [f64; 3],
+    pub velocity: [f64; 3],
+    pub mass: Option<f64>,
+}
+
 /// A link's inertial frame, relative to its body frame. Tensor order is xx,yy,zz,xy,xz,yz.
 #[derive(Debug, Clone, Copy)]
 pub struct Inertia {
