@@ -99,27 +99,40 @@ pub fn extract_camera(
     else {
         unreachable!()
     };
-    Ok(Request::CalibratedSnapshot {
-        request_id,
-        stamp,
-        origin,
-        visuals,
-        camera: Box::new(gz_render_protocol::Camera {
-            width: config.width,
-            height: config.height,
-            fx: config.fx,
-            fy: config.fy,
-            cx: config.cx,
-            cy: config.cy,
-            skew: config.skew,
-            tx: config.tx,
-            ty: config.ty,
-            near: config.near,
-            far: config.far,
-            translation: pose.translation,
-            rotation: pose.rotation,
-        }),
-    })
+    let camera = Box::new(gz_render_protocol::Camera {
+        width: config.width,
+        height: config.height,
+        fx: config.fx,
+        fy: config.fy,
+        cx: config.cx,
+        cy: config.cy,
+        skew: config.skew,
+        tx: config.tx,
+        ty: config.ty,
+        near: config.near,
+        far: config.far,
+        translation: pose.translation,
+        rotation: pose.rotation,
+    });
+    Ok(
+        if sensor.0.effective_type() == Some(sdformat::SensorType::DepthCamera) {
+            Request::CalibratedDepthSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera,
+            }
+        } else {
+            Request::CalibratedSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera,
+            }
+        },
+    )
 }
 
 /// Build one immutable request from committed simulation state. This function

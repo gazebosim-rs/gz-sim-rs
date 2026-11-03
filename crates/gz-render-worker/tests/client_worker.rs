@@ -49,7 +49,12 @@ fn real_worker_roundtrip_and_join() {
     let mut client = start(binary).unwrap();
     let lifetime = client.diagnostic_lifetime();
     assert!(!lifetime.is_retired());
-    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        wait(&client),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     let worker = live_worker_fd(&client);
     assert!(matches!(
         client.try_send(Request::Capture { request_id: 4 }),
@@ -155,7 +160,12 @@ fn last_handle_drop_shuts_down_worker_and_joins_threads() {
     let client = start(binary).unwrap();
     let lifetime = client.diagnostic_lifetime();
     assert!(!lifetime.is_retired());
-    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        wait(&client),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     let worker = live_worker_fd(&client);
     drop(client);
     let remaining = usize::from(!lifetime.is_retired());
@@ -168,7 +178,12 @@ fn killed_real_worker_is_reported_and_reaped() {
     use rustix::process::{Pid, PidfdFlags, Signal, pidfd_open, pidfd_send_signal};
     let binary = PathBuf::from(env!("CARGO_BIN_EXE_gz-render-worker"));
     let mut client = start(binary).unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        wait(&client),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     let pid = Pid::from_raw(client.worker_pid().unwrap() as i32).unwrap();
     let fd = pidfd_open(pid, PidfdFlags::empty()).unwrap();
     pidfd_send_signal(&fd, Signal::KILL).unwrap();
@@ -196,7 +211,12 @@ fn calibrated_snapshot_roundtrips_through_client_and_worker() {
     use gz_render_protocol::Camera;
     let binary = PathBuf::from(env!("CARGO_BIN_EXE_gz-render-worker"));
     let mut client = start(binary).unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        wait(&client),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     let stamp = Stamp {
         epoch: 9,
         seconds: 4,
@@ -289,7 +309,12 @@ fn sdf_camera_extracts_committed_pose_and_renders_box() {
     let request = extract_camera(&sim, camera_id, 1, [1_000_000_000.0, 0.0, 0.0]).unwrap();
     let binary = PathBuf::from(env!("CARGO_BIN_EXE_gz-render-worker"));
     let mut client = start(binary).unwrap();
-    assert!(matches!(wait(&client), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        wait(&client),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     client.try_send(request).unwrap();
     assert!(matches!(
         wait(&client),
@@ -310,6 +335,110 @@ fn sdf_camera_extracts_committed_pose_and_renders_box() {
     }
     assert_eq!(
         client.shutdown(Duration::from_secs(10)).unwrap(),
+        ShutdownOutcome::Graceful
+    );
+}
+
+#[path = "support/depth.rs"]
+mod metric_depth;
+
+#[test]
+fn client_accepts_real_metric_depth_with_correlated_stamp_and_join() {
+    let binary = PathBuf::from(env!("CARGO_BIN_EXE_gz-render-worker"));
+    let mut client = start(binary).unwrap();
+    let lifetime = client.diagnostic_lifetime();
+    assert!(matches!(
+        wait(&client),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
+    let stamp = Stamp {
+        epoch: 8,
+        seconds: 2,
+        nanoseconds: 9,
+    };
+    client
+        .try_send(metric_depth::snapshot(1, stamp, 3.0))
+        .unwrap();
+    assert!(matches!(
+        wait(&client),
+        Reply::SnapshotAccepted { request_id: 1 }
+    ));
+    client.try_send(Request::Capture { request_id: 1 }).unwrap();
+    let Reply::DepthFrame {
+        request_id: 1,
+        stamp: actual,
+        metres_le,
+    } = wait(&client)
+    else {
+        panic!("expected correlated metric-depth frame");
+    };
+    assert_eq!(actual, stamp);
+    metric_depth::assert_box_depth(&metres_le, 2.5);
+    assert_eq!(
+        client.shutdown(Duration::from_secs(5)).unwrap(),
+        ShutdownOutcome::Graceful
+    );
+    drop(client);
+    assert!(lifetime.is_retired());
+}
+
+#[test]
+fn rejected_depth_snapshot_keeps_real_client_and_worker_committed_to_color() {
+    let binary = PathBuf::from(env!("CARGO_BIN_EXE_gz-render-worker"));
+    let mut client = start(binary).unwrap();
+    assert!(matches!(
+        wait(&client),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
+    let stamp = Stamp {
+        epoch: 4,
+        seconds: 2,
+        nanoseconds: 7,
+    };
+    client
+        .try_send(metric_depth::color_snapshot(1, stamp, 3.0))
+        .unwrap();
+    assert!(matches!(
+        wait(&client),
+        Reply::SnapshotAccepted { request_id: 1 }
+    ));
+    client
+        .try_send(metric_depth::snapshot(
+            2,
+            Stamp {
+                nanoseconds: 8,
+                ..stamp
+            },
+            0.2,
+        ))
+        .unwrap();
+    assert!(matches!(
+        wait(&client),
+        Reply::Error {
+            kind: gz_render_protocol::FailureKind::InvalidSnapshot,
+            request_id: Some(2),
+            ..
+        }
+    ));
+    client.try_send(Request::Capture { request_id: 1 }).unwrap();
+    let Reply::Frame {
+        request_id: 1,
+        stamp: actual,
+        rgba,
+    } = wait(&client)
+    else {
+        panic!("rejected depth admission changed the committed color kind");
+    };
+    assert_eq!(actual, stamp);
+    assert_eq!(rgba.len(), 64 * 64 * 4);
+    let center = (32 * 64 + 32) * 4;
+    assert_ne!(&rgba[center..center + 3], &rgba[..3]);
+    assert_eq!(
+        client.shutdown(Duration::from_secs(5)).unwrap(),
         ShutdownOutcome::Graceful
     );
 }

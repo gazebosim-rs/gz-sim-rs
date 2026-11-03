@@ -407,3 +407,95 @@ fn reply_failure_bypasses_a_controlled_rust_destructor() {
         }
     }
 }
+
+#[test]
+fn depth_capture_retains_its_kind_through_busy_replacement_and_retirement() {
+    let mut slot = CaptureSlot::default();
+    assert!(slot.begin_with_kind(41, CaptureKind::Depth));
+    assert_eq!(slot.kind(), CaptureKind::Depth);
+    assert!(!slot.begin_with_kind(42, CaptureKind::Rgba));
+    assert_eq!(slot.kind(), CaptureKind::Depth);
+    assert_eq!(slot.active().unwrap().request_id, 41);
+    slot.snapshot_replaced();
+    assert!(matches!(
+        slot.readback_depth(Ok(None), true),
+        ReadbackOutcome::Pending
+    ));
+    assert_eq!(slot.kind(), CaptureKind::Depth);
+    assert!(matches!(
+        slot.readback_depth(Ok(None), false),
+        ReadbackOutcome::Complete(Reply::Cancelled { request_id: 41 })
+    ));
+    assert_eq!(slot.active(), None);
+    assert_eq!(slot.kind(), CaptureKind::Rgba);
+    assert!(slot.begin_with_kind(42, CaptureKind::Rgba));
+    let result = slot.readback(
+        Ok(Some(Frame {
+            epoch: 9,
+            time: Duration::from_nanos(12),
+            rgba: vec![7; 64 * 64 * 4],
+        })),
+        false,
+    );
+    assert!(matches!(
+        result,
+        ReadbackOutcome::Complete(Reply::Frame {
+            request_id: 42,
+            stamp: Stamp {
+                epoch: 9,
+                seconds: 0,
+                nanoseconds: 12
+            },
+            ..
+        })
+    ));
+    assert_eq!(slot.active(), None);
+}
+
+#[test]
+fn depth_readback_preserves_float_words_stamp_and_error_retirement() {
+    let mut slot = CaptureSlot::default();
+    assert!(slot.begin_with_kind(51, CaptureKind::Depth));
+    let mut metres = vec![1.25; 64 * 64];
+    metres[1] = f32::INFINITY;
+    let result = slot.readback_depth(
+        Ok(Some(DepthFrame {
+            epoch: 12,
+            time: Duration::new(3, 4),
+            metres,
+        })),
+        false,
+    );
+    let ReadbackOutcome::Complete(Reply::DepthFrame {
+        request_id,
+        stamp,
+        metres_le,
+    }) = result
+    else {
+        panic!("expected depth completion");
+    };
+    assert_eq!(request_id, 51);
+    assert_eq!(
+        stamp,
+        Stamp {
+            epoch: 12,
+            seconds: 3,
+            nanoseconds: 4
+        }
+    );
+    assert_eq!(metres_le.len(), 64 * 64 * 4);
+    assert_eq!(&metres_le[..4], &1.25f32.to_le_bytes());
+    assert_eq!(&metres_le[4..8], &f32::INFINITY.to_le_bytes());
+    assert_eq!(slot.active(), None);
+    assert!(slot.begin_with_kind(52, CaptureKind::Depth));
+    assert!(matches!(
+        slot.readback_depth(Err(RenderError::ReadbackFailed), false),
+        ReadbackOutcome::Failed(Reply::Error {
+            kind: FailureKind::Readback,
+            request_id: Some(52),
+            ..
+        })
+    ));
+    assert_eq!(slot.active(), None);
+    assert_eq!(slot.kind(), CaptureKind::Rgba);
+}

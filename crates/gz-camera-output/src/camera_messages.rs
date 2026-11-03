@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! CPU-only messages for the bounded 64×64 RGB camera domain.
+//! CPU-only messages for the bounded 64×64 RGB and metric-depth camera domain.
 //!
 //! These functions do not schedule sensors, create publishers or start a renderer.
 
@@ -29,6 +29,10 @@ pub struct IntrinsicValues {
 pub enum CameraMessageError {
     #[error("expected exactly one 64×64 RGBA frame")]
     InvalidFrame,
+    #[error(
+        "expected one 64×64 little-endian f32 depth frame with positive metres or positive infinity"
+    )]
+    InvalidDepthFrame,
     #[error("camera intrinsics must be finite with positive focal lengths")]
     InvalidIntrinsics,
     #[error("acquisition timestamp exceeds protobuf seconds range")]
@@ -82,6 +86,32 @@ pub fn image_packet(
         step: WIDTH * 3,
         data,
         pixel_format_type: PixelFormatType::RgbInt8 as i32,
+    })
+}
+
+/// Publish axial metres directly as canonical R_FLOAT32 pixels. Background and
+/// far clipping are positive infinity; zero, negative and NaN samples are invalid.
+pub fn depth_image_packet(
+    metres_le: &[u8],
+    acquisition: Duration,
+    frame_id: &str,
+    sequence: u64,
+) -> Result<Image, CameraMessageError> {
+    if metres_le.len() != 64 * 64 * 4
+        || metres_le.chunks_exact(4).any(|word| {
+            let value = f32::from_le_bytes(word.try_into().expect("four-byte chunk"));
+            value.is_nan() || value <= 0.0
+        })
+    {
+        return Err(CameraMessageError::InvalidDepthFrame);
+    }
+    Ok(Image {
+        header: Some(header(stamp(acquisition)?, frame_id, Some(sequence))),
+        width: WIDTH,
+        height: HEIGHT,
+        step: WIDTH * 4,
+        data: metres_le.to_vec(),
+        pixel_format_type: PixelFormatType::RFloat32 as i32,
     })
 }
 

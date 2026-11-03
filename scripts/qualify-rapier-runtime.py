@@ -54,7 +54,10 @@ RGB_TESTS = [
     "camera_owner_shuts_down_when_viewer_setup_fails_and_its_listener_can_be_reused",
     "configured_camera_without_zenoh_config_uses_the_default_network_lazily",
     "actual_image_interest_bounds_silent_worker_backpressure_and_propagates_spawn_failure",
+    "admitted_depth_camera_without_image_interest_keeps_its_worker_lazy",
 ]
+# The retained directory and feature names stay RGB for compatibility. This
+# CPU-only proof also covers loaded depth admission without demand or GPU images.
 RGB_SOURCES = {"gz-sim-rs": EXECUTABLE_SOURCES["gz-sim-rs"],
                "rgb_camera": "crates/gz-sim-cli/tests/rgb_camera.rs"}
 GPU_PACKAGES = {"gz-renderer", "gz-render-worker", "bevy_render", "bevy_window", "bevy_winit",
@@ -178,7 +181,8 @@ def inputs(root=ROOT):
     paths = [root / name for name in ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml",
              ".cargo/config.toml", "scripts/rustc-coverage.py", "scripts/verify.py",
              "scripts/qualify-rapier-runtime.py", "scripts/check-rapier-runtime.py",
-             "crates/gz-sim-cli/tests/empty.sdf", "crates/gz-camera-output/tests/fixtures/m5-rgb.sdf"]]
+             "crates/gz-sim-cli/tests/empty.sdf", "crates/gz-camera-output/tests/fixtures/m5-rgb.sdf",
+             "crates/gz-camera-output/tests/fixtures/m6-depth.sdf"]]
     paths += sorted((root / "crates").rglob("*.rs"))
     paths += sorted((root / "crates").glob("*/Cargo.toml"))
     paths += sorted((root / "crates/gz-sim-proto/schemas").rglob("*.proto"))

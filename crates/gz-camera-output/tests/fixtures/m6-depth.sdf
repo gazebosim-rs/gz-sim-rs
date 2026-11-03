@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="camera_step" type="ode"><max_step_size>0.001</max_step_size></physics>
+    <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"/>
+    <model name="rig">
+      <static>true</static><pose>3 -2 1 0 0 1.5707963267948966</pose>
+      <link name="body">
+        <collision name="shape"><geometry><box><size>0.1 0.1 0.1</size></box></geometry></collision>
+        <sensor name="depth_camera" type="depth_camera">
+          <always_on>true</always_on>
+          <update_rate>10</update_rate>
+          <topic>/m6/depth/image</topic>
+          <frame_id>rig/body/depth_camera</frame_id>
+          <camera>
+            <camera_info_topic>/m6/depth/camera_info</camera_info_topic>
+            <horizontal_fov>1.5707963267948966</horizontal_fov>
+            <!-- Input metadata uses the producer's accepted camera defaults;
+                 the loaded depth sensor kind selects R_FLOAT32 output. -->
+            <image><width>64</width><height>64</height><anti_aliasing>4</anti_aliasing></image>
+            <clip><near>0.1</near><far>10</far></clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
+    <model name="target">
+      <!-- Camera-forward +X is world +Y; the aligned front face is 4 m away. -->
+      <static>true</static><pose>3 3 1 0 0 1.5707963267948966</pose>
+      <link name="body">
+        <collision name="shape"><geometry><box><size>2 2 2</size></box></geometry></collision>
+        <visual name="box"><geometry><box><size>2 2 2</size></box></geometry><material><diffuse>1 0 0 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

@@ -309,8 +309,13 @@ fn camera_domain_rejects_unimplemented_features_and_invalid_geometry() {
     let mut missing = valid.clone();
     missing.config = SensorConfig::Unconfigured;
     assert!(!supports_camera_sensor(&missing));
+    for kind in ["depth_camera", "depth"] {
+        let mut depth = valid.clone();
+        depth.kind = kind.into();
+        assert!(supports_camera_sensor(&depth));
+    }
     let mut other_type = valid.clone();
-    other_type.kind = "depth_camera".into();
+    other_type.kind = "thermal_camera".into();
     assert!(!supports_camera_sensor(&other_type));
     other_type.kind = "wide_angle_camera".into();
     assert!(!supports_camera_sensor(&other_type));
@@ -335,18 +340,23 @@ fn camera_domain_rejects_unimplemented_features_and_invalid_geometry() {
         |c| c.near_clip = 0.0,
         |c| c.far_clip = c.near_clip,
     ];
-    for edit in edits {
-        let mut sensor = valid.clone();
-        let SensorConfig::Camera(camera) = &mut sensor.config else {
-            unreachable!()
-        };
-        edit(camera);
-        assert!(!supports_camera_sensor(&sensor));
-    }
-    let sensor_edits: [fn(&mut Sensor); 2] = [|s| s.visualize = true, |s| s.enable_metrics = true];
-    for edit in sensor_edits {
-        let mut sensor = valid.clone();
-        edit(&mut sensor);
-        assert!(!supports_camera_sensor(&sensor));
+    for kind in ["camera", "depth_camera"] {
+        for edit in edits {
+            let mut sensor = valid.clone();
+            sensor.kind = kind.into();
+            let SensorConfig::Camera(camera) = &mut sensor.config else {
+                unreachable!()
+            };
+            edit(camera);
+            assert!(!supports_camera_sensor(&sensor));
+        }
+        let sensor_edits: [fn(&mut Sensor); 2] =
+            [|s| s.visualize = true, |s| s.enable_metrics = true];
+        for edit in sensor_edits {
+            let mut sensor = valid.clone();
+            sensor.kind = kind.into();
+            edit(&mut sensor);
+            assert!(!supports_camera_sensor(&sensor));
+        }
     }
 }

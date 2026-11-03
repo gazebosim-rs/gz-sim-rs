@@ -562,3 +562,108 @@ fn calibrated_snapshot_uses_snapshot_correlation_and_backpressure() {
         Err(SubmitError::Busy(_))
     ));
 }
+
+fn depth_snapshot() -> Request {
+    Request::CalibratedDepthSnapshot {
+        request_id: 1,
+        stamp: Stamp {
+            epoch: 1,
+            seconds: 0,
+            nanoseconds: 0,
+        },
+        origin: [0.0; 3],
+        visuals: vec![],
+        camera: Box::new(gz_render_protocol::Camera {
+            width: 64,
+            height: 64,
+            fx: 32.0,
+            fy: 32.0,
+            cx: 32.0,
+            cy: 32.0,
+            skew: 0.0,
+            tx: 0.0,
+            ty: 0.0,
+            near: 0.1,
+            far: 10.0,
+            translation: [0.0; 3],
+            rotation: [0.0, 0.0, 0.0, 1.0],
+        }),
+    }
+}
+
+#[test]
+fn depth_submission_retains_mode_and_same_snapshot_backpressure() {
+    let (client, rx) = client();
+    client.try_send(depth_snapshot()).unwrap();
+    assert!(matches!(
+        rx.recv().unwrap(),
+        Request::CalibratedDepthSnapshot { request_id: 1, .. }
+    ));
+    {
+        let state = client.snapshots.lock().unwrap();
+        assert_eq!(state.pending_depth, Some(true));
+        assert!(!state.committed_depth);
+        assert!(state.committed_stamp.is_none());
+    }
+    assert!(matches!(
+        client.try_send(snapshot()),
+        Err(SubmitError::Stale(_))
+    ));
+    assert!(matches!(
+        client.try_send(capture()),
+        Err(SubmitError::Busy(_))
+    ));
+    let mut next = depth_snapshot();
+    if let Request::CalibratedDepthSnapshot { request_id, .. } = &mut next {
+        *request_id = 2;
+    }
+    assert!(matches!(client.try_send(next), Err(SubmitError::Busy(_))));
+}
+
+#[cfg(unix)]
+#[test]
+fn live_peer_cannot_reply_with_the_other_capture_kind() {
+    for request in [snapshot(), depth_snapshot()] {
+        let path = fixture_peer("wrong-kind-peer.py");
+        let mut client = Client::start(TrustedWorker::from_operator_config(path).unwrap()).unwrap();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let mut submitted = false;
+        loop {
+            match client.try_reply() {
+                Ok(Some(Reply::Ready {
+                    version: PROTOCOL_VERSION,
+                })) if !submitted => {
+                    client.try_send(request).unwrap();
+                    submitted = true;
+                    break;
+                }
+                Ok(None) if Instant::now() < deadline => thread::sleep(Duration::from_millis(5)),
+                other => panic!("unexpected startup reply: {other:?}"),
+            }
+        }
+        assert!(submitted);
+        loop {
+            match client.try_reply() {
+                Ok(Some(Reply::SnapshotAccepted { request_id: 1 })) => break,
+                Ok(None) if Instant::now() < deadline => thread::sleep(Duration::from_millis(5)),
+                other => panic!("unexpected snapshot reply: {other:?}"),
+            }
+        }
+        client.try_send(Request::Capture { request_id: 2 }).unwrap();
+        wait_error(&client, |error| {
+            matches!(error, ClientError::ProtocolCorrelation)
+        });
+        client.shutdown(Duration::from_secs(5)).unwrap();
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn former_version_two_peer_is_refused_at_startup() {
+    let path = fixture_peer("legacy-version-peer.sh");
+    let mut client = Client::start(TrustedWorker::from_operator_config(path).unwrap()).unwrap();
+    wait_error(&client, |error| {
+        matches!(error, ClientError::ProtocolVersion)
+    });
+    client.shutdown(Duration::from_secs(5)).unwrap();
+}

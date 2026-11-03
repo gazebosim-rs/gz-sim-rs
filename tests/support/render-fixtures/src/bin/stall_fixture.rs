@@ -1,12 +1,16 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
+use gz_render_protocol::{PROTOCOL_VERSION, Reply, write_reply};
 use std::io::Write;
 fn main() {
-    let message = b"{\"Ready\":{\"version\":2}}";
     let mut out = std::io::stdout().lock();
-    out.write_all(&(message.len() as u32).to_le_bytes())
-        .unwrap();
-    out.write_all(message).unwrap();
+    write_reply(
+        &mut out,
+        &Reply::Ready {
+            version: PROTOCOL_VERSION,
+        },
+    )
+    .unwrap();
     out.flush().unwrap();
     std::thread::sleep(std::time::Duration::from_secs(60));
 }

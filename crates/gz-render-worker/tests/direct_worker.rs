@@ -95,7 +95,12 @@ impl Drop for Worker {
 #[test]
 fn direct_worker_renders_a_stamped_snapshot_and_exits() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     worker.send(Request::Cancel { request_id: 99 });
     assert!(matches!(
         worker.next(),
@@ -298,7 +303,12 @@ fn renderer_startup_failure_with_full_output_exits_with_io_error() {
 #[test]
 fn oversized_wire_frame_reports_protocol_failure() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     let stdin = worker.child.stdin.as_mut().unwrap();
     stdin.write_all(&131_073_u32.to_le_bytes()).unwrap();
     stdin.flush().unwrap();
@@ -338,7 +348,12 @@ fn missing_or_invalid_parent_argument_is_rejected() {
 #[test]
 fn eof_exits_cleanly_and_a_wrong_parent_is_rejected() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     drop(worker.child.stdin.take());
     assert!(worker.wait_exit().success());
     let status = Command::new(env!("CARGO_BIN_EXE_gz-render-worker"))
@@ -353,7 +368,12 @@ fn eof_exits_cleanly_and_a_wrong_parent_is_rejected() {
 #[test]
 fn disconnected_output_reports_failure_and_worker_exits() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     drop(worker.replies.take());
     worker.send(Request::Cancel { request_id: 99 });
     worker.reader.take().unwrap().join().unwrap();
@@ -364,7 +384,12 @@ fn disconnected_output_reports_failure_and_worker_exits() {
 #[test]
 fn disconnected_output_after_frame_terminates_worker_on_next_frame() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     let stamp = Stamp {
         epoch: 3,
         seconds: 2,
@@ -440,7 +465,9 @@ fn closed_output_terminates_worker_on_deterministic_error_replies() {
         let mut output = worker.child.stdout.take().unwrap();
         assert!(matches!(
             read_reply(&mut output).unwrap(),
-            Some(Reply::Ready { version: 2 })
+            Some(Reply::Ready {
+                version: gz_render_protocol::PROTOCOL_VERSION
+            })
         ));
         if index == 2 {
             worker.send(Request::Snapshot {
@@ -477,7 +504,9 @@ fn closed_output_terminates_on_protocol_stale_time_and_snapshot_replies() {
         let mut output = worker.child.stdout.take().unwrap();
         assert!(matches!(
             read_reply(&mut output).unwrap(),
-            Some(Reply::Ready { version: 2 })
+            Some(Reply::Ready {
+                version: gz_render_protocol::PROTOCOL_VERSION
+            })
         ));
         if case == 1 {
             worker.send(Request::Snapshot {
@@ -531,7 +560,12 @@ fn closed_output_terminates_on_protocol_stale_time_and_snapshot_replies() {
 #[test]
 fn overlapping_capture_and_cancellation_replies_are_coherent() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     worker.send(Request::Snapshot {
         request_id: 1,
         stamp: Stamp {
@@ -632,7 +666,12 @@ fn overlapping_capture_and_cancellation_replies_are_coherent() {
 #[test]
 fn replacement_snapshot_invalidates_pending_capture_and_removes_visual() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     let old_stamp = Stamp {
         epoch: 1,
         seconds: 1,
@@ -768,7 +807,12 @@ fn startup_output_failure_exits_without_ready() {
 #[test]
 fn burst_of_snapshots_has_correlated_bounded_outcomes() {
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     let stamp = Stamp {
         epoch: 9,
         seconds: 1,
@@ -824,7 +868,9 @@ fn worker_exits_after_parent_death_with_capture_requested() {
         let mut output = worker.child.stdout.take().unwrap();
         assert!(matches!(
             read_reply(&mut output).unwrap(),
-            Some(Reply::Ready { version: 2 })
+            Some(Reply::Ready {
+                version: gz_render_protocol::PROTOCOL_VERSION
+            })
         ));
         let stdin = worker.child.stdin.as_mut().unwrap();
         write_request(
@@ -936,7 +982,12 @@ fn canonical_scene_snapshots_render_remove_and_reset() {
         .unwrap();
     let model_id = model.get::<EntityId>().unwrap().get();
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     worker.send(gz_render_scene::extract(&sim, 1, [0.0; 3]).unwrap());
     assert!(matches!(
         worker.next(),
@@ -1052,7 +1103,12 @@ fn canonical_scene_snapshots_render_remove_and_reset() {
 fn calibrated_snapshot_renders_shifted_pixels_and_rejects_unsupported_projection() {
     use gz_render_protocol::Camera;
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     let stamp = Stamp {
         epoch: 2,
         seconds: 0,
@@ -1291,7 +1347,12 @@ fn calibrated_camera_renders_canonical_scene_snapshot() {
         rotation: [0.0, 0.0, 0.0, 1.0],
     };
     let mut worker = Worker::start();
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     worker.send(Request::CalibratedSnapshot {
         request_id,
         stamp,
@@ -1391,7 +1452,12 @@ fn lost_reply_peer_does_not_wait_for_a_native_exit_handler() {
         .env_remove("LD_AUDIT")
         .env("GZ_RENDER_NATIVE_EXIT_MARKER", &marker);
     let mut worker = Worker::from_command(command);
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     drop(worker.replies.take());
     worker.send(Request::Cancel { request_id: 99 });
     worker.reader.take().unwrap().join().unwrap();
@@ -1415,7 +1481,12 @@ fn lost_reply_peer_cannot_block_termination_on_saturated_stderr() {
     let mut command = worker_command();
     command.stderr(Stdio::from(child_stderr));
     let mut worker = Worker::from_command(command);
-    assert!(matches!(worker.next(), Reply::Ready { version: 2 }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
     // This endpoint belongs only to the test and this child. Fill AFTER Ready
     // so startup logging cannot be the blocked operation under observation.
     writer.set_nonblocking(true).unwrap();
@@ -1444,4 +1515,272 @@ fn lost_reply_peer_cannot_block_termination_on_saturated_stderr() {
     assert_eq!(status.signal(), Some(9));
     assert!(started.elapsed() < Duration::from_secs(10));
     drop(writer);
+}
+
+#[path = "support/depth.rs"]
+mod metric_depth;
+
+#[test]
+fn metric_depth_survives_invalid_snapshot_and_roundtrips_color_modes() {
+    let mut worker = Worker::start();
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
+    let stamp = Stamp {
+        epoch: 2,
+        seconds: 0,
+        nanoseconds: 1,
+    };
+    worker.send(metric_depth::snapshot(1, stamp, 3.0));
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 1 }
+    ));
+    worker.send(Request::Capture { request_id: 1 });
+    let Reply::DepthFrame {
+        request_id: 1,
+        stamp: actual,
+        metres_le,
+    } = worker.next()
+    else {
+        panic!("expected calibrated metric depth");
+    };
+    assert_eq!(actual, stamp);
+    metric_depth::assert_box_depth(&metres_le, 2.5);
+    worker.send(metric_depth::snapshot(
+        2,
+        Stamp {
+            nanoseconds: 2,
+            ..stamp
+        },
+        0.2,
+    ));
+    assert!(matches!(
+        worker.next(),
+        Reply::Error {
+            kind: FailureKind::InvalidSnapshot,
+            request_id: Some(2),
+            ..
+        }
+    ));
+    worker.send(Request::Capture { request_id: 2 });
+    let Reply::DepthFrame {
+        request_id: 2,
+        stamp: actual,
+        metres_le,
+    } = worker.next()
+    else {
+        panic!("invalid admission changed the committed depth snapshot");
+    };
+    assert_eq!(actual, stamp);
+    metric_depth::assert_box_depth(&metres_le, 2.5);
+    let color_stamp = Stamp {
+        nanoseconds: 3,
+        ..stamp
+    };
+    let Request::CalibratedDepthSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        camera,
+    } = metric_depth::snapshot(3, color_stamp, 3.0)
+    else {
+        unreachable!()
+    };
+    worker.send(Request::CalibratedSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        camera,
+    });
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 3 }
+    ));
+    worker.send(Request::Capture { request_id: 3 });
+    let Reply::Frame {
+        request_id: 3,
+        stamp: actual,
+        rgba,
+    } = worker.next()
+    else {
+        panic!("color mode did not return the original frame type");
+    };
+    assert_eq!(actual, color_stamp);
+    assert_eq!(rgba.len(), 64 * 64 * 4);
+    let center = (32 * 64 + 32) * 4;
+    assert_ne!(&rgba[center..center + 3], &rgba[..3]);
+    let next_epoch = Stamp {
+        epoch: 3,
+        seconds: 0,
+        nanoseconds: 0,
+    };
+    worker.send(metric_depth::snapshot(4, next_epoch, 4.0));
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 4 }
+    ));
+    worker.send(Request::Capture { request_id: 4 });
+    let Reply::DepthFrame {
+        request_id: 4,
+        stamp: actual,
+        metres_le,
+    } = worker.next()
+    else {
+        panic!("depth mode did not resume after color");
+    };
+    assert_eq!(actual, next_epoch);
+    metric_depth::assert_box_depth(&metres_le, 3.5);
+    worker.finish();
+}
+
+#[test]
+fn real_inflight_replacement_retires_the_old_kind_and_then_captures_the_new_kind() {
+    for old_depth in [true, false] {
+        let mut worker = Worker::start();
+        assert!(matches!(
+            worker.next(),
+            Reply::Ready {
+                version: gz_render_protocol::PROTOCOL_VERSION
+            }
+        ));
+        let old_stamp = Stamp {
+            epoch: 2,
+            seconds: 1,
+            nanoseconds: 0,
+        };
+        let new_stamp = Stamp {
+            epoch: 3,
+            seconds: 0,
+            nanoseconds: 0,
+        };
+        let make = |depth, id, stamp, x| {
+            if depth {
+                metric_depth::snapshot(id, stamp, x)
+            } else {
+                metric_depth::color_snapshot(id, stamp, x)
+            }
+        };
+        worker.send(make(old_depth, 1, old_stamp, 3.0));
+        assert!(matches!(
+            worker.next(),
+            Reply::SnapshotAccepted { request_id: 1 }
+        ));
+        // Prove the original scene/pipelines can complete a real readback first.
+        // Otherwise a replacement could cancel before the first GPU submission.
+        worker.send(Request::Capture { request_id: 1 });
+        match worker.next() {
+            Reply::DepthFrame {
+                request_id: 1,
+                stamp,
+                metres_le,
+            } if old_depth => {
+                assert_eq!(stamp, old_stamp);
+                metric_depth::assert_box_depth(&metres_le, 2.5);
+            }
+            Reply::Frame {
+                request_id: 1,
+                stamp,
+                rgba,
+            } if !old_depth => {
+                assert_eq!(stamp, old_stamp);
+                assert_eq!(rgba.len(), 64 * 64 * 4);
+            }
+            other => panic!("original readback did not become ready: {other:?}"),
+        }
+        let mut batch = Vec::new();
+        write_request(&mut batch, &Request::Capture { request_id: 2 }).unwrap();
+        write_request(&mut batch, &make(!old_depth, 2, new_stamp, 4.0)).unwrap();
+        let stdin = worker.child.stdin.as_mut().unwrap();
+        stdin.write_all(&batch).unwrap();
+        stdin.flush().unwrap();
+        let (mut cancelled, mut old_frame, mut accepted, mut busy) = (false, false, false, false);
+        for _ in 0..2 {
+            match worker.next() {
+                Reply::Cancelled { request_id: 2 } => {
+                    assert!(!cancelled);
+                    cancelled = true;
+                }
+                Reply::DepthFrame {
+                    request_id: 2,
+                    stamp,
+                    metres_le,
+                } if old_depth => {
+                    assert_eq!(stamp, old_stamp);
+                    assert!(!old_frame);
+                    metric_depth::assert_box_depth(&metres_le, 2.5);
+                    old_frame = true;
+                }
+                Reply::Frame {
+                    request_id: 2,
+                    stamp,
+                    rgba,
+                } if !old_depth => {
+                    assert_eq!(stamp, old_stamp);
+                    assert_eq!(rgba.len(), 64 * 64 * 4);
+                    assert!(!old_frame);
+                    old_frame = true;
+                }
+                Reply::SnapshotAccepted { request_id: 2 } => {
+                    assert!(!accepted);
+                    accepted = true;
+                }
+                Reply::SnapshotBusy { request_id: 2 } => {
+                    assert!(!busy);
+                    busy = true;
+                }
+                other => panic!("unexpected cross-kind replacement reply: {other:?}"),
+            }
+        }
+        assert_ne!(cancelled, old_frame);
+        assert_ne!(accepted, busy);
+        assert!(!cancelled || accepted);
+        if busy {
+            let deadline = Instant::now() + Duration::from_secs(10);
+            for id in 3..=130 {
+                worker.send(make(!old_depth, id, new_stamp, 4.0));
+                match worker.next() {
+                    Reply::SnapshotAccepted { request_id } if request_id == id => {
+                        accepted = true;
+                        break;
+                    }
+                    Reply::SnapshotBusy { request_id }
+                        if request_id == id && Instant::now() < deadline =>
+                    {
+                        thread::sleep(Duration::from_millis(5))
+                    }
+                    other => panic!("unexpected bounded replacement admission: {other:?}"),
+                }
+            }
+        }
+        assert!(accepted, "opposite-kind replacement remained busy");
+        worker.send(Request::Capture { request_id: 3 });
+        match worker.next() {
+            Reply::DepthFrame {
+                request_id: 3,
+                stamp,
+                metres_le,
+            } if !old_depth => {
+                assert_eq!(stamp, new_stamp);
+                metric_depth::assert_box_depth(&metres_le, 3.5);
+            }
+            Reply::Frame {
+                request_id: 3,
+                stamp,
+                rgba,
+            } if old_depth => {
+                assert_eq!(stamp, new_stamp);
+                assert_eq!(rgba.len(), 64 * 64 * 4);
+                let center = (32 * 64 + 32) * 4;
+                assert_ne!(&rgba[center..center + 3], &rgba[..3]);
+            }
+            other => panic!("new kind failed after old capture retirement: {other:?}"),
+        }
+        worker.finish();
+    }
 }

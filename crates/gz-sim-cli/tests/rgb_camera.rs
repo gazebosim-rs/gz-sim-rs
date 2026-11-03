@@ -740,3 +740,38 @@ fn actual_image_interest_bounds_silent_worker_backpressure_and_propagates_spawn_
         observer.close().wait().unwrap();
     }
 }
+
+#[cfg(feature = "rgb-camera")]
+#[test]
+fn admitted_depth_camera_without_image_interest_keeps_its_worker_lazy() {
+    if isolation::child(
+        "admitted_depth_camera_without_image_interest_keeps_its_worker_lazy",
+        20,
+    ) {
+        return;
+    }
+    let depth = include_str!("../../gz-camera-output/tests/fixtures/m6-depth.sdf");
+    let directory = tempfile::tempdir().unwrap();
+    let worker = directory.path().join("absent-depth-worker");
+    assert!(worker.is_absolute());
+    assert!(!worker.exists());
+    let result = command(
+        depth,
+        Some(&worker),
+        &[
+            "--physics-engine",
+            "rapier",
+            "--server",
+            "--run",
+            "--iterations",
+            "3",
+        ],
+    );
+    assert!(result.status.success(), "{result:?}");
+    assert_eq!(
+        String::from_utf8_lossy(&result.stdout),
+        "simulation_ns=3000000 iterations=3\ndefault::rig::body 3 -2 1\ndefault::target::body 3 3 1\n"
+    );
+    assert!(result.stderr.is_empty(), "{result:?}");
+    assert!(!worker.exists());
+}

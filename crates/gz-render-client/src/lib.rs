@@ -70,9 +70,12 @@ struct SnapshotCorrelation {
     last_id: u64,
     pending_id: Option<u64>,
     pending_stamp: Option<Stamp>,
+    pending_depth: Option<bool>,
     committed_stamp: Option<Stamp>,
+    committed_depth: bool,
     last_capture_id: u64,
     pending_capture: Option<(u64, Stamp, bool)>,
+    pending_capture_depth: bool,
     pending_cancel: Option<(u64, bool)>,
 }
 
@@ -264,6 +267,7 @@ impl Client {
                                         Reply::SnapshotAccepted { .. }
                                             | Reply::SnapshotBusy { .. }
                                             | Reply::Frame { .. }
+                                            | Reply::DepthFrame { .. }
                                             | Reply::Cancelled { .. }
                                             | Reply::CancelAccepted { .. }
                                             | Reply::Busy { .. }
@@ -290,10 +294,15 @@ impl Client {
                                         };
                                         let valid = match &reply {
                                             Reply::SnapshotAccepted { request_id }
-                                                if state.pending_id == Some(*request_id) =>
+                                                if state.pending_id == Some(*request_id)
+                                                    && state.pending_depth.is_some() =>
                                             {
                                                 state.pending_id = None;
                                                 state.committed_stamp = state.pending_stamp.take();
+                                                state.committed_depth = state
+                                                    .pending_depth
+                                                    .take()
+                                                    .expect("guarded pending frame kind");
                                                 if let Some((_, _, invalidated)) =
                                                     &mut state.pending_capture
                                                 {
@@ -311,16 +320,23 @@ impl Client {
                                             } if state.pending_id == Some(*request_id) => {
                                                 state.pending_id = None;
                                                 state.pending_stamp = None;
+                                                state.pending_depth = None;
                                                 true
                                             }
                                             Reply::Frame {
                                                 request_id, stamp, ..
-                                            } if state.pending_capture
-                                                == Some((*request_id, *stamp, false))
+                                            }
+                                            | Reply::DepthFrame {
+                                                request_id, stamp, ..
+                                            } if matches!(&reply, Reply::DepthFrame { .. })
+                                                == state.pending_capture_depth
+                                                && state.pending_capture
+                                                    == Some((*request_id, *stamp, false))
                                                 && state.pending_cancel
                                                     != Some((*request_id, true)) =>
                                             {
                                                 state.pending_capture = None;
+                                                state.pending_capture_depth = false;
                                                 true
                                             }
                                             Reply::CancelAccepted { request_id }
@@ -355,6 +371,7 @@ impl Client {
                                                 .is_some_and(|(id, _, _)| id == *request_id) =>
                                             {
                                                 state.pending_capture = None;
+                                                state.pending_capture_depth = false;
                                                 if state.pending_cancel == Some((*request_id, true))
                                                 {
                                                     state.pending_cancel = None;
@@ -493,10 +510,14 @@ impl Client {
         if !self.ready.load(Ordering::Acquire) {
             return Err(SubmitError::NotReady(request));
         }
+        let depth_snapshot = matches!(&request, Request::CalibratedDepthSnapshot { .. });
         if let Request::Snapshot {
             request_id, stamp, ..
         }
         | Request::CalibratedSnapshot {
+            request_id, stamp, ..
+        }
+        | Request::CalibratedDepthSnapshot {
             request_id, stamp, ..
         } = &request
         {
@@ -522,6 +543,7 @@ impl Client {
                     state.last_id = id;
                     state.pending_id = Some(id);
                     state.pending_stamp = Some(stamp);
+                    state.pending_depth = Some(depth_snapshot);
                     Ok(())
                 }
                 Err(TrySendError::Full(request)) => Err(SubmitError::Busy(request)),
@@ -551,6 +573,7 @@ impl Client {
                 Ok(()) => {
                     state.last_capture_id = id;
                     state.pending_capture = Some((id, stamp, false));
+                    state.pending_capture_depth = state.committed_depth;
                     Ok(())
                 }
                 Err(TrySendError::Full(request)) => Err(SubmitError::Busy(request)),

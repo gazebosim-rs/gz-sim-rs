@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::io::{self, Read, Write};
 
-pub const PROTOCOL_VERSION: u16 = 2;
+pub const PROTOCOL_VERSION: u16 = 3;
 const MAX_MESSAGE: usize = 131_072;
 const MAX_VISUALS: usize = 128;
 const PIXELS: usize = 64 * 64 * 4;
@@ -58,6 +58,13 @@ pub enum Request {
         visuals: Vec<Visual>,
         camera: Box<Camera>,
     },
+    CalibratedDepthSnapshot {
+        request_id: u64,
+        stamp: Stamp,
+        origin: [f64; 3],
+        visuals: Vec<Visual>,
+        camera: Box<Camera>,
+    },
     Capture {
         request_id: u64,
     },
@@ -103,6 +110,12 @@ pub enum Reply {
         stamp: Stamp,
         rgba: Vec<u8>,
     },
+    /// Fixed 64×64 axial metres as little-endian f32 words, including +INF background.
+    DepthFrame {
+        request_id: u64,
+        stamp: Stamp,
+        metres_le: Vec<u8>,
+    },
     Error {
         kind: FailureKind,
         request_id: Option<u64>,
@@ -147,6 +160,13 @@ impl Request {
                 origin,
                 visuals,
                 camera,
+            }
+            | Self::CalibratedDepthSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera,
             } => {
                 valid_snapshot(*request_id, stamp, origin, visuals)
                     && [
@@ -178,6 +198,18 @@ impl Reply {
                 stamp,
                 rgba,
             } => *request_id != 0 && valid_stamp(stamp) && rgba.len() == PIXELS,
+            Self::DepthFrame {
+                request_id,
+                stamp,
+                metres_le,
+            } => {
+                *request_id != 0
+                    && valid_stamp(stamp)
+                    && metres_le.len() == PIXELS
+                    && metres_le
+                        .chunks_exact(4)
+                        .all(|word| f32::from_le_bytes([word[0], word[1], word[2], word[3]]) > 0.0)
+            }
             Self::CancelAccepted { request_id }
             | Self::SnapshotAccepted { request_id }
             | Self::SnapshotBusy { request_id }

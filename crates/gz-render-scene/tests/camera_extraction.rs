@@ -178,3 +178,54 @@ fn rejects_missing_or_corrupt_live_camera_state_and_unrepresentable_clips() {
         Err(SnapshotError::InvalidCamera(id))
     );
 }
+
+#[test]
+fn loaded_depth_extracts_a_typed_snapshot_without_scheduling_or_relabeling_rgb() {
+    let xml = include_str!("../../gz-camera-output/tests/fixtures/m6-depth.sdf");
+    let mut sim = load_world_with_sdf_step(
+        xml,
+        "m6-depth.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let entity = sim
+        .world()
+        .iter_entities()
+        .find(|entity| entity.contains::<CameraSensor>())
+        .unwrap()
+        .id();
+    let id = sim
+        .world()
+        .get::<gz_sim_core::EntityId>(entity)
+        .unwrap()
+        .get();
+    let counts = sim.scheduled_system_counts();
+    let request = extract_camera(&sim, id, 7, [0.0; 3]).unwrap();
+    assert!(request.wire_valid());
+    let Request::CalibratedDepthSnapshot {
+        request_id,
+        stamp,
+        camera,
+        visuals,
+        ..
+    } = request
+    else {
+        panic!("loaded depth must retain its capture kind");
+    };
+    assert_eq!(request_id, 7);
+    assert_eq!(stamp.epoch, 0);
+    assert_eq!(camera.translation, [3.0, -2.0, 1.0]);
+    assert_eq!((camera.width, camera.height), (64, 64));
+    assert!((camera.fx - 32.0).abs() < 1e-12);
+    assert_eq!(visuals.len(), 1);
+    assert_eq!(sim.scheduled_system_counts(), counts);
+    let sensor = &mut sim.world_mut().get_mut::<CameraSensor>(entity).unwrap().0;
+    Arc::make_mut(sensor).kind = "camera".into();
+    assert!(matches!(
+        extract_camera(&sim, id, 8, [0.0; 3]).unwrap(),
+        Request::CalibratedSnapshot { .. }
+    ));
+    assert_eq!(sim.scheduled_system_counts(), counts);
+}

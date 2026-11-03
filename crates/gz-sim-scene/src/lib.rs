@@ -140,14 +140,16 @@ pub struct CameraSensor(pub Arc<sdformat::Sensor>);
 #[component(immutable)]
 pub struct RenderingSensorsConfiguration;
 
-/// Whether a sensor is in the current explicit 64×64 RGB camera domain.
+/// Whether a sensor is in the explicit 64×64 RGB or depth camera domain.
 /// This admits metadata only and does not schedule or publish sensor samples.
 pub fn supports_camera_sensor(sensor: &sdformat::Sensor) -> bool {
     let Some(camera) = sensor.camera() else {
         return false;
     };
-    sensor.effective_type() == Some(sdformat::SensorType::Camera)
-        && !sensor.visualize
+    matches!(
+        sensor.effective_type(),
+        Some(sdformat::SensorType::Camera | sdformat::SensorType::DepthCamera)
+    ) && !sensor.visualize
         && !sensor.enable_metrics
         && sensor.plugins.is_empty()
         && sensor.extensions.is_empty()

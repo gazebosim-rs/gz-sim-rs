@@ -160,3 +160,59 @@ fn malformed_lengths_timestamps_and_intrinsics_fail() {
         );
     }
 }
+
+#[test]
+fn metric_depth_preserves_little_endian_metres_infinity_and_canonical_header() {
+    let values: Vec<f32> = (0..64 * 64)
+        .map(|index| {
+            if index % 64 == 0 {
+                f32::INFINITY
+            } else {
+                1.25 + index as f32 / 100.0
+            }
+        })
+        .collect();
+    let bytes: Vec<u8> = values
+        .iter()
+        .flat_map(|value| value.to_le_bytes())
+        .collect();
+    let message = depth_image_packet(&bytes, Duration::new(7, 123), "rig/depth", 9).unwrap();
+    assert_eq!((message.width, message.height, message.step), (64, 64, 256));
+    assert_eq!(message.pixel_format_type, PixelFormatType::RFloat32 as i32);
+    assert_eq!(message.pixel_format_type, 13);
+    assert_eq!(message.data, bytes);
+    assert_eq!(message.data.len(), 16_384);
+    let header = message.header.as_ref().unwrap();
+    assert_eq!(header.stamp, Some(Time { sec: 7, nsec: 123 }));
+    assert_eq!(header.data[0].key, "frame_id");
+    assert_eq!(header.data[0].value, ["rig/depth"]);
+    assert_eq!(header.data[1].key, "seq");
+    assert_eq!(header.data[1].value, ["9"]);
+    assert_eq!(
+        Image::decode(message.encode_to_vec().as_slice()).unwrap(),
+        message
+    );
+}
+
+#[test]
+fn metric_depth_refuses_invalid_size_values_and_unrepresentable_time() {
+    let valid: Vec<u8> = (0..64 * 64).flat_map(|_| 2.0_f32.to_le_bytes()).collect();
+    for size in [0, 16_383, 16_385] {
+        assert_eq!(
+            depth_image_packet(&vec![0; size], Duration::ZERO, "depth", 0),
+            Err(CameraMessageError::InvalidDepthFrame)
+        );
+    }
+    for value in [0.0, -0.0, -1.0, f32::NEG_INFINITY, f32::NAN] {
+        let mut invalid = valid.clone();
+        invalid[128..132].copy_from_slice(&value.to_le_bytes());
+        assert_eq!(
+            depth_image_packet(&invalid, Duration::ZERO, "depth", 0),
+            Err(CameraMessageError::InvalidDepthFrame)
+        );
+    }
+    assert_eq!(
+        depth_image_packet(&valid, Duration::from_secs(u64::MAX), "depth", 0),
+        Err(CameraMessageError::TimeRange)
+    );
+}

@@ -28,6 +28,7 @@ class AuxiliaryRetention(unittest.TestCase):
                      "scripts/check-rapier-runtime.py", "crates/gz-sim-cli/tests/empty.sdf",
                      "crates/gz-sim-cli/src/live.rs",
                      "crates/gz-camera-output/tests/fixtures/m5-rgb.sdf",
+                     "crates/gz-camera-output/tests/fixtures/m6-depth.sdf",
                      "crates/gz-sim-proto/schema-source.json", "crates/gz-sim-proto/schemas/manifest.json",
                      "third_party/prost-derive-0.14.4/Cargo.toml", "third_party/prost-derive-0.14.4/LICENSE",
                      "third_party/prost-derive-0.14.4/src/lib.rs",

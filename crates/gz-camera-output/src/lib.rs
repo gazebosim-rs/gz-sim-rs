@@ -15,7 +15,7 @@ mod scheduled;
 pub use scheduled::ScheduledCameraOutput;
 
 use crate::camera_messages::{
-    CameraMessageError, IntrinsicValues, camera_info_packet, image_packet,
+    CameraMessageError, IntrinsicValues, camera_info_packet, depth_image_packet, image_packet,
 };
 use gz_render_client::{Client, ClientError, SubmitError, TrustedWorker};
 use gz_render_protocol::{FailureKind, Reply, Request, Stamp};
@@ -94,6 +94,7 @@ pub enum Progress {
 struct Acquisition {
     stamp: Stamp,
     capture_id: u64,
+    depth: bool,
     phase: Phase,
 }
 
@@ -102,6 +103,7 @@ enum Phase {
     SnapshotReply,
     CaptureReply,
     PublishFrame { stamp: Stamp, rgba: Vec<u8> },
+    PublishDepthFrame { stamp: Stamp, metres_le: Vec<u8> },
 }
 
 /// Focused, bounded admission for camera writers sharing one application owner.
@@ -433,11 +435,10 @@ impl CameraOutput {
             .checked_add(1)
             .ok_or(CameraOutputError::IdExhausted)?;
         let request = extract_camera(sim, self.sensor_id, snapshot_id, self.origin)?;
-        let Request::CalibratedSnapshot {
-            stamp, ref camera, ..
-        } = request
-        else {
-            unreachable!()
+        let (stamp, camera, depth) = match &request {
+            Request::CalibratedSnapshot { stamp, camera, .. } => (*stamp, camera, false),
+            Request::CalibratedDepthSnapshot { stamp, camera, .. } => (*stamp, camera, true),
+            _ => unreachable!(),
         };
         let acquisition = Duration::new(stamp.seconds, stamp.nanoseconds);
         let info = camera_info_packet(
@@ -464,6 +465,7 @@ impl CameraOutput {
         self.acquisition = Some(Acquisition {
             stamp,
             capture_id,
+            depth,
             phase: Phase::Submit(request),
         });
         Ok(Progress::Pending)
@@ -502,7 +504,9 @@ impl CameraOutput {
         let client = self.client.as_ref().ok_or(CameraOutputError::Protocol)?;
         let snapshot_phase = matches!(
             &acquisition.phase,
-            Phase::Submit(Request::CalibratedSnapshot { .. }) | Phase::SnapshotReply
+            Phase::Submit(
+                Request::CalibratedSnapshot { .. } | Request::CalibratedDepthSnapshot { .. }
+            ) | Phase::SnapshotReply
         );
         match acquisition.phase {
             Phase::Submit(request) => match client.try_send(request) {
@@ -574,10 +578,24 @@ impl CameraOutput {
                         stamp,
                         rgba,
                     }) if !snapshot_phase
+                        && !acquisition.depth
                         && request_id == acquisition.capture_id
                         && stamp == acquisition.stamp =>
                     {
                         acquisition.phase = Phase::PublishFrame { stamp, rgba };
+                        self.acquisition = Some(acquisition);
+                        return Ok(Progress::FrameReady);
+                    }
+                    Some(Reply::DepthFrame {
+                        request_id,
+                        stamp,
+                        metres_le,
+                    }) if !snapshot_phase
+                        && acquisition.depth
+                        && request_id == acquisition.capture_id
+                        && stamp == acquisition.stamp =>
+                    {
+                        acquisition.phase = Phase::PublishDepthFrame { stamp, metres_le };
                         self.acquisition = Some(acquisition);
                         return Ok(Progress::FrameReady);
                     }
@@ -602,6 +620,17 @@ impl CameraOutput {
                         return Err(CameraOutputError::Protocol);
                     }
                 }
+            }
+            Phase::PublishDepthFrame { stamp, metres_le } => {
+                let image = depth_image_packet(
+                    &metres_le,
+                    Duration::new(stamp.seconds, stamp.nanoseconds),
+                    &self.frame_id,
+                    self.sequence,
+                )?;
+                self.sequence = self.sequence.wrapping_add(1);
+                publish(&self.image, image, self.max_message_bytes)?;
+                return Ok(Progress::ImagePublished);
             }
             Phase::PublishFrame { stamp, rgba } => {
                 let image = image_packet(

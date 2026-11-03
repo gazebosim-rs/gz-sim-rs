@@ -11,7 +11,7 @@ use gz_render_frame::{
 use gz_render_protocol::{
     Camera, FailureKind, PROTOCOL_VERSION, Reply, Request, Stamp, Visual, read_request, write_reply,
 };
-use gz_renderer::{BoxVisual, Frame, RenderError, Renderer, Snapshot, UpdateStatus};
+use gz_renderer::{BoxVisual, DepthFrame, Frame, RenderError, Renderer, Snapshot, UpdateStatus};
 use rustix::process::{Signal, getpid, getppid, set_parent_process_death_signal};
 use std::{
     io::{self, BufReader, BufWriter, Write},
@@ -19,7 +19,7 @@ use std::{
     time::Duration,
 };
 
-// Both wire snapshot variants use the same ordering and lifecycle boundary.
+// All wire snapshot variants use the same ordering and lifecycle boundary.
 enum WorkerRequest {
     Snapshot {
         request_id: u64,
@@ -27,6 +27,7 @@ enum WorkerRequest {
         origin: [f64; 3],
         visuals: Vec<Visual>,
         camera: Option<Box<Camera>>,
+        depth: bool,
     },
     Capture {
         request_id: u64,
@@ -50,6 +51,7 @@ impl From<Request> for WorkerRequest {
                 origin,
                 visuals,
                 camera: None,
+                depth: false,
             },
             Request::CalibratedSnapshot {
                 request_id,
@@ -63,6 +65,21 @@ impl From<Request> for WorkerRequest {
                 origin,
                 visuals,
                 camera: Some(camera),
+                depth: false,
+            },
+            Request::CalibratedDepthSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera,
+            } => Self::Snapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera: Some(camera),
+                depth: true,
             },
             Request::Capture { request_id } => Self::Capture { request_id },
             Request::Cancel { request_id } => Self::Cancel { request_id },
@@ -83,8 +100,15 @@ enum ReadbackOutcome {
     Failed(Reply),
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum CaptureKind {
+    #[default]
+    Rgba,
+    Depth,
+}
+
 #[derive(Default)]
-struct CaptureSlot(Option<Capture>);
+struct CaptureSlot(Option<Capture>, CaptureKind);
 impl CaptureSlot {
     fn begin(&mut self, request_id: u64) -> bool {
         if self.0.is_some() {
@@ -94,7 +118,18 @@ impl CaptureSlot {
             request_id,
             cancelled: false,
         });
+        self.1 = CaptureKind::Rgba;
         true
+    }
+    fn begin_with_kind(&mut self, request_id: u64, kind: CaptureKind) -> bool {
+        if !self.begin(request_id) {
+            return false;
+        }
+        self.1 = kind;
+        true
+    }
+    fn kind(&self) -> CaptureKind {
+        self.1
     }
     fn cancel(&mut self, request_id: u64) -> bool {
         match &mut self.0 {
@@ -115,6 +150,7 @@ impl CaptureSlot {
     }
     fn clear(&mut self) {
         self.0 = None;
+        self.1 = CaptureKind::Rgba;
     }
     fn readback(
         &mut self,
@@ -122,8 +158,8 @@ impl CaptureSlot {
         in_flight: bool,
     ) -> ReadbackOutcome {
         let capture = self.0.expect("readback requires an active capture");
-        let outcome = match result {
-            Ok(Some(frame)) => ReadbackOutcome::Complete(Reply::Frame {
+        let reply = result.map(|frame| {
+            frame.map(|frame| Reply::Frame {
                 request_id: capture.request_id,
                 stamp: Stamp {
                     epoch: frame.epoch,
@@ -131,7 +167,41 @@ impl CaptureSlot {
                     nanoseconds: frame.time.subsec_nanos(),
                 },
                 rgba: frame.rgba,
-            }),
+            })
+        });
+        self.finish_readback(reply, in_flight)
+    }
+    fn readback_depth(
+        &mut self,
+        result: Result<Option<DepthFrame>, RenderError>,
+        in_flight: bool,
+    ) -> ReadbackOutcome {
+        let capture = self.0.expect("readback requires an active capture");
+        let reply = result.map(|frame| {
+            frame.map(|frame| Reply::DepthFrame {
+                request_id: capture.request_id,
+                stamp: Stamp {
+                    epoch: frame.epoch,
+                    seconds: frame.time.as_secs(),
+                    nanoseconds: frame.time.subsec_nanos(),
+                },
+                metres_le: frame
+                    .metres
+                    .into_iter()
+                    .flat_map(f32::to_le_bytes)
+                    .collect(),
+            })
+        });
+        self.finish_readback(reply, in_flight)
+    }
+    fn finish_readback(
+        &mut self,
+        result: Result<Option<Reply>, RenderError>,
+        in_flight: bool,
+    ) -> ReadbackOutcome {
+        let capture = self.0.expect("readback requires an active capture");
+        let outcome = match result {
+            Ok(Some(reply)) => ReadbackOutcome::Complete(reply),
             Ok(None) if capture.cancelled && !in_flight => {
                 ReadbackOutcome::Complete(Reply::Cancelled {
                     request_id: capture.request_id,
@@ -294,6 +364,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     let mut capture = CaptureSlot::default();
     let mut scene_needs_update = false;
+    let mut snapshot_kind = CaptureKind::Rgba;
     let mut last_snapshot_id = 0_u64;
     let mut last_accepted_stamp: Option<Stamp> = None;
     'worker: loop {
@@ -329,6 +400,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         origin,
                         visuals,
                         camera,
+                        depth,
                     } => {
                         if request_id <= last_snapshot_id {
                             break 'dispatch (
@@ -383,16 +455,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 far: camera.far,
                             };
                             match Calibration::new(config) {
-                                Ok(calibration) => renderer
-                                    .set_calibrated_snapshot(
-                                        &snapshot,
-                                        calibration,
-                                        WorldPose {
-                                            translation: DVec3::from_array(camera.translation),
-                                            rotation: DQuat::from_array(camera.rotation),
-                                        },
-                                    )
-                                    .map_err(SnapshotFailure::from),
+                                Ok(calibration) => {
+                                    let pose = WorldPose {
+                                        translation: DVec3::from_array(camera.translation),
+                                        rotation: DQuat::from_array(camera.rotation),
+                                    };
+                                    if depth {
+                                        renderer.set_calibrated_depth_snapshot(
+                                            &snapshot,
+                                            calibration,
+                                            pose,
+                                        )
+                                    } else {
+                                        renderer.set_calibrated_snapshot(
+                                            &snapshot,
+                                            calibration,
+                                            pose,
+                                        )
+                                    }
+                                    .map_err(SnapshotFailure::from)
+                                }
                                 Err(error) => Err(SnapshotFailure::Invalid(error.to_string())),
                             }
                         } else {
@@ -400,6 +482,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 .set_snapshot(&snapshot)
                                 .map_err(SnapshotFailure::from)
                         };
+                        if result.is_ok() {
+                            snapshot_kind = if depth {
+                                CaptureKind::Depth
+                            } else {
+                                CaptureKind::Rgba
+                            };
+                        }
                         let reply = snapshot_reply(
                             request_id,
                             stamp,
@@ -411,8 +500,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         (Some(reply), false)
                     }
                     WorkerRequest::Capture { request_id } => {
-                        let reply =
-                            (!capture.begin(request_id)).then_some(Reply::Busy { request_id });
+                        let reply = (!capture.begin_with_kind(request_id, snapshot_kind))
+                            .then_some(Reply::Busy { request_id });
                         (reply, false)
                     }
                     WorkerRequest::Cancel { request_id } => {
@@ -465,7 +554,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }) = active
         {
             if !cancelled && !renderer.readback_in_flight() {
-                match renderer.request_readback() {
+                let requested = match capture.kind() {
+                    CaptureKind::Rgba => renderer.request_readback(),
+                    CaptureKind::Depth => renderer.request_depth_readback(),
+                };
+                match requested {
                     Ok(()) | Err(RenderError::NotReady) => {}
                     Err(error) => {
                         send_or_exit(
@@ -478,8 +571,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
             if renderer.readback_in_flight() {
-                let result = renderer.take_frame();
-                match capture.readback(result, renderer.readback_in_flight()) {
+                // Retirement follows the admitted capture, even after a replacement snapshot.
+                let outcome = match capture.kind() {
+                    CaptureKind::Rgba => {
+                        let result = renderer.take_frame();
+                        capture.readback(result, renderer.readback_in_flight())
+                    }
+                    CaptureKind::Depth => {
+                        let result = renderer.take_depth_frame();
+                        capture.readback_depth(result, renderer.readback_in_flight())
+                    }
+                };
+                match outcome {
                     ReadbackOutcome::Pending => {}
                     ReadbackOutcome::Complete(reply) => {
                         send_or_exit(&mut output, reply, &exit_deadline)
