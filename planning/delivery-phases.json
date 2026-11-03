@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-02",
+  "as_of": "2026-11-03",
   "execution_state": "active",
-  "current_phase": "M1",
+  "current_phase": "M2",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -13,7 +13,13 @@
       "depends_on": [],
       "scope": "One local SDF world, Rapier f64 box/sphere dynamics and static box ground; live gzweb-rs scene and poses; pause, resume and reset.",
       "acceptance": "On a clean supported Linux setup, documented launch commands start the Rapier-only runtime and gzweb-rs. The real browser shows at least 20 moving primitive bodies and correct transforms; pause/resume/reset, reconnect and clean shutdown work. No C++ engine or GPU is required by the server.",
-      "excluded": "Mesh assets/collisions, joints, sensors, remote Fuel and full Gazebo compatibility."
+      "excluded": "Mesh assets/collisions, joints, sensors, remote Fuel and full Gazebo compatibility.",
+      "accepted_at": "2026-11-03T07:29:13.229573+00:00",
+      "evidence": "docs/M1_ACCEPTANCE.md",
+      "accepted_commits": {
+        "gz-sim-rs": "35100cf8b487db787d38e0b1d6075278a82408d3",
+        "gzweb-rs": "0db1f4e46bae49fb5b187dd3286b2b28253e64a4"
+      }
     },
     {
       "id": "M2",
@@ -139,8 +145,8 @@
   ],
   "later_work": "After M12, select one named sensor, system, asset capability or backend increment per cycle. Scope each cycle to at most five working days before starting; split anything larger. Full compatibility remains an unscheduled backlog, not a promised twelve-week completion.",
   "status": {
-    "M1": "in_progress",
-    "M2": "not_started",
+    "M1": "complete",
+    "M2": "in_progress",
     "M3": "not_started",
     "M4": "not_started",
     "M5": "not_started",
@@ -152,5 +158,6 @@
     "M11": "not_started",
     "M12": "not_started"
   },
-  "resumed_at": "2026-11-02T22:33:50.311634Z"
+  "resumed_at": "2026-11-02T22:33:50.311634Z",
+  "phase_started_at": "2026-11-03T07:29:13.229573+00:00"
 }

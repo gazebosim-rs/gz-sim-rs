@@ -17,8 +17,9 @@ recovered automatically. Background rendering was often 1 fps; these are not
 performance measurements. Spheres may roll off the finite ground during a long
 run and continue to be simulated.
 
-Release acceptance remains pending mandatory consolidated qualification and
-hosted CI. These images record the bounded local browser observations. Bundle
+M1 is accepted after mandatory qualification and independent review; see
+[the acceptance record](../../M1_ACCEPTANCE.md). These images record the bounded
+local browser observations. Bundle
 and image hashes are in [observations.json](observations.json).
 
 ![Initial paused world](initial.jpg)

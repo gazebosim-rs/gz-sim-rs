@@ -3,72 +3,40 @@
 
 # Coordinator handoff
 
-> Owner explicitly resumed implementation on 2026-11-02. M1 is active: first
-> real Rapier primitives in gzweb-rs, then complete its bounded acceptance. The
-> earlier pause statements below are historical. Do not resume unrelated pending
-> native/sensor qualification candidates. M1 acceptance remains pending; source and development-build status are below.
+> M1 was accepted on 2026-11-03: Rapier primitives run live in gzweb-rs.
+> The current delivery is M2: local glTF 2.0 visuals with primitive collisions,
+> budgeted at most three working days including review and required checks.
+> Preserve the accepted MVP, paused qualifications and independent Fuel work.
 
 
-Updated 2026-11-02. Read this first when resuming coordination of the rewrite,
-whichever agent you are. AGENTS.md has the standing rules; this file has the
-current state and the next tasks. Update both when either changes.
+Updated 2026-11-03. Read DELIVERY_PLAN.md and M1_ACCEPTANCE.md first.
 
-## Owner priority and resumed state (D30)
+## Current delivery: M2 local mesh visualization
 
-The current task is the weekly delivery plan, not resuming the old qualification
-queue. Read DELIVERY_PLAN.md. M1 is a Rapier-only primitive world actually visible
-and controlled in gzweb-rs, targeted within five working days after explicit
-resume. Subsequent mesh, sensor and system phases each have at most five working
-days of scope. No M1–M12 delivery has been accepted yet. All implementation
-agents and continuation automation have resumed only this bounded M1 work.
+M1 is accepted on public Main at simulator `35100cf8` and viewer `0db1f4e`.
+Both required local gates, exact hosted CI and independent official evidence
+audits passed. The real WebGL2 browser shows 20 dynamic bodies plus ground,
+committed pause/reset/resume, fresh reconnect and clean shutdown. A clean
+read-only Ubuntu 24.04 container with only the executable and fixture mounted
+runs the Rapier server and viewer listener without network, GPU or SDK access.
+See M1_ACCEPTANCE.md for immutable commits, CI links, measurements and limits.
+The development preview uses the maintained `../gzweb-rs`, not the older
+prototype. Both current WASM flavors include executor 1.14.1 and meet their
+unchanged 14 MB gzip budgets. Historical pre-patch successes and failures remain
+separate; no full-compatibility or performance improvement is claimed.
 
-The maintained viewer is `../gzweb-rs`, canonical baseline `3c3ca32` (Bevy 0.20).
-Both current bundles include executor 1.14.1 and passed the unchanged 14 MB gzip
-budgets in the 1,665-second run `artifacts/m1-canonical-executor-patch-build`.
-The real WebGL2 browser again showed 20 dynamic bodies, ground and 21 truthful
-visual rows: running at 21.690 s, committed pause at 25.675 s, reset to paused
-epoch 1 at zero time, resumed motion, fresh advancing reconnect and clean
-shutdown with cleared geometry. Reload briefly showed a closed connection before
-automatic recovery; this intermediate frame is not a passing scene. Restarting
-the same patched CLI automatically restored the initial paused world. All saved
-frames and exact bindings are in `docs/evidence/m1-browser`; no automatic
-unsupported SDF request appeared. These are integration observations, not M1
-acceptance. Final current-graph qualification and hosted CI remain pending.
-Use `&ui=full` for Reset/Play/Pause. Earlier 1,069-second UI bundles, the earlier
-SIGTERM build and prototype observations remain historical evidence.
+Work now on local glTF 2.0 visuals, correct transforms and resource paths, and
+explicit missing/invalid-asset errors. Keep primitive collisions. Reuse the
+existing gzweb-rs mesh pipeline, preserve the primitive MVP, and budget at most
+three working days including independent review and mandatory verification.
+Do not start mesh collisions, texture conversion, remote downloads or unrelated
+native/sensor qualification. Root owns simulator integration; the viewer owner
+owns the maintained viewer. Only test/lint a completed reviewed source batch.
 
-Simulator review commit `1a2648de6090b3b25e47a47c3de534252a8d3c5f`
-passed its complete local staged gate and independent evidence audit: 952
-headless, 555 renderer and 276 tooling checks, plus ten native-off cases.
-Both required profiles passed their unchanged coverage gates. This qualification
-used async-executor 1.14.0. The viewer's hosted advisory check subsequently
-rejected that yanked dependency; upstream 1.14.1 fixes an executor shutdown
-use-after-free. The current simulator lockfile selects that compatible patch
-without changing any other package or feature. The affected browser evidence is
-now refreshed; qualify this dependency graph before Main promotion. The earlier
-results remain historical evidence, not acceptance of the patched graph. See
-[the upstream fix](https://github.com/smol-rs/async-executor/releases/tag/v1.14.1).
-
-The simulator bridge and Rapier-only feature source are implemented on
-`work/m1-live-primitives`. Reviewed development CLI builds passed, including
-`--no-default-features`. Regression source exists; final tests/lints, strict
-coverage, closure proof, staged hook and hosted CI remain pending. Do not rerun
-checks per edit. The native-off qualifier is an additive configuration proof,
-never a replacement or union for the unchanged full coverage profiles.
-
-Accepted runtime baseline remains `386482e5365d827a1c0d1e8ad7ca654fe93902bf`
-(metric box-depth renderer accepted after complete local/hosted review). The
-weekly planning update is accepted on Main at
-`778569027367a76581f777297b50940a6d5070a8`; M1 implementation is not yet accepted.
-Accepted
-SDFormat Main is `1594ac3637396d2cc43497abb16b7c2818d999e6`; simulator's
-producer pin remains `a44bf8be`. Pending mass override `154c1cbf` passed its
-local gate and independent retained audit; hosted run 41521742662 was cancelled
-at the owner's pause, so no hosted acceptance/Main promotion is claimed.
-Metric-depth-worker candidate was paused after its formatting-only gate failure
-and correction review; inspect retained state on resume rather than inventing a
-pass. Preserve all pending work and evidence. Neither candidate blocks the
-primitive MVP by default. Fuel remains independently owned and untouched.
+Accepted SDFormat Main remains `1594ac3637396d2cc43497abb16b7c2818d999e6`;
+the simulator producer pin stays `a44bf8be`. Preserve the paused mass override
+and metric-depth-worker candidates and all their evidence. Fuel is independently
+owned and untouched. Full P0–P7 coverage inventories are deferred, not M2 gates.
 
 The sections below preserve the previous continuation history. Their next-task
 instructions are superseded by this section and D30.

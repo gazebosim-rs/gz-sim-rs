@@ -1,9 +1,9 @@
 # Instructions for implementation agents
 
-> Owner explicitly resumed implementation on 2026-11-02. M1 is active: first
-> real Rapier primitives in gzweb-rs, then complete its bounded acceptance. The
-> earlier pause statements below are historical. Do not resume unrelated pending
-> native/sensor qualification candidates. Development CLI builds passed; M1 acceptance remains pending.
+> M1 was accepted on 2026-11-03: Rapier primitives run live in gzweb-rs.
+> The current delivery is M2: local glTF 2.0 visuals with primitive collisions,
+> budgeted at most three working days including review and required checks.
+> Preserve the accepted MVP, paused qualifications and independent Fuel work.
 
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
@@ -14,13 +14,15 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` before selecting work. The next delivery is M1:
-Rapier f64 boxes/spheres and static ground, actually running and visualized live
-in gzweb-rs with pause/resume/reset. Target at most five working days after
-explicit resume. Later phases each have at most five working days of scope,
-including review and required verification. Full P0–P7 completion, other engines,
-mesh support and sensors do not block M1 as broad families. Preserve them as
-later work, not deletions or completed tasks. Reuse accepted code and tests.
+Read `docs/DELIVERY_PLAN.md` before selecting work. M1 is accepted; see
+`docs/M1_ACCEPTANCE.md`. Current M2 adds local glTF 2.0 visual assets to the
+moving Rapier world in gzweb-rs while retaining primitive collisions. Budget
+at most three working days including source review and required verification.
+Reuse the existing viewer mesh loader. Missing or invalid resources must fail
+clearly. Mesh collisions, texture conversion, remote downloads and general
+formats remain deferred. Preserve all accepted MVP behavior and quality gates.
+Full P0–P7 completion and unrelated backend or sensor qualifications do not block
+this delivery. Later phases keep their one-to-five-working-day scope budgets.
 
 The owner explicitly resumed implementation. Work only on the current delivery
 or a concrete blocking dependency; earlier pause records are historical. The

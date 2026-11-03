@@ -1,5 +1,5 @@
 {
-  "scope": "Actual patched-graph CUA WebGL2 observations; final required qualification and M1 acceptance remain pending",
+  "scope": "Actual accepted M1 patched-graph browser observations; bounded integration evidence, not full compatibility or performance qualification",
   "executor_version": "1.14.1",
   "simulator_source": "1a2648de plus reviewed executor lock update",
   "viewer_source": "a3e0b0a2 plus reviewed executor lock update",
@@ -40,5 +40,6 @@
   "media_type": "image/jpeg",
   "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
   "license": "Apache-2.0",
-  "prior_observations_commit": "1a2648de6090b3b25e47a47c3de534252a8d3c5f"
+  "prior_observations_commit": "1a2648de6090b3b25e47a47c3de534252a8d3c5f",
+  "acceptance_record": "../../M1_ACCEPTANCE.md"
 }

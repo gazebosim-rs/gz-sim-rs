@@ -16,8 +16,8 @@ pause/reset/resume, fresh advancing reconnect and clean shutdown. See
 [the saved frames and bindings](evidence/m1-browser/README.md). Reload briefly
 showed a closed connection before automatic recovery; stale geometry was not
 presented as connected. Both current WebGPU/GL bundles pass the unchanged payload
-budgets. Final current-graph staged qualification and hosted CI remain pending;
-this is not M1 release acceptance. Earlier bundles and prototype observations
+budgets. M1 is now accepted after current-graph staged qualification, exact hosted CI
+and independent evidence review; see [M1_ACCEPTANCE.md](M1_ACCEPTANCE.md). Earlier bundles and prototype observations
 remain historical. See DELIVERY_PLAN.md.
 
 A portable record of the current actual browser frames is in

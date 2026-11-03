@@ -11,9 +11,9 @@ subsequently qualified in simulator review commit `1a2648de`, including all ten
 native-off cases and both unchanged full coverage profiles. That dependency graph
 used executor 1.14.0. The current lock selects the compatible upstream 1.14.1
 shutdown safety fix. Its native-off product build passed in 52.34 seconds and
-ran the fresh browser observations in `docs/evidence/m1-browser`. Final staged
-and hosted qualification of this patched graph remains pending; neither a
-product build nor browser observations alone imply M1 acceptance.
+ran the fresh browser observations in `docs/evidence/m1-browser`. The patched graph subsequently passed final staged and hosted qualification
+and independent evidence review. See [M1_ACCEPTANCE.md](M1_ACCEPTANCE.md);
+a product build or browser observation alone was not used as acceptance.
 
 The default `native-backends` feature stays enabled in Scene, Server and CLI.
 Existing full builds, native versions, linker/RPATH checks, tests and verification

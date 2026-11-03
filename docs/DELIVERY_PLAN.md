@@ -3,10 +3,10 @@
 
 # Weekly delivery plan
 
-> Owner explicitly resumed implementation on 2026-11-02. M1 is active: first
-> real Rapier primitives in gzweb-rs, then complete its bounded acceptance. The
-> earlier pause statements below are historical. Do not resume unrelated pending
-> native/sensor qualification candidates. Development CLI builds passed; M1 acceptance remains pending.
+> M1 was accepted on 2026-11-03: Rapier primitives run live in gzweb-rs.
+> The current delivery is M2: local glTF 2.0 visuals with primitive collisions,
+> budgeted at most three working days including review and required checks.
+> Preserve the accepted MVP, paused qualifications and independent Fuel work.
 
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
@@ -16,11 +16,11 @@ M1 implementation and its continuation automation.
 
 ## Schedule and acceptance
 
-M1 targets **at most five working days after resume**. Each subsequent phase is
+M1 was accepted on 2026-11-03; see [its acceptance evidence](M1_ACCEPTANCE.md).
+M2 now targets **at most three working days**. Each subsequent phase is
 also at most five working days, including source review, fixes, documentation,
 mandatory staged checks and hosted CI. These are scope budgets and planning
-targets, not guaranteed completion dates. No clock runs while paused. Re-estimate
-M1 after its first day of real browser integration; report any risk immediately.
+targets, not guaranteed completion dates. No clock runs while paused. Re-estimate after a real integration checkpoint; report any risk immediately.
 If work exceeds a budget, split unfinished optional scope into a new named
 phase. Never label a broken mandatory exit criterion accepted to meet a date.
 Do not carry a broad family indefinitely as one weekly phase.
@@ -57,7 +57,8 @@ accepted code, but no phase inherits acceptance merely from an older test run.
 Existing broad P0–P7 gates remain historical and long-term coverage inventories;
 they are not this release schedule and do not block M1 as entire families.
 `planning/delivery-phases.json` is the machine-readable schedule mirrored by the
-tracker. New M1–M12 acceptance starts at zero, independently of accepted P2.
+tracker. M1 is accepted; M2–M12 remain unaccepted. These counts are independent of
+historical P2 acceptance.
 
 ## M1: smallest real end-to-end product
 
