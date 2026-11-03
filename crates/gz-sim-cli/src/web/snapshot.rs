@@ -12,6 +12,7 @@ pub(super) const MAX_BYTES: usize = 65536;
 pub(super) enum Shape {
     Box { size: [f64; 3] },
     Sphere { radius: f64 },
+    Mesh { uri: String, scale: [f64; 3] },
 }
 
 #[derive(Serialize)]
@@ -47,6 +48,15 @@ fn representable(value: f64) -> bool {
 }
 
 pub(super) fn extract(sim: &Simulation, world_name: &str, sequence: u64) -> io::Result<Scene> {
+    extract_with_assets(sim, world_name, sequence, None)
+}
+
+pub(super) fn extract_with_assets(
+    sim: &Simulation,
+    world_name: &str,
+    sequence: u64,
+    assets: Option<&super::assets::Assets>,
+) -> io::Result<Scene> {
     if sim.is_faulted() || world_name.len() > 256 {
         return Err(invalid("gzweb snapshot needs a healthy named world"));
     }
@@ -87,20 +97,34 @@ pub(super) fn extract(sim: &Simulation, world_name: &str, sequence: u64) -> io::
         let geometry = entity
             .get::<VisualGeometry>()
             .ok_or_else(|| invalid("gzweb visual has no geometry"))?;
-        let material = &entity
-            .get::<VisualMaterial>()
-            .ok_or_else(|| invalid("gzweb visual has no material"))?
-            .0;
+        let color = if matches!(geometry.0.as_ref(), sdformat::Geometry::Mesh(_)) {
+            if entity.contains::<VisualMaterial>() {
+                return Err(invalid(
+                    "M2 mesh visuals use embedded glTF materials; omit the SDF material override",
+                ));
+            }
+            // Required wire field for compatibility; the mesh renderer uses its glTF material.
+            [1.0; 4]
+        } else {
+            let material = &entity
+                .get::<VisualMaterial>()
+                .ok_or_else(|| invalid("gzweb visual has no material"))?
+                .0;
+            if material.script.is_some()
+                || material.pbr.is_some()
+                || !material.normal_map.is_empty()
+            {
+                return Err(invalid(
+                    "gzweb MVP supports visible opaque diffuse primitives only",
+                ));
+            }
+            material.diffuse.map(f64::from)
+        };
         let properties = &entity
             .get::<VisualProperties>()
             .ok_or_else(|| invalid("gzweb visual has no properties"))?
             .0;
-        if properties.transparency != 0.0
-            || properties.visibility_flags != u32::MAX
-            || material.script.is_some()
-            || material.pbr.is_some()
-            || !material.normal_map.is_empty()
-        {
+        if properties.transparency != 0.0 || properties.visibility_flags != u32::MAX {
             return Err(invalid(
                 "gzweb MVP supports visible opaque diffuse primitives only",
             ));
@@ -112,6 +136,21 @@ pub(super) fn extract(sim: &Simulation, world_name: &str, sequence: u64) -> io::
             }
             sdformat::Geometry::Sphere { radius } if positive(*radius) => {
                 Shape::Sphere { radius: *radius }
+            }
+            sdformat::Geometry::Mesh(mesh) if mesh.scale.iter().copied().all(positive) => {
+                Shape::Mesh {
+                    uri: assets
+                        .ok_or_else(|| {
+                            invalid("mesh visuals require admitted local glTF resources")
+                        })?
+                        .uri(id, mesh)?,
+                    scale: mesh.scale,
+                }
+            }
+            sdformat::Geometry::Mesh(_) => {
+                return Err(invalid(
+                    "gzweb mesh scale must be positive, finite and representable",
+                ));
             }
             _ => {
                 return Err(invalid(
@@ -128,11 +167,10 @@ pub(super) fn extract(sim: &Simulation, world_name: &str, sequence: u64) -> io::
                 .copied()
                 .all(representable)
             || (norm - 1.0).abs() > 1e-6
-            || !material
-                .diffuse
+            || !color
                 .iter()
                 .all(|v| v.is_finite() && (0.0..=1.0).contains(v))
-            || material.diffuse[3] != 1.0
+            || color[3] != 1.0
         {
             return Err(invalid(
                 "gzweb visual has invalid pose, name or opaque color",
@@ -147,12 +185,20 @@ pub(super) fn extract(sim: &Simulation, world_name: &str, sequence: u64) -> io::
             translation: pose.translation,
             rotation: pose.rotation,
             shape,
-            color: material.diffuse.map(f64::from),
+            color,
         });
     }
     visuals.sort_unstable_by_key(|visual| visual.id);
+    let version = if visuals
+        .iter()
+        .any(|visual| matches!(visual.shape, Shape::Mesh { .. }))
+    {
+        2
+    } else {
+        1
+    };
     Ok(Scene {
-        version: 1,
+        version,
         kind: "scene",
         world: world_name.into(),
         world_id: world_id.ok_or_else(|| invalid("gzweb snapshot has no world identity"))?,

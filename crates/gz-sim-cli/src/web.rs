@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! Explicit local viewer ownership; no resources exist without --web-viewer.
+mod assets;
 mod snapshot;
 mod socket;
 
@@ -89,6 +90,7 @@ struct Ack {
 }
 
 pub(super) struct Bridge {
+    assets: Option<assets::Assets>,
     latest: Arc<Latest>,
     connected: Arc<AtomicU64>,
     stop: Arc<AtomicBool>,
@@ -105,7 +107,11 @@ impl Bridge {
     }
 
     fn with_listener(sim: &Simulation, world: &str, listener: TcpListener) -> io::Result<Self> {
-        let initial = snapshot::encode(&snapshot::extract(sim, world, 0)?)?;
+        let assets = assets::Assets::new(sim)?;
+        let initial = snapshot::encode(&match &assets {
+            Some(assets) => snapshot::extract_with_assets(sim, world, 0, Some(assets))?,
+            None => snapshot::extract(sim, world, 0)?,
+        })?;
         let port = listener.local_addr()?.port();
         listener.set_nonblocking(true)?;
         let latest = Arc::new(Mutex::new((0, Arc::new(initial))));
@@ -122,6 +128,7 @@ impl Bridge {
             "gzweb-rs WebSocket: ws://127.0.0.1:{port}/ (viewer HTTP origin port 8080 or 8081)"
         );
         Ok(Self {
+            assets,
             latest,
             connected,
             stop,
@@ -155,7 +162,9 @@ impl Bridge {
         world: &str,
         controls: Vec<(Pending, bool, u64)>,
     ) -> io::Result<()> {
-        if self.worker.as_ref().is_some_and(JoinHandle::is_finished) {
+        if self.worker.as_ref().is_some_and(JoinHandle::is_finished)
+            || self.assets.as_ref().is_some_and(|assets| !assets.healthy())
+        {
             return Err(io::Error::new(
                 io::ErrorKind::BrokenPipe,
                 "gzweb network worker stopped",
@@ -173,7 +182,10 @@ impl Bridge {
             .sequence
             .checked_add(1)
             .ok_or_else(|| io::Error::other("gzweb sequence exhausted"))?;
-        let scene = snapshot::extract(sim, world, self.sequence)?;
+        let scene = match &self.assets {
+            Some(assets) => snapshot::extract_with_assets(sim, world, self.sequence, Some(assets))?,
+            None => snapshot::extract(sim, world, self.sequence)?,
+        };
         let encoded = Arc::new(snapshot::encode(&scene)?);
         *self
             .latest
