@@ -1,8 +1,8 @@
 # Instructions for implementation agents
 
-> M1–M3 were accepted on 2026-11-03: primitives, local mesh visuals and Rapier mesh collisions.
-> The current delivery is M4: one demand-activated IMU model in the live Rapier world,
-> budgeted at most three working days including review and required checks.
+> M1–M4 were accepted on 2026-11-03, including the live Rapier IMU delivery.
+> The current delivery is M5: one SDF RGB camera using existing offscreen Bevy rendering,
+> budgeted at most five working days including review and required checks.
 > Preserve accepted demos, paused qualifications and independent Fuel work.
 
 
@@ -14,14 +14,16 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M3 are accepted; see
-their acceptance records. Current M4 wires the existing IMU model through loaded
-SDF demand and the live Rapier world, exposing canonical messages. Budget at
-most three working days including independent source review and required checks.
-Prove units, frame, sample counts, timestamps, pause/reset and last-consumer
-teardown. A world without an IMU owns no IMU callbacks or buffers. Reuse existing
-sensor, lifecycle and upstream Zenoh code; do not start other sensor families or
-full noise-model parity. Full P0–P7 completion remains a deferred inventory.
+Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M4 are accepted; see
+their acceptance records. Current M5 activates one configured SDF RGB camera
+through existing offscreen Bevy rendering and bounded canonical image delivery.
+Budget at most five working days including independent review and mandatory
+checks. Prove real timestamped images at the requested rate, frame correctness,
+pause/reset, removal and overload behavior. Reuse the existing renderer, worker,
+output and lifecycle code; keep rendering demand-activated and server waits
+outside critical stepping. Camera arrays, distortion, thermal, segmentation and
+other sensor families remain deferred. Do not resume the paused metric-depth
+candidate as an unrelated qualification. Full P0–P7 remains a deferred inventory.
 Keep every retained assertion and quality gate.
 
 The owner explicitly resumed implementation. Work only on the current delivery

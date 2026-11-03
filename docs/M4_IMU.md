@@ -3,15 +3,15 @@
 
 # M4: demand-activated IMU delivery
 
-Candidate implementation, not accepted. The scope budget is three working days
-including independent source review and mandatory verification. M1–M3 remain
-the accepted baseline. Reuse the existing sensor model, SDF loader, Rapier state,
+Accepted on 2026-11-03; see [M4_ACCEPTANCE.md](M4_ACCEPTANCE.md).
+The scope budget was three working days
+including independent source review and mandatory verification. M1–M3 remain preserved. Reuse the existing sensor model, SDF loader, Rapier state,
 schedules, lifecycle and direct upstream Rust Zenoh publication; no separate
 sensor runtime, transport facade or Messages functionality is introduced.
 
 ## Runnable example
 
-Use the accepted viewer setup in [MVP_BROWSER.md](MVP_BROWSER.md). The candidate
+Use the accepted viewer setup in [MVP_BROWSER.md](MVP_BROWSER.md). The example
 world contains a falling two-kilogram box, static ground and one centered IMU
 rotated 90 degrees about local X. The SDF physics step is 1 ms and the IMU rate
 is 100 Hz, with explicit orientation output and no noise. Its canonical topic
@@ -26,7 +26,8 @@ GZ_PARTITION=mvp-imu cargo run --locked --no-default-features \
 Open `http://127.0.0.1:8081/?backend=primitive&ui=full&url=ws://127.0.0.1:9006/`.
 The existing browser visualizes the body and controls the real simulation;
 canonical IMU samples use the existing Zenoh boundary in [ZENOH_IO.md](ZENOH_IO.md).
-This command is a candidate launch recipe, not a claimed observed run.
+Actual captures reused the exact qualified native-free executable and accepted
+viewer bundles; see the acceptance record for source/binary bindings.
 
 ## Sensor and lifecycle contract
 
@@ -49,7 +50,8 @@ exact sample counts/timestamps, pause/reset, loaded-consumer teardown and actual
 upstream Zenoh delivery decoded by maintained generated protobuf bindings.
 Existing lifecycle, rate and canonical-wire tests remain retained. Source review
 and the complete regression/documentation batch must finish before the single
-consolidated mandatory verification pass. No qualification result is claimed.
+consolidated mandatory verification pass. Required checks and independent
+evidence reviews passed; exact results and limits are in M4_ACCEPTANCE.md.
 
 Other sensor families, general noise-model parity, new dynamic plugins and broad
 Gazebo compatibility remain deferred. Keep strict owned and changed-line gates,

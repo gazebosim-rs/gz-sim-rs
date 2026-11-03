@@ -1,0 +1,80 @@
+{
+  "recorded_at": "2026-11-03T15:02:56.038725+00:00",
+  "simulator_commit": "eae6f3b81ed5e52d74648dfd1634ae95a8e9a41b",
+  "simulator_tree": "30f2e19f6d100b0581d4a093c144c850c18be38c",
+  "viewer_reused": "5b67f45fe0638197dc06ad2d2659a34460c7f396",
+  "url": "http://127.0.0.1:8081/artifacts/m2-preview/?backend=primitive&ui=full&url=ws://127.0.0.1:9006/",
+  "server_session": 75292,
+  "partition": "m4-imu-model-9006",
+  "elf": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m4-imu-model-worktree/artifacts/staged/30f2e19f6d100b0581d4a093c144c850c18be38c-xk9pg1ex/rapier-runtime/objects/003-gz-sim-rs",
+    "bytes": 83243056,
+    "sha256": "74426526e7856a5aed1b47539f39fa2c32223ccfb668c51c3864a73c4982593f"
+  },
+  "fixture": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m4-imu-model-worktree/examples/mvp_imu.sdf",
+    "bytes": 2093,
+    "sha256": "1148c0aa4553c08808d0d5a275887d7b9391122e080d1778373fa1a626c6e7e1"
+  },
+  "viewer_files": [
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/index.html",
+      "bytes": 1854,
+      "sha256": "0712f9d812f2363fcf6c2da0c022813d4bdc37e4bf9f8d02330976797e1be1df"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/startup.mjs",
+      "bytes": 1180,
+      "sha256": "8df854064b94642f0490ca54a8927cbebfbae9125c40de0a9bea9794e4fb8888"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/target/wasm32-unknown-unknown/release/webgl2/gzweb.js",
+      "bytes": 122461,
+      "sha256": "ba4f6f1ed96242813c5c9cf31881c794994f140471c9cc400b0a800837343025"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/target/wasm32-unknown-unknown/release/webgl2/gzweb_bg.wasm",
+      "bytes": 47667841,
+      "sha256": "d2fee7a40e0acdb3a8ef552c667ba2d247eb4de48e5d80850248a17147790621"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/target/wasm32-unknown-unknown/release/webgpu/gzweb.js",
+      "bytes": 179350,
+      "sha256": "08bea1d91073db214120a40b15923dad2531b80a4a263dfe8d21976a5702e05f"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/target/wasm32-unknown-unknown/release/webgpu/gzweb_bg.wasm",
+      "bytes": 47762531,
+      "sha256": "ffc103e3ec5aed9f5c0e3868209db1c1783b22239fda6626d8301bed6552344c"
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m4-delivery/browser/01-initial.jpg",
+      "bytes": 70377,
+      "sha256": "cb0d856d530562a66e49359ee02b604c87e4784dc76fe9151422ece5f510333e",
+      "observation": "Paused0s; blue IMU-bearing cube above ground,2visual entities. No IMU sample values are displayed."
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m4-delivery/browser/02-motion.jpg",
+      "bytes": 71793,
+      "sha256": "f534b136cde0140a59c2ffe6854e8d70a603021b65f239d0337161b589eeb9a9",
+      "observation": "Current26.414s; cube movedonto ground. ResumeACKepoch0/0.001s/pausedfalse."
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m4-delivery/browser/03-paused.jpg",
+      "bytes": 71721,
+      "sha256": "8847c8b4591e6d53c42f2122fb7a5ba6b9c94dc8e20553d360a84851969f7da3",
+      "observation": "Current30.220s and PauseACKepoch0/30.220s/pausedtrue."
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m4-delivery/browser/04-reset.jpg",
+      "bytes": 70925,
+      "sha256": "39c0299c51ab2201d1e5d155d7ba7821c18d50aa93b4ab8fba5aa4dda3cefeb3",
+      "observation": "Current0s and ResetACKepoch1/0s/pausedtrue; original cube placement restored at same camera."
+    }
+  ],
+  "scope": "Actual production browser world/clock/control observations using the exact qualified native-free instrumented executable and unchanged accepted viewer. No extra build. Four new passing retained Server tests independently verify SI units, sensor axes, exact acquisition times/counts, demand/lifecycle teardown and actual canonical Zenoh delivery with maintainedProstdecode across reset epochs.",
+  "limits": "Browser is not an IMU sample inspector: no screen-derived sample, frame, covariance or units proof. Those claims use the actual named passing tests. Background1fps is visible; no performance or separately inspected renderer-backend claim. Startup initiallyshowedWaiting before real scene.",
+  "capture_time_qualification": "Requiredlocalgate910.222s andindependentretainedauditCLEAR; exacthostedCI41659117101 andMainacceptance pending."
+}

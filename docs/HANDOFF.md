@@ -3,48 +3,46 @@
 
 # Coordinator handoff
 
-> M1–M3 were accepted on 2026-11-03: primitives, local mesh visuals and Rapier mesh collisions.
-> The current delivery is M4: one demand-activated IMU model in the live Rapier world,
-> budgeted at most three working days including review and required checks.
+> M1–M4 were accepted on 2026-11-03, including the live Rapier IMU delivery.
+> The current delivery is M5: one SDF RGB camera using existing offscreen Bevy rendering,
+> budgeted at most five working days including review and required checks.
 > Preserve accepted demos, paused qualifications and independent Fuel work.
 
 
-Updated 2026-11-03. Read DELIVERY_PLAN.md and M3_ACCEPTANCE.md first.
+Updated 2026-11-03. Read DELIVERY_PLAN.md and M4_ACCEPTANCE.md first.
 
-## Current delivery: M4 IMU model
+## Current delivery: M5 RGB camera
 
-M3 is accepted on public Main at simulator `ea8048f1`, using the unchanged
-accepted viewer `5b67f45f`. The normal staged hook passed in 897.212 seconds,
-exact hosted CI `41644722929` passed all sixteen steps, and independent local,
-official and actual-browser evidence reviews are clear. Static triangle surfaces
-and closed already-convex dynamic meshes use maintained glTF/Rapier/Parry APIs.
-Geometry/contact, frames, scale, explicit inertia, failure atomicity, removal,
-reset and owned asset lifetime pass. Unsupported nonconvex dynamic input is
-explicitly refused; exact-coordinate seam canonicalization moves no geometry.
-The dynamic support-plane proof is a conservative bounded f64 admission, not an
-exact-predicate qualification of arbitrary transformed meshes.
+M4 is accepted on public Main at simulator `eae6f3b8`, using the unchanged
+accepted viewer `5b67f45f`. The single consolidated normal staged hook passed in
+910.222 seconds, exact hosted CI `41659117101` passed all sixteen steps, and
+independent source, local/official data and actual-browser evidence reviews are
+clear. This delivery qualifies the existing IMU implementation through a runnable
+100 Hz rotated-sensor example and four focused regression controls; it adds no
+production code and claims no new production coverage credit.
 
-Actual production browser captures show mesh motion/contact at 9.875 seconds,
-committed pause at 19.765 seconds, and reset to epoch 1/time 0 with original
-apparent placement restored. The exact qualified native-free instrumented CLI
-and accepted viewer bundles were reused without an extra product build. No
-performance or screenshot-derived quantitative geometry claim is made. See
-M3_ACCEPTANCE.md and evidence/m3-browser/README.md for counters and limits.
-M1/M2 and all historical failure evidence remain preserved.
+Actual tests prove SI/sensor axes, end-step times and counts, pause/reset,
+subscriber demand versus structural loaded-consumer teardown, and canonical
+upstream Zenoh delivery decoded by maintained Prost bindings. The browser shows
+the real body world and committed controls, not IMU values. Exact qualified
+native-free executable and accepted viewer bundles were reused without another
+build. No performance or new C++ sensor parity claim is made. See M4_ACCEPTANCE.md
+and evidence/m4-browser/README.md for counters, bindings and limits.
 
-Current M4 connects one configured IMU to the live Rapier world through SDF
-demand and canonical messages. Prove units, frame, sample count and timestamps,
-pause/reset and last-consumer teardown. A no-IMU world must own no IMU callbacks
-or buffers. Reuse existing sensor models, schedules, lifecycle and upstream
-Zenoh code. Budget at most three working days including review and mandatory
-checks; finish and review the whole bounded feature before consolidated
-verification. Other sensors and full noise-model parity remain deferred.
+Current M5 connects one configured SDF RGB camera to existing offscreen Bevy
+rendering and bounded canonical image delivery. Prove real timestamped images
+at requested rate, frame, pause/reset, removal and overload behavior. Reuse
+existing camera metadata, renderer, worker, output and lifecycle APIs. Keep
+acquisition demand-activated; network/GPU waits stay outside critical stepping.
+Budget at most five working days including independent review and mandatory
+checks. Camera arrays, distortion, thermal, segmentation and other sensor
+families remain deferred. Do not resume M6 depth qualification prematurely.
 
-Root owns simulator integration and canonical acceptance. Preserve accepted
-SDFormat Main `1594ac3637396d2cc43497abb16b7c2818d999e6` and the current simulator
+Root owns simulator/CLI/Server integration and canonical acceptance. Preserve
+accepted SDFormat Main `1594ac3637396d2cc43497abb16b7c2818d999e6` and simulator
 producer pin `a44bf8be`; paused mass-override and metric-depth candidates remain
 untouched until a named delivery needs them. Preserve independently owned Fuel.
-Historical P0–P7 inventories are deferred, not prerequisites for M4.
+Historical P0–P7 inventories are deferred, not prerequisites for M5.
 
 The sections below preserve previous continuation history. Their next-task
 instructions are superseded by this section and D30.
