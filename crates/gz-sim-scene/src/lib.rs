@@ -44,8 +44,8 @@ pub use initial::{
 use bevy_ecs::prelude::*;
 use glam::{DQuat, DVec3};
 use gz_physics::{
-    BodyId, BodySpec, CollisionSpec, CompoundBodySpec, Inertia, PhysicsBackend, PhysicsError,
-    PhysicsReset, PlaneSpec, RotationSpec, Shape,
+    BodyId, BodySpec, CollisionSpec, CompoundBodySpec, Inertia, MeshBodySpec, PhysicsBackend,
+    PhysicsError, PhysicsReset, PlaneSpec, RotationSpec, Shape,
 };
 #[cfg(feature = "native-backends")]
 use gz_physics_dart::DartBackend;
@@ -348,6 +348,11 @@ pub enum LoadError {
     Unsupported {
         entity: String,
         feature: &'static str,
+    },
+    #[error("{entity}: mesh collision: {source}")]
+    Mesh {
+        entity: String,
+        source: gz_assets::mesh::MeshError,
     },
     #[error(transparent)]
     Physics(#[from] PhysicsError),
@@ -725,20 +730,39 @@ fn build_model(
         let mut solids = Vec::with_capacity(link.collisions.len());
         let mut compound = link.collisions.len() > 1;
         let mut plane = None;
+        let mut mesh_collision = None;
         for collision in &link.collisions {
             require(
                 collision.surface.source.is_none(),
                 name,
                 "collision surface parameters",
             )?;
+            if matches!(&collision.geometry, Geometry::Mesh(_)) {
+                require(
+                    backend.as_ref().is_some_and(|b| b.engine() == "rapier"),
+                    name,
+                    "collision geometry",
+                )?;
+            }
             let local = sdf.resolve_pose(&collision.pose, &model.scoped_name, name, name)?;
             require(
                 identity(local)
+                    || (matches!(&collision.geometry, Geometry::Mesh(_))
+                        && backend.as_ref().is_some_and(|b| b.engine() == "rapier"))
                     || (dart_collisions && !matches!(collision.geometry, Geometry::Plane { .. })),
                 name,
                 "offset collision pose",
             )?;
             compound |= !identity(local);
+            if let Geometry::Mesh(mesh) = &collision.geometry {
+                require(link.collisions.len() == 1, name, "compound mesh collision")?;
+                let geometry = gz_assets::mesh::load(mesh).map_err(|source| LoadError::Mesh {
+                    entity: name.clone(),
+                    source,
+                })?;
+                mesh_collision = Some((geometry, local));
+                continue;
+            }
             let shape = match collision.geometry {
                 Geometry::Sphere { radius } => Shape::Sphere { radius },
                 Geometry::Cylinder { radius, length } => Shape::Cylinder {
@@ -802,6 +826,41 @@ fn build_model(
                     orientation: pose.rotation,
                     size,
                 })?;
+                (Some(id), None)
+            }
+            None if mesh_collision.is_some() => {
+                let (geometry, local) = mesh_collision.as_ref().expect("matched mesh collision");
+                let backend = backend
+                    .as_mut()
+                    .expect("mesh backend admitted before asset IO");
+                let id = backend.spawn_mesh_link(
+                    MeshBodySpec {
+                        vertices: &geometry.vertices,
+                        triangles: &geometry.triangles,
+                        collision_position: local.translation,
+                        collision_orientation: local.rotation,
+                        position: pose.translation,
+                        velocity: [0.0; 3],
+                        mass: (!is_static).then_some(link.inertial.mass),
+                    },
+                    RotationSpec {
+                        orientation: pose.rotation,
+                        ..Default::default()
+                    },
+                    Some(Inertia {
+                        center: inertial_pose.translation,
+                        orientation: inertial_pose.rotation,
+                        tensor: link.inertial.inertia,
+                    }),
+                )?;
+                if !model.joints.is_empty() || (top_level && model.links.len() > 1) {
+                    let group = sim
+                        .world()
+                        .get::<EntityId>(model_entity)
+                        .expect("loader constructed model")
+                        .get();
+                    backend.set_self_collision_group(id, Some(group))?;
+                }
                 (Some(id), None)
             }
             None => {

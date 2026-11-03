@@ -2572,6 +2572,9 @@ dependencies = [
 name = "gz-assets"
 version = "0.1.0"
 dependencies = [
+ "base64",
+ "glam 0.33.12",
+ "gltf",
  "gz-fuel-tools",
  "sdformat",
  "tempfile",
@@ -2837,6 +2840,7 @@ version = "0.1.0"
 dependencies = [
  "bevy_ecs",
  "glam 0.33.12",
+ "gz-assets",
  "gz-assets",
  "gz-fuel-tools",
  "gz-physics",

@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! The contract every dynamic engine adapter (Rapier, DART, MuJoCo) implements.
 
-use crate::{BodySpec, BodyState, CompoundBodySpec, Inertia, PlaneSpec, RotationSpec};
+use crate::{
+    BodySpec, BodyState, CompoundBodySpec, Inertia, MeshBodySpec, PlaneSpec, RotationSpec,
+};
 use bevy_ecs::prelude::*;
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo};
 use std::{any::Any, sync::Arc, time::Duration};
@@ -146,6 +148,20 @@ pub trait DynamicBackend: Send + Sync + 'static {
         rotation: RotationSpec,
         inertia: Option<Inertia>,
     ) -> Result<BodyId, PhysicsError>;
+
+    /// Admit a static triangle surface or a closed convex dynamic mesh.
+    /// Unsupported engines refuse without allocating bodies or decoding assets.
+    fn spawn_mesh_link(
+        &mut self,
+        _spec: MeshBodySpec<'_>,
+        _rotation: RotationSpec,
+        _inertia: Option<Inertia>,
+    ) -> Result<BodyId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "mesh link collision",
+        })
+    }
 
     /// Creates one link with local collision poses and explicit link inertia.
     /// Unsupported engines refuse before mutation. DART currently admits one to

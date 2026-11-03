@@ -10,6 +10,9 @@ gz-fuel-tools.workspace = true
 sdformat.workspace = true
 thiserror.workspace = true
 url = "=2.5.8"
+gltf = { version = "=1.4.1", default-features = false, features = ["utils"] }
+glam.workspace = true
+base64 = "=0.22.1"
 
 [dev-dependencies]
 tempfile = "=3.25.0"

@@ -99,7 +99,7 @@ impl RapierBackend {
         axis: Vector,
     ) -> Result<(), PhysicsError> {
         let twist = |id: BodyId, initial: bool| {
-            let (handle, spec, rotation, ..) = self.bodies[&id];
+            let (handle, spec, rotation, ..) = &self.bodies[&id];
             let (linear, angular, center) = if initial {
                 (
                     Vector::from(spec.velocity),
@@ -107,7 +107,7 @@ impl RapierBackend {
                     Vector::from(spec.position),
                 )
             } else {
-                let body = &self.world.bodies[handle];
+                let body = &self.world.bodies[*handle];
                 (body.linvel(), body.angvel(), body.center_of_mass())
             };
             (linear + angular.cross(anchor - center), angular)
@@ -146,11 +146,11 @@ impl RapierBackend {
     ) -> Result<(), PhysicsError> {
         let reduced = matches!(solver, Solver::Reduced);
         for id in [parent, Some(child)].into_iter().flatten() {
-            let (handle, _, _, inertia, _) = self.bodies[&id];
+            let (handle, _, _, inertia, _) = &self.bodies[&id];
             let mixed = if reduced {
-                self.world.impulse_joints_with(handle).next().is_some()
+                self.world.impulse_joints_with(*handle).next().is_some()
             } else {
-                self.world.multibody_joints_with(handle).next().is_some()
+                self.world.multibody_joints_with(*handle).next().is_some()
             };
             if mixed {
                 return Err(PhysicsError::Unsupported {

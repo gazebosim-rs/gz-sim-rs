@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.8</gravity>
+    <physics name="rapier" type="ode"><max_step_size>0.005</max_step_size><real_time_factor>1</real_time_factor></physics>
+    <model name="ground"><static>true</static><pose>0 0 -0.5 0 0 0</pose><link name="ground">
+      <collision name="box"><geometry><box><size>16 12 1</size></box></geometry></collision>
+      <visual name="ground"><geometry><box><size>16 12 1</size></box></geometry><material><diffuse>0.4 0.4 0.4 1</diffuse></material></visual>
+    </link></model>
+    <model name="local_mesh"><pose>0 0 4 0.1 0.2 0.3</pose><link name="body">
+      <inertial><mass>1</mass><inertia><ixx>0.1</ixx><iyy>0.1</iyy><izz>0.1</izz></inertia></inertial>
+      <collision name="convex_mesh"><pose>0.1 0.2 0.3 0.2 0.4 0.3</pose><geometry><mesh><uri>assets/m2/pyramid.gltf</uri><scale>1.5 0.75 2</scale></mesh></geometry></collision>
+      <visual name="pyramid"><pose>0.1 0.2 0.3 0.2 0.4 0.3</pose><geometry><mesh><uri>assets/m2/pyramid.gltf</uri><scale>1.5 0.75 2</scale></mesh></geometry></visual>
+    </link></model>
+    <model name="sphere"><pose>3 0 3 0 0 0</pose><link name="body">
+      <inertial><mass>1</mass><inertia><ixx>0.1</ixx><iyy>0.1</iyy><izz>0.1</izz></inertia></inertial>
+      <collision name="sphere"><geometry><sphere><radius>0.5</radius></sphere></geometry></collision>
+      <visual name="sphere"><geometry><sphere><radius>0.5</radius></sphere></geometry><material><diffuse>0.8 0.2 0.1 1</diffuse></material></visual>
+    </link></model>
+  </world>
+</sdf>

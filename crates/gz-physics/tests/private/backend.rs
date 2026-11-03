@@ -255,3 +255,32 @@ fn default_joint_effort_validation_is_an_explicit_capability_error() {
         })
     ));
 }
+
+#[test]
+fn default_mesh_capability_refuses_before_numeric_or_geometry_validation() {
+    let mut backend = Recorder::default();
+    let before = (backend.steps.clone(), backend.resets, backend.fail);
+    let error = backend
+        .spawn_mesh_link(
+            MeshBodySpec {
+                vertices: &[[f64::NAN; 3]],
+                triangles: &[[u32::MAX; 3]],
+                collision_position: [f64::NAN; 3],
+                collision_orientation: [0.0; 4],
+                position: [f64::NAN; 3],
+                velocity: [f64::NAN; 3],
+                mass: Some(f64::NAN),
+            },
+            RotationSpec::default(),
+            None,
+        )
+        .unwrap_err();
+    assert_eq!(
+        error,
+        PhysicsError::Unsupported {
+            engine: "recorder",
+            capability: "mesh link collision"
+        }
+    );
+    assert_eq!((backend.steps, backend.resets, backend.fail), before);
+}

@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
-type Construction = (BodySpec, RotationSpec, Option<Inertia>, Option<u64>);
+type InitialConstruction = (Construction, RotationSpec, Option<Inertia>, Option<u64>);
 
 /// Captured spawn states and engine settings; wrapped in [`InitialPhysicsState`].
 struct InitialData {
     gravity: Vector,
     parameters: IntegrationParameters,
-    bodies: BTreeMap<BodyId, Construction>,
+    bodies: BTreeMap<BodyId, InitialConstruction>,
     joints: joints::InitialJoints,
     next_id: u64,
 }
@@ -31,8 +31,8 @@ impl RapierBackend {
                 bodies: self
                     .bodies
                     .iter()
-                    .map(|(&id, &(_, spec, rotation, inertia, group))| {
-                        (id, (spec, rotation, inertia, group))
+                    .map(|(&id, (_, spec, rotation, inertia, group))| {
+                        (id, (spec.clone(), *rotation, *inertia, *group))
                     })
                     .collect(),
                 joints: self.joints.initial(),
@@ -52,10 +52,10 @@ impl RapierBackend {
             ..PhysicsWorld::new()
         };
         let mut bodies = BTreeMap::new();
-        for (&id, &(spec, rotational, inertia, group)) in &initial.bodies {
-            let handle = insert_initial(&mut world, spec, rotational, inertia);
-            collision::assign(&mut world, handle, group);
-            bodies.insert(id, (handle, spec, rotational, inertia, group));
+        for (&id, (spec, rotational, inertia, group)) in &initial.bodies {
+            let handle = insert_initial(&mut world, spec, *rotational, *inertia);
+            collision::assign(&mut world, handle, *group);
+            bodies.insert(id, (handle, spec.clone(), *rotational, *inertia, *group));
         }
         let joints = joints::Joints::restore(&initial.joints, &mut world, &bodies);
         Ok(PreparedPhysicsReset::new(
@@ -87,7 +87,7 @@ impl RapierBackend {
 
 pub(super) fn insert_initial(
     world: &mut PhysicsWorld,
-    spec: BodySpec,
+    spec: &Construction,
     rotational: RotationSpec,
     inertia: Option<Inertia>,
 ) -> RigidBodyHandle {
@@ -96,11 +96,7 @@ pub(super) fn insert_initial(
         world,
         spec,
         rotational,
-        validated_collider(
-            spec,
-            rotation(rotational.orientation).expect("validated rotation"),
-        )
-        .expect("validated shape"),
+        spec.collider.clone(),
         inertia.map(|value| {
             inertia_properties(value, spec.mass.unwrap_or(1.0)).expect("validated inertia")
         }),

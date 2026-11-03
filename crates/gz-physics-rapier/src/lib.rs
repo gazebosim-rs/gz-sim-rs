@@ -13,17 +13,28 @@ use std::{
 mod collision;
 mod initial;
 mod joints;
+mod mesh;
 
 pub use gz_physics::{
     BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId, JointState,
-    PhysicsBackend, PhysicsError, PhysicsReset, PreparedPhysicsReset, RestoredPhysics,
-    RotationSpec, Shape, install,
+    MeshBodySpec, PhysicsBackend, PhysicsError, PhysicsReset, PreparedPhysicsReset,
+    RestoredPhysics, RotationSpec, Shape, install,
 };
 use std::any::Any;
 
+/// Immutable admitted geometry and spawn kinematics. Collider cloning shares the
+/// maintained shape and preserves its local frame without asset IO during reset.
+#[derive(Clone)]
+struct Construction {
+    position: [f64; 3],
+    velocity: [f64; 3],
+    mass: Option<f64>,
+    collider: Collider,
+}
+
 type BodyEntry = (
     RigidBodyHandle,
-    BodySpec,
+    Construction,
     RotationSpec,
     Option<Inertia>,
     Option<u64>,
@@ -140,7 +151,7 @@ fn validated_collider(spec: BodySpec, orientation: Rotation) -> Result<Collider,
 
 fn insert(
     world: &mut PhysicsWorld,
-    spec: BodySpec,
+    spec: &Construction,
     rotational: RotationSpec,
     mut shape: Collider,
     inertia: Option<MassProperties>,
@@ -226,9 +237,98 @@ impl DynamicBackend for RapierBackend {
             .checked_add(1)
             .ok_or(PhysicsError::IdOverflow)?;
         let id = BodyId::from_raw(self.next_id);
-        let handle = insert(&mut self.world, spec, rotational, shape, properties);
+        let spec = Construction {
+            position: spec.position,
+            velocity: spec.velocity,
+            mass: spec.mass,
+            collider: shape,
+        };
+        let handle = insert(
+            &mut self.world,
+            &spec,
+            rotational,
+            spec.collider.clone(),
+            properties,
+        );
         self.bodies
             .insert(id, (handle, spec, rotational, inertia, None));
+        self.next_id = next;
+        Ok(id)
+    }
+
+    fn spawn_mesh_link(
+        &mut self,
+        spec: MeshBodySpec<'_>,
+        rotational: RotationSpec,
+        inertia: Option<Inertia>,
+    ) -> Result<BodyId, PhysicsError> {
+        if !finite(spec.position)
+            || !finite(spec.velocity)
+            || !finite(spec.collision_position)
+            || spec.mass.is_some_and(|m| !m.is_finite() || m <= 0.0)
+            || !finite(rotational.angular_velocity)
+            || (spec.mass.is_none()
+                && (spec.velocity != [0.0; 3] || rotational.angular_velocity != [0.0; 3]))
+        {
+            return Err(PhysicsError::InvalidValue);
+        }
+        let orientation = rotation(rotational.orientation)?;
+        let collision_orientation = rotation(spec.collision_orientation)?;
+        let builder = mesh::collider(spec.vertices, spec.triangles, spec.mass.is_some())?.position(
+            Pose::from_parts(Vector::from(spec.collision_position), collision_orientation),
+        );
+        let shape = if let Some(mass) = spec.mass {
+            builder.mass(mass)
+        } else {
+            builder.density(0.0)
+        }
+        .build();
+        let bounds = shape.shape().compute_aabb(
+            &(Pose::from_parts(Vector::from(spec.position), orientation) * *shape.position()),
+        );
+        if !finite(bounds.mins.to_array()) || !finite(bounds.maxs.to_array()) {
+            return Err(PhysicsError::InvalidValue);
+        }
+        if spec.mass.is_some() {
+            let properties = shape.mass_properties();
+            if !properties.inv_mass.is_normal()
+                || properties.inv_mass <= 0.0
+                || !properties
+                    .inv_principal_inertia
+                    .to_array()
+                    .into_iter()
+                    .all(|v| v.is_normal() && v > 0.0)
+                || !(bounds.maxs - bounds.mins)
+                    .to_array()
+                    .into_iter()
+                    .all(|v| v.is_normal() && v > 0.0)
+            {
+                return Err(PhysicsError::InvalidValue);
+            }
+        }
+        let properties = inertia
+            .map(|v| inertia_properties(v, spec.mass.unwrap_or(1.0)))
+            .transpose()?;
+        let next = self
+            .next_id
+            .checked_add(1)
+            .ok_or(PhysicsError::IdOverflow)?;
+        let id = BodyId::from_raw(self.next_id);
+        let construction = Construction {
+            position: spec.position,
+            velocity: spec.velocity,
+            mass: spec.mass,
+            collider: shape,
+        };
+        let handle = insert(
+            &mut self.world,
+            &construction,
+            rotational,
+            construction.collider.clone(),
+            properties,
+        );
+        self.bodies
+            .insert(id, (handle, construction, rotational, inertia, None));
         self.next_id = next;
         Ok(id)
     }
@@ -381,7 +481,7 @@ impl DynamicBackend for RapierBackend {
             ..PhysicsWorld::new()
         };
         for (handle, spec, rotational, inertia, group) in self.bodies.values_mut() {
-            *handle = initial::insert_initial(&mut self.world, *spec, *rotational, *inertia);
+            *handle = initial::insert_initial(&mut self.world, spec, *rotational, *inertia);
             collision::assign(&mut self.world, *handle, *group);
         }
         self.joints = joints::Joints::restore(&joints, &mut self.world, &self.bodies);

@@ -46,6 +46,21 @@ pub struct BodySpec {
     pub mass: Option<f64>,
 }
 
+/// One mesh collider in a link-local rigid frame. Vertices already include
+/// glTF node transforms, axis conversion and SDF scale. Geometry is borrowed only
+/// during admission; the backend owns its validated construction shape for reset.
+#[derive(Debug, Clone, Copy)]
+pub struct MeshBodySpec<'a> {
+    pub vertices: &'a [[f64; 3]],
+    pub triangles: &'a [[u32; 3]],
+    pub collision_position: [f64; 3],
+    pub collision_orientation: [f64; 4],
+    pub position: [f64; 3],
+    pub velocity: [f64; 3],
+    /// None admits a static triangle surface; Some admits a closed convex solid.
+    pub mass: Option<f64>,
+}
+
 /// One primitive collision in a link's local frame, in meters and XYZW rotation.
 /// It does not define a separate body, mass or public link identity.
 #[derive(Debug, Clone, Copy)]

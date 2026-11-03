@@ -1,6 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! Bounded local and cache-only Fuel SDF loading before simulation construction.
+pub mod mesh;
+
 use gz_fuel_tools::{FuelClient, ResourceKind};
 use sdformat::{ModelConfigWarning, Resource, ResourceResolver};
 use std::{
