@@ -3,44 +3,44 @@
 
 # Coordinator handoff
 
-> M1–M5 were accepted on 2026-11-03, including bounded live RGB camera delivery.
-> The current delivery is M6: one loaded SDF metric-depth camera with bounded delivery,
+> M1–M6 were accepted on 2026-11-03, including bounded metric-depth camera delivery.
+> The current delivery is M7: one planar CPU ray lidar using Rapier collision queries,
 > budgeted at most five working days including review and required checks.
 > Preserve accepted demos, paused qualifications and independent Fuel work.
 
 
-Updated 2026-11-03. Read DELIVERY_PLAN.md and M5_ACCEPTANCE.md first.
+Updated 2026-11-03. Read DELIVERY_PLAN.md and M6_ACCEPTANCE.md first.
 
-## Current delivery: M6 metric-depth camera
+## Current delivery: M7 CPU ray lidar
 
-M5 is accepted on public Main at simulator `60a3a710`, using the unchanged
-accepted viewer `5b67f45f`. The final normal staged gate passed in 1131.278
-seconds, exact hosted CI `41703668173` passed all sixteen steps, and independent
-source plus local/official data reviews are clear. The bounded 64×64 RGB_INT8
-box/no-world-light camera runs through loaded SDF, the existing offscreen Bevy
-worker and canonical direct Zenoh image delivery. Real image/frame/calibration,
-10 Hz timestamps, pause/reset/removal, committed-tick Busy and actual CLI controls
-pass. The default server remains native-free/GPU-free when selected explicitly.
-No new browser RGB display, C++ image parity or performance result is claimed.
-See M5_ACCEPTANCE.md for exact counters, executable bindings and retention limits.
+M6 is accepted on public Main at simulator `7fccd049`; accepted viewer
+`5b67f45f` remains unchanged. The final normal staged gate passed in 1138.283
+seconds, exact hosted CI `41726703723` passed all sixteen steps, and independent
+source plus local/official evidence audits are clear. One loaded 64×64 depth
+camera uses the already accepted metric-depth renderer, bounded typed worker IPC
+and canonical R_FLOAT32 publication. Actual central/off-axis axial metres,
+background/far infinity, explicit near refusal, cadence/frame, pause/reset/removal,
+committed-tick Busy and finite CLI/worker controls pass. Retained RGB controls
+also pass. No browser depth display, C++ depth parity or performance is claimed.
+See M6_ACCEPTANCE.md for exact counters and retention limits.
 
-Current M6 connects the existing metric-depth renderer to one loaded SDF camera
-and a bounded consumer stream. Prove calibrated metric depths and documented
-background/clipping behavior, timestamps/reset epochs, removal and bounded
-delivery. Budget at most five working days including review and mandatory
-checks. Reuse camera metadata, renderer, worker/client/protocol, scheduling and
-lifecycle APIs; preserve accepted RGB behavior, headless defaults and strict
-feature-matrix coverage. RGB-D registration, point clouds, depth-noise parity,
-other sensor families and unrelated backend qualifications remain deferred.
+Current M7 delivers one planar CPU ray lidar using Rapier queries against admitted
+primitive and mesh collisions. Prove analytic ranges, min/max range, frame,
+acquisition timestamps and pause/reset; visualization must allow inspection of
+the actual scan. Budget at most five working days including independent review
+and required checks. Reuse existing sensor models, physics queries, canonical
+messages and demand/scheduling/lifecycle APIs. Preserve IMU, RGB/depth behavior,
+native-free/GPU-free defaults and strict feature-matrix coverage. GPU lidar,
+noise-model parity, broader sensor families and unrelated backend work remain
+deferred. No absent lidar family should own callbacks or scan buffers.
 
-Root owns simulator/CLI/Server integration and canonical acceptance. Assess the
-preserved `artifacts/metric-depth-worktree` and `metric-depth-worker-worktree`
-source as concrete M6 dependencies, then integrate in a new isolated delivery
-tree. Do not mutate frozen candidates or replay M1–M5 acceptance. Preserve all
-other pending worktrees, the paused producer mass-override candidate and the
-independent Fuel owner's work. Accepted SDFormat Main remains `1594ac36` and
-the simulator producer pin remains `a44bf8be`. Historical P0–P7 is a deferred
-inventory, not a prerequisite for this delivery.
+Root owns simulator/Scene/Server/CLI integration. Use a new isolated M7 delivery
+tree and assess the smallest truthful visualization path before implementation.
+All accepted demonstrations and prior frozen trees remain preserved, including
+the historical depth candidates and paused producer mass-override candidate.
+Do not mutate Fuel work or replay accepted manual qualifications. Accepted
+SDFormat Main remains `1594ac36`; the simulator producer pin remains `a44bf8be`.
+Historical P0–P7 is a deferred inventory, not this delivery's prerequisite.
 
 The sections below preserve previous continuation history. Their next-task
 instructions are superseded by this section and D30.

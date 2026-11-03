@@ -3,8 +3,8 @@
 
 # M6: one loaded metric-depth camera
 
-Implementation and qualification are pending. Budget: five working days including
-independent source review and required checks. M1–M5 remain accepted.
+Accepted at simulator Main `7fccd049`; see [M6_ACCEPTANCE.md](M6_ACCEPTANCE.md).
+M1–M5 remain preserved.
 
 The bounded delivery selects one loaded SDF `depth_camera` through the existing
 CameraServer owner. The admitted input is the same 64×64 opaque box/no-world-light
@@ -42,7 +42,7 @@ isolated canonical delivery. Headless default paths create no renderer.
 
 Tick and capture remain separate. Output Busy cannot repeat committed physics or
 acquisition. GPU, network and retirement waits remain outside critical stepping.
-The complete Source, regressions and documentation must receive independent
-review before one consolidated required verification pass. No M6 execution or
-acceptance is claimed by this document. Retained RGB assertions, numerical bounds,
+Independent source review, the final required staged gate, exact hosted CI and
+local/official retained-data audits passed. Earlier failed evidence remains
+separate from the passing result. Retained RGB assertions, numerical bounds,
 native-free closure checks and both strict coverage profiles remain mandatory.

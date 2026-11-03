@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-03",
   "execution_state": "active",
-  "current_phase": "M6",
+  "current_phase": "M7",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -98,7 +98,13 @@
       ],
       "scope": "Connect the existing metric-depth renderer to one loaded SDF camera and a bounded consumer stream.",
       "acceptance": "A calibrated primitive scene yields metric depths and documented background/clipping behavior; reset epochs, removal and bounded delivery pass.",
-      "excluded": "RGB-D registration, point clouds and depth noise parity."
+      "excluded": "RGB-D registration, point clouds and depth noise parity.",
+      "accepted_at": "2026-11-03T23:03:32.859019+00:00",
+      "evidence": "docs/M6_ACCEPTANCE.md",
+      "accepted_commits": {
+        "gz-sim-rs": "7fccd049f373aef5c2ea6c8feb41339ea955e62e",
+        "gzweb-rs": "5b67f45fe0638197dc06ad2d2659a34460c7f396"
+      }
     },
     {
       "id": "M7",
@@ -174,8 +180,8 @@
     "M3": "complete",
     "M4": "complete",
     "M5": "complete",
-    "M6": "in_progress",
-    "M7": "not_started",
+    "M6": "complete",
+    "M7": "in_progress",
     "M8": "not_started",
     "M9": "not_started",
     "M10": "not_started",
@@ -183,5 +189,5 @@
     "M12": "not_started"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-03T20:35:48.336547+00:00"
+  "phase_started_at": "2026-11-03T23:03:32.859019+00:00"
 }

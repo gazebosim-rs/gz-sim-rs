@@ -1,7 +1,7 @@
 # Instructions for implementation agents
 
-> M1–M5 were accepted on 2026-11-03, including bounded live RGB camera delivery.
-> The current delivery is M6: one loaded SDF metric-depth camera with bounded delivery,
+> M1–M6 were accepted on 2026-11-03, including bounded metric-depth camera delivery.
+> The current delivery is M7: one planar CPU ray lidar using Rapier collision queries,
 > budgeted at most five working days including review and required checks.
 > Preserve accepted demos, paused qualifications and independent Fuel work.
 
@@ -14,19 +14,18 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M5 are accepted; see
-their acceptance records. Current M6 connects the existing metric-depth renderer
-to one loaded SDF camera and a bounded consumer stream. Budget at most five
-working days including independent review and mandatory checks. Prove calibrated
-metric values, background/clipping semantics, timestamps/reset epochs, removal
-and bounded delivery. Reuse the existing renderer, worker, protocol, camera
-metadata and lifecycle APIs; keep network/GPU waits outside critical stepping.
-Preserve the accepted RGB camera, native-free/GPU-free defaults, all retained
-assertions and feature-matrix coverage. Assess the preserved metric-depth
-candidates for this named dependency in a new isolated delivery tree; do not
-mutate frozen candidates or resume unrelated qualifications. RGB-D registration,
-point clouds, depth-noise parity and other sensor families remain deferred.
-Full P0–P7 remains a deferred inventory, not this phase's prerequisite.
+Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M6 are accepted; see
+their acceptance records. Current M7 delivers one planar CPU ray lidar using
+Rapier queries against admitted primitive and mesh collisions. Budget at most
+five working days including review and mandatory checks. Prove analytic ranges,
+min/max clipping, frames, acquisition timestamps and pause/reset; make the actual
+scan inspectable in visualization. Reuse existing sensor models, physics queries,
+canonical messages, scheduling and demand lifecycle. Preserve accepted IMU, RGB,
+depth and native-free/GPU-free defaults, all retained assertions and strict gates.
+Keep absent-family callbacks/buffers absent. GPU lidar, noise parity, broad sensor
+families, new geometry formats and unrelated qualifications remain deferred.
+Assess bounded dependencies in a new isolated delivery tree; preserve frozen
+candidates and independent Fuel work. Full P0–P7 remains a deferred inventory.
 
 The owner explicitly resumed implementation. Work only on the current delivery
 or a concrete blocking dependency; earlier pause records are historical. The
