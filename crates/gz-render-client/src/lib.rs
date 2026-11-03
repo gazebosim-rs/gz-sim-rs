@@ -168,6 +168,10 @@ impl Client {
                     Ok(child) => child,
                     Err(error) => {
                         let _ = fail_tx.try_send(ClientError::Io(error));
+                        // Publish the failure before closing admission. A caller
+                        // awaiting Ready must observe terminal startup failure
+                        // rather than retry NotReady forever.
+                        stop_supervisor.store(true, Ordering::Release);
                         done_supervisor.store(true, Ordering::Release);
                         let _ = finish_tx.try_send(None);
                         return;

@@ -5,17 +5,21 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+default = ["native-backends"]
+native-backends = ["gz-sim-server/native-backends", "gz-sim-scene/native-backends", "gz-render-scene/native-backends"]
+
 [dependencies]
-gz-sim-server = { path = "../gz-sim-server" }
+gz-sim-server = { path = "../gz-sim-server", default-features = false }
 zenoh.workspace = true
 uuid.workspace = true
 bevy_ecs.workspace = true
 gz-sim-proto.workspace = true
 gz-render-client = { path = "../gz-render-client" }
 gz-render-protocol = { path = "../gz-render-protocol" }
-gz-render-scene = { path = "../gz-render-scene" }
+gz-render-scene = { path = "../gz-render-scene", default-features = false }
 gz-sim-core = { path = "../gz-sim-core" }
-gz-sim-scene = { path = "../gz-sim-scene" }
+gz-sim-scene = { path = "../gz-sim-scene", default-features = false }
 thiserror.workspace = true
 
 [dev-dependencies]

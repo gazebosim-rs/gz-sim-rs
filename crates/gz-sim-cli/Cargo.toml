@@ -7,13 +7,16 @@ license.workspace = true
 
 [features]
 default = ["native-backends"]
-native-backends = ["gz-sim-scene/native-backends", "gz-sim-server/native-backends", "dep:gz-physics-dart"]
+native-backends = ["gz-sim-scene/native-backends", "gz-sim-server/native-backends", "dep:gz-physics-dart", "gz-camera-output?/native-backends"]
+rgb-camera = ["dep:gz-camera-output", "dep:zenoh"]
 
 [[bin]]
 name = "gz-sim-rs"
 path = "src/main.rs"
 
 [dependencies]
+gz-camera-output = { path = "../gz-camera-output", default-features = false, optional = true }
+zenoh = { workspace = true, optional = true }
 gz-fuel-tools.workspace = true
 clap.workspace = true
 gz-assets = { path = "../gz-assets" }
@@ -39,6 +42,7 @@ tokio = { version = "=1.54.1", features = ["rt", "net", "time"] }
 url = "=2.5.8"
 
 [dev-dependencies]
+rustix = { version = "=1.1.5", features = ["process"] }
 zenoh.workspace = true
 serde_json = "=1.0.149"
 socket2 = { version = "=0.6.5", features = ["all"] }

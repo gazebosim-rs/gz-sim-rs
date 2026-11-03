@@ -267,12 +267,15 @@ def check_changed_coverage(lcov, changed, crates, executable_counts=None, zero_e
     return totals
 
 
-# These names are the proposed production package contract, not yet adopted.
+# Renderer-only ownership stays separate from shared CPU production crates.
 RENDER_PACKAGES = frozenset({
     "gz-camera-output",
     "gz-render-frame", "gz-renderer", "gz-render-protocol",
     "gz-render-client", "gz-render-worker", "gz-render-scene",
 })
+RENDER_SHARED_PACKAGES = frozenset({"gz-sim-core", "gz-sim-scene", "gz-sim-cli", proto_inputs.PACKAGE})
+RGB_FEATURE = "gz-sim-cli/rgb-camera"
+RENDER_FEATURES = ["gz-renderer/gpu", RGB_FEATURE]
 
 
 def load_profile_contract():
@@ -284,9 +287,10 @@ def load_profile_contract():
         "version": 2,
         "native_reference": "gazebo-zenoh-client-v1",
         "profiles": {
-            "headless": {"exclude_packages": sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}), "runner": "cpu"},
-            "renderer": {"packages": sorted(RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", proto_inputs.PACKAGE}),
-                         "features": ["gz-renderer/gpu"], "runner": "vulkan"},
+            "headless": {"exclude_packages": sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}),
+                         "runner": "cpu", "features": [RGB_FEATURE]},
+            "renderer": {"packages": sorted(RENDER_PACKAGES | RENDER_SHARED_PACKAGES),
+                         "features": RENDER_FEATURES, "runner": "vulkan"},
         },
         "excluded_sources": [],
         "test_support_packages": [TEST_SUPPORT_PACKAGE],
@@ -297,15 +301,15 @@ def load_profile_contract():
 
 
 def profile_plan(sources):
-    """Partition every production crate and retain core and scene in the renderer run."""
-    missing = (RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", proto_inputs.PACKAGE}) - sources.keys()
+    """Measure every source and exercise the shared CLI camera path in both runs."""
+    missing = (RENDER_PACKAGES | RENDER_SHARED_PACKAGES) - sources.keys()
     if missing:
         raise ValueError(f"required renderer profile packages missing: {sorted(missing)}")
     unexpected = {name for name in sources if name.startswith("gz-render") and name not in RENDER_PACKAGES}
     if unexpected:
         raise ValueError(f"undeclared renderer packages: {sorted(unexpected)}")
     headless = {name: files for name, files in sources.items() if name not in RENDER_PACKAGES}
-    render = {name: sources[name] for name in sorted(RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", proto_inputs.PACKAGE})}
+    render = {name: sources[name] for name in sorted(RENDER_PACKAGES | RENDER_SHARED_PACKAGES)}
     if not headless or any(not files for files in sources.values()):
         raise ValueError("empty production crate or headless profile")
     owners = {}
@@ -315,13 +319,13 @@ def profile_plan(sources):
             if path in owners:
                 raise ValueError(f"production source has multiple owners: {path}")
             owners[path] = name
-    headless_command = ["cargo", "test", "--locked", "--workspace", "--all-targets"]
+    headless_command = ["cargo", "test", "--locked", "--workspace", "--all-targets", "--features", RGB_FEATURE]
     for name in sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}):
         headless_command += ["--exclude", name]
     render_command = ["cargo", "test", "--locked", "--all-targets"]
     for name in render:
         render_command += ["--package", name]
-    render_command += ["--package", TEST_SUPPORT_PACKAGE, "--features", "gz-renderer/gpu"]
+    render_command += ["--package", TEST_SUPPORT_PACKAGE, "--features", ",".join(RENDER_FEATURES)]
     return {"headless": (headless, headless_command), "renderer": (render, render_command)}
 
 
@@ -416,6 +420,60 @@ def check_native_peer_evidence(directory, expected, binding=None):
     return records
 
 
+def renderer_executables(stdout, target_root):
+    """Bind cross-package subprocesses to Cargo's actual feature-enabled binaries."""
+    expected = {
+        "gz-sim-rs": ("gz-sim-cli", "crates/gz-sim-cli/src/main.rs"),
+        "gz-render-worker": ("gz-render-worker", "crates/gz-render-worker/src/main.rs"),
+    }
+    bound = {}
+    target_root = Path(target_root).resolve()
+    for line in stdout.splitlines():
+        try:
+            item = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(item, dict) or item.get("reason") != "compiler-artifact":
+            continue
+        target = item.get("target", {})
+        name = target.get("name")
+        if name not in expected or item.get("profile", {}).get("test") is not False:
+            continue
+        package, source = expected[name]
+        manifest = (ROOT / "crates" / package / "Cargo.toml").resolve()
+        path = Path(item.get("executable") or "")
+        if (name in bound or target.get("kind") != ["bin"]
+                or target.get("crate_types") != ["bin"]
+                or target.get("src_path") != str((ROOT / source).resolve())
+                or item.get("manifest_path") != str(manifest)
+                or not item.get("package_id", "").startswith("path+" + manifest.parent.as_uri() + "#")
+                or not path.is_absolute() or path.is_symlink() or not path.is_file()
+                or str(path) != str(path.resolve()) or not path.resolve().is_relative_to(target_root)
+                or str(path) not in item.get("filenames", [])
+                or not os.access(path, os.X_OK)
+                or (name == "gz-sim-rs" and "rgb-camera" not in item.get("features", []))):
+            raise ValueError(f"invalid renderer executable binding: {name}")
+        with path.open("rb") as binary:
+            if binary.read(4) != b"\x7fELF":
+                raise ValueError(f"renderer executable is not ELF: {name}")
+            binary.seek(0)
+            digest = hashlib.file_digest(binary, "sha256").hexdigest()
+        bound[name] = {"sha256": digest, "cargo_artifact": item}
+    if set(bound) != set(expected):
+        raise ValueError("missing renderer CLI/worker executable binding")
+    return bound
+
+
+def same_renderer_executables(prepared, actual):
+    """Cargo may mark a cached artifact fresh; its identity and bytes cannot drift."""
+    identity = ("package_id", "manifest_path", "target", "profile", "features", "executable", "filenames")
+    if (set(prepared) != set(actual) or any(
+            prepared[name]["sha256"] != actual[name]["sha256"]
+            or any(prepared[name]["cargo_artifact"].get(key) != actual[name]["cargo_artifact"].get(key)
+                   for key in identity) for name in prepared)):
+        raise ValueError("renderer executable changed between preparation and execution")
+
+
 def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, version, target=None):
     directory.mkdir(parents=True)
     raw_dir = directory / "raw"
@@ -434,9 +492,25 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
     env["RUSTC_WORKSPACE_WRAPPER"] = str(wrapper)
     env["LLVM_PROFILE_FILE"] = str(raw_dir / "%p-%m.profraw")
     env["GZ_ZENOH_PEER_EVIDENCE_DIR"] = str(directory / "native-peers")
+    for key in ("GZ_RENDER_CLI_PATH", "GZ_RENDER_WORKER_PATH", "GZ_RENDER_EXECUTABLES_JSON"):
+        env.pop(key, None)
+    prepared_executables = None
     if name == "renderer":
         # Worker integration tests pass this exact path as the child's LLVM_PROFILE_FILE.
         env["GZ_RENDER_WORKER_PROFILE"] = str(raw_dir / "worker-%p-%m.profraw")
+        if "gz-sim-cli" in crates:
+            # Build-only preparation supplies actual cross-package paths before
+            # tests run. It executes no test, CLI, renderer or network probe.
+            preparation = subprocess.run([*command, "--no-run", "--message-format=json"],
+                                         cwd=ROOT, env=env, capture_output=True, text=True)
+            (directory / "renderer-build-output.log").write_text(preparation.stdout + preparation.stderr)
+            if preparation.returncode:
+                raise subprocess.CalledProcessError(preparation.returncode, preparation.args,
+                                                    preparation.stdout, preparation.stderr)
+            prepared_executables = renderer_executables(preparation.stdout, env["CARGO_TARGET_DIR"])
+            env["GZ_RENDER_CLI_PATH"] = prepared_executables["gz-sim-rs"]["cargo_artifact"]["executable"]
+            env["GZ_RENDER_WORKER_PATH"] = prepared_executables["gz-render-worker"]["cargo_artifact"]["executable"]
+            env["GZ_RENDER_EXECUTABLES_JSON"] = json.dumps(prepared_executables)
     test_command = [*command, "--message-format=json"]
     if name == "renderer":
         # Preserve adapter identity in evidence, including for successful tests.
@@ -445,6 +519,9 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
     (directory / "test-output.log").write_text(result.stdout + result.stderr)
     if result.returncode:
         raise subprocess.CalledProcessError(result.returncode, result.args, result.stdout, result.stderr)
+    if prepared_executables is not None:
+        same_renderer_executables(prepared_executables,
+                                  renderer_executables(result.stdout, env["CARGO_TARGET_DIR"]))
     contract_path = ROOT / "planning/coverage-profiles.json"
     if contract_path.is_file() and json.loads(contract_path.read_text()).get("version") == 2:
         expected = {"camera"} if name == "renderer" else {"clock", "rate", "force"}
@@ -594,6 +671,8 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                     "source_sha256": source_hashes[str(path.relative_to(ROOT))],
                     "auditor": str(proto_audit if path == (ROOT / proto_inputs.FACADE).resolve() else facade_audit)} for path in zero_executable},
                 "objects": object_evidence}
+    if prepared_executables is not None:
+        evidence["prepared_executables"] = prepared_executables
     (directory / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     (directory / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n")
     return report, zero_executable
@@ -768,6 +847,8 @@ def retain_profile_evidence(candidate, output, hashes, missing):
                     "proto-facade-audit.json", "proto-facade-audit-output.log", "proto-generated.rs", "proto-descriptor.pb", "proto-coverage.json", "coverage-unfiltered.lcov"]
         if profile == "renderer":
             required.append("facade-audit.json")
+            if contract_path.is_file() and RGB_FEATURE in contract["profiles"]["renderer"].get("features", []):
+                required.append("renderer-build-output.log")
         if "zenoh_reference" in data:
             required.append("native-peers.json")
             peers = base / "native-peers"
@@ -941,10 +1022,10 @@ def main():
     if not args.coverage_only:
         run(["cargo", "fmt", "--all", "--", "--check"])
         run(["cargo", "clippy", "--locked", "--workspace", "--all-targets", "--", "-D", "warnings"])
-        render_packages = sorted(RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", proto_inputs.PACKAGE})
+        render_packages = sorted(RENDER_PACKAGES | RENDER_SHARED_PACKAGES)
         selected = sum((["--package", name] for name in [*render_packages, TEST_SUPPORT_PACKAGE]), [])
         run(["cargo", "clippy", "--locked", "--all-targets", *selected,
-             "--features", "gz-renderer/gpu", "--", "-D", "warnings"])
+             "--features", ",".join(RENDER_FEATURES), "--", "-D", "warnings"])
         doc_packages = sorted((RENDER_PACKAGES - {"gz-render-worker"}) | {"gz-sim-core", "gz-sim-scene"})
         doc_selected = sum((["--package", name] for name in doc_packages), [])
         run(["cargo", "test", "--locked", "--doc", *doc_selected, "--features", "gz-renderer/gpu"])

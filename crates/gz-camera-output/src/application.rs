@@ -96,7 +96,7 @@ impl Drop for CameraRuntime {
 /// step. A full update may have committed physics before returning a camera
 /// error, including Busy. No error causes an implicit repeated acquisition.
 /// Raw Server access retains its explicit headless/critical-step contracts.
-/// CLI integration, dynamic sensor registration and camera set_rate are absent.
+/// Dynamic sensor registration and camera set_rate are absent.
 pub struct CameraServer {
     // Drop camera IO before the world Server even on constructor/error unwind.
     runtime: Option<CameraRuntime>,
@@ -177,24 +177,39 @@ impl CameraServer {
         Ok(())
     }
 
+    /// Prepare and commit exactly one simulation tick, without a GPU/IPC step.
+    /// Call capture outside critical stepping. Keeping these operations separate
+    /// lets a caller report output backpressure without repeating committed physics.
+    pub fn tick(&mut self, options: &CameraServerOptions) -> Result<UpdateInfo, CameraServerError> {
+        self.prepare_io(options)?;
+        match self.server.tick() {
+            Ok(info) => Ok(info),
+            Err(error) => {
+                self.runtime = None;
+                Err(error.into())
+            }
+        }
+    }
+
+    /// Pump/admit the current frame outside critical stepping, without a tick.
+    /// Busy leaves the already committed simulation state intact; it is an
+    /// explicit output backpressure result, not permission to repeat a tick.
+    pub fn capture(&mut self) -> Result<(Option<Progress>, Option<Progress>), CameraServerError> {
+        self.require_running()?;
+        self.require_prepared()?;
+        if self.runtime.is_some() {
+            self.output_frame()
+        } else {
+            Ok((None, None))
+        }
+    }
+
     pub fn update(
         &mut self,
         options: &CameraServerOptions,
     ) -> Result<CameraStep, CameraServerError> {
-        self.prepare_io(options)?;
-        let info = match self.server.tick() {
-            Ok(info) => info,
-            Err(error) => {
-                self.runtime = None;
-                return Err(error.into());
-            }
-        };
-        let (pumped, requested) = if self.runtime.is_some() {
-            self.require_prepared()?;
-            self.output_frame()?
-        } else {
-            (None, None)
-        };
+        let info = self.tick(options)?;
+        let (pumped, requested) = self.capture()?;
         Ok(CameraStep {
             info,
             pumped,
@@ -293,6 +308,15 @@ impl CameraServer {
     pub fn shutdown(&mut self) {
         self.runtime = None;
         self.server.shutdown();
+    }
+
+    /// Retire camera IO and return the existing headless Server.
+    pub fn into_server(self) -> Server {
+        let Self {
+            runtime, server, ..
+        } = self;
+        drop(runtime);
+        server
     }
 
     /// Retire camera IO before returning the existing preserved Scene API.

@@ -237,6 +237,21 @@ fn missing_configured_worker_fails_asynchronously_without_a_pid() {
     let path =
         std::env::temp_dir().join(format!("gz-no-such-render-worker-{}", std::process::id()));
     let mut client = Client::start(TrustedWorker::from_operator_config(path).unwrap()).unwrap();
+    // Real asynchronous spawn failure closes admission before Ready, while
+    // preserving both the caller's request and the original IO diagnostic.
+    let deadline = Instant::now() + Duration::from_secs(5);
+    loop {
+        match client.try_send(snapshot()) {
+            Err(SubmitError::Closed(returned)) => {
+                assert_eq!(returned, snapshot());
+                break;
+            }
+            Err(SubmitError::NotReady(_)) if Instant::now() < deadline => {
+                thread::sleep(Duration::from_millis(5));
+            }
+            other => panic!("startup failure did not close admission: {other:?}"),
+        }
+    }
     wait_error(
         &client,
         |error| matches!(error, ClientError::Io(error) if error.kind() == io::ErrorKind::NotFound),

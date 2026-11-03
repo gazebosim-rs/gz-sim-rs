@@ -38,6 +38,14 @@ Budget at most five working days including independent review and mandatory
 checks. Camera arrays, distortion, thermal, segmentation and other sensor
 families remain deferred. Do not resume M6 depth qualification prematurely.
 
+M5 source is isolated in `artifacts/m5-rgb-camera-worktree` on
+`work/m5-rgb-camera`. The optional `rgb-camera` CLI feature and `--camera-worker`
+flag reuse CameraServer; split tick/capture preserves committed physics when
+output reports Busy. Strict coverage retains CLI ownership in both mandatory
+profiles and passes actual Cargo-bound CLI/worker executables into the renderer
+control. Source review and the distinct native-free RGB proof are still in
+progress; no M5 verification or acceptance is claimed. See M5_RGB_CAMERA.md.
+
 Root owns simulator/CLI/Server integration and canonical acceptance. Preserve
 accepted SDFormat Main `1594ac3637396d2cc43497abb16b7c2818d999e6` and simulator
 producer pin `a44bf8be`; paused mass-override and metric-depth candidates remain

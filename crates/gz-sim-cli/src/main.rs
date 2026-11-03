@@ -50,6 +50,9 @@ struct Args {
     /// Serve one local gzweb-rs WebSocket client; viewer HTTP origin is port 8080 or 8081.
     #[arg(long, requires = "server", value_parser = clap::value_parser!(u16).range(1..))]
     web_viewer: Option<u16>,
+    /// Trusted absolute offscreen worker executable (requires the rgb-camera build feature).
+    #[arg(long, requires = "server")]
+    camera_worker: Option<PathBuf>,
 }
 
 /// Accepts short names and the upstream `gz sim --physics-engine` plugin names.
@@ -76,6 +79,10 @@ fn with_fault(
 }
 
 fn run(args: Args) -> Result<(), Box<dyn Error>> {
+    #[cfg(not(feature = "rgb-camera"))]
+    if args.camera_worker.is_some() {
+        return Err("--camera-worker requires a build with the rgb-camera feature".into());
+    }
     let mut roots = Vec::new();
     for variable in ["SDF_PATH", "GZ_SIM_RESOURCE_PATH"] {
         if let Some(value) = std::env::var_os(variable) {
@@ -131,6 +138,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
             args.run,
             args.iterations.unwrap_or(0),
             args.web_viewer,
+            args.camera_worker,
         )?;
         simulation = result.0;
         result.1

@@ -43,7 +43,7 @@ class SelectedNativeGate(unittest.TestCase):
                 shutil.copytree(source, target, ignore=ignore)
             else:
                 shutil.copyfile(source, target)
-        crates = verify.RENDER_PACKAGES | {'gz-sim-core', 'gz-sim-scene', 'gz-sim-proto', 'gz-sim-server'}
+        crates = verify.RENDER_PACKAGES | {'gz-sim-core', 'gz-sim-scene', 'gz-sim-cli', 'gz-sim-proto', 'gz-sim-server'}
         sources = {}
         for name in crates:
             path = root / 'crates' / name / 'src/gate_control.rs'
@@ -141,7 +141,7 @@ class SelectedNativeGate(unittest.TestCase):
         for profile in index['profiles']:
             base = run / profile
             (base / 'raw').mkdir(parents=True)
-            for filename in required + (['facade-audit.json'] if profile == 'renderer' else []):
+            for filename in required + (['facade-audit.json', 'renderer-build-output.log'] if profile == 'renderer' else []):
                 (base / filename).write_text('synthetic retention control, not coverage')
             (base / 'raw/control.profraw').write_text('not an LLVM profile')
             peers = base / 'native-peers'
@@ -169,6 +169,8 @@ class SelectedNativeGate(unittest.TestCase):
             verify.retain_staged_evidence('a' * 40, candidate, 'passed')
             output = next((root / 'artifacts/staged').iterdir())
             self.assertEqual((output / 'zenoh-native-reference.json').read_bytes(), (run / 'zenoh-native-reference.json').read_bytes())
+            preparation = Path(run.name) / 'renderer/renderer-build-output.log'
+            self.assertEqual((output / preparation).read_bytes(), (coverage / preparation).read_bytes())
             for profile, clients in [('headless', ['clock', 'rate', 'force']), ('renderer', ['camera'])]:
                 for client in clients:
                     relative = Path(run.name) / profile / 'native-peers' / (client + '-control')
@@ -187,6 +189,17 @@ class SelectedNativeGate(unittest.TestCase):
         with patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
             with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
                 verify.retain_staged_evidence('a' * 40, candidate, 'passed')
+
+    def test_current_rgb_stage_requires_the_renderer_build_output(self):
+        root, candidate, _, run, _ = self.staged_fixture()
+        (run / 'renderer/renderer-build-output.log').unlink()
+        with patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
+                verify.retain_staged_evidence('a' * 40, candidate, 'passed')
+        output = next((root / 'artifacts/staged').iterdir())
+        result = json.loads((output / 'stage-result.json').read_text())
+        self.assertEqual(result['evidence_state'], 'partial')
+        self.assertIn(str(Path(run.name) / 'renderer/renderer-build-output.log'), result['missing_artifacts'])
 
 
 if __name__ == '__main__':

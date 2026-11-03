@@ -117,6 +117,17 @@ class FeatureProfiles(unittest.TestCase):
                 path.write_text(json.dumps(weakened))
                 with self.assertRaisesRegex(ValueError, "invalid coverage"):
                     verify.load_profile_contract()
+                for profile in ("headless", "renderer"):
+                    weakened = json.loads(json.dumps(contract))
+                    weakened["profiles"][profile]["features"].remove("gz-sim-cli/rgb-camera")
+                    path.write_text(json.dumps(weakened))
+                    with self.subTest(profile=profile), self.assertRaisesRegex(ValueError, "invalid coverage"):
+                        verify.load_profile_contract()
+                weakened = json.loads(json.dumps(contract))
+                weakened["profiles"]["renderer"]["packages"].remove("gz-sim-cli")
+                path.write_text(json.dumps(weakened))
+                with self.assertRaisesRegex(ValueError, "invalid coverage"):
+                    verify.load_profile_contract()
                 weakened = json.loads(json.dumps(contract))
                 del weakened["profiles"]["renderer"]
                 path.write_text(json.dumps(weakened))
@@ -128,13 +139,22 @@ class FeatureProfiles(unittest.TestCase):
         plan = verify.profile_plan(crates)
         self.assertEqual(set(plan), {"headless", "renderer"})
         self.assertEqual(set(plan["headless"][0]), {"gz-sim-core", "gz-sim-scene", "gz-sim-cli", "gz-sim-proto"})
-        self.assertEqual(set(plan["renderer"][0]), verify.RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", "gz-sim-proto"})
+        self.assertEqual(set(plan["renderer"][0]), verify.RENDER_PACKAGES | {"gz-sim-core", "gz-sim-scene", "gz-sim-cli", "gz-sim-proto"})
         self.assertEqual(set(plan["headless"][0]) | set(plan["renderer"][0]), set(crates))
-        self.assertIn("gz-renderer/gpu", plan["renderer"][1])
+        for profile in ("headless", "renderer"):
+            command = plan[profile][1]
+            self.assertIn("gz-sim-cli/rgb-camera", command[command.index("--features") + 1].split(","))
+            self.assertIn("gz-sim-cli", plan[profile][0])
+        self.assertIn("gz-renderer/gpu", plan["renderer"][1][plan["renderer"][1].index("--features") + 1].split(","))
+        self.assertNotIn("gz-sim-cli", verify.RENDER_PACKAGES)
         self.assertEqual(plan["headless"][1].count("--exclude"), len(verify.RENDER_PACKAGES) + 1)
         self.assertIn(verify.TEST_SUPPORT_PACKAGE, plan["renderer"][1])
 
     def test_missing_package_empty_source_and_duplicate_ownership_fail(self):
+        crates = sources()
+        del crates["gz-sim-cli"]
+        with self.assertRaisesRegex(ValueError, "packages missing"):
+            verify.profile_plan(crates)
         crates = sources()
         del crates["gz-camera-output"]
         with self.assertRaisesRegex(ValueError, "packages missing"):
@@ -180,6 +200,137 @@ class FeatureProfiles(unittest.TestCase):
         bad["renderer"]["data"][0]["files"].clear()
         with self.assertRaisesRegex(ValueError, "uninstrumented"):
             verify.check_profile_reports(plan, bad)
+
+    def test_cli_whole_and_changed_coverage_fail_independently_in_each_profile(self):
+        plan = verify.profile_plan(sources())
+        for profile in ("headless", "renderer"):
+            for metric in ("lines", "regions"):
+                reports = {name: report(crates) for name, (crates, _) in plan.items()}
+                cli = plan[profile][0]["gz-sim-cli"][0]
+                entry = next(file for file in reports[profile]["data"][0]["files"]
+                             if file["filename"] == str(cli))
+                entry["summary"][metric]["covered"] = 95
+                with self.subTest(profile=profile, metric=metric), self.assertRaisesRegex(ValueError, "gz-sim-cli"):
+                    verify.check_profile_reports(plan, reports)
+            with patch.object(verify, "ROOT", Path("/virtual")):
+                lcov, changed = [], {}
+                for crate, paths in plan[profile][0].items():
+                    for path in paths:
+                        changed[str(path.relative_to(verify.ROOT))] = list(range(1, 21))
+                        lcov.append(f"SF:{path}\n" + "\n".join(
+                            f"DA:{line},{int(crate != 'gz-sim-cli' or line != 20)}" for line in range(1, 21))
+                                    + "\nend_of_record\n")
+                with self.subTest(profile=profile), self.assertRaisesRegex(ValueError, "gz-sim-cli: changed executable lines 19/20"):
+                    verify.check_changed_coverage("".join(lcov), changed, plan[profile][0])
+
+    def renderer_artifact(self, root, name):
+        package = "gz-sim-cli" if name == "gz-sim-rs" else "gz-render-worker"
+        source = root / "crates" / package / "src/main.rs"
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text("fn main() {}\n")
+        manifest = source.parent.parent / "Cargo.toml"
+        manifest.write_text(f'[package]\nname="{package}"\nversion="0.1.0"\n')
+        binary = root / "target/coverage/debug" / name
+        binary.parent.mkdir(parents=True, exist_ok=True)
+        binary.write_bytes(b"\x7fELF" + name.encode())
+        binary.chmod(0o700)
+        return {"reason": "compiler-artifact", "package_id": "path+" + manifest.parent.as_uri() + "#0.1.0",
+                "manifest_path": str(manifest), "target": {"kind": ["bin"], "crate_types": ["bin"],
+                    "name": name, "src_path": str(source)}, "profile": {"test": False},
+                "features": ["rgb-camera"] if name == "gz-sim-rs" else [],
+                "executable": str(binary), "filenames": [str(binary)], "fresh": False}
+
+    def test_renderer_executable_bindings_preserve_cargo_identity_and_detect_byte_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            artifacts = [self.renderer_artifact(root, name) for name in ("gz-sim-rs", "gz-render-worker")]
+            with patch.object(verify, "ROOT", root):
+                stdout = "\n".join(map(json.dumps, artifacts))
+                bound = verify.renderer_executables(stdout, root / "target/coverage")
+                self.assertEqual(set(bound), {"gz-sim-rs", "gz-render-worker"})
+                self.assertEqual(bound["gz-sim-rs"]["cargo_artifact"], artifacts[0])
+                cached = json.loads(json.dumps(artifacts))
+                cached[0]["fresh"] = True
+                verify.same_renderer_executables(bound, verify.renderer_executables(
+                    "\n".join(map(json.dumps, cached)), root / "target/coverage"))
+                binary = Path(artifacts[0]["executable"])
+                binary.write_bytes(binary.read_bytes() + b"changed")
+                with self.assertRaisesRegex(ValueError, "changed between"):
+                    verify.same_renderer_executables(bound, verify.renderer_executables(stdout, root / "target/coverage"))
+
+    def test_renderer_executable_bindings_reject_unowned_or_wrong_feature_artifacts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            artifacts = [self.renderer_artifact(root, name) for name in ("gz-sim-rs", "gz-render-worker")]
+            variants = []
+            for key, value in [("features", []), ("manifest_path", str(root / "other/Cargo.toml")),
+                               ("package_id", "registry+https://example.invalid#gz-sim-cli@0.1.0"),
+                               ("filenames", []), ("executable", "target/coverage/debug/gz-sim-rs")]:
+                bad = json.loads(json.dumps(artifacts))
+                bad[0][key] = value
+                variants.append(bad)
+            for key, value in [("src_path", str(root / "other/main.rs")), ("kind", ["test"])]:
+                bad = json.loads(json.dumps(artifacts))
+                bad[0]["target"][key] = value
+                variants.append(bad)
+            bad = json.loads(json.dumps(artifacts))
+            bad[0]["profile"]["test"] = True
+            variants.extend([bad, artifacts[:1], artifacts + [artifacts[0]]])
+            with patch.object(verify, "ROOT", root):
+                for index, items in enumerate(variants):
+                    with self.subTest(index=index), self.assertRaisesRegex(ValueError, "renderer.*binding"):
+                        verify.renderer_executables("\n".join(map(json.dumps, items)), root / "target/coverage")
+                with self.assertRaisesRegex(ValueError, "binding"):
+                    verify.renderer_executables("\n".join(map(json.dumps, artifacts)), root / "different-target")
+                original = Path(artifacts[0]["executable"])
+                link = original.with_name("linked-cli")
+                link.symlink_to(original)
+                bad = json.loads(json.dumps(artifacts))
+                bad[0]["executable"] = str(link)
+                bad[0]["filenames"] = [str(link)]
+                with self.assertRaisesRegex(ValueError, "binding"):
+                    verify.renderer_executables("\n".join(map(json.dumps, bad)), root / "target/coverage")
+                original.write_bytes(b"not an executable")
+                with self.assertRaisesRegex(ValueError, "not ELF"):
+                    verify.renderer_executables("\n".join(map(json.dumps, artifacts)), root / "target/coverage")
+
+    def test_renderer_build_only_handoff_precedes_exactly_one_test_execution(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            artifacts = [self.renderer_artifact(root, name) for name in ("gz-sim-rs", "gz-render-worker")]
+            prepared = SimpleNamespace(returncode=0, stdout="\n".join(map(json.dumps, artifacts)), stderr="build only", args=["cargo", "test", "--no-run"])
+            failed = SimpleNamespace(returncode=1, stdout="actual test failure", stderr="", args=["cargo", "test"])
+            crates = {package: [root / "crates" / package / "src/main.rs"] for package in ("gz-sim-cli", "gz-render-worker")}
+            with patch.object(verify, "ROOT", root), patch.object(verify.subprocess, "run", side_effect=[prepared, failed]) as run:
+                with self.assertRaises(subprocess.CalledProcessError):
+                    verify.profile_coverage("renderer", crates, ["cargo", "test", "--features", "gz-sim-cli/rgb-camera"],
+                        root / "profile", {}, root / "wrapper", root, "rustc")
+            self.assertEqual(run.call_count, 2)
+            self.assertIn("--no-run", run.call_args_list[0].args[0])
+            self.assertNotIn("--no-run", run.call_args_list[1].args[0])
+            env = run.call_args_list[1].kwargs["env"]
+            self.assertEqual(env["GZ_RENDER_CLI_PATH"], artifacts[0]["executable"])
+            self.assertEqual(env["GZ_RENDER_WORKER_PATH"], artifacts[1]["executable"])
+            self.assertEqual(json.loads(env["GZ_RENDER_EXECUTABLES_JSON"])["gz-sim-rs"]["cargo_artifact"], artifacts[0])
+            self.assertTrue((root / "profile/renderer-build-output.log").is_file())
+            self.assertEqual((root / "profile/test-output.log").read_text(), "actual test failure")
+
+    def test_failed_renderer_preparation_preserves_diagnostics_without_running_tests(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            artifact = self.renderer_artifact(root, "gz-sim-rs")
+            failed = SimpleNamespace(returncode=1, stdout="build stopped", stderr="compiler failure",
+                                     args=["cargo", "test", "--no-run"])
+            with patch.object(verify, "ROOT", root), patch.object(verify.subprocess, "run", return_value=failed) as run:
+                with self.assertRaises(subprocess.CalledProcessError):
+                    verify.profile_coverage("renderer", {"gz-sim-cli": [Path(artifact["target"]["src_path"])]},
+                        ["cargo", "test"], root / "profile", {}, root / "wrapper", root, "rustc")
+            self.assertEqual(run.call_count, 1)
+            self.assertIn("--no-run", run.call_args.args[0])
+            self.assertEqual((root / "profile/renderer-build-output.log").read_text(), "build stoppedcompiler failure")
+            self.assertFalse((root / "profile/test-output.log").exists())
 
     def test_zero_executable_classification_is_narrow_and_requires_gpu(self):
         facade = (verify.ROOT / "crates/gz-renderer/src/lib.rs").resolve()
@@ -660,9 +811,10 @@ class FeatureProfiles(unittest.TestCase):
             candidate = root / "candidate"
             planning = candidate / "planning"
             planning.mkdir(parents=True)
-            (planning / "coverage-profiles.json").write_text(json.dumps({
-                "version": 2, "native_reference": "gazebo-zenoh-client-v1",
-            }))
+            # Retention sees the same complete RGB profile contract as a real
+            # staged export, while the metadata below remains synthetic.
+            (planning / "coverage-profiles.json").write_bytes(
+                (verify.ROOT / "planning/coverage-profiles.json").read_bytes())
             coverage = candidate / "artifacts/coverage"
             run = coverage / "profiles-test"
             run.mkdir(parents=True)

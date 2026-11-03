@@ -5,9 +5,13 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+default = ["native-backends"]
+native-backends = ["gz-sim-scene/native-backends"]
+
 [dependencies]
 gz-sim-core = { path = "../gz-sim-core" }
-gz-sim-scene = { path = "../gz-sim-scene" }
+gz-sim-scene = { path = "../gz-sim-scene", default-features = false }
 gz-render-frame = { path = "../gz-render-frame" }
 gz-render-protocol = { path = "../gz-render-protocol" }
 glam.workspace = true

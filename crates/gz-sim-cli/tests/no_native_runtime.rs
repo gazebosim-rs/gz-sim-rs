@@ -26,6 +26,25 @@ fn command(engine: &str) -> std::process::Output {
 #[test]
 #[cfg(not(feature = "native-backends"))]
 fn non_native_executable_runs_rapier_and_tpe() {
+    #[cfg(not(feature = "rgb-camera"))]
+    {
+        let result = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
+            .args([
+                "/nonexistent/m5-world.sdf",
+                "--server",
+                "--camera-worker",
+                "/nonexistent/m5-worker",
+            ])
+            .output()
+            .unwrap();
+        assert!(!result.status.success());
+        assert!(result.stdout.is_empty());
+        assert!(
+            String::from_utf8(result.stderr)
+                .unwrap()
+                .contains("--camera-worker requires a build with the rgb-camera feature")
+        );
+    }
     for engine in ["rapier", "tpe"] {
         let result = command(engine);
         assert!(result.status.success(), "{result:?}");

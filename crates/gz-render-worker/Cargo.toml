@@ -15,7 +15,8 @@ rustix = { version = "=1.1.5", features = ["process"] }
 [dev-dependencies]
 gz-sim-server = { path = "../gz-sim-server" }
 serde_json = "=1.0.149"
-zenoh.workspace = true
+# Match the accepted server tests' introspection of the live owned listener.
+zenoh = { workspace = true, features = ["unstable"] }
 gz-render-client = { path = "../gz-render-client" }
 gz-render-scene = { path = "../gz-render-scene" }
 gz-sim-core = { path = "../gz-sim-core" }

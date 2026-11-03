@@ -11,6 +11,7 @@ use std::{
     error::Error,
     io,
     num::NonZeroUsize,
+    path::PathBuf,
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
@@ -69,12 +70,144 @@ fn wall_period(step: Duration, factor: f64) -> io::Result<Duration> {
         .ok_or_else(|| io::Error::other("unrepresentable real-time update period"))
 }
 
+// The ordinary variant owns no camera settings, session, callbacks or buffers.
+enum Runtime {
+    Headless(Box<Server>),
+    #[cfg(feature = "rgb-camera")]
+    Camera {
+        application: Box<gz_camera_output::CameraServer>,
+        options: Box<gz_camera_output::CameraServerOptions>,
+        backpressured: bool,
+    },
+}
+
+impl Runtime {
+    fn new(
+        simulation: Simulation,
+        world: &str,
+        worker: Option<PathBuf>,
+    ) -> Result<Self, Box<dyn Error>> {
+        let options = gz_sim_server::ServerOptions::from_env()?;
+        let budget = NonZeroUsize::new(64).expect("nonzero command budget");
+        #[cfg(feature = "rgb-camera")]
+        if let Some(worker_path) = worker {
+            let config = match std::env::var_os("ZENOH_CONFIG") {
+                Some(path) => {
+                    zenoh::Config::from_file(path).map_err(|error| -> Box<dyn Error> { error })?
+                }
+                None => zenoh::Config::default(),
+            };
+            // The output owns a separate outgoing peer. Retain upstream
+            // connect/scouting settings without allocating a listener that could
+            // consume the world Server's configured endpoint.
+            let mut camera_config = config.clone();
+            camera_config
+                .insert_json5("listen/endpoints", "[]")
+                .map_err(|error| -> Box<dyn Error> { error })?;
+            let camera_options = gz_camera_output::CameraServerOptions {
+                worker_path,
+                origin: [0.0; 3],
+                zenoh: camera_config,
+            };
+            let application = gz_camera_output::CameraServer::new(
+                simulation,
+                world,
+                options,
+                config,
+                budget,
+                &camera_options,
+            )?;
+            return Ok(if application.has_camera_output() {
+                Self::Camera {
+                    application: Box::new(application),
+                    options: Box::new(camera_options),
+                    backpressured: false,
+                }
+            } else {
+                Self::Headless(Box::new(application.into_server()))
+            });
+        }
+        #[cfg(not(feature = "rgb-camera"))]
+        debug_assert!(worker.is_none(), "feature checked before loading");
+        Ok(Self::Headless(Box::new(Server::new(
+            simulation, world, options, budget,
+        )?)))
+    }
+
+    fn server(&self) -> &Server {
+        match self {
+            Self::Headless(server) => server,
+            #[cfg(feature = "rgb-camera")]
+            Self::Camera { application, .. } => application.server(),
+        }
+    }
+
+    fn server_mut(&mut self) -> &mut Server {
+        match self {
+            Self::Headless(server) => server,
+            #[cfg(feature = "rgb-camera")]
+            Self::Camera { application, .. } => application.server_mut(),
+        }
+    }
+
+    fn tick(&mut self) -> Result<gz_sim_core::UpdateInfo, Box<dyn Error>> {
+        match self {
+            Self::Headless(server) => {
+                server
+                    .prepare_io()
+                    .map_err(|error| super::with_fault(server.simulation(), error))?;
+                server
+                    .tick()
+                    .map_err(|error| super::with_fault(server.simulation(), error))
+            }
+            #[cfg(feature = "rgb-camera")]
+            Self::Camera {
+                application,
+                options,
+                backpressured,
+            } => {
+                let info = application
+                    .tick(options)
+                    .map_err(|error| super::with_fault(application.server().simulation(), error))?;
+                // Physics is already committed. Busy affects output only: never
+                // retry tick or request the same acquisition in this iteration.
+                match application.capture() {
+                    Ok(_) => *backpressured = false,
+                    Err(gz_camera_output::CameraServerError::Camera(
+                        gz_camera_output::CameraOutputError::Busy,
+                    )) => {
+                        if !*backpressured {
+                            eprintln!(
+                                "camera output backpressure: bounded worker busy; simulation continues"
+                            );
+                        }
+                        *backpressured = true;
+                    }
+                    Err(error) => {
+                        return Err(super::with_fault(application.server().simulation(), error));
+                    }
+                }
+                Ok(info)
+            }
+        }
+    }
+
+    fn into_simulation(self) -> Simulation {
+        match self {
+            Self::Headless(server) => (*server).into_simulation(),
+            #[cfg(feature = "rgb-camera")]
+            Self::Camera { application, .. } => (*application).into_simulation(),
+        }
+    }
+}
+
 pub(super) fn run(
     mut simulation: Simulation,
     world: &str,
     running: bool,
     iterations: u64,
     web_viewer: Option<u16>,
+    camera_worker: Option<PathBuf>,
 ) -> Result<(Simulation, u64), Box<dyn Error>> {
     let factor = simulation
         .world()
@@ -88,31 +221,21 @@ pub(super) fn run(
         .ok_or_else(|| io::Error::other("real-time update period exceeds wall-clock range"))?;
     let termination = Termination::install()?;
     simulation.set_paused(!running);
-    let mut server = Server::new(
-        simulation,
-        world,
-        gz_sim_server::ServerOptions::from_env()?,
-        NonZeroUsize::new(64).expect("nonzero command budget"),
-    )?;
-    server.prepare_run(Duration::from_secs(5))?;
+    let mut runtime = Runtime::new(simulation, world, camera_worker)?;
+    runtime.server_mut().prepare_run(Duration::from_secs(5))?;
     let mut viewer = web_viewer
-        .map(|port| super::web::Bridge::new(server.simulation(), world, port))
+        .map(|port| super::web::Bridge::new(runtime.server().simulation(), world, port))
         .transpose()?;
     let mut completed = 0_u64;
     while !termination.requested() && (iterations == 0 || completed < iterations) {
         let started = Instant::now();
         let controls = viewer
             .as_mut()
-            .map(|viewer| viewer.controls(&mut server))
+            .map(|viewer| viewer.controls(runtime.server_mut()))
             .unwrap_or_default();
-        server
-            .prepare_io()
-            .map_err(|error| super::with_fault(server.simulation(), error))?;
-        let info = server
-            .tick()
-            .map_err(|error| super::with_fault(server.simulation(), error))?;
+        let info = runtime.tick()?;
         if let Some(viewer) = &mut viewer {
-            viewer.publish(server.simulation(), world, controls)?;
+            viewer.publish(runtime.server().simulation(), world, controls)?;
         }
         if !info.dt.is_zero() {
             // Overflow would need 2^64 advancing ticks.
@@ -127,7 +250,7 @@ pub(super) fn run(
             .ok_or_else(|| io::Error::other("real-time update deadline overflow"))?;
         termination.wait_until(deadline);
     }
-    Ok((server.into_simulation(), completed))
+    Ok((runtime.into_simulation(), completed))
 }
 
 #[cfg(test)]

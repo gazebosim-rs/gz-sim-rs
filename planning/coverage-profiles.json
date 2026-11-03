@@ -12,7 +12,10 @@
         "gz-render-worker",
         "gz-renderer"
       ],
-      "runner": "cpu"
+      "runner": "cpu",
+      "features": [
+        "gz-sim-cli/rgb-camera"
+      ]
     },
     "renderer": {
       "packages": [
@@ -23,12 +26,14 @@
         "gz-render-scene",
         "gz-render-worker",
         "gz-renderer",
+        "gz-sim-cli",
         "gz-sim-core",
         "gz-sim-proto",
         "gz-sim-scene"
       ],
       "features": [
-        "gz-renderer/gpu"
+        "gz-renderer/gpu",
+        "gz-sim-cli/rgb-camera"
       ],
       "runner": "vulkan"
     }

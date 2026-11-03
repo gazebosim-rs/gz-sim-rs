@@ -4,6 +4,7 @@
 """Additional native-off execution proof; never replaces the full coverage profiles."""
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -44,6 +45,128 @@ EXECUTABLE_SOURCES = {
     "no_native_runtime": "crates/gz-sim-cli/tests/no_native_runtime.rs",
     "no_native_build": "crates/gz-sim-server/tests/no_native_build.rs",
 }
+RGB_TESTS = [
+    "camera_worker_flag_requires_server_mode",
+    "no_configured_camera_never_starts_the_operator_worker",
+    "admitted_rgb_camera_without_image_interest_keeps_its_worker_lazy",
+    "camera_worker_and_calibration_errors_fail_before_a_successful_run",
+    "camera_and_server_use_distinct_listeners_and_release_the_fixed_server_address",
+    "camera_owner_shuts_down_when_viewer_setup_fails_and_its_listener_can_be_reused",
+    "configured_camera_without_zenoh_config_uses_the_default_network_lazily",
+    "actual_image_interest_bounds_silent_worker_backpressure_and_propagates_spawn_failure",
+]
+RGB_SOURCES = {"gz-sim-rs": EXECUTABLE_SOURCES["gz-sim-rs"],
+               "rgb_camera": "crates/gz-sim-cli/tests/rgb_camera.rs"}
+GPU_PACKAGES = {"gz-renderer", "gz-render-worker", "bevy_render", "bevy_window", "bevy_winit",
+                "bevy_core_pipeline", "bevy_pbr", "bevy_shader", "ash", "naga", "vulkano",
+                "winit", "raw-window-handle"}
+GPU_LIBRARIES = ("libvulkan", "libEGL", "libGL.so", "libGLX", "libOpenGL", "libwgpu")
+
+
+def rgb_command():
+    return ["cargo", "test", "--locked", "--offline", "-p", "gz-sim-cli",
+            "--no-default-features", "--features", "rgb-camera", "--test", "rgb_camera",
+            "--message-format=json", "--", "--nocapture", "--test-threads=1"]
+
+
+def require_rgb_tests(stdout):
+    totals = re.findall(r"test result: ok\. (\d+) passed; (\d+) failed; (\d+) ignored;", stdout)
+    if (len(totals) != 1 or tuple(map(int, totals[0])) != (len(RGB_TESTS), 0, 0)
+            or any(f"test {name} ... ok" not in stdout for name in RGB_TESTS)):
+        raise ValueError("missing/failed/skipped native-free RGB cases")
+
+
+def rgb_artifacts(events, source_root, target):
+    objects = {}
+    for event in events:
+        if event.get("reason") != "compiler-artifact":
+            continue
+        name = event["target"]["name"]
+        package = name.replace("_", "-")
+        if (package in {"gz-physics-dart", "gz-physics-mujoco"}
+                or name in GPU_PACKAGES or package in GPU_PACKAGES or package.startswith("wgpu")
+                or "native-backends" in event["features"]):
+            raise ValueError("native/GPU dependency in native-free RGB artifacts")
+        if not event.get("executable"):
+            continue
+        original = event["executable"]
+        path = Path(original)
+        if (not path.is_absolute() or ".." in path.parts or str(path) != original
+                or not path.is_relative_to(target) or name not in RGB_SOURCES
+                or name in objects or event["features"] != ["rgb-camera"]
+                or event["target"]["kind"] != ["bin" if name == "gz-sim-rs" else "test"]
+                or event["profile"]["test"] != (name != "gz-sim-rs")
+                or event["target"]["src_path"] != str(source_root / RGB_SOURCES[name])):
+            raise ValueError("RGB executable is not its actual feature/target/source")
+        objects[name] = event
+    if set(objects) != set(RGB_SOURCES):
+        raise ValueError("missing actual native-free RGB CLI or test executable")
+    return objects
+
+
+def validate_rgb_closure(root, closure, binary):
+    spec = importlib.util.spec_from_file_location("rgb_runtime_closure", root / "scripts/check-rapier-runtime.py")
+    checker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(checker)
+    packages = set(closure.get("packages", []))
+    libraries = closure.get("libraries", "")
+    command = ["cargo", "tree", "--locked", "--offline", "-p", "gz-sim-cli", "--no-default-features",
+               "--edges", "normal,build", "--prefix", "none", "--format", "{p}", "--features", "rgb-camera"]
+    if (closure.get("binary") != binary or closure.get("cargo_command") != command
+            or checker.validate_closure("\n".join(sorted(packages)), libraries) != sorted(packages)
+            or not {"gz-camera-output", "gz-render-client", "gz-render-protocol", "gz-render-scene", "gz-render-frame"} <= packages
+            or packages & GPU_PACKAGES or any(name.startswith("wgpu") for name in packages)
+            or not libraries.strip() or any(name in libraries for name in GPU_LIBRARIES)):
+        raise ValueError("native-free RGB closure is missing, mislabeled or includes GPU dependencies")
+
+
+def validate_rgb_evidence(root, directory, report, observed_root, hashes):
+    if (not isinstance(report, dict) or report.get("state") != "passed"
+            or report.get("features") != ["rgb-camera"] or report.get("private_target_removed") is not True):
+        raise ValueError("missing or incomplete native-free RGB evidence")
+    target_text = report.get("target_root", "")
+    target = Path(target_text)
+    if (not target.is_absolute() or ".." in target.parts or str(target) != target_text
+            or target.parent != observed_root / "target" or not target.name.startswith("rapier-rgb-")):
+        raise ValueError("unsafe original RGB target attribution")
+    rgb = directory / "rgb-camera"
+    if (rgb / "target").exists():
+        raise ValueError("RGB compilation cache was not retired")
+    required = {"inputs.json", "command.json", "stdout", "stderr", "cargo-events.json", "objects.json",
+                "closure.stdout", "closure.stderr", "coverage.json", "coverage.lcov", "merged.profdata"}
+    if (not {"rgb-camera/" + name for name in required} <= hashes.keys()
+            or not any(name.startswith("rgb-camera/raw/") and name.endswith(".profraw") for name in hashes)):
+        raise ValueError("missing native-free RGB raw/report evidence")
+    if json.loads((rgb / "inputs.json").read_text()) != inputs(root):
+        raise ValueError("native-free RGB source/input binding differs")
+    if json.loads((rgb / "command.json").read_text()) != rgb_command():
+        raise ValueError("native-free RGB command differs")
+    require_rgb_tests((rgb / "stdout").read_text())
+    coverage = json.loads((rgb / "coverage.json").read_text())
+    names = {entry["filename"] for data in coverage.get("data", []) for entry in data.get("files", [])}
+    lcov = (rgb / "coverage.lcov").read_text()
+    for source in ["crates/gz-sim-cli/src/main.rs", "crates/gz-sim-cli/src/live.rs"]:
+        name = str(observed_root / source)
+        if name not in names or f"SF:{name}\n" not in lcov:
+            raise ValueError("native-free RGB reports lack their actual CLI source")
+    events = json.loads((rgb / "cargo-events.json").read_text())
+    objects = rgb_artifacts(events, observed_root, target)
+    bindings = report.get("objects_bound_after_execution")
+    if not bindings or json.loads((rgb / "objects.json").read_text()) != bindings:
+        raise ValueError("missing retained native-free RGB object bindings")
+    seen, saved_names = set(), set()
+    for item in bindings:
+        event = item.get("cargo_artifact", {})
+        name = event.get("target", {}).get("name")
+        saved = item.get("retained_path", "")
+        if (name in seen or saved in saved_names or objects.get(name) != event or item.get("original_path") != event.get("executable")
+                or not saved.startswith("rgb-camera/objects/") or hashes.get(saved) != item.get("sha256")):
+            raise ValueError("unbound native-free RGB object copy")
+        seen.add(name)
+        saved_names.add(saved)
+    if seen != set(RGB_SOURCES):
+        raise ValueError("missing retained native-free RGB executable")
+    validate_rgb_closure(root, json.loads((rgb / "closure.stdout").read_text()), objects["gz-sim-rs"]["executable"])
 
 
 def digest(path):
@@ -55,7 +178,7 @@ def inputs(root=ROOT):
     paths = [root / name for name in ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml",
              ".cargo/config.toml", "scripts/rustc-coverage.py", "scripts/verify.py",
              "scripts/qualify-rapier-runtime.py", "scripts/check-rapier-runtime.py",
-             "crates/gz-sim-cli/tests/empty.sdf"]]
+             "crates/gz-sim-cli/tests/empty.sdf", "crates/gz-camera-output/tests/fixtures/m5-rgb.sdf"]]
     paths += sorted((root / "crates").rglob("*.rs"))
     paths += sorted((root / "crates").glob("*/Cargo.toml"))
     paths += sorted((root / "crates/gz-sim-proto/schemas").rglob("*.proto"))
@@ -146,6 +269,7 @@ def validate_evidence(root, directory, report=None):
                             (directory / "coverage.lcov").read_text(), observed_root, source)
     if proof != report.get("disabled_backend"):
         raise ValueError("disabled-backend line/region proof differs")
+    validate_rgb_evidence(root, directory, report.get("rgb_camera"), observed_root, hashes)
     return report
 
 
@@ -210,6 +334,74 @@ def checked_artifacts(events, target):
         if name in EXECUTABLE_SOURCES and Path(item["target"]["src_path"]).resolve() != ROOT / EXECUTABLE_SOURCES[name]:
             raise ValueError("target name does not bind its actual owned source")
     return executables
+
+
+def qualify_rgb(out, environment, version, source_hashes, llvm):
+    rgb = out / "rgb-camera"
+    rgb.mkdir()
+    raw = rgb / "raw"
+    raw.mkdir()
+    cache_root = ROOT / "target"
+    target = Path(tempfile.mkdtemp(prefix="rapier-rgb-", dir=cache_root))
+    env = dict(environment, CARGO_TARGET_DIR=str(target), LLVM_PROFILE_FILE=str(raw / "%p-%m.profraw"))
+    wrapper = Path(env["RUSTC_WORKSPACE_WRAPPER"])
+    if digest(wrapper) != source_hashes["scripts/rustc-coverage.py"]:
+        raise ValueError("native-free RGB instrumentation wrapper differs")
+    command = rgb_command()
+    (rgb / "command.json").write_text(json.dumps(command, indent=2) + "\n")
+    (rgb / "inputs.json").write_text(json.dumps(source_hashes, indent=2) + "\n")
+    result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True)
+    (rgb / "stdout").write_text(result.stdout)
+    (rgb / "stderr").write_text(result.stderr)
+    if result.returncode:
+        raise subprocess.CalledProcessError(result.returncode, command)
+    require_rgb_tests(result.stdout)
+    events = [json.loads(line) for line in result.stdout.splitlines() if line.startswith("{")]
+    (rgb / "cargo-events.json").write_text(json.dumps(events, indent=2) + "\n")
+    objects = rgb_artifacts(events, ROOT, target)
+    binary = objects["gz-sim-rs"]["executable"]
+    closure = subprocess.run([sys.executable, str(ROOT / "scripts/check-rapier-runtime.py"),
+                              "--binary", binary, "--features", "rgb-camera"],
+                             cwd=ROOT, env=env, capture_output=True, text=True)
+    (rgb / "closure.stdout").write_text(closure.stdout)
+    (rgb / "closure.stderr").write_text(closure.stderr)
+    closure.check_returncode()
+    validate_rgb_closure(ROOT, json.loads(closure.stdout), binary)
+    profiles = sorted(raw.glob("*.profraw"))
+    if not profiles:
+        raise ValueError("no actual native-free RGB raw profiles")
+    merged = rgb / "merged.profdata"
+    subprocess.run([str(llvm / "llvm-profdata"), "merge", "-sparse", *map(str, profiles),
+                    "-o", str(merged)], cwd=ROOT, check=True)
+    export = [str(llvm / "llvm-cov"), "export", "--fatal-warnings", "-instr-profile=" + str(merged)]
+    for event in objects.values():
+        export += ["-object", event["executable"]]
+    with (rgb / "coverage.json").open("w") as stream:
+        subprocess.run(export, cwd=ROOT, stdout=stream, check=True)
+    with (rgb / "coverage.lcov").open("w") as stream:
+        subprocess.run([*export, "-format=lcov"], cwd=ROOT, stdout=stream, check=True)
+    if (inputs() != source_hashes or digest(wrapper) != source_hashes["scripts/rustc-coverage.py"]
+            or subprocess.check_output(["rustc", "-vV"], cwd=ROOT, text=True) != version):
+        raise ValueError("native-free RGB source/input/compiler changed")
+    copies = rgb / "objects"
+    copies.mkdir()
+    bindings = []
+    for name, event in sorted(objects.items()):
+        original = Path(event["executable"])
+        saved = copies / name
+        expected = digest(original)
+        shutil.copy2(original, saved)
+        if digest(saved) != expected or digest(original) != expected:
+            raise ValueError("native-free RGB executable changed while preserving it")
+        bindings.append({"original_path": str(original), "retained_path": str(saved.relative_to(out)),
+                         "sha256": expected, "cargo_artifact": event})
+    (rgb / "objects.json").write_text(json.dumps(bindings, indent=2) + "\n")
+    if (target.is_symlink() or not target.is_dir() or target.parent != cache_root
+            or not target.name.startswith("rapier-rgb-")):
+        raise ValueError("refuse cleanup outside the private native-free RGB target")
+    shutil.rmtree(target)
+    return {"state": "passed", "features": ["rgb-camera"], "target_root": str(target),
+            "private_target_removed": True, "objects_bound_after_execution": bindings}
 
 
 def main():
@@ -306,6 +498,9 @@ def main():
             or not target.name.startswith("rapier-runtime-")):
         raise ValueError("refuse cleanup outside the private native-off target")
     shutil.rmtree(target)
+    # The original feature-off objects/raw/export are already preserved. A
+    # separate target and raw stream prevent feature unification or overwrites.
+    rgb = qualify_rgb(out, env, version, source_hashes, llvm)
     report = {"state": "passed", "scope": "Additional native-off behavior/disabled-arm evidence only",
               "source_root": str(ROOT),
               "target_root": str(target),
@@ -316,6 +511,7 @@ def main():
               "coverage_lcov_sha256": digest(out / "coverage.lcov"),
               "closure_sha256": digest(out / "closure.stdout"),
               "private_target_removed": True,
+              "rgb_camera": rgb,
               "limits": "Unfiltered report retained. No whole-native-off >95% claim or report union; unchanged full headless/renderer gates remain mandatory."}
     report["artifacts_sha256"] = {str(path.relative_to(out)): digest(path)
                                  for path in sorted(out.rglob("*")) if path.is_file()}

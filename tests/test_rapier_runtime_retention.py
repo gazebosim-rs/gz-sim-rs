@@ -26,15 +26,19 @@ class AuxiliaryRetention(unittest.TestCase):
         for name in ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/config.toml",
                      "scripts/rustc-coverage.py", "scripts/verify.py", "scripts/qualify-rapier-runtime.py",
                      "scripts/check-rapier-runtime.py", "crates/gz-sim-cli/tests/empty.sdf",
+                     "crates/gz-sim-cli/src/live.rs",
+                     "crates/gz-camera-output/tests/fixtures/m5-rgb.sdf",
                      "crates/gz-sim-proto/schema-source.json", "crates/gz-sim-proto/schemas/manifest.json",
                      "third_party/prost-derive-0.14.4/Cargo.toml", "third_party/prost-derive-0.14.4/LICENSE",
                      "third_party/prost-derive-0.14.4/src/lib.rs",
-                     *QUALIFIER.EXECUTABLE_SOURCES.values()]:
+                     *QUALIFIER.EXECUTABLE_SOURCES.values(), *QUALIFIER.RGB_SOURCES.values()]:
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("fixture input\n")
         (self.root / "scripts/qualify-rapier-runtime.py").write_bytes(
             (ROOT / "scripts/qualify-rapier-runtime.py").read_bytes())
+        (self.root / "scripts/check-rapier-runtime.py").write_bytes(
+            (ROOT / "scripts/check-rapier-runtime.py").read_bytes())
         source = '\n#[cfg(not(feature = "native-backends"))]\nPhysicsEngine::Dart | PhysicsEngine::Mujoco => {\nreturn Err(LoadError::BackendUnavailable(engine));\n}\n'
         (self.root / QUALIFIER.SCENE).parent.mkdir(parents=True, exist_ok=True)
         (self.root / QUALIFIER.SCENE).write_text(source)
@@ -67,6 +71,40 @@ class AuxiliaryRetention(unittest.TestCase):
                        "source_root": str(self.root), "target_root": str(self.root / "target/rapier-runtime-fixture"),
                        "sources_and_inputs": inputs, "objects_bound_after_execution": objects,
                        "disabled_backend": QUALIFIER.disabled_region(report, lcov, self.root, source)}
+        # Synthetic metadata only: these records exercise the independent RGB
+        # validator, not a compiler, executable, renderer, or coverage workload.
+        for name in ["stderr", "merged.profdata", "raw/rgb.profraw", "closure.stderr"]:
+            self.write("rgb-camera/" + name, b"synthetic RGB evidence\n")
+        self.write_json("rgb-camera/inputs.json", inputs)
+        self.write_json("rgb-camera/command.json", QUALIFIER.rgb_command())
+        self.write("rgb-camera/stdout", ("\n".join("test " + name + " ... ok" for name in QUALIFIER.RGB_TESTS)
+                   + f"\ntest result: ok. {len(QUALIFIER.RGB_TESTS)} passed; 0 failed; 0 ignored;\n").encode())
+        rgb_sources = [str(self.root / name) for name in ["crates/gz-sim-cli/src/main.rs", "crates/gz-sim-cli/src/live.rs"]]
+        self.write_json("rgb-camera/coverage.json", {"data": [{"files": [{"filename": name} for name in rgb_sources]}]})
+        self.write("rgb-camera/coverage.lcov", "".join(f"SF:{name}\nend_of_record\n" for name in rgb_sources).encode())
+        rgb_events, rgb_objects = [], []
+        for name, path in QUALIFIER.RGB_SOURCES.items():
+            original = self.root / "target/rapier-rgb-fixture" / name
+            event = {"reason": "compiler-artifact", "executable": str(original), "features": ["rgb-camera"],
+                     "profile": {"test": name != "gz-sim-rs"},
+                     "target": {"name": name, "src_path": str(self.root / path),
+                                "kind": ["bin" if name == "gz-sim-rs" else "test"]}}
+            rgb_events.append(event)
+            saved = "rgb-camera/objects/" + name
+            self.write(saved, ("synthetic RGB object: " + name).encode())
+            rgb_objects.append({"original_path": str(original), "retained_path": saved,
+                                "sha256": QUALIFIER.digest(self.directory / saved), "cargo_artifact": event})
+        self.write_json("rgb-camera/cargo-events.json", rgb_events)
+        self.write_json("rgb-camera/objects.json", rgb_objects)
+        packages = ["gz-sim-cli", "gz-sim-server", "gz-sim-scene", "gz-physics-rapier", "gz-physics-tpe",
+                    "gz-camera-output", "gz-render-client", "gz-render-protocol", "gz-render-scene", "gz-render-frame"]
+        self.write_json("rgb-camera/closure.stdout", {"binary": str(self.root / "target/rapier-rgb-fixture/gz-sim-rs"),
+                        "packages": packages, "libraries": "libc.so.6 => /lib/libc.so.6 (0x1)\n",
+                        "cargo_command": ["cargo", "tree", "--locked", "--offline", "-p", "gz-sim-cli", "--no-default-features",
+                                          "--edges", "normal,build", "--prefix", "none", "--format", "{p}", "--features", "rgb-camera"]})
+        self.report["rgb_camera"] = {"state": "passed", "features": ["rgb-camera"],
+                                     "target_root": str(self.root / "target/rapier-rgb-fixture"),
+                                     "private_target_removed": True, "objects_bound_after_execution": rgb_objects}
         self.finish_manifest()
 
     def write(self, name, data):
@@ -94,6 +132,58 @@ class AuxiliaryRetention(unittest.TestCase):
         for name, digest in hashes.items():
             self.assertEqual(QUALIFIER.digest(output / name), digest)
         self.assertEqual(len(list((output / "rapier-runtime/objects").iterdir())), 4)
+        self.assertEqual(len(list((output / "rapier-runtime/rgb-camera/objects").iterdir())), 2)
+
+    def test_original_features_off_proof_does_not_replace_the_rgb_proof(self):
+        del self.report["rgb_camera"]
+        self.finish_manifest()
+        with self.assertRaisesRegex(ValueError, "incomplete native-free RGB"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_rgb_raw_and_object_bytes_are_required_independently(self):
+        for name in ["rgb-camera/raw/rgb.profraw", "rgb-camera/objects/rgb_camera"]:
+            path = self.directory / name
+            original = path.read_bytes()
+            path.unlink()
+            self.finish_manifest()
+            with self.assertRaises(ValueError):
+                QUALIFIER.validate_evidence(self.root, self.directory)
+            path.write_bytes(original)
+        self.finish_manifest()
+        self.write("rgb-camera/objects/gz-sim-rs", b"tampered RGB binary")
+        with self.assertRaisesRegex(ValueError, "tampered native-off artifact"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_rehashed_rgb_feature_or_gpu_closure_claim_is_not_accepted(self):
+        path = self.directory / "rgb-camera/cargo-events.json"
+        baseline = path.read_bytes()
+        for features in [[], ["native-backends", "rgb-camera"]]:
+            events = json.loads(baseline)
+            events[0]["features"] = features
+            path.write_text(json.dumps(events))
+            self.finish_manifest()
+            with self.assertRaises(ValueError):
+                QUALIFIER.validate_evidence(self.root, self.directory)
+        path.write_bytes(baseline)
+        closure = json.loads((self.directory / "rgb-camera/closure.stdout").read_text())
+        closure["packages"].append("wgpu-core")
+        self.write_json("rgb-camera/closure.stdout", closure)
+        self.finish_manifest()
+        with self.assertRaisesRegex(ValueError, "RGB closure"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_rehashed_rgb_command_and_report_attribution_cannot_change(self):
+        command = QUALIFIER.rgb_command()
+        command.remove("--no-default-features")
+        self.write_json("rgb-camera/command.json", command)
+        self.finish_manifest()
+        with self.assertRaisesRegex(ValueError, "RGB command differs"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+        self.write_json("rgb-camera/command.json", QUALIFIER.rgb_command())
+        self.write_json("rgb-camera/coverage.json", {"data": [{"files": [{"filename": "/different/source.rs"}]}]})
+        self.finish_manifest()
+        with self.assertRaisesRegex(ValueError, "reports lack their actual CLI source"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
 
     def test_missing_raw_or_result_prevents_complete_retention(self):
         (self.directory / "raw/case.profraw").unlink()
