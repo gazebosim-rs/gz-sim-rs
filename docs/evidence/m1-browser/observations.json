@@ -1,24 +1,44 @@
 {
-  "scope": "Actual CUA browser observations of the local Rapier primitive world; mandatory release qualification pending",
-  "viewer_baseline": "3c3ca32 plus independently reviewed primitive backend and UI corrections",
-  "gl_wasm_sha256": "cfd8ac9c8f6e5107d95de8509d3ff4d76d941fdb2d2fbd04553766304fa2f5fe",
-  "webgpu_wasm_sha256": "852ce51c41b547437ae49ecdf8f3f44112980e53d2974bd36db19b63ba5ab23f",
-  "initial": "21 real visual entities:20 dynamic bodies and ground; paused0s",
-  "motion": "actual running world at2.915s",
-  "pause": "acknowledged epoch0,6.905s,paused=true",
-  "reset": "acknowledged epoch1,0s,paused=true; initial poses restored",
-  "automatic_unsupported_sdf_requests": "none in captured current-tab console filter",
-  "files_sha256": {
-    "initial.jpg": "b1e932ea7eabf0a02da0b720ed5eb456e403cce4d781920369a16c918fd3a518",
-    "motion.jpg": "92dac27183eb2b903dc61504f940299c4c88c4bd311adb40195a354523b89e5e",
-    "pause.jpg": "681bfaf587721e3129c96e33b87d5d1bcf6d53f254dcbd7ad694bb70626c397f",
-    "reset.jpg": "e81695eb5cde3d530f33c554428de673a972d0e11227289a472211995843b352"
-  },
-  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
-  "license": "Apache-2.0",
-  "captured_console_filter_results": {
+  "scope": "Actual patched-graph CUA WebGL2 observations; final required qualification and M1 acceptance remain pending",
+  "executor_version": "1.14.1",
+  "simulator_source": "1a2648de plus reviewed executor lock update",
+  "viewer_source": "a3e0b0a2 plus reviewed executor lock update",
+  "server_binary_sha256": "bf7a85f347f1736f35d732195413a435f3647f8d1f4ebb6e081fa22451f27051",
+  "server_lock_sha256": "2ff80a397c85ff9aa1368bdf8b2486ad58db7a7efd293235a0761a777ce6c490",
+  "webgpu_wasm_sha256": "f039b896ef5346b1248c2ed8563f1f1cf1c57493a24c577463132d5103c581ea",
+  "gl_wasm_sha256": "7fb903d8cd0a2c221e728d9cca30864ab275927eb3961c9b1232eb1a35711f20",
+  "initial": "21 actual visual entities:20 dynamic boxes/spheres and ground, paused at zero time",
+  "motion": "saved running frame21.690s; real poses differ from initial",
+  "pause": "same saved/displayed frame acknowledges epoch0,25.675000000s,paused=true",
+  "reset": "same saved/displayed frame acknowledges epoch1,0.000000000s,paused=true and restores initial poses",
+  "resume": "saved running frame3.930s on reset epoch1; acknowledgement epoch1,0.005000000s,paused=false",
+  "reconnect": "reload initially showed bounded socket closure, then recovered automatically without a manual retry; saved fresh advancing frame171.955s, followed by acknowledged pause epoch1,175.950000000s",
+  "shutdown": "controlled CLI exit0 at175950000000ns; viewer clears scene and clock, disables controls and shows lost connection",
+  "restart": "same patched binary restarted; viewer automatically replaces state with21 initial visuals and zero paused clock",
+  "automatic_unsupported_sdf_requests": {
     "filter": "generate_world_sdf",
     "entries": []
   },
-  "media_type": "image/jpeg"
+  "renderer": "WebGL2, ANGLE NVIDIA GeForce RTX2070/OpenGL4.5; no WebGPU browser claim",
+  "limitations": [
+    "Background browser often renders at1fps; observations are not performance measurements.",
+    "Spheres can roll off the finite ground during long running; they remain simulated.",
+    "The transient reconnect-closed image records recovery in progress, not a passing scene."
+  ],
+  "files_sha256": {
+    "initial.jpg": "fc69dcfec032161f1268f23ca4c9062cf6f4a45a805d74fc300c585403604791",
+    "motion.jpg": "a1fdd4dc4eab3e74a5af3b3771f65157890ca9274cd2e30c6aaf1b1b1a025a5f",
+    "pause.jpg": "07a4cd6863053796241d3078c2429f6294f66655e4863df6b1d8df9760d7adb5",
+    "reconnect-paused.jpg": "17935e4c4f4374413e83ab1552ee1b12ac9fbb6780f951e7a5975d16f19f6194",
+    "reconnect-transient-closed.jpg": "67314aa707238fb0cdfed2997e142075127154108e5d0f664cc0b65249bb1cbc",
+    "reconnect.jpg": "17ec426cf91a2e6997b84fe717bc047f474275fd37d32544856a3121f85cb2d9",
+    "reset.jpg": "56bd1c7f94096fb023b51c1d0fff1de3720777eba4f73e927b85b45c972a822f",
+    "restart.jpg": "be2c98ab2face07a2869949becd054790713b911700ba7186c955ff31ab71291",
+    "resume.jpg": "16a9f9cc22661a297da19ff480c3aae7503f434fa3fdb1a2461c3b254539fe31",
+    "shutdown.jpg": "a5adbf0f4a26f2dd4ee7b4da03c3241ece1061e7e8a0e70348c55aa74da45b9a"
+  },
+  "media_type": "image/jpeg",
+  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
+  "license": "Apache-2.0",
+  "prior_observations_commit": "1a2648de6090b3b25e47a47c3de534252a8d3c5f"
 }

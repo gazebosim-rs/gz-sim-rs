@@ -10,14 +10,15 @@ Zenoh directly. No worker, endpoint or snapshot allocation is created unless
 `--server --web-viewer PORT` is explicitly selected.
 
 The source is under development. Development CLI builds passed, including the
-Rapier-only configuration. The maintained viewer now has real WebGL2 observations of all 20 bodies, motion,
-committed pause/reset/resume, fresh advancing reconnect and clean shutdown. See
-`artifacts/m1-canonical-corrected-gl-build/browser-observations.json`. Latest-source WebGPU/GL bundles now pass the unchanged payload budgets, and
-the actual final UI shows 21 truthful visual entities with no unsupported
-automatic SDF request. Same-frame final pause/reset images are under
-`artifacts/m1-canonical-final-ui-build-tty-retry`. Mandatory consolidated
-qualification remains pending; this is not M1 release acceptance. The older prototype's GPU failure remains
-historical. See DELIVERY_PLAN.md.
+Rapier-only configuration. The maintained viewer now has fresh WebGL2 observations on the executor 1.14.1
+graph: all 20 bodies, 21 truthful visual rows, real motion, committed
+pause/reset/resume, fresh advancing reconnect and clean shutdown. See
+[the saved frames and bindings](evidence/m1-browser/README.md). Reload briefly
+showed a closed connection before automatic recovery; stale geometry was not
+presented as connected. Both current WebGPU/GL bundles pass the unchanged payload
+budgets. Final current-graph staged qualification and hosted CI remain pending;
+this is not M1 release acceptance. Earlier bundles and prototype observations
+remain historical. See DELIVERY_PLAN.md.
 
 A portable record of the current actual browser frames is in
 [evidence/m1-browser](evidence/m1-browser/README.md).

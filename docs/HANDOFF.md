@@ -23,21 +23,31 @@ days of scope. No M1–M12 delivery has been accepted yet. All implementation
 agents and continuation automation have resumed only this bounded M1 work.
 
 The maintained viewer is `../gzweb-rs`, canonical baseline `3c3ca32` (Bevy 0.20).
-Its explicit primitive backend now has a real WebGL2 browser observation: all 20
-colored dynamic bodies and ground, actual motion, committed pause, reset to
-paused epoch1/zero time, resumed motion, fresh advancing reconnect and clean
-shutdown/cleared geometry were observed through CUA. Evidence is under
-`artifacts/m1-canonical-corrected-gl-build/`, especially
-`browser-observations.json` and screenshots. This is a core vertical slice,
-not accepted M1. The final UI correction now shows 21 truthful visual entities
-and makes no unsupported automatic SDF requests in the real browser. Latest
-WebGPU/GL bundles passed their unchanged 14 MB gzip budgets in the 1,069-second
-TTY run `artifacts/m1-canonical-final-ui-build-tty-retry`; exact same-frame
-pause at 6.905 s and reset epoch1/zero screenshots are retained there. The earlier
-non-TTY final-bundle run ended SIGTERM (143) with no result and remains separate.
-Final consolidated qualification and hosted CI are still pending. Use `&ui=full`
-for Reset/Play/Pause. The older untracked Bevy 0.18 prototype and failed probe
-are preserved as historical evidence, not the maintained delivery target.
+Both current bundles include executor 1.14.1 and passed the unchanged 14 MB gzip
+budgets in the 1,665-second run `artifacts/m1-canonical-executor-patch-build`.
+The real WebGL2 browser again showed 20 dynamic bodies, ground and 21 truthful
+visual rows: running at 21.690 s, committed pause at 25.675 s, reset to paused
+epoch 1 at zero time, resumed motion, fresh advancing reconnect and clean
+shutdown with cleared geometry. Reload briefly showed a closed connection before
+automatic recovery; this intermediate frame is not a passing scene. Restarting
+the same patched CLI automatically restored the initial paused world. All saved
+frames and exact bindings are in `docs/evidence/m1-browser`; no automatic
+unsupported SDF request appeared. These are integration observations, not M1
+acceptance. Final current-graph qualification and hosted CI remain pending.
+Use `&ui=full` for Reset/Play/Pause. Earlier 1,069-second UI bundles, the earlier
+SIGTERM build and prototype observations remain historical evidence.
+
+Simulator review commit `1a2648de6090b3b25e47a47c3de534252a8d3c5f`
+passed its complete local staged gate and independent evidence audit: 952
+headless, 555 renderer and 276 tooling checks, plus ten native-off cases.
+Both required profiles passed their unchanged coverage gates. This qualification
+used async-executor 1.14.0. The viewer's hosted advisory check subsequently
+rejected that yanked dependency; upstream 1.14.1 fixes an executor shutdown
+use-after-free. The current simulator lockfile selects that compatible patch
+without changing any other package or feature. The affected browser evidence is
+now refreshed; qualify this dependency graph before Main promotion. The earlier
+results remain historical evidence, not acceptance of the patched graph. See
+[the upstream fix](https://github.com/smol-rs/async-executor/releases/tag/v1.14.1).
 
 The simulator bridge and Rapier-only feature source are implemented on
 `work/m1-live-primitives`. Reviewed development CLI builds passed, including

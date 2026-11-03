@@ -6,12 +6,14 @@
 M1 needs a Linux runtime that can load Rapier f64 primitive worlds without the
 DART/MuJoCo libraries or the C++ Gazebo reference SDK. This source batch adds a
 selectable build boundary; the live gzweb connection and M1 acceptance are owned
-separately. The coordinator's integrated M1 tree completed an initial native-off
-development CLI build in 16.049 seconds (`artifacts/m1-dayone-server-runtime-build.json`).
-That is a development build, not final acceptance. The integrated final gate
-subsequently passed its headless tests, then rejected duplicate coverage source
-entries from cross-crate build-script include aliases. The correction below is
-source-only and unrun; complete staged and hosted acceptance remains pending.
+separately. The initial build and build-script source-alias correction were
+subsequently qualified in simulator review commit `1a2648de`, including all ten
+native-off cases and both unchanged full coverage profiles. That dependency graph
+used executor 1.14.0. The current lock selects the compatible upstream 1.14.1
+shutdown safety fix. Its native-off product build passed in 52.34 seconds and
+ran the fresh browser observations in `docs/evidence/m1-browser`. Final staged
+and hosted qualification of this patched graph remains pending; neither a
+product build nor browser observations alone imply M1 acceptance.
 
 The default `native-backends` feature stays enabled in Scene, Server and CLI.
 Existing full builds, native versions, linker/RPATH checks, tests and verification
@@ -59,7 +61,8 @@ verified RPATH, and enabled missing-metadata failure. Each owning crate includes
 its own `../build.rs`, matching its existing native runtime harness. No test
 includes another crate's build script through a second relative path. The
 original native-link helpers and all old native-link tests remain unchanged.
-The relocated tests are unrun; no corrected coverage result is assumed.
+The relocated cases passed on the prior graph; current-graph qualification must
+still execute them without failure or skip.
 
 The auxiliary report, raw counters and four byte-bound executable copies (the
 CLI and the three test targets) are retained
