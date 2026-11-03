@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-03",
   "execution_state": "active",
-  "current_phase": "M5",
+  "current_phase": "M6",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -81,7 +81,13 @@
       ],
       "scope": "Activate one SDF RGB camera using existing offscreen Bevy rendering and bounded image delivery.",
       "acceptance": "A known primitive scene produces real timestamped images at the requested rate; frame, pause/reset, removal and overload controls pass.",
-      "excluded": "Camera arrays, distortion, thermal and segmentation."
+      "excluded": "Camera arrays, distortion, thermal and segmentation.",
+      "accepted_at": "2026-11-03T20:35:48.336547+00:00",
+      "evidence": "docs/M5_ACCEPTANCE.md",
+      "accepted_commits": {
+        "gz-sim-rs": "60a3a71096e5eff19c0e09392dc5b9c0348ae350",
+        "gzweb-rs": "5b67f45fe0638197dc06ad2d2659a34460c7f396"
+      }
     },
     {
       "id": "M6",
@@ -167,8 +173,8 @@
     "M2": "complete",
     "M3": "complete",
     "M4": "complete",
-    "M5": "in_progress",
-    "M6": "not_started",
+    "M5": "complete",
+    "M6": "in_progress",
     "M7": "not_started",
     "M8": "not_started",
     "M9": "not_started",
@@ -177,5 +183,5 @@
     "M12": "not_started"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-03T16:03:04.749915+00:00"
+  "phase_started_at": "2026-11-03T20:35:48.336547+00:00"
 }

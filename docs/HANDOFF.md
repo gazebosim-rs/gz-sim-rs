@@ -3,54 +3,44 @@
 
 # Coordinator handoff
 
-> M1–M4 were accepted on 2026-11-03, including the live Rapier IMU delivery.
-> The current delivery is M5: one SDF RGB camera using existing offscreen Bevy rendering,
+> M1–M5 were accepted on 2026-11-03, including bounded live RGB camera delivery.
+> The current delivery is M6: one loaded SDF metric-depth camera with bounded delivery,
 > budgeted at most five working days including review and required checks.
 > Preserve accepted demos, paused qualifications and independent Fuel work.
 
 
-Updated 2026-11-03. Read DELIVERY_PLAN.md and M4_ACCEPTANCE.md first.
+Updated 2026-11-03. Read DELIVERY_PLAN.md and M5_ACCEPTANCE.md first.
 
-## Current delivery: M5 RGB camera
+## Current delivery: M6 metric-depth camera
 
-M4 is accepted on public Main at simulator `eae6f3b8`, using the unchanged
-accepted viewer `5b67f45f`. The single consolidated normal staged hook passed in
-910.222 seconds, exact hosted CI `41659117101` passed all sixteen steps, and
-independent source, local/official data and actual-browser evidence reviews are
-clear. This delivery qualifies the existing IMU implementation through a runnable
-100 Hz rotated-sensor example and four focused regression controls; it adds no
-production code and claims no new production coverage credit.
+M5 is accepted on public Main at simulator `60a3a710`, using the unchanged
+accepted viewer `5b67f45f`. The final normal staged gate passed in 1131.278
+seconds, exact hosted CI `41703668173` passed all sixteen steps, and independent
+source plus local/official data reviews are clear. The bounded 64×64 RGB_INT8
+box/no-world-light camera runs through loaded SDF, the existing offscreen Bevy
+worker and canonical direct Zenoh image delivery. Real image/frame/calibration,
+10 Hz timestamps, pause/reset/removal, committed-tick Busy and actual CLI controls
+pass. The default server remains native-free/GPU-free when selected explicitly.
+No new browser RGB display, C++ image parity or performance result is claimed.
+See M5_ACCEPTANCE.md for exact counters, executable bindings and retention limits.
 
-Actual tests prove SI/sensor axes, end-step times and counts, pause/reset,
-subscriber demand versus structural loaded-consumer teardown, and canonical
-upstream Zenoh delivery decoded by maintained Prost bindings. The browser shows
-the real body world and committed controls, not IMU values. Exact qualified
-native-free executable and accepted viewer bundles were reused without another
-build. No performance or new C++ sensor parity claim is made. See M4_ACCEPTANCE.md
-and evidence/m4-browser/README.md for counters, bindings and limits.
+Current M6 connects the existing metric-depth renderer to one loaded SDF camera
+and a bounded consumer stream. Prove calibrated metric depths and documented
+background/clipping behavior, timestamps/reset epochs, removal and bounded
+delivery. Budget at most five working days including review and mandatory
+checks. Reuse camera metadata, renderer, worker/client/protocol, scheduling and
+lifecycle APIs; preserve accepted RGB behavior, headless defaults and strict
+feature-matrix coverage. RGB-D registration, point clouds, depth-noise parity,
+other sensor families and unrelated backend qualifications remain deferred.
 
-Current M5 connects one configured SDF RGB camera to existing offscreen Bevy
-rendering and bounded canonical image delivery. Prove real timestamped images
-at requested rate, frame, pause/reset, removal and overload behavior. Reuse
-existing camera metadata, renderer, worker, output and lifecycle APIs. Keep
-acquisition demand-activated; network/GPU waits stay outside critical stepping.
-Budget at most five working days including independent review and mandatory
-checks. Camera arrays, distortion, thermal, segmentation and other sensor
-families remain deferred. Do not resume M6 depth qualification prematurely.
-
-M5 source is isolated in `artifacts/m5-rgb-camera-worktree` on
-`work/m5-rgb-camera`. The optional `rgb-camera` CLI feature and `--camera-worker`
-flag reuse CameraServer; split tick/capture preserves committed physics when
-output reports Busy. Strict coverage retains CLI ownership in both mandatory
-profiles and passes actual Cargo-bound CLI/worker executables into the renderer
-control. Source review and the distinct native-free RGB proof are still in
-progress; no M5 verification or acceptance is claimed. See M5_RGB_CAMERA.md.
-
-Root owns simulator/CLI/Server integration and canonical acceptance. Preserve
-accepted SDFormat Main `1594ac3637396d2cc43497abb16b7c2818d999e6` and simulator
-producer pin `a44bf8be`; paused mass-override and metric-depth candidates remain
-untouched until a named delivery needs them. Preserve independently owned Fuel.
-Historical P0–P7 inventories are deferred, not prerequisites for M5.
+Root owns simulator/CLI/Server integration and canonical acceptance. Assess the
+preserved `artifacts/metric-depth-worktree` and `metric-depth-worker-worktree`
+source as concrete M6 dependencies, then integrate in a new isolated delivery
+tree. Do not mutate frozen candidates or replay M1–M5 acceptance. Preserve all
+other pending worktrees, the paused producer mass-override candidate and the
+independent Fuel owner's work. Accepted SDFormat Main remains `1594ac36` and
+the simulator producer pin remains `a44bf8be`. Historical P0–P7 is a deferred
+inventory, not a prerequisite for this delivery.
 
 The sections below preserve previous continuation history. Their next-task
 instructions are superseded by this section and D30.

@@ -1,7 +1,7 @@
 # Instructions for implementation agents
 
-> M1–M4 were accepted on 2026-11-03, including the live Rapier IMU delivery.
-> The current delivery is M5: one SDF RGB camera using existing offscreen Bevy rendering,
+> M1–M5 were accepted on 2026-11-03, including bounded live RGB camera delivery.
+> The current delivery is M6: one loaded SDF metric-depth camera with bounded delivery,
 > budgeted at most five working days including review and required checks.
 > Preserve accepted demos, paused qualifications and independent Fuel work.
 
@@ -14,17 +14,19 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M4 are accepted; see
-their acceptance records. Current M5 activates one configured SDF RGB camera
-through existing offscreen Bevy rendering and bounded canonical image delivery.
-Budget at most five working days including independent review and mandatory
-checks. Prove real timestamped images at the requested rate, frame correctness,
-pause/reset, removal and overload behavior. Reuse the existing renderer, worker,
-output and lifecycle code; keep rendering demand-activated and server waits
-outside critical stepping. Camera arrays, distortion, thermal, segmentation and
-other sensor families remain deferred. Do not resume the paused metric-depth
-candidate as an unrelated qualification. Full P0–P7 remains a deferred inventory.
-Keep every retained assertion and quality gate.
+Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M5 are accepted; see
+their acceptance records. Current M6 connects the existing metric-depth renderer
+to one loaded SDF camera and a bounded consumer stream. Budget at most five
+working days including independent review and mandatory checks. Prove calibrated
+metric values, background/clipping semantics, timestamps/reset epochs, removal
+and bounded delivery. Reuse the existing renderer, worker, protocol, camera
+metadata and lifecycle APIs; keep network/GPU waits outside critical stepping.
+Preserve the accepted RGB camera, native-free/GPU-free defaults, all retained
+assertions and feature-matrix coverage. Assess the preserved metric-depth
+candidates for this named dependency in a new isolated delivery tree; do not
+mutate frozen candidates or resume unrelated qualifications. RGB-D registration,
+point clouds, depth-noise parity and other sensor families remain deferred.
+Full P0–P7 remains a deferred inventory, not this phase's prerequisite.
 
 The owner explicitly resumed implementation. Work only on the current delivery
 or a concrete blocking dependency; earlier pause records are historical. The

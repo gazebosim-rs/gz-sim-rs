@@ -3,10 +3,10 @@
 
 # M5: bounded RGB camera delivery
 
-Implementation in progress, not accepted. Budget: five working days including
-review and mandatory checks. M1–M4 remain accepted. Connect one configured SDF
-RGB camera to existing offscreen Bevy rendering and bounded canonical image
-publication. Keep network/GPU waits outside critical simulation stepping.
+Accepted at simulator Main `60a3a710`; see [M5_ACCEPTANCE.md](M5_ACCEPTANCE.md).
+One configured SDF RGB camera uses existing offscreen Bevy rendering and bounded
+canonical image publication. Network/GPU waits stay outside critical simulation
+stepping; M1–M4 remain preserved.
 
 ## Application and retained boundaries
 
@@ -72,7 +72,8 @@ claim is made. The actual renderer control launches the verifier-bound CLI and
 worker, checks real canonical images and pause/resume, and requires exactly
 10,000 advancing ticks before clean exit.
 
-Independent source review is complete, with findings batched before the first
-consolidated mandatory verification pass. Verification and acceptance are pending. Preserve strict owned and changed-line
+Independent source review, final required staged verification, exact hosted CI
+and independent retained-data audits passed. Earlier failed attempts remain
+failed evidence; their batched corrections preserve all quality gates. Preserve strict owned and changed-line
 coverage gates and the accepted primitive/mesh/IMU demos. The paused depth
 candidate remains deferred until M6 needs it.
