@@ -1,8 +1,8 @@
 # Instructions for implementation agents
 
-> M1 was accepted on 2026-11-03: Rapier primitives run live in gzweb-rs.
-> The current delivery is M2: local glTF 2.0 visuals with primitive collisions,
-> budgeted at most three working days including review and required checks.
+> M1 and M2 were accepted on 2026-11-03: primitives and local glTF visuals run live in gzweb-rs.
+> The current delivery is M3: static triangle-mesh and dynamic convex-hull collisions,
+> budgeted at most five working days including review and required checks.
 > Preserve the accepted MVP, paused qualifications and independent Fuel work.
 
 
@@ -14,15 +14,16 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` before selecting work. M1 is accepted; see
-`docs/M1_ACCEPTANCE.md`. Current M2 adds local glTF 2.0 visual assets to the
-moving Rapier world in gzweb-rs while retaining primitive collisions. Budget
-at most three working days including source review and required verification.
-Reuse the existing viewer mesh loader. Missing or invalid resources must fail
-clearly. Mesh collisions, texture conversion, remote downloads and general
-formats remain deferred. Preserve all accepted MVP behavior and quality gates.
-Full P0–P7 completion and unrelated backend or sensor qualifications do not block
-this delivery. Later phases keep their one-to-five-working-day scope budgets.
+Read `docs/DELIVERY_PLAN.md` before selecting work. M1 and M2 are accepted; see
+`docs/M1_ACCEPTANCE.md` and `docs/M2_ACCEPTANCE.md`. Current M3 adds Rapier static
+triangle-mesh and dynamic convex-hull collisions from the admitted local glTF
+input. Budget at most five working days including source review and required
+verification. Use maintained geometry/physics libraries; preserve the accepted
+visual frame/scale contract and primitive collisions. Prove geometry/contact,
+reset and explicit rejection of unsupported nonconvex dynamic input. Automatic
+convex decomposition, deformables, heightmaps, general formats and unrelated
+backend/sensor qualifications remain deferred. Full P0–P7 completion is not a
+prerequisite. Keep every retained assertion and quality gate.
 
 The owner explicitly resumed implementation. Work only on the current delivery
 or a concrete blocking dependency; earlier pause records are historical. The

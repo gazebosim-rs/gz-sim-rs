@@ -3,40 +3,46 @@
 
 # Coordinator handoff
 
-> M1 was accepted on 2026-11-03: Rapier primitives run live in gzweb-rs.
-> The current delivery is M2: local glTF 2.0 visuals with primitive collisions,
-> budgeted at most three working days including review and required checks.
+> M1 and M2 were accepted on 2026-11-03: primitives and local glTF visuals run live in gzweb-rs.
+> The current delivery is M3: static triangle-mesh and dynamic convex-hull collisions,
+> budgeted at most five working days including review and required checks.
 > Preserve the accepted MVP, paused qualifications and independent Fuel work.
 
 
-Updated 2026-11-03. Read DELIVERY_PLAN.md and M1_ACCEPTANCE.md first.
+Updated 2026-11-03. Read DELIVERY_PLAN.md and M2_ACCEPTANCE.md first.
 
-## Current delivery: M2 local mesh visualization
+## Current delivery: M3 mesh collisions
 
-M1 is accepted on public Main at simulator `35100cf8` and viewer `0db1f4e`.
-Both required local gates, exact hosted CI and independent official evidence
-audits passed. The real WebGL2 browser shows 20 dynamic bodies plus ground,
-committed pause/reset/resume, fresh reconnect and clean shutdown. A clean
-read-only Ubuntu 24.04 container with only the executable and fixture mounted
-runs the Rapier server and viewer listener without network, GPU or SDK access.
-See M1_ACCEPTANCE.md for immutable commits, CI links, measurements and limits.
-The development preview uses the maintained `../gzweb-rs`, not the older
-prototype. Both current WASM flavors include executor 1.14.1 and meet their
-unchanged 14 MB gzip budgets. Historical pre-patch successes and failures remain
-separate; no full-compatibility or performance improvement is claimed.
+M2 is accepted on public Main at simulator `7b8a4e10` and viewer `5b67f45f`.
+Required local hooks, exact hosted CI and independent official source/data
+reviews passed on both commits. The actual WebGL2 browser renders the local
+green mesh and primitive world, follows Rapier motion/contact, acknowledges
+pause/reset/resume, and recovers the mesh on reload. A separate corrupt-PNG
+world produces one visible production UI error naming the PNG decoder failure;
+partial geometry may remain visible. Actual CLI startup refuses missing or
+malformed documents and missing buffers before stepping. See M2_ACCEPTANCE.md
+for exact evidence, counters, source bindings and limits. M1 remains preserved.
 
-Work now on local glTF 2.0 visuals, correct transforms and resource paths, and
-explicit missing/invalid-asset errors. Keep primitive collisions. Reuse the
-existing gzweb-rs mesh pipeline, preserve the primitive MVP, and budget at most
-three working days including independent review and mandatory verification.
-Do not start mesh collisions, texture conversion, remote downloads or unrelated
-native/sensor qualification. Root owns simulator integration; the viewer owner
-owns the maintained viewer. Only test/lint a completed reviewed source batch.
+The exact instrumented native-free CLI from the mandatory simulator gate was
+reused for browser observations; no extra product build or performance result
+is claimed. Both current WASM flavors pass the unchanged 14 MB gzip budget.
+Actual browser captures run in the background at 1 fps, and startup/reload
+initially produced Waiting/CUA timeouts before the real scene appeared.
+
+Current M3 adds Rapier static triangle-mesh and dynamic convex-hull collisions
+from local admitted glTF input. Prove geometry/contact, reset, visual/physics
+frame and scale agreement, and explicit unsupported nonconvex dynamic refusal.
+Reuse maintained geometry and physics code. Budget at most five working days,
+including independent source review and mandatory checks; batch corrections
+before verification. No automatic decomposition, deformables, heightmaps,
+general asset formats, new sensors or unrelated qualifications in this phase.
+Root owns simulator integration; the viewer owner can review the retained
+visual contract. Preserve all accepted behavior, evidence and quality gates.
 
 Accepted SDFormat Main remains `1594ac3637396d2cc43497abb16b7c2818d999e6`;
-the simulator producer pin stays `a44bf8be`. Preserve the paused mass override
-and metric-depth-worker candidates and all their evidence. Fuel is independently
-owned and untouched. Full P0–P7 coverage inventories are deferred, not M2 gates.
+the simulator producer pin stays `a44bf8be`. Preserve paused mass override and
+metric-depth-worker candidates and all their evidence. Fuel remains independently
+owned and untouched. Historical P0–P7 inventories are deferred, not M3 gates.
 
 The sections below preserve the previous continuation history. Their next-task
 instructions are superseded by this section and D30.

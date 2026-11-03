@@ -3,7 +3,9 @@
 
 # M2: local glTF visuals
 
-Implementation candidate, not accepted. M1 remains the published baseline.
+Accepted on 2026-11-03 on both public Main branches. See
+[M2_ACCEPTANCE.md](M2_ACCEPTANCE.md) for exact commits, required checks and actual
+browser evidence. M1 remains preserved.
 M2 keeps Rapier primitive collisions and adds local glTF 2.0 visual geometry.
 No mesh collision, remote download, general format conversion or new system
 plugin is introduced. Target: three working days including independent review

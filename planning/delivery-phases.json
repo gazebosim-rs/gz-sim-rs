@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-03",
   "execution_state": "active",
-  "current_phase": "M2",
+  "current_phase": "M3",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -30,7 +30,13 @@
       ],
       "scope": "Render local glTF 2.0 mesh visuals in gzweb-rs; keep primitive collisions.",
       "acceptance": "A moving body with a local mesh visual has correct scale, orientation and resource paths in the actual browser; missing or invalid assets fail clearly.",
-      "excluded": "Mesh collisions, texture conversion, remote downloads and general asset formats."
+      "excluded": "Mesh collisions, texture conversion, remote downloads and general asset formats.",
+      "accepted_at": "2026-11-03T11:25:20.441657+00:00",
+      "evidence": "docs/M2_ACCEPTANCE.md",
+      "accepted_commits": {
+        "gz-sim-rs": "7b8a4e10fb06ee4077e5092c588f309811a128b5",
+        "gzweb-rs": "5b67f45fe0638197dc06ad2d2659a34460c7f396"
+      }
     },
     {
       "id": "M3",
@@ -146,8 +152,8 @@
   "later_work": "After M12, select one named sensor, system, asset capability or backend increment per cycle. Scope each cycle to at most five working days before starting; split anything larger. Full compatibility remains an unscheduled backlog, not a promised twelve-week completion.",
   "status": {
     "M1": "complete",
-    "M2": "in_progress",
-    "M3": "not_started",
+    "M2": "complete",
+    "M3": "in_progress",
     "M4": "not_started",
     "M5": "not_started",
     "M6": "not_started",
@@ -159,5 +165,5 @@
     "M12": "not_started"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-03T07:29:13.229573+00:00"
+  "phase_started_at": "2026-11-03T11:25:20.441657+00:00"
 }

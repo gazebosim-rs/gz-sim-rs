@@ -1,0 +1,90 @@
+{
+  "recorded_at": "2026-11-03T11:21:51.908581+00:00",
+  "scope": "Actual M2 production browser observation, not a performance or full-format compatibility result",
+  "simulator_commit": "7b8a4e10fb06ee4077e5092c588f309811a128b5",
+  "simulator_tree": "f695616fbc9af280f45966eb9217e2d214c47b14",
+  "viewer_commit": "5b67f45fe0638197dc06ad2d2659a34460c7f396",
+  "viewer_tree": "6c16635755171f969098f650aa87f81bbefbde12",
+  "executable": {
+    "sha256": "c8ab88ab9f47d5b38f3ad0895f0e7dea3092372af040e2fa02374465a509ab94",
+    "scope": "Exact retained native-free CLI from required gate; instrumented, no extra product build and no timing claim"
+  },
+  "bundles": {
+    "webgpu": {
+      "wasm_sha256": "ffc103e3ec5aed9f5c0e3868209db1c1783b22239fda6626d8301bed6552344c",
+      "javascript_sha256": "08bea1d91073db214120a40b15923dad2531b80a4a263dfe8d21976a5702e05f"
+    },
+    "webgl2": {
+      "wasm_sha256": "d2fee7a40e0acdb3a8ef552c667ba2d247eb4de48e5d80850248a17147790621",
+      "javascript_sha256": "ba4f6f1ed96242813c5c9cf31881c794994f140471c9cc400b0a800837343025"
+    }
+  },
+  "fixture_files": {
+    "mvp_local_mesh.sdf": "ad1ea2adfbb7f40b7658bf4e2f5d319a8b59faa1463f932eeee1dd96f7ce6673",
+    "assets/m2/pyramid.gltf": "adf78d626cd987b14addc89f5b6821e26e54256ebb9e6a93a413a1237d880285",
+    "assets/m2/pyramid.bin": "851341e22bdd35ac3fed4b90ea9311ac7125bba3942a842ff2dd706bd16d7e7d",
+    "assets/m2/pixel.png": "7ac2abfce2be8b46dd9826d597d94edeefc1570b4a992622721b90a1850e3ee9"
+  },
+  "runtime_renderer": "webgl2 (actual startup status); no actual WebGPU browser claim",
+  "good_url": "http://127.0.0.1:8081/artifacts/m2-preview/?backend=primitive&ui=full&url=ws://127.0.0.1:9003/",
+  "invalid_image_url": "http://127.0.0.1:8081/artifacts/m2-preview/?backend=primitive&ui=full&url=ws://127.0.0.1:9004/",
+  "limits": [
+    "Background captures show1fps and unavailable RT factor/physics stats as dashes; no performance inference.",
+    "WASM startup/reload produced CUA timeouts/Waiting before the actual recovered scenes; no startup-time guarantee.",
+    "Screenshots show appearance and placement; quantitative transforms/material provenance are supported separately by passed actual Mesh3d regressions and source bindings.",
+    "Uniform white texture sampling is not separately measured by screenshots; actual corrupt-PNG decoder error proves the declared image path is used.",
+    "Invalid dependency reports clearly through production UI; partial geometry may remain visible."
+  ],
+  "images": [
+    {
+      "file": "01-initial.jpg",
+      "sha256": "8370ceecc25e7979c2112c9a5d4f2060a8d78cac372820cb7d1b67492db73939",
+      "caption": "Paused zero-time scene after zoom; green local mesh, red sphere and ground with three visual rows."
+    },
+    {
+      "file": "02-initial-angle.jpg",
+      "sha256": "5ba909abaf36c007f7f45fcffb0c67fd7b58fa9fcd0eba54be6e49f1a8c84cbd",
+      "caption": "Same paused initial scene after camera orbit."
+    },
+    {
+      "file": "03-motion.jpg",
+      "sha256": "61b473efeff5ddd4cf37b524530da0b0fd460541d4e1a28ecd97eb29956b5784",
+      "caption": "Current clock10.855s: actual Rapier motion/contact changed mesh and sphere placement. Resume ACK is epoch0/0.005s/pausedfalse."
+    },
+    {
+      "file": "04-pause.jpg",
+      "sha256": "c1a5fc04520a24f091cd1d52394b530442829b6dd1cc6322651e437eadfa80cf",
+      "caption": "Current clock16.800s and committed Pause ACK epoch0/16.800s/pausedtrue."
+    },
+    {
+      "file": "05-reset.jpg",
+      "sha256": "23cd6a50eb2d19fc4ec8828341c54d950839dfd05022937619837ae5f180ca50",
+      "caption": "Zero-time reset ACK epoch1/0/pausedtrue; original relative placement restored at same camera angle as02."
+    },
+    {
+      "file": "06-resume.jpg",
+      "sha256": "76499ae3153ff8c33727feb794d24bc04bcf85068195dd295de5f97aaca74237",
+      "caption": "Current clock15.790s after reset; Resume ACK epoch1/0.005s/pausedfalse."
+    },
+    {
+      "file": "07-reconnect.jpg",
+      "sha256": "bfa98e17a8a110833d2c86df7bc338b8e8f08770743c42ae106468351f0de8ee",
+      "caption": "Browser reload recovered current scene at158.130s, including the local mesh."
+    },
+    {
+      "file": "08-reconnect-pause.jpg",
+      "sha256": "2fefdfbb035e66de7dba62b68bf315f9c1146528e3cc678dd368afe04ae9e2c5",
+      "caption": "Committed Pause ACK epoch1/162.125s/pausedtrue and matching current clock."
+    },
+    {
+      "file": "09-invalid-image-toast.jpg",
+      "sha256": "fe88580e3616b44aa32bd0ad94166d8c5dd77e256209d8f9ce3cdefa8724cb7f",
+      "caption": "Separate corrupt-PNG world9004: visible red local-glTF failure toast and one-error badge; partial geometry can remain visible."
+    },
+    {
+      "file": "10-invalid-image-console.jpg",
+      "sha256": "ec79dce4dfd601bade2edf92e3d1db375f11fe22e0dcd530dea67a93103e486f",
+      "caption": "Production console shows one actual recursive image dependency error naming pixel.png and Invalid PNG signature."
+    }
+  ]
+}
