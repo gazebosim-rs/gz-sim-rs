@@ -12,6 +12,21 @@ pub(crate) fn link_directives(libdir: Option<String>) -> String {
     )
 }
 
+/// A disabled native feature needs neither metadata nor native linker arguments.
+pub(crate) fn configured_link_directives(enabled: bool, libdir: Option<String>) -> String {
+    if enabled {
+        link_directives(libdir)
+    } else {
+        String::new()
+    }
+}
+
 pub(crate) fn main() {
-    print!("{}", link_directives(std::env::var("DEP_DART_LIBDIR").ok()));
+    print!(
+        "{}",
+        configured_link_directives(
+            cfg!(feature = "native-backends"),
+            std::env::var("DEP_DART_LIBDIR").ok()
+        )
+    );
 }

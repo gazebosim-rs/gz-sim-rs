@@ -1,0 +1,24 @@
+{
+  "scope": "Actual CUA browser observations of the local Rapier primitive world; mandatory release qualification pending",
+  "viewer_baseline": "3c3ca32 plus independently reviewed primitive backend and UI corrections",
+  "gl_wasm_sha256": "cfd8ac9c8f6e5107d95de8509d3ff4d76d941fdb2d2fbd04553766304fa2f5fe",
+  "webgpu_wasm_sha256": "852ce51c41b547437ae49ecdf8f3f44112980e53d2974bd36db19b63ba5ab23f",
+  "initial": "21 real visual entities:20 dynamic bodies and ground; paused0s",
+  "motion": "actual running world at2.915s",
+  "pause": "acknowledged epoch0,6.905s,paused=true",
+  "reset": "acknowledged epoch1,0s,paused=true; initial poses restored",
+  "automatic_unsupported_sdf_requests": "none in captured current-tab console filter",
+  "files_sha256": {
+    "initial.jpg": "b1e932ea7eabf0a02da0b720ed5eb456e403cce4d781920369a16c918fd3a518",
+    "motion.jpg": "92dac27183eb2b903dc61504f940299c4c88c4bd311adb40195a354523b89e5e",
+    "pause.jpg": "681bfaf587721e3129c96e33b87d5d1bcf6d53f254dcbd7ad694bb70626c397f",
+    "reset.jpg": "e81695eb5cde3d530f33c554428de673a972d0e11227289a472211995843b352"
+  },
+  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
+  "license": "Apache-2.0",
+  "captured_console_filter_results": {
+    "filter": "generate_world_sdf",
+    "entries": []
+  },
+  "media_type": "image/jpeg"
+}

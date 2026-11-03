@@ -2,7 +2,7 @@
   "schema_version": 1,
   "decision": "D30",
   "as_of": "2026-11-02",
-  "execution_state": "paused",
+  "execution_state": "active",
   "current_phase": "M1",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
@@ -139,7 +139,7 @@
   ],
   "later_work": "After M12, select one named sensor, system, asset capability or backend increment per cycle. Scope each cycle to at most five working days before starting; split anything larger. Full compatibility remains an unscheduled backlog, not a promised twelve-week completion.",
   "status": {
-    "M1": "not_started",
+    "M1": "in_progress",
     "M2": "not_started",
     "M3": "not_started",
     "M4": "not_started",
@@ -151,5 +151,6 @@
     "M10": "not_started",
     "M11": "not_started",
     "M12": "not_started"
-  }
+  },
+  "resumed_at": "2026-11-02T22:33:50.311634Z"
 }

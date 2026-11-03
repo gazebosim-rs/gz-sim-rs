@@ -5,6 +5,7 @@
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -815,6 +816,50 @@ def retain_profile_evidence(candidate, output, hashes, missing):
             hashes[name] = hashlib.sha256(blob).hexdigest()
 
 
+def retain_rapier_evidence(candidate, output, hashes, missing):
+    """Retain the additional native-off proof, without its disposable target."""
+    marker = candidate / "scripts/qualify-rapier-runtime.py"
+    if not marker.exists():
+        return  # Legacy retention fixtures have no additional configuration.
+    if marker.is_symlink() or not marker.resolve().is_relative_to(candidate.resolve()):
+        raise ValueError("unsafe native-off qualifier source")
+    spec = importlib.util.spec_from_file_location(
+        "retained_rapier_qualifier", marker)
+    qualifier = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(qualifier)
+    directory = candidate / "artifacts/coverage/rapier-runtime"
+    report = None
+    try:
+        report = qualifier.validate_evidence(candidate, directory)
+    except (ValueError, FileNotFoundError) as error:
+        missing.append("rapier-runtime: " + str(error))
+    if not directory.exists():
+        return
+    if directory.is_symlink() or not directory.resolve().is_relative_to(candidate.resolve()):
+        raise ValueError("unsafe native-off evidence directory")
+    expected = ({**report["artifacts_sha256"],
+                 "result.json": hashlib.sha256((directory / "result.json").read_bytes()).hexdigest()}
+                if report is not None else None)
+    copied = set()
+    for source in sorted(directory.rglob("*")):
+        if source.is_symlink() or not source.resolve().is_relative_to(directory.resolve()):
+            raise ValueError("unsafe native-off artifact during retention")
+        if source.is_file():
+            relative = str(source.relative_to(directory))
+            blob = source.read_bytes()
+            if expected is not None and hashlib.sha256(blob).hexdigest() != expected.get(relative):
+                raise ValueError("native-off artifact changed during retention")
+            name = "rapier-runtime/" + relative
+            target = output / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(blob)
+            target.chmod(source.stat().st_mode & 0o777)
+            hashes[name] = hashlib.sha256(blob).hexdigest()
+            copied.add(relative)
+    if expected is not None and copied != set(expected):
+        raise ValueError("native-off artifact disappeared during retention")
+
+
 def retain_staged_evidence(tree, candidate, state):
     directory = ROOT / "artifacts/staged"
     directory.mkdir(parents=True, exist_ok=True)
@@ -834,6 +879,7 @@ def retain_staged_evidence(tree, candidate, state):
     if profile_contract.is_file() and not (candidate / "artifacts/coverage/profile-index.json").is_file():
         missing.append("profile-index.json")
     retain_profile_evidence(candidate, output, hashes, missing)
+    retain_rapier_evidence(candidate, output, hashes, missing)
     profile_missing = missing[profile_missing_at:]
     (output / "stage-result.json").write_text(json.dumps({
         "tree": tree, "checks_state": state,
@@ -904,6 +950,7 @@ def main():
         run(["cargo", "test", "--locked", "--doc", *doc_selected, "--features", "gz-renderer/gpu"])
         run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"])
         run(["cargo", "test", "--locked", "--workspace", "--doc"])
+    run([sys.executable, "scripts/qualify-rapier-runtime.py"])
     coverage(args.changed_lines)
 
 

@@ -5,6 +5,10 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+default = ["native-backends"]
+native-backends = ["dep:gz-physics-dart", "dep:gz-physics-mujoco"]
+
 [dependencies]
 roxmltree = "=0.20.0"
 quick-xml = "=0.38.3"
@@ -16,8 +20,8 @@ thiserror.workspace = true
 sdformat.workspace = true
 gz-sim-core = { path = "../gz-sim-core" }
 gz-physics = { path = "../gz-physics" }
-gz-physics-dart = { path = "../gz-physics-dart" }
-gz-physics-mujoco = { path = "../gz-physics-mujoco" }
+gz-physics-dart = { path = "../gz-physics-dart", optional = true }
+gz-physics-mujoco = { path = "../gz-physics-mujoco", optional = true }
 gz-physics-rapier = { path = "../gz-physics-rapier" }
 gz-physics-tpe = { path = "../gz-physics-tpe" }
 gz-sensors = { path = "../gz-sensors" }

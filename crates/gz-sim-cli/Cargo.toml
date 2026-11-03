@@ -5,6 +5,10 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+default = ["native-backends"]
+native-backends = ["gz-sim-scene/native-backends", "gz-sim-server/native-backends", "dep:gz-physics-dart"]
+
 [[bin]]
 name = "gz-sim-rs"
 path = "src/main.rs"
@@ -13,12 +17,17 @@ path = "src/main.rs"
 gz-fuel-tools.workspace = true
 clap.workspace = true
 gz-assets = { path = "../gz-assets" }
-gz-sim-scene = { path = "../gz-sim-scene" }
+gz-sim-scene = { path = "../gz-sim-scene", default-features = false }
 gz-sim-core = { path = "../gz-sim-core" }
 # Direct dependency so build.rs receives DEP_DART_LIBDIR.
-gz-physics-dart = { path = "../gz-physics-dart" }
-gz-sim-server = { path = "../gz-sim-server" }
+gz-physics-dart = { path = "../gz-physics-dart", optional = true }
+gz-sim-server = { path = "../gz-sim-server", default-features = false }
 signal-hook = "=0.3.18"
+gz-sim-proto.workspace = true
+sdformat.workspace = true
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.149"
+tungstenite = { version = "=0.30.0", default-features = false, features = ["handshake"] }
 
 [dev-dependencies]
 zenoh.workspace = true

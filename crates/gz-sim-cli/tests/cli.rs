@@ -557,3 +557,51 @@ fn native_engine_faults_end_the_run_with_the_engine_diagnostic() {
         }
     }
 }
+
+#[test]
+fn viewer_opt_in_rejects_invalid_modes_and_releases_its_listener_on_exit() {
+    for args in [
+        vec![fixture(), "--web-viewer", "9002"],
+        vec![fixture(), "--server", "--web-viewer", "0"],
+        vec![fixture(), "--server", "--web-viewer", "65536"],
+    ] {
+        let result = command(&args);
+        assert_eq!(result.status.code(), Some(2), "{result:?}");
+        assert!(result.stdout.is_empty());
+    }
+    let reserved = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = reserved.local_addr().unwrap();
+    let port = address.port().to_string();
+    let world = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../examples/mvp_primitives.sdf"
+    );
+    let args = [
+        world,
+        "--physics-engine",
+        "rapier",
+        "--server",
+        "--run",
+        "--iterations",
+        "2",
+        "--web-viewer",
+        port.as_str(),
+    ];
+    let conflict = command(&args);
+    assert_eq!(conflict.status.code(), Some(1), "{conflict:?}");
+    assert!(conflict.stdout.is_empty());
+    assert!(!String::from_utf8_lossy(&conflict.stderr).contains("gzweb-rs WebSocket:"));
+    drop(reserved);
+    let result = command(&args);
+    assert!(result.status.success(), "{result:?}");
+    assert!(
+        String::from_utf8_lossy(&result.stdout)
+            .starts_with("simulation_ns=10000000 iterations=2\n")
+    );
+    assert!(
+        String::from_utf8_lossy(&result.stderr)
+            .contains(&format!("gzweb-rs WebSocket: ws://127.0.0.1:{port}/"))
+    );
+    // Actual process exit must join its bridge and release the owned port.
+    let _released = std::net::TcpListener::bind(address).unwrap();
+}

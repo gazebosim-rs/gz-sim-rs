@@ -7,7 +7,6 @@ use gz_sim_scene::{JointForceCommand, JointSample, Name, PhysicsEngine, load_wor
 use sdformat::NoResources;
 use std::{
     io::{BufRead, BufReader, Read, Write},
-    net::TcpListener,
     num::NonZeroUsize,
     path::Path,
     process::{Child, Command, Stdio},
@@ -15,6 +14,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+use zenoh::Wait;
 #[path = "../../../../tests/support/zenoh_peer.rs"]
 mod zenoh_peer;
 
@@ -22,20 +22,19 @@ const XML: &str = include_str!("../fixtures/joint_force.sdf");
 const PLUGIN: &str = "<plugin filename='gz-sim-apply-joint-force-system' name='gz::sim::systems::ApplyJointForce'><joint_name>hinge</joint_name></plugin>";
 
 // Process-local configuration prevents concurrent tests from mutating global
-// Zenoh settings. A held loopback port is released only for this child's bind.
+// Zenoh settings. The kernel selects a port while the Rust session owns it;
+// the native peer connects to that session's actual locator.
 fn isolate(name: &str) -> bool {
     const CHILD: &str = "GZ_FORCE_ZENOH_CASE";
     if std::env::var(CHILD).as_deref() == Ok(name) {
         return false;
     }
     let directory = tempfile::tempdir().unwrap();
-    let reservation = TcpListener::bind("127.0.0.1:0").unwrap();
-    let address = format!("tcp/127.0.0.1:{}", reservation.local_addr().unwrap().port());
     let rust = directory.path().join("rust.json");
     let native = directory.path().join("native.json");
     let scouting = serde_json::json!({"multicast":{"enabled":false},"gossip":{"enabled":false}});
-    std::fs::write(&rust, serde_json::to_vec(&serde_json::json!({"mode":"peer","listen":{"endpoints":[address]},"scouting":scouting})).unwrap()).unwrap();
-    std::fs::write(&native, serde_json::to_vec(&serde_json::json!({"mode":"peer","listen":{"endpoints":["tcp/127.0.0.1:0"]},"connect":{"endpoints":[address],"timeout_ms":2000},"scouting":scouting,"transport":{"shared_memory":{"enabled":false}}})).unwrap()).unwrap();
+    std::fs::write(&rust, serde_json::to_vec(&serde_json::json!({"mode":"peer","listen":{"endpoints":["tcp/127.0.0.1:0"]},"scouting":scouting})).unwrap()).unwrap();
+    std::fs::write(&native, serde_json::to_vec(&serde_json::json!({"mode":"peer","listen":{"endpoints":["tcp/127.0.0.1:0"]},"connect":{"endpoints":[],"timeout_ms":2000},"scouting":scouting,"transport":{"shared_memory":{"enabled":false}}})).unwrap()).unwrap();
     let mut child = Command::new(std::env::current_exe().unwrap());
     let module = module_path!().split_once("::").unwrap().1;
     child
@@ -51,7 +50,6 @@ fn isolate(name: &str) -> bool {
         .env_remove("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE")
         .env_remove("LD_PRELOAD")
         .env_remove("LD_AUDIT");
-    drop(reservation);
     let result = child.output().unwrap();
     assert!(
         result.status.success(),
@@ -81,16 +79,34 @@ struct Peer {
     stderr: Option<thread::JoinHandle<String>>,
 }
 impl Peer {
-    fn start(native: &zenoh_peer::NativePeer, config: &ServerOptions, topic: &str) -> Self {
+    fn start(
+        native: &zenoh_peer::NativePeer,
+        config: &ServerOptions,
+        topic: &str,
+        io: &crate::world_io::WorldIo,
+    ) -> Self {
+        let native_config = std::env::var_os("GZ_FORCE_ZENOH_NATIVE_CONFIG").unwrap();
+        let mut settings: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(&native_config).unwrap()).unwrap();
+        let locators: Vec<_> = io
+            .session
+            .info()
+            .locators()
+            .wait()
+            .into_iter()
+            .map(|locator| locator.to_string())
+            .collect();
+        assert_eq!(locators.len(), 1, "expected the owned loopback listener");
+        assert!(locators[0].starts_with("tcp/127.0.0.1:"));
+        assert_ne!(locators[0], "tcp/127.0.0.1:0");
+        settings["connect"]["endpoints"] = serde_json::json!(locators);
+        std::fs::write(&native_config, serde_json::to_vec(&settings).unwrap()).unwrap();
         let mut command = Command::new(&native.binary);
         command
             .arg(topic)
             .env("GZ_PARTITION", &config.partition)
             .env("GZ_TRANSPORT_IMPLEMENTATION", "zenoh")
-            .env(
-                "ZENOH_CONFIG",
-                std::env::var_os("GZ_FORCE_ZENOH_NATIVE_CONFIG").unwrap(),
-            )
+            .env("ZENOH_CONFIG", native_config)
             .env_remove("GZ_RELAY")
             .env_remove("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE")
             .env_remove("LD_PRELOAD")
@@ -212,7 +228,12 @@ fn real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines() {
             NonZeroUsize::new(2).unwrap(),
         )
         .unwrap();
-        let mut peer = Peer::start(binary, &config, "/model/rotor/joint/hinge/cmd_force");
+        let mut peer = Peer::start(
+            binary,
+            &config,
+            "/model/rotor/joint/hinge/cmd_force",
+            &server.world_io,
+        );
         peer.line("READY");
         for _ in 0..10 {
             server.update().unwrap();
@@ -391,6 +412,7 @@ fn unread_native_force_queue_is_discarded_when_subscriptions_restart() {
         native_client(),
         &config,
         "/model/rotor/joint/hinge/cmd_force",
+        &io,
     );
     peer.line("READY");
     let deadline = Instant::now() + Duration::from_secs(3);
@@ -495,6 +517,7 @@ fn original_ground_world_accepts_cpp_joint_force_with_original_sample_bounds() {
         native_client(),
         &config,
         "/model/joint_force_test/joint/j1/cmd_force",
+        &server.world_io,
     );
     peer.line("READY");
     peer.send("0.001");

@@ -74,6 +74,7 @@ pub(super) fn run(
     world: &str,
     running: bool,
     iterations: u64,
+    web_viewer: Option<u16>,
 ) -> Result<(Simulation, u64), Box<dyn Error>> {
     let factor = simulation
         .world()
@@ -94,15 +95,25 @@ pub(super) fn run(
         NonZeroUsize::new(64).expect("nonzero command budget"),
     )?;
     server.prepare_run(Duration::from_secs(5))?;
+    let mut viewer = web_viewer
+        .map(|port| super::web::Bridge::new(server.simulation(), world, port))
+        .transpose()?;
     let mut completed = 0_u64;
     while !termination.requested() && (iterations == 0 || completed < iterations) {
         let started = Instant::now();
+        let controls = viewer
+            .as_mut()
+            .map(|viewer| viewer.controls(&mut server))
+            .unwrap_or_default();
         server
             .prepare_io()
             .map_err(|error| super::with_fault(server.simulation(), error))?;
         let info = server
             .tick()
             .map_err(|error| super::with_fault(server.simulation(), error))?;
+        if let Some(viewer) = &mut viewer {
+            viewer.publish(server.simulation(), world, controls)?;
+        }
         if !info.dt.is_zero() {
             // Overflow would need 2^64 advancing ticks.
             completed += 1;

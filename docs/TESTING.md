@@ -203,6 +203,52 @@ profile must pass independently and does not replace those checks.
 
 ## Pre-commit and CI
 
+### Additional M1 native-off configuration proof
+
+`scripts/qualify-rapier-runtime.py` is the additional bounded configuration check
+for `gz-sim-cli --no-default-features`. The original headless and renderer
+profiles, per-crate/workspace thresholds and changed-line gates remain unchanged.
+This check runs exactly the named native-off Scene, Server and CLI integration targets
+with the existing owned-crate instrumentation wrapper in its own fresh target
+and raw directory. It retains actual Cargo artifacts/features, post-execution
+object hashes, source/input hashes, raw profiles, merged data and the complete
+unfiltered LLVM JSON/LCOV. It requires the disabled-backend return's actual LCOV
+line and a hit code region contained in that exact match arm; a live enclosing
+function, gap region or another file cannot substitute for the cold branch.
+The actual CLI package and shared-library closure must also exclude native
+engines and the C++ SDK. All targeted cases must execute without failure or skip.
+Scene and CLI each run four cases; Server runs two. Build-helper cases live in
+their owning crates and use the same local `../build.rs` spelling as the existing
+native runtime harnesses, avoiding duplicate coverage source aliases. All four
+actual executables (the CLI and three test targets) are required and retained.
+
+This is additional configuration behavior and changed-arm evidence, not an
+independently >95%-covered native-off workspace. Its unfiltered counters stay
+separate; it neither merges them with full-profile counters nor removes cold
+code from any existing denominator. Whole required full-profile acceptance
+still needs both original reports. The new checker and its source regressions
+are prepared only; no native-off coverage result is assumed before execution.
+
+The source integration adds one mandatory call immediately before the unchanged
+`coverage(args.changed_lines)`, reducing peak disk use while preserving its gates:
+
+```python
+run([sys.executable, "scripts/qualify-rapier-runtime.py"])
+```
+
+The qualifier first saves byte-bound executable copies outside its private target,
+then removes only that fresh regenerable compilation directory. Actual raw profiles,
+LLVM reports, object copies and logs live in `artifacts/coverage/rapier-runtime`,
+so the unchanged hosted coverage upload includes them. Staged retention independently
+validates every declared artifact and source/input hash, the Cargo object/source
+bindings, and the positive line/region proof before marking evidence complete.
+Missing or tampered proof prevents a successful staged gate; available failed-run
+diagnostics remain partial, with no failure relabeled as a pass. Symlinks and
+escaped paths cannot be copied as auxiliary evidence. No old cache or historical
+artifact is cleaned. Run this only in the consolidated completed-feature pass;
+do not use it as a per-edit build/test loop. This integration remains unexecuted
+pending independent source review and the completed M1 feature.
+
 Implement one authoritative check runner in `xtask` (or a small equivalent) used
 by both a checked-in `.pre-commit-config.yaml` and CI. Provide a bootstrap command
 that installs pinned tools and hooks. Protect main with required checks; local

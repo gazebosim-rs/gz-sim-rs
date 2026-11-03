@@ -3,21 +3,54 @@
 
 # Coordinator handoff
 
+> Owner explicitly resumed implementation on 2026-11-02. M1 is active: first
+> real Rapier primitives in gzweb-rs, then complete its bounded acceptance. The
+> earlier pause statements below are historical. Do not resume unrelated pending
+> native/sensor qualification candidates. M1 acceptance remains pending; source and development-build status are below.
+
+
 Updated 2026-11-02. Read this first when resuming coordination of the rewrite,
 whichever agent you are. AGENTS.md has the standing rules; this file has the
 current state and the next tasks. Update both when either changes.
 
-## Owner priority and paused state (D30)
+## Owner priority and resumed state (D30)
 
 The current task is the weekly delivery plan, not resuming the old qualification
 queue. Read DELIVERY_PLAN.md. M1 is a Rapier-only primitive world actually visible
 and controlled in gzweb-rs, targeted within five working days after explicit
 resume. Subsequent mesh, sensor and system phases each have at most five working
 days of scope. No M1–M12 delivery has been accepted yet. All implementation
-agents and continuation automation remain paused.
+agents and continuation automation have resumed only this bounded M1 work.
 
-Accepted simulator Main is `386482e5365d827a1c0d1e8ad7ca654fe93902bf`
-(metric box-depth renderer accepted after complete local/hosted review). Accepted
+The maintained viewer is `../gzweb-rs`, canonical baseline `3c3ca32` (Bevy 0.20).
+Its explicit primitive backend now has a real WebGL2 browser observation: all 20
+colored dynamic bodies and ground, actual motion, committed pause, reset to
+paused epoch1/zero time, resumed motion, fresh advancing reconnect and clean
+shutdown/cleared geometry were observed through CUA. Evidence is under
+`artifacts/m1-canonical-corrected-gl-build/`, especially
+`browser-observations.json` and screenshots. This is a core vertical slice,
+not accepted M1. The final UI correction now shows 21 truthful visual entities
+and makes no unsupported automatic SDF requests in the real browser. Latest
+WebGPU/GL bundles passed their unchanged 14 MB gzip budgets in the 1,069-second
+TTY run `artifacts/m1-canonical-final-ui-build-tty-retry`; exact same-frame
+pause at 6.905 s and reset epoch1/zero screenshots are retained there. The earlier
+non-TTY final-bundle run ended SIGTERM (143) with no result and remains separate.
+Final consolidated qualification and hosted CI are still pending. Use `&ui=full`
+for Reset/Play/Pause. The older untracked Bevy 0.18 prototype and failed probe
+are preserved as historical evidence, not the maintained delivery target.
+
+The simulator bridge and Rapier-only feature source are implemented on
+`work/m1-live-primitives`. Reviewed development CLI builds passed, including
+`--no-default-features`. Regression source exists; final tests/lints, strict
+coverage, closure proof, staged hook and hosted CI remain pending. Do not rerun
+checks per edit. The native-off qualifier is an additive configuration proof,
+never a replacement or union for the unchanged full coverage profiles.
+
+Accepted runtime baseline remains `386482e5365d827a1c0d1e8ad7ca654fe93902bf`
+(metric box-depth renderer accepted after complete local/hosted review). The
+weekly planning update is accepted on Main at
+`778569027367a76581f777297b50940a6d5070a8`; M1 implementation is not yet accepted.
+Accepted
 SDFormat Main is `1594ac3637396d2cc43497abb16b7c2818d999e6`; simulator's
 producer pin remains `a44bf8be`. Pending mass override `154c1cbf` passed its
 local gate and independent retained audit; hosted run 41521742662 was cancelled

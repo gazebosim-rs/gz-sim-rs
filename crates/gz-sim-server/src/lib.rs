@@ -868,6 +868,20 @@ impl Server {
         self.simulation.set_paused(paused);
     }
 
+    /// Queue an application-owned control outside the critical tick.
+    /// Acceptance does not imply reset completion: call prepare_io and tick before
+    /// acknowledging the resulting epoch. An in-flight reset cannot be overwritten.
+    pub fn apply_local_control(&mut self, control: WorldControl) -> bool {
+        if self.is_shutdown
+            || self.reset_failed
+            || self.pending_reset
+            || self.prepared_reset.is_some()
+        {
+            return false;
+        }
+        self.apply_control(control)
+    }
+
     fn apply_control(&mut self, control: WorldControl) -> bool {
         if self.simulation.validate_steps(0).is_err() {
             return false;

@@ -3,10 +3,16 @@
 
 # Weekly delivery plan
 
+> Owner explicitly resumed implementation on 2026-11-02. M1 is active: first
+> real Rapier primitives in gzweb-rs, then complete its bounded acceptance. The
+> earlier pause statements below are historical. Do not resume unrelated pending
+> native/sensor qualification candidates. Development CLI builds passed; M1 acceptance remains pending.
+
+
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
-Ship a useful MVP first, then small runnable releases. Implementation remains
-paused until the owner explicitly resumes it; this planning update does not
-restart agents or the continuation automation.
+Ship a useful MVP first, then small runnable releases. The initial planning
+update left implementation paused; the owner subsequently explicitly resumed
+M1 implementation and its continuation automation.
 
 ## Schedule and acceptance
 
@@ -60,20 +66,25 @@ and spheres. Reuse the current Rapier f64 adapter, scene loading, IDs, clock and
 upstream Rust Zenoh integration. Add a selectable Rapier-only runtime build/run
 path that does not require native DART/MuJoCo libraries or the C++ reference SDK
 on the user's machine. Preserve the existing backend implementations and gates.
-The server remains usable without a window or GPU. The browser requires a
-supported WebGPU environment; document that requirement and test a real browser.
+The server remains usable without a window or GPU. The browser requires an available supported graphics backend; prefer WebGPU
+and provide the maintained viewer's WebGL2 path where supported. Test an actual
+browser; a successful WASM build alone is not visualization evidence.
 
-The local gzweb-rs source inspected on 2026-11-02 is a Bevy 0.18 static WASM
-viewer with no live simulator networking. A real connection is implementation
-work, not an existing achievement. Keep viewer and simulator as separate
-processes so their Bevy versions need not match. Define a narrow versioned scene
-snapshot, entity pose/clock update and pause/resume/reset command contract. Use
-maintained browser/network libraries for a bounded local bridge if needed;
-simulator networking continues to use unmodified upstream Zenoh. Do not create
-a new transport repository or a general protocol framework. Preserve D28's
-selected Gazebo Zenoh compatibility at the simulator boundary. A gzweb-only
-browser bridge is not proof of C++ Gazebo scene-service compatibility.
+The maintained viewer is `gazebosim-rs/gzweb-rs`, checked out alongside this
+repository at `../gzweb-rs` (baseline `3c3ca32`, Bevy 0.20). It already has live
+Gazebo WebSocket networking, scene rendering and controls. The initially
+inspected `/home/nkoenig/work/gazebo-web/gzweb-rs` is an older untracked Bevy 0.18
+prototype; its isolated work and probe evidence are preserved, but it is not the
+M1 delivery target. Reuse the maintained viewer's `SimBackend`, scene and UI
+interfaces. Add an explicit primitive-backend selection without changing its
+default Gazebo protocol. Viewer and simulator remain separate processes.
 
+Use the narrow versioned scene snapshot, committed clock and pause/resume/reset
+contract in MVP_BROWSER.md for this bounded local bridge. Simulator networking
+continues to use unmodified upstream Zenoh. Do not create a new transport
+repository or general protocol framework. Preserve D28's selected Gazebo Zenoh
+compatibility at the simulator boundary. This browser bridge is not proof of
+C++ Gazebo scene-service compatibility.
 The snapshot must include stable world/entity IDs, box dimensions or sphere
 radius, simple color, explicit units and frame conversion. Pose updates carry
 simulation timestamps and reset epochs. Reconnect replaces stale state from a

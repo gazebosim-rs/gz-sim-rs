@@ -1,0 +1,216 @@
+# Copyright (C) 2026 Open Source Robotics Foundation
+# SPDX-License-Identifier: Apache-2.0
+import importlib.util
+import json
+from pathlib import Path
+import tempfile
+import unittest
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[1]
+SPEC = importlib.util.spec_from_file_location("rapier_retention_qualifier", ROOT / "scripts/qualify-rapier-runtime.py")
+QUALIFIER = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(QUALIFIER)
+SPEC = importlib.util.spec_from_file_location("rapier_retention_verify", ROOT / "scripts/verify.py")
+VERIFY = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(VERIFY)
+
+
+class AuxiliaryRetention(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name) / "source"
+        self.directory = self.root / "artifacts/coverage/rapier-runtime"
+        self.directory.mkdir(parents=True)
+        for name in ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/config.toml",
+                     "scripts/rustc-coverage.py", "scripts/verify.py", "scripts/qualify-rapier-runtime.py",
+                     "scripts/check-rapier-runtime.py", "crates/gz-sim-cli/tests/empty.sdf",
+                     "crates/gz-sim-proto/schema-source.json", "crates/gz-sim-proto/schemas/manifest.json",
+                     "third_party/prost-derive-0.14.4/Cargo.toml", "third_party/prost-derive-0.14.4/LICENSE",
+                     "third_party/prost-derive-0.14.4/src/lib.rs",
+                     *QUALIFIER.EXECUTABLE_SOURCES.values()]:
+            path = self.root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("fixture input\n")
+        (self.root / "scripts/qualify-rapier-runtime.py").write_bytes(
+            (ROOT / "scripts/qualify-rapier-runtime.py").read_bytes())
+        source = '\n#[cfg(not(feature = "native-backends"))]\nPhysicsEngine::Dart | PhysicsEngine::Mujoco => {\nreturn Err(LoadError::BackendUnavailable(engine));\n}\n'
+        (self.root / QUALIFIER.SCENE).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / QUALIFIER.SCENE).write_text(source)
+        for name in ["commands.json", "rustc-coverage.py", "closure.stdout", "closure.stderr", "merged.profdata",
+                     "raw/case.profraw", *[test + "." + stream for test, _ in QUALIFIER.TARGETS.values()
+                                         for stream in ["stdout", "stderr"]]]:
+            self.write(name, b"fixture evidence\n")
+        events, objects = [], []
+        for name, path in QUALIFIER.EXECUTABLE_SOURCES.items():
+            original = self.root / "target/rapier-runtime-fixture" / name
+            artifact = {"reason": "compiler-artifact", "executable": str(original), "features": [],
+                        "profile": {"test": name != "gz-sim-rs"},
+                        "target": {"name": name, "src_path": str(self.root / path),
+                                   "kind": ["bin" if name == "gz-sim-rs" else "test"]}}
+            events.append(artifact)
+            saved = "objects/" + name
+            self.write(saved, ("synthetic object for metadata control: " + name).encode())
+            objects.append({"original_path": str(original), "retained_path": saved,
+                            "sha256": QUALIFIER.digest(self.directory / saved), "cargo_artifact": artifact})
+        self.write_json("cargo-events.json", events)
+        self.write_json("objects.json", objects)
+        report = {"data": [{"functions": [{"filenames": [str(self.root / QUALIFIER.SCENE)],
+                                            "regions": [[3, 1, 5, 2, 2, 0, 0, 0]]}]}]}
+        lcov = f"SF:{self.root / QUALIFIER.SCENE}\nDA:4,2\nend_of_record\n"
+        self.write_json("coverage.json", report)
+        self.write("coverage.lcov", lcov.encode())
+        inputs = QUALIFIER.inputs(self.root)
+        self.write_json("inputs.json", inputs)
+        self.report = {"state": "passed", "private_target_removed": True,
+                       "source_root": str(self.root), "target_root": str(self.root / "target/rapier-runtime-fixture"),
+                       "sources_and_inputs": inputs, "objects_bound_after_execution": objects,
+                       "disabled_backend": QUALIFIER.disabled_region(report, lcov, self.root, source)}
+        self.finish_manifest()
+
+    def write(self, name, data):
+        path = self.directory / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+
+    def write_json(self, name, value):
+        self.write(name, (json.dumps(value) + "\n").encode())
+
+    def finish_manifest(self):
+        self.report["artifacts_sha256"] = {str(p.relative_to(self.directory)): QUALIFIER.digest(p)
+                                           for p in self.directory.rglob("*")
+                                           if p.is_file() and p.name != "result.json"}
+        self.write_json("result.json", self.report)
+
+    def test_retains_objects_reports_and_raw_after_only_private_target_is_gone(self):
+        output = Path(self.temporary.name) / "retained"
+        output.mkdir()
+        hashes, missing = {}, []
+        VERIFY.retain_rapier_evidence(self.root, output, hashes, missing)
+        self.assertEqual(missing, [])
+        self.assertFalse((self.directory / "target").exists())
+        self.assertTrue("rapier-runtime/result.json" in hashes)
+        for name, digest in hashes.items():
+            self.assertEqual(QUALIFIER.digest(output / name), digest)
+        self.assertEqual(len(list((output / "rapier-runtime/objects").iterdir())), 4)
+
+    def test_missing_raw_or_result_prevents_complete_retention(self):
+        (self.directory / "raw/case.profraw").unlink()
+        with self.assertRaises(ValueError):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+        output = Path(self.temporary.name) / "retained"
+        output.mkdir()
+        missing = []
+        VERIFY.retain_rapier_evidence(self.root, output, {}, missing)
+        self.assertTrue(missing)
+        (self.directory / "result.json").unlink()
+        with self.assertRaises(FileNotFoundError):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_passed_staged_checks_cannot_accept_missing_auxiliary_proof(self):
+        (self.directory / "raw/case.profraw").unlink()
+        with patch.object(VERIFY, "ROOT", Path(self.temporary.name) / "outer"):
+            with self.assertRaises(ValueError):
+                VERIFY.retain_staged_evidence("a" * 40, self.root, "passed")
+            result = next((VERIFY.ROOT / "artifacts/staged").glob("*/stage-result.json"))
+            report = json.loads(result.read_text())
+            self.assertEqual(report["evidence_state"], "partial")
+            self.assertTrue(any("rapier-runtime" in name for name in report["missing_artifacts"]))
+
+    def test_tampered_retained_object_is_not_a_valid_proof(self):
+        self.write("objects/gz-sim-rs", b"different bytes")
+        with self.assertRaises(ValueError):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_rehashed_report_cannot_omit_the_server_build_test_object(self):
+        objects = [item for item in self.report["objects_bound_after_execution"]
+                   if item["cargo_artifact"]["target"]["name"] != "no_native_build"]
+        self.report["objects_bound_after_execution"] = objects
+        self.write_json("objects.json", objects)
+        self.write_json("cargo-events.json", [item["cargo_artifact"] for item in objects])
+        (self.directory / "objects/no_native_build").unlink()
+        self.finish_manifest()
+        with self.assertRaisesRegex(ValueError, "missing retained CLI or targeted test object"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_source_or_build_input_change_invalidates_evidence(self):
+        for name in ["Cargo.lock", QUALIFIER.SCENE, "third_party/prost-derive-0.14.4/Cargo.toml",
+                     "third_party/prost-derive-0.14.4/LICENSE", "third_party/prost-derive-0.14.4/src/lib.rs"]:
+            path = self.root / name
+            old = path.read_bytes()
+            path.write_bytes(old + b"changed\n")
+            with self.assertRaises(ValueError):
+                QUALIFIER.validate_evidence(self.root, self.directory)
+            path.write_bytes(old)
+
+    def test_retainer_uses_the_exported_validator_source(self):
+        marker = self.root / "scripts/qualify-rapier-runtime.py"
+        marker.write_text(marker.read_text() +
+                          '\ndef validate_evidence(root, directory, report=None):\n'
+                          '    raise ValueError("candidate-validator-witness")\n')
+        output = Path(self.temporary.name) / "retained"
+        output.mkdir()
+        missing = []
+        VERIFY.retain_rapier_evidence(self.root, output, {}, missing)
+        self.assertTrue(any("candidate-validator-witness" in item for item in missing))
+
+    def test_rehashed_original_object_paths_cannot_escape_or_use_noncanonical_spelling(self):
+        baseline = (self.directory / "objects.json").read_text()
+        target = self.report["target_root"]
+        for original in [target + "/../outside", "target/rapier-runtime-fixture/gz-sim-rs",
+                         target + "/./gz-sim-rs"]:
+            objects = json.loads(baseline)
+            objects[0]["original_path"] = original
+            objects[0]["cargo_artifact"]["executable"] = str(Path(original))
+            self.report["objects_bound_after_execution"] = objects
+            self.write_json("objects.json", objects)
+            self.write_json("cargo-events.json", [item["cargo_artifact"] for item in objects])
+            self.finish_manifest()
+            with self.assertRaises(ValueError):
+                QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_symlink_artifact_or_parent_is_rejected_before_copying(self):
+        outside = Path(self.temporary.name) / "outside"
+        outside.write_bytes(b"not owned evidence")
+        path = self.directory / "objects/gz-sim-rs"
+        path.unlink()
+        path.symlink_to(outside)
+        with self.assertRaises(ValueError):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+        self.assertEqual(outside.read_bytes(), b"not owned evidence")
+        path.unlink()
+        moved = Path(self.temporary.name) / "moved-objects"
+        (self.directory / "objects").rename(moved)
+        (self.directory / "objects").symlink_to(moved, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_manifest_escape_and_reintroduced_target_cache_are_rejected(self):
+        self.report["artifacts_sha256"]["../escape"] = "0" * 64
+        self.write_json("result.json", self.report)
+        with self.assertRaises(ValueError):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+        self.finish_manifest()
+        (self.directory / "target").mkdir()
+        with self.assertRaises(ValueError):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_rehashed_but_wrong_cargo_source_or_enabled_feature_is_refused(self):
+        events = json.loads((self.directory / "cargo-events.json").read_text())
+        events.append({"reason": "compiler-artifact", "features": ["native-backends"],
+                       "target": {"name": "gz_sim_scene"}})
+        self.write_json("cargo-events.json", events)
+        self.finish_manifest()
+        with self.assertRaises(ValueError):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+        events.pop()
+        objects = json.loads((self.directory / "objects.json").read_text())
+        objects[0]["cargo_artifact"]["target"]["src_path"] = str(self.root / "crates/wrong/src/main.rs")
+        events[0] = objects[0]["cargo_artifact"]
+        self.report["objects_bound_after_execution"] = objects
+        self.write_json("objects.json", objects)
+        self.write_json("cargo-events.json", events)
+        self.finish_manifest()
+        with self.assertRaises(ValueError):
+            QUALIFIER.validate_evidence(self.root, self.directory)

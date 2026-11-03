@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 mod live;
+mod web;
 
 use clap::Parser;
 use gz_sim_scene::{EntityKind, Name, PhysicsEngine, WorldPose};
@@ -46,6 +47,9 @@ struct Args {
     /// Override the SDF physics step, in nanoseconds.
     #[arg(long)]
     step_ns: Option<NonZeroU64>,
+    /// Serve one local gzweb-rs WebSocket client; viewer HTTP origin is port 8080 or 8081.
+    #[arg(long, requires = "server", value_parser = clap::value_parser!(u16).range(1..))]
+    web_viewer: Option<u16>,
 }
 
 /// Accepts short names and the upstream `gz sim --physics-engine` plugin names.
@@ -126,6 +130,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
             &args.world,
             args.run,
             args.iterations.unwrap_or(0),
+            args.web_viewer,
         )?;
         simulation = result.0;
         result.1

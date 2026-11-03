@@ -47,7 +47,9 @@ use gz_physics::{
     BodyId, BodySpec, CollisionSpec, CompoundBodySpec, Inertia, PhysicsBackend, PhysicsError,
     PhysicsReset, PlaneSpec, RotationSpec, Shape,
 };
+#[cfg(feature = "native-backends")]
 use gz_physics_dart::DartBackend;
+#[cfg(feature = "native-backends")]
 use gz_physics_mujoco::MujocoBackend;
 use gz_physics_rapier::RapierBackend;
 use gz_sensors::{ImuInput, ImuReading, InvalidImuInput};
@@ -336,6 +338,8 @@ struct Gravity([f64; 3]);
 
 #[derive(Debug, thiserror::Error)]
 pub enum LoadError {
+    #[error("{0:?} is unavailable in this build; enable the native-backends feature")]
+    BackendUnavailable(PhysicsEngine),
     #[error("{0}")]
     Sdf(#[from] sdformat::Diagnostic),
     #[error("world {0} was not found")]
@@ -486,8 +490,14 @@ fn load_world_configured(
     });
     let mut backend = match engine {
         PhysicsEngine::Rapier => Some(RapierBackend::new(world.gravity)?.into()),
+        #[cfg(feature = "native-backends")]
         PhysicsEngine::Dart => Some(DartBackend::new(world.gravity)?.into()),
+        #[cfg(feature = "native-backends")]
         PhysicsEngine::Mujoco => Some(MujocoBackend::new(world.gravity)?.into()),
+        #[cfg(not(feature = "native-backends"))]
+        PhysicsEngine::Dart | PhysicsEngine::Mujoco => {
+            return Err(LoadError::BackendUnavailable(engine));
+        }
         PhysicsEngine::Tpe => None,
     };
     let mut context = SceneContext {

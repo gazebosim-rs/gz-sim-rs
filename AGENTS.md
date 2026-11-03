@@ -1,12 +1,18 @@
 # Instructions for implementation agents
 
+> Owner explicitly resumed implementation on 2026-11-02. M1 is active: first
+> real Rapier primitives in gzweb-rs, then complete its bounded acceptance. The
+> earlier pause statements below are historical. Do not resume unrelated pending
+> native/sensor qualification candidates. Development CLI builds passed; M1 acceptance remains pending.
+
+
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
 Confirmed owner decisions override proposals. Do not resolve an outstanding
 product decision by silently deleting behavior. Read `docs/STATUS.md` to distinguish
 implemented behavior and checks from planned release requirements.
 
-## Current priority and pause (D30)
+## Current priority after explicit resume (D30)
 
 Read `docs/DELIVERY_PLAN.md` before selecting work. The next delivery is M1:
 Rapier f64 boxes/spheres and static ground, actually running and visualized live
@@ -16,9 +22,11 @@ including review and required verification. Full P0–P7 completion, other engin
 mesh support and sensors do not block M1 as broad families. Preserve them as
 later work, not deletions or completed tasks. Reuse accepted code and tests.
 
-Implementation agents and automation are paused. Planning and tracker updates do
-not resume them. When resumed, work only on the current delivery or a concrete
-blocking dependency. Stop unrelated backend/parity/coverage optimization work;
+The owner explicitly resumed implementation. Work only on the current delivery
+or a concrete blocking dependency; earlier pause records are historical. The
+maintained viewer is `../gzweb-rs` (`gazebosim-rs/gzweb-rs`, Bevy 0.20), not the
+older untracked Bevy 0.18 prototype under `/home/nkoenig/work/gazebo-web`. Reuse
+its existing renderer, UI and backend interface. Stop unrelated backend/parity/coverage optimization work;
 preserve pending candidates and the Fuel owner's work. If a phase will overrun,
 report it and split optional scope; never weaken an exit criterion or gate.
 Batch source review and fixes before a single final verification pass.

@@ -5,15 +5,19 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+default = ["native-backends"]
+native-backends = ["gz-sim-scene/native-backends", "dep:gz-physics-dart"]
+
 [dependencies]
 crossbeam-channel = { version = "=0.5.17", default-features = false, features = ["std"] }
 uuid.workspace = true
 zenoh.workspace = true
 gz-sim-proto.workspace = true
 gz-sim-core = { path = "../gz-sim-core" }
-gz-sim-scene = { path = "../gz-sim-scene" }
+gz-sim-scene = { path = "../gz-sim-scene", default-features = false }
 # Direct dependency so build.rs receives DEP_DART_LIBDIR.
-gz-physics-dart = { path = "../gz-physics-dart" }
+gz-physics-dart = { path = "../gz-physics-dart", optional = true }
 bevy_ecs.workspace = true
 thiserror.workspace = true
 
@@ -21,6 +25,8 @@ thiserror.workspace = true
 nix = { version = "=0.31.3", default-features = false, features = ["hostname", "user"] }
 
 [dev-dependencies]
+# Inspect the live test listener instead of releasing a speculative port.
+zenoh = { workspace = true, features = ["unstable"] }
 socket2 = { version = "=0.6.5", features = ["all"] }
 tempfile = "=3.25.0"
 serde_json = "=1.0.149"
