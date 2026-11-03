@@ -1,0 +1,96 @@
+{
+  "recorded_at": "2026-11-03T13:33:35.915817+00:00",
+  "simulator_commit": "ea8048f1bf8c1ac3067bb29b07caa62651b6e202",
+  "simulator_tree": "21ceee2e04c84fc00cf8d6aadd9c9c6a70078c76",
+  "viewer_commit": "5b67f45fe0638197dc06ad2d2659a34460c7f396",
+  "url": "http://127.0.0.1:8081/artifacts/m2-preview/?backend=primitive&ui=full&url=ws://127.0.0.1:9005/",
+  "server_session": 11919,
+  "partition": "m3-mesh-collisions-9005",
+  "elf": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m3-mesh-collisions-worktree/artifacts/staged/21ceee2e04c84fc00cf8d6aadd9c9c6a70078c76-ma41swq8/rapier-runtime/objects/003-gz-sim-rs",
+    "bytes": 83241440,
+    "sha256": "26b11835b0189a25ac3097dac18daaaca47a9774de36c8335a167738abe671e6"
+  },
+  "screenshots": [
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m3-delivery/browser/01-initial.jpg",
+      "bytes": 79212,
+      "sha256": "100b4b3594c04d87b14b7824fcf4351dbae8502d961b67b94ef9eff74e27ea74",
+      "observation": "Paused epoch0 at0s; original mesh/sphere/ground after camera zoom/orbit."
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m3-delivery/browser/02-contact.jpg",
+      "bytes": 80428,
+      "sha256": "5aa7782bd7fde8150cbb95e0019a90b9edfe32e8bac877d87e162c91cb104b02",
+      "observation": "Current9.875s; green mesh and sphere moved onto ground; ResumeACKepoch0/0.005s/pausedfalse."
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m3-delivery/browser/03-paused.jpg",
+      "bytes": 80301,
+      "sha256": "ac38e00cfadf16b238f8be1ce845444ad5d6cd0293c24056480b1de34c37ac86",
+      "observation": "Current19.765s and PauseACKepoch0/19.765s/pausedtrue; mesh settled."
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m3-delivery/browser/04-reset.jpg",
+      "bytes": 79314,
+      "sha256": "9c60ad35f12bf6e168a94a23db8ce36c8138a13c92c469937f0b5cceeedaa2f5",
+      "observation": "Current0s, ResetACKepoch1/0s/pausedtrue; original scene placement restored at same camera."
+    }
+  ],
+  "viewer_files": [
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/index.html",
+      "bytes": 1854,
+      "sha256": "0712f9d812f2363fcf6c2da0c022813d4bdc37e4bf9f8d02330976797e1be1df"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/startup.mjs",
+      "bytes": 1180,
+      "sha256": "8df854064b94642f0490ca54a8927cbebfbae9125c40de0a9bea9794e4fb8888"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/target/wasm32-unknown-unknown/release/webgl2/gzweb.js",
+      "bytes": 122461,
+      "sha256": "ba4f6f1ed96242813c5c9cf31881c794994f140471c9cc400b0a800837343025"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/target/wasm32-unknown-unknown/release/webgl2/gzweb_bg.wasm",
+      "bytes": 47667841,
+      "sha256": "d2fee7a40e0acdb3a8ef552c667ba2d247eb4de48e5d80850248a17147790621"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/target/wasm32-unknown-unknown/release/webgpu/gzweb.js",
+      "bytes": 179350,
+      "sha256": "08bea1d91073db214120a40b15923dad2531b80a4a263dfe8d21976a5702e05f"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gzweb-rs/artifacts/m1-primitive-backend-worktree/artifacts/m2-preview/target/wasm32-unknown-unknown/release/webgpu/gzweb_bg.wasm",
+      "bytes": 47762531,
+      "sha256": "ffc103e3ec5aed9f5c0e3868209db1c1783b22239fda6626d8301bed6552344c"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m3-mesh-collisions-worktree/examples/mvp_mesh_collisions.sdf",
+      "bytes": 1683,
+      "sha256": "500095b2e9ea179ed960215c729d06e041cfc7012c87b70f8c2a851ddaa0c935"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m3-mesh-collisions-worktree/examples/assets/m2/pyramid.gltf",
+      "bytes": 1753,
+      "sha256": "adf78d626cd987b14addc89f5b6821e26e54256ebb9e6a93a413a1237d880285"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m3-mesh-collisions-worktree/examples/assets/m2/pyramid.bin",
+      "bytes": 384,
+      "sha256": "851341e22bdd35ac3fed4b90ea9311ac7125bba3942a842ff2dd706bd16d7e7d"
+    },
+    {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m3-mesh-collisions-worktree/examples/assets/m2/pixel.png",
+      "bytes": 68,
+      "sha256": "7ac2abfce2be8b46dd9826d597d94edeefc1570b4a992622721b90a1850e3ee9"
+    }
+  ],
+  "scope": "Actual production browser UI and qualified native-free instrumented executable, reused accepted viewer bundles; no extra product build or M2 qualification. Four original JPEGs unaltered. Static contact, exact geometric bounds/inertia and failed-spawn/reset ownership are separately verified by named retained regression cases.",
+  "limits": "Background1fps visible; no performance or independent texture-sampling measurement. Renderer backend not separately inspected in this M3 capture. HostedCI/officialaudit/publicMain acceptance remain pending. Initial unsupported --partition CLI setup was corrected with GZ_PARTITION env and is not counted as acceptance."
+}

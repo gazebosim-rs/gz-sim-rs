@@ -3,7 +3,8 @@
 
 # M3: bounded Rapier mesh collisions
 
-Implementation in progress, not accepted. The phase budget is at most five
+Accepted on 2026-11-03; see [M3_ACCEPTANCE.md](M3_ACCEPTANCE.md).
+The phase budget was at most five
 working days including independent source review and mandatory verification.
 M1/M2 remain the accepted baseline. This phase adds static triangle-mesh contact
 and one admitted dynamic convex hull, with geometry, contact and reset tests.
@@ -78,8 +79,9 @@ is applied.
 
 Implementation and regression source are complete. Independent source review
 cleared the implementation and its batched corrections before the consolidated
-verification pass. Actual browser contact observations and required local/hosted
-qualification are not yet accepted; this document makes no passing-result claim.
+verification pass. Required local and exact hosted checks, independent evidence
+reviews and actual browser motion/contact/reset observations passed; exact
+results and limits are recorded in M3_ACCEPTANCE.md.
 
 Use the viewer setup in [MVP_BROWSER.md](MVP_BROWSER.md), with accepted M2
 viewer code. The candidate native-free simulator command is:
@@ -93,8 +95,8 @@ Open `http://127.0.0.1:8081/?backend=primitive&ui=full&url=ws://127.0.0.1:9005/`
 The green local pyramid now uses its mesh as the collision boundary, with the
 same local pose and scale as its visual; the red sphere and box ground remain
 primitive controls. The existing gzweb-rs mesh renderer is reused without a
-viewer source change. These commands are an implementation recipe, not a
-claimed observed run.
+viewer source change. The acceptance captures reused the exact qualified CLI
+and accepted viewer bundles; see the acceptance record for their bindings.
 
 Complete the whole bounded feature, regression code, docs and independent source
 review before one consolidated required verification pass. Preserve every

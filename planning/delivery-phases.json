@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-03",
   "execution_state": "active",
-  "current_phase": "M3",
+  "current_phase": "M4",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -47,7 +47,13 @@
       ],
       "scope": "Rapier static triangle-mesh and dynamic convex-hull collision from the admitted local mesh input.",
       "acceptance": "Static mesh contact and one dynamic convex hull pass geometry/contact and reset tests; unsupported nonconvex dynamic input is explicitly rejected.",
-      "excluded": "Automatic convex decomposition, deformables, heightmaps and arbitrary mesh formats."
+      "excluded": "Automatic convex decomposition, deformables, heightmaps and arbitrary mesh formats.",
+      "accepted_at": "2026-11-03T14:04:31.477739+00:00",
+      "evidence": "docs/M3_ACCEPTANCE.md",
+      "accepted_commits": {
+        "gz-sim-rs": "ea8048f1bf8c1ac3067bb29b07caa62651b6e202",
+        "gzweb-rs": "5b67f45fe0638197dc06ad2d2659a34460c7f396"
+      }
     },
     {
       "id": "M4",
@@ -153,8 +159,8 @@
   "status": {
     "M1": "complete",
     "M2": "complete",
-    "M3": "in_progress",
-    "M4": "not_started",
+    "M3": "complete",
+    "M4": "in_progress",
     "M5": "not_started",
     "M6": "not_started",
     "M7": "not_started",
@@ -165,5 +171,5 @@
     "M12": "not_started"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-03T11:25:20.441657+00:00"
+  "phase_started_at": "2026-11-03T14:04:31.477739+00:00"
 }

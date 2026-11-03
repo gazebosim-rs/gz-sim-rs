@@ -1,9 +1,9 @@
 # Instructions for implementation agents
 
-> M1 and M2 were accepted on 2026-11-03: primitives and local glTF visuals run live in gzweb-rs.
-> The current delivery is M3: static triangle-mesh and dynamic convex-hull collisions,
-> budgeted at most five working days including review and required checks.
-> Preserve the accepted MVP, paused qualifications and independent Fuel work.
+> M1–M3 were accepted on 2026-11-03: primitives, local mesh visuals and Rapier mesh collisions.
+> The current delivery is M4: one demand-activated IMU model in the live Rapier world,
+> budgeted at most three working days including review and required checks.
+> Preserve accepted demos, paused qualifications and independent Fuel work.
 
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
@@ -14,16 +14,15 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` before selecting work. M1 and M2 are accepted; see
-`docs/M1_ACCEPTANCE.md` and `docs/M2_ACCEPTANCE.md`. Current M3 adds Rapier static
-triangle-mesh and dynamic convex-hull collisions from the admitted local glTF
-input. Budget at most five working days including source review and required
-verification. Use maintained geometry/physics libraries; preserve the accepted
-visual frame/scale contract and primitive collisions. Prove geometry/contact,
-reset and explicit rejection of unsupported nonconvex dynamic input. Automatic
-convex decomposition, deformables, heightmaps, general formats and unrelated
-backend/sensor qualifications remain deferred. Full P0–P7 completion is not a
-prerequisite. Keep every retained assertion and quality gate.
+Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M3 are accepted; see
+their acceptance records. Current M4 wires the existing IMU model through loaded
+SDF demand and the live Rapier world, exposing canonical messages. Budget at
+most three working days including independent source review and required checks.
+Prove units, frame, sample counts, timestamps, pause/reset and last-consumer
+teardown. A world without an IMU owns no IMU callbacks or buffers. Reuse existing
+sensor, lifecycle and upstream Zenoh code; do not start other sensor families or
+full noise-model parity. Full P0–P7 completion remains a deferred inventory.
+Keep every retained assertion and quality gate.
 
 The owner explicitly resumed implementation. Work only on the current delivery
 or a concrete blocking dependency; earlier pause records are historical. The
