@@ -49,6 +49,17 @@ pub struct JointVelocityMotor {
     pub max_force: f64,
 }
 
+/// Continuous position request for the next matching-duration native solver step.
+/// Reissue each advancing step; the backend prepares a bounded local waypoint.
+/// `max_velocity` bounds requested solver bias (rad/s), not physical speed;
+/// `max_force` is a finite nonnegative actuator torque cap in Nm.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct JointPositionServo {
+    pub target_position: f64,
+    pub max_velocity: f64,
+    pub max_force: f64,
+}
+
 #[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
 pub enum PhysicsError {
     #[error("body or gravity contains an invalid numeric value")]
@@ -395,6 +406,72 @@ pub trait DynamicBackend: Send + Sync + 'static {
         Err(PhysicsError::Unsupported {
             engine: self.engine(),
             capability: "joint velocity motors",
+        })
+    }
+
+    /// Validates an opt-in torque-bounded native velocity constraint, without mutation.
+    /// This is distinct from the accepted compliant velocity motor policy. Rapier uses
+    /// its maintained zero-stiffness/zero-damping motor coefficients (zero compliance).
+    /// `None`, units, numeric admission, reset and removal follow `JointVelocityMotor`.
+    /// Unsupported engines refuse before identifier or numeric validation.
+    fn validate_joint_velocity_servo(
+        &self,
+        _id: JointId,
+        _motor: Option<JointVelocityMotor>,
+    ) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "joint velocity servos",
+        })
+    }
+
+    /// Replaces the native velocity constraint, preserving state and pending work on
+    /// refusal. Zero target brakes within the torque cap; `None` disables and clears
+    /// warm-start state. Finite torque limits still permit tracking error or overspeed
+    /// under loads; this does not impose a hard physical velocity or position limit.
+    fn set_joint_velocity_servo(
+        &mut self,
+        _id: JointId,
+        _motor: Option<JointVelocityMotor>,
+    ) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "joint velocity servos",
+        })
+    }
+
+    /// Prepares all fallible values for a native continuous-coordinate position servo
+    /// without mutation. Rapier supports reduced revolute joints only. `Some` requires
+    /// positive `dt` matching the upcoming step, finite target, positive finite target
+    /// speed and nonnegative finite torque. `None` ignores dt and disables a registered
+    /// joint of either kind. Other engines refuse before validation.
+    fn validate_joint_position_servo(
+        &self,
+        _id: JointId,
+        _servo: Option<JointPositionServo>,
+        _dt: Duration,
+    ) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "joint position servos",
+        })
+    }
+
+    /// Atomically installs the waypoint prepared from current native continuous state.
+    /// The caller retains the ultimate target and reissues before each advancing step.
+    /// Rapier uses its maintained acceleration-based spring with k100/d20 and zero
+    /// target velocity; fixed nominal critical damping is not a convergence guarantee
+    /// for an arbitrary articulation. Torque cap, None, reset and removal follow the
+    /// velocity motor contract. Refusal preserves mode, state, IDs and pending work.
+    fn set_joint_position_servo(
+        &mut self,
+        _id: JointId,
+        _servo: Option<JointPositionServo>,
+        _dt: Duration,
+    ) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "joint position servos",
         })
     }
 

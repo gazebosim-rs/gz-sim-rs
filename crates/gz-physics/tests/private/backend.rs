@@ -330,3 +330,64 @@ fn default_joint_velocity_motors_refuse_before_validation_or_mutation() {
     assert_eq!(backend.resets, 0);
     assert!(!backend.fail);
 }
+
+#[test]
+fn default_joint_velocity_servos_refuse_before_validation_or_mutation() {
+    let mut backend = Recorder::default();
+    let error = PhysicsError::Unsupported {
+        engine: "recorder",
+        capability: "joint velocity servos",
+    };
+    for motor in [
+        None,
+        Some(JointVelocityMotor {
+            target_velocity: f64::NAN,
+            max_force: -1.0,
+        }),
+    ] {
+        assert_eq!(
+            backend.validate_joint_velocity_servo(JointId::from_raw(u64::MAX), motor),
+            Err(error.clone())
+        );
+        assert_eq!(
+            backend.set_joint_velocity_servo(JointId::from_raw(u64::MAX), motor),
+            Err(error.clone())
+        );
+    }
+    assert!(backend.steps.is_empty());
+    assert_eq!(backend.resets, 0);
+    assert!(!backend.fail);
+}
+
+#[test]
+fn default_joint_position_servos_refuse_before_id_numeric_or_duration_validation() {
+    let mut backend = Recorder::default();
+    let error = PhysicsError::Unsupported {
+        engine: "recorder",
+        capability: "joint position servos",
+    };
+    for servo in [
+        None,
+        Some(JointPositionServo {
+            target_position: f64::NAN,
+            max_velocity: -1.0,
+            max_force: f64::NEG_INFINITY,
+        }),
+    ] {
+        assert_eq!(
+            backend.validate_joint_position_servo(
+                JointId::from_raw(u64::MAX),
+                servo,
+                Duration::ZERO
+            ),
+            Err(error.clone())
+        );
+        assert_eq!(
+            backend.set_joint_position_servo(JointId::from_raw(u64::MAX), servo, Duration::ZERO),
+            Err(error.clone())
+        );
+    }
+    assert!(backend.steps.is_empty());
+    assert_eq!(backend.resets, 0);
+    assert!(!backend.fail);
+}

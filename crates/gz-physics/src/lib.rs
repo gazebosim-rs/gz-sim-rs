@@ -4,8 +4,9 @@
 
 mod backend;
 pub use backend::{
-    BodyId, DynamicBackend, InitialPhysicsState, JointId, JointState, JointVelocityMotor,
-    PhysicsBackend, PhysicsError, PhysicsReset, PreparedPhysicsReset, RestoredPhysics, install,
+    BodyId, DynamicBackend, InitialPhysicsState, JointId, JointPositionServo, JointState,
+    JointVelocityMotor, PhysicsBackend, PhysicsError, PhysicsReset, PreparedPhysicsReset,
+    RestoredPhysics, install,
 };
 
 #[derive(Debug, Clone, Copy)]

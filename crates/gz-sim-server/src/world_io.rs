@@ -156,6 +156,10 @@ enum WorldWork {
     Lidar(u64, crate::lidar_io::LidarJob),
     Odometry(u64, crate::diff_drive_io::Job),
     InstallDrive(crate::diff_drive_io::Setup, crate::diff_drive_io::Receipt),
+    InstallJointControllers(
+        crate::joint_controller_io::Setup,
+        crate::joint_controller_io::Receipt,
+    ),
     InstallLidar(
         String,
         mpsc::SyncSender<std::result::Result<Arc<LidarOutput>, String>>,
@@ -225,6 +229,7 @@ pub(super) struct WorldIo {
     pub(super) max_message_bytes: usize,
     capacity: usize,
     control_key: String,
+    removal_keys: std::sync::OnceLock<[String; 2]>,
     pub(super) session: zenoh::Session,
     process: String,
     node: String,
@@ -500,6 +505,11 @@ impl WorldIo {
                 let mut rates: Option<crate::rates::RateDeclarations> = None;
                 let mut forces: Option<crate::force_io::ForceDeclarations> = None;
                 let mut drive: Option<crate::diff_drive_io::Declarations> = None;
+                let mut controllers: Option<crate::joint_controller_io::Declarations> = None;
+                let mut controller_install: Option<(
+                    crate::joint_controller_io::Setup,
+                    crate::joint_controller_io::Receipt,
+                )> = None;
                 let mut drive_install: Option<(
                     crate::diff_drive_io::Setup,
                     crate::diff_drive_io::Receipt,
@@ -560,6 +570,29 @@ impl WorldIo {
                     }) {
                         drive = None;
                     }
+                    if controllers.as_mut().is_some_and(|declarations| {
+                        declarations.reconcile(publication_session.is_closed())
+                    }) {
+                        controllers = None;
+                    }
+                    if controllers.is_none()
+                        && let Some((setup, receipt)) = controller_install.take()
+                    {
+                        match crate::joint_controller_io::Declarations::new(
+                            &publication_session,
+                            setup,
+                            &publication_process,
+                            &publication_node,
+                        ) {
+                            Ok((declarations, leases)) => {
+                                let _ = receipt.try_send(Ok(leases));
+                                controllers = Some(declarations);
+                            }
+                            Err(error) => {
+                                let _ = receipt.try_send(Err(error.to_string()));
+                            }
+                        }
+                    }
                     if drive.is_none()
                         && let Some((setup, receipt)) = drive_install.take()
                     {
@@ -613,6 +646,8 @@ impl WorldIo {
                         }
                     }
                     let incoming = if drive.is_some()
+                        || controllers.is_some()
+                        || controller_install.is_some()
                         || drive_install.is_some()
                         || install.is_some()
                         || rates.is_some()
@@ -717,6 +752,15 @@ impl WorldIo {
                                     receipt.try_send(Err("drive setup is already pending".into()));
                             }
                         }
+                        Ok(WorldWork::InstallJointControllers(setup, receipt)) => {
+                            if controller_install.is_none() {
+                                controller_install = Some((setup, receipt));
+                            } else {
+                                let _ = receipt.try_send(Err(
+                                    "joint controller setup is already pending".into(),
+                                ));
+                            }
+                        }
                         Ok(WorldWork::RootClock(generation, publisher, bytes)) => {
                             if generation == worker_epoch.load(Ordering::Acquire)
                                 && publisher
@@ -758,6 +802,9 @@ impl WorldIo {
                 if let Some(declarations) = &drive {
                     declarations.begin_shutdown();
                 }
+                if let Some(declarations) = &controllers {
+                    declarations.begin_shutdown();
+                }
                 // Undeclaring an endpoint does not join an in-flight callback.
                 // Keep its capture witness on this IO owner until it is released.
                 loop {
@@ -772,7 +819,10 @@ impl WorldIo {
                     let drive_done = drive
                         .as_mut()
                         .is_none_or(|declarations| declarations.reconcile(true));
-                    if rates_done && forces_done && drive_done {
+                    let controllers_done = controllers
+                        .as_mut()
+                        .is_none_or(|declarations| declarations.reconcile(true));
+                    if rates_done && forces_done && drive_done && controllers_done {
                         break;
                     }
                     thread::sleep(Duration::from_millis(1));
@@ -800,6 +850,7 @@ impl WorldIo {
             max_message_bytes: max_bytes,
             capacity,
             control_key,
+            removal_keys: std::sync::OnceLock::new(),
             session,
             process,
             node,
@@ -836,6 +887,7 @@ impl WorldIo {
                 "world service keys collide".into(),
             ));
         }
+        let retained_keys = keys.clone();
         let [(first, first_input), (second, second_input)] =
             std::array::from_fn(|_| mpsc::sync_channel(self.capacity));
         let (receipt, ready) = mpsc::sync_channel(1);
@@ -855,6 +907,7 @@ impl WorldIo {
         result
             .map_err(|error| crate::Error::WorldNetwork(error.to_string()))?
             .map_err(crate::Error::WorldNetwork)?;
+        let _ = self.removal_keys.set(retained_keys);
         Ok([first_input, second_input])
     }
 
@@ -913,6 +966,43 @@ impl WorldIo {
         ready
             .recv_timeout(deadline.saturating_duration_since(Instant::now()))?
             .map_err(Into::into)
+    }
+
+    pub(super) fn joint_controller_inputs(
+        &self,
+        setup: crate::joint_controller_io::Setup,
+    ) -> std::result::Result<Vec<Arc<crate::joint_controller_io::Lease>>, crate::Error> {
+        if setup.endpoints.iter().any(|endpoint| {
+            endpoint.key == self.clock.key_expr().as_str()
+                || endpoint.key == self.poses.key_expr().as_str()
+                || endpoint.key == self.control_key
+                || self
+                    .removal_keys
+                    .get()
+                    .is_some_and(|keys| keys.contains(&endpoint.key))
+        }) {
+            return Err(crate::Error::JointControllerIdentity);
+        }
+        if self.session.is_closed() {
+            return Err(crate::Error::WorldClosed);
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let (receipt, ready) = mpsc::sync_channel(1);
+        self.incoming
+            .send_deadline(WorldWork::InstallJointControllers(setup, receipt), deadline)
+            .map_err(|error| {
+                crate::Error::WorldNetwork(format!(
+                    "joint controller setup admission failed: {error}"
+                ))
+            })?;
+        ready
+            .recv_timeout(deadline.saturating_duration_since(Instant::now()))
+            .map_err(|error| {
+                crate::Error::WorldNetwork(format!(
+                    "joint controller setup receipt failed: {error}"
+                ))
+            })?
+            .map_err(crate::Error::WorldNetwork)
     }
 
     // Initial construction can wait here. Reset needs a separate readiness phase.

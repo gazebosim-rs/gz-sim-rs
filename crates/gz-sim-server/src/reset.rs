@@ -47,7 +47,9 @@ impl Server {
         }
         let lidar_publishers = lidar::prepare_reset(self)?;
         let drive_metadata = diff_drive::initial(&self.simulation)?;
+        let controller_metadata = joint_controllers::initial(&self.simulation)?;
         let drive = &mut self.diff_drive;
+        let controllers = &mut self.joint_controllers;
         let rates = &mut self.rates;
         let forces = &mut self.forces;
         let reset = reset_loaded_world(&mut self.simulation, |sim| {
@@ -92,6 +94,14 @@ impl Server {
                 &lidars,
                 Some(&drive_metadata),
             )?;
+            // Retire every old callback/receiver before installing fresh input generations.
+            *controllers = None;
+            *controllers = joint_controllers::prepare(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                &controller_metadata,
+            )?;
             // Disable old CPU handoff before preparing a replacement generation.
             *rates = None;
             let (replacement, setup) =
@@ -119,6 +129,7 @@ impl Server {
                 self.rates = None;
                 self.forces = None;
                 self.diff_drive = None;
+                self.joint_controllers = None;
                 self.removals
                     .cancel_for_reset(&self.world_io, &mut self.counters);
                 return Err(error.into());
@@ -141,6 +152,7 @@ impl Server {
                 self.rates = None;
                 self.forces = None;
                 self.diff_drive = None;
+                self.joint_controllers = None;
                 return Err(error);
             }
         };

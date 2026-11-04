@@ -2,6 +2,136 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
+fn joint_setup(
+    key: String,
+    input: mpsc::SyncSender<crate::joint_controller_io::Command>,
+    epoch: &Arc<AtomicU64>,
+) -> crate::joint_controller_io::Setup {
+    crate::joint_controller_io::Setup {
+        endpoints: vec![crate::joint_controller_io::Endpoint { key, input }],
+        max_bytes: 64,
+        drops: Arc::new(AtomicU64::new(0)),
+        epoch: Arc::clone(epoch),
+    }
+}
+
+#[test]
+fn joint_input_install_refuses_actual_world_service_keys_and_closed_or_invalid_setup() {
+    let mut io = isolated_world(1024);
+    let removals = [
+        "@/test@/remove".to_owned(),
+        "@/test@/remove/blocking".to_owned(),
+    ];
+    let _receivers = io.removal_inputs(removals.clone()).unwrap();
+    for key in [
+        io.clock.key_expr().as_str().to_owned(),
+        io.poses.key_expr().as_str().to_owned(),
+        io.control_key.clone(),
+        removals[0].clone(),
+        removals[1].clone(),
+    ] {
+        let (input, _) = mpsc::sync_channel(1);
+        assert!(matches!(
+            io.joint_controller_inputs(joint_setup(key, input, &io.epoch)),
+            Err(crate::Error::JointControllerIdentity)
+        ));
+    }
+    let (input, _) = mpsc::sync_channel(1);
+    let mut invalid = joint_setup("@/test@/invalid".into(), input, &io.epoch);
+    invalid.max_bytes = 0;
+    assert!(matches!(
+        io.joint_controller_inputs(invalid),
+        Err(crate::Error::WorldNetwork(_))
+    ));
+    io.session.close().wait().unwrap();
+    let (input, _) = mpsc::sync_channel(1);
+    assert!(matches!(
+        io.joint_controller_inputs(joint_setup("@/test@/closed".into(), input, &io.epoch)),
+        Err(crate::Error::WorldClosed)
+    ));
+    io.shutdown();
+}
+
+#[test]
+fn joint_input_replacement_waits_for_old_lease_and_rejects_a_second_pending_generation() {
+    use gz_sim_proto::msgs::Double;
+    let mut io = isolated_world(1024);
+    let key = "@/test@/joint".to_owned();
+    let (input, receiver) = mpsc::sync_channel(2);
+    let leases = io
+        .joint_controller_inputs(joint_setup(key.clone(), input, &io.epoch))
+        .unwrap();
+    assert_eq!(leases.len(), 1);
+    let publisher = io.session.declare_publisher(key.clone()).wait().unwrap();
+    publisher
+        .put(
+            Double {
+                data: 1.0,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+        )
+        .attachment(Double::full_name())
+        .wait()
+        .unwrap();
+    assert_eq!(
+        receiver.recv_timeout(Duration::from_secs(3)).unwrap(),
+        (0, Some(1.0))
+    );
+    let (input, replacement) = mpsc::sync_channel(2);
+    let (receipt, ready) = mpsc::sync_channel(1);
+    io.incoming
+        .send(WorldWork::InstallJointControllers(
+            joint_setup(key.clone(), input, &io.epoch),
+            receipt,
+        ))
+        .unwrap();
+    let (input, _) = mpsc::sync_channel(2);
+    let (receipt, refused) = mpsc::sync_channel(1);
+    io.incoming
+        .send(WorldWork::InstallJointControllers(
+            joint_setup(key.clone(), input, &io.epoch),
+            receipt,
+        ))
+        .unwrap();
+    assert_eq!(
+        refused
+            .recv_timeout(Duration::from_secs(3))
+            .unwrap()
+            .err()
+            .as_deref(),
+        Some("joint controller setup is already pending")
+    );
+    assert!(matches!(ready.try_recv(), Err(mpsc::TryRecvError::Empty)));
+    io.epoch.store(1, Ordering::Release);
+    drop(leases);
+    let current = ready.recv_timeout(Duration::from_secs(3)).unwrap().unwrap();
+    assert_eq!(current.len(), 1);
+    publisher
+        .put(
+            Double {
+                data: -2.0,
+                ..Default::default()
+            }
+            .encode_to_vec(),
+        )
+        .attachment(Double::full_name())
+        .wait()
+        .unwrap();
+    assert_eq!(
+        replacement.recv_timeout(Duration::from_secs(3)).unwrap(),
+        (1, Some(-2.0))
+    );
+    assert!(receiver.try_recv().is_err());
+    assert!(
+        io.publication_failures
+            .iter()
+            .all(|count| count.load(Ordering::Relaxed) == 0)
+    );
+    drop(current);
+    io.shutdown();
+}
+
 #[test]
 fn lidar_queue_cancels_old_epoch_work_without_relabeling_canonical_samples() {
     let mut io = isolated_world(1024);

@@ -47,7 +47,7 @@ pub(super) fn validate_model(
     top_level: bool,
     engine: Option<&str>,
     is_static: bool,
-    drive: Option<&crate::diff_drive::Plan>,
+    actuated: &[&str],
 ) -> Result<(), LoadError> {
     for joint in &model.joints {
         require(
@@ -125,11 +125,7 @@ pub(super) fn validate_model(
             local_parent = Some(parent_index);
         }
         graph.add_edge(parent_index, child_index, ());
-        validate_axis(
-            joint,
-            &name,
-            drive.is_some_and(|plan| plan.is_wheel(&joint.name)),
-        )?;
+        validate_axis(joint, &name, actuated.contains(&joint.name.as_str()))?;
     }
     require(
         !dart_chain || (root_child.is_some() && root_child == local_parent),
@@ -189,6 +185,7 @@ pub(super) fn build(
     model_entity: Entity,
     sim: &mut Simulation,
     backend: &mut PhysicsBackend,
+    reduced_controller_chain: bool,
 ) -> Result<(), LoadError> {
     struct ChildFrame {
         anchor: [f64; 3],
@@ -209,7 +206,7 @@ pub(super) fn build(
         backend.engine() == "dart" && model.links.len() == 3 && model.joints.len() == 2;
     let mut serial_inputs = Vec::new();
     let mut order: Vec<_> = (0..model.joints.len()).collect();
-    if backend.engine() == "dart" && model.joints.len() == 2 {
+    if (backend.engine() == "dart" || reduced_controller_chain) && model.joints.len() == 2 {
         let endpoints: Vec<_> = model
             .joints
             .iter()
@@ -225,7 +222,7 @@ pub(super) fn build(
             .position(|(parent, _)| {
                 parent == context.world || !endpoints.iter().any(|(_, child)| child == parent)
             })
-            .expect("validated DART serial chain has one root joint");
+            .expect("validated serial chain has one root joint");
         order.swap(0, root);
     }
     let mut built: Vec<_> = (0..model.joints.len()).map(|_| None).collect();
@@ -292,7 +289,11 @@ pub(super) fn build(
         }
         let (id, parent) = if parent_name == context.world {
             (
-                backend.add_world_revolute(body, pose.translation, axis)?,
+                if reduced_controller_chain {
+                    backend.add_reduced_revolute(None, body, pose.translation, axis)?
+                } else {
+                    backend.add_world_revolute(body, pose.translation, axis)?
+                },
                 None,
             )
         } else {
@@ -304,7 +305,11 @@ pub(super) fn build(
                 .expect("dynamic-engine link owns body")
                 .id();
             (
-                backend.add_revolute(parent_body, body, pose.translation, axis)?,
+                if reduced_controller_chain {
+                    backend.add_reduced_revolute(Some(parent_body), body, pose.translation, axis)?
+                } else {
+                    backend.add_revolute(parent_body, body, pose.translation, axis)?
+                },
                 Some((context.links[&parent_name], parent_body)),
             )
         };

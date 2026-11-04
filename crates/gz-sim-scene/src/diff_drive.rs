@@ -48,8 +48,8 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
     config::parse(model).map(|value| value.map(Plan))
 }
 impl Plan {
-    pub(super) fn is_wheel(&self, name: &str) -> bool {
-        name == self.0.left || name == self.0.right
+    pub(super) fn names(&self) -> impl Iterator<Item = &str> {
+        [self.0.left.as_str(), self.0.right.as_str()].into_iter()
     }
     pub(super) fn validate(
         &self,

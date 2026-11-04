@@ -7,6 +7,8 @@ mod diff_drive_io;
 mod force_io;
 mod forces;
 mod imu_io;
+mod joint_controller_io;
+mod joint_controllers;
 mod lidar;
 mod lidar_io;
 mod options;
@@ -73,6 +75,12 @@ pub enum Error {
     DiffDriveIdentity,
     #[error("reset handler changed the prepared DiffDrive configuration")]
     ResetDiffDrive,
+    #[error(
+        "joint controller lacks its original typed joint identity, metadata or physics binding"
+    )]
+    JointControllerIdentity,
+    #[error("reset handler changed the prepared joint controller identities or configuration")]
+    ResetJointControllers,
     #[error(transparent)]
     ImuActivation(#[from] gz_sim_scene::ImuActivationError),
 }
@@ -138,6 +146,9 @@ pub struct Counters {
     pub odometries_queued: u64,
     pub odometry_failures: u64,
     pub invalid_odometry_samples: u64,
+    pub joint_controller_messages_received: u64,
+    pub joint_controller_messages_rejected: u64,
+    pub joint_controller_commands_applied: u64,
 }
 
 struct ImuStream {
@@ -279,6 +290,7 @@ pub struct Server {
     rates: Option<rates::Rates>,
     forces: Option<forces::Forces>,
     diff_drive: Option<diff_drive::Stream>,
+    joint_controllers: Option<joint_controllers::Controllers>,
     command_budget: NonZeroUsize,
     pending_steps: u64,
     pending_reset: bool,
@@ -473,6 +485,9 @@ impl Server {
         world_io.install_forces(force_setup)?;
         let forces = forces.into_active();
         let diff_drive = diff_drive::stream(&simulation, &world_io, &config, &imus, &lidars, None)?;
+        let controller_metadata = joint_controllers::initial(&simulation)?;
+        let joint_controllers =
+            joint_controllers::prepare(&simulation, &world_io, &config, &controller_metadata)?;
         Ok(Self {
             simulation,
             world_io,
@@ -484,6 +499,7 @@ impl Server {
             rates,
             forces,
             diff_drive,
+            joint_controllers,
             command_budget,
             pending_steps: 0,
             pending_reset: false,
@@ -661,6 +677,7 @@ impl Server {
         if self.pending_reset {
             return Err(Error::IoPreparationRequired);
         }
+        self.reconcile_joint_controllers()?;
         self.simulation.validate_steps(0)?;
         if self.prepared_reset.is_none() {
             self.validate_steps(u64::from(!self.simulation.is_paused()))?;
@@ -781,6 +798,7 @@ impl Server {
             )?;
         }
         self.poll_diff_drive()?;
+        self.poll_joint_controllers()?;
         Ok(info)
     }
 
@@ -987,6 +1005,7 @@ impl Server {
         self.imus = Vec::new();
         self.lidars = Vec::new();
         self.diff_drive = None;
+        self.joint_controllers = None;
         self.world_io.shutdown();
     }
 }

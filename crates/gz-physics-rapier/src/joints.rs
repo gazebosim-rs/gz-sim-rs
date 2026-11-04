@@ -3,7 +3,9 @@
 use super::*;
 
 mod motor;
+mod position_servo;
 mod reduced;
+mod servo;
 
 #[derive(Clone, Copy)]
 pub(crate) enum Solver {

@@ -17,9 +17,9 @@ mod mesh;
 mod ray;
 
 pub use gz_physics::{
-    BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId, JointState,
-    JointVelocityMotor, MeshBodySpec, PhysicsBackend, PhysicsError, PhysicsReset,
-    PreparedPhysicsReset, RestoredPhysics, RotationSpec, Shape, install,
+    BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId,
+    JointPositionServo, JointState, JointVelocityMotor, MeshBodySpec, PhysicsBackend, PhysicsError,
+    PhysicsReset, PreparedPhysicsReset, RestoredPhysics, RotationSpec, Shape, install,
 };
 use std::any::Any;
 
@@ -550,6 +550,40 @@ impl DynamicBackend for RapierBackend {
         motor: Option<JointVelocityMotor>,
     ) -> Result<(), PhysicsError> {
         self.replace_joint_motor(id, motor)
+    }
+
+    fn validate_joint_velocity_servo(
+        &self,
+        id: JointId,
+        motor: Option<JointVelocityMotor>,
+    ) -> Result<(), PhysicsError> {
+        self.joints.validate_motor(id, motor)
+    }
+
+    fn set_joint_velocity_servo(
+        &mut self,
+        id: JointId,
+        motor: Option<JointVelocityMotor>,
+    ) -> Result<(), PhysicsError> {
+        self.replace_joint_servo(id, motor)
+    }
+
+    fn validate_joint_position_servo(
+        &self,
+        id: JointId,
+        servo: Option<JointPositionServo>,
+        dt: Duration,
+    ) -> Result<(), PhysicsError> {
+        self.prepare_joint_position_servo(id, servo, dt).map(|_| ())
+    }
+
+    fn set_joint_position_servo(
+        &mut self,
+        id: JointId,
+        servo: Option<JointPositionServo>,
+        dt: Duration,
+    ) -> Result<(), PhysicsError> {
+        self.replace_joint_position_servo(id, servo, dt)
     }
 
     fn add_world_revolute(
