@@ -1,11 +1,10 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation; SPDX-License-Identifier: Apache-2.0 -->
 # M7: bounded planar CPU lidar
 
-The complete Source batch is implemented and under final independent review;
-required verification and runtime observations are pending. This document is not
-acceptance evidence.
-M1–M6 remain accepted unchanged. M7 is budgeted at most five working days,
-including independent review and mandatory checks.
+M7 is accepted and published at simulator `9a652063` and viewer `19be842d` after
+required local checks, exact hosted CI and independent source/local/official and
+actual browser evidence reviews. See [M7 acceptance](M7_ACCEPTANCE.md) for exact
+scope, counters and retention limits. Later work remains in bounded D30 phases.
 
 One loaded SDF `lidar` (`ray` alias) uses the existing scheduler and Rapier's
 maintained shape ray casts. The admitted ideal domain is 2–128 inclusive,
@@ -43,17 +42,18 @@ demand; canonical Zenoh demand remains independent. Acquisition timestamps and
 poses remain those of the sample, never interpolated to the later Scene time.
 World geometry and public IDs remain unchanged.
 
-The existing fixture is a runnable static-wall demonstration after qualification:
+The committed fixture is the accepted runnable static-wall demonstration:
 `cargo run -p gz-sim-cli --no-default-features -- examples/m7_planar_lidar.sdf --server --run --web-viewer 9007`.
 Connect the M7 viewer with `ws://127.0.0.1:9007/?scan=1`; it draws only real measured
 returns. Near clipping, misses and unsupported domains remain explicit rather
-than drawing fabricated maximum-range endpoints. Actual runtime/browser and
-required coverage/CI evidence are still pending; this is not a shipped demo.
+than drawing fabricated maximum-range endpoints. Actual runtime/browser and required local/hosted evidence passed; the acceptance
+record distinguishes numerical/wire proofs from browser image observations.
 The viewer's separate `scan=1` channel preserves scene geometry and public IDs;
 its exact bounded contract is documented in gzweb-rs `docs/M7_LIDAR_PREVIEW.md`.
-No accepted M1–M6 manual qualification is repeated. No M7 tests, lint, builds or
-runtime probes run until implementation, regression sources, documentation and
-independent Source review are complete.
+No accepted M1–M6 manual qualification was repeated. M7 implementation, regression
+sources, docs and independent source review preceded the consolidated checks;
+real reported failures were batched and independently reviewed before affected
+mandatory reruns. Retained assertions, timeouts and quality gates are unchanged.
 
 The Source admission update preserves every retained input and negative assertion.
 Exactly three existing Rapier CPU cases change from rejection to explicit measured
@@ -62,4 +62,4 @@ same-input helper additionally proves source metadata, real geometric misses,
 identity/frame/pose/cadence, no-demand, pause, reset and teardown. Seven
 unsupported-engine rows retain their original exact `non-IMU sensors` diagnostic;
 GPU aliases and wrong-wrapper/parser negatives remain unchanged. This scoped
-transition was independently reviewed before application, with no test execution.
+transition was independently reviewed before application, before execution.

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-03",
+  "as_of": "2026-11-04",
   "execution_state": "active",
-  "current_phase": "M7",
+  "current_phase": "M8",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -115,7 +115,13 @@
       ],
       "scope": "One planar ray lidar using Rapier queries against admitted primitive and mesh collisions.",
       "acceptance": "Analytic range fixtures, min/max range, frame, acquisition timestamps and pause/reset pass; visualization can inspect the scan.",
-      "excluded": "GPU lidar, intensities, multi-layer scans and all lidar variants."
+      "excluded": "GPU lidar, intensities, multi-layer scans and all lidar variants.",
+      "accepted_at": "2026-11-04T01:38:16+00:00",
+      "evidence": "docs/M7_ACCEPTANCE.md",
+      "accepted_commits": {
+        "gz-sim-rs": "9a652063d85938143ac298f428b55dd68a7f22da",
+        "gzweb-rs": "19be842d3c42c2f7b2c827e8fdd54c8603114acc"
+      }
     },
     {
       "id": "M8",
@@ -181,13 +187,13 @@
     "M4": "complete",
     "M5": "complete",
     "M6": "complete",
-    "M7": "in_progress",
-    "M8": "not_started",
+    "M7": "complete",
+    "M8": "in_progress",
     "M9": "not_started",
     "M10": "not_started",
     "M11": "not_started",
     "M12": "not_started"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-03T23:03:32.859019+00:00"
+  "phase_started_at": "2026-11-04T01:38:16+00:00"
 }

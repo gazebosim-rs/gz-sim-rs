@@ -2,11 +2,14 @@
 
 ## Current delivery priority (D30, 2026-11-02)
 
-Ship the [Rapier + gzweb-rs primitive MVP](DELIVERY_PLAN.md) first, targeted at
-five working days after implementation resumes. Follow it with phases of at most
-one working week: mesh visuals, mesh collisions, individual sensors and focused
-Gazebo systems. The complete rewrite is the long-term backlog, not the first
-release. Implementation and all agents remain paused pending explicit resume.
+M1–M7 are accepted and published; see the [weekly delivery plan](DELIVERY_PLAN.md)
+and [M7 evidence](M7_ACCEPTANCE.md). The current delivery is M8: one two-wheel
+Rapier differential-drive robot with real velocity commands, odometry and a live
+gzweb-rs view, budgeted at most five working days including review and checks.
+Implementation was explicitly resumed on 2026-11-02; the earlier planning pause
+is historical. Work only on this delivery or its concrete blocking dependencies.
+Subsequent named phases remain at most five working days each. Full compatibility
+remains a deferred, unscheduled backlog rather than this release's prerequisite.
 
 ## Outcome and scope
 

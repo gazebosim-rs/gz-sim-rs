@@ -34,8 +34,8 @@ are queried immediately without a preparatory step. Private controls demonstrate
 a stale collider/BVH cache after maintained body/local-pose setters, and verify
 the read-only query uses fresh composed poses while leaving that cache untouched.
 
-Implementation and regression source are unexecuted pending whole-M7 completion,
-independent source review and the consolidated required verification. Existing
+Implementation and regression controls passed required local and exact hosted
+M7 checks after independent source review; see M7_ACCEPTANCE.md. Existing
 physics tests and all IMU/RGB/depth behavior remain unchanged. No native lidar
 parity, visual/material reflectance model or broader engine query support is
 claimed.

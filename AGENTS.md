@@ -1,8 +1,8 @@
 # Instructions for implementation agents
 
-> M1–M6 were accepted on 2026-11-03, including bounded metric-depth camera delivery.
-> The current delivery is M7: one planar CPU ray lidar using Rapier collision queries,
-> budgeted at most five working days including review and required checks.
+> M1–M7 are accepted, including the published planar CPU lidar and measured scan viewer.
+> The current delivery is M8: one two-wheel Rapier differential-drive robot, real velocity
+> commands and odometry, budgeted at most five working days including review and checks.
 > Preserve accepted demos, paused qualifications and independent Fuel work.
 
 
@@ -14,18 +14,21 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M6 are accepted; see
-their acceptance records. Current M7 delivers one planar CPU ray lidar using
-Rapier queries against admitted primitive and mesh collisions. Budget at most
-five working days including review and mandatory checks. Prove analytic ranges,
-min/max clipping, frames, acquisition timestamps and pause/reset; make the actual
-scan inspectable in visualization. Reuse existing sensor models, physics queries,
-canonical messages, scheduling and demand lifecycle. Preserve accepted IMU, RGB,
-depth and native-free/GPU-free defaults, all retained assertions and strict gates.
-Keep absent-family callbacks/buffers absent. GPU lidar, noise parity, broad sensor
-families, new geometry formats and unrelated qualifications remain deferred.
-Assess bounded dependencies in a new isolated delivery tree; preserve frozen
-candidates and independent Fuel work. Full P0–P7 remains a deferred inventory.
+Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M7 are accepted; see
+their acceptance records. Current M8 delivers one two-wheel Rapier robot driven
+by real velocity commands, with canonical odometry and a live gzweb-rs view.
+Budget at most five working days including independent review and mandatory
+checks. Prove forward motion and turning, wheel limits, odometry frames,
+pause/reset and absent-system teardown. Reuse existing joints, state/force/input
+APIs, canonical messages and bounded upstream Zenoh IO; keep physics authoritative.
+Use demand-activated built-in systems, not dynamic plugins. Preserve accepted
+IMU/RGB/depth/lidar, all retained assertions and native-free/GPU-free defaults.
+Ackermann, tracked vehicles, general drivetrain parity and unrelated sensor,
+backend or geometry qualifications remain deferred. Split optional scope if it
+will exceed the budget. Source, regression code, docs and independent source
+review precede one consolidated required pass; batch real failures before any
+affected rerun. Preserve all frozen candidates and the independent Fuel work.
+Full P0–P7 remains a deferred inventory, not a prerequisite for this delivery.
 
 The owner explicitly resumed implementation. Work only on the current delivery
 or a concrete blocking dependency; earlier pause records are historical. The

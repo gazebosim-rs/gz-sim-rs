@@ -37,5 +37,5 @@ pause, reset and stable identity, removal/restoration, viewer/subscriber demand,
 queue limits, sequence wrap, malformed ownership and terminal reset drift.
 Separate IO controls cover real matching, last-lease retirement, stale queued
 jobs, exact canonical attachments, closed-session errors and epoch cancellation.
-All are unrun pending whole-feature independent review and consolidated required
-verification. Existing IMU/RGB/depth assertions and quality gates are preserved.
+These controls passed the required local and exact hosted M7 checks after
+independent source review; see M7_ACCEPTANCE.md for counts and evidence limits. Existing IMU/RGB/depth assertions and quality gates are preserved.

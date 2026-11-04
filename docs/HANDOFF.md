@@ -3,44 +3,54 @@
 
 # Coordinator handoff
 
-> M1–M6 were accepted on 2026-11-03, including bounded metric-depth camera delivery.
-> The current delivery is M7: one planar CPU ray lidar using Rapier collision queries,
-> budgeted at most five working days including review and required checks.
+> M1–M7 are accepted, including the published planar CPU lidar and measured scan viewer.
+> The current delivery is M8: one two-wheel Rapier differential-drive robot, real velocity
+> commands and odometry, budgeted at most five working days including review and checks.
 > Preserve accepted demos, paused qualifications and independent Fuel work.
 
 
-Updated 2026-11-03. Read DELIVERY_PLAN.md and M6_ACCEPTANCE.md first.
+Updated 2026-11-04. Read DELIVERY_PLAN.md and M7_ACCEPTANCE.md first.
 
-## Current delivery: M7 CPU ray lidar
+## Current delivery: M8 differential drive
 
-M6 is accepted on public Main at simulator `7fccd049`; accepted viewer
-`5b67f45f` remains unchanged. The final normal staged gate passed in 1138.283
-seconds, exact hosted CI `41726703723` passed all sixteen steps, and independent
-source plus local/official evidence audits are clear. One loaded 64×64 depth
-camera uses the already accepted metric-depth renderer, bounded typed worker IPC
-and canonical R_FLOAT32 publication. Actual central/off-axis axial metres,
-background/far infinity, explicit near refusal, cadence/frame, pause/reset/removal,
-committed-tick Busy and finite CLI/worker controls pass. Retained RGB controls
-also pass. No browser depth display, C++ depth parity or performance is claimed.
-See M6_ACCEPTANCE.md for exact counters and retention limits.
+M7 is accepted and published on simulator Main `9a652063` and viewer Main
+`19be842d`. The simulator final normal staged gate passed1180.316s and exact CI
+`41747544467` passed all16 steps; viewer normal hooks, both unchanged14MB bundle
+budgets and exact CI `41748284641` passed. Independent source, local/official data
+and actual WebGL2 scan/control image reviews are clear. One loaded ideal planar
+2–128-beam lidar uses read-only maintained Rapier shape casts, bounded canonical
+LaserScan output and an opt-in measured-scan viewer with no fabricated scene IDs.
+Analytic/mesh queries, timing/frame, demand, pause/reset, removal and bounded IO
+pass. Actual browser shows three measured rays; reset clears them and resume
+restores them while retaining two visual entities. See M7_ACCEPTANCE.md for
+separate local/hosted counts and retention limits; no new C++ lidar parity or
+performance claim is made.
 
-Current M7 delivers one planar CPU ray lidar using Rapier queries against admitted
-primitive and mesh collisions. Prove analytic ranges, min/max range, frame,
-acquisition timestamps and pause/reset; visualization must allow inspection of
-the actual scan. Budget at most five working days including independent review
-and required checks. Reuse existing sensor models, physics queries, canonical
-messages and demand/scheduling/lifecycle APIs. Preserve IMU, RGB/depth behavior,
-native-free/GPU-free defaults and strict feature-matrix coverage. GPU lidar,
-noise-model parity, broader sensor families and unrelated backend work remain
-deferred. No absent lidar family should own callbacks or scan buffers.
+M6 acceptance metadata `0b9541dc` is also published after its normal local gate
+and independently audited exact CI attempt2 passed. Attempt1's three existing
+20-second readback timeouts remain preserved real failures with an undetermined
+cause. The one bounded same-SHA rerun did not change deadlines, assertions or
+mandatory jobs; its success does not diagnose or erase the failures. Do not
+restart that qualification or replay accepted M1–M7 manual browser/runtime work.
 
-Root owns simulator/Scene/Server/CLI integration. Use a new isolated M7 delivery
-tree and assess the smallest truthful visualization path before implementation.
-All accepted demonstrations and prior frozen trees remain preserved, including
-the historical depth candidates and paused producer mass-override candidate.
-Do not mutate Fuel work or replay accepted manual qualifications. Accepted
-SDFormat Main remains `1594ac36`; the simulator producer pin remains `a44bf8be`.
-Historical P0–P7 is a deferred inventory, not this delivery's prerequisite.
+Current M8 delivers one two-wheel Rapier robot from real velocity commands,
+with canonical odometry and a live gzweb-rs view. Budget at most five working
+days including independent review and required checks. Prove forward motion and
+turning, wheel limits, odometry frames, pause/reset and absent-system teardown.
+Reuse existing joint state/force/input, lifecycle/scheduling and upstream Zenoh
+APIs. Physics remains authoritative; preserve accepted sensors and native-free/
+GPU-free headless defaults. Ackermann, tracked vehicles, general drivetrain
+parity, additional sensor families and unrelated backend/geometry work are
+excluded. Split optional scope rather than weakening a mandatory exit criterion.
+
+Root owns simulator integration. Use a new isolated M8 tree; source/regressions/
+docs and independent source review precede one consolidated required pass.
+M7 acceptance metadata may complete normal gate/CI while M8 source progresses
+separately; do not repeat accepted manual qualifications. Preserve the new paused
+M7 browser preview on9007 and all older accepted demos, frozen candidates,
+historical evidence and independent Fuel work. Accepted SDFormat Main remains
+`1594ac36` and the simulator producer pin remains`a44bf8be`. Historical P0–P7
+remains a deferred inventory, not this delivery's prerequisite.
 
 The sections below preserve previous continuation history. Their next-task
 instructions are superseded by this section and D30.
