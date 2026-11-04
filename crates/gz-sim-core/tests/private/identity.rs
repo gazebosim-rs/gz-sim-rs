@@ -5,6 +5,24 @@ use crate::Simulation;
 use std::time::Duration;
 
 #[test]
+fn allocation_preflight_is_read_only_and_retired_ids_are_never_reissued() {
+    let mut world = World::new();
+    assert_eq!(next_entity_id(&world), Ok(1));
+    assert_eq!(next_entity_id(&world), Ok(1));
+    assert!(!world.contains_resource::<IdIndex>());
+    let entity = world.spawn_empty().id();
+    assert_eq!(assign_id(&mut world, entity), Ok(1));
+    assert_eq!(next_entity_id(&world), Ok(2));
+    assert_eq!(assign_id(&mut world, entity), Ok(1));
+    world.despawn(entity);
+    assert_eq!(next_entity_id(&world), Ok(2));
+    world.resource_mut::<IdIndex>().last = u64::MAX;
+    assert_eq!(next_entity_id(&world), Err(IdentityError::Exhausted));
+    assert_eq!(world.resource::<IdIndex>().last, u64::MAX);
+    assert!(world.resource::<IdIndex>().entities.is_empty());
+}
+
+#[test]
 fn identities_survive_reset_and_bevy_recycling_never_reuses_public_ids() {
     let mut simulation = Simulation::new(Duration::from_millis(1)).unwrap();
     assert_eq!(entity_by_id(simulation.world(), 0), None);

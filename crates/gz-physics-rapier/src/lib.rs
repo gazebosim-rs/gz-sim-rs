@@ -10,6 +10,7 @@ use std::{
     time::Duration,
 };
 
+mod body_state;
 mod collision;
 mod initial;
 mod joints;
@@ -383,6 +384,19 @@ impl DynamicBackend for RapierBackend {
         } else {
             false
         }
+    }
+
+    fn validate_body_state(&self, id: BodyId, state: BodyState) -> Result<(), PhysicsError> {
+        body_state::prepare(self, id, state).map(|_| ())
+    }
+
+    fn set_body_state(&mut self, id: BodyId, state: BodyState) -> Result<(), PhysicsError> {
+        let (handle, pose) = body_state::prepare(self, id, state)?;
+        let body = &mut self.world.bodies[handle];
+        body.set_position(pose, true);
+        body.set_linvel(Vector::from(state.velocity), true);
+        body.set_angvel(Vector::from(state.angular_velocity), true);
+        Ok(())
     }
 
     /// Replaces world-frame velocities and wakes dynamic bodies. Fixed bodies stay fixed.

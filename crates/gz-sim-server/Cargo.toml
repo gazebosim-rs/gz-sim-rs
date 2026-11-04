@@ -25,6 +25,7 @@ thiserror.workspace = true
 nix = { version = "=0.31.3", default-features = false, features = ["hostname", "user"] }
 
 [dev-dependencies]
+gz-physics = { path = "../gz-physics" }
 # Inspect the live test listener instead of releasing a speculative port.
 zenoh = { workspace = true, features = ["unstable"] }
 socket2 = { version = "=0.6.5", features = ["all"] }

@@ -50,6 +50,10 @@ struct Args {
     /// Serve one local gzweb-rs WebSocket client; viewer HTTP origin is port 8080 or 8081.
     #[arg(long, requires = "server", value_parser = clap::value_parser!(u16).range(1..))]
     web_viewer: Option<u16>,
+    /// Enable bounded local template spawn/remove and entity-state editing.
+    /// Camera-owned scene mutation requires a later renderer admission phase.
+    #[arg(long, requires = "web_viewer", conflicts_with = "camera_worker")]
+    web_lifecycle: bool,
     /// Trusted absolute offscreen worker executable (requires the rgb-camera build feature).
     #[arg(long, requires = "server")]
     camera_worker: Option<PathBuf>,
@@ -79,6 +83,9 @@ fn with_fault(
 }
 
 fn run(args: Args) -> Result<(), Box<dyn Error>> {
+    if args.web_lifecycle && args.physics_engine != PhysicsEngine::Rapier {
+        return Err("--web-lifecycle requires the Rapier physics engine".into());
+    }
     #[cfg(not(feature = "rgb-camera"))]
     if args.camera_worker.is_some() {
         return Err("--camera-worker requires a build with the rgb-camera feature".into());
@@ -108,7 +115,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
     resolver.set_warning_limit(args.max_resource_warnings);
     let loaded = (|| -> Result<_, Box<dyn Error>> {
         let resource = resolver.read_path(&args.file)?;
-        Ok(if let Some(step) = args.step_ns {
+        let simulation = if let Some(step) = args.step_ns {
             gz_sim_scene::load_world_with_engine(
                 &resource.xml,
                 &resource.canonical_uri,
@@ -125,12 +132,22 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
                 &resolver,
                 args.physics_engine,
             )?
-        })
+        };
+        let lifecycle_sdf = if args.web_lifecycle {
+            Some(sdformat::load_str(
+                &resource.xml,
+                &resource.canonical_uri,
+                &resolver,
+            )?)
+        } else {
+            None
+        };
+        Ok((simulation, lifecycle_sdf))
     })();
     for warning in resolver.take_warnings()? {
         eprintln!("resource warning: {warning:?}");
     }
-    let mut simulation = loaded?;
+    let (mut simulation, lifecycle_sdf) = loaded?;
     let iterations = if args.server {
         let result = live::run(
             simulation,
@@ -139,6 +156,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
             args.iterations.unwrap_or(0),
             args.web_viewer,
             args.camera_worker,
+            lifecycle_sdf,
         )?;
         simulation = result.0;
         result.1

@@ -286,7 +286,7 @@ fn competing_controls_never_acknowledge_an_uncommitted_requested_state() {
         let (reply, ack) = mpsc::sync_channel(1);
         assert!(
             commands
-                .send(Pending {
+                .send(Queued::Control(Pending {
                     control: Control::decode(
                         &json!({"version":1,"kind":"control",
                 "request_id":id,"action":action})
@@ -296,7 +296,7 @@ fn competing_controls_never_acknowledge_an_uncommitted_requested_state() {
                     .unwrap(),
                     alive: Arc::new(AtomicBool::new(true)),
                     reply,
-                })
+                }))
                 .is_ok()
         );
         ack

@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
+
+#[path = "world_edit.rs"]
+mod world_edit;
 use std::{
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},

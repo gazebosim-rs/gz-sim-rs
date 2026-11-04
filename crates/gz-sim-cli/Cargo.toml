@@ -19,6 +19,8 @@ gz-camera-output = { path = "../gz-camera-output", default-features = false, opt
 zenoh = { workspace = true, optional = true }
 gz-fuel-tools.workspace = true
 clap.workspace = true
+bevy_ecs.workspace = true
+gz-physics = { path = "../gz-physics" }
 gz-assets = { path = "../gz-assets" }
 gz-sim-scene = { path = "../gz-sim-scene", default-features = false }
 gz-sim-core = { path = "../gz-sim-core" }

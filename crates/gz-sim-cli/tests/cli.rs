@@ -42,6 +42,110 @@ fn fixture() -> &'static str {
 }
 
 #[test]
+fn lifecycle_cli_is_explicit_rapier_only_and_refuses_camera_domain_expansion() {
+    assert!(
+        String::from_utf8(command(&["--help"]).stdout)
+            .unwrap()
+            .contains("--web-lifecycle")
+    );
+    for args in [
+        vec![fixture(), "--web-lifecycle"],
+        vec![fixture(), "--server", "--web-lifecycle"],
+        vec![
+            fixture(),
+            "--server",
+            "--web-viewer",
+            "9010",
+            "--web-lifecycle",
+            "--camera-worker",
+            "/not/a/worker",
+        ],
+    ] {
+        assert_eq!(command(&args).status.code(), Some(2));
+    }
+    let unsupported = command(&[
+        fixture(),
+        "--server",
+        "--web-viewer",
+        "9010",
+        "--web-lifecycle",
+        "--physics-engine",
+        "tpe",
+    ]);
+    assert_eq!(unsupported.status.code(), Some(1));
+    assert!(
+        String::from_utf8(unsupported.stderr)
+            .unwrap()
+            .contains("--web-lifecycle requires the Rapier physics engine")
+    );
+    assert!(unsupported.stdout.is_empty());
+}
+
+#[test]
+fn finite_lifecycle_cli_reaches_the_real_runtime_and_reports_busy_listener_before_ticks() {
+    let world = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../examples/m10_world_lifecycle.sdf"
+    );
+    // Port zero remains an invalid CLI argument. Reserve an ephemeral candidate,
+    // then retry only a proven pre-tick bind race, never a functional failure.
+    let mut launched = false;
+    for _ in 0..4 {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port().to_string();
+        drop(listener);
+        let result = command(&[
+            world,
+            "--server",
+            "--run",
+            "--iterations",
+            "1",
+            "--web-viewer",
+            &port,
+            "--web-lifecycle",
+        ]);
+        let error = String::from_utf8(result.stderr).unwrap();
+        if !result.status.success() && error.contains("Address already in use") {
+            assert!(
+                result.stdout.is_empty(),
+                "bind race must precede any committed tick"
+            );
+            continue;
+        }
+        assert!(result.status.success(), "{error}");
+        let output = String::from_utf8(result.stdout).unwrap();
+        assert!(output.starts_with("simulation_ns=5000000 iterations=1\n"));
+        assert_eq!(output.lines().count(), 5);
+        for name in ["box", "ground", "local_mesh", "sphere"] {
+            assert!(output.contains(&format!("default::{name}::body ")));
+        }
+        assert!(error.contains("gzweb-rs WebSocket:"));
+        assert!(error.contains("gzweb-rs local glTF resources:"));
+        launched = true;
+        break;
+    }
+    assert!(launched, "ephemeral listener candidates remained occupied");
+    let occupied = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = occupied.local_addr().unwrap().port().to_string();
+    let refused = command(&[
+        world,
+        "--server",
+        "--run",
+        "--iterations",
+        "1",
+        "--web-viewer",
+        &port,
+        "--web-lifecycle",
+    ]);
+    assert_eq!(refused.status.code(), Some(1));
+    assert!(refused.stdout.is_empty());
+    let error = String::from_utf8(refused.stderr).unwrap();
+    assert!(error.contains("Address already in use"));
+    assert!(!error.contains("gzweb-rs local glTF resources:"));
+    assert!(occupied.local_addr().is_ok());
+}
+
+#[test]
 fn help_version_and_argument_errors_are_actionable() {
     for args in [&["--help"][..], &["--version"]] {
         assert!(command(args).status.success());

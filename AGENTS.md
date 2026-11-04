@@ -43,6 +43,12 @@ Batch source review and fixes before a single final verification pass.
 
 ## Architecture
 
+For current M10 integration, read `docs/M10_WORLD_LIFECYCLE.md`. Keep the explicit
+server/viewer opt-ins, startup-only declared templates, authoritative model-to-
+visual IDs and exact Scene-sequence reply packets. Camera-owned mutable scenes
+require a later renderer admission phase. Use the focused Server edit methods;
+do not expose general mutable Simulation access or change default protocols.
+
 - D28/D29 supersede earlier transport/Messages scope: keep sdformat-rs,
   gz-fuel-tools-rs and schema-only gz-msgs-rs independent. Use upstream Zenoh
   directly; no gz-transport-rs target, ZeroMQ compatibility, successor transport

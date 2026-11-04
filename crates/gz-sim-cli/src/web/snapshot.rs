@@ -7,7 +7,7 @@ use std::io;
 
 pub(super) const MAX_BYTES: usize = 65536;
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub(super) enum Shape {
     Box { size: [f64; 3] },
@@ -15,7 +15,7 @@ pub(super) enum Shape {
     Mesh { uri: String, scale: [f64; 3] },
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub(super) struct Visual {
     id: u64,
     name: String,
@@ -25,7 +25,7 @@ pub(super) struct Visual {
     color: [f64; 4],
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub(super) struct Scene {
     version: u8,
     kind: &'static str,
@@ -37,6 +37,89 @@ pub(super) struct Scene {
     sequence: u64,
     pub paused: bool,
     visuals: Vec<Visual>,
+}
+
+impl Scene {
+    pub(super) fn world_name(&self) -> &str {
+        &self.world
+    }
+    pub(super) fn world_id(&self) -> u64 {
+        self.world_id
+    }
+    pub(super) fn sequence(&self) -> u64 {
+        self.sequence
+    }
+    pub(super) fn visual(&self, id: u64) -> Option<Visual> {
+        self.visuals.iter().find(|visual| visual.id == id).cloned()
+    }
+    pub(super) fn visual_ids(&self) -> impl Iterator<Item = u64> + '_ {
+        self.visuals.iter().map(|visual| visual.id)
+    }
+    pub(super) fn project_spawn(
+        &mut self,
+        source: &Visual,
+        model: u64,
+        pose: WorldPose,
+    ) -> io::Result<()> {
+        let id = model
+            .checked_add(3)
+            .ok_or_else(|| invalid("spawn visual identity exhausted"))?;
+        let name = format!("{}::runtime_{model}::body::visual", self.world);
+        if self.visuals.len() >= 128
+            || id > u32::MAX as u64
+            || self.visual(id).is_some()
+            || name.len() > 256
+        {
+            return Err(invalid("spawn exceeds the bounded scene"));
+        }
+        let mut visual = source.clone();
+        visual.id = id;
+        visual.name = name;
+        visual.translation = pose.translation;
+        visual.rotation = pose.rotation;
+        self.visuals.push(visual);
+        self.visuals.sort_unstable_by_key(|visual| visual.id);
+        if matches!(source.shape, Shape::Mesh { .. }) {
+            self.version = 2;
+        }
+        self.check_projected()
+    }
+    pub(super) fn project_state(&mut self, id: u64, pose: WorldPose) -> io::Result<()> {
+        let visual = self
+            .visuals
+            .iter_mut()
+            .find(|visual| visual.id == id)
+            .ok_or_else(|| invalid("state visual is not in the current scene"))?;
+        visual.translation = pose.translation;
+        visual.rotation = pose.rotation;
+        self.check_projected()
+    }
+    pub(super) fn project_remove(&mut self, ids: &[u64]) -> io::Result<()> {
+        self.visuals.retain(|visual| !ids.contains(&visual.id));
+        self.version = if self
+            .visuals
+            .iter()
+            .any(|visual| matches!(visual.shape, Shape::Mesh { .. }))
+        {
+            2
+        } else {
+            1
+        };
+        self.check_projected()
+    }
+    fn check_projected(&self) -> io::Result<()> {
+        if self.visuals.iter().any(|visual| {
+            !visual
+                .translation
+                .into_iter()
+                .chain(visual.rotation)
+                .all(representable)
+                || (visual.rotation.into_iter().map(|v| v * v).sum::<f64>() - 1.0).abs() > 1e-6
+        }) {
+            return Err(invalid("projected visual pose is not representable"));
+        }
+        encode(self).map(|_| ())
+    }
 }
 
 fn invalid(message: &'static str) -> io::Error {

@@ -41,6 +41,10 @@ pub use tpe::PhysicsEngine;
 
 mod lifecycle;
 pub use lifecycle::{RemoveError, remove_model};
+mod world_edit;
+pub use world_edit::{ModelState, WorldEditError, model_state, model_visual_pose, set_model_state};
+mod world_spawn;
+pub use world_spawn::{ModelTemplate, prepare_model_template, spawn_model_template};
 mod imu_lifecycle;
 mod lidar;
 pub use lidar::{LidarPublication, LidarSample, clear_lidar_interest, set_lidar_interest};

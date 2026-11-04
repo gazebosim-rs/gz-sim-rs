@@ -8,7 +8,11 @@ use tungstenite::{
     protocol::WebSocketConfig,
 };
 
-struct LocalViewer(Arc<AtomicBool>);
+struct LocalViewer {
+    scan: Arc<AtomicBool>,
+    lifecycle: Arc<AtomicBool>,
+    lifecycle_enabled: bool,
+}
 
 impl Callback for LocalViewer {
     fn on_request(self, request: &Request, response: Response) -> Result<Response, ErrorResponse> {
@@ -28,6 +32,7 @@ impl Callback for LocalViewer {
             return Err(rejected);
         }
         let mut selected = false;
+        let mut lifecycle = false;
         for field in request.uri().query().unwrap_or_default().split('&') {
             let (key, value) = field.split_once('=').unwrap_or((field, ""));
             if key == "scan" {
@@ -38,13 +43,27 @@ impl Callback for LocalViewer {
                 }
                 selected = true;
             }
+            if key == "lifecycle" {
+                if lifecycle || value != "1" || !self.lifecycle_enabled {
+                    let mut rejected =
+                        ErrorResponse::new(Some("invalid or unavailable lifecycle opt-in".into()));
+                    *rejected.status_mut() = tungstenite::http::StatusCode::BAD_REQUEST;
+                    return Err(rejected);
+                }
+                lifecycle = true;
+            }
         }
-        self.0.store(selected, Ordering::Release);
+        self.scan.store(selected, Ordering::Release);
+        self.lifecycle.store(lifecycle, Ordering::Release);
         Ok(response)
     }
 }
 
-fn handshake(stream: TcpStream, stop: &AtomicBool) -> Option<(WebSocket<TcpStream>, bool)> {
+fn handshake(
+    stream: TcpStream,
+    stop: &AtomicBool,
+    lifecycle_enabled: bool,
+) -> Option<(WebSocket<TcpStream>, bool, bool)> {
     stream.set_nonblocking(true).ok()?;
     let config = WebSocketConfig::default()
         .read_buffer_size(4096)
@@ -53,8 +72,16 @@ fn handshake(stream: TcpStream, stop: &AtomicBool) -> Option<(WebSocket<TcpStrea
         .max_message_size(Some(4096))
         .max_frame_size(Some(4096));
     let opted_in = Arc::new(AtomicBool::new(false));
-    let mut result =
-        tungstenite::accept_hdr_with_config(stream, LocalViewer(opted_in.clone()), Some(config));
+    let lifecycle = Arc::new(AtomicBool::new(false));
+    let mut result = tungstenite::accept_hdr_with_config(
+        stream,
+        LocalViewer {
+            scan: opted_in.clone(),
+            lifecycle: lifecycle.clone(),
+            lifecycle_enabled,
+        },
+        Some(config),
+    );
     let deadline = Instant::now() + Duration::from_millis(250);
     loop {
         match result {
@@ -68,7 +95,11 @@ fn handshake(stream: TcpStream, stop: &AtomicBool) -> Option<(WebSocket<TcpStrea
                     .get_ref()
                     .set_write_timeout(Some(Duration::from_millis(100)))
                     .ok()?;
-                return Some((socket, opted_in.load(Ordering::Acquire)));
+                return Some((
+                    socket,
+                    opted_in.load(Ordering::Acquire),
+                    lifecycle.load(Ordering::Acquire),
+                ));
             }
             Err(HandshakeError::Interrupted(mid))
                 if Instant::now() < deadline && !stop.load(Ordering::Acquire) =>
@@ -88,7 +119,13 @@ struct Peer {
     last_id: u64,
     sent: Option<Arc<String>>,
     scan: bool,
-    pending: Option<mpsc::Receiver<String>>,
+    lifecycle: bool,
+    pending: Option<Awaiting>,
+}
+
+enum Awaiting {
+    Control(mpsc::Receiver<String>),
+    Lifecycle(mpsc::Receiver<lifecycle::Committed>),
 }
 
 impl Drop for Peer {
@@ -99,8 +136,8 @@ impl Drop for Peer {
 }
 
 impl Peer {
-    fn poll(&mut self, latest: &Latest, commands: &mpsc::SyncSender<Pending>) -> bool {
-        if let Some(receiver) = &self.pending {
+    fn poll(&mut self, latest: &Latest, commands: &mpsc::SyncSender<Queued>) -> bool {
+        if let Some(Awaiting::Control(receiver)) = &self.pending {
             match receiver.try_recv() {
                 Ok(ack) => {
                     if self.socket.send(Message::Text(ack.into())).is_err() {
@@ -112,13 +149,52 @@ impl Peer {
                 Err(mpsc::TryRecvError::Empty) => {}
             }
         }
-        let Ok((generation, scene, scan)) = latest
-            .lock()
-            .map(|value| (value.0, Arc::clone(&value.1), value.2.clone()))
-        else {
+        if let Some(Awaiting::Lifecycle(receiver)) = &self.pending {
+            match receiver.try_recv() {
+                Ok(committed) => {
+                    // Deliver the exact committed frame, even when Latest has
+                    // advanced while this bounded reply waited for the socket.
+                    if self
+                        .socket
+                        .send(Message::Text(committed.scene.as_str().into()))
+                        .is_err()
+                        || (self.scan
+                            && committed.scan.as_ref().is_some_and(|scan| {
+                                self.socket
+                                    .send(Message::Text(scan.as_str().into()))
+                                    .is_err()
+                            }))
+                        || self
+                            .socket
+                            .send(Message::Text(committed.catalog.as_str().into()))
+                            .is_err()
+                        || self
+                            .socket
+                            .send(Message::Text(committed.ack.into()))
+                            .is_err()
+                    {
+                        return false;
+                    }
+                    self.sent = Some(committed.scene);
+                    self.pending = None;
+                    return true;
+                }
+                Err(mpsc::TryRecvError::Disconnected) => return false,
+                Err(mpsc::TryRecvError::Empty) => {}
+            }
+        }
+        let Ok((generation, scene, scan, catalog)) = latest.lock().map(|value| {
+            (
+                value.0,
+                Arc::clone(&value.1),
+                value.2.clone(),
+                value.3.clone(),
+            )
+        }) else {
             return false;
         };
         if generation == self.generation
+            && !matches!(self.pending, Some(Awaiting::Lifecycle(_)))
             && self
                 .sent
                 .as_ref()
@@ -128,6 +204,15 @@ impl Peer {
                 .socket
                 .send(Message::Text(scene.as_str().into()))
                 .is_err()
+            {
+                return false;
+            }
+            if self.lifecycle
+                && let Some(catalog) = catalog
+                && self
+                    .socket
+                    .send(Message::Text(catalog.as_str().into()))
+                    .is_err()
             {
                 return false;
             }
@@ -144,22 +229,52 @@ impl Peer {
         }
         match self.socket.read() {
             Ok(Message::Text(text)) if self.pending.is_none() => {
-                let Ok(control) = Control::decode(&text, self.last_id) else {
-                    return false;
-                };
-                self.last_id = control.request_id;
-                let (reply, receiver) = mpsc::sync_channel(1);
-                if commands
-                    .try_send(Pending {
-                        control,
-                        alive: self.alive.clone(),
-                        reply,
-                    })
-                    .is_err()
-                {
-                    return false;
+                let kind = serde_json::from_str::<serde_json::Value>(&text)
+                    .ok()
+                    .and_then(|value| {
+                        value
+                            .get("kind")
+                            .and_then(|kind| kind.as_str())
+                            .map(str::to_owned)
+                    });
+                if kind.as_deref() == Some("lifecycle") {
+                    if !self.lifecycle {
+                        return false;
+                    }
+                    let Ok(request) = lifecycle::Request::decode(&text, self.last_id) else {
+                        return false;
+                    };
+                    self.last_id = request.request_id;
+                    let (reply, receiver) = mpsc::sync_channel(1);
+                    if commands
+                        .try_send(Queued::Lifecycle(lifecycle::Pending {
+                            request,
+                            alive: self.alive.clone(),
+                            reply,
+                        }))
+                        .is_err()
+                    {
+                        return false;
+                    }
+                    self.pending = Some(Awaiting::Lifecycle(receiver));
+                } else {
+                    let Ok(control) = Control::decode(&text, self.last_id) else {
+                        return false;
+                    };
+                    self.last_id = control.request_id;
+                    let (reply, receiver) = mpsc::sync_channel(1);
+                    if commands
+                        .try_send(Queued::Control(Pending {
+                            control,
+                            alive: self.alive.clone(),
+                            reply,
+                        }))
+                        .is_err()
+                    {
+                        return false;
+                    }
+                    self.pending = Some(Awaiting::Control(receiver));
                 }
-                self.pending = Some(receiver);
                 true
             }
             Ok(Message::Ping(_) | Message::Pong(_)) => self.socket.flush().is_ok(),
@@ -182,7 +297,8 @@ pub(super) fn serve(
     stop: &AtomicBool,
     connected: &AtomicU64,
     scan_connected: &AtomicBool,
-    commands: &mpsc::SyncSender<Pending>,
+    commands: &mpsc::SyncSender<Queued>,
+    lifecycle_enabled: bool,
 ) {
     let mut peer: Option<Peer> = None;
     let mut generation = 0_u64;
@@ -191,7 +307,9 @@ pub(super) fn serve(
             Ok((stream, _)) => {
                 if peer.is_some() {
                     let _ = stream.shutdown(Shutdown::Both);
-                } else if let Some((socket, scan)) = handshake(stream, stop) {
+                } else if let Some((socket, scan, lifecycle)) =
+                    handshake(stream, stop, lifecycle_enabled)
+                {
                     let Some(next) = generation.checked_add(1) else {
                         break;
                     };
@@ -203,6 +321,7 @@ pub(super) fn serve(
                         last_id: 0,
                         sent: None,
                         scan,
+                        lifecycle,
                         pending: None,
                     });
                     scan_connected.store(scan, Ordering::Release);

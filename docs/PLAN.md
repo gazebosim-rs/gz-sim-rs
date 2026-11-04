@@ -8,6 +8,9 @@ spawn/remove and entity-state operations for the admitted MVP scene, budgeted at
 most five working days including review and checks. Prove primitive and one local
 mesh lifecycle without stale IDs or visuals, atomic refusal and a current snapshot
 after reconnect. Preserve existing physical state, accepted behavior and defaults.
+Use the bounded admission, opt-in wire and launch contract in
+[M10_WORLD_LIFECYCLE.md](M10_WORLD_LIFECYCLE.md); this source is not acceptance
+until the required gates and actual browser observations pass.
 Implementation was explicitly resumed on 2026-11-02; the earlier planning pause
 is historical. Work only on this delivery or its concrete blocking dependencies.
 Subsequent named phases remain at most five working days each. Full compatibility

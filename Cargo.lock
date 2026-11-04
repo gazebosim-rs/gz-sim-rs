@@ -2787,12 +2787,14 @@ dependencies = [
 name = "gz-sim-cli"
 version = "0.1.0"
 dependencies = [
+ "bevy_ecs",
  "bytes",
  "clap",
  "gltf",
  "gz-assets",
  "gz-camera-output",
  "gz-fuel-tools",
+ "gz-physics",
  "gz-physics-dart",
  "gz-sim-core",
  "gz-sim-proto",
@@ -2868,6 +2870,7 @@ version = "0.1.0"
 dependencies = [
  "bevy_ecs",
  "crossbeam-channel",
+ "gz-physics",
  "gz-physics-dart",
  "gz-sensors",
  "gz-sim-core",

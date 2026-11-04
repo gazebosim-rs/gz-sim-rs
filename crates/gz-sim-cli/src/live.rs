@@ -208,6 +208,7 @@ pub(super) fn run(
     iterations: u64,
     web_viewer: Option<u16>,
     camera_worker: Option<PathBuf>,
+    lifecycle_sdf: Option<sdformat::Sdf>,
 ) -> Result<(Simulation, u64), Box<dyn Error>> {
     let factor = simulation
         .world()
@@ -224,7 +225,15 @@ pub(super) fn run(
     let mut runtime = Runtime::new(simulation, world, camera_worker)?;
     runtime.server_mut().prepare_run(Duration::from_secs(5))?;
     let mut viewer = web_viewer
-        .map(|port| super::web::Bridge::new(runtime.server().simulation(), world, port))
+        .map(|port| match lifecycle_sdf.as_ref() {
+            Some(sdf) => super::web::Bridge::new_with_lifecycle(
+                runtime.server().simulation(),
+                world,
+                port,
+                sdf,
+            ),
+            None => super::web::Bridge::new(runtime.server().simulation(), world, port),
+        })
         .transpose()?;
     let mut completed = 0_u64;
     while !termination.requested() && (iterations == 0 || completed < iterations) {
@@ -240,6 +249,7 @@ pub(super) fn run(
         );
         let info = runtime.tick()?;
         if let Some(viewer) = &mut viewer {
+            viewer.apply_lifecycle(runtime.server_mut(), world)?;
             viewer.publish(runtime.server().simulation(), world, controls)?;
         }
         if !info.dt.is_zero() {

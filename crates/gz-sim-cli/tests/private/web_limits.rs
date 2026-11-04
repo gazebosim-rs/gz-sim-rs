@@ -81,7 +81,7 @@ fn stale_network_controls_cannot_exceed_the_bounded_ingress_queue() {
     assert!(
         queued
             .iter()
-            .all(|pending| !pending.alive.load(Ordering::Acquire))
+            .all(|pending| !pending.alive().load(Ordering::Acquire))
     );
     assert_eq!(sim.elapsed(), Duration::ZERO);
     drop(queued);
@@ -288,13 +288,16 @@ fn duplicate_inflight_control_closes_and_its_dead_pending_resume_has_no_effect()
         .commands
         .recv_timeout(Duration::from_secs(2))
         .unwrap();
-    assert!(pending.alive.load(Ordering::Acquire));
-    assert_eq!(pending.control.request_id, 1);
-    assert!(matches!(pending.control.action, Action::Resume));
+    assert!(pending.alive().load(Ordering::Acquire));
+    let Queued::Control(control_pending) = &pending else {
+        panic!("control expected");
+    };
+    assert_eq!(control_pending.control.request_id, 1);
+    assert!(matches!(control_pending.control.action, Action::Resume));
     client.send(Message::Text(command.into())).unwrap();
     limits_closed(&mut client);
     limits_wait("duplicate client did not mark its command dead", || {
-        !pending.alive.load(Ordering::Acquire) && bridge.connected.load(Ordering::Acquire) == 0
+        !pending.alive().load(Ordering::Acquire) && bridge.connected.load(Ordering::Acquire) == 0
     });
     // Put that same retained object back at the application handoff. Only the
     // test-owned channel changes; its control/alive/reply fields are untouched.

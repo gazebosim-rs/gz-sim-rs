@@ -194,9 +194,16 @@ fn admit(
 
 pub(super) struct Assets {
     entries: BTreeMap<u64, (sdformat::Mesh, String)>,
+    aliases: Option<std::collections::BTreeSet<u64>>,
     port: u16,
     stop: Arc<AtomicBool>,
     worker: Option<JoinHandle<()>>,
+}
+
+/// A checked reference to already captured immutable bytes, never a new path.
+pub(super) struct Alias {
+    id: u64,
+    entry: (sdformat::Mesh, String),
 }
 
 impl Assets {
@@ -251,6 +258,7 @@ impl Assets {
         eprintln!("gzweb-rs local glTF resources: http://127.0.0.1:{port}/assets/");
         Ok(Some(Self {
             entries,
+            aliases: None,
             port,
             stop,
             worker: Some(worker),
@@ -264,6 +272,54 @@ impl Assets {
             .filter(|(original, _)| original == mesh)
             .ok_or_else(|| invalid("mesh visual is outside the admitted M2 asset snapshot"))?;
         Ok(format!("http://127.0.0.1:{}{route}", self.port))
+    }
+
+    pub(super) fn prepare_alias(
+        &self,
+        source: u64,
+        id: u64,
+        mesh: &sdformat::Mesh,
+    ) -> io::Result<Alias> {
+        if self.entries.len() >= 256
+            || self.entries.contains_key(&id)
+            || id == 0
+            || id > u32::MAX as u64
+        {
+            return Err(invalid("runtime mesh alias exceeds admitted identities"));
+        }
+        let entry = self
+            .entries
+            .get(&source)
+            .filter(|(original, _)| original == mesh)
+            .ok_or_else(|| invalid("runtime mesh is not a declared template"))?
+            .clone();
+        Ok(Alias { id, entry })
+    }
+
+    pub(super) fn commit_alias(&mut self, alias: Alias) {
+        assert!(
+            self.entries.insert(alias.id, alias.entry).is_none(),
+            "exclusive preflighted asset alias"
+        );
+        self.aliases
+            .get_or_insert_with(Default::default)
+            .insert(alias.id);
+    }
+
+    pub(super) fn retain_aliases(&mut self, live: &std::collections::BTreeSet<u64>) {
+        if let Some(aliases) = &mut self.aliases {
+            aliases.retain(|id| {
+                if live.contains(id) {
+                    true
+                } else {
+                    self.entries.remove(id);
+                    false
+                }
+            });
+            if aliases.is_empty() {
+                self.aliases = None;
+            }
+        }
     }
 
     pub(super) fn healthy(&self) -> bool {

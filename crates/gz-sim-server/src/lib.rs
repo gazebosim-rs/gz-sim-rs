@@ -41,6 +41,8 @@ pub enum Error {
     CameraOutputRequired,
     #[error("external camera ownership must match exactly one configured loaded camera")]
     CameraIdentity,
+    #[error("camera-owned world editing requires a later renderer admission phase")]
+    CameraWorldEdit,
     #[error(transparent)]
     Setup(#[from] SetupError),
     #[error("Zenoh world endpoint: {0}")]
@@ -83,6 +85,10 @@ pub enum Error {
     ResetJointControllers,
     #[error(transparent)]
     ImuActivation(#[from] gz_sim_scene::ImuActivationError),
+    #[error(transparent)]
+    WorldEdit(#[from] gz_sim_scene::WorldEditError),
+    #[error(transparent)]
+    WorldRemove(#[from] gz_sim_scene::RemoveError),
 }
 
 /// Whether pose publication and loaded IMU acquisition follow known subscriber interest.
@@ -572,6 +578,65 @@ impl Server {
 
     pub fn simulation(&self) -> &Simulation {
         &self.simulation
+    }
+
+    fn admit_world_edit(&self) -> Result<(), Error> {
+        if self.is_shutdown {
+            return Err(Error::WorldClosed);
+        }
+        if self.reset_failed {
+            return Err(Error::ResetStreams);
+        }
+        if self.pending_reset || self.prepared_reset.is_some() {
+            return Err(Error::IoPreparationRequired);
+        }
+        self.simulation.validate_steps(0)?;
+        if self
+            .simulation
+            .world()
+            .iter_entities()
+            .any(|entity| entity.contains::<gz_sim_scene::CameraSensor>())
+        {
+            return Err(Error::CameraWorldEdit);
+        }
+        Ok(())
+    }
+
+    /// Clone one startup-prepared standalone model between completed frames.
+    /// This never exposes general mutable Simulation access or adds IO streams.
+    pub fn spawn_model_template(
+        &mut self,
+        template: &gz_sim_scene::ModelTemplate,
+        pose: gz_sim_scene::WorldPose,
+    ) -> Result<u64, Error> {
+        self.admit_world_edit()?;
+        Ok(gz_sim_scene::spawn_model_template(
+            &mut self.simulation,
+            template,
+            pose,
+        )?)
+    }
+
+    /// Explicit world-state replacement, separate from controller actuation.
+    pub fn set_model_state(
+        &mut self,
+        id: u64,
+        state: gz_sim_scene::ModelState,
+    ) -> Result<gz_sim_scene::ModelState, Error> {
+        self.admit_world_edit()?;
+        Ok(gz_sim_scene::set_model_state(
+            &mut self.simulation,
+            id,
+            state,
+        )?)
+    }
+
+    /// Remove only a model in the bounded world-edit domain: no registered
+    /// sensor/controller endpoints can be introduced or retired through this API.
+    pub fn remove_editable_model(&mut self, id: u64) -> Result<Vec<u64>, Error> {
+        self.admit_world_edit()?;
+        gz_sim_scene::model_state(&self.simulation, id)?;
+        Ok(gz_sim_scene::remove_model(&mut self.simulation, id)?)
     }
 
     /// Explicit application shutdown is terminal for frame admission.

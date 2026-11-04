@@ -113,6 +113,18 @@ pub(super) fn matches_physics_owner(world: &World) -> bool {
     }
 }
 
+// A live handle is not sufficient: swapping two valid handles must not redirect
+// an entity-state edit to another loaded body's native state.
+pub(super) fn owns_loaded_body(world: &World, link_id: u64, body: BodyId) -> bool {
+    world.get_resource::<InitialScene>().is_some_and(|scene| {
+        scene
+            .0
+            .nodes
+            .iter()
+            .any(|node| node.id.get() == link_id && node.body == Some(body))
+    })
+}
+
 pub(super) fn capture(sim: &mut Simulation) {
     let world = sim.world();
     let mut nodes = Vec::new();
@@ -295,6 +307,15 @@ pub fn reset_loaded_world<R>(
     let mut extra = Vec::new();
     let mut parents = Vec::new();
     let mut removed_ids = Vec::new();
+    let runtime_nodes = crate::world_spawn::reset_nodes(sim.world())
+        .map_err(|_| SceneResetError::RuntimePhysics)?;
+    if runtime_nodes.iter().any(|entity| {
+        sim.world()
+            .get::<EntityId>(*entity)
+            .is_none_or(|id| initial_ids.contains(&id.get()))
+    }) {
+        return Err(SceneResetError::RuntimePhysics);
+    }
     for entity in sim.world().iter_entities() {
         let id = entity.get::<EntityId>().map(EntityId::get);
         if let Some(id) = id
@@ -317,11 +338,12 @@ pub fn reset_loaded_world<R>(
                 || entity.contains::<tpe::TpeLink>()
                 || entity.contains::<gz_physics_tpe::ModelBounds>()
                 || entity.contains::<JointHandle>()
-                || entity.contains::<BodyHandle>()
-                || entity.contains::<LinkCenterOfMass>()
-                || entity.contains::<ModelAnchor>()
                 || entity.contains::<Imu>()
-                || entity.contains::<AttachedPose>()
+                || (!runtime_nodes.contains(&entity.id())
+                    && (entity.contains::<BodyHandle>()
+                        || entity.contains::<LinkCenterOfMass>()
+                        || entity.contains::<ModelAnchor>()
+                        || entity.contains::<AttachedPose>()))
             {
                 return Err(SceneResetError::RuntimePhysics);
             }
@@ -363,6 +385,14 @@ pub fn reset_loaded_world<R>(
     // Detach first so replacing original parents cannot recursively delete additions.
     for entity in &current {
         world.entity_mut(*entity).remove::<ChildOf>();
+    }
+    // Native restoration removes runtime bodies. Keep their public geometry and
+    // final poses for PendingResetRemoval observation, but retire physics/sync
+    // bindings before the reset schedule can query the restored backend.
+    for entity in &runtime_nodes {
+        world
+            .entity_mut(*entity)
+            .remove::<(BodyHandle, LinkCenterOfMass, ModelAnchor, AttachedPose)>();
     }
     let extras: BTreeSet<_> = extra.iter().copied().collect();
     for entity in current {

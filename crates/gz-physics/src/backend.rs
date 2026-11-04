@@ -238,6 +238,33 @@ pub trait DynamicBackend: Send + Sync + 'static {
 
     fn remove(&mut self, id: BodyId) -> bool;
 
+    /// Preflights an atomic world-space pose and velocity replacement.
+    ///
+    /// `BodyState::position` is the body origin and `BodyState::velocity` is
+    /// center-of-mass velocity. Rapier admits unjointed bodies only, requires
+    /// finite values and a unit quaternion within its construction tolerance,
+    /// and refuses nonzero velocities for fixed bodies. Unsupported backends
+    /// refuse before ID or numeric validation. This does not change reset data,
+    /// pending commands, IDs or any native state.
+    fn validate_body_state(&self, _id: BodyId, _state: BodyState) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "body-state replacement",
+        })
+    }
+
+    /// Replaces an admitted body's pose and both velocities without stepping.
+    ///
+    /// Validation errors leave all state unchanged. Success preserves spawn/reset
+    /// records and pending world forces/torques. This explicit pose edit bypasses
+    /// collision resolution; the next normal step resolves resulting contacts.
+    fn set_body_state(&mut self, _id: BodyId, _state: BodyState) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "body-state replacement",
+        })
+    }
+
     /// Replaces world-frame velocities of a dynamic body. Fixed bodies stay fixed.
     fn set_world_velocity(
         &mut self,

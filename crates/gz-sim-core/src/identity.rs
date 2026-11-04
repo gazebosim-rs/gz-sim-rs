@@ -159,6 +159,17 @@ pub fn assign_id(world: &mut World, entity: Entity) -> Result<u64, IdentityError
     Ok(id)
 }
 
+/// Read-only allocation preflight for an exclusive-world lifecycle commit.
+/// This is not a reservation: assignment must follow without another allocator
+/// mutation. An uninitialized namespace projects ID one without creating state.
+pub fn next_entity_id(world: &World) -> Result<u64, IdentityError> {
+    world
+        .get_resource::<IdIndex>()
+        .map_or(0, |index| index.last)
+        .checked_add(1)
+        .ok_or(IdentityError::Exhausted)
+}
+
 /// Resolves only a live entity that still owns the requested identity.
 pub fn entity_by_id(world: &World, id: u64) -> Option<Entity> {
     let entity = *world.get_resource::<IdIndex>()?.entities.get(&id)?;

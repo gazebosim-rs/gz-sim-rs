@@ -3,6 +3,34 @@
 use super::*;
 use crate::Shape;
 
+#[test]
+fn default_body_state_edits_refuse_before_id_or_numeric_validation() {
+    let mut backend = Recorder::default();
+    let error = PhysicsError::Unsupported {
+        engine: "recorder",
+        capability: "body-state replacement",
+    };
+    for position in [[0.0; 3], [f64::NAN; 3]] {
+        let state = BodyState {
+            position,
+            velocity: [f64::INFINITY; 3],
+            orientation: [0.0; 4],
+            angular_velocity: [f64::NEG_INFINITY; 3],
+        };
+        assert_eq!(
+            backend.validate_body_state(BodyId::from_raw(u64::MAX), state),
+            Err(error.clone())
+        );
+        assert_eq!(
+            backend.set_body_state(BodyId::from_raw(u64::MAX), state),
+            Err(error.clone())
+        );
+    }
+    assert!(backend.steps.is_empty());
+    assert_eq!(backend.resets, 0);
+    assert!(!backend.fail);
+}
+
 /// Records schedule calls and fails on request; it simulates no physics.
 #[derive(Default)]
 struct Recorder {

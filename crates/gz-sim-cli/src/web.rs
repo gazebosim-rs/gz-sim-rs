@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Explicit local viewer ownership; no resources exist without --web-viewer.
 mod assets;
+mod lifecycle;
 mod scan;
 mod snapshot;
 mod socket;
 
-type Latest = Mutex<(u64, Arc<String>, Option<Arc<String>>)>;
+type Latest = Mutex<(u64, Arc<String>, Option<Arc<String>>, Option<Arc<String>>)>;
 
 use gz_sim_core::Simulation;
 use gz_sim_proto::msgs::{WorldControl, WorldReset};
@@ -77,6 +78,19 @@ pub(super) struct Pending {
     reply: mpsc::SyncSender<String>,
 }
 
+enum Queued {
+    Control(Pending),
+    Lifecycle(lifecycle::Pending),
+}
+impl Queued {
+    fn alive(&self) -> &AtomicBool {
+        match self {
+            Self::Control(pending) => &pending.alive,
+            Self::Lifecycle(pending) => &pending.alive,
+        }
+    }
+}
+
 #[derive(Serialize)]
 struct Ack {
     version: u8,
@@ -96,7 +110,8 @@ pub(super) struct Bridge {
     scan_connected: Arc<AtomicBool>,
     connected: Arc<AtomicU64>,
     stop: Arc<AtomicBool>,
-    commands: mpsc::Receiver<Pending>,
+    commands: mpsc::Receiver<Queued>,
+    lifecycle: Option<lifecycle::Lifecycle>,
     worker: Option<JoinHandle<()>>,
     sequence: u64,
     published: Instant,
@@ -108,15 +123,47 @@ impl Bridge {
         Self::with_listener(sim, world, TcpListener::bind((Ipv4Addr::LOCALHOST, port))?)
     }
 
+    pub(super) fn new_with_lifecycle(
+        sim: &Simulation,
+        world: &str,
+        port: u16,
+        sdf: &sdformat::Sdf,
+    ) -> io::Result<Self> {
+        Self::with_options(
+            sim,
+            world,
+            TcpListener::bind((Ipv4Addr::LOCALHOST, port))?,
+            Some(sdf),
+        )
+    }
+
     fn with_listener(sim: &Simulation, world: &str, listener: TcpListener) -> io::Result<Self> {
+        Self::with_options(sim, world, listener, None)
+    }
+
+    fn with_options(
+        sim: &Simulation,
+        world: &str,
+        listener: TcpListener,
+        sdf: Option<&sdformat::Sdf>,
+    ) -> io::Result<Self> {
         let assets = assets::Assets::new(sim)?;
-        let initial = snapshot::encode(&match &assets {
+        let scene = match &assets {
             Some(assets) => snapshot::extract_with_assets(sim, world, 0, Some(assets))?,
             None => snapshot::extract(sim, world, 0)?,
-        })?;
+        };
+        let lifecycle = sdf
+            .map(|sdf| lifecycle::Lifecycle::new(sim, sdf, world, &scene))
+            .transpose()?;
+        let catalog = lifecycle
+            .as_ref()
+            .map(|lifecycle| lifecycle.encode_catalog(sim, &scene).map(Arc::new))
+            .transpose()?;
+        let initial = snapshot::encode(&scene)?;
+        let lifecycle_enabled = lifecycle.is_some();
         let port = listener.local_addr()?.port();
         listener.set_nonblocking(true)?;
-        let latest = Arc::new(Mutex::new((0, Arc::new(initial), None)));
+        let latest = Arc::new(Mutex::new((0, Arc::new(initial), None, catalog)));
         let scan_connected = Arc::new(AtomicBool::new(false));
         let stop = Arc::new(AtomicBool::new(false));
         let connected = Arc::new(AtomicU64::new(0));
@@ -134,6 +181,7 @@ impl Bridge {
                         &connected,
                         &scan_connected,
                         &sender,
+                        lifecycle_enabled,
                     )
                 })?
         };
@@ -147,6 +195,7 @@ impl Bridge {
             connected,
             stop,
             commands,
+            lifecycle,
             worker: Some(worker),
             sequence: 0,
             published: Instant::now(),
@@ -159,18 +208,42 @@ impl Bridge {
     }
 
     pub(super) fn controls(&mut self, server: &mut Server) -> Vec<(Pending, bool, u64)> {
-        self.commands
-            .try_iter()
-            .take(8)
-            .filter_map(|pending| {
-                if !pending.alive.load(Ordering::Acquire) {
-                    return None;
+        let mut controls = Vec::new();
+        for command in self.commands.try_iter().take(8) {
+            if !command.alive().load(Ordering::Acquire) {
+                continue;
+            }
+            match command {
+                Queued::Control(pending) => {
+                    let before = server.simulation().epoch();
+                    let accepted = server.apply_local_control(pending.control.world_control());
+                    controls.push((pending, accepted, before));
                 }
-                let before = server.simulation().epoch();
-                let accepted = server.apply_local_control(pending.control.world_control());
-                Some((pending, accepted, before))
-            })
-            .collect()
+                Queued::Lifecycle(pending) => {
+                    if let Some(lifecycle) = &mut self.lifecycle {
+                        // The socket has one pending slot. Keep internal callers
+                        // bounded as well; overflow drops the reply and closes it.
+                        if lifecycle.pending.len() < 8 {
+                            lifecycle.pending.push(pending);
+                        }
+                    }
+                }
+            }
+        }
+        controls
+    }
+
+    pub(super) fn apply_lifecycle(&mut self, server: &mut Server, world: &str) -> io::Result<()> {
+        if let Some(lifecycle) = &mut self.lifecycle
+            && !lifecycle.pending.is_empty()
+        {
+            let sequence = self
+                .sequence
+                .checked_add(1)
+                .ok_or_else(|| io::Error::other("gzweb sequence exhausted"))?;
+            lifecycle.apply(server, world, sequence, &mut self.assets)?;
+        }
+        Ok(())
     }
 
     /// Called after prepare_io/tick, so an acknowledgement describes committed state.
@@ -190,6 +263,10 @@ impl Bridge {
         }
         let generation = self.connected.load(Ordering::Acquire);
         if controls.is_empty()
+            && !self
+                .lifecycle
+                .as_ref()
+                .is_some_and(lifecycle::Lifecycle::has_replies)
             && (generation == 0
                 || (generation == self.published_generation
                     && self.published.elapsed() < Duration::from_millis(34)))
@@ -204,21 +281,42 @@ impl Bridge {
             Some(assets) => snapshot::extract_with_assets(sim, world, self.sequence, Some(assets))?,
             None => snapshot::extract(sim, world, self.sequence)?,
         };
+        if self.lifecycle.is_some()
+            && let Some(assets) = &mut self.assets
+        {
+            assets.retain_aliases(&scene.visual_ids().collect());
+        }
         let encoded = Arc::new(snapshot::encode(&scene)?);
         let measured_scan = if self.scan_interested() {
             Some(Arc::new(scan::encode(sim)?))
         } else {
             None
         };
+        let catalog = self
+            .lifecycle
+            .as_ref()
+            .map(|lifecycle| lifecycle.encode_catalog(sim, &scene).map(Arc::new))
+            .transpose()?;
         // The network owner clones this pair under one lock: every scan follows
         // the exact committed Scene publication captured with it, including reset.
         *self
             .latest
             .lock()
-            .map_err(|_| io::Error::other("gzweb snapshot lock poisoned"))? =
-            (generation, encoded, measured_scan);
+            .map_err(|_| io::Error::other("gzweb snapshot lock poisoned"))? = (
+            generation,
+            encoded.clone(),
+            measured_scan.clone(),
+            catalog.clone(),
+        );
         self.published = Instant::now();
         self.published_generation = generation;
+        if let Some(lifecycle) = &mut self.lifecycle {
+            lifecycle.send_replies(
+                encoded,
+                measured_scan,
+                catalog.expect("configured lifecycle catalog"),
+            );
+        }
         for (pending, accepted, before) in controls {
             let completed = match pending.control.action {
                 Action::Pause => scene.paused,
@@ -268,3 +366,7 @@ mod tests;
 #[cfg(test)]
 #[path = "../tests/private/web_scan.rs"]
 mod scan_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/web_lifecycle.rs"]
+mod lifecycle_tests;

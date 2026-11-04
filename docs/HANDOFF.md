@@ -39,8 +39,20 @@ resource, physics, identity and lifecycle APIs. Preserve existing body state and
 physics authority, native-free/GPU-free headless defaults and default viewer
 protocols. Multiworld, levels and distributed stepping remain excluded.
 
-M9 acceptance metadata may complete its normal gates/CI while M10 source progresses
-separately. Finish complete implementation, regression source, documentation and
+M9 acceptance metadata is published on `main` at `aaf95d07` after its normal
+1482.359-second staged gate, exact CI `41831849573` and independent local/official
+audits passed. The M9 runtime and viewer were unchanged; no accepted manual
+qualification was replayed. The M10 tree includes this reviewed ancestry.
+
+The M10 implementation contract and commands are in
+[M10_WORLD_LIFECYCLE.md](M10_WORLD_LIFECYCLE.md). The explicit `--web-lifecycle`
+flag and viewer `lifecycle=1` enable startup-prepared templates and the separate
+model-ID catalog. Scene/Server/CLI and viewer source plus regression code are
+implemented and independently reviewed in bounded slices; consolidated
+verification and actual browser acceptance are still pending. Camera-owned
+mutable scenes remain excluded to preserve accepted renderer admission.
+
+Finish complete implementation, regression source, documentation and
 independent source review before a consolidated required pass. Batch actual
 failures before affected reruns and never weaken gates or retained assertions.
 Preserve frozen candidates and independent Fuel work. Full P0–P7 remains a
