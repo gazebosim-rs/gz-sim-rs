@@ -1,20 +1,10 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation; SPDX-License-Identifier: Apache-2.0 -->
 # M9: one revolute chain with position and velocity commands
 
-M9 is not accepted. The latest completed gate passed the original continuous
-three-target position/velocity checks and reversed-declaration motion/reset
-checks in both required profiles. It stopped at the retained renderer Scene
-region gate: 7,154/7,535 must exceed 95%. The constructor-transaction,
-reset-preflight, retirement and public-admission regressions now pass both
-profiles. Additional shared-joint endpoint/removal and low-level admission
-regressions are undergoing source review before an affected required rerun.
-No threshold or assertion is relaxed.
-
-Two earlier required attempts failed the unchanged 0.01-radian / 30,000-step
-position assertion, first with a compliant velocity motor and then a rigid
-velocity servo. Both failure packets are preserved. The damped native position
-policy below passed the latest functional checks; full acceptance still requires
-the complete gate and independent evidence review. M1–M8 remain accepted.
+M9 is accepted and published at simulator Main `0f0f031e`. The normal required
+local gate, exact hosted CI41817794153 and independent source/local/official and
+actual browser image reviews passed. See [acceptance evidence](M9_ACCEPTANCE.md)
+for exact coverage, retained failures and limitations. M10 is the current delivery.
 
 The five-working-day phase admits one top-level dynamic Rapier model with two
 direct links and two +Z revolute joints forming a world-rooted serial chain.
@@ -83,7 +73,7 @@ leases; absent families own no controller callbacks, buffers or endpoint state.
 Measured joint samples and existing pose snapshots supply inspection/visuals;
 there is no additional controller output protocol.
 
-## Runnable example (unqualified until M9 acceptance)
+## Runnable accepted example
 
 Build the native-free simulator and finite sender:
 

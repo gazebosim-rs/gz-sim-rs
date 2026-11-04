@@ -58,7 +58,7 @@ required M8 local gate and exact hosted CI41776261368 at `fc967388`, with
 independent source and retained-data review. See M8_ACCEPTANCE.md for exact
 coverage, provenance and limits; no general native drivetrain parity is claimed.
 
-## M9 opt-in native velocity servo (Source correction, unqualified)
+## M9 accepted opt-in native velocity servo
 
 `validate_joint_velocity_servo` and `set_joint_velocity_servo` add an explicit
 alternative using the same `JointVelocityMotor` target/torque DTO. The accepted
@@ -110,7 +110,7 @@ steps, with position 0.5764025648558753 and velocity -0.5339801774600306. The
 printed tip velocity was 0.49978922837343875. That failed packet remains separate;
 passing the focused native controls did not qualify the coupled controller.
 
-## Reduced continuous damped position request (newest Source correction)
+## M9 accepted reduced continuous damped position request
 
 `JointPositionServo { target_position, max_velocity, max_force }` and
 `validate_joint_position_servo` / `set_joint_position_servo` explicitly prepare
@@ -155,8 +155,9 @@ Three public controls and two private controls plus a default-capability control
 are authored for positive/negative multi-turn tracking and body orientation,
 torque cap/coast/reset/removal, impulse refusal, invalid-command/pending-work
 conservation, coefficient/rounding/representability boundaries, nonidentity
-parent reaction, and mode/warm-start ownership. These newest controls and the
-whole correction are unrun. Both prior failures and all original assertions,
-including the coupled chain's0.01 tolerance and30,000-step bound, remain intact.
-Nominal damping is not an articulated convergence guarantee or native parity
-claim; the completed Source batch requires review before an affected gate.
+parent reaction, and mode/warm-start ownership. These controls and the unchanged
+coupled chain's 0.01-radian / 30,000-step assertions passed the normal M9 gate and
+exact CI41817794153 at `0f0f031e`, with independent source/local/official and actual
+browser reviews. Both prior failures and all original assertions remain intact.
+Nominal damping is not a general articulated convergence guarantee or native
+parity claim; see M9_ACCEPTANCE.md for the accepted subset and exact evidence.

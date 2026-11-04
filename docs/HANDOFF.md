@@ -3,15 +3,56 @@
 
 # Coordinator handoff
 
-> M1–M8 are accepted, including the live Rapier differential-drive robot.
-> Current M9 delivers one admitted Rapier revolute chain with position and velocity
-> controllers, budgeted at most five working days including review and required checks.
-> Preserve accepted demos, paused qualifications and independent Fuel work.
+> M1–M9 are accepted, including live Rapier joint position and velocity control.
+> Current M10 delivers focused interactive spawn/remove and entity-state operations
+> for the admitted MVP scene, budgeted at most five working days including review
+> and required checks. Preserve accepted demos, paused qualifications and Fuel work.
 
+
+Updated 2026-11-04. Read DELIVERY_PLAN.md and M9_ACCEPTANCE.md first.
+
+## Current delivery: M10 interactive world lifecycle
+
+M9 is accepted and published on simulator Main `0f0f031e` after the normal
+1411.351-second staged gate, exact CI `41817794153` (all 16 steps, attempt 1),
+independent source/local/official audits and actual browser image review passed.
+Canonical Double commands move the real Rapier chain. Continuous position,
+velocity, torque/target limits, identity, pause/reset/removal and absence controls
+pass. M9 uses maintained reduced-coordinate native motors; M8's compliant motor
+policy and all old effort refusals remain unchanged. Position control is the
+bounded Rust servo described in M9_JOINT_CONTROLLERS.md, not native ABS parity.
+All original convergence assertions and earlier failures remain preserved.
+
+Viewer Main `516a9a0e` and the accepted `19be842d` bundles are reused unchanged.
+Five actual browser images show base/child motion and acknowledged resume, pause
+and reset. The M9 preview remains paused on9009. Preserve the M8 preview on9008
+and all older demos; no accepted manual qualification needs replay. The finite
+M9 sender's full normal Cargo JSON and actual executable are retained.
+
+Current M10 exposes focused spawn/remove and entity-state operations to the live
+browser for the admitted MVP scene, at most five working days including review
+and required checks. Spawn/remove primitives and one local mesh without stale
+IDs or visuals, reject requests atomically, and obtain a current snapshot on
+reconnect. Root owns Scene/Server/CLI integration in an isolated M10 tree; agree
+the small admission/wire contract before parallel viewer edits. Reuse maintained
+resource, physics, identity and lifecycle APIs. Preserve existing body state and
+physics authority, native-free/GPU-free headless defaults and default viewer
+protocols. Multiworld, levels and distributed stepping remain excluded.
+
+M9 acceptance metadata may complete its normal gates/CI while M10 source progresses
+separately. Finish complete implementation, regression source, documentation and
+independent source review before a consolidated required pass. Batch actual
+failures before affected reruns and never weaken gates or retained assertions.
+Preserve frozen candidates and independent Fuel work. Full P0–P7 remains a
+separate unscheduled inventory. SDFormat Main `1594ac36` and the simulator's
+producer pin `a44bf8be` remain distinct; no implicit producer migration is made.
+
+The sections below preserve previous continuation history. Their next-task
+instructions are superseded by this section and D30.
 
 Updated 2026-11-04. Read DELIVERY_PLAN.md and M8_ACCEPTANCE.md first.
 
-## Current delivery: M9 joint controllers
+## Previous M8-to-M9 handoff (historical)
 
 M8 is accepted and published on simulator Main `fc967388` after the normal
 1163.291-second staged gate, exact CI `41776261368` and independent source,

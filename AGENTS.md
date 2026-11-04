@@ -1,9 +1,9 @@
 # Instructions for implementation agents
 
-> M1–M8 are accepted, including the live Rapier differential-drive robot.
-> Current M9 delivers one admitted Rapier revolute chain with position and velocity
-> controllers, budgeted at most five working days including review and required checks.
-> Preserve accepted demos, paused qualifications and independent Fuel work.
+> M1–M9 are accepted, including live Rapier joint position and velocity control.
+> Current M10 delivers focused interactive spawn/remove and entity-state operations
+> for the admitted MVP scene, budgeted at most five working days including review
+> and required checks. Preserve accepted demos, paused qualifications and Fuel work.
 
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
@@ -14,21 +14,23 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M8 are accepted; see
-their acceptance records. Current M9 delivers one admitted Rapier revolute chain
-with position and velocity controllers. Budget at most five working days including
-independent review and mandatory checks. Commands must move displayed joints with
-documented limits and stable IDs; prove bad-command rejection, reset and removal.
-Reuse existing joint state, maintained native Rapier motors, input/lifecycle APIs,
-canonical messages and bounded upstream Zenoh IO. Physics remains authoritative;
-no body-velocity teleport, custom solver or dynamic system plugins. General
-articulations, mimic/transmission semantics and other controller families remain
-deferred. Preserve accepted drive/sensors, native-free/GPU-free defaults and all
-assertions, numerical tolerances and quality gates. Source, regression code, docs
-and independent review precede one consolidated required pass; batch actual
-failures before affected reruns. Split optional work if over budget. Preserve
-frozen candidates and the independent Fuel work. Full P0–P7 remains a deferred
-inventory, not a prerequisite for this delivery.
+Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M9 are accepted; see
+their acceptance records. Current M10 delivers focused spawn/remove and entity-state
+operations to the live browser for the admitted MVP scene. Budget at most five
+working days including independent review and mandatory checks. Spawn and remove
+primitives and one local mesh without stale IDs or visuals; rejected requests must
+be atomic and reconnect must obtain a current snapshot. Reuse existing scene IDs,
+resource admission, native Rapier construction, lifecycle and bounded bridge APIs.
+Agree the small admission/wire contract before parallel edits. Preserve current
+body state and physics authority; do not reset unrelated bodies or change default
+viewer protocols. Multiworld, levels and distributed stepping remain excluded.
+Finish implementation, regressions, docs and independent source review before one
+consolidated required pass; batch actual failures before affected reruns. Never
+weaken retained assertions, tolerances, coverage gates or mandatory jobs. Preserve
+accepted controllers, drive and sensors, native-free/GPU-free defaults, frozen
+candidates and independent Fuel work. M9 acceptance metadata may complete normal
+gates/CI while isolated M10 source progresses; do not replay accepted manual work.
+Split optional scope if over budget. Full P0–P7 remains a deferred inventory.
 
 The owner explicitly resumed implementation. Work only on the current delivery
 or a concrete blocking dependency; earlier pause records are historical. The

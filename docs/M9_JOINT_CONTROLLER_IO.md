@@ -9,7 +9,7 @@ the earlier clipped ABS velocity policies failed the retained coupled test.
 The accepted M8 compliant motor API remains unchanged. Default force-PID modes
 and actuator messages are outside the admitted subset.
 There is no custom solver, body-velocity edit, output family, dependency or IO
-thread. The newest position correction is Source-only and still unqualified.
+thread. This bounded M9 input is accepted at `0f0f031e`; see M9_ACCEPTANCE.md.
 
 The loaded world admits at most two distinct configured joint identities. Each
 owns one canonical `gz.msgs.Double` subscription on the existing world IO owner.
@@ -66,7 +66,7 @@ per-stream budgets, old queued work, independent lease retirement, removal and
 absence, public-owner drift, Scene native-owner refusal, disconnected ingress,
 setup bounds/duplicates, world endpoint collisions, callback capture retirement,
 and a refused overlapping reset installation. All prior tests and assertions
-remain unchanged. Prior gates compiled the Server scope but stopped at Scene's
-real-chain convergence control; those partial outcomes do not qualify M9.
-The newest position correction and these Server runtime controls remain unrun;
-whole-correction Source review must finish before the affected required gate.
+remain unchanged. The complete normal M9 gate and exact hosted CI41817794153
+passed, with independent source/local/official and browser reviews. Earlier
+partial and failed outcomes remain preserved; see M9_ACCEPTANCE.md for exact
+counts and limits. No general native controller or ordering parity is claimed.

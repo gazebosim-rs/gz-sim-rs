@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-04",
   "execution_state": "active",
-  "current_phase": "M9",
+  "current_phase": "M10",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -149,7 +149,13 @@
       ],
       "scope": "One admitted Rapier revolute chain with position and velocity controllers.",
       "acceptance": "Commands move the displayed joints with documented limits and stable IDs; bad commands, reset and removal pass.",
-      "excluded": "General articulations, mimic/transmission semantics and all controller families."
+      "excluded": "General articulations, mimic/transmission semantics and all controller families.",
+      "accepted_at": "2026-11-04T12:03:52.563445+00:00",
+      "evidence": "docs/M9_ACCEPTANCE.md",
+      "accepted_commits": {
+        "gz-sim-rs": "0f0f031e258da6d8c8f7de17fc694295431addb6",
+        "gzweb-rs": "516a9a0ea803863e79da4a151d22c877f6786e29"
+      }
     },
     {
       "id": "M10",
@@ -195,11 +201,11 @@
     "M6": "complete",
     "M7": "complete",
     "M8": "complete",
-    "M9": "in_progress",
-    "M10": "not_started",
+    "M9": "complete",
+    "M10": "in_progress",
     "M11": "not_started",
     "M12": "not_started"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-04T05:58:53.817042+00:00"
+  "phase_started_at": "2026-11-04T12:03:52.563445+00:00"
 }

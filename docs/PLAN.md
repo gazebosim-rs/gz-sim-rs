@@ -2,11 +2,12 @@
 
 ## Current delivery priority (D30, 2026-11-02)
 
-M1–M8 are accepted and published; see the [weekly delivery plan](DELIVERY_PLAN.md)
-and [M8 evidence](M8_ACCEPTANCE.md). Current M9 delivers one admitted Rapier
-revolute chain with position and velocity controllers, budgeted at most five
-working days including review and checks. Prove displayed motion, documented
-limits, stable IDs, bad-command rejection, reset and removal.
+M1–M9 are accepted and published; see the [weekly delivery plan](DELIVERY_PLAN.md)
+and [M9 evidence](M9_ACCEPTANCE.md). Current M10 delivers focused interactive
+spawn/remove and entity-state operations for the admitted MVP scene, budgeted at
+most five working days including review and checks. Prove primitive and one local
+mesh lifecycle without stale IDs or visuals, atomic refusal and a current snapshot
+after reconnect. Preserve existing physical state, accepted behavior and defaults.
 Implementation was explicitly resumed on 2026-11-02; the earlier planning pause
 is historical. Work only on this delivery or its concrete blocking dependencies.
 Subsequent named phases remain at most five working days each. Full compatibility
