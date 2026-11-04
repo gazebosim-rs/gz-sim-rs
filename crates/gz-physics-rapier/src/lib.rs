@@ -14,6 +14,7 @@ mod collision;
 mod initial;
 mod joints;
 mod mesh;
+mod ray;
 
 pub use gz_physics::{
     BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId, JointState,
@@ -349,6 +350,16 @@ impl DynamicBackend for RapierBackend {
             orientation: body.rotation().to_array(),
             angular_velocity: body.angvel().to_array(),
         })
+    }
+
+    fn cast_ray(
+        &self,
+        origin: [f64; 3],
+        direction: [f64; 3],
+        max_distance: f64,
+        exclude: Option<BodyId>,
+    ) -> Result<Option<f64>, PhysicsError> {
+        ray::cast(self, origin, direction, max_distance, exclude)
     }
 
     fn remove(&mut self, id: BodyId) -> bool {

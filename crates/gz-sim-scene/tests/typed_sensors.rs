@@ -1,5 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
+#[path = "support/lidar_admission.rs"]
+mod lidar_admission;
 use gz_sim_scene::{LoadError, PhysicsEngine, load_world_with_engine};
 use sdformat::{NoResources, SensorConfig, load_str};
 use std::{collections::HashSet, time::Duration};
@@ -31,6 +33,7 @@ fn every_parsed_non_imu_configuration_is_explicitly_unsupported_by_both_engines(
         ),
     ];
     let mut variants = HashSet::new();
+    let mut admitted_cpu_lidars = 0;
     for (kind, configuration) in cases {
         let xml = scene(&format!(
             "<sensor name='unsupported' type='{kind}'><always_on>true</always_on>{configuration}</sensor>"
@@ -51,6 +54,18 @@ fn every_parsed_non_imu_configuration_is_explicitly_unsupported_by_both_engines(
                 &NoResources,
                 engine,
             );
+            if kind == "lidar" && matches!(engine, PhysicsEngine::Rapier) {
+                lidar_admission::assert_cpu_lidar(
+                    result.unwrap(),
+                    &xml,
+                    "typed-sensors.sdf",
+                    "default::ball::body::unsupported",
+                    16,
+                    [0.0, 0.0, 5.0],
+                );
+                admitted_cpu_lidars += 1;
+                continue;
+            }
             match result {
                 Err(LoadError::Unsupported { entity, feature }) => {
                     assert_eq!(entity, "default::ball::body::unsupported");
@@ -63,6 +78,7 @@ fn every_parsed_non_imu_configuration_is_explicitly_unsupported_by_both_engines(
         }
     }
     assert_eq!(variants.len(), 9);
+    assert_eq!(admitted_cpu_lidars, 1);
 }
 
 #[test]

@@ -33,12 +33,14 @@ pub use tpe::PhysicsEngine;
 mod lifecycle;
 pub use lifecycle::{RemoveError, remove_model};
 mod imu_lifecycle;
+mod lidar;
+pub use lidar::{LidarPublication, LidarSample, clear_lidar_interest, set_lidar_interest};
 mod initial;
 mod joint_force_lifecycle;
 mod joint_lifecycle;
 pub use initial::{
     PendingResetRemoval, SceneResetError, SceneResetInfo, initial_imu_publications,
-    initial_joint_force_configurations, reset_loaded_world,
+    initial_joint_force_configurations, initial_lidar_publications, reset_loaded_world,
 };
 
 use bevy_ecs::prelude::*;
@@ -594,6 +596,7 @@ fn load_world_configured(
             .after(PhysicsReset),
     );
     imu_lifecycle::install(&mut sim);
+    lidar::install(&mut sim);
     joint_lifecycle::install(&mut sim);
     joint_force_lifecycle::install(&mut sim);
     initial::capture(&mut sim);
@@ -1012,6 +1015,23 @@ fn build_model(
                 )?;
                 sim.world_mut().entity_mut(entity).insert(AttachedPose);
                 context.cameras.push(entity);
+                continue;
+            }
+            if sensor.lidar().is_some() {
+                lidar::spawn(
+                    sdf,
+                    model,
+                    sensor,
+                    context,
+                    sim,
+                    backend.as_ref(),
+                    lidar::Parent {
+                        link,
+                        entity: link_entity,
+                        id: link_id,
+                        topic: &model_topic,
+                    },
+                )?;
                 continue;
             }
             let config = sensor.imu().ok_or_else(|| LoadError::Unsupported {

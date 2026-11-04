@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation; SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12"><world name="default"><gravity>0 0 0</gravity>
+  <physics name="default" type="ignored"><max_step_size>0.001</max_step_size></physics>
+  <model name="scanner"><static>true</static><link name="body">
+    <collision name="self"><geometry><box><size>1 1 1</size></box></geometry></collision>
+    <visual name="body"><geometry><box><size>1 1 1</size></box></geometry><material><diffuse>0.7 0.5 0.2 1</diffuse></material></visual>
+    <sensor name="laser" type="lidar"><pose>0 0 0 0 0 0</pose><update_rate>100</update_rate><topic>/scan</topic><frame_id>laser_frame</frame_id>
+      <lidar><scan><horizontal><samples>3</samples><resolution>1</resolution><min_angle>-0.7853981633974483</min_angle><max_angle>0.7853981633974483</max_angle></horizontal></scan><range><min>0.1</min><max>10</max><resolution>0.01</resolution></range></lidar>
+    </sensor>
+  </link></model>
+  <model name="target"><static>true</static><pose>5 0 0 0 0 0</pose><link name="body">
+    <collision name="wall"><geometry><box><size>2 20 2</size></box></geometry></collision>
+    <visual name="wall"><geometry><box><size>2 20 2</size></box></geometry><material><diffuse>0.7 0.5 0.2 1</diffuse></material></visual>
+  </link></model>
+</world></sdf>

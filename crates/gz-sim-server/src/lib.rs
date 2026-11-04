@@ -5,6 +5,8 @@
 mod force_io;
 mod forces;
 mod imu_io;
+mod lidar;
+mod lidar_io;
 mod options;
 mod poses;
 mod rates;
@@ -59,6 +61,10 @@ pub enum Error {
     PoseLighting,
     #[error("IMU publication lacks a unique public identity")]
     ImuIdentity,
+    #[error("lidar publication lacks its unique supported identity or metadata")]
+    LidarIdentity,
+    #[error("reset handler changed the prepared lidar stream configuration")]
+    ResetLidars,
     #[error("joint-force controller lacks its original identity, configuration or command")]
     JointForceIdentity,
     #[error(transparent)]
@@ -94,6 +100,9 @@ pub struct Counters {
     pub imus_queued: u64,
     pub imu_failures: u64,
     pub invalid_imu_samples: u64,
+    pub lidars_queued: u64,
+    pub lidar_failures: u64,
+    pub invalid_lidar_samples: u64,
     pub poses_queued: u64,
     /// Ticks intentionally omitted by the configured wall-time pose publication period.
     pub poses_throttled: u64,
@@ -268,6 +277,8 @@ pub struct Server {
     active_time: ActiveTime,
     counters: Counters,
     imus: Vec<ImuStream>,
+    lidars: Vec<lidar::Stream>,
+    lidar_viewer_interest: bool,
 }
 
 impl Server {
@@ -422,6 +433,7 @@ impl Server {
                 });
             }
         }
+        let lidars = lidar::streams(&simulation, &world_io, &config, &imus, None)?;
         let (mut rates, rate_setup) = match gz_sim_scene::initial_imu_publications(&simulation) {
             Ok(sensors) => rates::Rates::prepare(&config, sensors, &world_io.ingress_drops)?,
             Err(gz_sim_scene::SceneResetError::MissingInitialState) => rates::Rates::prepare(
@@ -468,6 +480,8 @@ impl Server {
             active_time: ActiveTime::default(),
             counters: Counters::default(),
             imus,
+            lidars,
+            lidar_viewer_interest: false,
         })
     }
 
@@ -575,6 +589,9 @@ impl Server {
         counters.root_clock_failures = counters
             .root_clock_failures
             .saturating_add(failures[3].load(std::sync::atomic::Ordering::Relaxed));
+        counters.lidar_failures = counters
+            .lidar_failures
+            .saturating_add(failures[4].load(std::sync::atomic::Ordering::Relaxed));
         counters
     }
     /// Return observed bounded-input losses, independent of remote delivery.
@@ -634,6 +651,7 @@ impl Server {
         self.active_time
             .set_running(!self.simulation.is_paused(), now);
         self.refresh_imu_interest();
+        self.refresh_lidar_interest();
         let resetting = self.prepared_reset.is_some();
         let info = if let Some(info) = self.prepared_reset.take() {
             info
@@ -677,6 +695,7 @@ impl Server {
         }
         self.publish_poses(info.sim_time);
         self.publish_imus();
+        self.publish_lidars();
         self.removals
             .execute(&self.world_io, &mut self.simulation, &mut self.counters);
         self.imus.retain(|stream| {
@@ -688,6 +707,7 @@ impl Server {
         if self.imus.is_empty() {
             self.imus = Vec::new();
         }
+        self.retire_lidars();
         if let Some(rates) = &mut self.rates {
             rates.retire(&self.simulation);
             if rates.is_empty() {
@@ -944,6 +964,7 @@ impl Server {
             forces.shutdown();
         }
         self.imus = Vec::new();
+        self.lidars = Vec::new();
         self.world_io.shutdown();
     }
 }

@@ -3,6 +3,55 @@
 use super::*;
 
 #[test]
+fn lidar_queue_cancels_old_epoch_work_without_relabeling_canonical_samples() {
+    let mut io = isolated_world(1024);
+    let key = "@/test@/lidar".to_owned();
+    let observer = io.session.declare_subscriber(key.clone()).wait().unwrap();
+    assert!(
+        io.lidar_output(io.clock.key_expr().as_str().into())
+            .is_err()
+    );
+    assert!(
+        io.lidar_output(io.poses.key_expr().as_str().into())
+            .is_err()
+    );
+    let output = io.lidar_output(key).unwrap();
+    let bytes = gz_sim_proto::msgs::LaserScan {
+        count: 2,
+        vertical_count: 1,
+        ranges: vec![1.0, f64::INFINITY],
+        ..Default::default()
+    }
+    .encode_to_vec();
+    io.epoch.store(1, Ordering::Release);
+    io.incoming
+        .send(WorldWork::Lidar(
+            0,
+            crate::lidar_io::LidarJob::new(&output, bytes.clone()),
+        ))
+        .unwrap();
+    // Setup receipt fences the old queued job through the same publication owner.
+    let fence = io.lidar_output("@/test@/fence".into()).unwrap();
+    assert!(observer.try_recv().unwrap().is_none());
+    io.publish_lidar(&output, bytes.clone()).unwrap();
+    let sample = observer
+        .recv_timeout(Duration::from_secs(3))
+        .unwrap()
+        .unwrap();
+    assert_eq!(sample.payload().to_bytes().as_ref(), bytes);
+    assert_eq!(
+        sample.attachment().unwrap().to_bytes().as_ref(),
+        b"gz.msgs.LaserScan"
+    );
+    assert!(io.publish_lidar(&output, vec![0; 1025]).is_err());
+    drop(fence);
+    io.session.close().wait().unwrap();
+    assert!(io.publish_lidar(&output, bytes).is_err());
+    assert!(io.lidar_output("@/test@/closed".into()).is_err());
+    io.shutdown();
+}
+
+#[test]
 fn tcp_profile_sets_finite_defaults_without_changing_endpoints() {
     let mut config = zenoh::Config::default();
     config

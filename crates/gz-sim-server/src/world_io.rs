@@ -26,6 +26,7 @@ use zenoh::{
 
 type Result<T> = std::result::Result<T, Box<dyn Error + Send + Sync>>;
 pub(super) use crate::imu_io::ImuOutput;
+pub(super) use crate::lidar_io::LidarOutput;
 
 const TCP_PROFILE: [(&str, u64); 5] = [
     ("transport/link/tx/lease", 1000),
@@ -152,6 +153,11 @@ enum WorldWork {
     Clock(u64, Vec<u8>),
     Poses(u64, Vec<u8>),
     Imu(u64, crate::imu_io::ImuJob),
+    Lidar(u64, crate::lidar_io::LidarJob),
+    InstallLidar(
+        String,
+        mpsc::SyncSender<std::result::Result<Arc<LidarOutput>, String>>,
+    ),
     InstallImu(
         String,
         mpsc::SyncSender<std::result::Result<Arc<ImuOutput>, String>>,
@@ -212,7 +218,7 @@ pub(super) struct WorldIo {
     pub(super) rejected: Arc<AtomicU64>,
     pub(super) ingress_drops: Arc<AtomicU64>,
     pub(super) reply_failures: Arc<AtomicU64>,
-    pub(super) publication_failures: Arc<[AtomicU64; 4]>,
+    pub(super) publication_failures: Arc<[AtomicU64; 5]>,
     pub(super) epoch: Arc<AtomicU64>,
     pub(super) max_message_bytes: usize,
     capacity: usize,
@@ -352,7 +358,7 @@ impl WorldIo {
         let worker_poses = Arc::clone(&poses);
         let epoch = Arc::new(AtomicU64::new(0));
         let worker_epoch = Arc::clone(&epoch);
-        let publication_failures: Arc<[AtomicU64; 4]> =
+        let publication_failures: Arc<[AtomicU64; 5]> =
             Arc::new(std::array::from_fn(|_| AtomicU64::new(0)));
         let failures = Arc::clone(&publication_failures);
         let control_worker =
@@ -492,6 +498,11 @@ impl WorldIo {
                 let mut rates: Option<crate::rates::RateDeclarations> = None;
                 let mut forces: Option<crate::force_io::ForceDeclarations> = None;
                 let mut imus: Option<crate::imu_io::ImuDeclarations> = None;
+                let mut lidars: Option<crate::lidar_io::LidarDeclarations> = None;
+                let mut lidar_retirement: Option<(
+                    mpsc::SyncSender<crate::lidar_io::LidarId>,
+                    mpsc::Receiver<crate::lidar_io::LidarId>,
+                )> = None;
                 let mut imu_retirement: Option<(
                     mpsc::SyncSender<crate::imu_io::ImuId>,
                     mpsc::Receiver<crate::imu_io::ImuId>,
@@ -513,6 +524,16 @@ impl WorldIo {
                         if declarations.is_empty() {
                             imus = None;
                             imu_retirement = None;
+                        }
+                    }
+                    if let Some((_, retired)) = &lidar_retirement {
+                        while retired.try_recv().is_ok() {}
+                    }
+                    if let Some(declarations) = &mut lidars {
+                        declarations.reconcile(publication_session.is_closed());
+                        if declarations.is_empty() {
+                            lidars = None;
+                            lidar_retirement = None;
                         }
                     }
                     if let Some(declarations) = &mut rates {
@@ -564,6 +585,7 @@ impl WorldIo {
                     let incoming = if install.is_some()
                         || rates.is_some()
                         || imus.is_some()
+                        || lidars.is_some()
                         || forces.is_some()
                         || force_install.is_some()
                     {
@@ -610,6 +632,31 @@ impl WorldIo {
                                 imus.get_or_insert_with(crate::imu_io::ImuDeclarations::new);
                             let (retired, _) =
                                 imu_retirement.get_or_insert_with(|| mpsc::sync_channel(capacity));
+                            let result = declarations
+                                .get_or_create(
+                                    &publication_session,
+                                    key,
+                                    &publication_process,
+                                    &publication_node,
+                                    retired.clone(),
+                                )
+                                .map_err(|error| error.to_string());
+                            let _ = receipt.try_send(result);
+                        }
+                        Ok(WorldWork::Lidar(generation, job)) => {
+                            if generation == worker_epoch.load(Ordering::Acquire)
+                                && lidars
+                                    .as_ref()
+                                    .is_some_and(|declarations| declarations.publish(job).is_err())
+                            {
+                                failures[4].fetch_add(1, Ordering::Relaxed);
+                            }
+                        }
+                        Ok(WorldWork::InstallLidar(key, receipt)) => {
+                            let declarations =
+                                lidars.get_or_insert_with(crate::lidar_io::LidarDeclarations::new);
+                            let (retired, _) = lidar_retirement
+                                .get_or_insert_with(|| mpsc::sync_channel(capacity));
                             let result = declarations
                                 .get_or_create(
                                     &publication_session,
@@ -796,6 +843,23 @@ impl WorldIo {
             .map_err(Into::into)
     }
 
+    pub(super) fn lidar_output(&self, key: String) -> Result<Arc<LidarOutput>> {
+        if key == self.clock.key_expr().as_str() || key == self.poses.key_expr().as_str() {
+            return Err("lidar key collides with world publication".into());
+        }
+        if self.session.is_closed() {
+            return Err("world session is closed".into());
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let (receipt, ready) = mpsc::sync_channel(1);
+        self.incoming
+            .send_deadline(WorldWork::InstallLidar(key, receipt), deadline)
+            .map_err(|error| format!("lidar setup admission failed: {error}"))?;
+        ready
+            .recv_timeout(deadline.saturating_duration_since(Instant::now()))?
+            .map_err(Into::into)
+    }
+
     // Initial construction can wait here. Reset needs a separate readiness phase.
     pub(super) fn install_rates(
         &self,
@@ -949,6 +1013,18 @@ impl WorldIo {
             .try_send(WorldWork::Imu(
                 self.epoch.load(Ordering::Acquire),
                 crate::imu_io::ImuJob::new(output, bytes),
+            ))
+            .map_err(|_| "world publication queue unavailable".into())
+    }
+
+    pub(super) fn publish_lidar(&self, output: &Arc<LidarOutput>, bytes: Vec<u8>) -> Result<()> {
+        if bytes.len() > self.max_message_bytes || self.session.is_closed() {
+            return Err("invalid lidar publication".into());
+        }
+        self.incoming
+            .try_send(WorldWork::Lidar(
+                self.epoch.load(Ordering::Acquire),
+                crate::lidar_io::LidarJob::new(output, bytes),
             ))
             .map_err(|_| "world publication queue unavailable".into())
     }

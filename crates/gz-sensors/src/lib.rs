@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Sensor measurement models. Scheduling and transport belong to the simulator.
 
+pub mod lidar;
+
 use glam::{DQuat, DVec3};
 
 /// SI inputs at one acquisition instant. Quaternions use [x, y, z, w].

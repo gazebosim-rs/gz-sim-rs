@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Explicit local viewer ownership; no resources exist without --web-viewer.
 mod assets;
+mod scan;
 mod snapshot;
 mod socket;
 
-type Latest = Mutex<(u64, Arc<String>)>;
+type Latest = Mutex<(u64, Arc<String>, Option<Arc<String>>)>;
 
 use gz_sim_core::Simulation;
 use gz_sim_proto::msgs::{WorldControl, WorldReset};
@@ -92,6 +93,7 @@ struct Ack {
 pub(super) struct Bridge {
     assets: Option<assets::Assets>,
     latest: Arc<Latest>,
+    scan_connected: Arc<AtomicBool>,
     connected: Arc<AtomicU64>,
     stop: Arc<AtomicBool>,
     commands: mpsc::Receiver<Pending>,
@@ -114,15 +116,26 @@ impl Bridge {
         })?;
         let port = listener.local_addr()?.port();
         listener.set_nonblocking(true)?;
-        let latest = Arc::new(Mutex::new((0, Arc::new(initial))));
+        let latest = Arc::new(Mutex::new((0, Arc::new(initial), None)));
+        let scan_connected = Arc::new(AtomicBool::new(false));
         let stop = Arc::new(AtomicBool::new(false));
         let connected = Arc::new(AtomicU64::new(0));
         let (sender, commands) = mpsc::sync_channel(8);
         let worker = {
             let (latest, stop, connected) = (latest.clone(), stop.clone(), connected.clone());
+            let scan_connected = scan_connected.clone();
             thread::Builder::new()
                 .name("gzweb-local".into())
-                .spawn(move || socket::serve(listener, &latest, &stop, &connected, &sender))?
+                .spawn(move || {
+                    socket::serve(
+                        listener,
+                        &latest,
+                        &stop,
+                        &connected,
+                        &scan_connected,
+                        &sender,
+                    )
+                })?
         };
         eprintln!(
             "gzweb-rs WebSocket: ws://127.0.0.1:{port}/ (viewer HTTP origin port 8080 or 8081)"
@@ -130,6 +143,7 @@ impl Bridge {
         Ok(Self {
             assets,
             latest,
+            scan_connected,
             connected,
             stop,
             commands,
@@ -138,6 +152,10 @@ impl Bridge {
             published: Instant::now(),
             published_generation: 0,
         })
+    }
+
+    pub(super) fn scan_interested(&self) -> bool {
+        self.scan_connected.load(Ordering::Acquire)
     }
 
     pub(super) fn controls(&mut self, server: &mut Server) -> Vec<(Pending, bool, u64)> {
@@ -187,10 +205,18 @@ impl Bridge {
             None => snapshot::extract(sim, world, self.sequence)?,
         };
         let encoded = Arc::new(snapshot::encode(&scene)?);
+        let measured_scan = if self.scan_interested() {
+            Some(Arc::new(scan::encode(sim)?))
+        } else {
+            None
+        };
+        // The network owner clones this pair under one lock: every scan follows
+        // the exact committed Scene publication captured with it, including reset.
         *self
             .latest
             .lock()
-            .map_err(|_| io::Error::other("gzweb snapshot lock poisoned"))? = (generation, encoded);
+            .map_err(|_| io::Error::other("gzweb snapshot lock poisoned"))? =
+            (generation, encoded, measured_scan);
         self.published = Instant::now();
         self.published_generation = generation;
         for (pending, accepted, before) in controls {
@@ -238,3 +264,7 @@ impl Drop for Bridge {
 #[cfg(test)]
 #[path = "../tests/private/web.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/web_scan.rs"]
+mod scan_tests;

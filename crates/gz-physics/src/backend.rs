@@ -193,6 +193,29 @@ pub trait DynamicBackend: Send + Sync + 'static {
 
     fn state(&self, id: BodyId) -> Option<BodyState>;
 
+    /// Closest solid collision along a world-space ray, in metres, or no hit.
+    ///
+    /// The origin and endpoint must be finite; `direction` squared length must
+    /// differ from one by at most 1e-12. `max_distance` is finite and positive. Hits include
+    /// both endpoints; an origin inside a solid returns zero. `exclude` omits
+    /// only that body's colliders and must name an existing body. Sensor minimum
+    /// range and no-return conventions belong to the caller.
+    ///
+    /// This query does not step physics, update contacts, consume commands or
+    /// allocate body IDs. Unsupported engines refuse before validating inputs.
+    fn cast_ray(
+        &self,
+        _origin: [f64; 3],
+        _direction: [f64; 3],
+        _max_distance: f64,
+        _exclude: Option<BodyId>,
+    ) -> Result<Option<f64>, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "ray queries",
+        })
+    }
+
     fn remove(&mut self, id: BodyId) -> bool;
 
     /// Replaces world-frame velocities of a dynamic body. Fixed bodies stay fixed.

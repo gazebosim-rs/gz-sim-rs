@@ -284,3 +284,23 @@ fn default_mesh_capability_refuses_before_numeric_or_geometry_validation() {
     );
     assert_eq!((backend.steps, backend.resets, backend.fail), before);
 }
+
+#[test]
+fn default_ray_capability_refuses_without_validation_or_mutation() {
+    let backend = Recorder::default();
+    assert_eq!(
+        backend.cast_ray(
+            [f64::NAN; 3],
+            [0.0; 3],
+            f64::INFINITY,
+            Some(BodyId::from_raw(u64::MAX))
+        ),
+        Err(PhysicsError::Unsupported {
+            engine: "recorder",
+            capability: "ray queries"
+        })
+    );
+    assert!(backend.steps.is_empty());
+    assert_eq!(backend.resets, 0);
+    assert!(!backend.fail);
+}

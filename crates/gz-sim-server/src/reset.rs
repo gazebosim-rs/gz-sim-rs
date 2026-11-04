@@ -45,6 +45,7 @@ impl Server {
                 entry.insert(publisher);
             }
         }
+        let lidar_publishers = lidar::prepare_reset(self)?;
         let rates = &mut self.rates;
         let forces = &mut self.forces;
         let reset = reset_loaded_world(&mut self.simulation, |sim| {
@@ -72,6 +73,13 @@ impl Server {
                     last_sample: None,
                 });
             }
+            let lidars = lidar::streams(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                &streams,
+                Some(&lidar_publishers),
+            )?;
             // Disable old CPU handoff before preparing a replacement generation.
             *rates = None;
             let (replacement, setup) =
@@ -84,7 +92,7 @@ impl Server {
                 forces::Forces::restart(&self.network_config, sim, &self.world_io.ingress_drops)?;
             *forces = replacement.into_active();
             self.world_io.install_forces(setup)?;
-            Ok::<_, Error>((*sim.world().resource::<UpdateInfo>(), streams))
+            Ok::<_, Error>((*sim.world().resource::<UpdateInfo>(), streams, lidars))
         });
         self.world_io.epoch.store(
             self.simulation.world().resource::<UpdateInfo>().epoch,
@@ -95,6 +103,7 @@ impl Server {
             Err(error @ gz_sim_scene::SceneResetError::CommittedReset) => {
                 self.pending_reset = false;
                 self.imus = Vec::new();
+                self.lidars = Vec::new();
                 self.rates = None;
                 self.forces = None;
                 self.removals
@@ -110,17 +119,19 @@ impl Server {
             .set_running(!self.simulation.is_paused(), Instant::now());
         self.removals
             .cancel_for_reset(&self.world_io, &mut self.counters);
-        let (info, streams) = match result {
+        let (info, streams, lidars) = match result {
             Ok(result) => result,
             Err(error) => {
                 self.reset_failed = true;
                 self.imus = Vec::new();
+                self.lidars = Vec::new();
                 self.rates = None;
                 self.forces = None;
                 return Err(error);
             }
         };
         self.imus = streams;
+        self.lidars = lidars;
         Ok(info)
     }
 }

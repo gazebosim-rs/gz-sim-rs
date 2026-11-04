@@ -233,6 +233,11 @@ pub(super) fn run(
             .as_mut()
             .map(|viewer| viewer.controls(runtime.server_mut()))
             .unwrap_or_default();
+        runtime.server_mut().set_lidar_viewer_interest(
+            viewer
+                .as_ref()
+                .is_some_and(|viewer| viewer.scan_interested()),
+        );
         let info = runtime.tick()?;
         if let Some(viewer) = &mut viewer {
             viewer.publish(runtime.server().simulation(), world, controls)?;

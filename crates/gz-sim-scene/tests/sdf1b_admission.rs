@@ -1,6 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 //! Supplemental accepted-producer pin checks, not original-test completion.
+#[path = "support/lidar_admission.rs"]
+mod lidar_admission;
 use gz_sensors::ImuReading;
 use gz_sim_core::{EntityId, Simulation};
 use gz_sim_scene::{
@@ -265,6 +267,7 @@ fn manual_auto_false_and_zero_retain_backend_mass_inertia_and_wrench_policy() {
 
 #[test]
 fn standalone_lidar_aliases_do_not_enable_scene_sensor_execution() {
+    let mut admitted_cpu_lidars = 0;
     let body = "<scan><horizontal><samples>2</samples><resolution>1</resolution><min_angle>0</min_angle><max_angle>1</max_angle></horizontal></scan><range><min>0.1</min><max>10</max><resolution>0.01</resolution></range>";
     for alias in ["lidar", "ray", "gpu_lidar", "gpu_ray"] {
         let element = format!("<{alias}>{body}</{alias}>");
@@ -310,6 +313,26 @@ fn standalone_lidar_aliases_do_not_enable_scene_sensor_execution() {
             2
         );
         for engine in ENGINES {
+            if matches!(alias, "lidar" | "ray") && matches!(engine, PhysicsEngine::Rapier) {
+                let sim = load_world_with_sdf_step(
+                    &xml,
+                    "lidar-world.sdf",
+                    "default",
+                    &NoResources,
+                    engine,
+                )
+                .unwrap();
+                lidar_admission::assert_cpu_lidar(
+                    sim,
+                    &xml,
+                    "lidar-world.sdf",
+                    "default::robot::body::scan",
+                    2,
+                    [0.0; 3],
+                );
+                admitted_cpu_lidars += 1;
+                continue;
+            }
             assert!(matches!(
                 load_world_with_sdf_step(&xml, "lidar-world.sdf", "default", &NoResources, engine),
                 Err(LoadError::Unsupported {
@@ -319,4 +342,5 @@ fn standalone_lidar_aliases_do_not_enable_scene_sensor_execution() {
             ));
         }
     }
+    assert_eq!(admitted_cpu_lidars, 2);
 }

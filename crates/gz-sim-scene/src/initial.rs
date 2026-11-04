@@ -62,6 +62,8 @@ struct Node {
     anchor: Option<ModelAnchor>,
     attached: bool,
     imu: Option<Imu>,
+    lidar: Option<crate::lidar::Lidar>,
+    lidar_publication: Option<LidarPublication>,
     publication: Option<ImuPublication>,
     visual: Option<VisualProperties>,
     material: Option<VisualMaterial>,
@@ -154,6 +156,8 @@ pub(super) fn capture(sim: &mut Simulation) {
             anchor: entity.get::<ModelAnchor>().cloned(),
             attached: entity.contains::<AttachedPose>(),
             imu: entity.get::<Imu>().cloned(),
+            lidar: entity.get::<crate::lidar::Lidar>().cloned(),
+            lidar_publication: entity.get::<LidarPublication>().cloned(),
             publication: entity.get::<ImuPublication>().cloned(),
             visual: entity.get::<VisualProperties>().cloned(),
             material: entity.get::<VisualMaterial>().cloned(),
@@ -210,6 +214,21 @@ pub fn initial_imu_publications(
         .nodes
         .iter()
         .filter_map(|node| node.publication.as_ref()))
+}
+
+/// Initial configured lidar streams, including removed original entities.
+pub fn initial_lidar_publications(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = &LidarPublication>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial
+        .0
+        .nodes
+        .iter()
+        .filter_map(|node| node.lidar_publication.as_ref()))
 }
 
 /// Restores the loaded scene in the same Bevy World, then invokes reset handlers.
@@ -358,6 +377,12 @@ pub fn reset_loaded_world<R>(
         if node.attached {
             entity.insert(AttachedPose);
         }
+        if let Some(lidar) = &node.lidar {
+            entity.insert(lidar.clone());
+        }
+        if let Some(publication) = &node.lidar_publication {
+            entity.insert(publication.clone());
+        }
         if let Some(imu) = &node.imu {
             entity.insert(imu.clone());
         }
@@ -430,6 +455,7 @@ pub fn reset_loaded_world<R>(
     });
     world.insert_resource(RestoredPhysics { epoch });
     crate::imu_lifecycle::install(sim);
+    crate::lidar::install(sim);
     crate::joint_lifecycle::install(sim);
     crate::joint_force_lifecycle::install(sim);
     let reset = sim.reset();
