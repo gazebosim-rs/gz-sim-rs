@@ -12,6 +12,7 @@ struct LocalViewer {
     scan: Arc<AtomicBool>,
     lifecycle: Arc<AtomicBool>,
     lifecycle_enabled: bool,
+    credit: Arc<AtomicBool>,
 }
 
 impl Callback for LocalViewer {
@@ -33,6 +34,7 @@ impl Callback for LocalViewer {
         }
         let mut selected = false;
         let mut lifecycle = false;
+        let mut credit = false;
         for field in request.uri().query().unwrap_or_default().split('&') {
             let (key, value) = field.split_once('=').unwrap_or((field, ""));
             if key == "scan" {
@@ -52,7 +54,23 @@ impl Callback for LocalViewer {
                 }
                 lifecycle = true;
             }
+            if key == "lifecycle_credit" {
+                if credit || value != "1" {
+                    let mut rejected =
+                        ErrorResponse::new(Some("invalid publication credit opt-in".into()));
+                    *rejected.status_mut() = tungstenite::http::StatusCode::BAD_REQUEST;
+                    return Err(rejected);
+                }
+                credit = true;
+            }
         }
+        if credit && !lifecycle {
+            let mut rejected =
+                ErrorResponse::new(Some("publication credit requires lifecycle opt-in".into()));
+            *rejected.status_mut() = tungstenite::http::StatusCode::BAD_REQUEST;
+            return Err(rejected);
+        }
+        self.credit.store(credit, Ordering::Release);
         self.scan.store(selected, Ordering::Release);
         self.lifecycle.store(lifecycle, Ordering::Release);
         Ok(response)
@@ -63,7 +81,7 @@ fn handshake(
     stream: TcpStream,
     stop: &AtomicBool,
     lifecycle_enabled: bool,
-) -> Option<(WebSocket<TcpStream>, bool, bool)> {
+) -> Option<(WebSocket<TcpStream>, bool, bool, bool)> {
     stream.set_nonblocking(true).ok()?;
     let config = WebSocketConfig::default()
         .read_buffer_size(4096)
@@ -73,12 +91,14 @@ fn handshake(
         .max_frame_size(Some(4096));
     let opted_in = Arc::new(AtomicBool::new(false));
     let lifecycle = Arc::new(AtomicBool::new(false));
+    let credit = Arc::new(AtomicBool::new(false));
     let mut result = tungstenite::accept_hdr_with_config(
         stream,
         LocalViewer {
             scan: opted_in.clone(),
             lifecycle: lifecycle.clone(),
             lifecycle_enabled,
+            credit: credit.clone(),
         },
         Some(config),
     );
@@ -99,6 +119,7 @@ fn handshake(
                     socket,
                     opted_in.load(Ordering::Acquire),
                     lifecycle.load(Ordering::Acquire),
+                    credit.load(Ordering::Acquire),
                 ));
             }
             Err(HandshakeError::Interrupted(mid))
@@ -112,6 +133,55 @@ fn handshake(
     }
 }
 
+/// One normal publication may be in flight on an explicitly credited socket.
+/// Priority replies do not touch this connection-local state.
+struct PublicationCredit {
+    next: u64,
+    awaiting: Option<u64>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PublicationReady {
+    version: u8,
+    kind: String,
+    token: u64,
+}
+
+impl PublicationCredit {
+    fn new() -> Self {
+        Self {
+            next: 1,
+            awaiting: None,
+        }
+    }
+
+    fn reserve(&mut self) -> Option<u64> {
+        if self.awaiting.is_some() {
+            return None;
+        }
+        let token = self.next;
+        self.next = self.next.checked_add(1)?;
+        self.awaiting = Some(token);
+        Some(token)
+    }
+
+    fn ready(&mut self, text: &str) -> bool {
+        let Ok(ready) = serde_json::from_str::<PublicationReady>(text) else {
+            return false;
+        };
+        if ready.version != 1
+            || ready.kind != "publication_ready"
+            || ready.token == 0
+            || self.awaiting != Some(ready.token)
+        {
+            return false;
+        }
+        self.awaiting = None;
+        true
+    }
+}
+
 struct Peer {
     socket: WebSocket<TcpStream>,
     alive: Arc<AtomicBool>,
@@ -121,6 +191,7 @@ struct Peer {
     scan: bool,
     lifecycle: bool,
     pending: Option<Awaiting>,
+    credit: Option<PublicationCredit>,
 }
 
 enum Awaiting {
@@ -196,10 +267,21 @@ impl Peer {
         if generation == self.generation
             && !matches!(self.pending, Some(Awaiting::Lifecycle(_)))
             && self
+                .credit
+                .as_ref()
+                .is_none_or(|credit| credit.awaiting.is_none())
+            && self
                 .sent
                 .as_ref()
                 .is_none_or(|old| !Arc::ptr_eq(old, &scene))
         {
+            // Reserve before any writes: exhaustion must not expose a tuple
+            // whose credit token could be reused or absent.
+            let token = match self.credit.as_mut().map(PublicationCredit::reserve) {
+                Some(Some(token)) => Some(token),
+                Some(None) => return false,
+                None => None,
+            };
             if self
                 .socket
                 .send(Message::Text(scene.as_str().into()))
@@ -226,9 +308,20 @@ impl Peer {
             {
                 return false;
             }
+            if let Some(token) = token {
+                let marker =
+                    serde_json::json!({"version":1,"kind":"publication_credit","token":token});
+                if self
+                    .socket
+                    .send(Message::Text(marker.to_string().into()))
+                    .is_err()
+                {
+                    return false;
+                }
+            }
         }
         match self.socket.read() {
-            Ok(Message::Text(text)) if self.pending.is_none() => {
+            Ok(Message::Text(text)) => {
                 let kind = serde_json::from_str::<serde_json::Value>(&text)
                     .ok()
                     .and_then(|value| {
@@ -237,6 +330,17 @@ impl Peer {
                             .and_then(|kind| kind.as_str())
                             .map(str::to_owned)
                     });
+                // Ready is transport admission, not a world command. The
+                // command pump can send it after a command in the same frame.
+                if kind.as_deref() == Some("publication_ready") {
+                    return self
+                        .credit
+                        .as_mut()
+                        .is_some_and(|credit| credit.ready(&text));
+                }
+                if self.pending.is_some() {
+                    return false;
+                }
                 if kind.as_deref() == Some("lifecycle") {
                     if !self.lifecycle {
                         return false;
@@ -307,7 +411,7 @@ pub(super) fn serve(
             Ok((stream, _)) => {
                 if peer.is_some() {
                     let _ = stream.shutdown(Shutdown::Both);
-                } else if let Some((socket, scan, lifecycle)) =
+                } else if let Some((socket, scan, lifecycle, credit)) =
                     handshake(stream, stop, lifecycle_enabled)
                 {
                     let Some(next) = generation.checked_add(1) else {
@@ -323,6 +427,7 @@ pub(super) fn serve(
                         scan,
                         lifecycle,
                         pending: None,
+                        credit: credit.then(PublicationCredit::new),
                     });
                     scan_connected.store(scan, Ordering::Release);
                     connected.store(generation, Ordering::Release);
@@ -343,3 +448,7 @@ pub(super) fn serve(
     connected.store(0, Ordering::Release);
     scan_connected.store(false, Ordering::Release);
 }
+
+#[cfg(test)]
+#[path = "../../tests/private/web_credit_contract.rs"]
+mod credit_contract_tests;

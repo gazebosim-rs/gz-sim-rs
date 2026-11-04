@@ -171,3 +171,38 @@ Mutable renderer-scene admission is deferred; existing RGB/depth worlds and thei
 headless defaults retain their accepted behavior.
 Existing measured sensor samples retain their own acquisition time; an edit
 does not synthesize a new scan or replay a committed acquisition.
+
+## Bounded publication credit (correction in progress)
+
+The first candidate passed required local and hosted checks, but its actual
+browser qualification failed. The separately qualified diagnostic viewer then
+recorded `event queue full; requested close 4002` (the close event reported
+1006). Passing CI did not accept M10. The original sources, failed observations
+and qualification evidence remain preserved.
+
+Lifecycle viewers additionally negotiate `lifecycle_credit=1` together with
+`lifecycle=1`. The producer sends one normal coherent Scene, catalog and optional
+scan, followed by `{"version":1,"kind":"publication_credit","token":1}`.
+It retains the existing bounded Latest state rather than flooding a stalled
+consumer. Only the exact `{"version":1,"kind":"publication_ready","token":1}`
+allows the next normal publication. Tokens are nonzero, checked, monotonically
+increasing and connection-local; disconnect resets them, world reset does not.
+Both envelopes have exactly those three fields. Duplicate, stale, malformed or
+unnegotiated credit is refused.
+
+Ready acknowledges validated inbox admission, not GPU completion or a world
+operation. Its parser runs before the pending-command guard and never consumes
+a world request ID, pending-command slot or simulation queue entry. The socket
+still services commands and Ping while normal publication waits. Committed
+lifecycle frames and control ACKs retain their priority and exact ordering;
+they neither consume nor replace an older outstanding normal token. The viewer
+keeps validated transport credit across same-connection reset clearing, sends it
+once after successful flush, and closes on bounded send failure without retry.
+
+No extra simulation wait, worker, endpoint or callback is introduced. Existing
+no-credit clients, 64-event queue/drain, frame limits, ingress bounds, assertions
+and quality gates remain unchanged. New regression source covers strict tokens,
+query negatives, real socket producer backpressure during paused/running native
+worlds, pending commands, exact delayed replies and reset interleavings. This
+correction is unqualified until its complete source review, required checks and
+actual browser acceptance finish; no behavior pass is claimed from source alone.

@@ -10,22 +10,40 @@ files, upstream test IDs, dependency decisions, code revision, exact check comma
 results, coverage, relevant benchmark data, reviewer, and unresolved limits.
 The task author cannot independently retire tests or approve coverage exclusions.
 
-## Current delivery queue: M1 first
+## Current delivery queue: M10 interactive world lifecycle
 
-Owner decision D30 supersedes the order of the legacy packets below. Follow
-[DELIVERY_PLAN.md](DELIVERY_PLAN.md) and `planning/delivery-phases.json` for the
-M1–M12 runnable releases, each budgeted at no more than five working days.
-M1 reuses PHY-05/LOAD-01/IO-01 where accepted and adds a real gzweb-rs primitive
-scene/pose/control connection. The browser contract and Rapier-only user setup
-are missing acceptance evidence, so M1 is not started, not accepted.
+Owner decision D30 and the explicit resume supersede the old full-rewrite-first
+order and earlier pause records. Follow [DELIVERY_PLAN.md](DELIVERY_PLAN.md) and
+`planning/delivery-phases.json`. M1–M9 are accepted; M10 remains unaccepted and
+budgeted at most five working days including review and required checks. Preserve
+all accepted behavior, pending worktrees and independent Fuel work. Legacy IDs
+remain for regression and scope traceability; a weekly delivery does not complete
+a whole legacy packet or retire any original sensor, system or backend.
 
-Implementation remains paused until explicit resume. The first assignment on
-resume is M1 day-one live browser proof, followed by the rest of the same bounded
-MVP. Do not automatically continue native inertia, DART parity or camera-worker
-extensions unless they block M1. Preserve all accepted behavior and pending
-worktrees. Legacy packet IDs stay intact for regression and scope traceability;
-a weekly phase can implement a documented subset without completing its whole
-legacy packet. No original sensor/system/backend is retired by this reorder.
+### M10-CREDIT: bounded lifecycle publication backpressure
+
+The initial M10 candidates passed required checks, but actual browser acceptance
+failed. The qualified diagnostic viewer confirmed event-queue overflow. This
+bounded correction uses the existing browser bridge, not a new transport or
+runtime. Root owns `crates/gz-sim-cli/src/web/socket.rs`, the new credit contract
+and real-socket regression sources, their parent test-module declaration and
+M10 documentation. The viewer owner implements the matching maintained Session
+and PrimitiveBackend contract; a separate reviewer checks both complete batches.
+
+Only lifecycle clients opting into publication credit gain the one-flight
+normal-publication handshake. Existing no-credit protocols, the 64-event queue,
+64-event drain, world request ordering and exact committed replies remain intact.
+Ready parsing must work while a world reply is pending; same-connection reset
+must preserve an already validated transport token. No simulation wait belongs
+in this network backpressure path. See [the exact contract](M10_WORLD_LIFECYCLE.md).
+
+New regression families cover strict credit JSON and token exhaustion, paused
+and advancing native worlds, command-before-Ready, delayed committed replies,
+reset-before-old-Ready, query negatives and reconnect isolation. Keep all retained
+assertions. Complete implementation, regression source, docs and independent
+source review before one consolidated required pass per affected repository.
+Acceptance still requires the actual stable browser spawn/remove/state/reset and
+reconnect observations; source review or passing CI alone does not accept M10.
 
 ## Foundation and reference tasks
 

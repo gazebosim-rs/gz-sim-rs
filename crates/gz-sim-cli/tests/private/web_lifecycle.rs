@@ -1068,3 +1068,6 @@ fn disconnect_after_cpu_handoff_and_lost_lifecycle_reply_ownership_never_mutate_
         next
     );
 }
+
+#[path = "web_publication_credit.rs"]
+mod publication_credit_tests;
