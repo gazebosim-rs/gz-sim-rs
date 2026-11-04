@@ -1,8 +1,8 @@
 # Instructions for implementation agents
 
-> M1–M7 are accepted, including the published planar CPU lidar and measured scan viewer.
-> The current delivery is M8: one two-wheel Rapier differential-drive robot, real velocity
-> commands and odometry, budgeted at most five working days including review and checks.
+> M1–M8 are accepted, including the live Rapier differential-drive robot.
+> Current M9 delivers one admitted Rapier revolute chain with position and velocity
+> controllers, budgeted at most five working days including review and required checks.
 > Preserve accepted demos, paused qualifications and independent Fuel work.
 
 
@@ -14,21 +14,21 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M7 are accepted; see
-their acceptance records. Current M8 delivers one two-wheel Rapier robot driven
-by real velocity commands, with canonical odometry and a live gzweb-rs view.
-Budget at most five working days including independent review and mandatory
-checks. Prove forward motion and turning, wheel limits, odometry frames,
-pause/reset and absent-system teardown. Reuse existing joints, state/force/input
-APIs, canonical messages and bounded upstream Zenoh IO; keep physics authoritative.
-Use demand-activated built-in systems, not dynamic plugins. Preserve accepted
-IMU/RGB/depth/lidar, all retained assertions and native-free/GPU-free defaults.
-Ackermann, tracked vehicles, general drivetrain parity and unrelated sensor,
-backend or geometry qualifications remain deferred. Split optional scope if it
-will exceed the budget. Source, regression code, docs and independent source
-review precede one consolidated required pass; batch real failures before any
-affected rerun. Preserve all frozen candidates and the independent Fuel work.
-Full P0–P7 remains a deferred inventory, not a prerequisite for this delivery.
+Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M8 are accepted; see
+their acceptance records. Current M9 delivers one admitted Rapier revolute chain
+with position and velocity controllers. Budget at most five working days including
+independent review and mandatory checks. Commands must move displayed joints with
+documented limits and stable IDs; prove bad-command rejection, reset and removal.
+Reuse existing joint state, maintained native Rapier motors, input/lifecycle APIs,
+canonical messages and bounded upstream Zenoh IO. Physics remains authoritative;
+no body-velocity teleport, custom solver or dynamic system plugins. General
+articulations, mimic/transmission semantics and other controller families remain
+deferred. Preserve accepted drive/sensors, native-free/GPU-free defaults and all
+assertions, numerical tolerances and quality gates. Source, regression code, docs
+and independent review precede one consolidated required pass; batch actual
+failures before affected reruns. Split optional work if over budget. Preserve
+frozen candidates and the independent Fuel work. Full P0–P7 remains a deferred
+inventory, not a prerequisite for this delivery.
 
 The owner explicitly resumed implementation. Work only on the current delivery
 or a concrete blocking dependency; earlier pause records are historical. The

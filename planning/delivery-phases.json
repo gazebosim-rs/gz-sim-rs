@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-04",
   "execution_state": "active",
-  "current_phase": "M8",
+  "current_phase": "M9",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -132,7 +132,13 @@
       ],
       "scope": "One two-wheel Rapier robot, velocity command and odometry, visible in gzweb-rs.",
       "acceptance": "A simple robot drives and turns from real commands; wheel limits, odometry frames, pause/reset and absent-system teardown pass.",
-      "excluded": "Ackermann, tracked vehicles and general drivetrain parity."
+      "excluded": "Ackermann, tracked vehicles and general drivetrain parity.",
+      "accepted_at": "2026-11-04T05:58:53.817042+00:00",
+      "evidence": "docs/M8_ACCEPTANCE.md",
+      "accepted_commits": {
+        "gz-sim-rs": "fc9673881bae5b0c28e8e22fe2ab013d3f87f117",
+        "gzweb-rs": "516a9a0ea803863e79da4a151d22c877f6786e29"
+      }
     },
     {
       "id": "M9",
@@ -188,12 +194,12 @@
     "M5": "complete",
     "M6": "complete",
     "M7": "complete",
-    "M8": "in_progress",
-    "M9": "not_started",
+    "M8": "complete",
+    "M9": "in_progress",
     "M10": "not_started",
     "M11": "not_started",
     "M12": "not_started"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-04T01:38:16+00:00"
+  "phase_started_at": "2026-11-04T05:58:53.817042+00:00"
 }

@@ -3,54 +3,45 @@
 
 # Coordinator handoff
 
-> M1–M7 are accepted, including the published planar CPU lidar and measured scan viewer.
-> The current delivery is M8: one two-wheel Rapier differential-drive robot, real velocity
-> commands and odometry, budgeted at most five working days including review and checks.
+> M1–M8 are accepted, including the live Rapier differential-drive robot.
+> Current M9 delivers one admitted Rapier revolute chain with position and velocity
+> controllers, budgeted at most five working days including review and required checks.
 > Preserve accepted demos, paused qualifications and independent Fuel work.
 
 
-Updated 2026-11-04. Read DELIVERY_PLAN.md and M7_ACCEPTANCE.md first.
+Updated 2026-11-04. Read DELIVERY_PLAN.md and M8_ACCEPTANCE.md first.
 
-## Current delivery: M8 differential drive
+## Current delivery: M9 joint controllers
 
-M7 is accepted and published on simulator Main `9a652063` and viewer Main
-`19be842d`. The simulator final normal staged gate passed1180.316s and exact CI
-`41747544467` passed all16 steps; viewer normal hooks, both unchanged14MB bundle
-budgets and exact CI `41748284641` passed. Independent source, local/official data
-and actual WebGL2 scan/control image reviews are clear. One loaded ideal planar
-2–128-beam lidar uses read-only maintained Rapier shape casts, bounded canonical
-LaserScan output and an opt-in measured-scan viewer with no fabricated scene IDs.
-Analytic/mesh queries, timing/frame, demand, pause/reset, removal and bounded IO
-pass. Actual browser shows three measured rays; reset clears them and resume
-restores them while retaining two visual entities. See M7_ACCEPTANCE.md for
-separate local/hosted counts and retention limits; no new C++ lidar parity or
-performance claim is made.
+M8 is accepted and published on simulator Main `fc967388` after the normal
+1163.291-second staged gate, exact CI `41776261368` and independent source,
+local/official data and actual browser image reviews passed. One two-wheel Rapier
+robot drives and turns from real canonical Twist commands; measured encoder
+Odometry, bounded native velocity motors, pause/reset/removal and absent-system
+teardown pass. Target-speed bounds are not hard physical speed caps against
+external impulses. The viewer's accepted `19be842d` bundles are reused unchanged;
+viewer Main `516a9a0e` adds only closeout docs and a deterministic test clock.
+M7 metadata Main `4a985bfb` is also fully checked, audited and published. Original
+viewer `41757072753` Quiet-test failure and M6 `41740088744` attempt1 readback
+failures remain historical evidence; successful corrections/retries do not erase
+or diagnose their unobserved runtime interleavings.
 
-M6 acceptance metadata `0b9541dc` is also published after its normal local gate
-and independently audited exact CI attempt2 passed. Attempt1's three existing
-20-second readback timeouts remain preserved real failures with an undetermined
-cause. The one bounded same-SHA rerun did not change deadlines, assertions or
-mandatory jobs; its success does not diagnose or erase the failures. Do not
-restart that qualification or replay accepted M1–M7 manual browser/runtime work.
+Current M9 delivers one admitted Rapier revolute chain with position and velocity
+controllers, at most five working days including review and required checks.
+Prove real commands move displayed joints with documented limits and stable IDs;
+bad commands, reset and removal must pass. Reuse existing maintained native
+motors, joint state, input/lifecycle and bounded canonical IO. Keep physics
+authoritative and absent families free of callbacks/buffers. General
+articulations, mimic/transmission semantics and other controller families are
+excluded. Source/regressions/docs and independent source review precede one
+consolidated required pass; batch actual failures without weakening gates.
 
-Current M8 delivers one two-wheel Rapier robot from real velocity commands,
-with canonical odometry and a live gzweb-rs view. Budget at most five working
-days including independent review and required checks. Prove forward motion and
-turning, wheel limits, odometry frames, pause/reset and absent-system teardown.
-Reuse existing joint state/force/input, lifecycle/scheduling and upstream Zenoh
-APIs. Physics remains authoritative; preserve accepted sensors and native-free/
-GPU-free headless defaults. Ackermann, tracked vehicles, general drivetrain
-parity, additional sensor families and unrelated backend/geometry work are
-excluded. Split optional scope rather than weakening a mandatory exit criterion.
-
-Root owns simulator integration. Use a new isolated M8 tree; source/regressions/
-docs and independent source review precede one consolidated required pass.
-M7 acceptance metadata may complete normal gate/CI while M8 source progresses
-separately; do not repeat accepted manual qualifications. Preserve the new paused
-M7 browser preview on9007 and all older accepted demos, frozen candidates,
-historical evidence and independent Fuel work. Accepted SDFormat Main remains
-`1594ac36` and the simulator producer pin remains`a44bf8be`. Historical P0–P7
-remains a deferred inventory, not this delivery's prerequisite.
+Root owns simulator integration in a new isolated M9 tree. M8 acceptance metadata
+may finish normal gates/CI while M9 source progresses separately. Do not replay
+accepted M1–M8 manual qualification. Preserve the paused M8 preview on9008 and all
+older accepted demos, frozen candidates and Fuel work. The full P0–P7 inventory
+remains deferred. SDFormat Main `1594ac36` and simulator producer pin `a44bf8be`
+remain distinct; do not silently adopt a producer migration.
 
 The sections below preserve previous continuation history. Their next-task
 instructions are superseded by this section and D30.

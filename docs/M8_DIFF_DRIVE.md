@@ -1,11 +1,12 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation; SPDX-License-Identifier: Apache-2.0 -->
 # M8: one bounded differential-drive robot
 
-Implementation is in progress in an isolated tree. No M8 compilation, tests,
-lint, native captures or runtime observations have run. The complete feature,
-regression source, documentation and independent source review must precede one
-consolidated required pass. M1–M7 remain accepted; no earlier manual qualification
-is replayed. This is not an acceptance record.
+M8 is accepted and published at simulator Main
+`fc9673881bae5b0c28e8e22fe2ab013d3f87f117`. Required local verification,
+[exact hosted CI41776261368](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/41776261368),
+and independent source, local/official data and actual browser reviews passed.
+See [M8_ACCEPTANCE.md](M8_ACCEPTANCE.md) for evidence and limitations. M9 is the
+current weekly delivery; accepted M1–M7 manual qualification was not replayed.
 
 The five-working-day delivery is one two-wheel Rapier robot, real canonical
 velocity commands, measured encoder odometry and a live gzweb-rs view. It must
@@ -86,22 +87,55 @@ The maintained Rapier0.36.1 motor and solver source is the backend authority.
 No C++ DiffDrive executable or new parity/performance evidence was captured.
 Retained C++ interoperability controls remain historical compatibility evidence.
 
-## Command sender
+## Run the robot and send commands
 
-The bounded `gz-sim-server` example `drive_command` connects directly to an
-upstream Zenoh endpoint and publishes canonical Twist commands, followed by a
-zero command. Set the same `GZ_PARTITION` as the simulator. For example, after
-starting the M8 world with a Zenoh listener at `tcp/127.0.0.1:7447`:
+Build the native-free simulator and the finite command sender:
 
-```
-GZ_PARTITION=m8 cargo run -p gz-sim-server --no-default-features --example drive_command -- tcp/127.0.0.1:7447 0.4 0 3
-GZ_PARTITION=m8 cargo run -p gz-sim-server --no-default-features --example drive_command -- tcp/127.0.0.1:7447 0 1 3
+```sh
+cargo build --locked -p gz-sim-cli --no-default-features
+cargo build --locked -p gz-sim-server --no-default-features --example drive_command
 ```
 
-The command applies at the next advancing simulator step. The viewer consumes
-the existing live world poses; wheel actuation does not replace body poses or
-velocities. These commands and the new robot remain unqualified until the single
-complete M8 verification and independent evidence review.
+Use an explicit upstream Zenoh listener so the sender has a known endpoint.
+Create `/tmp/m8-zenoh.json5` with:
+
+```json
+{
+  "listen": {"endpoints": ["tcp/127.0.0.1:7448"]},
+  "scouting": {"multicast": {"enabled": false}}
+}
+```
+
+Start the simulator from this repository root. It starts paused; use the viewer's
+Play control before sending commands.
+
+```sh
+GZ_PARTITION=m8 ZENOH_CONFIG=/tmp/m8-zenoh.json5 target/debug/gz-sim-rs examples/m8_diff_drive.sdf --server --web-viewer 9008
+```
+
+Serve the maintained `gzweb-rs` app on loopback HTTP port 8080 or 8081 as described
+in [MVP_BROWSER.md](MVP_BROWSER.md). Select its existing primitive backend and
+connect it to `ws://127.0.0.1:9008/`, for example:
+`http://127.0.0.1:8081/?backend=primitive&ui=full&url=ws://127.0.0.1:9008/`.
+The scene contains the ground, one box chassis and two sphere wheels. The
+simulator requires no native physics SDK, window or GPU; the browser requires a
+supported graphics backend.
+
+In another terminal, send forward and turning commands using the same partition:
+
+```sh
+GZ_PARTITION=m8 target/debug/examples/drive_command tcp/127.0.0.1:7448 0.4 0 3
+GZ_PARTITION=m8 target/debug/examples/drive_command tcp/127.0.0.1:7448 0 1 3
+```
+
+Arguments are endpoint, forward metres/second, yaw radians/second and duration
+seconds. Each successful invocation ends with a zero command for bounded motor braking;
+this is not an emergency stop or an instantaneous physical velocity clamp.
+Commands apply at the next advancing step. The viewer consumes existing live
+world poses; wheel actuation does not replace body poses or velocities.
+The documented viewer reset requests `pause: true`, restores the loaded pose
+and clears pending drive state in a new epoch. It leaves the world paused;
+resume is a separate action.
 
 The command sender waits up to five seconds for a matching command subscriber
 before starting its finite send interval. Matching confirms declaration discovery;

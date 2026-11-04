@@ -2,10 +2,11 @@
 
 ## Current delivery priority (D30, 2026-11-02)
 
-M1–M7 are accepted and published; see the [weekly delivery plan](DELIVERY_PLAN.md)
-and [M7 evidence](M7_ACCEPTANCE.md). The current delivery is M8: one two-wheel
-Rapier differential-drive robot with real velocity commands, odometry and a live
-gzweb-rs view, budgeted at most five working days including review and checks.
+M1–M8 are accepted and published; see the [weekly delivery plan](DELIVERY_PLAN.md)
+and [M8 evidence](M8_ACCEPTANCE.md). Current M9 delivers one admitted Rapier
+revolute chain with position and velocity controllers, budgeted at most five
+working days including review and checks. Prove displayed motion, documented
+limits, stable IDs, bad-command rejection, reset and removal.
 Implementation was explicitly resumed on 2026-11-02; the earlier planning pause
 is historical. Work only on this delivery or its concrete blocking dependencies.
 Subsequent named phases remain at most five working days each. Full compatibility

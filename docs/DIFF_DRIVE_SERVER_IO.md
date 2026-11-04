@@ -60,6 +60,7 @@ and samples, all unsupported axes, actual Zenoh input/type/size/queue limits,
 weak retirement and callback capture lifetime, shared-owner epoch/generation
 fences, actual same-demo commands and encoder odometry at configured cadence,
 no-listener actuation, pause/reset/removal, runtime typed-owner drift, absent
-system and terminal reset drift. They remain unexecuted pending complete M8
-integration, independent source review and one consolidated required gate. No
-new C++ DiffDrive parity, real browser or performance result is claimed here.
+system and terminal reset drift. These controls passed the required M8 local
+gate and exact hosted CI41776261368 with independent source/data review at
+`fc967388`. Actual browser motion/control observations are recorded separately
+in M8_ACCEPTANCE.md. No new C++ DiffDrive parity or performance claim is made.

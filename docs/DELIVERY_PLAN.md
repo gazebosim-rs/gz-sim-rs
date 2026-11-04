@@ -3,9 +3,9 @@
 
 # Weekly delivery plan
 
-> M1–M7 are accepted, including the published planar CPU lidar and measured scan viewer.
-> The current delivery is M8: one two-wheel Rapier differential-drive robot, real velocity
-> commands and odometry, budgeted at most five working days including review and checks.
+> M1–M8 are accepted, including the live Rapier differential-drive robot.
+> Current M9 delivers one admitted Rapier revolute chain with position and velocity
+> controllers, budgeted at most five working days including review and required checks.
 > Preserve accepted demos, paused qualifications and independent Fuel work.
 
 
@@ -16,10 +16,11 @@ M1 implementation and its continuation automation.
 
 ## Schedule and acceptance
 
-M1–M6 were accepted on 2026-11-03 and M7 on 2026-11-04; see [M1 evidence](M1_ACCEPTANCE.md),
+M1–M6 were accepted on 2026-11-03 and M7–M8 on 2026-11-04; see [M1 evidence](M1_ACCEPTANCE.md),
 [M2 evidence](M2_ACCEPTANCE.md), [M3 evidence](M3_ACCEPTANCE.md),
 [M4 evidence](M4_ACCEPTANCE.md), [M5 evidence](M5_ACCEPTANCE.md) and
-[M6 evidence](M6_ACCEPTANCE.md) and [M7 evidence](M7_ACCEPTANCE.md). M8 now targets **at most five working days**. Each subsequent phase is
+[M6 evidence](M6_ACCEPTANCE.md), [M7 evidence](M7_ACCEPTANCE.md) and
+[M8 evidence](M8_ACCEPTANCE.md). M9 now targets **at most five working days**. Each subsequent phase is
 also at most five working days, including source review, fixes, documentation,
 mandatory staged checks and hosted CI. These are scope budgets and planning
 targets, not guaranteed completion dates. No clock runs while paused. Re-estimate after a real integration checkpoint; report any risk immediately.
@@ -59,7 +60,7 @@ accepted code, but no phase inherits acceptance merely from an older test run.
 Existing broad P0–P7 gates remain historical and long-term coverage inventories;
 they are not this release schedule and do not block M1 as entire families.
 `planning/delivery-phases.json` is the machine-readable schedule mirrored by the
-tracker. M1–M7 are accepted; M8–M12 remain unaccepted. These counts are independent of
+tracker. M1–M8 are accepted; M9–M12 remain unaccepted. These counts are independent of
 historical P2 acceptance.
 
 ## M1: smallest real end-to-end product

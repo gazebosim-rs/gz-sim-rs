@@ -53,6 +53,7 @@ rolling contact versus the same motor-driven assembly without a floor. Private
 controls inspect both maintained native handle kinds and a nonidentity frame,
 parent reaction, disabled warm-start state, and both step-product refusals with
 one-shot wrench/effort conservation. Default-backend capability assertions are
-additive. All previous assertions remain unchanged. These controls and the new
-runtime implementation are unexecuted pending whole-M8 source review and one
-consolidated required verification; no runtime or numerical success is claimed.
+additive. All previous assertions remain unchanged. The controls passed the
+required M8 local gate and exact hosted CI41776261368 at `fc967388`, with
+independent source and retained-data review. See M8_ACCEPTANCE.md for exact
+coverage, provenance and limits; no general native drivetrain parity is claimed.
