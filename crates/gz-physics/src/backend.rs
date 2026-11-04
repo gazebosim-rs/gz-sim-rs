@@ -40,6 +40,15 @@ pub struct JointState {
     pub velocity: f64,
 }
 
+/// Persistent revolute velocity target, positive in the joint's increasing-angle direction.
+/// `target_velocity` is finite rad/s; `max_force` is finite, nonnegative Nm.
+/// This limits actuator torque; the target is not a hard physical speed cap.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct JointVelocityMotor {
+    pub target_velocity: f64,
+    pub max_force: f64,
+}
+
 #[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
 pub enum PhysicsError {
     #[error("body or gravity contains an invalid numeric value")]
@@ -356,6 +365,36 @@ pub trait DynamicBackend: Send + Sync + 'static {
         Err(PhysicsError::Unsupported {
             engine: self.engine(),
             capability: "joint effort commands",
+        })
+    }
+
+    /// Validates a persistent revolute velocity motor without changing any state.
+    /// `None` disables actuation; a zero target with positive force applies bounded braking.
+    /// Unsupported engines refuse before identifier or numeric validation.
+    fn validate_joint_velocity_motor(
+        &self,
+        _id: JointId,
+        _motor: Option<JointVelocityMotor>,
+    ) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "joint velocity motors",
+        })
+    }
+
+    /// Replaces the persistent motor configuration without advancing physics or changing
+    /// body/joint state. Invalid input preserves the old motor and pending commands.
+    /// Targets act through the maintained solver on subsequent nonzero steps. Both resets
+    /// clear all motors, including motors present when an initial state was captured;
+    /// joint/body removal retires them. Torque/target times dt must remain representable.
+    fn set_joint_velocity_motor(
+        &mut self,
+        _id: JointId,
+        _motor: Option<JointVelocityMotor>,
+    ) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "joint velocity motors",
         })
     }
 

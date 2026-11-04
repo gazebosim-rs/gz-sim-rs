@@ -47,6 +47,7 @@ pub(super) fn validate_model(
     top_level: bool,
     engine: Option<&str>,
     is_static: bool,
+    drive: Option<&crate::diff_drive::Plan>,
 ) -> Result<(), LoadError> {
     for joint in &model.joints {
         require(
@@ -124,7 +125,11 @@ pub(super) fn validate_model(
             local_parent = Some(parent_index);
         }
         graph.add_edge(parent_index, child_index, ());
-        validate_axis(joint, &name)?;
+        validate_axis(
+            joint,
+            &name,
+            drive.is_some_and(|plan| plan.is_wheel(&joint.name)),
+        )?;
     }
     require(
         !dart_chain || (root_child.is_some() && root_child == local_parent),
@@ -145,7 +150,7 @@ pub(super) fn validate_model(
     )
 }
 
-fn validate_axis(joint: &sdformat::Joint, name: &str) -> Result<(), LoadError> {
+fn validate_axis(joint: &sdformat::Joint, name: &str, driven: bool) -> Result<(), LoadError> {
     let axis = joint.axis.as_ref().ok_or_else(|| LoadError::Unsupported {
         entity: name.to_owned(),
         feature: "joint without axis",
@@ -153,8 +158,14 @@ fn validate_axis(joint: &sdformat::Joint, name: &str) -> Result<(), LoadError> {
     require(
         axis.lower == f64::NEG_INFINITY
             && axis.upper == f64::INFINITY
-            && axis.effort == f64::INFINITY
-            && axis.velocity == f64::INFINITY
+            && (if driven {
+                axis.effort.is_finite()
+                    && axis.effort > 0.0
+                    && axis.velocity.is_finite()
+                    && axis.velocity > 0.0
+            } else {
+                axis.effort == f64::INFINITY && axis.velocity == f64::INFINITY
+            })
             && axis.stiffness == 1e8
             && axis.dissipation == 1.0,
         name,

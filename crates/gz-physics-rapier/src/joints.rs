@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
+mod motor;
 mod reduced;
 
 #[derive(Clone, Copy)]

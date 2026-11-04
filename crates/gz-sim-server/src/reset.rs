@@ -46,6 +46,8 @@ impl Server {
             }
         }
         let lidar_publishers = lidar::prepare_reset(self)?;
+        let drive_metadata = diff_drive::initial(&self.simulation)?;
+        let drive = &mut self.diff_drive;
         let rates = &mut self.rates;
         let forces = &mut self.forces;
         let reset = reset_loaded_world(&mut self.simulation, |sim| {
@@ -80,6 +82,16 @@ impl Server {
                 &streams,
                 Some(&lidar_publishers),
             )?;
+            // Old command receivers and weak odometry jobs cannot enter the next epoch.
+            *drive = None;
+            *drive = diff_drive::stream(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                &streams,
+                &lidars,
+                Some(&drive_metadata),
+            )?;
             // Disable old CPU handoff before preparing a replacement generation.
             *rates = None;
             let (replacement, setup) =
@@ -106,6 +118,7 @@ impl Server {
                 self.lidars = Vec::new();
                 self.rates = None;
                 self.forces = None;
+                self.diff_drive = None;
                 self.removals
                     .cancel_for_reset(&self.world_io, &mut self.counters);
                 return Err(error.into());
@@ -127,6 +140,7 @@ impl Server {
                 self.lidars = Vec::new();
                 self.rates = None;
                 self.forces = None;
+                self.diff_drive = None;
                 return Err(error);
             }
         };

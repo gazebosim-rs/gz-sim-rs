@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
+mod diff_drive;
+pub use diff_drive::{
+    DiffDriveCommandError, DiffDriveConfiguration, DiffDriveSample, set_diff_drive_command,
+};
 mod joint_forces;
 mod producer_guard;
 mod world_systems;
@@ -39,8 +43,9 @@ mod initial;
 mod joint_force_lifecycle;
 mod joint_lifecycle;
 pub use initial::{
-    PendingResetRemoval, SceneResetError, SceneResetInfo, initial_imu_publications,
-    initial_joint_force_configurations, initial_lidar_publications, reset_loaded_world,
+    PendingResetRemoval, SceneResetError, SceneResetInfo, initial_diff_drive_configurations,
+    initial_imu_publications, initial_joint_force_configurations, initial_lidar_publications,
+    reset_loaded_world,
 };
 
 use bevy_ecs::prelude::*;
@@ -599,6 +604,7 @@ fn load_world_configured(
     lidar::install(&mut sim);
     joint_lifecycle::install(&mut sim);
     joint_force_lifecycle::install(&mut sim);
+    diff_drive::install(&mut sim);
     initial::capture(&mut sim);
     Ok(sim)
 }
@@ -668,6 +674,17 @@ fn build_model(
         )?;
     }
     let top_level = sim.world().get::<EntityKind>(parent.entity) == Some(&EntityKind::World);
+    let drive_plan = diff_drive::parse(model)?;
+    let drive_pose = sdf.pose_of(&model.scoped_name, context.world)?;
+    if let Some(plan) = &drive_plan {
+        plan.validate(
+            model,
+            sim,
+            backend.as_ref().map(|backend| backend.engine()),
+            (top_level, parent.is_static || model.is_static),
+            drive_pose,
+        )?;
+    }
     joints::validate_model(
         sdf,
         model,
@@ -675,8 +692,18 @@ fn build_model(
         top_level,
         backend.as_ref().map(|backend| backend.engine()),
         parent.is_static || model.is_static,
+        drive_plan.as_ref(),
     )?;
     let force_configurations = joint_forces::parse(model)?;
+    require(
+        drive_plan.as_ref().is_none_or(|plan| {
+            force_configurations
+                .iter()
+                .all(|configuration| !plan.is_wheel(configuration.joint_name()))
+        }),
+        &model.scoped_name,
+        "conflicting wheel actuator ownership",
+    )?;
     let is_static = parent.is_static || model.is_static;
     let model_topic = format!("{}/model/{}", parent.topic, model.name);
     let parent_name = &sim
@@ -1127,6 +1154,9 @@ fn build_model(
     if let Some(backend) = backend {
         joints::build(sdf, model, context, model_entity, sim, backend)?;
         joint_forces::install(sim, model, model_entity, backend, &force_configurations)?;
+        if let Some(plan) = &drive_plan {
+            diff_drive::build(sim, model, model_entity, backend, plan)?;
+        }
     }
     for child in &model.models {
         build_model(sdf, child, context, &parent, sim, backend)?;

@@ -1577,3 +1577,87 @@ fn session_close_during_cold_admission_preserves_typed_world_closed() {
         "{outcomes:?}"
     );
 }
+
+#[test]
+fn drive_epoch_jobs_retirement_and_endpoint_guards_use_the_existing_bounded_owner() {
+    let mut io = isolated_world(1024);
+    let cmd = "@/drive@/cmd".to_owned();
+    let odom = "@/drive@/odom".to_owned();
+    let setup = |command_key: String, odometry_key: String, input| crate::diff_drive_io::Setup {
+        command_key,
+        odometry_key,
+        input,
+        max_bytes: 1024,
+        drops: Arc::clone(&io.ingress_drops),
+        epoch: Arc::clone(&io.epoch),
+    };
+    for key in [
+        io.clock.key_expr().as_str(),
+        io.poses.key_expr().as_str(),
+        io.control_key.as_str(),
+    ] {
+        let (input, _) = mpsc::sync_channel(1);
+        assert!(matches!(
+            io.diff_drive_output(setup(key.into(), odom.clone(), input)),
+            Err(crate::Error::DiffDriveIdentity)
+        ));
+        let (input, _) = mpsc::sync_channel(1);
+        assert!(matches!(
+            io.diff_drive_output(setup(cmd.clone(), key.into(), input)),
+            Err(crate::Error::DiffDriveIdentity)
+        ));
+    }
+    let (input, receiver) = mpsc::sync_channel(1);
+    let output = io
+        .diff_drive_output(setup(cmd.clone(), odom.clone(), input))
+        .unwrap();
+    let observer = io.session.declare_subscriber(odom.clone()).wait().unwrap();
+    let frame = gz_sim_proto::msgs::Odometry::default().encode_to_vec();
+    io.epoch.store(1, Ordering::Release);
+    io.incoming
+        .send(WorldWork::Odometry(
+            0,
+            crate::diff_drive_io::Job::new(&output, frame.clone()),
+        ))
+        .unwrap();
+    // Existing shared-queue setup receipt fences processing without a new thread.
+    let fence = io.lidar_output("@/drive@/fence".into()).unwrap();
+    assert!(observer.try_recv().unwrap().is_none());
+    io.publish_odometry(&output, frame.clone()).unwrap();
+    let sample = observer
+        .recv_timeout(Duration::from_secs(3))
+        .unwrap()
+        .unwrap();
+    assert_eq!(sample.payload().to_bytes().as_ref(), frame);
+    assert_eq!(
+        sample.attachment().unwrap().to_bytes().as_ref(),
+        b"gz.msgs.Odometry"
+    );
+    assert!(io.publish_odometry(&output, vec![0; 1025]).is_err());
+    let stale = crate::diff_drive_io::Job::new(&output, frame.clone());
+    let weak = Arc::downgrade(&output);
+    drop(output);
+    assert!(weak.upgrade().is_none());
+    let (input, _) = mpsc::sync_channel(1);
+    let replacement = io
+        .diff_drive_output(setup(cmd.clone(), odom.clone(), input))
+        .unwrap();
+    io.incoming.send(WorldWork::Odometry(1, stale)).unwrap();
+    let second_fence = io.lidar_output("@/drive@/fence2".into()).unwrap();
+    assert!(observer.try_recv().unwrap().is_none());
+    io.publish_odometry(&replacement, frame).unwrap();
+    observer
+        .recv_timeout(Duration::from_secs(3))
+        .unwrap()
+        .unwrap();
+    assert!(receiver.try_recv().is_err());
+    drop((fence, second_fence));
+    io.session.close().wait().unwrap();
+    assert!(io.publish_odometry(&replacement, vec![]).is_err());
+    let (input, _) = mpsc::sync_channel(1);
+    assert!(matches!(
+        io.diff_drive_output(setup(cmd, odom, input)),
+        Err(crate::Error::WorldClosed)
+    ));
+    io.shutdown();
+}

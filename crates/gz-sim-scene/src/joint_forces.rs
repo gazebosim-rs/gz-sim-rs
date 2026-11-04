@@ -74,6 +74,9 @@ pub(super) fn parse(model: &Model) -> Result<Vec<JointForceConfiguration>, LoadE
     let mut result = Vec::new();
     let mut seen = BTreeSet::new();
     for plugin in &model.plugins {
+        if diff_drive::is_plugin(plugin) {
+            continue;
+        }
         require(
             plugin.name == "gz::sim::systems::ApplyJointForce"
                 && plugin.filename == "gz-sim-apply-joint-force-system",

@@ -18,8 +18,8 @@ mod ray;
 
 pub use gz_physics::{
     BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId, JointState,
-    MeshBodySpec, PhysicsBackend, PhysicsError, PhysicsReset, PreparedPhysicsReset,
-    RestoredPhysics, RotationSpec, Shape, install,
+    JointVelocityMotor, MeshBodySpec, PhysicsBackend, PhysicsError, PhysicsReset,
+    PreparedPhysicsReset, RestoredPhysics, RotationSpec, Shape, install,
 };
 use std::any::Any;
 
@@ -501,6 +501,8 @@ impl DynamicBackend for RapierBackend {
 
     fn step(&mut self, dt: Duration) -> Result<(), PhysicsError> {
         if !dt.is_zero() {
+            self.joints
+                .validate_motor_step(&self.world, dt.as_secs_f64())?;
             let torques = self.joints.prepare_efforts(&self.world, &self.bodies)?;
             if self.joints.construction_open() {
                 self.joints.initialize_velocities(&mut self.world);
@@ -532,6 +534,22 @@ impl DynamicBackend for RapierBackend {
 
     fn add_joint_effort(&mut self, id: JointId, torque: f64) -> Result<(), PhysicsError> {
         self.joints.add_effort(id, torque, &self.bodies)
+    }
+
+    fn validate_joint_velocity_motor(
+        &self,
+        id: JointId,
+        motor: Option<JointVelocityMotor>,
+    ) -> Result<(), PhysicsError> {
+        self.joints.validate_motor(id, motor)
+    }
+
+    fn set_joint_velocity_motor(
+        &mut self,
+        id: JointId,
+        motor: Option<JointVelocityMotor>,
+    ) -> Result<(), PhysicsError> {
+        self.replace_joint_motor(id, motor)
     }
 
     fn add_world_revolute(

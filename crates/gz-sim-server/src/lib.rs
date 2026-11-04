@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Bounded world-clock publication and control around an explicitly stepped simulation.
 
+mod diff_drive;
+mod diff_drive_io;
 mod force_io;
 mod forces;
 mod imu_io;
@@ -67,6 +69,10 @@ pub enum Error {
     ResetLidars,
     #[error("joint-force controller lacks its original identity, configuration or command")]
     JointForceIdentity,
+    #[error("DiffDrive configuration lacks its original unique model identity or endpoints")]
+    DiffDriveIdentity,
+    #[error("reset handler changed the prepared DiffDrive configuration")]
+    ResetDiffDrive,
     #[error(transparent)]
     ImuActivation(#[from] gz_sim_scene::ImuActivationError),
 }
@@ -126,6 +132,12 @@ pub struct Counters {
     pub force_messages_rejected: u64,
     /// Successful persistent-command updates, including shared endpoint fanout.
     pub joint_forces_applied: u64,
+    pub diff_drive_messages_received: u64,
+    pub diff_drive_messages_rejected: u64,
+    pub diff_drive_commands_applied: u64,
+    pub odometries_queued: u64,
+    pub odometry_failures: u64,
+    pub invalid_odometry_samples: u64,
 }
 
 struct ImuStream {
@@ -266,6 +278,7 @@ pub struct Server {
     removals: removals::Removals,
     rates: Option<rates::Rates>,
     forces: Option<forces::Forces>,
+    diff_drive: Option<diff_drive::Stream>,
     command_budget: NonZeroUsize,
     pending_steps: u64,
     pending_reset: bool,
@@ -459,6 +472,7 @@ impl Server {
         forces.bind(&simulation)?;
         world_io.install_forces(force_setup)?;
         let forces = forces.into_active();
+        let diff_drive = diff_drive::stream(&simulation, &world_io, &config, &imus, &lidars, None)?;
         Ok(Self {
             simulation,
             world_io,
@@ -469,6 +483,7 @@ impl Server {
             removals,
             rates,
             forces,
+            diff_drive,
             command_budget,
             pending_steps: 0,
             pending_reset: false,
@@ -592,6 +607,9 @@ impl Server {
         counters.lidar_failures = counters
             .lidar_failures
             .saturating_add(failures[4].load(std::sync::atomic::Ordering::Relaxed));
+        counters.odometry_failures = counters
+            .odometry_failures
+            .saturating_add(failures[5].load(std::sync::atomic::Ordering::Relaxed));
         counters
     }
     /// Return observed bounded-input losses, independent of remote delivery.
@@ -696,6 +714,7 @@ impl Server {
         self.publish_poses(info.sim_time);
         self.publish_imus();
         self.publish_lidars();
+        self.publish_odometry();
         self.removals
             .execute(&self.world_io, &mut self.simulation, &mut self.counters);
         self.imus.retain(|stream| {
@@ -708,6 +727,7 @@ impl Server {
             self.imus = Vec::new();
         }
         self.retire_lidars();
+        self.retire_diff_drive();
         if let Some(rates) = &mut self.rates {
             rates.retire(&self.simulation);
             if rates.is_empty() {
@@ -760,6 +780,7 @@ impl Server {
                 &mut self.counters,
             )?;
         }
+        self.poll_diff_drive()?;
         Ok(info)
     }
 
@@ -965,6 +986,7 @@ impl Server {
         }
         self.imus = Vec::new();
         self.lidars = Vec::new();
+        self.diff_drive = None;
         self.world_io.shutdown();
     }
 }

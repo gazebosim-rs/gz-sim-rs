@@ -53,6 +53,8 @@ struct Node {
     joint: Option<JointHandle>,
     joint_definition: Option<JointDefinition>,
     joint_force: Option<JointForceConfiguration>,
+    drive: Option<crate::diff_drive::Drive>,
+    drive_configuration: Option<DiffDriveConfiguration>,
     joint_sample: Option<JointSample>,
     motion: Option<gz_physics_tpe::Motion>,
     tpe_link: Option<tpe::TpeLink>,
@@ -147,6 +149,8 @@ pub(super) fn capture(sim: &mut Simulation) {
             joint: entity.get::<JointHandle>().copied(),
             joint_definition: entity.get::<JointDefinition>().cloned(),
             joint_force: entity.get::<JointForceConfiguration>().cloned(),
+            drive: entity.get::<crate::diff_drive::Drive>().cloned(),
+            drive_configuration: entity.get::<DiffDriveConfiguration>().cloned(),
             joint_sample: entity.get::<JointSample>().copied(),
             motion: entity.get::<gz_physics_tpe::Motion>().cloned(),
             tpe_link: entity.get::<tpe::TpeLink>().cloned(),
@@ -198,6 +202,21 @@ pub fn initial_joint_force_configurations(
             .as_ref()
             .map(|configuration| (node.id.get(), configuration))
     }))
+}
+
+/// Original configured drive streams, including removed loaded models.
+pub fn initial_diff_drive_configurations(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = &DiffDriveConfiguration>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial
+        .0
+        .nodes
+        .iter()
+        .filter_map(|node| node.drive_configuration.as_ref()))
 }
 
 /// Initial stream configuration, including sensors whose runtime entities were removed.
@@ -359,6 +378,12 @@ pub fn reset_loaded_world<R>(
         if let Some(configuration) = &node.joint_force {
             entity.insert((configuration.clone(), JointForceCommand::default()));
         }
+        if let Some(drive) = &node.drive {
+            entity.insert(drive.clone());
+        }
+        if let Some(configuration) = &node.drive_configuration {
+            entity.insert(configuration.clone());
+        }
         if let Some(sample) = node.joint_sample {
             entity.insert(sample);
         }
@@ -458,6 +483,7 @@ pub fn reset_loaded_world<R>(
     crate::lidar::install(sim);
     crate::joint_lifecycle::install(sim);
     crate::joint_force_lifecycle::install(sim);
+    crate::diff_drive::install(sim);
     let reset = sim.reset();
     sim.world_mut().remove_resource::<RestoredPhysics>();
     let result = reset

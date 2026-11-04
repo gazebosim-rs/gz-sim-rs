@@ -50,9 +50,12 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
             sim.world()
                 .contains_resource::<crate::joint_force_lifecycle::Installed>(),
             sim.world().contains_resource::<crate::lidar::Installed>(),
+            sim.world()
+                .contains_resource::<crate::diff_drive::Installed>(),
         );
         crate::imu_lifecycle::retire_if_unused(sim)?;
         crate::lidar::retire_if_unused(sim)?;
+        crate::diff_drive::retire_if_unused(sim)?;
         crate::joint_lifecycle::retire_if_unused(sim)?;
         crate::joint_force_lifecycle::retire_if_unused(sim)?;
         let after = (
@@ -63,6 +66,8 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
             sim.world()
                 .contains_resource::<crate::joint_force_lifecycle::Installed>(),
             sim.world().contains_resource::<crate::lidar::Installed>(),
+            sim.world()
+                .contains_resource::<crate::diff_drive::Installed>(),
         );
         if before == after {
             if sim.world().iter_entities().any(|entity| {
@@ -70,13 +75,14 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
                     || !after.1 && entity.contains::<crate::JointHandle>()
                     || !after.2 && entity.contains::<crate::JointForceCommand>()
                     || !after.3 && entity.contains::<crate::lidar::Lidar>()
+                    || !after.4 && entity.contains::<crate::diff_drive::Drive>()
             }) {
                 return Err(SystemRetirementError::AddedConsumer);
             }
             return Ok(());
         }
         // A schedule build may remove another family's last consumer.
-        // Markers only retire here, so at most four rounds can change them.
+        // Markers only retire here, so at most five rounds can change them.
     }
 }
 
@@ -153,7 +159,13 @@ fn remove_model_checked(
         && !world.iter_entities().any(|entity| {
             entity.contains::<crate::lidar::Lidar>() && !subtree.contains(&entity.id())
         });
-    if (retire_imu || retire_joint || retire_force || retire_lidar) && !schedules_ready {
+    let retire_drive = world.contains_resource::<crate::diff_drive::Installed>()
+        && !world.iter_entities().any(|entity| {
+            entity.contains::<crate::diff_drive::Drive>() && !subtree.contains(&entity.id())
+        });
+    if (retire_imu || retire_joint || retire_force || retire_lidar || retire_drive)
+        && !schedules_ready
+    {
         sim.initialize_schedules()
             .map_err(|error| RemoveError::Schedule(error.to_string()))?;
         // Builds synchronously notify World observers. Their mutations must

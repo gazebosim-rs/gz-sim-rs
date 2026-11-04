@@ -154,6 +154,8 @@ enum WorldWork {
     Poses(u64, Vec<u8>),
     Imu(u64, crate::imu_io::ImuJob),
     Lidar(u64, crate::lidar_io::LidarJob),
+    Odometry(u64, crate::diff_drive_io::Job),
+    InstallDrive(crate::diff_drive_io::Setup, crate::diff_drive_io::Receipt),
     InstallLidar(
         String,
         mpsc::SyncSender<std::result::Result<Arc<LidarOutput>, String>>,
@@ -218,7 +220,7 @@ pub(super) struct WorldIo {
     pub(super) rejected: Arc<AtomicU64>,
     pub(super) ingress_drops: Arc<AtomicU64>,
     pub(super) reply_failures: Arc<AtomicU64>,
-    pub(super) publication_failures: Arc<[AtomicU64; 5]>,
+    pub(super) publication_failures: Arc<[AtomicU64; 6]>,
     pub(super) epoch: Arc<AtomicU64>,
     pub(super) max_message_bytes: usize,
     capacity: usize,
@@ -358,7 +360,7 @@ impl WorldIo {
         let worker_poses = Arc::clone(&poses);
         let epoch = Arc::new(AtomicU64::new(0));
         let worker_epoch = Arc::clone(&epoch);
-        let publication_failures: Arc<[AtomicU64; 5]> =
+        let publication_failures: Arc<[AtomicU64; 6]> =
             Arc::new(std::array::from_fn(|_| AtomicU64::new(0)));
         let failures = Arc::clone(&publication_failures);
         let control_worker =
@@ -497,6 +499,11 @@ impl WorldIo {
             .spawn(move || {
                 let mut rates: Option<crate::rates::RateDeclarations> = None;
                 let mut forces: Option<crate::force_io::ForceDeclarations> = None;
+                let mut drive: Option<crate::diff_drive_io::Declarations> = None;
+                let mut drive_install: Option<(
+                    crate::diff_drive_io::Setup,
+                    crate::diff_drive_io::Receipt,
+                )> = None;
                 let mut imus: Option<crate::imu_io::ImuDeclarations> = None;
                 let mut lidars: Option<crate::lidar_io::LidarDeclarations> = None;
                 let mut lidar_retirement: Option<(
@@ -548,6 +555,29 @@ impl WorldIo {
                             forces = None;
                         }
                     }
+                    if drive.as_mut().is_some_and(|declarations| {
+                        declarations.reconcile(publication_session.is_closed())
+                    }) {
+                        drive = None;
+                    }
+                    if drive.is_none()
+                        && let Some((setup, receipt)) = drive_install.take()
+                    {
+                        match crate::diff_drive_io::Declarations::new(
+                            &publication_session,
+                            setup,
+                            &publication_process,
+                            &publication_node,
+                        ) {
+                            Ok((declarations, output)) => {
+                                let _ = receipt.try_send(Ok(output));
+                                drive = Some(declarations);
+                            }
+                            Err(error) => {
+                                let _ = receipt.try_send(Err(error.to_string()));
+                            }
+                        }
+                    }
                     if rates.is_none()
                         && let Some((setup, receipt)) = install.take()
                     {
@@ -582,7 +612,9 @@ impl WorldIo {
                             }
                         }
                     }
-                    let incoming = if install.is_some()
+                    let incoming = if drive.is_some()
+                        || drive_install.is_some()
+                        || install.is_some()
                         || rates.is_some()
                         || imus.is_some()
                         || lidars.is_some()
@@ -668,6 +700,23 @@ impl WorldIo {
                                 .map_err(|error| error.to_string());
                             let _ = receipt.try_send(result);
                         }
+                        Ok(WorldWork::Odometry(generation, job)) => {
+                            if generation == worker_epoch.load(Ordering::Acquire)
+                                && drive
+                                    .as_ref()
+                                    .is_some_and(|declarations| declarations.publish(job).is_err())
+                            {
+                                failures[5].fetch_add(1, Ordering::Relaxed);
+                            }
+                        }
+                        Ok(WorldWork::InstallDrive(setup, receipt)) => {
+                            if drive_install.is_none() {
+                                drive_install = Some((setup, receipt));
+                            } else {
+                                let _ =
+                                    receipt.try_send(Err("drive setup is already pending".into()));
+                            }
+                        }
                         Ok(WorldWork::RootClock(generation, publisher, bytes)) => {
                             if generation == worker_epoch.load(Ordering::Acquire)
                                 && publisher
@@ -706,6 +755,9 @@ impl WorldIo {
                 if let Some(declarations) = &forces {
                     declarations.begin_shutdown();
                 }
+                if let Some(declarations) = &drive {
+                    declarations.begin_shutdown();
+                }
                 // Undeclaring an endpoint does not join an in-flight callback.
                 // Keep its capture witness on this IO owner until it is released.
                 loop {
@@ -717,7 +769,10 @@ impl WorldIo {
                         declarations.reconcile();
                         declarations.is_empty()
                     });
-                    if rates_done && forces_done {
+                    let drive_done = drive
+                        .as_mut()
+                        .is_none_or(|declarations| declarations.reconcile(true));
+                    if rates_done && forces_done && drive_done {
                         break;
                     }
                     thread::sleep(Duration::from_millis(1));
@@ -861,6 +916,38 @@ impl WorldIo {
     }
 
     // Initial construction can wait here. Reset needs a separate readiness phase.
+    pub(super) fn diff_drive_output(
+        &self,
+        setup: crate::diff_drive_io::Setup,
+    ) -> std::result::Result<Arc<crate::diff_drive_io::Output>, crate::Error> {
+        if [&setup.command_key, &setup.odometry_key]
+            .into_iter()
+            .any(|key| {
+                key == self.clock.key_expr().as_str()
+                    || key == self.poses.key_expr().as_str()
+                    || key == &self.control_key
+            })
+        {
+            return Err(crate::Error::DiffDriveIdentity);
+        }
+        if self.session.is_closed() {
+            return Err(crate::Error::WorldClosed);
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let (receipt, ready) = mpsc::sync_channel(1);
+        self.incoming
+            .send_deadline(WorldWork::InstallDrive(setup, receipt), deadline)
+            .map_err(|error| {
+                crate::Error::WorldNetwork(format!("drive setup admission failed: {error}"))
+            })?;
+        ready
+            .recv_timeout(deadline.saturating_duration_since(Instant::now()))
+            .map_err(|error| {
+                crate::Error::WorldNetwork(format!("drive setup receipt failed: {error}"))
+            })?
+            .map_err(crate::Error::WorldNetwork)
+    }
+
     pub(super) fn install_rates(
         &self,
         setup: crate::rates::RateSetup,
@@ -1025,6 +1112,22 @@ impl WorldIo {
             .try_send(WorldWork::Lidar(
                 self.epoch.load(Ordering::Acquire),
                 crate::lidar_io::LidarJob::new(output, bytes),
+            ))
+            .map_err(|_| "world publication queue unavailable".into())
+    }
+
+    pub(super) fn publish_odometry(
+        &self,
+        output: &Arc<crate::diff_drive_io::Output>,
+        bytes: Vec<u8>,
+    ) -> Result<()> {
+        if bytes.len() > self.max_message_bytes || self.session.is_closed() {
+            return Err("invalid odometry publication".into());
+        }
+        self.incoming
+            .try_send(WorldWork::Odometry(
+                self.epoch.load(Ordering::Acquire),
+                crate::diff_drive_io::Job::new(output, bytes),
             ))
             .map_err(|_| "world publication queue unavailable".into())
     }

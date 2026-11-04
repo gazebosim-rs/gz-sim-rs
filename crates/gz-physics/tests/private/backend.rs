@@ -304,3 +304,29 @@ fn default_ray_capability_refuses_without_validation_or_mutation() {
     assert_eq!(backend.resets, 0);
     assert!(!backend.fail);
 }
+
+#[test]
+fn default_joint_velocity_motors_refuse_before_validation_or_mutation() {
+    let mut backend = Recorder::default();
+    let motor = Some(JointVelocityMotor {
+        target_velocity: f64::NAN,
+        max_force: f64::NEG_INFINITY,
+    });
+    let error = PhysicsError::Unsupported {
+        engine: "recorder",
+        capability: "joint velocity motors",
+    };
+    for value in [None, motor] {
+        assert_eq!(
+            backend.validate_joint_velocity_motor(JointId::from_raw(u64::MAX), value),
+            Err(error.clone())
+        );
+        assert_eq!(
+            backend.set_joint_velocity_motor(JointId::from_raw(u64::MAX), value),
+            Err(error.clone())
+        );
+    }
+    assert!(backend.steps.is_empty());
+    assert_eq!(backend.resets, 0);
+    assert!(!backend.fail);
+}
