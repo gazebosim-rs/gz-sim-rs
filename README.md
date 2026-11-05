@@ -29,6 +29,12 @@ The [live progress dashboard](https://gazebosim-rs.github.io/rewrite-progress/)
 tracks accepted increments, current development, remaining scope and evidence
 across all five repositories. Repository agents publish their own updates.
 
+The current M11 source adds explicit local scene recording and read-only replay;
+its [recording contract and CLI](docs/M11_RECORDING_REPLAY.md) describe the bounded
+format, asset ownership and cursor controls. This source is awaiting its required
+verification and acceptance; published delivery status remains canonical in the
+[weekly delivery plan](docs/DELIVERY_PLAN.md).
+
 The design combines the responsibilities of `gz-sim`, `gz-sensors`, `gz-physics`,
 and the necessary parts of `gz-math` in one Cargo workspace. Bevy supplies the ECS
 and renderer. Existing Rust libraries replace general-purpose Gazebo utilities.

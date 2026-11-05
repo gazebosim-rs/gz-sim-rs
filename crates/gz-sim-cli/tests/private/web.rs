@@ -287,6 +287,7 @@ fn competing_controls_never_acknowledge_an_uncommitted_requested_state() {
         assert!(
             commands
                 .send(Queued::Control(Pending {
+                    trace: None,
                     control: Control::decode(
                         &json!({"version":1,"kind":"control",
                 "request_id":id,"action":action})

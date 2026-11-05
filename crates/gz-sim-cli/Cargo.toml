@@ -32,6 +32,8 @@ gz-sim-proto.workspace = true
 sdformat.workspace = true
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.149"
+# Reuse the already locked maintained digest for immutable local recording assets.
+sha2 = "=0.10.9"
 tungstenite = { version = "=0.30.0", default-features = false, features = ["handshake"] }
 
 # M2 uses maintained glTF and HTTP implementations, with only local serving enabled.

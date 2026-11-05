@@ -611,6 +611,7 @@ fn committed_reply_retains_its_exact_scene_even_after_latest_advances() {
     assert!(
         sender
             .send(Queued::Lifecycle(lifecycle::Pending {
+                trace: None,
                 request,
                 alive: Arc::new(AtomicBool::new(true)),
                 reply
@@ -699,6 +700,7 @@ fn full_scene_and_sequence_limits_refuse_before_native_or_identity_mutation() {
         .unwrap()
         .pending
         .push(lifecycle::Pending {
+            trace: None,
             request: lifecycle::Request::decode(&target(2, 1, 0, "remove", 2).to_string(), 1)
                 .unwrap(),
             alive: Arc::new(AtomicBool::new(true)),
@@ -1071,3 +1073,6 @@ fn disconnect_after_cpu_handoff_and_lost_lifecycle_reply_ownership_never_mutate_
 
 #[path = "web_publication_credit.rs"]
 mod publication_credit_tests;
+
+#[path = "web_recording.rs"]
+mod recording_tests;

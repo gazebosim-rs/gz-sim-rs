@@ -3,6 +3,7 @@
 //! Explicit local viewer ownership; no resources exist without --web-viewer.
 mod assets;
 mod lifecycle;
+mod recording;
 mod scan;
 mod snapshot;
 mod socket;
@@ -73,6 +74,7 @@ impl Control {
 }
 
 pub(super) struct Pending {
+    trace: Option<String>,
     control: Control,
     alive: Arc<AtomicBool>,
     reply: mpsc::SyncSender<String>,
@@ -106,6 +108,7 @@ struct Ack {
 
 pub(super) struct Bridge {
     assets: Option<assets::Assets>,
+    recording: Option<recording::Capture>,
     latest: Arc<Latest>,
     scan_connected: Arc<AtomicBool>,
     connected: Arc<AtomicU64>,
@@ -137,6 +140,22 @@ impl Bridge {
         )
     }
 
+    pub(super) fn new_recording(
+        sim: &Simulation,
+        world: &str,
+        port: u16,
+        sdf: &sdformat::Sdf,
+        path: &std::path::Path,
+    ) -> io::Result<Self> {
+        Self::with_recording_options(
+            sim,
+            world,
+            TcpListener::bind((Ipv4Addr::LOCALHOST, port))?,
+            Some(sdf),
+            Some(path),
+        )
+    }
+
     fn with_listener(sim: &Simulation, world: &str, listener: TcpListener) -> io::Result<Self> {
         Self::with_options(sim, world, listener, None)
     }
@@ -147,6 +166,23 @@ impl Bridge {
         listener: TcpListener,
         sdf: Option<&sdformat::Sdf>,
     ) -> io::Result<Self> {
+        Self::with_recording_options(sim, world, listener, sdf, None)
+    }
+
+    fn with_recording_options(
+        sim: &Simulation,
+        world: &str,
+        listener: TcpListener,
+        sdf: Option<&sdformat::Sdf>,
+        recording_path: Option<&std::path::Path>,
+    ) -> io::Result<Self> {
+        if recording_path.is_some()
+            && (sdf.is_none() || world != "default" || sim.epoch() != 0 || !sim.elapsed().is_zero())
+        {
+            return Err(io::Error::other(
+                "recording requires the startup default lifecycle world",
+            ));
+        }
         let assets = assets::Assets::new(sim)?;
         let scene = match &assets {
             Some(assets) => snapshot::extract_with_assets(sim, world, 0, Some(assets))?,
@@ -159,6 +195,23 @@ impl Bridge {
             .as_ref()
             .map(|lifecycle| lifecycle.encode_catalog(sim, &scene).map(Arc::new))
             .transpose()?;
+        let captured = recording_path
+            .and(assets.as_ref())
+            .map(assets::Assets::snapshot);
+        let recording = recording_path
+            .map(|path| {
+                recording::Capture::start(
+                    path,
+                    captured.as_ref(),
+                    &scene,
+                    catalog
+                        .as_ref()
+                        .expect("recording requires lifecycle")
+                        .as_str(),
+                )
+            })
+            .transpose()?;
+        let recording_enabled = recording.is_some();
         let initial = snapshot::encode(&scene)?;
         let lifecycle_enabled = lifecycle.is_some();
         let port = listener.local_addr()?.port();
@@ -181,7 +234,10 @@ impl Bridge {
                         &connected,
                         &scan_connected,
                         &sender,
-                        lifecycle_enabled,
+                        socket::Modes {
+                            lifecycle: lifecycle_enabled,
+                            recording: recording_enabled,
+                        },
                     )
                 })?
         };
@@ -190,6 +246,7 @@ impl Bridge {
         );
         Ok(Self {
             assets,
+            recording,
             latest,
             scan_connected,
             connected,
@@ -201,6 +258,13 @@ impl Bridge {
             published: Instant::now(),
             published_generation: 0,
         })
+    }
+
+    pub(super) fn finish_recording(&mut self) -> io::Result<()> {
+        if let Some(recording) = self.recording.take() {
+            recording.finish()?;
+        }
+        Ok(())
     }
 
     pub(super) fn scan_interested(&self) -> bool {
@@ -267,7 +331,7 @@ impl Bridge {
                 .lifecycle
                 .as_ref()
                 .is_some_and(lifecycle::Lifecycle::has_replies)
-            && (generation == 0
+            && ((generation == 0 && self.recording.is_none())
                 || (generation == self.published_generation
                     && self.published.elapsed() < Duration::from_millis(34)))
         {
@@ -297,27 +361,18 @@ impl Bridge {
             .as_ref()
             .map(|lifecycle| lifecycle.encode_catalog(sim, &scene).map(Arc::new))
             .transpose()?;
-        // The network owner clones this pair under one lock: every scan follows
-        // the exact committed Scene publication captured with it, including reset.
-        *self
-            .latest
-            .lock()
-            .map_err(|_| io::Error::other("gzweb snapshot lock poisoned"))? = (
-            generation,
-            encoded.clone(),
-            measured_scan.clone(),
-            catalog.clone(),
-        );
-        self.published = Instant::now();
-        self.published_generation = generation;
-        if let Some(lifecycle) = &mut self.lifecycle {
-            lifecycle.send_replies(
-                encoded,
-                measured_scan,
-                catalog.expect("configured lifecycle catalog"),
-            );
-        }
-        for (pending, accepted, before) in controls {
+        let mut outcomes = if self.recording.is_some() {
+            Some(
+                self.lifecycle
+                    .as_ref()
+                    .expect("recording lifecycle owner")
+                    .recorded_outcomes()?,
+            )
+        } else {
+            None
+        };
+        let mut control_replies = Vec::with_capacity(controls.len());
+        for (mut pending, accepted, before) in controls {
             let completed = match pending.control.action {
                 Action::Pause => scene.paused,
                 Action::Resume => !scene.paused,
@@ -343,7 +398,50 @@ impl Bridge {
                 error: (!accepted).then_some("control rejected by the current server state"),
             };
             let encoded = serde_json::to_string(&ack).map_err(io::Error::other)?;
-            // A disconnected client cannot hold the simulation or block shutdown.
+            if let Some(outcomes) = &mut outcomes {
+                let trace = pending.trace.take().ok_or_else(|| {
+                    io::Error::other("enabled recording lost world control provenance")
+                })?;
+                outcomes.push(recording::world_outcome(
+                    &pending.control.action,
+                    trace,
+                    encoded.clone(),
+                    accepted,
+                ));
+            }
+            control_replies.push((pending, encoded));
+        }
+        // Capture the exact committed outcome before Latest coalescing and
+        // before any successful control ACK is exposed to the socket worker.
+        if let Some(recording) = &mut self.recording {
+            recording.record(
+                &scene,
+                catalog.as_ref().expect("recording catalog").as_str(),
+                outcomes.expect("enabled capture outcomes"),
+            )?;
+        }
+        // The network owner clones this pair under one lock: every scan follows
+        // the exact committed Scene publication captured with it, including reset.
+        *self
+            .latest
+            .lock()
+            .map_err(|_| io::Error::other("gzweb snapshot lock poisoned"))? = (
+            generation,
+            encoded.clone(),
+            measured_scan.clone(),
+            catalog.clone(),
+        );
+        self.published = Instant::now();
+        self.published_generation = generation;
+        if let Some(lifecycle) = &mut self.lifecycle {
+            lifecycle.send_replies(
+                encoded,
+                measured_scan,
+                catalog.expect("configured lifecycle catalog"),
+            );
+        }
+        for (pending, encoded) in control_replies {
+            // A disconnected client cannot hold simulation or block shutdown.
             let _ = pending.reply.try_send(encoded);
         }
         Ok(())
@@ -370,3 +468,7 @@ mod scan_tests;
 #[cfg(test)]
 #[path = "../tests/private/web_lifecycle.rs"]
 mod lifecycle_tests;
+
+pub(super) fn replay(path: &std::path::Path, port: u16, stop: &AtomicBool) -> io::Result<()> {
+    recording::replay(path, port, stop)
+}

@@ -26,7 +26,7 @@ const FILE_LIMIT: usize = 16 * 1024 * 1024;
 const TOTAL_LIMIT: usize = 64 * 1024 * 1024;
 const FILE_COUNT: usize = 128;
 
-type Files = BTreeMap<String, Bytes>;
+pub(super) type Files = BTreeMap<String, Bytes>;
 
 fn invalid(message: impl Into<String>) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, message.into())
@@ -136,16 +136,8 @@ fn document_paths(mesh: &sdformat::Mesh) -> io::Result<(PathBuf, PathBuf, String
     Ok((root, document_path, name.to_owned()))
 }
 
-fn admit(
-    mesh: &sdformat::Mesh,
-    scope: usize,
-    files: &mut Files,
-    total: &mut usize,
-) -> io::Result<String> {
-    let (root, document_path, name) = document_paths(mesh)?;
-    let bytes = read_file(&document_path)?;
-    let gltf = gltf::Gltf::from_slice(&bytes)
-        .map_err(|e| invalid(format!("{}: {e}", document_path.display())))?;
+fn parse_document(bytes: &[u8], label: &str) -> io::Result<gltf::Gltf> {
+    let gltf = gltf::Gltf::from_slice(bytes).map_err(|e| invalid(format!("{label}: {e}")))?;
     let asset = &gltf.as_json().asset;
     if asset.version != "2.0" || asset.min_version.as_deref().is_some_and(|v| v != "2.0") {
         return Err(invalid(
@@ -155,10 +147,11 @@ fn admit(
     if gltf.scenes().next().is_none() {
         return Err(invalid("M2 glTF must contain a scene"));
     }
-    let prefix = format!("/assets/{scope}/");
-    let entry = format!("{prefix}{name}");
-    let resources = gltf
-        .buffers()
+    Ok(gltf)
+}
+
+fn resource_uris(gltf: &gltf::Gltf) -> impl Iterator<Item = &str> {
+    gltf.buffers()
         .filter_map(|buffer| match buffer.source() {
             gltf::buffer::Source::Uri(uri) => Some(uri),
             gltf::buffer::Source::Bin => None,
@@ -166,8 +159,21 @@ fn admit(
         .chain(gltf.images().filter_map(|image| match image.source() {
             gltf::image::Source::Uri { uri, .. } => Some(uri),
             gltf::image::Source::View { .. } => None,
-        }));
-    for resource in resources {
+        }))
+}
+
+fn admit(
+    mesh: &sdformat::Mesh,
+    scope: usize,
+    files: &mut Files,
+    total: &mut usize,
+) -> io::Result<String> {
+    let (root, document_path, name) = document_paths(mesh)?;
+    let bytes = read_file(&document_path)?;
+    let gltf = parse_document(&bytes, &document_path.display().to_string())?;
+    let prefix = format!("/assets/{scope}/");
+    let entry = format!("{prefix}{name}");
+    for resource in resource_uris(&gltf) {
         // Embedded resources remain the maintained glTF loader's responsibility.
         if resource.starts_with("data:") {
             continue;
@@ -193,11 +199,166 @@ fn admit(
 }
 
 pub(super) struct Assets {
+    files: Arc<Files>,
     entries: BTreeMap<u64, (sdformat::Mesh, String)>,
     aliases: Option<std::collections::BTreeSet<u64>>,
     port: u16,
     stop: Arc<AtomicBool>,
     worker: Option<JoinHandle<()>>,
+}
+
+/// Startup-captured resources. Bytes and routes cannot change through this view;
+/// the original prefix identifies recorded URLs, not a listener kept alive here.
+#[derive(Clone)]
+pub(super) struct CapturedAssets {
+    prefix: String,
+    files: Arc<Files>,
+}
+impl CapturedAssets {
+    pub(super) fn prefix(&self) -> &str {
+        &self.prefix
+    }
+    pub(super) fn files(&self) -> &Files {
+        &self.files
+    }
+}
+
+fn asset_route(route: &str) -> Option<(&str, &str)> {
+    route
+        .strip_prefix("/assets/")
+        .and_then(|path| path.split_once('/'))
+        .filter(|(scope, relative)| {
+            !scope.is_empty()
+                && scope.bytes().all(|b| b.is_ascii_digit())
+                && relative_path(relative)
+        })
+}
+
+fn validate_files(files: &Files) -> io::Result<()> {
+    if files.len() > FILE_COUNT {
+        return Err(invalid("playback exceeds 128 declared resources"));
+    }
+    let mut total = 0;
+    for (route, bytes) in files {
+        if asset_route(route).is_none()
+            || bytes.len() > FILE_LIMIT
+            || bytes.len() > TOTAL_LIMIT - total
+        {
+            return Err(invalid(
+                "invalid playback resource route or 16 MiB/64 MiB byte bound",
+            ));
+        }
+        total += bytes.len();
+    }
+    Ok(())
+}
+
+/// Validate a captured glTF entry and its declared URI closure before playback
+/// publishes a scene. Never reads local paths, follows URLs or decodes pixels.
+/// Internal buffer/accessor/pixel decoding remains the maintained loader's job,
+/// matching the live asset admission boundary.
+pub(super) fn validate_recorded_document(uri: &str, prefix: &str, files: &Files) -> io::Result<()> {
+    validate_files(files)?;
+    let port = prefix
+        .strip_prefix("http://127.0.0.1:")
+        .and_then(|port| port.parse::<u16>().ok())
+        .filter(|port| *port != 0)
+        .ok_or_else(|| invalid("recorded assets require a canonical loopback HTTP prefix"))?;
+    if prefix != format!("http://127.0.0.1:{port}") || uri.len() > 2048 {
+        return Err(invalid("invalid recorded mesh URI prefix or length"));
+    }
+    let route = uri
+        .strip_prefix(prefix)
+        .ok_or_else(|| invalid("recorded mesh URI is outside its captured origin"))?;
+    let (scope, relative) =
+        asset_route(route).ok_or_else(|| invalid("invalid recorded mesh route"))?;
+    if !matches!(relative.rsplit('.').next(), Some("gltf" | "glb")) {
+        return Err(invalid("recorded mesh entry must be .gltf or .glb"));
+    }
+    let bytes = files
+        .get(route)
+        .ok_or_else(|| invalid("recorded mesh document is missing"))?;
+    let gltf = parse_document(bytes, uri)?;
+    let directory = route.rsplit_once('/').expect("validated asset route").0;
+    for resource in resource_uris(&gltf) {
+        if resource.starts_with("data:") {
+            continue;
+        }
+        if !relative_path(resource) {
+            return Err(invalid(
+                "recorded glTF dependency is outside its admitted path subset",
+            ));
+        }
+        let dependency = format!("{directory}/{resource}");
+        if asset_route(&dependency).is_none_or(|(actual_scope, _)| actual_scope != scope)
+            || !files.contains_key(&dependency)
+        {
+            return Err(invalid(
+                "recorded glTF declared resource is missing from its captured scope",
+            ));
+        }
+    }
+    Ok(())
+}
+
+/// Read-only HTTP ownership for an already admitted recording's immutable files.
+/// File format/manifest/glTF validation belongs to recording admission; this
+/// boundary independently validates route and byte budgets before binding.
+pub(super) struct PlaybackAssets {
+    port: u16,
+    stop: Arc<AtomicBool>,
+    worker: Option<JoinHandle<()>>,
+}
+impl PlaybackAssets {
+    /// Empty recordings allocate no listener, runtime or worker. Nonempty input
+    /// is moved into the existing server, without filesystem or native access.
+    pub(super) fn new(files: Files) -> io::Result<Option<Self>> {
+        validate_files(&files)?;
+        if files.is_empty() {
+            return Ok(None);
+        }
+        let (port, stop, worker) = start_server(Arc::new(files))?;
+        Ok(Some(Self {
+            port,
+            stop,
+            worker: Some(worker),
+        }))
+    }
+    /// New loopback origin; admitted route suffixes remain byte-for-byte stable.
+    pub(super) fn prefix(&self) -> String {
+        format!("http://127.0.0.1:{}", self.port)
+    }
+    pub(super) fn healthy(&self) -> bool {
+        self.worker
+            .as_ref()
+            .is_some_and(|worker| !worker.is_finished())
+    }
+}
+impl Drop for PlaybackAssets {
+    fn drop(&mut self) {
+        self.stop.store(true, Ordering::Release);
+        if let Some(worker) = self.worker.take() {
+            let _ = worker.join();
+        }
+    }
+}
+
+fn start_server(files: Arc<Files>) -> io::Result<(u16, Arc<AtomicBool>, JoinHandle<()>)> {
+    let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0))?;
+    listener.set_nonblocking(true)?;
+    let port = listener.local_addr()?.port();
+    let stop = Arc::new(AtomicBool::new(false));
+    let worker_stop = stop.clone();
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_io()
+        .enable_time()
+        .build()?;
+    let worker = thread::Builder::new()
+        .name("gzweb-assets".into())
+        .spawn(move || {
+            runtime.block_on(serve(listener, files, worker_stop));
+        })?;
+    Ok((port, stop, worker))
 }
 
 /// A checked reference to already captured immutable bytes, never a new path.
@@ -241,28 +402,26 @@ impl Assets {
         if entries.is_empty() {
             return Ok(None);
         }
-        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0))?;
-        listener.set_nonblocking(true)?;
-        let port = listener.local_addr()?.port();
-        let stop = Arc::new(AtomicBool::new(false));
-        let worker_stop = stop.clone();
-        let runtime = tokio::runtime::Builder::new_current_thread()
-            .enable_io()
-            .enable_time()
-            .build()?;
-        let worker = thread::Builder::new()
-            .name("gzweb-assets".into())
-            .spawn(move || {
-                runtime.block_on(serve(listener, Arc::new(files), worker_stop));
-            })?;
+        let files = Arc::new(files);
+        let (port, stop, worker) = start_server(files.clone())?;
         eprintln!("gzweb-rs local glTF resources: http://127.0.0.1:{port}/assets/");
         Ok(Some(Self {
+            files,
             entries,
             aliases: None,
             port,
             stop,
             worker: Some(worker),
         }))
+    }
+
+    /// The original origin and exact declared bytes outlive visual alias retirement.
+    /// This shallow immutable view owns no new file handles or resource worker.
+    pub(super) fn snapshot(&self) -> CapturedAssets {
+        CapturedAssets {
+            prefix: format!("http://127.0.0.1:{}", self.port),
+            files: self.files.clone(),
+        }
     }
 
     pub(super) fn uri(&self, id: u64, mesh: &sdformat::Mesh) -> io::Result<String> {
@@ -440,3 +599,7 @@ async fn serve(listener: TcpListener, files: Arc<Files>, stop: Arc<AtomicBool>) 
 #[cfg(test)]
 #[path = "../../tests/private/assets.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../../tests/private/playback_assets.rs"]
+mod playback_tests;

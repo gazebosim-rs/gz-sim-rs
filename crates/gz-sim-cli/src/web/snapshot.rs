@@ -2,20 +2,26 @@
 // SPDX-License-Identifier: Apache-2.0
 use gz_sim_core::{EntityId, Simulation, entity_by_id};
 use gz_sim_scene::{EntityKind, Name, VisualGeometry, VisualMaterial, VisualProperties, WorldPose};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::io;
 
 pub(super) const MAX_BYTES: usize = 65536;
 
-#[derive(Clone, Serialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+// Keep the original native literal API. The alias prevents serde derive's
+// implicit borrowed-&str lifetime inference; the field adapter owns decoding
+// and returns only the validated constant, so no input borrow is retained.
+type StaticKind = &'static str;
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub(super) enum Shape {
     Box { size: [f64; 3] },
     Sphere { radius: f64 },
     Mesh { uri: String, scale: [f64; 3] },
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct Visual {
     id: u64,
     name: String,
@@ -25,10 +31,12 @@ pub(super) struct Visual {
     color: [f64; 4],
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(super) struct Scene {
     version: u8,
-    kind: &'static str,
+    #[serde(deserialize_with = "scene_kind")]
+    kind: StaticKind,
     world: String,
     world_id: u64,
     pub epoch: u64,
@@ -39,7 +47,128 @@ pub(super) struct Scene {
     visuals: Vec<Visual>,
 }
 
+fn scene_kind<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<&'static str, D::Error> {
+    let kind = String::deserialize(deserializer)?;
+    if kind == "scene" {
+        Ok("scene")
+    } else {
+        Err(serde::de::Error::custom("expected recorded scene kind"))
+    }
+}
+
 impl Scene {
+    /// Decode a bounded admitted recorded scene. Asset ownership is checked by
+    /// the archive caller; only its exact immutable source URIs are accepted.
+    pub(super) fn decode(text: &str, asset: impl Fn(&str) -> bool) -> io::Result<Self> {
+        if text.len() > MAX_BYTES {
+            return Err(invalid("recorded scene exceeds 64 KiB"));
+        }
+        let scene: Self = serde_json::from_str(text).map_err(io::Error::other)?;
+        let mesh = scene
+            .visuals
+            .iter()
+            .any(|v| matches!(v.shape, Shape::Mesh { .. }));
+        if scene.kind != "scene"
+            || scene.version != if mesh { 2 } else { 1 }
+            || scene.world != "default"
+            || scene.world_id == 0
+            || scene.world_id > u32::MAX as u64
+            || scene.nanoseconds >= 1_000_000_000
+            || scene.visuals.len() > 128
+        {
+            return Err(invalid("invalid recorded scene header"));
+        }
+        let mut ids = std::collections::BTreeSet::new();
+        let positive = |v: f64| representable(v) && v as f32 > 0.0;
+        for visual in &scene.visuals {
+            if visual.id == 0
+                || visual.id > u32::MAX as u64
+                || visual.id == scene.world_id
+                || !ids.insert(visual.id)
+                || visual.name.len() > 256
+                || !visual
+                    .color
+                    .iter()
+                    .all(|v| v.is_finite() && (0.0..=1.0).contains(v))
+                || visual.color[3] != 1.0
+            {
+                return Err(invalid("invalid recorded visual identity or color"));
+            }
+            let valid = match &visual.shape {
+                Shape::Box { size } => size.iter().copied().all(positive),
+                Shape::Sphere { radius } => positive(*radius),
+                Shape::Mesh { uri, scale } => {
+                    scale.iter().copied().all(positive)
+                        && uri.len() <= 2048
+                        && url::Url::parse(uri).is_ok_and(|url| {
+                            matches!(url.path().rsplit('.').next(), Some("gltf" | "glb"))
+                                && url.query().is_none()
+                                && url.fragment().is_none()
+                        })
+                        && asset(uri)
+                }
+            };
+            if !valid {
+                return Err(invalid("invalid recorded visual geometry or asset"));
+            }
+        }
+        scene.check_projected()?;
+        Ok(scene)
+    }
+
+    pub(super) fn playback(
+        &mut self,
+        epoch: u64,
+        sequence: u64,
+        paused: bool,
+        asset: impl Fn(&str) -> io::Result<String>,
+    ) -> io::Result<()> {
+        // Preflight all URI remaps before changing this owned presentation.
+        let remaps: Vec<_> = self
+            .visuals
+            .iter()
+            .filter_map(|visual| {
+                if let Shape::Mesh { uri, .. } = &visual.shape {
+                    Some(asset(uri))
+                } else {
+                    None
+                }
+            })
+            .collect::<io::Result<_>>()?;
+        let mut remaps = remaps.into_iter();
+        for visual in &mut self.visuals {
+            if let Shape::Mesh { uri, .. } = &mut visual.shape {
+                *uri = remaps.next().expect("one admitted remap per mesh");
+            }
+        }
+        self.epoch = epoch;
+        self.sequence = sequence;
+        self.paused = paused;
+        Ok(())
+    }
+    pub(super) fn recording_key(&self) -> io::Result<String> {
+        let mut scene = self.clone();
+        scene.sequence = 0;
+        encode(&scene)
+    }
+    pub(super) fn mesh_uris(&self) -> impl Iterator<Item = &str> {
+        self.visuals
+            .iter()
+            .filter_map(|visual| match &visual.shape {
+                Shape::Mesh { uri, .. } => Some(uri.as_str()),
+                _ => None,
+            })
+    }
+    pub(super) fn definitions(&self) -> io::Result<Vec<(u64, String)>> {
+        self.visuals
+            .iter()
+            .map(|visual| {
+                serde_json::to_string(&("visual", &visual.name, &visual.shape, visual.color))
+                    .map(|definition| (visual.id, definition))
+                    .map_err(io::Error::other)
+            })
+            .collect()
+    }
     pub(super) fn world_name(&self) -> &str {
         &self.world
     }

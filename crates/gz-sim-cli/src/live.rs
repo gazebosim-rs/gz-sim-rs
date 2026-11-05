@@ -201,15 +201,33 @@ impl Runtime {
     }
 }
 
+/// Playback uses the same termination owner and local viewer IO, without loading
+/// SDF or constructing Simulation, Server, Zenoh, physics or sensor resources.
+pub(super) fn replay(path: &std::path::Path, port: u16) -> Result<(), Box<dyn Error>> {
+    let termination = Termination::install()?;
+    super::web::replay(path, port, &termination.requested)?;
+    Ok(())
+}
+
+pub(super) struct ViewerOptions {
+    pub port: Option<u16>,
+    pub lifecycle_sdf: Option<sdformat::Sdf>,
+    pub recording_path: Option<PathBuf>,
+}
+
 pub(super) fn run(
     mut simulation: Simulation,
     world: &str,
     running: bool,
     iterations: u64,
-    web_viewer: Option<u16>,
     camera_worker: Option<PathBuf>,
-    lifecycle_sdf: Option<sdformat::Sdf>,
+    viewer: ViewerOptions,
 ) -> Result<(Simulation, u64), Box<dyn Error>> {
+    let ViewerOptions {
+        port: web_viewer,
+        lifecycle_sdf,
+        recording_path,
+    } = viewer;
     let factor = simulation
         .world()
         .get_resource::<WorldPhysics>()
@@ -226,12 +244,21 @@ pub(super) fn run(
     runtime.server_mut().prepare_run(Duration::from_secs(5))?;
     let mut viewer = web_viewer
         .map(|port| match lifecycle_sdf.as_ref() {
-            Some(sdf) => super::web::Bridge::new_with_lifecycle(
-                runtime.server().simulation(),
-                world,
-                port,
-                sdf,
-            ),
+            Some(sdf) => match recording_path.as_deref() {
+                Some(path) => super::web::Bridge::new_recording(
+                    runtime.server().simulation(),
+                    world,
+                    port,
+                    sdf,
+                    path,
+                ),
+                None => super::web::Bridge::new_with_lifecycle(
+                    runtime.server().simulation(),
+                    world,
+                    port,
+                    sdf,
+                ),
+            },
             None => super::web::Bridge::new(runtime.server().simulation(), world, port),
         })
         .transpose()?;
@@ -264,6 +291,9 @@ pub(super) fn run(
             .checked_add(delay)
             .ok_or_else(|| io::Error::other("real-time update deadline overflow"))?;
         termination.wait_until(deadline);
+    }
+    if let Some(viewer) = &mut viewer {
+        viewer.finish_recording()?;
     }
     Ok((runtime.into_simulation(), completed))
 }

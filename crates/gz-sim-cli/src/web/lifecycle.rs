@@ -137,6 +137,18 @@ impl Request {
             operation,
         })
     }
+    pub(super) fn recorded_world(&self) -> (u64, u64) {
+        (self.world_id, self.epoch)
+    }
+    pub(super) fn recorded_request(&self) -> (&'static str, Option<u64>) {
+        let model = match self.operation {
+            Operation::Spawn { .. } => None,
+            Operation::Remove(id) | Operation::GetState(id) | Operation::SetState(id, _) => {
+                Some(id)
+            }
+        };
+        (self.action(), model)
+    }
     fn action(&self) -> &'static str {
         match self.operation {
             Operation::Spawn { .. } => "spawn",
@@ -148,6 +160,7 @@ impl Request {
 }
 
 pub(super) struct Pending {
+    pub trace: Option<String>,
     pub request: Request,
     pub alive: Arc<AtomicBool>,
     pub reply: mpsc::SyncSender<Committed>,
@@ -162,30 +175,126 @@ pub(super) struct Committed {
     pub ack: String,
 }
 
-#[derive(Clone, Serialize)]
-struct TemplateInfo {
+// Keep the original native literal API. The alias prevents serde derive's
+// implicit borrowed-&str lifetime inference; the field adapter owns decoding
+// and returns only the validated constant, so no input borrow is retained.
+type StaticKind = &'static str;
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct TemplateInfo {
     template_id: u64,
     label: String,
 }
-#[derive(Clone, Serialize)]
-struct Model {
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct Model {
     model_id: u64,
     name: String,
     visual_ids: Vec<u64>,
     can_remove: bool,
     can_set_state: bool,
 }
-#[derive(Clone, Serialize)]
-struct Catalog {
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct Catalog {
     version: u8,
-    kind: &'static str,
+    #[serde(deserialize_with = "catalog_kind")]
+    kind: StaticKind,
     world_id: u64,
     epoch: u64,
     scene_sequence: u64,
     templates: Vec<TemplateInfo>,
     models: Vec<Model>,
 }
+fn catalog_kind<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<&'static str, D::Error> {
+    let kind = String::deserialize(deserializer)?;
+    if kind == "lifecycle_catalog" {
+        Ok("lifecycle_catalog")
+    } else {
+        Err(serde::de::Error::custom(
+            "expected recorded lifecycle catalog kind",
+        ))
+    }
+}
+
 impl Catalog {
+    pub(super) fn decode(text: &str, scene: &snapshot::Scene) -> io::Result<Self> {
+        if text.len() > snapshot::MAX_BYTES {
+            return Err(invalid());
+        }
+        let catalog: Self = serde_json::from_str(text).map_err(|_| invalid())?;
+        if catalog.version != 1
+            || catalog.kind != "lifecycle_catalog"
+            || catalog.world_id != scene.world_id()
+            || catalog.epoch != scene.epoch
+            || catalog.scene_sequence != scene.sequence()
+            || catalog
+                .models
+                .iter()
+                .any(|model| model.model_id > u32::MAX as u64)
+        {
+            return Err(invalid());
+        }
+        let mut templates = BTreeSet::new();
+        if catalog.templates.iter().any(|template| {
+            template.template_id == 0
+                || template.template_id > u32::MAX as u64
+                || template.label.len() > 256
+                || !templates.insert(template.template_id)
+        }) {
+            return Err(invalid());
+        }
+        catalog.encode()?;
+        let expected: BTreeSet<_> = scene.visual_ids().collect();
+        let actual: BTreeSet<_> = catalog
+            .models
+            .iter()
+            .flat_map(|model| model.visual_ids.iter().copied())
+            .collect();
+        if expected != actual {
+            return Err(invalid());
+        }
+        Ok(catalog)
+    }
+
+    pub(super) fn definitions(&self) -> io::Result<Vec<(u64, String)>> {
+        self.models
+            .iter()
+            .map(|model| {
+                let ids: BTreeSet<_> = model.visual_ids.iter().copied().collect();
+                serde_json::to_string(&("model", &model.name, ids))
+                    .map(|value| (model.model_id, value))
+                    .map_err(io::Error::other)
+            })
+            .collect()
+    }
+
+    pub(super) fn model_ids(&self) -> impl Iterator<Item = u64> + '_ {
+        self.models.iter().map(|model| model.model_id)
+    }
+
+    pub(super) fn read_only(&mut self, scene: &snapshot::Scene) {
+        self.epoch = scene.epoch;
+        self.scene_sequence = scene.sequence();
+        self.templates.clear();
+        for model in &mut self.models {
+            model.can_remove = false;
+            model.can_set_state = false;
+        }
+    }
+
+    pub(super) fn recording_key(&self) -> io::Result<String> {
+        let mut catalog = self.clone();
+        catalog.scene_sequence = 0;
+        catalog.encode()
+    }
+
+    pub(super) fn replay_encode(&self) -> io::Result<String> {
+        self.encode()
+    }
     fn encode(&self) -> io::Result<String> {
         let mut owned = BTreeSet::new();
         let mut models = BTreeSet::new();
@@ -390,6 +499,18 @@ impl Lifecycle {
     ) -> io::Result<String> {
         self.catalog(sim, scene)?.encode()
     }
+    pub(super) fn recorded_outcomes(&self) -> io::Result<Vec<super::recording::Outcome>> {
+        self.replies
+            .iter()
+            .map(|(pending, ack)| {
+                let trace = pending.trace.clone().ok_or_else(|| {
+                    io::Error::other("enabled recording lost lifecycle request provenance")
+                })?;
+                super::recording::Outcome::lifecycle(&pending.request, trace, ack.clone())
+            })
+            .collect()
+    }
+
     pub(super) fn has_replies(&self) -> bool {
         !self.replies.is_empty()
     }

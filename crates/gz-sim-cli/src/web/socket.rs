@@ -12,6 +12,7 @@ struct LocalViewer {
     scan: Arc<AtomicBool>,
     lifecycle: Arc<AtomicBool>,
     lifecycle_enabled: bool,
+    replay_enabled: bool,
     credit: Arc<AtomicBool>,
 }
 
@@ -35,10 +36,20 @@ impl Callback for LocalViewer {
         let mut selected = false;
         let mut lifecycle = false;
         let mut credit = false;
+        let mut replay = false;
         for field in request.uri().query().unwrap_or_default().split('&') {
             let (key, value) = field.split_once('=').unwrap_or((field, ""));
+            if key == "replay" {
+                if replay || value != "1" || !self.replay_enabled {
+                    let mut rejected =
+                        ErrorResponse::new(Some("invalid or unavailable replay opt-in".into()));
+                    *rejected.status_mut() = tungstenite::http::StatusCode::BAD_REQUEST;
+                    return Err(rejected);
+                }
+                replay = true;
+            }
             if key == "scan" {
-                if selected || value != "1" {
+                if self.replay_enabled || selected || value != "1" {
                     let mut rejected = ErrorResponse::new(Some("invalid scan opt-in".into()));
                     *rejected.status_mut() = tungstenite::http::StatusCode::BAD_REQUEST;
                     return Err(rejected);
@@ -64,6 +75,13 @@ impl Callback for LocalViewer {
                 credit = true;
             }
         }
+        if self.replay_enabled && !(replay && lifecycle && credit) {
+            let mut rejected = ErrorResponse::new(Some(
+                "playback requires replay, lifecycle and publication credit opt-ins".into(),
+            ));
+            *rejected.status_mut() = tungstenite::http::StatusCode::BAD_REQUEST;
+            return Err(rejected);
+        }
         if credit && !lifecycle {
             let mut rejected =
                 ErrorResponse::new(Some("publication credit requires lifecycle opt-in".into()));
@@ -82,6 +100,22 @@ fn handshake(
     stop: &AtomicBool,
     lifecycle_enabled: bool,
 ) -> Option<(WebSocket<TcpStream>, bool, bool, bool)> {
+    handshake_mode(stream, stop, lifecycle_enabled, false)
+}
+
+pub(super) fn replay_handshake(
+    stream: TcpStream,
+    stop: &AtomicBool,
+) -> Option<WebSocket<TcpStream>> {
+    handshake_mode(stream, stop, true, true).map(|(socket, _, _, _)| socket)
+}
+
+fn handshake_mode(
+    stream: TcpStream,
+    stop: &AtomicBool,
+    lifecycle_enabled: bool,
+    replay_enabled: bool,
+) -> Option<(WebSocket<TcpStream>, bool, bool, bool)> {
     stream.set_nonblocking(true).ok()?;
     let config = WebSocketConfig::default()
         .read_buffer_size(4096)
@@ -98,6 +132,7 @@ fn handshake(
             scan: opted_in.clone(),
             lifecycle: lifecycle.clone(),
             lifecycle_enabled,
+            replay_enabled,
             credit: credit.clone(),
         },
         Some(config),
@@ -135,7 +170,7 @@ fn handshake(
 
 /// One normal publication may be in flight on an explicitly credited socket.
 /// Priority replies do not touch this connection-local state.
-struct PublicationCredit {
+pub(super) struct PublicationCredit {
     next: u64,
     awaiting: Option<u64>,
 }
@@ -149,14 +184,18 @@ struct PublicationReady {
 }
 
 impl PublicationCredit {
-    fn new() -> Self {
+    pub(super) fn pending(&self) -> bool {
+        self.awaiting.is_some()
+    }
+
+    pub(super) fn new() -> Self {
         Self {
             next: 1,
             awaiting: None,
         }
     }
 
-    fn reserve(&mut self) -> Option<u64> {
+    pub(super) fn reserve(&mut self) -> Option<u64> {
         if self.awaiting.is_some() {
             return None;
         }
@@ -166,7 +205,7 @@ impl PublicationCredit {
         Some(token)
     }
 
-    fn ready(&mut self, text: &str) -> bool {
+    pub(super) fn ready(&mut self, text: &str) -> bool {
         let Ok(ready) = serde_json::from_str::<PublicationReady>(text) else {
             return false;
         };
@@ -190,6 +229,7 @@ struct Peer {
     sent: Option<Arc<String>>,
     scan: bool,
     lifecycle: bool,
+    recording: bool,
     pending: Option<Awaiting>,
     credit: Option<PublicationCredit>,
 }
@@ -352,6 +392,7 @@ impl Peer {
                     let (reply, receiver) = mpsc::sync_channel(1);
                     if commands
                         .try_send(Queued::Lifecycle(lifecycle::Pending {
+                            trace: self.recording.then(|| text.to_string()),
                             request,
                             alive: self.alive.clone(),
                             reply,
@@ -369,6 +410,7 @@ impl Peer {
                     let (reply, receiver) = mpsc::sync_channel(1);
                     if commands
                         .try_send(Queued::Control(Pending {
+                            trace: self.recording.then(|| text.to_string()),
                             control,
                             alive: self.alive.clone(),
                             reply,
@@ -395,6 +437,11 @@ impl Peer {
     }
 }
 
+pub(super) struct Modes {
+    pub lifecycle: bool,
+    pub recording: bool,
+}
+
 pub(super) fn serve(
     listener: TcpListener,
     latest: &Latest,
@@ -402,8 +449,12 @@ pub(super) fn serve(
     connected: &AtomicU64,
     scan_connected: &AtomicBool,
     commands: &mpsc::SyncSender<Queued>,
-    lifecycle_enabled: bool,
+    modes: Modes,
 ) {
+    let Modes {
+        lifecycle: lifecycle_enabled,
+        recording,
+    } = modes;
     let mut peer: Option<Peer> = None;
     let mut generation = 0_u64;
     while !stop.load(Ordering::Acquire) {
@@ -426,6 +477,7 @@ pub(super) fn serve(
                         sent: None,
                         scan,
                         lifecycle,
+                        recording,
                         pending: None,
                         credit: credit.then(PublicationCredit::new),
                     });
@@ -452,3 +504,7 @@ pub(super) fn serve(
 #[cfg(test)]
 #[path = "../../tests/private/web_credit_contract.rs"]
 mod credit_contract_tests;
+
+#[cfg(test)]
+#[path = "../../tests/private/web_replay_admission.rs"]
+mod replay_admission_tests;

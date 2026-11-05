@@ -2807,6 +2807,7 @@ dependencies = [
  "sdformat",
  "serde",
  "serde_json",
+ "sha2",
  "signal-hook",
  "socket2 0.6.5",
  "tempfile",

@@ -18,7 +18,7 @@ use std::{
 #[derive(Parser)]
 #[command(name = "gz-sim-rs", version)]
 struct Args {
-    /// Local SDF world file or configured world directory.
+    /// Local SDF world file/directory, or finalized recording directory with --replay.
     file: PathBuf,
     /// Additional resource roots, appended after environment roots.
     #[arg(long)]
@@ -54,6 +54,12 @@ struct Args {
     /// Camera-owned scene mutation requires a later renderer admission phase.
     #[arg(long, requires = "web_viewer", conflicts_with = "camera_worker")]
     web_lifecycle: bool,
+    /// Record admitted scene/poses and committed browser controls into a new local directory.
+    #[arg(long, requires = "web_lifecycle", conflicts_with_all = ["replay", "camera_worker"])]
+    record_scene: Option<PathBuf>,
+    /// Present a finalized local recording read-only; no native world is created.
+    #[arg(long, requires = "web_viewer", conflicts_with_all = ["web_lifecycle", "camera_worker", "run", "iterations", "step_ns", "resource_path", "fuel_cache_path"])]
+    replay: bool,
     /// Trusted absolute offscreen worker executable (requires the rgb-camera build feature).
     #[arg(long, requires = "server")]
     camera_worker: Option<PathBuf>,
@@ -83,6 +89,20 @@ fn with_fault(
 }
 
 fn run(args: Args) -> Result<(), Box<dyn Error>> {
+    if args.replay {
+        if args.world != "default" || args.physics_engine != PhysicsEngine::Rapier {
+            return Err(
+                "--replay accepts the recorded default world and no backend selection".into(),
+            );
+        }
+        return live::replay(
+            &args.file,
+            args.web_viewer.expect("clap requires viewer for replay"),
+        );
+    }
+    if args.record_scene.is_some() && args.world != "default" {
+        return Err("--record-scene requires the admitted default viewer world".into());
+    }
     if args.web_lifecycle && args.physics_engine != PhysicsEngine::Rapier {
         return Err("--web-lifecycle requires the Rapier physics engine".into());
     }
@@ -154,9 +174,12 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
             &args.world,
             args.run,
             args.iterations.unwrap_or(0),
-            args.web_viewer,
             args.camera_worker,
-            lifecycle_sdf,
+            live::ViewerOptions {
+                port: args.web_viewer,
+                lifecycle_sdf,
+                recording_path: args.record_scene,
+            },
         )?;
         simulation = result.0;
         result.1
@@ -193,3 +216,7 @@ fn main() -> ExitCode {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "../tests/private/recording_cli.rs"]
+mod recording_cli_tests;

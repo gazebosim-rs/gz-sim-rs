@@ -1,9 +1,9 @@
 # Instructions for implementation agents
 
-> M1–M9 are accepted, including live Rapier joint position and velocity control.
-> Current M10 delivers focused interactive spawn/remove and entity-state operations
-> for the admitted MVP scene, budgeted at most five working days including review
-> and required checks. Preserve accepted demos, paused qualifications and Fuel work.
+> M1–M10 are accepted and published, including interactive world lifecycle.
+> Current M11 delivers bounded local scene/pose/control recording and read-only
+> timestamped replay in gzweb-rs, at most five working days including review and
+> required checks. Preserve accepted demos, pending qualifications and Fuel work.
 
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
@@ -14,23 +14,23 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M9 are accepted; see
-their acceptance records. Current M10 delivers focused spawn/remove and entity-state
-operations to the live browser for the admitted MVP scene. Budget at most five
-working days including independent review and mandatory checks. Spawn and remove
-primitives and one local mesh without stale IDs or visuals; rejected requests must
-be atomic and reconnect must obtain a current snapshot. Reuse existing scene IDs,
-resource admission, native Rapier construction, lifecycle and bounded bridge APIs.
-Agree the small admission/wire contract before parallel edits. Preserve current
-body state and physics authority; do not reset unrelated bodies or change default
-viewer protocols. Multiworld, levels and distributed stepping remain excluded.
+Read `docs/DELIVERY_PLAN.md` before selecting work. M1–M10 runtime is accepted;
+M10 canonical metadata may finish normal qualification while isolated M11 source
+progresses. Current M11 records one admitted local scene, poses and committed
+world/lifecycle controls and replays its timestamps and entity lifecycle in
+gzweb-rs. Budget at most five working days including source review and mandatory
+checks. Root owns simulator recording/Scene/CLI integration. Read
+`docs/M11_RECORDING_REPLAY.md` and agree its bounded recording, read-only status,
+clock and asset-lifetime contract before parallel viewer edits. Reuse maintained
+bridge, identity, rendering and local-resource APIs. Historical Gazebo log formats,
+full sensor recording, arbitrary seeking/import UI and broader assets are excluded.
+Never relabel the old parity tool's canned replay as timestamp-faithful acceptance.
 Finish implementation, regressions, docs and independent source review before one
-consolidated required pass; batch actual failures before affected reruns. Never
-weaken retained assertions, tolerances, coverage gates or mandatory jobs. Preserve
-accepted controllers, drive and sensors, native-free/GPU-free defaults, frozen
-candidates and independent Fuel work. M9 acceptance metadata may complete normal
-gates/CI while isolated M10 source progresses; do not replay accepted manual work.
-Split optional scope if over budget. Full P0–P7 remains a deferred inventory.
+consolidated required pass; batch real failures before affected reruns. Preserve
+all assertions, tolerances, gates and mandatory jobs. Keep accepted controls,
+drive/sensors, native-free/GPU-free defaults, frozen candidates and Fuel work.
+Do not replay accepted manual qualification. Split optional scope if over budget;
+full P0–P7 remains a deferred inventory.
 
 The owner explicitly resumed implementation. Work only on the current delivery
 or a concrete blocking dependency; earlier pause records are historical. The
@@ -43,11 +43,12 @@ Batch source review and fixes before a single final verification pass.
 
 ## Architecture
 
-For current M10 integration, read `docs/M10_WORLD_LIFECYCLE.md`. Keep the explicit
-server/viewer opt-ins, startup-only declared templates, authoritative model-to-
-visual IDs and exact Scene-sequence reply packets. Camera-owned mutable scenes
-require a later renderer admission phase. Use the focused Server edit methods;
-do not expose general mutable Simulation access or change default protocols.
+For current M11 integration, reuse the accepted M10 primitive bridge and captured
+asset source. Playback has no physics solver and never resends recorded mutation
+requests or ACKs. Show recorded time/epoch and playback control state distinctly;
+keep transport epochs/sequences monotonic across replay restart and recorded reset.
+Do not advance past an unacknowledged recorded lifecycle frame. Retain the accepted
+live protocols, template admission and model-to-visual identity behavior.
 
 - D28/D29 supersede earlier transport/Messages scope: keep sdformat-rs,
   gz-fuel-tools-rs and schema-only gz-msgs-rs independent. Use upstream Zenoh
