@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-04",
+  "as_of": "2026-11-05",
   "execution_state": "active",
-  "current_phase": "M10",
+  "current_phase": "M11",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -166,7 +166,13 @@
       ],
       "scope": "Expose focused spawn/remove and entity-state operations to the live browser for the admitted MVP scene.",
       "acceptance": "Spawn and remove primitives and one local mesh without stale IDs or visuals; rejected requests are atomic; reconnect obtains a current snapshot.",
-      "excluded": "Multiworld, levels and distributed stepping."
+      "excluded": "Multiworld, levels and distributed stepping.",
+      "accepted_at": "2026-11-05T00:55:28.997235+00:00",
+      "evidence": "docs/M10_ACCEPTANCE.md",
+      "accepted_commits": {
+        "gz-sim-rs": "d3967b6178e8cba2056ba744f38499d03833edd0",
+        "gzweb-rs": "952a520265bd349c9ca015f1a2007ab835e313ca"
+      }
     },
     {
       "id": "M11",
@@ -202,10 +208,10 @@
     "M7": "complete",
     "M8": "complete",
     "M9": "complete",
-    "M10": "in_progress",
-    "M11": "not_started",
+    "M10": "complete",
+    "M11": "in_progress",
     "M12": "not_started"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-04T12:03:52.563445+00:00"
+  "phase_started_at": "2026-11-05T00:55:28.997235+00:00"
 }

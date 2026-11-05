@@ -3,15 +3,55 @@
 
 # Coordinator handoff
 
-> M1–M9 are accepted, including live Rapier joint position and velocity control.
-> Current M10 delivers focused interactive spawn/remove and entity-state operations
-> for the admitted MVP scene, budgeted at most five working days including review
-> and required checks. Preserve accepted demos, paused qualifications and Fuel work.
+> M1–M10 are accepted and published, including interactive world lifecycle.
+> Current M11 delivers focused local recording and replay of the admitted scene,
+> poses and controls, budgeted at most five working days including review and
+> required checks. Preserve accepted demos, paused qualifications and Fuel work.
 
+
+Updated 2026-11-05 UTC. Read DELIVERY_PLAN.md and M10_ACCEPTANCE.md first.
+
+## Current delivery: M11 focused recording and replay
+
+M10 runtime is accepted and published on simulator Main `d3967b61` and viewer Main
+`952a5202`. Required normal local checks, exact hosted CI `41924068764` and
+`41937814296`, independent source/local/official/bundle audits and reviewed actual
+browser observations passed. The simulator keeps strict owned workspace/per-crate
+line and region gates; the viewer keeps its existing workspace line-coverage gate.
+Do not conflate these policies or relabel old ZeroMQ evidence as Zenoh acceptance.
+
+The actual browser spawned/read/edited/moved/removed box18, spawned/removed
+sphere22, spawned mesh26, reloaded to the current snapshot with mesh26 intact,
+removed it, spawned fresh mesh30 and reset to epoch1/time0/paused with only
+original IDs2,6,10,14. The browser and native world remain paused on9011. Two
+initial/reload idle warnings recovered automatically; their cause is UNKNOWN.
+The retained bottom log warning is historical alongside successful current ACKs.
+Do not erase those warnings or claim the separate queued-ACK timer fix caused
+recovery. See M10_ACCEPTANCE.md for exact receipts and evidence limitations.
+
+M11 delivers one local recording of the admitted scene, poses and controls and
+replays its timestamps and entity lifecycle in gzweb-rs, at most five working
+days including independent review and mandatory checks. Root owns simulator
+scene/recording/CLI integration. Inspect existing maintained recording/replay and
+clock/resource APIs and agree the small admission/wire contract before parallel
+viewer edits. Prove malformed-input refusal and bounded buffering. Historical
+Gazebo log-format compatibility and full sensor recording remain excluded.
+
+This M10 acceptance metadata change must pass its normal staged gate and
+exact hosted CI before publication. Automatic Main workflows are separate from the already audited
+review-ref successes; do not label pending runs passed. Metadata qualification
+may finish while isolated M11 source progresses, with one local heavy job at a
+time. Do not rerun accepted manual/browser qualification. Preserve all old demos,
+raw failures, frozen candidates, pinned dependencies and independent Fuel work.
+Use upstream Zenoh unmodified, schema-only Messages and demand-activated built-ins;
+no dynamic system plugins or separate transport/runtime rewrite.
+
+The historical handoffs below retain prior instructions and evidence. Their next
+tasks and pending statements are superseded by this current delivery section.
 
 Updated 2026-11-04. Read DELIVERY_PLAN.md and M9_ACCEPTANCE.md first.
 
-## Current delivery: M10 interactive world lifecycle
+## Historical M9-to-M10 handoff (superseded)
 
 M9 is accepted and published on simulator Main `0f0f031e` after the normal
 1411.351-second staged gate, exact CI `41817794153` (all 16 steps, attempt 1),

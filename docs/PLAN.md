@@ -2,15 +2,15 @@
 
 ## Current delivery priority (D30, 2026-11-02)
 
-M1–M9 are accepted and published; see the [weekly delivery plan](DELIVERY_PLAN.md)
-and [M9 evidence](M9_ACCEPTANCE.md). Current M10 delivers focused interactive
-spawn/remove and entity-state operations for the admitted MVP scene, budgeted at
-most five working days including review and checks. Prove primitive and one local
-mesh lifecycle without stale IDs or visuals, atomic refusal and a current snapshot
-after reconnect. Preserve existing physical state, accepted behavior and defaults.
-Use the bounded admission, opt-in wire and launch contract in
-[M10_WORLD_LIFECYCLE.md](M10_WORLD_LIFECYCLE.md); this source is not acceptance
-until the required gates and actual browser observations pass.
+M1–M10 are accepted and published; see the [weekly delivery plan](DELIVERY_PLAN.md)
+and [M10 evidence](M10_ACCEPTANCE.md). Current M11 records and replays the admitted
+scene, poses and controls for one local session, budgeted at most five working
+days including independent review and required checks. Prove timestamped entity
+lifecycle replay in gzweb-rs, malformed-input refusal and bounded buffering.
+Reuse maintained recording/replay, resource, identity and clock APIs. Agree the
+small admitted recording contract from existing pinned source before parallel
+viewer edits. Historical Gazebo log-format parity and full sensor recording are
+excluded. Preserve accepted M10 lifecycle and all earlier behavior and defaults.
 Implementation was explicitly resumed on 2026-11-02; the earlier planning pause
 is historical. Work only on this delivery or its concrete blocking dependencies.
 Subsequent named phases remain at most five working days each. Full compatibility

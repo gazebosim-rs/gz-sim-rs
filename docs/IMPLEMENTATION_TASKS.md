@@ -10,17 +10,28 @@ files, upstream test IDs, dependency decisions, code revision, exact check comma
 results, coverage, relevant benchmark data, reviewer, and unresolved limits.
 The task author cannot independently retire tests or approve coverage exclusions.
 
-## Current delivery queue: M10 interactive world lifecycle
+## Current delivery queue: M11 focused recording and replay
 
 Owner decision D30 and the explicit resume supersede the old full-rewrite-first
 order and earlier pause records. Follow [DELIVERY_PLAN.md](DELIVERY_PLAN.md) and
-`planning/delivery-phases.json`. M1–M9 are accepted; M10 remains unaccepted and
-budgeted at most five working days including review and required checks. Preserve
-all accepted behavior, pending worktrees and independent Fuel work. Legacy IDs
-remain for regression and scope traceability; a weekly delivery does not complete
-a whole legacy packet or retire any original sensor, system or backend.
+`planning/delivery-phases.json`. M1–M10 are accepted and published; see
+[M10_ACCEPTANCE.md](M10_ACCEPTANCE.md). M11 is budgeted at most five working days
+including independent source review and required checks. Root owns simulator
+scene/recording/CLI integration. First inspect maintained local recording and
+viewer replay APIs; agree one bounded scene/pose/control recording contract
+before parallel edits. A short real session must replay timestamps and entity
+spawn/remove/reset in gzweb-rs, with malformed input and buffer limits proved.
+Historical log-format compatibility and full sensor recording remain excluded.
 
-### M10-CREDIT: bounded lifecycle publication backpressure
+Preserve accepted lifecycle, controllers, drive and sensors, native-free/GPU-free
+defaults, frozen qualifications and independent Fuel work. Complete implementation,
+regression source, docs and independent review before one consolidated required
+pass; batch real failures before affected reruns and retain every assertion and
+gate. M10 acceptance metadata may finish its normal gate/CI while isolated M11
+source progresses; do not replay accepted browser qualification. Legacy packet
+IDs below remain historical inventory, not a prerequisite or automatic assignment.
+
+### Historical M10-CREDIT contract (closed; preserve evidence)
 
 The initial M10 candidates passed required checks, but actual browser acceptance
 failed. The qualified diagnostic viewer confirmed event-queue overflow. This
@@ -42,8 +53,10 @@ and advancing native worlds, command-before-Ready, delayed committed replies,
 reset-before-old-Ready, query negatives and reconnect isolation. Keep all retained
 assertions. Complete implementation, regression source, docs and independent
 source review before one consolidated required pass per affected repository.
-Acceptance still requires the actual stable browser spawn/remove/state/reset and
-reconnect observations; source review or passing CI alone does not accept M10.
+This historical packet required actual stable browser spawn/remove/state/reset
+and reconnect observations. They passed at the revisions in M10_ACCEPTANCE.md;
+source review or CI alone never constituted acceptance. Preserve all earlier
+failures and frozen trees; this section does not authorize requalification.
 
 ## Foundation and reference tasks
 
