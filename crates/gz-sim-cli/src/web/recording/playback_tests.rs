@@ -28,6 +28,98 @@ fn value(text: &str) -> Value {
 }
 
 #[test]
+fn replay_preserves_recorded_f64_bits_through_admission_publication_and_restart() {
+    // The first real M11 replay changed this recorded height by one ULP when
+    // the maintained JSON parser's precise decimal conversion was disabled.
+    // Expected bits come from Rust literals, not from the JSON parser under test.
+    let height = 2.9998468750000002_f64;
+    let rotation = [
+        0.034270798550482096_f64,
+        0.10602051106179562,
+        0.1435721750273919,
+        0.9833474432563558,
+    ];
+    let color = 0.4000000059604645_f64;
+    let mut scene = json!({"version":1,"kind":"scene","world":"default","world_id":1,
+    "epoch":0,"seconds":0,"nanoseconds":0,"sequence":0,"paused":true,
+    "visuals":[
+        {"id":5,"name":"default::box::visual","translation":[-height,0.0,height],
+         "rotation":rotation,"shape":{"kind":"box","size":[height,1.0,1.0]},
+         "color":[color,0.0,0.0,1.0]},
+        {"id":9,"name":"default::sphere::visual","translation":[2.0,0.0,height],
+         "rotation":rotation,"shape":{"kind":"sphere","radius":height},
+         "color":[color,0.0,0.0,1.0]}
+    ]});
+    let mut catalog = json!({"version":1,"kind":"lifecycle_catalog","world_id":1,
+    "epoch":0,"scene_sequence":0,"templates":[],"models":[
+        {"model_id":2,"name":"default::box","visual_ids":[5],"can_remove":true,"can_set_state":true},
+        {"model_id":6,"name":"default::sphere","visual_ids":[9],"can_remove":true,"can_set_state":true}
+    ]});
+    let temp = tempfile::tempdir().unwrap();
+    let path = temp.path().join("exact-recorded-f64");
+    let mut recorder = Recorder::start(&path, None).unwrap();
+    recorder
+        .record(scene.to_string(), catalog.to_string(), vec![])
+        .unwrap();
+    scene["sequence"] = json!(1);
+    scene["seconds"] = json!(1);
+    catalog["scene_sequence"] = json!(1);
+    recorder
+        .record(scene.to_string(), catalog.to_string(), vec![])
+        .unwrap();
+    recorder.finish().unwrap();
+    let now = Instant::now();
+    let mut player = Player::open(&path, now).unwrap();
+    let initial = player.present().unwrap();
+    let heartbeat = player.present().unwrap();
+    player.control(&control("resume", 1), now).unwrap();
+    player.accept(heartbeat.credit);
+    assert!(player.advance(now + Duration::from_secs(1)).unwrap());
+    let advanced = player.present().unwrap();
+    assert_eq!(value(&advanced.status)["recorded_sequence"], 1);
+    assert_eq!(value(&advanced.status)["recorded_seconds"], 1);
+    assert_eq!(value(&advanced.status)["frame"], 2);
+    let (restart, ack) = player
+        .control(&control("reset", 2), now + Duration::from_secs(1))
+        .unwrap();
+    assert_eq!(value(&ack)["ok"], true);
+    for presentation in [initial, heartbeat, advanced, restart] {
+        let observed = value(&presentation.scene);
+        let visuals = observed["visuals"].as_array().unwrap();
+        assert_eq!(visuals.len(), 2);
+        for (visual, expected_id) in visuals.iter().zip([5, 9]) {
+            assert_eq!(visual["id"], expected_id);
+            assert_eq!(
+                visual["translation"][2].as_f64().unwrap().to_bits(),
+                height.to_bits()
+            );
+            for (axis, expected) in rotation.iter().enumerate() {
+                assert_eq!(
+                    visual["rotation"][axis].as_f64().unwrap().to_bits(),
+                    expected.to_bits()
+                );
+            }
+            assert_eq!(
+                visual["color"][0].as_f64().unwrap().to_bits(),
+                color.to_bits()
+            );
+        }
+        for geometry in [
+            &visuals[0]["shape"]["size"][0],
+            &visuals[1]["shape"]["radius"],
+        ] {
+            assert_eq!(geometry.as_f64().unwrap().to_bits(), height.to_bits());
+        }
+        assert_eq!(
+            visuals[0]["translation"][0].as_f64().unwrap().to_bits(),
+            (-height).to_bits()
+        );
+        assert_eq!(value(&presentation.status)["recorded_epoch"], 0);
+        assert_eq!(value(&presentation.status)["recorded_nanoseconds"], 0);
+    }
+}
+
+#[test]
 fn real_cursor_controls_preserve_source_time_and_credit_fences() {
     let temp = tempfile::tempdir().unwrap();
     let path = temp.path().join("capture");

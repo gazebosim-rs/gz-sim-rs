@@ -158,6 +158,12 @@ before the consolidated required checks. No checks accompany partial edits.
 
 ## Local CLI
 
+Replay enables the pinned maintained JSON parser's `float_roundtrip` conversion
+so decoded recorded f64 poses and geometry retain their exact binary values.
+The actual first capture exposed a one-ULP height change with the default parser;
+that failure remains retained. Regression checks compare float bits through
+archive admission, publication, heartbeat and restart without a numeric tolerance.
+
 Capture into a directory that does not already exist, for example:
 
 ```sh

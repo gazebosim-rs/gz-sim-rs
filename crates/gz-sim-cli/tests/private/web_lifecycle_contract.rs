@@ -1,6 +1,33 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
+
+#[test]
+fn decimal_state_requests_preserve_exact_f64_bits() {
+    let number = 2.9998468750000002_f64;
+    let request = serde_json::json!({"version":1,"kind":"lifecycle","request_id":1,
+        "world_id":1,"epoch":0,"action":"set_state","model_id":2,
+        "translation":[number,-number,number],"rotation":[0.0,0.0,0.0,1.0],
+        "linear_velocity":[number,-number,number],
+        "angular_velocity":[-number,number,-number]})
+    .to_string();
+    let decoded = Request::decode(&request, 0).unwrap();
+    let Operation::SetState(id, state) = decoded.operation else {
+        panic!("expected admitted state request");
+    };
+    assert_eq!(id, 2);
+    for (actual, expected) in state
+        .translation
+        .into_iter()
+        .chain(state.linear_velocity)
+        .chain(state.angular_velocity)
+        .zip([
+            number, -number, number, number, -number, number, -number, number, -number,
+        ])
+    {
+        assert_eq!(actual.to_bits(), expected.to_bits());
+    }
+}
 use bevy_ecs::relationship::RelationshipTarget;
 use gz_sim_scene::{BodyHandle, PhysicsEngine};
 use serde_json::{Value, json};

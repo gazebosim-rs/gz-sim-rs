@@ -3,6 +3,42 @@
 use super::*;
 use serde_json::json;
 
+#[test]
+fn lifecycle_provenance_keeps_state_bits_and_original_json_strings() {
+    let number = 2.9998468750000002_f64;
+    let request = r#"{"version":1,"kind":"lifecycle","request_id":1,"world_id":1,"epoch":0,"action":"get_state","model_id":2}"#.to_string();
+    let state = json!({"translation":[number,-number,number],
+        "rotation":[0.0,0.0,0.0,1.0],"linear_velocity":[number,-number,number],
+        "angular_velocity":[-number,number,-number]});
+    let result = json!({"version":1,"kind":"lifecycle_ack","request_id":1,
+        "action":"get_state","world_id":1,"epoch":0,"scene_sequence":1,
+        "seconds":0,"nanoseconds":0,"paused":true,"ok":true,"error":null,
+        "model_id":2,"state":state})
+    .to_string();
+    let decoded: LifeReply = serde_json::from_str(&result).unwrap();
+    let state = decoded.state.unwrap();
+    for (actual, expected) in state
+        .translation
+        .into_iter()
+        .chain(state.linear_velocity)
+        .chain(state.angular_velocity)
+        .zip([
+            number, -number, number, number, -number, number, -number, number, -number,
+        ])
+    {
+        assert_eq!(actual.to_bits(), expected.to_bits());
+    }
+    let decoded = crate::web::lifecycle::Request::decode(&request, 0).unwrap();
+    let outcome = Outcome::lifecycle(&decoded, request.clone(), result.clone()).unwrap();
+    let captured = Scene::decode(&scene(0, 1, 0, true), |_| false).unwrap();
+    outcome.validate(&captured).unwrap();
+    let reopened: Outcome =
+        serde_json::from_str(&serde_json::to_string(&outcome).unwrap()).unwrap();
+    assert_eq!(reopened.request, request);
+    assert_eq!(reopened.result, result);
+    reopened.validate(&captured).unwrap();
+}
+
 fn scene(epoch: u64, sequence: u64, seconds: u64, visible: bool) -> String {
     let visuals = if visible {
         vec![
