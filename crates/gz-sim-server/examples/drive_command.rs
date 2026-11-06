@@ -8,6 +8,23 @@ use gz_sim_proto::{
 use gz_sim_server::ServerOptions;
 use std::{error::Error, time::Duration};
 use zenoh::Wait;
+fn outgoing_config(endpoint: &str) -> Result<zenoh::Config, Box<dyn Error + Send + Sync>> {
+    let mut config = zenoh::Config::default();
+    config
+        .listen
+        .endpoints
+        .set(vec![])
+        .map_err(|_| "invalid Zenoh listener endpoint configuration")?;
+    config.insert_json5("scouting/multicast/enabled", "false")?;
+    config.insert_json5("scouting/gossip/enabled", "false")?;
+    config
+        .connect
+        .endpoints
+        .set(vec![endpoint.parse()?])
+        .map_err(|_| "invalid Zenoh connection endpoint configuration")?;
+    Ok(config)
+}
+
 fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
     if args.len() != 4 {
@@ -22,13 +39,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         return Err("finite velocities and duration in 0..=3600 seconds required".into());
     }
     let key = ServerOptions::from_env()?.topic_key("/model/robot/cmd_vel")?;
-    let mut config = zenoh::Config::default();
-    config.insert_json5("scouting/multicast/enabled", "false")?;
-    config
-        .connect
-        .endpoints
-        .set(vec![args[0].parse()?])
-        .map_err(|_| "invalid Zenoh connection endpoint configuration")?;
+    let config = outgoing_config(&args[0])?;
     let session = zenoh::open(config).wait()?;
     let publisher = session.declare_publisher(key).wait()?;
     let packet = |linear, angular| {
@@ -68,4 +79,79 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     drop(publisher);
     session.close().wait()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::{Value, json};
+    use std::time::Instant;
+
+    fn field(config: &zenoh::Config, path: &str) -> Value {
+        serde_json::from_str(&config.get_json(path).unwrap()).unwrap()
+    }
+
+    #[test]
+    fn outgoing_config_has_only_the_requested_connection_and_no_discovery() {
+        let endpoint = "tcp/127.0.0.1:7449";
+        let config = outgoing_config(endpoint).unwrap();
+        assert_eq!(field(&config, "listen/endpoints"), json!([]));
+        assert_eq!(field(&config, "connect/endpoints"), json!([endpoint]));
+        assert_eq!(field(&config, "scouting/multicast/enabled"), json!(false));
+        assert_eq!(field(&config, "scouting/gossip/enabled"), json!(false));
+        for invalid in ["", "not-an-endpoint"] {
+            assert!(outgoing_config(invalid).is_err(), "{invalid:?}");
+        }
+    }
+
+    #[test]
+    fn real_outgoing_session_reaches_its_owned_peer_without_a_listener() {
+        let mut config = zenoh::Config::default();
+        config
+            .listen
+            .endpoints
+            .set(vec!["tcp/127.0.0.1:0".parse().unwrap()])
+            .unwrap();
+        config.connect.endpoints.set(vec![]).unwrap();
+        config
+            .insert_json5("scouting/multicast/enabled", "false")
+            .unwrap();
+        config
+            .insert_json5("scouting/gossip/enabled", "false")
+            .unwrap();
+        let peer = zenoh::open(config).wait().unwrap();
+        let locators = peer.info().locators().wait();
+        assert_eq!(locators.len(), 1);
+        let endpoint = locators[0].to_string();
+        assert!(endpoint.starts_with("tcp/127.0.0.1:"));
+        assert_ne!(endpoint, "tcp/127.0.0.1:0");
+        let subscriber = peer
+            .declare_subscriber("m12/outgoing-config")
+            .wait()
+            .unwrap();
+        let outgoing = zenoh::open(outgoing_config(&endpoint).unwrap())
+            .wait()
+            .unwrap();
+        assert!(outgoing.info().locators().wait().is_empty());
+        let publisher = outgoing
+            .declare_publisher("m12/outgoing-config")
+            .wait()
+            .unwrap();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !publisher.matching_status().wait().unwrap().matching() {
+            assert!(Instant::now() < deadline, "owned peer did not match");
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        publisher.put(b"outgoing-only").wait().unwrap();
+        let sample = subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .expect("owned peer receive failed")
+            .expect("owned peer did not receive the outgoing publication");
+        assert_eq!(sample.payload().to_bytes().as_ref(), b"outgoing-only");
+        assert!(outgoing.info().locators().wait().is_empty());
+        drop(publisher);
+        drop(subscriber);
+        outgoing.close().wait().unwrap();
+        peer.close().wait().unwrap();
+    }
 }
