@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-05",
   "execution_state": "active",
-  "current_phase": "M11",
+  "current_phase": "M12",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -183,7 +183,13 @@
       ],
       "scope": "Record and replay the admitted scene, poses and controls for one local session.",
       "acceptance": "A short recorded session reproduces its timestamps and entity lifecycle in gzweb-rs; malformed input and bounded buffering pass.",
-      "excluded": "Compatibility with every historical Gazebo log format and full sensor recording."
+      "excluded": "Compatibility with every historical Gazebo log format and full sensor recording.",
+      "accepted_at": "2026-11-05T23:42:38.917778+00:00",
+      "evidence": "docs/M11_ACCEPTANCE.md",
+      "accepted_commits": {
+        "gz-sim-rs": "182773f7a31922eb69eaa3d3fcbbce4f5af3714b",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      }
     },
     {
       "id": "M12",
@@ -209,9 +215,9 @@
     "M8": "complete",
     "M9": "complete",
     "M10": "complete",
-    "M11": "in_progress",
-    "M12": "not_started"
+    "M11": "complete",
+    "M12": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-05T00:55:28.997235+00:00"
+  "phase_started_at": "2026-11-05T23:42:38.917778+00:00"
 }

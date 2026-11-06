@@ -2,19 +2,25 @@
 
 ## Current delivery priority (D30, 2026-11-02)
 
-M1–M10 are accepted and published; see the [weekly delivery plan](DELIVERY_PLAN.md)
-and [M10 evidence](M10_ACCEPTANCE.md). Current M11 records and replays the admitted
-scene, poses and controls for one local session, budgeted at most five working
-days including independent review and required checks. Prove timestamped entity
-lifecycle replay in gzweb-rs, malformed-input refusal and bounded buffering.
-Reuse maintained recording/replay, resource, identity and clock APIs. Agree the
-small admitted recording contract from existing pinned source before parallel
-viewer edits. Historical Gazebo log-format parity and full sensor recording are
-excluded. Preserve accepted M10 lifecycle and all earlier behavior and defaults.
-Implementation was explicitly resumed on 2026-11-02; the earlier planning pause
-is historical. Work only on this delivery or its concrete blocking dependencies.
-Subsequent named phases remain at most five working days each. Full compatibility
-remains a deferred, unscheduled backlog rather than this release's prerequisite.
+M1–M11 runtimes are accepted and published; see the [weekly delivery plan](DELIVERY_PLAN.md)
+and [M11 evidence](M11_ACCEPTANCE.md). Current M12 packages the accepted subset as
+an installable integrated Linux preview, budgeted at most five working days
+including independent review and required checks. A clean supported Linux setup
+must run the documented integrated robot demo. Required coverage, CI, licenses,
+retained regressions and a published limitations matrix belong to the release
+commit. Inspect and reuse existing installation/build, CLI, examples and viewer
+contracts before selecting the smallest packaging changes; this closeout does
+not implement M12 or prove clean-machine installation. Full rewrite completion
+and unsupported platforms/backends/features remain excluded.
+
+Preserve all accepted runtime behavior, defaults, assertions and independent
+Fuel work. This M11 canonical metadata change must pass its own normal gate and
+exact hosted CI before publication; separate automatic Main workflows are not
+inferred successful. Implementation was explicitly resumed on 2026-11-02; older
+pause records are historical. Work only on the current delivery or its concrete
+blocking dependencies after agreement on bounded scope. Later named increments
+remain at most five working days. Full compatibility remains a deferred,
+unscheduled backlog rather than this preview's prerequisite.
 
 ## Outcome and scope
 

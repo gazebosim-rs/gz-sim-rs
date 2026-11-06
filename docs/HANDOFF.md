@@ -3,15 +3,71 @@
 
 # Coordinator handoff
 
-> M1–M10 are accepted and published, including interactive world lifecycle.
-> Current M11 delivers focused local recording and replay of the admitted scene,
-> poses and controls, budgeted at most five working days including review and
-> required checks. Preserve accepted demos, paused qualifications and Fuel work.
+> M1–M11 runtimes are accepted and published, including focused local recording
+> and replay. Current M12 packages the accepted subset as an installable integrated
+> Linux preview, budgeted at most five working days including review and required
+> checks. Preserve accepted demos, paused qualifications and Fuel work.
 
+
+Updated 2026-11-05 UTC. Read DELIVERY_PLAN.md and M11_ACCEPTANCE.md first.
+
+## Current delivery: M12 installable integrated preview
+
+M11 runtime is accepted and published on simulator Main `182773f7` and viewer
+Main `c40418cd`. Their exact review-ref runs `42103914738` and `41968630547`,
+normal required checks, independent source/data/bundle audits and completed
+actual browser image/data review passed. Direct owner approval preceded normal
+fast-forward publication and exact remote readback. The viewer's publication
+pre-push coverage passed in 151.069 seconds. Automatic viewer Main run `42130130009`, attempt 1, has separately completed
+successfully with all six jobs at exact `c40418cd`, as authoritatively observed by
+Root. Automatic simulator Main run `42130320961`, attempt 1, also succeeded at exact
+`182773f7`; verify-core job `127604984873` completed on 2026-11-06 at
+00:23:06 UTC, as authoritatively observed by Root. These separate successful
+Main runs do not replace the audited review-ref proofs or qualify this metadata. The canonical closeout metadata itself
+must pass its normal gate and exact hosted CI before publication.
+
+The original 1,129-frame capture and unchanged exact comparator passed against
+the corrected runtime. Browser evidence includes runtime box18 and mesh22,
+reconnect at Frame530/source18.440 with both present, ordered removals, recorded
+reset and EOF, and cursor Reset to Frame1/sourceepoch0/paused. Browser Play at
+EOF was refused client-side; the already-passing production Player regression
+proves API-level EOF Resume refusal. The unchanged external comparator proves
+EOF completion, Reset and credit fences; it sends no Resume at EOF. The retained Scene trace contains hashes, not full pose payloads.
+Saved `.png`-named browser images contain original JPEG bytes. Recovered idle
+warnings and both storage-floor stops retain unknown causes; the original
+one-ULP failure and all compile/lint/coverage failures remain separate records.
+The qualified preview remains paused on9013. Preserve it and older demos; do not
+repeat passed observers or accepted manual qualification.
+
+Current M12 packages the accepted subset and documents supported capabilities,
+setup and one runnable robot demo, at most five working days including review
+and mandatory checks. Its exit is a clean supported Linux installation running
+the integrated demo, with required coverage, CI, licenses, retained regressions
+and a published limitations matrix at the release commit. Reuse existing build,
+installation, CLI, examples and maintained viewer paths; inspect them and agree
+the smallest packaging contract before implementation. No M12 implementation or
+clean-machine acceptance is supplied by this closeout. Full rewrite completion
+and unsupported platforms, backends and features remain excluded.
+
+This current delivery and DELIVERY_PLAN.md supersede inherited older phase
+banners. Preserve M1–M11 behavior, demand-driven absence, physics authority,
+native-free/GPU-free headless defaults, retained assertions and quality gates.
+Use upstream Zenoh and schema-only Messages without new runtime facades. Do not
+resume retired or frozen qualifications, change Fuel, or delete evidence. Finish
+bounded source, regression code, documentation and independent review before a
+consolidated required pass. Batch real failures before affected reruns. Root's
+native metadata-gate launcher requires its unchanged 14 GiB initial scratch
+reservation and four operating floors; this is an operational launch guard, not
+a new verify.py policy or a requirement for every viewer/build qualification.
+This source-only preparation launches no gate. Runtime acceptance does
+not qualify this new metadata commit. Full P0–P7 remains a separate deferred
+inventory, not an automatic M12 assignment.
+
+## Historical M10-to-M11 handoff (superseded)
 
 Updated 2026-11-05 UTC. Read DELIVERY_PLAN.md and M10_ACCEPTANCE.md first.
 
-## Current delivery: M11 focused recording and replay
+### Previous delivery: M11 focused recording and replay
 
 M10 runtime is accepted and published on simulator Main `d3967b61` and viewer Main
 `952a5202`. Required normal local checks, exact hosted CI `41924068764` and
