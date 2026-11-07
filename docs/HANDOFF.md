@@ -3,11 +3,61 @@
 
 # Coordinator handoff
 
-> M1–M11 runtimes are accepted and published, including focused local recording
-> and replay. Current M12 packages the accepted subset as an installable integrated
-> Linux preview, budgeted at most five working days including review and required
-> checks. Preserve accepted demos, paused qualifications and Fuel work.
+> M1–M12 runtimes/distribution and their retained evidence are accepted. M12's
+> published Ubuntu preview is bounded, not full rewrite completion. Its canonical
+> metadata still requires its own checks before publication. Next work is
+> unselected; preserve all earlier behavior, evidence and independent Fuel work.
 
+
+Updated 2026-11-07 UTC. Read DELIVERY_PLAN.md and M12_ACCEPTANCE.md first.
+
+## Current closeout: M12 accepted; next work unselected
+
+Root formally accepted M12 runtime/distribution at
+`2026-11-07T19:34:44.558424+00:00` after actual qualification, clean installed
+verification and normal publication/readback. Acceptance record
+`m12-runtime-acceptance.json` has SHA `4af8e31e…`. Main is published at
+`9147120aaccd9383d8e406c1b8ee82348153b734`; the public prerelease
+[m12-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m12-preview)
+targets that exact commit. All three archive/checksum/provenance asset digests
+were read back. Publication receipt is `e855b546…`; no future URL/ref is invented.
+
+The final archive is 39,769,747 bytes, SHA `728bb722…`, manifest `53a77fa0…`.
+Native executables remain `a542cb1b`; six viewer files remain `c40418cd`.
+Separate generation/consumer-guide source is `9147120a`, tree `70084c19…`.
+Normal hook passed in 1928.683120 seconds; local DATA `f07ac2c5…` is CLEAR.
+Exact hosted CI 42402368577 attempt 1/all 16 steps and official DATA `14b87792…`
+are CLEAR: 1248 headless/802 renderer/334 whole-suite Python passes. The 45 Python
+methods are Source inventory, not individually logged quiet outcomes. The actual
+hosted diff base was `a542cb1b`, with unchanged Rust 0/0; corrected reader semantics
+preserve all strict whole/per-crate checks and the original failed method record.
+
+Final package DATA `20bd1a84…` preserves original wrapper 1/UNKNOWN old child waits
+and the completed no-repeat report-recovery basis. Continuation `c2fe1139…` has
+actual extraction/relocated-verify 0. Final clean Ubuntu setup `df880f9b…` and
+independent installed DATA `1044dc77…` are CLEAR: 25 CLI exits 0/seven guest exits 0/11 layer
+snapshots, read-only payload unchanged, no compiler/SDK, owned idle container
+stopped. Earlier installed robot/browser DATA `2c92603e…` is reused only through
+exact 1560 non-guide/11 behavior byte-and-mode lineage. Actual helpers drove/turned,
+Pause/Reset ACKs were observed, launcher/helper exits 0 and owned listeners retired;
+simulator-grandchild return code remains UNKNOWN. Static HTTP service was restored;
+the authorized old M9 live world ended and was not replayed.
+
+M1–M12 are complete. No next scope or M13 is selected; full rewrite/backlog work
+is not complete. Preserve every accepted contract, old evidence, Fuel and retained
+failures. This nine-file canonical metadata needs its own independent Source
+review, full normal gate, exact hosted CI and official DATA before publication.
+Runtime/source/release qualification does not qualify this later metadata commit
+or claim a future automatic Main workflow result. Tracker/status mirror updates
+are separately reviewed and must preserve all 151 existing slices and other owners.
+
+The native metadata launcher keeps 14 GiB initial scratch reservation and all four
+operating floors. Its chosen SSD scratch is outside all Cargo ancestors; this
+operational placement does not change verify.py or thresholds. Prior nested
+workspace, wrapper, Source-reader, setup/startup and unknown storage-drift failures
+remain recorded. See M12_ACCEPTANCE.md for exact hashes and evidence limits.
+
+## Historical M11-to-M12 implementation handoff (superseded)
 
 Updated 2026-11-05 UTC. Read DELIVERY_PLAN.md and M11_ACCEPTANCE.md first.
 

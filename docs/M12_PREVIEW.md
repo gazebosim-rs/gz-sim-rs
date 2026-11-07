@@ -2,8 +2,13 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # Integrated Linux preview
 
-M12 is in implementation. No package, clean-machine installation or release
-qualification is accepted yet. M1–M11 acceptance remains recorded separately.
+M12 runtime/distribution is accepted and published as
+[m12-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m12-preview).
+The exact final archive uses native runtime `a542cb1b`, viewer `c40418cd` and
+separate generator/consumer-guide source `9147120a`. See
+[M12_ACCEPTANCE.md](M12_ACCEPTANCE.md) for qualification, installed/demo evidence
+and limits. M1–M11 stay preserved; this canonical record does not rewrite shipped
+guide bytes or supply its own metadata qualification. Next work is unselected.
 
 ## Package contract
 
@@ -46,19 +51,20 @@ assembly leaves existing output and source untouched.
 
 ## Completion evidence
 
-Finish package/launcher implementation, meaningful malformed-input, relocation,
-occupied-port, manifest/resource and shutdown regressions, the supported capability
-matrix and installation guide before independent Source review. Then run one
-normal required staged gate and exact hosted CI for each changed repository,
-retaining strict coverage, licensing and all existing mandatory jobs.
+Package/launcher source, meaningful regressions and independent Source reviews
+are complete. Runtime `a542cb1b` passed normal checks and exact hosted
+`42228908156` attempt 3 with independent official DATA. Notice/guide child
+`9147120a` passed its own full normal hook and exact hosted 42402368577 attempt 1;
+independent official DATA is `14b87792…`. Strict separate profile/per-crate gates
+and actual parent diff semantics remain unchanged.
 
-After those gates, build the source-bound native binaries and assemble the
-package serially. A clean supported installation must run the integrated robot
-using real canonical forward/turn commands and the live maintained browser,
-including pause/reset and clean shutdown. This is installation evidence; accepted
-M1–M11 manual qualifications are not repeated. Report actual dependencies and
-limitations. M12 is at most five working days including review and checks; split
-optional scope rather than relaxing this exit.
+Final archive/relocation DATA is `20bd1a84…`; final Ubuntu setup and installed
+DATA `1044dc77…` passed. Actual installed robot/browser proof `2c92603e…` is
+reused through exact 1560 non-guide/11 behavior byte/mode identity. Root formally
+accepted and published the preview with exact asset/tag/Main readbacks. No new
+manual replay or broad compatibility/performance claim follows. This canonical
+metadata requires its own normal gate and exact CI/official review before its
+publication; the qualification pipeline records that actual result separately.
 
 ## Maintainer input record
 
@@ -76,7 +82,7 @@ cargo build --locked --release -p gz-sim-cli --no-default-features --message-for
 cargo build --locked --release -p gz-sim-server --no-default-features --example drive_command --message-format=json-render-diagnostics > drive-command.jsonl
 ```
 
-These commands are authored instructions, not recorded build successes. A
+These are reproducible maintainer commands. The actual selected release Cargo transcripts bind the two a542 executables; the command examples alone are not evidence for a new build. A
 maintainer may select an isolated `CARGO_TARGET_DIR`; the input paths must then
 match the actual `executable` fields in those transcripts. The assembler requires
 native-free executable artifacts, no test profile, and release opt-level 3. It

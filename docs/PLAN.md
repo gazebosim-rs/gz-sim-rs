@@ -2,25 +2,18 @@
 
 ## Current delivery priority (D30, 2026-11-02)
 
-M1–M11 runtimes are accepted and published; see the [weekly delivery plan](DELIVERY_PLAN.md)
-and [M11 evidence](M11_ACCEPTANCE.md). Current M12 packages the accepted subset as
-an installable integrated Linux preview, budgeted at most five working days
-including independent review and required checks. A clean supported Linux setup
-must run the documented integrated robot demo. Required coverage, CI, licenses,
-retained regressions and a published limitations matrix belong to the release
-commit. Inspect and reuse existing installation/build, CLI, examples and viewer
-contracts before selecting the smallest packaging changes; this closeout does
-not implement M12 or prove clean-machine installation. Full rewrite completion
-and unsupported platforms/backends/features remain excluded.
+M1–M12 runtimes/distribution are accepted; see the [delivery plan](DELIVERY_PLAN.md)
+and [M12 acceptance](M12_ACCEPTANCE.md). The published Ubuntu 24.04 x86_64 preview
+has exact Source/build/payload identities, strict normal/hosted qualification,
+final clean installed verification and retained real robot/browser proof.
+This canonical metadata still needs its own qualification before publication.
 
-Preserve all accepted runtime behavior, defaults, assertions and independent
-Fuel work. This M11 canonical metadata change must pass its own normal gate and
-exact hosted CI before publication; separate automatic Main workflows are not
-inferred successful. Implementation was explicitly resumed on 2026-11-02; older
-pause records are historical. Work only on the current delivery or its concrete
-blocking dependencies after agreement on bounded scope. Later named increments
-remain at most five working days. Full compatibility remains a deferred,
-unscheduled backlog rather than this preview's prerequisite.
+No next phase or implementation is selected. Any later work must be one named
+increment of at most five working days including review/checks. Full compatibility
+remains an unscheduled backlog; twelve completed delivery milestones do not mean
+full rewrite completion. Preserve all accepted contracts, assertions/defaults,
+retained histories and independently owned Fuel work. The historical architecture,
+compatibility and phase inventory below remain unchanged.
 
 ## Outcome and scope
 

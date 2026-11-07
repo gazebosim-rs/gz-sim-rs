@@ -29,13 +29,17 @@ The [live progress dashboard](https://gazebosim-rs.github.io/rewrite-progress/)
 tracks accepted increments, current development, remaining scope and evidence
 across all five repositories. Repository agents publish their own updates.
 
-M1–M11 runtimes are accepted and published; see the canonical
-[weekly delivery plan](docs/DELIVERY_PLAN.md). M12 is implementing a relocatable
-Ubuntu 24.04 x86_64 preview with the accepted native-free server, maintained
-browser and finite robot-command helper. Its [installation guide](docs/M12_INSTALL.md)
-and [capability matrix](docs/M12_CAPABILITIES.md) describe the bounded package;
-no M12 package or clean-install qualification is accepted yet. The accepted
+M1–M12 runtimes and the bounded distribution are accepted. Download the
+[Ubuntu 24.04 x86_64 integrated preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m12-preview)
+and its checksum, then follow the included installation guide. It packages the
+native-free Rapier server, maintained browser and finite robot-command helper.
+See [M12 evidence and limitations](docs/M12_ACCEPTANCE.md), the
+[installation guide](docs/M12_INSTALL.md), [capability matrix](docs/M12_CAPABILITIES.md)
+and [delivery plan](docs/DELIVERY_PLAN.md). This preview does not complete the
+rewrite or qualify unsupported platforms/features. The accepted
 [local recording/replay contract](docs/M11_RECORDING_REPLAY.md) remains retained.
+Next work is unselected. This canonical metadata records its own qualification
+separately before publication.
 
 The design combines the responsibilities of `gz-sim`, `gz-sensors`, `gz-physics`,
 and the necessary parts of `gz-math` in one Cargo workspace. Bevy supplies the ECS

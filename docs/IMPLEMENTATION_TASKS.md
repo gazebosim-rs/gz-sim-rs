@@ -10,34 +10,24 @@ files, upstream test IDs, dependency decisions, code revision, exact check comma
 results, coverage, relevant benchmark data, reviewer, and unresolved limits.
 The task author cannot independently retire tests or approve coverage exclusions.
 
-## Current delivery queue: M12 installable integrated preview
+## Current closeout: M12 accepted; next scope unselected
 
 Owner decision D30 and the explicit resume supersede the old full-rewrite-first
-order and earlier pause records. Follow [DELIVERY_PLAN.md](DELIVERY_PLAN.md) and
-`planning/delivery-phases.json`. M1–M11 runtimes are accepted and published; see
-[M11_ACCEPTANCE.md](M11_ACCEPTANCE.md). Current M12 is budgeted at most five
-working days including independent source review and required checks. Package
-the accepted subset, document supported capabilities and setup, and provide one
-runnable robot demo on clean supported Linux. Reuse current maintained CLI,
-viewer, installation/build and example paths after inspecting their actual
-contracts. Keep native-free/GPU-free server defaults and existing engine choices
-truthful; render-sensor GPU requirements stay explicit.
+order and earlier pause records. [DELIVERY_PLAN.md](DELIVERY_PLAN.md) and
+`planning/delivery-phases.json` record all twelve bounded milestones complete.
+See [M12_ACCEPTANCE.md](M12_ACCEPTANCE.md) for the published preview, exact source,
+normal/hosted/official proofs, final clean installed verification and retained
+robot/browser evidence. The remaining task is this canonical metadata's separate
+Source review, full normal gate, exact CI/official DATA and publication/mirroring.
+No next implementation or M13 is selected; agree a named <=5-working-day scope
+before starting any later increment.
 
-The release commit must pass required coverage, CI, license/attribution and
-retained regressions, and publish a limitations matrix. A source-only packaging
-proposal is not clean-machine installation evidence. Full rewrite completion and
-unsupported platforms/backends/features remain excluded. Do not broaden M12 into
-retired parity work or a new transport, plugin or packaging framework.
-
-Preserve accepted recording/replay, lifecycle, controllers, drive and sensors,
-frozen qualifications, old demos, all 150 existing tracker slices and independent
-Fuel work. This metadata batch does not alter tracker accepted slices. Finish
-bounded source, regressions, docs and independent review before consolidated
-required verification; retain every assertion, tolerance and gate. M11 closeout
-metadata still requires its own normal gate and exact hosted CI, with launch
-held until the unchanged capacity reservation is met. Do not rerun accepted
-browser or exact-observer qualification. Legacy packets below remain historical
-inventory, not a prerequisite or automatic assignment.
+Preserve every accepted runtime contract, assertion, numerical tolerance and gate,
+all 151 existing tracker slices, historical backlog and independent Fuel work.
+Do not replay accepted manual/observer proofs or completed payload/tar/notice
+checks. Retain all original failed runs and method-recovery records. Optional
+worker/native-backend exclusions and full compatibility limitations remain
+explicit. Legacy packets below remain historical inventory, not new assignments.
 
 ### Historical M10-CREDIT contract (closed; preserve evidence)
 

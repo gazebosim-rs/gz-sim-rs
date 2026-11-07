@@ -3,11 +3,10 @@
 
 # Weekly delivery plan
 
-> M1–M11 runtimes are accepted and published, including focused local recording
-> and replay. Current M12 packages the accepted subset as an installable integrated
-> Linux preview, budgeted at most five working days including review and required
-> checks. Preserve accepted demos, paused qualifications and Fuel work.
-
+> M1–M12 runtimes/distribution and their retained evidence are accepted. M12's
+> published Ubuntu preview is bounded, not full rewrite completion. Its canonical
+> metadata still requires its own checks before publication. Next work is
+> unselected; preserve all earlier behavior, evidence and independent Fuel work.
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning
@@ -22,7 +21,7 @@ M1–M6 were accepted on 2026-11-03, M7–M9 on 2026-11-04 and M10–M11 on
 [M4 evidence](M4_ACCEPTANCE.md), [M5 evidence](M5_ACCEPTANCE.md) and
 [M6 evidence](M6_ACCEPTANCE.md), [M7 evidence](M7_ACCEPTANCE.md) and
 [M8 evidence](M8_ACCEPTANCE.md), [M9 evidence](M9_ACCEPTANCE.md) and
-[M10 evidence](M10_ACCEPTANCE.md) and [M11 evidence](M11_ACCEPTANCE.md). M12 now targets **at most five working days**. Each later named increment is
+[M10 evidence](M10_ACCEPTANCE.md) and [M11 evidence](M11_ACCEPTANCE.md). M12 was accepted on 2026-11-07 UTC after final qualification, clean installation and actual preview publication; see [M12 evidence](M12_ACCEPTANCE.md). Its original **at most five working days** scope/budget is retained. Each later named increment is
 also at most five working days, including source review, fixes, documentation,
 mandatory staged checks and hosted CI. These are scope budgets and planning
 targets, not guaranteed completion dates. No clock runs while paused. Re-estimate after a real integration checkpoint; report any risk immediately.
@@ -62,10 +61,15 @@ accepted code, but no phase inherits acceptance merely from an older test run.
 Existing broad P0–P7 gates remain historical and long-term coverage inventories;
 they are not this release schedule and do not block M1 as entire families.
 `planning/delivery-phases.json` is the machine-readable schedule mirrored by the
-tracker. M1–M11 runtimes are accepted; M12 remains unaccepted. These counts are
-independent of historical P2 acceptance. M11 canonical closeout metadata must pass
-its own normal gate and exact hosted CI before publication; successful runtime
-review-ref CI does not supply that metadata result or an automatic Main-CI result.
+tracker. M1–M12 are complete under their bounded acceptance criteria. These
+counts are independent of historical P2 acceptance or total rewrite effort.
+M12 publishes source `9147120a`, packaged runtime `a542cb1b`, viewer `c40418cd`
+and the source-bound archive in its acceptance record. All original phase scopes,
+budgets and criteria remain below. No M13 or subsequent implementation is
+selected. Existing later-work rules apply only after a named scope is agreed.
+This canonical metadata must pass its own normal gate and exact hosted CI before
+publication; no prior result or later automatic Main result is inferred.
+
 
 ## M1: smallest real end-to-end product
 

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-05",
+  "as_of": "2026-11-07",
   "execution_state": "active",
   "current_phase": "M12",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
@@ -200,7 +200,13 @@
       ],
       "scope": "Package the accepted subset and document supported capabilities, setup and a runnable robot demo.",
       "acceptance": "A clean-machine installation runs the integrated demo; required coverage, CI, licenses and retained regressions pass at the release commit, with a published limitations matrix.",
-      "excluded": "Full rewrite completion and unsupported platforms/backends/features."
+      "excluded": "Full rewrite completion and unsupported platforms/backends/features.",
+      "evidence": "docs/M12_ACCEPTANCE.md",
+      "accepted_at": "2026-11-07T19:34:44.558424+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "9147120aaccd9383d8e406c1b8ee82348153b734",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      }
     }
   ],
   "later_work": "After M12, select one named sensor, system, asset capability or backend increment per cycle. Scope each cycle to at most five working days before starting; split anything larger. Full compatibility remains an unscheduled backlog, not a promised twelve-week completion.",
@@ -216,7 +222,7 @@
     "M9": "complete",
     "M10": "complete",
     "M11": "complete",
-    "M12": "in_progress"
+    "M12": "complete"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-05T23:42:38.917778+00:00"

@@ -1,10 +1,9 @@
 # Instructions for implementation agents
 
-> M1–M11 runtimes and canonical acceptance are published. Current M12 packages
-> the accepted subset as an installable integrated Linux preview, at most five
-> working days including review and required checks. Preserve accepted demos,
-> pending qualifications, all retained evidence and independent Fuel work.
-
+> M1–M12 runtimes/distribution and their retained evidence are accepted. M12's
+> published Ubuntu preview is bounded, not full rewrite completion. Its canonical
+> metadata still requires its own checks before publication. Next work is
+> unselected; preserve all earlier behavior, evidence and independent Fuel work.
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -14,23 +13,26 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` before selecting work. Current M12 packages the
-accepted native-free simulator, finite canonical robot-command helper and existing
-gzweb-rs viewer bytes for one supported Linux installation. Follow
-`docs/M12_PREVIEW.md`, the package setup guide and capability matrix. Root owns
-package/launcher integration and the source-bound installed demo. Reuse existing
-CLI, input, resource, identity, renderer and lifecycle APIs; agree the small
-packaging contract before parallel edits. Do not introduce a new protocol,
-transport, solver, plugin or packaging framework. Optional worker/native-backend
-profiles remain explicitly outside the initial binary distribution, with their
-accepted source and tests retained. No full-compatibility inventory or unrelated
-backend/sensor/geometry qualification is assigned here.
+Read `docs/DELIVERY_PLAN.md` and `docs/M12_ACCEPTANCE.md` before selecting
+work. Root accepted the bounded Ubuntu 24.04 x86_64 preview on 2026-11-07 after
+actual required qualification, final installed DATA, retained robot/browser proof,
+normal Main publication and release asset/tag readback. Published source is
+`9147120a`, with native runtime `a542cb1b` and unchanged viewer `c40418cd`.
+Only this nine-file canonical metadata closeout remains to qualify and publish;
+no next implementation scope or M13 is selected. Its own normal gate and exact
+hosted CI remain mandatory; runtime acceptance does not supply those results.
+The two consumer guides and archived payloads retain their separately bound bytes.
+
 Finish source, meaningful regressions, documentation and independent Source review
 before one consolidated normal required pass. Batch real failures before affected
-reruns; preserve assertions, tolerances and strict coverage/mandatory jobs. Prove
-a real clean supported installation and runnable robot demo at the release commit.
-Do not replay accepted M1–M11 manual qualification. Split optional scope if the
-five-working-day budget would be exceeded; full P0–P7 remains deferred.
+reruns; preserve assertions, tolerances and strict coverage/mandatory jobs.
+
+Root owns release/publication decisions. Preserve all mandatory hooks, exact
+hosted jobs, strict coverage, license/attribution records and historical failures.
+Do not replay accepted M1–M11 manual proofs or the already-completed M12 payload,
+archive and notice-data audit. Full P0–P7 and unsupported configurations remain
+outside this bounded closeout. Any later named increment needs an explicit
+scope of at most five working days including independent review and checks.
 
 The owner explicitly resumed implementation. Work only on the current delivery
 or a concrete blocking dependency; earlier pause records are historical. The
