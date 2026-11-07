@@ -9,7 +9,9 @@ packages may be included conservatively; this inventory does not call them linke
 Rust standard-library notices, OSRF/project texts, embedded Geist OFL, vendor/proto
 texts and other non-Cargo shipped material belong in explicit ``extra_files``.
 
-Every SPDX branch is retained, never silently choose an OR alternative. Common
+Every SPDX branch is retained, never silently choose an OR alternative. Deprecated
+flat Cargo ID/ID declarations are admitted as alternatives without rewriting their
+raw declared strings. Mixed slash/SPDX expressions remain refused. Common
 LICENSE-APACHE/LICENSE-MIT and exact identifier filenames resolve separate texts;
 a package-root generic LICENSE/COPYING resolves only a single identifier, not
 WITH exceptions. Unrelated generic ancestor texts cannot satisfy a child license.
@@ -17,8 +19,21 @@ An author-declared Cargo license_file or explicitly supplied
 ``licenses/<complete SPDX expression>.txt`` can supply the complete text without
 this helper interpreting its legal meaning. Shared ``licenses/Apache-2.0.txt``
 fallback is limited to exact Apache-2.0 local packages. Other missing texts fail.
+For a missing unit, explicit extra_files may bind source text to its exact package
+and unit using licenses/packages/<SHA256(CargoID)>/<SHA256(unit)>.txt. Hash UTF-8
+strings, including the complete existing parser unit for WITH exceptions; this
+never binds a bare license to its exception or a different package identity.
+Named package texts keep priority and used bindings are recorded without host paths.
+The caller may explicitly approve a missing-author-body case using an immutable
+license-publisher/SPDX full definition plus separately shipped unmodified author
+metadata/notices and per-ID/unit provenance. That definition is not an author
+grant or attribution; this helper cannot decide that case or a legal verdict.
+Unknown/custom and incomplete WITH texts remain unresolved, never synthesized.
 Workspace ancestor discovery and declared license_file stay inside workspace_root;
 registry packages stay inside their own source root. No guessed/downloaded text.
+An exact zero-byte registry-package-root generic file is preserved separately only
+for a multi-unit declaration without WITH or license_file. It cannot satisfy a
+unit or enter the strict text cache; every unit still needs nonempty source text.
 
 The destination must be new with an existing real parent. Inputs are fully read
 and validated before destination creation; OS write failure may leave a partial
@@ -30,6 +45,8 @@ import hashlib
 from pathlib import Path, PurePosixPath
 import re
 import stat
+
+_GENERIC_NAMES = {"license", "license.txt", "license.md", "licence", "copying", "copying.txt"}
 
 MAX_PACKAGES = 2048
 MAX_PACKAGE_ENTRIES = 2048
@@ -124,6 +141,13 @@ def _units(expression: str) -> list[str]:
     """Validate a bounded token sequence, collect all IDs; do not choose OR branches."""
     if len(expression) > 512:
         _fail("license expression is too long")
+    if "/" in expression:
+        # Cargo's deprecated spelling is a flat list, not an additional SPDX operator.
+        parts = [part.strip() for part in expression.split("/")]
+        if (len(parts) < 2 or any(not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9.\-+:]*", part)
+                                  or part in {"AND", "OR", "WITH"} for part in parts)):
+            _fail(f"malformed legacy license expression: {expression}")
+        return list(dict.fromkeys(parts))
     tokens = _TOKEN.findall(expression)
     if "".join(tokens) != re.sub(r"\s+", "", expression):
         _fail(f"unresolved license expression: {expression}")
@@ -190,6 +214,7 @@ def collect_notices(metadata_documents: list[dict], extra_files: dict[str, Path]
     origins: dict[str, str] = {}
     directories: set[str] = set()
     text_cache: dict[Path, bytes] = {}
+    placeholder_cache: dict[Path, Path] = {}
     output_bytes = read_bytes = candidate_count = directory_entries = 0
     extra_inventory = []
 
@@ -216,7 +241,7 @@ def collect_notices(metadata_documents: list[dict], extra_files: dict[str, Path]
         source = _file(path, bound)
         if source in text_cache:
             return source, text_cache[source]
-        if len(text_cache) >= MAX_TEXT_FILES:
+        if source not in placeholder_cache and len(text_cache.keys() | placeholder_cache.keys()) >= MAX_TEXT_FILES:
             _fail("source text file count exceeds bound")
         source, data = _text(source, bound, MAX_READ_BYTES - read_bytes)
         read_bytes += len(data)
@@ -233,11 +258,29 @@ def collect_notices(metadata_documents: list[dict], extra_files: dict[str, Path]
             result.append(path)
         return sorted(result)
 
-    def candidate(path: Path, bound: Path) -> tuple[Path, bytes]:
+    def empty_placeholder(path: Path, bound: Path) -> Path:
+        source = _file(path, bound)
+        if source in text_cache:
+            _fail("nonempty notice source became an empty placeholder")
+        if source not in placeholder_cache and len(text_cache.keys() | placeholder_cache.keys()) >= MAX_TEXT_FILES:
+            _fail("source text file count exceeds bound")
+        # A zero stat alone is not evidence: check the actual bytes, including reuse.
+        with source.open("rb") as stream:
+            if stream.read(1) != b"":
+                _fail("empty placeholder source changed or is not actually empty")
+        placeholder_cache[source] = bound
+        return source
+
+    def candidate(path: Path, bound: Path, *, allow_placeholder: bool = False) -> tuple[Path, bytes] | None:
         nonlocal candidate_count
         candidate_count += 1
         if candidate_count > MAX_CANDIDATE_FILES:
             _fail("license candidate count exceeds bound")
+        if allow_placeholder:
+            source = _file(path, bound)
+            if source.stat().st_size == 0:
+                empty_placeholder(source, bound)
+                return None
         return load_text(path, bound)
 
     for name, path in sorted(extra_files.items()):
@@ -297,11 +340,21 @@ def collect_notices(metadata_documents: list[dict], extra_files: dict[str, Path]
                 while search[-1] != workspace:
                     search.append(search[-1].parent)
             bound = workspace if len(search) > 1 else package_root
+            units = _units(expression) if expression is not None and declared is None else []
+            allow_placeholder = (isinstance(source_id, str) and source_id.startswith("registry+")
+                                 and declared is None and len(units) >= 2
+                                 and all(" WITH " not in unit for unit in units))
             candidates = []
+            package_placeholders = []
             for parent in search:
                 for path in children(parent):
                     if _TEXT_NAME.fullmatch(path.name) and not path.is_dir():
-                        candidates.append(candidate(path, bound))
+                        item = candidate(path, bound, allow_placeholder=(allow_placeholder
+                                         and path.parent == package_root and path.name.lower() in _GENERIC_NAMES))
+                        if item is None:
+                            package_placeholders.append(path)
+                        else:
+                            candidates.append(item)
                     elif path.name.lower() == "licenses" and path.is_dir():
                         if path.is_symlink():
                             _fail("symlink license directory")
@@ -309,28 +362,35 @@ def collect_notices(metadata_documents: list[dict], extra_files: dict[str, Path]
                             if not nested.is_dir():
                                 candidates.append(candidate(nested, bound))
             selected = []
+            used_unit_bindings = []
             if declared is not None:
                 path = Path(declared)
                 selected.append(load_text(path if path.is_absolute() else package_root / path, bound))
             elif expression is not None:
-                units = _units(expression)
                 supplied = f"licenses/{expression}.txt"
                 found, missing = [], []
                 for unit in units:
                     matched = [(path, data) for path, data in candidates if _named_for(path, unit)]
                     if not matched and len(units) == 1 and " WITH " not in unit:
-                        matched = [(path, data) for path, data in candidates if path.parent == package_root and path.name.lower() in {"license", "license.txt", "license.md", "licence", "copying", "copying.txt"}]
+                        matched = [(path, data) for path, data in candidates if path.parent == package_root and path.name.lower() in _GENERIC_NAMES]
+                    if not matched:
+                        identity_hash = hashlib.sha256(identity.encode("utf-8")).hexdigest()
+                        unit_hash = hashlib.sha256(unit.encode("utf-8")).hexdigest()
+                        binding = f"licenses/packages/{identity_hash}/{unit_hash}.txt"
+                        if binding in outputs:
+                            matched = [(Path(origins[binding]), outputs[binding])]
+                            used_unit_bindings.append({"unit": unit, "path": binding,
+                                                       "sha256": hashlib.sha256(outputs[binding]).hexdigest()})
                     if matched:
                         found.extend(matched)
                     else:
                         missing.append(unit)
+                selected.extend(found)
                 if missing:
                     if supplied in outputs and not (expression == "Apache-2.0" and source_id is not None):
                         selected.append((Path(origins[supplied]), outputs[supplied]))
                     else:
                         _fail(f"missing actual text for {', '.join(missing)} in {identity}")
-                else:
-                    selected.extend(found)
             # Include discovered attribution/copyright notices as well as license texts.
             selected.extend((path, data) for path, data in candidates if path.name.lower().startswith(("notice", "copyright")))
             paths, unique = [], {}
@@ -345,12 +405,24 @@ def collect_notices(metadata_documents: list[dict], extra_files: dict[str, Path]
                 paths.append(relative)
             if not paths:
                 _fail(f"unresolved package notice: {identity}")
+            raw_placeholders = []
+            for source in package_placeholders:
+                relative = f"{folder}/source-placeholders/{source.name}.raw"
+                # Raw source evidence is not license text and is never a unit binding.
+                add(relative, source, b"")
+                raw_placeholders.append({"path": relative, "source_basename": source.name,
+                                         "bytes": 0, "sha256": hashlib.sha256(b"").hexdigest(),
+                                         "kind": "empty_source_placeholder", "used_as_license_text": False})
             entry = {"id": identity, "name": name, "version": version, "source": source_id,
-                     "license": expression, "license_file": declared, "texts": paths, "graphs": [label]}
+                     "license": expression, "license_file": declared, "texts": paths, "graphs": [label],
+                     "used_unit_bindings": used_unit_bindings, "source_placeholders": raw_placeholders}
             records[identity] = {"signature": signature, "entry": entry}
 
     if not records:
         _fail("selected graphs contain no packages")
+    # Recheck the original bytes before publishing even the new owned destination.
+    for source, bound in list(placeholder_cache.items()):
+        empty_placeholder(source, bound)
     destination.mkdir()
     inventory = []
     for relative, data in sorted(outputs.items()):

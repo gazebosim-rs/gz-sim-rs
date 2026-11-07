@@ -146,3 +146,102 @@ this example. Extract into a new parent and preserve the complete directory.
 A failure never replaces existing output or alters input source. A filesystem
 failure can retain a new owned incomplete archive or a completed prefix without
 a completed archive; that failed invocation is not release acceptance.
+
+
+## Separately bound notice-generation compatibility tooling
+
+The first local provisional assembly from runtime commit `a542cb1b` refused the
+legacy Cargo declaration `MIT/Apache-2.0`. No prefix/archive was published. The
+notice-tool correction is isolated from that frozen runtime and the accepted
+`c40418cd` viewer. Native binaries, fixtures, installation/capabilities text and
+browser bundles remain bound to their original sources. The changed collector
+is an unshipped generation tool: release evidence must record its separate full
+revision/tree/diff/hash and actual checks. The old runtime gate does not qualify
+this new tooling. Hosted provisioning remains a separate unresolved blocker;
+local provisional assembly/installation is not M12 acceptance.
+
+The collector now admits only flat deprecated Cargo `ID/ID` alternatives, with
+optional surrounding whitespace. It keeps the exact raw declaration in the
+inventory and requires source text for every branch. Empty branches and mixed
+slash/SPDX forms are refused. Existing SPDX `AND`, `OR` and `WITH` processing is
+unchanged; no alternative is chosen and an exception is never replaced by its
+bare license.
+
+When named source texts cannot resolve a unit, the existing `extra_notices` map
+may explicitly supply this distribution-relative key:
+
+```text
+licenses/packages/<full SHA256 of UTF-8 Cargo package ID>/<full SHA256 of UTF-8 unit>.txt
+```
+
+The unit is the collector's case-sensitive identifier, including the complete
+`Apache-2.0 WITH LLVM-exception` spelling when applicable. Hashes are full lowercase
+hex strings, not package names/version shortcuts. A binding for another package,
+a different unit or a bare license cannot resolve the missing text. The source
+normally comes from a reviewed actual author text: this key is an explicit
+provenance binding, not license detection or a legal compatibility decision. A
+combined author file may be supplied for multiple units only after its complete
+contents and package provenance are reviewed. No registry-wide ancestor fallback
+or new filename alias is added. Existing explicit complete-expression fallback
+restrictions remain.
+
+For an explicit, separately Source-reviewed package-ID/unit case where the full
+author license body is absent, the release procedure may instead bind an immutable,
+identified license-publisher or SPDX **full definition**. The current bounded cases
+are MIT, Apache-2.0 and EPL-2.0 only. This is not an automatic registry fallback.
+The package must also ship the actual unmodified crate `Cargo.toml` and supplied
+`Cargo.toml.orig`, README and every provided attribution/notice applicable to that
+case. Preserve the raw license declaration, authors and all supplied copyright
+data. A short grant/reference record, such as the retained RustAudio record, is
+still shipped even though it is not a full definition.
+
+Record the exact package ID/unit, absent author-body finding, publisher/SPDX
+identity and immutable full-definition bytes/hash, and each actual author record
+in the reviewed input manifest and separately shipped sanitized provenance JSON.
+That JSON contains no absolute development paths and distinguishes publisher
+material from author material. The definition is **not** an author grant,
+attribution, proof that the crate contains a clean canonical license copy, or a
+legal verdict. Never invent a holder/year, fill a template placeholder, rewrite
+an author record or drop an alternative. Unknown/custom license units or an
+incomplete `WITH` exception remain unresolved. Existing actual exception sources,
+including BLAKE3's Apache-with-LLVM file, retain their own author provenance;
+a bare definition cannot replace an exception.
+
+This documented input distinction does not change the collector API, matching
+rules, per-file/read/output/count limits or all-branches requirement. The collector
+copies and records the explicit source bytes; the release procedure and Source
+review must establish each permitted case and separately shipped author records.
+
+Named package texts keep priority and discovered copyright/attribution notices
+remain included. Used bindings appear in each package's `used_unit_bindings` with
+`unit`, copied `path` and `sha256`; its `license` remains the raw Cargo string.
+These records contain no absolute development source path. Source paths/hashes
+remain in generation evidence. Every pre-existing per-file/read/output/count,
+namespace, collision, symlink and destination bound still applies. Missing source
+texts remain errors; no metadata ID or branch may be dropped to finish a package.
+
+
+### Raw empty registry placeholders
+
+A separate notice-tooling correction preserves an unusable, exact zero-byte
+registry-package-root file only when its basename is in the existing generic
+`LICENSE`/`COPYING` set, `license_file` is absent, and the declaration has at least
+two distinct units with no `WITH` exception. Ordinary nonsymlink/in-bound path
+checks and an actual zero-byte read are required, including a final recheck.
+Whitespace, binary, oversized, named-license, nested, notice/copyright, local or
+git-source files and declared license files retain the strict nonempty rules.
+
+The empty file never enters the license-text cache, package `texts` or a unit
+binding. Every unit must independently resolve through unchanged nonempty named,
+explicit scoped or permitted complete-expression inputs, or collection still
+fails before destination creation. The original empty bytes are copied under a
+separate `source-placeholders/` package notice path. Per-package
+`source_placeholders` records the relative path, original basename, zero size,
+empty SHA-256 and `used_as_license_text: false`. No author body is synthesized.
+
+A separate cache accounts for these source files; candidate/file/output count
+limits still include them, zero-length output consumes an output slot, and all
+existing byte limits and cross-graph deduplication remain. This new generator
+revision and its actual checks must be bound separately. The earlier tooling
+tree and its 38-test evidence, runtime `a542cb1b` and browser `c40418cd` remain
+frozen; none qualifies this new change or establishes package/CI/M12 acceptance.

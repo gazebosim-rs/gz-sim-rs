@@ -2,31 +2,46 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # Integrated preview: profile and capability limits
 
-**M12 is pending.** These are the agreed package profile and retained source
-boundaries, not a claim that a release archive, clean installation or integrated
-demo has passed. Read the repository package contract at `docs/M12_PREVIEW.md` and the
-[installation guide](M12_INSTALL.md), which is also copied into the prefix. M1–M11 runtime acceptance remains separate
-from the new package's required source review, normal gates, exact hosted CI,
-source-bound builds and clean-install/browser acceptance.
+This is the M12 Linux preview's native-free profile. The matching published
+release provides its exact source, feature, dependency and notice provenance.
+See [installation and commands](M12_INSTALL.md) and that release's acceptance
+evidence for qualified behavior and limitations.
 
-The initial target is Ubuntu 24.04 x86_64. The simulator and finite command
-helper use `--no-default-features`; the simulator does not enable `rgb-camera`.
-Rapier f64 supplies the robot's authoritative physics. The intended prefix has
-`bin/gz-preview`, `bin/gz-sim-rs`, `bin/gz-drive-command`, one robot world and
-loopback configuration, both maintained viewer bundles, these two guides, project LICENSE/NOTICE,
-`notices.json`, the source-backed `notices/` tree and a manifest.
-There is no claim of a fully static executable or compatibility with other Linux
-releases, CPU architectures, browsers or graphics drivers.
+The supported target is **Ubuntu 24.04 x86_64**, with Python 3.11 or newer and a
+graphics-capable browser for the viewer. The clean installation used Ubuntu
+24.04.5 and Python 3.12.3. Both selected native executables need the standard
+`libgcc_s.so.1`, `libm.so.6`, `libc.so.6` and x86-64 loader; actual resolved file
+ownership was `libgcc-s1:amd64` `14.2.0-4ubuntu2~24.04.1` and `libc6:amd64`
+`2.39-0ubuntu8.9`. They are dynamically linked, not fully static. Other Linux
+releases, architectures and graphics-driver/browser combinations are not
+qualified by this result.
+
+Both native inputs were built from simulator
+`a542cb1b2c84280180e6acc73821a225557f6f44` with Rust 1.97.1,
+`--no-default-features` and no `rgb-camera`. Rapier f64 remains authoritative.
+The six copied viewer files are accepted
+`c40418cd85e21db2bd0271919c90eda0c1184ece`, without viewer code or protocol
+changes. Runtime libraries and the viewer require no checkout, compiler, native
+physics SDK or camera worker. The server needs no display or GPU; the installed
+browser demo used WebGL2. The retained WebGPU bundle is also included, without a
+new universal graphics-support claim.
+
+The release prefix is `gz-preview-m12-linux-x86_64/`, containing the simulator,
+finite sender, standard-library launcher, robot fixture, loopback configuration,
+both viewer bundles, these two guides, project LICENSE/NOTICE, `notices.json`,
+`notices/` and a manifest. Obtain its external checksum from the same published
+release.
 
 ## Package interfaces versus the robot demo
 
-“In profile” below means retained source selected by the intended native-free
-build. Actual package artifacts and their dependency/feature bindings are still
-pending. The planned demonstration reuses the unchanged M8 robot: box chassis,
+“In profile” below means the retained interfaces selected by the actual
+native-free build. It does not mean every interface was exercised by this
+installation demo. The demo reuses the unchanged M8 robot: box chassis,
 spherical wheels, static box ground and two configured revolute wheel joints.
-It does not exercise every available interface.
+The installed robot demo exercised real finite forward/turn commands, browser
+Play/Pause/Reset and owned shutdown.
 
-| Accepted increment | In the proposed profile | Robot demo use (M12 installation run pending) | Retained boundary |
+| Accepted increment | In the native-free profile | Observed robot demo use | Retained boundary |
 | --- | --- | --- | --- |
 | [M1 primitives](https://github.com/gazebosim-rs/gz-sim-rs/blob/101f1ae8b5bcc58543daadd3660872cef5c2b5c8/docs/M1_ACCEPTANCE.md), simulator `35100cf8` | Rapier f64 scene loading, box/sphere dynamics, clock and viewer controls. | Primitive robot/ground, real motion, Play/Pause/Reset. | This is not a replay of the earlier 20-body acceptance demo or a new performance result. |
 | [M2 local visuals](https://github.com/gazebosim-rs/gz-sim-rs/blob/101f1ae8b5bcc58543daadd3660872cef5c2b5c8/docs/M2_ACCEPTANCE.md), `7b8a4e10` | Existing bounded local glTF 2.0 visual/resource path. | No mesh asset in this robot world. | Scoped local resources only; not arbitrary formats, remote resources or general asset conversion. |
@@ -40,12 +55,20 @@ It does not exercise every available interface.
 | [M10 lifecycle](https://github.com/gazebosim-rs/gz-sim-rs/blob/101f1ae8b5bcc58543daadd3660872cef5c2b5c8/docs/M10_ACCEPTANCE.md), `d3967b61` | Existing explicit CLI/browser lifecycle opt-in and admitted standalone model edits. | Launcher does not enable lifecycle editing. The robot is joint-owned, not an editable standalone template. | No arbitrary XML/URLs from the browser, multiworld or distributed stepping. |
 | [M11 recording/replay](https://github.com/gazebosim-rs/gz-sim-rs/blob/101f1ae8b5bcc58543daadd3660872cef5c2b5c8/docs/M11_ACCEPTANCE.md), `182773f7` | Existing direct CLI `--record-scene` and `--replay` interfaces. | Launcher does not record or replay, and exposes no such subcommand. | Bounded local scene/pose/control archive; not full sensor recording, seeking, historical log compatibility or physics re-execution. |
 
-The accepted viewer base is `c40418cd`; simulator metadata base is `101f1ae8`
-with runtime `182773f7`. These identify inherited source/evidence, not an M12
-release commit. The assembler must bind the actual selected native artifacts and
-both viewer bundles to source and Cargo records. Earlier WebGL2 observations,
-WebGPU/WebGL2 bundle builds and their separate size gates are not universal
-browser/driver support or a newly tested installation.
+The simulator/helper artifact source is `a542cb1b`; the accepted viewer is
+`c40418cd`. Notice generation is separately bound to the final qualified tooling
+revision; it is unshipped build-time tooling, not native executable provenance.
+The notice inventory covers 739 selected package records and 233 explicit extra notices,
+retaining raw declarations and all required license branches. Disclosed missing
+author-body cases use identified full definitions plus separate actual author
+records, not invented grants. An actual zero-byte source placeholder is preserved
+as raw evidence and never used as license text. The manifest and release
+provenance record the distributed file and source bindings.
+
+The copied viewer bundles have independent 14,000,000-byte gzip limits. Recorded
+bundle measurements are 12,901,614 bytes WebGPU and 12,879,428 bytes WebGL2.
+Those sizes describe the supplied bytes, not browser performance or universal
+driver support.
 
 ## Robot commands and frames
 
@@ -59,8 +82,8 @@ partition must match between the launcher and command helper.
 Configured linear/yaw command bounds are ±1 m/s and ±2 rad/s; wheel target speed
 and torque bounds are 10 rad/s and 5 N m. A zero command requests bounded braking,
 not instantaneous physical rest. The finite helper's duration is wall-clock
-seconds and it ends a successful send with zero targets. Start playback of the
-live world with Play before sending commands; sending while paused need not
+seconds and it ends a successful send with zero targets. Click Play in the
+live world before sending commands; sending while paused need not
 produce visible motion. Odometry remains measured encoder output, not a claim
 that contact slip or all physical trajectories match a reference engine.
 
@@ -77,8 +100,9 @@ that contact slip or all physical trajectories match a reference engine.
   nor requalifies the independently owned Fuel implementation. No ZeroMQ, custom
   transport runtime, dynamic system loader or full Gazebo compatibility is added.
 - Existing acceptance restrictions, assertions, numerical tolerances, feature
-  coverage and license/attribution requirements remain. M12 still must prove a
-  clean supported installation runs this integrated demo, including actual
-  forward/turn commands, viewer Pause/Reset and clean shutdown, after required
-  checks. No package size, timing, dependency list or clean-machine pass is
-  inferred from older acceptance records.
+  coverage and license/attribution requirements remain. The installed demo
+  exercised forward/turn motion, Pause and Reset to the initial pose and zero
+  clock. This does not newly qualify the other retained interfaces in the table.
+- Visible browser behavior and control receipts do not establish numeric
+  odometry, cold-start timing or performance. Consult the matching release's
+  evidence for the actual observations and their limits.
