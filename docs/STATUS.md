@@ -1,5 +1,27 @@
 # Implementation status
 
+M1–M25 are accepted and published at qualified Main `08ae5525`; see
+[M25 acceptance](M25_ACCEPTANCE.md) and the
+[M25 preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m25-preview),
+which is verified Latest. Full normal, exact CI 42507018578 attempt 1 and all
+independent local/official/package/install/combined-browser DATA passed. Original
+outer controller 143 and unknown cause/stop wait/minima remain distinct from
+actual active actor/launcher zero and read-only retained finalization zero.
+No application or browser proof was replayed to recover its final report.
+
+[M26/M27](M26_M27_DELIVERY.md) have independently reviewed native contracts and
+two complete disjoint implementation/regression/guide Source batches: ideal
+loaded AirSpeed and flat-model PosePublisher. Root shared integration is authored.
+The complete batch now requires independent Source review and batched fixes
+before its one consolidated verification pass; no next-phase pass or acceptance
+is claimed. One integrator owns shared files and local heavy work is serial. Full rewrite work remains deferred
+and is not counted complete with the 25 accepted named phases.
+
+## Historical M20 and atomic M21–M25 preparation checkpoints
+
+The following statements retain their original checkpoint state; M25 acceptance
+above supersedes their pending/Latest wording.
+
 M1–M20 are accepted and published at qualified Main `9a3e81c`; see
 [M20 acceptance](M20_ACCEPTANCE.md), the
 [m20-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m20-preview)

@@ -70,6 +70,10 @@ struct Node {
     lidar_publication: Option<LidarPublication>,
     altimeter: Option<crate::altimeter::Altimeter>,
     altimeter_publication: Option<AltimeterPublication>,
+    air_speed: Option<crate::air_speed::AirSpeed>,
+    air_speed_publication: Option<AirSpeedPublication>,
+    pose_publisher: Option<crate::pose_publisher::Publisher>,
+    pose_publication: Option<PosePublication>,
     air_pressure: Option<crate::air_pressure::AirPressure>,
     air_pressure_publication: Option<AirPressurePublication>,
     magnetometer: Option<crate::magnetometer::Magnetometer>,
@@ -188,6 +192,10 @@ pub(super) fn capture(sim: &mut Simulation) {
             lidar_publication: entity.get::<LidarPublication>().cloned(),
             altimeter: entity.get::<crate::altimeter::Altimeter>().cloned(),
             altimeter_publication: entity.get::<AltimeterPublication>().cloned(),
+            air_speed: entity.get::<crate::air_speed::AirSpeed>().cloned(),
+            air_speed_publication: entity.get::<AirSpeedPublication>().cloned(),
+            pose_publisher: entity.get::<crate::pose_publisher::Publisher>().cloned(),
+            pose_publication: entity.get::<PosePublication>().cloned(),
             air_pressure: entity.get::<crate::air_pressure::AirPressure>().cloned(),
             air_pressure_publication: entity.get::<AirPressurePublication>().cloned(),
             magnetometer: entity.get::<crate::magnetometer::Magnetometer>().cloned(),
@@ -312,6 +320,36 @@ pub fn initial_altimeter_publications(
         .nodes
         .iter()
         .filter_map(|node| node.altimeter_publication.as_ref()))
+}
+
+/// Initial loaded airspeed metadata, including removed original sensors.
+pub fn initial_air_speed_publications(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = &AirSpeedPublication>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial
+        .0
+        .nodes
+        .iter()
+        .filter_map(|node| node.air_speed_publication.as_ref()))
+}
+
+/// Initial pose configurations paired with stable loaded model identities.
+pub fn initial_pose_publications(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = (u64, &PosePublication)>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial
+        .0
+        .nodes
+        .iter()
+        .filter_map(|node| node.pose_publication.as_ref().map(|p| (node.id.get(), p))))
 }
 
 /// Initial loaded pressure metadata, including removed original entities.
@@ -547,6 +585,18 @@ pub fn reset_loaded_world<R>(
         if let Some(publication) = &node.altimeter_publication {
             entity.insert(publication.clone());
         }
+        if let Some(sensor) = &node.air_speed {
+            entity.insert(sensor.clone());
+        }
+        if let Some(publication) = &node.air_speed_publication {
+            entity.insert(publication.clone());
+        }
+        if let Some(publisher) = &node.pose_publisher {
+            entity.insert(publisher.clone());
+        }
+        if let Some(publication) = &node.pose_publication {
+            entity.insert(publication.clone());
+        }
         if let Some(air_pressure) = &node.air_pressure {
             entity.insert(air_pressure.clone());
         }
@@ -640,6 +690,8 @@ pub fn reset_loaded_world<R>(
     crate::lidar::install(sim);
     crate::altimeter::install(sim);
     crate::air_pressure::install(sim);
+    crate::air_speed::install(sim);
+    crate::pose_publisher::install(sim);
     crate::magnetometer::install(sim);
     crate::joint_lifecycle::install(sim);
     crate::joint_force_lifecycle::install(sim);

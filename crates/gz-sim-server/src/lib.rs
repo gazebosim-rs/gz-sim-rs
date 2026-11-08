@@ -4,6 +4,8 @@
 
 mod air_pressure;
 mod air_pressure_io;
+mod air_speed;
+mod air_speed_io;
 mod altimeter;
 mod altimeter_io;
 mod diff_drive;
@@ -20,6 +22,8 @@ mod lidar_io;
 mod magnetometer;
 mod magnetometer_io;
 mod options;
+mod pose_publisher;
+mod pose_publisher_io;
 mod poses;
 mod rates;
 mod removals;
@@ -85,6 +89,14 @@ pub enum Error {
     ResetAltimeters,
     #[error("air-pressure publication lacks its unique supported identity or metadata")]
     AirPressureIdentity,
+    #[error("air-speed publication lacks its unique supported identity or metadata")]
+    AirSpeedIdentity,
+    #[error("reset handler changed the prepared air-speed stream configuration")]
+    ResetAirSpeeds,
+    #[error("pose publication lacks its unique supported identity or metadata")]
+    PosePublisherIdentity,
+    #[error("reset handler changed the prepared pose publication configuration")]
+    ResetPosePublishers,
     #[error("reset handler changed the prepared air-pressure stream configuration")]
     ResetAirPressures,
     #[error("magnetometer publication lacks its unique supported identity or metadata")]
@@ -150,6 +162,12 @@ pub struct Counters {
     pub altimeters_queued: u64,
     pub altimeter_failures: u64,
     pub invalid_altimeter_samples: u64,
+    pub air_speeds_queued: u64,
+    pub air_speed_failures: u64,
+    pub invalid_air_speed_samples: u64,
+    pub pose_publications_queued: u64,
+    pub pose_publisher_failures: u64,
+    pub invalid_pose_publication_samples: u64,
     pub air_pressures_queued: u64,
     pub air_pressure_failures: u64,
     pub invalid_air_pressure_samples: u64,
@@ -286,6 +304,8 @@ fn sensor_reserved_keys(
 enum PublicationFamily {
     Altimeter,
     AirPressure,
+    AirSpeed,
+    PosePublisher,
     Magnetometer,
     JointState,
 }
@@ -301,6 +321,18 @@ fn typed_reserved_keys(
             continue;
         }
         let peers = [
+            (
+                PublicationFamily::AirSpeed,
+                entity
+                    .get::<gz_sim_scene::AirSpeedPublication>()
+                    .map(|m| &m.topic),
+            ),
+            (
+                PublicationFamily::PosePublisher,
+                entity
+                    .get::<gz_sim_scene::PosePublication>()
+                    .map(|m| &m.topic),
+            ),
             (
                 PublicationFamily::Altimeter,
                 entity
@@ -355,7 +387,19 @@ fn typed_reserved_keys(
     }
     initial!(Altimeter, initial_altimeter_publications);
     initial!(AirPressure, initial_air_pressure_publications);
+    initial!(AirSpeed, initial_air_speed_publications);
     initial!(Magnetometer, initial_magnetometer_publications);
+    if own != PublicationFamily::PosePublisher {
+        match gz_sim_scene::initial_pose_publications(simulation) {
+            Ok(values) => {
+                for (_, metadata) in values {
+                    keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+                }
+            }
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+            Err(error) => return Err(error.into()),
+        }
+    }
     if own != PublicationFamily::JointState {
         match gz_sim_scene::initial_joint_state_publications(simulation) {
             Ok(values) => {
@@ -383,6 +427,21 @@ fn air_pressure_reserved_keys(
 ) -> Result<BTreeSet<String>, Error> {
     typed_reserved_keys(simulation, io, config, PublicationFamily::AirPressure)
 }
+fn air_speed_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    typed_reserved_keys(simulation, io, config, PublicationFamily::AirSpeed)
+}
+fn pose_publisher_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    typed_reserved_keys(simulation, io, config, PublicationFamily::PosePublisher)
+}
+
 fn magnetometer_reserved_keys(
     simulation: &Simulation,
     io: &world_io::WorldIo,
@@ -396,6 +455,59 @@ fn joint_state_reserved_keys(
     config: &ServerOptions,
 ) -> Result<BTreeSet<String>, Error> {
     typed_reserved_keys(simulation, io, config, PublicationFamily::JointState)
+}
+
+/// Reserve restored as well as current new-family topics before any reset IO.
+fn validate_air_speed_and_pose_topics(
+    sim: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<(), Error> {
+    let mut speeds: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter(|e| !e.contains::<gz_sim_scene::PendingResetRemoval>())
+        .filter_map(|e| {
+            e.get::<gz_sim_scene::AirSpeedPublication>()
+                .map(|m| m.topic.clone())
+        })
+        .collect();
+    match gz_sim_scene::initial_air_speed_publications(sim) {
+        Ok(values) => speeds.extend(values.map(|m| m.topic.clone())),
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+        Err(error) => return Err(error.into()),
+    }
+    if !speeds.is_empty() {
+        let occupied = air_speed_reserved_keys(sim, io, config)?;
+        for topic in speeds {
+            if occupied.contains(&config.topic_key(&options::as_valid_topic(&topic))?) {
+                return Err(Error::AirSpeedIdentity);
+            }
+        }
+    }
+    let mut poses: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter(|e| !e.contains::<gz_sim_scene::PendingResetRemoval>())
+        .filter_map(|e| {
+            e.get::<gz_sim_scene::PosePublication>()
+                .map(|m| m.topic.clone())
+        })
+        .collect();
+    match gz_sim_scene::initial_pose_publications(sim) {
+        Ok(values) => poses.extend(values.map(|(_, metadata)| metadata.topic.clone())),
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+        Err(error) => return Err(error.into()),
+    }
+    if !poses.is_empty() {
+        let occupied = pose_publisher_reserved_keys(sim, io, config)?;
+        for topic in poses {
+            if occupied.contains(&config.topic_key(&options::as_valid_topic(&topic))?) {
+                return Err(Error::PosePublisherIdentity);
+            }
+        }
+    }
+    Ok(())
 }
 
 fn imu_packet(
@@ -543,6 +655,8 @@ pub struct Server {
     lidars: Vec<lidar::Stream>,
     altimeters: Vec<altimeter::Stream>,
     air_pressures: Vec<air_pressure::Stream>,
+    air_speeds: Vec<air_speed::Stream>,
+    pose_publishers: Vec<pose_publisher::Stream>,
     magnetometers: Vec<magnetometer::Stream>,
     joint_states: Vec<joint_state::Stream>,
     lidar_viewer_interest: bool,
@@ -670,6 +784,7 @@ impl Server {
             world_key(&format!("/world/{world_name}/remove"))?,
             world_key(&format!("/world/{world_name}/remove/blocking"))?,
         ])?);
+        validate_air_speed_and_pose_topics(&simulation, &world_io, &config)?;
         let mut imus = Vec::new();
         let mut imu_publishers: BTreeMap<String, Weak<world_io::ImuOutput>> = BTreeMap::new();
         for entity in simulation.world().iter_entities() {
@@ -770,6 +885,26 @@ impl Server {
         } else {
             Vec::new()
         };
+        let air_speeds = if simulation
+            .world()
+            .iter_entities()
+            .any(|e| e.contains::<gz_sim_scene::AirSpeedPublication>())
+        {
+            let occupied = air_speed_reserved_keys(&simulation, &world_io, &config)?;
+            air_speed::streams(&simulation, &world_io, &config, &occupied, None)?
+        } else {
+            Vec::new()
+        };
+        let pose_publishers = if simulation
+            .world()
+            .iter_entities()
+            .any(|e| e.contains::<gz_sim_scene::PosePublication>())
+        {
+            let occupied = pose_publisher_reserved_keys(&simulation, &world_io, &config)?;
+            pose_publisher::streams(&simulation, &world_io, &config, &occupied, None)?
+        } else {
+            Vec::new()
+        };
         Ok(Self {
             simulation,
             world_io,
@@ -796,6 +931,8 @@ impl Server {
             lidars,
             altimeters,
             air_pressures,
+            air_speeds,
+            pose_publishers,
             magnetometers,
             joint_states,
             lidar_viewer_interest: false,
@@ -986,6 +1123,13 @@ impl Server {
             failures[world_io::JOINT_STATE_FAILURE_INDEX]
                 .load(std::sync::atomic::Ordering::Relaxed),
         );
+        counters.air_speed_failures = counters.air_speed_failures.saturating_add(
+            failures[world_io::AIR_SPEED_FAILURE_INDEX].load(std::sync::atomic::Ordering::Relaxed),
+        );
+        counters.pose_publisher_failures = counters.pose_publisher_failures.saturating_add(
+            failures[world_io::POSE_PUBLISHER_FAILURE_INDEX]
+                .load(std::sync::atomic::Ordering::Relaxed),
+        );
         counters
     }
     /// Return observed bounded-input losses, independent of remote delivery.
@@ -1056,6 +1200,9 @@ impl Server {
         if !self.magnetometers.is_empty() {
             self.refresh_magnetometer_interest();
         }
+        if !self.air_speeds.is_empty() {
+            self.refresh_air_speed_interest();
+        }
         let resetting = self.prepared_reset.is_some();
         let info = if let Some(info) = self.prepared_reset.take() {
             info
@@ -1112,6 +1259,12 @@ impl Server {
         if !self.joint_states.is_empty() {
             self.publish_joint_states();
         }
+        if !self.air_speeds.is_empty() {
+            self.publish_air_speeds();
+        }
+        if !self.pose_publishers.is_empty() {
+            self.publish_pose_publishers();
+        }
         self.publish_odometry();
         self.removals
             .execute(&self.world_io, &mut self.simulation, &mut self.counters);
@@ -1136,6 +1289,12 @@ impl Server {
         }
         if !self.joint_states.is_empty() {
             self.retire_joint_states();
+        }
+        if !self.air_speeds.is_empty() {
+            self.retire_air_speeds();
+        }
+        if !self.pose_publishers.is_empty() {
+            self.retire_pose_publishers();
         }
         self.retire_diff_drive();
         if let Some(rates) = &mut self.rates {
@@ -1399,6 +1558,8 @@ impl Server {
         self.lidars = Vec::new();
         self.altimeters = Vec::new();
         self.air_pressures = Vec::new();
+        self.air_speeds = Vec::new();
+        self.pose_publishers = Vec::new();
         self.magnetometers = Vec::new();
         self.joint_states = Vec::new();
         self.diff_drive = None;

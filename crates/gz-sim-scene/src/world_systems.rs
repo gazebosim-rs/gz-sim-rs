@@ -58,8 +58,14 @@ fn engine_metadata(xml: &str, root: roxmltree::Node<'_, '_>) -> bool {
 }
 
 pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
-    let (mut physics, mut sensors, mut altimeter, mut air_pressure, mut magnetometer) =
-        (false, false, false, false, false);
+    let (
+        mut physics,
+        mut sensors,
+        mut altimeter,
+        mut air_pressure,
+        mut magnetometer,
+        mut air_speed,
+    ) = (false, false, false, false, false, false);
     for plugin in &world.plugins {
         let is_physics = plugin.name == "gz::sim::systems::Physics"
             && plugin.filename == "gz-sim-physics-system";
@@ -69,10 +75,17 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             && plugin.filename == "gz-sim-altimeter-system";
         let is_air_pressure = plugin.name == "gz::sim::systems::AirPressure"
             && plugin.filename == "gz-sim-air-pressure-system";
+        let is_air_speed = plugin.name == "gz::sim::systems::AirSpeed"
+            && plugin.filename == "gz-sim-air-speed-system";
         let is_magnetometer = plugin.name == "gz::sim::systems::Magnetometer"
             && plugin.filename == "gz-sim-magnetometer-system";
         require(
-            is_physics || is_sensors || is_altimeter || is_air_pressure || is_magnetometer,
+            is_physics
+                || is_sensors
+                || is_altimeter
+                || is_air_pressure
+                || is_magnetometer
+                || is_air_speed,
             &world.name,
             "world plugins",
         )?;
@@ -84,6 +97,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             (&mut altimeter, "duplicate Altimeter configuration")
         } else if is_air_pressure {
             (&mut air_pressure, "duplicate AirPressure configuration")
+        } else if is_air_speed {
+            (&mut air_speed, "duplicate AirSpeed configuration")
         } else {
             (&mut magnetometer, "duplicate Magnetometer configuration")
         };
@@ -99,6 +114,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
                 "Altimeter system configuration"
             } else if is_air_pressure {
                 "AirPressure system configuration"
+            } else if is_air_speed {
+                "AirSpeed system configuration"
             } else {
                 "Magnetometer system configuration"
             },

@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-08",
   "execution_state": "active",
-  "current_phase": "M21",
+  "current_phase": "M26",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -365,7 +365,13 @@
       "scope": "Gaussian and Gaussian-quantized position/velocity noise on the existing single loaded Rapier altimeter, reusing maintained seeded streams, native zero-elapsed noise application and the unchanged ideal/reference model.",
       "acceptance": "Meaningful deterministic/noisy invalid, seeded independence, demand/rate/pause/reset and actual canonical wire controls; focused pinned native evidence; complete source/docs and independent review before one full normal hook, strict coverage and exact hosted CI; independent retained audits and qualified parent/Main promotion before acceptance.",
       "excluded": "Shared noise-model rewrite, native RNG byte equality, new sensor family/atmosphere/backend/transport/framework/UI, multiple sensors or runtime sensor spawning, reference/rate services and performance claims.",
-      "evidence": "docs/M21_M22_DELIVERY.md"
+      "evidence": "docs/M21_M22_DELIVERY.md",
+      "accepted_at": "2026-11-08T18:54:52Z",
+      "accepted_commits": {
+        "gz-sim-rs": "08ae55256f6f29c1aaa4bd9ef5b43c2da2f9c86a",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_evidence": "docs/M25_ACCEPTANCE.md"
     },
     {
       "id": "M22",
@@ -378,7 +384,13 @@
       "scope": "Gaussian and Gaussian-quantized noise on the existing single loaded Rapier air-pressure channel, retaining the ideal atmosphere and native zero-elapsed application and double sqrt(stddev) published variance.",
       "acceptance": "Meaningful deterministic/noisy invalid, seeded independence, demand/rate/pause/reset and actual canonical wire controls; focused pinned native evidence; complete source/docs and independent review before one full normal hook, strict coverage and exact hosted CI; independent retained audits and qualified parent/Main promotion before acceptance.",
       "excluded": "Shared noise-model rewrite, native RNG byte equality, new sensor family/atmosphere/backend/transport/framework/UI, multiple sensors or runtime sensor spawning, reference/rate services and performance claims.",
-      "evidence": "docs/M21_M22_DELIVERY.md"
+      "evidence": "docs/M21_M22_DELIVERY.md",
+      "accepted_at": "2026-11-08T18:54:52Z",
+      "accepted_commits": {
+        "gz-sim-rs": "08ae55256f6f29c1aaa4bd9ef5b43c2da2f9c86a",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_evidence": "docs/M25_ACCEPTANCE.md"
     },
     {
       "id": "M23",
@@ -392,7 +404,13 @@
       "scope": "Gaussian and Gaussian-quantized X/Y/Z noise after resolving the existing single Rapier magnetometer field into sensor axes, with native zero-elapsed XYZ order and maintained seeded streams.",
       "acceptance": "Complete source/regressions/docs and independent review before one consolidated full normal hook, strict workspace/per-crate/actual-parent coverage and exact hosted CI; focused pinned native and actual canonical wire evidence; independent retained audits and qualified parent/Main promotion before acceptance.",
       "excluded": "Shared noise-model rewrite, native RNG/reset byte equality, geographic field models, multiple sensors, new backend/transport/UI and performance claims.",
-      "evidence": "docs/M23_M24_DELIVERY.md"
+      "evidence": "docs/M23_M24_DELIVERY.md",
+      "accepted_at": "2026-11-08T18:54:52Z",
+      "accepted_commits": {
+        "gz-sim-rs": "08ae55256f6f29c1aaa4bd9ef5b43c2da2f9c86a",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_evidence": "docs/M25_ACCEPTANCE.md"
     },
     {
       "id": "M24",
@@ -406,7 +424,13 @@
       "scope": "Finite mean/nonnegative standard-deviation Gaussian range noise for one existing planar Rapier CPU lidar with zero range minimum; native activation, finite-hit beam order, skipped infinite misses and finite post-noise clipping, preserving all noise-free behavior.",
       "acceptance": "Complete source/regressions/docs and independent review before one consolidated full normal hook, strict workspace/per-crate/actual-parent coverage and exact hosted CI; focused pinned native and actual canonical wire evidence; independent retained audits and qualified parent/Main promotion before acceptance.",
       "excluded": "Noisy nonzero minimum, bias/dynamic bias/quantized noise/nondefault precision, GPU lidar, intensity/pointclouds, raw out-of-range native fraction parity, new physics/transport/UI and performance claims.",
-      "evidence": "docs/M23_M24_DELIVERY.md"
+      "evidence": "docs/M23_M24_DELIVERY.md",
+      "accepted_at": "2026-11-08T18:54:52Z",
+      "accepted_commits": {
+        "gz-sim-rs": "08ae55256f6f29c1aaa4bd9ef5b43c2da2f9c86a",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_evidence": "docs/M25_ACCEPTANCE.md"
     },
     {
       "id": "M25",
@@ -422,7 +446,37 @@
       "scope": "Fresh Ubuntu 24.04 x86_64 native-free preview through the qualified M24 parent, retaining the default robot/launcher/viewer and including four immutable sensor-noise examples with real finite installed execution.",
       "acceptance": "Complete packaging, meaningful regression and dedicated guide source with independent review; full normal/strict coverage/exact hosted CI and independent audits; fresh source-bound release inputs, actual notice/dependency closure and assembly/relocation; clean non-root supported installation, all four real installed example loads/steps, new installed robot/browser controls and owned shutdown; exact tag/assets/body/Latest readbacks before acceptance.",
       "excluded": "New sensor/physics/transport/viewer/runtime behavior, scene-selector or message CLI/telemetry framework, new dependencies, native backend or RGB/depth-worker distributions, renderer rebuild, old binary/archive/manual proof reuse and performance/legal-compliance claims.",
-      "evidence": "docs/M25_DELIVERY.md"
+      "evidence": "docs/M25_DELIVERY.md",
+      "accepted_at": "2026-11-08T18:54:52Z",
+      "accepted_commits": {
+        "gz-sim-rs": "08ae55256f6f29c1aaa4bd9ef5b43c2da2f9c86a",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_evidence": "docs/M25_ACCEPTANCE.md"
+    },
+    {
+      "id": "M26",
+      "title": "Ideal loaded AirSpeed sensor",
+      "max_working_days": 5,
+      "depends_on": [
+        "M25"
+      ],
+      "scope": "One direct-link top-level Rapier AirSpeed sensor with default atmosphere, zero wind and exactly default no-noise metadata; native sensor-point/frame velocity, float arithmetic and actual published numeric pressure units, canonical demand-aware output and lifetime.",
+      "acceptance": "Complete source, meaningful regressions, guides and independent Source review before one full normal hook with strict per-crate/workspace/actual-M25-parent line and region coverage; focused actual native and canonical wire proofs plus independent DATA; exact hosted CI and independent official DATA with durable originals, then qualified Main before acceptance.",
+      "excluded": "AirSpeed noise, wind/configured atmosphere, multiple or nested sensors, runtime spawning, new backend, transport/runtime framework, services, UI widget and performance claims.",
+      "evidence": "docs/M26_M27_DELIVERY.md"
+    },
+    {
+      "id": "M27",
+      "title": "Flat-model canonical PosePublisher",
+      "max_working_days": 5,
+      "depends_on": [
+        "M25"
+      ],
+      "scope": "One built-in top-level flat-model vector PosePublisher with model/link selection only, actual native parent-relative frames/headers and unpaused cadence; bounded canonical output and atomic lifecycle.",
+      "acceptance": "Complete source, meaningful regressions, guides and independent Source review before one full normal hook with strict per-crate/workspace/actual-M25-parent line and region coverage; focused actual native and canonical wire proofs plus independent DATA; exact hosted CI and independent official DATA with durable originals, then qualified Main before acceptance.",
+      "excluded": "Nested, visual/collision/sensor pose records, static publisher, multiple publishers, runtime plugin spawning, dynamic plugin host, viewer/protocol change, new worker/transport framework and performance claims.",
+      "evidence": "docs/M26_M27_DELIVERY.md"
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -447,22 +501,21 @@
     "M18": "complete",
     "M19": "complete",
     "M20": "complete",
-    "M21": "in_progress",
-    "M22": "in_progress",
-    "M23": "in_progress",
-    "M24": "in_progress",
-    "M25": "in_progress"
+    "M21": "complete",
+    "M22": "complete",
+    "M23": "complete",
+    "M24": "complete",
+    "M25": "complete",
+    "M26": "in_progress",
+    "M27": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-08",
   "active_phases": [
-    "M21",
-    "M22",
-    "M23",
-    "M24",
-    "M25"
+    "M26",
+    "M27"
   ],
-  "execution_policy": "D31/D32 atomic M21\u2013M25 integration over accepted M20: independent Source lanes, one integrator and serial local heavy work. New full normal/strict actual-M20-parent coverage, exact hosted CI and independent DATA plus all fresh M25 artifact/install/browser proofs precede accepting any M21\u2013M25 phase. Original scopes, starts and five-day budgets remain.",
+  "execution_policy": "D30\u2013D32: independent M26 AirSpeed and M27 PosePublisher Source lanes over accepted M25, one integrator and serial heavy checks. Close exact native Source contracts before implementation; complete bounded source/regressions/docs and independent review before one full normal/exact hosted/native qualification and independent DATA. Preserve all strict gates and original five-day budgets.",
   "parallel_groups": [
     {
       "phases": [
@@ -514,7 +567,15 @@
       ],
       "integration": "One new atomic candidate over accepted M20; preserve every individual functional/native criterion and require new full normal/exact hosted/independent DATA plus fresh M25 release/install/four-example/browser/shutdown proof before accepting all five together. Supersedes serial intermediate-parent qualification; no old whole-gate success is relabeled.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M26",
+        "M27"
+      ],
+      "integration": "Disjoint sensor/system leaves over accepted M25; Root alone owns shared admission/exports/initial/lifecycle/WorldIO/topic-key integration. One complete candidate and full required checks; each feature has its own native/wire criteria.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "Atomic integration checkpoint: 20 phases accepted. Both frozen M21/M22 hosted attempts failed at the same Scene LLVM linker SIGBUS; cause unknown. Earlier local/provisional results and reviewed sources are preserved separately. A new complete M21\u2013M25 candidate over accepted M20 aligns CI debug info/adds bounded diagnostics and must meet every new gate and fresh M25 distribution criterion before any new acceptance."
+  "acceptance_boundary": "M1\u2013M25 accepted. M25 Main08ae5525 and release438450516 verified Latest with seven exact assets, full normal/exact CI and independent local/official/package/install/combined-browser DATA. M26/M27 are new native Source-contract preparation, without implementation/check/acceptance claims."
 }

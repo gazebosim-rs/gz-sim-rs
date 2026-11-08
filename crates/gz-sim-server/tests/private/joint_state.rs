@@ -618,6 +618,8 @@ fn family_key(server: &Server, family: PublicationFamily) -> String {
         PublicationFamily::AirPressure => server.air_pressures[0].endpoint.clone(),
         PublicationFamily::Magnetometer => server.magnetometers[0].endpoint.clone(),
         PublicationFamily::JointState => server.joint_states[0].endpoint.clone(),
+        PublicationFamily::AirSpeed => server.air_speeds[0].endpoint.clone(),
+        PublicationFamily::PosePublisher => server.pose_publishers[0].endpoint.clone(),
     }
 }
 fn topic_mut(server: &mut Server, family: PublicationFamily, value: String) {
@@ -676,6 +678,36 @@ fn topic_mut(server: &mut Server, family: PublicationFamily, value: String) {
                 .unwrap()
                 .topic = value;
         }
+        PublicationFamily::AirSpeed => {
+            let entity = server
+                .simulation
+                .world()
+                .iter_entities()
+                .find(|e| e.contains::<gz_sim_scene::AirSpeedPublication>())
+                .unwrap()
+                .id();
+            server
+                .simulation
+                .world_mut()
+                .get_mut::<gz_sim_scene::AirSpeedPublication>(entity)
+                .unwrap()
+                .topic = value;
+        }
+        PublicationFamily::PosePublisher => {
+            let entity = server
+                .simulation
+                .world()
+                .iter_entities()
+                .find(|e| e.contains::<gz_sim_scene::PosePublication>())
+                .unwrap()
+                .id();
+            server
+                .simulation
+                .world_mut()
+                .get_mut::<gz_sim_scene::PosePublication>(entity)
+                .unwrap()
+                .topic = value;
+        }
     }
 }
 fn assert_family_refuses(
@@ -725,6 +757,26 @@ fn assert_family_refuses(
             ),
             Err(Error::JointStateIdentity)
         )),
+        PublicationFamily::AirSpeed => assert!(matches!(
+            air_speed::streams(
+                &server.simulation,
+                &server.world_io,
+                options,
+                occupied,
+                None
+            ),
+            Err(Error::AirSpeedIdentity)
+        )),
+        PublicationFamily::PosePublisher => assert!(matches!(
+            pose_publisher::streams(
+                &server.simulation,
+                &server.world_io,
+                options,
+                occupied,
+                None
+            ),
+            Err(Error::PosePublisherIdentity)
+        )),
     }
 }
 fn all_family_xml() -> String {
@@ -748,6 +800,28 @@ fn all_family_xml() -> String {
         let model = source[start..end].replace("name='rig'", &format!("name='{owner}'"));
         xml = xml.replace("</world>", &format!("{model}</world>"));
     }
+    for (source, quote, owner) in [
+        (
+            include_str!("../../../gz-sim-scene/tests/fixtures/m26_air_speed.sdf"),
+            "'",
+            "speed_rig",
+        ),
+        (
+            include_str!("../../../gz-sim-scene/tests/fixtures/m27_pose_publisher.sdf"),
+            "\"",
+            "pose_rig",
+        ),
+    ] {
+        let start = source
+            .find(&format!("<model name={quote}rig{quote}"))
+            .unwrap();
+        let end = source.rfind("</model>").unwrap() + "</model>".len();
+        let model = source[start..end].replace(
+            &format!("name={quote}rig{quote}"),
+            &format!("name={quote}{owner}{quote}"),
+        );
+        xml = xml.replace("</world>", &format!("{model}</world>"));
+    }
     xml
 }
 #[test]
@@ -757,12 +831,16 @@ fn all_typed_publications_reserve_live_and_removed_initial_peers_in_both_directi
         PublicationFamily::AirPressure,
         PublicationFamily::Magnetometer,
         PublicationFamily::JointState,
+        PublicationFamily::AirSpeed,
+        PublicationFamily::PosePublisher,
     ];
     let topics = [
         "/m13/altimeter",
         "/m15/air_pressure",
         "/m17/magnetometer",
         "/m18/joint_state",
+        "/m26/air_speed",
+        "/m27/pose",
     ];
     let xml = all_family_xml();
     let mut live = server(&xml);
@@ -810,6 +888,8 @@ fn all_typed_publications_reserve_live_and_removed_initial_peers_in_both_directi
             "default::pressure_rig",
             "default::mag_rig",
             "default::arm",
+            "default::speed_rig",
+            "default::pose_rig",
         ][other];
         let id = server
             .simulation
@@ -829,6 +909,8 @@ fn all_typed_publications_reserve_live_and_removed_initial_peers_in_both_directi
         server.retire_air_pressures();
         server.retire_magnetometers();
         server.retire_joint_states();
+        server.retire_air_speeds();
+        server.retire_pose_publishers();
         for (index, &own) in families.iter().enumerate() {
             if own == peer {
                 continue;
@@ -850,5 +932,88 @@ fn all_typed_publications_reserve_live_and_removed_initial_peers_in_both_directi
             assert_eq!(boundary(&server), before);
             topic_mut(&mut server, own, topics[index].into());
         }
+    }
+}
+
+#[test]
+fn new_families_cannot_steal_removed_initial_peer_topics_before_reset_changes_or_io() {
+    for (removed_name, survivor, stolen_topic) in [
+        (
+            "default::pose_rig",
+            PublicationFamily::AirSpeed,
+            "/m27/pose",
+        ),
+        (
+            "default::speed_rig",
+            PublicationFamily::PosePublisher,
+            "/m26/air_speed",
+        ),
+    ] {
+        let mut active = server(&all_family_xml());
+        let removed = active
+            .simulation
+            .world()
+            .iter_entities()
+            .find(|e| {
+                e.get::<gz_sim_scene::Name>()
+                    .is_some_and(|n| n.0 == removed_name)
+            })
+            .unwrap()
+            .get::<EntityId>()
+            .unwrap()
+            .get();
+        remove_model(&mut active.simulation, removed).unwrap();
+        active.retire_air_speeds();
+        active.retire_pose_publishers();
+        topic_mut(&mut active, survivor, stolen_topic.into());
+        let before = boundary(&active);
+        let speed_leases: Vec<_> = active
+            .air_speeds
+            .iter()
+            .map(|s| Arc::as_ptr(&s.publisher))
+            .collect();
+        let pose_leases: Vec<_> = active
+            .pose_publishers
+            .iter()
+            .map(|s| Arc::as_ptr(&s.publisher))
+            .collect();
+        let generation = active
+            .world_io
+            .epoch
+            .load(std::sync::atomic::Ordering::Acquire);
+        assert!(matches!(
+            active.reset_scene(),
+            Err(Error::AirSpeedIdentity | Error::PosePublisherIdentity)
+        ));
+        assert_eq!(
+            boundary(&active),
+            before,
+            "collision must precede the reset transaction"
+        );
+        assert_eq!(
+            active
+                .world_io
+                .epoch
+                .load(std::sync::atomic::Ordering::Acquire),
+            generation
+        );
+        assert_eq!(
+            active
+                .air_speeds
+                .iter()
+                .map(|s| Arc::as_ptr(&s.publisher))
+                .collect::<Vec<_>>(),
+            speed_leases
+        );
+        assert_eq!(
+            active
+                .pose_publishers
+                .iter()
+                .map(|s| Arc::as_ptr(&s.publisher))
+                .collect::<Vec<_>>(),
+            pose_leases
+        );
+        assert!(!active.reset_failed && !active.pending_reset);
+        active.shutdown();
     }
 }

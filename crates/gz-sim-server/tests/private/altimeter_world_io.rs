@@ -83,7 +83,7 @@ fn altimeter_io_owner_cancels_old_epoch_and_retired_lease_without_relabeling_byt
         b"gz.msgs.Altimeter"
     );
     assert!(io.publish_altimeter(&replacement, vec![0; 1025]).is_err());
-    assert_eq!(io.publication_failures.len(), 10);
+    assert_eq!(io.publication_failures.len(), 12);
     assert!(
         io.publication_failures
             .iter()

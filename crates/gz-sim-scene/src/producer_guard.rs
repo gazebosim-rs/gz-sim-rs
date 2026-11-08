@@ -99,6 +99,7 @@ fn validate_sensor(sensor: &sdformat::Sensor, parent: &str) -> Result<(), LoadEr
         sensor.imu().is_some()
             || sensor.altimeter().is_some()
             || sensor.air_pressure().is_some()
+            || sensor.air_speed().is_some()
             || sensor.magnetometer().is_some()
             || crate::supports_camera_sensor(sensor)
             || sensor.effective_type() == Some(sdformat::SensorType::Lidar),

@@ -3,16 +3,32 @@
 
 # Coordinator handoff
 
-> M1–M20 are accepted and published; M20 remains the installed preview and Latest.
-> Both hosted attempts for frozen M21/M22 `36eb202c` failed at the Scene renderer
-> test-library LLVM linker with SIGBUS; the cause remains unknown.
-> M21–M25 now form one atomic candidate over accepted M20. Preserve every separate
-> functional/native contract; require new full normal, exact hosted CI and all
-> fresh M25 distribution/install/browser proofs before accepting any of them.
-> Earlier local passes and all original failures remain separate historical evidence.
+> M1–M25 are accepted and published; M25 is the verified installed preview and Latest.
+> Qualified Main `08ae5525`, exact hosted CI `42507018578` attempt 1 and all
+> independent source/local/official/package/install/browser reviews passed.
+> Original browser outer 143 is preserved separately from active actor/launcher 0,
+> read-only retained completion 0 and independent combined DATA; no replay.
+> Next: bounded ideal AirSpeed and flat-model PosePublisher Source contracts,
+> independent leaves, one integrator and serial heavy verification. See
+> [M25 acceptance](M25_ACCEPTANCE.md) and [M26/M27 scope](M26_M27_DELIVERY.md).
 
 
-## Current work: atomic M21–M25 sensor preview
+## Current work: next parallel source wave
+
+Continue D30–D32 in isolated `gz-sim-m26-m27`, over accepted M25 `08ae5525`.
+Exact native contracts for M26 ideal loaded AirSpeed and M27 flat-model canonical
+PosePublisher passed independent Source review. Both disjoint implementation,
+regression and guide batches and Root shared integration are authored for whole
+independent Source review. No successor verification or acceptance
+is claimed. Root owns shared admission,
+exports, lifecycle/reset/IO glue and canonical plans. Authors own disjoint leaves;
+finish regressions and guides plus independent Source review before one
+consolidated full normal/strict coverage/exact hosted qualification and independent
+DATA. Preserve Fuel and every frozen tree/evidence. The obsolete M12 port handoff
+approval remains unused; protected old services remain untouched.
+
+
+## Historical M21–M25 integration checkpoint (accepted; superseded by M25_ACCEPTANCE.md)
 
 [M21_M25_DELIVERY.md](M21_M25_DELIVERY.md) records the revised integration and
 acceptance sequence. M20 remains the checked installed preview and Latest.

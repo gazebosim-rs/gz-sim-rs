@@ -1,12 +1,13 @@
 # Instructions for implementation agents
 
-> M1–M20 are accepted and published; M20 remains the installed preview and Latest.
-> Both hosted attempts for frozen M21/M22 `36eb202c` failed at the Scene renderer
-> test-library LLVM linker with SIGBUS; the cause remains unknown.
-> M21–M25 now form one atomic candidate over accepted M20. Preserve every separate
-> functional/native contract; require new full normal, exact hosted CI and all
-> fresh M25 distribution/install/browser proofs before accepting any of them.
-> Earlier local passes and all original failures remain separate historical evidence.
+> M1–M25 are accepted and published; M25 is the verified installed preview and Latest.
+> Qualified Main `08ae5525`, exact hosted CI `42507018578` attempt 1 and all
+> independent source/local/official/package/install/browser reviews passed.
+> Original browser outer 143 is preserved separately from active actor/launcher 0,
+> read-only retained completion 0 and independent combined DATA; no replay.
+> Next: bounded ideal AirSpeed and flat-model PosePublisher Source contracts,
+> independent leaves, one integrator and serial heavy verification. See
+> [M25 acceptance](docs/M25_ACCEPTANCE.md) and [M26/M27 scope](docs/M26_M27_DELIVERY.md).
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -16,17 +17,15 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` and `docs/M21_M25_DELIVERY.md` before editing.
-Root integrates all reviewed M21–M25 leaves in `gz-sim-m21-m25`, over accepted
-M20. The old intermediate-parent publication holds are superseded by one atomic
-qualification: new full normal/strict actual-M20-parent coverage, exact new CI,
-independent Source/local/official DATA, then every fresh M25 package/install/
-browser/shutdown/publication proof before accepting M21–M25 together.
-Keep the existing per-phase scopes and all source/regression intent. No new
-runtime feature is included; CI debug-info alignment is mitigation, not a known
-cause fix. Preserve original snapshots, passes, failures and native capture
-identities. Root serializes heavy work; authors run no per-edit checks. The
-separate M25 product scope and four finite controls remain in M25_DELIVERY.md.
+Read `docs/DELIVERY_PLAN.md`, `docs/M25_ACCEPTANCE.md` and the next bounded
+AirSpeed/PosePublisher contract before editing. Root integrates successor work in
+`gz-sim-m26-m27` over accepted M25. Native units, frames, cadence, refusal cases
+and exact file leases require independent Source agreement before implementation.
+Authors run no per-edit checks; finish complete source, meaningful regressions,
+guides and independent review before one consolidated normal/strict coverage and
+exact hosted CI pass. Heavy work is serial. Preserve M25 `08ae5525`, all previous
+frozen candidates/native capture identities and all failure evidence unchanged.
+No new transport/runtime/plugin framework, optional backend or unrelated work.
 
 The M20 preparation details below describe the frozen parent scope, not another
 authoring lease or inherited acceptance.

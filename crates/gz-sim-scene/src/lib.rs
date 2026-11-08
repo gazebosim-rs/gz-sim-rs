@@ -4,6 +4,7 @@
 
 mod joint_controller;
 mod joint_state_publisher;
+mod pose_publisher;
 pub use joint_controller::{
     JointControllerCommandError, JointControllerConfiguration, JointControllerMode,
     set_joint_controller_command,
@@ -11,6 +12,7 @@ pub use joint_controller::{
 pub use joint_state_publisher::{
     JointStateJointPublication, JointStatePublication, JointStateSample, JointStateValue,
 };
+pub use pose_publisher::{PoseFramePublication, PoseFrameValue, PosePublication, PoseSample};
 mod diff_drive;
 pub use diff_drive::{
     DiffDriveCommandError, DiffDriveConfiguration, DiffDriveSample, set_diff_drive_command,
@@ -52,6 +54,11 @@ pub use world_spawn::{ModelTemplate, prepare_model_template, spawn_model_templat
 mod imu_lifecycle;
 mod lidar;
 pub use lidar::{LidarPublication, LidarSample, clear_lidar_interest, set_lidar_interest};
+mod air_speed;
+pub use air_speed::{
+    AirSpeedPublication, AirSpeedSample, AirSpeedSampleError, clear_air_speed_interest,
+    set_air_speed_interest,
+};
 mod air_pressure;
 pub use air_pressure::{
     AirPressurePublication, AirPressureSample, AirPressureSampleError, clear_air_pressure_interest,
@@ -72,10 +79,11 @@ mod joint_force_lifecycle;
 mod joint_lifecycle;
 pub use initial::{
     PendingResetRemoval, SceneResetError, SceneResetInfo, initial_air_pressure_publications,
-    initial_altimeter_publications, initial_diff_drive_configurations, initial_imu_publications,
+    initial_air_speed_publications, initial_altimeter_publications,
+    initial_diff_drive_configurations, initial_imu_publications,
     initial_joint_controller_configurations, initial_joint_force_configurations,
     initial_joint_state_publications, initial_lidar_publications,
-    initial_magnetometer_publications, reset_loaded_world,
+    initial_magnetometer_publications, initial_pose_publications, reset_loaded_world,
 };
 
 use bevy_ecs::prelude::*;
@@ -504,6 +512,7 @@ fn load_world_configured(
         .ok_or_else(|| LoadError::MissingWorld(world_name.into()))?;
     let world = &sdf.worlds[world_index];
     let magnetic_consumer = magnetometer::preflight(&sdf, world, engine)?;
+    air_speed::preflight(&sdf, world, engine)?;
     producer_guard::validate(world, magnetic_consumer)?;
     let rendering_sensors = world_systems::validate(world)?;
     // The pinned parser supplies an implicit profile when none is declared.
@@ -637,12 +646,14 @@ fn load_world_configured(
     lidar::install(&mut sim);
     altimeter::install(&mut sim);
     air_pressure::install(&mut sim);
+    air_speed::install(&mut sim);
     magnetometer::install(&mut sim);
     joint_lifecycle::install(&mut sim);
     joint_force_lifecycle::install(&mut sim);
     diff_drive::install(&mut sim);
     joint_controller::install(&mut sim);
     joint_state_publisher::install(&mut sim);
+    pose_publisher::install(&mut sim);
     initial::capture(&mut sim);
     Ok(sim)
 }
@@ -714,6 +725,15 @@ fn build_model(
     let top_level = sim.world().get::<EntityKind>(parent.entity) == Some(&EntityKind::World);
     let controller_plan = joint_controller::parse(model)?;
     if let Some(plan) = &controller_plan {
+        plan.validate(
+            model,
+            sim,
+            backend.as_ref().map(|backend| backend.engine()),
+            (top_level, parent.is_static || model.is_static),
+        )?;
+    }
+    let pose_plan = pose_publisher::parse(model)?;
+    if let Some(plan) = &pose_plan {
         plan.validate(
             model,
             sim,
@@ -1140,6 +1160,23 @@ fn build_model(
                 )?;
                 continue;
             }
+            if sensor.air_speed().is_some() {
+                air_speed::spawn(
+                    sdf,
+                    model,
+                    sensor,
+                    context,
+                    sim,
+                    backend.as_ref(),
+                    air_speed::Parent {
+                        link,
+                        entity: link_entity,
+                        id: link_id,
+                        topic: &model_topic,
+                    },
+                )?;
+                continue;
+            }
             if sensor.air_pressure().is_some() {
                 air_pressure::spawn(
                     sdf,
@@ -1290,6 +1327,9 @@ fn build_model(
             backend,
             controller_plan.is_some(),
         )?;
+        if let Some(plan) = &pose_plan {
+            pose_publisher::build(sdf, sim, model, model_entity, backend, plan)?;
+        }
         if let Some(plan) = &joint_state_plan {
             joint_state_publisher::build(sdf, sim, model, model_entity, backend, plan)?;
         }

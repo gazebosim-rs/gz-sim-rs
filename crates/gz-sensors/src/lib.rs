@@ -3,6 +3,7 @@
 //! Sensor measurement models. Scheduling and transport belong to the simulator.
 
 pub mod air_pressure;
+pub mod air_speed;
 pub mod altimeter;
 pub mod lidar;
 pub mod magnetometer;

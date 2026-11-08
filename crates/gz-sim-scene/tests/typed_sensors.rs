@@ -37,6 +37,7 @@ fn parsed_sensor_capabilities_admit_named_increments_and_preserve_other_refusals
     let mut admitted_altimeters = 0;
     let mut admitted_air_pressure = 0;
     let mut admitted_magnetometers = 0;
+    let mut admitted_air_speeds = 0;
     for (kind, configuration) in cases {
         let xml = scene(&format!(
             "<sensor name='unsupported' type='{kind}'><always_on>true</always_on>{configuration}</sensor>"
@@ -102,6 +103,39 @@ fn parsed_sensor_capabilities_admit_named_increments_and_preserve_other_refusals
                 admitted_air_pressure += 1;
                 continue;
             }
+            if kind == "air_speed" && matches!(engine, PhysicsEngine::Rapier) {
+                let mut sim = result.unwrap();
+                let sensors = sim
+                    .world()
+                    .iter_entities()
+                    .filter_map(|entity| {
+                        entity
+                            .get::<gz_sim_scene::AirSpeedPublication>()
+                            .map(|p| (entity.id(), p.clone()))
+                    })
+                    .collect::<Vec<_>>();
+                assert_eq!(sensors.len(), 1);
+                assert_eq!(sensors[0].1.entity_name, "ball::body::unsupported");
+                assert_eq!(sensors[0].1.frame_id, "ball::body::unsupported");
+                assert_eq!(
+                    sensors[0].1.topic,
+                    "/world/default/model/ball/link/body/sensor/unsupported/air_speed"
+                );
+                sim.step_exact(1).unwrap();
+                let sample = sim
+                    .world()
+                    .get::<gz_sim_scene::AirSpeedSample>(sensors[0].0)
+                    .unwrap();
+                assert_eq!(sample.time, Duration::from_millis(1));
+                let reading = sample.reading.as_ref().unwrap();
+                assert_eq!(
+                    reading.diff_pressure, 0.0,
+                    "vertical fall has no sensor-X flow"
+                );
+                assert!(reading.temperature.is_finite() && reading.temperature > 0.0);
+                admitted_air_speeds += 1;
+                continue;
+            }
             if kind == "magnetometer" && matches!(engine, PhysicsEngine::Rapier) {
                 let mut sim = result.unwrap();
                 let sensors = sim
@@ -140,6 +174,8 @@ fn parsed_sensor_capabilities_admit_named_increments_and_preserve_other_refusals
                             "Rapier ideal altimeter"
                         } else if kind == "air_pressure" {
                             "Rapier ideal air_pressure"
+                        } else if kind == "air_speed" {
+                            "Rapier ideal air_speed"
                         } else if kind == "magnetometer" {
                             "Rapier ideal magnetometer"
                         } else {
@@ -158,6 +194,7 @@ fn parsed_sensor_capabilities_admit_named_increments_and_preserve_other_refusals
     assert_eq!(admitted_altimeters, 1);
     assert_eq!(admitted_air_pressure, 1);
     assert_eq!(admitted_magnetometers, 1);
+    assert_eq!(admitted_air_speeds, 1);
 }
 
 #[test]

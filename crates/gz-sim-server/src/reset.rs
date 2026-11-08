@@ -19,6 +19,7 @@ impl Server {
     }
 
     pub(super) fn reset_scene(&mut self) -> Result<UpdateInfo, Error> {
+        validate_air_speed_and_pose_topics(&self.simulation, &self.world_io, &self.network_config)?;
         // Reserve missing endpoints before changing the scene. Live shared leases survive.
         let existing: BTreeMap<_, _> = self
             .imus
@@ -76,6 +77,20 @@ impl Server {
             } else {
                 BTreeMap::new()
             };
+        let air_speed_publishers =
+            if gz_sim_scene::initial_air_speed_publications(&self.simulation)?
+                .next()
+                .is_some()
+            {
+                let occupied = air_speed_reserved_keys(
+                    &self.simulation,
+                    &self.world_io,
+                    &self.network_config,
+                )?;
+                air_speed::prepare_reset(self, &occupied)?
+            } else {
+                BTreeMap::new()
+            };
         let magnetometer_publishers =
             if gz_sim_scene::initial_magnetometer_publications(&self.simulation)?
                 .next()
@@ -101,6 +116,20 @@ impl Server {
                     &self.network_config,
                 )?;
                 joint_state::prepare_reset(self, &occupied)?
+            } else {
+                BTreeMap::new()
+            };
+        let pose_publisher_publishers =
+            if gz_sim_scene::initial_pose_publications(&self.simulation)?
+                .next()
+                .is_some()
+            {
+                let occupied = pose_publisher_reserved_keys(
+                    &self.simulation,
+                    &self.world_io,
+                    &self.network_config,
+                )?;
+                pose_publisher::prepare_reset(self, &occupied)?
             } else {
                 BTreeMap::new()
             };
@@ -205,6 +234,22 @@ impl Server {
             let occupied = if sim
                 .world()
                 .iter_entities()
+                .any(|entity| entity.contains::<gz_sim_scene::AirSpeedPublication>())
+            {
+                air_speed_reserved_keys(sim, &self.world_io, &self.network_config)?
+            } else {
+                BTreeSet::new()
+            };
+            let air_speeds = air_speed::streams(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                &occupied,
+                Some(&air_speed_publishers),
+            )?;
+            let occupied = if sim
+                .world()
+                .iter_entities()
                 .any(|entity| entity.contains::<gz_sim_scene::MagnetometerPublication>())
             {
                 magnetometer_reserved_keys(sim, &self.world_io, &self.network_config)?
@@ -234,12 +279,30 @@ impl Server {
                 &occupied,
                 Some(&joint_state_publishers),
             )?;
+            let occupied = if sim
+                .world()
+                .iter_entities()
+                .any(|entity| entity.contains::<gz_sim_scene::PosePublication>())
+            {
+                pose_publisher_reserved_keys(sim, &self.world_io, &self.network_config)?
+            } else {
+                BTreeSet::new()
+            };
+            let pose_publishers = pose_publisher::streams(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                &occupied,
+                Some(&pose_publisher_publishers),
+            )?;
             Ok::<_, Error>((
                 *sim.world().resource::<UpdateInfo>(),
                 streams,
                 lidars,
                 altimeters,
                 air_pressures,
+                air_speeds,
+                pose_publishers,
                 magnetometers,
                 joint_states,
             ))
@@ -256,6 +319,8 @@ impl Server {
                 self.lidars = Vec::new();
                 self.altimeters = Vec::new();
                 self.air_pressures = Vec::new();
+                self.air_speeds = Vec::new();
+                self.pose_publishers = Vec::new();
                 self.magnetometers = Vec::new();
                 self.joint_states = Vec::new();
                 self.rates = None;
@@ -275,28 +340,41 @@ impl Server {
             .set_running(!self.simulation.is_paused(), Instant::now());
         self.removals
             .cancel_for_reset(&self.world_io, &mut self.counters);
-        let (info, streams, lidars, altimeters, air_pressures, magnetometers, joint_states) =
-            match result {
-                Ok(result) => result,
-                Err(error) => {
-                    self.reset_failed = true;
-                    self.imus = Vec::new();
-                    self.lidars = Vec::new();
-                    self.altimeters = Vec::new();
-                    self.air_pressures = Vec::new();
-                    self.magnetometers = Vec::new();
-                    self.joint_states = Vec::new();
-                    self.rates = None;
-                    self.forces = None;
-                    self.diff_drive = None;
-                    self.joint_controllers = None;
-                    return Err(error);
-                }
-            };
+        let (
+            info,
+            streams,
+            lidars,
+            altimeters,
+            air_pressures,
+            air_speeds,
+            pose_publishers,
+            magnetometers,
+            joint_states,
+        ) = match result {
+            Ok(result) => result,
+            Err(error) => {
+                self.reset_failed = true;
+                self.imus = Vec::new();
+                self.lidars = Vec::new();
+                self.altimeters = Vec::new();
+                self.air_pressures = Vec::new();
+                self.air_speeds = Vec::new();
+                self.pose_publishers = Vec::new();
+                self.magnetometers = Vec::new();
+                self.joint_states = Vec::new();
+                self.rates = None;
+                self.forces = None;
+                self.diff_drive = None;
+                self.joint_controllers = None;
+                return Err(error);
+            }
+        };
         self.imus = streams;
         self.lidars = lidars;
         self.altimeters = altimeters;
         self.air_pressures = air_pressures;
+        self.air_speeds = air_speeds;
+        self.pose_publishers = pose_publishers;
         self.magnetometers = magnetometers;
         self.joint_states = joint_states;
         Ok(info)

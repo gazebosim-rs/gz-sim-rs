@@ -62,6 +62,10 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
                 .contains_resource::<crate::magnetometer::Installed>(),
             sim.world()
                 .contains_resource::<crate::joint_state_publisher::Installed>(),
+            sim.world()
+                .contains_resource::<crate::air_speed::Installed>(),
+            sim.world()
+                .contains_resource::<crate::pose_publisher::Installed>(),
         );
         crate::imu_lifecycle::retire_if_unused(sim)?;
         crate::lidar::retire_if_unused(sim)?;
@@ -69,6 +73,8 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
         crate::air_pressure::retire_if_unused(sim)?;
         crate::magnetometer::retire_if_unused(sim)?;
         crate::joint_state_publisher::retire_if_unused(sim)?;
+        crate::air_speed::retire_if_unused(sim)?;
+        crate::pose_publisher::retire_if_unused(sim)?;
         crate::diff_drive::retire_if_unused(sim)?;
         crate::joint_controller::retire_if_unused(sim)?;
         crate::joint_lifecycle::retire_if_unused(sim)?;
@@ -93,6 +99,10 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
                 .contains_resource::<crate::magnetometer::Installed>(),
             sim.world()
                 .contains_resource::<crate::joint_state_publisher::Installed>(),
+            sim.world()
+                .contains_resource::<crate::air_speed::Installed>(),
+            sim.world()
+                .contains_resource::<crate::pose_publisher::Installed>(),
         );
         if before == after {
             if sim.world().iter_entities().any(|entity| {
@@ -106,13 +116,15 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
                     || !after.7 && entity.contains::<crate::air_pressure::AirPressure>()
                     || !after.8 && entity.contains::<crate::magnetometer::Magnetometer>()
                     || !after.9 && entity.contains::<crate::joint_state_publisher::Publisher>()
+                    || !after.10 && entity.contains::<crate::air_speed::AirSpeed>()
+                    || !after.11 && entity.contains::<crate::pose_publisher::Publisher>()
             }) {
                 return Err(SystemRetirementError::AddedConsumer);
             }
             return Ok(());
         }
         // A schedule build may remove another family's last consumer.
-        // Markers only retire here, so at most ten rounds can change them.
+        // Markers only retire here, so at most twelve rounds can change them.
     }
 }
 
@@ -208,6 +220,14 @@ fn remove_model_checked(
             entity.contains::<crate::joint_state_publisher::Publisher>()
                 && !subtree.contains(&entity.id())
         });
+    let retire_air_speed = world.contains_resource::<crate::air_speed::Installed>()
+        && !world.iter_entities().any(|entity| {
+            entity.contains::<crate::air_speed::AirSpeed>() && !subtree.contains(&entity.id())
+        });
+    let retire_pose_publisher = world.contains_resource::<crate::pose_publisher::Installed>()
+        && !world.iter_entities().any(|entity| {
+            entity.contains::<crate::pose_publisher::Publisher>() && !subtree.contains(&entity.id())
+        });
     if (retire_imu
         || retire_joint
         || retire_force
@@ -215,7 +235,9 @@ fn remove_model_checked(
         || retire_drive
         || retire_controller
         || retire_magnetometer
-        || retire_joint_state)
+        || retire_joint_state
+        || retire_air_speed
+        || retire_pose_publisher)
         && !schedules_ready
     {
         sim.initialize_schedules()

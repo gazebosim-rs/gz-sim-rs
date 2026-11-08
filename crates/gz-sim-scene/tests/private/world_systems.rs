@@ -326,3 +326,57 @@ fn sensors_configuration_metadata_survives_loaded_reset_without_installing_work(
         baseline.scheduled_system_counts()
     );
 }
+
+#[test]
+fn air_speed_system_metadata_is_closed_unique_and_inert_without_a_sensor() {
+    let plugin = "<plugin name='gz::sim::systems::AirSpeed' filename='gz-sim-air-speed-system'/>";
+    let plain = "<sdf version='1.12'><world name='w'/></sdf>";
+    let xml = format!("<sdf version='1.12'><world name='w'>{plugin}</world></sdf>");
+    let parsed = sdformat::load_str(&xml, "air-speed-intent.sdf", &sdformat::NoResources).unwrap();
+    assert!(!validate(&parsed.worlds[0]).unwrap());
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "air-speed-intent.sdf",
+        "w",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let baseline = load_world_with_sdf_step(
+        plain,
+        "plain.sdf",
+        "w",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    assert_eq!(
+        sim.scheduled_system_counts(),
+        baseline.scheduled_system_counts()
+    );
+    assert!(
+        !sim.world()
+            .contains_resource::<crate::air_speed::Installed>()
+    );
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert_eq!(
+        sim.scheduled_system_counts(),
+        baseline.scheduled_system_counts()
+    );
+    for plugins in [
+        format!("{plugin}{plugin}"),
+        plugin.replace(
+            "/>",
+            "><unexpected_option>false</unexpected_option></plugin>",
+        ),
+        plugin.replace("plugin ", "plugin extra='x' "),
+        plugin.replace("plugin ", "plugin xmlns:e='urn:e' e:flag='x' "),
+        plugin.replace("gz-sim-air-speed-system", "libgz-sim-air-speed-system.so"),
+        plugin.replace("gz::sim::systems::AirSpeed", "AirSpeed"),
+    ] {
+        let xml = format!("<sdf version='1.12'><world name='w'>{plugins}</world></sdf>");
+        let parsed =
+            sdformat::load_str(&xml, "bad-air-speed-intent.sdf", &sdformat::NoResources).unwrap();
+        assert!(validate(&parsed.worlds[0]).is_err(), "{plugins}");
+    }
+}

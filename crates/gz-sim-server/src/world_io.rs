@@ -26,11 +26,13 @@ use zenoh::{
 
 type Result<T> = std::result::Result<T, Box<dyn Error + Send + Sync>>;
 pub(super) use crate::air_pressure_io::AirPressureOutput;
+pub(super) use crate::air_speed_io::AirSpeedOutput;
 pub(super) use crate::altimeter_io::AltimeterOutput;
 pub(super) use crate::imu_io::ImuOutput;
 pub(super) use crate::joint_state_io::JointStateOutput;
 pub(super) use crate::lidar_io::LidarOutput;
 pub(super) use crate::magnetometer_io::MagnetometerOutput;
+pub(super) use crate::pose_publisher_io::PosePublisherOutput;
 
 const TCP_PROFILE: [(&str, u64); 5] = [
     ("transport/link/tx/lease", 1000),
@@ -156,6 +158,8 @@ fn queue_request(
 pub(super) const AIR_PRESSURE_FAILURE_INDEX: usize = 7;
 pub(super) const MAGNETOMETER_FAILURE_INDEX: usize = 8;
 pub(super) const JOINT_STATE_FAILURE_INDEX: usize = 9;
+pub(super) const AIR_SPEED_FAILURE_INDEX: usize = 10;
+pub(super) const POSE_PUBLISHER_FAILURE_INDEX: usize = 11;
 
 enum WorldWork {
     Clock(u64, Vec<u8>),
@@ -164,7 +168,9 @@ enum WorldWork {
     Lidar(u64, crate::lidar_io::LidarJob),
     Altimeter(u64, crate::altimeter_io::AltimeterJob),
     AirPressure(u64, crate::air_pressure_io::AirPressureJob),
+    AirSpeed(u64, crate::air_speed_io::AirSpeedJob),
     JointState(u64, crate::joint_state_io::JointStateJob),
+    PosePublisher(u64, crate::pose_publisher_io::PosePublisherJob),
     Magnetometer(u64, crate::magnetometer_io::MagnetometerJob),
     Odometry(u64, crate::diff_drive_io::Job),
     InstallDrive(crate::diff_drive_io::Setup, crate::diff_drive_io::Receipt),
@@ -188,9 +194,17 @@ enum WorldWork {
         String,
         mpsc::SyncSender<std::result::Result<Arc<AirPressureOutput>, String>>,
     ),
+    InstallAirSpeed(
+        String,
+        mpsc::SyncSender<std::result::Result<Arc<AirSpeedOutput>, String>>,
+    ),
     InstallJointState(
         String,
         mpsc::SyncSender<std::result::Result<Arc<JointStateOutput>, String>>,
+    ),
+    InstallPosePublisher(
+        String,
+        mpsc::SyncSender<std::result::Result<Arc<PosePublisherOutput>, String>>,
     ),
     InstallMagnetometer(
         String,
@@ -252,7 +266,7 @@ pub(super) struct WorldIo {
     pub(super) rejected: Arc<AtomicU64>,
     pub(super) ingress_drops: Arc<AtomicU64>,
     pub(super) reply_failures: Arc<AtomicU64>,
-    pub(super) publication_failures: Arc<[AtomicU64; 10]>,
+    pub(super) publication_failures: Arc<[AtomicU64; 12]>,
     pub(super) epoch: Arc<AtomicU64>,
     pub(super) max_message_bytes: usize,
     capacity: usize,
@@ -393,7 +407,7 @@ impl WorldIo {
         let worker_poses = Arc::clone(&poses);
         let epoch = Arc::new(AtomicU64::new(0));
         let worker_epoch = Arc::clone(&epoch);
-        let publication_failures: Arc<[AtomicU64; 10]> =
+        let publication_failures: Arc<[AtomicU64; 12]> =
             Arc::new(std::array::from_fn(|_| AtomicU64::new(0)));
         let failures = Arc::clone(&publication_failures);
         let control_worker =
@@ -555,10 +569,22 @@ impl WorldIo {
                     mpsc::SyncSender<crate::air_pressure_io::AirPressureId>,
                     mpsc::Receiver<crate::air_pressure_io::AirPressureId>,
                 )> = None;
+                let mut air_speeds: Option<crate::air_speed_io::AirSpeedDeclarations> = None;
+                let mut air_speed_retirement: Option<(
+                    mpsc::SyncSender<crate::air_speed_io::AirSpeedId>,
+                    mpsc::Receiver<crate::air_speed_io::AirSpeedId>,
+                )> = None;
                 let mut joint_states: Option<crate::joint_state_io::JointStateDeclarations> = None;
                 let mut joint_state_retirement: Option<(
                     mpsc::SyncSender<crate::joint_state_io::JointStateId>,
                     mpsc::Receiver<crate::joint_state_io::JointStateId>,
+                )> = None;
+                let mut pose_publishers: Option<
+                    crate::pose_publisher_io::PosePublisherDeclarations,
+                > = None;
+                let mut pose_publisher_retirement: Option<(
+                    mpsc::SyncSender<crate::pose_publisher_io::PosePublisherId>,
+                    mpsc::Receiver<crate::pose_publisher_io::PosePublisherId>,
                 )> = None;
                 let mut magnetometers: Option<crate::magnetometer_io::MagnetometerDeclarations> =
                     None;
@@ -623,6 +649,16 @@ impl WorldIo {
                             air_pressure_retirement = None;
                         }
                     }
+                    if let Some((_, retired)) = &air_speed_retirement {
+                        while retired.try_recv().is_ok() {}
+                    }
+                    if let Some(declarations) = &mut air_speeds {
+                        declarations.reconcile(publication_session.is_closed());
+                        if declarations.is_empty() {
+                            air_speeds = None;
+                            air_speed_retirement = None;
+                        }
+                    }
                     if let Some((_, retired)) = &joint_state_retirement {
                         while retired.try_recv().is_ok() {}
                     }
@@ -631,6 +667,16 @@ impl WorldIo {
                         if declarations.is_empty() {
                             joint_states = None;
                             joint_state_retirement = None;
+                        }
+                    }
+                    if let Some((_, retired)) = &pose_publisher_retirement {
+                        while retired.try_recv().is_ok() {}
+                    }
+                    if let Some(declarations) = &mut pose_publishers {
+                        declarations.reconcile(publication_session.is_closed());
+                        if declarations.is_empty() {
+                            pose_publishers = None;
+                            pose_publisher_retirement = None;
                         }
                     }
                     if let Some((_, retired)) = &magnetometer_retirement {
@@ -745,7 +791,9 @@ impl WorldIo {
                         || lidars.is_some()
                         || altimeters.is_some()
                         || air_pressures.is_some()
+                        || air_speeds.is_some()
                         || joint_states.is_some()
+                        || pose_publishers.is_some()
                         || magnetometers.is_some()
                         || forces.is_some()
                         || force_install.is_some()
@@ -882,6 +930,31 @@ impl WorldIo {
                                 .map_err(|error| error.to_string());
                             let _ = receipt.try_send(result);
                         }
+                        Ok(WorldWork::AirSpeed(generation, job)) => {
+                            if generation == worker_epoch.load(Ordering::Acquire)
+                                && air_speeds
+                                    .as_ref()
+                                    .is_some_and(|declarations| declarations.publish(job).is_err())
+                            {
+                                failures[AIR_SPEED_FAILURE_INDEX].fetch_add(1, Ordering::Relaxed);
+                            }
+                        }
+                        Ok(WorldWork::InstallAirSpeed(key, receipt)) => {
+                            let declarations = air_speeds
+                                .get_or_insert_with(crate::air_speed_io::AirSpeedDeclarations::new);
+                            let (retired, _) = air_speed_retirement
+                                .get_or_insert_with(|| mpsc::sync_channel(capacity));
+                            let result = declarations
+                                .get_or_create(
+                                    &publication_session,
+                                    key,
+                                    &publication_process,
+                                    &publication_node,
+                                    retired.clone(),
+                                )
+                                .map_err(|error| error.to_string());
+                            let _ = receipt.try_send(result);
+                        }
                         Ok(WorldWork::Magnetometer(generation, job)) => {
                             if generation == worker_epoch.load(Ordering::Acquire)
                                 && magnetometers
@@ -923,6 +996,33 @@ impl WorldIo {
                                 crate::joint_state_io::JointStateDeclarations::new,
                             );
                             let (retired, _) = joint_state_retirement
+                                .get_or_insert_with(|| mpsc::sync_channel(capacity));
+                            let result = declarations
+                                .get_or_create(
+                                    &publication_session,
+                                    key,
+                                    &publication_process,
+                                    &publication_node,
+                                    retired.clone(),
+                                )
+                                .map_err(|error| error.to_string());
+                            let _ = receipt.try_send(result);
+                        }
+                        Ok(WorldWork::PosePublisher(generation, job)) => {
+                            if generation == worker_epoch.load(Ordering::Acquire)
+                                && pose_publishers
+                                    .as_ref()
+                                    .is_some_and(|declarations| declarations.publish(job).is_err())
+                            {
+                                failures[POSE_PUBLISHER_FAILURE_INDEX]
+                                    .fetch_add(1, Ordering::Relaxed);
+                            }
+                        }
+                        Ok(WorldWork::InstallPosePublisher(key, receipt)) => {
+                            let declarations = pose_publishers.get_or_insert_with(
+                                crate::pose_publisher_io::PosePublisherDeclarations::new,
+                            );
+                            let (retired, _) = pose_publisher_retirement
                                 .get_or_insert_with(|| mpsc::sync_channel(capacity));
                             let result = declarations
                                 .get_or_create(
@@ -1215,6 +1315,23 @@ impl WorldIo {
             .map_err(Into::into)
     }
 
+    pub(super) fn air_speed_output(&self, key: String) -> Result<Arc<AirSpeedOutput>> {
+        if self.reserved_keys().contains(&key) {
+            return Err("air-speed key collides with world publication or service".into());
+        }
+        if self.session.is_closed() {
+            return Err("world session is closed".into());
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let (receipt, ready) = mpsc::sync_channel(1);
+        self.incoming
+            .send_deadline(WorldWork::InstallAirSpeed(key, receipt), deadline)
+            .map_err(|error| format!("air-speed setup admission failed: {error}"))?;
+        ready
+            .recv_timeout(deadline.saturating_duration_since(Instant::now()))?
+            .map_err(Into::into)
+    }
+
     pub(super) fn magnetometer_output(&self, key: String) -> Result<Arc<MagnetometerOutput>> {
         if self.reserved_keys().contains(&key) {
             return Err("magnetometer key collides with world publication or service".into());
@@ -1244,6 +1361,23 @@ impl WorldIo {
         self.incoming
             .send_deadline(WorldWork::InstallJointState(key, receipt), deadline)
             .map_err(|error| format!("joint-state setup admission failed: {error}"))?;
+        ready
+            .recv_timeout(deadline.saturating_duration_since(Instant::now()))?
+            .map_err(Into::into)
+    }
+
+    pub(super) fn pose_publisher_output(&self, key: String) -> Result<Arc<PosePublisherOutput>> {
+        if self.reserved_keys().contains(&key) {
+            return Err("pose-publisher key collides with world publication or service".into());
+        }
+        if self.session.is_closed() {
+            return Err("world session is closed".into());
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let (receipt, ready) = mpsc::sync_channel(1);
+        self.incoming
+            .send_deadline(WorldWork::InstallPosePublisher(key, receipt), deadline)
+            .map_err(|error| format!("pose-publisher setup admission failed: {error}"))?;
         ready
             .recv_timeout(deadline.saturating_duration_since(Instant::now()))?
             .map_err(Into::into)
@@ -1519,6 +1653,22 @@ impl WorldIo {
             .map_err(|_| "world publication queue unavailable".into())
     }
 
+    pub(super) fn publish_air_speed(
+        &self,
+        output: &Arc<AirSpeedOutput>,
+        bytes: Vec<u8>,
+    ) -> Result<()> {
+        if bytes.len() > self.max_message_bytes || self.session.is_closed() {
+            return Err("invalid air-speed publication".into());
+        }
+        self.incoming
+            .try_send(WorldWork::AirSpeed(
+                self.epoch.load(Ordering::Acquire),
+                crate::air_speed_io::AirSpeedJob::new(output, bytes),
+            ))
+            .map_err(|_| "world publication queue unavailable".into())
+    }
+
     pub(super) fn publish_magnetometer(
         &self,
         output: &Arc<MagnetometerOutput>,
@@ -1547,6 +1697,22 @@ impl WorldIo {
             .try_send(WorldWork::JointState(
                 self.epoch.load(Ordering::Acquire),
                 crate::joint_state_io::JointStateJob::new(output, bytes),
+            ))
+            .map_err(|_| "world publication queue unavailable".into())
+    }
+
+    pub(super) fn publish_pose_publisher(
+        &self,
+        output: &Arc<PosePublisherOutput>,
+        bytes: Vec<u8>,
+    ) -> Result<()> {
+        if bytes.len() > self.max_message_bytes || self.session.is_closed() {
+            return Err("invalid pose-publisher publication".into());
+        }
+        self.incoming
+            .try_send(WorldWork::PosePublisher(
+                self.epoch.load(Ordering::Acquire),
+                crate::pose_publisher_io::PosePublisherJob::new(output, bytes),
             ))
             .map_err(|_| "world publication queue unavailable".into())
     }
@@ -1624,3 +1790,11 @@ mod magnetometer_tests;
 #[cfg(test)]
 #[path = "../tests/private/joint_state_world_io.rs"]
 mod joint_state_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/air_speed_world_io.rs"]
+mod air_speed_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/pose_world_io.rs"]
+mod pose_publisher_tests;

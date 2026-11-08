@@ -41,12 +41,31 @@ fn altimeter_preflight_admits_typed_family_and_preserves_metadata_refusals() {
     assert!(validate(&altimeter_world(), false).is_ok());
     for config in [
         SensorConfig::Unconfigured,
-        SensorConfig::AirSpeed(Box::default()),
+        SensorConfig::NavSat(Box::default()),
     ] {
         let mut value = altimeter_world();
         value.models[0].links[0].sensors[0].config = config;
         failure(&value, "non-IMU sensors");
     }
+    // AirSpeed is now a retained family. The generic envelope admits its typed
+    // configuration, while its full preflight still refuses a stale kind tag.
+    let source = sdformat::load_str(
+        include_str!("../fixtures/m13_altimeter.sdf"),
+        "altimeter-kind-drift",
+        &sdformat::NoResources,
+    )
+    .unwrap();
+    let mut drifted = altimeter_world();
+    let name = format!(
+        "{}::{}",
+        drifted.models[0].links[0].scoped_name, drifted.models[0].links[0].sensors[0].name
+    );
+    drifted.models[0].links[0].sensors[0].config = SensorConfig::AirSpeed(Box::default());
+    assert!(validate(&drifted, false).is_ok());
+    assert!(
+        matches!(crate::air_speed::preflight(&source, &drifted, crate::PhysicsEngine::Rapier),
+        Err(LoadError::Unsupported { entity, feature: "Rapier ideal air_speed" }) if entity == name)
+    );
     let cases: [Edit; 3] = [
         ("sensor visualization", |w| {
             w.models[0].links[0].sensors[0].visualize = true

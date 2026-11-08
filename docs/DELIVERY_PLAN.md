@@ -3,13 +3,14 @@
 
 # Weekly delivery plan
 
-> M1–M20 are accepted and published; M20 remains the installed preview and Latest.
-> Both hosted attempts for frozen M21/M22 `36eb202c` failed at the Scene renderer
-> test-library LLVM linker with SIGBUS; the cause remains unknown.
-> M21–M25 now form one atomic candidate over accepted M20. Preserve every separate
-> functional/native contract; require new full normal, exact hosted CI and all
-> fresh M25 distribution/install/browser proofs before accepting any of them.
-> Earlier local passes and all original failures remain separate historical evidence.
+> M1–M25 are accepted and published; M25 is the verified installed preview and Latest.
+> Qualified Main `08ae5525`, exact hosted CI `42507018578` attempt 1 and all
+> independent source/local/official/package/install/browser reviews passed.
+> Original browser outer 143 is preserved separately from active actor/launcher 0,
+> read-only retained completion 0 and independent combined DATA; no replay.
+> Next: bounded ideal AirSpeed and flat-model PosePublisher Source contracts,
+> independent leaves, one integrator and serial heavy verification. See
+> [M25 acceptance](M25_ACCEPTANCE.md) and [M26/M27 scope](M26_M27_DELIVERY.md).
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning
@@ -70,6 +71,25 @@ results must never be described as same-engine performance improvement.
 | M23: Loaded magnetometer Gaussian noise | 5 working days | Existing single Rapier magnetometer with seeded sensor-axis X/Y/Z Gaussian/quantized noise. | Native post-rotation XYZ/zero-dt, demand/reset/fault/wire controls and all gates; see M23_M24_DELIVERY.md. |
 | M24: Planar CPU-lidar white Gaussian noise | 5 working days | Existing single planar Rapier lidar with zero-minimum finite-hit mean/stddev noise. | Native activation, beam-order/skipped misses/post-noise clipping, stale-scan fault retirement, unchanged ideal behavior and all gates; see M23_M24_DELIVERY.md. |
 | M25: Updated installed preview through M24 | 5 working days | Fresh native-free Ubuntu archive with the four parent noise examples and dedicated guides, preserving the default robot and viewer. | All gates, fresh binaries/notices/archive, clean non-root installation with four actual example loads, new installed browser controls/shutdown and actual publication readbacks; see M25_DELIVERY.md. |
+| M26: Ideal loaded AirSpeed | 5 working days | One top-level Rapier sensor, zero wind/default atmosphere/no noise, sensor-point and frame-correct native numeric pressure and temperature. | Actual model/native/wire/demand/cadence/reset/removal/atomic refusal proofs and every mandatory gate; see M26_M27_DELIVERY.md. |
+| M27: Flat-model PosePublisher | 5 working days | One built-in vector publisher for selected model/link parent-relative poses, exact headers and native unpaused cadence. | Native keyed frame/stamp records, real wire and lifecycle/atomic-collision controls and every mandatory gate; see M26_M27_DELIVERY.md. |
+
+M1–M25 are accepted; [M25 acceptance](M25_ACCEPTANCE.md) records qualified
+Main `08ae5525`, exact CI 42507018578 attempt 1, independent DATA and all actual
+fresh distribution/installation/browser/publication proofs. M25 is the verified
+checked download and Latest. The original browser outer 143 and missing waits
+remain faithfully disclosed alongside separate successful retained completion.
+
+[M26/M27](M26_M27_DELIVERY.md) are the next independent bounded source lanes,
+over accepted M25. There are 27 selected phases and 25 accepted. Close native
+Source contracts before implementation; complete each implementation, regressions,
+guides and independent review before one consolidated full qualification. No
+successor check or feature acceptance is claimed by this schedule.
+
+### Historical atomic M21–M25 integration checkpoint
+
+The following original pending/Latest statements are superseded by the actual
+M25 acceptance above; the old failures and capture identities remain protected.
 
 M1–M20 are accepted and published; [M20 acceptance](M20_ACCEPTANCE.md) remains
 the checked installed preview. [M21_M25_DELIVERY.md](M21_M25_DELIVERY.md) now
@@ -93,8 +113,8 @@ ownership, one integrator and one complete release candidate. A dependency may b
 accepted code, but no phase inherits acceptance merely from an older test run.
 Existing broad P0–P7 gates remain historical and long-term coverage inventories;
 they are not this release schedule and do not block M1 as entire families.
-The following M15–M19 preparation paragraphs are historical checkpoints; the
-current atomic integration and acceptance policy is recorded above.
+The following M15–M19 preparation paragraphs are historical checkpoints; current
+M25 acceptance and M26/M27 execution policy are recorded above.
 
 `planning/delivery-phases.json` is the machine-readable schedule mirrored by the
 tracker. M1–M16 are accepted under their bounded criteria, independently of total
