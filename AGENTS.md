@@ -1,11 +1,11 @@
 # Instructions for implementation agents
 
-> M1–M19 are accepted and published at qualified Main `e807a97d`.
-> Current M20 adds an explicit installed lifecycle/publication-credit mode using
-> the existing protocol and viewer, bounded to five working days under D30–D32.
-> Source lanes run in separate worktrees, with one integrator and independent
-> review before the consolidated mandatory checks. Preserve accepted evidence,
-> frozen worktrees, default behavior and independent Fuel work.
+> M1–M20 are accepted and published at qualified Main `9a3e81c`.
+> M20's checked installed preview is published as `m20-preview`; its frozen
+> source, artifacts and original failures remain preserved.
+> Current M21 altimeter noise and M22 air-pressure noise use independent Source
+> lanes under D30–D32. Neither inherits acceptance. One integrator serializes
+> local heavy checks. Preserve accepted evidence, paused trees and Fuel work.
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -15,7 +15,16 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` and `docs/M20_DELIVERY.md` before editing.
+Read `docs/DELIVERY_PLAN.md` and `docs/M21_M22_DELIVERY.md` before editing.
+Root integrates M21/M22 in `gz-sim-m21-m22`; sensor authors own the disjoint
+leaves/tests/native helpers/guides recorded there. Reuse the pure Gaussian library
+unchanged. Both native sensors apply noise at zero elapsed time; pressure retains
+native double `sqrt(stddev)` variance. No tests, lint or native captures run until
+the complete Source/regression/docs batch and independent review are finished.
+Parent M20 acceptance and all exact gates remain prerequisites for promotion.
+
+The M20 preparation details below describe the frozen parent scope, not another
+authoring lease or inherited acceptance.
 M19 is accepted at `e807a97d`, published as `m19-preview` with actual package,
 clean Ubuntu installation, installed robot/browser controls and owned shutdown.
 Its full normal hook, exact hosted CI and independent audits passed. Preserve

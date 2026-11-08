@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Canonical ideal air-pressure stream; physics and acquisition remain in Scene.
+//! Canonical air-pressure stream; physics and acquisition remain in Scene.
 use super::*;
 use gz_sim_proto::msgs::{FluidPressure, Header, header::Map};
 use gz_sim_scene::{AirPressurePublication, AirPressureSample, EntityKind, PendingResetRemoval};
@@ -29,7 +29,8 @@ fn packet(
     if !valid_metadata(metadata)
         || !reading.pressure.is_finite()
         || reading.pressure <= 0.0
-        || reading.variance != 0.0
+        || !reading.variance.is_finite()
+        || reading.variance < 0.0
     {
         return None;
     }

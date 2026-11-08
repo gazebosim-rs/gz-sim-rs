@@ -206,11 +206,28 @@ fn last_model_removal_retires_callbacks_and_loaded_reset_restores_identity_refer
 }
 
 #[test]
-fn admission_refuses_nondefault_noise_metadata_second_sensor_and_other_engines() {
+fn admission_refuses_invalid_noise_metadata_second_sensor_and_other_engines() {
     let original = "<altimeter/>";
+    // Negative deviations are rejected by the maintained parser before Scene admission.
+    for field in ["stddev", "bias_stddev", "dynamic_bias_stddev"] {
+        let xml = XML.replace(original, &format!(
+            "<altimeter><vertical_position><noise type='gaussian'><{field}>-0.1</{field}></noise></vertical_position></altimeter>"
+        ));
+        let error = sdformat::load_str(&xml, "altimeter-negative-deviation", &NoResources)
+            .expect_err("negative deviation must not parse");
+        assert_eq!(error.code, sdformat::ErrorCode::InvalidValue);
+        assert_eq!(
+            error.message,
+            "noise standard deviations must be nonnegative"
+        );
+        assert!(matches!(
+            load_world_with_sdf_step(&xml, "altimeter-negative-deviation", "default", &NoResources, PhysicsEngine::Rapier),
+            Err(LoadError::Sdf(error)) if error.code == sdformat::ErrorCode::InvalidValue
+        ));
+    }
     for replacement in [
-        "<altimeter><vertical_position><noise type='gaussian'><stddev>0.1</stddev></noise></vertical_position></altimeter>",
-        "<altimeter><vertical_velocity><noise type='gaussian'><mean>1</mean></noise></vertical_velocity></altimeter>",
+        "<altimeter><vertical_position><noise type='none'><mean>1</mean></noise></vertical_position></altimeter>",
+        "<altimeter><vertical_velocity><noise type='gaussian'><precision>-1</precision></noise></vertical_velocity></altimeter>",
         "<altimeter/><visualize>true</visualize>",
         "<altimeter/><enable_metrics>true</enable_metrics>",
         "<altimeter/><alwaysOn>true</alwaysOn>",
@@ -320,4 +337,207 @@ fn omitted_topic_and_frame_use_native_names_and_canonical_frame_wins_over_legacy
             .frame_id,
         "rig/body/altimeter"
     );
+}
+
+#[test]
+fn noise_state_is_optional_and_rejects_every_nonfinite_parameter_and_bounded_subset_violation() {
+    assert!(
+        AltimeterNoise::new(&sdformat::Altimeter::default(), [0; 32], 1)
+            .unwrap()
+            .is_none()
+    );
+    for kind in [
+        sdformat::NoiseKind::Gaussian,
+        sdformat::NoiseKind::GaussianQuantized,
+    ] {
+        for channel in 0..2 {
+            let mut config = sdformat::Altimeter::default();
+            let noise = if channel == 0 {
+                &mut config.vertical_position
+            } else {
+                &mut config.vertical_velocity
+            };
+            noise.kind = kind;
+            let state = AltimeterNoise::new(&config, [0; 32], 1).unwrap().unwrap();
+            assert!(state.channels[channel].is_some());
+            assert!(state.channels[1 - channel].is_none());
+            for field in 0..7 {
+                for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+                    let mut invalid = config.clone();
+                    let noise = if channel == 0 {
+                        &mut invalid.vertical_position
+                    } else {
+                        &mut invalid.vertical_velocity
+                    };
+                    match field {
+                        0 => noise.mean = value,
+                        1 => noise.stddev = value,
+                        2 => noise.bias_mean = value,
+                        3 => noise.bias_stddev = value,
+                        4 => noise.dynamic_bias_stddev = value,
+                        5 => noise.dynamic_bias_correlation_time = value,
+                        _ => noise.precision = value,
+                    }
+                    assert!(AltimeterNoise::new(&invalid, [0; 32], 1).is_err());
+                }
+            }
+            for field in 0..4 {
+                let mut invalid = config.clone();
+                let noise = if channel == 0 {
+                    &mut invalid.vertical_position
+                } else {
+                    &mut invalid.vertical_velocity
+                };
+                match field {
+                    0 => noise.stddev = -0.1,
+                    1 => noise.bias_stddev = -0.1,
+                    2 => noise.dynamic_bias_stddev = -0.1,
+                    _ => noise.precision = -0.1,
+                }
+                assert!(AltimeterNoise::new(&invalid, [0; 32], 1).is_err());
+            }
+        }
+    }
+    for field in 0..7 {
+        let mut hidden = sdformat::Altimeter::default();
+        match field {
+            0 => hidden.vertical_position.mean = 1.0,
+            1 => hidden.vertical_position.stddev = 1.0,
+            2 => hidden.vertical_position.bias_mean = 1.0,
+            3 => hidden.vertical_position.bias_stddev = 1.0,
+            4 => hidden.vertical_position.dynamic_bias_stddev = 1.0,
+            5 => hidden.vertical_position.dynamic_bias_correlation_time = 1.0,
+            _ => hidden.vertical_position.precision = 1.0,
+        }
+        assert!(AltimeterNoise::new(&hidden, [0; 32], 1).is_err());
+    }
+}
+
+#[test]
+fn noise_fault_is_typed_and_replaces_prior_valid_sample_without_changing_reference() {
+    let mut sim = load(XML);
+    let entity = sensor(&sim);
+    sim.step_exact(1).unwrap();
+    assert!(
+        sim.world()
+            .get::<AltimeterSample>(entity)
+            .unwrap()
+            .reading
+            .is_ok()
+    );
+    let config = sdformat::Altimeter {
+        vertical_position: sdformat::Noise {
+            kind: sdformat::NoiseKind::Gaussian,
+            mean: f64::MAX,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    let identity = sim.world().get::<EntityId>(entity).unwrap().get();
+    {
+        let mut owned = sim.world_mut().get_mut::<Altimeter>(entity).unwrap();
+        owned.noise = AltimeterNoise::new(&config, [0; 32], identity).unwrap();
+        // Finite model subtraction produces MAX; adding the finite mean overflows.
+        owned.reference = -f64::MAX;
+    }
+    sim.step_exact(9).unwrap();
+    let sample = sim.world().get::<AltimeterSample>(entity).unwrap();
+    assert_eq!(sample.time, Duration::from_millis(10));
+    assert!(matches!(
+        sample.reading,
+        Err(AltimeterSampleError::Noise(_))
+    ));
+    sim.world_mut()
+        .get_mut::<Altimeter>(entity)
+        .unwrap()
+        .reference = f64::NAN;
+    sim.step_exact(10).unwrap();
+    assert!(matches!(
+        sim.world().get::<AltimeterSample>(entity).unwrap().reading,
+        Err(AltimeterSampleError::Ideal(_))
+    ));
+}
+
+#[test]
+fn noisy_loaded_removal_retires_state_and_restores_seeded_original_identity() {
+    let configured = XML.replace("<altimeter/>", "<altimeter><vertical_velocity><noise type='gaussian'><stddev>0.3</stddev></noise></vertical_velocity></altimeter>");
+    let mut sim = load(&configured);
+    let (old_entity, id) = named(&sim, "default::rig::body::altimeter");
+    let model = named(&sim, "default::rig").1;
+    sim.step_exact(1).unwrap();
+    let first = *sim
+        .world()
+        .get::<AltimeterSample>(old_entity)
+        .unwrap()
+        .reading
+        .as_ref()
+        .unwrap();
+    remove_model(&mut sim, model).unwrap();
+    assert!(entity_by_id(sim.world(), id).is_none());
+    assert!(!sim.world().contains_resource::<Installed>());
+    assert!(!sim.world().contains_resource::<Interest>());
+    initial::reset_loaded_world(&mut sim, |_| ()).unwrap();
+    let restored = entity_by_id(sim.world(), id).unwrap();
+    assert_ne!(restored, old_entity);
+    assert!(
+        sim.world()
+            .get::<Altimeter>(restored)
+            .unwrap()
+            .noise
+            .is_some()
+    );
+    sim.step_exact(1).unwrap();
+    assert_eq!(
+        *sim.world()
+            .get::<AltimeterSample>(restored)
+            .unwrap()
+            .reading
+            .as_ref()
+            .unwrap(),
+        first
+    );
+}
+
+#[test]
+fn finite_but_overflowing_initial_bias_is_refused_and_finite_correlation_time_never_evolves() {
+    let overflowing = sdformat::Altimeter {
+        vertical_position: sdformat::Noise {
+            kind: sdformat::NoiseKind::Gaussian,
+            bias_mean: f64::MAX,
+            bias_stddev: f64::MAX,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    // Fixed bounded seeds exercise finite inputs whose derived initialization is not finite.
+    assert!((0..64).any(|seed| AltimeterNoise::new(&overflowing, [seed; 32], 9).is_err()));
+    for correlation in [-1.0, 0.0, 2.0] {
+        let config = sdformat::Altimeter {
+            vertical_position: sdformat::Noise {
+                kind: sdformat::NoiseKind::Gaussian,
+                mean: 0.25,
+                dynamic_bias_stddev: f64::MAX,
+                dynamic_bias_correlation_time: correlation,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut state = AltimeterNoise::new(&config, [0; 32], 1).unwrap().unwrap();
+        for _ in 0..3 {
+            let mut reading = AltimeterReading {
+                vertical_position: 0.0,
+                vertical_velocity: 2.0,
+                vertical_reference: 3.5,
+            };
+            state.apply(&mut reading).unwrap();
+            assert_eq!(
+                (
+                    reading.vertical_position,
+                    reading.vertical_velocity,
+                    reading.vertical_reference
+                ),
+                (0.25, 2.0, 3.5)
+            );
+        }
+    }
 }

@@ -8,7 +8,10 @@ use gz_sim_proto::{
     msgs::{WorldControl, WorldReset},
     prost::Name,
 };
-use gz_sim_scene::{Name as SceneName, PhysicsEngine, load_world_with_sdf_step, remove_model};
+use gz_sim_scene::{
+    AirPressureSampleError, Name as SceneName, PhysicsEngine, load_world_with_sdf_step,
+    remove_model,
+};
 
 const XML: &str = include_str!("../../../gz-sim-scene/tests/fixtures/m15_air_pressure.sdf");
 fn metadata() -> AirPressurePublication {
@@ -60,6 +63,252 @@ fn pressure_canonical_packet_preserves_native_fields_acquisition_time_frame_and_
 }
 
 #[test]
+fn noisy_pressure_variance_is_preserved_as_double_and_each_typed_error_is_suppressed() {
+    let ideal = packet(&metadata(), &sample(), 9).unwrap();
+    for variance in [1.0, 0.2_f64.sqrt(), f64::MAX] {
+        let noisy = AirPressureSample {
+            reading: Ok(AirPressureReading {
+                variance,
+                ..sample().reading.unwrap()
+            }),
+            ..sample()
+        };
+        let wire = packet(&metadata(), &noisy, 9).unwrap();
+        assert_eq!(wire.header, ideal.header);
+        assert_eq!(wire.pressure, ideal.pressure);
+        assert_eq!(wire.variance.to_bits(), variance.to_bits());
+        assert_eq!(
+            FluidPressure::decode(wire.encode_to_vec().as_slice()).unwrap(),
+            wire
+        );
+    }
+    for error in [
+        AirPressureSampleError::Ideal(InvalidAirPressureInput),
+        AirPressureSampleError::Noise(gz_sensors::InvalidNoise),
+        AirPressureSampleError::NonpositiveNoisyPressure,
+    ] {
+        assert!(
+            packet(
+                &metadata(),
+                &AirPressureSample {
+                    reading: Err(error),
+                    ..sample()
+                },
+                9
+            )
+            .is_none()
+        );
+    }
+}
+
+#[test]
+fn noisy_pressure_real_wire_reset_reconnect_and_retirement_keep_acquisition_ownership() {
+    let xml = XML.replace("<air_pressure/>", "<air_pressure><pressure><noise type='gaussian_quantized'><mean>2.25</mean><stddev>0.2</stddev><precision>0.5</precision><dynamic_bias_stddev>100</dynamic_bias_stddev><dynamic_bias_correlation_time>2</dynamic_bias_correlation_time></noise></pressure></air_pressure>");
+    let (mut server, observer, key) = server(&xml);
+    let subscriber = observer.declare_subscriber(key.clone()).wait().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.air_pressures[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    let identity = server.air_pressures[0].identity;
+    server.set_paused(false);
+    let mut values = Vec::new();
+    for tick in 1..=20 {
+        server.update().unwrap();
+        if let Some(sequence) = [1, 10, 20].iter().position(|&time| time == tick) {
+            let received = subscriber
+                .recv_timeout(Duration::from_secs(5))
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                received.attachment().unwrap().to_bytes().as_ref(),
+                b"gz.msgs.FluidPressure"
+            );
+            let message = FluidPressure::decode(received.payload().to_bytes().as_ref()).unwrap();
+            let acquired = server
+                .simulation
+                .world()
+                .get::<AirPressureSample>(server.air_pressures[0].entity)
+                .unwrap();
+            assert_eq!(
+                message,
+                packet(&metadata(), acquired, sequence as u64).unwrap()
+            );
+            assert_eq!(message.variance.to_bits(), 0.2_f64.sqrt().to_bits());
+            assert_eq!(message.pressure / 0.5, (message.pressure / 0.5).round());
+            values.push(message.pressure);
+        }
+    }
+    server.set_paused(true);
+    for _ in 0..3 {
+        server.update().unwrap();
+    }
+    assert!(subscriber.try_recv().unwrap().is_none());
+    assert!(server.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    assert_eq!(server.update().unwrap().epoch, 1);
+    assert_eq!(server.air_pressures[0].identity, identity);
+    server.set_paused(false);
+    server.update().unwrap();
+    let message = FluidPressure::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(message.pressure, values[0]);
+    assert_eq!(message.header.unwrap().data[1].value, ["0"]);
+    drop(subscriber);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while server.air_pressures[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    server.update().unwrap();
+    assert!(
+        server
+            .simulation
+            .world()
+            .get::<AirPressureSample>(server.air_pressures[0].entity)
+            .is_none()
+    );
+    let subscriber = observer.declare_subscriber(key).wait().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.air_pressures[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    for _ in 0..8 {
+        server.update().unwrap();
+    }
+    let message = FluidPressure::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(message.pressure, values[1]);
+    assert_eq!(message.header.unwrap().data[1].value, ["1"]);
+    let model = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<SceneName>()
+                .is_some_and(|name| name.0 == "default::rig")
+        })
+        .unwrap()
+        .get::<EntityId>()
+        .unwrap()
+        .get();
+    let lease = Arc::downgrade(&server.air_pressures[0].publisher);
+    remove_model(&mut server.simulation, model).unwrap();
+    server.set_paused(true);
+    server.update().unwrap();
+    assert!(server.air_pressures.is_empty());
+    assert!(lease.upgrade().is_none());
+    assert!(subscriber.try_recv().unwrap().is_none());
+}
+
+#[test]
+fn newly_invalid_noisy_acquisition_never_republishes_the_previous_valid_pressure() {
+    let xml = XML.replace("<air_pressure/>", "<air_pressure><pressure><noise type='gaussian'><mean>-101280</mean></noise></pressure></air_pressure>");
+    let (mut server, observer, key) = server(&xml);
+    let subscriber = observer.declare_subscriber(key).wait().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.air_pressures[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    server.set_paused(false);
+    server.update().unwrap();
+    let first = FluidPressure::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert!(first.pressure > 0.0);
+    assert_eq!(server.counters().air_pressures_queued, 1);
+    let link = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<SceneName>()
+                .is_some_and(|name| name.0 == "default::rig::body")
+        })
+        .unwrap()
+        .get::<EntityId>()
+        .unwrap()
+        .get();
+    // Stay below Rapier's maintained 400m/s solver velocity bound. This modest
+    // height change crosses the configured pressure threshold at the next 100Hz sample.
+    gz_sim_scene::queue_link_world_velocity(
+        &mut server.simulation,
+        link,
+        [0.0, 0.0, 100.0],
+        [0.0; 3],
+    )
+    .unwrap();
+    for _ in 0..9 {
+        server.update().unwrap();
+    }
+    let sensor_z = server
+        .simulation
+        .world()
+        .get::<gz_sim_scene::WorldPose>(server.air_pressures[0].entity)
+        .unwrap()
+        .translation[2];
+    assert!(sensor_z > 3.5);
+    let ideal = air_pressure(AirPressureInput { world_z: sensor_z }).unwrap();
+    assert!(ideal.pressure > 0.0 && ideal.pressure - 101280.0 <= 0.0);
+    let acquired = server
+        .simulation
+        .world()
+        .get::<AirPressureSample>(server.air_pressures[0].entity)
+        .unwrap();
+    assert_eq!(acquired.time, Duration::from_millis(10));
+    assert_eq!(
+        acquired.reading,
+        Err(AirPressureSampleError::NonpositiveNoisyPressure)
+    );
+    assert_eq!(server.counters().invalid_air_pressure_samples, 1);
+    server.publish_air_pressures();
+    assert_eq!(server.counters().invalid_air_pressure_samples, 1);
+    assert_eq!(server.counters().air_pressures_queued, 1);
+    assert_eq!(server.air_pressures[0].sequence, 1);
+    // A synchronous same-worker declaration fences the queued output before
+    // checking that no stale first sample escaped as a second publication.
+    let _fence = server
+        .world_io
+        .air_pressure_output("@/pressure-noise-fence@/sample".into())
+        .unwrap();
+    assert!(subscriber.try_recv().unwrap().is_none());
+}
+
+#[test]
 fn pressure_metadata_nonphysical_values_faults_and_unrepresentable_stamps_never_encode() {
     for field in 0..3 {
         let mut invalid = metadata();
@@ -80,7 +329,7 @@ fn pressure_metadata_nonphysical_values_faults_and_unrepresentable_stamps_never_
         };
         assert!(packet(&metadata(), &invalid, 0).is_none());
     }
-    for variance in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -1.0, 1.0] {
+    for variance in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -1.0] {
         let invalid = AirPressureSample {
             reading: Ok(AirPressureReading {
                 pressure: 101325.0,
@@ -94,7 +343,7 @@ fn pressure_metadata_nonphysical_values_faults_and_unrepresentable_stamps_never_
         packet(
             &metadata(),
             &AirPressureSample {
-                reading: Err(InvalidAirPressureInput),
+                reading: Err(AirPressureSampleError::Ideal(InvalidAirPressureInput)),
                 ..sample()
             },
             0
@@ -475,7 +724,11 @@ fn pressure_invalid_stale_future_and_bounded_publication_failures_never_become_v
     let entity = server.air_pressures[0].entity;
     server.simulation.step_exact(20).expect("local advance");
     for (epoch, time, reading) in [
-        (0, Duration::from_millis(20), Err(InvalidAirPressureInput)),
+        (
+            0,
+            Duration::from_millis(20),
+            Err(AirPressureSampleError::Ideal(InvalidAirPressureInput)),
+        ),
         (1, Duration::from_millis(20), sample().reading),
         (0, Duration::from_millis(21), sample().reading),
     ] {

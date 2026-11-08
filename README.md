@@ -29,12 +29,12 @@ The [live progress dashboard](https://gazebosim-rs.github.io/rewrite-progress/)
 tracks accepted increments, current development, remaining scope and evidence
 across the four target repositories. Repository agents publish their own updates.
 
-M1–M19 runtimes and the bounded distribution are accepted. Download the
-[Ubuntu 24.04 x86_64 integrated preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m19-preview)
+M1–M20 runtimes and the bounded distribution are accepted. Download the
+[Ubuntu 24.04 x86_64 integrated preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m20-preview)
 and its checksum, then follow the included installation guide. It packages the
 native-free Rapier server, maintained browser and finite robot-command helper.
-See [M19 evidence and limitations](docs/M19_ACCEPTANCE.md), the
-[installation guide](docs/M19_INSTALL.md), [capability matrix](docs/M19_CAPABILITIES.md)
+See [M20 evidence and limitations](docs/M20_ACCEPTANCE.md), the
+[installation guide](docs/M20_INSTALL.md), [capability matrix](docs/M20_CAPABILITIES.md)
 and [delivery plan](docs/DELIVERY_PLAN.md). This preview does not complete the
 rewrite or qualify unsupported platforms/features. The accepted
 [local recording/replay contract](docs/M11_RECORDING_REPLAY.md) remains retained.
@@ -47,8 +47,11 @@ M17 magnetometer and M18 joint-state publication are included in the accepted
 actual non-root installation/browser proof and explicit loopback HTTP 8082.
 See its [installation guide](docs/M19_INSTALL.md) and
 [limits](docs/M19_CAPABILITIES.md). Current [M20](docs/M20_DELIVERY.md) adds an
-explicit existing lifecycle/publication-credit choice; it is under development
-and is not included in the published M19 archive.
+explicit existing lifecycle/publication-credit choice and is published as the
+qualified M20 preview.
+The next independent [M21/M22 Source wave](docs/M21_M22_DELIVERY.md) adds
+loaded altimeter and air-pressure noise using the existing Gaussian library.
+It is under development and is not included in the published M20 archive.
 
 The design combines the responsibilities of `gz-sim`, `gz-sensors`, `gz-physics`,
 and the necessary parts of `gz-math` in one Cargo workspace. Bevy supplies the ECS

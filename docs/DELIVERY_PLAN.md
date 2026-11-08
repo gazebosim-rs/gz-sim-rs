@@ -3,12 +3,12 @@
 
 # Weekly delivery plan
 
-> M1–M19 are accepted and published at qualified Main `e807a97d`.
-> Current M20 adds an explicit installed lifecycle/publication-credit mode using
-> the existing protocol and viewer, bounded to five working days under D30–D32.
-> Source lanes run in separate worktrees, with one integrator and independent
-> review before the consolidated mandatory checks. Preserve accepted evidence,
-> frozen worktrees, default behavior and independent Fuel work.
+> M1–M20 are accepted and published at qualified Main `9a3e81c`.
+> M20's checked installed preview is published as `m20-preview`; its frozen
+> source, artifacts and original failures remain preserved.
+> Current M21 altimeter noise and M22 air-pressure noise use independent Source
+> lanes under D30–D32. Neither inherits acceptance. One integrator serializes
+> local heavy checks. Preserve accepted evidence, paused trees and Fuel work.
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning
@@ -64,11 +64,17 @@ results must never be described as same-engine performance improvement.
 | M18: Joint-state publication | 5 working days | Actual single-axis Rapier joint position/velocity and supported metadata in canonical Model packets. | Native packets and backend components, topic/filter/order, equal-time/pause/reset cadence, lifecycle/endpoint and moving-joint wire controls; all gates. |
 | M19: Refreshed installed preview | 5 working days | Ubuntu 24.04 native-free archive through M18, copied local OBJ robot, unchanged viewer and a nonconflicting explicit loopback HTTP port. | Fresh release binaries and notices, actual manifest/archive/relocation, clean non-root supported installation and real installed robot/browser controls and shutdown; all gates. |
 | M20: Explicit installed lifecycle and publication credit | 5 working days | Explicit existing lifecycle/credit opt-in with the complete M19 robot and unchanged defaults/viewer/wire. | Real socket full-world credit/catalog controls, guides, all mandatory gates and actual supported installed-browser controls/shutdown; see M20_DELIVERY.md. |
+| M21: Loaded altimeter Gaussian noise | 5 working days | Existing single Rapier altimeter with seeded Gaussian/quantized position and velocity channels. | Native zero-elapsed noise application, noise-free reference, deterministic streams, demand/rate/pause/reset/fault and actual wire controls; focused native evidence and all gates. |
+| M22: Loaded air-pressure Gaussian noise | 5 working days | Existing single Rapier pressure sensor with seeded Gaussian/quantized output and native double variance. | Native zero-elapsed application and sqrt(stddev) variance, positive-output/invalid suppression, deterministic streams, demand/rate/reset and actual wire controls; focused native evidence and all gates. |
 
-M1–M19 are now accepted and published. M17/M18 are qualified at `c7402b45`;
-[M19 acceptance](M19_ACCEPTANCE.md) records qualified Main `e807a97d` and the
-actual `m19-preview` publication. Current [M20](M20_DELIVERY.md) runs two
-independent Source lanes with one integrator. No M20 check or acceptance has run.
+M1–M20 are accepted and published. [M20 acceptance](M20_ACCEPTANCE.md) records
+qualified Main `9a3e81c`, exact hosted run 42479817732 attempt 1 and the actual
+`m20-preview` publication with checked assets, supported installation and installed
+browser/shutdown proof. [M21/M22](M21_M22_DELIVERY.md) Source proceeds in
+independent leaves over that accepted parent. Fresh native evidence and its
+independent retained audit passed. Two regression fixtures failed the first full
+normal hook and are being corrected as one reviewed batch. Neither new phase
+inherits acceptance.
 The preparation descriptions below are historical context superseded by this
 current state and the actual acceptance receipts.
 

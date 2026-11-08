@@ -1,12 +1,13 @@
 # Initial headless scene contract
 
-M1–M12 are accepted and published; see [current delivery](DELIVERY_PLAN.md)
-and [M12 acceptance](M12_ACCEPTANCE.md). The M13 ideal altimeter and M14 local
-STL increments share the candidate described by [the post-MVP contract](POST_MVP_DELIVERY.md),
-with feature details in [M13_ALTIMETER.md](M13_ALTIMETER.md) and
-[M14_STL.md](M14_STL.md). They remain unaccepted until qualification and Main
-promotion. The material below retains the historical scope and evidence of
-earlier increments; it is not a complete present-day capability inventory.
+M1–M20 are accepted and published; see [current delivery](DELIVERY_PLAN.md)
+and [M20 acceptance](M20_ACCEPTANCE.md). Current M21/M22 Source adds the bounded
+[altimeter noise](M21_ALTIMETER_NOISE.md) and
+[air-pressure noise](M22_AIR_PRESSURE_NOISE.md) contracts to the accepted ideal
+models. These increments remain unaccepted until their own qualification and
+Main promotion, and are not included in the M20 archive. The material below
+retains the initial headless scope and evidence; it is not a complete present-day
+capability inventory.
 
 
 `gz_sim_scene::load_world(xml, source, world_name, step, resolver)` returns a new
@@ -14,7 +15,7 @@ earlier increments; it is not a complete present-day capability inventory.
 change another running simulation. Includes use the supplied SDF resource resolver;
 `NoResources` supports self-contained files. No network or GPU is involved.
 
-The current supported scene has unjointed models, nested models, static inheritance,
+The initial headless subset has unjointed models, nested models, static inheritance,
 and one centered sphere, box, cylinder or capsule collision per link. Inertia
 tensors use SDF's
 xx,yy,zz,xy,xz,yz order; the inertial rotation is applied before Rapier's symmetric

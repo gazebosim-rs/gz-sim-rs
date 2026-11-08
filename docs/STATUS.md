@@ -1,16 +1,23 @@
 # Implementation status
 
-M1–M19 are accepted and published at qualified Main `e807a97d`; see
-[M19 acceptance](M19_ACCEPTANCE.md), the
-[m19-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m19-preview)
-and [current delivery](DELIVERY_PLAN.md). The complete M19 normal hook and exact
-hosted CI passed with independent local/official/package/install/browser audits.
-The real installed robot drove, turned, paused, reset and shut down with actual
-waited exits. Original failures and unknown causes remain preserved.
+M1–M20 are accepted and published at qualified Main `9a3e81c`; see
+[M20 acceptance](M20_ACCEPTANCE.md), the
+[m20-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m20-preview)
+and [current delivery](DELIVERY_PLAN.md). The full normal hook, exact hosted run
+42479817732 attempt 1 and independent local/official/package/install/browser DATA
+passed. All seven actual uploaded API sizes/digests and intentional Latest were
+verified. Original failures, the recovered idle warning and unknown child wait
+remain accurately disclosed; no cold-start, cause-fix or performance claim follows.
 
-Current [M20](M20_DELIVERY.md) adds an explicit opt-in to the existing lifecycle
-and publication-credit mode, with unchanged default behavior, wire and viewer.
-Two separate Source worktrees are active; no M20 checks or acceptance have run.
+Current [M21/M22](M21_M22_DELIVERY.md) adds loaded altimeter and pressure
+Gaussian/quantized noise using the existing library. Both leaf batches have
+independent Source clearance and are integrated with shared error exports.
+The fresh native batch and independent retained DATA passed. The first full
+normal hook found two failing regression fixtures: an altimeter parser-refusal
+expectation and a pressure invalid-output setup. Corrections are being batched
+for independent review before the next required pass. No new phase is accepted.
+Native zero-elapsed application and pressure double `sqrt(stddev)` variance are
+explicit contracts, not a new noise model or RNG byte-parity claim.
 The historical records below remain evidence for their original increments,
 not a complete present-day capability inventory.
 

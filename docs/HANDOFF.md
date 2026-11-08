@@ -3,33 +3,40 @@
 
 # Coordinator handoff
 
-> M1–M19 are accepted and published at qualified Main `e807a97d`.
-> Current M20 adds an explicit installed lifecycle/publication-credit mode using
-> the existing protocol and viewer, bounded to five working days under D30–D32.
-> Source lanes run in separate worktrees, with one integrator and independent
-> review before the consolidated mandatory checks. Preserve accepted evidence,
-> frozen worktrees, default behavior and independent Fuel work.
+> M1–M20 are accepted and published at qualified Main `9a3e81c`.
+> M20's checked installed preview is published as `m20-preview`; its frozen
+> source, artifacts and original failures remain preserved.
+> Current M21 altimeter noise and M22 air-pressure noise use independent Source
+> lanes under D30–D32. Neither inherits acceptance. One integrator serializes
+> local heavy checks. Preserve accepted evidence, paused trees and Fuel work.
 
 
-## Current work: M20 explicit installed lifecycle and publication credit
+## Current work: M21/M22 regression corrections
 
-M19 is accepted on qualified Main `e807a97d`, with
-[M19 acceptance](M19_ACCEPTANCE.md) and the public
-[m19-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m19-preview).
-All seven actual asset digests and intentional Latest designation were read back.
-Full normal/hosted/local/official qualification, final package DATA, a fresh
-supported non-root installation and the actual installed forward/turn/Pause/Reset
-and owned shutdown passed. Historical browser warnings and failed controller
-attempts remain retained, not reclassified as success.
+[M20 acceptance](M20_ACCEPTANCE.md) records qualified Main `9a3e81c`, exact
+hosted run 42479817732 attempt 1, independent local/official/package/install/browser
+DATA and actual public release 438259397 at 2026-11-08T13:18:29Z. All seven
+uploaded API sizes/digests, exact notes and intentional Latest designation were
+read back. The complete robot moved forward and turned, acknowledged Play,
+remained paused across two frames, reset to epoch 1/time zero and retired owned
+processes/listeners. Original failures, the recovered idle warning and unknown
+simulator-grandchild wait remain accurately disclosed. No M20 work is resumed.
 
-[M20_DELIVERY.md](M20_DELIVERY.md) records the next five-working-day scope.
-Light implements the explicit launcher choice, complete new installed guides and
-legacy guide verification in `gz-sim-m20-launcher`. Messages adds focused missing
-full-world real-socket credit regressions in `gz-sim-m20-credit-tests`. Root
-integrates in `gz-sim-m20`; SDF independently reviews the complete batch.
-Source work is active. No M20 check, CI, build, package or browser proof has run.
-No acceptance is inherited. Finish and review Source, regressions and docs before
-one consolidated normal pass; keep all strict coverage and hosted gates.
+[M21/M22 scope](M21_M22_DELIVERY.md) selects two independent bounded increments:
+loaded altimeter and air-pressure Gaussian/quantized noise using the maintained
+noise primitives. Native application uses zero elapsed time; pressure variance
+is native double `sqrt(stddev)`. Both complete leaf batches passed independent
+Source review, including the two-line pressure test Copy correction, and are
+integrated in `gz-sim-m21-m22`. Root owns shared error exports, current docs and
+planning. The reviewed native batch completed all 35 stages across ten modes
+and 430 printed rows; independent retained native DATA passed. The first full
+normal hook then failed two headless regressions: negative noise deviation was
+already rejected by the SDF parser, and a pressure fixture assumed motion beyond
+the backend velocity bound. Correct those fixtures together, preserve their
+refusal and stale-packet assertions, and complete independent review before the
+next required consolidated pass. The original failed tree and evidence remain
+retained. No normal, hosted or phase acceptance is inferred. Local heavy work
+stays serial; parent M20 acceptance does not qualify these new phases.
 
 The sections below preserve historical preparation checkpoints; this current
 state supersedes their pending statements. Do not replay old accepted work.

@@ -54,12 +54,13 @@ mod lidar;
 pub use lidar::{LidarPublication, LidarSample, clear_lidar_interest, set_lidar_interest};
 mod air_pressure;
 pub use air_pressure::{
-    AirPressurePublication, AirPressureSample, clear_air_pressure_interest,
+    AirPressurePublication, AirPressureSample, AirPressureSampleError, clear_air_pressure_interest,
     set_air_pressure_interest,
 };
 mod altimeter;
 pub use altimeter::{
-    AltimeterPublication, AltimeterSample, clear_altimeter_interest, set_altimeter_interest,
+    AltimeterPublication, AltimeterSample, AltimeterSampleError, clear_altimeter_interest,
+    set_altimeter_interest,
 };
 mod magnetometer;
 pub use magnetometer::{
