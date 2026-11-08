@@ -87,8 +87,31 @@ jobs:
           test "${#icds[@]}" -eq 1
           echo "VK_ICD_FILENAMES=${icds[0]}" >> "$GITHUB_ENV"
           echo "GZ_RENDER_REQUIRE_LLVMPIPE=1" >> "$GITHUB_ENV"
-      - run: python3 scripts/verify.py
+      - name: Run python3 scripts/verify.py
+        shell: bash
+        run: |
+          # Match the qualified local debug-info profile without changing coverage.
+          snapshot() {
+            echo "CI resource snapshot: $1 $(date -u +%FT%TZ)"
+            df -Pk . /tmp /dev/shm
+            df -Pi . /tmp /dev/shm
+            awk '/^(MemAvailable|SwapTotal|SwapFree):/' /proc/meminfo
+            for name in memory.current memory.max memory.peak; do
+              path="/sys/fs/cgroup/$name"
+              if [ -r "$path" ]; then printf '%s=' "$name"; cat "$path"; fi
+            done
+            printf 'Cargo dev/test debug=%s/%s\n' "$CARGO_PROFILE_DEV_DEBUG" "$CARGO_PROFILE_TEST_DEBUG"
+            if [ -d target ]; then timeout 10s du -sk target; fi
+          }
+          mkdir -p artifacts/coverage
+          snapshot before 2>&1 | head -c 65536 | tee artifacts/coverage/ci-resources.log || echo "Initial resource diagnostics incomplete"
+          status=0
+          python3 scripts/verify.py || status=$?
+          snapshot after 2>&1 | head -c 65536 | tee -a artifacts/coverage/ci-resources.log || echo "Final resource diagnostics incomplete"
+          exit "$status"
         env:
+          CARGO_PROFILE_DEV_DEBUG: '0'
+          CARGO_PROFILE_TEST_DEBUG: '0'
           GZ_COVERAGE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           GZ_ZENOH_REFERENCE_ROOT: ${{ github.workspace }}/artifacts/zenoh-native-reference
           MUJOCO_PREFIX: ${{ github.workspace }}/artifacts/physics-reference/mujoco

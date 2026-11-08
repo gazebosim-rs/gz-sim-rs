@@ -3,36 +3,44 @@
 
 # Coordinator handoff
 
-> M1–M19 are accepted and published at qualified Main `e807a97d`.
-> Current M20 adds an explicit installed lifecycle/publication-credit mode using
-> the existing protocol and viewer, bounded to five working days under D30–D32.
-> Source lanes run in separate worktrees, with one integrator and independent
-> review before the consolidated mandatory checks. Preserve accepted evidence,
-> frozen worktrees, default behavior and independent Fuel work.
+> M1–M20 are accepted and published; M20 remains the installed preview and Latest.
+> Both hosted attempts for frozen M21/M22 `36eb202c` failed at the Scene renderer
+> test-library LLVM linker with SIGBUS; the cause remains unknown.
+> M21–M25 now form one atomic candidate over accepted M20. Preserve every separate
+> functional/native contract; require new full normal, exact hosted CI and all
+> fresh M25 distribution/install/browser proofs before accepting any of them.
+> Earlier local passes and all original failures remain separate historical evidence.
 
 
-## Current work: M20 explicit installed lifecycle and publication credit
+## Current work: atomic M21–M25 sensor preview
 
-M19 is accepted on qualified Main `e807a97d`, with
-[M19 acceptance](M19_ACCEPTANCE.md) and the public
-[m19-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m19-preview).
-All seven actual asset digests and intentional Latest designation were read back.
-Full normal/hosted/local/official qualification, final package DATA, a fresh
-supported non-root installation and the actual installed forward/turn/Pause/Reset
-and owned shutdown passed. Historical browser warnings and failed controller
-attempts remain retained, not reclassified as success.
+[M21_M25_DELIVERY.md](M21_M25_DELIVERY.md) records the revised integration and
+acceptance sequence. M20 remains the checked installed preview and Latest.
+Both hosted attempts of frozen `36eb202c` failed at the Scene renderer test-library
+LLVM link with SIGBUS7. Their original API/log/partial-artifact bytes are retained;
+the cause remains unknown. There is no third unchanged retry.
 
-[M20_DELIVERY.md](M20_DELIVERY.md) records the next five-working-day scope.
-Light implements the explicit launcher choice, complete new installed guides and
-legacy guide verification in `gz-sim-m20-launcher`. Messages adds focused missing
-full-world real-socket credit regressions in `gz-sim-m20-credit-tests`. Root
-integrates in `gz-sim-m20`; SDF independently reviews the complete batch.
-Source work is active. No M20 check, CI, build, package or browser proof has run.
-No acceptance is inherited. Finish and review Source, regressions and docs before
-one consolidated normal pass; keep all strict coverage and hosted gates.
+The new candidate over accepted M20 combines all independently reviewed M21/M22
+altimeter/pressure, M23/M24 magnetic/CPU-lidar and M25 package/example source.
+Hosted dev/test debug information is aligned to the passing local level 0, with
+bounded pre/post resource diagnostics and preserved actual verification exit.
+No toolchain, linker, SDK, test, tolerance, instrumentation or gate is weakened.
+This is configuration alignment, not a proven cause fix.
 
-The sections below preserve historical preparation checkpoints; this current
-state supersedes their pending statements. Do not replay old accepted work.
+The old normal/local pass on `36eb202c`, provisional native/full-normal pass on
+`a42b1c94`, and Source-cleared `f040aae5` remain separate checkpoints. Do not
+mutate or relabel them. One NEW full normal/exact hosted qualification plus all
+separate native/functional contracts and fresh M25 build/package/install/four
+example/browser/shutdown/publication evidence must pass before accepting any
+M21–M25 phase. Native evidence roles and source-bound reuse are explicit in the
+integration contract. Root alone releases and watches heavy work.
+
+The prior pending-intermediate-parent holds are superseded by this atomic
+candidate, not removed from an otherwise unqualified child. No new checks or
+artifact acceptance are claimed at this integration source checkpoint. Preserve
+Fuel, accepted demos, old RAM/ZIP evidence and every genuine failure. The late
+M12 handoff approval is obsolete and unused. Update the tracker as results change
+and continue the next useful bounded phase after acceptance.
 
 ## Historical M19 preparation checkpoint
 

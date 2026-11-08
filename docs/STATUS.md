@@ -1,18 +1,28 @@
 # Implementation status
 
-M1–M19 are accepted and published at qualified Main `e807a97d`; see
-[M19 acceptance](M19_ACCEPTANCE.md), the
-[m19-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m19-preview)
-and [current delivery](DELIVERY_PLAN.md). The complete M19 normal hook and exact
-hosted CI passed with independent local/official/package/install/browser audits.
-The real installed robot drove, turned, paused, reset and shut down with actual
-waited exits. Original failures and unknown causes remain preserved.
+M1–M20 are accepted and published at qualified Main `9a3e81c`; see
+[M20 acceptance](M20_ACCEPTANCE.md), the
+[m20-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m20-preview)
+and [current delivery](DELIVERY_PLAN.md). The full normal hook, exact hosted run
+42479817732 attempt 1 and independent local/official/package/install/browser DATA
+passed. All seven actual uploaded API sizes/digests and intentional Latest were
+verified. Original failures, the recovered idle warning and unknown child wait
+remain accurately disclosed; no cold-start, cause-fix or performance claim follows.
 
-Current [M20](M20_DELIVERY.md) adds an explicit opt-in to the existing lifecycle
-and publication-credit mode, with unchanged default behavior, wire and viewer.
-Two separate Source worktrees are active; no M20 checks or acceptance have run.
-The historical records below remain evidence for their original increments,
-not a complete present-day capability inventory.
+[M21–M25](M21_M25_DELIVERY.md) is now one atomic integration over accepted M20.
+Both hosted attempts of frozen `36eb202c` failed at the same Scene renderer
+LLVM link with SIGBUS; cause remains unknown. Local qualification on that source,
+provisional M23/M24 native/full-normal results on `a42b1c94` and complete reviewed
+M25 source on `f040aae5` remain retained, separate checkpoints. None is a new
+aggregate check or acceptance. The new candidate combines those reviewed leaves
+and aligns CI debug information with the passing local configuration, adding
+bounded diagnostics without weakening instrumentation, tests or gates.
+New full normal/strict actual-M20-parent checks, exact hosted CI and independent
+DATA plus every fresh M25 distribution/install/example/browser/publication proof
+are mandatory before accepting M21–M25 together. M20 remains the checked download
+and Latest. Original failures and unknown causes are preserved.
+The records below describe their original checkpoints and are not a complete
+present-day capability inventory.
 
 The Zenoh headless P2 milestone is accepted on Main `c3f5a2f`, following the
 complete normal hook, independent review, exact hosted run `41270504128` and

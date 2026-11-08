@@ -245,6 +245,150 @@ fn server(xml: &str) -> (Server, zenoh::Session, String) {
 }
 
 #[test]
+fn gaussian_lidar_wire_keeps_acquisition_frame_cadence_reset_and_reconnect_draws() {
+    let xml = XML.replace("<min>0.1</min>", "<min>0</min>").replace(
+        "</range></lidar>",
+        "</range><noise><type>gaussian</type><mean>0.1</mean><stddev>0.2</stddev></noise></lidar>",
+    );
+    let (mut server, observer, key) = server(&xml);
+    let subscriber = observer.declare_subscriber(key.clone()).wait().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.lidars[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    let identity = server.lidars[0].identity;
+    server.set_paused(false);
+    let mut captured = Vec::new();
+    for tick in 1..=20 {
+        server.update().unwrap();
+        if let Some(sequence) = [1, 10, 20].iter().position(|&value| value == tick) {
+            let received = subscriber
+                .recv_timeout(Duration::from_secs(5))
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                received.attachment().unwrap().to_bytes().as_ref(),
+                b"gz.msgs.LaserScan"
+            );
+            let message = LaserScan::decode(received.payload().to_bytes().as_ref()).unwrap();
+            let acquired = server
+                .simulation
+                .world()
+                .get::<LidarSample>(server.lidars[0].entity)
+                .unwrap();
+            assert_eq!(
+                message,
+                packet(&server.lidars[0].metadata, acquired, sequence as u64).unwrap()
+            );
+            assert_eq!(acquired.time, Duration::from_millis(tick));
+            assert_eq!(acquired.world_pose.translation, [0.0, 0.0, 1.0]);
+            assert_eq!(message.ranges.len(), 3);
+            captured.push(message.ranges);
+        }
+    }
+    server.set_paused(true);
+    for _ in 0..3 {
+        server.update().unwrap();
+    }
+    assert!(subscriber.try_recv().unwrap().is_none());
+    assert!(server.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    assert_eq!(server.update().unwrap().epoch, 1);
+    assert_eq!(server.lidars[0].identity, identity);
+    server.set_paused(false);
+    server.update().unwrap();
+    let reset = LaserScan::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(reset.ranges, captured[0]);
+    assert_eq!(reset.header.unwrap().data[1].value, ["0"]);
+    drop(subscriber);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while server.lidars[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    server.update().unwrap();
+    assert!(
+        server
+            .simulation
+            .world()
+            .get::<LidarSample>(server.lidars[0].entity)
+            .is_none()
+    );
+    let subscriber = observer.declare_subscriber(key).wait().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.lidars[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    for _ in 0..8 {
+        server.update().unwrap();
+    }
+    let reconnected = LaserScan::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(reconnected.ranges, captured[1]);
+    assert_eq!(reconnected.header.unwrap().data[1].value, ["1"]);
+    assert_eq!(server.counters().invalid_lidar_samples, 0);
+}
+
+#[test]
+fn signed_gaussian_means_deliver_exact_finite_lower_and_upper_clips_on_wire() {
+    for (mean, expected) in [(-20, 0.0), (20, 10.0)] {
+        let xml = XML.replace("<min>0.1</min>", "<min>0</min>").replace(
+            "</range></lidar>",
+            &format!("</range><noise><type>gaussian</type><mean>{mean}</mean></noise></lidar>"),
+        );
+        let (mut server, observer, key) = server(&xml);
+        let subscriber = observer.declare_subscriber(key).wait().unwrap();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !server.lidars[0].publisher.matching().unwrap() {
+            assert!(Instant::now() < deadline);
+            std::thread::yield_now();
+        }
+        server.set_paused(false);
+        server.update().unwrap();
+        let message = LaserScan::decode(
+            subscriber
+                .recv_timeout(Duration::from_secs(5))
+                .unwrap()
+                .unwrap()
+                .payload()
+                .to_bytes()
+                .as_ref(),
+        )
+        .unwrap();
+        assert_eq!(message.ranges, [expected; 3]);
+        assert_eq!(message.range_min, 0.0);
+        assert_eq!(message.range_max, 10.0);
+        assert_eq!(server.counters().lidars_queued, 1);
+        assert_eq!(server.counters().invalid_lidar_samples, 0);
+    }
+}
+
+#[test]
 fn real_zenoh_scan_cadence_pause_reset_and_removal_preserve_canonical_contract() {
     let (mut server, observer, key) = server(XML);
     let subscriber = observer.declare_subscriber(key).wait().unwrap();

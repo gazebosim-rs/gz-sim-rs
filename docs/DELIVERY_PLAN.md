@@ -3,12 +3,13 @@
 
 # Weekly delivery plan
 
-> M1–M19 are accepted and published at qualified Main `e807a97d`.
-> Current M20 adds an explicit installed lifecycle/publication-credit mode using
-> the existing protocol and viewer, bounded to five working days under D30–D32.
-> Source lanes run in separate worktrees, with one integrator and independent
-> review before the consolidated mandatory checks. Preserve accepted evidence,
-> frozen worktrees, default behavior and independent Fuel work.
+> M1–M20 are accepted and published; M20 remains the installed preview and Latest.
+> Both hosted attempts for frozen M21/M22 `36eb202c` failed at the Scene renderer
+> test-library LLVM linker with SIGBUS; the cause remains unknown.
+> M21–M25 now form one atomic candidate over accepted M20. Preserve every separate
+> functional/native contract; require new full normal, exact hosted CI and all
+> fresh M25 distribution/install/browser proofs before accepting any of them.
+> Earlier local passes and all original failures remain separate historical evidence.
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning
@@ -64,20 +65,37 @@ results must never be described as same-engine performance improvement.
 | M18: Joint-state publication | 5 working days | Actual single-axis Rapier joint position/velocity and supported metadata in canonical Model packets. | Native packets and backend components, topic/filter/order, equal-time/pause/reset cadence, lifecycle/endpoint and moving-joint wire controls; all gates. |
 | M19: Refreshed installed preview | 5 working days | Ubuntu 24.04 native-free archive through M18, copied local OBJ robot, unchanged viewer and a nonconflicting explicit loopback HTTP port. | Fresh release binaries and notices, actual manifest/archive/relocation, clean non-root supported installation and real installed robot/browser controls and shutdown; all gates. |
 | M20: Explicit installed lifecycle and publication credit | 5 working days | Explicit existing lifecycle/credit opt-in with the complete M19 robot and unchanged defaults/viewer/wire. | Real socket full-world credit/catalog controls, guides, all mandatory gates and actual supported installed-browser controls/shutdown; see M20_DELIVERY.md. |
+| M21: Loaded altimeter Gaussian noise | 5 working days | Existing single Rapier altimeter with seeded Gaussian/quantized position and velocity channels. | Native zero-elapsed noise application, noise-free reference, deterministic streams, demand/rate/pause/reset/fault and actual wire controls; focused native evidence and all gates. |
+| M22: Loaded air-pressure Gaussian noise | 5 working days | Existing single Rapier pressure sensor with seeded Gaussian/quantized output and native double variance. | Native zero-elapsed application and sqrt(stddev) variance, positive-output/invalid suppression, deterministic streams, demand/rate/reset and actual wire controls; focused native evidence and all gates. |
+| M23: Loaded magnetometer Gaussian noise | 5 working days | Existing single Rapier magnetometer with seeded sensor-axis X/Y/Z Gaussian/quantized noise. | Native post-rotation XYZ/zero-dt, demand/reset/fault/wire controls and all gates; see M23_M24_DELIVERY.md. |
+| M24: Planar CPU-lidar white Gaussian noise | 5 working days | Existing single planar Rapier lidar with zero-minimum finite-hit mean/stddev noise. | Native activation, beam-order/skipped misses/post-noise clipping, stale-scan fault retirement, unchanged ideal behavior and all gates; see M23_M24_DELIVERY.md. |
+| M25: Updated installed preview through M24 | 5 working days | Fresh native-free Ubuntu archive with the four parent noise examples and dedicated guides, preserving the default robot and viewer. | All gates, fresh binaries/notices/archive, clean non-root installation with four actual example loads, new installed browser controls/shutdown and actual publication readbacks; see M25_DELIVERY.md. |
 
-M1–M19 are now accepted and published. M17/M18 are qualified at `c7402b45`;
-[M19 acceptance](M19_ACCEPTANCE.md) records qualified Main `e807a97d` and the
-actual `m19-preview` publication. Current [M20](M20_DELIVERY.md) runs two
-independent Source lanes with one integrator. No M20 check or acceptance has run.
-The preparation descriptions below are historical context superseded by this
-current state and the actual acceptance receipts.
+M1–M20 are accepted and published; [M20 acceptance](M20_ACCEPTANCE.md) remains
+the checked installed preview. [M21_M25_DELIVERY.md](M21_M25_DELIVERY.md) now
+combines the complete reviewed M21–M25 source into one new candidate over M20,
+avoiding three serial qualification cycles. Both frozen M21/M22 hosted attempts
+failed at the same LLVM Scene-link SIGBUS of unknown cause; no third unchanged
+retry is authorized. Old local/provisional passes and native captures remain
+separate, correctly bound evidence.
 
-The initial MVP sequence is ordered around user-visible dependencies. After M12,
+The atomic candidate must pass new full normal/strict actual-M20-parent coverage,
+exact hosted CI and independent Source/local/official DATA. All separate sensor
+contracts and fresh M25 binaries/notices/archive/clean installation/four actual
+installed examples/new browser/shutdown/publication proof remain required before
+accepting M21–M25 together. The CI correction aligns debug information with the
+passing local configuration and adds bounded diagnostics; it does not establish
+the cause or weaken checks. All original starts/budgets and accepted history are
+retained. There are still 25 selected phases and 20 accepted; M20 remains Latest.
+
 D31 permits independent bounded increments to run in parallel with explicit file
 ownership, one integrator and one complete release candidate. A dependency may be reused from existing
 accepted code, but no phase inherits acceptance merely from an older test run.
 Existing broad P0–P7 gates remain historical and long-term coverage inventories;
 they are not this release schedule and do not block M1 as entire families.
+The following M15–M19 preparation paragraphs are historical checkpoints; the
+current atomic integration and acceptance policy is recorded above.
+
 `planning/delivery-phases.json` is the machine-readable schedule mirrored by the
 tracker. M1–M16 are accepted under their bounded criteria, independently of total
 rewrite effort. M15/M16 Main is `5f53c92e`; its public `m15-m16-features` receipt

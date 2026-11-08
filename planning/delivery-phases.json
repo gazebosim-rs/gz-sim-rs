@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-08",
   "execution_state": "active",
-  "current_phase": "M20",
+  "current_phase": "M21",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -346,7 +346,83 @@
       "scope": "Explicit installed run --lifecycle pairs the existing native lifecycle flag and maintained viewer lifecycle query, retaining the full M19 coexistence robot, default behavior, protocol and viewer bytes.",
       "acceptance": "Meaningful default/opt-in pairing and real socket credit/catalog/coexistence controls; complete guide-pair verification; full normal hook, strict workspace/per-crate/parent gates and exact hosted CI; independently audited native-free package, supported non-root installation and actual opted-in browser robot controls/owned clean shutdown before qualified publication.",
       "excluded": "Wire or renderer changes, queue/deadline widening, silent default changes, robot/sensor/joint removal, new transport/runtime/framework, general cold-start or performance claim.",
-      "evidence": "docs/M20_DELIVERY.md"
+      "evidence": "docs/M20_ACCEPTANCE.md",
+      "accepted_at": "2026-11-08T13:18:29Z",
+      "accepted_commits": {
+        "gz-sim-rs": "9a3e81cf8babbc87b305f09dd04458fddc70765f",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_receipt": "https://github.com/gazebosim-rs/gz-sim-rs/releases/download/m20-preview/m20-acceptance.json"
+    },
+    {
+      "id": "M21",
+      "title": "Loaded altimeter Gaussian noise",
+      "max_working_days": 5,
+      "depends_on": [
+        "M13",
+        "M20"
+      ],
+      "scope": "Gaussian and Gaussian-quantized position/velocity noise on the existing single loaded Rapier altimeter, reusing maintained seeded streams, native zero-elapsed noise application and the unchanged ideal/reference model.",
+      "acceptance": "Meaningful deterministic/noisy invalid, seeded independence, demand/rate/pause/reset and actual canonical wire controls; focused pinned native evidence; complete source/docs and independent review before one full normal hook, strict coverage and exact hosted CI; independent retained audits and qualified parent/Main promotion before acceptance.",
+      "excluded": "Shared noise-model rewrite, native RNG byte equality, new sensor family/atmosphere/backend/transport/framework/UI, multiple sensors or runtime sensor spawning, reference/rate services and performance claims.",
+      "evidence": "docs/M21_M22_DELIVERY.md"
+    },
+    {
+      "id": "M22",
+      "title": "Loaded air-pressure Gaussian noise",
+      "max_working_days": 5,
+      "depends_on": [
+        "M15",
+        "M20"
+      ],
+      "scope": "Gaussian and Gaussian-quantized noise on the existing single loaded Rapier air-pressure channel, retaining the ideal atmosphere and native zero-elapsed application and double sqrt(stddev) published variance.",
+      "acceptance": "Meaningful deterministic/noisy invalid, seeded independence, demand/rate/pause/reset and actual canonical wire controls; focused pinned native evidence; complete source/docs and independent review before one full normal hook, strict coverage and exact hosted CI; independent retained audits and qualified parent/Main promotion before acceptance.",
+      "excluded": "Shared noise-model rewrite, native RNG byte equality, new sensor family/atmosphere/backend/transport/framework/UI, multiple sensors or runtime sensor spawning, reference/rate services and performance claims.",
+      "evidence": "docs/M21_M22_DELIVERY.md"
+    },
+    {
+      "id": "M23",
+      "title": "Loaded magnetometer Gaussian noise",
+      "max_working_days": 5,
+      "depends_on": [
+        "M17",
+        "M21",
+        "M22"
+      ],
+      "scope": "Gaussian and Gaussian-quantized X/Y/Z noise after resolving the existing single Rapier magnetometer field into sensor axes, with native zero-elapsed XYZ order and maintained seeded streams.",
+      "acceptance": "Complete source/regressions/docs and independent review before one consolidated full normal hook, strict workspace/per-crate/actual-parent coverage and exact hosted CI; focused pinned native and actual canonical wire evidence; independent retained audits and qualified parent/Main promotion before acceptance.",
+      "excluded": "Shared noise-model rewrite, native RNG/reset byte equality, geographic field models, multiple sensors, new backend/transport/UI and performance claims.",
+      "evidence": "docs/M23_M24_DELIVERY.md"
+    },
+    {
+      "id": "M24",
+      "title": "Planar CPU-lidar white Gaussian noise",
+      "max_working_days": 5,
+      "depends_on": [
+        "M7",
+        "M21",
+        "M22"
+      ],
+      "scope": "Finite mean/nonnegative standard-deviation Gaussian range noise for one existing planar Rapier CPU lidar with zero range minimum; native activation, finite-hit beam order, skipped infinite misses and finite post-noise clipping, preserving all noise-free behavior.",
+      "acceptance": "Complete source/regressions/docs and independent review before one consolidated full normal hook, strict workspace/per-crate/actual-parent coverage and exact hosted CI; focused pinned native and actual canonical wire evidence; independent retained audits and qualified parent/Main promotion before acceptance.",
+      "excluded": "Noisy nonzero minimum, bias/dynamic bias/quantized noise/nondefault precision, GPU lidar, intensity/pointclouds, raw out-of-range native fraction parity, new physics/transport/UI and performance claims.",
+      "evidence": "docs/M23_M24_DELIVERY.md"
+    },
+    {
+      "id": "M25",
+      "title": "Updated installed preview through M24",
+      "max_working_days": 5,
+      "depends_on": [
+        "M20",
+        "M21",
+        "M22",
+        "M23",
+        "M24"
+      ],
+      "scope": "Fresh Ubuntu 24.04 x86_64 native-free preview through the qualified M24 parent, retaining the default robot/launcher/viewer and including four immutable sensor-noise examples with real finite installed execution.",
+      "acceptance": "Complete packaging, meaningful regression and dedicated guide source with independent review; full normal/strict coverage/exact hosted CI and independent audits; fresh source-bound release inputs, actual notice/dependency closure and assembly/relocation; clean non-root supported installation, all four real installed example loads/steps, new installed robot/browser controls and owned shutdown; exact tag/assets/body/Latest readbacks before acceptance.",
+      "excluded": "New sensor/physics/transport/viewer/runtime behavior, scene-selector or message CLI/telemetry framework, new dependencies, native backend or RGB/depth-worker distributions, renderer rebuild, old binary/archive/manual proof reuse and performance/legal-compliance claims.",
+      "evidence": "docs/M25_DELIVERY.md"
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -370,14 +446,23 @@
     "M17": "complete",
     "M18": "complete",
     "M19": "complete",
-    "M20": "in_progress"
+    "M20": "complete",
+    "M21": "in_progress",
+    "M22": "in_progress",
+    "M23": "in_progress",
+    "M24": "in_progress",
+    "M25": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-08T10:54:32.848678+00:00",
+  "phase_started_at": "2026-11-08",
   "active_phases": [
-    "M20"
+    "M21",
+    "M22",
+    "M23",
+    "M24",
+    "M25"
   ],
-  "execution_policy": "D31/D32: independent Source lanes in separate worktrees with one integrator; serial local heavy checks. Finish Source/regressions/docs and independent review before one consolidated full normal hook. Exact hosted CI and actual artifact/browser proofs precede acceptance/publication.",
+  "execution_policy": "D31/D32 atomic M21\u2013M25 integration over accepted M20: independent Source lanes, one integrator and serial local heavy work. New full normal/strict actual-M20-parent coverage, exact hosted CI and independent DATA plus all fresh M25 artifact/install/browser proofs precede accepting any M21\u2013M25 phase. Original scopes, starts and five-day budgets remain.",
   "parallel_groups": [
     {
       "phases": [
@@ -402,7 +487,34 @@
       ],
       "integration": "independent source leaves, one integrator and one complete qualified candidate; frozen M15/M16 closeout proceeds separately",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M21",
+        "M22"
+      ],
+      "integration": "Independent leaf/source/test lanes and one integrator. Source may overlap frozen locally qualified M20 hosted/artifact qualification; local heavy checks stay serial and final M20 acceptance is a prerequisite.",
+      "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M23",
+        "M24"
+      ],
+      "integration": "Disjoint Source lanes integrate on the exact locally qualified M21/M22 candidate. After actual full normal/native/local DATA pass, reviewed provisional local checks may overlap parent hosted CI with local heavy work serial. Child retained qualification and publication require the finally accepted parent and all child gates; parent corrections require rebase and affected checks.",
+      "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M21",
+        "M22",
+        "M23",
+        "M24",
+        "M25"
+      ],
+      "integration": "One new atomic candidate over accepted M20; preserve every individual functional/native criterion and require new full normal/exact hosted/independent DATA plus fresh M25 release/install/four-example/browser/shutdown proof before accepting all five together. Supersedes serial intermediate-parent qualification; no old whole-gate success is relabeled.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M19 are accepted and published; qualified Main e807a97d and actual m19-preview asset readbacks close M19. M20 is in progress and inherits no acceptance. Continue the next useful bounded delivery after every accepted phase while retained work remains under D32."
+  "acceptance_boundary": "Atomic integration checkpoint: 20 phases accepted. Both frozen M21/M22 hosted attempts failed at the same Scene LLVM linker SIGBUS; cause unknown. Earlier local/provisional results and reviewed sources are preserved separately. A new complete M21\u2013M25 candidate over accepted M20 aligns CI debug info/adds bounded diagnostics and must meet every new gate and fresh M25 distribution criterion before any new acceptance."
 }

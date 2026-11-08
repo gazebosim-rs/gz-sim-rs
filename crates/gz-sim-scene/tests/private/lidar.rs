@@ -27,6 +27,109 @@ fn without_sensor() -> String {
     let end = start + XML[start..].find("</sensor>").unwrap() + "</sensor>".len();
     format!("{}{}", &XML[..start], &XML[end..])
 }
+
+#[test]
+fn cpu_noise_activation_hidden_parameters_and_nonfinite_output_are_fail_closed() {
+    let gaussian = sdformat::Noise {
+        kind: sdformat::NoiseKind::Gaussian,
+        ..Default::default()
+    };
+    assert!(
+        LidarNoise::new(&sdformat::Noise::default(), [42; 32], 1)
+            .unwrap()
+            .is_none()
+    );
+    for mean in [-1e-6, 0.0, 1e-6] {
+        assert!(
+            LidarNoise::new(
+                &sdformat::Noise {
+                    mean,
+                    stddev: 1e-6,
+                    ..gaussian
+                },
+                [42; 32],
+                1
+            )
+            .unwrap()
+            .is_none()
+        );
+    }
+    for field in 0..9 {
+        let mut invalid = gaussian;
+        match field {
+            0 => invalid.kind = sdformat::NoiseKind::GaussianQuantized,
+            1 => invalid.mean = f64::NAN,
+            2 => invalid.stddev = f64::INFINITY,
+            3 => invalid.stddev = -1.0,
+            4 => invalid.bias_mean = 1.0,
+            5 => invalid.bias_stddev = 1.0,
+            6 => invalid.dynamic_bias_stddev = 1.0,
+            7 => invalid.dynamic_bias_correlation_time = 1.0,
+            _ => invalid.precision = 1.0,
+        }
+        assert!(LidarNoise::new(&invalid, [42; 32], 1).is_err());
+    }
+    let mut noise = LidarNoise::new(
+        &sdformat::Noise {
+            mean: f64::MAX,
+            ..gaussian
+        },
+        [42; 32],
+        1,
+    )
+    .unwrap()
+    .unwrap();
+    assert_eq!(noise.range(None, f64::MAX).unwrap(), f64::INFINITY);
+    assert!(
+        noise.range(Some(f64::MAX), f64::MAX).is_err(),
+        "overflow must not clip to a finite maximum"
+    );
+    for invalid in [f64::NAN, f64::INFINITY, -1.0, 11.0] {
+        assert!(noise.range(Some(invalid), 10.0).is_err());
+    }
+}
+
+#[test]
+fn actual_noise_overflow_is_terminal_and_retires_the_last_complete_scan() {
+    let configured = XML.replace("<min>0.1</min>", "<min>0</min>").replace(
+        "</range></lidar>",
+        "</range><noise><type>gaussian</type><mean>1</mean></noise></lidar>",
+    );
+    let mut sim = load(&configured);
+    let (entity, identity) = named(&sim, "default::scanner::body::laser");
+    sim.step_exact(1).unwrap();
+    assert_eq!(
+        sim.world().get::<LidarSample>(entity).unwrap().ranges.len(),
+        3
+    );
+    // Private failure injection uses parameters admitted by the load contract;
+    // it is not a new runtime noise setter. Fixed-seed extreme white samples
+    // eventually overflow; no nonfinite beam may be hidden by clipping.
+    let extreme = sdformat::Noise {
+        kind: sdformat::NoiseKind::Gaussian,
+        mean: f64::MAX,
+        stddev: f64::MAX,
+        ..Default::default()
+    };
+    let noise = LidarNoise::new(&extreme, [42; 32], identity).unwrap();
+    sim.world_mut()
+        .entity_mut(entity)
+        .get_mut::<Lidar>()
+        .unwrap()
+        .noise = noise;
+    for _ in 0..1000 {
+        if sim.step_exact(1).is_err() {
+            break;
+        }
+    }
+    assert!(sim.is_faulted());
+    assert!(sim.fault().unwrap().to_string().contains("noise"));
+    assert!(sim.world().get::<LidarSample>(entity).is_none());
+    let elapsed = sim.elapsed();
+    assert!(sim.step_exact(1).is_err());
+    assert_eq!(sim.elapsed(), elapsed);
+    assert!(sim.world().get::<LidarSample>(entity).is_none());
+}
 #[test]
 fn metric_off_axis_returns_pose_cadence_pause_demand_removal_and_reset() {
     let mut sim = load(XML);
@@ -172,7 +275,7 @@ fn unsupported_sensor_domains_fail_admission_explicitly() {
         ),
         (
             "</range></lidar>",
-            "</range><noise type=\"gaussian\"><stddev>0.1</stddev></noise></lidar>",
+            "</range><noise><type>gaussian_quantized</type><stddev>0.1</stddev></noise></lidar>",
         ),
         (
             "</range></lidar>",

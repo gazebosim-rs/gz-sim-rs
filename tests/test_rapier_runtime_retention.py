@@ -28,7 +28,7 @@ class AuxiliaryRetention(unittest.TestCase):
                      "scripts/check-rapier-runtime.py", "crates/gz-sim-cli/tests/empty.sdf",
                      "crates/gz-sim-cli/src/live.rs",
                      "crates/gz-camera-output/tests/fixtures/m5-rgb.sdf",
-                     "crates/gz-camera-output/tests/fixtures/m6-depth.sdf",
+                     "crates/gz-camera-output/tests/fixtures/m6-depth.sdf", *QUALIFIER.NOISY_EXAMPLES,
                      "crates/gz-sim-proto/schema-source.json", "crates/gz-sim-proto/schemas/manifest.json",
                      "third_party/prost-derive-0.14.4/Cargo.toml", "third_party/prost-derive-0.14.4/LICENSE",
                      "third_party/prost-derive-0.14.4/src/lib.rs",
@@ -57,6 +57,8 @@ class AuxiliaryRetention(unittest.TestCase):
             events.append(artifact)
             saved = "objects/" + name
             self.write(saved, ("synthetic object for metadata control: " + name).encode())
+            if name == "gz-sim-rs":
+                (self.directory / saved).chmod(0o755)
             objects.append({"original_path": str(original), "retained_path": saved,
                             "sha256": QUALIFIER.digest(self.directory / saved), "cargo_artifact": artifact})
         self.write_json("cargo-events.json", events)
@@ -106,6 +108,22 @@ class AuxiliaryRetention(unittest.TestCase):
         self.report["rgb_camera"] = {"state": "passed", "features": ["rgb-camera"],
                                      "target_root": str(self.root / "target/rapier-rgb-fixture"),
                                      "private_target_removed": True, "objects_bound_after_execution": rgb_objects}
+        # Synthetic receipts exercise validation only, never claim actual CLI runs.
+        cli = next(item for item in objects if item["cargo_artifact"]["target"]["name"] == "gz-sim-rs")
+        noisy = {"schema_version": 1, "source_directory": str(self.directory),
+                 "binary": {"retained_path": cli["retained_path"], "sha256": cli["sha256"], "mode": 0o755}, "runs": []}
+        for source in QUALIFIER.NOISY_EXAMPLES:
+            saved = "examples/" + Path(source).name
+            self.write(saved, (self.root / source).read_bytes())
+            noisy["runs"].append({"source": source, "retained_fixture": saved,
+                                  "fixture_sha256": QUALIFIER.digest(self.root / source),
+                                  "fixture_mode": (self.root / source).stat().st_mode & 0o777,
+                                  "argv": QUALIFIER.noisy_command(self.directory / cli["retained_path"], self.directory / saved),
+                                  "actual_exit_code": 0, "stdout": (QUALIFIER.NOISY_OUTPUT + "".join(
+                                      name + " " + " ".join(map(str, xyz)) + "\n"
+                                      for name, xyz in sorted(QUALIFIER.NOISY_LINKS[source].items()))), "stderr": ""})
+        self.report["noisy_examples"] = noisy
+        self.write_json("noisy-examples.json", noisy)
         self.finish_manifest()
 
     def write(self, name, data):
@@ -227,7 +245,8 @@ class AuxiliaryRetention(unittest.TestCase):
 
     def test_source_or_build_input_change_invalidates_evidence(self):
         for name in ["Cargo.lock", QUALIFIER.SCENE, "third_party/prost-derive-0.14.4/Cargo.toml",
-                     "third_party/prost-derive-0.14.4/LICENSE", "third_party/prost-derive-0.14.4/src/lib.rs"]:
+                     "third_party/prost-derive-0.14.4/LICENSE", "third_party/prost-derive-0.14.4/src/lib.rs",
+                     *QUALIFIER.NOISY_EXAMPLES]:
             path = self.root / name
             old = path.read_bytes()
             path.write_bytes(old + b"changed\n")
@@ -305,3 +324,56 @@ class AuxiliaryRetention(unittest.TestCase):
         self.finish_manifest()
         with self.assertRaises(ValueError):
             QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_each_noisy_example_requires_its_real_command_output_and_zero_exit(self):
+        baseline = json.dumps(self.report["noisy_examples"])
+        for field, wrong in [("actual_exit_code", 1), ("stdout", "simulation_ns=1000000 iterations=1\n"),
+                             ("stderr", "load failed\n"), ("stdout", QUALIFIER.NOISY_OUTPUT),
+                             ("stdout", QUALIFIER.NOISY_OUTPUT + "default::rig::body 0 0 4\n"),
+                             ("stdout", QUALIFIER.NOISY_OUTPUT + "default::rig::body 0 0 3\ndefault::extra::body 0 0 0\n"),
+                             ("argv", ["/different/binary"]),
+                             ("source", QUALIFIER.NOISY_EXAMPLES[-1])]:
+            with self.subTest(field=field):
+                record = json.loads(baseline)
+                record["runs"][0][field] = wrong
+                self.report["noisy_examples"] = record
+                self.write_json("noisy-examples.json", record)
+                self.finish_manifest()
+                with self.assertRaisesRegex(ValueError, "noisy-example"):
+                    QUALIFIER.validate_evidence(self.root, self.directory)
+        record = json.loads(baseline)
+        record["runs"].pop()
+        self.report["noisy_examples"] = record
+        self.write_json("noisy-examples.json", record)
+        self.finish_manifest()
+        with self.assertRaisesRegex(ValueError, "noisy-example executions"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_rehashed_noisy_fixture_bytes_modes_and_binary_claim_cannot_be_substituted(self):
+        copied = self.directory / "examples" / Path(QUALIFIER.NOISY_EXAMPLES[0]).name
+        original = copied.read_bytes()
+        copied.write_bytes(b"different but rehashed SDF")
+        self.finish_manifest()
+        with self.assertRaisesRegex(ValueError, "noisy-example fixture identity"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+        copied.write_bytes(original)
+        copied.chmod(0o600)
+        self.finish_manifest()
+        with self.assertRaisesRegex(ValueError, "noisy-example fixture identity"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+        copied.chmod((self.root / QUALIFIER.NOISY_EXAMPLES[0]).stat().st_mode & 0o777)
+        self.report["noisy_examples"]["binary"]["sha256"] = "0" * 64
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()
+        with self.assertRaisesRegex(ValueError, "noisy-example copied CLI identity"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_missing_noisy_receipt_or_copied_fixture_cannot_be_retained(self):
+        for name in ["noisy-examples.json", "examples/" + Path(QUALIFIER.NOISY_EXAMPLES[0]).name]:
+            path = self.directory / name
+            original = path.read_bytes()
+            path.unlink()
+            self.finish_manifest()
+            with self.assertRaises(ValueError):
+                QUALIFIER.validate_evidence(self.root, self.directory)
+            path.write_bytes(original)

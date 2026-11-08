@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Additional native-off execution proof; never replaces the full coverage profiles."""
+"""Additional native-off execution proof; never replaces the full coverage profiles.
+
+Four copied noisy SDFs run once each through the retained actual CLI. These
+finite load/step controls are separate from Rust test counts and canonical wire
+or statistical/native-model evidence; clean installed runs remain separate.
+"""
 import argparse
 import hashlib
 import importlib.util
@@ -20,6 +25,17 @@ import verify
 
 ROOT = Path(__file__).resolve().parents[1]
 SCENE = "crates/gz-sim-scene/src/lib.rs"
+NOISY_EXAMPLES = (
+    "examples/m21_altimeter_noise.sdf",
+    "examples/m22_air_pressure_noise.sdf",
+    "examples/m23_magnetometer_noise.sdf",
+    "examples/m24_cpu_lidar_noise.sdf",
+)
+NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
+NOISY_LINKS = {
+    **{source: {"default::rig::body": (0, 0, 3)} for source in NOISY_EXAMPLES[:3]},
+    NOISY_EXAMPLES[3]: {"default::scanner::body": (0, 0, 0), "default::target::body": (5, 0, 0)},
+}
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
 TARGETS = {
     "gz-sim-scene": ("no_native_backends", [
@@ -177,12 +193,102 @@ def digest(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+def noisy_command(binary, fixture):
+    return [str(binary), str(fixture), "--physics-engine", "rapier", "--iterations", "2",
+            "--step-ns", "1000000"]
+
+
+def noisy_output_matches(source, stdout):
+    rows = stdout.splitlines()
+    links = sorted(NOISY_LINKS[source].items())
+    if not stdout.endswith("\n") or not rows or rows[0] != NOISY_OUTPUT.rstrip("\n") or len(rows) != len(links) + 1:
+        return False
+    for row, (name, position) in zip(rows[1:], links):
+        fields = row.split(" ")
+        if len(fields) != 4 or fields[0] != name:
+            return False
+        try:
+            actual = tuple(float(value) for value in fields[1:])
+        except ValueError:
+            return False
+        if actual != position:
+            return False
+    return True
+
+
+def validate_noisy_examples(root, directory, record, observed_root, objects):
+    """Require the four actual copied-binary controls, not Rust test-count credit."""
+    if not isinstance(record, dict) or record.get("schema_version") != 1:
+        raise ValueError("missing copied noisy-example executions")
+    if json.loads((directory / "noisy-examples.json").read_text()) != record:
+        raise ValueError("noisy-example execution record differs")
+    origin_text = record.get("source_directory", "")
+    origin = Path(origin_text)
+    if (not origin.is_absolute() or ".." in origin.parts or str(origin) != origin_text
+            or not origin.is_relative_to(observed_root / "artifacts")):
+        raise ValueError("invalid original noisy-example directory")
+    cli = [item for item in objects if item["cargo_artifact"]["target"]["name"] == "gz-sim-rs"]
+    if len(cli) != 1:
+        raise ValueError("no unique actual copied CLI for noisy examples")
+    cli = cli[0]
+    mode = (directory / cli["retained_path"]).stat().st_mode & 0o777
+    if record.get("binary") != {"retained_path": cli["retained_path"], "sha256": cli["sha256"], "mode": mode} or not mode & 0o111:
+        raise ValueError("noisy-example copied CLI identity differs")
+    runs = record.get("runs")
+    if not isinstance(runs, list) or len(runs) != len(NOISY_EXAMPLES):
+        raise ValueError("missing or duplicate noisy-example executions")
+    for source, run in zip(NOISY_EXAMPLES, runs):
+        saved = "examples/" + Path(source).name
+        fixture = directory / saved
+        source_mode = (root / source).stat().st_mode & 0o777
+        if (run.get("source") != source or run.get("retained_fixture") != saved
+                or run.get("fixture_sha256") != digest(root / source)
+                or not fixture.is_file() or fixture.is_symlink() or digest(fixture) != run["fixture_sha256"]
+                or fixture.stat().st_mode & 0o777 != source_mode or run.get("fixture_mode") != source_mode):
+            raise ValueError("noisy-example fixture identity differs: " + source)
+        if (run.get("argv") != noisy_command(origin / cli["retained_path"], origin / saved)
+                or run.get("actual_exit_code") != 0 or not noisy_output_matches(source, run.get("stdout", ""))
+                or run.get("stderr") != ""):
+            raise ValueError("failed or mislabeled copied noisy-example execution: " + source)
+
+
+def run_noisy_examples(root, directory, objects, env):
+    cli = [item for item in objects if item["cargo_artifact"]["target"]["name"] == "gz-sim-rs"]
+    if len(cli) != 1:
+        raise ValueError("no unique actual copied CLI for noisy examples")
+    cli = cli[0]; binary = directory / cli["retained_path"]
+    if digest(binary) != cli["sha256"]:
+        raise ValueError("copied CLI changed before noisy examples")
+    record = {"schema_version": 1, "source_directory": str(directory),
+              "binary": {"retained_path": cli["retained_path"], "sha256": cli["sha256"],
+                         "mode": binary.stat().st_mode & 0o777}, "runs": []}
+    (directory / "examples").mkdir()
+    for source in NOISY_EXAMPLES:
+        original = root / source; saved = "examples/" + original.name; fixture = directory / saved
+        expected = digest(original); mode = original.stat().st_mode & 0o777
+        shutil.copy2(original, fixture)
+        if digest(fixture) != expected or fixture.stat().st_mode & 0o777 != mode:
+            raise ValueError("noisy-example copy differs: " + source)
+        command = noisy_command(binary, fixture)
+        result = subprocess.run(command, cwd=directory, env=env, capture_output=True, text=True, timeout=30)
+        record["runs"].append({"source": source, "retained_fixture": saved, "fixture_sha256": expected,
+                               "fixture_mode": mode, "argv": command, "actual_exit_code": result.returncode,
+                               "stdout": result.stdout, "stderr": result.stderr})
+        (directory / "noisy-examples.json").write_text(json.dumps(record, indent=2) + "\n")
+        if result.returncode != 0 or not noisy_output_matches(source, result.stdout) or result.stderr:
+            raise ValueError("copied noisy example did not complete two exact steps: " + source)
+        if digest(binary) != cli["sha256"] or digest(original) != expected or digest(fixture) != expected:
+            raise ValueError("noisy-example binary/source/copy changed during execution")
+    validate_noisy_examples(root, directory, record, root, objects)
+    return record
+
+
 def inputs(root=ROOT):
     paths = [root / name for name in ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml",
              ".cargo/config.toml", "scripts/rustc-coverage.py", "scripts/verify.py",
              "scripts/qualify-rapier-runtime.py", "scripts/check-rapier-runtime.py",
              "crates/gz-sim-cli/tests/empty.sdf", "crates/gz-camera-output/tests/fixtures/m5-rgb.sdf",
-             "crates/gz-camera-output/tests/fixtures/m6-depth.sdf"]]
+             "crates/gz-camera-output/tests/fixtures/m6-depth.sdf", *NOISY_EXAMPLES]]
     paths += sorted((root / "crates").rglob("*.rs"))
     paths += sorted((root / "crates").glob("*/Cargo.toml"))
     paths += sorted((root / "crates/gz-sim-proto/schemas").rglob("*.proto"))
@@ -221,7 +327,7 @@ def validate_evidence(root, directory, report=None):
     if not isinstance(hashes, dict) or not hashes:
         raise ValueError("missing native-off artifact bindings")
     required = {"inputs.json", "commands.json", "cargo-events.json", "objects.json", "rustc-coverage.py",
-                "closure.stdout", "closure.stderr", "coverage.json", "coverage.lcov", "merged.profdata"}
+                "closure.stdout", "closure.stderr", "coverage.json", "coverage.lcov", "merged.profdata", "noisy-examples.json"}
     required |= {test + "." + stream for test, _ in TARGETS.values() for stream in ["stdout", "stderr"]}
     if not required <= hashes.keys() or not any(name.startswith("raw/") and name.endswith(".profraw") for name in hashes):
         raise ValueError("missing required native-off raw/report evidence")
@@ -268,6 +374,7 @@ def validate_evidence(root, directory, report=None):
             if (event["target"]["name"].replace("_", "-") in {"gz-physics-dart", "gz-physics-mujoco"}
                     or "native-backends" in event["features"]):
                 raise ValueError("native artifact in reduced proof")
+    validate_noisy_examples(root, directory, report.get("noisy_examples"), observed_root, objects)
     source = (root / SCENE).read_text()
     proof = disabled_region(json.loads((directory / "coverage.json").read_text()),
                             (directory / "coverage.lcov").read_text(), observed_root, source)
@@ -462,6 +569,19 @@ def main():
     (out / "closure.stdout").write_text(closure.stdout)
     (out / "closure.stderr").write_text(closure.stderr)
     closure.check_returncode()
+    copies = out / "objects"
+    copies.mkdir()
+    bindings = []
+    for number, (path, item) in enumerate(sorted(objects.items())):
+        saved = copies / f"{number:03d}-{Path(path).name}"
+        expected = digest(path)
+        shutil.copy2(path, saved)
+        if digest(saved) != expected or digest(path) != expected:
+            raise ValueError("native-off executable changed while preserving it")
+        bindings.append({"original_path": path, "retained_path": str(saved.relative_to(out)),
+                         "sha256": expected, "cargo_artifact": item})
+    (out / "objects.json").write_text(json.dumps(bindings, indent=2) + "\n")
+    noisy_examples = run_noisy_examples(ROOT, out, bindings, env)
     sysroot = Path(subprocess.check_output(["rustc", "--print", "sysroot"], cwd=ROOT, text=True).strip())
     host = next(line.split(": ", 1)[1] for line in version.splitlines() if line.startswith("host: "))
     llvm = sysroot / "lib/rustlib" / host / "bin"
@@ -484,18 +604,6 @@ def main():
         raise ValueError("no-native sources/inputs changed during qualification")
     if subprocess.check_output(["rustc", "-vV"], cwd=ROOT, text=True) != version:
         raise ValueError("compiler changed during no-native qualification")
-    copies = out / "objects"
-    copies.mkdir()
-    bindings = []
-    for number, (path, item) in enumerate(sorted(objects.items())):
-        saved = copies / f"{number:03d}-{Path(path).name}"
-        expected = digest(path)
-        shutil.copy2(path, saved)
-        if digest(saved) != expected or digest(path) != expected:
-            raise ValueError("native-off executable changed while preserving it")
-        bindings.append({"original_path": path, "retained_path": str(saved.relative_to(out)),
-                         "sha256": expected, "cargo_artifact": item})
-    (out / "objects.json").write_text(json.dumps(bindings, indent=2) + "\n")
     # Only this invocation's fresh compilation cache is disposable. Copies,
     # sources, raw counters and reports live outside it and remain available.
     if (target.is_symlink() or not target.is_dir() or target.parent != cache_root
@@ -510,6 +618,7 @@ def main():
               "target_root": str(target),
               "rustc": version, "sources_and_inputs": source_hashes, "commands": commands,
               "disabled_backend": proof, "objects_bound_after_execution": bindings,
+              "noisy_examples": noisy_examples,
               "raw_profiles": {str(p.relative_to(out)): digest(p) for p in profiles},
               "coverage_json_sha256": digest(out / "coverage.json"),
               "coverage_lcov_sha256": digest(out / "coverage.lcov"),

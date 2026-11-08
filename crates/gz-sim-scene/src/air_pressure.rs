@@ -1,19 +1,117 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One loaded, ideal Rapier air_pressure; no transport or native library ownership.
+//! One loaded Rapier air_pressure with optional native scalar Gaussian noise.
 use super::*;
 use gz_sensors::air_pressure::{AirPressureInput, AirPressureReading, InvalidAirPressureInput};
+use gz_sensors::{GaussianNoise, GaussianParameters, InvalidNoise, NoiseStream};
+
+#[derive(Debug, thiserror::Error, PartialEq, Eq)]
+pub enum AirPressureSampleError {
+    #[error("invalid ideal air pressure: {0}")]
+    Ideal(InvalidAirPressureInput),
+    #[error("invalid air-pressure noise: {0}")]
+    Noise(InvalidNoise),
+    #[error("noisy air pressure must remain positive")]
+    NonpositiveNoisyPressure,
+}
+
+#[derive(Clone)]
+struct PressureNoise {
+    channel: GaussianNoise,
+    stream: NoiseStream,
+    seed: [u8; 32],
+    identity: u64,
+    variance: f64,
+}
+
+impl PressureNoise {
+    fn new(
+        config: &sdformat::Noise,
+        seed: [u8; 32],
+        identity: u64,
+    ) -> Result<Option<Box<Self>>, InvalidNoise> {
+        if config.kind == sdformat::NoiseKind::None {
+            return if *config == sdformat::Noise::default() {
+                Ok(None)
+            } else {
+                Err(InvalidNoise)
+            };
+        }
+        if [
+            config.mean,
+            config.stddev,
+            config.bias_mean,
+            config.bias_stddev,
+            config.dynamic_bias_stddev,
+            config.dynamic_bias_correlation_time,
+            config.precision,
+        ]
+        .iter()
+        .any(|value| !value.is_finite())
+            || config.stddev < 0.0
+            || config.bias_stddev < 0.0
+            || config.dynamic_bias_stddev < 0.0
+            || config.precision < 0.0
+        {
+            return Err(InvalidNoise);
+        }
+        let mut stream = NoiseStream::new(seed, identity);
+        let channel = GaussianNoise::new(
+            GaussianParameters {
+                mean: config.mean,
+                stddev: config.stddev,
+                bias_mean: config.bias_mean,
+                bias_stddev: config.bias_stddev,
+                dynamic_bias_stddev: config.dynamic_bias_stddev,
+                dynamic_bias_correlation_time: config.dynamic_bias_correlation_time,
+                precision: config.precision,
+            },
+            &mut stream,
+        )?;
+        Ok(Some(Box::new(Self {
+            channel,
+            stream,
+            seed,
+            identity,
+            // Pinned AirPressureSensor publishes sqrt(StdDev), not stddev squared.
+            variance: config.stddev.sqrt(),
+        })))
+    }
+
+    fn apply(
+        &mut self,
+        mut reading: AirPressureReading,
+    ) -> Result<AirPressureReading, AirPressureSampleError> {
+        // Native AirPressureSensor calls Apply(pressure) with its default dt=0.
+        reading.pressure = self
+            .channel
+            .apply(reading.pressure, 0.0, &mut self.stream)
+            .map_err(AirPressureSampleError::Noise)?;
+        if reading.pressure <= 0.0 {
+            return Err(AirPressureSampleError::NonpositiveNoisyPressure);
+        }
+        reading.variance = self.variance;
+        Ok(reading)
+    }
+
+    fn reset(&mut self) {
+        self.stream = NoiseStream::new(self.seed, self.identity);
+        self.channel = GaussianNoise::new(self.channel.parameters(), &mut self.stream)
+            .expect("same validated parameters and seed reproduce the finite initial bias");
+    }
+}
 
 #[derive(Component, Clone)]
 pub(super) struct AirPressure {
     schedule: SampleSchedule,
+    noise: Option<Box<PressureNoise>>,
 }
 
 #[derive(Component, Debug)]
 pub struct AirPressureSample {
     pub time: Duration,
     pub epoch: u64,
-    pub reading: Result<AirPressureReading, InvalidAirPressureInput>,
+    pub reading: Result<AirPressureReading, AirPressureSampleError>,
 }
 
 #[derive(Component, Debug, Clone, PartialEq)]
@@ -110,11 +208,6 @@ pub(super) fn spawn(
         .air_pressure()
         .expect("caller selected air_pressure configuration");
     require(
-        config.pressure == sdformat::Noise::default(),
-        &name,
-        "air_pressure noise",
-    )?;
-    require(
         config.reference_altitude == 0.0,
         &name,
         "air_pressure reference altitude",
@@ -174,10 +267,22 @@ pub(super) fn spawn(
         local,
         world,
     )?;
+    let identity = sim
+        .world()
+        .get::<EntityId>(entity)
+        .expect("spawn_node assigns a public sensor identity")
+        .get();
+    let noise =
+        PressureNoise::new(&config.pressure, context.noise_seed, identity).map_err(|_| {
+            LoadError::Unsupported {
+                entity: name.clone(),
+                feature: "unrepresentable air_pressure noise",
+            }
+        })?;
     sim.world_mut().entity_mut(entity).insert((
         AttachedPose,
         publication,
-        AirPressure { schedule },
+        AirPressure { schedule, noise },
     ));
     Ok(())
 }
@@ -246,9 +351,13 @@ fn sample(
                 return;
             }
         }
-        let reading = gz_sensors::air_pressure::air_pressure(AirPressureInput {
+        let mut reading = gz_sensors::air_pressure::air_pressure(AirPressureInput {
             world_z: pose.translation[2],
-        });
+        })
+        .map_err(AirPressureSampleError::Ideal);
+        if let (Ok(ideal), Some(noise)) = (&reading, &mut sensor.noise) {
+            reading = noise.apply(*ideal);
+        }
         commands.entity(entity).insert(AirPressureSample {
             time: time.sim_time,
             epoch: time.epoch,
@@ -260,6 +369,9 @@ fn sample(
 fn reset(mut sensors: Query<(Entity, &mut AirPressure)>, mut commands: Commands) {
     for (entity, mut sensor) in &mut sensors {
         sensor.schedule.reset();
+        if let Some(noise) = &mut sensor.noise {
+            noise.reset();
+        }
         commands.entity(entity).remove::<AirPressureSample>();
     }
 }

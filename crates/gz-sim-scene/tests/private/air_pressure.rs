@@ -36,6 +36,87 @@ fn without_sensor() -> String {
 }
 
 #[test]
+fn pressure_noise_ownership_and_typed_parameter_boundaries_are_explicit() {
+    let sim = load(XML);
+    assert!(
+        sim.world()
+            .get::<AirPressure>(sensor(&sim))
+            .unwrap()
+            .noise
+            .is_none()
+    );
+    for kind in [
+        sdformat::NoiseKind::Gaussian,
+        sdformat::NoiseKind::GaussianQuantized,
+    ] {
+        let config = sdformat::Noise {
+            kind,
+            ..Default::default()
+        };
+        assert!(PressureNoise::new(&config, [42; 32], 1).unwrap().is_some());
+        for field in 0..7 {
+            let mut invalid = config;
+            match field {
+                0 => invalid.mean = f64::NAN,
+                1 => invalid.stddev = f64::INFINITY,
+                2 => invalid.bias_mean = f64::NAN,
+                3 => invalid.bias_stddev = f64::INFINITY,
+                4 => invalid.dynamic_bias_stddev = f64::NAN,
+                5 => invalid.dynamic_bias_correlation_time = f64::INFINITY,
+                _ => invalid.precision = f64::NAN,
+            }
+            assert!(PressureNoise::new(&invalid, [42; 32], 1).is_err());
+        }
+        for field in 0..4 {
+            let mut invalid = config;
+            match field {
+                0 => invalid.stddev = -1.0,
+                1 => invalid.bias_stddev = -1.0,
+                2 => invalid.dynamic_bias_stddev = -1.0,
+                _ => invalid.precision = -1.0,
+            }
+            assert!(PressureNoise::new(&invalid, [42; 32], 1).is_err());
+        }
+    }
+}
+
+#[test]
+fn invalid_ideal_acquisition_preserves_the_noise_stream_and_reports_the_ideal_cause() {
+    fn invalid_pose(mut sensors: Query<&mut WorldPose, With<AirPressure>>) {
+        for mut pose in &mut sensors {
+            pose.translation[2] = f64::NAN;
+        }
+    }
+    let configured = XML.replace("<air_pressure/>", "<air_pressure><pressure><noise type='gaussian'><stddev>2</stddev><bias_stddev>1</bias_stddev></noise></pressure></air_pressure>");
+    let mut sim = load(&configured);
+    let entity = sensor(&sim);
+    let mut before = sim
+        .world()
+        .get::<AirPressure>(entity)
+        .unwrap()
+        .noise
+        .clone()
+        .unwrap();
+    sim.add_systems(Phase::PostStep, invalid_pose.before(sample));
+    sim.step_exact(1).unwrap();
+    let acquired = sim.world().get::<AirPressureSample>(entity).unwrap();
+    assert_eq!(acquired.time, Duration::from_millis(1));
+    assert_eq!(
+        acquired.reading,
+        Err(AirPressureSampleError::Ideal(InvalidAirPressureInput))
+    );
+    let mut after = sim
+        .world()
+        .get::<AirPressure>(entity)
+        .unwrap()
+        .noise
+        .clone()
+        .unwrap();
+    let ideal = gz_sensors::air_pressure::air_pressure(AirPressureInput { world_z: 3.5 }).unwrap();
+    assert_eq!(before.apply(ideal), after.apply(ideal));
+}
+
+#[test]
 fn absent_air_pressure_owns_no_callbacks_marker_interest_or_samples() {
     let mut absent = load(&without_sensor());
     let present = load(XML);
@@ -203,7 +284,7 @@ fn last_model_removal_retires_callbacks_and_loaded_reset_restores_absolute_heigh
 fn admission_refuses_nondefault_noise_metadata_second_sensor_and_other_engines() {
     let original = "<air_pressure/>";
     for replacement in [
-        "<air_pressure><pressure><noise type='gaussian'><stddev>0.1</stddev></noise></pressure></air_pressure>",
+        "<air_pressure><pressure><noise type='gaussian'><precision>-0.1</precision></noise></pressure></air_pressure>",
         "<air_pressure><pressure><noise type='none'><mean>1</mean></noise></pressure></air_pressure>",
         "<air_pressure><reference_altitude>1</reference_altitude></air_pressure>",
         "<air_pressure/><visualize>true</visualize>",
@@ -385,7 +466,10 @@ fn invalid_physical_measurement_remains_a_typed_acquisition_error_not_a_fabricat
         .get::<AirPressureSample>(entity)
         .expect("typed acquisition outcome");
     assert_eq!((sample.epoch, sample.time), (0, Duration::from_millis(1)));
-    assert_eq!(sample.reading, Err(InvalidAirPressureInput));
+    assert_eq!(
+        sample.reading,
+        Err(AirPressureSampleError::Ideal(InvalidAirPressureInput))
+    );
     assert!(!sim.is_faulted());
     assert!(sim.fault().is_none());
     assert_eq!(sim.elapsed(), Duration::from_millis(1));

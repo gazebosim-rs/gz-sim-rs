@@ -10,21 +10,18 @@ files, upstream test IDs, dependency decisions, code revision, exact check comma
 results, coverage, relevant benchmark data, reviewer, and unresolved limits.
 The task author cannot independently retire tests or approve coverage exclusions.
 
-## Current delivery: M19 refreshed installed preview
+## Current delivery: atomic M21–M25 sensor preview
 
-Owner D32 directs continuous bounded delivery. M1–M16 are accepted at Main
-`5f53c92e`, with actual normal/hosted/native/browser evidence in the public
-`m15-m16-features` receipt. Preserve all 156 reviewed slices and prior behavior.
-[M17_M18_DELIVERY.md](M17_M18_DELIVERY.md) retains the parent's independent
-five-day scopes and native/canonical-wire proofs. [M19_DELIVERY.md](M19_DELIVERY.md)
-defines the current five-day installer refresh, fixed robot/OBJ payload, guides,
-explicit loopback 8082 support and actual release/notice/installation/browser
-evidence. Root owns integration and publication, with assembler and runtime/CLI
-file leases recorded there. Finish independent Source review before the one
-consolidated pass; M19 local checks may overlap parent hosted CI only after the
-exact parent normal/native/local proofs pass. No new capability is accepted
-before all mandatory gates, independent review/DATA and qualified Main promotion.
-Keep the web tracker current and continue after each acceptance.
+[M21_M25_DELIVERY.md](M21_M25_DELIVERY.md) supersedes serial intermediate-parent
+qualification with one new complete candidate over accepted M20. Every per-phase
+functional/native criterion, mandatory normal/strict/exact-hosted check and fresh
+M25 distribution/install/four-example/browser/shutdown proof remains required.
+Two preserved hosted LLVM SIGBUS failures have unknown cause. Aligning debug info
+and adding bounded resource diagnostics does not establish a cause fix.
+Root owns integration/shared planning/CI/publication; existing source and procedure
+owners keep their narrow leases. Preserve all old trees and evidence. Complete
+independent Source review before the consolidated verification, serialize heavy
+work, publish actual results to the tracker and continue after acceptance.
 
 ### Historical M10-CREDIT contract (closed; preserve evidence)
 

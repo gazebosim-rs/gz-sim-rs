@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Assemble an explicitly source-bound M20 Linux preview, without building inputs."""
+"""Assemble an explicitly source-bound M25 Linux preview, without building inputs."""
 import argparse
 import gzip
 import hashlib
@@ -24,6 +24,10 @@ VIEWER_FILES = ('index.html', 'startup.mjs', *(
 COMMIT = re.compile(r'^[0-9a-f]{40}$')
 DIGEST = re.compile(r'^[0-9a-f]{64}$')
 MAX_FILE = 256 * 1024 * 1024
+MAX_EXAMPLE = 1024 * 1024
+NOISY_EXAMPLES = (
+    'm21_altimeter_noise.sdf', 'm22_air_pressure_noise.sdf',
+    'm23_magnetometer_noise.sdf', 'm24_cpu_lidar_noise.sdf')
 
 
 def regular(path, maximum=MAX_FILE):
@@ -209,6 +213,13 @@ def assemble(spec, output, archive=None):
     mesh = regular(ROOT / mesh_name, 16 * 1024 * 1024)
     if mesh.resolve() != ROOT.resolve() / mesh_name:
         raise ValueError('the fixed mesh source may not traverse linked directories')
+    examples = {}
+    for name in NOISY_EXAMPLES:
+        relative = Path('examples') / name
+        source = regular(ROOT / relative, MAX_EXAMPLE)
+        if source.resolve() != ROOT.resolve() / relative:
+            raise ValueError('fixed example sources may not traverse linked directories')
+        examples[name] = source
     with tempfile.TemporaryDirectory(prefix='.gz-preview-assembly-', dir=output.parent) as temporary:
         prefix = Path(temporary) / 'prefix'
         prefix.mkdir()
@@ -217,13 +228,16 @@ def assemble(spec, output, archive=None):
         copy_file(regular(ROOT / 'scripts/preview_runtime.py'), prefix / 'bin/gz-preview', 0o755)
         copy_file(regular(ROOT / 'examples/m19_robot.sdf'), prefix / 'share/robot.sdf')
         copy_file(mesh, prefix / 'share/meshes/m16-asymmetric.obj')
+        for name, source in examples.items():
+            copy_file(source, prefix / 'share/examples' / name)
         config = prefix / 'share/zenoh.json5'
         config.write_text(json.dumps({'listen': {'endpoints': ['tcp/127.0.0.1:7449']},
                                       'scouting': {'multicast': {'enabled': False}}}, indent=2) + '\n')
         for name, path in viewer.items():
             copy_file(path, prefix / 'web' / name, expected=spec['viewer_files'][name])
-        for source_name, installed_name in (('M20_INSTALL.md', 'INSTALL.md'),
-                                            ('M20_CAPABILITIES.md', 'CAPABILITIES.md')):
+        for source_name, installed_name in (('M25_INSTALL.md', 'INSTALL.md'),
+                                            ('M25_CAPABILITIES.md', 'CAPABILITIES.md'),
+                                            ('M25_PREVIEW.md', 'PREVIEW.md')):
             copy_file(regular(ROOT / 'docs' / source_name), prefix / installed_name)
         copy_file(regular(ROOT / 'LICENSE'), prefix / 'LICENSE')
         copy_file(regular(ROOT / 'NOTICE'), prefix / 'NOTICE')

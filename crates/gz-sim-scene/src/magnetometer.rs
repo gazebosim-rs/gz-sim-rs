@@ -1,20 +1,123 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One loaded, ideal Rapier magnetometer; no transport or native library ownership.
+//! One loaded Rapier magnetometer with optional sensor-axis noise; no transport ownership.
 use super::*;
 use gz_sensors::magnetometer::{InvalidMagnetometerInput, MagnetometerInput, MagnetometerReading};
+use gz_sensors::{GaussianNoise, GaussianParameters, InvalidNoise, NoiseStream};
 
 #[derive(Component, Clone)]
 pub(super) struct Magnetometer {
     schedule: SampleSchedule,
     field_world: [f64; 3],
+    noise: Option<Box<MagnetometerNoise>>,
 }
 
 #[derive(Component, Debug)]
 pub struct MagnetometerSample {
     pub time: Duration,
     pub epoch: u64,
-    pub reading: Result<MagnetometerReading, InvalidMagnetometerInput>,
+    pub reading: Result<MagnetometerReading, MagnetometerSampleError>,
+}
+
+/// Invalid ideal inputs and noisy outputs remain distinct; neither can be published.
+#[derive(Debug, thiserror::Error)]
+pub enum MagnetometerSampleError {
+    #[error(transparent)]
+    Ideal(#[from] InvalidMagnetometerInput),
+    #[error(transparent)]
+    Noise(#[from] InvalidNoise),
+}
+
+#[derive(Clone)]
+struct MagnetometerNoise {
+    channels: [Option<GaussianNoise>; 3],
+    stream: NoiseStream,
+    seed: [u8; 32],
+    identity: u64,
+}
+
+impl MagnetometerNoise {
+    fn validate(config: &sdformat::Magnetometer) -> Result<(), InvalidNoise> {
+        for noise in config.noise {
+            if [
+                noise.mean,
+                noise.stddev,
+                noise.bias_mean,
+                noise.bias_stddev,
+                noise.dynamic_bias_stddev,
+                noise.dynamic_bias_correlation_time,
+                noise.precision,
+            ]
+            .iter()
+            .any(|value| !value.is_finite())
+                || noise.stddev < 0.0
+                || noise.bias_stddev < 0.0
+                || noise.dynamic_bias_stddev < 0.0
+                || noise.precision < 0.0
+                || (noise.kind == sdformat::NoiseKind::None && noise != sdformat::Noise::default())
+            {
+                return Err(InvalidNoise);
+            }
+        }
+        Ok(())
+    }
+
+    fn new(
+        config: &sdformat::Magnetometer,
+        seed: [u8; 32],
+        identity: u64,
+    ) -> Result<Option<Box<Self>>, InvalidNoise> {
+        Self::validate(config)?;
+        if config
+            .noise
+            .iter()
+            .all(|noise| noise.kind == sdformat::NoiseKind::None)
+        {
+            return Ok(None);
+        }
+        let mut result = Self {
+            channels: std::array::from_fn(|_| None),
+            stream: NoiseStream::new(seed, identity),
+            seed,
+            identity,
+        };
+        for (index, noise) in config.noise.into_iter().enumerate() {
+            if noise.kind != sdformat::NoiseKind::None {
+                result.channels[index] = Some(GaussianNoise::new(
+                    GaussianParameters {
+                        mean: noise.mean,
+                        stddev: noise.stddev,
+                        bias_mean: noise.bias_mean,
+                        bias_stddev: noise.bias_stddev,
+                        dynamic_bias_stddev: noise.dynamic_bias_stddev,
+                        dynamic_bias_correlation_time: noise.dynamic_bias_correlation_time,
+                        precision: noise.precision,
+                    },
+                    &mut result.stream,
+                )?);
+            }
+        }
+        Ok(Some(Box::new(result)))
+    }
+
+    fn apply(&mut self, reading: &mut MagnetometerReading) -> Result<(), InvalidNoise> {
+        for (value, noise) in reading.field_tesla.iter_mut().zip(&mut self.channels) {
+            if let Some(noise) = noise {
+                // Native MagnetometerSensor applies X/Y/Z noise after rotation, with dt=0.
+                *value = noise.apply(*value, 0.0, &mut self.stream)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn reset(&mut self) {
+        self.stream = NoiseStream::new(self.seed, self.identity);
+        for noise in self.channels.iter_mut().flatten() {
+            *noise = GaussianNoise::new(noise.parameters(), &mut self.stream).expect(
+                "validated parameters and identical seed reproduce the finite initial bias",
+            );
+        }
+    }
 }
 
 #[derive(Component, Debug, Clone, PartialEq)]
@@ -111,14 +214,10 @@ fn prepare(
         "magnetometer metadata",
     )?;
     let config = sensor.magnetometer().expect("typed magnetometer checked");
-    require(
-        config
-            .noise
-            .iter()
-            .all(|noise| *noise == sdformat::Noise::default()),
-        &name,
-        "magnetometer noise",
-    )?;
+    MagnetometerNoise::validate(config).map_err(|_| LoadError::Unsupported {
+        entity: name.clone(),
+        feature: "unrepresentable magnetometer noise",
+    })?;
     let schedule = SampleSchedule::new(sensor.update_rate).map_err(|_| LoadError::Unsupported {
         entity: name.clone(),
         feature: "unrepresentable sensor rate",
@@ -261,12 +360,27 @@ pub(super) fn spawn(
         local,
         world,
     )?;
+    let identity = sim
+        .world()
+        .get::<EntityId>(entity)
+        .expect("spawned sensor owns a public identity")
+        .get();
+    let noise = MagnetometerNoise::new(
+        sensor.magnetometer().expect("prepared typed sensor"),
+        context.noise_seed,
+        identity,
+    )
+    .map_err(|_| LoadError::Unsupported {
+        entity: name.clone(),
+        feature: "unrepresentable magnetometer noise",
+    })?;
     sim.world_mut().entity_mut(entity).insert((
         AttachedPose,
         publication,
         Magnetometer {
             schedule,
             field_world: parent.field_world,
+            noise,
         },
     ));
     Ok(())
@@ -339,6 +453,15 @@ fn sample(
         let reading = gz_sensors::magnetometer::magnetometer(MagnetometerInput {
             world_orientation: pose.rotation,
             field_world: sensor.field_world,
+        })
+        .map_err(MagnetometerSampleError::Ideal)
+        .and_then(|mut reading| {
+            if let Some(noise) = &mut sensor.noise {
+                noise
+                    .apply(&mut reading)
+                    .map_err(MagnetometerSampleError::Noise)?;
+            }
+            Ok(reading)
         });
         commands.entity(entity).insert(MagnetometerSample {
             time: time.sim_time,
@@ -351,6 +474,9 @@ fn sample(
 fn reset(mut sensors: Query<(Entity, &mut Magnetometer)>, mut commands: Commands) {
     for (entity, mut sensor) in &mut sensors {
         sensor.schedule.reset();
+        if let Some(noise) = &mut sensor.noise {
+            noise.reset();
+        }
         commands.entity(entity).remove::<MagnetometerSample>();
     }
 }

@@ -1,6 +1,8 @@
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
 import importlib.util
+import json
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -107,3 +109,70 @@ class DisabledBackendProof(unittest.TestCase):
             event = {"reason": "compiler-artifact", "features": [], "target": {"name": name}}
             with self.subTest(name=name), self.assertRaisesRegex(ValueError, "native/GPU dependency"):
                 MODULE.rgb_artifacts([event], self.root, self.root / "target/rapier-rgb-fixture")
+
+    def test_copied_noisy_examples_execute_once_each_and_bind_the_actual_results(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            directory = root / "artifacts/noisy-control"
+            binary = directory / "objects/gz-sim-rs"
+            binary.parent.mkdir(parents=True)
+            binary.write_bytes(b"mocked executable bytes; this test does not launch it")
+            binary.chmod(0o755)
+            for source in MODULE.NOISY_EXAMPLES:
+                fixture = root / source
+                fixture.parent.mkdir(exist_ok=True)
+                fixture.write_text("fixture Source: " + source)
+            objects = [{"retained_path": "objects/gz-sim-rs", "sha256": MODULE.digest(binary),
+                        "cargo_artifact": {"target": {"name": "gz-sim-rs"}}}]
+            results = [subprocess.CompletedProcess([], 0, MODULE.NOISY_OUTPUT + "".join(
+                name + " " + " ".join(map(str, xyz)) + "\n"
+                for name, xyz in sorted(MODULE.NOISY_LINKS[source].items())), "")
+                for source in MODULE.NOISY_EXAMPLES]
+            with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
+                record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
+            self.assertEqual(run.call_count, 4)
+            self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
+            for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
+                copied = directory / "examples" / Path(source).name
+                self.assertEqual(copied.read_bytes(), (root / source).read_bytes())
+                self.assertEqual(call.args[0], [str(binary), str(copied), "--physics-engine", "rapier",
+                                               "--iterations", "2", "--step-ns", "1000000"])
+                self.assertEqual(call.kwargs["env"], {"LLVM_PROFILE_FILE": "/owned/raw"})
+                self.assertEqual(call.kwargs["timeout"], 30)
+            self.assertEqual(json.loads((directory / "noisy-examples.json").read_text()), record)
+
+    def test_failed_copied_noisy_example_retains_actual_failure_and_stops_without_later_runs(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            directory = root / "artifacts/noisy-failed"
+            binary = directory / "objects/gz-sim-rs"
+            binary.parent.mkdir(parents=True)
+            binary.write_bytes(b"mocked executable bytes")
+            binary.chmod(0o755)
+            fixture = root / MODULE.NOISY_EXAMPLES[0]
+            fixture.parent.mkdir()
+            fixture.write_text("malformed SDF test input")
+            objects = [{"retained_path": "objects/gz-sim-rs", "sha256": MODULE.digest(binary),
+                        "cargo_artifact": {"target": {"name": "gz-sim-rs"}}}]
+            result = subprocess.CompletedProcess([], 1, "", "SDF parse failed\n")
+            with patch.object(MODULE.subprocess, "run", return_value=result) as run:
+                with self.assertRaisesRegex(ValueError, "did not complete two exact steps"):
+                    MODULE.run_noisy_examples(root, directory, objects, {})
+            self.assertEqual(run.call_count, 1)
+            record = json.loads((directory / "noisy-examples.json").read_text())
+            self.assertEqual(len(record["runs"]), 1)
+            self.assertEqual(record["runs"][0]["actual_exit_code"], 1)
+            self.assertEqual(record["runs"][0]["stderr"], "SDF parse failed\n")
+
+    def test_noisy_outputs_require_exact_headline_and_complete_sorted_link_positions(self):
+        source = MODULE.NOISY_EXAMPLES[3]
+        valid = MODULE.NOISY_OUTPUT + "default::scanner::body 0 0 0\ndefault::target::body 5 0 0\n"
+        self.assertTrue(MODULE.noisy_output_matches(source, valid))
+        for wrong in [MODULE.NOISY_OUTPUT, valid.replace("iterations=2", "iterations=1"),
+                      valid.replace("default::target::body 5 0 0\n", ""),
+                      valid.replace("default::target::body 5", "default::target::body NaN"),
+                      valid.replace("default::target::body 5", "default::target::body 6"),
+                      valid + "default::extra::body 0 0 0\n",
+                      MODULE.NOISY_OUTPUT + "default::target::body 5 0 0\ndefault::scanner::body 0 0 0\n"]:
+            with self.subTest(output=wrong):
+                self.assertFalse(MODULE.noisy_output_matches(source, wrong))

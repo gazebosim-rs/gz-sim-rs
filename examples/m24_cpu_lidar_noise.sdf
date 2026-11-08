@@ -1,0 +1,19 @@
+<?xml version='1.0'?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity>
+  <physics name='step' type='ode'><max_step_size>0.001</max_step_size></physics>
+  <model name='scanner'><static>true</static><link name='body'>
+    <collision name='self'><geometry><box><size>1 1 1</size></box></geometry></collision>
+    <sensor name='laser' type='lidar'><update_rate>100</update_rate>
+      <topic>/m24/scan</topic><frame_id>laser_frame</frame_id>
+      <lidar><scan><horizontal><samples>3</samples><resolution>1</resolution>
+        <min_angle>-0.7853981633974483</min_angle><max_angle>0.7853981633974483</max_angle>
+      </horizontal></scan><range><min>0</min><max>10</max><resolution>0.01</resolution></range>
+      <noise><type>gaussian</type><mean>0.1</mean><stddev>0.2</stddev></noise></lidar>
+    </sensor>
+  </link></model>
+  <model name='target'><static>true</static><pose>5 0 0 0 0 0</pose><link name='body'>
+    <collision name='wall'><geometry><box><size>2 1 2</size></box></geometry></collision>
+  </link></model>
+</world></sdf>

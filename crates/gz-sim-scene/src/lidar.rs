@@ -3,12 +3,91 @@
 //! Loaded, demand-selected planar CPU lidar. No renderer or transport ownership.
 use super::*;
 use gz_sensors::lidar::{PlanarLidar, PlanarLidarConfig};
+use gz_sensors::{GaussianNoise, GaussianParameters, InvalidNoise, NoiseStream};
+
+#[derive(Clone)]
+struct LidarNoise {
+    channel: GaussianNoise,
+    stream: NoiseStream,
+    seed: [u8; 32],
+    identity: u64,
+}
+
+impl LidarNoise {
+    fn new(
+        config: &sdformat::Noise,
+        seed: [u8; 32],
+        identity: u64,
+    ) -> Result<Option<Box<Self>>, InvalidNoise> {
+        if config.kind == sdformat::NoiseKind::None {
+            return if *config == sdformat::Noise::default() {
+                Ok(None)
+            } else {
+                Err(InvalidNoise)
+            };
+        }
+        if config.kind != sdformat::NoiseKind::Gaussian
+            || !config.mean.is_finite()
+            || !config.stddev.is_finite()
+            || config.stddev < 0.0
+            || config.bias_mean != 0.0
+            || config.bias_stddev != 0.0
+            || config.dynamic_bias_stddev != 0.0
+            || config.dynamic_bias_correlation_time != 0.0
+            || config.precision != 0.0
+        {
+            return Err(InvalidNoise);
+        }
+        // CpuLidarSensor uses math::equal's inclusive 1e-6 activation boundary.
+        if config.mean.abs() <= 1e-6 && config.stddev <= 1e-6 {
+            return Ok(None);
+        }
+        let mut stream = NoiseStream::new(seed, identity);
+        let channel = GaussianNoise::new(
+            GaussianParameters {
+                mean: config.mean,
+                stddev: config.stddev,
+                ..Default::default()
+            },
+            &mut stream,
+        )?;
+        Ok(Some(Box::new(Self {
+            channel,
+            stream,
+            seed,
+            identity,
+        })))
+    }
+
+    fn range(&mut self, hit: Option<f64>, maximum: f64) -> Result<f64, String> {
+        let Some(hit) = hit else {
+            return Ok(f64::INFINITY);
+        };
+        if !hit.is_finite() || hit < 0.0 || hit > maximum {
+            return Err("invalid raw CPU-lidar hit".into());
+        }
+        // Native finite beams consume this one stream in index order, dt=0.
+        // GaussianNoise rejects nonfinite output BEFORE any clipping can hide it.
+        let noisy = self
+            .channel
+            .apply(hit, 0.0, &mut self.stream)
+            .map_err(|error| error.to_string())?;
+        Ok(noisy.clamp(0.0, maximum))
+    }
+
+    fn reset(&mut self) {
+        self.stream = NoiseStream::new(self.seed, self.identity);
+        self.channel = GaussianNoise::new(self.channel.parameters(), &mut self.stream)
+            .expect("same seed and validated parameters reconstruct the finite initial bias");
+    }
+}
 
 #[derive(Component, Clone)]
 pub(super) struct Lidar {
     link: u64,
     model: PlanarLidar,
     schedule: SampleSchedule,
+    noise: Option<Box<LidarNoise>>,
 }
 
 #[derive(Component, Debug)]
@@ -120,10 +199,14 @@ pub(super) fn spawn(
     require(
         config.range_resolution.is_finite()
             && config.range_resolution >= 0.0
-            && config.noise == sdformat::Noise::default()
             && config.visibility_mask == u32::MAX,
         &name,
         "lidar resolution, noise or visibility mask",
+    )?;
+    require(
+        config.noise.kind == sdformat::NoiseKind::None || config.range_min == 0.0,
+        &name,
+        "Gaussian CPU lidar requires zero minimum range",
     )?;
     let ray_model = PlanarLidar::new(PlanarLidarConfig {
         samples: config.horizontal.samples as usize,
@@ -187,6 +270,17 @@ pub(super) fn spawn(
         local,
         world,
     )?;
+    let identity = sim
+        .world()
+        .get::<EntityId>(entity)
+        .expect("spawn_node assigns public sensor identity")
+        .get();
+    let noise = LidarNoise::new(&config.noise, context.noise_seed, identity).map_err(|_| {
+        LoadError::Unsupported {
+            entity: name.clone(),
+            feature: "unsupported CPU lidar noise",
+        }
+    })?;
     sim.world_mut().entity_mut(entity).insert((
         AttachedPose,
         publication,
@@ -194,6 +288,7 @@ pub(super) fn spawn(
             link: parent.id,
             model: ray_model,
             schedule,
+            noise,
         },
     ));
     Ok(())
@@ -269,18 +364,23 @@ fn sample(
             let parent = identities.get(sensor.link).ok_or("missing lidar link")?;
             let body = bodies.get(parent).map_err(|error| error.to_string())?;
             let rotation = DQuat::from_array(pose.rotation);
-            let mut ranges = Vec::with_capacity(sensor.model.config().samples);
-            for direction in sensor.model.directions() {
+            let Lidar { model, noise, .. } = &mut *sensor;
+            let mut ranges = Vec::with_capacity(model.config().samples);
+            for direction in model.directions() {
                 let direction = (rotation * DVec3::from_array(*direction)).to_array();
                 let hit = backend
                     .cast_ray(
                         pose.translation,
                         direction,
-                        sensor.model.config().range_max,
+                        model.config().range_max,
                         Some(body.id()),
                     )
                     .map_err(|error| error.to_string())?;
-                ranges.push(sensor.model.range(hit).map_err(|error| error.to_string())?);
+                let range = match noise.as_mut() {
+                    Some(noise) => noise.range(hit, model.config().range_max)?,
+                    None => model.range(hit).map_err(|error| error.to_string())?,
+                };
+                ranges.push(range);
             }
             Ok(Some(ranges))
         })();
@@ -295,6 +395,7 @@ fn sample(
             }
             Ok(None) => {}
             Err(message) => {
+                commands.entity(entity).remove::<LidarSample>();
                 fault.report(LidarFault { entity, message });
                 return;
             }
@@ -305,6 +406,9 @@ fn sample(
 fn reset(mut sensors: Query<(Entity, &mut Lidar)>, mut commands: Commands) {
     for (entity, mut sensor) in &mut sensors {
         sensor.schedule.reset();
+        if let Some(noise) = &mut sensor.noise {
+            noise.reset();
+        }
         commands.entity(entity).remove::<LidarSample>();
     }
 }

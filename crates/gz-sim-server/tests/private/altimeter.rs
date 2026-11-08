@@ -6,7 +6,9 @@ use gz_sim_proto::{
     msgs::{WorldControl, WorldReset},
     prost::Name,
 };
-use gz_sim_scene::{Name as SceneName, PhysicsEngine, load_world_with_sdf_step, remove_model};
+use gz_sim_scene::{
+    AltimeterSampleError, Name as SceneName, PhysicsEngine, load_world_with_sdf_step, remove_model,
+};
 
 const XML: &str = include_str!("../../../gz-sim-scene/tests/fixtures/m13_altimeter.sdf");
 fn metadata() -> AltimeterPublication {
@@ -86,7 +88,7 @@ fn invalid_metadata_reference_values_and_unrepresentable_stamps_never_encode() {
         }
     }
     let invalid = AltimeterSample {
-        reading: Err(InvalidAltimeterInput),
+        reading: Err(AltimeterSampleError::Ideal(InvalidAltimeterInput)),
         ..sample()
     };
     assert!(packet(&metadata(), &invalid, 0).is_none());
@@ -451,7 +453,11 @@ fn invalid_stale_future_and_bounded_publication_failures_never_become_valid_samp
     let entity = server.altimeters[0].entity;
     server.simulation.step_exact(20).expect("local advance");
     for (epoch, time, reading) in [
-        (0, Duration::from_millis(20), Err(InvalidAltimeterInput)),
+        (
+            0,
+            Duration::from_millis(20),
+            Err(AltimeterSampleError::Ideal(InvalidAltimeterInput)),
+        ),
         (1, Duration::from_millis(20), sample().reading),
         (0, Duration::from_millis(21), sample().reading),
     ] {
@@ -926,5 +932,212 @@ fn reset_preflight_collision_and_closed_replacement_leave_scene_and_retirement_a
     for body in bodies {
         assert!(backend.state(body).is_none());
     }
+    server.shutdown();
+}
+
+#[test]
+fn noise_error_never_encodes_or_republishes_a_prior_good_sample() {
+    let invalid = AltimeterSample {
+        reading: Err(AltimeterSampleError::Noise(gz_sensors::InvalidNoise)),
+        ..sample()
+    };
+    assert!(packet(&metadata(), &invalid, 0).is_none());
+    let (mut server, _, _) = server(XML);
+    server.simulation.step_exact(20).unwrap();
+    let entity = server.altimeters[0].entity;
+    server
+        .simulation
+        .world_mut()
+        .entity_mut(entity)
+        .insert(AltimeterSample {
+            epoch: 0,
+            time: Duration::from_millis(20),
+            reading: Err(AltimeterSampleError::Noise(gz_sensors::InvalidNoise)),
+        });
+    server.publish_altimeters();
+    server.publish_altimeters();
+    assert_eq!(server.counters().invalid_altimeter_samples, 1);
+    assert_eq!(server.counters().altimeters_queued, 0);
+    assert_eq!(server.altimeters[0].sequence, 0);
+    server.simulation.step_exact(10).unwrap();
+    server.publish_altimeters();
+    assert_eq!(server.counters().altimeters_queued, 1);
+    assert_eq!(server.altimeters[0].sequence, 1);
+    server.shutdown();
+}
+
+#[test]
+fn actual_noisy_wire_channels_preserve_reference_headers_reconnect_and_seeded_loaded_reset() {
+    use gz_sensors::{GaussianNoise, GaussianParameters, NoiseStream};
+    let xml = XML.replace("<altimeter/>", "<altimeter><vertical_position><noise type='gaussian'><mean>0.2</mean><stddev>0.3</stddev><bias_stddev>0.1</bias_stddev></noise></vertical_position><vertical_velocity><noise type='gaussian'><mean>-0.4</mean><stddev>0.2</stddev></noise></vertical_velocity></altimeter>");
+    let (mut server, observer, key) = server(&xml);
+    let subscriber = observer.declare_subscriber(key.clone()).wait().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.altimeters[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    let identity = server.altimeters[0].identity;
+    let mut random = NoiseStream::new([0; 32], identity);
+    let mut position = GaussianNoise::new(
+        GaussianParameters {
+            mean: 0.2,
+            stddev: 0.3,
+            bias_stddev: 0.1,
+            ..Default::default()
+        },
+        &mut random,
+    )
+    .unwrap();
+    let mut velocity = GaussianNoise::new(
+        GaussianParameters {
+            mean: -0.4,
+            stddev: 0.2,
+            ..Default::default()
+        },
+        &mut random,
+    )
+    .unwrap();
+    let link = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|e| {
+            e.get::<SceneName>()
+                .is_some_and(|n| n.0 == "default::rig::body")
+        })
+        .unwrap()
+        .get::<EntityId>()
+        .unwrap()
+        .get();
+    gz_sim_scene::queue_link_world_velocity(
+        &mut server.simulation,
+        link,
+        [0.0, 0.0, -1.0],
+        [0.0; 3],
+    )
+    .unwrap();
+    server.set_paused(false);
+    let mut first_residual = None;
+    for tick in 1..=20 {
+        let info = server.update().unwrap();
+        if let Some(sequence) = [1, 10, 20].iter().position(|&t| t == tick) {
+            let actual = subscriber
+                .recv_timeout(Duration::from_secs(5))
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                actual.attachment().unwrap().to_bytes().as_ref(),
+                b"gz.msgs.Altimeter"
+            );
+            let message = Altimeter::decode(actual.payload().to_bytes().as_ref()).unwrap();
+            let position_value = position
+                .apply(-info.sim_time.as_secs_f64(), 0.0, &mut random)
+                .unwrap();
+            let velocity_value = velocity.apply(-1.0, 0.0, &mut random).unwrap();
+            assert!((message.vertical_position - position_value).abs() < 1e-12);
+            assert!((message.vertical_velocity - velocity_value).abs() < 1e-12);
+            assert_eq!(message.vertical_reference, 3.5);
+            assert_eq!(
+                message.header,
+                packet(
+                    &metadata(),
+                    &AltimeterSample {
+                        time: info.sim_time,
+                        epoch: info.epoch,
+                        ..sample()
+                    },
+                    sequence as u64
+                )
+                .unwrap()
+                .header
+            );
+            first_residual.get_or_insert((
+                position_value + info.sim_time.as_secs_f64(),
+                velocity_value + 1.0,
+            ));
+        }
+    }
+    server.set_paused(true);
+    for _ in 0..3 {
+        assert!(server.update().unwrap().dt.is_zero());
+    }
+    assert!(subscriber.try_recv().unwrap().is_none());
+    drop(subscriber);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while server.altimeters[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    server.set_paused(false);
+    for _ in 0..20 {
+        server.update().unwrap();
+    }
+    assert_eq!(server.counters().altimeters_queued, 3);
+    let subscriber = observer.declare_subscriber(key).wait().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.altimeters[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    let info = server.update().unwrap();
+    let message = Altimeter::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert!(
+        (message.vertical_position
+            - position
+                .apply(-info.sim_time.as_secs_f64(), 0.0, &mut random)
+                .unwrap())
+        .abs()
+            < 1e-12
+    );
+    assert!(
+        (message.vertical_velocity - velocity.apply(-1.0, 0.0, &mut random).unwrap()).abs() < 1e-12
+    );
+    assert_eq!(message.header.as_ref().unwrap().data[1].value, ["3"]);
+    assert!(server.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    let reset = server.update().unwrap();
+    assert_eq!((reset.epoch, reset.sim_time), (1, Duration::ZERO));
+    assert_eq!(server.altimeters[0].identity, identity);
+    assert!(subscriber.try_recv().unwrap().is_none());
+    server.set_paused(false);
+    server.update().unwrap();
+    let message = Altimeter::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    let first = first_residual.unwrap();
+    assert!((message.vertical_position - first.0).abs() < 1e-12);
+    assert!((message.vertical_velocity - first.1).abs() < 1e-12);
+    assert_eq!(message.vertical_reference, 3.5);
+    assert_eq!(message.header.unwrap().data[1].value, ["0"]);
+    assert_eq!(
+        (
+            server.counters().altimeter_failures,
+            server.counters().invalid_altimeter_samples
+        ),
+        (0, 0)
+    );
     server.shutdown();
 }

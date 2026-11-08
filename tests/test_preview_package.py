@@ -39,7 +39,9 @@ class PreviewPackage(unittest.TestCase):
                      'examples/m19_robot.sdf', 'examples/meshes/m16-asymmetric.obj',
                      'docs/M12_INSTALL.md', 'docs/M12_CAPABILITIES.md',
                      'docs/M19_INSTALL.md', 'docs/M19_CAPABILITIES.md',
-                     'docs/M20_INSTALL.md', 'docs/M20_CAPABILITIES.md', 'LICENSE', 'NOTICE']:
+                     'docs/M20_INSTALL.md', 'docs/M20_CAPABILITIES.md',
+                     'docs/M25_INSTALL.md', 'docs/M25_CAPABILITIES.md', 'docs/M25_PREVIEW.md',
+                     *['examples/' + name for name in package.NOISY_EXAMPLES], 'LICENSE', 'NOTICE']:
             path = self.source / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text('source fixture ' + name)
@@ -50,6 +52,8 @@ class PreviewPackage(unittest.TestCase):
             '<visual name="cargo"><geometry><mesh><uri>meshes/m16-asymmetric.obj</uri>'
             '</mesh></geometry></visual></link></model></world></sdf>')
         shutil.copyfile(ROOT / 'scripts/preview_runtime.py', self.source / 'scripts/preview_runtime.py')
+        for name in package.NOISY_EXAMPLES:
+            shutil.copyfile(ROOT / 'examples' / name, self.source / 'examples' / name)
         self.viewer = self.directory / 'viewer'
         self.viewer.mkdir()
         self.viewer_hashes = {}
@@ -143,8 +147,10 @@ class PreviewPackage(unittest.TestCase):
         self.assertNotIn(str(self.directory), (self.output / 'notices.json').read_text())
         selected = {'examples/m19_robot.sdf': 'share/robot.sdf',
                     'examples/meshes/m16-asymmetric.obj': 'share/meshes/m16-asymmetric.obj',
-                    'docs/M20_INSTALL.md': 'INSTALL.md',
-                    'docs/M20_CAPABILITIES.md': 'CAPABILITIES.md'}
+                    'docs/M25_INSTALL.md': 'INSTALL.md',
+                    'docs/M25_CAPABILITIES.md': 'CAPABILITIES.md',
+                    'docs/M25_PREVIEW.md': 'PREVIEW.md',
+                    **{'examples/' + name: 'share/examples/' + name for name in package.NOISY_EXAMPLES}}
         for source, installed in selected.items():
             with self.subTest(installed=installed):
                 raw = (self.source / source).read_bytes()
@@ -172,6 +178,11 @@ class PreviewPackage(unittest.TestCase):
                              (moved / 'manifest.json').read_bytes())
             self.assertEqual(packed.extractfile('preview-v1/share/meshes/m16-asymmetric.obj').read(),
                              (self.source / 'examples/meshes/m16-asymmetric.obj').read_bytes())
+            for name in package.NOISY_EXAMPLES:
+                member = packed.getmember('preview-v1/share/examples/' + name)
+                self.assertTrue(member.isfile())
+                self.assertEqual(member.mode, 0o644)
+                self.assertEqual(packed.extractfile(member).read(), (self.source / 'examples' / name).read_bytes())
         for source, installed in selected.items():
             self.assertEqual((moved / installed).read_bytes(), (self.source / source).read_bytes())
 
@@ -213,7 +224,7 @@ class PreviewPackage(unittest.TestCase):
                 self.assertEqual(mesh.read_bytes(), original)
 
     def test_dedicated_guides_are_required_even_when_legacy_sources_exist(self):
-        for name in ('M20_INSTALL.md', 'M20_CAPABILITIES.md'):
+        for name in ('M25_INSTALL.md', 'M25_CAPABILITIES.md', 'M25_PREVIEW.md'):
             with self.subTest(guide=name):
                 guide = self.source / 'docs' / name
                 original = guide.read_bytes()
@@ -221,23 +232,26 @@ class PreviewPackage(unittest.TestCase):
                 self.assertTrue((self.source / 'docs/M12_INSTALL.md').is_file())
                 self.assertTrue((self.source / 'docs/M19_INSTALL.md').is_file())
                 self.assertTrue((self.source / 'docs/M19_CAPABILITIES.md').is_file())
+                self.assertTrue((self.source / 'docs/M20_INSTALL.md').is_file())
+                self.assertTrue((self.source / 'docs/M20_CAPABILITIES.md').is_file())
                 self.refuse('regular')
                 self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
                 guide.write_bytes(original)
         output = package.assemble(self.spec, self.output)
         self.assertIn('INSTALL.md', output['files'])
         self.assertIn('CAPABILITIES.md', output['files'])
+        self.assertIn('PREVIEW.md', output['files'])
         self.assertEqual((self.output / 'INSTALL.md').read_bytes(),
-                         (self.source / 'docs/M20_INSTALL.md').read_bytes())
-        for phase in ('M12', 'M19'):
+                         (self.source / 'docs/M25_INSTALL.md').read_bytes())
+        for phase in ('M12', 'M19', 'M20'):
             self.assertNotEqual((self.output / 'INSTALL.md').read_bytes(),
                                 (self.source / ('docs/' + phase + '_INSTALL.md')).read_bytes())
 
-    def test_m20_documented_archive_root_and_installed_launcher_survive_relocation(self):
-        for name in ('INSTALL', 'CAPABILITIES'):
-            shutil.copyfile(ROOT / ('docs/M20_' + name + '.md'),
-                            self.source / ('docs/M20_' + name + '.md'))
-        output = self.directory / 'gz-preview-m20-linux-x86_64'
+    def test_m25_documented_archive_root_examples_and_installed_launcher_survive_relocation(self):
+        for name in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+            shutil.copyfile(ROOT / ('docs/M25_' + name + '.md'),
+                            self.source / ('docs/M25_' + name + '.md'))
+        output = self.directory / 'gz-preview-m25-linux-x86_64'
         archive = self.directory / (output.name + '.tar.gz')
         manifest = package.assemble(self.spec, output, archive)
         self.assertEqual((output / 'bin/gz-preview').read_bytes(),
@@ -246,17 +260,87 @@ class PreviewPackage(unittest.TestCase):
         with tarfile.open(archive, 'r:gz') as packed:
             self.assertTrue(all(member.name.startswith(output.name + '/') for member in packed.getmembers()))
             self.assertEqual(packed.extractfile(output.name + '/INSTALL.md').read(),
-                             (ROOT / 'docs/M20_INSTALL.md').read_bytes())
+                             (ROOT / 'docs/M25_INSTALL.md').read_bytes())
             self.assertEqual(packed.extractfile(output.name + '/bin/gz-preview').read(),
                              (self.source / 'scripts/preview_runtime.py').read_bytes())
-        moved = self.directory / 'relocated-m20'
+        moved = self.directory / 'relocated-m25'
         shutil.move(output, moved)
         self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
         self.assertIn(archive.name, (moved / 'INSTALL.md').read_text())
-        self.assertIn('gz-preview-m20-linux-x86_64', (moved / 'INSTALL.md').read_text())
+        self.assertIn('gz-preview-m25-linux-x86_64', (moved / 'INSTALL.md').read_text())
         with patch.object(runtime, 'serve', return_value=0) as serve:
             self.assertEqual(runtime.main(['run', '--lifecycle', '--http-port', '8082'], moved), 0)
             serve.assert_called_once_with(moved, 8082, 9014, 'gz-preview', lifecycle=True)
+
+    def test_fixed_noisy_examples_are_bounded_ordinary_inputs_and_missing_sources_are_atomic(self):
+        archive = self.directory / 'examples.tar.gz'
+        for name in package.NOISY_EXAMPLES:
+            source = self.source / 'examples' / name
+            original = source.read_bytes()
+            original_mode = source.stat().st_mode & 0o777
+            for variant in ('missing', 'linked', 'oversized'):
+                with self.subTest(example=name, variant=variant):
+                    outside = self.directory / 'external-example.sdf'
+                    source.unlink()
+                    if variant == 'linked':
+                        outside.write_bytes(original)
+                        source.symlink_to(outside)
+                    elif variant == 'oversized':
+                        source.write_bytes(b'x' * (package.MAX_EXAMPLE + 1))
+                    try:
+                        with self.assertRaisesRegex(ValueError, 'regular|file bound'):
+                            package.assemble(self.spec, self.output, archive)
+                        self.assertFalse(self.output.exists())
+                        self.assertFalse(archive.exists())
+                        self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+                    finally:
+                        if source.exists() or source.is_symlink():
+                            source.unlink()
+                        source.write_bytes(original)
+                        source.chmod(original_mode)
+                        if outside.exists():
+                            self.assertEqual(outside.read_bytes(), original)
+                            outside.unlink()
+            self.assertEqual(source.read_bytes(), original)
+
+    def test_each_noisy_example_stays_byte_bound_after_relocation_and_refuses_tamper_before_run(self):
+        before = {name: (self.source / 'examples' / name).read_bytes() for name in package.NOISY_EXAMPLES}
+        manifest = package.assemble(self.spec, self.output)
+        moved = self.directory / 'relocated noisy examples'
+        shutil.move(self.output, moved)
+        for name, original in before.items():
+            with self.subTest(example=name):
+                source = self.source / 'examples' / name
+                installed = moved / 'share/examples' / name
+                self.assertEqual(source.read_bytes(), original)
+                self.assertEqual(installed.read_bytes(), original)
+                self.assertEqual(installed.stat().st_mode & 0o777, 0o644)
+                self.assertEqual(manifest['files']['share/examples/' + name],
+                                 {'bytes': len(original), 'sha256': hashlib.sha256(original).hexdigest(), 'mode': 0o644})
+                self.assertFalse((moved / 'web' / name).exists())
+                installed.unlink()
+                with self.assertRaisesRegex(ValueError, 'inventory'):
+                    runtime.verify_prefix(moved)
+                installed.write_bytes(original + b'<!-- edited -->')
+                installed.chmod(0o644)
+                with patch.object(runtime, 'serve', return_value=0) as serve:
+                    self.assertEqual(runtime.main(['run'], moved), 1)
+                    serve.assert_not_called()
+                installed.write_bytes(original)
+                installed.chmod(0o600)
+                with self.assertRaisesRegex(ValueError, 'differs'):
+                    runtime.verify_prefix(moved)
+                installed.chmod(0o644)
+                self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
+        self.assertEqual({name: (self.source / 'examples' / name).read_bytes() for name in before}, before)
+
+    def test_real_m25_preview_guides_name_all_four_finite_installed_examples(self):
+        preview = (ROOT / 'docs/M25_PREVIEW.md').read_text()
+        for name in package.NOISY_EXAMPLES:
+            self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name + '"', preview)
+        self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 4)
+        self.assertIn('PREVIEW.md', (ROOT / 'docs/M25_INSTALL.md').read_text())
+        self.assertIn('Gaussian', (ROOT / 'docs/M25_CAPABILITIES.md').read_text())
 
     def test_native_backend_or_wrong_elf_and_transcript_drift_are_refused(self):
         self.artifacts[0]['features'] = ['native-backends']

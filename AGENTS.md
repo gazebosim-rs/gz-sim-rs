@@ -1,11 +1,12 @@
 # Instructions for implementation agents
 
-> M1–M19 are accepted and published at qualified Main `e807a97d`.
-> Current M20 adds an explicit installed lifecycle/publication-credit mode using
-> the existing protocol and viewer, bounded to five working days under D30–D32.
-> Source lanes run in separate worktrees, with one integrator and independent
-> review before the consolidated mandatory checks. Preserve accepted evidence,
-> frozen worktrees, default behavior and independent Fuel work.
+> M1–M20 are accepted and published; M20 remains the installed preview and Latest.
+> Both hosted attempts for frozen M21/M22 `36eb202c` failed at the Scene renderer
+> test-library LLVM linker with SIGBUS; the cause remains unknown.
+> M21–M25 now form one atomic candidate over accepted M20. Preserve every separate
+> functional/native contract; require new full normal, exact hosted CI and all
+> fresh M25 distribution/install/browser proofs before accepting any of them.
+> Earlier local passes and all original failures remain separate historical evidence.
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -15,7 +16,20 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` and `docs/M20_DELIVERY.md` before editing.
+Read `docs/DELIVERY_PLAN.md` and `docs/M21_M25_DELIVERY.md` before editing.
+Root integrates all reviewed M21–M25 leaves in `gz-sim-m21-m25`, over accepted
+M20. The old intermediate-parent publication holds are superseded by one atomic
+qualification: new full normal/strict actual-M20-parent coverage, exact new CI,
+independent Source/local/official DATA, then every fresh M25 package/install/
+browser/shutdown/publication proof before accepting M21–M25 together.
+Keep the existing per-phase scopes and all source/regression intent. No new
+runtime feature is included; CI debug-info alignment is mitigation, not a known
+cause fix. Preserve original snapshots, passes, failures and native capture
+identities. Root serializes heavy work; authors run no per-edit checks. The
+separate M25 product scope and four finite controls remain in M25_DELIVERY.md.
+
+The M20 preparation details below describe the frozen parent scope, not another
+authoring lease or inherited acceptance.
 M19 is accepted at `e807a97d`, published as `m19-preview` with actual package,
 clean Ubuntu installation, installed robot/browser controls and owned shutdown.
 Its full normal hook, exact hosted CI and independent audits passed. Preserve

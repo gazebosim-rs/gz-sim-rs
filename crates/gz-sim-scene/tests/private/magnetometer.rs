@@ -252,12 +252,12 @@ fn last_model_removal_retires_callbacks_and_loaded_reset_restores_original_field
 }
 
 #[test]
-fn admission_refuses_nondefault_noise_metadata_second_sensor_and_other_engines() {
+fn admission_refuses_invalid_noise_metadata_second_sensor_and_other_engines() {
     let original = "<magnetometer/>";
     for replacement in [
-        "<magnetometer><x><noise type='gaussian'><stddev>0.1</stddev></noise></x></magnetometer>",
+        "<magnetometer><x><noise type='gaussian'><precision>-1</precision></noise></x></magnetometer>",
         "<magnetometer><y><noise type='none'><mean>1</mean></noise></y></magnetometer>",
-        "<magnetometer><z><noise type='gaussian'><stddev>0.2</stddev></noise></z></magnetometer>",
+        "<magnetometer><z><noise type='none'><bias_mean>1</bias_mean></noise></z></magnetometer>",
         "<magnetometer/><visualize>true</visualize>",
         "<magnetometer/><enable_metrics>true</enable_metrics>",
         "<magnetometer/><alwaysOn>true</alwaysOn>",
@@ -466,9 +466,228 @@ fn invalid_measurement_remains_typed_and_reset_clears_it_without_faulting_clock(
         .expect("typed bad reading is not a deadline fault");
     let sample = sim.world().get::<MagnetometerSample>(entity).unwrap();
     assert_eq!((sample.epoch, sample.time), (0, Duration::from_millis(1)));
-    assert_eq!(sample.reading, Err(InvalidMagnetometerInput));
+    assert!(matches!(
+        sample.reading,
+        Err(MagnetometerSampleError::Ideal(InvalidMagnetometerInput))
+    ));
     assert!(!sim.is_faulted());
     assert!(sim.fault().is_none());
     sim.reset().unwrap();
     assert!(sim.world().get::<MagnetometerSample>(entity).is_none());
+}
+
+#[test]
+fn magnetic_noise_domain_is_validated_before_authorizing_a_nondefault_world_field() {
+    assert!(
+        MagnetometerNoise::new(&sdformat::Magnetometer::default(), [0; 32], 1)
+            .unwrap()
+            .is_none()
+    );
+    for axis in 0..3 {
+        for field in 0..7 {
+            for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+                let mut parsed =
+                    sdformat::load_str(XML, "invalid-magnetic-noise", &NoResources).unwrap();
+                let sdformat::SensorConfig::Magnetometer(config) =
+                    &mut parsed.worlds[0].models[0].links[0].sensors[0].config
+                else {
+                    panic!("typed fixture")
+                };
+                let noise = &mut config.noise[axis];
+                noise.kind = sdformat::NoiseKind::Gaussian;
+                match field {
+                    0 => noise.mean = value,
+                    1 => noise.stddev = value,
+                    2 => noise.bias_mean = value,
+                    3 => noise.bias_stddev = value,
+                    4 => noise.dynamic_bias_stddev = value,
+                    5 => noise.dynamic_bias_correlation_time = value,
+                    _ => noise.precision = value,
+                }
+                assert!(MagnetometerNoise::new(config, [0; 32], 1).is_err());
+                assert!(matches!(
+                    preflight(&parsed, &parsed.worlds[0], PhysicsEngine::Rapier),
+                    Err(LoadError::Unsupported {
+                        feature: "unrepresentable magnetometer noise",
+                        ..
+                    })
+                ));
+            }
+        }
+        for kind in [
+            sdformat::NoiseKind::Gaussian,
+            sdformat::NoiseKind::GaussianQuantized,
+        ] {
+            let mut config = sdformat::Magnetometer::default();
+            config.noise[axis].kind = kind;
+            let state = MagnetometerNoise::new(&config, [0; 32], 1)
+                .unwrap()
+                .unwrap();
+            assert!(state.channels[axis].is_some());
+            assert_eq!(state.channels.iter().filter(|n| n.is_some()).count(), 1);
+            for field in 0..4 {
+                let mut invalid = config.clone();
+                let noise = &mut invalid.noise[axis];
+                match field {
+                    0 => noise.stddev = -0.1,
+                    1 => noise.bias_stddev = -0.1,
+                    2 => noise.dynamic_bias_stddev = -0.1,
+                    _ => noise.precision = -0.1,
+                }
+                assert!(MagnetometerNoise::new(&invalid, [0; 32], 1).is_err());
+            }
+        }
+        for field in 0..7 {
+            let mut hidden = sdformat::Magnetometer::default();
+            let noise = &mut hidden.noise[axis];
+            match field {
+                0 => noise.mean = 1.0,
+                1 => noise.stddev = 1.0,
+                2 => noise.bias_mean = 1.0,
+                3 => noise.bias_stddev = 1.0,
+                4 => noise.dynamic_bias_stddev = 1.0,
+                5 => noise.dynamic_bias_correlation_time = 1.0,
+                _ => noise.precision = 1.0,
+            }
+            assert!(MagnetometerNoise::new(&hidden, [0; 32], 1).is_err());
+        }
+    }
+    for field in ["stddev", "bias_stddev", "dynamic_bias_stddev"] {
+        let xml=XML.replace("<magnetometer/>",&format!("<magnetometer><x><noise type='gaussian'><{field}>-0.1</{field}></noise></x></magnetometer>"));
+        let error = sdformat::load_str(&xml, "magnetic-negative-deviation", &NoResources)
+            .expect_err("parser rejects negative deviation");
+        assert_eq!(error.code, sdformat::ErrorCode::InvalidValue);
+        assert_eq!(
+            error.message,
+            "noise standard deviations must be nonnegative"
+        );
+    }
+}
+
+#[test]
+fn finite_initial_bias_overflow_is_refused_and_finite_correlation_times_have_no_elapsed_evolution()
+{
+    let mut config = sdformat::Magnetometer::default();
+    config.noise[0] = sdformat::Noise {
+        kind: sdformat::NoiseKind::Gaussian,
+        bias_mean: f64::MAX,
+        bias_stddev: f64::MAX,
+        ..Default::default()
+    };
+    assert!((0..64).any(|seed| MagnetometerNoise::new(&config, [seed; 32], 9).is_err()));
+    for correlation in [-1.0, 0.0, 2.0] {
+        config.noise[0] = sdformat::Noise {
+            kind: sdformat::NoiseKind::Gaussian,
+            mean: 0.25,
+            dynamic_bias_stddev: f64::MAX,
+            dynamic_bias_correlation_time: correlation,
+            ..Default::default()
+        };
+        let mut state = MagnetometerNoise::new(&config, [0; 32], 1)
+            .unwrap()
+            .unwrap();
+        for _ in 0..3 {
+            let mut reading = MagnetometerReading {
+                field_tesla: [1.0, 2.0, 3.0],
+            };
+            state.apply(&mut reading).unwrap();
+            assert_eq!(reading.field_tesla, [1.25, 2.0, 3.0]);
+        }
+    }
+}
+
+#[test]
+fn a_nonfinite_noisy_vector_replaces_previous_valid_sample_and_is_distinct_from_ideal_faults() {
+    let xml = XML
+        .replace("0 0 3 0.2 -0.3 0.4", "0 0 3 0 0 0")
+        .replace("1 0 0.5 0.3 0.4 -0.2", "1 0 0.5 0 0 0");
+    let mut sim = load(&xml);
+    let entity = sensor(&sim);
+    let identity = sim.world().get::<EntityId>(entity).unwrap().get();
+    sim.step_exact(1).unwrap();
+    assert!(
+        sim.world()
+            .get::<MagnetometerSample>(entity)
+            .unwrap()
+            .reading
+            .is_ok()
+    );
+    let mut config = sdformat::Magnetometer::default();
+    config.noise[0] = sdformat::Noise {
+        kind: sdformat::NoiseKind::Gaussian,
+        mean: f64::MAX,
+        ..Default::default()
+    };
+    {
+        let mut sensor = sim.world_mut().get_mut::<Magnetometer>(entity).unwrap();
+        sensor.noise = MagnetometerNoise::new(&config, [0; 32], identity).unwrap();
+        sensor.field_world = [f64::MAX, 0.0, 0.0];
+    }
+    sim.step_exact(9).unwrap();
+    let sample = sim.world().get::<MagnetometerSample>(entity).unwrap();
+    assert_eq!(sample.time, Duration::from_millis(10));
+    assert!(matches!(
+        sample.reading,
+        Err(MagnetometerSampleError::Noise(_))
+    ));
+    assert!(!sim.is_faulted());
+    sim.world_mut()
+        .get_mut::<Magnetometer>(entity)
+        .unwrap()
+        .field_world[0] = f64::NAN;
+    sim.step_exact(10).unwrap();
+    assert!(matches!(
+        sim.world()
+            .get::<MagnetometerSample>(entity)
+            .unwrap()
+            .reading,
+        Err(MagnetometerSampleError::Ideal(_))
+    ));
+}
+
+#[test]
+fn noisy_model_removal_retires_state_and_loaded_reconstruction_replays_original_public_identity() {
+    let xml = XML.replace(
+        "<magnetometer/>",
+        "<magnetometer><z><noise type='gaussian'><stddev>0.2</stddev></noise></z></magnetometer>",
+    );
+    let mut sim = load(&xml);
+    let (old, id) = named(&sim, "default::rig::body::magnetometer");
+    let model = named(&sim, "default::rig").1;
+    sim.step_exact(1).unwrap();
+    let first = sim
+        .world()
+        .get::<MagnetometerSample>(old)
+        .unwrap()
+        .reading
+        .as_ref()
+        .unwrap()
+        .field_tesla;
+    remove_model(&mut sim, model).unwrap();
+    assert!(entity_by_id(sim.world(), id).is_none());
+    assert!(
+        !sim.world().contains_resource::<Installed>()
+            && !sim.world().contains_resource::<Interest>()
+    );
+    initial::reset_loaded_world(&mut sim, |_| ()).unwrap();
+    let restored = entity_by_id(sim.world(), id).unwrap();
+    assert_ne!(restored, old);
+    assert!(
+        sim.world()
+            .get::<Magnetometer>(restored)
+            .unwrap()
+            .noise
+            .is_some()
+    );
+    sim.step_exact(1).unwrap();
+    assert_eq!(
+        sim.world()
+            .get::<MagnetometerSample>(restored)
+            .unwrap()
+            .reading
+            .as_ref()
+            .unwrap()
+            .field_tesla,
+        first
+    );
 }

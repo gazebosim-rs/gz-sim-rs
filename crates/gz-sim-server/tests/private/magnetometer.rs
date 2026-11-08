@@ -6,7 +6,10 @@ use gz_sim_proto::{
     msgs::{WorldControl, WorldReset},
     prost::Name,
 };
-use gz_sim_scene::{Name as SceneName, PhysicsEngine, load_world_with_sdf_step, remove_model};
+use gz_sim_scene::{
+    MagnetometerSampleError, Name as SceneName, PhysicsEngine, load_world_with_sdf_step,
+    remove_model,
+};
 
 const XML: &str = include_str!("../../../gz-sim-scene/tests/fixtures/m17_magnetometer.sdf");
 fn metadata() -> MagnetometerPublication {
@@ -81,7 +84,7 @@ fn magnetometer_metadata_nonphysical_values_faults_and_unrepresentable_stamps_ne
         packet(
             &metadata(),
             &MagnetometerSample {
-                reading: Err(InvalidMagnetometerInput),
+                reading: Err(MagnetometerSampleError::Ideal(InvalidMagnetometerInput)),
                 ..sample()
             },
             0
@@ -466,7 +469,11 @@ fn magnetometer_invalid_stale_future_and_bounded_publication_failures_never_beco
     let entity = server.magnetometers[0].entity;
     server.simulation.step_exact(20).expect("local advance");
     for (epoch, time, reading) in [
-        (0, Duration::from_millis(20), Err(InvalidMagnetometerInput)),
+        (
+            0,
+            Duration::from_millis(20),
+            Err(MagnetometerSampleError::Ideal(InvalidMagnetometerInput)),
+        ),
         (1, Duration::from_millis(20), sample().reading),
         (0, Duration::from_millis(21), sample().reading),
     ] {
@@ -1102,4 +1109,203 @@ fn magnetometer_and_altimeter_live_and_removed_initial_keys_refuse_aliases_in_bo
         }
         server.shutdown();
     }
+}
+
+#[test]
+fn magnetic_noise_error_cannot_encode_or_republish_a_previous_valid_sample() {
+    let invalid = MagnetometerSample {
+        reading: Err(MagnetometerSampleError::Noise(gz_sensors::InvalidNoise)),
+        ..sample()
+    };
+    assert!(packet(&metadata(), &invalid, 0).is_none());
+    let (mut server, _, _) = server(XML);
+    server.simulation.step_exact(20).unwrap();
+    let entity = server.magnetometers[0].entity;
+    server
+        .simulation
+        .world_mut()
+        .entity_mut(entity)
+        .insert(MagnetometerSample {
+            time: Duration::from_millis(20),
+            epoch: 0,
+            reading: Err(MagnetometerSampleError::Noise(gz_sensors::InvalidNoise)),
+        });
+    server.publish_magnetometers();
+    server.publish_magnetometers();
+    assert_eq!(server.counters().invalid_magnetometer_samples, 1);
+    assert_eq!(server.counters().magnetometers_queued, 0);
+    assert_eq!(server.magnetometers[0].sequence, 0);
+    server.simulation.step_exact(10).unwrap();
+    server.publish_magnetometers();
+    assert_eq!(server.counters().magnetometers_queued, 1);
+    assert_eq!(server.magnetometers[0].sequence, 1);
+    server.shutdown();
+}
+
+#[test]
+fn noisy_xyz_canonical_wire_retains_frames_timing_reconnect_seed_and_loaded_reset() {
+    use gz_sensors::{GaussianNoise, GaussianParameters, NoiseStream};
+    fn base(server: &Server) -> [f64; 3] {
+        let [x, y, z, w] = server
+            .simulation
+            .world()
+            .get::<gz_sim_scene::WorldPose>(server.magnetometers[0].entity)
+            .unwrap()
+            .rotation;
+        let [a, b, c] = [2e-5, -3e-5, 4e-5];
+        [
+            (1.0 - 2.0 * (y * y + z * z)) * a
+                + 2.0 * (x * y + z * w) * b
+                + 2.0 * (x * z - y * w) * c,
+            2.0 * (x * y - z * w) * a
+                + (1.0 - 2.0 * (x * x + z * z)) * b
+                + 2.0 * (y * z + x * w) * c,
+            2.0 * (x * z + y * w) * a
+                + 2.0 * (y * z - x * w) * b
+                + (1.0 - 2.0 * (x * x + y * y)) * c,
+        ]
+    }
+    let configured=XML.replace("<magnetometer/>","<magnetometer><x><noise type='gaussian'><mean>0.000001</mean><stddev>0.0000002</stddev></noise></x><y><noise type='gaussian'><mean>-0.000002</mean><stddev>0.0000003</stddev></noise></y><z><noise type='gaussian'><mean>0.000003</mean><stddev>0.0000004</stddev></noise></z></magnetometer>");
+    let (mut server, observer, key) = server(&configured);
+    let subscriber = observer.declare_subscriber(key.clone()).wait().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.magnetometers[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    let identity = server.magnetometers[0].identity;
+    let mut random = NoiseStream::new([0; 32], identity);
+    let params = [(1e-6, 2e-7), (-2e-6, 3e-7), (3e-6, 4e-7)];
+    let mut channels: [GaussianNoise; 3] = std::array::from_fn(|i| {
+        GaussianNoise::new(
+            GaussianParameters {
+                mean: params[i].0,
+                stddev: params[i].1,
+                ..Default::default()
+            },
+            &mut random,
+        )
+        .unwrap()
+    });
+    let mut first = None;
+    server.set_paused(false);
+    for tick in 1..=20 {
+        let info = server.update().unwrap();
+        if let Some(sequence) = [1, 10, 20].iter().position(|&t| t == tick) {
+            let received = subscriber
+                .recv_timeout(Duration::from_secs(5))
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                received.attachment().unwrap().to_bytes().as_ref(),
+                b"gz.msgs.Magnetometer"
+            );
+            let message = Magnetometer::decode(received.payload().to_bytes().as_ref()).unwrap();
+            let field = message.field_tesla.as_ref().unwrap();
+            let actual = [field.x, field.y, field.z];
+            let base = base(&server);
+            for axis in 0..3 {
+                assert!(
+                    (actual[axis] - channels[axis].apply(base[axis], 0.0, &mut random).unwrap())
+                        .abs()
+                        < 1e-18
+                );
+            }
+            assert_eq!(
+                message.header,
+                packet(
+                    &metadata(),
+                    &MagnetometerSample {
+                        time: info.sim_time,
+                        epoch: info.epoch,
+                        ..sample()
+                    },
+                    sequence as u64
+                )
+                .unwrap()
+                .header
+            );
+            first.get_or_insert(actual);
+        }
+    }
+    server.set_paused(true);
+    for _ in 0..3 {
+        assert!(server.update().unwrap().dt.is_zero());
+    }
+    assert!(subscriber.try_recv().unwrap().is_none());
+    drop(subscriber);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while server.magnetometers[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    server.set_paused(false);
+    for _ in 0..20 {
+        server.update().unwrap();
+    }
+    assert_eq!(server.counters().magnetometers_queued, 3);
+    let subscriber = observer.declare_subscriber(key).wait().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.magnetometers[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    server.update().unwrap();
+    let message = Magnetometer::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    let field = message.field_tesla.unwrap();
+    let actual = [field.x, field.y, field.z];
+    let base = base(&server);
+    for axis in 0..3 {
+        assert!(
+            (actual[axis] - channels[axis].apply(base[axis], 0.0, &mut random).unwrap()).abs()
+                < 1e-18
+        );
+    }
+    assert_eq!(message.header.unwrap().data[1].value, ["3"]);
+    assert!(server.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    let reset = server.update().unwrap();
+    assert_eq!((reset.epoch, reset.sim_time), (1, Duration::ZERO));
+    assert_eq!(server.magnetometers[0].identity, identity);
+    assert!(subscriber.try_recv().unwrap().is_none());
+    server.set_paused(false);
+    server.update().unwrap();
+    let message = Magnetometer::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    let field = message.field_tesla.unwrap();
+    for (a, b) in [field.x, field.y, field.z].into_iter().zip(first.unwrap()) {
+        assert!((a - b).abs() < 1e-18);
+    }
+    assert_eq!(message.header.unwrap().data[1].value, ["0"]);
+    assert_eq!(
+        (
+            server.counters().magnetometer_failures,
+            server.counters().invalid_magnetometer_samples
+        ),
+        (0, 0)
+    );
+    server.shutdown();
 }

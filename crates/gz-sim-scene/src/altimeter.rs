@@ -1,8 +1,9 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One loaded, ideal Rapier altimeter; no transport or native library ownership.
+//! One loaded Rapier altimeter with optional seeded channel noise; no transport ownership.
 use super::*;
 use gz_sensors::altimeter::{AltimeterInput, AltimeterReading, InvalidAltimeterInput};
+use gz_sensors::{GaussianNoise, GaussianParameters, InvalidNoise, NoiseStream};
 
 #[derive(Component, Clone)]
 pub(super) struct Altimeter {
@@ -10,13 +11,116 @@ pub(super) struct Altimeter {
     offset: DVec3,
     reference: f64,
     schedule: SampleSchedule,
+    noise: Option<Box<AltimeterNoise>>,
 }
 
 #[derive(Component, Debug)]
 pub struct AltimeterSample {
     pub time: Duration,
     pub epoch: u64,
-    pub reading: Result<AltimeterReading, InvalidAltimeterInput>,
+    pub reading: Result<AltimeterReading, AltimeterSampleError>,
+}
+
+/// Acquisition failures retain the ideal-model versus noise cause; neither is published.
+#[derive(Debug, thiserror::Error)]
+pub enum AltimeterSampleError {
+    #[error(transparent)]
+    Ideal(#[from] InvalidAltimeterInput),
+    #[error(transparent)]
+    Noise(#[from] InvalidNoise),
+}
+
+#[derive(Clone)]
+struct AltimeterNoise {
+    channels: [Option<GaussianNoise>; 2],
+    stream: NoiseStream,
+    seed: [u8; 32],
+    identity: u64,
+}
+
+impl AltimeterNoise {
+    fn new(
+        config: &sdformat::Altimeter,
+        seed: [u8; 32],
+        identity: u64,
+    ) -> Result<Option<Box<Self>>, InvalidNoise> {
+        let configs = [config.vertical_position, config.vertical_velocity];
+        for noise in configs {
+            if [
+                noise.mean,
+                noise.stddev,
+                noise.bias_mean,
+                noise.bias_stddev,
+                noise.dynamic_bias_stddev,
+                noise.dynamic_bias_correlation_time,
+                noise.precision,
+            ]
+            .iter()
+            .any(|value| !value.is_finite())
+                || noise.stddev < 0.0
+                || noise.bias_stddev < 0.0
+                || noise.dynamic_bias_stddev < 0.0
+                || noise.precision < 0.0
+                || (noise.kind == sdformat::NoiseKind::None && noise != sdformat::Noise::default())
+            {
+                return Err(InvalidNoise);
+            }
+        }
+        if configs
+            .iter()
+            .all(|noise| noise.kind == sdformat::NoiseKind::None)
+        {
+            return Ok(None);
+        }
+        let mut result = Self {
+            channels: [None, None],
+            stream: NoiseStream::new(seed, identity),
+            seed,
+            identity,
+        };
+        for (index, noise) in configs.into_iter().enumerate() {
+            if noise.kind != sdformat::NoiseKind::None {
+                result.channels[index] = Some(GaussianNoise::new(
+                    GaussianParameters {
+                        mean: noise.mean,
+                        stddev: noise.stddev,
+                        bias_mean: noise.bias_mean,
+                        bias_stddev: noise.bias_stddev,
+                        dynamic_bias_stddev: noise.dynamic_bias_stddev,
+                        dynamic_bias_correlation_time: noise.dynamic_bias_correlation_time,
+                        precision: noise.precision,
+                    },
+                    &mut result.stream,
+                )?);
+            }
+        }
+        Ok(Some(Box::new(result)))
+    }
+
+    fn apply(&mut self, reading: &mut AltimeterReading) -> Result<(), InvalidNoise> {
+        for (value, noise) in [
+            &mut reading.vertical_position,
+            &mut reading.vertical_velocity,
+        ]
+        .into_iter()
+        .zip(&mut self.channels)
+        {
+            if let Some(noise) = noise {
+                // Native AltimeterSensor calls Apply(value), whose default dt is zero.
+                *value = noise.apply(*value, 0.0, &mut self.stream)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn reset(&mut self) {
+        self.stream = NoiseStream::new(self.seed, self.identity);
+        for noise in self.channels.iter_mut().flatten() {
+            *noise = GaussianNoise::new(noise.parameters(), &mut self.stream).expect(
+                "validated parameters and identical seed reproduce the finite initial bias",
+            );
+        }
+    }
 }
 
 #[derive(Component, Debug, Clone, PartialEq)]
@@ -111,12 +215,6 @@ pub(super) fn spawn(
     let config = sensor
         .altimeter()
         .expect("caller selected altimeter configuration");
-    require(
-        config.vertical_position == sdformat::Noise::default()
-            && config.vertical_velocity == sdformat::Noise::default(),
-        &name,
-        "altimeter noise",
-    )?;
     let schedule = SampleSchedule::new(sensor.update_rate).map_err(|_| LoadError::Unsupported {
         entity: name.clone(),
         feature: "unrepresentable sensor rate",
@@ -165,6 +263,17 @@ pub(super) fn spawn(
         local,
         world,
     )?;
+    let identity = sim
+        .world()
+        .get::<EntityId>(entity)
+        .expect("spawned sensor owns a public identity")
+        .get();
+    let noise = AltimeterNoise::new(config, context.noise_seed, identity).map_err(|_| {
+        LoadError::Unsupported {
+            entity: name.clone(),
+            feature: "unrepresentable altimeter noise",
+        }
+    })?;
     sim.world_mut().entity_mut(entity).insert((
         AttachedPose,
         publication,
@@ -173,6 +282,7 @@ pub(super) fn spawn(
             offset: DVec3::from_array(local.translation),
             reference: world.translation[2],
             schedule,
+            noise,
         },
     ));
     Ok(())
@@ -257,6 +367,15 @@ fn sample(
             world_z: pose.translation[2],
             world_velocity_z: point_velocity.z,
             vertical_reference: sensor.reference,
+        })
+        .map_err(AltimeterSampleError::Ideal)
+        .and_then(|mut reading| {
+            if let Some(noise) = &mut sensor.noise {
+                noise
+                    .apply(&mut reading)
+                    .map_err(AltimeterSampleError::Noise)?;
+            }
+            Ok(reading)
         });
         commands.entity(entity).insert(AltimeterSample {
             time: time.sim_time,
@@ -269,6 +388,9 @@ fn sample(
 fn reset(mut sensors: Query<(Entity, &mut Altimeter)>, mut commands: Commands) {
     for (entity, mut sensor) in &mut sensors {
         sensor.schedule.reset();
+        if let Some(noise) = &mut sensor.noise {
+            noise.reset();
+        }
         commands.entity(entity).remove::<AltimeterSample>();
     }
 }
