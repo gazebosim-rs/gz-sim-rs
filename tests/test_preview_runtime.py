@@ -66,6 +66,64 @@ class InstalledPreview(unittest.TestCase):
         self.assertEqual(env['ZENOH_CONFIG'], str(moved / 'share/zenoh.json5'))
         self.assertEqual(env['GZ_PARTITION'], 'installed-demo')
 
+    def install_guides(self, names):
+        for name in ('INSTALL.md', 'CAPABILITIES.md', 'M12_INSTALL.md', 'M12_CAPABILITIES.md'):
+            self.files.pop(name, None)
+            (self.prefix / name).unlink(missing_ok=True)
+        for name in names:
+            content = ('installed guide ' + name).encode()
+            path = self.prefix / name
+            path.write_bytes(content)
+            path.chmod(0o644)
+            self.files[name] = {'bytes': len(content), 'sha256': hashlib.sha256(content).hexdigest(),
+                                'mode': 0o644}
+        self.save_manifest()
+
+    def test_new_complete_guide_pair_verifies_after_relocation_with_full_file_checks(self):
+        self.install_guides(('INSTALL.md', 'CAPABILITIES.md'))
+        moved = self.directory / 'refreshed relocated prefix'
+        shutil.move(self.prefix, moved)
+        self.assertEqual(preview.verify_prefix(moved)['files'], self.files)
+        guide = moved / 'CAPABILITIES.md'
+        original = guide.read_bytes()
+        guide.write_bytes(b'changed guide')
+        with self.assertRaisesRegex(ValueError, 'differs'):
+            preview.verify_prefix(moved)
+        guide.write_bytes(original)
+        guide.chmod(0o600)
+        with self.assertRaisesRegex(ValueError, 'differs'):
+            preview.verify_prefix(moved)
+        guide.chmod(0o644)
+        guide.unlink()
+        external = self.directory / 'external guide'
+        external.write_bytes(original)
+        guide.symlink_to(external)
+        with self.assertRaisesRegex(ValueError, 'linked'):
+            preview.verify_prefix(moved)
+        guide.unlink()
+        with self.assertRaisesRegex(ValueError, 'inventory'):
+            preview.verify_prefix(moved)
+
+    def test_partial_and_mixed_only_guide_pairs_cannot_satisfy_required_guides(self):
+        for names in ((), ('INSTALL.md',), ('CAPABILITIES.md',),
+                      ('M12_INSTALL.md',), ('M12_CAPABILITIES.md',),
+                      ('INSTALL.md', 'M12_CAPABILITIES.md'),
+                      ('M12_INSTALL.md', 'CAPABILITIES.md'),
+                      ('INSTALL.md', 'M12_INSTALL.md'),
+                      ('CAPABILITIES.md', 'M12_CAPABILITIES.md')):
+            with self.subTest(guides=names):
+                self.install_guides(names)
+                with self.assertRaisesRegex(ValueError, 'omits'):
+                    preview.verify_prefix(self.prefix)
+
+    def test_complete_pair_remains_valid_when_other_guide_names_are_also_listed(self):
+        for names in (('INSTALL.md', 'CAPABILITIES.md', 'M12_INSTALL.md'),
+                      ('M12_INSTALL.md', 'M12_CAPABILITIES.md', 'CAPABILITIES.md'),
+                      ('INSTALL.md', 'CAPABILITIES.md', 'M12_INSTALL.md', 'M12_CAPABILITIES.md')):
+            with self.subTest(guides=names):
+                self.install_guides(names)
+                self.assertEqual(preview.verify_prefix(self.prefix)['files'], self.files)
+
     def test_missing_changed_linked_and_executable_mode_drift_are_refused(self):
         selected = self.prefix / 'bin/gz-sim-rs'
         original = selected.read_bytes()
@@ -190,6 +248,20 @@ class InstalledPreview(unittest.TestCase):
         self.assertEqual(args[2]['GZ_PARTITION'], 'demo')
         self.assertEqual(args[2]['ZENOH_CONFIG'], str(self.prefix / 'share/zenoh.json5'))
         self.assertEqual(kwargs, {})
+
+    def test_http_parser_dispatches_only_admitted_ports_without_launching_a_server(self):
+        for options, expected in (([], 8081), (['--http-port', '8080'], 8080),
+                                  (['--http-port', '8081'], 8081),
+                                  (['--http-port', '8082'], 8082)):
+            with self.subTest(options=options):
+                with patch.object(preview, 'serve', return_value=0) as serve:
+                    self.assertEqual(preview.main(['--partition', 'm19', 'run', *options], self.prefix), 0)
+                    serve.assert_called_once_with(self.prefix, expected, 9014, 'm19')
+        with patch.object(preview, 'serve') as serve:
+            with self.assertRaises(SystemExit) as stopped:
+                preview.main(['run', '--http-port', '8083'], self.prefix)
+            self.assertEqual(stopped.exception.code, 2)
+            serve.assert_not_called()
 
     def test_shutdown_reaps_only_its_owned_process_group(self):
         child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)'],

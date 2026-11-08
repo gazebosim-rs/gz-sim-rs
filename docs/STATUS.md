@@ -7,8 +7,16 @@ M15 ideal air pressure and M16 local OBJ are accepted at Main `5f53c92e`;
 exact hosted run `42446229290`, native pressure, actual OBJ robot/browser and
 independent local/official/browser audits passed. The public `m15-m16-features`
 receipt preserves separate coverage counters and all earlier failures.
-Current M17 ideal magnetometer and M18 joint-state publication are in progress
-under [M17_M18_DELIVERY.md](M17_M18_DELIVERY.md); neither is accepted. D32
+M17 ideal magnetometer and M18 joint-state publication close in their frozen
+parent under [M17_M18_DELIVERY.md](M17_M18_DELIVERY.md). At the M19 source
+preparation checkpoint, the exact parent native run and independent native DATA
+have passed; its final normal/local/hosted acceptance gates remain pending.
+Current [M19](M19_DELIVERY.md) refreshes the installed preview with fresh
+native-free release binaries, copied OBJ assets, updated guides and explicit
+local HTTP 8082 support. Its product source/regressions have independent review,
+with actual checks, package, clean installation and browser proofs still required.
+Candidate completion flags do not confer acceptance before qualified Main promotion.
+Generated actual IDs/times remain in the release/promotion receipt and owned status. D32
 directs selecting the next useful bounded phase after acceptance while work
 remains, keeping all gates and the web tracker accurate. The record below
 preserves earlier increments; it is not a complete present-day capability inventory.

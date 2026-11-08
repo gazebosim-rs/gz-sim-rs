@@ -217,7 +217,7 @@ fn foreign_origins_and_paths_receive_real_403_then_allow_a_fresh_client() {
     for (path, origin) in [
         ("/", "http://example.invalid:8080"),
         ("/other", "http://127.0.0.1:8080"),
-        ("/", "http://127.0.0.1:8082"),
+        ("/", "http://127.0.0.1:8083"),
     ] {
         match limits_client(address, path, Some(origin)) {
             Err(tungstenite::Error::Http(response)) => {
@@ -392,4 +392,52 @@ fn incomplete_handshake_times_out_then_drop_joins_while_another_client_stays_ope
         .expect("Bridge::drop did not join its worker");
     owner.join().unwrap();
     drop(still_open);
+}
+
+#[test]
+fn preview_8082_origins_complete_real_handshakes_while_other_origins_remain_forbidden() {
+    let sim = simulation();
+    let before = frame(&sim, 0);
+    let (mut bridge, address) = limits_bridge(&sim);
+    for origin in ["http://127.0.0.1:8082", "http://localhost:8082"] {
+        let mut client = limits_client(address, "/", Some(origin)).unwrap();
+        limits_wait("8082 client was not admitted", || {
+            bridge.connected.load(Ordering::Acquire) != 0
+        });
+        bridge.publish(&sim, "default", Vec::new()).unwrap();
+        assert_eq!(limits_scene(&mut client)["visuals"], before["visuals"]);
+        drop(client);
+        limits_wait("8082 client did not retire", || {
+            bridge.connected.load(Ordering::Acquire) == 0
+        });
+        assert!(matches!(
+            bridge.commands.try_recv(),
+            Err(mpsc::TryRecvError::Empty)
+        ));
+        assert_eq!(frame(&sim, 0), before);
+    }
+    for (path, origin) in [
+        ("/", "http://127.0.0.1:8083"),
+        ("/", "http://localhost:8083"),
+        ("/", "http://example.invalid:8082"),
+        ("/", "https://127.0.0.1:8082"),
+        ("/", "https://localhost:8082"),
+        ("/", "http://localhost:8082/"),
+        ("/", "not-an-origin"),
+        ("/other", "http://127.0.0.1:8082"),
+    ] {
+        match limits_client(address, path, Some(origin)) {
+            Err(tungstenite::Error::Http(response)) => {
+                assert_eq!(response.status(), tungstenite::http::StatusCode::FORBIDDEN)
+            }
+            other => panic!("expected real HTTP403 for {origin}{path}, got {other:?}"),
+        }
+        assert_eq!(bridge.connected.load(Ordering::Acquire), 0);
+        assert!(matches!(
+            bridge.commands.try_recv(),
+            Err(mpsc::TryRecvError::Empty)
+        ));
+        assert_eq!(frame(&sim, 0), before);
+        limits_restored(&mut bridge, &sim, address);
+    }
 }

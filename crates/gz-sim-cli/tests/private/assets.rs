@@ -1100,3 +1100,60 @@ fn glb_embedded_image_buffer_view_needs_no_external_http_route() {
     assert_eq!(files.len(), 1);
     assert_eq!(files["/assets/0/image.glb"].as_ref(), glb);
 }
+
+#[test]
+fn preview_8082_asset_origins_are_exact_and_keep_declared_route_restrictions() {
+    let data = BTreeMap::from([("/assets/0/a.gltf".into(), Bytes::from_static(b"document"))]);
+    for origin in ["http://127.0.0.1:8082", "http://localhost:8082"] {
+        let response = reply(
+            Request::builder()
+                .uri("/assets/0/a.gltf")
+                .header("Origin", origin)
+                .body(())
+                .unwrap(),
+            &data,
+        );
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.headers()["access-control-allow-origin"], origin);
+        assert_eq!(response.headers()["vary"], "Origin");
+        assert_eq!(response.headers()["content-type"], "model/gltf+json");
+        for path in ["/etc/passwd", "/assets/0/a.gltf?x", "/assets/0/%61.gltf"] {
+            assert_ne!(
+                reply(
+                    Request::builder()
+                        .uri(path)
+                        .header("Origin", origin)
+                        .body(())
+                        .unwrap(),
+                    &data
+                )
+                .status(),
+                StatusCode::OK
+            );
+        }
+    }
+    for origin in [
+        "http://127.0.0.1:8083",
+        "http://localhost:8083",
+        "http://example.invalid:8082",
+        "https://127.0.0.1:8082",
+        "https://localhost:8082",
+        "http://localhost:8082/",
+        "not-an-origin",
+    ] {
+        let response = reply(
+            Request::builder()
+                .uri("/assets/0/a.gltf")
+                .header("Origin", origin)
+                .body(())
+                .unwrap(),
+            &data,
+        );
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST, "{origin}");
+        assert!(
+            !response
+                .headers()
+                .contains_key("access-control-allow-origin")
+        );
+    }
+}

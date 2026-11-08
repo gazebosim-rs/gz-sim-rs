@@ -242,7 +242,7 @@ impl Bridge {
                 })?
         };
         eprintln!(
-            "gzweb-rs WebSocket: ws://127.0.0.1:{port}/ (viewer HTTP origin port 8080 or 8081)"
+            "gzweb-rs WebSocket: ws://127.0.0.1:{port}/ (viewer HTTP origin port 8080, 8081 or 8082)"
         );
         Ok(Self {
             assets,

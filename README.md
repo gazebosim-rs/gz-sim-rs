@@ -42,10 +42,15 @@ M13 ideal altimeter and M14 local STL meshes are accepted at qualified Main
 `2f32bc7e`; see the [feature release and actual receipt](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m13-m14-features).
 M15 ideal air pressure and M16 local OBJ are accepted at qualified Main
 `5f53c92e`; see the [feature release and actual receipt](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m15-m16-features).
-Current [M17 magnetometer and M18 joint-state publication](docs/M17_M18_DELIVERY.md)
-are developed as independent lanes with one integrator. Under the owner's continuous
-delivery instruction, each acceptance is followed by the next useful bounded
-phase while work remains. Required review and verification gates stay mandatory.
+[M17 magnetometer and M18 joint-state publication](docs/M17_M18_DELIVERY.md)
+close in their frozen qualified-parent candidate. The next bounded delivery is
+the [M19 installed preview refresh](docs/M19_DELIVERY.md), with copied local OBJ
+assets, dedicated guides and an explicit additional loopback HTTP port. See its
+[installation guide](docs/M19_INSTALL.md) and [limits](docs/M19_CAPABILITIES.md).
+Source preparation and reviewed local checks may overlap parent hosted CI under
+D31; no new installer is accepted or published before every required gate and
+actual clean installed robot/browser proof passes. The existing M12 download
+remains unchanged. D32 continues to the next useful bounded phase after acceptance.
 
 The design combines the responsibilities of `gz-sim`, `gz-sensors`, `gz-physics`,
 and the necessary parts of `gz-math` in one Cargo workspace. Bevy supplies the ECS

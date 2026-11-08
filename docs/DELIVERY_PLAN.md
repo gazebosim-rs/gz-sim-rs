@@ -3,9 +3,10 @@
 
 # Weekly delivery plan
 
-> M1–M16 are accepted at qualified Main `5f53c92e`. Current work is M17 ideal
-> magnetometer and M18 joint-state publication, each bounded to five working
-> days under D31. Continue to the next useful bounded phase after acceptance
+> The accepted baseline is M1–M16 at Main `5f53c92e`. M17/M18 qualification
+> closes in a frozen parent candidate; current M19 refreshes the installed
+> Ubuntu preview through those features, bounded to five working days under D31.
+> Continue to the next useful bounded phase after acceptance
 > while work remains. Preserve mandatory gates, accepted evidence, frozen trees
 > and independent Fuel work.
 
@@ -61,6 +62,7 @@ results must never be described as same-engine performance improvement.
 | M16: Local OBJ meshes | 5 working days | Bounded local triangle OBJ collision and immutable GLB visuals using the accepted viewer. | Maintained parser, bounded/index/resource admission, geometry/contact/lifecycle/immutable serving and actual browser proof; all gates. |
 | M17: Ideal magnetometer | 5 working days | One loaded ideal Rapier magnetometer with a finite constant world field and canonical Tesla publication. | Native/model and resolved-pose vectors, frame/time/sequence/cadence/demand/pause/reset/removal, atomic refusals and canonical wire; all gates. |
 | M18: Joint-state publication | 5 working days | Actual single-axis Rapier joint position/velocity and supported metadata in canonical Model packets. | Native packets and backend components, topic/filter/order, equal-time/pause/reset cadence, lifecycle/endpoint and moving-joint wire controls; all gates. |
+| M19: Refreshed installed preview | 5 working days | Ubuntu 24.04 native-free archive through M18, copied local OBJ robot, unchanged viewer and a nonconflicting explicit loopback HTTP port. | Fresh release binaries and notices, actual manifest/archive/relocation, clean non-root supported installation and real installed robot/browser controls and shutdown; all gates. |
 
 The initial MVP sequence is ordered around user-visible dependencies. After M12,
 D31 permits independent bounded increments to run in parallel with explicit file
@@ -75,6 +77,15 @@ records actual qualification. M12's installer remains unchanged. Current M17 ide
 magnetometer reuses accepted sensor infrastructure; M18 joint-state publication
 reuses admitted M9 joints. See [M17_M18_DELIVERY.md](M17_M18_DELIVERY.md) for exact
 contracts and parallel ownership. Neither inherits acceptance from an older run.
+
+[M19_DELIVERY.md](M19_DELIVERY.md) selects the next useful bounded delivery:
+refresh the installed preview, which otherwise remains the older M12 payload.
+Its source, regressions and guides may proceed separately while the exact M17/M18
+parent qualifies. After that parent passes its local normal hook, native proof
+and independent local audits, reviewed M19 local checks may overlap parent
+hosted CI. Local heavy work stays serial. Acceptance and publication still require
+the finally qualified parent, every exact M19 gate and its own installed artifact
+proof. A parent source correction requires rebasing and affected required checks.
 
 Owner decision D32 directs automatic continuation: after accepting a phase,
 select and start the next useful bounded delivery while retained work remains.

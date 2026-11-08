@@ -10,15 +10,19 @@ files, upstream test IDs, dependency decisions, code revision, exact check comma
 results, coverage, relevant benchmark data, reviewer, and unresolved limits.
 The task author cannot independently retire tests or approve coverage exclusions.
 
-## Current delivery: M17 magnetometer and M18 joint-state publication
+## Current delivery: M19 refreshed installed preview
 
 Owner D32 directs continuous bounded delivery. M1–M16 are accepted at Main
 `5f53c92e`, with actual normal/hosted/native/browser evidence in the public
 `m15-m16-features` receipt. Preserve all 156 reviewed slices and prior behavior.
-[M17_M18_DELIVERY.md](M17_M18_DELIVERY.md) defines the current independent
-five-day scopes, explicit leaf leases and required native/canonical-wire proofs.
-Root owns shared Scene integration and one complete qualification cycle; the
-Messages owner leases shared Server integration. No new capability is accepted
+[M17_M18_DELIVERY.md](M17_M18_DELIVERY.md) retains the parent's independent
+five-day scopes and native/canonical-wire proofs. [M19_DELIVERY.md](M19_DELIVERY.md)
+defines the current five-day installer refresh, fixed robot/OBJ payload, guides,
+explicit loopback 8082 support and actual release/notice/installation/browser
+evidence. Root owns integration and publication, with assembler and runtime/CLI
+file leases recorded there. Finish independent Source review before the one
+consolidated pass; M19 local checks may overlap parent hosted CI only after the
+exact parent normal/native/local proofs pass. No new capability is accepted
 before all mandatory gates, independent review/DATA and qualified Main promotion.
 Keep the web tracker current and continue after each acceptance.
 

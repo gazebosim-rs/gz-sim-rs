@@ -10,9 +10,13 @@ final clean installed verification and retained real robot/browser proof.
 M13 ideal altimeter and M14 local STL are accepted at Main `2f32bc7e`, with
 actual evidence in the public `m13-m14-features` release. M15 ideal air pressure
 and M16 local OBJ are accepted at Main `5f53c92e` with the `m15-m16-features`
-receipt. Current M17 ideal magnetometer and M18 joint-state publication share
-a parallel source wave with one integrator; see
-[M17_M18_DELIVERY.md](M17_M18_DELIVERY.md). Preserve all accepted evidence
+receipt. M17 ideal magnetometer and M18 joint-state publication close in their
+frozen parent candidate; see [M17_M18_DELIVERY.md](M17_M18_DELIVERY.md).
+Current [M19](M19_DELIVERY.md) refreshes the native-free installed preview through
+that exact parent. Its reviewed source preparation proceeds separately; local
+checks may overlap parent hosted CI after exact parent local proofs pass, with
+heavy local jobs serial. Every exact gate and fresh installed proof still precedes
+M19 acceptance/publication. Preserve all accepted evidence
 and strict verification. D32 directs continuing directly to the next useful
 bounded phase after acceptance while retained work remains; an unselected
 successor does not pause execution. Each phase retains its own proofs and budget.

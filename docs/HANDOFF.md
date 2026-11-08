@@ -3,14 +3,48 @@
 
 # Coordinator handoff
 
-> M1–M16 are accepted at qualified Main `5f53c92e`. Current work is M17 ideal
-> magnetometer and M18 joint-state publication, each bounded to five working
-> days under D31. Continue to the next useful bounded phase after acceptance
+> The accepted baseline is M1–M16 at Main `5f53c92e`. M17/M18 qualification
+> closes in a frozen parent candidate; current M19 refreshes the installed
+> Ubuntu preview through those features, bounded to five working days under D31.
+> Continue to the next useful bounded phase after acceptance
 > while work remains. Preserve mandatory gates, accepted evidence, frozen trees
 > and independent Fuel work.
 
 
-## Current work: M17 magnetometer and M18 joint-state publication
+## Current work: M19 refreshed installed preview
+
+M19 is selected under D30–D32 in isolated `work/m19-refreshed-preview`.
+[M19_DELIVERY.md](M19_DELIVERY.md) records its five-working-day scope and file
+ownership. The assembler copies the coexistence robot and its one OBJ dependency;
+dedicated installed guides and complete legacy-guide verification are retained.
+Exactly loopback HTTP 8082 is added alongside 8080/8081, preserving defaults and
+other origin/path refusals so protected old services remain untouched. Product
+source, meaningful regressions and guides have independent review; shared planning
+and the exact qualified-parent binding also require review before the one
+consolidated normal pass. No M19 check, build, package or installed proof has run.
+
+Source preparation adopted the exact M17/M18 parent tree `f74ed3e6` while its
+final hook ran. The actual locally qualified parent is now `c7402b45`, with that
+same tree: full normal hook 2020.358 seconds/exit zero, all 29 native stages in
+59.336 seconds, native DATA `d47a6a15` and local DATA `46307263` clear with actual
+audit exits zero. This branch was advanced to that exact parent while preserving
+all reviewed product bytes, modes and index. Parent hosted CI, official audit and
+Main acceptance remain required. Reviewed M19 local checks may now overlap that
+hosted run, with local heavy work serial; neither parent nor child inherits
+acceptance or may publish before every required gate and proof passes.
+
+Build fresh release CLI/helper inputs, derive actual dependencies/notices and ELF
+closure, assemble/relocate/audit the whole ordinary-file payload, and prove one
+clean supported installation with non-root verification and actual installed
+robot/browser forward, turn, Pause, Reset and owned shutdown. Reuse the existing
+corrected procedures and accepted viewer bytes, not old M12 executables or fixed
+file/package counts. Keep full hooks, strict coverage, exact hosted CI and final
+audits before qualified Main promotion and a new preview release. Source target
+completion flags take effect only at that boundary; actual IDs/times belong in
+the release/promotion receipt and owned tracker status. Continue with the next
+useful bounded phase after acceptance; preserve every old release and Fuel work.
+
+## M17/M18 parent qualification checkpoint
 
 The owner directs continuous delivery (D32). Work continues in isolated branch
 `work/m17-m18-finite-native` over qualified Main `5f53c92e`.

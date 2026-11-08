@@ -1,8 +1,9 @@
 # Instructions for implementation agents
 
-> M1–M16 are accepted at qualified Main `5f53c92e`. Current work is M17 ideal
-> magnetometer and M18 joint-state publication, each bounded to five working
-> days under D31. Continue to the next useful bounded phase after acceptance
+> The accepted baseline is M1–M16 at Main `5f53c92e`. M17/M18 qualification
+> closes in a frozen parent candidate; current M19 refreshes the installed
+> Ubuntu preview through those features, bounded to five working days under D31.
+> Continue to the next useful bounded phase after acceptance
 > while work remains. Preserve mandatory gates, accepted evidence, frozen trees
 > and independent Fuel work.
 
@@ -14,13 +15,17 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` and `docs/M17_M18_DELIVERY.md` before editing.
+Read `docs/DELIVERY_PLAN.md` and `docs/M19_DELIVERY.md` before editing.
 M1–M16 are accepted at `5f53c92e`; actual normal/hosted/native/browser evidence
 and the public `m15-m16-features` receipt are retained. M12's installer and
-accepted viewer remain unchanged. Current M17 magnetometer and M18 joint-state
-publication use explicit leaf leases with Root owning shared Scene integration,
-manifests, planning and publication; the Messages owner leases shared Server
-integration. Source/review may overlap; local heavy qualification stays serial.
+accepted viewer remain unchanged. M17/M18 close qualification in a frozen parent.
+Current M19 refreshes the installed preview with fixed copied robot/OBJ assets,
+dedicated guides, legacy guide verification and explicit loopback HTTP 8082
+support. Root owns integration/planning/publication; assembler and runtime/CLI
+leases are recorded in M19_DELIVERY.md. Source/review may overlap. M19 local
+checks may overlap parent hosted CI only after exact parent normal/native/local
+proofs pass; local heavy qualification stays serial. Neither phase inherits
+acceptance, and parent source corrections require rebase/affected checks.
 Under owner decision D32, immediately select and start the next useful bounded
 phase after acceptance while work remains. An unselected successor is not a
 reason to stop. Keep the web tracker current, preserve paused/Fuel work and all

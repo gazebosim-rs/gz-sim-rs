@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-07",
   "execution_state": "active",
-  "current_phase": "M17",
+  "current_phase": "M19",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -303,6 +303,20 @@
       "acceptance": "Actual pinned native packets and backend component observations establish every emitted field, topic/filter/order and equal-time/pause/reset cadence; real moving-joint canonical delivery, lifecycle and endpoint-conflict controls pass with all mandatory gates and independent audits.",
       "excluded": "Unavailable force values, multiaxis or dynamically created joints, nested-model expansion, new solver/controllers, UI or general plugin framework.",
       "evidence": "docs/M18_JOINT_STATE.md"
+    },
+    {
+      "id": "M19",
+      "title": "Refreshed installed preview",
+      "max_working_days": 5,
+      "depends_on": [
+        "M12",
+        "M17",
+        "M18"
+      ],
+      "scope": "Refresh the Ubuntu 24.04 x86_64 native-free installed preview through the exact M17/M18 parent, with fresh release CLI/helper inputs, the copied local OBJ coexistence robot, dedicated guides and one additional explicit loopback HTTP port.",
+      "acceptance": "Fresh source-bound release artifacts, actual selected notices and ELF closure, complete ordinary-file manifest/archive/relocation and independent package data; clean supported non-root installation and actual installed robot/browser forward, turn, Pause, Reset and owned shutdown. Full normal hook, strict coverage, exact hosted CI and independent audits precede qualified Main promotion and a new preview release.",
+      "excluded": "Renderer rebuild, optional RGB/depth/native-SDK distributions, new sensor family/UI/asset format/transport/framework, arbitrary origins, old service termination, full rewrite compatibility or performance claims.",
+      "evidence": "docs/M19_DELIVERY.md"
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -324,12 +338,13 @@
     "M15": "complete",
     "M16": "complete",
     "M17": "complete",
-    "M18": "complete"
+    "M18": "complete",
+    "M19": "complete"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-08T04:56:07.208480+00:00",
+  "phase_started_at": "2026-11-08T05:58:40.655341+00:00",
   "active_phases": [],
-  "execution_policy": "D31: independent post-MVP increments may share a parallel source wave, one integrator and one qualified release candidate. Main promotion after all actual proofs and mandatory gates is the acceptance boundary; review refs do not confer acceptance.",
+  "execution_policy": "D31: one integrator and serial local heavy work. After exact parent normal/native/independent-local proofs pass, reviewed M19 local checks may overlap parent hosted CI. Acceptance/publication requires the finally qualified exact parent plus all child gates and artifact proofs; parent source fixes require rebase and affected checks.",
   "parallel_groups": [
     {
       "phases": [
@@ -356,5 +371,5 @@
       "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M16 are accepted at qualified Main 5f53c92e. M17/M18 complete is the final candidate target, effective only at qualified Main promotion after the actual native/canonical-wire proofs, full normal hook, exact hosted CI and independent Source/DATA audits under D31. Until promotion, the live tracker remains in progress. After acceptance, immediately select and start the next useful bounded phase under D32."
+  "acceptance_boundary": "M1\u2013M16 are the accepted baseline at Main 5f53c92e. M17/M18/M19 complete flags are final-candidate targets, effective only after exact parent and child qualification, installed artifact proof and qualified Main promotion under D31. Until then the live tracker records actual in-progress states. Generated actual commit/run IDs, timestamps and proof hashes belong in release/promotion receipts and owned status, without a second metadata-only gate. Continue directly to the next useful bounded phase after acceptance under D32."
 }

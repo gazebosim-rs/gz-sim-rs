@@ -36,10 +36,18 @@ class PreviewPackage(unittest.TestCase):
         self.source = self.directory / 'source'
         self.source.mkdir()
         for name in ['scripts/preview_runtime.py', 'examples/m8_diff_drive.sdf',
-                     'docs/M12_INSTALL.md', 'docs/M12_CAPABILITIES.md', 'LICENSE', 'NOTICE']:
+                     'examples/m19_robot.sdf', 'examples/meshes/m16-asymmetric.obj',
+                     'docs/M12_INSTALL.md', 'docs/M12_CAPABILITIES.md',
+                     'docs/M19_INSTALL.md', 'docs/M19_CAPABILITIES.md', 'LICENSE', 'NOTICE']:
             path = self.source / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text('source fixture ' + name)
+        (self.source / 'examples/meshes/m16-asymmetric.obj').write_bytes(
+            b'o package_mesh\nv 0 0 0\nv 1 0 0\nv 0 2 0\nf 1 2 3\n')
+        (self.source / 'examples/m19_robot.sdf').write_text(
+            '<sdf version="1.12"><world name="demo"><model name="robot"><link name="body">'
+            '<visual name="cargo"><geometry><mesh><uri>meshes/m16-asymmetric.obj</uri>'
+            '</mesh></geometry></visual></link></model></world></sdf>')
         shutil.copyfile(ROOT / 'scripts/preview_runtime.py', self.source / 'scripts/preview_runtime.py')
         self.viewer = self.directory / 'viewer'
         self.viewer.mkdir()
@@ -132,6 +140,20 @@ class PreviewPackage(unittest.TestCase):
         notices = json.loads((self.output / 'notices.json').read_text())
         self.assertEqual(len(notices['packages']), 3)
         self.assertNotIn(str(self.directory), (self.output / 'notices.json').read_text())
+        selected = {'examples/m19_robot.sdf': 'share/robot.sdf',
+                    'examples/meshes/m16-asymmetric.obj': 'share/meshes/m16-asymmetric.obj',
+                    'docs/M19_INSTALL.md': 'INSTALL.md',
+                    'docs/M19_CAPABILITIES.md': 'CAPABILITIES.md'}
+        for source, installed in selected.items():
+            with self.subTest(installed=installed):
+                raw = (self.source / source).read_bytes()
+                self.assertEqual((self.output / installed).read_bytes(), raw)
+                self.assertEqual(manifest['files'][installed],
+                                 {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest(), 'mode': 0o644})
+        self.assertNotIn('M12_INSTALL.md', manifest['files'])
+        self.assertNotIn('M12_CAPABILITIES.md', manifest['files'])
+        self.assertNotEqual((self.output / 'share/robot.sdf').read_bytes(),
+                            (self.source / 'examples/m8_diff_drive.sdf').read_bytes())
         moved = self.directory / 'installed elsewhere'
         shutil.move(self.output, moved)
         self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
@@ -147,6 +169,62 @@ class PreviewPackage(unittest.TestCase):
                 self.assertEqual((member.uid, member.gid, member.mtime), (0, 0, 0))
             self.assertEqual(packed.extractfile('preview-v1/manifest.json').read(),
                              (moved / 'manifest.json').read_bytes())
+            self.assertEqual(packed.extractfile('preview-v1/share/meshes/m16-asymmetric.obj').read(),
+                             (self.source / 'examples/meshes/m16-asymmetric.obj').read_bytes())
+        for source, installed in selected.items():
+            self.assertEqual((moved / installed).read_bytes(), (self.source / source).read_bytes())
+
+    def test_missing_linked_and_oversized_fixed_mesh_never_publish_outputs(self):
+        mesh = self.source / 'examples/meshes/m16-asymmetric.obj'
+        original = mesh.read_bytes()
+        archive = self.directory / 'missing-mesh.tar.gz'
+        for variant in ('missing', 'linked-file', 'linked-directory', 'oversized'):
+            with self.subTest(variant=variant):
+                outside = self.directory / 'external-mesh.obj'
+                outside_directory = self.directory / 'external-meshes'
+                if variant == 'linked-directory':
+                    mesh.parent.rename(outside_directory)
+                    mesh.parent.symlink_to(outside_directory, target_is_directory=True)
+                else:
+                    mesh.unlink()
+                    if variant == 'linked-file':
+                        outside.write_bytes(original)
+                        mesh.symlink_to(outside)
+                    elif variant == 'oversized':
+                        mesh.write_bytes(b'x' * (16 * 1024 * 1024 + 1))
+                try:
+                    with self.assertRaisesRegex(ValueError, 'regular|linked directories|file bound'):
+                        package.assemble(self.spec, self.output, archive)
+                    self.assertFalse(self.output.exists())
+                    self.assertFalse(archive.exists())
+                    self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+                finally:
+                    if variant == 'linked-directory':
+                        mesh.parent.unlink()
+                        outside_directory.rename(mesh.parent)
+                    else:
+                        if mesh.exists() or mesh.is_symlink():
+                            mesh.unlink()
+                        mesh.write_bytes(original)
+                    if outside.exists():
+                        self.assertEqual(outside.read_bytes(), original)
+                        outside.unlink()
+                self.assertEqual(mesh.read_bytes(), original)
+
+    def test_dedicated_guides_are_required_even_when_legacy_sources_exist(self):
+        guide = self.source / 'docs/M19_INSTALL.md'
+        original = guide.read_bytes()
+        guide.unlink()
+        self.assertTrue((self.source / 'docs/M12_INSTALL.md').is_file())
+        self.refuse('regular')
+        self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+        guide.write_bytes(original)
+        output = package.assemble(self.spec, self.output)
+        self.assertIn('INSTALL.md', output['files'])
+        self.assertIn('CAPABILITIES.md', output['files'])
+        self.assertEqual((self.output / 'INSTALL.md').read_bytes(), original)
+        self.assertNotEqual((self.output / 'INSTALL.md').read_bytes(),
+                            (self.source / 'docs/M12_INSTALL.md').read_bytes())
 
     def test_native_backend_or_wrong_elf_and_transcript_drift_are_refused(self):
         self.artifacts[0]['features'] = ['native-backends']

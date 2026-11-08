@@ -49,14 +49,16 @@ def verify_prefix(prefix):
         raise ValueError('manifest cannot list itself')
     required = {'bin/gz-preview', 'bin/gz-sim-rs', 'bin/gz-drive-command',
                 'share/robot.sdf', 'share/zenoh.json5', 'web/index.html', 'web/startup.mjs',
-                'LICENSE', 'NOTICE', 'notices.json', 'M12_INSTALL.md', 'M12_CAPABILITIES.md',
+                'LICENSE', 'NOTICE', 'notices.json',
                 *{'web/target/wasm32-unknown-unknown/release/' + flavor + '/' + name
                   for flavor in ('webgpu', 'webgl2') for name in ('gzweb.js', 'gzweb_bg.wasm')},
                 *{'notices/' + name for name in ('licenses/Apache-2.0.txt', 'OSRF-NOTICE.txt',
                   'Geist-OFL.txt', 'Rust-COPYRIGHT.html', 'Rust-LICENSE-APACHE.txt',
                   'Rust-LICENSE-MIT.txt', 'Viewer-mesh-loader-LICENSE.txt', 'Viewer-proto-LICENSE.txt')}}
-    if not required <= files.keys():
-        raise ValueError('preview manifest omits required runtime or notice files')
+    guide_pairs = ({'INSTALL.md', 'CAPABILITIES.md'},
+                   {'M12_INSTALL.md', 'M12_CAPABILITIES.md'})
+    if not required <= files.keys() or not any(pair <= files.keys() for pair in guide_pairs):
+        raise ValueError('preview manifest omits required runtime, guide pair or notice files')
     directories = {'.'}
     for name in files:
         relative = relative_file(name)
@@ -179,7 +181,7 @@ def main(argv=None, prefix=None):
     parser.add_argument('--partition', default='gz-preview')
     commands = parser.add_subparsers(dest='command', required=True)
     run = commands.add_parser('run', help='start the paused robot and local browser server')
-    run.add_argument('--http-port', type=int, choices=(8080, 8081), default=8081)
+    run.add_argument('--http-port', type=int, choices=(8080, 8081, 8082), default=8081)
     run.add_argument('--ws-port', type=int, default=9014)
     drive = commands.add_parser('drive', help='send a finite canonical drive command, then brake')
     drive.add_argument('linear_m_per_s')

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Assemble an explicitly source-bound M12 Linux preview, without building inputs."""
+"""Assemble an explicitly source-bound M19 Linux preview, without building inputs."""
 import argparse
 import gzip
 import hashlib
@@ -203,20 +203,28 @@ def assemble(spec, output, archive=None):
             'Rust-COPYRIGHT.html', 'Rust-LICENSE-APACHE.txt', 'Rust-LICENSE-MIT.txt',
             'Viewer-mesh-loader-LICENSE.txt', 'Viewer-proto-LICENSE.txt'} <= extras.keys():
         raise ValueError('project, embedded font and Rust standard-library notices are required')
+    # This fixed fixture's only local mesh must be an ordinary bounded source
+    # file. Reject linked parent directories too, not just a symlink at the leaf.
+    mesh_name = Path('examples/meshes/m16-asymmetric.obj')
+    mesh = regular(ROOT / mesh_name, 16 * 1024 * 1024)
+    if mesh.resolve() != ROOT.resolve() / mesh_name:
+        raise ValueError('the fixed mesh source may not traverse linked directories')
     with tempfile.TemporaryDirectory(prefix='.gz-preview-assembly-', dir=output.parent) as temporary:
         prefix = Path(temporary) / 'prefix'
         prefix.mkdir()
         copy_file(simulator, prefix / 'bin/gz-sim-rs', 0o755, spec['simulator']['sha256'])
         copy_file(sender, prefix / 'bin/gz-drive-command', 0o755, spec['drive_command']['sha256'])
         copy_file(regular(ROOT / 'scripts/preview_runtime.py'), prefix / 'bin/gz-preview', 0o755)
-        copy_file(regular(ROOT / 'examples/m8_diff_drive.sdf'), prefix / 'share/robot.sdf')
+        copy_file(regular(ROOT / 'examples/m19_robot.sdf'), prefix / 'share/robot.sdf')
+        copy_file(mesh, prefix / 'share/meshes/m16-asymmetric.obj')
         config = prefix / 'share/zenoh.json5'
         config.write_text(json.dumps({'listen': {'endpoints': ['tcp/127.0.0.1:7449']},
                                       'scouting': {'multicast': {'enabled': False}}}, indent=2) + '\n')
         for name, path in viewer.items():
             copy_file(path, prefix / 'web' / name, expected=spec['viewer_files'][name])
-        for name in ('M12_INSTALL.md', 'M12_CAPABILITIES.md'):
-            copy_file(regular(ROOT / 'docs' / name), prefix / name)
+        for source_name, installed_name in (('M19_INSTALL.md', 'INSTALL.md'),
+                                            ('M19_CAPABILITIES.md', 'CAPABILITIES.md')):
+            copy_file(regular(ROOT / 'docs' / source_name), prefix / installed_name)
         copy_file(regular(ROOT / 'LICENSE'), prefix / 'LICENSE')
         copy_file(regular(ROOT / 'NOTICE'), prefix / 'NOTICE')
         notices = collect_notices(documents, extras, prefix / 'notices')
