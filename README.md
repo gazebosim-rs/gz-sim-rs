@@ -29,12 +29,12 @@ The [live progress dashboard](https://gazebosim-rs.github.io/rewrite-progress/)
 tracks accepted increments, current development, remaining scope and evidence
 across the four target repositories. Repository agents publish their own updates.
 
-M1–M12 runtimes and the bounded distribution are accepted. Download the
-[Ubuntu 24.04 x86_64 integrated preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m12-preview)
+M1–M19 runtimes and the bounded distribution are accepted. Download the
+[Ubuntu 24.04 x86_64 integrated preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m19-preview)
 and its checksum, then follow the included installation guide. It packages the
 native-free Rapier server, maintained browser and finite robot-command helper.
-See [M12 evidence and limitations](docs/M12_ACCEPTANCE.md), the
-[installation guide](docs/M12_INSTALL.md), [capability matrix](docs/M12_CAPABILITIES.md)
+See [M19 evidence and limitations](docs/M19_ACCEPTANCE.md), the
+[installation guide](docs/M19_INSTALL.md), [capability matrix](docs/M19_CAPABILITIES.md)
 and [delivery plan](docs/DELIVERY_PLAN.md). This preview does not complete the
 rewrite or qualify unsupported platforms/features. The accepted
 [local recording/replay contract](docs/M11_RECORDING_REPLAY.md) remains retained.
@@ -42,15 +42,13 @@ M13 ideal altimeter and M14 local STL meshes are accepted at qualified Main
 `2f32bc7e`; see the [feature release and actual receipt](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m13-m14-features).
 M15 ideal air pressure and M16 local OBJ are accepted at qualified Main
 `5f53c92e`; see the [feature release and actual receipt](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m15-m16-features).
-[M17 magnetometer and M18 joint-state publication](docs/M17_M18_DELIVERY.md)
-close in their frozen qualified-parent candidate. The next bounded delivery is
-the [M19 installed preview refresh](docs/M19_DELIVERY.md), with copied local OBJ
-assets, dedicated guides and an explicit additional loopback HTTP port. See its
-[installation guide](docs/M19_INSTALL.md) and [limits](docs/M19_CAPABILITIES.md).
-Source preparation and reviewed local checks may overlap parent hosted CI under
-D31; no new installer is accepted or published before every required gate and
-actual clean installed robot/browser proof passes. The existing M12 download
-remains unchanged. D32 continues to the next useful bounded phase after acceptance.
+M17 magnetometer and M18 joint-state publication are included in the accepted
+[M19 installed preview](docs/M19_ACCEPTANCE.md), with copied local OBJ assets,
+actual non-root installation/browser proof and explicit loopback HTTP 8082.
+See its [installation guide](docs/M19_INSTALL.md) and
+[limits](docs/M19_CAPABILITIES.md). Current [M20](docs/M20_DELIVERY.md) adds an
+explicit existing lifecycle/publication-credit choice; it is under development
+and is not included in the published M19 archive.
 
 The design combines the responsibilities of `gz-sim`, `gz-sensors`, `gz-physics`,
 and the necessary parts of `gz-math` in one Cargo workspace. Bevy supplies the ECS

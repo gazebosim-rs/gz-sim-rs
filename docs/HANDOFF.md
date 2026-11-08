@@ -3,15 +3,38 @@
 
 # Coordinator handoff
 
-> The accepted baseline is M1–M16 at Main `5f53c92e`. M17/M18 qualification
-> closes in a frozen parent candidate; current M19 refreshes the installed
-> Ubuntu preview through those features, bounded to five working days under D31.
-> Continue to the next useful bounded phase after acceptance
-> while work remains. Preserve mandatory gates, accepted evidence, frozen trees
-> and independent Fuel work.
+> M1–M19 are accepted and published at qualified Main `e807a97d`.
+> Current M20 adds an explicit installed lifecycle/publication-credit mode using
+> the existing protocol and viewer, bounded to five working days under D30–D32.
+> Source lanes run in separate worktrees, with one integrator and independent
+> review before the consolidated mandatory checks. Preserve accepted evidence,
+> frozen worktrees, default behavior and independent Fuel work.
 
 
-## Current work: M19 refreshed installed preview
+## Current work: M20 explicit installed lifecycle and publication credit
+
+M19 is accepted on qualified Main `e807a97d`, with
+[M19 acceptance](M19_ACCEPTANCE.md) and the public
+[m19-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m19-preview).
+All seven actual asset digests and intentional Latest designation were read back.
+Full normal/hosted/local/official qualification, final package DATA, a fresh
+supported non-root installation and the actual installed forward/turn/Pause/Reset
+and owned shutdown passed. Historical browser warnings and failed controller
+attempts remain retained, not reclassified as success.
+
+[M20_DELIVERY.md](M20_DELIVERY.md) records the next five-working-day scope.
+Light implements the explicit launcher choice, complete new installed guides and
+legacy guide verification in `gz-sim-m20-launcher`. Messages adds focused missing
+full-world real-socket credit regressions in `gz-sim-m20-credit-tests`. Root
+integrates in `gz-sim-m20`; SDF independently reviews the complete batch.
+Source work is active. No M20 check, CI, build, package or browser proof has run.
+No acceptance is inherited. Finish and review Source, regressions and docs before
+one consolidated normal pass; keep all strict coverage and hosted gates.
+
+The sections below preserve historical preparation checkpoints; this current
+state supersedes their pending statements. Do not replay old accepted work.
+
+## Historical M19 preparation checkpoint
 
 M19 is selected under D30–D32 in isolated `work/m19-refreshed-preview`.
 [M19_DELIVERY.md](M19_DELIVERY.md) records its five-working-day scope and file

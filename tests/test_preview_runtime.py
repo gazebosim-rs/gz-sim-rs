@@ -16,6 +16,7 @@ import threading
 import time
 import unittest
 from unittest.mock import Mock, patch
+from urllib.parse import parse_qs, urlsplit
 
 SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/preview_runtime.py'
 spec = importlib.util.spec_from_file_location('preview_runtime', SCRIPT)
@@ -186,10 +187,11 @@ class InstalledPreview(unittest.TestCase):
             listener.bind(('127.0.0.1', 0))
             listener.listen()
             port = listener.getsockname()[1]
-            with patch.object(preview.subprocess, 'Popen') as spawn:
-                with self.assertRaises(OSError):
-                    preview.serve(self.prefix, 8081, port, 'demo')
-                spawn.assert_not_called()
+            for lifecycle in (False, True):
+                with self.subTest(lifecycle=lifecycle), patch.object(preview.subprocess, 'Popen') as spawn:
+                    with self.assertRaises(OSError):
+                        preview.serve(self.prefix, 8081, port, 'demo', lifecycle=lifecycle)
+                    spawn.assert_not_called()
             with socket.create_connection(('127.0.0.1', port), timeout=1):
                 pass
 
@@ -262,6 +264,79 @@ class InstalledPreview(unittest.TestCase):
                 preview.main(['run', '--http-port', '8083'], self.prefix)
             self.assertEqual(stopped.exception.code, 2)
             serve.assert_not_called()
+
+    def test_lifecycle_pairs_native_argv_with_the_printed_outer_viewer_query(self):
+        for lifecycle in (False, True):
+            with self.subTest(lifecycle=lifecycle):
+                child = Mock(pid=123, returncode=0)
+                child.poll.return_value = 0
+                server = Mock()
+                thread = Mock()
+                with patch.object(preview, 'check_port') as check, \
+                        patch.object(preview.http.server, 'ThreadingHTTPServer', return_value=server) as http, \
+                        patch.object(preview.threading, 'Thread', return_value=thread), \
+                        patch.object(preview.subprocess, 'Popen', return_value=child) as spawn, \
+                        patch('builtins.print') as output:
+                    self.assertEqual(preview.serve(self.prefix, 8082, 9014, 'opt-in',
+                                                  lifecycle=lifecycle), 0)
+                expected = [str(self.prefix / 'bin/gz-sim-rs'), str(self.prefix / 'share/robot.sdf'),
+                            '--server', '--web-viewer', '9014']
+                if lifecycle:
+                    expected.append('--web-lifecycle')
+                self.assertEqual(spawn.call_args.args[0], expected)
+                self.assertTrue(spawn.call_args.kwargs['start_new_session'])
+                self.assertEqual(spawn.call_args.kwargs['env']['GZ_PARTITION'], 'opt-in')
+                self.assertEqual([call.args for call in check.call_args_list], [(9014,), (7449,)])
+                self.assertEqual(http.call_args.args[0], ('127.0.0.1', 8082))
+                url = output.call_args_list[0].args[0].removeprefix('Open ')
+                outer = urlsplit(url)
+                self.assertEqual((outer.scheme, outer.hostname, outer.port), ('http', '127.0.0.1', 8082))
+                query = parse_qs(outer.query, strict_parsing=True)
+                self.assertEqual(query, {'backend': ['primitive'], 'ui': ['full'],
+                                         'url': ['ws://127.0.0.1:9014/'],
+                                         **({'lifecycle': ['1']} if lifecycle else {})})
+                self.assertEqual(urlsplit(query['url'][0]).query, '')
+                thread.start.assert_called_once_with()
+                server.shutdown.assert_called_once_with()
+                server.server_close.assert_called_once_with()
+
+    def test_lifecycle_parser_is_explicit_and_rejects_other_modes_and_invalid_ports(self):
+        with patch.object(preview, 'serve', return_value=0) as serve:
+            self.assertEqual(preview.main(['--partition', 'm20', 'run', '--lifecycle',
+                                           '--http-port', '8082', '--ws-port', '9016'], self.prefix), 0)
+            serve.assert_called_once_with(self.prefix, 8082, 9016, 'm20', lifecycle=True)
+        invalid = (['--lifecycle', 'run'], ['verify', '--lifecycle'],
+                   ['drive', '0.4', '0', '3', '--lifecycle'],
+                   ['run', '--web-lifecycle'], ['run', '--lifecycle=0'])
+        for argv in invalid:
+            with self.subTest(argv=argv), patch.object(preview, 'serve') as serve, \
+                    patch.object(preview.os, 'execve') as drive:
+                with self.assertRaises(SystemExit) as stopped:
+                    preview.main(argv, self.prefix)
+                self.assertEqual(stopped.exception.code, 2)
+                serve.assert_not_called()
+                drive.assert_not_called()
+        with patch.object(preview, 'serve') as serve:
+            self.assertEqual(preview.main(['run', '--lifecycle', '--ws-port', '70000'], self.prefix), 1)
+            serve.assert_not_called()
+        for port in ('7449', '8082'):
+            with self.subTest(port=port), patch.object(preview.subprocess, 'Popen') as spawn:
+                self.assertEqual(preview.main(['run', '--lifecycle', '--http-port', '8082',
+                                               '--ws-port', port], self.prefix), 1)
+                spawn.assert_not_called()
+
+    def test_lifecycle_launch_failure_closes_http_without_printing_a_success_url(self):
+        server = Mock()
+        with patch.object(preview, 'check_port'), \
+                patch.object(preview.http.server, 'ThreadingHTTPServer', return_value=server), \
+                patch.object(preview.subprocess, 'Popen', side_effect=OSError('cannot launch')), \
+                patch.object(preview.threading, 'Thread') as thread, patch('builtins.print') as output:
+            with self.assertRaisesRegex(OSError, 'cannot launch'):
+                preview.serve(self.prefix, 8082, 9014, 'm20', lifecycle=True)
+        server.server_close.assert_called_once_with()
+        server.shutdown.assert_not_called()
+        thread.assert_not_called()
+        output.assert_not_called()
 
     def test_shutdown_reaps_only_its_owned_process_group(self):
         child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)'],

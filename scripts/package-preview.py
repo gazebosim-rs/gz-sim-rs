@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Assemble an explicitly source-bound M19 Linux preview, without building inputs."""
+"""Assemble an explicitly source-bound M20 Linux preview, without building inputs."""
 import argparse
 import gzip
 import hashlib
@@ -222,8 +222,8 @@ def assemble(spec, output, archive=None):
                                       'scouting': {'multicast': {'enabled': False}}}, indent=2) + '\n')
         for name, path in viewer.items():
             copy_file(path, prefix / 'web' / name, expected=spec['viewer_files'][name])
-        for source_name, installed_name in (('M19_INSTALL.md', 'INSTALL.md'),
-                                            ('M19_CAPABILITIES.md', 'CAPABILITIES.md')):
+        for source_name, installed_name in (('M20_INSTALL.md', 'INSTALL.md'),
+                                            ('M20_CAPABILITIES.md', 'CAPABILITIES.md')):
             copy_file(regular(ROOT / 'docs' / source_name), prefix / installed_name)
         copy_file(regular(ROOT / 'LICENSE'), prefix / 'LICENSE')
         copy_file(regular(ROOT / 'NOTICE'), prefix / 'NOTICE')

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-07",
+  "as_of": "2026-11-08",
   "execution_state": "active",
-  "current_phase": "M19",
+  "current_phase": "M20",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -290,7 +290,13 @@
       "scope": "One loaded ideal Rapier magnetometer transforms a finite constant SDF world magnetic field into the resolved sensor frame and publishes canonical upstream Zenoh Magnetometer messages.",
       "acceptance": "Actual pinned native model and moving-pose observations, all emitted field/frame/time/sequence values, canonical wire, cadence/demand/pause/reset/removal and atomic-refusal/stale-generation controls pass; all mandatory gates and independent audits precede qualified Main promotion.",
       "excluded": "Noise, geographic/spherical-coordinate field calculation, sensor UI, new transport/framework and other backend support.",
-      "evidence": "docs/M17_MAGNETOMETER.md"
+      "evidence": "docs/M17_MAGNETOMETER.md",
+      "accepted_at": "2026-11-08T08:55:26.028313+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "c7402b45ae8541aa395aaed565cf3a3dc77347e7",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_receipt": "https://github.com/gazebosim-rs/gz-sim-rs/releases/download/m17-m18-features/m17-m18-acceptance.json"
     },
     {
       "id": "M18",
@@ -302,7 +308,13 @@
       "scope": "One top-level Rapier model publishes actual admitted single-axis joint position/velocity and supported metadata in canonical Model messages, with bounded built-in topic/filter/rate configuration.",
       "acceptance": "Actual pinned native packets and backend component observations establish every emitted field, topic/filter/order and equal-time/pause/reset cadence; real moving-joint canonical delivery, lifecycle and endpoint-conflict controls pass with all mandatory gates and independent audits.",
       "excluded": "Unavailable force values, multiaxis or dynamically created joints, nested-model expansion, new solver/controllers, UI or general plugin framework.",
-      "evidence": "docs/M18_JOINT_STATE.md"
+      "evidence": "docs/M18_JOINT_STATE.md",
+      "accepted_at": "2026-11-08T08:55:26.028313+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "c7402b45ae8541aa395aaed565cf3a3dc77347e7",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_receipt": "https://github.com/gazebosim-rs/gz-sim-rs/releases/download/m17-m18-features/m17-m18-acceptance.json"
     },
     {
       "id": "M19",
@@ -316,7 +328,25 @@
       "scope": "Refresh the Ubuntu 24.04 x86_64 native-free installed preview through the exact M17/M18 parent, with fresh release CLI/helper inputs, the copied local OBJ coexistence robot, dedicated guides and one additional explicit loopback HTTP port.",
       "acceptance": "Fresh source-bound release artifacts, actual selected notices and ELF closure, complete ordinary-file manifest/archive/relocation and independent package data; clean supported non-root installation and actual installed robot/browser forward, turn, Pause, Reset and owned shutdown. Full normal hook, strict coverage, exact hosted CI and independent audits precede qualified Main promotion and a new preview release.",
       "excluded": "Renderer rebuild, optional RGB/depth/native-SDK distributions, new sensor family/UI/asset format/transport/framework, arbitrary origins, old service termination, full rewrite compatibility or performance claims.",
-      "evidence": "docs/M19_DELIVERY.md"
+      "evidence": "docs/M19_ACCEPTANCE.md",
+      "accepted_at": "2026-11-08T10:47:10Z",
+      "accepted_commits": {
+        "gz-sim-rs": "e807a97da402308629af30156f845e9cf1ace02d",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_receipt": "https://github.com/gazebosim-rs/gz-sim-rs/releases/download/m19-preview/m19-acceptance.json"
+    },
+    {
+      "id": "M20",
+      "title": "Explicit installed lifecycle and publication credit",
+      "max_working_days": 5,
+      "depends_on": [
+        "M19"
+      ],
+      "scope": "Explicit installed run --lifecycle pairs the existing native lifecycle flag and maintained viewer lifecycle query, retaining the full M19 coexistence robot, default behavior, protocol and viewer bytes.",
+      "acceptance": "Meaningful default/opt-in pairing and real socket credit/catalog/coexistence controls; complete guide-pair verification; full normal hook, strict workspace/per-crate/parent gates and exact hosted CI; independently audited native-free package, supported non-root installation and actual opted-in browser robot controls/owned clean shutdown before qualified publication.",
+      "excluded": "Wire or renderer changes, queue/deadline widening, silent default changes, robot/sensor/joint removal, new transport/runtime/framework, general cold-start or performance claim.",
+      "evidence": "docs/M20_DELIVERY.md"
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -339,12 +369,15 @@
     "M16": "complete",
     "M17": "complete",
     "M18": "complete",
-    "M19": "complete"
+    "M19": "complete",
+    "M20": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-08T05:58:40.655341+00:00",
-  "active_phases": [],
-  "execution_policy": "D31: one integrator and serial local heavy work. After exact parent normal/native/independent-local proofs pass, reviewed M19 local checks may overlap parent hosted CI. Acceptance/publication requires the finally qualified exact parent plus all child gates and artifact proofs; parent source fixes require rebase and affected checks.",
+  "phase_started_at": "2026-11-08T10:54:32.848678+00:00",
+  "active_phases": [
+    "M20"
+  ],
+  "execution_policy": "D31/D32: independent Source lanes in separate worktrees with one integrator; serial local heavy checks. Finish Source/regressions/docs and independent review before one consolidated full normal hook. Exact hosted CI and actual artifact/browser proofs precede acceptance/publication.",
   "parallel_groups": [
     {
       "phases": [
@@ -371,5 +404,5 @@
       "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M16 are the accepted baseline at Main 5f53c92e. M17/M18/M19 complete flags are final-candidate targets, effective only after exact parent and child qualification, installed artifact proof and qualified Main promotion under D31. Until then the live tracker records actual in-progress states. Generated actual commit/run IDs, timestamps and proof hashes belong in release/promotion receipts and owned status, without a second metadata-only gate. Continue directly to the next useful bounded phase after acceptance under D32."
+  "acceptance_boundary": "M1\u2013M19 are accepted and published; qualified Main e807a97d and actual m19-preview asset readbacks close M19. M20 is in progress and inherits no acceptance. Continue the next useful bounded delivery after every accepted phase while retained work remains under D32."
 }

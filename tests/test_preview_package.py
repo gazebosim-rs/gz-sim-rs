@@ -38,7 +38,8 @@ class PreviewPackage(unittest.TestCase):
         for name in ['scripts/preview_runtime.py', 'examples/m8_diff_drive.sdf',
                      'examples/m19_robot.sdf', 'examples/meshes/m16-asymmetric.obj',
                      'docs/M12_INSTALL.md', 'docs/M12_CAPABILITIES.md',
-                     'docs/M19_INSTALL.md', 'docs/M19_CAPABILITIES.md', 'LICENSE', 'NOTICE']:
+                     'docs/M19_INSTALL.md', 'docs/M19_CAPABILITIES.md',
+                     'docs/M20_INSTALL.md', 'docs/M20_CAPABILITIES.md', 'LICENSE', 'NOTICE']:
             path = self.source / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text('source fixture ' + name)
@@ -142,8 +143,8 @@ class PreviewPackage(unittest.TestCase):
         self.assertNotIn(str(self.directory), (self.output / 'notices.json').read_text())
         selected = {'examples/m19_robot.sdf': 'share/robot.sdf',
                     'examples/meshes/m16-asymmetric.obj': 'share/meshes/m16-asymmetric.obj',
-                    'docs/M19_INSTALL.md': 'INSTALL.md',
-                    'docs/M19_CAPABILITIES.md': 'CAPABILITIES.md'}
+                    'docs/M20_INSTALL.md': 'INSTALL.md',
+                    'docs/M20_CAPABILITIES.md': 'CAPABILITIES.md'}
         for source, installed in selected.items():
             with self.subTest(installed=installed):
                 raw = (self.source / source).read_bytes()
@@ -212,19 +213,50 @@ class PreviewPackage(unittest.TestCase):
                 self.assertEqual(mesh.read_bytes(), original)
 
     def test_dedicated_guides_are_required_even_when_legacy_sources_exist(self):
-        guide = self.source / 'docs/M19_INSTALL.md'
-        original = guide.read_bytes()
-        guide.unlink()
-        self.assertTrue((self.source / 'docs/M12_INSTALL.md').is_file())
-        self.refuse('regular')
-        self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
-        guide.write_bytes(original)
+        for name in ('M20_INSTALL.md', 'M20_CAPABILITIES.md'):
+            with self.subTest(guide=name):
+                guide = self.source / 'docs' / name
+                original = guide.read_bytes()
+                guide.unlink()
+                self.assertTrue((self.source / 'docs/M12_INSTALL.md').is_file())
+                self.assertTrue((self.source / 'docs/M19_INSTALL.md').is_file())
+                self.assertTrue((self.source / 'docs/M19_CAPABILITIES.md').is_file())
+                self.refuse('regular')
+                self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+                guide.write_bytes(original)
         output = package.assemble(self.spec, self.output)
         self.assertIn('INSTALL.md', output['files'])
         self.assertIn('CAPABILITIES.md', output['files'])
-        self.assertEqual((self.output / 'INSTALL.md').read_bytes(), original)
-        self.assertNotEqual((self.output / 'INSTALL.md').read_bytes(),
-                            (self.source / 'docs/M12_INSTALL.md').read_bytes())
+        self.assertEqual((self.output / 'INSTALL.md').read_bytes(),
+                         (self.source / 'docs/M20_INSTALL.md').read_bytes())
+        for phase in ('M12', 'M19'):
+            self.assertNotEqual((self.output / 'INSTALL.md').read_bytes(),
+                                (self.source / ('docs/' + phase + '_INSTALL.md')).read_bytes())
+
+    def test_m20_documented_archive_root_and_installed_launcher_survive_relocation(self):
+        for name in ('INSTALL', 'CAPABILITIES'):
+            shutil.copyfile(ROOT / ('docs/M20_' + name + '.md'),
+                            self.source / ('docs/M20_' + name + '.md'))
+        output = self.directory / 'gz-preview-m20-linux-x86_64'
+        archive = self.directory / (output.name + '.tar.gz')
+        manifest = package.assemble(self.spec, output, archive)
+        self.assertEqual((output / 'bin/gz-preview').read_bytes(),
+                         (self.source / 'scripts/preview_runtime.py').read_bytes())
+        self.assertEqual(manifest['files']['bin/gz-preview']['mode'], 0o755)
+        with tarfile.open(archive, 'r:gz') as packed:
+            self.assertTrue(all(member.name.startswith(output.name + '/') for member in packed.getmembers()))
+            self.assertEqual(packed.extractfile(output.name + '/INSTALL.md').read(),
+                             (ROOT / 'docs/M20_INSTALL.md').read_bytes())
+            self.assertEqual(packed.extractfile(output.name + '/bin/gz-preview').read(),
+                             (self.source / 'scripts/preview_runtime.py').read_bytes())
+        moved = self.directory / 'relocated-m20'
+        shutil.move(output, moved)
+        self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
+        self.assertIn(archive.name, (moved / 'INSTALL.md').read_text())
+        self.assertIn('gz-preview-m20-linux-x86_64', (moved / 'INSTALL.md').read_text())
+        with patch.object(runtime, 'serve', return_value=0) as serve:
+            self.assertEqual(runtime.main(['run', '--lifecycle', '--http-port', '8082'], moved), 0)
+            serve.assert_called_once_with(moved, 8082, 9014, 'gz-preview', lifecycle=True)
 
     def test_native_backend_or_wrong_elf_and_transcript_drift_are_refused(self):
         self.artifacts[0]['features'] = ['native-backends']

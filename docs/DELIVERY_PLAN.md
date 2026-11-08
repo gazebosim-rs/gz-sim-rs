@@ -3,12 +3,12 @@
 
 # Weekly delivery plan
 
-> The accepted baseline is M1–M16 at Main `5f53c92e`. M17/M18 qualification
-> closes in a frozen parent candidate; current M19 refreshes the installed
-> Ubuntu preview through those features, bounded to five working days under D31.
-> Continue to the next useful bounded phase after acceptance
-> while work remains. Preserve mandatory gates, accepted evidence, frozen trees
-> and independent Fuel work.
+> M1–M19 are accepted and published at qualified Main `e807a97d`.
+> Current M20 adds an explicit installed lifecycle/publication-credit mode using
+> the existing protocol and viewer, bounded to five working days under D30–D32.
+> Source lanes run in separate worktrees, with one integrator and independent
+> review before the consolidated mandatory checks. Preserve accepted evidence,
+> frozen worktrees, default behavior and independent Fuel work.
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning
@@ -63,6 +63,14 @@ results must never be described as same-engine performance improvement.
 | M17: Ideal magnetometer | 5 working days | One loaded ideal Rapier magnetometer with a finite constant world field and canonical Tesla publication. | Native/model and resolved-pose vectors, frame/time/sequence/cadence/demand/pause/reset/removal, atomic refusals and canonical wire; all gates. |
 | M18: Joint-state publication | 5 working days | Actual single-axis Rapier joint position/velocity and supported metadata in canonical Model packets. | Native packets and backend components, topic/filter/order, equal-time/pause/reset cadence, lifecycle/endpoint and moving-joint wire controls; all gates. |
 | M19: Refreshed installed preview | 5 working days | Ubuntu 24.04 native-free archive through M18, copied local OBJ robot, unchanged viewer and a nonconflicting explicit loopback HTTP port. | Fresh release binaries and notices, actual manifest/archive/relocation, clean non-root supported installation and real installed robot/browser controls and shutdown; all gates. |
+| M20: Explicit installed lifecycle and publication credit | 5 working days | Explicit existing lifecycle/credit opt-in with the complete M19 robot and unchanged defaults/viewer/wire. | Real socket full-world credit/catalog controls, guides, all mandatory gates and actual supported installed-browser controls/shutdown; see M20_DELIVERY.md. |
+
+M1–M19 are now accepted and published. M17/M18 are qualified at `c7402b45`;
+[M19 acceptance](M19_ACCEPTANCE.md) records qualified Main `e807a97d` and the
+actual `m19-preview` publication. Current [M20](M20_DELIVERY.md) runs two
+independent Source lanes with one integrator. No M20 check or acceptance has run.
+The preparation descriptions below are historical context superseded by this
+current state and the actual acceptance receipts.
 
 The initial MVP sequence is ordered around user-visible dependencies. After M12,
 D31 permits independent bounded increments to run in parallel with explicit file

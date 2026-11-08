@@ -1,26 +1,18 @@
 # Implementation status
 
-M1–M12 are accepted and published; see [current delivery](DELIVERY_PLAN.md)
-and [M12 acceptance](M12_ACCEPTANCE.md). M13 ideal altimeter and M14 local STL are accepted at Main `2f32bc7e` after
-actual required qualification, native and browser proofs and public release.
-M15 ideal air pressure and M16 local OBJ are accepted at Main `5f53c92e`;
-exact hosted run `42446229290`, native pressure, actual OBJ robot/browser and
-independent local/official/browser audits passed. The public `m15-m16-features`
-receipt preserves separate coverage counters and all earlier failures.
-M17 ideal magnetometer and M18 joint-state publication close in their frozen
-parent under [M17_M18_DELIVERY.md](M17_M18_DELIVERY.md). At the M19 source
-preparation checkpoint, the exact parent native run and independent native DATA
-have passed; its final normal/local/hosted acceptance gates remain pending.
-Current [M19](M19_DELIVERY.md) refreshes the installed preview with fresh
-native-free release binaries, copied OBJ assets, updated guides and explicit
-local HTTP 8082 support. Its product source/regressions have independent review,
-with actual checks, package, clean installation and browser proofs still required.
-Candidate completion flags do not confer acceptance before qualified Main promotion.
-Generated actual IDs/times remain in the release/promotion receipt and owned status. D32
-directs selecting the next useful bounded phase after acceptance while work
-remains, keeping all gates and the web tracker accurate. The record below
-preserves earlier increments; it is not a complete present-day capability inventory.
+M1–M19 are accepted and published at qualified Main `e807a97d`; see
+[M19 acceptance](M19_ACCEPTANCE.md), the
+[m19-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m19-preview)
+and [current delivery](DELIVERY_PLAN.md). The complete M19 normal hook and exact
+hosted CI passed with independent local/official/package/install/browser audits.
+The real installed robot drove, turned, paused, reset and shut down with actual
+waited exits. Original failures and unknown causes remain preserved.
 
+Current [M20](M20_DELIVERY.md) adds an explicit opt-in to the existing lifecycle
+and publication-credit mode, with unchanged default behavior, wire and viewer.
+Two separate Source worktrees are active; no M20 checks or acceptance have run.
+The historical records below remain evidence for their original increments,
+not a complete present-day capability inventory.
 
 The Zenoh headless P2 milestone is accepted on Main `c3f5a2f`, following the
 complete normal hook, independent review, exact hosted run `41270504128` and

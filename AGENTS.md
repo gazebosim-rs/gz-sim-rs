@@ -1,11 +1,11 @@
 # Instructions for implementation agents
 
-> The accepted baseline is M1–M16 at Main `5f53c92e`. M17/M18 qualification
-> closes in a frozen parent candidate; current M19 refreshes the installed
-> Ubuntu preview through those features, bounded to five working days under D31.
-> Continue to the next useful bounded phase after acceptance
-> while work remains. Preserve mandatory gates, accepted evidence, frozen trees
-> and independent Fuel work.
+> M1–M19 are accepted and published at qualified Main `e807a97d`.
+> Current M20 adds an explicit installed lifecycle/publication-credit mode using
+> the existing protocol and viewer, bounded to five working days under D30–D32.
+> Source lanes run in separate worktrees, with one integrator and independent
+> review before the consolidated mandatory checks. Preserve accepted evidence,
+> frozen worktrees, default behavior and independent Fuel work.
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -15,22 +15,20 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` and `docs/M19_DELIVERY.md` before editing.
-M1–M16 are accepted at `5f53c92e`; actual normal/hosted/native/browser evidence
-and the public `m15-m16-features` receipt are retained. M12's installer and
-accepted viewer remain unchanged. M17/M18 close qualification in a frozen parent.
-Current M19 refreshes the installed preview with fixed copied robot/OBJ assets,
-dedicated guides, legacy guide verification and explicit loopback HTTP 8082
-support. Root owns integration/planning/publication; assembler and runtime/CLI
-leases are recorded in M19_DELIVERY.md. Source/review may overlap. M19 local
-checks may overlap parent hosted CI only after exact parent normal/native/local
-proofs pass; local heavy qualification stays serial. Neither phase inherits
-acceptance, and parent source corrections require rebase/affected checks.
-Under owner decision D32, immediately select and start the next useful bounded
-phase after acceptance while work remains. An unselected successor is not a
-reason to stop. Keep the web tracker current, preserve paused/Fuel work and all
-accepted/frozen trees. Routine scope selection within D30 does not require a
-new owner approval; genuine product/dependency decisions still do.
+Read `docs/DELIVERY_PLAN.md` and `docs/M20_DELIVERY.md` before editing.
+M19 is accepted at `e807a97d`, published as `m19-preview` with actual package,
+clean Ubuntu installation, installed robot/browser controls and owned shutdown.
+Its full normal hook, exact hosted CI and independent audits passed. Preserve
+all original failures, unknown causes and accepted viewer bytes.
+
+M20 pairs explicit launcher `run --lifecycle` with existing native
+`--web-lifecycle` and outer viewer `lifecycle=1`. It exposes the existing admitted
+local lifecycle controls and publication credit without changing defaults,
+protocols, queue bounds, the full M19 robot or viewer bytes. The complete scope,
+separate worktrees and narrow file leases are in M20_DELIVERY.md. Root owns
+integration, shared planning, publication and the tracker. Do not run per-edit
+checks or create extra private proposal/review machinery. Under D32, continue
+to the next useful bounded phase after acceptance while retained work remains.
 
 Finish source, meaningful regressions, documentation and independent Source review
 before one consolidated normal required pass. Batch real failures before affected

@@ -134,7 +134,7 @@ def stop_child(child):
         child.wait(timeout=5)
 
 
-def serve(prefix, http_port, ws_port, partition):
+def serve(prefix, http_port, ws_port, partition, *, lifecycle=False):
     if http_port == ws_port or ws_port == 7449:
         raise ValueError('HTTP, WebSocket and Zenoh ports must be distinct')
     check_port(ws_port)
@@ -152,13 +152,18 @@ def serve(prefix, http_port, ws_port, partition):
     try:
         for signum in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
             previous[signum] = signal.signal(signum, interrupt)
-        child = subprocess.Popen(
-            [str(prefix / 'bin/gz-sim-rs'), str(prefix / 'share/robot.sdf'),
-             '--server', '--web-viewer', str(ws_port)],
-            cwd=prefix, env=environment(prefix, partition), start_new_session=True)
+        command = [str(prefix / 'bin/gz-sim-rs'), str(prefix / 'share/robot.sdf'),
+                   '--server', '--web-viewer', str(ws_port)]
+        if lifecycle:
+            command.append('--web-lifecycle')
+        child = subprocess.Popen(command, cwd=prefix, env=environment(prefix, partition),
+                                 start_new_session=True)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
-        print(f'Open http://127.0.0.1:{http_port}/?backend=primitive&ui=full&url=ws://127.0.0.1:{ws_port}/', flush=True)
+        url = f'http://127.0.0.1:{http_port}/?backend=primitive&ui=full&url=ws://127.0.0.1:{ws_port}/'
+        if lifecycle:
+            url += '&lifecycle=1'
+        print('Open ' + url, flush=True)
         print('The robot starts paused. Use Play before sending a finite drive command.', flush=True)
         while child.poll() is None and not stopping.wait(0.1):
             pass
@@ -183,6 +188,8 @@ def main(argv=None, prefix=None):
     run = commands.add_parser('run', help='start the paused robot and local browser server')
     run.add_argument('--http-port', type=int, choices=(8080, 8081, 8082), default=8081)
     run.add_argument('--ws-port', type=int, default=9014)
+    run.add_argument('--lifecycle', action='store_true',
+                     help='enable existing local lifecycle controls and publication credit')
     drive = commands.add_parser('drive', help='send a finite canonical drive command, then brake')
     drive.add_argument('linear_m_per_s')
     drive.add_argument('yaw_rad_per_s')
@@ -205,6 +212,8 @@ def main(argv=None, prefix=None):
                              environment(root, args.partition))
         if not 1024 <= args.ws_port <= 65535:
             raise ValueError('WebSocket port must be in 1024..=65535')
+        if args.lifecycle:
+            return serve(root, args.http_port, args.ws_port, args.partition, lifecycle=True)
         return serve(root, args.http_port, args.ws_port, args.partition)
     except (OSError, ValueError, KeyError, TypeError) as error:
         print('Preview failed: ' + str(error), file=sys.stderr)
