@@ -8,9 +8,11 @@ has exact Source/build/payload identities, strict normal/hosted qualification,
 final clean installed verification and retained real robot/browser proof.
 
 M13 ideal altimeter and M14 local STL are accepted at Main `2f32bc7e`, with
-actual evidence in the public `m13-m14-features` release. Current M15 ideal air
-pressure and M16 local OBJ share a parallel source wave with one integrator;
-see [M15_M16_DELIVERY.md](M15_M16_DELIVERY.md). Preserve all accepted evidence
+actual evidence in the public `m13-m14-features` release. M15 ideal air pressure
+and M16 local OBJ are accepted at Main `5f53c92e` with the `m15-m16-features`
+receipt. Current M17 ideal magnetometer and M18 joint-state publication share
+a parallel source wave with one integrator; see
+[M17_M18_DELIVERY.md](M17_M18_DELIVERY.md). Preserve all accepted evidence
 and strict verification. D32 directs continuing directly to the next useful
 bounded phase after acceptance while retained work remains; an unselected
 successor does not pause execution. Each phase retains its own proofs and budget.

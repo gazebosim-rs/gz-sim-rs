@@ -40,8 +40,10 @@ rewrite or qualify unsupported platforms/features. The accepted
 [local recording/replay contract](docs/M11_RECORDING_REPLAY.md) remains retained.
 M13 ideal altimeter and M14 local STL meshes are accepted at qualified Main
 `2f32bc7e`; see the [feature release and actual receipt](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m13-m14-features).
-Current [M15 air pressure and M16 local OBJ](docs/M15_M16_DELIVERY.md) are being
-developed as independent lanes with one integrator. Under the owner's continuous
+M15 ideal air pressure and M16 local OBJ are accepted at qualified Main
+`5f53c92e`; see the [feature release and actual receipt](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m15-m16-features).
+Current [M17 magnetometer and M18 joint-state publication](docs/M17_M18_DELIVERY.md)
+are developed as independent lanes with one integrator. Under the owner's continuous
 delivery instruction, each acceptance is followed by the next useful bounded
 phase while work remains. Required review and verification gates stay mandatory.
 

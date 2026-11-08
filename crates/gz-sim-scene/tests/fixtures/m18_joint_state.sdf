@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation; SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12"><world name="default">
+  <gravity>0 0 0</gravity>
+  <physics name="default" type="ignored"><max_step_size>0.001</max_step_size></physics>
+  <model name="arm" canonical_link="base"><pose>0 0 1 0 0 0</pose>
+    <link name="base">
+      <inertial><mass>1</mass><inertia><ixx>0.003266666666666667</ixx><iyy>0.08496666666666667</iyy><izz>0.08496666666666667</izz></inertia></inertial>
+      <collision name="bar"><geometry><box><size>1 0.14 0.14</size></box></geometry></collision>
+    </link>
+    <link name="tip"><pose>0.8 0 0 0 0 0</pose>
+      <inertial><mass>0.5</mass><inertia><ixx>0.0012</ixx><iyy>0.0156</iyy><izz>0.0156</izz></inertia></inertial>
+      <collision name="bar"><geometry><box><size>0.6 0.12 0.12</size></box></geometry></collision>
+    </link>
+    <joint name="base_hinge" type="revolute"><parent>world</parent><child>base</child><pose relative_to="base">0 0 0 0 0 0</pose><axis><xyz>0 0 1</xyz></axis></joint>
+    <joint name="tip_hinge" type="revolute"><parent>base</parent><child>tip</child><pose relative_to="tip">0 0 0 0 0 0</pose><axis><xyz>0 0 1</xyz></axis></joint>
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher"><topic>/m18/joint_state</topic><update_rate>100</update_rate></plugin>
+  </model>
+</world></sdf>

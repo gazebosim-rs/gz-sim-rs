@@ -18,6 +18,6 @@ pub(super) fn assert_world_light_metadata(value: &sdformat::World) {
     assert_eq!(before, format!("{expected:?}"));
     assert_eq!(value.source.uri, "guard");
     assert_eq!(value.lights.as_slice(), &[sdformat::Light::default()]);
-    validate(value).unwrap();
+    validate(value, false).unwrap();
     assert_eq!(format!("{value:?}"), before);
 }

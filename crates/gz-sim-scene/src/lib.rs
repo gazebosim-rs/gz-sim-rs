@@ -3,9 +3,13 @@
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
 mod joint_controller;
+mod joint_state_publisher;
 pub use joint_controller::{
     JointControllerCommandError, JointControllerConfiguration, JointControllerMode,
     set_joint_controller_command,
+};
+pub use joint_state_publisher::{
+    JointStateJointPublication, JointStatePublication, JointStateSample, JointStateValue,
 };
 mod diff_drive;
 pub use diff_drive::{
@@ -57,6 +61,11 @@ mod altimeter;
 pub use altimeter::{
     AltimeterPublication, AltimeterSample, clear_altimeter_interest, set_altimeter_interest,
 };
+mod magnetometer;
+pub use magnetometer::{
+    MagnetometerPublication, MagnetometerSample, clear_magnetometer_interest,
+    set_magnetometer_interest,
+};
 mod initial;
 mod joint_force_lifecycle;
 mod joint_lifecycle;
@@ -64,7 +73,8 @@ pub use initial::{
     PendingResetRemoval, SceneResetError, SceneResetInfo, initial_air_pressure_publications,
     initial_altimeter_publications, initial_diff_drive_configurations, initial_imu_publications,
     initial_joint_controller_configurations, initial_joint_force_configurations,
-    initial_lidar_publications, reset_loaded_world,
+    initial_joint_state_publications, initial_lidar_publications,
+    initial_magnetometer_publications, reset_loaded_world,
 };
 
 use bevy_ecs::prelude::*;
@@ -320,6 +330,7 @@ struct SceneContext<'a> {
     visuals: Vec<Entity>,
     cameras: Vec<Entity>,
     noise_seed: [u8; 32],
+    field_world: [f64; 3],
 }
 
 struct ParentModel {
@@ -491,7 +502,8 @@ fn load_world_configured(
         .position(|world| world.name == world_name)
         .ok_or_else(|| LoadError::MissingWorld(world_name.into()))?;
     let world = &sdf.worlds[world_index];
-    producer_guard::validate(world)?;
+    let magnetic_consumer = magnetometer::preflight(&sdf, world, engine)?;
+    producer_guard::validate(world, magnetic_consumer)?;
     let rendering_sensors = world_systems::validate(world)?;
     // The pinned parser supplies an implicit profile when none is declared.
     let profile = world
@@ -539,6 +551,7 @@ fn load_world_configured(
         visuals: Vec::new(),
         cameras: Vec::new(),
         noise_seed,
+        field_world: world.magnetic_field,
     };
     let world_entity = spawn_node(
         &mut sim,
@@ -623,10 +636,12 @@ fn load_world_configured(
     lidar::install(&mut sim);
     altimeter::install(&mut sim);
     air_pressure::install(&mut sim);
+    magnetometer::install(&mut sim);
     joint_lifecycle::install(&mut sim);
     joint_force_lifecycle::install(&mut sim);
     diff_drive::install(&mut sim);
     joint_controller::install(&mut sim);
+    joint_state_publisher::install(&mut sim);
     initial::capture(&mut sim);
     Ok(sim)
 }
@@ -698,6 +713,15 @@ fn build_model(
     let top_level = sim.world().get::<EntityKind>(parent.entity) == Some(&EntityKind::World);
     let controller_plan = joint_controller::parse(model)?;
     if let Some(plan) = &controller_plan {
+        plan.validate(
+            model,
+            sim,
+            backend.as_ref().map(|backend| backend.engine()),
+            (top_level, parent.is_static || model.is_static),
+        )?;
+    }
+    let joint_state_plan = joint_state_publisher::parse(model)?;
+    if let Some(plan) = &joint_state_plan {
         plan.validate(
             model,
             sim,
@@ -1131,6 +1155,23 @@ fn build_model(
                 )?;
                 continue;
             }
+            if sensor.magnetometer().is_some() {
+                magnetometer::spawn(
+                    sdf,
+                    model,
+                    sensor,
+                    context,
+                    sim,
+                    backend.as_ref(),
+                    magnetometer::Parent {
+                        link,
+                        entity: link_entity,
+                        topic: &model_topic,
+                        field_world: context.field_world,
+                    },
+                )?;
+                continue;
+            }
             if sensor.altimeter().is_some() {
                 altimeter::spawn(
                     sdf,
@@ -1248,6 +1289,9 @@ fn build_model(
             backend,
             controller_plan.is_some(),
         )?;
+        if let Some(plan) = &joint_state_plan {
+            joint_state_publisher::build(sdf, sim, model, model_entity, backend, plan)?;
+        }
         joint_forces::install(sim, model, model_entity, backend, &force_configurations)?;
         if let Some(plan) = &drive_plan {
             diff_drive::build(sim, model, model_entity, backend, plan)?;

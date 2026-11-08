@@ -23,7 +23,7 @@ fn extension(source: sdformat::Source) -> ExtensionMetadata {
     }
 }
 fn failure(world: &sdformat::World, feature: &str) {
-    let error = validate(world).unwrap_err();
+    let error = validate(world, false).unwrap_err();
     assert!(matches!(error, LoadError::Unsupported { feature: actual, .. } if actual == feature));
 }
 #[test]
@@ -38,7 +38,7 @@ fn altimeter_preflight_admits_typed_family_and_preserves_metadata_refusals() {
         .worlds
         .remove(0)
     };
-    assert!(validate(&altimeter_world()).is_ok());
+    assert!(validate(&altimeter_world(), false).is_ok());
     for config in [
         SensorConfig::Unconfigured,
         SensorConfig::AirSpeed(Box::default()),
@@ -81,7 +81,7 @@ fn pressure_preflight_admits_typed_family_and_rejects_nondefault_atmosphere() {
         .worlds
         .remove(0)
     };
-    assert!(validate(&pressure_world()).is_ok());
+    assert!(validate(&pressure_world(), false).is_ok());
     let cases: [Edit; 5] = [
         ("world atmosphere", |world| {
             world.atmosphere.xml = Some("<atmosphere type='adiabatic'/>".into())
@@ -108,7 +108,7 @@ fn pressure_preflight_admits_typed_family_and_rejects_nondefault_atmosphere() {
 
 #[test]
 fn world_admission_keeps_native_defaults_and_rejects_unconsumed_fields() {
-    assert!(validate(&world()).is_ok());
+    assert!(validate(&world(), false).is_ok());
     let cases: [Edit; 6] = [
         ("world lights", |w| w.lights.push(Light::default())),
         ("world joints", |w| {
@@ -232,7 +232,7 @@ fn joint_metadata_and_joint_sensor_envelopes_are_not_silently_dropped() {
 
 fn assert_explicit_density_metadata(value: &sdformat::World) {
     let before = format!("{value:?}");
-    validate(value).unwrap();
+    validate(value, false).unwrap();
     assert_eq!(format!("{value:?}"), before);
     let link = &value.models[0].links[0];
     assert_eq!(link.collisions[0].density, Some(1000.0));

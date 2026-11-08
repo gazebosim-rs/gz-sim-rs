@@ -4,15 +4,16 @@
 
 use crate::{LoadError, require};
 
-pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
+pub(super) fn validate(world: &sdformat::World, magnetic_consumer: bool) -> Result<(), LoadError> {
     let name = &world.name;
     require(world.joints.is_empty(), name, "world joints")?;
     require(world.extensions.is_empty(), name, "world extensions")?;
     require(world.wind_linear_velocity == [0.0; 3], name, "world wind")?;
-    // SDFormat's implicit Earth magnetic field is inert until a supported
-    // magnetic sensor consumes it. A nondefault field is not yet represented.
+    // The caller's complete typed magnetometer preflight runs before Simulation
+    // creation. Only that admitted consumer may enable a nondefault finite field.
     require(
-        world.magnetic_field == [5.5645e-6, 22.8758e-6, -42.3884e-6],
+        world.magnetic_field.iter().all(|value| value.is_finite())
+            && (magnetic_consumer || world.magnetic_field == [5.5645e-6, 22.8758e-6, -42.3884e-6]),
         name,
         "world magnetic field",
     )?;
@@ -98,6 +99,7 @@ fn validate_sensor(sensor: &sdformat::Sensor, parent: &str) -> Result<(), LoadEr
         sensor.imu().is_some()
             || sensor.altimeter().is_some()
             || sensor.air_pressure().is_some()
+            || sensor.magnetometer().is_some()
             || crate::supports_camera_sensor(sensor)
             || sensor.effective_type() == Some(sdformat::SensorType::Lidar),
         &name,

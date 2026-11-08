@@ -76,6 +76,34 @@ impl Server {
             } else {
                 BTreeMap::new()
             };
+        let magnetometer_publishers =
+            if gz_sim_scene::initial_magnetometer_publications(&self.simulation)?
+                .next()
+                .is_some()
+            {
+                let occupied = magnetometer_reserved_keys(
+                    &self.simulation,
+                    &self.world_io,
+                    &self.network_config,
+                )?;
+                magnetometer::prepare_reset(self, &occupied)?
+            } else {
+                BTreeMap::new()
+            };
+        let joint_state_publishers =
+            if gz_sim_scene::initial_joint_state_publications(&self.simulation)?
+                .next()
+                .is_some()
+            {
+                let occupied = joint_state_reserved_keys(
+                    &self.simulation,
+                    &self.world_io,
+                    &self.network_config,
+                )?;
+                joint_state::prepare_reset(self, &occupied)?
+            } else {
+                BTreeMap::new()
+            };
         let drive = &mut self.diff_drive;
         let controllers = &mut self.joint_controllers;
         let rates = &mut self.rates;
@@ -174,12 +202,46 @@ impl Server {
                 &occupied,
                 Some(&air_pressure_publishers),
             )?;
+            let occupied = if sim
+                .world()
+                .iter_entities()
+                .any(|entity| entity.contains::<gz_sim_scene::MagnetometerPublication>())
+            {
+                magnetometer_reserved_keys(sim, &self.world_io, &self.network_config)?
+            } else {
+                BTreeSet::new()
+            };
+            let magnetometers = magnetometer::streams(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                &occupied,
+                Some(&magnetometer_publishers),
+            )?;
+            let occupied = if sim
+                .world()
+                .iter_entities()
+                .any(|entity| entity.contains::<gz_sim_scene::JointStatePublication>())
+            {
+                joint_state_reserved_keys(sim, &self.world_io, &self.network_config)?
+            } else {
+                BTreeSet::new()
+            };
+            let joint_states = joint_state::streams(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                &occupied,
+                Some(&joint_state_publishers),
+            )?;
             Ok::<_, Error>((
                 *sim.world().resource::<UpdateInfo>(),
                 streams,
                 lidars,
                 altimeters,
                 air_pressures,
+                magnetometers,
+                joint_states,
             ))
         });
         self.world_io.epoch.store(
@@ -194,6 +256,8 @@ impl Server {
                 self.lidars = Vec::new();
                 self.altimeters = Vec::new();
                 self.air_pressures = Vec::new();
+                self.magnetometers = Vec::new();
+                self.joint_states = Vec::new();
                 self.rates = None;
                 self.forces = None;
                 self.diff_drive = None;
@@ -211,25 +275,30 @@ impl Server {
             .set_running(!self.simulation.is_paused(), Instant::now());
         self.removals
             .cancel_for_reset(&self.world_io, &mut self.counters);
-        let (info, streams, lidars, altimeters, air_pressures) = match result {
-            Ok(result) => result,
-            Err(error) => {
-                self.reset_failed = true;
-                self.imus = Vec::new();
-                self.lidars = Vec::new();
-                self.altimeters = Vec::new();
-                self.air_pressures = Vec::new();
-                self.rates = None;
-                self.forces = None;
-                self.diff_drive = None;
-                self.joint_controllers = None;
-                return Err(error);
-            }
-        };
+        let (info, streams, lidars, altimeters, air_pressures, magnetometers, joint_states) =
+            match result {
+                Ok(result) => result,
+                Err(error) => {
+                    self.reset_failed = true;
+                    self.imus = Vec::new();
+                    self.lidars = Vec::new();
+                    self.altimeters = Vec::new();
+                    self.air_pressures = Vec::new();
+                    self.magnetometers = Vec::new();
+                    self.joint_states = Vec::new();
+                    self.rates = None;
+                    self.forces = None;
+                    self.diff_drive = None;
+                    self.joint_controllers = None;
+                    return Err(error);
+                }
+            };
         self.imus = streams;
         self.lidars = lidars;
         self.altimeters = altimeters;
         self.air_pressures = air_pressures;
+        self.magnetometers = magnetometers;
+        self.joint_states = joint_states;
         Ok(info)
     }
 }

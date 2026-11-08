@@ -5,7 +5,8 @@
 
 > Completed contract: M13/M14 were accepted at Main `2f32bc7e` and published
 > in `m13-m14-features`. The record below preserves that wave's original scope.
-> Current work is [M15 air pressure and M16 local OBJ](M15_M16_DELIVERY.md).
+> M15/M16 are also accepted at Main `5f53c92e`. Current work is
+> [M17 magnetometer and M18 joint-state publication](M17_M18_DELIVERY.md).
 > D32 directs continuing to the next useful bounded phase after acceptance.
 
 The owner requested continuation and parallel delivery after M12 on 2026-11-07.

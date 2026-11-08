@@ -13,8 +13,12 @@ mod forces;
 mod imu_io;
 mod joint_controller_io;
 mod joint_controllers;
+mod joint_state;
+mod joint_state_io;
 mod lidar;
 mod lidar_io;
+mod magnetometer;
+mod magnetometer_io;
 mod options;
 mod poses;
 mod rates;
@@ -83,6 +87,14 @@ pub enum Error {
     AirPressureIdentity,
     #[error("reset handler changed the prepared air-pressure stream configuration")]
     ResetAirPressures,
+    #[error("magnetometer publication lacks its unique supported identity or metadata")]
+    MagnetometerIdentity,
+    #[error("reset handler changed the prepared magnetometer stream configuration")]
+    ResetMagnetometers,
+    #[error("joint-state publication lacks its unique supported identity or metadata")]
+    JointStateIdentity,
+    #[error("reset handler changed the prepared joint-state stream configuration")]
+    ResetJointStates,
     #[error("joint-force controller lacks its original identity, configuration or command")]
     JointForceIdentity,
     #[error("DiffDrive configuration lacks its original unique model identity or endpoints")]
@@ -141,6 +153,12 @@ pub struct Counters {
     pub air_pressures_queued: u64,
     pub air_pressure_failures: u64,
     pub invalid_air_pressure_samples: u64,
+    pub magnetometers_queued: u64,
+    pub magnetometer_failures: u64,
+    pub invalid_magnetometer_samples: u64,
+    pub joint_states_queued: u64,
+    pub joint_state_failures: u64,
+    pub invalid_joint_state_samples: u64,
     pub poses_queued: u64,
     /// Ticks intentionally omitted by the configured wall-time pose publication period.
     pub poses_throttled: u64,
@@ -262,57 +280,122 @@ fn sensor_reserved_keys(
     Ok(keys)
 }
 
-// Each scalar sensor family excludes itself, but includes both the live and
-// loaded-original configuration of the other family. Removal cannot free a
-// conflicting key that the next loaded reset will restore.
+// Every typed family excludes itself and reserves all live and loaded-original
+// peers. A removed peer cannot donate a key that loaded reset will restore.
+#[derive(Clone, Copy, PartialEq)]
+enum PublicationFamily {
+    Altimeter,
+    AirPressure,
+    Magnetometer,
+    JointState,
+}
+fn typed_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+    own: PublicationFamily,
+) -> Result<BTreeSet<String>, Error> {
+    let mut keys = sensor_reserved_keys(simulation, io, config)?;
+    for entity in simulation.world().iter_entities() {
+        if entity.contains::<gz_sim_scene::PendingResetRemoval>() {
+            continue;
+        }
+        let peers = [
+            (
+                PublicationFamily::Altimeter,
+                entity
+                    .get::<gz_sim_scene::AltimeterPublication>()
+                    .map(|m| &m.topic),
+            ),
+            (
+                PublicationFamily::AirPressure,
+                entity
+                    .get::<gz_sim_scene::AirPressurePublication>()
+                    .map(|m| &m.topic),
+            ),
+            (
+                PublicationFamily::Magnetometer,
+                entity
+                    .get::<gz_sim_scene::MagnetometerPublication>()
+                    .map(|m| &m.topic),
+            ),
+            (
+                PublicationFamily::JointState,
+                entity
+                    .get::<gz_sim_scene::JointStatePublication>()
+                    .map(|m| &m.topic),
+            ),
+        ];
+        for (family, topic) in peers {
+            if family != own
+                && let Some(topic) = topic
+            {
+                keys.insert(config.topic_key(&options::as_valid_topic(topic))?);
+            }
+        }
+    }
+    // The initial getters share the loaded-world blueprint lifetime. Do not turn
+    // other reconstruction errors into an apparently vacant endpoint.
+    macro_rules! initial {
+        ($family:ident, $getter:ident) => {
+            if own != PublicationFamily::$family {
+                match gz_sim_scene::$getter(simulation) {
+                    Ok(values) => {
+                        for metadata in values {
+                            keys.insert(
+                                config.topic_key(&options::as_valid_topic(&metadata.topic))?,
+                            );
+                        }
+                    }
+                    Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+                    Err(error) => return Err(error.into()),
+                }
+            }
+        };
+    }
+    initial!(Altimeter, initial_altimeter_publications);
+    initial!(AirPressure, initial_air_pressure_publications);
+    initial!(Magnetometer, initial_magnetometer_publications);
+    if own != PublicationFamily::JointState {
+        match gz_sim_scene::initial_joint_state_publications(simulation) {
+            Ok(values) => {
+                for (_, metadata) in values {
+                    keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+                }
+            }
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+            Err(error) => return Err(error.into()),
+        }
+    }
+    Ok(keys)
+}
 fn altimeter_reserved_keys(
     simulation: &Simulation,
     io: &world_io::WorldIo,
     config: &ServerOptions,
 ) -> Result<BTreeSet<String>, Error> {
-    let mut keys = sensor_reserved_keys(simulation, io, config)?;
-    for entity in simulation.world().iter_entities() {
-        if !entity.contains::<gz_sim_scene::PendingResetRemoval>()
-            && let Some(metadata) = entity.get::<gz_sim_scene::AirPressurePublication>()
-        {
-            keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
-        }
-    }
-    match gz_sim_scene::initial_air_pressure_publications(simulation) {
-        Ok(values) => {
-            for metadata in values {
-                keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
-            }
-        }
-        Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
-        Err(error) => return Err(error.into()),
-    }
-    Ok(keys)
+    typed_reserved_keys(simulation, io, config, PublicationFamily::Altimeter)
 }
-
 fn air_pressure_reserved_keys(
     simulation: &Simulation,
     io: &world_io::WorldIo,
     config: &ServerOptions,
 ) -> Result<BTreeSet<String>, Error> {
-    let mut keys = sensor_reserved_keys(simulation, io, config)?;
-    for entity in simulation.world().iter_entities() {
-        if !entity.contains::<gz_sim_scene::PendingResetRemoval>()
-            && let Some(metadata) = entity.get::<gz_sim_scene::AltimeterPublication>()
-        {
-            keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
-        }
-    }
-    match gz_sim_scene::initial_altimeter_publications(simulation) {
-        Ok(values) => {
-            for metadata in values {
-                keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
-            }
-        }
-        Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
-        Err(error) => return Err(error.into()),
-    }
-    Ok(keys)
+    typed_reserved_keys(simulation, io, config, PublicationFamily::AirPressure)
+}
+fn magnetometer_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    typed_reserved_keys(simulation, io, config, PublicationFamily::Magnetometer)
+}
+fn joint_state_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    typed_reserved_keys(simulation, io, config, PublicationFamily::JointState)
 }
 
 fn imu_packet(
@@ -460,6 +543,8 @@ pub struct Server {
     lidars: Vec<lidar::Stream>,
     altimeters: Vec<altimeter::Stream>,
     air_pressures: Vec<air_pressure::Stream>,
+    magnetometers: Vec<magnetometer::Stream>,
+    joint_states: Vec<joint_state::Stream>,
     lidar_viewer_interest: bool,
 }
 
@@ -665,6 +750,26 @@ impl Server {
         } else {
             Vec::new()
         };
+        let magnetometers = if simulation
+            .world()
+            .iter_entities()
+            .any(|entity| entity.contains::<gz_sim_scene::MagnetometerPublication>())
+        {
+            let occupied = magnetometer_reserved_keys(&simulation, &world_io, &config)?;
+            magnetometer::streams(&simulation, &world_io, &config, &occupied, None)?
+        } else {
+            Vec::new()
+        };
+        let joint_states = if simulation
+            .world()
+            .iter_entities()
+            .any(|entity| entity.contains::<gz_sim_scene::JointStatePublication>())
+        {
+            let occupied = joint_state_reserved_keys(&simulation, &world_io, &config)?;
+            joint_state::streams(&simulation, &world_io, &config, &occupied, None)?
+        } else {
+            Vec::new()
+        };
         Ok(Self {
             simulation,
             world_io,
@@ -691,6 +796,8 @@ impl Server {
             lidars,
             altimeters,
             air_pressures,
+            magnetometers,
+            joint_states,
             lidar_viewer_interest: false,
         })
     }
@@ -871,6 +978,14 @@ impl Server {
             failures[world_io::AIR_PRESSURE_FAILURE_INDEX]
                 .load(std::sync::atomic::Ordering::Relaxed),
         );
+        counters.magnetometer_failures = counters.magnetometer_failures.saturating_add(
+            failures[world_io::MAGNETOMETER_FAILURE_INDEX]
+                .load(std::sync::atomic::Ordering::Relaxed),
+        );
+        counters.joint_state_failures = counters.joint_state_failures.saturating_add(
+            failures[world_io::JOINT_STATE_FAILURE_INDEX]
+                .load(std::sync::atomic::Ordering::Relaxed),
+        );
         counters
     }
     /// Return observed bounded-input losses, independent of remote delivery.
@@ -938,6 +1053,9 @@ impl Server {
         if !self.air_pressures.is_empty() {
             self.refresh_air_pressure_interest();
         }
+        if !self.magnetometers.is_empty() {
+            self.refresh_magnetometer_interest();
+        }
         let resetting = self.prepared_reset.is_some();
         let info = if let Some(info) = self.prepared_reset.take() {
             info
@@ -988,6 +1106,12 @@ impl Server {
         if !self.air_pressures.is_empty() {
             self.publish_air_pressures();
         }
+        if !self.magnetometers.is_empty() {
+            self.publish_magnetometers();
+        }
+        if !self.joint_states.is_empty() {
+            self.publish_joint_states();
+        }
         self.publish_odometry();
         self.removals
             .execute(&self.world_io, &mut self.simulation, &mut self.counters);
@@ -1006,6 +1130,12 @@ impl Server {
         }
         if !self.air_pressures.is_empty() {
             self.retire_air_pressures();
+        }
+        if !self.magnetometers.is_empty() {
+            self.retire_magnetometers();
+        }
+        if !self.joint_states.is_empty() {
+            self.retire_joint_states();
         }
         self.retire_diff_drive();
         if let Some(rates) = &mut self.rates {
@@ -1269,6 +1399,8 @@ impl Server {
         self.lidars = Vec::new();
         self.altimeters = Vec::new();
         self.air_pressures = Vec::new();
+        self.magnetometers = Vec::new();
+        self.joint_states = Vec::new();
         self.diff_drive = None;
         self.joint_controllers = None;
         self.world_io.shutdown();

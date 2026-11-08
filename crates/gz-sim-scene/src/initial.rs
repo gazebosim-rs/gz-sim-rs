@@ -72,6 +72,10 @@ struct Node {
     altimeter_publication: Option<AltimeterPublication>,
     air_pressure: Option<crate::air_pressure::AirPressure>,
     air_pressure_publication: Option<AirPressurePublication>,
+    magnetometer: Option<crate::magnetometer::Magnetometer>,
+    magnetometer_publication: Option<MagnetometerPublication>,
+    joint_state_publisher: Option<crate::joint_state_publisher::Publisher>,
+    joint_state_publication: Option<JointStatePublication>,
     publication: Option<ImuPublication>,
     visual: Option<VisualProperties>,
     material: Option<VisualMaterial>,
@@ -186,6 +190,12 @@ pub(super) fn capture(sim: &mut Simulation) {
             altimeter_publication: entity.get::<AltimeterPublication>().cloned(),
             air_pressure: entity.get::<crate::air_pressure::AirPressure>().cloned(),
             air_pressure_publication: entity.get::<AirPressurePublication>().cloned(),
+            magnetometer: entity.get::<crate::magnetometer::Magnetometer>().cloned(),
+            magnetometer_publication: entity.get::<MagnetometerPublication>().cloned(),
+            joint_state_publisher: entity
+                .get::<crate::joint_state_publisher::Publisher>()
+                .cloned(),
+            joint_state_publication: entity.get::<JointStatePublication>().cloned(),
             publication: entity.get::<ImuPublication>().cloned(),
             visual: entity.get::<VisualProperties>().cloned(),
             material: entity.get::<VisualMaterial>().cloned(),
@@ -317,6 +327,36 @@ pub fn initial_air_pressure_publications(
         .nodes
         .iter()
         .filter_map(|node| node.air_pressure_publication.as_ref()))
+}
+
+/// Initial loaded magnetic streams, including removed original sensors.
+pub fn initial_magnetometer_publications(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = &MagnetometerPublication>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial
+        .0
+        .nodes
+        .iter()
+        .filter_map(|node| node.magnetometer_publication.as_ref()))
+}
+
+/// Initial joint-state configurations paired with stable loaded model IDs.
+pub fn initial_joint_state_publications(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = (u64, &JointStatePublication)>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.0.nodes.iter().filter_map(|node| {
+        node.joint_state_publication
+            .as_ref()
+            .map(|publication| (node.id.get(), publication))
+    }))
 }
 
 /// Restores the loaded scene in the same Bevy World, then invokes reset handlers.
@@ -513,6 +553,18 @@ pub fn reset_loaded_world<R>(
         if let Some(publication) = &node.air_pressure_publication {
             entity.insert(publication.clone());
         }
+        if let Some(sensor) = &node.magnetometer {
+            entity.insert(sensor.clone());
+        }
+        if let Some(publication) = &node.magnetometer_publication {
+            entity.insert(publication.clone());
+        }
+        if let Some(publisher) = &node.joint_state_publisher {
+            entity.insert(publisher.clone());
+        }
+        if let Some(publication) = &node.joint_state_publication {
+            entity.insert(publication.clone());
+        }
         if let Some(imu) = &node.imu {
             entity.insert(imu.clone());
         }
@@ -588,10 +640,12 @@ pub fn reset_loaded_world<R>(
     crate::lidar::install(sim);
     crate::altimeter::install(sim);
     crate::air_pressure::install(sim);
+    crate::magnetometer::install(sim);
     crate::joint_lifecycle::install(sim);
     crate::joint_force_lifecycle::install(sim);
     crate::diff_drive::install(sim);
     crate::joint_controller::install(sim);
+    crate::joint_state_publisher::install(sim);
     let reset = sim.reset();
     sim.world_mut().remove_resource::<RestoredPhysics>();
     let result = reset

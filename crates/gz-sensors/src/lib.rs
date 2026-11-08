@@ -5,6 +5,7 @@
 pub mod air_pressure;
 pub mod altimeter;
 pub mod lidar;
+pub mod magnetometer;
 
 use glam::{DQuat, DVec3};
 

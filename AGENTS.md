@@ -1,10 +1,10 @@
 # Instructions for implementation agents
 
-> M1–M14 are accepted at Main `2f32bc7e`. Current work is M15 ideal air
-> pressure and M16 local OBJ, each bounded to five working days under D31.
-> The owner directs continuous delivery: after acceptance, start the next useful
-> bounded phase while work remains. Preserve all mandatory gates, accepted
-> evidence, frozen trees and independent Fuel work.
+> M1–M16 are accepted at qualified Main `5f53c92e`. Current work is M17 ideal
+> magnetometer and M18 joint-state publication, each bounded to five working
+> days under D31. Continue to the next useful bounded phase after acceptance
+> while work remains. Preserve mandatory gates, accepted evidence, frozen trees
+> and independent Fuel work.
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -14,12 +14,13 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` and `docs/M15_M16_DELIVERY.md` before editing.
-M1–M14 are accepted at `2f32bc7e`; actual normal/hosted/native/browser evidence
-and the public `m13-m14-features` receipt are retained. M12's installer remains
-unchanged. Current M15 ideal air pressure and M16 local OBJ meshes use explicit
-leaf-file leases with Root owning shared Scene integration, manifests/lock,
-planning and publication. Source/review may overlap; local heavy jobs are serial.
+Read `docs/DELIVERY_PLAN.md` and `docs/M17_M18_DELIVERY.md` before editing.
+M1–M16 are accepted at `5f53c92e`; actual normal/hosted/native/browser evidence
+and the public `m15-m16-features` receipt are retained. M12's installer and
+accepted viewer remain unchanged. Current M17 magnetometer and M18 joint-state
+publication use explicit leaf leases with Root owning shared Scene integration,
+manifests, planning and publication; the Messages owner leases shared Server
+integration. Source/review may overlap; local heavy qualification stays serial.
 Under owner decision D32, immediately select and start the next useful bounded
 phase after acceptance while work remains. An unselected successor is not a
 reason to stop. Keep the web tracker current, preserve paused/Fuel work and all

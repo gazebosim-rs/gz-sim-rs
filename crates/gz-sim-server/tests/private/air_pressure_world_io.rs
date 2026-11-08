@@ -89,7 +89,7 @@ fn air_pressure_io_owner_cancels_old_epoch_and_retired_lease_without_relabeling_
         io.publish_air_pressure(&replacement, vec![0; 1025])
             .is_err()
     );
-    assert_eq!(io.publication_failures.len(), 8);
+    assert_eq!(io.publication_failures.len(), 10);
     assert_eq!(AIR_PRESSURE_FAILURE_INDEX, 7);
     assert!(
         io.publication_failures

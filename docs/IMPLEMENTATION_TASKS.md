@@ -10,16 +10,17 @@ files, upstream test IDs, dependency decisions, code revision, exact check comma
 results, coverage, relevant benchmark data, reviewer, and unresolved limits.
 The task author cannot independently retire tests or approve coverage exclusions.
 
-## Current delivery: M15 air pressure and M16 local OBJ
+## Current delivery: M17 magnetometer and M18 joint-state publication
 
-Owner D32 directs continuous delivery: select and start the next useful bounded
-increment after acceptance while retained work remains. M1–M14 are accepted at
-`2f32bc7e`; preserve all 154 reviewed slices and prior behavior/evidence.
-[M15_M16_DELIVERY.md](M15_M16_DELIVERY.md) defines the current independent
-five-day scopes, explicit file leases and required native/wire/browser proofs.
-Root owns shared integration and one unchanged qualification cycle. No new
-capability is accepted before actual proofs, all mandatory gates, independent
-review/DATA and qualified Main promotion. Keep the web tracker current.
+Owner D32 directs continuous bounded delivery. M1–M16 are accepted at Main
+`5f53c92e`, with actual normal/hosted/native/browser evidence in the public
+`m15-m16-features` receipt. Preserve all 156 reviewed slices and prior behavior.
+[M17_M18_DELIVERY.md](M17_M18_DELIVERY.md) defines the current independent
+five-day scopes, explicit leaf leases and required native/canonical-wire proofs.
+Root owns shared Scene integration and one complete qualification cycle; the
+Messages owner leases shared Server integration. No new capability is accepted
+before all mandatory gates, independent review/DATA and qualified Main promotion.
+Keep the web tracker current and continue after each acceptance.
 
 ### Historical M10-CREDIT contract (closed; preserve evidence)
 

@@ -1,0 +1,19 @@
+<?xml version='1.0'?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version='1.12'><world name='default'>
+  <magnetic_field>0.00002 -0.00003 0.00004</magnetic_field>
+  <gravity>0 0 0</gravity>
+  <physics name='step' type='ode'><max_step_size>0.001</max_step_size></physics>
+  <model name='rig'><pose>0 0 3 0.2 -0.3 0.4</pose><link name='body'>
+    <inertial><mass>2</mass>
+      <inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial>
+    <collision name='shape'><geometry><box><size>1 1 1</size></box></geometry></collision>
+    <sensor name='magnetometer' type='magnetometer'>
+      <pose>1 0 0.5 0.3 0.4 -0.2</pose>
+      <always_on>true</always_on><update_rate>100</update_rate>
+      <topic>/m17/magnetometer</topic><frame_id>rig/body/magnetometer</frame_id>
+      <magnetometer/>
+    </sensor>
+  </link></model>
+</world></sdf>

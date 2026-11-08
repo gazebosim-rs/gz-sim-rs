@@ -3,31 +3,69 @@
 
 # Coordinator handoff
 
-> M1–M14 are accepted at Main `2f32bc7e`. Current work is M15 ideal air
-> pressure and M16 local OBJ, each bounded to five working days under D31.
-> The owner directs continuous delivery: after acceptance, start the next useful
-> bounded phase while work remains. Preserve all mandatory gates, accepted
-> evidence, frozen trees and independent Fuel work.
+> M1–M16 are accepted at qualified Main `5f53c92e`. Current work is M17 ideal
+> magnetometer and M18 joint-state publication, each bounded to five working
+> days under D31. Continue to the next useful bounded phase after acceptance
+> while work remains. Preserve mandatory gates, accepted evidence, frozen trees
+> and independent Fuel work.
 
 
-## Current work: M15 air pressure and M16 local OBJ
+## Current work: M17 magnetometer and M18 joint-state publication
 
-The owner now directs continuous delivery (D32): always continue with the next
-useful bounded phase while retained work remains. Do not stop at an unselected
-successor. Current source work is in branch `work/m15-m16-pressure-obj` over
-accepted Main `2f32bc7e`. [M15_M16_DELIVERY.md](M15_M16_DELIVERY.md) records the
-five-working-day scopes, APIs, file leases, required native/wire/browser proofs
-and exclusions. M15 reuses the pinned native geopotential pressure model and
-existing demand-driven sensor architecture; M16 uses maintained `tobj` for
-bounded geometry-only triangle OBJ through the existing GLB/Rapier paths.
-No new phase is accepted merely by source authoring or a review ref.
+The owner directs continuous delivery (D32). Work continues in isolated branch
+`work/m17-m18-finite-native` over qualified Main `5f53c92e`.
+[M17_M18_DELIVERY.md](M17_M18_DELIVERY.md) records the five-working-day scopes,
+file ownership, native/wire proofs and exclusions. Implementation, regressions,
+shared Scene/Server integration and documentation have independent Source review.
+The actual completed hook and native observer failure are recorded below;
+hosted CI and phase acceptance have not run.
+No M17/M18 acceptance follows from source authoring or older qualification.
 
-Complete implementation, meaningful regression source, documentation and
+Candidate `6ab6010b` passed its full normal hook in 2026.380 seconds after the
+batched compile and joint-motion test corrections. That source and its original
+failures remain frozen. The native run compiled both plugins/observers and
+completed all three magnetic modes, then the joint observer exceeded its finite
+deadline: ordinary paused `Run` did not count iterations and produced duplicate
+discovery callbacks. The corrected observer uses pinned native `RunOnce(true)`
+for exactly one discovery and two final paused ticks. A second native attempt
+completed the default mode's 102 observations, then the filtered observer found
+missing joint-value arrays. Pinned source showed that the publisher requests
+measurements only for its selected joints. The observer now explicitly requests
+Physics-owned position/velocity measurements for both observed joints, without
+changing the publication filter or fabricating values. Every packet, component,
+count, cadence and motion assertion remains. Independently review the complete
+helper/guide batch, run the corrected native check first, then one final full
+normal hook on this maintained candidate. All native/local/hosted audits and
+qualified Main promotion remain required; no earlier result accepts this phase.
+
+M19 installer source preparation proceeds separately in `gz-sim-m19`, with
+independently reviewed fixed robot/OBJ copies, dedicated guides, legacy guide
+verification and one additional explicit loopback HTTP port 8082. No M19 checks,
+release builds, package assembly or installed proof have run. Its local checks
+may overlap M17/M18 hosted CI only after this exact parent's normal, native and
+independent local proofs pass. Local heavy work stays serial; final distribution
+and acceptance require the finally qualified parent and every M19 gate.
+
+M15/M16 were accepted and published at Main
+`5f53c92e04822ec25b00ca8483d2890bd1f70d40`, tree
+`88a2e2ce03591d05510d41f881362f3d3fdf8693`, after the full normal hook
+(1982.348 seconds; 1332 headless, 830 renderer and 334 tooling passes), exact
+hosted `42446229290` attempt 1/all sixteen steps and independent local/official
+DATA. Actual native pressure and OBJ robot/browser forward/turn/Pause/Reset/
+clean-shutdown proofs also passed with independent DATA and image review.
+The [public source-feature release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m15-m16-features)
+contains the actual receipt and eight JPEGs. Earlier browser timeouts, operator
+input failures, attached-frame corrections and host-compiler preflight refusal
+remain preserved; connection warnings remain disclosed. Local and official
+coverage/profile counts stay separate. M12 installer and viewer `c40418cd` are
+unchanged. Tracker reports 16 accepted deliveries and the next two in progress,
+with all 154 older reviewed slices retained plus two new slices (156 total).
+
+Complete the new bounded source, meaningful regressions, documentation and
 independent review before the consolidated normal hook. Batch real failures
-before affected reruns, preserve all strict gates and exact hosted CI, and reuse
-unchanged accepted evidence where permitted. After acceptance, immediately select
-and start the next named bounded wave, maintaining the web tracker. Do not add
-frozen proposals, hash-bound review bureaucracy or competing backend work.
+before affected reruns; preserve strict coverage and exact hosted CI. Reuse
+unchanged evidence where permitted. After acceptance, continue directly to the
+next useful named phase. Preserve pending/Fuel work and every frozen tree.
 
 ## Accepted M13/M14 baseline
 

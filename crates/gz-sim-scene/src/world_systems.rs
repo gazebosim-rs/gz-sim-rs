@@ -58,7 +58,8 @@ fn engine_metadata(xml: &str, root: roxmltree::Node<'_, '_>) -> bool {
 }
 
 pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
-    let (mut physics, mut sensors, mut altimeter, mut air_pressure) = (false, false, false, false);
+    let (mut physics, mut sensors, mut altimeter, mut air_pressure, mut magnetometer) =
+        (false, false, false, false, false);
     for plugin in &world.plugins {
         let is_physics = plugin.name == "gz::sim::systems::Physics"
             && plugin.filename == "gz-sim-physics-system";
@@ -68,8 +69,10 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             && plugin.filename == "gz-sim-altimeter-system";
         let is_air_pressure = plugin.name == "gz::sim::systems::AirPressure"
             && plugin.filename == "gz-sim-air-pressure-system";
+        let is_magnetometer = plugin.name == "gz::sim::systems::Magnetometer"
+            && plugin.filename == "gz-sim-magnetometer-system";
         require(
-            is_physics || is_sensors || is_altimeter || is_air_pressure,
+            is_physics || is_sensors || is_altimeter || is_air_pressure || is_magnetometer,
             &world.name,
             "world plugins",
         )?;
@@ -79,8 +82,10 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             (&mut sensors, "duplicate Sensors configuration")
         } else if is_altimeter {
             (&mut altimeter, "duplicate Altimeter configuration")
-        } else {
+        } else if is_air_pressure {
             (&mut air_pressure, "duplicate AirPressure configuration")
+        } else {
+            (&mut magnetometer, "duplicate Magnetometer configuration")
         };
         require(!*seen, &world.name, feature)?;
         *seen = true;
@@ -92,8 +97,10 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
                 "Sensors system configuration"
             } else if is_altimeter {
                 "Altimeter system configuration"
-            } else {
+            } else if is_air_pressure {
                 "AirPressure system configuration"
+            } else {
+                "Magnetometer system configuration"
             },
         };
         let document = roxmltree::Document::parse(&plugin.xml).map_err(|_| invalid())?;

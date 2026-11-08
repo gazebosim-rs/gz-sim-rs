@@ -3,8 +3,12 @@
 M1–M12 are accepted and published; see [current delivery](DELIVERY_PLAN.md)
 and [M12 acceptance](M12_ACCEPTANCE.md). M13 ideal altimeter and M14 local STL are accepted at Main `2f32bc7e` after
 actual required qualification, native and browser proofs and public release.
-Current M15 ideal air pressure and M16 local OBJ are in progress under
-[M15_M16_DELIVERY.md](M15_M16_DELIVERY.md). They are not yet accepted. D32
+M15 ideal air pressure and M16 local OBJ are accepted at Main `5f53c92e`;
+exact hosted run `42446229290`, native pressure, actual OBJ robot/browser and
+independent local/official/browser audits passed. The public `m15-m16-features`
+receipt preserves separate coverage counters and all earlier failures.
+Current M17 ideal magnetometer and M18 joint-state publication are in progress
+under [M17_M18_DELIVERY.md](M17_M18_DELIVERY.md); neither is accepted. D32
 directs selecting the next useful bounded phase after acceptance while work
 remains, keeping all gates and the web tracker accurate. The record below
 preserves earlier increments; it is not a complete present-day capability inventory.

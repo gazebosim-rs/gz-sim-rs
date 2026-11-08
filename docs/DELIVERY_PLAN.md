@@ -3,11 +3,11 @@
 
 # Weekly delivery plan
 
-> M1–M14 are accepted at Main `2f32bc7e`. Current work is M15 ideal air
-> pressure and M16 local OBJ, each bounded to five working days under D31.
-> The owner directs continuous delivery: after acceptance, start the next useful
-> bounded phase while work remains. Preserve all mandatory gates, accepted
-> evidence, frozen trees and independent Fuel work.
+> M1–M16 are accepted at qualified Main `5f53c92e`. Current work is M17 ideal
+> magnetometer and M18 joint-state publication, each bounded to five working
+> days under D31. Continue to the next useful bounded phase after acceptance
+> while work remains. Preserve mandatory gates, accepted evidence, frozen trees
+> and independent Fuel work.
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning
@@ -59,6 +59,8 @@ results must never be described as same-engine performance improvement.
 | M14: Local STL meshes | 5 working days | Local ASCII/binary STL collision and immutable GLB visuals using the accepted viewer. | Bounded admission, geometry/scale/contact/lifecycle controls and actual browser evidence; all gates. |
 | M15: Ideal air pressure | 5 working days | One loaded ideal Rapier pressure sensor with canonical FluidPressure publication. | Actual native geopotential model, absolute sensor height, wire/frame/time/cadence/demand/reset/removal and atomic-refusal controls; all gates. |
 | M16: Local OBJ meshes | 5 working days | Bounded local triangle OBJ collision and immutable GLB visuals using the accepted viewer. | Maintained parser, bounded/index/resource admission, geometry/contact/lifecycle/immutable serving and actual browser proof; all gates. |
+| M17: Ideal magnetometer | 5 working days | One loaded ideal Rapier magnetometer with a finite constant world field and canonical Tesla publication. | Native/model and resolved-pose vectors, frame/time/sequence/cadence/demand/pause/reset/removal, atomic refusals and canonical wire; all gates. |
+| M18: Joint-state publication | 5 working days | Actual single-axis Rapier joint position/velocity and supported metadata in canonical Model packets. | Native packets and backend components, topic/filter/order, equal-time/pause/reset cadence, lifecycle/endpoint and moving-joint wire controls; all gates. |
 
 The initial MVP sequence is ordered around user-visible dependencies. After M12,
 D31 permits independent bounded increments to run in parallel with explicit file
@@ -67,12 +69,12 @@ accepted code, but no phase inherits acceptance merely from an older test run.
 Existing broad P0–P7 gates remain historical and long-term coverage inventories;
 they are not this release schedule and do not block M1 as entire families.
 `planning/delivery-phases.json` is the machine-readable schedule mirrored by the
-tracker. M1–M14 are accepted under their bounded criteria, independently of total
-rewrite effort. M13/M14 Main is `2f32bc7e`; its public feature-release receipt
-records actual qualification. M12's installer remains unchanged. Current M15 ideal
-air pressure depends on accepted M13; M16 local OBJ depends on accepted M14.
-See [M15_M16_DELIVERY.md](M15_M16_DELIVERY.md) for exact current contracts.
-They remain unaccepted until actual proofs, mandatory gates and Main promotion.
+tracker. M1–M16 are accepted under their bounded criteria, independently of total
+rewrite effort. M15/M16 Main is `5f53c92e`; its public `m15-m16-features` receipt
+records actual qualification. M12's installer remains unchanged. Current M17 ideal
+magnetometer reuses accepted sensor infrastructure; M18 joint-state publication
+reuses admitted M9 joints. See [M17_M18_DELIVERY.md](M17_M18_DELIVERY.md) for exact
+contracts and parallel ownership. Neither inherits acceptance from an older run.
 
 Owner decision D32 directs automatic continuation: after accepting a phase,
 select and start the next useful bounded delivery while retained work remains.

@@ -36,6 +36,7 @@ fn parsed_sensor_capabilities_admit_named_increments_and_preserve_other_refusals
     let mut admitted_cpu_lidars = 0;
     let mut admitted_altimeters = 0;
     let mut admitted_air_pressure = 0;
+    let mut admitted_magnetometers = 0;
     for (kind, configuration) in cases {
         let xml = scene(&format!(
             "<sensor name='unsupported' type='{kind}'><always_on>true</always_on>{configuration}</sensor>"
@@ -101,6 +102,35 @@ fn parsed_sensor_capabilities_admit_named_increments_and_preserve_other_refusals
                 admitted_air_pressure += 1;
                 continue;
             }
+            if kind == "magnetometer" && matches!(engine, PhysicsEngine::Rapier) {
+                let mut sim = result.unwrap();
+                let sensors = sim
+                    .world()
+                    .iter_entities()
+                    .filter_map(|entity| {
+                        entity
+                            .get::<gz_sim_scene::MagnetometerPublication>()
+                            .map(|publication| (entity.id(), publication.clone()))
+                    })
+                    .collect::<Vec<_>>();
+                assert_eq!(sensors.len(), 1);
+                assert_eq!(sensors[0].1.entity_name, "ball::body::unsupported");
+                assert_eq!(
+                    sensors[0].1.topic,
+                    "/world/default/model/ball/link/body/sensor/unsupported/magnetometer"
+                );
+                sim.step_exact(1).unwrap();
+                let sample = sim
+                    .world()
+                    .get::<gz_sim_scene::MagnetometerSample>(sensors[0].0)
+                    .unwrap();
+                assert_eq!(
+                    sample.reading.as_ref().unwrap().field_tesla,
+                    [5.5645e-6, 22.8758e-6, -42.3884e-6]
+                );
+                admitted_magnetometers += 1;
+                continue;
+            }
             match result {
                 Err(LoadError::Unsupported { entity, feature }) => {
                     assert_eq!(entity, "default::ball::body::unsupported");
@@ -110,6 +140,8 @@ fn parsed_sensor_capabilities_admit_named_increments_and_preserve_other_refusals
                             "Rapier ideal altimeter"
                         } else if kind == "air_pressure" {
                             "Rapier ideal air_pressure"
+                        } else if kind == "magnetometer" {
+                            "Rapier ideal magnetometer"
                         } else {
                             "non-IMU sensors"
                         }
@@ -125,6 +157,7 @@ fn parsed_sensor_capabilities_admit_named_increments_and_preserve_other_refusals
     assert_eq!(admitted_cpu_lidars, 1);
     assert_eq!(admitted_altimeters, 1);
     assert_eq!(admitted_air_pressure, 1);
+    assert_eq!(admitted_magnetometers, 1);
 }
 
 #[test]

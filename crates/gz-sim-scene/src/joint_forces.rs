@@ -74,7 +74,10 @@ pub(super) fn parse(model: &Model) -> Result<Vec<JointForceConfiguration>, LoadE
     let mut result = Vec::new();
     let mut seen = BTreeSet::new();
     for plugin in &model.plugins {
-        if diff_drive::is_plugin(plugin) || joint_controller::is_plugin(plugin) {
+        if diff_drive::is_plugin(plugin)
+            || joint_controller::is_plugin(plugin)
+            || joint_state_publisher::is_plugin(plugin)
+        {
             continue;
         }
         require(
