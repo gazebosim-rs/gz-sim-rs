@@ -62,6 +62,20 @@ impl Server {
             } else {
                 BTreeMap::new()
             };
+        let air_pressure_publishers =
+            if gz_sim_scene::initial_air_pressure_publications(&self.simulation)?
+                .next()
+                .is_some()
+            {
+                let occupied = air_pressure_reserved_keys(
+                    &self.simulation,
+                    &self.world_io,
+                    &self.network_config,
+                )?;
+                air_pressure::prepare_reset(self, &occupied)?
+            } else {
+                BTreeMap::new()
+            };
         let drive = &mut self.diff_drive;
         let controllers = &mut self.joint_controllers;
         let rates = &mut self.rates;
@@ -144,11 +158,28 @@ impl Server {
                 &occupied,
                 Some(&altimeter_publishers),
             )?;
+            let occupied = if sim
+                .world()
+                .iter_entities()
+                .any(|entity| entity.contains::<gz_sim_scene::AirPressurePublication>())
+            {
+                air_pressure_reserved_keys(sim, &self.world_io, &self.network_config)?
+            } else {
+                BTreeSet::new()
+            };
+            let air_pressures = air_pressure::streams(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                &occupied,
+                Some(&air_pressure_publishers),
+            )?;
             Ok::<_, Error>((
                 *sim.world().resource::<UpdateInfo>(),
                 streams,
                 lidars,
                 altimeters,
+                air_pressures,
             ))
         });
         self.world_io.epoch.store(
@@ -162,6 +193,7 @@ impl Server {
                 self.imus = Vec::new();
                 self.lidars = Vec::new();
                 self.altimeters = Vec::new();
+                self.air_pressures = Vec::new();
                 self.rates = None;
                 self.forces = None;
                 self.diff_drive = None;
@@ -179,13 +211,14 @@ impl Server {
             .set_running(!self.simulation.is_paused(), Instant::now());
         self.removals
             .cancel_for_reset(&self.world_io, &mut self.counters);
-        let (info, streams, lidars, altimeters) = match result {
+        let (info, streams, lidars, altimeters, air_pressures) = match result {
             Ok(result) => result,
             Err(error) => {
                 self.reset_failed = true;
                 self.imus = Vec::new();
                 self.lidars = Vec::new();
                 self.altimeters = Vec::new();
+                self.air_pressures = Vec::new();
                 self.rates = None;
                 self.forces = None;
                 self.diff_drive = None;
@@ -196,6 +229,7 @@ impl Server {
         self.imus = streams;
         self.lidars = lidars;
         self.altimeters = altimeters;
+        self.air_pressures = air_pressures;
         Ok(info)
     }
 }

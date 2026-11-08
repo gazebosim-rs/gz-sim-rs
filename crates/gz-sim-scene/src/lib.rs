@@ -48,6 +48,11 @@ pub use world_spawn::{ModelTemplate, prepare_model_template, spawn_model_templat
 mod imu_lifecycle;
 mod lidar;
 pub use lidar::{LidarPublication, LidarSample, clear_lidar_interest, set_lidar_interest};
+mod air_pressure;
+pub use air_pressure::{
+    AirPressurePublication, AirPressureSample, clear_air_pressure_interest,
+    set_air_pressure_interest,
+};
 mod altimeter;
 pub use altimeter::{
     AltimeterPublication, AltimeterSample, clear_altimeter_interest, set_altimeter_interest,
@@ -56,8 +61,8 @@ mod initial;
 mod joint_force_lifecycle;
 mod joint_lifecycle;
 pub use initial::{
-    PendingResetRemoval, SceneResetError, SceneResetInfo, initial_altimeter_publications,
-    initial_diff_drive_configurations, initial_imu_publications,
+    PendingResetRemoval, SceneResetError, SceneResetInfo, initial_air_pressure_publications,
+    initial_altimeter_publications, initial_diff_drive_configurations, initial_imu_publications,
     initial_joint_controller_configurations, initial_joint_force_configurations,
     initial_lidar_publications, reset_loaded_world,
 };
@@ -617,6 +622,7 @@ fn load_world_configured(
     imu_lifecycle::install(&mut sim);
     lidar::install(&mut sim);
     altimeter::install(&mut sim);
+    air_pressure::install(&mut sim);
     joint_lifecycle::install(&mut sim);
     joint_force_lifecycle::install(&mut sim);
     diff_drive::install(&mut sim);
@@ -1104,6 +1110,22 @@ fn build_model(
                         link,
                         entity: link_entity,
                         id: link_id,
+                        topic: &model_topic,
+                    },
+                )?;
+                continue;
+            }
+            if sensor.air_pressure().is_some() {
+                air_pressure::spawn(
+                    sdf,
+                    model,
+                    sensor,
+                    context,
+                    sim,
+                    backend.as_ref(),
+                    air_pressure::Parent {
+                        link,
+                        entity: link_entity,
                         topic: &model_topic,
                     },
                 )?;

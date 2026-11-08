@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Bounded world-clock publication and control around an explicitly stepped simulation.
 
+mod air_pressure;
+mod air_pressure_io;
 mod altimeter;
 mod altimeter_io;
 mod diff_drive;
@@ -77,6 +79,10 @@ pub enum Error {
     AltimeterIdentity,
     #[error("reset handler changed the prepared altimeter stream configuration")]
     ResetAltimeters,
+    #[error("air-pressure publication lacks its unique supported identity or metadata")]
+    AirPressureIdentity,
+    #[error("reset handler changed the prepared air-pressure stream configuration")]
+    ResetAirPressures,
     #[error("joint-force controller lacks its original identity, configuration or command")]
     JointForceIdentity,
     #[error("DiffDrive configuration lacks its original unique model identity or endpoints")]
@@ -132,6 +138,9 @@ pub struct Counters {
     pub altimeters_queued: u64,
     pub altimeter_failures: u64,
     pub invalid_altimeter_samples: u64,
+    pub air_pressures_queued: u64,
+    pub air_pressure_failures: u64,
+    pub invalid_air_pressure_samples: u64,
     pub poses_queued: u64,
     /// Ticks intentionally omitted by the configured wall-time pose publication period.
     pub poses_throttled: u64,
@@ -175,9 +184,9 @@ struct ImuStream {
     last_sample: Option<(u64, Duration)>,
 }
 
-/// Resolve every other family before declaring a new altimeter endpoint.
+/// Resolve the shared world, input and service families before sensor declarations.
 /// Include loaded metadata so a removed original cannot collide when reset restores it.
-fn altimeter_reserved_keys(
+fn sensor_reserved_keys(
     simulation: &Simulation,
     io: &world_io::WorldIo,
     config: &ServerOptions,
@@ -245,6 +254,59 @@ fn altimeter_reserved_keys(
             for (_, metadata) in gz_sim_scene::initial_joint_controller_configurations(simulation)?
             {
                 keys.insert(config.topic_key(&metadata.topic)?);
+            }
+        }
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+        Err(error) => return Err(error.into()),
+    }
+    Ok(keys)
+}
+
+// Each scalar sensor family excludes itself, but includes both the live and
+// loaded-original configuration of the other family. Removal cannot free a
+// conflicting key that the next loaded reset will restore.
+fn altimeter_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    let mut keys = sensor_reserved_keys(simulation, io, config)?;
+    for entity in simulation.world().iter_entities() {
+        if !entity.contains::<gz_sim_scene::PendingResetRemoval>()
+            && let Some(metadata) = entity.get::<gz_sim_scene::AirPressurePublication>()
+        {
+            keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+        }
+    }
+    match gz_sim_scene::initial_air_pressure_publications(simulation) {
+        Ok(values) => {
+            for metadata in values {
+                keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+            }
+        }
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+        Err(error) => return Err(error.into()),
+    }
+    Ok(keys)
+}
+
+fn air_pressure_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    let mut keys = sensor_reserved_keys(simulation, io, config)?;
+    for entity in simulation.world().iter_entities() {
+        if !entity.contains::<gz_sim_scene::PendingResetRemoval>()
+            && let Some(metadata) = entity.get::<gz_sim_scene::AltimeterPublication>()
+        {
+            keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+        }
+    }
+    match gz_sim_scene::initial_altimeter_publications(simulation) {
+        Ok(values) => {
+            for metadata in values {
+                keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
             }
         }
         Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
@@ -397,6 +459,7 @@ pub struct Server {
     imus: Vec<ImuStream>,
     lidars: Vec<lidar::Stream>,
     altimeters: Vec<altimeter::Stream>,
+    air_pressures: Vec<air_pressure::Stream>,
     lidar_viewer_interest: bool,
 }
 
@@ -592,6 +655,16 @@ impl Server {
         } else {
             Vec::new()
         };
+        let air_pressures = if simulation
+            .world()
+            .iter_entities()
+            .any(|entity| entity.contains::<gz_sim_scene::AirPressurePublication>())
+        {
+            let occupied = air_pressure_reserved_keys(&simulation, &world_io, &config)?;
+            air_pressure::streams(&simulation, &world_io, &config, &occupied, None)?
+        } else {
+            Vec::new()
+        };
         Ok(Self {
             simulation,
             world_io,
@@ -617,6 +690,7 @@ impl Server {
             imus,
             lidars,
             altimeters,
+            air_pressures,
             lidar_viewer_interest: false,
         })
     }
@@ -793,6 +867,10 @@ impl Server {
         counters.altimeter_failures = counters
             .altimeter_failures
             .saturating_add(failures[6].load(std::sync::atomic::Ordering::Relaxed));
+        counters.air_pressure_failures = counters.air_pressure_failures.saturating_add(
+            failures[world_io::AIR_PRESSURE_FAILURE_INDEX]
+                .load(std::sync::atomic::Ordering::Relaxed),
+        );
         counters
     }
     /// Return observed bounded-input losses, independent of remote delivery.
@@ -857,6 +935,9 @@ impl Server {
         if !self.altimeters.is_empty() {
             self.refresh_altimeter_interest();
         }
+        if !self.air_pressures.is_empty() {
+            self.refresh_air_pressure_interest();
+        }
         let resetting = self.prepared_reset.is_some();
         let info = if let Some(info) = self.prepared_reset.take() {
             info
@@ -904,6 +985,9 @@ impl Server {
         if !self.altimeters.is_empty() {
             self.publish_altimeters();
         }
+        if !self.air_pressures.is_empty() {
+            self.publish_air_pressures();
+        }
         self.publish_odometry();
         self.removals
             .execute(&self.world_io, &mut self.simulation, &mut self.counters);
@@ -919,6 +1003,9 @@ impl Server {
         self.retire_lidars();
         if !self.altimeters.is_empty() {
             self.retire_altimeters();
+        }
+        if !self.air_pressures.is_empty() {
+            self.retire_air_pressures();
         }
         self.retire_diff_drive();
         if let Some(rates) = &mut self.rates {
@@ -1181,6 +1268,7 @@ impl Server {
         self.imus = Vec::new();
         self.lidars = Vec::new();
         self.altimeters = Vec::new();
+        self.air_pressures = Vec::new();
         self.diff_drive = None;
         self.joint_controllers = None;
         self.world_io.shutdown();

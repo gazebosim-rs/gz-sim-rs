@@ -3,11 +3,11 @@
 
 # Weekly delivery plan
 
-> Accepted baseline M12 is Main `c68b03fc`. This candidate combines M13 ideal
-> altimeter and M14 local STL under D31, each bounded to five working days.
-> Its target complete statuses become effective only at qualified Main promotion
-> after actual feature proofs, mandatory gates and independent DATA. Review refs
-> remain unaccepted; preserve evidence and independent Fuel work.
+> M1–M14 are accepted at Main `2f32bc7e`. Current work is M15 ideal air
+> pressure and M16 local OBJ, each bounded to five working days under D31.
+> The owner directs continuous delivery: after acceptance, start the next useful
+> bounded phase while work remains. Preserve all mandatory gates, accepted
+> evidence, frozen trees and independent Fuel work.
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning
@@ -57,6 +57,8 @@ results must never be described as same-engine performance improvement.
 | M12: Installable integrated preview | 5 working days | Package the accepted subset and document supported capabilities, setup and a runnable robot demo. | A clean-machine installation runs the integrated demo; required coverage, CI, licenses and retained regressions pass at the release commit, with a published limitations matrix. |
 | M13: Ideal altimeter | 5 working days | One loaded noise-free Rapier altimeter with canonical publication. | Native/wire/offset-point velocity, cadence, absence, pause/reset/removal and stale-generation controls; all gates. |
 | M14: Local STL meshes | 5 working days | Local ASCII/binary STL collision and immutable GLB visuals using the accepted viewer. | Bounded admission, geometry/scale/contact/lifecycle controls and actual browser evidence; all gates. |
+| M15: Ideal air pressure | 5 working days | One loaded ideal Rapier pressure sensor with canonical FluidPressure publication. | Actual native geopotential model, absolute sensor height, wire/frame/time/cadence/demand/reset/removal and atomic-refusal controls; all gates. |
+| M16: Local OBJ meshes | 5 working days | Bounded local triangle OBJ collision and immutable GLB visuals using the accepted viewer. | Maintained parser, bounded/index/resource admission, geometry/contact/lifecycle/immutable serving and actual browser proof; all gates. |
 
 The initial MVP sequence is ordered around user-visible dependencies. After M12,
 D31 permits independent bounded increments to run in parallel with explicit file
@@ -65,15 +67,19 @@ accepted code, but no phase inherits acceptance merely from an older test run.
 Existing broad P0–P7 gates remain historical and long-term coverage inventories;
 they are not this release schedule and do not block M1 as entire families.
 `planning/delivery-phases.json` is the machine-readable schedule mirrored by the
-tracker. M1–M12 are complete under their bounded acceptance criteria. These
-counts are independent of historical P2 acceptance or total rewrite effort.
-M12 publishes source `9147120a`, packaged runtime `a542cb1b`, viewer `c40418cd`
-and the source-bound archive in its acceptance record. All original M1–M12 phase
-records remain unchanged. Current M13 ideal altimeter and M14 local STL meshes both
-depend on M12; neither depends on the other's new code. See
-[the post-MVP contract](POST_MVP_DELIVERY.md) for file leases, exact acceptance,
-excluded cases and the single-candidate qualification process. Current source work
-is unaccepted until actual proofs, all mandatory gates and qualified Main promotion.
+tracker. M1–M14 are accepted under their bounded criteria, independently of total
+rewrite effort. M13/M14 Main is `2f32bc7e`; its public feature-release receipt
+records actual qualification. M12's installer remains unchanged. Current M15 ideal
+air pressure depends on accepted M13; M16 local OBJ depends on accepted M14.
+See [M15_M16_DELIVERY.md](M15_M16_DELIVERY.md) for exact current contracts.
+They remain unaccepted until actual proofs, mandatory gates and Main promotion.
+
+Owner decision D32 directs automatic continuation: after accepting a phase,
+select and start the next useful bounded delivery while retained work remains.
+Do not stop merely because a successor was unselected. Each scope still needs
+its dependencies, fixtures, unsupported cases and exit criteria recorded before
+implementation, and every acceptance gate remains mandatory. Stop for an explicit
+owner pause, completion of retained scope or a genuine blocking owner decision.
 
 
 
@@ -133,8 +139,8 @@ unsupported cases and exit evidence and budget no more than five working days.
 Split general DART/MuJoCo/TPE parity, remaining 78-system behavior, GPU lidar,
 advanced cameras, distributed worlds, historical logs and Python workflows into
 such increments. Keep the full legacy packet/test ledger for traceability.
-The twelve listed phases are **not** a promise that the entire rewrite finishes
-in twelve weeks. No whole-rewrite completion date is currently scheduled.
+Accepted phase counts do **not** set a whole-rewrite completion date. Continue
+selecting bounded deliveries while retained work remains under D32.
 
 Do not resume paused SDFormat mass-override or metric-depth-worker qualification
 as a competing priority. Preserve their trees, evidence and accepted Main pins.

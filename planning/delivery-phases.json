@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-07",
   "execution_state": "active",
-  "current_phase": "M14",
+  "current_phase": "M15",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -218,7 +218,13 @@
       "scope": "One loaded-world, noise-free Rapier altimeter using existing SDF cadence and canonical upstream Zenoh publication.",
       "acceptance": "Actual native comparison and canonical wire delivery establish sensor-point world-Z position/reference/velocity, frame/time/cadence, demand, pause, loaded reset, removal and stale-generation fences. No sensor means no callbacks or transport declarations. All mandatory gates and independent review pass at the promoted candidate.",
       "excluded": "Noise, runtime sensor spawning, rate-control services, additional sensor families, backend parity expansion and native rewind-parity claims.",
-      "evidence": "docs/M13_ALTIMETER.md"
+      "evidence": "docs/M13_ALTIMETER.md",
+      "accepted_at": "2026-11-08T01:48:00.721742+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "2f32bc7e906286ad16d9ec513c4bac659e21f996",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_receipt": "https://github.com/gazebosim-rs/gz-sim-rs/releases/download/m13-m14-features/m13-m14-acceptance.json"
     },
     {
       "id": "M14",
@@ -230,10 +236,40 @@
       "scope": "Bounded local ASCII/binary STL import, immutable generated GLB visuals in the accepted viewer and unchanged Rapier static/closed-convex collision admission.",
       "acceptance": "Malformed and excessive input fails atomically; geometry/basis/scale/contact and lifecycle controls pass, actual served geometry is immutable, and the real browser displays and controls an asymmetric STL scene. All mandatory gates and independent review pass at the promoted candidate.",
       "excluded": "Mesh repair/decomposition, colors/materials/attributes, remote loading, broad asset-format parity, new viewer/protocol/framework or backend capabilities.",
-      "evidence": "docs/M14_STL.md"
+      "evidence": "docs/M14_STL.md",
+      "accepted_at": "2026-11-08T01:48:00.721742+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "2f32bc7e906286ad16d9ec513c4bac659e21f996",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_receipt": "https://github.com/gazebosim-rs/gz-sim-rs/releases/download/m13-m14-features/m13-m14-acceptance.json"
+    },
+    {
+      "id": "M15",
+      "title": "Ideal air pressure",
+      "max_working_days": 5,
+      "depends_on": [
+        "M13"
+      ],
+      "scope": "One loaded-world, noise-free Rapier air-pressure sensor using the pinned native geopotential model, fixed SDF cadence and canonical upstream Zenoh FluidPressure publication.",
+      "acceptance": "Actual native/model and real canonical wire controls establish absolute sensor world-Z pressure, units/frame/time/sequence, demand/cadence/pause/loaded reset/removal and stale-generation/atomic-refusal behavior; no sensor means no callbacks or declarations. All mandatory gates and independent review pass before qualified Main acceptance.",
+      "excluded": "Noise, nonzero reference altitude, explicit/nondefault atmosphere, runtime sensor spawning or rate/reference services, new UI, new transport/framework, environmental layers and broader backend/native rewind parity.",
+      "evidence": "docs/M15_AIR_PRESSURE.md"
+    },
+    {
+      "id": "M16",
+      "title": "Local OBJ meshes",
+      "max_working_days": 5,
+      "depends_on": [
+        "M14"
+      ],
+      "scope": "Bounded local triangle-only OBJ import using maintained tobj, immutable generated GLB visuals in the accepted viewer and existing Rapier static/closed-convex collision admission.",
+      "acceptance": "Malformed/excessive/unsupported/external-resource input refuses atomically; indices, geometry/basis/scale/contact and lifecycle controls pass; served generated geometry stays immutable; actual browser robot controls show an asymmetric OBJ scene. All mandatory gates and independent review pass before qualified Main acceptance.",
+      "excluded": "Arbitrary polygon triangulation, materials/textures/colors, mesh repair/decomposition, remote loading, new viewer/protocol/framework and additional backend capability.",
+      "evidence": "docs/M16_OBJ.md"
     }
   ],
-  "later_work": "After accepted M13/M14, select the next named increment of at most five working days including review and mandatory checks. Independent increments may share a parallel source wave with explicit file leases and one integrator. Full compatibility remains an unscheduled backlog; phase counts are not total rewrite completion.",
+  "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
   "status": {
     "M1": "complete",
     "M2": "complete",
@@ -248,10 +284,12 @@
     "M11": "complete",
     "M12": "complete",
     "M13": "complete",
-    "M14": "complete"
+    "M14": "complete",
+    "M15": "complete",
+    "M16": "complete"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-07T21:17:17.461461+00:00",
+  "phase_started_at": "2026-11-08T02:27:48.548096+00:00",
   "active_phases": [],
   "execution_policy": "D31: independent post-MVP increments may share a parallel source wave, one integrator and one qualified release candidate. Main promotion after all actual proofs and mandatory gates is the acceptance boundary; review refs do not confer acceptance.",
   "parallel_groups": [
@@ -262,7 +300,15 @@
       ],
       "integration": "one shared candidate; each phase requires its own functional proofs",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M15",
+        "M16"
+      ],
+      "integration": "one shared candidate; each phase requires its own actual functional proofs",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M13/M14 complete statuses are the target for this candidate and become effective only at qualified Main promotion after actual phase-specific proofs, all mandatory gates, independent DATA and Root acceptance. Review refs do not confer acceptance; the published Main and owned live status are authoritative."
+  "acceptance_boundary": "M1\u2013M14 are accepted. M15/M16 complete is the final candidate target, effective only at qualified Main promotion after actual phase-specific proofs, the full normal hook, exact hosted CI and independent review/DATA under D31. Until promotion the live tracker remains in progress. After acceptance, immediately select and start the next bounded phase while retained work remains."
 }

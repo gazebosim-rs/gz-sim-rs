@@ -70,6 +70,8 @@ struct Node {
     lidar_publication: Option<LidarPublication>,
     altimeter: Option<crate::altimeter::Altimeter>,
     altimeter_publication: Option<AltimeterPublication>,
+    air_pressure: Option<crate::air_pressure::AirPressure>,
+    air_pressure_publication: Option<AirPressurePublication>,
     publication: Option<ImuPublication>,
     visual: Option<VisualProperties>,
     material: Option<VisualMaterial>,
@@ -182,6 +184,8 @@ pub(super) fn capture(sim: &mut Simulation) {
             lidar_publication: entity.get::<LidarPublication>().cloned(),
             altimeter: entity.get::<crate::altimeter::Altimeter>().cloned(),
             altimeter_publication: entity.get::<AltimeterPublication>().cloned(),
+            air_pressure: entity.get::<crate::air_pressure::AirPressure>().cloned(),
+            air_pressure_publication: entity.get::<AirPressurePublication>().cloned(),
             publication: entity.get::<ImuPublication>().cloned(),
             visual: entity.get::<VisualProperties>().cloned(),
             material: entity.get::<VisualMaterial>().cloned(),
@@ -298,6 +302,21 @@ pub fn initial_altimeter_publications(
         .nodes
         .iter()
         .filter_map(|node| node.altimeter_publication.as_ref()))
+}
+
+/// Initial loaded pressure metadata, including removed original entities.
+pub fn initial_air_pressure_publications(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = &AirPressurePublication>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial
+        .0
+        .nodes
+        .iter()
+        .filter_map(|node| node.air_pressure_publication.as_ref()))
 }
 
 /// Restores the loaded scene in the same Bevy World, then invokes reset handlers.
@@ -488,6 +507,12 @@ pub fn reset_loaded_world<R>(
         if let Some(publication) = &node.altimeter_publication {
             entity.insert(publication.clone());
         }
+        if let Some(air_pressure) = &node.air_pressure {
+            entity.insert(air_pressure.clone());
+        }
+        if let Some(publication) = &node.air_pressure_publication {
+            entity.insert(publication.clone());
+        }
         if let Some(imu) = &node.imu {
             entity.insert(imu.clone());
         }
@@ -562,6 +587,7 @@ pub fn reset_loaded_world<R>(
     crate::imu_lifecycle::install(sim);
     crate::lidar::install(sim);
     crate::altimeter::install(sim);
+    crate::air_pressure::install(sim);
     crate::joint_lifecycle::install(sim);
     crate::joint_force_lifecycle::install(sim);
     crate::diff_drive::install(sim);

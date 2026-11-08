@@ -91,7 +91,7 @@ pub fn decode(bytes: &[u8]) -> Result<TriangleMesh, MeshError> {
                 id
             };
         }
-        normal(&mesh.vertices, indices)?;
+        normal(&mesh.vertices, indices, "STL")?;
         mesh.triangles.push(indices);
     }
     if mesh.triangles.is_empty() {
@@ -100,27 +100,40 @@ pub fn decode(bytes: &[u8]) -> Result<TriangleMesh, MeshError> {
     Ok(mesh)
 }
 
-fn normal(vertices: &[[f64; 3]], triangle: [u32; 3]) -> Result<DVec3, MeshError> {
+pub(super) fn normal(
+    vertices: &[[f64; 3]],
+    triangle: [u32; 3],
+    kind: &str,
+) -> Result<DVec3, MeshError> {
     let [a, b, c] = triangle.map(|i| DVec3::from(vertices[i as usize]));
     let cross = (b - a).cross(c - a);
     if !cross.is_finite() || !cross.length_squared().is_finite() || cross.length_squared() == 0.0 {
-        return Err(invalid("STL triangle must be finite and nondegenerate"));
+        return Err(invalid(format!(
+            "{kind} triangle must be finite and nondegenerate"
+        )));
     }
     Ok(cross)
 }
 
 pub(super) fn scaled(bytes: &[u8], scale: [f64; 3]) -> Result<TriangleMesh, MeshError> {
-    let mut mesh = decode(bytes)?;
+    scale_mesh(decode(bytes)?, scale, "STL")
+}
+
+pub(super) fn scale_mesh(
+    mut mesh: TriangleMesh,
+    scale: [f64; 3],
+    kind: &str,
+) -> Result<TriangleMesh, MeshError> {
     for point in &mut mesh.vertices {
         for (value, scale) in point.iter_mut().zip(scale) {
             *value *= scale;
             if !value.is_finite() {
-                return Err(invalid("STL scaled vertex must remain finite"));
+                return Err(invalid(format!("{kind} scaled vertex must remain finite")));
             }
         }
     }
     for triangle in &mesh.triangles {
-        normal(&mesh.vertices, *triangle)?;
+        normal(&mesh.vertices, *triangle, kind)?;
     }
     Ok(mesh)
 }
@@ -131,11 +144,14 @@ pub(super) fn scaled(bytes: &[u8], scale: [f64; 3]) -> Result<TriangleMesh, Mesh
 /// Vertex normals are area-weighted; exact cancellation uses the first incident
 /// face normal. No input triangle is dropped, welded approximately or repaired.
 pub fn visual_glb(bytes: &[u8]) -> Result<Vec<u8>, MeshError> {
-    let mesh = decode(bytes)?;
+    mesh_visual_glb(&decode(bytes)?, "STL")
+}
+
+pub(super) fn mesh_visual_glb(mesh: &TriangleMesh, kind: &str) -> Result<Vec<u8>, MeshError> {
     let mut sums = vec![DVec3::ZERO; mesh.vertices.len()];
     let mut first = vec![DVec3::ZERO; mesh.vertices.len()];
     for &triangle in &mesh.triangles {
-        let cross = normal(&mesh.vertices, triangle)?;
+        let cross = normal(&mesh.vertices, triangle, kind)?;
         for i in triangle {
             let i = i as usize;
             if first[i] == DVec3::ZERO {
@@ -189,9 +205,10 @@ pub fn visual_glb(bytes: &[u8]) -> Result<Vec<u8>, MeshError> {
     }
     let total = 12 + 8 + json.len() + 8 + bin.len();
     if total > FILE_BYTES {
-        return Err(invalid("generated STL visual exceeds 16 MiB"));
+        return Err(invalid(format!("generated {kind} visual exceeds 16 MiB")));
     }
-    let word = |value| u32::try_from(value).map_err(|_| invalid("STL GLB size overflow"));
+    let word =
+        |value| u32::try_from(value).map_err(|_| invalid(format!("{kind} GLB size overflow")));
     let mut glb = Vec::with_capacity(total);
     for value in [0x4654_6c67, 2, word(total)?, word(json.len())?, 0x4e4f_534a] {
         glb.extend(value.to_le_bytes());

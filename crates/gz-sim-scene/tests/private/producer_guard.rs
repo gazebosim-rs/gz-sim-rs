@@ -41,7 +41,7 @@ fn altimeter_preflight_admits_typed_family_and_preserves_metadata_refusals() {
     assert!(validate(&altimeter_world()).is_ok());
     for config in [
         SensorConfig::Unconfigured,
-        SensorConfig::AirPressure(Box::default()),
+        SensorConfig::AirSpeed(Box::default()),
     ] {
         let mut value = altimeter_world();
         value.models[0].links[0].sensors[0].config = config;
@@ -69,6 +69,43 @@ fn altimeter_preflight_admits_typed_family_and_preserves_metadata_refusals() {
         failure(&value, expected);
     }
 }
+#[test]
+fn pressure_preflight_admits_typed_family_and_rejects_nondefault_atmosphere() {
+    let pressure_world = || {
+        sdformat::load_str(
+            include_str!("../fixtures/m15_air_pressure.sdf"),
+            "pressure-preflight",
+            &sdformat::NoResources,
+        )
+        .unwrap()
+        .worlds
+        .remove(0)
+    };
+    assert!(validate(&pressure_world()).is_ok());
+    let cases: [Edit; 5] = [
+        ("world atmosphere", |world| {
+            world.atmosphere.xml = Some("<atmosphere type='adiabatic'/>".into())
+        }),
+        ("world atmosphere", |world| {
+            world.atmosphere.temperature_kelvin = f64::NAN
+        }),
+        ("world atmosphere", |world| {
+            world.atmosphere.pressure = 100000.0
+        }),
+        ("world atmosphere", |world| {
+            world.atmosphere.temperature_kelvin = 280.0
+        }),
+        ("world atmosphere", |world| {
+            world.atmosphere.temperature_gradient = 0.0
+        }),
+    ];
+    for (expected, edit) in cases {
+        let mut value = pressure_world();
+        edit(&mut value);
+        failure(&value, expected);
+    }
+}
+
 #[test]
 fn world_admission_keeps_native_defaults_and_rejects_unconsumed_fields() {
     assert!(validate(&world()).is_ok());

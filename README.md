@@ -27,7 +27,7 @@ The new `gz-sim-rs` command prints simulation time and sorted link positions.
 It is limited to the scene contract above; legacy CLI compatibility remains open.
 The [live progress dashboard](https://gazebosim-rs.github.io/rewrite-progress/)
 tracks accepted increments, current development, remaining scope and evidence
-across all five repositories. Repository agents publish their own updates.
+across the four target repositories. Repository agents publish their own updates.
 
 M1–M12 runtimes and the bounded distribution are accepted. Download the
 [Ubuntu 24.04 x86_64 integrated preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m12-preview)
@@ -38,9 +38,12 @@ See [M12 evidence and limitations](docs/M12_ACCEPTANCE.md), the
 and [delivery plan](docs/DELIVERY_PLAN.md). This preview does not complete the
 rewrite or qualify unsupported platforms/features. The accepted
 [local recording/replay contract](docs/M11_RECORDING_REPLAY.md) remains retained.
-M13 ideal altimeter and M14 local STL meshes share this parallel delivery candidate.
-See the [post-MVP delivery contract](docs/POST_MVP_DELIVERY.md) for their bounded
-scopes and required acceptance proofs. Their acceptance takes effect only on qualified Main; review refs remain unaccepted.
+M13 ideal altimeter and M14 local STL meshes are accepted at qualified Main
+`2f32bc7e`; see the [feature release and actual receipt](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m13-m14-features).
+Current [M15 air pressure and M16 local OBJ](docs/M15_M16_DELIVERY.md) are being
+developed as independent lanes with one integrator. Under the owner's continuous
+delivery instruction, each acceptance is followed by the next useful bounded
+phase while work remains. Required review and verification gates stay mandatory.
 
 The design combines the responsibilities of `gz-sim`, `gz-sensors`, `gz-physics`,
 and the necessary parts of `gz-math` in one Cargo workspace. Bevy supplies the ECS
@@ -48,9 +51,10 @@ and renderer. Existing Rust libraries replace general-purpose Gazebo utilities.
 The simulator retains DART, MuJoCo, and TPE and adds a Bevy-integrated Rust physics
 backend. Bullet is removed. The replacement GUI is a separate application.
 
-`sdformat-rs`, `gz-fuel-tools-rs`, `gz-transport-rs`, and `gz-msgs-rs` remain
-independent repositories in `gazebosim-rs`. Fuel already has another owner; this
-plan does not modify that work.
+`sdformat-rs`, `gz-fuel-tools-rs`, and schema-only `gz-msgs-rs` remain
+independent repositories in `gazebosim-rs`. Simulator consumers use upstream
+Zenoh directly under D28/D29; the historical transport repository is retained,
+not a target runtime. Fuel has another owner; this work does not modify it.
 
 The owner has confirmed behavioral, file-format, protocol, and test compatibility
 with new Rust APIs, and Linux first with headless and Bevy rendering support.

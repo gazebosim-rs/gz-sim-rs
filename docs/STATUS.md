@@ -1,12 +1,13 @@
 # Implementation status
 
 M1–M12 are accepted and published; see [current delivery](DELIVERY_PLAN.md)
-and [M12 acceptance](M12_ACCEPTANCE.md). The M13 ideal altimeter and M14 local
-STL increments share the candidate described by [the post-MVP contract](POST_MVP_DELIVERY.md),
-with feature details in [M13_ALTIMETER.md](M13_ALTIMETER.md) and
-[M14_STL.md](M14_STL.md). They remain unaccepted until qualification and Main
-promotion. The material below retains the historical scope and evidence of
-earlier increments; it is not a complete present-day capability inventory.
+and [M12 acceptance](M12_ACCEPTANCE.md). M13 ideal altimeter and M14 local STL are accepted at Main `2f32bc7e` after
+actual required qualification, native and browser proofs and public release.
+Current M15 ideal air pressure and M16 local OBJ are in progress under
+[M15_M16_DELIVERY.md](M15_M16_DELIVERY.md). They are not yet accepted. D32
+directs selecting the next useful bounded phase after acceptance while work
+remains, keeping all gates and the web tracker accurate. The record below
+preserves earlier increments; it is not a complete present-day capability inventory.
 
 
 The Zenoh headless P2 milestone is accepted on Main `c3f5a2f`, following the

@@ -232,7 +232,7 @@ fn bad_local_resources_and_input_metadata_fail_with_typed_errors() {
     for uri in [
         "https://example.invalid/shape.gltf",
         "model://shape/shape.gltf",
-        "shape.obj",
+        "shape.dae",
         "shape.gltf?x=1",
         "shape.gltf#node",
     ] {

@@ -7,15 +7,13 @@ and [M12 acceptance](M12_ACCEPTANCE.md). The published Ubuntu 24.04 x86_64 previ
 has exact Source/build/payload identities, strict normal/hosted qualification,
 final clean installed verification and retained real robot/browser proof.
 
-M13 ideal altimeter and M14 local STL meshes share one parallel delivery candidate,
-with explicit file ownership and one integration candidate. Both depend on M12;
-neither depends on the other's implementation. Each retains a five-working-day
-scope budget including review and mandatory checks. See
-[the delivery contract](POST_MVP_DELIVERY.md). No new phase is accepted until
-its actual feature proofs, unchanged normal/hosted gates and independent audit
-pass and its qualified candidate reaches Main. Full compatibility remains an
-unscheduled backlog. Preserve all accepted contracts and independently owned
-Fuel work; the historical architecture and inventory below remain unchanged.
+M13 ideal altimeter and M14 local STL are accepted at Main `2f32bc7e`, with
+actual evidence in the public `m13-m14-features` release. Current M15 ideal air
+pressure and M16 local OBJ share a parallel source wave with one integrator;
+see [M15_M16_DELIVERY.md](M15_M16_DELIVERY.md). Preserve all accepted evidence
+and strict verification. D32 directs continuing directly to the next useful
+bounded phase after acceptance while retained work remains; an unselected
+successor does not pause execution. Each phase retains its own proofs and budget.
 
 ## Outcome and scope
 

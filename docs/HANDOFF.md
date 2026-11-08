@@ -3,36 +3,56 @@
 
 # Coordinator handoff
 
-> Accepted baseline M12 is Main `c68b03fc`. This candidate combines M13 ideal
-> altimeter and M14 local STL under D31, each bounded to five working days.
-> Its target complete statuses become effective only at qualified Main promotion
-> after actual feature proofs, mandatory gates and independent DATA. Review refs
-> remain unaccepted; preserve evidence and independent Fuel work.
+> M1–M14 are accepted at Main `2f32bc7e`. Current work is M15 ideal air
+> pressure and M16 local OBJ, each bounded to five working days under D31.
+> The owner directs continuous delivery: after acceptance, start the next useful
+> bounded phase while work remains. Preserve all mandatory gates, accepted
+> evidence, frozen trees and independent Fuel work.
 
 
-## Current work: M13 and M14 in parallel
+## Current work: M15 air pressure and M16 local OBJ
 
-The owner explicitly continued post-MVP work and requested parallel phases.
-M13 adds one ideal loaded-world altimeter; M14 adds local ASCII/binary STL
-visuals and existing Rapier collision admission. Both depend on accepted M12,
-are bounded to five working days including review and checks. Review refs remain
-unaccepted; target completion takes effect only at qualified Main promotion. See [POST_MVP_DELIVERY.md](POST_MVP_DELIVERY.md) for exact contracts,
-file ownership, required evidence and excluded scope.
+The owner now directs continuous delivery (D32): always continue with the next
+useful bounded phase while retained work remains. Do not stop at an unselected
+successor. Current source work is in branch `work/m15-m16-pressure-obj` over
+accepted Main `2f32bc7e`. [M15_M16_DELIVERY.md](M15_M16_DELIVERY.md) records the
+five-working-day scopes, APIs, file leases, required native/wire/browser proofs
+and exclusions. M15 reuses the pinned native geopotential pressure model and
+existing demand-driven sensor architecture; M16 uses maintained `tobj` for
+bounded geometry-only triangle OBJ through the existing GLB/Rapier paths.
+No new phase is accepted merely by source authoring or a review ref.
 
-M12 canonical Main `c68b03fc` passed its full 1953.661651-second normal hook,
-independent local DATA `7f84a334`, exact hosted CI 42410312271 attempt 1/all
-16 steps and official DATA `4b0bf8f0`. Tracker Main `756b3aa` and owned status
-`4f29c017` published and served exact bytes, preserving 151 prior slices plus
-M12 (152 total). The M12 continuation automation was deleted on completion;
-this new work does not silently restart it. M12 preview source/tag and original
-artifacts remain unchanged. Its separate automatic Main run at `9147120a`
-also succeeded; later automatic workflow results are always separate evidence.
+Complete implementation, meaningful regression source, documentation and
+independent review before the consolidated normal hook. Batch real failures
+before affected reruns, preserve all strict gates and exact hosted CI, and reuse
+unchanged accepted evidence where permitted. After acceptance, immediately select
+and start the next named bounded wave, maintaining the web tracker. Do not add
+frozen proposals, hash-bound review bureaucracy or competing backend work.
 
-Complete code, regression source, capability/acceptance contracts and independent
-review before one integrated candidate's normal hook and exact hosted CI. Main
-promotion after actual proofs and all mandatory gates is the acceptance boundary.
-Actual run IDs/times belong in the existing immutable publication receipt; do not
-create another metadata-only qualification cycle just to insert generated IDs.
+## Accepted M13/M14 baseline
+
+Main `2f32bc7e906286ad16d9ec513c4bac659e21f996` passed the full normal hook
+in 1967.681 seconds, exact hosted CI `42432620121` attempt 1/all sixteen steps,
+independent local/official DATA, actual native altimeter comparison and one real
+STL robot/browser forward/turn/Pause/Reset/clean-shutdown proof. The
+[public feature release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m13-m14-features)
+contains the actual acceptance receipt and images. Local profiles passed
+1289 headless and 815 renderer tests; the quiet tooling suite passed 334.
+Local and hosted coverage remain separate. The browser needed one startup
+reconnect; the warning and original evidence remain retained. This is source
+feature acceptance, not an updated installer or a performance/parity claim.
+
+The tracker recorded fourteen accepted deliveries and 154 reviewed slices,
+preserving all 152 earlier slices. M12 distribution remains bound to source
+`9147120a`, runtime `a542cb1b` and accepted viewer `c40418cd`. Its original
+failures, payload and clean-install proof are preserved; do not replay them.
+The previous M12 automation remains deleted. A new persistent continuation
+heartbeat was rejected by automatic approval review; no automation was created
+or workaround installed. Continue the authorized work in the current chat.
+
+D31 still makes qualified Main promotion the acceptance boundary. Record actual
+run IDs/times in the existing release/promotion receipt and owned status; do not
+invent future IDs or run a second metadata-only gate to add generated values.
 
 ## Historical M12 closeout source record (superseded)
 

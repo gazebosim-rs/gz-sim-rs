@@ -127,10 +127,12 @@ fn local_mesh_source_and_declared_dependency_symlinks_are_checked() {
     let mut value = mesh(&path);
     value.uri = "shape.gltf".into();
     assert_eq!(mesh_path(&value).unwrap(), path);
+    value.uri = "a.obj".into();
+    assert_eq!(mesh_path(&value).unwrap(), dir.path().join("a.obj"));
     for uri in [
         "http://host/a.gltf",
         "model://robot/a.gltf",
-        "a.obj",
+        "a.dae",
         "a.gltf?x",
         "a.gltf#x",
     ] {

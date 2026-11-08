@@ -143,6 +143,7 @@ class FeatureProfiles(unittest.TestCase):
         self.assertEqual(set(plan["headless"][0]) | set(plan["renderer"][0]), set(crates))
         for profile in ("headless", "renderer"):
             command = plan[profile][1]
+            self.assertEqual(command.count("--no-fail-fast"), 1)
             self.assertIn("gz-sim-cli/rgb-camera", command[command.index("--features") + 1].split(","))
             self.assertIn("gz-sim-cli", plan[profile][0])
         self.assertIn("gz-renderer/gpu", plan["renderer"][1][plan["renderer"][1].index("--features") + 1].split(","))

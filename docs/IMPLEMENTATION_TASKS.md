@@ -10,21 +10,16 @@ files, upstream test IDs, dependency decisions, code revision, exact check comma
 results, coverage, relevant benchmark data, reviewer, and unresolved limits.
 The task author cannot independently retire tests or approve coverage exclusions.
 
-## Current delivery: M13 altimeter and M14 local STL in parallel
+## Current delivery: M15 air pressure and M16 local OBJ
 
-Owner D30 and the 2026-11-07 continuation select two independent bounded
-increments. [POST_MVP_DELIVERY.md](POST_MVP_DELIVERY.md) records their APIs,
-file leases, five-working-day budgets and one integration/qualification cycle.
-M1–M12 remain accepted and published, including the
-[M12 preview and evidence](M12_ACCEPTANCE.md). M13 and M14 are implementation
-assignments, not accepted capabilities. Each requires its own functional proof
-and the integrated candidate's unchanged normal hook, strict coverage, exact
-hosted CI and independent DATA before qualified Main promotion.
-
-Preserve accepted assertions, tolerances, contracts, all 152 existing tracker
-slices, original failures and Fuel ownership. Reuse unchanged accepted evidence
-where the existing contract permits it; do not replay old manual qualification.
-The legacy packets below remain historical inventory, not new assignments.
+Owner D32 directs continuous delivery: select and start the next useful bounded
+increment after acceptance while retained work remains. M1–M14 are accepted at
+`2f32bc7e`; preserve all 154 reviewed slices and prior behavior/evidence.
+[M15_M16_DELIVERY.md](M15_M16_DELIVERY.md) defines the current independent
+five-day scopes, explicit file leases and required native/wire/browser proofs.
+Root owns shared integration and one unchanged qualification cycle. No new
+capability is accepted before actual proofs, all mandatory gates, independent
+review/DATA and qualified Main promotion. Keep the web tracker current.
 
 ### Historical M10-CREDIT contract (closed; preserve evidence)
 

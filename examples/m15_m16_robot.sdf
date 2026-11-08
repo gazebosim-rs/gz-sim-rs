@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation; SPDX-License-Identifier: Apache-2.0 -->
+<!-- M15/M16 coexistence: ideal pressure plus retained altimeter, OBJ cargo and static OBJ collision. -->
+<sdf version="1.12"><world name="default">
+  <gravity>0 0 -9.81</gravity>
+  <physics name="default" type="ignored"><max_step_size>0.001</max_step_size></physics>
+  <model name="ground"><static>true</static><pose>0 0 -0.1 0 0 0</pose><link name="body">
+    <collision name="ground"><geometry><box><size>6 6 0.2</size></box></geometry></collision>
+    <visual name="ground"><geometry><box><size>6 6 0.2</size></box></geometry><material><diffuse>0.45 0.45 0.45 1</diffuse></material></visual>
+  </link></model>
+  <model name="robot" canonical_link="base_link"><pose>0 0 0.2 0 0 0</pose>
+    <link name="base_link">
+      <sensor name="altimeter" type="altimeter"><pose>0.1 0 0.2 0 0 0</pose>
+        <update_rate>50</update_rate><altimeter/>
+      </sensor>
+      <sensor name="air_pressure" type="air_pressure"><pose>0.1 0 0.2 0 0 0</pose>
+        <update_rate>50</update_rate><air_pressure/>
+      </sensor>
+      <visual name="obj_cargo"><pose>-0.2 -0.08 0.1 0 0 0.2</pose>
+        <geometry><mesh><uri>meshes/m16-asymmetric.obj</uri><scale>0.3 0.08 0.06</scale></mesh></geometry>
+      </visual>
+      <inertial><mass>2</mass><inertia><ixx>0.027083333333333334</ixx><iyy>0.06666666666666667</iyy><izz>0.08041666666666666</izz></inertia></inertial>
+      <collision name="chassis"><geometry><box><size>0.6 0.35 0.2</size></box></geometry></collision>
+      <visual name="chassis"><geometry><box><size>0.6 0.35 0.2</size></box></geometry><material><diffuse>0.8 0.5 0.15 1</diffuse></material></visual>
+    </link>
+    <link name="left_wheel"><pose>0 0.25 0 0 0 0</pose>
+      <inertial><mass>0.2</mass><inertia><ixx>0.0032</ixx><iyy>0.0032</iyy><izz>0.0032</izz></inertia></inertial>
+      <collision name="wheel"><geometry><sphere><radius>0.2</radius></sphere></geometry></collision>
+      <visual name="wheel"><geometry><sphere><radius>0.2</radius></sphere></geometry><material><diffuse>0.15 0.3 0.8 1</diffuse></material></visual>
+    </link>
+    <link name="right_wheel"><pose>0 -0.25 0 0 0 0</pose>
+      <inertial><mass>0.2</mass><inertia><ixx>0.0032</ixx><iyy>0.0032</iyy><izz>0.0032</izz></inertia></inertial>
+      <collision name="wheel"><geometry><sphere><radius>0.2</radius></sphere></geometry></collision>
+      <visual name="wheel"><geometry><sphere><radius>0.2</radius></sphere></geometry><material><diffuse>0.15 0.3 0.8 1</diffuse></material></visual>
+    </link>
+    <joint name="left_wheel_joint" type="revolute"><parent>base_link</parent><child>left_wheel</child><pose relative_to="left_wheel">0 0 0 0 0 0</pose><axis><xyz>0 1 0</xyz><limit><effort>5</effort><velocity>10</velocity></limit></axis></joint>
+    <joint name="right_wheel_joint" type="revolute"><parent>base_link</parent><child>right_wheel</child><pose relative_to="right_wheel">0 0 0 0 0 0</pose><axis><xyz>0 1 0</xyz><limit><effort>5</effort><velocity>10</velocity></limit></axis></joint>
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+      <left_joint>left_wheel_joint</left_joint><right_joint>right_wheel_joint</right_joint>
+      <wheel_radius>0.2</wheel_radius><wheel_separation>0.5</wheel_separation><odom_publish_frequency>50</odom_publish_frequency>
+      <topic>/model/robot/cmd_vel</topic><odom_topic>/model/robot/odometry</odom_topic>
+      <frame_id>robot/odom</frame_id><child_frame_id>robot/base_link</child_frame_id>
+      <min_linear_velocity>-1</min_linear_velocity><max_linear_velocity>1</max_linear_velocity>
+      <min_angular_velocity>-2</min_angular_velocity><max_angular_velocity>2</max_angular_velocity>
+    </plugin>
+  </model>
+  <model name="obj_landmark"><static>true</static><pose>1.5 1.5 0 0 0 0.4</pose><link name="body">
+    <collision name="obj_mesh"><geometry><mesh><uri>meshes/m16-asymmetric.obj</uri><scale>0.4 0.3 0.2</scale></mesh></geometry></collision>
+    <visual name="obj_mesh"><geometry><mesh><uri>meshes/m16-asymmetric.obj</uri><scale>0.4 0.3 0.2</scale></mesh></geometry></visual>
+  </link></model>
+</world></sdf>

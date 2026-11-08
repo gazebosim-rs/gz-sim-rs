@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Immutable local glTF resources, including bounded STL-to-GLB visuals.
+//! Immutable local glTF resources, including bounded STL/OBJ-to-GLB visuals.
 use bytes::Bytes;
 use gz_sim_core::{EntityId, Simulation};
 use gz_sim_scene::VisualGeometry;
@@ -86,7 +86,7 @@ fn mesh_path(mesh: &sdformat::Mesh) -> io::Result<PathBuf> {
     let uri = base.join(&mesh.uri).map_err(io::Error::other)?;
     if uri.scheme() != "file" || uri.query().is_some() || uri.fragment().is_some() {
         return Err(invalid(
-            "mesh assets accept only local glTF or STL file URIs",
+            "mesh assets accept only local glTF, STL or OBJ file URIs",
         ));
     }
     let path = uri
@@ -94,19 +94,21 @@ fn mesh_path(mesh: &sdformat::Mesh) -> io::Result<PathBuf> {
         .map_err(|()| invalid("invalid local mesh file URI"))?;
     if !matches!(
         path.extension().and_then(|s| s.to_str()),
-        Some("gltf" | "glb" | "stl")
+        Some("gltf" | "glb" | "stl" | "obj")
     ) {
         return Err(invalid(
-            "mesh must be glTF 2.0 (.gltf or .glb) or local .stl",
+            "mesh must be glTF 2.0 (.gltf or .glb) or local .stl/.obj",
         ));
     }
-    if path.extension().and_then(|v| v.to_str()) == Some("stl")
-        && (mesh.optimization != sdformat::MeshOptimization::None
-            || mesh.convex_decomposition.is_some()
-            || !mesh.scale.iter().all(|v| v.is_finite() && *v > 0.0))
+    if matches!(
+        path.extension().and_then(|v| v.to_str()),
+        Some("stl" | "obj")
+    ) && (mesh.optimization != sdformat::MeshOptimization::None
+        || mesh.convex_decomposition.is_some()
+        || !mesh.scale.iter().all(|v| v.is_finite() && *v > 0.0))
     {
         return Err(invalid(
-            "STL requires positive finite scale and no optimization/decomposition",
+            "STL/OBJ require positive finite scale and no optimization/decomposition",
         ));
     }
     Ok(path)
@@ -185,6 +187,12 @@ fn admit(
     let bytes = read_file(&document_path)?;
     if Path::new(&name).extension().and_then(|v| v.to_str()) == Some("stl") {
         let generated = gz_assets::mesh::stl_visual_glb(&bytes).map_err(io::Error::other)?;
+        let entry = format!("/assets/{scope}/{name}.glb");
+        insert_file(files, entry.clone(), generated.into(), total)?;
+        return Ok(entry);
+    }
+    if Path::new(&name).extension().and_then(|v| v.to_str()) == Some("obj") {
+        let generated = gz_assets::mesh::obj_visual_glb(&bytes).map_err(io::Error::other)?;
         let entry = format!("/assets/{scope}/{name}.glb");
         insert_file(files, entry.clone(), generated.into(), total)?;
         return Ok(entry);
@@ -626,3 +634,7 @@ mod playback_tests;
 #[cfg(test)]
 #[path = "../../tests/private/stl_assets.rs"]
 mod stl_tests;
+
+#[cfg(test)]
+#[path = "../../tests/private/obj_assets.rs"]
+mod obj_tests;

@@ -319,10 +319,10 @@ def profile_plan(sources):
             if path in owners:
                 raise ValueError(f"production source has multiple owners: {path}")
             owners[path] = name
-    headless_command = ["cargo", "test", "--locked", "--workspace", "--all-targets", "--features", RGB_FEATURE]
+    headless_command = ["cargo", "test", "--locked", "--no-fail-fast", "--workspace", "--all-targets", "--features", RGB_FEATURE]
     for name in sorted(RENDER_PACKAGES | {TEST_SUPPORT_PACKAGE}):
         headless_command += ["--exclude", name]
-    render_command = ["cargo", "test", "--locked", "--all-targets"]
+    render_command = ["cargo", "test", "--locked", "--no-fail-fast", "--all-targets"]
     for name in render:
         render_command += ["--package", name]
     render_command += ["--package", TEST_SUPPORT_PACKAGE, "--features", ",".join(RENDER_FEATURES)]

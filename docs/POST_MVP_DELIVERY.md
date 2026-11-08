@@ -3,6 +3,11 @@
 
 # Post-MVP delivery: M13 and M14
 
+> Completed contract: M13/M14 were accepted at Main `2f32bc7e` and published
+> in `m13-m14-features`. The record below preserves that wave's original scope.
+> Current work is [M15 air pressure and M16 local OBJ](M15_M16_DELIVERY.md).
+> D32 directs continuing to the next useful bounded phase after acceptance.
+
 The owner requested continuation and parallel delivery after M12 on 2026-11-07.
 M12 canonical Main is `c68b03fcd48682082a12cfc9ad2c78cae27553f3`; its preview,
 qualified source, acceptance evidence and original failures remain unchanged.

@@ -16,7 +16,18 @@ pub(super) fn validate(world: &sdformat::World) -> Result<(), LoadError> {
         name,
         "world magnetic field",
     )?;
-    require(world.atmosphere.source.is_none(), name, "world atmosphere")?;
+    let atmosphere = &world.atmosphere;
+    let default_atmosphere = sdformat::Atmosphere::default();
+    require(
+        atmosphere.atmosphere_type == default_atmosphere.atmosphere_type
+            && atmosphere.temperature_kelvin == default_atmosphere.temperature_kelvin
+            && atmosphere.temperature_gradient == default_atmosphere.temperature_gradient
+            && atmosphere.pressure == default_atmosphere.pressure
+            && atmosphere.source.is_none()
+            && atmosphere.xml.is_none(),
+        name,
+        "world atmosphere",
+    )?;
     for model in &world.models {
         validate_model(model)?;
     }
@@ -86,6 +97,7 @@ fn validate_sensor(sensor: &sdformat::Sensor, parent: &str) -> Result<(), LoadEr
     require(
         sensor.imu().is_some()
             || sensor.altimeter().is_some()
+            || sensor.air_pressure().is_some()
             || crate::supports_camera_sensor(sensor)
             || sensor.effective_type() == Some(sdformat::SensorType::Lidar),
         &name,

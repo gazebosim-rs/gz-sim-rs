@@ -1,10 +1,10 @@
 # Instructions for implementation agents
 
-> Accepted baseline M12 is Main `c68b03fc`. This candidate combines M13 ideal
-> altimeter and M14 local STL under D31, each bounded to five working days.
-> Its target complete statuses become effective only at qualified Main promotion
-> after actual feature proofs, mandatory gates and independent DATA. Review refs
-> remain unaccepted; preserve evidence and independent Fuel work.
+> M1–M14 are accepted at Main `2f32bc7e`. Current work is M15 ideal air
+> pressure and M16 local OBJ, each bounded to five working days under D31.
+> The owner directs continuous delivery: after acceptance, start the next useful
+> bounded phase while work remains. Preserve all mandatory gates, accepted
+> evidence, frozen trees and independent Fuel work.
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -14,14 +14,17 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md`, `docs/M12_ACCEPTANCE.md` and
-`docs/POST_MVP_DELIVERY.md` before editing. M12 canonical qualification and
-publication completed at `c68b03fc`; the preview remains bound to generation
-source `9147120a`, runtime `a542cb1b` and viewer `c40418cd`. Current M13 ideal
-altimeter and M14 local STL meshes have separate leaf-file leases and can be
-authored/reviewed in parallel. Root owns shared integration, manifests/lock,
-planning and publication. Neither new feature is accepted merely by appearing
-in a source worktree or review ref. Preserve all accepted/frozen M12 trees.
+Read `docs/DELIVERY_PLAN.md` and `docs/M15_M16_DELIVERY.md` before editing.
+M1–M14 are accepted at `2f32bc7e`; actual normal/hosted/native/browser evidence
+and the public `m13-m14-features` receipt are retained. M12's installer remains
+unchanged. Current M15 ideal air pressure and M16 local OBJ meshes use explicit
+leaf-file leases with Root owning shared Scene integration, manifests/lock,
+planning and publication. Source/review may overlap; local heavy jobs are serial.
+Under owner decision D32, immediately select and start the next useful bounded
+phase after acceptance while work remains. An unselected successor is not a
+reason to stop. Keep the web tracker current, preserve paused/Fuel work and all
+accepted/frozen trees. Routine scope selection within D30 does not require a
+new owner approval; genuine product/dependency decisions still do.
 
 Finish source, meaningful regressions, documentation and independent Source review
 before one consolidated normal required pass. Batch real failures before affected

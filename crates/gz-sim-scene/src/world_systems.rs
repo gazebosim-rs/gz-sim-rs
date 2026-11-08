@@ -58,7 +58,7 @@ fn engine_metadata(xml: &str, root: roxmltree::Node<'_, '_>) -> bool {
 }
 
 pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
-    let (mut physics, mut sensors, mut altimeter) = (false, false, false);
+    let (mut physics, mut sensors, mut altimeter, mut air_pressure) = (false, false, false, false);
     for plugin in &world.plugins {
         let is_physics = plugin.name == "gz::sim::systems::Physics"
             && plugin.filename == "gz-sim-physics-system";
@@ -66,8 +66,10 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             && plugin.filename == "gz-sim-sensors-system";
         let is_altimeter = plugin.name == "gz::sim::systems::Altimeter"
             && plugin.filename == "gz-sim-altimeter-system";
+        let is_air_pressure = plugin.name == "gz::sim::systems::AirPressure"
+            && plugin.filename == "gz-sim-air-pressure-system";
         require(
-            is_physics || is_sensors || is_altimeter,
+            is_physics || is_sensors || is_altimeter || is_air_pressure,
             &world.name,
             "world plugins",
         )?;
@@ -75,8 +77,10 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             (&mut physics, "duplicate Physics configuration")
         } else if is_sensors {
             (&mut sensors, "duplicate Sensors configuration")
-        } else {
+        } else if is_altimeter {
             (&mut altimeter, "duplicate Altimeter configuration")
+        } else {
+            (&mut air_pressure, "duplicate AirPressure configuration")
         };
         require(!*seen, &world.name, feature)?;
         *seen = true;
@@ -86,8 +90,10 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
                 "Physics system configuration"
             } else if is_sensors {
                 "Sensors system configuration"
-            } else {
+            } else if is_altimeter {
                 "Altimeter system configuration"
+            } else {
+                "AirPressure system configuration"
             },
         };
         let document = roxmltree::Document::parse(&plugin.xml).map_err(|_| invalid())?;

@@ -19,6 +19,12 @@ including real C++ scenarios. Passing this implemented subset does not establish
 complete upstream parity or phase acceptance. Never treat an empty workspace as
 100% covered.
 
+Both coverage profiles use Cargo's `--no-fail-fast` so a failing test target does
+not prevent the remaining targets in that profile from running. The profile still
+fails on any test failure; coverage, assertions, thresholds and required jobs stay
+unchanged. Inspect all available failures and batch their corrections before the
+next required pass.
+
 ## Retained staged evidence
 
 Staged runs retain raw Rust test output and available coverage summaries under
