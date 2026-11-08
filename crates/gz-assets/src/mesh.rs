@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Bounded local glTF collision input, decoded only when a loaded collision needs it.
+//! Bounded local glTF and STL collision input, decoded only when needed.
 use base64::Engine;
 use glam::{DMat4, DVec3};
 use std::{
@@ -15,6 +15,9 @@ const MAX_VERTICES: usize = 131072;
 const MAX_TRIANGLES: usize = 262144;
 const MAX_NODE_VISITS: usize = 1024;
 const MAX_DEPTH: usize = 32;
+
+mod stl;
+pub use stl::{decode as decode_stl, visual_glb as stl_visual_glb};
 
 #[derive(Debug, thiserror::Error)]
 #[error("{0}")]
@@ -81,16 +84,20 @@ fn local_path(mesh: &sdformat::Mesh) -> Result<PathBuf, MeshError> {
     }
     let uri = base.join(&mesh.uri).map_err(|e| invalid(e.to_string()))?;
     if uri.scheme() != "file" || uri.query().is_some() || uri.fragment().is_some() {
-        return Err(invalid("mesh collisions require local glTF file URIs"));
+        return Err(invalid(
+            "mesh collisions require local glTF or STL file URIs",
+        ));
     }
     let path = uri
         .to_file_path()
         .map_err(|()| invalid("invalid local mesh file URI"))?;
     if !matches!(
         path.extension().and_then(|v| v.to_str()),
-        Some("gltf" | "glb")
+        Some("gltf" | "glb" | "stl")
     ) {
-        return Err(invalid("mesh collisions require glTF 2.0 (.gltf or .glb)"));
+        return Err(invalid(
+            "mesh collisions require glTF 2.0 (.gltf or .glb) or local .stl",
+        ));
     }
     if !path
         .file_name()
@@ -104,7 +111,9 @@ fn local_path(mesh: &sdformat::Mesh) -> Result<PathBuf, MeshError> {
     Ok(path)
 }
 
-/// Decode one default (otherwise first) glTF scene, preserving every node instance.
+/// Decode a default (otherwise first) glTF scene or an admitted STL surface.
+/// glTF preserves every node instance and converts Y-up to Z-up; STL is Z-up.
+/// Both formats apply the positive finite SDF scale once before the rigid pose.
 /// No texture/image loading, network request, Bevy resource or worker is created.
 pub fn load(mesh: &sdformat::Mesh) -> Result<TriangleMesh, MeshError> {
     let path = local_path(mesh)?;
@@ -120,6 +129,9 @@ pub fn load(mesh: &sdformat::Mesh) -> Result<TriangleMesh, MeshError> {
         ));
     }
     let bytes = read(&canonical)?;
+    if path.extension().and_then(|v| v.to_str()) == Some("stl") {
+        return stl::scaled(&bytes, mesh.scale);
+    }
     let gltf =
         gltf::Gltf::from_slice(&bytes).map_err(|e| invalid(format!("{}: {e}", path.display())))?;
     let asset = &gltf.as_json().asset;

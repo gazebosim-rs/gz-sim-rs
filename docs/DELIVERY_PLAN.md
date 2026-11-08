@@ -3,10 +3,11 @@
 
 # Weekly delivery plan
 
-> M1–M12 runtimes/distribution and their retained evidence are accepted. M12's
-> published Ubuntu preview is bounded, not full rewrite completion. Its canonical
-> metadata still requires its own checks before publication. Next work is
-> unselected; preserve all earlier behavior, evidence and independent Fuel work.
+> Accepted baseline M12 is Main `c68b03fc`. This candidate combines M13 ideal
+> altimeter and M14 local STL under D31, each bounded to five working days.
+> Its target complete statuses become effective only at qualified Main promotion
+> after actual feature proofs, mandatory gates and independent DATA. Review refs
+> remain unaccepted; preserve evidence and independent Fuel work.
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning
@@ -54,9 +55,12 @@ results must never be described as same-engine performance improvement.
 | M10: Interactive world lifecycle | 5 working days | Expose focused spawn/remove and entity-state operations to the live browser for the admitted MVP scene. | Spawn and remove primitives and one local mesh without stale IDs or visuals; rejected requests are atomic; reconnect obtains a current snapshot. |
 | M11: Focused recording and replay | 5 working days | Record and replay the admitted scene, poses and controls for one local session. | A short recorded session reproduces its timestamps and entity lifecycle in gzweb-rs; malformed input and bounded buffering pass. |
 | M12: Installable integrated preview | 5 working days | Package the accepted subset and document supported capabilities, setup and a runnable robot demo. | A clean-machine installation runs the integrated demo; required coverage, CI, licenses and retained regressions pass at the release commit, with a published limitations matrix. |
+| M13: Ideal altimeter | 5 working days | One loaded noise-free Rapier altimeter with canonical publication. | Native/wire/offset-point velocity, cadence, absence, pause/reset/removal and stale-generation controls; all gates. |
+| M14: Local STL meshes | 5 working days | Local ASCII/binary STL collision and immutable GLB visuals using the accepted viewer. | Bounded admission, geometry/scale/contact/lifecycle controls and actual browser evidence; all gates. |
 
-The sequence is ordered around user-visible features, not parallel teams each
-starting a week of unrelated work. A dependency may be reused from existing
+The initial MVP sequence is ordered around user-visible dependencies. After M12,
+D31 permits independent bounded increments to run in parallel with explicit file
+ownership, one integrator and one complete release candidate. A dependency may be reused from existing
 accepted code, but no phase inherits acceptance merely from an older test run.
 Existing broad P0–P7 gates remain historical and long-term coverage inventories;
 they are not this release schedule and do not block M1 as entire families.
@@ -64,11 +68,13 @@ they are not this release schedule and do not block M1 as entire families.
 tracker. M1–M12 are complete under their bounded acceptance criteria. These
 counts are independent of historical P2 acceptance or total rewrite effort.
 M12 publishes source `9147120a`, packaged runtime `a542cb1b`, viewer `c40418cd`
-and the source-bound archive in its acceptance record. All original phase scopes,
-budgets and criteria remain below. No M13 or subsequent implementation is
-selected. Existing later-work rules apply only after a named scope is agreed.
-This canonical metadata must pass its own normal gate and exact hosted CI before
-publication; no prior result or later automatic Main result is inferred.
+and the source-bound archive in its acceptance record. All original M1–M12 phase
+records remain unchanged. Current M13 ideal altimeter and M14 local STL meshes both
+depend on M12; neither depends on the other's new code. See
+[the post-MVP contract](POST_MVP_DELIVERY.md) for file leases, exact acceptance,
+excluded cases and the single-candidate qualification process. Current source work
+is unaccepted until actual proofs, all mandatory gates and qualified Main promotion.
+
 
 
 ## M1: smallest real end-to-end product
@@ -119,9 +125,10 @@ model on demand and preserves zero per-system runtime cost when absent.
 
 ## Later cycles and retained scope
 
-After M12, choose one bounded item at a time: one additional sensor/noise model,
+After M12, choose bounded items by dependency: one additional sensor/noise model,
 one Gazebo system, one asset format, one native backend capability, or one
-packaging/performance improvement. Before starting, name its fixtures, commands,
+packaging/performance improvement. Independent items may share a parallel source
+wave under D31; shared runtime interfaces and heavy qualification have one owner. Before starting, name its fixtures, commands,
 unsupported cases and exit evidence and budget no more than five working days.
 Split general DART/MuJoCo/TPE parity, remaining 78-system behavior, GPU lidar,
 advanced cameras, distributed worlds, historical logs and Python workflows into

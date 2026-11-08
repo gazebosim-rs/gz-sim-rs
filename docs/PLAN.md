@@ -6,14 +6,16 @@ M1–M12 runtimes/distribution are accepted; see the [delivery plan](DELIVERY_PL
 and [M12 acceptance](M12_ACCEPTANCE.md). The published Ubuntu 24.04 x86_64 preview
 has exact Source/build/payload identities, strict normal/hosted qualification,
 final clean installed verification and retained real robot/browser proof.
-This canonical metadata still needs its own qualification before publication.
 
-No next phase or implementation is selected. Any later work must be one named
-increment of at most five working days including review/checks. Full compatibility
-remains an unscheduled backlog; twelve completed delivery milestones do not mean
-full rewrite completion. Preserve all accepted contracts, assertions/defaults,
-retained histories and independently owned Fuel work. The historical architecture,
-compatibility and phase inventory below remain unchanged.
+M13 ideal altimeter and M14 local STL meshes share one parallel delivery candidate,
+with explicit file ownership and one integration candidate. Both depend on M12;
+neither depends on the other's implementation. Each retains a five-working-day
+scope budget including review and mandatory checks. See
+[the delivery contract](POST_MVP_DELIVERY.md). No new phase is accepted until
+its actual feature proofs, unchanged normal/hosted gates and independent audit
+pass and its qualified candidate reaches Main. Full compatibility remains an
+unscheduled backlog. Preserve all accepted contracts and independently owned
+Fuel work; the historical architecture and inventory below remain unchanged.
 
 ## Outcome and scope
 

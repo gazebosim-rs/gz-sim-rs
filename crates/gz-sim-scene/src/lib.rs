@@ -48,13 +48,18 @@ pub use world_spawn::{ModelTemplate, prepare_model_template, spawn_model_templat
 mod imu_lifecycle;
 mod lidar;
 pub use lidar::{LidarPublication, LidarSample, clear_lidar_interest, set_lidar_interest};
+mod altimeter;
+pub use altimeter::{
+    AltimeterPublication, AltimeterSample, clear_altimeter_interest, set_altimeter_interest,
+};
 mod initial;
 mod joint_force_lifecycle;
 mod joint_lifecycle;
 pub use initial::{
-    PendingResetRemoval, SceneResetError, SceneResetInfo, initial_diff_drive_configurations,
-    initial_imu_publications, initial_joint_controller_configurations,
-    initial_joint_force_configurations, initial_lidar_publications, reset_loaded_world,
+    PendingResetRemoval, SceneResetError, SceneResetInfo, initial_altimeter_publications,
+    initial_diff_drive_configurations, initial_imu_publications,
+    initial_joint_controller_configurations, initial_joint_force_configurations,
+    initial_lidar_publications, reset_loaded_world,
 };
 
 use bevy_ecs::prelude::*;
@@ -611,6 +616,7 @@ fn load_world_configured(
     );
     imu_lifecycle::install(&mut sim);
     lidar::install(&mut sim);
+    altimeter::install(&mut sim);
     joint_lifecycle::install(&mut sim);
     joint_force_lifecycle::install(&mut sim);
     diff_drive::install(&mut sim);
@@ -1095,6 +1101,23 @@ fn build_model(
                     sim,
                     backend.as_ref(),
                     lidar::Parent {
+                        link,
+                        entity: link_entity,
+                        id: link_id,
+                        topic: &model_topic,
+                    },
+                )?;
+                continue;
+            }
+            if sensor.altimeter().is_some() {
+                altimeter::spawn(
+                    sdf,
+                    model,
+                    sensor,
+                    context,
+                    sim,
+                    backend.as_ref(),
+                    altimeter::Parent {
                         link,
                         entity: link_entity,
                         id: link_id,

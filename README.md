@@ -38,8 +38,9 @@ See [M12 evidence and limitations](docs/M12_ACCEPTANCE.md), the
 and [delivery plan](docs/DELIVERY_PLAN.md). This preview does not complete the
 rewrite or qualify unsupported platforms/features. The accepted
 [local recording/replay contract](docs/M11_RECORDING_REPLAY.md) remains retained.
-Next work is unselected. This canonical metadata records its own qualification
-separately before publication.
+M13 ideal altimeter and M14 local STL meshes share this parallel delivery candidate.
+See the [post-MVP delivery contract](docs/POST_MVP_DELIVERY.md) for their bounded
+scopes and required acceptance proofs. Their acceptance takes effect only on qualified Main; review refs remain unaccepted.
 
 The design combines the responsibilities of `gz-sim`, `gz-sensors`, `gz-physics`,
 and the necessary parts of `gz-math` in one Cargo workspace. Bevy supplies the ECS

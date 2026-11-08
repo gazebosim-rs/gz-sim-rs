@@ -3,11 +3,38 @@
 
 # Coordinator handoff
 
-> M1–M12 runtimes/distribution and their retained evidence are accepted. M12's
-> published Ubuntu preview is bounded, not full rewrite completion. Its canonical
-> metadata still requires its own checks before publication. Next work is
-> unselected; preserve all earlier behavior, evidence and independent Fuel work.
+> Accepted baseline M12 is Main `c68b03fc`. This candidate combines M13 ideal
+> altimeter and M14 local STL under D31, each bounded to five working days.
+> Its target complete statuses become effective only at qualified Main promotion
+> after actual feature proofs, mandatory gates and independent DATA. Review refs
+> remain unaccepted; preserve evidence and independent Fuel work.
 
+
+## Current work: M13 and M14 in parallel
+
+The owner explicitly continued post-MVP work and requested parallel phases.
+M13 adds one ideal loaded-world altimeter; M14 adds local ASCII/binary STL
+visuals and existing Rapier collision admission. Both depend on accepted M12,
+are bounded to five working days including review and checks. Review refs remain
+unaccepted; target completion takes effect only at qualified Main promotion. See [POST_MVP_DELIVERY.md](POST_MVP_DELIVERY.md) for exact contracts,
+file ownership, required evidence and excluded scope.
+
+M12 canonical Main `c68b03fc` passed its full 1953.661651-second normal hook,
+independent local DATA `7f84a334`, exact hosted CI 42410312271 attempt 1/all
+16 steps and official DATA `4b0bf8f0`. Tracker Main `756b3aa` and owned status
+`4f29c017` published and served exact bytes, preserving 151 prior slices plus
+M12 (152 total). The M12 continuation automation was deleted on completion;
+this new work does not silently restart it. M12 preview source/tag and original
+artifacts remain unchanged. Its separate automatic Main run at `9147120a`
+also succeeded; later automatic workflow results are always separate evidence.
+
+Complete code, regression source, capability/acceptance contracts and independent
+review before one integrated candidate's normal hook and exact hosted CI. Main
+promotion after actual proofs and all mandatory gates is the acceptance boundary.
+Actual run IDs/times belong in the existing immutable publication receipt; do not
+create another metadata-only qualification cycle just to insert generated IDs.
+
+## Historical M12 closeout source record (superseded)
 
 Updated 2026-11-07 UTC. Read DELIVERY_PLAN.md and M12_ACCEPTANCE.md first.
 

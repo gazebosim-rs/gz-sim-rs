@@ -58,17 +58,25 @@ fn engine_metadata(xml: &str, root: roxmltree::Node<'_, '_>) -> bool {
 }
 
 pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
-    let (mut physics, mut sensors) = (false, false);
+    let (mut physics, mut sensors, mut altimeter) = (false, false, false);
     for plugin in &world.plugins {
         let is_physics = plugin.name == "gz::sim::systems::Physics"
             && plugin.filename == "gz-sim-physics-system";
         let is_sensors = plugin.name == "gz::sim::systems::Sensors"
             && plugin.filename == "gz-sim-sensors-system";
-        require(is_physics || is_sensors, &world.name, "world plugins")?;
+        let is_altimeter = plugin.name == "gz::sim::systems::Altimeter"
+            && plugin.filename == "gz-sim-altimeter-system";
+        require(
+            is_physics || is_sensors || is_altimeter,
+            &world.name,
+            "world plugins",
+        )?;
         let (seen, feature) = if is_physics {
             (&mut physics, "duplicate Physics configuration")
-        } else {
+        } else if is_sensors {
             (&mut sensors, "duplicate Sensors configuration")
+        } else {
+            (&mut altimeter, "duplicate Altimeter configuration")
         };
         require(!*seen, &world.name, feature)?;
         *seen = true;
@@ -76,8 +84,10 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             entity: world.name.clone(),
             feature: if is_physics {
                 "Physics system configuration"
-            } else {
+            } else if is_sensors {
                 "Sensors system configuration"
+            } else {
+                "Altimeter system configuration"
             },
         };
         let document = roxmltree::Document::parse(&plugin.xml).map_err(|_| invalid())?;

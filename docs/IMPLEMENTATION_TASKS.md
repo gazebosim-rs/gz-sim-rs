@@ -10,24 +10,21 @@ files, upstream test IDs, dependency decisions, code revision, exact check comma
 results, coverage, relevant benchmark data, reviewer, and unresolved limits.
 The task author cannot independently retire tests or approve coverage exclusions.
 
-## Current closeout: M12 accepted; next scope unselected
+## Current delivery: M13 altimeter and M14 local STL in parallel
 
-Owner decision D30 and the explicit resume supersede the old full-rewrite-first
-order and earlier pause records. [DELIVERY_PLAN.md](DELIVERY_PLAN.md) and
-`planning/delivery-phases.json` record all twelve bounded milestones complete.
-See [M12_ACCEPTANCE.md](M12_ACCEPTANCE.md) for the published preview, exact source,
-normal/hosted/official proofs, final clean installed verification and retained
-robot/browser evidence. The remaining task is this canonical metadata's separate
-Source review, full normal gate, exact CI/official DATA and publication/mirroring.
-No next implementation or M13 is selected; agree a named <=5-working-day scope
-before starting any later increment.
+Owner D30 and the 2026-11-07 continuation select two independent bounded
+increments. [POST_MVP_DELIVERY.md](POST_MVP_DELIVERY.md) records their APIs,
+file leases, five-working-day budgets and one integration/qualification cycle.
+M1–M12 remain accepted and published, including the
+[M12 preview and evidence](M12_ACCEPTANCE.md). M13 and M14 are implementation
+assignments, not accepted capabilities. Each requires its own functional proof
+and the integrated candidate's unchanged normal hook, strict coverage, exact
+hosted CI and independent DATA before qualified Main promotion.
 
-Preserve every accepted runtime contract, assertion, numerical tolerance and gate,
-all 151 existing tracker slices, historical backlog and independent Fuel work.
-Do not replay accepted manual/observer proofs or completed payload/tar/notice
-checks. Retain all original failed runs and method-recovery records. Optional
-worker/native-backend exclusions and full compatibility limitations remain
-explicit. Legacy packets below remain historical inventory, not new assignments.
+Preserve accepted assertions, tolerances, contracts, all 152 existing tracker
+slices, original failures and Fuel ownership. Reuse unchanged accepted evidence
+where the existing contract permits it; do not replay old manual qualification.
+The legacy packets below remain historical inventory, not new assignments.
 
 ### Historical M10-CREDIT contract (closed; preserve evidence)
 

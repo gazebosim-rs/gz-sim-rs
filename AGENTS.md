@@ -1,9 +1,10 @@
 # Instructions for implementation agents
 
-> M1–M12 runtimes/distribution and their retained evidence are accepted. M12's
-> published Ubuntu preview is bounded, not full rewrite completion. Its canonical
-> metadata still requires its own checks before publication. Next work is
-> unselected; preserve all earlier behavior, evidence and independent Fuel work.
+> Accepted baseline M12 is Main `c68b03fc`. This candidate combines M13 ideal
+> altimeter and M14 local STL under D31, each bounded to five working days.
+> Its target complete statuses become effective only at qualified Main promotion
+> after actual feature proofs, mandatory gates and independent DATA. Review refs
+> remain unaccepted; preserve evidence and independent Fuel work.
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -13,15 +14,14 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md` and `docs/M12_ACCEPTANCE.md` before selecting
-work. Root accepted the bounded Ubuntu 24.04 x86_64 preview on 2026-11-07 after
-actual required qualification, final installed DATA, retained robot/browser proof,
-normal Main publication and release asset/tag readback. Published source is
-`9147120a`, with native runtime `a542cb1b` and unchanged viewer `c40418cd`.
-Only this nine-file canonical metadata closeout remains to qualify and publish;
-no next implementation scope or M13 is selected. Its own normal gate and exact
-hosted CI remain mandatory; runtime acceptance does not supply those results.
-The two consumer guides and archived payloads retain their separately bound bytes.
+Read `docs/DELIVERY_PLAN.md`, `docs/M12_ACCEPTANCE.md` and
+`docs/POST_MVP_DELIVERY.md` before editing. M12 canonical qualification and
+publication completed at `c68b03fc`; the preview remains bound to generation
+source `9147120a`, runtime `a542cb1b` and viewer `c40418cd`. Current M13 ideal
+altimeter and M14 local STL meshes have separate leaf-file leases and can be
+authored/reviewed in parallel. Root owns shared integration, manifests/lock,
+planning and publication. Neither new feature is accepted merely by appearing
+in a source worktree or review ref. Preserve all accepted/frozen M12 trees.
 
 Finish source, meaningful regressions, documentation and independent Source review
 before one consolidated normal required pass. Batch real failures before affected

@@ -1,5 +1,14 @@
 # Initial headless scene contract
 
+M1–M12 are accepted and published; see [current delivery](DELIVERY_PLAN.md)
+and [M12 acceptance](M12_ACCEPTANCE.md). The M13 ideal altimeter and M14 local
+STL increments share the candidate described by [the post-MVP contract](POST_MVP_DELIVERY.md),
+with feature details in [M13_ALTIMETER.md](M13_ALTIMETER.md) and
+[M14_STL.md](M14_STL.md). They remain unaccepted until qualification and Main
+promotion. The material below retains the historical scope and evidence of
+earlier increments; it is not a complete present-day capability inventory.
+
+
 `gz_sim_scene::load_world(xml, source, world_name, step, resolver)` returns a new
 `Simulation` after SDF validation and backend construction. A failure cannot
 change another running simulation. Includes use the supplied SDF resource resolver;

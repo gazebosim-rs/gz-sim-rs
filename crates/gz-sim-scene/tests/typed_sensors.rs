@@ -14,7 +14,7 @@ fn scene(sensor: &str) -> String {
 }
 
 #[test]
-fn every_parsed_non_imu_configuration_is_explicitly_unsupported_by_both_engines() {
+fn parsed_sensor_capabilities_admit_named_increments_and_preserve_other_refusals() {
     let cases = [
         ("contact", "<contact><collision>shape</collision></contact>"),
         ("force_torque", "<force_torque/>"),
@@ -34,6 +34,7 @@ fn every_parsed_non_imu_configuration_is_explicitly_unsupported_by_both_engines(
     ];
     let mut variants = HashSet::new();
     let mut admitted_cpu_lidars = 0;
+    let mut admitted_altimeters = 0;
     for (kind, configuration) in cases {
         let xml = scene(&format!(
             "<sensor name='unsupported' type='{kind}'><always_on>true</always_on>{configuration}</sensor>"
@@ -66,10 +67,34 @@ fn every_parsed_non_imu_configuration_is_explicitly_unsupported_by_both_engines(
                 admitted_cpu_lidars += 1;
                 continue;
             }
+            if kind == "altimeter" && matches!(engine, PhysicsEngine::Rapier) {
+                let sim = result.unwrap();
+                let publications = sim
+                    .world()
+                    .iter_entities()
+                    .filter_map(|entity| entity.get::<gz_sim_scene::AltimeterPublication>())
+                    .collect::<Vec<_>>();
+                assert_eq!(publications.len(), 1);
+                assert_eq!(publications[0].entity_name, "ball::body::unsupported");
+                assert_eq!(publications[0].vertical_reference, 5.0);
+                assert_eq!(
+                    publications[0].topic,
+                    "/world/default/model/ball/link/body/sensor/unsupported/altimeter"
+                );
+                admitted_altimeters += 1;
+                continue;
+            }
             match result {
                 Err(LoadError::Unsupported { entity, feature }) => {
                     assert_eq!(entity, "default::ball::body::unsupported");
-                    assert_eq!(feature, "non-IMU sensors");
+                    assert_eq!(
+                        feature,
+                        if kind == "altimeter" {
+                            "Rapier ideal altimeter"
+                        } else {
+                            "non-IMU sensors"
+                        }
+                    );
                 }
                 _ => {
                     panic!("{kind} on {engine:?} must fail at the typed sensor capability boundary")
@@ -79,6 +104,7 @@ fn every_parsed_non_imu_configuration_is_explicitly_unsupported_by_both_engines(
     }
     assert_eq!(variants.len(), 9);
     assert_eq!(admitted_cpu_lidars, 1);
+    assert_eq!(admitted_altimeters, 1);
 }
 
 #[test]

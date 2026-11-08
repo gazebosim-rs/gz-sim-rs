@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-07",
   "execution_state": "active",
-  "current_phase": "M12",
+  "current_phase": "M14",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -207,9 +207,33 @@
         "gz-sim-rs": "9147120aaccd9383d8e406c1b8ee82348153b734",
         "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
       }
+    },
+    {
+      "id": "M13",
+      "title": "Ideal altimeter",
+      "max_working_days": 5,
+      "depends_on": [
+        "M12"
+      ],
+      "scope": "One loaded-world, noise-free Rapier altimeter using existing SDF cadence and canonical upstream Zenoh publication.",
+      "acceptance": "Actual native comparison and canonical wire delivery establish sensor-point world-Z position/reference/velocity, frame/time/cadence, demand, pause, loaded reset, removal and stale-generation fences. No sensor means no callbacks or transport declarations. All mandatory gates and independent review pass at the promoted candidate.",
+      "excluded": "Noise, runtime sensor spawning, rate-control services, additional sensor families, backend parity expansion and native rewind-parity claims.",
+      "evidence": "docs/M13_ALTIMETER.md"
+    },
+    {
+      "id": "M14",
+      "title": "Local STL meshes",
+      "max_working_days": 5,
+      "depends_on": [
+        "M12"
+      ],
+      "scope": "Bounded local ASCII/binary STL import, immutable generated GLB visuals in the accepted viewer and unchanged Rapier static/closed-convex collision admission.",
+      "acceptance": "Malformed and excessive input fails atomically; geometry/basis/scale/contact and lifecycle controls pass, actual served geometry is immutable, and the real browser displays and controls an asymmetric STL scene. All mandatory gates and independent review pass at the promoted candidate.",
+      "excluded": "Mesh repair/decomposition, colors/materials/attributes, remote loading, broad asset-format parity, new viewer/protocol/framework or backend capabilities.",
+      "evidence": "docs/M14_STL.md"
     }
   ],
-  "later_work": "After M12, select one named sensor, system, asset capability or backend increment per cycle. Scope each cycle to at most five working days before starting; split anything larger. Full compatibility remains an unscheduled backlog, not a promised twelve-week completion.",
+  "later_work": "After accepted M13/M14, select the next named increment of at most five working days including review and mandatory checks. Independent increments may share a parallel source wave with explicit file leases and one integrator. Full compatibility remains an unscheduled backlog; phase counts are not total rewrite completion.",
   "status": {
     "M1": "complete",
     "M2": "complete",
@@ -222,8 +246,23 @@
     "M9": "complete",
     "M10": "complete",
     "M11": "complete",
-    "M12": "complete"
+    "M12": "complete",
+    "M13": "complete",
+    "M14": "complete"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-05T23:42:38.917778+00:00"
+  "phase_started_at": "2026-11-07T21:17:17.461461+00:00",
+  "active_phases": [],
+  "execution_policy": "D31: independent post-MVP increments may share a parallel source wave, one integrator and one qualified release candidate. Main promotion after all actual proofs and mandatory gates is the acceptance boundary; review refs do not confer acceptance.",
+  "parallel_groups": [
+    {
+      "phases": [
+        "M13",
+        "M14"
+      ],
+      "integration": "one shared candidate; each phase requires its own functional proofs",
+      "max_working_days": 5
+    }
+  ],
+  "acceptance_boundary": "M13/M14 complete statuses are the target for this candidate and become effective only at qualified Main promotion after actual phase-specific proofs, all mandatory gates, independent DATA and Root acceptance. Review refs do not confer acceptance; the published Main and owned live status are authoritative."
 }

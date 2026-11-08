@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Bounded world-clock publication and control around an explicitly stepped simulation.
 
+mod altimeter;
+mod altimeter_io;
 mod diff_drive;
 mod diff_drive_io;
 mod force_io;
@@ -28,7 +30,7 @@ use gz_sim_proto::{
 };
 use gz_sim_scene::{ImuPublication, ImuSample};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     num::NonZeroUsize,
     sync::{Arc, Weak},
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
@@ -71,6 +73,10 @@ pub enum Error {
     LidarIdentity,
     #[error("reset handler changed the prepared lidar stream configuration")]
     ResetLidars,
+    #[error("altimeter publication lacks its unique supported identity or metadata")]
+    AltimeterIdentity,
+    #[error("reset handler changed the prepared altimeter stream configuration")]
+    ResetAltimeters,
     #[error("joint-force controller lacks its original identity, configuration or command")]
     JointForceIdentity,
     #[error("DiffDrive configuration lacks its original unique model identity or endpoints")]
@@ -123,6 +129,9 @@ pub struct Counters {
     pub lidars_queued: u64,
     pub lidar_failures: u64,
     pub invalid_lidar_samples: u64,
+    pub altimeters_queued: u64,
+    pub altimeter_failures: u64,
+    pub invalid_altimeter_samples: u64,
     pub poses_queued: u64,
     /// Ticks intentionally omitted by the configured wall-time pose publication period.
     pub poses_throttled: u64,
@@ -164,6 +173,84 @@ struct ImuStream {
     publisher: Arc<world_io::ImuOutput>,
     sequence: u64,
     last_sample: Option<(u64, Duration)>,
+}
+
+/// Resolve every other family before declaring a new altimeter endpoint.
+/// Include loaded metadata so a removed original cannot collide when reset restores it.
+fn altimeter_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    let mut keys = io.reserved_keys();
+    keys.insert(config.topic_key("/clock")?);
+    let imu = |keys: &mut BTreeSet<String>, metadata: &ImuPublication| -> Result<(), Error> {
+        let topic = options::as_valid_topic(&metadata.topic);
+        keys.insert(config.topic_key(&topic)?);
+        keys.insert(config.topic_key(&format!("{topic}/set_rate"))?);
+        Ok(())
+    };
+    let drive = |keys: &mut BTreeSet<String>,
+                 metadata: &gz_sim_scene::DiffDriveConfiguration|
+     -> Result<(), Error> {
+        keys.insert(config.topic_key(&metadata.topic)?);
+        keys.insert(config.topic_key(&metadata.odom_topic)?);
+        Ok(())
+    };
+    let force = |keys: &mut BTreeSet<String>,
+                 metadata: &gz_sim_scene::JointForceConfiguration|
+     -> Result<(), Error> {
+        let topic = options::as_valid_topic(&format!(
+            "/model/{}/joint/{}/cmd_force",
+            metadata.model_name(),
+            metadata.joint_name(),
+        ));
+        keys.insert(config.topic_key(&topic)?);
+        Ok(())
+    };
+    for entity in simulation.world().iter_entities() {
+        if entity.contains::<gz_sim_scene::PendingResetRemoval>() {
+            continue;
+        }
+        if let Some(metadata) = entity.get::<ImuPublication>() {
+            imu(&mut keys, metadata)?;
+        }
+        if let Some(metadata) = entity.get::<gz_sim_scene::LidarPublication>() {
+            keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+        }
+        if let Some(metadata) = entity.get::<gz_sim_scene::DiffDriveConfiguration>() {
+            drive(&mut keys, metadata)?;
+        }
+        if let Some(metadata) = entity.get::<gz_sim_scene::JointForceConfiguration>() {
+            force(&mut keys, metadata)?;
+        }
+        if let Some(metadata) = entity.get::<gz_sim_scene::JointControllerConfiguration>() {
+            keys.insert(config.topic_key(&metadata.topic)?);
+        }
+    }
+    match gz_sim_scene::initial_imu_publications(simulation) {
+        Ok(values) => {
+            for metadata in values {
+                imu(&mut keys, metadata)?;
+            }
+            for metadata in gz_sim_scene::initial_lidar_publications(simulation)? {
+                keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+            }
+            for metadata in gz_sim_scene::initial_diff_drive_configurations(simulation)? {
+                drive(&mut keys, metadata)?;
+            }
+            for (_, metadata) in gz_sim_scene::initial_joint_force_configurations(simulation)? {
+                force(&mut keys, metadata)?;
+            }
+            for (_, metadata) in gz_sim_scene::initial_joint_controller_configurations(simulation)?
+            {
+                keys.insert(config.topic_key(&metadata.topic)?);
+            }
+        }
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+        Err(error) => return Err(error.into()),
+    }
+    Ok(keys)
 }
 
 fn imu_packet(
@@ -309,6 +396,7 @@ pub struct Server {
     counters: Counters,
     imus: Vec<ImuStream>,
     lidars: Vec<lidar::Stream>,
+    altimeters: Vec<altimeter::Stream>,
     lidar_viewer_interest: bool,
 }
 
@@ -494,6 +582,16 @@ impl Server {
         let controller_metadata = joint_controllers::initial(&simulation)?;
         let joint_controllers =
             joint_controllers::prepare(&simulation, &world_io, &config, &controller_metadata)?;
+        let altimeters = if simulation
+            .world()
+            .iter_entities()
+            .any(|entity| entity.contains::<gz_sim_scene::AltimeterPublication>())
+        {
+            let occupied = altimeter_reserved_keys(&simulation, &world_io, &config)?;
+            altimeter::streams(&simulation, &world_io, &config, &occupied, None)?
+        } else {
+            Vec::new()
+        };
         Ok(Self {
             simulation,
             world_io,
@@ -518,6 +616,7 @@ impl Server {
             counters: Counters::default(),
             imus,
             lidars,
+            altimeters,
             lidar_viewer_interest: false,
         })
     }
@@ -691,6 +790,9 @@ impl Server {
         counters.odometry_failures = counters
             .odometry_failures
             .saturating_add(failures[5].load(std::sync::atomic::Ordering::Relaxed));
+        counters.altimeter_failures = counters
+            .altimeter_failures
+            .saturating_add(failures[6].load(std::sync::atomic::Ordering::Relaxed));
         counters
     }
     /// Return observed bounded-input losses, independent of remote delivery.
@@ -752,6 +854,9 @@ impl Server {
             .set_running(!self.simulation.is_paused(), now);
         self.refresh_imu_interest();
         self.refresh_lidar_interest();
+        if !self.altimeters.is_empty() {
+            self.refresh_altimeter_interest();
+        }
         let resetting = self.prepared_reset.is_some();
         let info = if let Some(info) = self.prepared_reset.take() {
             info
@@ -796,6 +901,9 @@ impl Server {
         self.publish_poses(info.sim_time);
         self.publish_imus();
         self.publish_lidars();
+        if !self.altimeters.is_empty() {
+            self.publish_altimeters();
+        }
         self.publish_odometry();
         self.removals
             .execute(&self.world_io, &mut self.simulation, &mut self.counters);
@@ -809,6 +917,9 @@ impl Server {
             self.imus = Vec::new();
         }
         self.retire_lidars();
+        if !self.altimeters.is_empty() {
+            self.retire_altimeters();
+        }
         self.retire_diff_drive();
         if let Some(rates) = &mut self.rates {
             rates.retire(&self.simulation);
@@ -1069,6 +1180,7 @@ impl Server {
         }
         self.imus = Vec::new();
         self.lidars = Vec::new();
+        self.altimeters = Vec::new();
         self.diff_drive = None;
         self.joint_controllers = None;
         self.world_io.shutdown();

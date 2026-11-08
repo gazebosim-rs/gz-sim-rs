@@ -85,6 +85,7 @@ fn validate_sensor(sensor: &sdformat::Sensor, parent: &str) -> Result<(), LoadEr
     require(sensor.extensions.is_empty(), &name, "sensor extensions")?;
     require(
         sensor.imu().is_some()
+            || sensor.altimeter().is_some()
             || crate::supports_camera_sensor(sensor)
             || sensor.effective_type() == Some(sdformat::SensorType::Lidar),
         &name,

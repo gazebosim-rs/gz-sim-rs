@@ -25,6 +25,7 @@ use zenoh::{
 };
 
 type Result<T> = std::result::Result<T, Box<dyn Error + Send + Sync>>;
+pub(super) use crate::altimeter_io::AltimeterOutput;
 pub(super) use crate::imu_io::ImuOutput;
 pub(super) use crate::lidar_io::LidarOutput;
 
@@ -154,6 +155,7 @@ enum WorldWork {
     Poses(u64, Vec<u8>),
     Imu(u64, crate::imu_io::ImuJob),
     Lidar(u64, crate::lidar_io::LidarJob),
+    Altimeter(u64, crate::altimeter_io::AltimeterJob),
     Odometry(u64, crate::diff_drive_io::Job),
     InstallDrive(crate::diff_drive_io::Setup, crate::diff_drive_io::Receipt),
     InstallJointControllers(
@@ -167,6 +169,10 @@ enum WorldWork {
     InstallImu(
         String,
         mpsc::SyncSender<std::result::Result<Arc<ImuOutput>, String>>,
+    ),
+    InstallAltimeter(
+        String,
+        mpsc::SyncSender<std::result::Result<Arc<AltimeterOutput>, String>>,
     ),
     RootClock(u64, Arc<Publisher<'static>>, Vec<u8>),
     InstallRates(
@@ -224,7 +230,7 @@ pub(super) struct WorldIo {
     pub(super) rejected: Arc<AtomicU64>,
     pub(super) ingress_drops: Arc<AtomicU64>,
     pub(super) reply_failures: Arc<AtomicU64>,
-    pub(super) publication_failures: Arc<[AtomicU64; 6]>,
+    pub(super) publication_failures: Arc<[AtomicU64; 7]>,
     pub(super) epoch: Arc<AtomicU64>,
     pub(super) max_message_bytes: usize,
     capacity: usize,
@@ -365,7 +371,7 @@ impl WorldIo {
         let worker_poses = Arc::clone(&poses);
         let epoch = Arc::new(AtomicU64::new(0));
         let worker_epoch = Arc::clone(&epoch);
-        let publication_failures: Arc<[AtomicU64; 6]> =
+        let publication_failures: Arc<[AtomicU64; 7]> =
             Arc::new(std::array::from_fn(|_| AtomicU64::new(0)));
         let failures = Arc::clone(&publication_failures);
         let control_worker =
@@ -516,6 +522,11 @@ impl WorldIo {
                 )> = None;
                 let mut imus: Option<crate::imu_io::ImuDeclarations> = None;
                 let mut lidars: Option<crate::lidar_io::LidarDeclarations> = None;
+                let mut altimeters: Option<crate::altimeter_io::AltimeterDeclarations> = None;
+                let mut altimeter_retirement: Option<(
+                    mpsc::SyncSender<crate::altimeter_io::AltimeterId>,
+                    mpsc::Receiver<crate::altimeter_io::AltimeterId>,
+                )> = None;
                 let mut lidar_retirement: Option<(
                     mpsc::SyncSender<crate::lidar_io::LidarId>,
                     mpsc::Receiver<crate::lidar_io::LidarId>,
@@ -551,6 +562,16 @@ impl WorldIo {
                         if declarations.is_empty() {
                             lidars = None;
                             lidar_retirement = None;
+                        }
+                    }
+                    if let Some((_, retired)) = &altimeter_retirement {
+                        while retired.try_recv().is_ok() {}
+                    }
+                    if let Some(declarations) = &mut altimeters {
+                        declarations.reconcile(publication_session.is_closed());
+                        if declarations.is_empty() {
+                            altimeters = None;
+                            altimeter_retirement = None;
                         }
                     }
                     if let Some(declarations) = &mut rates {
@@ -653,6 +674,7 @@ impl WorldIo {
                         || rates.is_some()
                         || imus.is_some()
                         || lidars.is_some()
+                        || altimeters.is_some()
                         || forces.is_some()
                         || force_install.is_some()
                     {
@@ -723,6 +745,32 @@ impl WorldIo {
                             let declarations =
                                 lidars.get_or_insert_with(crate::lidar_io::LidarDeclarations::new);
                             let (retired, _) = lidar_retirement
+                                .get_or_insert_with(|| mpsc::sync_channel(capacity));
+                            let result = declarations
+                                .get_or_create(
+                                    &publication_session,
+                                    key,
+                                    &publication_process,
+                                    &publication_node,
+                                    retired.clone(),
+                                )
+                                .map_err(|error| error.to_string());
+                            let _ = receipt.try_send(result);
+                        }
+                        Ok(WorldWork::Altimeter(generation, job)) => {
+                            if generation == worker_epoch.load(Ordering::Acquire)
+                                && altimeters
+                                    .as_ref()
+                                    .is_some_and(|declarations| declarations.publish(job).is_err())
+                            {
+                                failures[6].fetch_add(1, Ordering::Relaxed);
+                            }
+                        }
+                        Ok(WorldWork::InstallAltimeter(key, receipt)) => {
+                            let declarations = altimeters.get_or_insert_with(
+                                crate::altimeter_io::AltimeterDeclarations::new,
+                            );
+                            let (retired, _) = altimeter_retirement
                                 .get_or_insert_with(|| mpsc::sync_channel(capacity));
                             let result = declarations
                                 .get_or_create(
@@ -968,6 +1016,36 @@ impl WorldIo {
             .map_err(Into::into)
     }
 
+    /// Actual world publication/query keys, including removal services once installed.
+    pub(super) fn reserved_keys(&self) -> std::collections::BTreeSet<String> {
+        let mut keys = std::collections::BTreeSet::from([
+            self.clock.key_expr().as_str().to_owned(),
+            self.poses.key_expr().as_str().to_owned(),
+            self.control_key.clone(),
+        ]);
+        if let Some(removals) = self.removal_keys.get() {
+            keys.extend(removals.iter().cloned());
+        }
+        keys
+    }
+
+    pub(super) fn altimeter_output(&self, key: String) -> Result<Arc<AltimeterOutput>> {
+        if self.reserved_keys().contains(&key) {
+            return Err("altimeter key collides with world publication or service".into());
+        }
+        if self.session.is_closed() {
+            return Err("world session is closed".into());
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let (receipt, ready) = mpsc::sync_channel(1);
+        self.incoming
+            .send_deadline(WorldWork::InstallAltimeter(key, receipt), deadline)
+            .map_err(|error| format!("altimeter setup admission failed: {error}"))?;
+        ready
+            .recv_timeout(deadline.saturating_duration_since(Instant::now()))?
+            .map_err(Into::into)
+    }
+
     pub(super) fn joint_controller_inputs(
         &self,
         setup: crate::joint_controller_io::Setup,
@@ -1206,6 +1284,22 @@ impl WorldIo {
             .map_err(|_| "world publication queue unavailable".into())
     }
 
+    pub(super) fn publish_altimeter(
+        &self,
+        output: &Arc<AltimeterOutput>,
+        bytes: Vec<u8>,
+    ) -> Result<()> {
+        if bytes.len() > self.max_message_bytes || self.session.is_closed() {
+            return Err("invalid altimeter publication".into());
+        }
+        self.incoming
+            .try_send(WorldWork::Altimeter(
+                self.epoch.load(Ordering::Acquire),
+                crate::altimeter_io::AltimeterJob::new(output, bytes),
+            ))
+            .map_err(|_| "world publication queue unavailable".into())
+    }
+
     pub(super) fn publish_odometry(
         &self,
         output: &Arc<crate::diff_drive_io::Output>,
@@ -1263,3 +1357,7 @@ pub(super) fn presence(
 #[cfg(test)]
 #[path = "../tests/private/world_io.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/altimeter_world_io.rs"]
+mod altimeter_tests;

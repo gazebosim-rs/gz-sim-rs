@@ -48,6 +48,20 @@ impl Server {
         let lidar_publishers = lidar::prepare_reset(self)?;
         let drive_metadata = diff_drive::initial(&self.simulation)?;
         let controller_metadata = joint_controllers::initial(&self.simulation)?;
+        let altimeter_publishers =
+            if gz_sim_scene::initial_altimeter_publications(&self.simulation)?
+                .next()
+                .is_some()
+            {
+                let occupied = altimeter_reserved_keys(
+                    &self.simulation,
+                    &self.world_io,
+                    &self.network_config,
+                )?;
+                altimeter::prepare_reset(self, &occupied)?
+            } else {
+                BTreeMap::new()
+            };
         let drive = &mut self.diff_drive;
         let controllers = &mut self.joint_controllers;
         let rates = &mut self.rates;
@@ -114,7 +128,28 @@ impl Server {
                 forces::Forces::restart(&self.network_config, sim, &self.world_io.ingress_drops)?;
             *forces = replacement.into_active();
             self.world_io.install_forces(setup)?;
-            Ok::<_, Error>((*sim.world().resource::<UpdateInfo>(), streams, lidars))
+            let occupied = if sim
+                .world()
+                .iter_entities()
+                .any(|entity| entity.contains::<gz_sim_scene::AltimeterPublication>())
+            {
+                altimeter_reserved_keys(sim, &self.world_io, &self.network_config)?
+            } else {
+                BTreeSet::new()
+            };
+            let altimeters = altimeter::streams(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                &occupied,
+                Some(&altimeter_publishers),
+            )?;
+            Ok::<_, Error>((
+                *sim.world().resource::<UpdateInfo>(),
+                streams,
+                lidars,
+                altimeters,
+            ))
         });
         self.world_io.epoch.store(
             self.simulation.world().resource::<UpdateInfo>().epoch,
@@ -126,6 +161,7 @@ impl Server {
                 self.pending_reset = false;
                 self.imus = Vec::new();
                 self.lidars = Vec::new();
+                self.altimeters = Vec::new();
                 self.rates = None;
                 self.forces = None;
                 self.diff_drive = None;
@@ -143,12 +179,13 @@ impl Server {
             .set_running(!self.simulation.is_paused(), Instant::now());
         self.removals
             .cancel_for_reset(&self.world_io, &mut self.counters);
-        let (info, streams, lidars) = match result {
+        let (info, streams, lidars, altimeters) = match result {
             Ok(result) => result,
             Err(error) => {
                 self.reset_failed = true;
                 self.imus = Vec::new();
                 self.lidars = Vec::new();
+                self.altimeters = Vec::new();
                 self.rates = None;
                 self.forces = None;
                 self.diff_drive = None;
@@ -158,6 +195,7 @@ impl Server {
         };
         self.imus = streams;
         self.lidars = lidars;
+        self.altimeters = altimeters;
         Ok(info)
     }
 }

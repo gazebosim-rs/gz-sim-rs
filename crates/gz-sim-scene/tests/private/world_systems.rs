@@ -3,6 +3,69 @@
 use super::*;
 
 #[test]
+fn altimeter_metadata_is_exact_empty_unique_and_installs_no_absent_sensor_work() {
+    let plugin = "<plugin name='gz::sim::systems::Altimeter' filename='gz-sim-altimeter-system'/>";
+    let plain = "<sdf version='1.12'><world name='w'/></sdf>";
+    let xml = format!("<sdf version='1.12'><world name='w'>{plugin}</world></sdf>");
+    let sdf = sdformat::load_str(&xml, "altimeter-system.sdf", &sdformat::NoResources).unwrap();
+    assert!(!validate(&sdf.worlds[0]).unwrap());
+    let mut sim = load_world(
+        &xml,
+        "altimeter-system.sdf",
+        "w",
+        std::time::Duration::from_millis(1),
+        &sdformat::NoResources,
+    )
+    .unwrap();
+    let baseline = load_world(
+        plain,
+        "plain.sdf",
+        "w",
+        std::time::Duration::from_millis(1),
+        &sdformat::NoResources,
+    )
+    .unwrap();
+    assert_eq!(
+        sim.scheduled_system_counts(),
+        baseline.scheduled_system_counts()
+    );
+    assert!(
+        !sim.world()
+            .contains_resource::<crate::altimeter::Installed>()
+    );
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert_eq!(
+        sim.scheduled_system_counts(),
+        baseline.scheduled_system_counts()
+    );
+    for plugins in [
+        format!("{plugin}{plugin}"),
+        plugin.replace("/>", "><topic>other</topic></plugin>"),
+        plugin.replace("plugin ", "plugin extra='x' "),
+        plugin.replace("gz-sim-altimeter-system", "libgz-sim-altimeter-system.so"),
+        plugin.replace("gz::sim::systems::Altimeter", "Altimeter"),
+    ] {
+        let xml = format!("<sdf version='1.12'><world name='w'>{plugins}</world></sdf>");
+        let sdf = sdformat::load_str(&xml, "invalid-altimeter-system.sdf", &sdformat::NoResources)
+            .unwrap();
+        assert!(validate(&sdf.worlds[0]).is_err(), "{plugins}");
+    }
+    let model = format!(
+        "<sdf version='1.12'><world name='w'><model name='m'>{plugin}<link name='l'/></model></world></sdf>"
+    );
+    assert!(
+        load_world(
+            &model,
+            "model-altimeter.sdf",
+            "w",
+            std::time::Duration::from_millis(1),
+            &sdformat::NoResources
+        )
+        .is_err()
+    );
+}
+
+#[test]
 fn raw_record_must_match_the_owned_metadata() {
     let record = "<plugin filename='gz-sim-physics-system' name='gz::sim::systems::Physics'/>";
     let xml = format!("<sdf version='1.12'><world name='w'>{record}</world></sdf>");

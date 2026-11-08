@@ -1,0 +1,930 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+use super::*;
+use gz_sensors::altimeter::{AltimeterReading, InvalidAltimeterInput};
+use gz_sim_proto::{
+    msgs::{WorldControl, WorldReset},
+    prost::Name,
+};
+use gz_sim_scene::{Name as SceneName, PhysicsEngine, load_world_with_sdf_step, remove_model};
+
+const XML: &str = include_str!("../../../gz-sim-scene/tests/fixtures/m13_altimeter.sdf");
+fn metadata() -> AltimeterPublication {
+    AltimeterPublication {
+        entity_name: "rig::body::altimeter".into(),
+        frame_id: "rig/body/altimeter".into(),
+        topic: "/m13/altimeter".into(),
+        vertical_reference: 3.5,
+    }
+}
+fn sample() -> AltimeterSample {
+    AltimeterSample {
+        time: Duration::new(2, 123),
+        epoch: 4,
+        reading: Ok(AltimeterReading {
+            vertical_position: -7.0,
+            vertical_velocity: -3.0,
+            vertical_reference: 3.5,
+        }),
+    }
+}
+
+#[test]
+fn canonical_packet_preserves_native_fields_acquisition_time_frame_and_sequence() {
+    let message = packet(&metadata(), &sample(), u64::MAX).expect("valid sample");
+    assert_eq!(Altimeter::full_name(), "gz.msgs.Altimeter");
+    assert_eq!(message.vertical_position, -7.0);
+    assert_eq!(message.vertical_velocity, -3.0);
+    assert_eq!(message.vertical_reference, 3.5);
+    let header = message.header.as_ref().expect("header");
+    assert_eq!(
+        header.stamp,
+        Some(gz_sim_proto::msgs::Time { sec: 2, nsec: 123 })
+    );
+    assert_eq!(
+        header.data,
+        vec![
+            Map {
+                key: "frame_id".into(),
+                value: vec!["rig/body/altimeter".into()]
+            },
+            Map {
+                key: "seq".into(),
+                value: vec![u64::MAX.to_string()]
+            },
+        ]
+    );
+    assert_eq!(
+        Altimeter::decode(message.encode_to_vec().as_slice()).expect("wire decode"),
+        message
+    );
+}
+
+#[test]
+fn invalid_metadata_reference_values_and_unrepresentable_stamps_never_encode() {
+    for field in 0..5 {
+        let mut invalid = metadata();
+        match field {
+            0 => invalid.entity_name.clear(),
+            1 => invalid.frame_id.clear(),
+            2 => invalid.topic.clear(),
+            3 => invalid.vertical_reference = f64::NAN,
+            _ => invalid.vertical_reference += 1.0,
+        }
+        assert!(packet(&invalid, &sample(), 0).is_none());
+    }
+    for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        for field in 0..3 {
+            let mut invalid = sample();
+            let reading = invalid.reading.as_mut().expect("valid fixture reading");
+            match field {
+                0 => reading.vertical_position = value,
+                1 => reading.vertical_velocity = value,
+                _ => reading.vertical_reference = value,
+            }
+            assert!(packet(&metadata(), &invalid, 0).is_none());
+        }
+    }
+    let invalid = AltimeterSample {
+        reading: Err(InvalidAltimeterInput),
+        ..sample()
+    };
+    assert!(packet(&metadata(), &invalid, 0).is_none());
+    assert!(
+        packet(
+            &metadata(),
+            &AltimeterSample {
+                time: Duration::MAX,
+                ..sample()
+            },
+            0
+        )
+        .is_none()
+    );
+}
+
+fn config(endpoint: Option<&str>) -> zenoh::Config {
+    let mut config = zenoh::Config::default();
+    let connect = endpoint.map_or_else(|| "[]".into(), |endpoint| format!("[\"{endpoint}\"]"));
+    for (path, value) in [
+        ("mode", "\"peer\""),
+        (
+            "listen/endpoints",
+            if endpoint.is_none() {
+                "[\"tcp/127.0.0.1:0\"]"
+            } else {
+                "[]"
+            },
+        ),
+        ("connect/endpoints", connect.as_str()),
+        ("scouting/multicast/enabled", "false"),
+        ("scouting/gossip/enabled", "false"),
+    ] {
+        config
+            .insert_json5(path, value)
+            .expect("bounded local Zenoh config");
+    }
+    config
+}
+fn server(xml: &str) -> (Server, zenoh::Session, String) {
+    let observer = zenoh::open(config(None)).wait().expect("owned observer");
+    let locators: Vec<_> = observer
+        .info()
+        .locators()
+        .wait()
+        .into_iter()
+        .map(|value| value.to_string())
+        .collect();
+    assert_eq!(locators.len(), 1);
+    assert!(locators[0].starts_with("tcp/127.0.0.1:"));
+    assert_ne!(locators[0], "tcp/127.0.0.1:0");
+    let simulation = load_world_with_sdf_step(
+        xml,
+        "server-altimeter.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .expect("fixture simulation");
+    let options = ServerOptions {
+        partition: format!("m13-{}", uuid::Uuid::new_v4()),
+        ..Default::default()
+    };
+    let key = options.topic_key("/m13/altimeter").expect("canonical key");
+    let server = Server::with_zenoh_config(
+        simulation,
+        "default",
+        options,
+        config(Some(&locators[0])),
+        NonZeroUsize::new(4).expect("positive budget"),
+    )
+    .expect("server with altimeter");
+    (server, observer, key)
+}
+
+#[test]
+fn real_zenoh_motion_cadence_pause_reset_and_removal_keep_native_contract() {
+    let (mut server, observer, key) = server(XML);
+    let subscriber = observer
+        .declare_subscriber(key)
+        .wait()
+        .expect("real subscriber");
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.altimeters[0].publisher.matching().expect("interest") {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    let identity = server.altimeters[0].identity;
+    let link = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<SceneName>()
+                .is_some_and(|name| name.0 == "default::rig::body")
+        })
+        .expect("link")
+        .get::<EntityId>()
+        .expect("link ID")
+        .get();
+    gz_sim_scene::queue_link_world_velocity(
+        &mut server.simulation,
+        link,
+        [0.0, 0.0, -1.0],
+        [0.0; 3],
+    )
+    .expect("real vertical motion");
+    server.set_paused(false);
+    for tick in 1..=20 {
+        let info = server.update().expect("advance server");
+        assert_eq!(info.sim_time, Duration::from_millis(tick));
+        if let Some(sequence) = [1, 10, 20].iter().position(|&value| value == tick) {
+            let received = subscriber
+                .recv_timeout(Duration::from_secs(5))
+                .expect("receive")
+                .expect("actual acquisition");
+            assert_eq!(
+                received
+                    .attachment()
+                    .expect("type attachment")
+                    .to_bytes()
+                    .as_ref(),
+                b"gz.msgs.Altimeter"
+            );
+            let message = Altimeter::decode(received.payload().to_bytes().as_ref())
+                .expect("canonical decode");
+            let expected = packet(
+                &metadata(),
+                &AltimeterSample {
+                    epoch: info.epoch,
+                    time: info.sim_time,
+                    ..sample()
+                },
+                sequence as u64,
+            )
+            .expect("expected header");
+            assert_eq!(message.header, expected.header);
+            assert!((message.vertical_position + info.sim_time.as_secs_f64()).abs() < 1e-12);
+            assert!((message.vertical_velocity + 1.0).abs() < 1e-12);
+            assert_eq!(message.vertical_reference, 3.5);
+        }
+    }
+    assert_eq!(server.counters().altimeters_queued, 3);
+    server.set_paused(true);
+    for _ in 0..3 {
+        assert!(server.update().expect("paused poll").dt.is_zero());
+    }
+    assert!(subscriber.try_recv().expect("empty receive").is_none());
+    assert!(server.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    let reset = server.update().expect("loaded reset");
+    assert_eq!((reset.epoch, reset.sim_time), (1, Duration::ZERO));
+    assert_eq!(server.altimeters[0].identity, identity);
+    assert!(
+        subscriber
+            .try_recv()
+            .expect("no reset-time publication")
+            .is_none()
+    );
+    server.set_paused(false);
+    server.update().expect("new epoch advance");
+    let message = Altimeter::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .expect("receive")
+            .expect("new epoch sample")
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .expect("decode reset sample");
+    assert_eq!(
+        message.header.as_ref().expect("header").data[1].value,
+        ["0"]
+    );
+    assert_eq!(
+        (
+            message.vertical_position,
+            message.vertical_velocity,
+            message.vertical_reference
+        ),
+        (0.0, 0.0, 3.5)
+    );
+    let model = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<SceneName>()
+                .is_some_and(|name| name.0 == "default::rig")
+        })
+        .expect("model")
+        .get::<EntityId>()
+        .expect("model ID")
+        .get();
+    let lease = Arc::downgrade(&server.altimeters[0].publisher);
+    remove_model(&mut server.simulation, model).expect("model removal");
+    server.set_paused(true);
+    server.update().expect("retirement poll");
+    assert!(server.altimeters.is_empty() && server.altimeters.capacity() == 0);
+    assert!(lease.upgrade().is_none());
+    assert!(subscriber.try_recv().expect("empty receive").is_none());
+    assert!(server.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    assert_eq!(server.update().expect("restore removed sensor").epoch, 2);
+    assert_eq!(server.altimeters[0].identity, identity);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.altimeters[0]
+        .publisher
+        .matching()
+        .expect("restored interest")
+    {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    server.set_paused(false);
+    server.update().expect("restored acquisition");
+    let message = Altimeter::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .expect("receive")
+            .expect("restored sample")
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .expect("decode");
+    assert_eq!(message.header.expect("header").data[1].value, ["0"]);
+    assert_eq!(
+        (
+            server.counters().altimeter_failures,
+            server.counters().invalid_altimeter_samples
+        ),
+        (0, 0)
+    );
+    server.shutdown();
+    assert!(matches!(server.update(), Err(Error::WorldClosed)));
+}
+
+#[test]
+fn disconnected_demand_and_absent_sensor_own_no_measurement_or_stream() {
+    let (mut server, observer, key) = server(XML);
+    server.set_paused(false);
+    for _ in 0..20 {
+        server.update().expect("disconnected advance");
+    }
+    assert!(
+        server
+            .simulation
+            .world()
+            .get::<AltimeterSample>(server.altimeters[0].entity)
+            .is_none()
+    );
+    assert_eq!(server.counters().altimeters_queued, 0);
+    server.set_interest_policy(InterestPolicy::Always);
+    server.update().expect("explicit local acquisition");
+    assert!(
+        server
+            .simulation
+            .world()
+            .get::<AltimeterSample>(server.altimeters[0].entity)
+            .is_some()
+    );
+    server.set_interest_policy(InterestPolicy::Subscribers);
+    server.update().expect("disconnect clears sample");
+    assert!(
+        server
+            .simulation
+            .world()
+            .get::<AltimeterSample>(server.altimeters[0].entity)
+            .is_none()
+    );
+    drop(
+        observer
+            .declare_subscriber(key)
+            .wait()
+            .expect("brief subscriber"),
+    );
+    let start = XML.find("    <sensor ").expect("sensor start");
+    let end = start + XML[start..].find("</sensor>").expect("sensor end") + "</sensor>".len();
+    let absent = format!("{}{}", &XML[..start], &XML[end..]);
+    let (mut absent, _, _) = self::server(&absent);
+    assert!(absent.altimeters.is_empty() && absent.altimeters.capacity() == 0);
+    absent.set_paused(false);
+    for _ in 0..3 {
+        absent.update().expect("absent sensor advance");
+    }
+    assert_eq!(absent.counters().altimeters_queued, 0);
+}
+
+#[test]
+fn occupied_endpoints_invalid_ownership_and_reset_metadata_drift_refuse() {
+    let (mut server, _, key) = server(XML);
+    let entity = server.altimeters[0].entity;
+    let original = Arc::clone(&server.altimeters[0].publisher);
+    let occupied = BTreeSet::from([key]);
+    assert!(matches!(
+        streams(
+            &server.simulation,
+            &server.world_io,
+            &server.network_config,
+            &occupied,
+            None
+        ),
+        Err(Error::AltimeterIdentity)
+    ));
+    assert_eq!(server.altimeters.len(), 1);
+    assert!(Arc::ptr_eq(&original, &server.altimeters[0].publisher));
+    let prepared = prepare_reset(&server, &BTreeSet::new()).expect("prepare original metadata");
+    server
+        .simulation
+        .world_mut()
+        .get_mut::<AltimeterPublication>(entity)
+        .expect("metadata")
+        .frame_id = "drift".into();
+    assert!(matches!(
+        streams(
+            &server.simulation,
+            &server.world_io,
+            &server.network_config,
+            &BTreeSet::new(),
+            Some(&prepared)
+        ),
+        Err(Error::ResetAltimeters)
+    ));
+    server
+        .simulation
+        .world_mut()
+        .entity_mut(entity)
+        .insert(EntityKind::Visual);
+    assert!(matches!(
+        streams(
+            &server.simulation,
+            &server.world_io,
+            &server.network_config,
+            &BTreeSet::new(),
+            None
+        ),
+        Err(Error::AltimeterIdentity)
+    ));
+    server.retire_altimeters();
+    assert!(server.altimeters.is_empty());
+}
+
+#[test]
+fn invalid_stale_future_and_bounded_publication_failures_never_become_valid_samples() {
+    let (mut server, _, _) = server(XML);
+    let entity = server.altimeters[0].entity;
+    server.simulation.step_exact(20).expect("local advance");
+    for (epoch, time, reading) in [
+        (0, Duration::from_millis(20), Err(InvalidAltimeterInput)),
+        (1, Duration::from_millis(20), sample().reading),
+        (0, Duration::from_millis(21), sample().reading),
+    ] {
+        server
+            .simulation
+            .world_mut()
+            .entity_mut(entity)
+            .insert(AltimeterSample {
+                epoch,
+                time,
+                reading,
+            });
+        server.publish_altimeters();
+        server.publish_altimeters();
+    }
+    assert_eq!(server.counters().invalid_altimeter_samples, 3);
+    assert_eq!(server.altimeters[0].sequence, 0);
+    server.simulation.step_exact(10).expect("fresh sample");
+    server.world_io.max_message_bytes = 1;
+    server.publish_altimeters();
+    assert_eq!(server.counters().altimeter_failures, 1);
+    assert_eq!(server.altimeters[0].sequence, 1);
+    server.world_io.max_message_bytes = 16 * 1024 * 1024;
+    server.simulation.step_exact(10).expect("another sample");
+    server.altimeters[0].sequence = u64::MAX;
+    server.publish_altimeters();
+    assert_eq!(server.counters().altimeters_queued, 1);
+    assert_eq!(server.altimeters[0].sequence, 0);
+}
+
+fn with_altimeter(base: &str) -> String {
+    let start = XML
+        .find("  <model name='rig'>")
+        .expect("altimeter model start");
+    let end = XML.rfind("</model>").expect("altimeter model end") + "</model>".len();
+    base.replace("</world>", &format!("{}\n</world>", &XML[start..end]))
+}
+
+fn assert_all_collisions(
+    simulation: &mut Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+    topics: &[&str],
+) {
+    let occupied = altimeter_reserved_keys(simulation, io, config).expect("complete reserved set");
+    let entity = simulation
+        .world()
+        .iter_entities()
+        .find(|entity| entity.contains::<AltimeterPublication>())
+        .expect("loaded altimeter")
+        .id();
+    for topic in topics {
+        let key = config.topic_key(topic).expect("actual qualified key");
+        assert!(
+            occupied.contains(&key),
+            "missing reservation for {topic}: {key}"
+        );
+        simulation
+            .world_mut()
+            .get_mut::<AltimeterPublication>(entity)
+            .expect("metadata")
+            .topic = (*topic).into();
+        assert!(
+            matches!(
+                streams(simulation, io, config, &occupied, None),
+                Err(Error::AltimeterIdentity)
+            ),
+            "collision did not refuse {topic} before the first new declaration"
+        );
+    }
+    simulation
+        .world_mut()
+        .get_mut::<AltimeterPublication>(entity)
+        .expect("metadata")
+        .topic = "/m13/altimeter".into();
+}
+
+#[test]
+fn every_reserved_family_and_removed_initial_configuration_blocks_altimeter_aliases() {
+    let (server, _, _) = server(XML);
+    let mut options = server.network_config.clone();
+    options
+        .add_topic_remap("/clock", "/m13/remapped_clock")
+        .expect("one root-clock remap");
+    let mut sensor_world = load_world_with_sdf_step(
+        XML,
+        "reserved-world",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .expect("loaded sensor");
+    assert_all_collisions(
+        &mut sensor_world,
+        &server.world_io,
+        &options,
+        &[
+            "/world/default/clock",
+            "/world/default/pose/info",
+            "/world/default/control",
+            "/world/default/remove",
+            "/world/default/remove/blocking",
+            "/clock",
+        ],
+    );
+    let start = XML.find("    <sensor ").expect("sensor start");
+    let end = start + XML[start..].find("</sensor>").expect("sensor end") + "</sensor>".len();
+    let instrument = format!("{}{}{}", &XML[..start],
+        "<sensor name='imu' type='imu'><topic>/m13/imu</topic><imu/></sensor>\
+         <sensor name='lidar' type='lidar'><topic>/m13/scan</topic><lidar><scan><horizontal>\
+         <samples>3</samples><resolution>1</resolution><min_angle>-0.5</min_angle><max_angle>0.5</max_angle>\
+         </horizontal></scan><range><min>0.1</min><max>10</max><resolution>0</resolution></range></lidar></sensor>",
+        &XML[end..]).replace("name='rig'", "name='instrument'");
+    let force = include_str!("../fixtures/joint_force.sdf").replace("</model>",
+        "<plugin filename='gz-sim-apply-joint-force-system' name='gz::sim::systems::ApplyJointForce'>\
+         <joint_name>hinge</joint_name></plugin></model>");
+    let fixtures = [
+        (
+            instrument,
+            "default::instrument",
+            vec!["/m13/imu", "/m13/imu/set_rate", "/m13/scan"],
+        ),
+        (
+            include_str!("../../../../examples/m8_diff_drive.sdf").to_owned(),
+            "default::robot",
+            vec!["/model/robot/cmd_vel", "/model/robot/odometry"],
+        ),
+        (
+            include_str!("../../../../examples/m9_joint_controllers.sdf").to_owned(),
+            "default::arm",
+            vec![
+                "/model/arm/joint/base_hinge/0/cmd_pos",
+                "/model/arm/joint/tip_hinge/cmd_vel",
+            ],
+        ),
+        (
+            force,
+            "default::rotor",
+            vec!["/model/rotor/joint/hinge/cmd_force"],
+        ),
+    ];
+    for (base, owner, topics) in fixtures {
+        let mut simulation = load_world_with_sdf_step(
+            &with_altimeter(&base),
+            "reserved-families",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::Rapier,
+        )
+        .expect("actual loaded family metadata");
+        assert_all_collisions(&mut simulation, &server.world_io, &options, &topics);
+        let model = simulation
+            .world()
+            .iter_entities()
+            .find(|entity| {
+                entity
+                    .get::<SceneName>()
+                    .is_some_and(|name| name.0 == owner)
+            })
+            .expect("family owner")
+            .get::<EntityId>()
+            .expect("model identity")
+            .get();
+        remove_model(&mut simulation, model).expect("retire live family");
+        // The same exact keys remain reserved by the loaded reconstruction blueprint.
+        assert_all_collisions(&mut simulation, &server.world_io, &options, &topics);
+    }
+    assert_eq!(server.altimeters.len(), 1);
+    assert_eq!(server.altimeters[0].metadata, metadata());
+    assert_eq!(server.counters().altimeters_queued, 0);
+}
+
+// These owned snapshots must not borrow Server across the mutation under test.
+fn native_boundary_snapshot(server: &Server) -> impl PartialEq + std::fmt::Debug + use<> {
+    let world = server.simulation.world();
+    let backend = world.resource::<gz_physics::PhysicsBackend>();
+    let mut bodies: Vec<_> = world
+        .iter_entities()
+        .filter_map(|entity| entity.get::<gz_sim_scene::BodyHandle>())
+        .map(|handle| {
+            (
+                handle.id(),
+                backend.state(handle.id()).expect("actual native state"),
+            )
+        })
+        .collect();
+    bodies.sort_by_key(|(id, _)| *id);
+    let mut identities: Vec<_> = world
+        .iter_entities()
+        .filter_map(|entity| entity.get::<EntityId>().map(|id| (id.get(), entity.id())))
+        .collect();
+    identities.sort_by_key(|(id, _)| *id);
+    (
+        server.simulation.epoch(),
+        server.simulation.elapsed(),
+        bodies,
+        identities,
+    )
+}
+
+fn refusal_boundary_snapshot(server: &Server) -> impl PartialEq + std::fmt::Debug + use<> {
+    let streams: Vec<_> = server
+        .altimeters
+        .iter()
+        .map(|stream| {
+            (
+                stream.entity,
+                stream.identity,
+                Arc::as_ptr(&stream.publisher),
+                stream.sequence,
+                stream.last_sample,
+            )
+        })
+        .collect();
+    (
+        native_boundary_snapshot(server),
+        format!("{:?}", server.counters()),
+        streams,
+    )
+}
+
+#[test]
+fn stream_identity_and_prepared_reset_fences_refuse_before_lease_or_scene_mutation() {
+    for case in 0..4 {
+        let (mut server, _observer, key) = server(XML);
+        let entity = server.altimeters[0].entity;
+        let original = Arc::clone(&server.altimeters[0].publisher);
+        let mut prepared = if case >= 2 {
+            Some(prepare_reset(&server, &BTreeSet::new()).expect("original reset transaction"))
+        } else {
+            None
+        };
+        match case {
+            0 => {
+                // A second public metadata owner must be refused before either
+                // candidate can trigger a declaration, even without an assigned ID.
+                server.simulation.world_mut().spawn(metadata());
+            }
+            1 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(entity)
+                    .remove::<EntityId>();
+            }
+            2 => {
+                prepared
+                    .as_mut()
+                    .expect("prepared transaction")
+                    .remove(&key)
+                    .expect("configured endpoint removed from transaction");
+            }
+            _ => {
+                let entry = prepared
+                    .as_ref()
+                    .expect("prepared transaction")
+                    .get(&key)
+                    .expect("configured endpoint")
+                    .clone();
+                let stale = server
+                    .network_config
+                    .topic_key("/m13/stale_reset_endpoint")
+                    .expect("concrete stale endpoint");
+                assert!(
+                    prepared
+                        .as_mut()
+                        .expect("prepared transaction")
+                        .insert(stale, entry)
+                        .is_none()
+                );
+            }
+        }
+        let before = refusal_boundary_snapshot(&server);
+        let result = streams(
+            &server.simulation,
+            &server.world_io,
+            &server.network_config,
+            &BTreeSet::new(),
+            prepared.as_ref(),
+        );
+        if case < 2 {
+            assert!(
+                matches!(result, Err(Error::AltimeterIdentity)),
+                "ownership case {case}"
+            );
+        } else {
+            assert!(
+                matches!(result, Err(Error::ResetAltimeters)),
+                "reset case {case}"
+            );
+        }
+        assert_eq!(refusal_boundary_snapshot(&server), before, "case {case}");
+        assert!(Arc::ptr_eq(&original, &server.altimeters[0].publisher));
+        assert_eq!(server.altimeters.len(), 1);
+        drop(prepared);
+        drop(original);
+        server.shutdown();
+    }
+}
+
+#[test]
+fn closed_world_io_retires_altimeter_demand_and_refuses_new_declarations_atomically() {
+    let (mut server, observer, key) = server(XML);
+    let subscriber = observer
+        .declare_subscriber(key)
+        .wait()
+        .expect("real subscriber");
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !server.altimeters[0]
+        .publisher
+        .matching()
+        .expect("actual interest")
+    {
+        assert!(Instant::now() < deadline, "altimeter interest deadline");
+        std::thread::yield_now();
+    }
+    server.set_paused(false);
+    server.update().expect("first real acquisition");
+    let message = Altimeter::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .expect("receive")
+            .expect("actual first frame")
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .expect("canonical first frame");
+    assert_eq!(message.header.expect("header").data[1].value, ["0"]);
+    let entity = server.altimeters[0].entity;
+    assert_eq!(
+        server
+            .simulation
+            .world()
+            .get::<AltimeterSample>(entity)
+            .expect("actual sample")
+            .time,
+        Duration::from_millis(1)
+    );
+    let sequence = server.altimeters[0].sequence;
+    let lease = Arc::downgrade(&server.altimeters[0].publisher);
+    let physical_before = native_boundary_snapshot(&server);
+    let fence_key = server
+        .network_config
+        .topic_key("/m13/closed_io_fence")
+        .expect("fence topic");
+    let fence = server
+        .world_io
+        .altimeter_output(fence_key)
+        .expect("prior queued publications completed");
+    drop(fence);
+    let mut expected_counters = server.counters();
+    expected_counters.interest_failures += 1;
+    server
+        .world_io
+        .session
+        .close()
+        .wait()
+        .expect("close owned IO session");
+    server.refresh_altimeter_interest();
+    assert_eq!(native_boundary_snapshot(&server), physical_before);
+    assert_eq!(
+        format!("{:?}", server.counters()),
+        format!("{expected_counters:?}")
+    );
+    assert!(
+        server
+            .simulation
+            .world()
+            .get::<AltimeterSample>(entity)
+            .is_none()
+    );
+    assert_eq!(server.altimeters[0].sequence, sequence);
+    assert!(Arc::ptr_eq(
+        &lease.upgrade().expect("CPU owner retained"),
+        &server.altimeters[0].publisher
+    ));
+
+    // This crosses the next due 10ms deadline using actual Scene acquisition;
+    // the closed IO error must select empty demand instead of leaving it active.
+    server
+        .simulation
+        .step_exact(10)
+        .expect("advance closed-interest Scene");
+    assert_eq!(server.simulation.elapsed(), Duration::from_millis(11));
+    assert!(
+        server
+            .simulation
+            .world()
+            .get::<AltimeterSample>(entity)
+            .is_none()
+    );
+    assert_eq!(server.counters().altimeters_queued, 1);
+    assert!(subscriber.try_recv().expect("no later frame").is_none());
+    let before = refusal_boundary_snapshot(&server);
+    assert!(matches!(
+        streams(
+            &server.simulation,
+            &server.world_io,
+            &server.network_config,
+            &BTreeSet::new(),
+            None
+        ),
+        Err(Error::WorldNetwork(_))
+    ));
+    assert_eq!(refusal_boundary_snapshot(&server), before);
+    assert!(Arc::ptr_eq(
+        &lease.upgrade().expect("same CPU owner"),
+        &server.altimeters[0].publisher
+    ));
+    server.shutdown();
+    assert!(lease.upgrade().is_none());
+}
+
+#[test]
+fn reset_preflight_collision_and_closed_replacement_leave_scene_and_retirement_atomic() {
+    let (mut server, _observer, key) = server(XML);
+    let original = Arc::clone(&server.altimeters[0].publisher);
+    let lease = Arc::downgrade(&original);
+    let occupied = BTreeSet::from([key]);
+    let before = refusal_boundary_snapshot(&server);
+    assert!(matches!(
+        prepare_reset(&server, &occupied),
+        Err(Error::AltimeterIdentity)
+    ));
+    assert_eq!(refusal_boundary_snapshot(&server), before);
+    assert!(Arc::ptr_eq(&original, &server.altimeters[0].publisher));
+    drop(original);
+
+    let model = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<SceneName>()
+                .is_some_and(|name| name.0 == "default::rig")
+        })
+        .expect("loaded model")
+        .get::<EntityId>()
+        .expect("model ID")
+        .get();
+    let bodies: Vec<_> = server
+        .simulation
+        .world()
+        .iter_entities()
+        .filter_map(|entity| entity.get::<gz_sim_scene::BodyHandle>())
+        .map(gz_sim_scene::BodyHandle::id)
+        .collect();
+    assert!(!bodies.is_empty());
+    remove_model(&mut server.simulation, model).expect("legitimate model removal");
+    server.retire_altimeters();
+    assert!(server.altimeters.is_empty() && server.altimeters.capacity() == 0);
+    assert!(lease.upgrade().is_none());
+    server
+        .world_io
+        .session
+        .close()
+        .wait()
+        .expect("close owned IO session");
+    let before = refusal_boundary_snapshot(&server);
+    // The loaded blueprint still owns the original endpoint, but there is no
+    // live CPU lease to reuse. A real declaration refusal must precede reset.
+    assert!(matches!(server.reset_scene(), Err(Error::WorldNetwork(_))));
+    assert_eq!(refusal_boundary_snapshot(&server), before);
+    assert!(server.altimeters.is_empty() && server.altimeters.capacity() == 0);
+    assert!(lease.upgrade().is_none());
+    let backend = server
+        .simulation
+        .world()
+        .resource::<gz_physics::PhysicsBackend>();
+    for body in bodies {
+        assert!(backend.state(body).is_none());
+    }
+    server.shutdown();
+}

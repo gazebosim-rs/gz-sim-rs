@@ -27,6 +27,49 @@ fn failure(world: &sdformat::World, feature: &str) {
     assert!(matches!(error, LoadError::Unsupported { feature: actual, .. } if actual == feature));
 }
 #[test]
+fn altimeter_preflight_admits_typed_family_and_preserves_metadata_refusals() {
+    let altimeter_world = || {
+        sdformat::load_str(
+            include_str!("../fixtures/m13_altimeter.sdf"),
+            "altimeter-preflight",
+            &sdformat::NoResources,
+        )
+        .expect("typed altimeter fixture")
+        .worlds
+        .remove(0)
+    };
+    assert!(validate(&altimeter_world()).is_ok());
+    for config in [
+        SensorConfig::Unconfigured,
+        SensorConfig::AirPressure(Box::default()),
+    ] {
+        let mut value = altimeter_world();
+        value.models[0].links[0].sensors[0].config = config;
+        failure(&value, "non-IMU sensors");
+    }
+    let cases: [Edit; 3] = [
+        ("sensor visualization", |w| {
+            w.models[0].links[0].sensors[0].visualize = true
+        }),
+        ("sensor plugins", |w| {
+            w.models[0].links[0].sensors[0].plugins.push(Plugin {
+                name: "p".into(),
+                filename: "p.so".into(),
+                xml: "<plugin/>".into(),
+            })
+        }),
+        ("sensor extensions", |w| {
+            let s = &mut w.models[0].links[0].sensors[0];
+            s.extensions.push(extension(s.source.clone()));
+        }),
+    ];
+    for (expected, edit) in cases {
+        let mut value = altimeter_world();
+        edit(&mut value);
+        failure(&value, expected);
+    }
+}
+#[test]
 fn world_admission_keeps_native_defaults_and_rejects_unconsumed_fields() {
     assert!(validate(&world()).is_ok());
     let cases: [Edit; 6] = [
