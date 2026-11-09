@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-09",
   "execution_state": "active",
-  "current_phase": "M33",
+  "current_phase": "M34",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -595,7 +595,37 @@
       "scope": "Separate mobile-robot example retaining M19 behavior and adding one centered IMU and one offset planar CPU lidar, with fresh simultaneous canonical-wire and Primitive socket lifecycle proofs through existing models.",
       "acceptance": "Complete disjoint example/server/C++ peer and socket/guide source batches plus independent integration review before one full normal/strict coverage/exact hosted cycle and independent local/official DATA. Require fresh dual-stream C++ interoperability and actual socket demand/rate/pause/reset/removal/credit/collision-refusal evidence, then qualified Main.",
       "excluded": "New noise models, admission expansion, sensor multiplicity, backend/schema/transport/runtime or packaging frameworks, widgets, body teleportation, package/browser refresh and performance/legal/cold-start claims.",
-      "evidence": "docs/M33_DELIVERY.md"
+      "evidence": "docs/M33_ACCEPTANCE.md",
+      "accepted_at": "2026-11-09T18:25:14.658149+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "17dd62f27234eab1482abb233389d167dafa31b4"
+      }
+    },
+    {
+      "id": "M34",
+      "title": "Noiseless 2D ground-truth odometry",
+      "max_working_days": 5,
+      "depends_on": [
+        "M33"
+      ],
+      "scope": "One explicitly configured flat top-level Rapier model publishes actual pose-derived 2D Odometry, OdometryWithCovariance and Pose_V with zero offsets/noise, bounded frame/topic/rate admission and existing models and upstream Zenoh.",
+      "acceptance": "Independently review native first-step/filter/body-frame/cadence contracts before implementation. Require original-system native observations, actual motion distinct from encoder integration, all three canonical streams, pause/reset/removal/demand/atomic refusals, complete normal and strict coverage, exact hosted CI and independent local/official DATA before Main acceptance.",
+      "excluded": "3D, nondefault offsets/noise, unsupported topology/backends, new dependencies/frameworks, widgets, package/browser refresh and performance or trajectory claims.",
+      "evidence": "docs/M34_M35_DELIVERY.md",
+      "source_preparation_only": false
+    },
+    {
+      "id": "M35",
+      "title": "Canonical link-wrench inputs",
+      "max_working_days": 5,
+      "depends_on": [
+        "M33"
+      ],
+      "scope": "One configured world system accepts bounded canonical one-shot, additive persistent and clear inputs for existing top-level single-link unjointed dynamic Rapier bodies with exactly zero inertial center translation, finite world-axis force/torque and zero force_offset, reusing current COM wrench mechanics without new frame math.",
+      "acceptance": "Independently review exact native pause/clear/addition and explicit reset/removal contracts before implementation. Require original-system native observations, real force/torque velocity effects, bounded overflow/refusal/identity/lifetime and C++ EntityWrench/Entity delivery, complete normal and strict coverage, exact hosted CI and independent local/official DATA before Main acceptance.",
+      "excluded": "TPE, model/canonical-link indirection, nested/jointed/multilink bodies, noncentered inertial centers, offsets, future targets, contact/reaction sensing, new physics/frameworks, package/browser refresh and performance or trajectory claims.",
+      "evidence": "docs/M34_M35_DELIVERY.md",
+      "source_preparation_only": false
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -632,14 +662,17 @@
     "M30": "complete",
     "M31": "complete",
     "M32": "complete",
-    "M33": "in_progress"
+    "M33": "complete",
+    "M34": "in_progress",
+    "M35": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-09",
   "active_phases": [
-    "M33"
+    "M34",
+    "M35"
   ],
-  "execution_policy": "D30–D32: M1–M32 accepted at exact qualified Main679c9990; release439342072 is verified Latest. M33 example/server/C++ peer and Primitive socket/guide source lanes author in parallel under recorded exclusive leases. Root integrates shared peer registration and serial execution. Complete code/regressions/docs and independent review before one consolidated full normal/strict coverage/exact hosted cycle; independent DATA and new functional proofs precede Main acceptance. No old proof replay, gate weakening, new eviction or Fuel mutation.",
+  "execution_policy": "D30\u2013D32 continuous delivery: M1\u2013M33 accepted at qualified Main17dd62f2 after full normal hook, exact hosted CI42667053571 attempt1 and independent local/official DATA. M34/M35 have independently reviewed contracts and disjoint source implementation released over that accepted parent. Root owns shared integration and serial local heavy jobs. Complete both code/regressions/docs and independent Source review before one reviewed native batch and consolidated full normal/strict coverage/exact hosted/local/official qualification. No acceptance transfer.",
   "parallel_groups": [
     {
       "phases": [
@@ -724,7 +757,15 @@
       ],
       "integration": "M30/M31 source stays frozen while exact hosted/official/Main closeout runs. Disjoint M32 assembler/guide and finite-qualifier source preparation may overlap; release/installation/browser/final qualification requires the accepted parent. No acceptance transfer; local heavy operations stay serial.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M34",
+        "M35"
+      ],
+      "integration": "Disjoint contract and leaf source preparation overlaps M33 hosted closeout. Root alone owns shared admission/scheduling/reset/IO/counters and both maintained peer registry and CLI guards. Detailed contracts require independent review before implementation; actual accepted-parent binding precedes all native/full verification/publication. No acceptance transfers from M33 or between phases.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M32 acceptance follows actual normal, local/exact-hosted/official, fresh release/input/package/install/browser/visual DATA and exact Main/tag/seven assets/body/Latest readbacks. M33 inherits no acceptance for new integration; M32 installed release remains unchanged."
+  "acceptance_boundary": "M1\u2013M33 accepted; M32 stays installed Latest. M34/M35 implementation, independent source review and native reference DATA are complete. The audited native odometry fixture is attached to exact Rust numeric/wire regressions. Full normal hook, strict coverage, exact hosted CI and independent local/official DATA remain required before acceptance."
 }

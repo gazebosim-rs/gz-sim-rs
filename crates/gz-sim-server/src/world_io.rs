@@ -33,6 +33,9 @@ pub(super) use crate::joint_state_io::JointStateOutput;
 pub(super) use crate::lidar_io::LidarOutput;
 pub(super) use crate::logical_camera_io::{LogicalCameraChannel, LogicalCameraOutput};
 pub(super) use crate::magnetometer_io::MagnetometerOutput;
+pub(super) use crate::odometry_publisher_io::{
+    GroundTruthOdometryChannel, GroundTruthOdometryOutput,
+};
 pub(super) use crate::pose_publisher_io::PosePublisherOutput;
 
 const TCP_PROFILE: [(&str, u64); 5] = [
@@ -163,6 +166,9 @@ pub(super) const AIR_SPEED_FAILURE_INDEX: usize = 10;
 pub(super) const POSE_PUBLISHER_FAILURE_INDEX: usize = 11;
 pub(super) const LOGICAL_CAMERA_IMAGE_FAILURE_INDEX: usize = 12;
 pub(super) const LOGICAL_CAMERA_FRUSTUM_FAILURE_INDEX: usize = 13;
+pub(super) const GROUND_TRUTH_ODOMETRY_FAILURE_INDEX: usize = 14;
+pub(super) const GROUND_TRUTH_ODOMETRY_COVARIANCE_FAILURE_INDEX: usize = 15;
+pub(super) const GROUND_TRUTH_ODOMETRY_TF_FAILURE_INDEX: usize = 16;
 
 enum WorldWork {
     Clock(u64, Vec<u8>),
@@ -173,6 +179,7 @@ enum WorldWork {
     AirPressure(u64, crate::air_pressure_io::AirPressureJob),
     AirSpeed(u64, crate::air_speed_io::AirSpeedJob),
     LogicalCamera(u64, crate::logical_camera_io::LogicalCameraJob),
+    GroundTruthOdometry(u64, crate::odometry_publisher_io::GroundTruthOdometryJob),
     JointState(u64, crate::joint_state_io::JointStateJob),
     PosePublisher(u64, crate::pose_publisher_io::PosePublisherJob),
     Magnetometer(u64, crate::magnetometer_io::MagnetometerJob),
@@ -202,6 +209,15 @@ enum WorldWork {
         String,
         LogicalCameraChannel,
         mpsc::SyncSender<std::result::Result<Arc<LogicalCameraOutput>, String>>,
+    ),
+    InstallGroundTruthOdometry(
+        String,
+        GroundTruthOdometryChannel,
+        mpsc::SyncSender<std::result::Result<Arc<GroundTruthOdometryOutput>, String>>,
+    ),
+    InstallWrenches(
+        crate::apply_link_wrench_io::WrenchSetup,
+        mpsc::SyncSender<std::result::Result<(), String>>,
     ),
     InstallAirSpeed(
         String,
@@ -275,7 +291,7 @@ pub(super) struct WorldIo {
     pub(super) rejected: Arc<AtomicU64>,
     pub(super) ingress_drops: Arc<AtomicU64>,
     pub(super) reply_failures: Arc<AtomicU64>,
-    pub(super) publication_failures: Arc<[AtomicU64; 14]>,
+    pub(super) publication_failures: Arc<[AtomicU64; 17]>,
     pub(super) epoch: Arc<AtomicU64>,
     pub(super) max_message_bytes: usize,
     capacity: usize,
@@ -416,7 +432,7 @@ impl WorldIo {
         let worker_poses = Arc::clone(&poses);
         let epoch = Arc::new(AtomicU64::new(0));
         let worker_epoch = Arc::clone(&epoch);
-        let publication_failures: Arc<[AtomicU64; 14]> =
+        let publication_failures: Arc<[AtomicU64; 17]> =
             Arc::new(std::array::from_fn(|_| AtomicU64::new(0)));
         let failures = Arc::clone(&publication_failures);
         let control_worker =
@@ -590,6 +606,13 @@ impl WorldIo {
                     mpsc::SyncSender<crate::logical_camera_io::LogicalCameraId>,
                     mpsc::Receiver<crate::logical_camera_io::LogicalCameraId>,
                 )> = None;
+                let mut ground_truth_odometries: Option<
+                    crate::odometry_publisher_io::GroundTruthOdometryDeclarations,
+                > = None;
+                let mut ground_truth_odometry_retirement: Option<(
+                    mpsc::SyncSender<crate::odometry_publisher_io::GroundTruthOdometryId>,
+                    mpsc::Receiver<crate::odometry_publisher_io::GroundTruthOdometryId>,
+                )> = None;
                 let mut joint_states: Option<crate::joint_state_io::JointStateDeclarations> = None;
                 let mut joint_state_retirement: Option<(
                     mpsc::SyncSender<crate::joint_state_io::JointStateId>,
@@ -618,6 +641,11 @@ impl WorldIo {
                 )> = None;
                 let mut install: Option<(
                     crate::rates::RateSetup,
+                    mpsc::SyncSender<std::result::Result<(), String>>,
+                )> = None;
+                let mut wrenches: Option<crate::apply_link_wrench_io::WrenchDeclarations> = None;
+                let mut wrench_install: Option<(
+                    crate::apply_link_wrench_io::WrenchSetup,
                     mpsc::SyncSender<std::result::Result<(), String>>,
                 )> = None;
                 let mut force_install: Option<(
@@ -685,6 +713,16 @@ impl WorldIo {
                             logical_camera_retirement = None;
                         }
                     }
+                    if let Some((_, retired)) = &ground_truth_odometry_retirement {
+                        while retired.try_recv().is_ok() {}
+                    }
+                    if let Some(declarations) = &mut ground_truth_odometries {
+                        declarations.reconcile(publication_session.is_closed());
+                        if declarations.is_empty() {
+                            ground_truth_odometries = None;
+                            ground_truth_odometry_retirement = None;
+                        }
+                    }
                     if let Some((_, retired)) = &joint_state_retirement {
                         while retired.try_recv().is_ok() {}
                     }
@@ -719,6 +757,12 @@ impl WorldIo {
                         declarations.reconcile();
                         if declarations.is_empty() {
                             rates = None;
+                        }
+                    }
+                    if let Some(declarations) = &mut wrenches {
+                        declarations.reconcile();
+                        if declarations.is_empty() {
+                            wrenches = None;
                         }
                     }
                     if let Some(declarations) = &mut forces {
@@ -807,6 +851,24 @@ impl WorldIo {
                             }
                         }
                     }
+                    if wrenches.is_none()
+                        && let Some((setup, receipt)) = wrench_install.take()
+                    {
+                        match crate::apply_link_wrench_io::WrenchDeclarations::new(
+                            &publication_session,
+                            setup,
+                        ) {
+                            Ok(declarations) => {
+                                if receipt.try_send(Ok(())).is_err() {
+                                    declarations.begin_shutdown();
+                                }
+                                wrenches = Some(declarations);
+                            }
+                            Err(error) => {
+                                let _ = receipt.try_send(Err(error.to_string()));
+                            }
+                        }
+                    }
                     let incoming = if drive.is_some()
                         || controllers.is_some()
                         || controller_install.is_some()
@@ -819,6 +881,9 @@ impl WorldIo {
                         || air_pressures.is_some()
                         || air_speeds.is_some()
                         || logical_cameras.is_some()
+                        || ground_truth_odometries.is_some()
+                        || wrenches.is_some()
+                        || wrench_install.is_some()
                         || joint_states.is_some()
                         || pose_publishers.is_some()
                         || magnetometers.is_some()
@@ -1015,6 +1080,44 @@ impl WorldIo {
                                 .map_err(|error| error.to_string());
                             let _ = receipt.try_send(result);
                         }
+                        Ok(WorldWork::GroundTruthOdometry(generation, job)) => {
+                            let index = match job.channel {
+                                GroundTruthOdometryChannel::Odometry => {
+                                    GROUND_TRUTH_ODOMETRY_FAILURE_INDEX
+                                }
+                                GroundTruthOdometryChannel::Covariance => {
+                                    GROUND_TRUTH_ODOMETRY_COVARIANCE_FAILURE_INDEX
+                                }
+                                GroundTruthOdometryChannel::Transform => {
+                                    GROUND_TRUTH_ODOMETRY_TF_FAILURE_INDEX
+                                }
+                            };
+                            if generation == worker_epoch.load(Ordering::Acquire)
+                                && ground_truth_odometries
+                                    .as_ref()
+                                    .is_some_and(|declarations| declarations.publish(job).is_err())
+                            {
+                                failures[index].fetch_add(1, Ordering::Relaxed);
+                            }
+                        }
+                        Ok(WorldWork::InstallGroundTruthOdometry(key, channel, receipt)) => {
+                            let declarations = ground_truth_odometries.get_or_insert_with(
+                                crate::odometry_publisher_io::GroundTruthOdometryDeclarations::new,
+                            );
+                            let (retired, _) = ground_truth_odometry_retirement
+                                .get_or_insert_with(|| mpsc::sync_channel(capacity));
+                            let result = declarations
+                                .get_or_create(
+                                    &publication_session,
+                                    key,
+                                    channel,
+                                    &publication_process,
+                                    &publication_node,
+                                    retired.clone(),
+                                )
+                                .map_err(|error| error.to_string());
+                            let _ = receipt.try_send(result);
+                        }
                         Ok(WorldWork::Magnetometer(generation, job)) => {
                             if generation == worker_epoch.load(Ordering::Acquire)
                                 && magnetometers
@@ -1148,12 +1251,23 @@ impl WorldIo {
                                     receipt.try_send(Err("force setup is already pending".into()));
                             }
                         }
+                        Ok(WorldWork::InstallWrenches(setup, receipt)) => {
+                            if wrench_install.is_none() {
+                                wrench_install = Some((setup, receipt));
+                            } else {
+                                let _ =
+                                    receipt.try_send(Err("wrench setup is already pending".into()));
+                            }
+                        }
                         Ok(WorldWork::Stop)
                         | Err(crossbeam_channel::RecvTimeoutError::Disconnected) => break,
                         Err(crossbeam_channel::RecvTimeoutError::Timeout) => {}
                     }
                 }
                 if let Some(declarations) = &rates {
+                    declarations.begin_shutdown();
+                }
+                if let Some(declarations) = &wrenches {
                     declarations.begin_shutdown();
                 }
                 if let Some(declarations) = &forces {
@@ -1172,6 +1286,10 @@ impl WorldIo {
                         declarations.reconcile();
                         declarations.is_empty()
                     });
+                    let wrenches_done = wrenches.as_mut().is_none_or(|declarations| {
+                        declarations.reconcile();
+                        declarations.is_empty()
+                    });
                     let forces_done = forces.as_mut().is_none_or(|declarations| {
                         declarations.reconcile();
                         declarations.is_empty()
@@ -1182,7 +1300,8 @@ impl WorldIo {
                     let controllers_done = controllers
                         .as_mut()
                         .is_none_or(|declarations| declarations.reconcile(true));
-                    if rates_done && forces_done && drive_done && controllers_done {
+                    if rates_done && forces_done && wrenches_done && drive_done && controllers_done
+                    {
                         break;
                     }
                     thread::sleep(Duration::from_millis(1));
@@ -1416,6 +1535,32 @@ impl WorldIo {
             .map_err(Into::into)
     }
 
+    pub(super) fn ground_truth_odometry_output(
+        &self,
+        key: String,
+        channel: GroundTruthOdometryChannel,
+    ) -> Result<Arc<GroundTruthOdometryOutput>> {
+        if self.reserved_keys().contains(&key) {
+            return Err(
+                "ground-truth-odometry key collides with world publication or service".into(),
+            );
+        }
+        if self.session.is_closed() {
+            return Err("world session is closed".into());
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let (receipt, ready) = mpsc::sync_channel(1);
+        self.incoming
+            .send_deadline(
+                WorldWork::InstallGroundTruthOdometry(key, channel, receipt),
+                deadline,
+            )
+            .map_err(|error| format!("ground-truth-odometry setup admission failed: {error}"))?;
+        ready
+            .recv_timeout(deadline.saturating_duration_since(Instant::now()))?
+            .map_err(Into::into)
+    }
+
     pub(super) fn magnetometer_output(&self, key: String) -> Result<Arc<MagnetometerOutput>> {
         if self.reserved_keys().contains(&key) {
             return Err("magnetometer key collides with world publication or service".into());
@@ -1587,6 +1732,36 @@ impl WorldIo {
         }
         admission.map_err(|error| {
             crate::Error::WorldNetwork(format!("forces setup admission failed: {error}"))
+        })?;
+        let result = ready.recv_timeout(deadline.saturating_duration_since(Instant::now()));
+        if self.session.is_closed() {
+            return Err(crate::Error::WorldClosed);
+        }
+        result
+            .map_err(|error| crate::Error::WorldNetwork(error.to_string()))?
+            .map_err(crate::Error::WorldNetwork)
+    }
+
+    pub(super) fn install_wrenches(
+        &self,
+        setup: crate::apply_link_wrench_io::WrenchSetup,
+    ) -> std::result::Result<(), crate::Error> {
+        if self.session.is_closed() {
+            return Err(crate::Error::WorldClosed);
+        }
+        if setup.is_empty() {
+            return Ok(());
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let (receipt, ready) = mpsc::sync_channel(1);
+        let admission = self
+            .incoming
+            .send_deadline(WorldWork::InstallWrenches(setup, receipt), deadline);
+        if self.session.is_closed() {
+            return Err(crate::Error::WorldClosed);
+        }
+        admission.map_err(|error| {
+            crate::Error::WorldNetwork(format!("wrenches setup admission failed: {error}"))
         })?;
         let result = ready.recv_timeout(deadline.saturating_duration_since(Instant::now()));
         if self.session.is_closed() {
@@ -1817,6 +1992,22 @@ impl WorldIo {
             .map_err(|_| "world publication queue unavailable".into())
     }
 
+    pub(super) fn publish_ground_truth_odometry(
+        &self,
+        output: &Arc<GroundTruthOdometryOutput>,
+        bytes: Vec<u8>,
+    ) -> Result<()> {
+        if bytes.len() > self.max_message_bytes || self.session.is_closed() {
+            return Err("invalid ground-truth-odometry publication".into());
+        }
+        self.incoming
+            .try_send(WorldWork::GroundTruthOdometry(
+                self.epoch.load(Ordering::Acquire),
+                crate::odometry_publisher_io::GroundTruthOdometryJob::new(output, bytes),
+            ))
+            .map_err(|_| "world publication queue unavailable".into())
+    }
+
     pub(super) fn publish_odometry(
         &self,
         output: &Arc<crate::diff_drive_io::Output>,
@@ -1902,3 +2093,7 @@ mod pose_publisher_tests;
 #[cfg(test)]
 #[path = "../tests/private/logical_camera_world_io.rs"]
 mod logical_camera_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/ground_truth_odometry_world_io.rs"]
+mod ground_truth_odometry_tests;

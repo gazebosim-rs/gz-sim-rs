@@ -156,6 +156,16 @@ pub fn queue_link_world_wrench(
         .get::<PendingInput>(entity)
         .copied()
         .unwrap_or_default();
+    accumulate_wrench(&mut pending, force, torque)?;
+    sim.world_mut().entity_mut(entity).insert(pending);
+    Ok(())
+}
+
+fn accumulate_wrench(
+    pending: &mut PendingInput,
+    force: [f64; 3],
+    torque: [f64; 3],
+) -> Result<(), InputError> {
     let (old_force, old_torque) = pending.wrench.unwrap_or(([0.0; 3], [0.0; 3]));
     let force = std::array::from_fn(|i| old_force[i] + force[i]);
     let torque = std::array::from_fn(|i| old_torque[i] + torque[i]);
@@ -163,7 +173,50 @@ pub fn queue_link_world_wrench(
         return Err(InputError::InvalidValue);
     }
     pending.wrench = Some((force, torque));
-    sim.world_mut().entity_mut(entity).insert(pending);
+    Ok(())
+}
+
+fn wrench_shadows(
+    world: &World,
+    entries: &[(u64, [f64; 3], [f64; 3])],
+) -> Result<std::collections::BTreeMap<Entity, PendingInput>, InputError> {
+    let mut shadows = std::collections::BTreeMap::new();
+    for &(id, force, torque) in entries {
+        let (entity, binding) = target(world, id, (force, torque))?;
+        if matches!(binding, Binding::Tpe(_)) {
+            return Err(InputError::Unsupported("TPE external wrench"));
+        }
+        let pending = shadows.entry(entity).or_insert_with(|| {
+            world
+                .get::<PendingInput>(entity)
+                .copied()
+                .unwrap_or_default()
+        });
+        // Keep every addition in caller order, starting at the existing pending
+        // input. Pre-aggregation would change both rounding and overflow refusal.
+        accumulate_wrench(pending, force, torque)?;
+    }
+    Ok(shadows)
+}
+
+/// Checks the complete ordered batch without changing pending input components.
+pub(super) fn validate_world_wrench_batch(
+    world: &World,
+    entries: &[(u64, [f64; 3], [f64; 3])],
+) -> Result<(), InputError> {
+    wrench_shadows(world, entries).map(|_| ())
+}
+
+/// Commits only after every target and every intermediate sum is valid.
+/// This preserves unrelated pending velocity commands and singleton API inputs.
+pub(super) fn queue_world_wrench_batch(
+    world: &mut World,
+    entries: &[(u64, [f64; 3], [f64; 3])],
+) -> Result<(), InputError> {
+    let shadows = wrench_shadows(world, entries)?;
+    for (entity, pending) in shadows {
+        world.entity_mut(entity).insert(pending);
+    }
     Ok(())
 }
 
@@ -312,7 +365,7 @@ fn execute(world: &mut World, entity: Entity, input: PendingInput) -> Result<(),
     Ok(())
 }
 
-fn apply(world: &mut World) {
+pub(super) fn apply(world: &mut World) {
     if world.resource::<UpdateInfo>().dt.is_zero() {
         return;
     }

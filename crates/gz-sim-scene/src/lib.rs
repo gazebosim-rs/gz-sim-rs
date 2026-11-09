@@ -2,15 +2,26 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Atomic construction of a supported SDF world and its Bevy simulation systems.
 
+mod apply_link_wrench;
 mod joint_controller;
 mod joint_state_publisher;
+mod odometry_publisher;
 mod pose_publisher;
+pub use apply_link_wrench::{
+    APPLY_LINK_WRENCH_CAPACITY, ApplyLinkWrenchConfiguration, ApplyLinkWrenchError,
+    ApplyLinkWrenchMode, apply_link_wrench_active, clear_apply_link_wrench,
+    discard_apply_link_wrenches, queue_apply_link_wrench,
+};
 pub use joint_controller::{
     JointControllerCommandError, JointControllerConfiguration, JointControllerMode,
     set_joint_controller_command,
 };
 pub use joint_state_publisher::{
     JointStateJointPublication, JointStatePublication, JointStateSample, JointStateValue,
+};
+pub use odometry_publisher::{
+    GroundTruthOdometryError, GroundTruthOdometryPublication, GroundTruthOdometrySample,
+    GroundTruthOdometryScheduleFault,
 };
 pub use pose_publisher::{
     PoseFramePublication, PoseFrameValue, PosePublication, PoseSample, StaticPosePublication,
@@ -88,7 +99,8 @@ mod joint_lifecycle;
 pub use initial::{
     PendingResetRemoval, SceneResetError, SceneResetInfo, initial_air_pressure_publications,
     initial_air_speed_publications, initial_altimeter_publications,
-    initial_diff_drive_configurations, initial_imu_publications,
+    initial_apply_link_wrench_configuration, initial_diff_drive_configurations,
+    initial_ground_truth_odometry_publications, initial_imu_publications,
     initial_joint_controller_configurations, initial_joint_force_configurations,
     initial_joint_state_publications, initial_lidar_publications,
     initial_logical_camera_publications, initial_magnetometer_publications,
@@ -524,6 +536,10 @@ fn load_world_configured(
     air_speed::preflight(&sdf, world, engine)?;
     logical_camera::preflight(&sdf, world, engine)?;
     producer_guard::validate(world, magnetic_consumer)?;
+    let wrench_plan = apply_link_wrench::parse(world)?;
+    if let Some(plan) = &wrench_plan {
+        plan.validate(world, engine)?;
+    }
     let rendering_sensors = world_systems::validate(world)?;
     // The pinned parser supplies an implicit profile when none is declared.
     let profile = world
@@ -665,7 +681,12 @@ fn load_world_configured(
     joint_controller::install(&mut sim);
     joint_state_publisher::install(&mut sim);
     pose_publisher::install(&mut sim);
+    odometry_publisher::install(&mut sim);
+    if let Some(plan) = wrench_plan {
+        apply_link_wrench::build(plan, &mut sim, world_entity)?;
+    }
     initial::capture(&mut sim);
+    apply_link_wrench::install(&mut sim);
     Ok(sim)
 }
 
@@ -736,6 +757,15 @@ fn build_model(
     let top_level = sim.world().get::<EntityKind>(parent.entity) == Some(&EntityKind::World);
     let controller_plan = joint_controller::parse(model)?;
     if let Some(plan) = &controller_plan {
+        plan.validate(
+            model,
+            sim,
+            backend.as_ref().map(|backend| backend.engine()),
+            (top_level, parent.is_static || model.is_static),
+        )?;
+    }
+    let ground_truth_plan = odometry_publisher::parse(model)?;
+    if let Some(plan) = &ground_truth_plan {
         plan.validate(
             model,
             sim,
@@ -1355,6 +1385,9 @@ fn build_model(
             backend,
             controller_plan.is_some(),
         )?;
+        if let Some(plan) = &ground_truth_plan {
+            odometry_publisher::build(sdf, sim, model, model_entity, backend, plan)?;
+        }
         if let Some(plan) = &pose_plan {
             pose_publisher::build(sdf, sim, model, model_entity, backend, plan)?;
         }

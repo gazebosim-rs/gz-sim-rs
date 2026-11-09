@@ -1,7 +1,32 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+
+## Current M34/M35 source wave
+
+M1–M33 are accepted at qualified Main `17dd62f2`. M33 passed its full normal
+hook, exact hosted CI42667053571 attempt1 and independent local/official DATA,
+then normal nonforced Main promotion and exact readback. M32 remains installed
+Latest. M34 ground-truth odometry and M35 canonical wrench inputs are active in
+parallel source lanes under [recorded scope and leases](M34_M35_DELIVERY.md).
+Both implementations and their source reviews are complete. The original native
+systems supplied independently audited reference records: 221 odometry packet
+triples and 32 wrench command records. A separately audited literal fixture now
+backs the new Rust numeric and serialization regressions. The full normal hook,
+strict coverage, exact hosted CI and independent local/official audits remain
+required before either phase is accepted. See [M33 acceptance](M33_ACCEPTANCE.md)
+and the [reference checkpoint](M34_M35_DELIVERY.md#native-reference-checkpoint).
+
+The latest full normal run passed the headless tests but failed strict server
+region coverage at 13,078/13,768 after 1,522.283 seconds. Renderer and changed-line
+qualification were not reached. The complete retained failure remains unchanged.
+Batch meaningful new-system boundary and lifetime controls, complete independent
+source review, then run one consolidated required retry. M36 contracts are
+reviewed preparation only; implementation waits for a qualified parent.
+
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Coordinator handoff
+
+## Historical M33 pending checkpoint (superseded)
 
 > M1–M32 are accepted at qualified Main `679c9990`; see
 > [M32 acceptance](M32_ACCEPTANCE.md) and the verified Latest
@@ -10,7 +35,26 @@
 > New source, functional proofs and mandatory gates remain required.
 
 
-## Current work: M33 mobile-robot IMU and lidar coexistence
+## Historical M33 local qualification and contract-preparation checkpoint (superseded)
+
+M33 review `17dd62f2`/tree `5ebfe64e`/parent `679c9990` passed the full normal hook in
+1,960.359 seconds and independent local DATA. Exact hosted CI 42667053571 attempt 1
+is running; official DATA and qualified Main promotion remain pending. Root is
+the sole operational watcher. The first 1,492.264-second CLI-choice failure and a
+separate filename preflight failure before local-audit execution remain retained.
+No M33 acceptance is inferred; M32 stays Latest.
+
+Under D31, [M34/M35](M34_M35_DELIVERY.md) are selected for disjoint CONTRACT-ONLY
+preparation in work/m34-m35-publishers on a provisional immutable `17dd` base.
+Light prepares noiseless 2D ground-truth odometry; Messages prepares canonical
+link-wrench inputs. Both first submit complete native/lifecycle/interface guides
+for Root/SDF review before leaf code. All native and full verification wait for
+accepted-parent binding and complete source/procedure review. No M34/M35 code,
+checks or acceptance is released by this planning record.
+
+## Historical M33 initial source/failure checkpoint
+
+### Recorded initial work: M33 mobile-robot IMU and lidar coexistence
 
 [M32 acceptance](M32_ACCEPTANCE.md) records actual release439342072/Latest,
 qualified Main679c9990 and every independent proof and preserved failure.
@@ -497,7 +541,7 @@ teardown pass. Target-speed bounds are not hard physical speed caps against
 external impulses. The viewer's accepted `19be842d` bundles are reused unchanged;
 viewer Main `516a9a0e` adds only closeout docs and a deterministic test clock.
 M7 metadata Main `4a985bfb` is also fully checked, audited and published. Original
-viewer `41757072753` Quiet-test failure and M6 `41740088744` attempt1 readback
+viewer `41757072753` Quiet-test failure and M6 `41740088744` attempt 1 readback
 failures remain historical evidence; successful corrections/retries do not erase
 or diagnose their unobserved runtime interleavings.
 

@@ -84,7 +84,7 @@ fn joint_state_io_owner_cancels_old_epoch_and_retired_lease_without_relabeling_b
         b"gz.msgs.Model"
     );
     assert!(io.publish_joint_state(&replacement, vec![0; 1025]).is_err());
-    assert_eq!(io.publication_failures.len(), 14);
+    assert_eq!(io.publication_failures.len(), 17);
     assert_eq!(JOINT_STATE_FAILURE_INDEX, 9);
     assert!(
         io.publication_failures

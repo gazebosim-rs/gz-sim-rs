@@ -76,6 +76,9 @@ struct Node {
     logical_camera_publication: Option<LogicalCameraPublication>,
     pose_publisher: Option<crate::pose_publisher::Publisher>,
     pose_publication: Option<PosePublication>,
+    ground_truth_odometry_publisher: Option<crate::odometry_publisher::Publisher>,
+    ground_truth_odometry_publication: Option<GroundTruthOdometryPublication>,
+    apply_link_wrench_configuration: Option<ApplyLinkWrenchConfiguration>,
     air_pressure: Option<crate::air_pressure::AirPressure>,
     air_pressure_publication: Option<AirPressurePublication>,
     magnetometer: Option<crate::magnetometer::Magnetometer>,
@@ -202,6 +205,13 @@ pub(super) fn capture(sim: &mut Simulation) {
             logical_camera_publication: entity.get::<LogicalCameraPublication>().cloned(),
             pose_publisher: entity.get::<crate::pose_publisher::Publisher>().cloned(),
             pose_publication: entity.get::<PosePublication>().cloned(),
+            ground_truth_odometry_publisher: entity
+                .get::<crate::odometry_publisher::Publisher>()
+                .cloned(),
+            ground_truth_odometry_publication: entity
+                .get::<GroundTruthOdometryPublication>()
+                .cloned(),
+            apply_link_wrench_configuration: entity.get::<ApplyLinkWrenchConfiguration>().cloned(),
             air_pressure: entity.get::<crate::air_pressure::AirPressure>().cloned(),
             air_pressure_publication: entity.get::<AirPressurePublication>().cloned(),
             magnetometer: entity.get::<crate::magnetometer::Magnetometer>().cloned(),
@@ -371,6 +381,36 @@ pub fn initial_pose_publications(
         .nodes
         .iter()
         .filter_map(|node| node.pose_publication.as_ref().map(|p| (node.id.get(), p))))
+}
+
+/// Initial pose-derived odometry configurations and their stable loaded owners.
+pub fn initial_ground_truth_odometry_publications(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = (u64, &GroundTruthOdometryPublication)>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.0.nodes.iter().filter_map(|node| {
+        node.ground_truth_odometry_publication
+            .as_ref()
+            .map(|p| (node.id.get(), p))
+    }))
+}
+
+/// The configured world input metadata survives removal of the last eligible link.
+pub fn initial_apply_link_wrench_configuration(
+    sim: &Simulation,
+) -> Result<Option<(u64, &ApplyLinkWrenchConfiguration)>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.0.nodes.iter().find_map(|node| {
+        node.apply_link_wrench_configuration
+            .as_ref()
+            .map(|p| (node.id.get(), p))
+    }))
 }
 
 /// Initial loaded pressure metadata, including removed original entities.
@@ -624,6 +664,15 @@ pub fn reset_loaded_world<R>(
         if let Some(publication) = &node.pose_publication {
             entity.insert(publication.clone());
         }
+        if let Some(publisher) = &node.ground_truth_odometry_publisher {
+            entity.insert(publisher.clone());
+        }
+        if let Some(publication) = &node.ground_truth_odometry_publication {
+            entity.insert(publication.clone());
+        }
+        if let Some(configuration) = &node.apply_link_wrench_configuration {
+            entity.insert(configuration.clone());
+        }
         if let Some(air_pressure) = &node.air_pressure {
             entity.insert(air_pressure.clone());
         }
@@ -720,6 +769,8 @@ pub fn reset_loaded_world<R>(
     crate::air_speed::install(sim);
     crate::logical_camera::install(sim);
     crate::pose_publisher::install(sim);
+    crate::odometry_publisher::install(sim);
+    crate::apply_link_wrench::install(sim);
     crate::magnetometer::install(sim);
     crate::joint_lifecycle::install(sim);
     crate::joint_force_lifecycle::install(sim);

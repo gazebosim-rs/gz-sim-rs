@@ -153,9 +153,10 @@ pub fn prepare_model_template(
     let source_visual = world
         .iter_entities()
         .find(|entity| {
-            entity
-                .get::<Name>()
-                .is_some_and(|name| name.0 == visual_name)
+            entity.get::<EntityKind>() == Some(&EntityKind::Visual)
+                && entity
+                    .get::<Name>()
+                    .is_some_and(|name| name.0 == visual_name)
         })
         .ok_or_else(unsupported)?;
     let geometry = source_visual
@@ -411,5 +412,6 @@ pub fn spawn_model_template(
             .entity_mut(visual)
             .insert(VisualMaterial(material.clone()));
     }
+    crate::apply_link_wrench::install(sim);
     Ok(model_id)
 }

@@ -78,6 +78,7 @@ pub(super) fn parse(model: &Model) -> Result<Vec<JointForceConfiguration>, LoadE
             || joint_controller::is_plugin(plugin)
             || joint_state_publisher::is_plugin(plugin)
             || pose_publisher::is_plugin(plugin)
+            || odometry_publisher::is_plugin(plugin)
         {
             continue;
         }

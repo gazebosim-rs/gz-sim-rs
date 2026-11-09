@@ -1,22 +1,44 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+
+## Current M34/M35 source wave
+
+M1–M33 are accepted at qualified Main `17dd62f2`. M33 passed its full normal
+hook, exact hosted CI42667053571 attempt1 and independent local/official DATA,
+then normal nonforced Main promotion and exact readback. M32 remains installed
+Latest. M34 ground-truth odometry and M35 canonical wrench inputs are active in
+parallel source lanes under [recorded scope and leases](M34_M35_DELIVERY.md).
+Both implementations and their source reviews are complete. The original native
+systems supplied independently audited reference records: 221 odometry packet
+triples and 32 wrench command records. A separately audited literal fixture now
+backs the new Rust numeric and serialization regressions. The full normal hook,
+strict coverage, exact hosted CI and independent local/official audits remain
+required before either phase is accepted. See [M33 acceptance](M33_ACCEPTANCE.md)
+and the [reference checkpoint](M34_M35_DELIVERY.md#native-reference-checkpoint).
+
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Weekly delivery plan
 
-Current delivery: [M33 mobile-robot IMU/lidar coexistence](M33_DELIVERY.md).
-M1–M32 are accepted at exact Main679c9990, and release439342072 is verified
-Latest. M33 reuses existing sensor/noise models for a separate combined robot
-workflow; disjoint source lanes proceed in parallel with one Root integrator.
-All new functional/review/normal/coverage/hosted/DATA gates remain required.
-The first M33 normal hook failed at a missing peer CLI choice before C++
-compilation. Preserve its failed evidence; batch and independently review the
-registration, explicit-profile guard and regression before one required retry.
+## Historical M33 pending checkpoint (superseded)
+
+Prior qualification: [M33 mobile-robot IMU/lidar coexistence](M33_DELIVERY.md),
+locally qualified at `17dd62f2` with exact hosted/official/Main acceptance pending.
+M1–M32 remain accepted, and M32 stays installed Latest.
+
+[Selected M34/M35 contracts and leases](M34_M35_DELIVERY.md) open disjoint source
+preparation during the remote qualification wait. Each scope is at most five
+working days including review and mandatory checks. Detailed native/lifecycle
+and typed-interface review precedes code release; accepted-parent binding
+precedes native execution or full consolidated verification. No phase inherits
+acceptance from another or changes M32's package.
 
 > M1–M32 are accepted at qualified Main `679c9990`; see
 > [M32 acceptance](M32_ACCEPTANCE.md) and the verified Latest
 > [m32-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m32-preview).
 > Current work is [M33 mobile-robot IMU/lidar coexistence](M33_DELIVERY.md).
 > New source, functional proofs and mandatory gates remain required.
+
+## Retained delivery policy
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning
@@ -85,7 +107,7 @@ results must never be described as same-engine performance improvement.
 | M31: Static-vector PosePublisher | 5 working days | Existing flat-model publisher with native dynamic/static channels and independent cadence. | Native classification/refreshed poses/rates, both-topic reservations and real wire/reset/retirement proofs plus all gates; see M30_M31_DELIVERY.md. |
 
 M1–M29 are accepted. [M28/M29 acceptance](M28_M29_ACCEPTANCE.md) records Main
-`ab9660ee`, exact CI42586254208 attempt1, all independent DATA and the fresh
+`ab9660ee`, exact CI42586254208 attempt 1, all independent DATA and the fresh
 seven-example installation, actual browser/shutdown and verified publication.
 The M29 preview is checked Latest; M25 and every older release remain preserved.
 There are 31 selected phases and 29 accepted. M30/M31 now continue under

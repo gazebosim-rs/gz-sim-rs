@@ -20,6 +20,7 @@ impl Server {
 
     pub(super) fn reset_scene(&mut self) -> Result<UpdateInfo, Error> {
         validate_air_speed_and_pose_topics(&self.simulation, &self.world_io, &self.network_config)?;
+        validate_new_system_topics(&self.simulation, &self.world_io, &self.network_config)?;
         // Reserve missing endpoints before changing the scene. Live shared leases survive.
         let existing: BTreeMap<_, _> = self
             .imus
@@ -147,6 +148,33 @@ impl Server {
             } else {
                 BTreeMap::new()
             };
+        let ground_truth_prepared =
+            if gz_sim_scene::initial_ground_truth_odometry_publications(&self.simulation)?
+                .next()
+                .is_some()
+            {
+                let occupied = new_system_reserved_keys(
+                    &self.simulation,
+                    &self.world_io,
+                    &self.network_config,
+                    PublicationFamily::GroundTruthOdometry,
+                )?;
+                odometry_publisher::prepare_reset(self, &occupied)?
+            } else {
+                BTreeMap::new()
+            };
+        let wrench_occupied = new_system_reserved_keys(
+            &self.simulation,
+            &self.world_io,
+            &self.network_config,
+            PublicationFamily::LinkWrench,
+        )?;
+        let wrench_prepared = apply_link_wrench::prepare_reset(
+            &self.simulation,
+            &self.network_config,
+            &wrench_occupied,
+        )?;
+        let link_wrenches = &mut self.link_wrenches;
         let drive = &mut self.diff_drive;
         let controllers = &mut self.joint_controllers;
         let rates = &mut self.rates;
@@ -207,6 +235,29 @@ impl Server {
                 rates::Rates::restart(&self.network_config, sim, &self.world_io.ingress_drops)?;
             *rates = replacement.into_active();
             self.world_io.install_rates(setup)?;
+            // A fresh input owner never consumes old-epoch receivers.
+            *link_wrenches = None;
+            let occupied = new_system_reserved_keys(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                PublicationFamily::LinkWrench,
+            )?;
+            if let Some((mut owner, setup)) = apply_link_wrench::ApplyLinkWrenches::prepare(
+                sim,
+                &self.network_config,
+                &occupied,
+                &self.world_io.ingress_drops,
+            )? {
+                owner.bind(
+                    sim,
+                    wrench_prepared
+                        .as_ref()
+                        .ok_or(Error::ApplyLinkWrenchIdentity)?,
+                )?;
+                self.world_io.install_wrenches(setup)?;
+                *link_wrenches = Some(owner);
+            }
             // Disable old CPU handoff before preparing a replacement generation.
             *forces = None;
             let (replacement, setup) =
@@ -325,6 +376,19 @@ impl Server {
                 &occupied,
                 Some(&pose_publisher_publishers),
             )?;
+            let occupied = new_system_reserved_keys(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                PublicationFamily::GroundTruthOdometry,
+            )?;
+            let ground_truth_odometries = odometry_publisher::streams(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                &occupied,
+                Some(&ground_truth_prepared),
+            )?;
             Ok::<_, Error>((
                 *sim.world().resource::<UpdateInfo>(),
                 streams,
@@ -334,6 +398,7 @@ impl Server {
                 air_speeds,
                 logical_cameras,
                 pose_publishers,
+                ground_truth_odometries,
                 magnetometers,
                 joint_states,
             ))
@@ -353,6 +418,8 @@ impl Server {
                 self.air_speeds = Vec::new();
                 self.logical_cameras = Vec::new();
                 self.pose_publishers = Vec::new();
+                self.ground_truth_odometries = Vec::new();
+                self.link_wrenches = None;
                 self.magnetometers = Vec::new();
                 self.joint_states = Vec::new();
                 self.rates = None;
@@ -381,6 +448,7 @@ impl Server {
             air_speeds,
             logical_cameras,
             pose_publishers,
+            ground_truth_odometries,
             magnetometers,
             joint_states,
         ) = match result {
@@ -394,6 +462,8 @@ impl Server {
                 self.air_speeds = Vec::new();
                 self.logical_cameras = Vec::new();
                 self.pose_publishers = Vec::new();
+                self.ground_truth_odometries = Vec::new();
+                self.link_wrenches = None;
                 self.magnetometers = Vec::new();
                 self.joint_states = Vec::new();
                 self.rates = None;
@@ -410,6 +480,7 @@ impl Server {
         self.air_speeds = air_speeds;
         self.logical_cameras = logical_cameras;
         self.pose_publishers = pose_publishers;
+        self.ground_truth_odometries = ground_truth_odometries;
         self.magnetometers = magnetometers;
         self.joint_states = joint_states;
         Ok(info)

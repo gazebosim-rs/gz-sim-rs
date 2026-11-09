@@ -4,13 +4,68 @@
 use gz_physics::PhysicsBackend;
 use gz_sim_core::{EntityId, entity_by_id, next_entity_id};
 use gz_sim_scene::{
-    BodyHandle, ModelState, Name, PhysicsEngine, WorldPose, load_world_with_sdf_step, model_state,
-    prepare_model_template, remove_model, reset_loaded_world, set_model_state,
-    spawn_model_template,
+    BodyHandle, EntityKind, ModelState, Name, PhysicsEngine, VisualGeometry, WorldPose,
+    load_world_with_sdf_step, model_state, prepare_model_template, remove_model,
+    reset_loaded_world, set_model_state, spawn_model_template,
 };
 use sdformat::NoResources;
 
 const XML: &str = "<sdf version='1.12'><world name='w'><gravity>0 0 0</gravity><model name='box'><link name='body'><inertial><mass>1</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='c'><geometry><box><size>1 2 3</size></box></geometry></collision><visual name='v'><geometry><box><size>1 2 3</size></box></geometry></visual></link></model><model name='sphere'><static>true</static><link name='body'><collision name='c'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision><visual name='v'><geometry><sphere><radius>0.5</radius></sphere></geometry></visual></link></model></world></sdf>";
+
+#[test]
+fn template_resolves_visual_kind_when_collision_has_the_same_scoped_name() {
+    let xml = XML
+        .replace("collision name='c'", "collision name='box'")
+        .replace("visual name='v'", "visual name='box'");
+    let parsed = sdformat::load_str(&xml, "typed-spawn.sdf", &NoResources).unwrap();
+    let sim = load_world_with_sdf_step(
+        &xml,
+        "typed-spawn.sdf",
+        "w",
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let named: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter(|entity| {
+            entity
+                .get::<Name>()
+                .is_some_and(|name| name.0 == "w::box::body::box")
+        })
+        .map(|entity| {
+            (
+                entity.get::<EntityId>().unwrap().get(),
+                *entity.get::<EntityKind>().unwrap(),
+            )
+        })
+        .collect();
+    assert_eq!(named.len(), 2);
+    let collision = named
+        .iter()
+        .find(|(_, kind)| *kind == EntityKind::Collision)
+        .unwrap()
+        .0;
+    let visual = named
+        .iter()
+        .find(|(_, kind)| *kind == EntityKind::Visual)
+        .unwrap()
+        .0;
+    assert_ne!(collision, visual);
+    assert!(
+        entity_by_id(sim.world(), visual)
+            .and_then(|entity| sim.world().get::<VisualGeometry>(entity))
+            .is_some()
+    );
+    assert!(
+        entity_by_id(sim.world(), collision)
+            .and_then(|entity| sim.world().get::<VisualGeometry>(entity))
+            .is_none()
+    );
+    let template = prepare_model_template(&sim, &parsed, &parsed.worlds[0].models[0]).unwrap();
+    assert_eq!(template.source_visual_id(), visual);
+}
 
 #[test]
 fn runtime_clones_keep_existing_native_state_and_ids_and_loaded_reset_retires_additions() {

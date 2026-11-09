@@ -22,6 +22,72 @@ fn scene(engine: PhysicsEngine) -> (Simulation, Entity, Entity, u64) {
 }
 
 #[test]
+fn wrench_batch_preserves_existing_inputs_and_individual_addition_order() {
+    let (mut sim, _, link, id) = scene(PhysicsEngine::Rapier);
+    queue_link_world_velocity(&mut sim, id, [2.0, 3.0, 4.0], [0.0; 3]).unwrap();
+    queue_link_world_wrench(&mut sim, id, [1e16, 0.0, 0.0], [0.0; 3]).unwrap();
+    let entries = [
+        (id, [-1e16, 0.0, 0.0], [0.0; 3]),
+        (id, [1.0, 0.0, 0.0], [0.0; 3]),
+    ];
+    validate_world_wrench_batch(sim.world(), &entries).unwrap();
+    let before = sim.world().get::<PendingInput>(link).unwrap();
+    assert_eq!(before.wrench.unwrap().0, [1e16, 0.0, 0.0]);
+    assert_eq!(before.velocity.unwrap().0, [2.0, 3.0, 4.0]);
+    queue_world_wrench_batch(sim.world_mut(), &entries).unwrap();
+    let after = sim.world().get::<PendingInput>(link).unwrap();
+    // (1e16 + -1e16) + 1 is 1; pre-aggregating the new entries yields 0.
+    assert_eq!(after.wrench.unwrap().0, [1.0, 0.0, 0.0]);
+    assert_eq!(after.velocity.unwrap().0, [2.0, 3.0, 4.0]);
+}
+
+#[test]
+fn wrench_batch_rejects_intermediate_overflow_and_late_target_without_mutation() {
+    let (mut sim, _, link, id) = scene(PhysicsEngine::Rapier);
+    let half = f64::MAX / 2.0;
+    queue_link_world_wrench(&mut sim, id, [half, 0.0, 0.0], [0.0; 3]).unwrap();
+    let overflow = [
+        (id, [half, 0.0, 0.0], [0.0; 3]),
+        (id, [half, 0.0, 0.0], [0.0; 3]),
+        (id, [-f64::MAX, 0.0, 0.0], [0.0; 3]),
+    ];
+    assert!(matches!(
+        validate_world_wrench_batch(sim.world(), &overflow),
+        Err(InputError::InvalidValue)
+    ));
+    assert!(matches!(
+        queue_world_wrench_batch(sim.world_mut(), &overflow),
+        Err(InputError::InvalidValue)
+    ));
+    assert_eq!(
+        sim.world()
+            .get::<PendingInput>(link)
+            .unwrap()
+            .wrench
+            .unwrap()
+            .0,
+        [half, 0.0, 0.0]
+    );
+    let missing = u64::MAX;
+    let late_invalid = [
+        (id, [-half, 0.0, 0.0], [0.0; 3]),
+        (missing, [1.0; 3], [0.0; 3]),
+    ];
+    assert!(
+        matches!(queue_world_wrench_batch(sim.world_mut(), &late_invalid), Err(InputError::MissingEntity(value)) if value == missing)
+    );
+    assert_eq!(
+        sim.world()
+            .get::<PendingInput>(link)
+            .unwrap()
+            .wrench
+            .unwrap()
+            .0,
+        [half, 0.0, 0.0]
+    );
+}
+
+#[test]
 fn admission_rejects_broken_bindings_before_inserting_any_pending_input() {
     type Mutation = fn(&mut World, Entity, Entity);
     let common: &[Mutation] = &[

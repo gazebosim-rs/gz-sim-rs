@@ -8,6 +8,8 @@ mod air_speed;
 mod air_speed_io;
 mod altimeter;
 mod altimeter_io;
+mod apply_link_wrench;
+mod apply_link_wrench_io;
 mod diff_drive;
 mod diff_drive_io;
 mod force_io;
@@ -23,6 +25,8 @@ mod logical_camera;
 mod logical_camera_io;
 mod magnetometer;
 mod magnetometer_io;
+mod odometry_publisher;
+mod odometry_publisher_io;
 mod options;
 mod pose_publisher;
 mod pose_publisher_io;
@@ -101,6 +105,14 @@ pub enum Error {
     ResetAirSpeeds,
     #[error("pose publication lacks its unique supported identity or metadata")]
     PosePublisherIdentity,
+    #[error("ground-truth odometry lacks its unique supported identity or metadata")]
+    GroundTruthOdometryIdentity,
+    #[error("link-wrench input lacks its unique supported world identity or metadata")]
+    ApplyLinkWrenchIdentity,
+    #[error(
+        "Server template spawn cannot reactivate dormant link-wrench IO; use an admitted Scene or loaded-reset boundary"
+    )]
+    ApplyLinkWrenchReactivation,
     #[error("reset handler changed the prepared pose publication configuration")]
     ResetPosePublishers,
     #[error("reset handler changed the prepared air-pressure stream configuration")]
@@ -151,6 +163,15 @@ pub struct IngressStatistics {
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Counters {
+    pub ground_truth_odometry_queued: u64,
+    pub ground_truth_odometry_covariance_queued: u64,
+    pub ground_truth_odometry_tf_queued: u64,
+    pub ground_truth_odometry_failures: u64,
+    pub ground_truth_odometry_invalid_samples: u64,
+    pub wrench_messages_received: u64,
+    pub wrench_messages_rejected: u64,
+    pub link_wrenches_queued: u64,
+    pub link_wrench_clears_queued: u64,
     pub clocks_queued: u64,
     pub clock_failures: u64,
     pub root_clocks_queued: u64,
@@ -317,9 +338,135 @@ enum PublicationFamily {
     AirPressure,
     AirSpeed,
     PosePublisher,
+    GroundTruthOdometry,
+    LinkWrench,
     LogicalCamera,
     Magnetometer,
     JointState,
+}
+// Current and loaded-original roles are both reserved. Identical restored/live
+// roles may repeat, but another owner/channel/raw topic may not alias their key.
+fn new_system_roles(
+    sim: &Simulation,
+) -> Result<Vec<(PublicationFamily, u64, usize, String)>, Error> {
+    let mut roles = Vec::new();
+    let mut odometry = |owner, m: &gz_sim_scene::GroundTruthOdometryPublication| {
+        for (channel, topic) in [&m.odom_topic, &m.covariance_topic, &m.tf_topic]
+            .into_iter()
+            .enumerate()
+        {
+            roles.push((
+                PublicationFamily::GroundTruthOdometry,
+                owner,
+                channel,
+                topic.clone(),
+            ));
+        }
+    };
+    for entity in sim
+        .world()
+        .iter_entities()
+        .filter(|e| !e.contains::<gz_sim_scene::PendingResetRemoval>())
+    {
+        if let Some(m) = entity.get::<gz_sim_scene::GroundTruthOdometryPublication>() {
+            odometry(
+                entity
+                    .get::<EntityId>()
+                    .ok_or(Error::GroundTruthOdometryIdentity)?
+                    .get(),
+                m,
+            );
+        }
+    }
+    match gz_sim_scene::initial_ground_truth_odometry_publications(sim) {
+        Ok(values) => {
+            for (id, m) in values {
+                odometry(id, m);
+            }
+        }
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+        Err(error) => return Err(error.into()),
+    }
+    let mut wrench = |owner, m: &gz_sim_scene::ApplyLinkWrenchConfiguration| {
+        for (channel, topic) in [&m.topic, &m.persistent_topic, &m.clear_topic]
+            .into_iter()
+            .enumerate()
+        {
+            roles.push((PublicationFamily::LinkWrench, owner, channel, topic.clone()));
+        }
+    };
+    for entity in sim
+        .world()
+        .iter_entities()
+        .filter(|e| !e.contains::<gz_sim_scene::PendingResetRemoval>())
+    {
+        if let Some(m) = entity.get::<gz_sim_scene::ApplyLinkWrenchConfiguration>() {
+            wrench(
+                entity
+                    .get::<EntityId>()
+                    .ok_or(Error::ApplyLinkWrenchIdentity)?
+                    .get(),
+                m,
+            );
+        }
+    }
+    match gz_sim_scene::initial_apply_link_wrench_configuration(sim) {
+        Ok(Some((id, m))) => wrench(id, m),
+        Ok(None) => {}
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+        Err(error) => return Err(error.into()),
+    }
+    Ok(roles)
+}
+fn new_system_reserved_keys(
+    sim: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+    family: PublicationFamily,
+) -> Result<BTreeSet<String>, Error> {
+    typed_reserved_keys(sim, io, config, family)
+}
+fn validate_new_system_topics(
+    sim: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<(), Error> {
+    let roles = new_system_roles(sim)?;
+    for family in [
+        PublicationFamily::GroundTruthOdometry,
+        PublicationFamily::LinkWrench,
+    ] {
+        let mut selected = roles.iter().filter(|role| role.0 == family).peekable();
+        if selected.peek().is_none() {
+            continue;
+        }
+        let occupied = typed_reserved_keys(sim, io, config, family)?;
+        let mut mapped = BTreeMap::new();
+        for (_, owner, channel, raw) in selected {
+            let error = || {
+                if family == PublicationFamily::GroundTruthOdometry {
+                    Error::GroundTruthOdometryIdentity
+                } else {
+                    Error::ApplyLinkWrenchIdentity
+                }
+            };
+            if options::as_valid_topic(raw) != *raw {
+                return Err(error());
+            }
+            let key = config.topic_key(raw)?;
+            if occupied.contains(&key) {
+                return Err(error());
+            }
+            let identity = (*owner, *channel, raw.clone());
+            if mapped
+                .insert(key, identity.clone())
+                .is_some_and(|old| old != identity)
+            {
+                return Err(error());
+            }
+        }
+    }
+    Ok(())
 }
 fn typed_reserved_keys(
     simulation: &Simulation,
@@ -457,6 +604,11 @@ fn typed_reserved_keys(
             }
             Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
             Err(error) => return Err(error.into()),
+        }
+    }
+    for (family, _, _, raw) in new_system_roles(simulation)? {
+        if family != own {
+            keys.insert(config.topic_key(&options::as_valid_topic(&raw))?);
         }
     }
     Ok(keys)
@@ -760,6 +912,8 @@ pub struct Server {
     air_speeds: Vec<air_speed::Stream>,
     logical_cameras: Vec<logical_camera::Stream>,
     pose_publishers: Vec<pose_publisher::Stream>,
+    ground_truth_odometries: Vec<odometry_publisher::Stream>,
+    link_wrenches: Option<apply_link_wrench::ApplyLinkWrenches>,
     magnetometers: Vec<magnetometer::Stream>,
     joint_states: Vec<joint_state::Stream>,
     lidar_viewer_interest: bool,
@@ -888,6 +1042,7 @@ impl Server {
             world_key(&format!("/world/{world_name}/remove/blocking"))?,
         ])?);
         validate_air_speed_and_pose_topics(&simulation, &world_io, &config)?;
+        validate_new_system_topics(&simulation, &world_io, &config)?;
         let mut imus = Vec::new();
         let mut imu_publishers: BTreeMap<String, Weak<world_io::ImuOutput>> = BTreeMap::new();
         for entity in simulation.world().iter_entities() {
@@ -1018,6 +1173,39 @@ impl Server {
         } else {
             Vec::new()
         };
+        let ground_truth_odometries = if simulation
+            .world()
+            .iter_entities()
+            .any(|e| e.contains::<gz_sim_scene::GroundTruthOdometryPublication>())
+        {
+            let occupied = new_system_reserved_keys(
+                &simulation,
+                &world_io,
+                &config,
+                PublicationFamily::GroundTruthOdometry,
+            )?;
+            odometry_publisher::streams(&simulation, &world_io, &config, &occupied, None)?
+        } else {
+            Vec::new()
+        };
+        let occupied = new_system_reserved_keys(
+            &simulation,
+            &world_io,
+            &config,
+            PublicationFamily::LinkWrench,
+        )?;
+        let link_wrenches = if let Some((owner, setup)) =
+            apply_link_wrench::ApplyLinkWrenches::prepare(
+                &simulation,
+                &config,
+                &occupied,
+                &world_io.ingress_drops,
+            )? {
+            world_io.install_wrenches(setup)?;
+            Some(owner)
+        } else {
+            None
+        };
         Ok(Self {
             simulation,
             world_io,
@@ -1047,6 +1235,8 @@ impl Server {
             air_speeds,
             logical_cameras,
             pose_publishers,
+            ground_truth_odometries,
+            link_wrenches,
             magnetometers,
             joint_states,
             lidar_viewer_interest: false,
@@ -1141,6 +1331,15 @@ impl Server {
         pose: gz_sim_scene::WorldPose,
     ) -> Result<u64, Error> {
         self.admit_world_edit()?;
+        if !gz_sim_scene::apply_link_wrench_active(&self.simulation)
+            && self
+                .simulation
+                .world()
+                .iter_entities()
+                .any(|entity| entity.contains::<gz_sim_scene::ApplyLinkWrenchConfiguration>())
+        {
+            return Err(Error::ApplyLinkWrenchReactivation);
+        }
         Ok(gz_sim_scene::spawn_model_template(
             &mut self.simulation,
             template,
@@ -1167,7 +1366,17 @@ impl Server {
     pub fn remove_editable_model(&mut self, id: u64) -> Result<Vec<u64>, Error> {
         self.admit_world_edit()?;
         gz_sim_scene::model_state(&self.simulation, id)?;
-        Ok(gz_sim_scene::remove_model(&mut self.simulation, id)?)
+        let removed = gz_sim_scene::remove_model(&mut self.simulation, id)?;
+        if !self.ground_truth_odometries.is_empty() {
+            self.retire_ground_truth_odometry();
+        }
+        if let Some(owner) = &mut self.link_wrenches {
+            owner.retire(&self.simulation);
+            if owner.is_empty() {
+                self.link_wrenches = None;
+            }
+        }
+        Ok(removed)
     }
 
     /// Explicit application shutdown is terminal for frame admission.
@@ -1254,6 +1463,15 @@ impl Server {
                 failures[world_io::LOGICAL_CAMERA_FRUSTUM_FAILURE_INDEX]
                     .load(std::sync::atomic::Ordering::Relaxed),
             );
+        for index in [
+            world_io::GROUND_TRUTH_ODOMETRY_FAILURE_INDEX,
+            world_io::GROUND_TRUTH_ODOMETRY_COVARIANCE_FAILURE_INDEX,
+            world_io::GROUND_TRUTH_ODOMETRY_TF_FAILURE_INDEX,
+        ] {
+            counters.ground_truth_odometry_failures = counters
+                .ground_truth_odometry_failures
+                .saturating_add(failures[index].load(std::sync::atomic::Ordering::Relaxed));
+        }
         counters
     }
     /// Return observed bounded-input losses, independent of remote delivery.
@@ -1395,6 +1613,9 @@ impl Server {
         if !self.pose_publishers.is_empty() {
             self.publish_pose_publishers();
         }
+        if !self.ground_truth_odometries.is_empty() {
+            self.publish_ground_truth_odometry();
+        }
         self.publish_odometry();
         self.removals
             .execute(&self.world_io, &mut self.simulation, &mut self.counters);
@@ -1428,6 +1649,15 @@ impl Server {
         }
         if !self.pose_publishers.is_empty() {
             self.retire_pose_publishers();
+        }
+        if !self.ground_truth_odometries.is_empty() {
+            self.retire_ground_truth_odometry();
+        }
+        if let Some(owner) = &mut self.link_wrenches {
+            owner.retire(&self.simulation);
+            if owner.is_empty() {
+                self.link_wrenches = None;
+            }
         }
         self.retire_diff_drive();
         if let Some(rates) = &mut self.rates {
@@ -1477,6 +1707,13 @@ impl Server {
             .poll(&self.world_io, self.command_budget, &mut self.counters)?;
         if let Some(forces) = &mut self.forces {
             forces.poll(
+                &mut self.simulation,
+                self.command_budget,
+                &mut self.counters,
+            )?;
+        }
+        if let Some(owner) = &mut self.link_wrenches {
+            owner.poll(
                 &mut self.simulation,
                 self.command_budget,
                 &mut self.counters,
@@ -1681,6 +1918,11 @@ impl Server {
     /// can still transfer the preserved scene.
     pub fn shutdown(&mut self) {
         self.is_shutdown = true;
+        if let Some(mut owner) = self.link_wrenches.take() {
+            owner.shutdown();
+        }
+        gz_sim_scene::discard_apply_link_wrenches(&mut self.simulation);
+        self.ground_truth_odometries = Vec::new();
         if let Some(mut rates) = self.rates.take() {
             rates.shutdown();
         }
@@ -1717,3 +1959,7 @@ mod streams_benchmark;
 #[cfg(test)]
 #[path = "../tests/private/camera_ownership.rs"]
 mod camera_ownership_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/m34_m35_endpoints.rs"]
+mod m34_m35_endpoint_tests;

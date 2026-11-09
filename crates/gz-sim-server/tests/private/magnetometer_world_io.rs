@@ -93,7 +93,7 @@ fn magnetometer_io_owner_cancels_old_epoch_and_retired_lease_without_relabeling_
         io.publish_magnetometer(&replacement, vec![0; 1025])
             .is_err()
     );
-    assert_eq!(io.publication_failures.len(), 14);
+    assert_eq!(io.publication_failures.len(), 17);
     assert_eq!(MAGNETOMETER_FAILURE_INDEX, 8);
     assert!(
         io.publication_failures

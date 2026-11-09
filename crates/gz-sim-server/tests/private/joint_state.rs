@@ -612,8 +612,13 @@ fn joint_state_removed_or_reused_joint_identity_cannot_publish_or_retain_old_str
     assert!(weak.upgrade().is_none());
 }
 
+// These helpers serve the retained seven-family fixture below. New-system
+// endpoint interactions have their own M34/M35 fixture and controls.
 fn family_key(server: &Server, family: PublicationFamily) -> String {
     match family {
+        PublicationFamily::GroundTruthOdometry | PublicationFamily::LinkWrench => {
+            panic!("outside retained seven-family fixture")
+        }
         PublicationFamily::Altimeter => server.altimeters[0].endpoint.clone(),
         PublicationFamily::AirPressure => server.air_pressures[0].endpoint.clone(),
         PublicationFamily::Magnetometer => server.magnetometers[0].endpoint.clone(),
@@ -630,6 +635,9 @@ fn family_key(server: &Server, family: PublicationFamily) -> String {
 }
 fn topic_mut(server: &mut Server, family: PublicationFamily, value: String) {
     match family {
+        PublicationFamily::GroundTruthOdometry | PublicationFamily::LinkWrench => {
+            panic!("outside retained seven-family fixture")
+        }
         PublicationFamily::Altimeter => {
             let e = server
                 .simulation
@@ -739,6 +747,9 @@ fn assert_family_refuses(
     options: &ServerOptions,
 ) {
     match family {
+        PublicationFamily::GroundTruthOdometry | PublicationFamily::LinkWrench => {
+            panic!("outside retained seven-family fixture")
+        }
         PublicationFamily::Altimeter => assert!(matches!(
             altimeter::streams(
                 &server.simulation,

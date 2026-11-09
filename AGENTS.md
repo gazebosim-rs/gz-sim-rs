@@ -1,10 +1,9 @@
 # Instructions for implementation agents
 
-> M1–M32 are accepted at qualified Main `679c9990`; see
-> [M32 acceptance](docs/M32_ACCEPTANCE.md) and the verified Latest
-> [m32-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m32-preview).
-> Current work is [M33 mobile-robot IMU/lidar coexistence](docs/M33_DELIVERY.md).
-> New source, functional proofs and mandatory gates remain required.
+> M1–M33 are accepted at qualified Main `17dd62f2`; M32 remains installed Latest.
+> Current work is [M34/M35](docs/M34_M35_DELIVERY.md), with independently reviewed
+> contracts, reviewed implementation and audited native reference records.
+> Full normal/strict coverage/hosted qualification remains pending.
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -12,20 +11,23 @@ Confirmed owner decisions override proposals. Do not resolve an outstanding
 product decision by silently deleting behavior. Read `docs/STATUS.md` to distinguish
 implemented behavior and checks from planned release requirements.
 
-## Current priority after explicit resume (D30–D32)
+## Current qualification and parallel source priority (D30–D32)
 
-Read `docs/M32_ACCEPTANCE.md`, `docs/M33_DELIVERY.md` and the current handoff.
-M33 has recorded exclusive example/server/C++ peer and socket/guide leases;
-Root owns shared registration/integration, serial execution and publication.
-Preserve the accepted M32 source and installed Latest. Complete implementation,
-meaningful regressions, guides and independent review before one consolidated
-normal/strict coverage/exact hosted qualification. No new noise-model work or
-package/browser acceptance is delegated; existing behavior and gates stay intact.
-Continue the next useful bounded phase after acceptance; preserve Fuel and all
-paused work. M33's first full normal hook failed at the new peer CLI selection
-before C++ compilation. Its failed tree and packet stay retained. The bounded
-dispatch/profile-guard/regression correction requires complete independent
-review before one consolidated mandatory retry; no M33 qualification is claimed.
+M33 is accepted after its full normal hook, exact hosted CI42667053571 attempt1,
+independent local/official DATA and normal Main promotion/readback at17dd62f2.
+Preserve its frozen qualification source and every original failure. M32 stays
+installed Latest; no package/browser refresh is selected for M34/M35.
+
+Read docs/M34_M35_DELIVERY.md and the two reviewed contracts. Light and Messages
+have Root release for their exact disjoint eight new leaves each. Root owns all
+shared admission, scheduling, reset, IO, counters, peer registry AND CLI guards,
+integration and serial execution. The wave is bound to actually accepted M33.
+Implementation and source review are complete; the native reference records and
+generated odometry fixture have independent retained DATA review. Preserve those
+captures and the original failed method results. Finish the final source review
+before Root releases one consolidated normal hook, strict coverage, exact hosted
+CI and independent local/official qualification. No acceptance is inferred.
+Preserve Fuel and paused work.
 
 ## Architecture
 

@@ -68,6 +68,10 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
         mut logical_camera,
     ) = (false, false, false, false, false, false, false);
     for plugin in &world.plugins {
+        // The caller preflights this configuration through its closed typed parser.
+        if crate::apply_link_wrench::is_plugin(plugin) {
+            continue;
+        }
         let is_physics = plugin.name == "gz::sim::systems::Physics"
             && plugin.filename == "gz-sim-physics-system";
         let is_sensors = plugin.name == "gz::sim::systems::Sensors"

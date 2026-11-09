@@ -1,5 +1,20 @@
 # Implementation status
 
+M1–M33 are accepted at qualified Main `17dd62f2`. M33 passed its full normal
+hook, exact hosted CI42667053571 attempt1 and independent local/official DATA,
+then normal nonforced Main promotion and exact readback. M32 remains installed
+Latest. M34 ground-truth odometry and M35 canonical wrench inputs are active in
+parallel source lanes under [recorded scope and leases](M34_M35_DELIVERY.md).
+Both implementations and their source reviews are complete. The original native
+systems supplied independently audited reference records: 221 odometry packet
+triples and 32 wrench command records. A separately audited literal fixture now
+backs the new Rust numeric and serialization regressions. The full normal hook,
+strict coverage, exact hosted CI and independent local/official audits remain
+required before either phase is accepted. See [M33 acceptance](M33_ACCEPTANCE.md)
+and the [reference checkpoint](M34_M35_DELIVERY.md#native-reference-checkpoint).
+
+## Historical M33 first normal checkpoint
+
 M1–M32 are accepted at qualified Main `679c9990`; see
 [M32 acceptance](M32_ACCEPTANCE.md). Release439342072 (`m32-preview`) is verified
 Latest after all seven asset/body/Main/tag readbacks and independent source,
@@ -17,7 +32,7 @@ M1–M29 are accepted and published at Main `ab9660ee`; see
 [M28/M29 acceptance](M28_M29_ACCEPTANCE.md) and the
 [m29-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m29-preview),
 verified Latest with seven exact uploaded asset/body/tag readbacks. Full normal,
-strict coverage, exact CI42586254208 attempt1 and independent native/local/
+strict coverage, exact CI42586254208 attempt 1 and independent native/local/
 official/package/install/browser DATA passed. Rust profiles overlap at1518/922;
 358 quiet Python passes are aggregate. Every original failed outcome remains.
 The early forward-helper stable kernel argv stays unobserved; actual source-bound
