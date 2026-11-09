@@ -324,3 +324,57 @@ fn pose_publisher_zero_strong_count_before_cpu_destructor_cannot_reuse_an_expire
     assert_eq!(registry.entries.len(), 1);
     assert_eq!(count_tokens(&session), 1);
 }
+
+#[test]
+fn split_pose_channels_share_registry_but_keep_independent_weak_declarations_and_payloads() {
+    let session = session();
+    let base = key();
+    let fixed_key = format!("{base}_static");
+    let dynamic_samples = session.declare_subscriber(base.clone()).wait().unwrap();
+    let fixed_samples = session
+        .declare_subscriber(fixed_key.clone())
+        .wait()
+        .unwrap();
+    let (wake, _) = mpsc::sync_channel(2);
+    let mut registry = PosePublisherDeclarations::new();
+    let dynamic = output(&mut registry, &session, &base, wake.clone());
+    let fixed = output(&mut registry, &session, &fixed_key, wake);
+    assert!(!Arc::ptr_eq(&dynamic, &fixed));
+    assert_eq!(registry.entries.len(), 2);
+    for (lease, name, observer) in [
+        (&fixed, "rig::base", &fixed_samples),
+        (&dynamic, "rig::tip", &dynamic_samples),
+    ] {
+        let frame = PoseV {
+            header: None,
+            pose: vec![Pose {
+                name: name.into(),
+                ..Default::default()
+            }],
+        };
+        assert!(
+            registry
+                .publish(PosePublisherJob::new(lease, frame.encode_to_vec()))
+                .unwrap()
+        );
+        let actual = observer
+            .recv_timeout(Duration::from_secs(3))
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            PoseV::decode(actual.payload().to_bytes().as_ref()).unwrap(),
+            frame
+        );
+    }
+    let stale = PosePublisherJob::new(&fixed, vec![1, 2, 3]);
+    let weak = Arc::downgrade(&fixed);
+    drop(fixed);
+    assert!(weak.upgrade().is_none());
+    registry.reconcile(false);
+    assert_eq!(registry.entries.len(), 1);
+    assert!(!registry.publish(stale).unwrap());
+    assert_eq!(Arc::strong_count(&dynamic), 1);
+    drop(dynamic);
+    registry.reconcile(false);
+    assert!(registry.is_empty());
+}

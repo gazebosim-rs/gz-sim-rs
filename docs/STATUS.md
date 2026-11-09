@@ -1,25 +1,45 @@
 # Implementation status
 
-M1–M25 are accepted and published at qualified Main `08ae5525`; see
-[M25 acceptance](M25_ACCEPTANCE.md) and the
-[M25 preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m25-preview),
-which is verified Latest. Full normal, exact CI 42507018578 attempt 1 and all
-independent local/official/package/install/combined-browser DATA passed. Original
-outer controller 143 and unknown cause/stop wait/minima remain distinct from
-actual active actor/launcher zero and read-only retained finalization zero.
-No application or browser proof was replayed to recover its final report.
+M1–M29 are accepted and published at Main `ab9660ee`; see
+[M28/M29 acceptance](M28_M29_ACCEPTANCE.md) and the
+[m29-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m29-preview),
+verified Latest with seven exact uploaded asset/body/tag readbacks. Full normal,
+strict coverage, exact CI42586254208 attempt1 and independent native/local/
+official/package/install/browser DATA passed. Rust profiles overlap at1518/922;
+358 quiet Python passes are aggregate. Every original failed outcome remains.
+The early forward-helper stable kernel argv stays unobserved; actual source-bound
+arguments and wait0 are distinct, and simulator-grandchild exit remains unknown.
 
-[M26/M27 acceptance](M26_M27_ACCEPTANCE.md) records qualified Main
-`0f525592`, exact hosted CI `42570074529` attempt 1/all 16 steps, final
-normal/strict coverage and independent native/local/official DATA. Both bounded
-source features are accepted. Original failures and normal outer-watch provenance
-remain separate. There are 27 accepted phases; M25 stays the installed Latest.
-
-[M28/M29](M28_M29_DELIVERY.md) have complete independently reviewed noise and
-packaging implementation/regression/guide batches integrated over that accepted
-parent. Their checks and all fresh distribution/install/browser/release evidence
-remain pending. One integrator serializes local heavy work; no acceptance is
-inherited. Full rewrite compatibility remains outside these bounded counts.
+[M30/M31](M30_M31_DELIVERY.md) are selected next: one ideal CPU LogicalCamera and
+bounded static-vector PosePublisher. Independent source lanes use accepted
+`ab9660ee`, one Root integrator and serial local heavy qualification. Current
+source batch has independent review. M31's native proof passed seven modes and
+461 keyed vectors, followed by its independent retained DATA audit. M30's first
+helper compile failed at a glibc name collision. Its isolated successor compiled
+but failed a nominal side-edge combined guard after six successful near/far rows;
+the failing detection count was not retained. Original candidates and failures
+remain frozen. The stronger native reference passed all 29 child stages and 36
+paired acquisitions in 13.854 seconds, retaining the original nominal inputs and
+adding exact-zero/adjacent witnesses without an epsilon. The actual first 19
+inputs and observed names now back a typed Rust replay regression. Independent native
+DATA and typed fixture Source/DATA review passed. The first full normal hook stopped at one unnecessary test `mut` after 178.077
+seconds, before tests or coverage. The isolated successor removed that binding qualifier. Its normal run passed
+both Clippy configurations and 358 Python tests, then failed 21 headless cases:
+the pinned SDF parser rejects LogicalCamera configuration, two fixture cases
+have no required collider, and one test loads unsupported fixed joints. A further
+geometry-size fixture issue was caught in source review. The parser/fixture correction batch now has independent source review,
+preserving backend admission and test intent. SDFormat revision `82c35f24` passed
+its full normal hook, independent local DATA, exact hosted run `42614152237` and
+independent official DATA: 738 Rust tests, 59 tooling tests and all strict
+coverage gates. The simulator now pins that qualified revision; its corrected
+full gate is still required. The old outer controller exit 143 and unknown
+original Python exit remain separate from that actual failed hook. Both data
+reader/collector method failures are preserved without repeating product tests
+or CI. Renderer, simulator strict coverage, hosted checks and final independent
+audits remain pending. Native proofs are retained; no visibility arithmetic
+change is needed.
+M29 stays installed Latest.
+Full legacy compatibility and performance remain outside these phase counts.
 
 ## Historical M20 and atomic M21–M25 preparation checkpoints
 

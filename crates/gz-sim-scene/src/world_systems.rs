@@ -65,7 +65,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
         mut air_pressure,
         mut magnetometer,
         mut air_speed,
-    ) = (false, false, false, false, false, false);
+        mut logical_camera,
+    ) = (false, false, false, false, false, false, false);
     for plugin in &world.plugins {
         let is_physics = plugin.name == "gz::sim::systems::Physics"
             && plugin.filename == "gz-sim-physics-system";
@@ -77,6 +78,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             && plugin.filename == "gz-sim-air-pressure-system";
         let is_air_speed = plugin.name == "gz::sim::systems::AirSpeed"
             && plugin.filename == "gz-sim-air-speed-system";
+        let is_logical_camera = plugin.name == "gz::sim::systems::LogicalCamera"
+            && plugin.filename == "gz-sim-logical-camera-system";
         let is_magnetometer = plugin.name == "gz::sim::systems::Magnetometer"
             && plugin.filename == "gz-sim-magnetometer-system";
         require(
@@ -85,7 +88,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
                 || is_altimeter
                 || is_air_pressure
                 || is_magnetometer
-                || is_air_speed,
+                || is_air_speed
+                || is_logical_camera,
             &world.name,
             "world plugins",
         )?;
@@ -99,6 +103,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
             (&mut air_pressure, "duplicate AirPressure configuration")
         } else if is_air_speed {
             (&mut air_speed, "duplicate AirSpeed configuration")
+        } else if is_logical_camera {
+            (&mut logical_camera, "duplicate LogicalCamera configuration")
         } else {
             (&mut magnetometer, "duplicate Magnetometer configuration")
         };
@@ -116,6 +122,8 @@ pub(super) fn validate(world: &sdformat::World) -> Result<bool, LoadError> {
                 "AirPressure system configuration"
             } else if is_air_speed {
                 "AirSpeed system configuration"
+            } else if is_logical_camera {
+                "LogicalCamera system configuration"
             } else {
                 "Magnetometer system configuration"
             },

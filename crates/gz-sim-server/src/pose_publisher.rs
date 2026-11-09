@@ -3,7 +3,9 @@
 //! Canonical model-local PosePublisher, independent of viewer/world pose streaming.
 use super::*;
 use gz_sim_proto::msgs::{Header, Pose, PoseV, header::Map};
-use gz_sim_scene::{EntityKind, Name, PendingResetRemoval, PosePublication, PoseSample};
+use gz_sim_scene::{
+    EntityKind, Name, PendingResetRemoval, PosePublication, PoseSample, StaticPoseSample,
+};
 
 pub(super) struct Stream {
     entity: Entity,
@@ -13,8 +15,51 @@ pub(super) struct Stream {
     pub(super) endpoint: String,
     pub(super) publisher: Arc<world_io::PosePublisherOutput>,
     last_sample: Option<(u64, u64)>,
+    static_channel: bool,
+}
+fn channels(metadata: &PosePublication) -> impl Iterator<Item = (bool, &str)> {
+    std::iter::once((false, metadata.topic.as_str())).chain(
+        metadata
+            .static_publication
+            .iter()
+            .map(|s| (true, s.topic.as_str())),
+    )
+}
+fn channel_metadata(metadata: &PosePublication, fixed: bool) -> PosePublication {
+    let mut result = metadata.clone();
+    if fixed {
+        let channel = metadata
+            .static_publication
+            .as_ref()
+            .expect("selected static channel");
+        result.topic = channel.topic.clone();
+        result.poses = channel.poses.clone();
+    }
+    result.static_publication = None;
+    result
 }
 fn valid_metadata(metadata: &PosePublication, owner: u64) -> bool {
+    if let Some(fixed) = &metadata.static_publication {
+        let mut all = metadata.clone();
+        all.static_publication = None;
+        all.poses.extend(fixed.poses.iter().cloned());
+        all.poses
+            .sort_by(|a, b| a.child_frame_id.cmp(&b.child_frame_id));
+        let mut static_topic = all.clone();
+        static_topic.topic = fixed.topic.clone();
+        return metadata.topic != fixed.topic
+            && metadata
+                .poses
+                .windows(2)
+                .all(|p| p[0].child_frame_id < p[1].child_frame_id)
+            && fixed
+                .poses
+                .windows(2)
+                .all(|p| p[0].child_frame_id < p[1].child_frame_id)
+            && valid_metadata(&all, owner)
+            && valid_metadata(&static_topic, owner);
+    }
+
     owner != 0
         && !metadata.model_name.is_empty()
         && !metadata.model_name.contains("::")
@@ -105,14 +150,17 @@ pub(super) fn prepare_reset(
         return Err(Error::PosePublisherIdentity);
     }
     let mut selected = Vec::new();
+    let mut keys = occupied.clone();
     for (id, metadata) in metadata {
-        let key = server
-            .network_config
-            .topic_key(&options::as_valid_topic(&metadata.topic))?;
-        if occupied.contains(&key) {
-            return Err(Error::PosePublisherIdentity);
+        for (_, topic) in channels(&metadata) {
+            let key = server
+                .network_config
+                .topic_key(&options::as_valid_topic(topic))?;
+            if !keys.insert(key.clone()) {
+                return Err(Error::PosePublisherIdentity);
+            }
+            selected.push((id, metadata.clone(), key));
         }
-        selected.push((id, metadata, key));
     }
     let mut prepared = BTreeMap::new();
     for (id, metadata, key) in selected {
@@ -150,7 +198,11 @@ fn bindings(
         return None;
     }
     let mut frames = Vec::with_capacity(metadata.poses.len());
-    for frame in &metadata.poses {
+    for frame in metadata
+        .poses
+        .iter()
+        .chain(metadata.static_publication.iter().flat_map(|s| &s.poses))
+    {
         let id = entity_by_id(world, frame.identity)?;
         if frame.identity == identity {
             if id != entity || frame.frame_id != world_name {
@@ -183,6 +235,7 @@ pub(super) fn streams(
         return Err(Error::PosePublisherIdentity);
     }
     let mut selected = Vec::new();
+    let mut keys = occupied.clone();
     for entity in candidates {
         let metadata = sim
             .world()
@@ -195,24 +248,33 @@ pub(super) fn streams(
             .get();
         let frames =
             bindings(sim, entity, identity, metadata).ok_or(Error::PosePublisherIdentity)?;
-        let endpoint = options.topic_key(&options::as_valid_topic(&metadata.topic))?;
-        if occupied.contains(&endpoint) {
-            return Err(Error::PosePublisherIdentity);
-        }
-        if let Some(prepared) = prepared {
-            let (original, config, _) =
-                prepared.get(&endpoint).ok_or(Error::ResetPosePublishers)?;
-            if *original != identity || config != metadata {
-                return Err(Error::ResetPosePublishers);
+        for (static_channel, topic) in channels(metadata) {
+            let endpoint = options.topic_key(&options::as_valid_topic(topic))?;
+            if !keys.insert(endpoint.clone()) {
+                return Err(Error::PosePublisherIdentity);
             }
+            if let Some(prepared) = prepared {
+                let (original, config, _) =
+                    prepared.get(&endpoint).ok_or(Error::ResetPosePublishers)?;
+                if *original != identity || config != metadata {
+                    return Err(Error::ResetPosePublishers);
+                }
+            }
+            selected.push((
+                entity,
+                identity,
+                frames.clone(),
+                metadata.clone(),
+                endpoint,
+                static_channel,
+            ));
         }
-        selected.push((entity, identity, frames, metadata.clone(), endpoint));
     }
     if prepared.is_some_and(|p| p.len() != selected.len()) {
         return Err(Error::ResetPosePublishers);
     }
     let mut result = Vec::new();
-    for (entity, identity, frames, metadata, endpoint) in selected {
+    for (entity, identity, frames, metadata, endpoint, static_channel) in selected {
         let publisher = match prepared {
             Some(p) => Arc::clone(&p.get(&endpoint).expect("preflight before IO").2),
             None => io
@@ -227,8 +289,10 @@ pub(super) fn streams(
             endpoint,
             publisher,
             last_sample: None,
+            static_channel,
         });
     }
+    result.sort_by_key(|stream| !stream.static_channel);
     Ok(result)
 }
 impl Stream {
@@ -245,7 +309,15 @@ impl Server {
             if !stream.live(&self.simulation) {
                 continue;
             }
-            let Some(sample) = self.simulation.world().get::<PoseSample>(stream.entity) else {
+            let sample = if stream.static_channel {
+                self.simulation
+                    .world()
+                    .get::<StaticPoseSample>(stream.entity)
+                    .map(|s| &s.0)
+            } else {
+                self.simulation.world().get::<PoseSample>(stream.entity)
+            };
+            let Some(sample) = sample else {
                 continue;
             };
             let key = (sample.epoch, sample.revision);
@@ -255,7 +327,13 @@ impl Server {
             stream.last_sample = Some(key);
             let frame = (sample.epoch == self.simulation.epoch()
                 && sample.time <= self.simulation.elapsed())
-            .then(|| packet(&stream.metadata, stream.identity, sample))
+            .then(|| {
+                packet(
+                    &channel_metadata(&stream.metadata, stream.static_channel),
+                    stream.identity,
+                    sample,
+                )
+            })
             .flatten();
             let Some(frame) = frame else {
                 self.counters.invalid_pose_publication_samples += 1;

@@ -119,3 +119,64 @@ fn pose_publisher_io_owner_cancels_old_epoch_and_retired_lease_without_relabelin
     assert!(io.pose_publisher_output("@/test@/closed".into()).is_err());
     io.shutdown();
 }
+
+#[test]
+fn split_pose_world_epoch_cancels_both_channels_and_retiring_one_does_not_retire_the_other() {
+    let io = isolated();
+    let dynamic_key = "@/test@/split_pose".to_owned();
+    let fixed_key = format!("{dynamic_key}_static");
+    let dynamic_samples = io
+        .session
+        .declare_subscriber(dynamic_key.clone())
+        .wait()
+        .unwrap();
+    let fixed_samples = io
+        .session
+        .declare_subscriber(fixed_key.clone())
+        .wait()
+        .unwrap();
+    let dynamic = io.pose_publisher_output(dynamic_key).unwrap();
+    let fixed = io.pose_publisher_output(fixed_key).unwrap();
+    let frame = PoseV {
+        header: None,
+        pose: vec![Pose {
+            name: "rig::base".into(),
+            ..Default::default()
+        }],
+    }
+    .encode_to_vec();
+    io.epoch.store(2, Ordering::Release);
+    for lease in [&dynamic, &fixed] {
+        io.incoming
+            .send(WorldWork::PosePublisher(
+                1,
+                crate::pose_publisher_io::PosePublisherJob::new(lease, frame.clone()),
+            ))
+            .unwrap();
+    }
+    let fence = io
+        .pose_publisher_output("@/test@/split_fence".into())
+        .unwrap();
+    assert!(dynamic_samples.try_recv().unwrap().is_none());
+    assert!(fixed_samples.try_recv().unwrap().is_none());
+    let weak = Arc::downgrade(&dynamic);
+    drop(dynamic);
+    assert!(weak.upgrade().is_none());
+    io.publish_pose_publisher(&fixed, frame.clone()).unwrap();
+    assert_eq!(
+        fixed_samples
+            .recv_timeout(Duration::from_secs(3))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+        frame
+    );
+    drop(fence);
+    io.session.close().wait().unwrap();
+    assert!(
+        io.pose_publisher_output("@/test@/split_closed".into())
+            .is_err()
+    );
+}

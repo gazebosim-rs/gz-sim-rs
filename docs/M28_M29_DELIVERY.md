@@ -3,6 +3,10 @@
 
 # M28/M29: AirSpeed noise and the next installed preview
 
+Accepted on 2026-11-09 at Main `ab9660ee`; [acceptance](M28_M29_ACCEPTANCE.md)
+supersedes the original preparation statements below. M29 is verified Latest.
+Current work is [M30/M31](M30_M31_DELIVERY.md); the original scope is retained.
+
 These bounded phases continue D30–D32. Each includes review and mandatory
 verification within a target of at most five working days. M1–M27 are accepted;
 M25 remains the published installed preview. Parent Main `0f525592` passed the

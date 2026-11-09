@@ -77,7 +77,7 @@ fn pose_configuration_refuses_unsupported_publication_without_dropping_scene_ent
         "",
         "<use_pose_vector_msg>false</use_pose_vector_msg>",
         "<use_pose_vector_msg>true</use_pose_vector_msg><publish_link_pose>false</publish_link_pose>",
-        "<use_pose_vector_msg>true</use_pose_vector_msg><static_publisher>true</static_publisher>",
+        "<use_pose_vector_msg>true</use_pose_vector_msg><static_publisher>true</static_publisher><publish_model_pose>true</publish_model_pose><publish_link_pose>false</publish_link_pose>",
         "<use_pose_vector_msg>true</use_pose_vector_msg><static_update_frequency>1</static_update_frequency>",
     ] {
         assert!(parse(&configured(content)).is_err(), "{content}");

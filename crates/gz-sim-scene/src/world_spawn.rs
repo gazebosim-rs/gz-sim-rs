@@ -189,6 +189,62 @@ pub fn prepare_model_template(
     })
 }
 
+// The loaded camera admits only a bounded, flat set of model origins. Check
+// runtime structural edits before the native body or public allocator changes.
+fn preflight_logical_camera_spawn(
+    world: &World,
+    parent: Entity,
+    new_name: &str,
+) -> Result<(), WorldEditError> {
+    if !world.contains_resource::<crate::logical_camera::Installed>()
+        && !world
+            .iter_entities()
+            .any(|entity| entity.contains::<crate::logical_camera::LogicalCamera>())
+    {
+        return Ok(());
+    }
+    let world_name = &world
+        .get::<Name>(parent)
+        .ok_or(WorldEditError::InvalidScene)?
+        .0;
+    let prefix = format!("{world_name}::");
+    let mut names = std::collections::BTreeSet::new();
+    for entity in world
+        .iter_entities()
+        .filter(|entity| entity.get::<EntityKind>() == Some(&EntityKind::Model))
+    {
+        if entity.get::<ChildOf>().map(ChildOf::parent) != Some(parent) {
+            return Err(WorldEditError::InvalidScene);
+        }
+        let id = entity
+            .get::<EntityId>()
+            .ok_or(WorldEditError::InvalidScene)?
+            .get();
+        if entity_by_id(world, id) != Some(entity.id()) {
+            return Err(WorldEditError::InvalidScene);
+        }
+        let name = entity
+            .get::<Name>()
+            .ok_or(WorldEditError::InvalidScene)?
+            .0
+            .strip_prefix(&prefix)
+            .ok_or(WorldEditError::InvalidScene)?;
+        if !gz_sensors::logical_camera::valid_name(name) || !names.insert(name) {
+            return Err(WorldEditError::InvalidScene);
+        }
+        if names.len() >= 128 {
+            return Err(WorldEditError::UnsupportedModel);
+        }
+    }
+    let name = new_name
+        .strip_prefix(&prefix)
+        .ok_or(WorldEditError::InvalidScene)?;
+    if !gz_sensors::logical_camera::valid_name(name) || !names.insert(name) {
+        return Err(WorldEditError::UnsupportedModel);
+    }
+    Ok(())
+}
+
 /// Clone one startup template at a validated model origin. All ordinary errors
 /// precede construction. The four public IDs are allocated only after the native
 /// adapter accepts the body. An arbitrary external ECS observer that corrupts
@@ -230,6 +286,7 @@ pub fn spawn_model_template(
     {
         return Err(WorldEditError::UnsupportedModel);
     }
+    preflight_logical_camera_spawn(world, parent, &name)?;
     let local = world
         .get::<WorldPose>(parent)
         .ok_or(WorldEditError::InvalidScene)?

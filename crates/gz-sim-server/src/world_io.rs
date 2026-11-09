@@ -31,6 +31,7 @@ pub(super) use crate::altimeter_io::AltimeterOutput;
 pub(super) use crate::imu_io::ImuOutput;
 pub(super) use crate::joint_state_io::JointStateOutput;
 pub(super) use crate::lidar_io::LidarOutput;
+pub(super) use crate::logical_camera_io::{LogicalCameraChannel, LogicalCameraOutput};
 pub(super) use crate::magnetometer_io::MagnetometerOutput;
 pub(super) use crate::pose_publisher_io::PosePublisherOutput;
 
@@ -160,6 +161,8 @@ pub(super) const MAGNETOMETER_FAILURE_INDEX: usize = 8;
 pub(super) const JOINT_STATE_FAILURE_INDEX: usize = 9;
 pub(super) const AIR_SPEED_FAILURE_INDEX: usize = 10;
 pub(super) const POSE_PUBLISHER_FAILURE_INDEX: usize = 11;
+pub(super) const LOGICAL_CAMERA_IMAGE_FAILURE_INDEX: usize = 12;
+pub(super) const LOGICAL_CAMERA_FRUSTUM_FAILURE_INDEX: usize = 13;
 
 enum WorldWork {
     Clock(u64, Vec<u8>),
@@ -169,6 +172,7 @@ enum WorldWork {
     Altimeter(u64, crate::altimeter_io::AltimeterJob),
     AirPressure(u64, crate::air_pressure_io::AirPressureJob),
     AirSpeed(u64, crate::air_speed_io::AirSpeedJob),
+    LogicalCamera(u64, crate::logical_camera_io::LogicalCameraJob),
     JointState(u64, crate::joint_state_io::JointStateJob),
     PosePublisher(u64, crate::pose_publisher_io::PosePublisherJob),
     Magnetometer(u64, crate::magnetometer_io::MagnetometerJob),
@@ -193,6 +197,11 @@ enum WorldWork {
     InstallAirPressure(
         String,
         mpsc::SyncSender<std::result::Result<Arc<AirPressureOutput>, String>>,
+    ),
+    InstallLogicalCamera(
+        String,
+        LogicalCameraChannel,
+        mpsc::SyncSender<std::result::Result<Arc<LogicalCameraOutput>, String>>,
     ),
     InstallAirSpeed(
         String,
@@ -266,7 +275,7 @@ pub(super) struct WorldIo {
     pub(super) rejected: Arc<AtomicU64>,
     pub(super) ingress_drops: Arc<AtomicU64>,
     pub(super) reply_failures: Arc<AtomicU64>,
-    pub(super) publication_failures: Arc<[AtomicU64; 12]>,
+    pub(super) publication_failures: Arc<[AtomicU64; 14]>,
     pub(super) epoch: Arc<AtomicU64>,
     pub(super) max_message_bytes: usize,
     capacity: usize,
@@ -407,7 +416,7 @@ impl WorldIo {
         let worker_poses = Arc::clone(&poses);
         let epoch = Arc::new(AtomicU64::new(0));
         let worker_epoch = Arc::clone(&epoch);
-        let publication_failures: Arc<[AtomicU64; 12]> =
+        let publication_failures: Arc<[AtomicU64; 14]> =
             Arc::new(std::array::from_fn(|_| AtomicU64::new(0)));
         let failures = Arc::clone(&publication_failures);
         let control_worker =
@@ -574,6 +583,13 @@ impl WorldIo {
                     mpsc::SyncSender<crate::air_speed_io::AirSpeedId>,
                     mpsc::Receiver<crate::air_speed_io::AirSpeedId>,
                 )> = None;
+                let mut logical_cameras: Option<
+                    crate::logical_camera_io::LogicalCameraDeclarations,
+                > = None;
+                let mut logical_camera_retirement: Option<(
+                    mpsc::SyncSender<crate::logical_camera_io::LogicalCameraId>,
+                    mpsc::Receiver<crate::logical_camera_io::LogicalCameraId>,
+                )> = None;
                 let mut joint_states: Option<crate::joint_state_io::JointStateDeclarations> = None;
                 let mut joint_state_retirement: Option<(
                     mpsc::SyncSender<crate::joint_state_io::JointStateId>,
@@ -657,6 +673,16 @@ impl WorldIo {
                         if declarations.is_empty() {
                             air_speeds = None;
                             air_speed_retirement = None;
+                        }
+                    }
+                    if let Some((_, retired)) = &logical_camera_retirement {
+                        while retired.try_recv().is_ok() {}
+                    }
+                    if let Some(declarations) = &mut logical_cameras {
+                        declarations.reconcile(publication_session.is_closed());
+                        if declarations.is_empty() {
+                            logical_cameras = None;
+                            logical_camera_retirement = None;
                         }
                     }
                     if let Some((_, retired)) = &joint_state_retirement {
@@ -792,6 +818,7 @@ impl WorldIo {
                         || altimeters.is_some()
                         || air_pressures.is_some()
                         || air_speeds.is_some()
+                        || logical_cameras.is_some()
                         || joint_states.is_some()
                         || pose_publishers.is_some()
                         || magnetometers.is_some()
@@ -948,6 +975,39 @@ impl WorldIo {
                                 .get_or_create(
                                     &publication_session,
                                     key,
+                                    &publication_process,
+                                    &publication_node,
+                                    retired.clone(),
+                                )
+                                .map_err(|error| error.to_string());
+                            let _ = receipt.try_send(result);
+                        }
+                        Ok(WorldWork::LogicalCamera(generation, job)) => {
+                            let index = match job.channel {
+                                LogicalCameraChannel::Image => LOGICAL_CAMERA_IMAGE_FAILURE_INDEX,
+                                LogicalCameraChannel::Frustum => {
+                                    LOGICAL_CAMERA_FRUSTUM_FAILURE_INDEX
+                                }
+                            };
+                            if generation == worker_epoch.load(Ordering::Acquire)
+                                && logical_cameras
+                                    .as_ref()
+                                    .is_some_and(|declarations| declarations.publish(job).is_err())
+                            {
+                                failures[index].fetch_add(1, Ordering::Relaxed);
+                            }
+                        }
+                        Ok(WorldWork::InstallLogicalCamera(key, channel, receipt)) => {
+                            let declarations = logical_cameras.get_or_insert_with(
+                                crate::logical_camera_io::LogicalCameraDeclarations::new,
+                            );
+                            let (retired, _) = logical_camera_retirement
+                                .get_or_insert_with(|| mpsc::sync_channel(capacity));
+                            let result = declarations
+                                .get_or_create(
+                                    &publication_session,
+                                    key,
+                                    channel,
                                     &publication_process,
                                     &publication_node,
                                     retired.clone(),
@@ -1332,6 +1392,30 @@ impl WorldIo {
             .map_err(Into::into)
     }
 
+    pub(super) fn logical_camera_output(
+        &self,
+        key: String,
+        channel: LogicalCameraChannel,
+    ) -> Result<Arc<LogicalCameraOutput>> {
+        if self.reserved_keys().contains(&key) {
+            return Err("logical-camera key collides with world publication or service".into());
+        }
+        if self.session.is_closed() {
+            return Err("world session is closed".into());
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let (receipt, ready) = mpsc::sync_channel(1);
+        self.incoming
+            .send_deadline(
+                WorldWork::InstallLogicalCamera(key, channel, receipt),
+                deadline,
+            )
+            .map_err(|error| format!("logical-camera setup admission failed: {error}"))?;
+        ready
+            .recv_timeout(deadline.saturating_duration_since(Instant::now()))?
+            .map_err(Into::into)
+    }
+
     pub(super) fn magnetometer_output(&self, key: String) -> Result<Arc<MagnetometerOutput>> {
         if self.reserved_keys().contains(&key) {
             return Err("magnetometer key collides with world publication or service".into());
@@ -1669,6 +1753,22 @@ impl WorldIo {
             .map_err(|_| "world publication queue unavailable".into())
     }
 
+    pub(super) fn publish_logical_camera(
+        &self,
+        output: &Arc<LogicalCameraOutput>,
+        bytes: Vec<u8>,
+    ) -> Result<()> {
+        if bytes.len() > self.max_message_bytes || self.session.is_closed() {
+            return Err("invalid logical-camera publication".into());
+        }
+        self.incoming
+            .try_send(WorldWork::LogicalCamera(
+                self.epoch.load(Ordering::Acquire),
+                crate::logical_camera_io::LogicalCameraJob::new(output, bytes),
+            ))
+            .map_err(|_| "world publication queue unavailable".into())
+    }
+
     pub(super) fn publish_magnetometer(
         &self,
         output: &Arc<MagnetometerOutput>,
@@ -1798,3 +1898,7 @@ mod air_speed_tests;
 #[cfg(test)]
 #[path = "../tests/private/pose_world_io.rs"]
 mod pose_publisher_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/logical_camera_world_io.rs"]
+mod logical_camera_tests;

@@ -253,3 +253,202 @@ fn rotated_runtime_model_remains_editable_and_resettable_after_real_stepping() {
     reset_loaded_world(&mut sim, |_| ()).unwrap();
     assert!(entity_by_id(sim.world(), model).is_none());
 }
+
+fn logical_camera_spawn_xml() -> String {
+    XML.replace(
+        "<model name='sphere'><static>true</static><link name='body'>",
+        "<model name='sphere'><static>true</static><link name='body'><sensor name='logical' type='logical_camera'><update_rate>0</update_rate><logical_camera><near>0.1</near><far>1000</far><horizontal_fov>1.5</horizontal_fov><aspect_ratio>1</aspect_ratio></logical_camera></sensor>",
+    )
+}
+
+#[test]
+fn logical_camera_runtime_model_bound_refuses_before_mutation_and_recovers_after_removal() {
+    let xml = logical_camera_spawn_xml();
+    let parsed = sdformat::load_str(&xml, "logical-spawn.sdf", &NoResources).unwrap();
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "logical-spawn.sdf",
+        "w",
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let template = prepare_model_template(&sim, &parsed, &parsed.worlds[0].models[0]).unwrap();
+    let pose = WorldPose {
+        translation: [600.0, 0.0, 0.0],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+    };
+    let mut last = 0;
+    // Two loaded models plus 126 additions reach the admitted final bound.
+    for index in 0..126 {
+        let spaced = WorldPose {
+            translation: [10.0 + 4.0 * index as f64, 0.0, 0.0],
+            ..pose
+        };
+        last = spawn_model_template(&mut sim, &template, spaced).unwrap();
+    }
+    let ids: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter_map(|e| e.get::<EntityId>().map(|id| (id.get(), e.id())))
+        .collect();
+    let states: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter_map(|e| {
+            e.get::<BodyHandle>().map(|body| {
+                (
+                    body.id(),
+                    sim.world()
+                        .resource::<PhysicsBackend>()
+                        .state(body.id())
+                        .unwrap(),
+                )
+            })
+        })
+        .collect();
+    let first = next_entity_id(sim.world()).unwrap();
+    let clock = (sim.epoch(), sim.elapsed());
+    assert!(matches!(
+        spawn_model_template(&mut sim, &template, pose),
+        Err(gz_sim_scene::WorldEditError::UnsupportedModel)
+    ));
+    assert_eq!(next_entity_id(sim.world()).unwrap(), first);
+    assert_eq!((sim.epoch(), sim.elapsed()), clock);
+    assert_eq!(
+        sim.world()
+            .iter_entities()
+            .filter(|e| e.contains::<EntityId>())
+            .count(),
+        ids.len()
+    );
+    for (id, entity) in ids {
+        assert_eq!(entity_by_id(sim.world(), id), Some(entity));
+    }
+    for (body, state) in states {
+        assert_eq!(
+            sim.world().resource::<PhysicsBackend>().state(body),
+            Some(state)
+        );
+    }
+    remove_model(&mut sim, last).unwrap();
+    assert_eq!(
+        spawn_model_template(&mut sim, &template, pose).unwrap(),
+        first
+    );
+    // A due acquisition still admits all 128 model origins after the edit.
+    sim.step_exact(1).unwrap();
+    let sample = sim
+        .world()
+        .iter_entities()
+        .find_map(|e| e.get::<gz_sim_scene::LogicalCameraSample>())
+        .unwrap();
+    assert!(sample.reading.is_ok());
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert_eq!(
+        sim.world()
+            .iter_entities()
+            .filter(
+                |e| e.get::<gz_sim_scene::EntityKind>() == Some(&gz_sim_scene::EntityKind::Model)
+            )
+            .count(),
+        2
+    );
+}
+
+#[test]
+fn logical_camera_spawn_rejects_corrupt_model_names_and_hierarchy_atomically() {
+    let xml = logical_camera_spawn_xml();
+    let parsed = sdformat::load_str(&xml, "logical-spawn.sdf", &NoResources).unwrap();
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "logical-spawn.sdf",
+        "w",
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let template = prepare_model_template(&sim, &parsed, &parsed.worlds[0].models[0]).unwrap();
+    let models: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter(|e| e.get::<gz_sim_scene::EntityKind>() == Some(&gz_sim_scene::EntityKind::Model))
+        .map(|e| (e.id(), e.get::<Name>().unwrap().0.clone()))
+        .collect();
+    let first = next_entity_id(sim.world()).unwrap();
+    let pose = WorldPose {
+        translation: [5.0; 3],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+    };
+    let bodies = sim
+        .world()
+        .iter_entities()
+        .filter(|e| e.contains::<BodyHandle>())
+        .count();
+    for name in [
+        models[1].1.clone(),
+        "w::nested::name".into(),
+        "w::bad name".into(),
+        "elsewhere::model".into(),
+    ] {
+        sim.world_mut().get_mut::<Name>(models[0].0).unwrap().0 = name;
+        assert!(matches!(
+            spawn_model_template(&mut sim, &template, pose),
+            Err(gz_sim_scene::WorldEditError::InvalidScene)
+        ));
+        assert_eq!(next_entity_id(sim.world()).unwrap(), first);
+        assert_eq!(
+            sim.world()
+                .iter_entities()
+                .filter(|e| e.contains::<BodyHandle>())
+                .count(),
+            bodies
+        );
+    }
+    sim.world_mut().get_mut::<Name>(models[0].0).unwrap().0 = models[0].1.clone();
+    sim.world_mut()
+        .entity_mut(models[0].0)
+        .insert(bevy_ecs::hierarchy::ChildOf(models[1].0));
+    assert!(matches!(
+        spawn_model_template(&mut sim, &template, pose),
+        Err(gz_sim_scene::WorldEditError::InvalidScene)
+    ));
+    assert_eq!(next_entity_id(sim.world()).unwrap(), first);
+    assert_eq!(
+        sim.world()
+            .iter_entities()
+            .filter(|e| e.contains::<BodyHandle>())
+            .count(),
+        bodies
+    );
+}
+
+#[test]
+fn runtime_spawning_without_logical_camera_retains_its_existing_model_domain() {
+    let parsed = sdformat::load_str(XML, "ordinary-spawn.sdf", &NoResources).unwrap();
+    let mut sim = load_world_with_sdf_step(
+        XML,
+        "ordinary-spawn.sdf",
+        "w",
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let template = prepare_model_template(&sim, &parsed, &parsed.worlds[0].models[0]).unwrap();
+    let pose = WorldPose {
+        translation: [10.0; 3],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+    };
+    for _ in 0..127 {
+        spawn_model_template(&mut sim, &template, pose).unwrap();
+    }
+    assert_eq!(
+        sim.world()
+            .iter_entities()
+            .filter(
+                |e| e.get::<gz_sim_scene::EntityKind>() == Some(&gz_sim_scene::EntityKind::Model)
+            )
+            .count(),
+        129
+    );
+}

@@ -82,7 +82,7 @@ fn air_speed_io_owner_cancels_old_epoch_and_retired_lease_without_relabeling_byt
         b"gz.msgs.AirSpeed"
     );
     assert!(io.publish_air_speed(&replacement, vec![0; 1025]).is_err());
-    assert_eq!(io.publication_failures.len(), 12);
+    assert_eq!(io.publication_failures.len(), 14);
     assert_eq!(AIR_SPEED_FAILURE_INDEX, 10);
     assert!(
         io.publication_failures

@@ -12,7 +12,10 @@ pub use joint_controller::{
 pub use joint_state_publisher::{
     JointStateJointPublication, JointStatePublication, JointStateSample, JointStateValue,
 };
-pub use pose_publisher::{PoseFramePublication, PoseFrameValue, PosePublication, PoseSample};
+pub use pose_publisher::{
+    PoseFramePublication, PoseFrameValue, PosePublication, PoseSample, StaticPosePublication,
+    StaticPoseSample,
+};
 mod diff_drive;
 pub use diff_drive::{
     DiffDriveCommandError, DiffDriveConfiguration, DiffDriveSample, set_diff_drive_command,
@@ -54,6 +57,11 @@ pub use world_spawn::{ModelTemplate, prepare_model_template, spawn_model_templat
 mod imu_lifecycle;
 mod lidar;
 pub use lidar::{LidarPublication, LidarSample, clear_lidar_interest, set_lidar_interest};
+mod logical_camera;
+pub use logical_camera::{
+    LogicalCameraPublication, LogicalCameraSample, clear_logical_camera_interest,
+    set_logical_camera_interest,
+};
 mod air_speed;
 pub use air_speed::{
     AirSpeedPublication, AirSpeedSample, AirSpeedSampleError, clear_air_speed_interest,
@@ -83,7 +91,8 @@ pub use initial::{
     initial_diff_drive_configurations, initial_imu_publications,
     initial_joint_controller_configurations, initial_joint_force_configurations,
     initial_joint_state_publications, initial_lidar_publications,
-    initial_magnetometer_publications, initial_pose_publications, reset_loaded_world,
+    initial_logical_camera_publications, initial_magnetometer_publications,
+    initial_pose_publications, reset_loaded_world,
 };
 
 use bevy_ecs::prelude::*;
@@ -513,6 +522,7 @@ fn load_world_configured(
     let world = &sdf.worlds[world_index];
     let magnetic_consumer = magnetometer::preflight(&sdf, world, engine)?;
     air_speed::preflight(&sdf, world, engine)?;
+    logical_camera::preflight(&sdf, world, engine)?;
     producer_guard::validate(world, magnetic_consumer)?;
     let rendering_sensors = world_systems::validate(world)?;
     // The pinned parser supplies an implicit profile when none is declared.
@@ -647,6 +657,7 @@ fn load_world_configured(
     altimeter::install(&mut sim);
     air_pressure::install(&mut sim);
     air_speed::install(&mut sim);
+    logical_camera::install(&mut sim);
     magnetometer::install(&mut sim);
     joint_lifecycle::install(&mut sim);
     joint_force_lifecycle::install(&mut sim);
@@ -1152,6 +1163,23 @@ fn build_model(
                     sim,
                     backend.as_ref(),
                     lidar::Parent {
+                        link,
+                        entity: link_entity,
+                        id: link_id,
+                        topic: &model_topic,
+                    },
+                )?;
+                continue;
+            }
+            if sensor.effective_type() == Some(sdformat::SensorType::LogicalCamera) {
+                logical_camera::spawn(
+                    sdf,
+                    model,
+                    sensor,
+                    context,
+                    sim,
+                    backend.as_ref(),
+                    logical_camera::Parent {
                         link,
                         entity: link_entity,
                         id: link_id,

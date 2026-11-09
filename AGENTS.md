@@ -1,12 +1,12 @@
 # Instructions for implementation agents
 
-> M1–M27 are accepted on qualified Main `0f525592`, after exact hosted CI
-> `42570074529` attempt 1 and independent native/local/official audits.
-> M25 remains the verified installed preview and Latest; no new package or
-> browser proof is claimed by the M26/M27 source-feature acceptance.
-> Complete M28 AirSpeed noise and M29 preview Source batches have independent
-> review and are integrated for qualification. See
-> [M26/M27 acceptance](docs/M26_M27_ACCEPTANCE.md) and [M28/M29 scope](docs/M28_M29_DELIVERY.md).
+> M1–M29 are accepted at qualified Main `ab9660ee`, after exact hosted CI
+> `42586254208` attempt 1 and independent native/local/official/package/install/
+> browser DATA. The published `m29-preview` is verified Latest; all seven assets,
+> notes, annotated tag and Main read back exactly. See
+> [M28/M29 acceptance](docs/M28_M29_ACCEPTANCE.md).
+> M30 ideal LogicalCamera and M31 static-vector PosePublisher are the next
+> independent bounded source lanes. [Scope and ownership](docs/M30_M31_DELIVERY.md).
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -14,55 +14,18 @@ Confirmed owner decisions override proposals. Do not resolve an outstanding
 product decision by silently deleting behavior. Read `docs/STATUS.md` to distinguish
 implemented behavior and checks from planned release requirements.
 
-## Current priority after explicit resume (D30)
+## Current priority after explicit resume (D30–D32)
 
-Read `docs/DELIVERY_PLAN.md`, `docs/M25_ACCEPTANCE.md` and
-`docs/M28_M29_DELIVERY.md` before editing. Root integrates the M28 AirSpeed noise
-and M29 preview Source lanes in `gz-sim-m28-m29` over accepted Main
-`0f525592`; no child acceptance is inherited. Native
-units, rounding, seed/reset behavior, refusal cases and exact file leases require
-independent Source agreement before implementation.
-Authors run no per-edit checks; finish complete source, meaningful regressions,
-guides and independent review before one consolidated normal/strict coverage and
-exact hosted CI pass. Heavy work is serial. Preserve M25 `08ae5525`, all previous
-frozen candidates/native capture identities and all failure evidence unchanged.
-No new transport/runtime/plugin framework, optional backend or unrelated work.
-
-The M20 preparation details below describe the frozen parent scope, not another
-authoring lease or inherited acceptance.
-M19 is accepted at `e807a97d`, published as `m19-preview` with actual package,
-clean Ubuntu installation, installed robot/browser controls and owned shutdown.
-Its full normal hook, exact hosted CI and independent audits passed. Preserve
-all original failures, unknown causes and accepted viewer bytes.
-
-M20 pairs explicit launcher `run --lifecycle` with existing native
-`--web-lifecycle` and outer viewer `lifecycle=1`. It exposes the existing admitted
-local lifecycle controls and publication credit without changing defaults,
-protocols, queue bounds, the full M19 robot or viewer bytes. The complete scope,
-separate worktrees and narrow file leases are in M20_DELIVERY.md. Root owns
-integration, shared planning, publication and the tracker. Do not run per-edit
-checks or create extra private proposal/review machinery. Under D32, continue
-to the next useful bounded phase after acceptance while retained work remains.
-
-Finish source, meaningful regressions, documentation and independent Source review
-before one consolidated normal required pass. Batch real failures before affected
-reruns; preserve assertions, tolerances and strict coverage/mandatory jobs.
-
-Root owns release/publication decisions. Preserve all mandatory hooks, exact
-hosted jobs, strict coverage, license/attribution records and historical failures.
-Do not replay accepted M1–M11 manual proofs or the already-completed M12 payload,
-archive and notice-data audit. Full P0–P7 and unsupported configurations remain
-outside this bounded closeout. Any later named increment needs an explicit
-scope of at most five working days including independent review and checks.
-
-The owner explicitly resumed implementation. Work only on the current delivery
-or a concrete blocking dependency; earlier pause records are historical. The
-maintained viewer is `../gzweb-rs` (`gazebosim-rs/gzweb-rs`, Bevy 0.20), not the
-older untracked Bevy 0.18 prototype under `/home/nkoenig/work/gazebo-web`. Reuse
-its existing renderer, UI and backend interface. Stop unrelated backend/parity/coverage optimization work;
-preserve pending candidates and the Fuel owner's work. If a phase will overrun,
-report it and split optional scope; never weaken an exit criterion or gate.
-Batch source review and fixes before a single final verification pass.
+Read `docs/DELIVERY_PLAN.md`, `docs/HANDOFF.md` and `docs/M30_M31_DELIVERY.md`.
+M29 is the accepted installed Latest at Main `ab9660ee`; preserve its source,
+artifacts, actual proofs and all historical failures. M30 ideal LogicalCamera
+and M31 static-vector PosePublisher use separate worktrees and disjoint leaves;
+Root alone owns shared admission, exports, initial/reset/lifecycle, IO reservations,
+integration, canonical metadata, publication and tracker. SDF independently
+reviews the complete bounded batch. Scope, regression source and guides must
+finish before one consolidated required verification; do not run per-edit
+checks/lint/tests/builds or resume unrelated paused qualifications. No new source
+inherits M29 acceptance. Continue the next useful bounded phase after acceptance.
 
 ## Architecture
 

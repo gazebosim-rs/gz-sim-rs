@@ -12,6 +12,7 @@ use gz_sim_scene::{
 const XML: &str = include_str!("../../../gz-sim-scene/tests/fixtures/m27_pose_publisher.sdf");
 fn metadata() -> PosePublication {
     PosePublication {
+        static_publication: None,
         model_name: "rig".into(),
         topic: "/m27/pose".into(),
         poses: vec![
@@ -595,4 +596,233 @@ fn pose_publisher_metadata_and_replaced_entity_refusals_keep_all_ownership_and_n
     server.retire_pose_publishers();
     assert!(server.pose_publishers.is_empty());
     assert!(weak.upgrade().is_none());
+}
+
+const SPLIT_XML: &str =
+    include_str!("../../../gz-sim-scene/tests/fixtures/m31_pose_static_publisher.sdf");
+#[test]
+fn split_pose_real_topics_have_independent_credit_free_revisions_reset_and_weak_retirement() {
+    let mut server = server(SPLIT_XML);
+    assert_eq!(server.pose_publishers.len(), 2);
+    assert!(server.pose_publishers[0].static_channel);
+    let fixed = server
+        .world_io
+        .session
+        .declare_subscriber(server.pose_publishers[0].endpoint.clone())
+        .wait()
+        .unwrap();
+    let dynamic = server
+        .world_io
+        .session
+        .declare_subscriber(server.pose_publishers[1].endpoint.clone())
+        .wait()
+        .unwrap();
+    let leases: Vec<_> = server
+        .pose_publishers
+        .iter()
+        .map(|s| Arc::clone(&s.publisher))
+        .collect();
+    let old = server.pose_publishers[0].entity;
+    let id = server.pose_publishers[0].identity;
+    server.set_paused(false);
+    for tick in 1..=100 {
+        server.update().unwrap();
+        if tick % 10 == 0 {
+            let packet = receive(&dynamic);
+            assert!(packet.header.is_none());
+            assert_eq!(packet.pose.len(), 1);
+            assert_eq!(packet.pose[0].name, "rig::tip");
+            assert_eq!(packet.pose[0].id, 0);
+            assert_eq!(
+                packet.pose[0]
+                    .header
+                    .as_ref()
+                    .unwrap()
+                    .stamp
+                    .as_ref()
+                    .unwrap()
+                    .nsec,
+                tick * 1_000_000
+            );
+        }
+        if tick % 40 == 0 {
+            let packet = receive(&fixed);
+            assert_eq!(
+                packet
+                    .pose
+                    .iter()
+                    .map(|p| p.name.as_str())
+                    .collect::<Vec<_>>(),
+                ["rig", "rig::base"]
+            );
+            assert!(packet.header.is_none());
+            for pose in packet.pose {
+                let header = pose.header.unwrap();
+                assert_eq!(header.stamp.unwrap().nsec, tick * 1_000_000);
+                assert_eq!(header.data.len(), 2);
+                assert_eq!(header.data[0].key, "frame_id");
+                assert_eq!(header.data[1].key, "child_frame_id");
+                assert_eq!(pose.id, 0);
+            }
+        }
+    }
+    assert_eq!(server.counters().pose_publications_queued, 12);
+    server.publish_pose_publishers();
+    server.set_paused(true);
+    server.update().unwrap();
+    assert_eq!(server.counters().pose_publications_queued, 12);
+    assert!(dynamic.try_recv().unwrap().is_none() && fixed.try_recv().unwrap().is_none());
+    assert!(server.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    server.update().unwrap();
+    assert_ne!(server.pose_publishers[0].entity, old);
+    for (stream, lease) in server.pose_publishers.iter().zip(&leases) {
+        assert!(Arc::ptr_eq(&stream.publisher, lease));
+    }
+    server.set_paused(false);
+    for _ in 0..40 {
+        server.update().unwrap();
+    }
+    for expected in [10, 20, 30, 40] {
+        assert_eq!(
+            receive(&dynamic).pose[0]
+                .header
+                .as_ref()
+                .unwrap()
+                .stamp
+                .as_ref()
+                .unwrap()
+                .nsec,
+            expected * 1_000_000
+        );
+    }
+    assert_eq!(
+        receive(&fixed).pose[0]
+            .header
+            .as_ref()
+            .unwrap()
+            .stamp
+            .as_ref()
+            .unwrap()
+            .nsec,
+        40_000_000
+    );
+    let weak: Vec<_> = leases.iter().map(Arc::downgrade).collect();
+    drop(leases);
+    remove_model(&mut server.simulation, id).unwrap();
+    server.update().unwrap();
+    assert!(server.pose_publishers.is_empty());
+    assert!(weak.iter().all(|w| w.upgrade().is_none()));
+}
+#[test]
+fn split_pose_preflight_covers_both_endpoints_and_full_static_identity_without_io() {
+    for case in 0..8 {
+        let mut server = server(SPLIT_XML);
+        let mut prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
+        assert_eq!(prepared.len(), 2);
+        let entity = server.pose_publishers[0].entity;
+        let mut occupied = BTreeSet::new();
+        match case {
+            0 => {
+                occupied.insert(server.pose_publishers[0].endpoint.clone());
+            }
+            1 => {
+                occupied.insert(server.pose_publishers[1].endpoint.clone());
+            }
+            2 => {
+                let key = prepared.keys().next().unwrap().clone();
+                prepared.remove(&key);
+            }
+            3 => {
+                prepared.values_mut().next().unwrap().0 += 1;
+            }
+            4 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<PosePublication>(entity)
+                    .unwrap()
+                    .static_publication
+                    .as_mut()
+                    .unwrap()
+                    .topic = "/changed".into();
+            }
+            5 => {
+                let m = &mut server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<PosePublication>(entity)
+                    .unwrap();
+                m.static_publication.as_mut().unwrap().poses[0].identity = m.poses[0].identity;
+            }
+            6 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<PosePublication>(entity)
+                    .unwrap()
+                    .static_publication
+                    .as_mut()
+                    .unwrap()
+                    .poses
+                    .swap(0, 1);
+            }
+            _ => {
+                let id = server
+                    .simulation
+                    .world()
+                    .get::<PosePublication>(entity)
+                    .unwrap()
+                    .static_publication
+                    .as_ref()
+                    .unwrap()
+                    .poses[1]
+                    .identity;
+                let link = entity_by_id(server.simulation.world(), id).unwrap();
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(link)
+                    .remove::<EntityId>();
+            }
+        }
+        let before = boundary(&server);
+        assert!(matches!(
+            streams(
+                &server.simulation,
+                &server.world_io,
+                &server.network_config,
+                &occupied,
+                Some(&prepared)
+            ),
+            Err(Error::PosePublisherIdentity | Error::ResetPosePublishers)
+        ));
+        assert_eq!(boundary(&server), before);
+    }
+}
+#[test]
+fn split_jointless_declares_empty_dynamic_endpoint_but_never_encodes_an_empty_vector() {
+    let start = SPLIT_XML.find("    <joint ").unwrap();
+    let end = SPLIT_XML.find("    <plugin ").unwrap();
+    let mut server = server(&format!("{}{}", &SPLIT_XML[..start], &SPLIT_XML[end..]));
+    assert_eq!(server.pose_publishers.len(), 2);
+    let dynamic = server
+        .world_io
+        .session
+        .declare_subscriber(server.pose_publishers[1].endpoint.clone())
+        .wait()
+        .unwrap();
+    server.set_paused(false);
+    for _ in 0..100 {
+        server.update().unwrap();
+    }
+    assert_eq!(server.counters().pose_publications_queued, 2);
+    assert!(dynamic.try_recv().unwrap().is_none());
+    assert_eq!(server.counters().invalid_pose_publication_samples, 0);
 }

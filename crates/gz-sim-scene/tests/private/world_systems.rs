@@ -380,3 +380,66 @@ fn air_speed_system_metadata_is_closed_unique_and_inert_without_a_sensor() {
         assert!(validate(&parsed.worlds[0]).is_err(), "{plugins}");
     }
 }
+
+#[test]
+fn logical_camera_system_metadata_is_closed_unique_and_inert_without_a_sensor() {
+    let plugin =
+        "<plugin name='gz::sim::systems::LogicalCamera' filename='gz-sim-logical-camera-system'/>";
+    let plain = "<sdf version='1.12'><world name='w'/></sdf>";
+    let xml = format!("<sdf version='1.12'><world name='w'>{plugin}</world></sdf>");
+    let parsed =
+        sdformat::load_str(&xml, "logical-camera-intent.sdf", &sdformat::NoResources).unwrap();
+    assert!(!validate(&parsed.worlds[0]).unwrap());
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "logical-camera-intent.sdf",
+        "w",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let baseline = load_world_with_sdf_step(
+        plain,
+        "plain.sdf",
+        "w",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    assert_eq!(
+        sim.scheduled_system_counts(),
+        baseline.scheduled_system_counts()
+    );
+    assert!(
+        !sim.world()
+            .contains_resource::<crate::logical_camera::Installed>()
+    );
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert_eq!(
+        sim.scheduled_system_counts(),
+        baseline.scheduled_system_counts()
+    );
+    for plugins in [
+        format!("{plugin}{plugin}"),
+        plugin.replace(
+            "/>",
+            "><unexpected_option>false</unexpected_option></plugin>",
+        ),
+        plugin.replace("plugin ", "plugin extra='x' "),
+        plugin.replace("plugin ", "plugin xmlns:e='urn:e' e:flag='x' "),
+        plugin.replace(
+            "gz-sim-logical-camera-system",
+            "libgz-sim-logical-camera-system.so",
+        ),
+        plugin.replace("gz::sim::systems::LogicalCamera", "LogicalCamera"),
+    ] {
+        let xml = format!("<sdf version='1.12'><world name='w'>{plugins}</world></sdf>");
+        let parsed = sdformat::load_str(
+            &xml,
+            "bad-logical-camera-intent.sdf",
+            &sdformat::NoResources,
+        )
+        .unwrap();
+        assert!(validate(&parsed.worlds[0]).is_err(), "{plugins}");
+    }
+}

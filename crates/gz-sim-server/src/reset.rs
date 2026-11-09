@@ -119,6 +119,20 @@ impl Server {
             } else {
                 BTreeMap::new()
             };
+        let logical_camera_publishers =
+            if gz_sim_scene::initial_logical_camera_publications(&self.simulation)?
+                .next()
+                .is_some()
+            {
+                let occupied = logical_camera_reserved_keys(
+                    &self.simulation,
+                    &self.world_io,
+                    &self.network_config,
+                )?;
+                logical_camera::prepare_reset(self, &occupied)?
+            } else {
+                BTreeMap::new()
+            };
         let pose_publisher_publishers =
             if gz_sim_scene::initial_pose_publications(&self.simulation)?
                 .next()
@@ -288,6 +302,22 @@ impl Server {
             } else {
                 BTreeSet::new()
             };
+            let camera_occupied = if sim
+                .world()
+                .iter_entities()
+                .any(|entity| entity.contains::<gz_sim_scene::LogicalCameraPublication>())
+            {
+                logical_camera_reserved_keys(sim, &self.world_io, &self.network_config)?
+            } else {
+                BTreeSet::new()
+            };
+            let logical_cameras = logical_camera::streams(
+                sim,
+                &self.world_io,
+                &self.network_config,
+                &camera_occupied,
+                Some(&logical_camera_publishers),
+            )?;
             let pose_publishers = pose_publisher::streams(
                 sim,
                 &self.world_io,
@@ -302,6 +332,7 @@ impl Server {
                 altimeters,
                 air_pressures,
                 air_speeds,
+                logical_cameras,
                 pose_publishers,
                 magnetometers,
                 joint_states,
@@ -320,6 +351,7 @@ impl Server {
                 self.altimeters = Vec::new();
                 self.air_pressures = Vec::new();
                 self.air_speeds = Vec::new();
+                self.logical_cameras = Vec::new();
                 self.pose_publishers = Vec::new();
                 self.magnetometers = Vec::new();
                 self.joint_states = Vec::new();
@@ -347,6 +379,7 @@ impl Server {
             altimeters,
             air_pressures,
             air_speeds,
+            logical_cameras,
             pose_publishers,
             magnetometers,
             joint_states,
@@ -359,6 +392,7 @@ impl Server {
                 self.altimeters = Vec::new();
                 self.air_pressures = Vec::new();
                 self.air_speeds = Vec::new();
+                self.logical_cameras = Vec::new();
                 self.pose_publishers = Vec::new();
                 self.magnetometers = Vec::new();
                 self.joint_states = Vec::new();
@@ -374,6 +408,7 @@ impl Server {
         self.altimeters = altimeters;
         self.air_pressures = air_pressures;
         self.air_speeds = air_speeds;
+        self.logical_cameras = logical_cameras;
         self.pose_publishers = pose_publishers;
         self.magnetometers = magnetometers;
         self.joint_states = joint_states;

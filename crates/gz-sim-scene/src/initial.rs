@@ -72,6 +72,8 @@ struct Node {
     altimeter_publication: Option<AltimeterPublication>,
     air_speed: Option<crate::air_speed::AirSpeed>,
     air_speed_publication: Option<AirSpeedPublication>,
+    logical_camera: Option<crate::logical_camera::LogicalCamera>,
+    logical_camera_publication: Option<LogicalCameraPublication>,
     pose_publisher: Option<crate::pose_publisher::Publisher>,
     pose_publication: Option<PosePublication>,
     air_pressure: Option<crate::air_pressure::AirPressure>,
@@ -194,6 +196,10 @@ pub(super) fn capture(sim: &mut Simulation) {
             altimeter_publication: entity.get::<AltimeterPublication>().cloned(),
             air_speed: entity.get::<crate::air_speed::AirSpeed>().cloned(),
             air_speed_publication: entity.get::<AirSpeedPublication>().cloned(),
+            logical_camera: entity
+                .get::<crate::logical_camera::LogicalCamera>()
+                .cloned(),
+            logical_camera_publication: entity.get::<LogicalCameraPublication>().cloned(),
             pose_publisher: entity.get::<crate::pose_publisher::Publisher>().cloned(),
             pose_publication: entity.get::<PosePublication>().cloned(),
             air_pressure: entity.get::<crate::air_pressure::AirPressure>().cloned(),
@@ -335,6 +341,21 @@ pub fn initial_air_speed_publications(
         .nodes
         .iter()
         .filter_map(|node| node.air_speed_publication.as_ref()))
+}
+
+/// Initial logical-camera metadata, including removed original sensors.
+pub fn initial_logical_camera_publications(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = &LogicalCameraPublication>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial
+        .0
+        .nodes
+        .iter()
+        .filter_map(|node| node.logical_camera_publication.as_ref()))
 }
 
 /// Initial pose configurations paired with stable loaded model identities.
@@ -591,6 +612,12 @@ pub fn reset_loaded_world<R>(
         if let Some(publication) = &node.air_speed_publication {
             entity.insert(publication.clone());
         }
+        if let Some(sensor) = &node.logical_camera {
+            entity.insert(sensor.clone());
+        }
+        if let Some(publication) = &node.logical_camera_publication {
+            entity.insert(publication.clone());
+        }
         if let Some(publisher) = &node.pose_publisher {
             entity.insert(publisher.clone());
         }
@@ -691,6 +718,7 @@ pub fn reset_loaded_world<R>(
     crate::altimeter::install(sim);
     crate::air_pressure::install(sim);
     crate::air_speed::install(sim);
+    crate::logical_camera::install(sim);
     crate::pose_publisher::install(sim);
     crate::magnetometer::install(sim);
     crate::joint_lifecycle::install(sim);

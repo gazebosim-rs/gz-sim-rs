@@ -3,36 +3,89 @@
 
 # Coordinator handoff
 
-> M1–M27 are accepted on qualified Main `0f525592`, after exact hosted CI
-> `42570074529` attempt 1 and independent native/local/official audits.
-> M25 remains the verified installed preview and Latest; no new package or
-> browser proof is claimed by the M26/M27 source-feature acceptance.
-> Complete M28 AirSpeed noise and M29 preview Source batches have independent
-> review and are integrated for qualification. See
-> [M26/M27 acceptance](M26_M27_ACCEPTANCE.md) and [M28/M29 scope](M28_M29_DELIVERY.md).
+> M1–M29 are accepted at qualified Main `ab9660ee`, after exact hosted CI
+> `42586254208` attempt 1 and independent native/local/official/package/install/
+> browser DATA. The published `m29-preview` is verified Latest; all seven assets,
+> notes, annotated tag and Main read back exactly. See
+> [M28/M29 acceptance](M28_M29_ACCEPTANCE.md).
+> M30 ideal LogicalCamera and M31 static-vector PosePublisher are the next
+> independent bounded source lanes. [Scope and ownership](M30_M31_DELIVERY.md).
 
 
-## Current work: M28/M29 qualification
+## Current work: M30/M31
 
-M26/M27 are accepted at verified Main `0f525592`, with final full normal/strict
-coverage, focused native and independent native/local/official DATA. Exact hosted
-run `42570074529` attempt 1 passed all 16 steps. Original assertion, test-API and
-native reset-fixture failures remain retained; successful audits and raw merges
-must not be repeated. [Acceptance](M26_M27_ACCEPTANCE.md) records exact evidence.
+M28/M29 are accepted at Main `ab9660ee`, with all mandatory source, native,
+normal/coverage, exact hosted/official, package, installation, actual browser/
+owned shutdown and final publication proofs. Release 438932998 is verified
+Latest. [Acceptance](M28_M29_ACCEPTANCE.md) preserves the old failures, read-only
+reader correction and all observation limits. No successful audit or raw merge
+is to be repeated; freeze every qualification tree and original packet.
 
-Complete M28/M29 implementation, regressions and guides from separate author
-worktrees are integrated in `gz-sim-m28-m29` over that accepted parent. Whole
-independent leaf and integration/format review passed after the two redundant
-Copy clones were corrected before checks. [The scope](M28_M29_DELIVERY.md)
-preserves pressure-noise units, all old matchers, seven actual finite examples
-and all fresh package/install/browser criteria. No child verification or
-acceptance is claimed yet. Root records actual parent acceptance before the
-first child hook, binds the final reviewed tree and serially runs the focused
-native proof and complete mandatory qualification. Preserve Fuel, every frozen
-candidate, original evidence and accepted demo. M25 remains installed Latest
-until a new preview actually qualifies and is intentionally published. The
-obsolete M12 handoff stays unused; protected old services remain untouched.
+Continue in `gz-sim-m30-m31-parser-fixtures` over that exact accepted parent.
+[M30/M31 scope](M30_M31_DELIVERY.md) selects one ideal LogicalCamera and the
+bounded static-vector PosePublisher extension, each at most five working days.
+Separate leaf owners share only Root integration. The scope and leases are recorded before author edits. Independent review may
+proceed alongside source authoring; finish code, meaningful regression source,
+examples and guides and batch all findings before one consolidated required pass.
+The complete 52-path source batch at tree `9a059cfc` passed independent review.
+Its first LogicalCamera helper compile failed at a glibc `finite` name collision;
+no sensor ran. The isolated `64403551` successor renamed that helper only, then
+compiled successfully but failed the first nominal side-edge combined guard after
+six successful near/far rows. That diagnostic did not retain the failing count;
+no count or unobserved cause is invented. Both original candidates and packets
+remain frozen. The reviewed `34961cdd` reference candidate passed all 29 child
+stages and 36 paired acquisitions in 13.854 seconds. Its four original nominal
+side points actually had negative signed distance; all added exact-zero and
+adjacent witnesses passed. No epsilon or production arithmetic change was added.
+The new `gz-sim-m30-m31-reference-fixture` candidate carries the actual first 19
+captured inputs/visible names as a typed Rust fixture with raw/result digests,
+and a full visible-name/identity-camera-pose replay regression. Independent
+retained native DATA passed; the actual typed fixture also passed independent
+Source/DATA review. Final formatted-source binding precedes the
+consolidated normal hook.
+No old failed execution is relabeled by the successful capture.
+M31's distinct native proof passed seven modes/461 keyed vectors in 45.648 seconds;
+its independent retained DATA audit passed. Its capture tree remains `9a059cfc`;
+successor reuse requires exact unchanged M31 inputs, not relabeling the capture.
+The first complete normal hook at `9da971d6` stopped after 178.077 seconds
+at one unnecessary `mut` in a new PosePublisher IO test. Tests, coverage and
+hosted CI were not reached; the original failed tree/packet remains frozen.
+The `4e157378` retry passed both Clippy configurations and 358 Python tests,
+then failed 21 headless cases across four targets. The consumed SDFormat pin
+`a44bf8be` rejects the logical-camera configuration child before Scene admission;
+18 failures are that refusal or an assertion preempted by it. Two absence cases
+use an invalid empty-collider fixture, and one PosePublisher test tries to load
+unsupported physical fixed joints. Source review also found a geometry-size
+control that removes required colliders. No renderer or final coverage result
+exists. The outer controller returned 143 with its original Python exit unknown;
+the continuing hook failed, left HEAD unchanged and the retained observer failed
+closed. No successful original-controller result is inferred.
 
+The new isolated candidate batches a LogicalCamera-only dependency admission
+fix, ordinary collision fixtures and static geometry-size controls, plus fixed
+metadata classification with explicit physical-fixed refusal and admitted
+jointless acquisition tests. Preserve existing backend admission, assertions,
+native captures and pure frustum arithmetic. The narrow SDFormat revision
+[`82c35f24`](https://github.com/gazebosim-rs/sdformat-rs/commit/82c35f24f36d0b443cb078c02e0b844804d454e5)
+passed its own normal hook in 450.118 seconds, independent local DATA, exact
+hosted [run 42614152237](https://github.com/gazebosim-rs/sdformat-rs/actions/runs/42614152237)
+and independent official DATA. Both runs passed 738 Rust and 59 tooling tests,
+with strict owned and changed-line coverage. Only the simulator manifest and
+lockfile Git revision change to consume it; no dependency version or other
+lock record changes. SDFormat Main and its paused mass candidate remain intact.
+
+The first retained reader failed to normalize three `src/../tests` paths; the
+first collector incorrectly required consecutive GitHub step numbers. Those
+method failures remain unchanged. Corrected readers and a retained-API
+continuation audited the same successful gate and CI, reusing all five saved
+API responses and downloading the three missing original archives once. No
+product check, CI run or LLVM export was repeated.
+
+Complete the corrected simulator normal hook, strict coverage, independent local
+DATA, exact hosted CI and independent official DATA. Neither phase is accepted.
+No current phase check or acceptance is inherited from M29. M29 remains the
+installed Latest; no archive or accepted manual proof is being replayed.
+Preserve Fuel, paused candidates, old previews and resource floors.
 
 ## Historical M21–M25 integration checkpoint (accepted; superseded by M25_ACCEPTANCE.md)
 

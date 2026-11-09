@@ -3,13 +3,13 @@
 
 # Weekly delivery plan
 
-> M1–M27 are accepted on qualified Main `0f525592`, after exact hosted CI
-> `42570074529` attempt 1 and independent native/local/official audits.
-> M25 remains the verified installed preview and Latest; no new package or
-> browser proof is claimed by the M26/M27 source-feature acceptance.
-> Complete M28 AirSpeed noise and M29 preview Source batches have independent
-> review and are integrated for qualification. See
-> [M26/M27 acceptance](M26_M27_ACCEPTANCE.md) and [M28/M29 scope](M28_M29_DELIVERY.md).
+> M1–M29 are accepted at qualified Main `ab9660ee`, after exact hosted CI
+> `42586254208` attempt 1 and independent native/local/official/package/install/
+> browser DATA. The published `m29-preview` is verified Latest; all seven assets,
+> notes, annotated tag and Main read back exactly. See
+> [M28/M29 acceptance](M28_M29_ACCEPTANCE.md).
+> M30 ideal LogicalCamera and M31 static-vector PosePublisher are the next
+> independent bounded source lanes. [Scope and ownership](M30_M31_DELIVERY.md).
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning
@@ -74,24 +74,17 @@ results must never be described as same-engine performance improvement.
 | M27: Flat-model PosePublisher | 5 working days | One built-in vector publisher for selected model/link parent-relative poses, exact headers and native unpaused cadence. | Native keyed frame/stamp records, real wire and lifecycle/atomic-collision controls and every mandatory gate; see M26_M27_DELIVERY.md. |
 | M28: Loaded AirSpeed pressure noise | 5 working days | Existing AirSpeed with Gaussian/quantized noise on native pre-100 float pressure. | Numeric/seed/demand/reset/fault/wire controls, focused native evidence and every mandatory gate; see M28_M29_DELIVERY.md. |
 | M29: Updated installed preview through M28 | 5 working days | Fresh native-free Ubuntu preview with all seven finite examples and unchanged robot/viewer. | Full gates, fresh package/closure/relocation, clean non-root install, seven actual example runs, new installed browser/shutdown and actual release readbacks; see M28_M29_DELIVERY.md. |
+| M30: Ideal CPU LogicalCamera | 5 working days | One loaded Rapier origin-frustum camera with canonical image and frustum streams. | Native inclusive point predicate/full relative poses, both-stream demand/wire/lifecycle/refusal proofs and all gates; see M30_M31_DELIVERY.md. |
+| M31: Static-vector PosePublisher | 5 working days | Existing flat-model publisher with native dynamic/static channels and independent cadence. | Native classification/refreshed poses/rates, both-topic reservations and real wire/reset/retirement proofs plus all gates; see M30_M31_DELIVERY.md. |
 
-M1–M25 are accepted; [M25 acceptance](M25_ACCEPTANCE.md) records qualified
-Main `08ae5525`, exact CI 42507018578 attempt 1, independent DATA and all actual
-fresh distribution/installation/browser/publication proofs. M25 is the verified
-checked download and Latest. The original browser outer 143 and missing waits
-remain faithfully disclosed alongside separate successful retained completion.
-
-[M26/M27 acceptance](M26_M27_ACCEPTANCE.md) records qualified Main
-`0f525592`, full normal/strict coverage, focused native and independent
-native/local/official DATA, exact hosted run `42570074529` attempt 1/all 16 steps
-and actual Main promotion/readback. There are 29 selected phases and 27 accepted.
-M25 remains the checked installed download and Latest.
-
-[M28/M29](M28_M29_DELIVERY.md) have complete independently reviewed noise and
-packaging Source batches integrated over that accepted parent. Batched fixes and
-final formatting/review precede one complete qualification; actual M29 release
-proof waits for qualified source. No child check or acceptance is transferred
-from the parent.
+M1–M29 are accepted. [M28/M29 acceptance](M28_M29_ACCEPTANCE.md) records Main
+`ab9660ee`, exact CI42586254208 attempt1, all independent DATA and the fresh
+seven-example installation, actual browser/shutdown and verified publication.
+The M29 preview is checked Latest; M25 and every older release remain preserved.
+There are 31 selected phases and 29 accepted. M30/M31 now continue under
+[their explicit contracts and disjoint source leases](M30_M31_DELIVERY.md).
+No new check, native proof or source-feature acceptance is inherited; local
+heavy jobs remain serial and every required gate remains unchanged.
 
 ### Historical atomic M21–M25 integration checkpoint
 
@@ -207,6 +200,11 @@ advanced cameras, distributed worlds, historical logs and Python workflows into
 such increments. Keep the full legacy packet/test ledger for traceability.
 Accepted phase counts do **not** set a whole-rewrite completion date. Continue
 selecting bounded deliveries while retained work remains under D32.
+
+M30 needs a narrow SDFormat correction over its consumed revision: admit the
+matching LogicalCamera raw child without interpreting it. That dependency must
+pass its own review, staged hook and hosted CI before the simulator pins it.
+This does not resume the paused automatic-mass candidate.
 
 Do not resume paused SDFormat mass-override or metric-depth-worker qualification
 as a competing priority. Preserve their trees, evidence and accepted Main pins.

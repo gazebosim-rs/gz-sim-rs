@@ -19,6 +19,8 @@ mod joint_state;
 mod joint_state_io;
 mod lidar;
 mod lidar_io;
+mod logical_camera;
+mod logical_camera_io;
 mod magnetometer;
 mod magnetometer_io;
 mod options;
@@ -91,6 +93,10 @@ pub enum Error {
     AirPressureIdentity,
     #[error("air-speed publication lacks its unique supported identity or metadata")]
     AirSpeedIdentity,
+    #[error("logical-camera publication lacks its unique supported identity or metadata")]
+    LogicalCameraIdentity,
+    #[error("reset handler changed the prepared logical-camera streams")]
+    ResetLogicalCameras,
     #[error("reset handler changed the prepared air-speed stream configuration")]
     ResetAirSpeeds,
     #[error("pose publication lacks its unique supported identity or metadata")]
@@ -162,6 +168,11 @@ pub struct Counters {
     pub altimeters_queued: u64,
     pub altimeter_failures: u64,
     pub invalid_altimeter_samples: u64,
+    pub logical_camera_images_queued: u64,
+    pub logical_camera_frustums_queued: u64,
+    pub logical_camera_image_failures: u64,
+    pub logical_camera_frustum_failures: u64,
+    pub invalid_logical_camera_samples: u64,
     pub air_speeds_queued: u64,
     pub air_speed_failures: u64,
     pub invalid_air_speed_samples: u64,
@@ -306,6 +317,7 @@ enum PublicationFamily {
     AirPressure,
     AirSpeed,
     PosePublisher,
+    LogicalCamera,
     Magnetometer,
     JointState,
 }
@@ -332,6 +344,25 @@ fn typed_reserved_keys(
                 entity
                     .get::<gz_sim_scene::PosePublication>()
                     .map(|m| &m.topic),
+            ),
+            (
+                PublicationFamily::PosePublisher,
+                entity
+                    .get::<gz_sim_scene::PosePublication>()
+                    .and_then(|m| m.static_publication.as_ref())
+                    .map(|m| &m.topic),
+            ),
+            (
+                PublicationFamily::LogicalCamera,
+                entity
+                    .get::<gz_sim_scene::LogicalCameraPublication>()
+                    .map(|m| &m.topic),
+            ),
+            (
+                PublicationFamily::LogicalCamera,
+                entity
+                    .get::<gz_sim_scene::LogicalCameraPublication>()
+                    .map(|m| &m.frustum_topic),
             ),
             (
                 PublicationFamily::Altimeter,
@@ -394,6 +425,23 @@ fn typed_reserved_keys(
             Ok(values) => {
                 for (_, metadata) in values {
                     keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+                    if let Some(fixed) = &metadata.static_publication {
+                        keys.insert(config.topic_key(&options::as_valid_topic(&fixed.topic))?);
+                    }
+                }
+            }
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+            Err(error) => return Err(error.into()),
+        }
+    }
+    if own != PublicationFamily::LogicalCamera {
+        match gz_sim_scene::initial_logical_camera_publications(simulation) {
+            Ok(values) => {
+                for metadata in values {
+                    keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+                    keys.insert(
+                        config.topic_key(&options::as_valid_topic(&metadata.frustum_topic))?,
+                    );
                 }
             }
             Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
@@ -442,6 +490,14 @@ fn pose_publisher_reserved_keys(
     typed_reserved_keys(simulation, io, config, PublicationFamily::PosePublisher)
 }
 
+fn logical_camera_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    typed_reserved_keys(simulation, io, config, PublicationFamily::LogicalCamera)
+}
+
 fn magnetometer_reserved_keys(
     simulation: &Simulation,
     io: &world_io::WorldIo,
@@ -485,25 +541,71 @@ fn validate_air_speed_and_pose_topics(
             }
         }
     }
-    let mut poses: Vec<_> = sim
+    let mut poses = Vec::new();
+    let mut cameras = Vec::new();
+    for entity in sim
         .world()
         .iter_entities()
         .filter(|e| !e.contains::<gz_sim_scene::PendingResetRemoval>())
-        .filter_map(|e| {
-            e.get::<gz_sim_scene::PosePublication>()
-                .map(|m| m.topic.clone())
-        })
-        .collect();
+    {
+        if let Some(m) = entity.get::<gz_sim_scene::PosePublication>() {
+            poses.push((false, m.topic.clone()));
+            if let Some(fixed) = &m.static_publication {
+                poses.push((true, fixed.topic.clone()));
+            }
+        }
+        if let Some(m) = entity.get::<gz_sim_scene::LogicalCameraPublication>() {
+            cameras.extend([(false, m.topic.clone()), (true, m.frustum_topic.clone())]);
+        }
+    }
     match gz_sim_scene::initial_pose_publications(sim) {
-        Ok(values) => poses.extend(values.map(|(_, metadata)| metadata.topic.clone())),
+        Ok(values) => {
+            for (_, m) in values {
+                poses.push((false, m.topic.clone()));
+                if let Some(fixed) = &m.static_publication {
+                    poses.push((true, fixed.topic.clone()));
+                }
+            }
+        }
         Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
         Err(error) => return Err(error.into()),
     }
-    if !poses.is_empty() {
-        let occupied = pose_publisher_reserved_keys(sim, io, config)?;
-        for topic in poses {
-            if occupied.contains(&config.topic_key(&options::as_valid_topic(&topic))?) {
-                return Err(Error::PosePublisherIdentity);
+    match gz_sim_scene::initial_logical_camera_publications(sim) {
+        Ok(values) => {
+            for m in values {
+                cameras.extend([(false, m.topic.clone()), (true, m.frustum_topic.clone())]);
+            }
+        }
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+        Err(error) => return Err(error.into()),
+    }
+    // The same loaded-original/live role may repeat, but no other raw endpoint
+    // or channel may alias it. Check every new key before the first reset IO.
+    for (topics, family) in [
+        (poses, PublicationFamily::PosePublisher),
+        (cameras, PublicationFamily::LogicalCamera),
+    ] {
+        if topics.is_empty() {
+            continue;
+        }
+        let occupied = typed_reserved_keys(sim, io, config, family)?;
+        let mut mapped = BTreeMap::new();
+        for (channel, topic) in topics {
+            let key = config.topic_key(&options::as_valid_topic(&topic))?;
+            let error = || {
+                if family == PublicationFamily::PosePublisher {
+                    Error::PosePublisherIdentity
+                } else {
+                    Error::LogicalCameraIdentity
+                }
+            };
+            if occupied.contains(&key) {
+                return Err(error());
+            }
+            if let Some(prior) = mapped.insert(key, (channel, topic.clone()))
+                && prior != (channel, topic)
+            {
+                return Err(error());
             }
         }
     }
@@ -656,6 +758,7 @@ pub struct Server {
     altimeters: Vec<altimeter::Stream>,
     air_pressures: Vec<air_pressure::Stream>,
     air_speeds: Vec<air_speed::Stream>,
+    logical_cameras: Vec<logical_camera::Stream>,
     pose_publishers: Vec<pose_publisher::Stream>,
     magnetometers: Vec<magnetometer::Stream>,
     joint_states: Vec<joint_state::Stream>,
@@ -895,6 +998,16 @@ impl Server {
         } else {
             Vec::new()
         };
+        let logical_cameras = if simulation
+            .world()
+            .iter_entities()
+            .any(|entity| entity.contains::<gz_sim_scene::LogicalCameraPublication>())
+        {
+            let occupied = logical_camera_reserved_keys(&simulation, &world_io, &config)?;
+            logical_camera::streams(&simulation, &world_io, &config, &occupied, None)?
+        } else {
+            Vec::new()
+        };
         let pose_publishers = if simulation
             .world()
             .iter_entities()
@@ -932,6 +1045,7 @@ impl Server {
             altimeters,
             air_pressures,
             air_speeds,
+            logical_cameras,
             pose_publishers,
             magnetometers,
             joint_states,
@@ -1130,6 +1244,16 @@ impl Server {
             failures[world_io::POSE_PUBLISHER_FAILURE_INDEX]
                 .load(std::sync::atomic::Ordering::Relaxed),
         );
+        counters.logical_camera_image_failures =
+            counters.logical_camera_image_failures.saturating_add(
+                failures[world_io::LOGICAL_CAMERA_IMAGE_FAILURE_INDEX]
+                    .load(std::sync::atomic::Ordering::Relaxed),
+            );
+        counters.logical_camera_frustum_failures =
+            counters.logical_camera_frustum_failures.saturating_add(
+                failures[world_io::LOGICAL_CAMERA_FRUSTUM_FAILURE_INDEX]
+                    .load(std::sync::atomic::Ordering::Relaxed),
+            );
         counters
     }
     /// Return observed bounded-input losses, independent of remote delivery.
@@ -1203,6 +1327,9 @@ impl Server {
         if !self.air_speeds.is_empty() {
             self.refresh_air_speed_interest();
         }
+        if !self.logical_cameras.is_empty() {
+            self.refresh_logical_camera_interest();
+        }
         let resetting = self.prepared_reset.is_some();
         let info = if let Some(info) = self.prepared_reset.take() {
             info
@@ -1262,6 +1389,9 @@ impl Server {
         if !self.air_speeds.is_empty() {
             self.publish_air_speeds();
         }
+        if !self.logical_cameras.is_empty() {
+            self.publish_logical_cameras();
+        }
         if !self.pose_publishers.is_empty() {
             self.publish_pose_publishers();
         }
@@ -1292,6 +1422,9 @@ impl Server {
         }
         if !self.air_speeds.is_empty() {
             self.retire_air_speeds();
+        }
+        if !self.logical_cameras.is_empty() {
+            self.retire_logical_cameras();
         }
         if !self.pose_publishers.is_empty() {
             self.retire_pose_publishers();
@@ -1559,6 +1692,7 @@ impl Server {
         self.altimeters = Vec::new();
         self.air_pressures = Vec::new();
         self.air_speeds = Vec::new();
+        self.logical_cameras = Vec::new();
         self.pose_publishers = Vec::new();
         self.magnetometers = Vec::new();
         self.joint_states = Vec::new();

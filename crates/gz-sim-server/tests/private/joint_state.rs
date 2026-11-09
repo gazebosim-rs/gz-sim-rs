@@ -619,7 +619,13 @@ fn family_key(server: &Server, family: PublicationFamily) -> String {
         PublicationFamily::Magnetometer => server.magnetometers[0].endpoint.clone(),
         PublicationFamily::JointState => server.joint_states[0].endpoint.clone(),
         PublicationFamily::AirSpeed => server.air_speeds[0].endpoint.clone(),
-        PublicationFamily::PosePublisher => server.pose_publishers[0].endpoint.clone(),
+        PublicationFamily::PosePublisher => server
+            .network_config
+            .topic_key(&options::as_valid_topic(
+                &server.pose_publishers[0].metadata.topic,
+            ))
+            .unwrap(),
+        PublicationFamily::LogicalCamera => server.logical_cameras[0].image_endpoint.clone(),
     }
 }
 fn topic_mut(server: &mut Server, family: PublicationFamily, value: String) {
@@ -708,6 +714,22 @@ fn topic_mut(server: &mut Server, family: PublicationFamily, value: String) {
                 .unwrap()
                 .topic = value;
         }
+        PublicationFamily::LogicalCamera => {
+            let entity = server
+                .simulation
+                .world()
+                .iter_entities()
+                .find(|e| e.contains::<gz_sim_scene::LogicalCameraPublication>())
+                .unwrap()
+                .id();
+            let mut metadata = server
+                .simulation
+                .world_mut()
+                .get_mut::<gz_sim_scene::LogicalCameraPublication>(entity)
+                .unwrap();
+            metadata.frustum_topic = format!("{value}/frustum");
+            metadata.topic = value;
+        }
     }
 }
 fn assert_family_refuses(
@@ -777,6 +799,16 @@ fn assert_family_refuses(
             ),
             Err(Error::PosePublisherIdentity)
         )),
+        PublicationFamily::LogicalCamera => assert!(matches!(
+            logical_camera::streams(
+                &server.simulation,
+                &server.world_io,
+                options,
+                occupied,
+                None
+            ),
+            Err(Error::LogicalCameraIdentity)
+        )),
     }
 }
 fn all_family_xml() -> String {
@@ -822,6 +854,11 @@ fn all_family_xml() -> String {
         );
         xml = xml.replace("</world>", &format!("{model}</world>"));
     }
+    let source = include_str!("../../../gz-sim-scene/tests/fixtures/m30_logical_camera.sdf");
+    let start = source.find("  <model name='rig'>").unwrap();
+    let end = start + source[start..].find("</model>").unwrap() + "</model>".len();
+    let model = source[start..end].replace("name='rig'", "name='camera_rig'");
+    xml = xml.replace("</world>", &format!("<plugin filename='gz-sim-logical-camera-system' name='gz::sim::systems::LogicalCamera'/>{model}</world>"));
     xml
 }
 #[test]
@@ -833,6 +870,7 @@ fn all_typed_publications_reserve_live_and_removed_initial_peers_in_both_directi
         PublicationFamily::JointState,
         PublicationFamily::AirSpeed,
         PublicationFamily::PosePublisher,
+        PublicationFamily::LogicalCamera,
     ];
     let topics = [
         "/m13/altimeter",
@@ -841,6 +879,7 @@ fn all_typed_publications_reserve_live_and_removed_initial_peers_in_both_directi
         "/m18/joint_state",
         "/m26/air_speed",
         "/m27/pose",
+        "/m30/logical_camera",
     ];
     let xml = all_family_xml();
     let mut live = server(&xml);
@@ -890,6 +929,7 @@ fn all_typed_publications_reserve_live_and_removed_initial_peers_in_both_directi
             "default::arm",
             "default::speed_rig",
             "default::pose_rig",
+            "default::camera_rig",
         ][other];
         let id = server
             .simulation
@@ -911,6 +951,7 @@ fn all_typed_publications_reserve_live_and_removed_initial_peers_in_both_directi
         server.retire_joint_states();
         server.retire_air_speeds();
         server.retire_pose_publishers();
+        server.retire_logical_cameras();
         for (index, &own) in families.iter().enumerate() {
             if own == peer {
                 continue;
@@ -1016,4 +1057,165 @@ fn new_families_cannot_steal_removed_initial_peer_topics_before_reset_changes_or
         assert!(!active.reset_failed && !active.pending_reset);
         active.shutdown();
     }
+}
+
+#[test]
+fn secondary_pose_and_camera_keys_remain_reserved_live_removed_and_before_reset_io() {
+    let xml = all_family_xml().replace(
+        "<topic>/m27/pose</topic><update_frequency>100</update_frequency>",
+        "<topic>/m27/pose</topic><update_frequency>100</update_frequency><static_publisher>true</static_publisher><static_update_frequency>25</static_update_frequency>",
+    );
+    let families = [
+        (PublicationFamily::Altimeter, "/m13/altimeter"),
+        (PublicationFamily::AirPressure, "/m15/air_pressure"),
+        (PublicationFamily::Magnetometer, "/m17/magnetometer"),
+        (PublicationFamily::JointState, "/m18/joint_state"),
+        (PublicationFamily::AirSpeed, "/m26/air_speed"),
+        (PublicationFamily::PosePublisher, "/m27/pose"),
+        (PublicationFamily::LogicalCamera, "/m30/logical_camera"),
+    ];
+    for (peer, raw_key, owner_name) in [
+        (
+            PublicationFamily::PosePublisher,
+            "/m27/pose_static",
+            "default::pose_rig",
+        ),
+        (
+            PublicationFamily::LogicalCamera,
+            "/m30/logical_camera/frustum",
+            "default::camera_rig",
+        ),
+    ] {
+        for removed in [false, true] {
+            let mut active = server(&xml);
+            let secondary = active.network_config.topic_key(raw_key).unwrap();
+            if removed {
+                let owner = active
+                    .simulation
+                    .world()
+                    .iter_entities()
+                    .find(|e| {
+                        e.get::<gz_sim_scene::Name>()
+                            .is_some_and(|n| n.0 == owner_name)
+                    })
+                    .unwrap()
+                    .get::<EntityId>()
+                    .unwrap()
+                    .get();
+                remove_model(&mut active.simulation, owner).unwrap();
+                active.retire_pose_publishers();
+                active.retire_logical_cameras();
+            }
+            for (own, original) in families {
+                if own == peer {
+                    continue;
+                }
+                let occupied = typed_reserved_keys(
+                    &active.simulation,
+                    &active.world_io,
+                    &active.network_config,
+                    own,
+                )
+                .unwrap();
+                assert!(occupied.contains(&secondary));
+                let mut remapped = active.network_config.clone();
+                remapped.add_topic_remap(original, raw_key).unwrap();
+                let remapped_occupied =
+                    typed_reserved_keys(&active.simulation, &active.world_io, &remapped, own)
+                        .unwrap();
+                let before = boundary(&active);
+                assert_family_refuses(&active, own, &remapped_occupied, &remapped);
+                assert_eq!(boundary(&active), before);
+                topic_mut(&mut active, own, raw_key.into());
+                let before = boundary(&active);
+                let generation = active
+                    .world_io
+                    .epoch
+                    .load(std::sync::atomic::Ordering::Acquire);
+                let pose_leases: Vec<_> = active
+                    .pose_publishers
+                    .iter()
+                    .map(|s| Arc::as_ptr(&s.publisher))
+                    .collect();
+                let camera_leases: Vec<_> = active
+                    .logical_cameras
+                    .iter()
+                    .map(|s| (Arc::as_ptr(&s.image), Arc::as_ptr(&s.frustum)))
+                    .collect();
+                assert_family_refuses(&active, own, &occupied, &active.network_config);
+                assert!(matches!(
+                    active.reset_scene(),
+                    Err(Error::AirSpeedIdentity
+                        | Error::PosePublisherIdentity
+                        | Error::LogicalCameraIdentity)
+                ));
+                assert_eq!(boundary(&active), before);
+                assert_eq!(
+                    active
+                        .world_io
+                        .epoch
+                        .load(std::sync::atomic::Ordering::Acquire),
+                    generation
+                );
+                assert_eq!(
+                    active
+                        .pose_publishers
+                        .iter()
+                        .map(|s| Arc::as_ptr(&s.publisher))
+                        .collect::<Vec<_>>(),
+                    pose_leases
+                );
+                assert_eq!(
+                    active
+                        .logical_cameras
+                        .iter()
+                        .map(|s| (Arc::as_ptr(&s.image), Arc::as_ptr(&s.frustum)))
+                        .collect::<Vec<_>>(),
+                    camera_leases
+                );
+                assert!(!active.reset_failed && !active.pending_reset);
+                topic_mut(&mut active, own, original.into());
+            }
+        }
+    }
+}
+#[test]
+fn paired_channels_cannot_alias_each_other_after_remapping_before_world_io() {
+    let xml = all_family_xml().replace(
+        "<topic>/m27/pose</topic><update_frequency>100</update_frequency>",
+        "<topic>/m27/pose</topic><update_frequency>100</update_frequency><static_publisher>true</static_publisher>",
+    );
+    let mut active = server(&xml);
+    for (from, to) in [
+        ("/m27/pose_static", "/m27/pose"),
+        ("/m30/logical_camera/frustum", "/m30/logical_camera"),
+    ] {
+        let mut options = active.network_config.clone();
+        options.add_topic_remap(from, to).unwrap();
+        let before = boundary(&active);
+        assert!(matches!(
+            validate_air_speed_and_pose_topics(&active.simulation, &active.world_io, &options),
+            Err(Error::PosePublisherIdentity | Error::LogicalCameraIdentity)
+        ));
+        assert_eq!(boundary(&active), before);
+    }
+    // Independent remapping uses the raw suffix, rather than appending a suffix
+    // to the already-mapped dynamic endpoint.
+    active
+        .network_config
+        .add_topic_remap("/m27/pose", "/chosen/dynamic")
+        .unwrap();
+    active
+        .network_config
+        .add_topic_remap("/m27/pose_static", "/chosen/static")
+        .unwrap();
+    let prepared = pose_publisher::prepare_reset(
+        &active,
+        &pose_publisher_reserved_keys(&active.simulation, &active.world_io, &active.network_config)
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(prepared.len(), 2);
+    assert!(prepared.contains_key(&active.network_config.topic_key("/chosen/dynamic").unwrap()));
+    assert!(prepared.contains_key(&active.network_config.topic_key("/chosen/static").unwrap()));
 }

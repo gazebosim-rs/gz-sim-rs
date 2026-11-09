@@ -10,6 +10,14 @@ pub struct PosePublication {
     pub topic: String,
     /// Stable lexical child-frame order is a Rust choice, not native hash order.
     pub poses: Vec<PoseFramePublication>,
+    /// Split mode keeps dynamic frames above and the independently timed static group here.
+    pub static_publication: Option<StaticPosePublication>,
+}
+#[derive(Clone, Debug, PartialEq)]
+/// The raw base topic with `_static` appended before endpoint remapping.
+pub struct StaticPosePublication {
+    pub topic: String,
+    pub poses: Vec<PoseFramePublication>,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct PoseFramePublication {
@@ -30,6 +38,15 @@ pub struct PoseSample {
     pub revision: u64,
     pub poses: Vec<PoseFrameValue>,
 }
+#[derive(Component, Clone, Debug)]
+/// Independently timed static-channel sample; absence also represents an empty group.
+pub struct StaticPoseSample(pub PoseSample);
+#[derive(Clone)]
+struct StaticClock {
+    period: Duration,
+    last: Duration,
+    revision: u64,
+}
 #[derive(Component, Clone)]
 pub(super) struct Publisher {
     owner: u64,
@@ -37,6 +54,7 @@ pub(super) struct Publisher {
     period: Duration,
     last: Duration,
     revision: u64,
+    static_clock: Option<StaticClock>,
 }
 #[derive(Resource)]
 pub(super) struct Installed;
@@ -45,6 +63,7 @@ pub(super) struct Plan {
     links: bool,
     topic: String,
     period: Duration,
+    static_period: Option<Duration>,
 }
 pub(super) fn is_plugin(plugin: &sdformat::Plugin) -> bool {
     plugin.name == "gz::sim::systems::PosePublisher"
@@ -104,6 +123,8 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
     let mut vector = false;
     let mut topic = None;
     let mut frequency = Duration::ZERO;
+    let mut split = false;
+    let mut static_frequency = None;
     for child in root.children() {
         if child.is_comment()
             || child.is_text() && child.text().unwrap_or_default().trim().is_empty()
@@ -130,6 +151,9 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
                 }
                 topic = Some(text.to_owned());
             }
+            "static_update_frequency" => {
+                static_frequency = Some(period(text.parse().map_err(|_| bad())?).ok_or_else(bad)?);
+            }
             "update_frequency" => {
                 frequency = period(text.parse().map_err(|_| bad())?).ok_or_else(bad)?
             }
@@ -150,6 +174,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
                     "publish_model_pose" => model_pose = value,
                     "publish_link_pose" => links = value,
                     "use_pose_vector_msg" => vector = value,
+                    "static_publisher" => split = value,
                     _ if value => return Err(bad()),
                     _ => {}
                 }
@@ -159,11 +184,16 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
     }
     let (_, local) = model.scoped_name.split_once("::").ok_or_else(bad)?;
     let count = usize::from(model_pose) + if links { model.links.len() } else { 0 };
-    if !vector || local.contains("::") || !(1..=128).contains(&count) {
+    if !vector
+        || local.contains("::")
+        || !(1..=128).contains(&count)
+        || split && !links
+        || !split && static_frequency.is_some()
+    {
         return Err(bad());
     }
     let topic = topic.unwrap_or_else(|| format!("/model/{}/pose", model.name));
-    if !valid_topic(&topic) {
+    if !valid_topic(&topic) || split && !valid_topic(&format!("{topic}_static")) {
         return Err(bad());
     }
     Ok(Some(Plan {
@@ -171,6 +201,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
         links,
         topic,
         period: frequency,
+        static_period: split.then_some(static_frequency.unwrap_or(frequency)),
     }))
 }
 impl Plan {
@@ -189,6 +220,20 @@ impl Plan {
             &model.scoped_name,
             "pose-publisher requires a top-level flat Rapier model",
         )?;
+        if self.static_period.is_some() {
+            let (canonical, name) = model.canonical_link_and_relative_name();
+            require(
+                canonical.is_some()
+                    && model.links.iter().any(|l| l.name == name)
+                    && model.joints.iter().all(|j| {
+                        model.links.iter().any(|l| l.name == j.child)
+                            && (j.parent == "world"
+                                || model.links.iter().any(|l| l.name == j.parent))
+                    }),
+                &model.scoped_name,
+                "static pose-publisher requires direct canonical and joint links",
+            )?;
+        }
         require(
             !sim.world()
                 .iter_entities()
@@ -248,10 +293,35 @@ pub(super) fn build(
         }
     }
     poses.sort_by(|a, b| a.child_frame_id.cmp(&b.child_frame_id));
+    let static_publication = plan.static_period.map(|_| {
+        let (_, canonical) = model.canonical_link_and_relative_name();
+        let dynamic: BTreeSet<_> = model
+            .joints
+            .iter()
+            .filter(|joint| joint.kind != sdformat::JointKind::Fixed)
+            .flat_map(|joint| [&joint.parent, &joint.child])
+            .filter(|name| name.as_str() != canonical.as_str())
+            .map(|name| format!("{local}::{name}"))
+            .collect();
+        let mut fixed = Vec::new();
+        poses.retain(|frame| {
+            if dynamic.contains(&frame.child_frame_id) {
+                true
+            } else {
+                fixed.push(frame.clone());
+                false
+            }
+        });
+        StaticPosePublication {
+            topic: format!("{}_static", plan.topic),
+            poses: fixed,
+        }
+    });
     let publication = PosePublication {
         model_name: local.into(),
         topic: plan.topic.clone(),
         poses,
+        static_publication,
     };
     sim.world_mut().entity_mut(entity).insert((
         publication.clone(),
@@ -261,6 +331,11 @@ pub(super) fn build(
             period: plan.period,
             last: Duration::ZERO,
             revision: 0,
+            static_clock: plan.static_period.map(|period| StaticClock {
+                period,
+                last: Duration::ZERO,
+                revision: 0,
+            }),
         },
     ));
     Ok(())
@@ -303,6 +378,8 @@ fn reading(
     entity: Entity,
     publisher: &Publisher,
     time: UpdateInfo,
+    frames: &[PoseFramePublication],
+    revision: u64,
 ) -> Option<PoseSample> {
     if world.get::<EntityId>(entity)?.get() != publisher.owner
         || world.get::<EntityKind>(entity) != Some(&EntityKind::Model)
@@ -310,8 +387,8 @@ fn reading(
     {
         return None;
     }
-    let mut poses = Vec::with_capacity(publisher.publication.poses.len());
-    for frame in &publisher.publication.poses {
+    let mut poses = Vec::with_capacity(frames.len());
+    for frame in frames {
         let node = gz_sim_core::entity_by_id(world, frame.identity)?;
         if frame.identity == publisher.owner {
             if node != entity {
@@ -340,7 +417,7 @@ fn reading(
     Some(PoseSample {
         time: time.sim_time,
         epoch: time.epoch,
-        revision: publisher.revision.checked_add(1)?,
+        revision: revision.checked_add(1)?,
         poses,
     })
 }
@@ -356,31 +433,86 @@ fn sample(world: &mut World) {
         .collect();
     for entity in entities {
         let publisher = world.get::<Publisher>(entity).expect("selected publisher");
-        if time
-            .sim_time
-            .checked_sub(publisher.last)
-            .is_some_and(|d| !d.is_zero() && d < publisher.period)
-        {
+        let due = |last, period| {
+            !time
+                .sim_time
+                .checked_sub(last)
+                .is_some_and(|d| !d.is_zero() && d < period)
+        };
+        let dynamic_due = due(publisher.last, publisher.period);
+        let static_due = publisher
+            .static_clock
+            .as_ref()
+            .is_some_and(|c| due(c.last, c.period));
+        if !dynamic_due && !static_due {
             continue;
         }
-        let Some(value) = reading(world, entity, publisher, time) else {
-            world.entity_mut(entity).remove::<PoseSample>();
+        // Validate every due channel before installing either sample.
+        let dynamic = dynamic_due.then(|| {
+            reading(
+                world,
+                entity,
+                publisher,
+                time,
+                &publisher.publication.poses,
+                publisher.revision,
+            )
+        });
+        let fixed = static_due.then(|| {
+            let metadata = publisher.publication.static_publication.as_ref()?;
+            let clock = publisher.static_clock.as_ref()?;
+            reading(
+                world,
+                entity,
+                publisher,
+                time,
+                &metadata.poses,
+                clock.revision,
+            )
+        });
+        if dynamic.as_ref().is_some_and(Option::is_none)
+            || fixed.as_ref().is_some_and(Option::is_none)
+        {
+            world
+                .entity_mut(entity)
+                .remove::<(PoseSample, StaticPoseSample)>();
             world.resource::<StepFault>().report(PublicationFault);
             return;
-        };
-        let mut publisher = world
-            .get_mut::<Publisher>(entity)
-            .expect("selected publisher");
-        publisher.last = time.sim_time;
-        publisher.revision = value.revision;
-        world.entity_mut(entity).insert(value);
+        }
+        if let Some(Some(value)) = fixed {
+            let mut publisher = world
+                .get_mut::<Publisher>(entity)
+                .expect("selected publisher");
+            let clock = publisher.static_clock.as_mut().expect("static due");
+            clock.last = time.sim_time;
+            clock.revision = value.revision;
+            if !value.poses.is_empty() {
+                world.entity_mut(entity).insert(StaticPoseSample(value));
+            }
+        }
+        if let Some(Some(value)) = dynamic {
+            let mut publisher = world
+                .get_mut::<Publisher>(entity)
+                .expect("selected publisher");
+            publisher.last = time.sim_time;
+            publisher.revision = value.revision;
+            if !value.poses.is_empty() {
+                world.entity_mut(entity).insert(value);
+            }
+        }
     }
 }
 fn reset(mut commands: Commands, publishers: Query<Entity, With<Publisher>>) {
     for entity in &publishers {
-        commands.entity(entity).remove::<PoseSample>();
+        commands
+            .entity(entity)
+            .remove::<(PoseSample, StaticPoseSample)>();
     }
 }
 #[cfg(test)]
 #[path = "../tests/private/pose_publisher.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/pose_static_publication.rs"]
+mod static_tests;
