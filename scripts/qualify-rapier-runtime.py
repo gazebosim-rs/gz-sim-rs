@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Additional native-off execution proof; never replaces the full coverage profiles.
 
-Seven copied example SDFs run once each through the retained actual CLI. These
+Nine copied example SDFs run once each through the retained actual CLI. These
 finite load/step controls are separate from Rust test counts and canonical wire
 or statistical/native-model evidence; clean installed runs remain separate.
 """
@@ -34,6 +34,8 @@ NOISY_EXAMPLES = (
     "examples/m26_air_speed.sdf",
     "examples/m27_pose_publisher.sdf",
     "examples/m28_air_speed_noise.sdf",
+    "examples/m30_logical_camera.sdf",
+    "examples/m31_pose_static_publisher.sdf",
 )
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
 NOISY_LINKS = {
@@ -45,6 +47,15 @@ NOISY_LINKS = {
         "default::rig::tip": (1 + 0.8 * math.cos(0.6), 2 + 0.8 * math.sin(0.6), 3),
     },
     "examples/m28_air_speed_noise.sdf": {"default::rig::body": (0, 0, 3)},
+    "examples/m30_logical_camera.sdf": {
+        "default::behind::body": (-3, 0, 3),
+        "default::rig::body": (0, 0, 3),
+        "default::target::body": (4, 0, 3),
+    },
+    "examples/m31_pose_static_publisher.sdf": {
+        "default::rig::base": (1, 2, 3),
+        "default::rig::tip": (1 + 0.8 * math.cos(0.6), 2 + 0.8 * math.sin(0.6), 3),
+    },
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
 TARGETS = {
@@ -221,9 +232,10 @@ def noisy_output_matches(source, stdout):
             actual = tuple(float(value) for value in fields[1:])
         except ValueError:
             return False
-        if source == "examples/m27_pose_publisher.sdf":
-            # Only this new articulated fixture composes noninteger world poses.
-            # Match its existing native component bound; old exact checks stay exact.
+        if source in {"examples/m27_pose_publisher.sdf", "examples/m31_pose_static_publisher.sdf"}:
+            # These two fixtures share the same unforced, zero-gravity geometry.
+            # Keep the existing 1e-12 native component bound for f64 composition;
+            # all other fixtures, including LogicalCamera, stay exact.
             if not all(math.isfinite(value) and math.isclose(value, expected, rel_tol=0, abs_tol=1e-12)
                        for value, expected in zip(actual, position)):
                 return False
@@ -233,7 +245,7 @@ def noisy_output_matches(source, stdout):
 
 
 def validate_noisy_examples(root, directory, record, observed_root, objects):
-    """Require the seven actual copied-binary controls, not Rust test-count credit."""
+    """Require the nine actual copied-binary controls, not Rust test-count credit."""
     if not isinstance(record, dict) or record.get("schema_version") != 1:
         raise ValueError("missing copied noisy-example executions")
     if json.loads((directory / "noisy-examples.json").read_text()) != record:

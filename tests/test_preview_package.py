@@ -42,6 +42,7 @@ class PreviewPackage(unittest.TestCase):
                      'docs/M20_INSTALL.md', 'docs/M20_CAPABILITIES.md',
                      'docs/M25_INSTALL.md', 'docs/M25_CAPABILITIES.md', 'docs/M25_PREVIEW.md',
                      'docs/M29_INSTALL.md', 'docs/M29_CAPABILITIES.md', 'docs/M29_PREVIEW.md',
+                     'docs/M32_INSTALL.md', 'docs/M32_CAPABILITIES.md', 'docs/M32_PREVIEW.md',
                      *['examples/' + name for name in package.NOISY_EXAMPLES], 'LICENSE', 'NOTICE']:
             path = self.source / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -148,9 +149,9 @@ class PreviewPackage(unittest.TestCase):
         self.assertNotIn(str(self.directory), (self.output / 'notices.json').read_text())
         selected = {'examples/m19_robot.sdf': 'share/robot.sdf',
                     'examples/meshes/m16-asymmetric.obj': 'share/meshes/m16-asymmetric.obj',
-                    'docs/M29_INSTALL.md': 'INSTALL.md',
-                    'docs/M29_CAPABILITIES.md': 'CAPABILITIES.md',
-                    'docs/M29_PREVIEW.md': 'PREVIEW.md',
+                    'docs/M32_INSTALL.md': 'INSTALL.md',
+                    'docs/M32_CAPABILITIES.md': 'CAPABILITIES.md',
+                    'docs/M32_PREVIEW.md': 'PREVIEW.md',
                     **{'examples/' + name: 'share/examples/' + name for name in package.NOISY_EXAMPLES}}
         for source, installed in selected.items():
             with self.subTest(installed=installed):
@@ -225,7 +226,7 @@ class PreviewPackage(unittest.TestCase):
                 self.assertEqual(mesh.read_bytes(), original)
 
     def test_dedicated_guides_are_required_even_when_legacy_sources_exist(self):
-        for name in ('M29_INSTALL.md', 'M29_CAPABILITIES.md', 'M29_PREVIEW.md'):
+        for name in ('M32_INSTALL.md', 'M32_CAPABILITIES.md', 'M32_PREVIEW.md'):
             with self.subTest(guide=name):
                 guide = self.source / 'docs' / name
                 original = guide.read_bytes()
@@ -236,6 +237,7 @@ class PreviewPackage(unittest.TestCase):
                 self.assertTrue((self.source / 'docs/M20_INSTALL.md').is_file())
                 self.assertTrue((self.source / 'docs/M20_CAPABILITIES.md').is_file())
                 self.assertTrue((self.source / 'docs/M25_INSTALL.md').is_file())
+                self.assertTrue((self.source / 'docs/M29_INSTALL.md').is_file())
                 self.refuse('regular')
                 self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
                 guide.write_bytes(original)
@@ -244,16 +246,16 @@ class PreviewPackage(unittest.TestCase):
         self.assertIn('CAPABILITIES.md', output['files'])
         self.assertIn('PREVIEW.md', output['files'])
         self.assertEqual((self.output / 'INSTALL.md').read_bytes(),
-                         (self.source / 'docs/M29_INSTALL.md').read_bytes())
-        for phase in ('M12', 'M19', 'M20', 'M25'):
+                         (self.source / 'docs/M32_INSTALL.md').read_bytes())
+        for phase in ('M12', 'M19', 'M20', 'M25', 'M29'):
             self.assertNotEqual((self.output / 'INSTALL.md').read_bytes(),
                                 (self.source / ('docs/' + phase + '_INSTALL.md')).read_bytes())
 
-    def test_m29_documented_archive_root_examples_and_installed_launcher_survive_relocation(self):
+    def test_m32_documented_archive_root_examples_and_installed_launcher_survive_relocation(self):
         for name in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
-            shutil.copyfile(ROOT / ('docs/M29_' + name + '.md'),
-                            self.source / ('docs/M29_' + name + '.md'))
-        output = self.directory / 'gz-preview-m29-linux-x86_64'
+            shutil.copyfile(ROOT / ('docs/M32_' + name + '.md'),
+                            self.source / ('docs/M32_' + name + '.md'))
+        output = self.directory / 'gz-preview-m32-linux-x86_64'
         archive = self.directory / (output.name + '.tar.gz')
         manifest = package.assemble(self.spec, output, archive)
         self.assertEqual((output / 'bin/gz-preview').read_bytes(),
@@ -262,14 +264,14 @@ class PreviewPackage(unittest.TestCase):
         with tarfile.open(archive, 'r:gz') as packed:
             self.assertTrue(all(member.name.startswith(output.name + '/') for member in packed.getmembers()))
             self.assertEqual(packed.extractfile(output.name + '/INSTALL.md').read(),
-                             (ROOT / 'docs/M29_INSTALL.md').read_bytes())
+                             (ROOT / 'docs/M32_INSTALL.md').read_bytes())
             self.assertEqual(packed.extractfile(output.name + '/bin/gz-preview').read(),
                              (self.source / 'scripts/preview_runtime.py').read_bytes())
-        moved = self.directory / 'relocated-m29'
+        moved = self.directory / 'relocated-m32'
         shutil.move(output, moved)
         self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
         self.assertIn(archive.name, (moved / 'INSTALL.md').read_text())
-        self.assertIn('gz-preview-m29-linux-x86_64', (moved / 'INSTALL.md').read_text())
+        self.assertIn('gz-preview-m32-linux-x86_64', (moved / 'INSTALL.md').read_text())
         with patch.object(runtime, 'serve', return_value=0) as serve:
             self.assertEqual(runtime.main(['run', '--lifecycle', '--http-port', '8082'], moved), 0)
             serve.assert_called_once_with(moved, 8082, 9014, 'gz-preview', lifecycle=True)
@@ -434,7 +436,7 @@ class PreviewPackage(unittest.TestCase):
         expected = ('m21_altimeter_noise.sdf', 'm22_air_pressure_noise.sdf',
                     'm23_magnetometer_noise.sdf', 'm24_cpu_lidar_noise.sdf',
                     'm26_air_speed.sdf', 'm27_pose_publisher.sdf', 'm28_air_speed_noise.sdf')
-        self.assertEqual(package.NOISY_EXAMPLES, expected)
+        self.assertEqual(package.NOISY_EXAMPLES[:7], expected)
         for name in expected:
             self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name + '"', preview)
         self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 7)
@@ -444,6 +446,25 @@ class PreviewPackage(unittest.TestCase):
         self.assertIn('PosePublisher', capabilities)
         self.assertIn('pre-100', capabilities)
         self.assertIn('default robot', capabilities)
+
+    def test_real_m32_guides_name_nine_examples_and_keep_old_topics_and_runtime(self):
+        old = ('m21_altimeter_noise.sdf', 'm22_air_pressure_noise.sdf',
+               'm23_magnetometer_noise.sdf', 'm24_cpu_lidar_noise.sdf',
+               'm26_air_speed.sdf', 'm27_pose_publisher.sdf', 'm28_air_speed_noise.sdf')
+        expected = (*old, 'm30_logical_camera.sdf', 'm31_pose_static_publisher.sdf')
+        self.assertEqual(package.NOISY_EXAMPLES, expected)
+        preview = (ROOT / 'docs/M32_PREVIEW.md').read_text()
+        for name in expected:
+            self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name + '"', preview)
+        self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 9)
+        for topic in ('/m30/logical_camera', '/m30/logical_camera/frustum',
+                      '/m31/pose', '/m31/pose_static'):
+            self.assertIn(topic, preview)
+        self.assertIn('gz-preview-m32-linux-x86_64.tar.gz', (ROOT / 'docs/M32_INSTALL.md').read_text())
+        capabilities = (ROOT / 'docs/M32_CAPABILITIES.md').read_text()
+        for contract in ('model origins', 'no visibility epsilon', 'PosePublisher',
+                         'pre-100', 'default robot', '14,000,000'):
+            self.assertIn(contract, capabilities)
 
 
 if __name__ == '__main__':

@@ -3,13 +3,18 @@
 
 # Weekly delivery plan
 
-> M1–M29 are accepted at qualified Main `ab9660ee`, after exact hosted CI
-> `42586254208` attempt 1 and independent native/local/official/package/install/
-> browser DATA. The published `m29-preview` is verified Latest; all seven assets,
-> notes, annotated tag and Main read back exactly. See
-> [M28/M29 acceptance](M28_M29_ACCEPTANCE.md).
-> M30 ideal LogicalCamera and M31 static-vector PosePublisher are the next
-> independent bounded source lanes. [Scope and ownership](M30_M31_DELIVERY.md).
+Current delivery: [M32 refreshed integrated Ubuntu preview](M32_DELIVERY.md).
+M1–M31 are accepted at exact Main e53bf432. M32 source preparation overlapped
+that frozen parent's closeout; the accepted parent is now bound. Complete final
+integration review before the single required source qualification and fresh
+release/install/browser proof. M29 remains installed Latest.
+
+> M1–M31 are accepted at qualified Main `e53bf432`, after the full normal hook,
+> exact hosted CI `42623164901` attempt 1 and independent native/local/official
+> DATA. See [M30/M31 acceptance](M30_M31_ACCEPTANCE.md).
+> M29 remains the installed Latest. Current work is the
+> [M32 refreshed Ubuntu preview](M32_DELIVERY.md), with new source gates and
+> fresh release/package/installation/browser proof still required.
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning

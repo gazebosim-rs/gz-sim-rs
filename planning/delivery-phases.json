@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-09",
   "execution_state": "active",
-  "current_phase": "M30",
+  "current_phase": "M32",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -537,7 +537,12 @@
       "scope": "One loaded top-level direct-link Rapier logical camera in a flat world of at most128 uniquely named models; native inclusive model-origin frustum and full relative poses, with canonical image and frustum streams.",
       "acceptance": "Require a separately reviewed and qualified SDFormat revision that retains the matching LogicalCamera raw configuration child. Complete bounded source, meaningful model/native/wire/demand/reset/removal/absence/refusal regression source, example and guide plus independent review. One consolidated full normal hook with strict per-crate/workspace and actual accepted-parent line AND region gates, focused actual native two-stream proof and independent DATA, exact hosted CI/durable originals/official DATA, then qualified Main.",
       "excluded": "AABB/geometry/occlusion/pixels, noise, nested/multiple cameras, new renderer/backend/UI/service/dependency/parser/math/runtime framework, paused SDF/Fuel edits and performance claims.",
-      "evidence": "docs/M30_M31_DELIVERY.md"
+      "evidence": "docs/M30_M31_DELIVERY.md",
+      "accepted_at": "2026-11-09T14:00:38.918228+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "e53bf432010f1d42752ab126a72d1e0266a2c661"
+      },
+      "acceptance_evidence": "docs/M30_M31_ACCEPTANCE.md"
     },
     {
       "id": "M31",
@@ -550,7 +555,26 @@
       "scope": "Extend one flat top-level Rapier vector publisher with raw-base_static endpoint, native frame classification and independent dynamic/static cadence. Static mode requires all direct links, valid canonical link/bare direct joint references and at most128 selected frames.",
       "acceptance": "Complete source, meaningful native/two-topic wire/cadence/refreshed-pose/reset/atomic reservation/lifecycle/refusal regressions, example and guide plus independent review. Focused actual native evidence, one full normal/strict actual-parent+per-crate/workspace hook, exact hosted CI and independent local/official DATA with durable originals, then qualified Main.",
       "excluded": "Model-only split mode, nested/visual/collision/sensor or individual-Pose publication, latching/immobile-static semantics, new IO worker/framework/schema/backend/plugin loader, installed preview refresh or performance claims.",
-      "evidence": "docs/M30_M31_DELIVERY.md"
+      "evidence": "docs/M30_M31_DELIVERY.md",
+      "accepted_at": "2026-11-09T14:00:38.918228+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "e53bf432010f1d42752ab126a72d1e0266a2c661"
+      },
+      "acceptance_evidence": "docs/M30_M31_ACCEPTANCE.md"
+    },
+    {
+      "id": "M32",
+      "title": "Refreshed integrated Ubuntu preview",
+      "max_working_days": 5,
+      "depends_on": [
+        "M29",
+        "M30",
+        "M31"
+      ],
+      "scope": "Refresh the native-free Ubuntu 24.04 x86_64 preview through the finally qualified M30/M31 parent, retaining the seven installed examples and adding LogicalCamera/static-pose examples and guides with unchanged robot, launcher and viewer.",
+      "acceptance": "Complete reviewed assembler/qualifier regressions and guides before one full normal/strict coverage/exact hosted qualification and independent DATA; fresh source-bound release inputs/metadata/notices/ELF closure, ordinary-file archive/relocation audit, clean non-root installation with nine real finite examples, actual packaged robot/browser controls and owned shutdown, then exact Main/tag/assets/body/Latest publication.",
+      "excluded": "New runtime/viewer/telemetry/scene-picker/framework/dependencies/backends/sensors, optional native or RGB/depth-worker distributions, renderer rebuild, old binary/manual proof reuse and performance/legal-compliance claims.",
+      "evidence": "docs/M32_DELIVERY.md"
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -584,16 +608,16 @@
     "M27": "complete",
     "M28": "complete",
     "M29": "complete",
-    "M30": "in_progress",
-    "M31": "in_progress"
+    "M30": "complete",
+    "M31": "complete",
+    "M32": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-09",
   "active_phases": [
-    "M30",
-    "M31"
+    "M32"
   ],
-  "execution_policy": "D30–D32: M1–M29 accepted at qualified Mainab9660ee and verified m29-preview Latest after all required proofs. Continue disjoint ideal LogicalCamera and static-vector PosePublisher Source lanes on exactab966 with Root shared integration, complete independent Source review before one consolidated required qualification, serial local heavy jobs and every unchanged native/wire/fullnormal/strictcoverage/exacthosted/localofficial requirement. Preserve all original evidence, failures, Fuel and five-day scope budgets.",
+  "execution_policy": "D30–D32: M1–M31 accepted at exact qualified Main e53bf432. M29 remains installed Latest. M32 disjoint assembler/guide and finite nine-example qualifier source batches are reviewed; Root owns final integration, serial checks/release/install/browser execution and publication. Complete the bounded source/regression/docs batch and independent integration review before one consolidated unchanged full normal/strict coverage/exact hosted cycle. Fresh source-bound binaries/metadata/notices, package/relocation, clean supported install, actual browser/owned shutdown and independent DATA remain mandatory before acceptance; preserve all old evidence/failures/Fuel and five-day budgets.",
   "parallel_groups": [
     {
       "phases": [
@@ -669,7 +693,16 @@
       ],
       "integration": "Independent LogicalCamera and PosePublisher source leaves over acceptedab966; Root owns shared admission/reset/exports/initial/lifecycle/IO reservations. Complete both contracts, regression source, guides and independent review before one new mandatory full qualification; no old gate or acceptance transfer.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M30",
+        "M31",
+        "M32"
+      ],
+      "integration": "M30/M31 source stays frozen while exact hosted/official/Main closeout runs. Disjoint M32 assembler/guide and finite-qualifier source preparation may overlap; release/installation/browser/final qualification requires the accepted parent. No acceptance transfer; local heavy operations stay serial.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1–M29 accepted at exact qualified Mainab9660ee, CI42586254208/1 and all independent native/local/official/package/install/browser DATA plus verified seven-asset release438932998/Main/tag/body/Latest. M30/M31 are new unaccepted bounded source work; no checks or acceptance transfer."
+  "acceptance_boundary": "M1–M31 became accepted only after exact Main e53bf432 promotion/readback, full normal, required review CI42623164901/1 and independent native/local/official DATA. M32 source prep overlapped that closeout but inherits no child acceptance; its checks/builds/release/install/browser/publication require final independent integration review and all child proofs. M29 remains installed Latest."
 }

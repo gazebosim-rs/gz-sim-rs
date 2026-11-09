@@ -3,16 +3,47 @@
 
 # Coordinator handoff
 
-> M1–M29 are accepted at qualified Main `ab9660ee`, after exact hosted CI
-> `42586254208` attempt 1 and independent native/local/official/package/install/
-> browser DATA. The published `m29-preview` is verified Latest; all seven assets,
-> notes, annotated tag and Main read back exactly. See
-> [M28/M29 acceptance](M28_M29_ACCEPTANCE.md).
-> M30 ideal LogicalCamera and M31 static-vector PosePublisher are the next
-> independent bounded source lanes. [Scope and ownership](M30_M31_DELIVERY.md).
+> M1–M31 are accepted at qualified Main `e53bf432`, after the full normal hook,
+> exact hosted CI `42623164901` attempt 1 and independent native/local/official
+> DATA. See [M30/M31 acceptance](M30_M31_ACCEPTANCE.md).
+> M29 remains the installed Latest. Current work is the
+> [M32 refreshed Ubuntu preview](M32_DELIVERY.md), with new source gates and
+> fresh release/package/installation/browser proof still required.
 
 
-## Current work: M30/M31
+## Current work: M32 refreshed installed preview
+
+M30/M31 are accepted at Main e53bf432 after the complete normal hook, exact
+review CI42623164901/1, independent native/local/official DATA and actual Main
+promotion/readback. [Acceptance](M30_M31_ACCEPTANCE.md) records the generated
+receipt, counts, original failures and every observation limit. Main's automatic
+CI42630305638 is separate pending evidence. M29 remains the installed Latest.
+
+The M32 worktree is based on that accepted exact parent. Both disjoint leaf
+batches have independent Source review: assembler/nine-example mappings and
+installed guides, plus the copied-binary qualifier and meaningful regressions.
+Root is finishing shared metadata/integration review before releasing one full
+normal/coverage/exact hosted cycle. No M32 tests, builds, installation or browser
+proof have run. [M32 scope](M32_DELIVERY.md) preserves all fresh acceptance work.
+
+## Historical M30/M31 closeout and M32 source preparation
+
+The frozen M30/M31 commit `e53bf432` passed the full normal hook in 1,948.363
+seconds and independent local DATA: 1,559 headless and 940 renderer passes in
+overlapping profiles, with 358 aggregate Python passes and every strict gate.
+Its exact hosted run `42623164901` is running. Official DATA and qualified Main
+promotion remain required; M1–M29 are still the accepted phases.
+
+Source preparation for the next [M32 installed preview](M32_DELIVERY.md) overlaps
+that closeout in this isolated worktree over e53. Root recorded scope, dependencies,
+leases and acceptance before authoring. Package/guide and finite-qualifier edits
+are disjoint; all M32 checks, builds, install/browser work and publication remain
+held until the exact parent is accepted and the M32 source batch is complete and
+independently reviewed. Parent corrections require rebase and affected review.
+Do not mutate frozen parents or repeat native/product/data proofs.
+
+The following M30/M31 source checkpoint is retained as history; the actual
+normal/local outcomes above supersede its pending wording.
 
 M28/M29 are accepted at Main `ab9660ee`, with all mandatory source, native,
 normal/coverage, exact hosted/official, package, installation, actual browser/

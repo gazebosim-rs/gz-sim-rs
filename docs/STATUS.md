@@ -1,5 +1,15 @@
 # Implementation status
 
+M1–M31 are accepted at qualified Main e53bf432; see
+[M30/M31 acceptance](M30_M31_ACCEPTANCE.md). Exact review CI42623164901/1 and
+independent native/local/official DATA passed before actual Main promotion.
+M29 remains installed Latest; no new package/browser acceptance is implied.
+M32's nine-example package/guide/qualifier source is independently leaf-reviewed;
+full integration review and all child source/release/install/browser gates remain.
+No M32 check or execution has run.
+
+## Retained earlier checkpoints
+
 M1–M29 are accepted and published at Main `ab9660ee`; see
 [M28/M29 acceptance](M28_M29_ACCEPTANCE.md) and the
 [m29-preview release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m29-preview),

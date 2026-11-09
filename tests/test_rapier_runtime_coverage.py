@@ -130,7 +130,7 @@ class DisabledBackendProof(unittest.TestCase):
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 7)
+            self.assertEqual(run.call_count, 9)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -214,3 +214,69 @@ class DisabledBackendProof(unittest.TestCase):
                               valid.replace("body 0 0 3", "body 0 0 nan"),
                               valid.replace("rig::body", "rig::base"), MODULE.NOISY_OUTPUT]:
                     self.assertFalse(MODULE.noisy_output_matches(source, wrong))
+
+    def test_m32_appends_both_existing_scenes_without_replacing_any_control(self):
+        self.assertEqual(MODULE.NOISY_EXAMPLES, (
+            "examples/m21_altimeter_noise.sdf", "examples/m22_air_pressure_noise.sdf",
+            "examples/m23_magnetometer_noise.sdf", "examples/m24_cpu_lidar_noise.sdf",
+            "examples/m26_air_speed.sdf", "examples/m27_pose_publisher.sdf",
+            "examples/m28_air_speed_noise.sdf", "examples/m30_logical_camera.sdf",
+            "examples/m31_pose_static_publisher.sdf",
+        ))
+
+    def test_logical_camera_output_requires_all_three_sorted_exact_model_origin_poses(self):
+        source = "examples/m30_logical_camera.sdf"
+        headline = "simulation_ns=2000000 iterations=2\n"
+        poses = ["default::behind::body -3 0 3\n", "default::rig::body 0 0 3\n",
+                 "default::target::body 4 0 3\n"]
+        valid = headline + "".join(poses)
+        self.assertTrue(MODULE.noisy_output_matches(source, valid))
+        for wrong in [headline, valid.replace("simulation_ns=2000000", "simulation_ns=1000000"),
+                      valid.replace("iterations=2", "iterations=1"),
+                      headline + "".join(reversed(poses)),
+                      valid.replace("target::body", "target::wrong"),
+                      valid + "default::extra::body 0 0 0\n", valid.rstrip("\n"),
+                      valid + "\n", valid.replace("rig::body 0 0", "rig::body 0  0")]:
+            with self.subTest(output=wrong):
+                self.assertFalse(MODULE.noisy_output_matches(source, wrong))
+        for missing in poses:
+            with self.subTest(missing=missing):
+                self.assertFalse(MODULE.noisy_output_matches(source, valid.replace(missing, "")))
+        rows = [row.split() for row in poses]
+        for row_index in range(3):
+            for coordinate in range(1, 4):
+                for value in ["nan", "inf", "-inf", "bad",
+                              str(float(rows[row_index][coordinate]) + 1e-13)]:
+                    with self.subTest(row=row_index, coordinate=coordinate, value=value):
+                        changed = [list(row) for row in rows]
+                        changed[row_index][coordinate] = value
+                        wrong = headline + "".join(" ".join(row) + "\n" for row in changed)
+                        self.assertFalse(MODULE.noisy_output_matches(source, wrong))
+
+    def test_static_pose_output_uses_only_the_existing_composed_geometry_bound(self):
+        source = "examples/m31_pose_static_publisher.sdf"
+        headline = "simulation_ns=2000000 iterations=2\n"
+        base = "default::rig::base 1 2 3\n"
+        tip = "default::rig::tip 1.6602684919277426 2.4517139787160285 3\n"
+        valid = headline + base + tip
+        self.assertTrue(MODULE.noisy_output_matches(source, valid))
+        self.assertTrue(MODULE.noisy_output_matches(source, valid.replace("base 1 2", "base 1.0000000000005 2")))
+        for wrong in [valid.replace("simulation_ns=2000000", "simulation_ns=1000000"),
+                      valid.replace("iterations=2", "iterations=1"), headline,
+                      headline + tip + base, headline + base, headline + tip,
+                      valid.replace("rig::tip", "rig::wrong"),
+                      valid + "default::extra::body 0 0 0\n", valid.rstrip("\n"),
+                      valid + "\n", valid.replace("base 1 2", "base 1  2")]:
+            with self.subTest(output=wrong):
+                self.assertFalse(MODULE.noisy_output_matches(source, wrong))
+        rows = [base.split(), tip.split()]
+        for row_index in range(2):
+            for coordinate in range(1, 4):
+                for value in ["nan", "inf", "-inf", "bad",
+                              str(float(rows[row_index][coordinate]) + 2e-12),
+                              str(float(rows[row_index][coordinate]) - 2e-12), "1e20"]:
+                    with self.subTest(row=row_index, coordinate=coordinate, value=value):
+                        changed = [list(row) for row in rows]
+                        changed[row_index][coordinate] = value
+                        wrong = headline + "".join(" ".join(row) + "\n" for row in changed)
+                        self.assertFalse(MODULE.noisy_output_matches(source, wrong))

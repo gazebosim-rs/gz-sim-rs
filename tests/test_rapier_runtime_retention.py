@@ -413,3 +413,72 @@ class AuxiliaryRetention(unittest.TestCase):
         self.finish_manifest()
         with self.assertRaisesRegex(ValueError, "noisy-example execution"):
             QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_m32_scenes_require_their_own_copied_fixture_invocation_and_zero_exit(self):
+        baseline = json.dumps(self.report["noisy_examples"])
+        for source in ["examples/m30_logical_camera.sdf", "examples/m31_pose_static_publisher.sdf"]:
+            index = QUALIFIER.NOISY_EXAMPLES.index(source)
+            for field, wrong in [("actual_exit_code", 1), ("stderr", "failed\n"),
+                                 ("argv", self.report["noisy_examples"]["runs"][0]["argv"]),
+                                 ("source", QUALIFIER.NOISY_EXAMPLES[0]),
+                                 ("retained_fixture", "examples/m27_pose_publisher.sdf"),
+                                 ("fixture_sha256", "0" * 64), ("fixture_mode", 0o600)]:
+                with self.subTest(source=source, field=field):
+                    record = json.loads(baseline)
+                    record["runs"][index][field] = wrong
+                    self.report["noisy_examples"] = record
+                    self.write_json("noisy-examples.json", record)
+                    self.finish_manifest()
+                    with self.assertRaisesRegex(ValueError, "noisy-example"):
+                        QUALIFIER.validate_evidence(self.root, self.directory)
+            record = json.loads(baseline)
+            record["runs"].pop(index)
+            self.report["noisy_examples"] = record
+            self.write_json("noisy-examples.json", record)
+            self.finish_manifest()
+            with self.assertRaisesRegex(ValueError, "noisy-example executions"):
+                QUALIFIER.validate_evidence(self.root, self.directory)
+            self.report["noisy_examples"] = json.loads(baseline)
+            self.write_json("noisy-examples.json", self.report["noisy_examples"])
+            copied = self.directory / "examples" / Path(source).name
+            original = copied.read_bytes()
+            for changed in [None, b"different but rehashed copied fixture"]:
+                with self.subTest(source=source, copied=changed):
+                    if changed is None:
+                        copied.unlink()
+                    else:
+                        copied.write_bytes(changed)
+                    self.finish_manifest()
+                    with self.assertRaisesRegex(ValueError, "noisy-example fixture identity"):
+                        QUALIFIER.validate_evidence(self.root, self.directory)
+                    copied.write_bytes(original)
+            self.finish_manifest()
+
+    def test_m32_rehashed_outputs_reject_incomplete_reordered_nonfinite_and_displaced_poses(self):
+        baseline = json.dumps(self.report["noisy_examples"])
+        for source in ["examples/m30_logical_camera.sdf", "examples/m31_pose_static_publisher.sdf"]:
+            index = QUALIFIER.NOISY_EXAMPLES.index(source)
+            record = json.loads(baseline)
+            lines = record["runs"][index]["stdout"].splitlines()
+            headline, poses = lines[0] + "\n", lines[1:]
+            corrupt = [headline, headline + "\n".join(poses[:-1]) + "\n",
+                       headline + "\n".join(reversed(poses)) + "\n",
+                       record["runs"][index]["stdout"] + "default::extra::body 0 0 0\n",
+                       record["runs"][index]["stdout"].replace("iterations=2", "iterations=1")]
+            for value in ["nan", "inf", "-inf", "bad",
+                          str(float(poses[0].split()[1]) + 2e-12)]:
+                fields = poses[0].split()
+                fields[1] = value
+                corrupt.append(headline + " ".join(fields) + "\n" + "\n".join(poses[1:]) + "\n")
+            for wrong in corrupt:
+                with self.subTest(source=source, stdout=wrong):
+                    record = json.loads(baseline)
+                    record["runs"][index]["stdout"] = wrong
+                    self.report["noisy_examples"] = record
+                    self.write_json("noisy-examples.json", record)
+                    self.finish_manifest()
+                    with self.assertRaisesRegex(ValueError, "noisy-example execution"):
+                        QUALIFIER.validate_evidence(self.root, self.directory)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()
