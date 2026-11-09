@@ -13,7 +13,7 @@ import sys
 from native_reference import LEGACY, SDK, builder, compiler_identity, validate_reference
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--client', choices=['clock', 'rate', 'force', 'camera'], default='clock')
+parser.add_argument('--client', choices=['clock', 'rate', 'force', 'camera', 'robot_sensors'], default='clock')
 parser.add_argument('--profile', choices=[LEGACY, SDK, 'gazebo-zenoh-client-v1'],
                     default=os.environ.get('GZ_REFERENCE_PROFILE', LEGACY))
 parser.add_argument('--json', action='store_true')
@@ -25,8 +25,8 @@ if args.profile == 'gazebo-zenoh-client-v1':
     result = compile_client(args.client, reference)
     print(json.dumps(result) if args.json else result['binary'])
     sys.exit(0)
-if args.json or args.client == 'camera':
-    parser.error('camera and JSON output require the explicit Zenoh profile')
+if args.json or args.client in {'camera', 'robot_sensors'}:
+    parser.error('camera, robot_sensors and JSON output require the explicit Zenoh profile')
 prefix = Path(os.environ.get('GZ_REFERENCE_PREFIX', root / 'artifacts/native-reference/install')).resolve()
 metadata_path = prefix.parent / 'environment.json'
 metadata_bytes = metadata_path.read_bytes()

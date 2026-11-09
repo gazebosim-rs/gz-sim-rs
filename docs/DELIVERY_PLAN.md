@@ -3,18 +3,20 @@
 
 # Weekly delivery plan
 
-Current delivery: [M32 refreshed integrated Ubuntu preview](M32_DELIVERY.md).
-M1–M31 are accepted at exact Main e53bf432. M32 source preparation overlapped
-that frozen parent's closeout; the accepted parent is now bound. Complete final
-integration review before the single required source qualification and fresh
-release/install/browser proof. M29 remains installed Latest.
+Current delivery: [M33 mobile-robot IMU/lidar coexistence](M33_DELIVERY.md).
+M1–M32 are accepted at exact Main679c9990, and release439342072 is verified
+Latest. M33 reuses existing sensor/noise models for a separate combined robot
+workflow; disjoint source lanes proceed in parallel with one Root integrator.
+All new functional/review/normal/coverage/hosted/DATA gates remain required.
+The first M33 normal hook failed at a missing peer CLI choice before C++
+compilation. Preserve its failed evidence; batch and independently review the
+registration, explicit-profile guard and regression before one required retry.
 
-> M1–M31 are accepted at qualified Main `e53bf432`, after the full normal hook,
-> exact hosted CI `42623164901` attempt 1 and independent native/local/official
-> DATA. See [M30/M31 acceptance](M30_M31_ACCEPTANCE.md).
-> M29 remains the installed Latest. Current work is the
-> [M32 refreshed Ubuntu preview](M32_DELIVERY.md), with new source gates and
-> fresh release/package/installation/browser proof still required.
+> M1–M32 are accepted at qualified Main `679c9990`; see
+> [M32 acceptance](M32_ACCEPTANCE.md) and the verified Latest
+> [m32-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m32-preview).
+> Current work is [M33 mobile-robot IMU/lidar coexistence](M33_DELIVERY.md).
+> New source, functional proofs and mandatory gates remain required.
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning

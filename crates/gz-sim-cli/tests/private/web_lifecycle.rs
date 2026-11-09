@@ -1076,3 +1076,6 @@ mod publication_credit_tests;
 
 #[path = "web_recording.rs"]
 mod recording_tests;
+
+#[path = "web_robot_sensors.rs"]
+mod robot_sensors_tests;

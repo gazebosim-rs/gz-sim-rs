@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-09",
   "execution_state": "active",
-  "current_phase": "M32",
+  "current_phase": "M33",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -574,7 +574,28 @@
       "scope": "Refresh the native-free Ubuntu 24.04 x86_64 preview through the finally qualified M30/M31 parent, retaining the seven installed examples and adding LogicalCamera/static-pose examples and guides with unchanged robot, launcher and viewer.",
       "acceptance": "Complete reviewed assembler/qualifier regressions and guides before one full normal/strict coverage/exact hosted qualification and independent DATA; fresh source-bound release inputs/metadata/notices/ELF closure, ordinary-file archive/relocation audit, clean non-root installation with nine real finite examples, actual packaged robot/browser controls and owned shutdown, then exact Main/tag/assets/body/Latest publication.",
       "excluded": "New runtime/viewer/telemetry/scene-picker/framework/dependencies/backends/sensors, optional native or RGB/depth-worker distributions, renderer rebuild, old binary/manual proof reuse and performance/legal-compliance claims.",
-      "evidence": "docs/M32_DELIVERY.md"
+      "evidence": "docs/M32_DELIVERY.md",
+      "accepted_at": "2026-11-09T16:03:23.525084+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "679c99902469fdc9a39499a34b7d0222689734df"
+      },
+      "acceptance_evidence": "docs/M32_ACCEPTANCE.md"
+    },
+    {
+      "id": "M33",
+      "title": "Mobile-robot IMU and lidar coexistence",
+      "max_working_days": 5,
+      "depends_on": [
+        "M4",
+        "M7",
+        "M8",
+        "M18",
+        "M32"
+      ],
+      "scope": "Separate mobile-robot example retaining M19 behavior and adding one centered IMU and one offset planar CPU lidar, with fresh simultaneous canonical-wire and Primitive socket lifecycle proofs through existing models.",
+      "acceptance": "Complete disjoint example/server/C++ peer and socket/guide source batches plus independent integration review before one full normal/strict coverage/exact hosted cycle and independent local/official DATA. Require fresh dual-stream C++ interoperability and actual socket demand/rate/pause/reset/removal/credit/collision-refusal evidence, then qualified Main.",
+      "excluded": "New noise models, admission expansion, sensor multiplicity, backend/schema/transport/runtime or packaging frameworks, widgets, body teleportation, package/browser refresh and performance/legal/cold-start claims.",
+      "evidence": "docs/M33_DELIVERY.md"
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -610,14 +631,15 @@
     "M29": "complete",
     "M30": "complete",
     "M31": "complete",
-    "M32": "in_progress"
+    "M32": "complete",
+    "M33": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-09",
   "active_phases": [
-    "M32"
+    "M33"
   ],
-  "execution_policy": "D30–D32: M1–M31 accepted at exact qualified Main e53bf432. M29 remains installed Latest. M32 disjoint assembler/guide and finite nine-example qualifier source batches are reviewed; Root owns final integration, serial checks/release/install/browser execution and publication. Complete the bounded source/regression/docs batch and independent integration review before one consolidated unchanged full normal/strict coverage/exact hosted cycle. Fresh source-bound binaries/metadata/notices, package/relocation, clean supported install, actual browser/owned shutdown and independent DATA remain mandatory before acceptance; preserve all old evidence/failures/Fuel and five-day budgets.",
+  "execution_policy": "D30–D32: M1–M32 accepted at exact qualified Main679c9990; release439342072 is verified Latest. M33 example/server/C++ peer and Primitive socket/guide source lanes author in parallel under recorded exclusive leases. Root integrates shared peer registration and serial execution. Complete code/regressions/docs and independent review before one consolidated full normal/strict coverage/exact hosted cycle; independent DATA and new functional proofs precede Main acceptance. No old proof replay, gate weakening, new eviction or Fuel mutation.",
   "parallel_groups": [
     {
       "phases": [
@@ -704,5 +726,5 @@
       "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1–M31 became accepted only after exact Main e53bf432 promotion/readback, full normal, required review CI42623164901/1 and independent native/local/official DATA. M32 source prep overlapped that closeout but inherits no child acceptance; its checks/builds/release/install/browser/publication require final independent integration review and all child proofs. M29 remains installed Latest."
+  "acceptance_boundary": "M32 acceptance follows actual normal, local/exact-hosted/official, fresh release/input/package/install/browser/visual DATA and exact Main/tag/seven assets/body/Latest readbacks. M33 inherits no acceptance for new integration; M32 installed release remains unchanged."
 }

@@ -1,11 +1,10 @@
 # Instructions for implementation agents
 
-> M1–M31 are accepted at qualified Main `e53bf432`, after the full normal hook,
-> exact hosted CI `42623164901` attempt 1 and independent native/local/official
-> DATA. See [M30/M31 acceptance](docs/M30_M31_ACCEPTANCE.md).
-> M29 remains the installed Latest. Current work is the
-> [M32 refreshed Ubuntu preview](docs/M32_DELIVERY.md), with new source gates and
-> fresh release/package/installation/browser proof still required.
+> M1–M32 are accepted at qualified Main `679c9990`; see
+> [M32 acceptance](docs/M32_ACCEPTANCE.md) and the verified Latest
+> [m32-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m32-preview).
+> Current work is [M33 mobile-robot IMU/lidar coexistence](docs/M33_DELIVERY.md).
+> New source, functional proofs and mandatory gates remain required.
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -15,17 +14,18 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30–D32)
 
-Read `docs/DELIVERY_PLAN.md`, `docs/HANDOFF.md` and `docs/M32_DELIVERY.md`.
-M30/M31 are accepted at exact Main e53bf432; keep that qualified source and all
-original proofs/failures frozen. M32 package/guide and nine-example qualifier
-source batches have independent leaf review. Root owns final integration,
-canonical metadata, serial execution, publication and tracker; SDF reviews the
-complete candidate. Complete all regression/docs/source findings before one
-consolidated full normal/strict coverage/exact hosted qualification. Fresh release
-inputs, package/relocation, clean nine-example installation, actual packaged
-robot/browser controls, owned shutdown and independent DATA precede acceptance.
-No old binary/manual proof or viewer rebuild is substituted. Continue the next
-useful bounded phase after acceptance; preserve Fuel and all paused work.
+Read `docs/M32_ACCEPTANCE.md`, `docs/M33_DELIVERY.md` and the current handoff.
+M33 has recorded exclusive example/server/C++ peer and socket/guide leases;
+Root owns shared registration/integration, serial execution and publication.
+Preserve the accepted M32 source and installed Latest. Complete implementation,
+meaningful regressions, guides and independent review before one consolidated
+normal/strict coverage/exact hosted qualification. No new noise-model work or
+package/browser acceptance is delegated; existing behavior and gates stay intact.
+Continue the next useful bounded phase after acceptance; preserve Fuel and all
+paused work. M33's first full normal hook failed at the new peer CLI selection
+before C++ compilation. Its failed tree and packet stay retained. The bounded
+dispatch/profile-guard/regression correction requires complete independent
+review before one consolidated mandatory retry; no M33 qualification is claimed.
 
 ## Architecture
 

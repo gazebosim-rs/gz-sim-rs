@@ -3,15 +3,35 @@
 
 # Coordinator handoff
 
-> M1–M31 are accepted at qualified Main `e53bf432`, after the full normal hook,
-> exact hosted CI `42623164901` attempt 1 and independent native/local/official
-> DATA. See [M30/M31 acceptance](M30_M31_ACCEPTANCE.md).
-> M29 remains the installed Latest. Current work is the
-> [M32 refreshed Ubuntu preview](M32_DELIVERY.md), with new source gates and
-> fresh release/package/installation/browser proof still required.
+> M1–M32 are accepted at qualified Main `679c9990`; see
+> [M32 acceptance](M32_ACCEPTANCE.md) and the verified Latest
+> [m32-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m32-preview).
+> Current work is [M33 mobile-robot IMU/lidar coexistence](M33_DELIVERY.md).
+> New source, functional proofs and mandatory gates remain required.
 
 
-## Current work: M32 refreshed installed preview
+## Current work: M33 mobile-robot IMU and lidar coexistence
+
+[M32 acceptance](M32_ACCEPTANCE.md) records actual release439342072/Latest,
+qualified Main679c9990 and every independent proof and preserved failure.
+Continue in isolated `work/m33-next-delivery` over that exact accepted parent.
+[M33 scope](M33_DELIVERY.md) records acceptance, exclusions and exclusive leases
+before authoring: Messages owns new example/Server/C++ peer; Light owns new
+Primitive socket test/guide; Root owns shared attachments and peer registration.
+SDF reviews complete source independently. The first full normal hook failed in
+1,492.264 seconds: the peer CLI rejected `robot_sensors` before compiling C++.
+The other three new Rust/socket controls passed in the headless profile; no
+renderer or final coverage qualification follows. The original staged tree
+`90cd9b6f` and packet remain retained. Batch the missing CLI registration,
+explicit Zenoh-only guard and real dispatch regression before independent
+correction review and one consolidated required retry. Do not rerun individual
+checks or weaken existing gates.
+M32's installed robot and release stay unchanged; this new integration earns no
+old qualification replay or new noise-model claim.
+
+## Historical M32 source checkpoint (superseded by M32_ACCEPTANCE.md)
+
+### M32 refreshed installed preview source preparation
 
 M30/M31 are accepted at Main e53bf432 after the complete normal hook, exact
 review CI42623164901/1, independent native/local/official DATA and actual Main

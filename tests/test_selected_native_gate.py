@@ -146,7 +146,7 @@ class SelectedNativeGate(unittest.TestCase):
             (base / 'raw/control.profraw').write_text('not an LLVM profile')
             peers = base / 'native-peers'
             peers.mkdir()
-            expected = {'camera'} if profile == 'renderer' else {'clock', 'rate', 'force'}
+            expected = {'camera'} if profile == 'renderer' else {'clock', 'rate', 'force', 'robot_sensors'}
             for client in sorted(expected):
                 output = peers / (client + '-control')
                 output.mkdir()
@@ -171,7 +171,7 @@ class SelectedNativeGate(unittest.TestCase):
             self.assertEqual((output / 'zenoh-native-reference.json').read_bytes(), (run / 'zenoh-native-reference.json').read_bytes())
             preparation = Path(run.name) / 'renderer/renderer-build-output.log'
             self.assertEqual((output / preparation).read_bytes(), (coverage / preparation).read_bytes())
-            for profile, clients in [('headless', ['clock', 'rate', 'force']), ('renderer', ['camera'])]:
+            for profile, clients in [('headless', ['clock', 'rate', 'force', 'robot_sensors']), ('renderer', ['camera'])]:
                 for client in clients:
                     relative = Path(run.name) / profile / 'native-peers' / (client + '-control')
                     for filename in ['source.cc', client + '-client', 'provenance.json']:
@@ -185,6 +185,14 @@ class SelectedNativeGate(unittest.TestCase):
     def test_current_stage_rejects_missing_native_fixture_input_binding(self):
         root, candidate, coverage, _, index = self.staged_fixture()
         index['inputs'].pop(verify.zenoh_peer.CLIENTS['force'])
+        (coverage / 'profile-index.json').write_text(json.dumps(index))
+        with patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
+                verify.retain_staged_evidence('a' * 40, candidate, 'passed')
+
+    def test_current_stage_rejects_missing_robot_sensor_peer_input(self):
+        root, candidate, coverage, _, index = self.staged_fixture()
+        index['inputs'].pop(verify.zenoh_peer.CLIENTS['robot_sensors'])
         (coverage / 'profile-index.json').write_text(json.dumps(index))
         with patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
             with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):

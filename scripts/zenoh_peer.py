@@ -17,6 +17,7 @@ CLIENTS = {
     'rate': 'crates/gz-sim-server/tests/rate_client.cc',
     'force': 'crates/gz-sim-server/tests/force_client.cc',
     'camera': 'crates/gz-render-worker/tests/fixtures/camera_subscriber.cc',
+    'robot_sensors': 'crates/gz-sim-server/tests/native_robot_sensors.cc',
 }
 spec = importlib.util.spec_from_file_location('zenoh_bootstrap', ROOT / 'scripts/bootstrap-zenoh-native.py')
 bootstrap = importlib.util.module_from_spec(spec)

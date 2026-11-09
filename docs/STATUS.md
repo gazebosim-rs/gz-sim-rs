@@ -1,12 +1,15 @@
 # Implementation status
 
-M1–M31 are accepted at qualified Main e53bf432; see
-[M30/M31 acceptance](M30_M31_ACCEPTANCE.md). Exact review CI42623164901/1 and
-independent native/local/official DATA passed before actual Main promotion.
-M29 remains installed Latest; no new package/browser acceptance is implied.
-M32's nine-example package/guide/qualifier source is independently leaf-reviewed;
-full integration review and all child source/release/install/browser gates remain.
-No M32 check or execution has run.
+M1–M32 are accepted at qualified Main `679c9990`; see
+[M32 acceptance](M32_ACCEPTANCE.md). Release439342072 (`m32-preview`) is verified
+Latest after all seven asset/body/Main/tag readbacks and independent source,
+package, clean nine-example install and fresh browser/owned-shutdown proofs.
+Current work is [M33 IMU/lidar robot coexistence](M33_DELIVERY.md), with recorded
+parallel source leases. Its first full normal hook failed after 1,492.264 seconds
+because the peer CLI rejected `robot_sensors` before C++ compilation. The other
+three new headless Rust/socket controls passed, but renderer and final coverage
+qualification were not reached. The bounded dispatch/guard/regression fix is
+being reviewed before one required retry; no M33 acceptance is claimed.
 
 ## Retained earlier checkpoints
 
