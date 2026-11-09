@@ -9,13 +9,17 @@ outer controller 143 and unknown cause/stop wait/minima remain distinct from
 actual active actor/launcher zero and read-only retained finalization zero.
 No application or browser proof was replayed to recover its final report.
 
-[M26/M27](M26_M27_DELIVERY.md) have independently reviewed native contracts and
-two complete disjoint implementation/regression/guide Source batches: ideal
-loaded AirSpeed and flat-model PosePublisher. Root shared integration is authored.
-The complete batch now requires independent Source review and batched fixes
-before its one consolidated verification pass; no next-phase pass or acceptance
-is claimed. One integrator owns shared files and local heavy work is serial. Full rewrite work remains deferred
-and is not counted complete with the 25 accepted named phases.
+[M26/M27 acceptance](M26_M27_ACCEPTANCE.md) records qualified Main
+`0f525592`, exact hosted CI `42570074529` attempt 1/all 16 steps, final
+normal/strict coverage and independent native/local/official DATA. Both bounded
+source features are accepted. Original failures and normal outer-watch provenance
+remain separate. There are 27 accepted phases; M25 stays the installed Latest.
+
+[M28/M29](M28_M29_DELIVERY.md) have complete independently reviewed noise and
+packaging implementation/regression/guide batches integrated over that accepted
+parent. Their checks and all fresh distribution/install/browser/release evidence
+remain pending. One integrator serializes local heavy work; no acceptance is
+inherited. Full rewrite compatibility remains outside these bounded counts.
 
 ## Historical M20 and atomic M21–M25 preparation checkpoints
 

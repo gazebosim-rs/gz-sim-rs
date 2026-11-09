@@ -1,0 +1,18 @@
+<?xml version='1.0'?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version='1.12'><world name='default'>
+  <gravity>0 0 0</gravity>
+  <physics name='step' type='ode'><max_step_size>0.001</max_step_size></physics>
+  <plugin filename='gz-sim-air-speed-system' name='gz::sim::systems::AirSpeed'/>
+  <model name='rig'><pose>0 0 3 0 0 0</pose><link name='body'>
+    <inertial><mass>1</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial>
+    <collision name='box'><geometry><box><size>1 1 1</size></box></geometry></collision>
+    <sensor name='air_speed' type='air_speed'>
+      <pose>0 0.5 0.5 0 0 0.7853981633974483</pose>
+      <always_on>true</always_on><update_rate>100</update_rate>
+      <topic>/m28/air_speed</topic><frame_id>rig/body/air_speed</frame_id>
+      <air_speed><pressure><noise type='gaussian'><mean>0.1</mean><stddev>0.02</stddev><precision>0.001</precision></noise></pressure></air_speed>
+    </sensor>
+  </link></model>
+</world></sdf>

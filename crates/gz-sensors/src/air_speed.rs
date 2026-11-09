@@ -27,6 +27,13 @@ pub struct InvalidAirSpeedInput;
 /// Zero-wind/no-noise native formula. Preserve its float atmosphere, mixed
 /// float/double velocity product, float assignment and final float *100.
 pub fn air_speed(input: AirSpeedInput) -> Result<AirSpeedReading, InvalidAirSpeedInput> {
+    let (pressure, temperature) = air_speed_unscaled(input)?;
+    scale_air_speed(pressure, temperature)
+}
+
+/// Exact native pressure precursor and temperature, before noise and final *100.
+/// A finite precursor is valid here even if scaling it without noise would overflow.
+pub fn air_speed_unscaled(input: AirSpeedInput) -> Result<(f32, f32), InvalidAirSpeedInput> {
     let height = input.world_z as f32;
     if !input.world_z.is_finite()
         || !height.is_finite()
@@ -55,12 +62,26 @@ pub fn air_speed(input: AirSpeedInput) -> Result<AirSpeedReading, InvalidAirSpee
     let first_product = f64::from(coefficient) * x;
     let second_product = first_product * x;
     let pressure = second_product as f32;
-    let published = pressure * 100.0_f32;
     if !coefficient.is_finite()
         || !first_product.is_finite()
         || !second_product.is_finite()
         || !pressure.is_finite()
+    {
+        return Err(InvalidAirSpeedInput);
+    }
+    Ok((pressure, temperature))
+}
+
+/// Final native float conversion boundary; noise is applied before this step.
+pub fn scale_air_speed(
+    pressure: f32,
+    temperature: f32,
+) -> Result<AirSpeedReading, InvalidAirSpeedInput> {
+    let published = pressure * 100.0_f32;
+    if !pressure.is_finite()
         || !published.is_finite()
+        || !temperature.is_finite()
+        || temperature <= 0.0
     {
         return Err(InvalidAirSpeedInput);
     }

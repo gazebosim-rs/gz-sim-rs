@@ -1,13 +1,12 @@
 # Instructions for implementation agents
 
-> M1–M25 are accepted and published; M25 is the verified installed preview and Latest.
-> Qualified Main `08ae5525`, exact hosted CI `42507018578` attempt 1 and all
-> independent source/local/official/package/install/browser reviews passed.
-> Original browser outer 143 is preserved separately from active actor/launcher 0,
-> read-only retained completion 0 and independent combined DATA; no replay.
-> Next: bounded ideal AirSpeed and flat-model PosePublisher Source contracts,
-> independent leaves, one integrator and serial heavy verification. See
-> [M25 acceptance](docs/M25_ACCEPTANCE.md) and [M26/M27 scope](docs/M26_M27_DELIVERY.md).
+> M1–M27 are accepted on qualified Main `0f525592`, after exact hosted CI
+> `42570074529` attempt 1 and independent native/local/official audits.
+> M25 remains the verified installed preview and Latest; no new package or
+> browser proof is claimed by the M26/M27 source-feature acceptance.
+> Complete M28 AirSpeed noise and M29 preview Source batches have independent
+> review and are integrated for qualification. See
+> [M26/M27 acceptance](docs/M26_M27_ACCEPTANCE.md) and [M28/M29 scope](docs/M28_M29_DELIVERY.md).
 
 Read `docs/HANDOFF.md` first for the current state and next tasks, then
 `docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
@@ -17,10 +16,12 @@ implemented behavior and checks from planned release requirements.
 
 ## Current priority after explicit resume (D30)
 
-Read `docs/DELIVERY_PLAN.md`, `docs/M25_ACCEPTANCE.md` and the next bounded
-AirSpeed/PosePublisher contract before editing. Root integrates successor work in
-`gz-sim-m26-m27` over accepted M25. Native units, frames, cadence, refusal cases
-and exact file leases require independent Source agreement before implementation.
+Read `docs/DELIVERY_PLAN.md`, `docs/M25_ACCEPTANCE.md` and
+`docs/M28_M29_DELIVERY.md` before editing. Root integrates the M28 AirSpeed noise
+and M29 preview Source lanes in `gz-sim-m28-m29` over accepted Main
+`0f525592`; no child acceptance is inherited. Native
+units, rounding, seed/reset behavior, refusal cases and exact file leases require
+independent Source agreement before implementation.
 Authors run no per-edit checks; finish complete source, meaningful regressions,
 guides and independent review before one consolidated normal/strict coverage and
 exact hosted CI pass. Heavy work is serial. Preserve M25 `08ae5525`, all previous

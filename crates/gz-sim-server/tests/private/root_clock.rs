@@ -13,29 +13,41 @@ use zenoh::{
 struct RootNetwork {
     observer: zenoh::Session,
     clients: zenoh::Config,
-    _router: zenoh::Session,
+    router: zenoh::Session,
+    endpoint: String,
 }
 impl RootNetwork {
     fn new() -> Self {
-        let reservation = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
-        let endpoint = format!("tcp/127.0.0.1:{}", reservation.local_addr().unwrap().port());
         let mut router = zenoh::Config::default();
         router.insert_json5("mode", "\"router\"").unwrap();
         router
-            .insert_json5(
-                "listen/endpoints",
-                &serde_json::to_string(&[&endpoint]).unwrap(),
-            )
+            .insert_json5("listen/endpoints", "[\"tcp/127.0.0.1:0\"]")
             .unwrap();
+        router.insert_json5("connect/endpoints", "[]").unwrap();
         router
             .insert_json5("scouting/multicast/enabled", "false")
             .unwrap();
         router
             .insert_json5("scouting/gossip/enabled", "false")
             .unwrap();
-        // A stolen port fails this bind; the test never falls back to discovery.
-        drop(reservation);
+        // Zenoh owns the ephemeral listener before exposing its actual endpoint;
+        // there is no reserve/drop handoff and no discovery fallback.
         let router = zenoh::open(router).wait().unwrap();
+        let locators: Vec<_> = router
+            .info()
+            .locators()
+            .wait()
+            .into_iter()
+            .map(|locator| locator.to_string())
+            .collect();
+        assert_eq!(locators.len(), 1);
+        let endpoint = locators.into_iter().next().unwrap();
+        let address: std::net::SocketAddr = endpoint.strip_prefix("tcp/").unwrap().parse().unwrap();
+        assert_eq!(
+            address.ip(),
+            std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST)
+        );
+        assert_ne!(address.port(), 0);
         let mut clients = zenoh::Config::default();
         clients.insert_json5("mode", "\"client\"").unwrap();
         clients.insert_json5("listen/endpoints", "[]").unwrap();
@@ -55,7 +67,8 @@ impl RootNetwork {
         Self {
             observer,
             clients,
-            _router: router,
+            router,
+            endpoint,
         }
     }
     fn server(&self, simulation: Simulation, name: &str, config: &ServerOptions) -> Server {
@@ -637,5 +650,40 @@ fn root_clock_namespace_and_relative_remap_preserve_metadata_scope() {
         assert_eq!(server.counters().clocks_queued, 1);
         assert_eq!(server.counters().root_clocks_queued, 1);
         assert_eq!(server.counters().root_clock_failures, 0);
+    }
+}
+
+#[test]
+fn simultaneous_root_networks_keep_distinct_owned_listeners_and_exact_client_connections() {
+    let first = RootNetwork::new();
+    let second = RootNetwork::new();
+    assert_ne!(first.endpoint, second.endpoint);
+    let first_id = first.router.info().zid().wait();
+    let second_id = second.router.info().zid().wait();
+    assert_ne!(first_id, second_id);
+    for (network, foreign) in [(&first, &second), (&second, &first)] {
+        assert!(!network.router.is_closed());
+        let occupied = std::net::TcpListener::bind(network.endpoint.strip_prefix("tcp/").unwrap())
+            .expect_err("the live Zenoh router must still own its advertised listener");
+        assert_eq!(occupied.kind(), std::io::ErrorKind::AddrInUse);
+        let own_id = network.router.info().zid().wait();
+        let foreign_id = foreign.router.info().zid().wait();
+        let fresh = zenoh::open(network.clients.clone()).wait().unwrap();
+        for client in [&network.observer, &fresh] {
+            let deadline = Instant::now() + Duration::from_secs(5);
+            loop {
+                let routers: Vec<_> = client.info().routers_zid().wait().collect();
+                assert!(!routers.contains(&foreign_id));
+                if routers.len() == 1 && routers.first() == Some(&own_id) {
+                    break;
+                }
+                assert!(
+                    Instant::now() < deadline,
+                    "client must connect only to its owned router"
+                );
+                std::thread::yield_now();
+            }
+            assert!(!client.is_closed());
+        }
     }
 }

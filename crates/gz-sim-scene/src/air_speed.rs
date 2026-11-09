@@ -1,18 +1,108 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One ideal loaded Rapier air-speed sensor, with native point/frame semantics.
+//! One loaded Rapier air-speed sensor with optional pre-publication pressure noise.
 use super::*;
-use gz_sensors::air_speed::{AirSpeedInput, AirSpeedReading, InvalidAirSpeedInput};
+use gz_sensors::air_speed::{
+    AirSpeedInput, AirSpeedReading, InvalidAirSpeedInput, air_speed_unscaled, scale_air_speed,
+};
+use gz_sensors::{GaussianNoise, GaussianParameters, InvalidNoise, NoiseStream};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum AirSpeedSampleError {
     #[error("invalid ideal air speed: {0}")]
     Ideal(InvalidAirSpeedInput),
+    #[error("invalid air-speed pressure noise: {0}")]
+    Noise(InvalidNoise),
+}
+
+#[derive(Clone)]
+struct PressureNoise {
+    channel: GaussianNoise,
+    stream: NoiseStream,
+    seed: [u8; 32],
+    identity: u64,
+}
+impl PressureNoise {
+    fn validate(config: &sdformat::Noise) -> Result<(), InvalidNoise> {
+        if config.kind == sdformat::NoiseKind::None {
+            return if *config == sdformat::Noise::default() {
+                Ok(())
+            } else {
+                Err(InvalidNoise)
+            };
+        }
+        if [
+            config.mean,
+            config.stddev,
+            config.bias_mean,
+            config.bias_stddev,
+            config.dynamic_bias_stddev,
+            config.dynamic_bias_correlation_time,
+            config.precision,
+        ]
+        .iter()
+        .any(|x| !x.is_finite())
+            || config.stddev < 0.0
+            || config.bias_stddev < 0.0
+            || config.dynamic_bias_stddev < 0.0
+            || config.precision < 0.0
+        {
+            return Err(InvalidNoise);
+        }
+        Ok(())
+    }
+    fn new(
+        config: &sdformat::Noise,
+        seed: [u8; 32],
+        identity: u64,
+    ) -> Result<Option<Box<Self>>, InvalidNoise> {
+        Self::validate(config)?;
+        if config.kind == sdformat::NoiseKind::None {
+            return Ok(None);
+        }
+        let mut stream = NoiseStream::new(seed, identity);
+        let channel = GaussianNoise::new(
+            GaussianParameters {
+                mean: config.mean,
+                stddev: config.stddev,
+                bias_mean: config.bias_mean,
+                bias_stddev: config.bias_stddev,
+                dynamic_bias_stddev: config.dynamic_bias_stddev,
+                dynamic_bias_correlation_time: config.dynamic_bias_correlation_time,
+                precision: config.precision,
+            },
+            &mut stream,
+        )?;
+        Ok(Some(Box::new(Self {
+            channel,
+            stream,
+            seed,
+            identity,
+        })))
+    }
+    fn apply(&mut self, input: AirSpeedInput) -> Result<AirSpeedReading, AirSpeedSampleError> {
+        let (pressure, temperature) =
+            air_speed_unscaled(input).map_err(AirSpeedSampleError::Ideal)?;
+        // Native Apply(double) defaults to dt=0, then assigns back to float
+        // BEFORE multiplying by100. Neither bias nor quantization uses wire units.
+        let noisy = self
+            .channel
+            .apply(f64::from(pressure), 0.0, &mut self.stream)
+            .map_err(AirSpeedSampleError::Noise)?;
+        scale_air_speed(noisy as f32, temperature)
+            .map_err(|_| AirSpeedSampleError::Noise(InvalidNoise))
+    }
+    fn reset(&mut self) {
+        self.stream = NoiseStream::new(self.seed, self.identity);
+        self.channel = GaussianNoise::new(self.channel.parameters(), &mut self.stream)
+            .expect("validated parameters and seed reproduce the finite initial bias");
+    }
 }
 
 #[derive(Component, Clone)]
 pub(super) struct AirSpeed {
     schedule: SampleSchedule,
+    noise: Option<Box<PressureNoise>>,
     link: u64,
     offset: DVec3,
 }
@@ -117,13 +207,15 @@ fn prepare(
         "air_speed metadata",
     )?;
     require(
-        sensor
-            .air_speed()
-            .expect("typed configuration checked")
-            .pressure
-            == sdformat::Noise::default(),
+        PressureNoise::validate(
+            &sensor
+                .air_speed()
+                .expect("typed configuration checked")
+                .pressure,
+        )
+        .is_ok(),
         &name,
-        "air_speed default no-noise configuration",
+        "air_speed pressure noise configuration",
     )?;
     let schedule = SampleSchedule::new(sensor.update_rate).map_err(|_| LoadError::Unsupported {
         entity: name.clone(),
@@ -290,11 +382,29 @@ pub(super) fn spawn(
         local,
         world,
     )?;
+    let identity = sim
+        .world()
+        .get::<EntityId>(entity)
+        .expect("spawned sensor owns a public identity")
+        .get();
+    let noise = PressureNoise::new(
+        &sensor
+            .air_speed()
+            .expect("typed configuration checked")
+            .pressure,
+        context.noise_seed,
+        identity,
+    )
+    .map_err(|_| LoadError::Unsupported {
+        entity: name.clone(),
+        feature: "unrepresentable air_speed noise",
+    })?;
     sim.world_mut().entity_mut(entity).insert((
         AttachedPose,
         publication,
         AirSpeed {
             schedule,
+            noise,
             link: parent.id,
             offset: DVec3::from_array(local.translation),
         },
@@ -381,14 +491,17 @@ fn sample(
             && (rotation.length_squared() - 1.0).abs() <= 1e-12
             && (link_rotation.length_squared() - 1.0).abs() <= 1e-12
         {
-            gz_sensors::air_speed::air_speed(AirSpeedInput {
+            let input = AirSpeedInput {
                 world_z: pose.translation[2],
                 velocity_sensor: (rotation.inverse() * point).to_array(),
-            })
+            };
+            match &mut sensor.noise {
+                Some(noise) => noise.apply(input),
+                None => gz_sensors::air_speed::air_speed(input).map_err(AirSpeedSampleError::Ideal),
+            }
         } else {
-            Err(InvalidAirSpeedInput)
-        }
-        .map_err(AirSpeedSampleError::Ideal);
+            Err(AirSpeedSampleError::Ideal(InvalidAirSpeedInput))
+        };
         commands.entity(entity).insert(AirSpeedSample {
             time: time.sim_time,
             epoch: time.epoch,
@@ -400,6 +513,9 @@ fn sample(
 fn reset(mut sensors: Query<(Entity, &mut AirSpeed)>, mut commands: Commands) {
     for (entity, mut sensor) in &mut sensors {
         sensor.schedule.reset();
+        if let Some(noise) = &mut sensor.noise {
+            noise.reset();
+        }
         commands.entity(entity).remove::<AirSpeedSample>();
     }
 }

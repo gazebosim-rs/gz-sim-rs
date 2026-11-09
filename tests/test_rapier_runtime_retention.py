@@ -377,3 +377,39 @@ class AuxiliaryRetention(unittest.TestCase):
             with self.assertRaises(ValueError):
                 QUALIFIER.validate_evidence(self.root, self.directory)
             path.write_bytes(original)
+
+    def test_new_preview_examples_cannot_reuse_another_run_or_omit_evidence(self):
+        baseline = json.dumps(self.report["noisy_examples"])
+        for index in range(4, 7):
+            for field, wrong in [("actual_exit_code", 1), ("stderr", "failed\n"),
+                                 ("stdout", QUALIFIER.NOISY_OUTPUT),
+                                 ("argv", self.report["noisy_examples"]["runs"][0]["argv"]),
+                                 ("source", QUALIFIER.NOISY_EXAMPLES[0]),
+                                 ("fixture_sha256", "0" * 64), ("fixture_mode", 0o600)]:
+                with self.subTest(source=QUALIFIER.NOISY_EXAMPLES[index], field=field):
+                    record = json.loads(baseline)
+                    record["runs"][index][field] = wrong
+                    self.report["noisy_examples"] = record
+                    self.write_json("noisy-examples.json", record)
+                    self.finish_manifest()
+                    with self.assertRaisesRegex(ValueError, "noisy-example"):
+                        QUALIFIER.validate_evidence(self.root, self.directory)
+            record = json.loads(baseline)
+            record["runs"].pop(index)
+            self.report["noisy_examples"] = record
+            self.write_json("noisy-examples.json", record)
+            self.finish_manifest()
+            with self.assertRaisesRegex(ValueError, "noisy-example executions"):
+                QUALIFIER.validate_evidence(self.root, self.directory)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()
+
+    def test_pose_output_tolerance_cannot_admit_a_rehashed_wrong_retained_pose(self):
+        record = self.report["noisy_examples"]
+        run = next(row for row in record["runs"] if row["source"] == "examples/m27_pose_publisher.sdf")
+        run["stdout"] = run["stdout"].replace("default::rig::base 1 2 3", "default::rig::base 1.000000000002 2 3")
+        self.write_json("noisy-examples.json", record)
+        self.finish_manifest()
+        with self.assertRaisesRegex(ValueError, "noisy-example execution"):
+            QUALIFIER.validate_evidence(self.root, self.directory)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Assemble an explicitly source-bound M25 Linux preview, without building inputs."""
+"""Assemble an explicitly source-bound M29 Linux preview, without building inputs."""
 import argparse
 import gzip
 import hashlib
@@ -27,7 +27,8 @@ MAX_FILE = 256 * 1024 * 1024
 MAX_EXAMPLE = 1024 * 1024
 NOISY_EXAMPLES = (
     'm21_altimeter_noise.sdf', 'm22_air_pressure_noise.sdf',
-    'm23_magnetometer_noise.sdf', 'm24_cpu_lidar_noise.sdf')
+    'm23_magnetometer_noise.sdf', 'm24_cpu_lidar_noise.sdf',
+    'm26_air_speed.sdf', 'm27_pose_publisher.sdf', 'm28_air_speed_noise.sdf')
 
 
 def regular(path, maximum=MAX_FILE):
@@ -235,9 +236,9 @@ def assemble(spec, output, archive=None):
                                       'scouting': {'multicast': {'enabled': False}}}, indent=2) + '\n')
         for name, path in viewer.items():
             copy_file(path, prefix / 'web' / name, expected=spec['viewer_files'][name])
-        for source_name, installed_name in (('M25_INSTALL.md', 'INSTALL.md'),
-                                            ('M25_CAPABILITIES.md', 'CAPABILITIES.md'),
-                                            ('M25_PREVIEW.md', 'PREVIEW.md')):
+        for source_name, installed_name in (('M29_INSTALL.md', 'INSTALL.md'),
+                                            ('M29_CAPABILITIES.md', 'CAPABILITIES.md'),
+                                            ('M29_PREVIEW.md', 'PREVIEW.md')):
             copy_file(regular(ROOT / 'docs' / source_name), prefix / installed_name)
         copy_file(regular(ROOT / 'LICENSE'), prefix / 'LICENSE')
         copy_file(regular(ROOT / 'NOTICE'), prefix / 'NOTICE')

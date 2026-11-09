@@ -370,8 +370,6 @@ fn runtime_invalid_acquisition_replaces_a_valid_sample_with_the_exact_ideal_faul
 #[test]
 fn strict_noise_metadata_domain_nested_duplicate_and_backend_admission_are_atomic() {
     for replacement in [
-        "<air_speed><pressure><noise type='gaussian'/></pressure></air_speed>",
-        "<air_speed><pressure><noise type='gaussian_quantized'/></pressure></air_speed>",
         "<air_speed><pressure><noise type='none'><mean>1</mean></noise></pressure></air_speed>",
         "<air_speed/><visualize>true</visualize>",
         "<air_speed/><enable_metrics>true</enable_metrics>",
@@ -433,7 +431,7 @@ fn strict_noise_metadata_domain_nested_duplicate_and_backend_admission_are_atomi
             ..
         })
     ));
-    for field in 0..9 {
+    for field in 0..8 {
         let mut sdf = sdformat::load_str(XML, "typed-air-speed", &NoResources).unwrap();
         let mut world = sdf.worlds.remove(0);
         let sensor = &mut world.models[0].links[0].sensors[0];
@@ -450,8 +448,7 @@ fn strict_noise_metadata_domain_nested_duplicate_and_backend_admission_are_atomi
                 4 => config.pressure.bias_stddev = 1.0,
                 5 => config.pressure.dynamic_bias_stddev = 1.0,
                 6 => config.pressure.dynamic_bias_correlation_time = 1.0,
-                7 => config.pressure.precision = 1.0,
-                _ => config.pressure.kind = sdformat::NoiseKind::Gaussian,
+                _ => config.pressure.precision = 1.0,
             }
         }
         assert!(preflight(&sdf, &world, PhysicsEngine::Rapier).is_err());
@@ -496,4 +493,162 @@ fn continuous_finite_rates_one_nanosecond_clamp_and_schedule_fault_are_explicit(
         format!("air_speed {e:?} sampling deadline: sensor sampling time overflow")
     );
     assert!(sim.world().get::<AirSpeedSample>(e).is_none());
+}
+
+#[test]
+fn noise_configuration_distinguishes_none_enabled_zero_and_typed_invalid_fields() {
+    let default = sdformat::Noise::default();
+    assert!(PressureNoise::new(&default, [42; 32], 1).unwrap().is_none());
+    for kind in [
+        sdformat::NoiseKind::Gaussian,
+        sdformat::NoiseKind::GaussianQuantized,
+    ] {
+        let config = sdformat::Noise {
+            kind,
+            ..Default::default()
+        };
+        assert!(PressureNoise::new(&config, [42; 32], 1).unwrap().is_some());
+        for field in 0..7 {
+            for invalid in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+                let mut bad = config;
+                match field {
+                    0 => bad.mean = invalid,
+                    1 => bad.stddev = invalid,
+                    2 => bad.bias_mean = invalid,
+                    3 => bad.bias_stddev = invalid,
+                    4 => bad.dynamic_bias_stddev = invalid,
+                    5 => bad.dynamic_bias_correlation_time = invalid,
+                    _ => bad.precision = invalid,
+                }
+                assert!(PressureNoise::validate(&bad).is_err());
+            }
+        }
+        for field in 0..4 {
+            let mut bad = config;
+            match field {
+                0 => bad.stddev = -1.0,
+                1 => bad.bias_stddev = -1.0,
+                2 => bad.dynamic_bias_stddev = -1.0,
+                _ => bad.precision = -1.0,
+            }
+            assert!(PressureNoise::validate(&bad).is_err());
+        }
+        let signed = sdformat::Noise {
+            mean: -1.0,
+            bias_mean: -0.3,
+            dynamic_bias_correlation_time: -1.0,
+            ..config
+        };
+        assert!(PressureNoise::validate(&signed).is_ok());
+    }
+}
+
+#[test]
+fn noise_float_conversion_and_final_scale_errors_are_distinct_from_ideal_and_do_not_hide_cancellation()
+ {
+    let input = AirSpeedInput {
+        world_z: 3.5,
+        velocity_sensor: [0.0; 3],
+    };
+    for (mean, precision) in [(f64::MAX, 0.0), (f64::from(f32::MAX), 0.0), (f64::MAX, 0.1)] {
+        let config = sdformat::Noise {
+            kind: sdformat::NoiseKind::Gaussian,
+            mean,
+            precision,
+            ..Default::default()
+        };
+        let mut noise = PressureNoise::new(&config, [42; 32], 1).unwrap().unwrap();
+        assert_eq!(
+            noise.apply(input),
+            Err(AirSpeedSampleError::Noise(InvalidNoise))
+        );
+    }
+    let mut noise = PressureNoise::new(
+        &sdformat::Noise {
+            kind: sdformat::NoiseKind::Gaussian,
+            ..Default::default()
+        },
+        [42; 32],
+        1,
+    )
+    .unwrap()
+    .unwrap();
+    assert_eq!(
+        noise.apply(AirSpeedInput {
+            world_z: f64::NAN,
+            ..input
+        }),
+        Err(AirSpeedSampleError::Ideal(InvalidAirSpeedInput))
+    );
+    let large = AirSpeedInput {
+        world_z: 0.0,
+        velocity_sensor: [1e20, 0.0, 0.0],
+    };
+    let (precursor, _) = air_speed_unscaled(large).unwrap();
+    let mut cancelling = PressureNoise::new(
+        &sdformat::Noise {
+            kind: sdformat::NoiseKind::Gaussian,
+            mean: -f64::from(precursor),
+            ..Default::default()
+        },
+        [42; 32],
+        1,
+    )
+    .unwrap()
+    .unwrap();
+    assert_eq!(cancelling.apply(large).unwrap().diff_pressure, 0.0);
+    let mut a = PressureNoise::new(
+        &sdformat::Noise {
+            kind: sdformat::NoiseKind::Gaussian,
+            stddev: 0.2,
+            ..Default::default()
+        },
+        [42; 32],
+        1,
+    )
+    .unwrap()
+    .unwrap();
+    let mut b = PressureNoise::new(
+        &sdformat::Noise {
+            kind: sdformat::NoiseKind::Gaussian,
+            stddev: 0.2,
+            ..Default::default()
+        },
+        [42; 32],
+        2,
+    )
+    .unwrap()
+    .unwrap();
+    assert!((0..20).any(|_| a.apply(input).unwrap() != b.apply(input).unwrap()));
+}
+
+#[test]
+fn noise_fault_replaces_previous_valid_sample_without_a_terminal_schedule_error() {
+    let xml=XML.replace("<air_speed/>","<air_speed><pressure><noise type='gaussian'><mean>0.1</mean></noise></pressure></air_speed>");
+    let mut sim = load(&xml);
+    let entity = sensor(&sim);
+    sim.step_exact(1).unwrap();
+    assert!(
+        sim.world()
+            .get::<AirSpeedSample>(entity)
+            .unwrap()
+            .reading
+            .is_ok()
+    );
+    sim.world_mut().get_mut::<AirSpeed>(entity).unwrap().noise = PressureNoise::new(
+        &sdformat::Noise {
+            kind: sdformat::NoiseKind::Gaussian,
+            mean: f64::MAX,
+            ..Default::default()
+        },
+        [42; 32],
+        1,
+    )
+    .unwrap();
+    sim.step_exact(9).unwrap();
+    assert_eq!(
+        sim.world().get::<AirSpeedSample>(entity).unwrap().reading,
+        Err(AirSpeedSampleError::Noise(InvalidNoise))
+    );
+    assert!(sim.world().resource::<StepFault>().error().is_none());
 }

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-08",
+  "as_of": "2026-11-09",
   "execution_state": "active",
-  "current_phase": "M26",
+  "current_phase": "M28",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -464,7 +464,12 @@
       "scope": "One direct-link top-level Rapier AirSpeed sensor with default atmosphere, zero wind and exactly default no-noise metadata; native sensor-point/frame velocity, float arithmetic and actual published numeric pressure units, canonical demand-aware output and lifetime.",
       "acceptance": "Complete source, meaningful regressions, guides and independent Source review before one full normal hook with strict per-crate/workspace/actual-M25-parent line and region coverage; focused actual native and canonical wire proofs plus independent DATA; exact hosted CI and independent official DATA with durable originals, then qualified Main before acceptance.",
       "excluded": "AirSpeed noise, wind/configured atmosphere, multiple or nested sensors, runtime spawning, new backend, transport/runtime framework, services, UI widget and performance claims.",
-      "evidence": "docs/M26_M27_DELIVERY.md"
+      "evidence": "docs/M26_M27_DELIVERY.md",
+      "accepted_at": "2026-11-09T06:36:36.827365+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "0f52559202b58b73adfdb79a59b02fd7d3c99272"
+      },
+      "acceptance_evidence": "docs/M26_M27_ACCEPTANCE.md"
     },
     {
       "id": "M27",
@@ -476,7 +481,39 @@
       "scope": "One built-in top-level flat-model vector PosePublisher with model/link selection only, actual native parent-relative frames/headers and unpaused cadence; bounded canonical output and atomic lifecycle.",
       "acceptance": "Complete source, meaningful regressions, guides and independent Source review before one full normal hook with strict per-crate/workspace/actual-M25-parent line and region coverage; focused actual native and canonical wire proofs plus independent DATA; exact hosted CI and independent official DATA with durable originals, then qualified Main before acceptance.",
       "excluded": "Nested, visual/collision/sensor pose records, static publisher, multiple publishers, runtime plugin spawning, dynamic plugin host, viewer/protocol change, new worker/transport framework and performance claims.",
-      "evidence": "docs/M26_M27_DELIVERY.md"
+      "evidence": "docs/M26_M27_DELIVERY.md",
+      "accepted_at": "2026-11-09T06:36:36.827365+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "0f52559202b58b73adfdb79a59b02fd7d3c99272"
+      },
+      "acceptance_evidence": "docs/M26_M27_ACCEPTANCE.md"
+    },
+    {
+      "id": "M28",
+      "title": "Loaded AirSpeed pressure noise",
+      "max_working_days": 5,
+      "depends_on": [
+        "M26"
+      ],
+      "scope": "Extend the existing single Rapier AirSpeed sensor with Gaussian/quantized pressure noise using the accepted scalar noise/seed model, applied to the native pre-100 float precursor; retain ideal behavior, temperature, signed pressure and all other admission bounds.",
+      "acceptance": "Complete source, meaningful numeric/seed/demand/reset/fault/wire regressions, guide and independent review; focused native SensorFactory deterministic, precision, zero-elapsed bias and bounded statistical proofs; full normal hook, strict per-crate/workspace/actual accepted-parent coverage, exact hosted CI and independent DATA; qualified Main before acceptance.",
+      "excluded": "New noise framework/parser/dependencies, wind or atmosphere configuration, extra sensors/backends/services/transport/UI, exact native RNG sequences and performance claims.",
+      "evidence": "docs/M28_M29_DELIVERY.md"
+    },
+    {
+      "id": "M29",
+      "title": "Updated installed preview through M28",
+      "max_working_days": 5,
+      "depends_on": [
+        "M25",
+        "M26",
+        "M27",
+        "M28"
+      ],
+      "scope": "Fresh native-free Ubuntu 24.04 x86_64 preview containing the existing four noise examples plus ideal AirSpeed, PosePublisher and M28 noisy AirSpeed, dedicated installed guides and unchanged robot/launcher/six accepted viewer files.",
+      "acceptance": "Reviewed package and qualifier regression source, full normal/strict coverage/exact hosted qualification and independent audits; fresh binaries/metadata/notices/ELF closure, ordinary-file archive/relocation DATA, clean non-root installation with seven real finite example executions, new actual installed robot/browser controls and owned shutdown, then verified Main/tag/assets/body/Latest publication.",
+      "excluded": "New runtime/viewer/scene-selector/telemetry/framework/dependencies, optional native backend or RGB/depth worker distributions, renderer rebuild, old binary/manual proof reuse and performance/legal-compliance claims.",
+      "evidence": "docs/M28_M29_DELIVERY.md"
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -506,16 +543,18 @@
     "M23": "complete",
     "M24": "complete",
     "M25": "complete",
-    "M26": "in_progress",
-    "M27": "in_progress"
+    "M26": "complete",
+    "M27": "complete",
+    "M28": "in_progress",
+    "M29": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-08",
+  "phase_started_at": "2026-11-09",
   "active_phases": [
-    "M26",
-    "M27"
+    "M28",
+    "M29"
   ],
-  "execution_policy": "D30\u2013D32: independent M26 AirSpeed and M27 PosePublisher Source lanes over accepted M25, one integrator and serial heavy checks. Close exact native Source contracts before implementation; complete bounded source/regressions/docs and independent review before one full normal/exact hosted/native qualification and independent DATA. Preserve all strict gates and original five-day budgets.",
+  "execution_policy": "D30\u2013D32: M26/M27 accepted at exact qualified Main0f525592 after final normal/native/local/exact hosted42570074529/official DATA. Complete M28 noise and M29 package Source batches over that accepted parent have independent review; one integrator and serial heavy qualification follow. Preserve every individual native/wire/package/install/browser criterion, strict gate, original failure and five-day budget. No child acceptance is inherited.",
   "parallel_groups": [
     {
       "phases": [
@@ -575,7 +614,15 @@
       ],
       "integration": "Disjoint sensor/system leaves over accepted M25; Root alone owns shared admission/exports/initial/lifecycle/WorldIO/topic-key integration. One complete candidate and full required checks; each feature has its own native/wire criteria.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M28",
+        "M29"
+      ],
+      "integration": "Disjoint noise-model and package/qualifier source leases over locally qualified 0f525592 may overlap its frozen hosted closeout. M29 actual release/install/browser proof waits for the qualified integrated source. Each functional/package exit criterion and the finally accepted M26/M27 parent is required before child acceptance; local heavy work stays serial.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M25 accepted. M25 Main08ae5525 and release438450516 verified Latest with seven exact assets, full normal/exact CI and independent local/official/package/install/combined-browser DATA. M26/M27 are new native Source-contract preparation, without implementation/check/acceptance claims."
+  "acceptance_boundary": "M1\u2013M27 accepted at qualified Main0f525592; M25 remains the verified installed Latest. M28/M29 complete implementation, regressions and guides passed independent Source review and integration/format review. Their native/full normal/exact hosted/independent DATA and fresh M29 distribution/install/browser/publication proofs remain unrun or pending; no child acceptance is claimed."
 }

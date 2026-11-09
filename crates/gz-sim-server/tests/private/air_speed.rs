@@ -1072,3 +1072,111 @@ fn air_speed_real_wire_rotated_motion_cadence_pause_reset_reconnect_and_retireme
     server.shutdown();
     assert!(matches!(server.update(), Err(Error::WorldClosed)));
 }
+
+#[test]
+fn noisy_signed_air_speed_is_canonical_and_noise_faults_cannot_republish_old_values() {
+    let xml=XML.replace("<air_speed/>","<air_speed><pressure><noise type='gaussian_quantized'><mean>-0.125</mean><precision>0.25</precision></noise></pressure></air_speed>");
+    let (mut active, observer, key) = server(&xml);
+    let subscriber = observer.declare_subscriber(key).wait().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !active.air_speeds[0].publisher.matching().unwrap() {
+        assert!(Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    active.set_paused(false);
+    active.update().unwrap();
+    let received = subscriber
+        .recv_timeout(Duration::from_secs(5))
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        received.attachment().unwrap().to_bytes().as_ref(),
+        b"gz.msgs.AirSpeed"
+    );
+    let message = AirSpeed::decode(received.payload().to_bytes().as_ref()).unwrap();
+    let entity = active.air_speeds[0].entity;
+    assert_eq!(
+        message,
+        packet(
+            &metadata(),
+            active
+                .simulation
+                .world()
+                .get::<AirSpeedSample>(entity)
+                .unwrap(),
+            0
+        )
+        .unwrap()
+    );
+    assert_eq!(message.diff_pressure, -25.0);
+    assert_eq!(
+        message.temperature,
+        f64::from(288.15_f32 - 0.0065_f32 * 3.5_f32)
+    );
+    active.simulation.step_exact(9).unwrap();
+    let time = active.simulation.elapsed();
+    let epoch = active.simulation.epoch();
+    let invalid = AirSpeedSample {
+        time,
+        epoch,
+        reading: Err(AirSpeedSampleError::Noise(gz_sensors::InvalidNoise)),
+    };
+    assert!(packet(&metadata(), &invalid, 1).is_none());
+    active
+        .simulation
+        .world_mut()
+        .entity_mut(entity)
+        .insert(invalid);
+    active.publish_air_speeds();
+    active.publish_air_speeds();
+    assert_eq!(active.counters().invalid_air_speed_samples, 1);
+    assert_eq!(active.air_speeds[0].sequence, 1);
+    assert!(subscriber.try_recv().unwrap().is_none());
+    active.simulation.step_exact(10).unwrap();
+    active.publish_air_speeds();
+    let next = AirSpeed::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(next.diff_pressure, -25.0);
+    assert_eq!(next.header.as_ref().unwrap().data[1].value, ["1"]);
+    active.set_paused(true);
+    active.update().unwrap();
+    assert!(subscriber.try_recv().unwrap().is_none());
+    assert!(active.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    active.update().unwrap();
+    assert_eq!(active.simulation.epoch(), 1);
+    assert_ne!(active.air_speeds[0].entity, entity);
+    active.set_paused(false);
+    active.update().unwrap();
+    let reset = AirSpeed::decode(
+        subscriber
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(reset.diff_pressure, -25.0);
+    assert_eq!(
+        reset.header.as_ref().unwrap().stamp.as_ref().unwrap().nsec,
+        1_000_000
+    );
+    assert_eq!(reset.header.unwrap().data[1].value, ["0"]);
+    active.shutdown();
+}

@@ -3,14 +3,13 @@
 
 # Weekly delivery plan
 
-> M1–M25 are accepted and published; M25 is the verified installed preview and Latest.
-> Qualified Main `08ae5525`, exact hosted CI `42507018578` attempt 1 and all
-> independent source/local/official/package/install/browser reviews passed.
-> Original browser outer 143 is preserved separately from active actor/launcher 0,
-> read-only retained completion 0 and independent combined DATA; no replay.
-> Next: bounded ideal AirSpeed and flat-model PosePublisher Source contracts,
-> independent leaves, one integrator and serial heavy verification. See
-> [M25 acceptance](M25_ACCEPTANCE.md) and [M26/M27 scope](M26_M27_DELIVERY.md).
+> M1–M27 are accepted on qualified Main `0f525592`, after exact hosted CI
+> `42570074529` attempt 1 and independent native/local/official audits.
+> M25 remains the verified installed preview and Latest; no new package or
+> browser proof is claimed by the M26/M27 source-feature acceptance.
+> Complete M28 AirSpeed noise and M29 preview Source batches have independent
+> review and are integrated for qualification. See
+> [M26/M27 acceptance](M26_M27_ACCEPTANCE.md) and [M28/M29 scope](M28_M29_DELIVERY.md).
 
 Owner decision D30 (2026-11-02) replaces the previous full-rewrite-first sequence.
 Ship a useful MVP first, then small runnable releases. The initial planning
@@ -73,6 +72,8 @@ results must never be described as same-engine performance improvement.
 | M25: Updated installed preview through M24 | 5 working days | Fresh native-free Ubuntu archive with the four parent noise examples and dedicated guides, preserving the default robot and viewer. | All gates, fresh binaries/notices/archive, clean non-root installation with four actual example loads, new installed browser controls/shutdown and actual publication readbacks; see M25_DELIVERY.md. |
 | M26: Ideal loaded AirSpeed | 5 working days | One top-level Rapier sensor, zero wind/default atmosphere/no noise, sensor-point and frame-correct native numeric pressure and temperature. | Actual model/native/wire/demand/cadence/reset/removal/atomic refusal proofs and every mandatory gate; see M26_M27_DELIVERY.md. |
 | M27: Flat-model PosePublisher | 5 working days | One built-in vector publisher for selected model/link parent-relative poses, exact headers and native unpaused cadence. | Native keyed frame/stamp records, real wire and lifecycle/atomic-collision controls and every mandatory gate; see M26_M27_DELIVERY.md. |
+| M28: Loaded AirSpeed pressure noise | 5 working days | Existing AirSpeed with Gaussian/quantized noise on native pre-100 float pressure. | Numeric/seed/demand/reset/fault/wire controls, focused native evidence and every mandatory gate; see M28_M29_DELIVERY.md. |
+| M29: Updated installed preview through M28 | 5 working days | Fresh native-free Ubuntu preview with all seven finite examples and unchanged robot/viewer. | Full gates, fresh package/closure/relocation, clean non-root install, seven actual example runs, new installed browser/shutdown and actual release readbacks; see M28_M29_DELIVERY.md. |
 
 M1–M25 are accepted; [M25 acceptance](M25_ACCEPTANCE.md) records qualified
 Main `08ae5525`, exact CI 42507018578 attempt 1, independent DATA and all actual
@@ -80,11 +81,17 @@ fresh distribution/installation/browser/publication proofs. M25 is the verified
 checked download and Latest. The original browser outer 143 and missing waits
 remain faithfully disclosed alongside separate successful retained completion.
 
-[M26/M27](M26_M27_DELIVERY.md) are the next independent bounded source lanes,
-over accepted M25. There are 27 selected phases and 25 accepted. Close native
-Source contracts before implementation; complete each implementation, regressions,
-guides and independent review before one consolidated full qualification. No
-successor check or feature acceptance is claimed by this schedule.
+[M26/M27 acceptance](M26_M27_ACCEPTANCE.md) records qualified Main
+`0f525592`, full normal/strict coverage, focused native and independent
+native/local/official DATA, exact hosted run `42570074529` attempt 1/all 16 steps
+and actual Main promotion/readback. There are 29 selected phases and 27 accepted.
+M25 remains the checked installed download and Latest.
+
+[M28/M29](M28_M29_DELIVERY.md) have complete independently reviewed noise and
+packaging Source batches integrated over that accepted parent. Batched fixes and
+final formatting/review precede one complete qualification; actual M29 release
+proof waits for qualified source. No child check or acceptance is transferred
+from the parent.
 
 ### Historical atomic M21–M25 integration checkpoint
 

@@ -98,3 +98,35 @@ fn every_nonfinite_channel_float_cast_and_atmosphere_or_pressure_overflow_is_ref
         );
     }
 }
+
+#[test]
+fn precursor_seam_preserves_ideal_bits_without_premature_final_scale_check() {
+    use gz_sensors::air_speed::{air_speed_unscaled, scale_air_speed};
+    for z in [-100.0, 0.0, 3.5, 1000.0] {
+        for x in [-31.23456789, 0.0, 3.125, 19.9999999] {
+            let input = AirSpeedInput {
+                world_z: z,
+                velocity_sensor: [x, 0.0, 0.0],
+            };
+            let (p, t) = air_speed_unscaled(input).unwrap();
+            assert_eq!(scale_air_speed(p, t).unwrap(), air_speed(input).unwrap());
+        }
+    }
+    let input = AirSpeedInput {
+        world_z: 0.0,
+        velocity_sensor: [1e20, 0.0, 0.0],
+    };
+    let (p, t) = air_speed_unscaled(input).unwrap();
+    assert!(p.is_finite() && (p * 100.0).is_infinite());
+    assert_eq!(air_speed(input), Err(InvalidAirSpeedInput));
+    // Noise may cancel the finite precursor before the final native scale.
+    assert_eq!(scale_air_speed(0.0, t).unwrap().diff_pressure, 0.0);
+    for (p, t) in [
+        (f32::INFINITY, 288.0),
+        (0.0, f32::NAN),
+        (0.0, 0.0),
+        (0.0, -1.0),
+    ] {
+        assert_eq!(scale_air_speed(p, t), Err(InvalidAirSpeedInput));
+    }
+}

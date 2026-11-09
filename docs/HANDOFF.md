@@ -3,29 +3,35 @@
 
 # Coordinator handoff
 
-> M1–M25 are accepted and published; M25 is the verified installed preview and Latest.
-> Qualified Main `08ae5525`, exact hosted CI `42507018578` attempt 1 and all
-> independent source/local/official/package/install/browser reviews passed.
-> Original browser outer 143 is preserved separately from active actor/launcher 0,
-> read-only retained completion 0 and independent combined DATA; no replay.
-> Next: bounded ideal AirSpeed and flat-model PosePublisher Source contracts,
-> independent leaves, one integrator and serial heavy verification. See
-> [M25 acceptance](M25_ACCEPTANCE.md) and [M26/M27 scope](M26_M27_DELIVERY.md).
+> M1–M27 are accepted on qualified Main `0f525592`, after exact hosted CI
+> `42570074529` attempt 1 and independent native/local/official audits.
+> M25 remains the verified installed preview and Latest; no new package or
+> browser proof is claimed by the M26/M27 source-feature acceptance.
+> Complete M28 AirSpeed noise and M29 preview Source batches have independent
+> review and are integrated for qualification. See
+> [M26/M27 acceptance](M26_M27_ACCEPTANCE.md) and [M28/M29 scope](M28_M29_DELIVERY.md).
 
 
-## Current work: next parallel source wave
+## Current work: M28/M29 qualification
 
-Continue D30–D32 in isolated `gz-sim-m26-m27`, over accepted M25 `08ae5525`.
-Exact native contracts for M26 ideal loaded AirSpeed and M27 flat-model canonical
-PosePublisher passed independent Source review. Both disjoint implementation,
-regression and guide batches and Root shared integration are authored for whole
-independent Source review. No successor verification or acceptance
-is claimed. Root owns shared admission,
-exports, lifecycle/reset/IO glue and canonical plans. Authors own disjoint leaves;
-finish regressions and guides plus independent Source review before one
-consolidated full normal/strict coverage/exact hosted qualification and independent
-DATA. Preserve Fuel and every frozen tree/evidence. The obsolete M12 port handoff
-approval remains unused; protected old services remain untouched.
+M26/M27 are accepted at verified Main `0f525592`, with final full normal/strict
+coverage, focused native and independent native/local/official DATA. Exact hosted
+run `42570074529` attempt 1 passed all 16 steps. Original assertion, test-API and
+native reset-fixture failures remain retained; successful audits and raw merges
+must not be repeated. [Acceptance](M26_M27_ACCEPTANCE.md) records exact evidence.
+
+Complete M28/M29 implementation, regressions and guides from separate author
+worktrees are integrated in `gz-sim-m28-m29` over that accepted parent. Whole
+independent leaf and integration/format review passed after the two redundant
+Copy clones were corrected before checks. [The scope](M28_M29_DELIVERY.md)
+preserves pressure-noise units, all old matchers, seven actual finite examples
+and all fresh package/install/browser criteria. No child verification or
+acceptance is claimed yet. Root records actual parent acceptance before the
+first child hook, binds the final reviewed tree and serially runs the focused
+native proof and complete mandatory qualification. Preserve Fuel, every frozen
+candidate, original evidence and accepted demo. M25 remains installed Latest
+until a new preview actually qualifies and is intentionally published. The
+obsolete M12 handoff stays unused; protected old services remain untouched.
 
 
 ## Historical M21–M25 integration checkpoint (accepted; superseded by M25_ACCEPTANCE.md)
