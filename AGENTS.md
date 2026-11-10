@@ -1,28 +1,31 @@
 # Instructions for implementation agents
 
-> M1–M37 are accepted at qualified Main `6d2d5320`; M37 is installed Latest.
-> See [M36/M37 acceptance](docs/M36_M37_ACCEPTANCE.md).
-> Current work is [M38 noiseless 3D odometry](docs/M38_DELIVERY.md).
+> M1–M38 are accepted at qualified Main `00382fbc`; M37 remains installed Latest.
+> See [M38 acceptance](docs/M38_ACCEPTANCE.md).
+> Current work is [atomic M39/M40 translation offsets and preview](docs/M39_M40_DELIVERY.md).
 
 Read docs/HANDOFF.md, docs/PLAN.md, docs/DECISIONS.md and the assigned-area guide.
 Confirmed owner decisions supersede proposals. Preserve Fuel and paused work.
 
 ## Current integration and qualification priority (D30–D32)
 
-M38 starts at accepted `6d2d53209174e3398b79909553e4fc5fd7fe05e8`.
-Root owns shared records, integration and serial heavy checks. Light owns the
-Scene odometry leaf, its tests, example and guide. Messages owns the Server
-canonical-peer/native-reference lane. SDF reviews the complete contract and
-Source independently. Agree the bounded 3D arithmetic, mode/reconstruction
-identity and finite native cases before runtime edits. Separate worktrees and
-explicit file leases permit parallel Source work; they do not transfer checks.
+M39/M40 use accepted M38 `00382fbc342ccc79a5e3c126f8bd5a41064c7a80`.
+The exact offset API/native case contract and disjoint leases are independently
+reviewed. Feature and preview Source is integrated; scoped native/literal DATA
+passed. Rust and distribution qualification remain pending. Root owns shared
+integration, records and serial heavy execution.
+Light owns Scene offsets, regression Source and feature guide; Messages owns
+Server/canonical-peer/native-reference Source. Root owns the fifteen-example
+package/qualifier/guides. Preserve all old fixtures and the thirteen-example prefix.
 
-Complete implementation, meaningful regression source, guides and independent
-review, then batch findings before one consolidated normal qualification.
-Keep every strict coverage gate and exact hosted CI before Main acceptance.
-No per-edit tests/lint, additional process framework, new backend/schema/
-transport, Fuel edit or package/browser refresh belongs to M38. M37 remains
-installed Latest. Preserve all accepted and failed original evidence.
+Complete both bounded implementations and whole independent Source review,
+batch findings, then run one integrated qualification with unchanged strict
+coverage, exact hosted CI and independent local/official DATA. Fresh M40 build,
+notices/ELF/package/relocation/install/browser/shutdown and publication readbacks
+are required before either phase is accepted. Each phase is at most five working
+days including review and gates. No Fuel, new backend/dependency/framework,
+rotational offset/noise expansion, renderer rebuild or acceptance transfer.
+M37 stays installed Latest until actual new distribution publication.
 
 ## Architecture
 

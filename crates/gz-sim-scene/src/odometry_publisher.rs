@@ -11,9 +11,50 @@ pub enum GroundTruthOdometryDimensions {
     Three,
 }
 
+/// Immutable local/body and global/reference translation configuration.
+/// Each wholly zero vector keeps legacy omission semantics; every bit of a
+/// nonzero vector participates in ownership, including its signed-zero entries.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct GroundTruthOdometryOffsets {
+    local: [u64; 3],
+    global: [u64; 3],
+}
+impl GroundTruthOdometryOffsets {
+    pub fn from_translations(
+        local: [f64; 3],
+        global: [f64; 3],
+    ) -> Result<Self, GroundTruthOdometryError> {
+        if local
+            .into_iter()
+            .chain(global)
+            .any(|value| !value.is_finite())
+        {
+            return Err(GroundTruthOdometryError::Offset);
+        }
+        let bits = |vector: [f64; 3]| {
+            if vector.into_iter().all(|value| value == 0.0) {
+                [0; 3]
+            } else {
+                vector.map(f64::to_bits)
+            }
+        };
+        Ok(Self {
+            local: bits(local),
+            global: bits(global),
+        })
+    }
+    pub fn local_translation(self) -> [f64; 3] {
+        self.local.map(f64::from_bits)
+    }
+    pub fn global_translation(self) -> [f64; 3] {
+        self.global.map(f64::from_bits)
+    }
+}
+
 #[derive(Component, Clone, Debug, PartialEq)]
 pub struct GroundTruthOdometryPublication {
     pub dimensions: GroundTruthOdometryDimensions,
+    pub offsets: GroundTruthOdometryOffsets,
     pub model_name: String,
     pub odom_frame: String,
     pub robot_base_frame: String,
@@ -37,6 +78,8 @@ pub enum GroundTruthOdometryError {
     Identity,
     #[error("invalid ground-truth odometry pose")]
     Pose,
+    #[error("ground-truth odometry offsets must be finite")]
+    Offset,
     #[error("ground-truth odometry clock is backward or unrepresentable")]
     Time,
     #[error("ground-truth odometry arithmetic is not finite")]
@@ -174,6 +217,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
     }
     let mut publication = GroundTruthOdometryPublication {
         dimensions: GroundTruthOdometryDimensions::Two,
+        offsets: GroundTruthOdometryOffsets::default(),
         model_name: model.name.clone(),
         odom_frame: format!("{}/odom", model.name),
         robot_base_frame: format!("{}/base_footprint", model.name),
@@ -182,6 +226,8 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
         tf_topic: format!("/model/{}/pose", model.name),
     };
     let mut frequency = Duration::from_millis(20);
+    let mut local_translation = [0.0; 3];
+    let mut global_translation = [0.0; 3];
     let mut seen = BTreeSet::new();
     for child in root.children() {
         if child.is_comment()
@@ -233,7 +279,20 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
                     return Err(bad());
                 }
             }
-            "xyz_offset" | "rpy_offset" | "xyz_global_offset" | "rpy_global_offset" => {
+            "xyz_offset" | "xyz_global_offset" => {
+                let values: Result<Vec<f64>, _> = text.split_whitespace().map(str::parse).collect();
+                let values = values.map_err(|_| bad())?;
+                let values: [f64; 3] = values.try_into().map_err(|_| bad())?;
+                if values.into_iter().any(|value| !value.is_finite()) {
+                    return Err(bad());
+                }
+                if child.tag_name().name() == "xyz_offset" {
+                    local_translation = values;
+                } else {
+                    global_translation = values;
+                }
+            }
+            "rpy_offset" | "rpy_global_offset" => {
                 let values: Result<Vec<f64>, _> = text.split_whitespace().map(str::parse).collect();
                 let values = values.map_err(|_| bad())?;
                 if values.len() != 3 || values.iter().any(|v| !v.is_finite() || *v != 0.0) {
@@ -243,6 +302,9 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
             _ => return Err(bad()),
         }
     }
+    publication.offsets =
+        GroundTruthOdometryOffsets::from_translations(local_translation, global_translation)
+            .map_err(|_| bad())?;
     let topics = [
         &publication.odom_topic,
         &publication.covariance_topic,
@@ -367,6 +429,59 @@ fn native_zero_offset_inverse() -> WorldPose {
         translation: std::array::from_fn(|i| (vector[i] + uv[i]) + uuv[i]),
         rotation,
     }
+}
+fn native_translation_inverse(translation: [f64; 3]) -> WorldPose {
+    if translation == [0.0; 3] {
+        return native_zero_offset_inverse();
+    }
+    let rotation = inverse(native_zero_offset().rotation);
+    let vector = translation.map(|value| -value);
+    let cross = |a: [f64; 3], b: [f64; 3]| {
+        [
+            a[1] * b[2] - a[2] * b[1],
+            a[2] * b[0] - a[0] * b[2],
+            a[0] * b[1] - a[1] * b[0],
+        ]
+    };
+    let axis = [rotation[0], rotation[1], rotation[2]];
+    let uv = cross(axis, vector);
+    let uuv = cross(axis, uv);
+    let uv = uv.map(|value| value * (2.0 * rotation[3]));
+    let uuv = uuv.map(|value| value * 2.0);
+    WorldPose {
+        translation: std::array::from_fn(|i| (vector[i] + uv[i]) + uuv[i]),
+        rotation,
+    }
+}
+fn offset_pose(
+    pose: WorldPose,
+    offsets: GroundTruthOdometryOffsets,
+) -> Result<WorldPose, GroundTruthOdometryError> {
+    if offsets == GroundTruthOdometryOffsets::default() {
+        return Ok(native_pose_mul(
+            native_pose_mul(native_zero_offset_inverse(), pose),
+            native_zero_offset(),
+        ));
+    }
+    let global_inverse = native_translation_inverse(offsets.global_translation());
+    let local = WorldPose {
+        translation: offsets.local_translation(),
+        ..native_zero_offset()
+    };
+    let shifted = native_pose_mul(global_inverse, pose);
+    let finite = |pose: WorldPose| {
+        pose.translation
+            .into_iter()
+            .chain(pose.rotation)
+            .all(f64::is_finite)
+    };
+    if !finite(shifted) {
+        return Err(GroundTruthOdometryError::Arithmetic);
+    }
+    let result = native_pose_mul(shifted, local);
+    finite(result)
+        .then_some(result)
+        .ok_or(GroundTruthOdometryError::Arithmetic)
 }
 fn valid_pose(pose: WorldPose) -> bool {
     pose.translation
@@ -499,10 +614,7 @@ impl Publisher {
         }
         // Input is already WORLD pose. Even admitted zero offsets execute the
         // native scalar operations; omitting them changes IEEE signed-zero bits.
-        let pose = native_pose_mul(
-            native_pose_mul(native_zero_offset_inverse(), pose),
-            native_zero_offset(),
-        );
+        let pose = offset_pose(pose, self.publication.offsets)?;
         let (linear, angular) = match self.publication.dimensions {
             GroundTruthOdometryDimensions::Two => {
                 let values = velocities(self.previous_pose, pose, elapsed.as_secs_f64())?;
@@ -662,6 +774,7 @@ mod tests {
     fn metadata() -> GroundTruthOdometryPublication {
         GroundTruthOdometryPublication {
             dimensions: GroundTruthOdometryDimensions::Two,
+            offsets: GroundTruthOdometryOffsets::default(),
             model_name: "rig".into(),
             odom_frame: "rig/odom".into(),
             robot_base_frame: "rig/base".into(),
@@ -962,7 +1075,7 @@ mod tests {
             "<gaussian_noise>bad</gaussian_noise>",
             "<gaussian_noise>1</gaussian_noise>",
             "<xyz_offset>0 0</xyz_offset>",
-            "<xyz_offset>0 0 1</xyz_offset>",
+            "<xyz_offset>0 0 NaN</xyz_offset>",
             "<xyz_offset>0 0 bad</xyz_offset>",
             "<odom_publish_frequency>inf</odom_publish_frequency>",
             "<odom_publish_frequency>bad</odom_publish_frequency>",
@@ -1550,5 +1663,409 @@ mod tests {
             }
         }
         assert_eq!((inputs, observed, suppressed), (510, 429, 81));
+    }
+
+    #[test]
+    fn translation_identity_preserves_legacy_zero_vectors_and_nonzero_component_bits() {
+        let zero = GroundTruthOdometryOffsets::default();
+        assert_eq!(
+            GroundTruthOdometryOffsets::from_translations([-0.0, 0.0, -0.0], [0.0, -0.0, -0.0])
+                .unwrap(),
+            zero
+        );
+        for (local, global) in [
+            ([1.0, -0.0, 0.0], [-0.0, 0.0, -0.0]),
+            ([-0.0, 0.0, -0.0], [0.0, -0.0, 1.0]),
+        ] {
+            let value = GroundTruthOdometryOffsets::from_translations(local, global).unwrap();
+            let local_bits = if local.iter().all(|v| *v == 0.0) {
+                [0; 3]
+            } else {
+                local.map(f64::to_bits)
+            };
+            let global_bits = if global.iter().all(|v| *v == 0.0) {
+                [0; 3]
+            } else {
+                global.map(f64::to_bits)
+            };
+            assert_eq!(value.local_translation().map(f64::to_bits), local_bits);
+            assert_eq!(value.global_translation().map(f64::to_bits), global_bits);
+        }
+        assert_ne!(
+            GroundTruthOdometryOffsets::from_translations([1.0, -0.0, 0.0], [0.0; 3]).unwrap(),
+            GroundTruthOdometryOffsets::from_translations([1.0, 0.0, 0.0], [0.0; 3]).unwrap()
+        );
+        for bad in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            for index in 0..3 {
+                let mut vector = [0.0; 3];
+                vector[index] = bad;
+                assert_eq!(
+                    GroundTruthOdometryOffsets::from_translations(vector, [0.0; 3]),
+                    Err(GroundTruthOdometryError::Offset)
+                );
+                assert_eq!(
+                    GroundTruthOdometryOffsets::from_translations([0.0; 3], vector),
+                    Err(GroundTruthOdometryError::Offset)
+                );
+            }
+        }
+        let plan = parse(&configured("<xyz_offset>0 0 1</xyz_offset>"))
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            plan.publication.dimensions,
+            GroundTruthOdometryDimensions::Two
+        );
+        assert_eq!(
+            plan.publication.offsets.local_translation(),
+            [0.0, 0.0, 1.0]
+        );
+        for content in [
+            "<xyz_offset>1 2</xyz_offset>",
+            "<xyz_offset>1 2 3 4</xyz_offset>",
+            "<xyz_global_offset>NaN 0 0</xyz_global_offset>",
+            "<xyz_global_offset>0 inf 0</xyz_global_offset>",
+            "<xyz_global_offset>0 0 bad</xyz_global_offset>",
+            "<xyz_global_offset>0 0 1</xyz_global_offset><xyz_global_offset>0 0 1</xyz_global_offset>",
+            "<xyz_offset>1<!-- tail -->garbage 2 3</xyz_offset>",
+            "<rpy_offset>0 0 1</rpy_offset>",
+            "<rpy_global_offset>1 0 0</rpy_global_offset>",
+        ] {
+            assert!(parse(&configured(content)).is_err(), "{content}");
+        }
+    }
+    #[test]
+    fn translation_composition_overflow_faults_before_history_or_publication() {
+        let mut metadata = spatial_metadata();
+        metadata.offsets =
+            GroundTruthOdometryOffsets::from_translations([0.0; 3], [-f64::MAX, 0.0, 0.0]).unwrap();
+        let mut publisher = Publisher::new(1, metadata, Duration::ZERO);
+        let input = spatial_pose([f64::MAX, 0.0, 0.0]);
+        assert!(publisher.advance(input, clock(0)).unwrap().is_none());
+        assert_eq!(
+            publisher.advance(input, clock(1_000_000)).unwrap_err(),
+            GroundTruthOdometryError::Arithmetic
+        );
+        assert_eq!(publisher.previous_time, Some(Duration::ZERO));
+        assert_eq!(publisher.previous_pose.translation, [0.0; 3]);
+        assert_eq!(
+            (publisher.last_publication, publisher.revision),
+            (Duration::ZERO, 0)
+        );
+        assert!(publisher.means.iter().all(|m| m.count == 0));
+        assert!(
+            publisher
+                .spatial_means
+                .as_ref()
+                .unwrap()
+                .iter()
+                .all(|m| m.count == 0)
+        );
+        let local =
+            GroundTruthOdometryOffsets::from_translations([f64::MAX, 0.0, 0.0], [0.0; 3]).unwrap();
+        assert_eq!(
+            offset_pose(input, local).unwrap_err(),
+            GroundTruthOdometryError::Arithmetic
+        );
+    }
+    #[test]
+    fn translated_point_history_and_zero_path_keep_existing_estimator_contract() {
+        let offset =
+            GroundTruthOdometryOffsets::from_translations([0.0, 0.0, 1.0], [0.0, 0.0, 2.0])
+                .unwrap();
+        for dimensions in [
+            GroundTruthOdometryDimensions::Two,
+            GroundTruthOdometryDimensions::Three,
+        ] {
+            let mut meta = metadata();
+            meta.dimensions = dimensions;
+            meta.offsets = offset;
+            let mut p = Publisher::new(1, meta, Duration::from_millis(20));
+            let input = spatial_pose([2.0, -1.0, 3.0]);
+            p.advance(input, clock(0)).unwrap();
+            for tick in 1..20 {
+                assert!(p.advance(input, clock(tick * 1_000_000)).unwrap().is_none());
+            }
+            assert_eq!(p.previous_pose.translation, [2.0, -1.0, 2.0]);
+            let value = p.advance(input, clock(20_000_000)).unwrap().unwrap();
+            assert_eq!(
+                value.pose.translation,
+                [
+                    2.0,
+                    -1.0,
+                    if dimensions == GroundTruthOdometryDimensions::Two {
+                        0.0
+                    } else {
+                        2.0
+                    }
+                ]
+            );
+            assert_eq!(value.linear, [0.0; 3]);
+            assert_eq!(value.angular, [0.0; 3]);
+        }
+        let signed = WorldPose {
+            translation: [-0.0, 0.0, -0.0],
+            rotation: [-0.0, -0.0, 0.0, 1.0],
+        };
+        let accepted = native_pose_mul(
+            native_pose_mul(native_zero_offset_inverse(), signed),
+            native_zero_offset(),
+        );
+        let current = offset_pose(signed, GroundTruthOdometryOffsets::default()).unwrap();
+        assert_eq!(
+            accepted.translation.map(f64::to_bits),
+            current.translation.map(f64::to_bits)
+        );
+        assert_eq!(
+            accepted.rotation.map(f64::to_bits),
+            current.rotation.map(f64::to_bits)
+        );
+    }
+
+    #[test]
+    fn actual_translation_offset_native_inputs_match_scalar_and_dispatcher_bits() {
+        mod reference {
+            include!("../tests/fixtures/m39_native_odometry_translation_offsets.rs");
+        }
+        use reference::Publication;
+        let cases = [
+            "omitted_zero",
+            "explicit_zero",
+            "local_x",
+            "local_y",
+            "local_z",
+            "global_x",
+            "global_y",
+            "global_z",
+            "combined",
+            "stationary_tilted",
+            "rotate_roll",
+            "rotate_pitch",
+            "rotate_yaw",
+            "rate",
+            "micro",
+            "pause_equal",
+            "reload/0",
+            "reload/1",
+        ];
+        let expected_modes: Vec<String> = ["two", "three"]
+            .into_iter()
+            .flat_map(|dimension| cases.map(|case| format!("{dimension}_{case}")))
+            .collect();
+        let modes: Vec<String> = reference::CASES
+            .iter()
+            .map(|(mode, _, _)| mode.to_string())
+            .collect();
+        assert_eq!(modes, expected_modes);
+        let mut inputs = 0;
+        let mut observed = 0;
+        let mut suppressed = 0;
+        let bits = |sample: GroundTruthOdometrySample| {
+            (
+                [
+                    sample.pose.translation[0].to_bits(),
+                    sample.pose.translation[1].to_bits(),
+                    sample.pose.translation[2].to_bits(),
+                    sample.pose.rotation[0].to_bits(),
+                    sample.pose.rotation[1].to_bits(),
+                    sample.pose.rotation[2].to_bits(),
+                    sample.pose.rotation[3].to_bits(),
+                ],
+                sample.linear.map(f64::to_bits),
+                sample.angular.map(f64::to_bits),
+            )
+        };
+        for (case_index, &(mode, configuration, ticks)) in reference::CASES.iter().enumerate() {
+            let epoch = 7 + case_index as u64;
+            let dimensions = match configuration.dimensions {
+                2 => GroundTruthOdometryDimensions::Two,
+                3 => GroundTruthOdometryDimensions::Three,
+                _ => panic!("invalid native dimension"),
+            };
+            assert_eq!(
+                mode.starts_with("two_"),
+                dimensions == GroundTruthOdometryDimensions::Two
+            );
+            assert!(matches!(configuration.frequency, 0 | 50));
+            assert_eq!(
+                configuration.period_ns,
+                if configuration.frequency == 50 {
+                    20_000_000
+                } else {
+                    0
+                }
+            );
+            if !configuration.requested_local_present {
+                assert_eq!(configuration.requested_local, [0; 3]);
+            }
+            if !configuration.requested_global_present {
+                assert_eq!(configuration.requested_global, [0; 3]);
+            }
+            let requested = GroundTruthOdometryOffsets::from_translations(
+                configuration.requested_local.map(f64::from_bits),
+                configuration.requested_global.map(f64::from_bits),
+            )
+            .unwrap();
+            let effective = GroundTruthOdometryOffsets::from_translations(
+                configuration.effective_local.map(f64::from_bits),
+                configuration.effective_global.map(f64::from_bits),
+            )
+            .unwrap();
+            assert_eq!(requested, effective, "legacy zero normalization: {mode}");
+            assert_eq!(
+                effective.local_translation().map(f64::to_bits),
+                configuration.effective_local
+            );
+            assert_eq!(
+                effective.global_translation().map(f64::to_bits),
+                configuration.effective_global
+            );
+            let mut publication = metadata();
+            publication.dimensions = dimensions;
+            publication.offsets = effective;
+            publication.odom_frame = "m39/odom".into();
+            publication.robot_base_frame = "m39/base".into();
+            publication.odom_topic = "/m39/odometry".into();
+            publication.covariance_topic = "/m39/odometry_covariance".into();
+            publication.tf_topic = "/m39/transform".into();
+            let mut world = World::new();
+            world.insert_resource(StepFault::default());
+            let entity = world.spawn((EntityKind::Model, publication.clone())).id();
+            let owner = gz_sim_core::assign_id(&mut world, entity).unwrap();
+            let mut scalar = Publisher::new(
+                owner,
+                publication,
+                Duration::from_nanos(configuration.period_ns),
+            );
+            world.entity_mut(entity).insert(scalar.clone());
+            let mut iteration = 0;
+            for &(time_ns, dt_ns, paused, input_bits, expected) in ticks {
+                inputs += 1;
+                let input = input_bits.map(f64::from_bits);
+                let model_pose = WorldPose {
+                    translation: [input[0], input[1], input[2]],
+                    rotation: [input[3], input[4], input[5], input[6]],
+                };
+                // The oracle records a MODEL Pose component. Native Util::worldPose
+                // left-composes its identity parent's Pose before UpdateOdometry.
+                // Both paths below receive WORLD input, as production requires.
+                let pose = native_pose_mul(native_zero_offset(), model_pose);
+                assert!(
+                    valid_pose(pose),
+                    "invalid actual reference input: {mode}/{time_ns}"
+                );
+                let sim_time = Duration::from_nanos(time_ns);
+                let dt = Duration::from_nanos(dt_ns);
+                let info = UpdateInfo {
+                    start_time: sim_time.checked_sub(dt).unwrap(),
+                    sim_time,
+                    dt,
+                    iteration,
+                    epoch,
+                    paused,
+                };
+                if !paused {
+                    iteration += 1;
+                }
+                // Publisher::advance's private contract is unpaused input. In parallel,
+                // exercise the real production dispatcher on EVERY row, including both
+                // paused calls: an accidental paused advance is not hidden by this test.
+                let actual = if paused {
+                    None
+                } else {
+                    scalar.advance(pose, info).unwrap()
+                };
+                let previous = world.get::<Publisher>(entity).unwrap().revision;
+                let held = world.get::<GroundTruthOdometrySample>(entity).copied();
+                world.entity_mut(entity).insert(pose);
+                world.insert_resource(info);
+                sample(&mut world);
+                assert!(
+                    world.resource::<StepFault>().error().is_none(),
+                    "dispatch fault: {mode}/{time_ns}"
+                );
+                let state = world.get::<Publisher>(entity).unwrap();
+                assert_eq!(
+                    state.previous_time, scalar.previous_time,
+                    "history clock: {mode}/{time_ns}"
+                );
+                assert_eq!(
+                    state.previous_pose.translation.map(f64::to_bits),
+                    scalar.previous_pose.translation.map(f64::to_bits)
+                );
+                assert_eq!(
+                    state.previous_pose.rotation.map(f64::to_bits),
+                    scalar.previous_pose.rotation.map(f64::to_bits)
+                );
+                assert_eq!(
+                    (state.last_publication, state.revision),
+                    (scalar.last_publication, scalar.revision)
+                );
+                for (dispatch, direct) in state.means.iter().zip(&scalar.means) {
+                    assert_eq!(dispatch.count, direct.count);
+                    assert_eq!(
+                        dispatch.values.map(f64::to_bits),
+                        direct.values.map(f64::to_bits)
+                    );
+                }
+                match (&state.spatial_means, &scalar.spatial_means) {
+                    (Some(dispatch), Some(direct)) => {
+                        assert_eq!(dimensions, GroundTruthOdometryDimensions::Three);
+                        for (dispatch, direct) in dispatch.iter().zip(direct) {
+                            assert_eq!(dispatch.count, direct.count);
+                            assert_eq!(
+                                dispatch.values.map(f64::to_bits),
+                                direct.values.map(f64::to_bits)
+                            );
+                        }
+                    }
+                    (None, None) => assert_eq!(dimensions, GroundTruthOdometryDimensions::Two),
+                    _ => panic!("direct/dispatch history shape differs: {mode}"),
+                }
+                let dispatched = (state.revision != previous)
+                    .then(|| *world.get::<GroundTruthOdometrySample>(entity).unwrap());
+                assert_eq!(
+                    dispatched.map(bits),
+                    actual.map(bits),
+                    "direct/dispatch: {mode}/{time_ns}"
+                );
+                match expected {
+                    Publication::Suppressed => {
+                        suppressed += 1;
+                        assert!(
+                            actual.is_none(),
+                            "native suppressed publication: {mode}/{time_ns}"
+                        );
+                        assert_eq!(state.revision, previous);
+                        assert_eq!(
+                            world
+                                .get::<GroundTruthOdometrySample>(entity)
+                                .copied()
+                                .map(bits),
+                            held.map(bits)
+                        );
+                        assert_eq!(
+                            world
+                                .get::<GroundTruthOdometrySample>(entity)
+                                .map(|s| (s.time, s.epoch, s.revision)),
+                            held.map(|s| (s.time, s.epoch, s.revision))
+                        );
+                    }
+                    Publication::Observed((pose_bits, linear_bits, angular_bits, _wire_bytes)) => {
+                        observed += 1;
+                        let actual = actual.unwrap_or_else(|| {
+                            panic!("missing native-time sample: {mode}/{time_ns}")
+                        });
+                        assert_eq!((actual.time, actual.epoch), (sim_time, epoch));
+                        assert_eq!(
+                            bits(actual),
+                            (pose_bits, linear_bits, angular_bits),
+                            "actual native numeric bits: {mode}/{time_ns}"
+                        );
+                    }
+                }
+            }
+        }
+        assert_eq!((inputs, observed, suppressed), (1152, 986, 166));
     }
 }

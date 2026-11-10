@@ -1,23 +1,23 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Current delivery: M38 noiseless 3D odometry
+## Current delivery: M39 translation offsets and M40 preview
 
-M1–M37 are accepted at qualified Main `6d2d5320`; [M36/M37 acceptance](M36_M37_ACCEPTANCE.md)
-and verified [m37-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m37-preview)
-close the atomic delivery. There are 38 selected phases and 37 accepted.
+M1–M38 are accepted at qualified Main `00382fbc`; [M38 acceptance](M38_ACCEPTANCE.md)
+records actual normal, exact hosted CI, independent DATA and Main readback.
+M37 release 439888006 remains installed Latest. Forty phases are selected and
+38 are accepted.
 
-[M38](M38_DELIVERY.md) adds explicit noiseless three-dimensional ground-truth
-odometry to the existing admitted Rapier models and three canonical streams,
-preserving default planar behavior and every old fixture. Budget: at most five
-working days including independent review and all mandatory gates. Its Scene
-and Server/native Source lanes may proceed in parallel after contract review;
-shared integration and heavy verification have one owner. Reviewed Source and
-the native fixture are integrated; original-system capture and independent
-native/literal DATA passed. Rust and full qualification remain pending. No
-check or acceptance transfers from M37. The installed preview remains M37; this source
-increment does not repeat packaging or browser qualification. After accepting
-M38, select the next useful retained increment without another owner prompt.
+[Atomic M39/M40](M39_M40_DELIVERY.md) adds finite local/global XYZ translations
+to existing noiseless odometry in both dimensional modes, and refreshes the
+native-free Ubuntu preview with fifteen finite installed examples. Feature,
+canonical/native and packaging Source lanes are independently reviewed and
+integrated. Fresh scoped component capture and native/literal DATA passed;
+new Rust, normal/strict/exact hosted and distribution qualification remain
+required. Budget: at most five working days per phase including review and
+mandatory gates. Root alone releases serial heavy checks. Neither phase is
+accepted until every feature, package, install, browser/shutdown and publication
+criterion passes. Continue the next useful bounded increment after acceptance.
 
 The following earlier current-state statements are historical and superseded.
 

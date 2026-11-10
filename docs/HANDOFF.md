@@ -1,7 +1,43 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-# Current coordinator handoff: M38
+# Current coordinator handoff: M39/M40
+
+M1–M38 are accepted at qualified Main `00382fbc342ccc79a5e3c126f8bd5a41064c7a80`.
+[M38 acceptance](M38_ACCEPTANCE.md) records full normal, native/literal and exact
+canonical replay, strict coverage, exact hosted CI 42760064239 attempt 1,
+independent local/official DATA and normal nonforced Main readback. The first
+failed terminal-reset test premise and all original evidence remain preserved.
+M37 release 439888006 remains installed Latest; M38 changed no package or browser.
+
+Continue [atomic M39/M40](M39_M40_DELIVERY.md) over that exact accepted parent.
+Feature, Server/native, shared and all eight preview Source leaves have
+independent review. The scoped original-system acquisition returned 0 in
+106.975 seconds: 34 modes, 1,152 calls, 986 triples and 2,958 packets.
+Independent native DATA `ecd05da4` and literal DATA `effbc94f` passed with
+actual audit exits 0. The exact fixture, both numerical/canonical replay controls,
+compact generating provenance and guide are integrated after Source review.
+The old M34/M38 fixtures and controls remain unchanged. Final shared integration
+review and one formatting/staging pass precede Root's consolidated normal hook.
+The first full normal hook failed after 1,486.283 seconds at one new Scene test:
+it expected an internal Bevy Entity handle to survive healthy loaded reset.
+Reset intentionally reconstructs entities and restores public IDs. The corrected
+test reacquires the model, retaining all public-ID, metadata, empty-sample and
+exact replay/history assertions. Two independent Source reviews confirmed this
+contract; original tree `974c43f4`, packet and failure remain preserved. All other
+fifteen new controls passed in that partial run, including 986 numeric and 2,958
+wire comparisons; headless coverage and renderer qualification were not reached.
+The correction still needs the complete required hook and all later gates.
+Rust and distribution qualification remain pending; neither phase is accepted.
+Preserve strict coverage, exact hosted CI, independent local/official DATA and
+every fresh fifteen-example build/notices/package/relocation/nonroot install/
+browser/shutdown/Main/tag/assets/body/Latest proof before accepting both phases.
+Each scope remains at most five working days including review and gates. No old
+result transfers; continue the next useful bounded increment after acceptance.
+
+The following checkpoints retain their original observation times and are superseded.
+
+## Historical M38 qualification checkpoint (superseded)
 
 M1–M37 are accepted at qualified Main `6d2d5320`. The verified Latest is
 [m37-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m37-preview),

@@ -44,6 +44,7 @@ class PreviewPackage(unittest.TestCase):
                      'docs/M29_INSTALL.md', 'docs/M29_CAPABILITIES.md', 'docs/M29_PREVIEW.md',
                      'docs/M32_INSTALL.md', 'docs/M32_CAPABILITIES.md', 'docs/M32_PREVIEW.md',
                      'docs/M37_INSTALL.md', 'docs/M37_CAPABILITIES.md', 'docs/M37_PREVIEW.md',
+                     'docs/M40_INSTALL.md', 'docs/M40_CAPABILITIES.md', 'docs/M40_PREVIEW.md',
                      *['examples/' + name for name in package.NOISY_EXAMPLES], 'LICENSE', 'NOTICE']:
             path = self.source / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -150,9 +151,9 @@ class PreviewPackage(unittest.TestCase):
         self.assertNotIn(str(self.directory), (self.output / 'notices.json').read_text())
         selected = {'examples/m19_robot.sdf': 'share/robot.sdf',
                     'examples/meshes/m16-asymmetric.obj': 'share/meshes/m16-asymmetric.obj',
-                    'docs/M37_INSTALL.md': 'INSTALL.md',
-                    'docs/M37_CAPABILITIES.md': 'CAPABILITIES.md',
-                    'docs/M37_PREVIEW.md': 'PREVIEW.md',
+                    'docs/M40_INSTALL.md': 'INSTALL.md',
+                    'docs/M40_CAPABILITIES.md': 'CAPABILITIES.md',
+                    'docs/M40_PREVIEW.md': 'PREVIEW.md',
                     **{'examples/' + name: 'share/examples/' + name for name in package.NOISY_EXAMPLES}}
         for source, installed in selected.items():
             with self.subTest(installed=installed):
@@ -227,7 +228,7 @@ class PreviewPackage(unittest.TestCase):
                 self.assertEqual(mesh.read_bytes(), original)
 
     def test_dedicated_guides_are_required_even_when_legacy_sources_exist(self):
-        for name in ('M37_INSTALL.md', 'M37_CAPABILITIES.md', 'M37_PREVIEW.md'):
+        for name in ('M40_INSTALL.md', 'M40_CAPABILITIES.md', 'M40_PREVIEW.md'):
             with self.subTest(guide=name):
                 guide = self.source / 'docs' / name
                 original = guide.read_bytes()
@@ -240,6 +241,7 @@ class PreviewPackage(unittest.TestCase):
                 self.assertTrue((self.source / 'docs/M25_INSTALL.md').is_file())
                 self.assertTrue((self.source / 'docs/M29_INSTALL.md').is_file())
                 self.assertTrue((self.source / 'docs/M32_INSTALL.md').is_file())
+                self.assertTrue((self.source / 'docs/M37_INSTALL.md').is_file())
                 self.refuse('regular')
                 self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
                 guide.write_bytes(original)
@@ -248,16 +250,16 @@ class PreviewPackage(unittest.TestCase):
         self.assertIn('CAPABILITIES.md', output['files'])
         self.assertIn('PREVIEW.md', output['files'])
         self.assertEqual((self.output / 'INSTALL.md').read_bytes(),
-                         (self.source / 'docs/M37_INSTALL.md').read_bytes())
-        for phase in ('M12', 'M19', 'M20', 'M25', 'M29', 'M32'):
+                         (self.source / 'docs/M40_INSTALL.md').read_bytes())
+        for phase in ('M12', 'M19', 'M20', 'M25', 'M29', 'M32', 'M37'):
             self.assertNotEqual((self.output / 'INSTALL.md').read_bytes(),
                                 (self.source / ('docs/' + phase + '_INSTALL.md')).read_bytes())
 
-    def test_m37_documented_archive_root_examples_and_installed_launcher_survive_relocation(self):
+    def test_m40_documented_archive_root_examples_and_installed_launcher_survive_relocation(self):
         for name in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
-            shutil.copyfile(ROOT / ('docs/M37_' + name + '.md'),
-                            self.source / ('docs/M37_' + name + '.md'))
-        output = self.directory / 'gz-preview-m37-linux-x86_64'
+            shutil.copyfile(ROOT / ('docs/M40_' + name + '.md'),
+                            self.source / ('docs/M40_' + name + '.md'))
+        output = self.directory / 'gz-preview-m40-linux-x86_64'
         archive = self.directory / (output.name + '.tar.gz')
         manifest = package.assemble(self.spec, output, archive)
         self.assertEqual((output / 'bin/gz-preview').read_bytes(),
@@ -266,14 +268,14 @@ class PreviewPackage(unittest.TestCase):
         with tarfile.open(archive, 'r:gz') as packed:
             self.assertTrue(all(member.name.startswith(output.name + '/') for member in packed.getmembers()))
             self.assertEqual(packed.extractfile(output.name + '/INSTALL.md').read(),
-                             (ROOT / 'docs/M37_INSTALL.md').read_bytes())
+                             (ROOT / 'docs/M40_INSTALL.md').read_bytes())
             self.assertEqual(packed.extractfile(output.name + '/bin/gz-preview').read(),
                              (self.source / 'scripts/preview_runtime.py').read_bytes())
-        moved = self.directory / 'relocated-m37'
+        moved = self.directory / 'relocated-m40'
         shutil.move(output, moved)
         self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
         self.assertIn(archive.name, (moved / 'INSTALL.md').read_text())
-        self.assertIn('gz-preview-m37-linux-x86_64', (moved / 'INSTALL.md').read_text())
+        self.assertIn('gz-preview-m40-linux-x86_64', (moved / 'INSTALL.md').read_text())
         with patch.object(runtime, 'serve', return_value=0) as serve:
             self.assertEqual(runtime.main(['run', '--lifecycle', '--http-port', '8082'], moved), 0)
             serve.assert_called_once_with(moved, 8082, 9014, 'gz-preview', lifecycle=True)
@@ -507,27 +509,28 @@ class PreviewPackage(unittest.TestCase):
         mesh.chmod(0o644)
         self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
 
-    def test_real_m37_guides_name_thirteen_examples_and_distinguish_finite_loads(self):
+    def test_real_m40_guides_name_fifteen_examples_and_distinguish_finite_loads(self):
         old = ('m21_altimeter_noise.sdf', 'm22_air_pressure_noise.sdf',
                'm23_magnetometer_noise.sdf', 'm24_cpu_lidar_noise.sdf',
                'm26_air_speed.sdf', 'm27_pose_publisher.sdf', 'm28_air_speed_noise.sdf',
                'm30_logical_camera.sdf', 'm31_pose_static_publisher.sdf')
         expected = (*old, 'm33_robot_sensors.sdf', 'm34_odometry_publisher.sdf',
-                    'm35_apply_link_wrench.sdf', 'm36_wrench_odometry.sdf')
+                    'm35_apply_link_wrench.sdf', 'm36_wrench_odometry.sdf',
+                    'm38_odometry_3d.sdf', 'm39_odometry_translation_offsets.sdf')
         self.assertEqual(package.NOISY_EXAMPLES, expected)
-        preview = (ROOT / 'docs/M37_PREVIEW.md').read_text()
+        preview = (ROOT / 'docs/M40_PREVIEW.md').read_text()
         for name in expected:
             self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name + '"', preview)
-        self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 13)
+        self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 15)
         for topic in ('/m33/imu', '/m33/scan', '/m34/odometry',
-                      '/world/default/wrench', '/m36/odometry'):
+                      '/world/default/wrench', '/m36/odometry', '/m38/odometry', '/m39/odometry'):
             self.assertIn(topic, preview)
         for limit in ('finite coordinates', '20 ms', 'filtered', 'share/examples/meshes'):
             self.assertIn(limit, preview)
-        install = (ROOT / 'docs/M37_INSTALL.md').read_text()
-        self.assertIn('gz-preview-m37-linux-x86_64.tar.gz', install)
+        install = (ROOT / 'docs/M40_INSTALL.md').read_text()
+        self.assertIn('gz-preview-m40-linux-x86_64.tar.gz', install)
         self.assertIn('share/examples/meshes', install)
-        capabilities = (ROOT / 'docs/M37_CAPABILITIES.md').read_text()
+        capabilities = (ROOT / 'docs/M40_CAPABILITIES.md').read_text()
         for contract in ('c40418cd', '14,000,000', 'default robot',
                          'ApplyLinkWrench', 'ground-truth', 'No native Physics'):
             self.assertIn(contract, capabilities)
@@ -549,6 +552,35 @@ class PreviewPackage(unittest.TestCase):
         self.assertFalse(self.output.exists())
         self.assertFalse(archive.exists())
         self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+
+
+    def test_m40_new_odometry_examples_remain_required_after_relocation(self):
+        manifest = package.assemble(self.spec, self.output)
+        moved = self.directory / 'fifteen-example installation'
+        shutil.move(self.output, moved)
+        self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
+        for name in ('m38_odometry_3d.sdf', 'm39_odometry_translation_offsets.sdf'):
+            target = moved / 'share/examples' / name
+            original = (self.source / 'examples' / name).read_bytes()
+            self.assertEqual(target.read_bytes(), original)
+            self.assertEqual(manifest['files']['share/examples/' + name],
+                             {'bytes': len(original), 'sha256': hashlib.sha256(original).hexdigest(), 'mode': 0o644})
+            for altered, mode in ((None, 0o644), (original + b'<!-- changed -->', 0o644), (original, 0o600)):
+                with self.subTest(example=name, mode=mode, missing=altered is None):
+                    if altered is None:
+                        target.unlink()
+                    else:
+                        target.write_bytes(altered)
+                        target.chmod(mode)
+                    with self.assertRaises(ValueError):
+                        runtime.verify_prefix(moved)
+                    target.write_bytes(original)
+                    target.chmod(0o644)
+                    self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
+            # New odometry payloads cannot replace any of the thirteen retained scenes.
+            for old in package.NOISY_EXAMPLES[:13]:
+                self.assertEqual((moved / 'share/examples' / old).read_bytes(),
+                                 (self.source / 'examples' / old).read_bytes())
 
 
 if __name__ == '__main__':

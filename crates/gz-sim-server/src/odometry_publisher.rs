@@ -319,6 +319,7 @@ mod tests {
     fn all_three_packets_share_pose_stamp_and_headers_without_encoder_sequence() {
         let metadata = Metadata {
             dimensions: Dimensions::Two,
+            offsets: Default::default(),
             model_name: "rig".into(),
             odom_frame: "odom".into(),
             robot_base_frame: "base".into(),
@@ -396,6 +397,7 @@ mod tests {
         }
         let metadata = Metadata {
             dimensions: Dimensions::Two,
+            offsets: Default::default(),
             model_name: "rig".into(),
             odom_frame: "m34/odom".into(),
             robot_base_frame: "m34/base".into(),
@@ -789,6 +791,7 @@ mod tests {
     fn three_dimensional_packets_retain_xyz_and_all_two_dimensional_zero_refusals() {
         let metadata = Metadata {
             dimensions: Dimensions::Three,
+            offsets: Default::default(),
             model_name: "rig".into(),
             odom_frame: "m38/odom".into(),
             robot_base_frame: "m38/base".into(),
@@ -954,6 +957,7 @@ mod tests {
         }
         let metadata = Metadata {
             dimensions: Dimensions::Three,
+            offsets: Default::default(),
             model_name: "rig".into(),
             odom_frame: "m38/odom".into(),
             robot_base_frame: "m38/base".into(),
@@ -1016,6 +1020,225 @@ mod tests {
         assert_eq!(
             (inputs, acquisitions, suppressed, canonical_packets),
             (510, 429, 81, 1287)
+        );
+    }
+    #[test]
+    fn translation_bits_are_prepared_identity_and_changed_streams_cannot_publish() {
+        use gz_sim_scene::GroundTruthOdometryOffsets as Offsets;
+        let mut server = negative_control_server();
+        server.simulation.step_exact(20).unwrap();
+        let entity = server.ground_truth_odometries[0].entity;
+        let original = server
+            .simulation
+            .world()
+            .get::<Metadata>(entity)
+            .unwrap()
+            .clone();
+        let canonical_zero =
+            Offsets::from_translations([-0.0, 0.0, -0.0], [0.0, -0.0, -0.0]).unwrap();
+        assert_eq!(canonical_zero, original.offsets);
+        let local = Offsets::from_translations([0.4, -0.0, 0.0], [0.0; 3]).unwrap();
+        let local_bit_change = Offsets::from_translations([0.4, 0.0, 0.0], [0.0; 3]).unwrap();
+        assert_ne!(local, local_bit_change);
+        let global = Offsets::from_translations([0.0; 3], [-0.7, 0.0, -0.0]).unwrap();
+        let clock = (server.simulation.epoch(), server.simulation.elapsed());
+        let before = server.counters();
+        for offsets in [local, local_bit_change, global] {
+            server
+                .simulation
+                .world_mut()
+                .entity_mut(entity)
+                .insert(Metadata {
+                    offsets,
+                    ..original.clone()
+                });
+            assert!(
+                server
+                    .ground_truth_odometries
+                    .iter()
+                    .all(|s| !s.live(&server.simulation))
+            );
+            server.publish_ground_truth_odometry();
+            let after = server.counters();
+            assert_eq!(
+                after.ground_truth_odometry_queued,
+                before.ground_truth_odometry_queued
+            );
+            assert_eq!(
+                after.ground_truth_odometry_covariance_queued,
+                before.ground_truth_odometry_covariance_queued
+            );
+            assert_eq!(
+                after.ground_truth_odometry_tf_queued,
+                before.ground_truth_odometry_tf_queued
+            );
+            assert_eq!(
+                after.ground_truth_odometry_invalid_samples,
+                before.ground_truth_odometry_invalid_samples
+            );
+            assert_eq!(
+                (server.simulation.epoch(), server.simulation.elapsed()),
+                clock
+            );
+        }
+        // This private control does not step with modified metadata. Build a
+        // same-owner/channel Prepared witness with local offset bits, then
+        // require its rejection against a one-bit-different live configuration.
+        server
+            .simulation
+            .world_mut()
+            .entity_mut(entity)
+            .insert(Metadata {
+                offsets: local,
+                ..original.clone()
+            });
+        let mut prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
+        for (_, config, _, _) in prepared.values_mut() {
+            config.offsets = local;
+        }
+        server
+            .simulation
+            .world_mut()
+            .entity_mut(entity)
+            .insert(Metadata {
+                offsets: local_bit_change,
+                ..original.clone()
+            });
+        assert!(matches!(
+            streams(
+                &server.simulation,
+                &server.world_io,
+                &server.network_config,
+                &BTreeSet::new(),
+                Some(&prepared)
+            ),
+            Err(Error::GroundTruthOdometryIdentity)
+        ));
+        assert_eq!(
+            (server.simulation.epoch(), server.simulation.elapsed()),
+            clock
+        );
+        server
+            .simulation
+            .world_mut()
+            .entity_mut(entity)
+            .insert(original);
+        assert!(
+            server
+                .ground_truth_odometries
+                .iter()
+                .all(|s| s.live(&server.simulation))
+        );
+        drop(prepared);
+        server.shutdown();
+    }
+
+    #[test]
+    fn actual_translated_native_values_encode_all_2958_canonical_packets() {
+        mod reference {
+            include!(
+                "../../gz-sim-scene/tests/fixtures/m39_native_odometry_translation_offsets.rs"
+            );
+        }
+        use gz_sim_scene::GroundTruthOdometryOffsets as Offsets;
+        let mut inputs = 0;
+        let mut acquisitions = 0;
+        let mut suppressed = 0;
+        let mut canonical_packets = 0;
+        assert_eq!(reference::CASES.len(), 36);
+        for &(mode, config, ticks) in reference::CASES {
+            let dimensions = match config.dimensions {
+                2 => Dimensions::Two,
+                3 => Dimensions::Three,
+                other => panic!("invalid actual native dimensions: {mode}/{other}"),
+            };
+            assert!(matches!(config.frequency, 0 | 50));
+            assert_eq!(
+                config.period_ns,
+                if config.frequency == 50 {
+                    20_000_000
+                } else {
+                    0
+                }
+            );
+            if !config.requested_local_present {
+                assert_eq!(config.requested_local, [0; 3]);
+            }
+            if !config.requested_global_present {
+                assert_eq!(config.requested_global, [0; 3]);
+            }
+            let offsets = Offsets::from_translations(
+                config.requested_local.map(f64::from_bits),
+                config.requested_global.map(f64::from_bits),
+            )
+            .unwrap();
+            assert_eq!(
+                offsets.local_translation().map(f64::to_bits),
+                config.effective_local
+            );
+            assert_eq!(
+                offsets.global_translation().map(f64::to_bits),
+                config.effective_global
+            );
+            let metadata = Metadata {
+                dimensions,
+                offsets,
+                model_name: "rig".into(),
+                odom_frame: "m39/odom".into(),
+                robot_base_frame: "m39/base".into(),
+                odom_topic: "/m39/odometry".into(),
+                covariance_topic: "/m39/odometry_covariance".into(),
+                tf_topic: "/m39/transform".into(),
+            };
+            // Native generations have their own time/history. Rust revision and
+            // epoch are bookkeeping, not invented native message-header fields.
+            let mut revision = 0;
+            for &(time_ns, _, _, _, expected) in ticks {
+                inputs += 1;
+                let reference::Publication::Observed((pose_bits, linear_bits, angular_bits, wire)) =
+                    expected
+                else {
+                    suppressed += 1;
+                    continue;
+                };
+                revision += 1;
+                let pose = pose_bits.map(f64::from_bits);
+                let sample = Sample {
+                    time: Duration::from_nanos(time_ns),
+                    epoch: 7,
+                    revision,
+                    pose: gz_sim_scene::WorldPose {
+                        translation: [pose[0], pose[1], pose[2]],
+                        rotation: [pose[3], pose[4], pose[5], pose[6]],
+                    },
+                    linear: linear_bits.map(f64::from_bits),
+                    angular: angular_bits.map(f64::from_bits),
+                };
+                let (odometry, covariance, transform) = packets(&metadata, 1, &sample)
+                    .unwrap_or_else(|| {
+                        panic!("actual translated native values rejected: {mode}/{time_ns}")
+                    });
+                // Output bits are already in the final odometry frame. Neither
+                // MODEL->WORLD nor the offsets are applied again by the encoder.
+                let encoded = [
+                    odometry.encode_to_vec(),
+                    covariance.encode_to_vec(),
+                    transform.encode_to_vec(),
+                ];
+                for (channel, (actual, expected)) in encoded.iter().zip(wire).enumerate() {
+                    assert_eq!(
+                        actual.as_slice(),
+                        expected,
+                        "actual translated native canonical bytes: {mode}/{time_ns}/channel{channel}"
+                    );
+                    canonical_packets += 1;
+                }
+                acquisitions += 1;
+            }
+        }
+        assert_eq!(
+            (inputs, acquisitions, suppressed, canonical_packets),
+            (1152, 986, 166, 2958)
         );
     }
 }

@@ -604,3 +604,32 @@ class AuxiliaryRetention(unittest.TestCase):
         self.report["noisy_examples"] = json.loads(baseline)
         self.write_json("noisy-examples.json", self.report["noisy_examples"])
         self.finish_manifest()
+
+    def test_m40_new_runs_cannot_reuse_an_old_invocation_or_rehash_false_output(self):
+        baseline = json.dumps(self.report["noisy_examples"])
+        for source in ("examples/m38_odometry_3d.sdf", "examples/m39_odometry_translation_offsets.sdf"):
+            index = QUALIFIER.NOISY_EXAMPLES.index(source)
+            valid = json.loads(baseline)["runs"][index]["stdout"]
+            for field, altered in (("actual_exit_code", 1), ("stderr", "new example failed\n"),
+                                   ("argv", json.loads(baseline)["runs"][12]["argv"]),
+                                   ("source", QUALIFIER.NOISY_EXAMPLES[12]),
+                                   ("stdout", valid.replace(" 2 -1 3", " 2.4 -1.3 3.2")),
+                                   ("fixture_sha256", "0" * 64), ("fixture_mode", 0o600)):
+                with self.subTest(source=source, field=field):
+                    record = json.loads(baseline)
+                    record["runs"][index][field] = altered
+                    self.report["noisy_examples"] = record
+                    self.write_json("noisy-examples.json", record)
+                    self.finish_manifest()
+                    with self.assertRaisesRegex(ValueError, "noisy-example"):
+                        QUALIFIER.validate_evidence(self.root, self.directory)
+            record = json.loads(baseline)
+            record["runs"].pop(index)
+            self.report["noisy_examples"] = record
+            self.write_json("noisy-examples.json", record)
+            self.finish_manifest()
+            with self.assertRaisesRegex(ValueError, "noisy-example"):
+                QUALIFIER.validate_evidence(self.root, self.directory)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()

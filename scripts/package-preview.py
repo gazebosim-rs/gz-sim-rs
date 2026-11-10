@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Assemble an explicitly source-bound M37 Linux preview, without building inputs."""
+"""Assemble an explicitly source-bound M40 Linux preview, without building inputs."""
 import argparse
 import gzip
 import hashlib
@@ -31,7 +31,8 @@ NOISY_EXAMPLES = (
     'm26_air_speed.sdf', 'm27_pose_publisher.sdf', 'm28_air_speed_noise.sdf',
     'm30_logical_camera.sdf', 'm31_pose_static_publisher.sdf',
     'm33_robot_sensors.sdf', 'm34_odometry_publisher.sdf',
-    'm35_apply_link_wrench.sdf', 'm36_wrench_odometry.sdf')
+    'm35_apply_link_wrench.sdf', 'm36_wrench_odometry.sdf',
+    'm38_odometry_3d.sdf', 'm39_odometry_translation_offsets.sdf')
 
 
 def regular(path, maximum=MAX_FILE):
@@ -243,9 +244,9 @@ def assemble(spec, output, archive=None):
                                       'scouting': {'multicast': {'enabled': False}}}, indent=2) + '\n')
         for name, path in viewer.items():
             copy_file(path, prefix / 'web' / name, expected=spec['viewer_files'][name])
-        for source_name, installed_name in (('M37_INSTALL.md', 'INSTALL.md'),
-                                            ('M37_CAPABILITIES.md', 'CAPABILITIES.md'),
-                                            ('M37_PREVIEW.md', 'PREVIEW.md')):
+        for source_name, installed_name in (('M40_INSTALL.md', 'INSTALL.md'),
+                                            ('M40_CAPABILITIES.md', 'CAPABILITIES.md'),
+                                            ('M40_PREVIEW.md', 'PREVIEW.md')):
             copy_file(regular(ROOT / 'docs' / source_name), prefix / installed_name)
         copy_file(regular(ROOT / 'LICENSE'), prefix / 'LICENSE')
         copy_file(regular(ROOT / 'NOTICE'), prefix / 'NOTICE')

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-09",
+  "as_of": "2026-11-10",
   "execution_state": "active",
-  "current_phase": "M38",
+  "current_phase": "M39",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -666,6 +666,32 @@
       "excluded": "Noise/offset or backend/topology expansion, new dependencies/transport/schema/solver/frameworks, pose/velocity teleportation, package/browser refresh and performance/native-Physics trajectory claims.",
       "evidence": "docs/M38_DELIVERY.md",
       "source_preparation_only": false
+    },
+    {
+      "id": "M39",
+      "title": "Noiseless ground-truth odometry translation offsets",
+      "max_working_days": 5,
+      "depends_on": [
+        "M38"
+      ],
+      "scope": "Finite local/body and global/reference XYZ translations in the existing Two/Three Rapier odometry built-in, preserving bit-aware immutable configuration, legacy zero vectors and native scalar composition/history.",
+      "acceptance": "Independent exact contract and old-refusal positive dispositions; complete Source/regressions/guide review, fresh original-system/literal/native numeric and canonical peer/lifecycle proofs, full normal with unchanged strict coverage, exact hosted and independent local/official DATA; atomic acceptance with every M40 distribution criterion.",
+      "excluded": "Rotational offsets, noise, topology/backend/schema/transport/solver/dependency/framework expansion, old native campaign replay and native Physics/performance claims.",
+      "evidence": "docs/M39_M40_DELIVERY.md",
+      "source_preparation_only": false
+    },
+    {
+      "id": "M40",
+      "title": "Fifteen-example installable Ubuntu preview",
+      "max_working_days": 5,
+      "depends_on": [
+        "M39"
+      ],
+      "scope": "Refresh maintained native-free preview through M39, preserving the thirteen-example prefix and dual OBJ/default robot/launcher/c404 viewer; append unchanged M38 and reviewed M39 for fifteen finite commands.",
+      "acceptance": "Complete Source/package/qualifier/docs review, combined normal/strict/exact hosted/independent DATA and fresh release inputs/metadata/notices/ELF/archive/relocation, clean nonroot Ubuntu fifteen-example installation, real browser/owned shutdown and exact Main/tag/assets/body/Latest readbacks before atomic acceptance.",
+      "excluded": "New runtime/backend/framework/schema/launcher flags, renderer rebuild, optional native/camera distribution, cold-start/performance/acquisition claims from finite examples or old acceptance transfer.",
+      "evidence": "docs/M39_M40_DELIVERY.md",
+      "source_preparation_only": false
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -707,14 +733,17 @@
     "M35": "complete",
     "M36": "complete",
     "M37": "complete",
-    "M38": "in_progress"
+    "M38": "complete",
+    "M39": "in_progress",
+    "M40": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-09",
   "active_phases": [
-    "M38"
+    "M39",
+    "M40"
   ],
-  "execution_policy": "D30\u2013D32: M38 over accepted Main 6d2d5320. Review bounded 3D arithmetic/mode/native-case contracts before implementation. Parallel disjoint Scene and Server/native Source worktrees with one integrator; Root alone runs heavy work. Finish implementation, regression source, guides and independent review, batch findings, then one consolidated full normal with unchanged strict coverage, exact hosted CI and independent DATA before acceptance. M37 remains installed Latest; no package/browser repeat or old acceptance transfer.",
+  "execution_policy": "D30\u2013D32: atomic M39/M40 over accepted M38 Main00382fbc. Independently reviewed finite translation/native/zero/API contracts and disjoint Source leases; one integrator and serial Root heavy operations. Whole Source and meaningful regression review before fresh component/canonical proofs, full normal/strict coverage/exact hosted/independent DATA and all fresh fifteen-example package/install/browser/shutdown/publication criteria. Both phases remain unaccepted; no inherited pass or old campaign replay.",
   "parallel_groups": [
     {
       "phases": [
@@ -824,10 +853,19 @@
       ],
       "integration": "One new atomic candidate over accepted1982. Preserve all M36 actual command/motion/feedback/native/canonical/lifecycle controls and all M37 thirteen-example/asset/release/package/install/browser/shutdown/publication criteria. New full normal/strict actual-parent/workspace/percrate/exact hosted/independent local+official DATA plus fresh distribution proofs before accepting both. Supersedes intermediate M36 acceptance; earlier M36-only normal remains provisional, never relabeled or transferred.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M39",
+        "M40"
+      ],
+      "integration": "Disjoint Scene offsets and Server/native Source lanes plus maintained distribution Source integrate over accepted00382. Preserve each feature/native criterion and fresh fifteen-example build/notices/package/install/browser/shutdown/publication proofs; one full new normal/strict/exact hosted/independent DATA before accepting both. Root alone releases serial heavy work; no prior result transfers.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M37 accepted at qualified Main 6d2d5320. Verified Latest m37-preview release439888006 retains all seven exact assets/body/checksums, thirteen-example clean install and fresh browser/shutdown proofs. M38 is selected and unaccepted; every new Source/native/canonical/normal/coverage/hosted/independent DATA criterion remains required.",
+  "acceptance_boundary": "M1\u2013M38 accepted at qualified Main 00382fbc. M37 release 439888006 stays installed Latest. M39/M40 Source is integrated and scoped native/literal DATA passed; Rust and distribution qualification remain pending. Every feature and fresh distribution criterion precedes atomic acceptance.",
   "current_delivery_group": [
-    "M38"
+    "M39",
+    "M40"
   ]
 }

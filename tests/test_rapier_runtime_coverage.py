@@ -132,7 +132,7 @@ class DisabledBackendProof(unittest.TestCase):
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 13)
+            self.assertEqual(run.call_count, 15)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -295,7 +295,7 @@ class DisabledBackendProof(unittest.TestCase):
                         self.assertFalse(MODULE.noisy_output_matches(source, wrong))
 
     def test_thirteen_examples_preserve_the_literal_old_nine_prefix_and_relative_obj(self):
-        self.assertEqual(MODULE.NOISY_EXAMPLES, (
+        self.assertEqual(MODULE.NOISY_EXAMPLES[:13], (
             "examples/m21_altimeter_noise.sdf", "examples/m22_air_pressure_noise.sdf",
             "examples/m23_magnetometer_noise.sdf", "examples/m24_cpu_lidar_noise.sdf",
             "examples/m26_air_speed.sdf", "examples/m27_pose_publisher.sdf",
@@ -303,6 +303,8 @@ class DisabledBackendProof(unittest.TestCase):
             "examples/m31_pose_static_publisher.sdf", "examples/m33_robot_sensors.sdf",
             "examples/m34_odometry_publisher.sdf", "examples/m35_apply_link_wrench.sdf",
             "examples/m36_wrench_odometry.sdf"))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[13:], (
+            "examples/m38_odometry_3d.sdf", "examples/m39_odometry_translation_offsets.sdf"))
         self.assertEqual(MODULE.NOISY_ASSETS, ("examples/meshes/m16-asymmetric.obj",))
 
     def test_new_static_example_outputs_are_complete_sorted_finite_and_exact(self):
@@ -401,3 +403,21 @@ class DisabledBackendProof(unittest.TestCase):
                     record = json.loads((directory / "noisy-examples.json").read_text())
                     self.assertEqual(len(record["runs"]), 1)
                     self.assertEqual(record["runs"][0]["actual_exit_code"], 0)
+
+    def test_m40_odometry_commands_require_complete_exact_raw_body_positions(self):
+        headline = "simulation_ns=2000000 iterations=2\n"
+        body = "default::rig::body 2 -1 3\n"
+        for source in ("examples/m38_odometry_3d.sdf", "examples/m39_odometry_translation_offsets.sdf"):
+            self.assertTrue(MODULE.noisy_output_matches(source, headline + body))
+            wrong = [headline, headline + body.rstrip("\n"), headline + body + body,
+                     headline + body.replace("rig::body", "rig::point"),
+                     headline + body.replace(" 2 -1 3", " 2.4 -1.3 3.2"),
+                     headline.replace("iterations=2", "iterations=1") + body]
+            for coordinate in range(1, 4):
+                for value in ("nan", "inf", "-inf", "bad", str(float(body.split()[coordinate]) + 1e-13)):
+                    fields = body.split()
+                    fields[coordinate] = value
+                    wrong.append(headline + " ".join(fields) + "\n")
+            for stdout in wrong:
+                with self.subTest(source=source, stdout=stdout):
+                    self.assertFalse(MODULE.noisy_output_matches(source, stdout))

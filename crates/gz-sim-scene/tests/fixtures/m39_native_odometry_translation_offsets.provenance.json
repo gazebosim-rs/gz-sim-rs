@@ -1,0 +1,628 @@
+{
+  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
+  "SPDX-License-Identifier": "Apache-2.0",
+  "schema_version": 1,
+  "scope": "Original-system ECM pose-history reference and actual literal extraction; not native Physics, integrated Rust or distribution qualification.",
+  "capture_tree": "4592f063a11d20deaa7d2cb9f65b1a3ba5b54f05",
+  "accepted_parent": "00382fbc342ccc79a5e3c126f8bd5a41064c7a80",
+  "input_domain": "MODEL_LOCAL_UNDER_IDENTITY_WORLD",
+  "native_actual_root_exit_code": 0,
+  "native_actual_exit_receipt_sha256": "ab28becb00114434a2172818660c9658fccc7e98a4e00cb0854ee53e6f47f351",
+  "native_procedure_sha256": "d17e3ae8dc0a7b0e0627cd05f4617e3a5ff4fae942b16baaaba9562d009714bc",
+  "native_result_sha256": "e3f2b908d4628640c31bcc47e953c29560e575efdd4d0a1393429a7fa2f5158d",
+  "native_helper_source_sha256": {
+    "crates/gz-sim-server/tests/native_odometry_translation_offsets.cc": "b1624dee86deb6665d48a859ddca94142d8679de053585fc70c8c1276fda0982"
+  },
+  "native_DATA_method_sha256": "581984a916fd5d37a2cded8ac0b915e6e4ae18bf78ee144e9101aa7096a58758",
+  "native_DATA_report_sha256": "ecd05da4eeffb8e52066b43bf621f6c97953f587847fd493ea52ac2ce9eb013f",
+  "native_DATA_actual_exit_receipt_sha256": "491ab9235886a8a694414249b75ed96d417966d30e69233995b5da32d62d4e09",
+  "native_DATA_actual_root_exit_code": 0,
+  "counts": {
+    "modes": 34,
+    "configurations": 36,
+    "input_calls": 1152,
+    "observed_triplets": 986,
+    "suppressed_calls": 166,
+    "canonical_packets": 2958
+  },
+  "compiler": {
+    "argv": [
+      "/usr/bin/clang++",
+      "--version"
+    ],
+    "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+    "resolved_executable": "/usr/lib/llvm-18/bin/clang",
+    "sha256": "8ef402d453d1ba4902e4ee0f0f847f6cfa01400c95aa43c24e97818b9c0e3f45",
+    "version_stdout_sha256": "3635b8631d4ebcd8ed7586f4e01e7a6b44407de9d38db6e01daca9c242ed7a53"
+  },
+  "helper_compile": {
+    "argv": [
+      "/usr/bin/clang++",
+      "-std=c++17",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-DGZ_SIM_NATIVE_ODOMETRY_TRANSLATION_ORACLE",
+      "-I/home/nkoenig/work/gazebo/rust/gz-sim/include",
+      "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/include",
+      "-I/home/nkoenig/work/gazebo/rust/gz-sim/test",
+      "-I/home/nkoenig/work/gazebo/rust/gz-sim",
+      "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang",
+      "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/core/include",
+      "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/src",
+      "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/gz_msgs_gen",
+      "-I/home/nkoenig/work/gazebo/rust/gz-sim/vendor/backward-cpp",
+      "-isystem",
+      "/home/nkoenig/local/include/gz/math10",
+      "-isystem",
+      "/home/nkoenig/local/include/gz/utils5",
+      "-isystem",
+      "/home/nkoenig/local/include/gz/plugin5",
+      "-isystem",
+      "/home/nkoenig/local/include/gz/common8",
+      "-isystem",
+      "/usr/include/uuid",
+      "-isystem",
+      "/home/nkoenig/local/include/gz/fuel_tools12",
+      "-isystem",
+      "/home/nkoenig/local/include/gz/msgs13",
+      "-isystem",
+      "/home/nkoenig/local/include/gz/physics10",
+      "-isystem",
+      "/usr/include/eigen3",
+      "-isystem",
+      "/home/nkoenig/local/include/gz/rendering11",
+      "-isystem",
+      "/home/nkoenig/local/include/gz/transport16",
+      "-isystem",
+      "/home/nkoenig/local/include/gz/sdformat17",
+      "-isystem",
+      "/home/nkoenig/local/include/gz/gui11",
+      "-isystem",
+      "/usr/include/x86_64-linux-gnu/qt6/QtCore",
+      "-isystem",
+      "/usr/include/x86_64-linux-gnu/qt6",
+      "-isystem",
+      "/usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++",
+      "-isystem",
+      "/usr/include/x86_64-linux-gnu/qt6/QtQml",
+      "-isystem",
+      "/usr/include/x86_64-linux-gnu/qt6/QtQmlIntegration",
+      "-isystem",
+      "/usr/include/x86_64-linux-gnu/qt6/QtNetwork",
+      "-isystem",
+      "/usr/include/x86_64-linux-gnu/qt6/QtQuick",
+      "-isystem",
+      "/usr/include/x86_64-linux-gnu/qt6/QtGui",
+      "-isystem",
+      "/usr/include/x86_64-linux-gnu/qt6/QtQmlModels",
+      "-isystem",
+      "/usr/include/x86_64-linux-gnu/qt6/QtOpenGL",
+      "-isystem",
+      "/usr/include/x86_64-linux-gnu/qt6/QtQuickControls2",
+      "-isystem",
+      "/usr/include/x86_64-linux-gnu/qt6/QtWidgets",
+      "-isystem",
+      "/home/nkoenig/work/gazebo/rust/gz-sim/test/gtest_vendor/include",
+      "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference/crates/gz-sim-server/tests/native_odometry_translation_offsets.cc",
+      "-o",
+      "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+      "-Wl,-rpath,/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib",
+      "-lstdc++fs",
+      "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib/libgz-sim.so.11.0.0~pre3",
+      "-lpthread",
+      "/home/nkoenig/local/lib/libgz-fuel_tools.so.12.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-physics.so.10.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-rendering.so.11.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-common-profiler.so.8.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-common-av.so.8.0.0~pre2",
+      "/usr/lib/x86_64-linux-gnu/libswscale.so",
+      "/usr/lib/x86_64-linux-gnu/libswscale.so",
+      "/usr/lib/x86_64-linux-gnu/libavdevice.so",
+      "/usr/lib/x86_64-linux-gnu/libavdevice.so",
+      "/usr/lib/x86_64-linux-gnu/libavformat.so",
+      "/usr/lib/x86_64-linux-gnu/libavformat.so",
+      "/usr/lib/x86_64-linux-gnu/libavcodec.so",
+      "/usr/lib/x86_64-linux-gnu/libavcodec.so",
+      "/usr/lib/x86_64-linux-gnu/libavutil.so",
+      "/usr/lib/x86_64-linux-gnu/libavutil.so",
+      "/home/nkoenig/local/lib/libgz-common-io.so.8.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-common-geospatial.so.8.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-common-graphics.so.8.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-transport-parameters.so.16.0.0~pre2",
+      "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-gui.so.11.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+      "/usr/lib/x86_64-linux-gnu/libprotobuf.so",
+      "/home/nkoenig/local/lib/libgz-common-events.so.8.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-plugin-loader.so.5.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-plugin.so.5.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2",
+      "/usr/lib/x86_64-linux-gnu/libQt6QuickControls2.so.6.4.2",
+      "/usr/lib/x86_64-linux-gnu/libQt6Quick.so.6.4.2",
+      "/usr/lib/x86_64-linux-gnu/libQt6QmlModels.so.6.4.2",
+      "/usr/lib/x86_64-linux-gnu/libQt6Qml.so.6.4.2",
+      "/usr/lib/x86_64-linux-gnu/libQt6Network.so.6.4.2",
+      "/usr/lib/x86_64-linux-gnu/libQt6OpenGL.so.6.4.2",
+      "/usr/lib/x86_64-linux-gnu/libQt6Widgets.so.6.4.2",
+      "/usr/lib/x86_64-linux-gnu/libQt6Gui.so.6.4.2",
+      "/usr/lib/x86_64-linux-gnu/libQt6Core.so.6.4.2",
+      "/usr/lib/x86_64-linux-gnu/libGLX.so",
+      "/usr/lib/x86_64-linux-gnu/libOpenGL.so",
+      "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
+      "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
+      "/usr/lib/x86_64-linux-gnu/libdw.so",
+      "/usr/lib/x86_64-linux-gnu/libelf.so",
+      "/usr/lib/x86_64-linux-gnu/libpthread.a",
+      "/usr/lib/x86_64-linux-gnu/libz.so",
+      "/usr/lib/x86_64-linux-gnu/libbz2.so",
+      "/usr/lib/x86_64-linux-gnu/liblzma.so",
+      "/usr/lib/x86_64-linux-gnu/libzstd.so",
+      "/home/nkoenig/local/lib/libgz-common-testing.so.8.0.0~pre2",
+      "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2",
+      "-lpthread",
+      "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2",
+      "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0",
+      "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0",
+      "/usr/lib/x86_64-linux-gnu/libuuid.so",
+      "/usr/lib/x86_64-linux-gnu/libuuid.so",
+      "-Wl,-rpath-link,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib",
+      "-Wl,-rpath,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib"
+    ],
+    "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference"
+  },
+  "native_runs": [
+    {
+      "mode": "two_omitted_zero",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_omitted_zero",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_omitted_zero.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "698cb954ef4eeb890390a4a5ede9917a67d83033e161fe1bdd08595b4fa077bd",
+      "maps_sha256": "91e0f428025036e21ade9cc00d592d4b6d563169909d68f94ef3903cce1705fc"
+    },
+    {
+      "mode": "two_explicit_zero",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_explicit_zero",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_explicit_zero.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "24759cd55bbf6d4257306b5f938a84aef11b2dfc3be805b414781b24b0e49b55",
+      "maps_sha256": "e7bd8b2be443f73ae8f19b466e50251053d2db6b107225d819e7757efce447e4"
+    },
+    {
+      "mode": "two_local_x",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_local_x",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_local_x.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "d923049634d69aefdb4cbd9d0553718d2712afaa42f0a447b69313a804e067ef",
+      "maps_sha256": "96e26715701ef670fc97741d7180d1e1871306e6627f361db4fdea011810b9e7"
+    },
+    {
+      "mode": "two_local_y",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_local_y",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_local_y.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "4793720c7851f9a7f9cb19132a4e8c66a74ef4e88d56f0bc57c90320a3375ff6",
+      "maps_sha256": "76bb77a569b07ab61d9011c1fd6d17d3b4de537d448da8ae18b9e4f802172987"
+    },
+    {
+      "mode": "two_local_z",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_local_z",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_local_z.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "3a8dad21c4f580d1cd2c8edd0977ed3c5f3c265d2c2ef56c5ca5c5e4d9565a46",
+      "maps_sha256": "b05dcf931e0bfdf765971c1ce1ce82d472a8201dbe9860c8d69124193cd71a11"
+    },
+    {
+      "mode": "two_global_x",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_global_x",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_global_x.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "8e61914199df63092aaf02d23161b9f26a13b8b8240f43aa9029bfe3bdfc9c1f",
+      "maps_sha256": "1557a7ad1441f5c544ee9709f8f8a905eb1e3131878ee770d46fe813e6588362"
+    },
+    {
+      "mode": "two_global_y",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_global_y",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_global_y.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "5bde13f763518c9e295d1710732b8f676f86dc60018e079ef1ea545f04cb235d",
+      "maps_sha256": "ba351c7f17dbd36f2fbabb37a293ad02513aa0a2d15fdcfabf846f53de27cb67"
+    },
+    {
+      "mode": "two_global_z",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_global_z",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_global_z.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "b000a3645e1cf2d2f3bfc1ea6496bc8bfb708b8855f4c8da7f8533e420c92a98",
+      "maps_sha256": "839cbed229cd44181cdc4b9ae3bf97e36fccbd633c738d8b88a086240c065fd8"
+    },
+    {
+      "mode": "two_combined",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_combined",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_combined.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "9b120ef176bf91627ccbb86c2b1e1a4f5c4f5d69120e3750fcec708c4d0cbe06",
+      "maps_sha256": "969183621d0c4563d6e52b6ddbe0e9ef4807db4d60f035ba2e4afb232cd339d7"
+    },
+    {
+      "mode": "two_stationary_tilted",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_stationary_tilted",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_stationary_tilted.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "2861f80dbbeb6a27cb73922a6d5e89a175703313e9f91e9cadda56bd0d4bf965",
+      "maps_sha256": "697ec308e0fbbe4e38cfffb73e665e0b933fadfdfc4597d3d4af6abdf0c5c0a6"
+    },
+    {
+      "mode": "two_rotate_roll",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_rotate_roll",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_rotate_roll.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "815e8ff1d41b134db6bc2d1ea4f45e377b8d7fb88ef6e6be0957ad24b90d6a79",
+      "maps_sha256": "382fcec381d2bc91199322aa626ac249122d0414cd2f30ad523c4e8f5c62ca43"
+    },
+    {
+      "mode": "two_rotate_pitch",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_rotate_pitch",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_rotate_pitch.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "b39aaf14ac6cc1b293aea3bb29fcf515459fce4e0b5176df70bd56a8f65f1f60",
+      "maps_sha256": "3e03a9e6f60b00286be0f3d5d75ef88000132d9f1ff513b6f881734c046dcd57"
+    },
+    {
+      "mode": "two_rotate_yaw",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_rotate_yaw",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_rotate_yaw.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "68410b24427f91eca11183d4fb67ef91c0e8d9ec0cfec81ac6acf10ff4c8aee1",
+      "maps_sha256": "ffd6328650cfc7e3d791eb40cbf5cb3273c1710b54785b3e5dcd0043cfd0b4e2"
+    },
+    {
+      "mode": "two_rate",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_rate",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_rate.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "d30378c7a95ca0533bad6380e84dedb0ae0ad45e8468a2c742c40990b88650b6",
+      "maps_sha256": "4f81b9ba58d95b75f3920a7b9e571575a0fedf3abc2cf5141270ee040c818c3d"
+    },
+    {
+      "mode": "two_micro",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_micro",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_micro.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "07b48f48b627892c061c888d74c2b47a9ed17aa904484c52c5edd4af0585d9f8",
+      "maps_sha256": "a50370141556a98c63a2f7af603f2f1207fe6dbd5422852f663642b79c939b52"
+    },
+    {
+      "mode": "two_pause_equal",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_pause_equal",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_pause_equal.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "a4be315f21b18a908fbb29c4b4e09935230052a47a21287dd52b1490182d6d5e",
+      "maps_sha256": "8b972391ee7d1003ae974d8d097288158bf2816fc9d8aface31b2f25920f9c08"
+    },
+    {
+      "mode": "two_reload",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "two_reload",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-two_reload.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "fb12ee4af6cf324b679cf5738369b53e226df9fd671b96aac41aab2c83e7a00e",
+      "maps_sha256": "499f2ffe231db7063c501e7e78050700eb13baf4ff5f14c642a6829dd53cf789"
+    },
+    {
+      "mode": "three_omitted_zero",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_omitted_zero",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_omitted_zero.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "e41eb727ee5bf44f15e67c749ece41e83cab65681b2b6433397e2abbc3cb1ca7",
+      "maps_sha256": "7e08ee0fe27306d961f2d23b67309010e986825d43b1356d2d8dc582e9896b23"
+    },
+    {
+      "mode": "three_explicit_zero",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_explicit_zero",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_explicit_zero.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "bb6efa6d84a9a704b85cac845fe695ef2e4854c84931114d11fe55325b2c28df",
+      "maps_sha256": "fc9e507e146c794dc5c8a771079cf84c08dcb94cd35ade610069d90f920b4c8d"
+    },
+    {
+      "mode": "three_local_x",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_local_x",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_local_x.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "0e48cb4fa3140da06bd3e1fe4483a0932b69cb113e8b0bbfd2444d00365fc3b3",
+      "maps_sha256": "4a98c35cb328bc027b5c15dba680fd20eee65141af9e3241e1f64c2d2147a1c8"
+    },
+    {
+      "mode": "three_local_y",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_local_y",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_local_y.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "51cb6be91afb47f0246a58d284f90aa6b10da4aa60390fb37ad4aa5172cc45e8",
+      "maps_sha256": "472556032b49dd9a68f465f687a2736181169776e731bfeccab16099b2a6beec"
+    },
+    {
+      "mode": "three_local_z",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_local_z",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_local_z.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "fc7fbf2f8b32e9fc6514bf1615c8ee3266938ffbcac37888fbb3126feefa0e1c",
+      "maps_sha256": "c3cc8e116ca4606b0d1809d0769d6c4a1341965a3f38ae7cac9aec20ef02b491"
+    },
+    {
+      "mode": "three_global_x",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_global_x",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_global_x.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "1988f5e9cd5cc01cc767e4d1e717cdb2ec9375c7cd2207f68500afb541063cdb",
+      "maps_sha256": "f18b8b7e34f21bb6450a46a15ca80248f3e4e6d1b8f715bb079ff163ec5f87d6"
+    },
+    {
+      "mode": "three_global_y",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_global_y",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_global_y.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "83188d0759d7033c9777c805c4c9dbecee39ac978590cdfbd772614b1649224d",
+      "maps_sha256": "4ece044aecec5d21464b3fcf4474422b9cc7e01d437bb9668f92e46fc668bba7"
+    },
+    {
+      "mode": "three_global_z",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_global_z",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_global_z.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "cf2b4871c0b62086a45643ada686a532beff538d9acd301913ecd8ffa71afea9",
+      "maps_sha256": "de5dbf4909ef83cd7cf99f34e230f2ef0e88e9ec56e3a1cfe436d2ad7077e532"
+    },
+    {
+      "mode": "three_combined",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_combined",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_combined.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "210737bb690e29b75637f50fe4f1a4b4bc6760e9c1522be2543822309e1ff4a9",
+      "maps_sha256": "af649601f500fa776e39be10821a5d7af8dcaa4f935dd7a21d9d7dd23e05a7ad"
+    },
+    {
+      "mode": "three_stationary_tilted",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_stationary_tilted",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_stationary_tilted.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "be0b2c20b367474163e5276d1d8443c6d64c4435ab6560ccea6184c3244b4434",
+      "maps_sha256": "9a58f273584a411a9875d7f88942efa722cdab259c6b21113db14e8f62b83aa7"
+    },
+    {
+      "mode": "three_rotate_roll",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_rotate_roll",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_rotate_roll.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "26c485d1e69e1bdf6acbcddedb48f76ed2cc4e50b84058f6fd3a3c540a446ae7",
+      "maps_sha256": "01ba15e9673d50d697ddae826c05f151b90460003f315145f7c7188ea2d89e43"
+    },
+    {
+      "mode": "three_rotate_pitch",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_rotate_pitch",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_rotate_pitch.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "a05e6102412bdc65c097bfc2b86716d62dd62ce7adcb83007f20c44a2d102b95",
+      "maps_sha256": "971214373acd5f87dab4c0e896ee58d4e5b54f1f16a6916c5967afbe0a09fbfb"
+    },
+    {
+      "mode": "three_rotate_yaw",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_rotate_yaw",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_rotate_yaw.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "1f9c433af21b5fc5bd23c7020d92da66d53d5a51906ae81ee5c1bc869bf4dc87",
+      "maps_sha256": "0937158a2ed6b549b0869053add0c58b08beb8846c480bb87a1bd1fbfe0b2c1b"
+    },
+    {
+      "mode": "three_rate",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_rate",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_rate.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "aa1f6c0fee4291de340dd869f0b3a8b08ac979861ee92c4a562273f76dc29e5f",
+      "maps_sha256": "99d15f42b011507ca22426c38b205f520131732848d6579756e25c02e0bae13f"
+    },
+    {
+      "mode": "three_micro",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_micro",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_micro.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "9d1eb2f74aaa777fb93be05c5ba2b038cfa11ea184ed6a9a5bd35bfa85394e0d",
+      "maps_sha256": "879ef16acd4826c80d042c8bc206f6be3c88b66b344b0da6f0e6c8bb24cf93df"
+    },
+    {
+      "mode": "three_pause_equal",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_pause_equal",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_pause_equal.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "9e81ad08bcb30590cde16529785fdcd2464baae0bd47da8817710178f2491a0a",
+      "maps_sha256": "153102df949dbef7eb3efdab3833ec618c5c803bde17b543e449140145518bc2"
+    },
+    {
+      "mode": "three_reload",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+        "three_reload",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/odometry-translation-three_reload.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m39-native-reference",
+      "stdout_sha256": "483bddc3798af990f6c59d94b5dd8651ceddc13e8354025386ccbb7f65200dba",
+      "maps_sha256": "a6d2df05c8847dd09bbba3637ff287f978fa170c67b47613433c74c28172c466"
+    }
+  ],
+  "original_plugin": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m34-m35-delivery/native-m34-m35-dzs7mwga/libgz-sim-odometry-publisher-system.so.11.0.0~pre3",
+    "sha256": "3f486c39f373bd34805e16751f61b60d4e9e9ed085b5f3e141c17a7e0b7b4b02",
+    "object_sha256": "16654e5f27a45199eeee39b8620100c056645bf30045c7b740f29c071fac0d0c",
+    "rebuilt_for_M39": false
+  },
+  "critical_mapped_provider_sha256": {
+    "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2": "288c6f52fac45359f5de67d97e0069b7f37420f5f78888e61406b8f565656c4f",
+    "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2": "0504be34705191623dce9654e7b659663d87cdb92a3b99c83db13a7f60f13659",
+    "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2": "bc9b06e4337e638b4f15d2397c974d34dd99a33957a7756e2fc424f78f08309a",
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib/libgz-sim.so.11.0.0~pre3": "4ff55a5ed5ee65eca4c3c7cc32ae8f31866869ce11cb95f87d645deed6f11e8a",
+    "/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib/libzenohc.so": "de63c0072f4186cf55d325773962ea6621d391629c8b33edf276bb09062b68f5"
+  },
+  "generated_helper_sha256": {
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m39-m40-delivery/native-odometry-translation-nrbslsqf/native-odometry-translation": "9552e5adf2a156afdb56e655f9a5d2deee5a3050077c55f083491dcc6aed69f4"
+  },
+  "literal_generation": {
+    "method_sha256": "1596b5d391890b95278de9bfb6926d83a757b0254765e3452948fdbe40004883",
+    "actual_exit_receipt_sha256": "fd10e724c7d8973b55e47624c6f00474d52050a99265699a5ff325dd03fda547",
+    "actual_root_exit_code": 0,
+    "provenance_sha256": "3f3d3f5156cd838be161f57126da2e28b5edf59579c6c44674fbd4dd7a39bcfe",
+    "fixture_sha256": "1f9223e9fae7472152112c7e016412ebbfaa4c1f188ad4da51795b8d66e7887a",
+    "fixture_bytes": 3389979,
+    "counts": {
+      "Observed": 986,
+      "Suppressed": 166,
+      "canonical_packets": 2958,
+      "input_calls": 1152,
+      "paused_calls": 4
+    },
+    "independent_literal_DATA": {
+      "state": "INDEPENDENT_M39_NATIVE_LITERAL_FIXTURE_DATA_CLEAR",
+      "method_sha256": "bb5ec0d41726b464fb1fde8bb0d53238d8cea2b1b0aeea3d8ef7c9e4dc086c36",
+      "report_sha256": "effbc94f92e6c9ca4563fe91ecb4918f23706d4c71a08d6d18c91bd1d494915d",
+      "actual_exit_receipt_sha256": "7949d5a877f9c590ee1113dcd5f057d5d2ec29f52103cd1beb2ac1f6d6270500",
+      "actual_root_exit_code": 0
+    }
+  },
+  "configuration_policy": "The helper records requested and effective vectors/presence separately. EACH wholly zero vector is normalized to +0 before original DSO configuration; every bit in other vectors is retained. This is the admitted legacy policy, not parity with unnormalized native negative-zero SDF.",
+  "reproduction": "Use exact compile argv/cwd and each native_runs argv/cwd with matching original sources/headers/providers. Use a fresh exclusive destination in place of historical packet paths; capture does not overwrite. Paths identify the generating invocation, not an installed runtime dependency. Complete349-node SDK identity is retained in native DATA, not duplicated here.",
+  "historical_lineage": "Original M34 native wrapper1 and partial-reader1 remain failed; separate retained-finalizer0 qualified the reused original DSO. No old native campaign or SDK rebuild was performed."
+}
