@@ -1,7 +1,23 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Current status: M38 integrated Source and native reference
+## Current status: M41 and M42 over accepted M39/M40
+
+M1–M40 are accepted at qualified Main `470da6e6`.
+[M39/M40 acceptance](M39_M40_ACCEPTANCE.md) records the full normal and strict
+gates, exact hosted CI, independent DATA, fresh fifteen-example Ubuntu install,
+browser and owned shutdown proofs. [m40-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m40-preview),
+release 440119258, is actual Latest with seven verified assets. M37 is preserved.
+
+[M41 and M42](M41_M42_DELIVERY.md) are the active parallel source lanes among
+42 selected phases. Their Scene/workflow leaves have independent source review;
+shared integration and the fresh AirSpeed native/canonical reference work are
+in progress. Neither phase has run its new consolidated checks or is accepted.
+Complete the bounded source, regressions, guides and independent review, batch
+findings, then run the unchanged mandatory checks. Each phase includes review
+and qualification within its five-working-day budget.
+
+## Historical M38 source checkpoint (superseded)
 
 M1–M37 are accepted at qualified Main `6d2d5320`; release 439888006,
 [m37-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m37-preview),

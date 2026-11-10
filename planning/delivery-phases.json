@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-10",
   "execution_state": "active",
-  "current_phase": "M39",
+  "current_phase": "M41",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -678,7 +678,13 @@
       "acceptance": "Independent exact contract and old-refusal positive dispositions; complete Source/regressions/guide review, fresh original-system/literal/native numeric and canonical peer/lifecycle proofs, full normal with unchanged strict coverage, exact hosted and independent local/official DATA; atomic acceptance with every M40 distribution criterion.",
       "excluded": "Rotational offsets, noise, topology/backend/schema/transport/solver/dependency/framework expansion, old native campaign replay and native Physics/performance claims.",
       "evidence": "docs/M39_M40_DELIVERY.md",
-      "source_preparation_only": false
+      "source_preparation_only": false,
+      "accepted_at": "2026-11-10T08:52:09.657476+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "470da6e699ecf9c442a7f1daa4cb3c36146de8f8",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_record": "docs/M39_M40_ACCEPTANCE.md"
     },
     {
       "id": "M40",
@@ -691,6 +697,38 @@
       "acceptance": "Complete Source/package/qualifier/docs review, combined normal/strict/exact hosted/independent DATA and fresh release inputs/metadata/notices/ELF/archive/relocation, clean nonroot Ubuntu fifteen-example installation, real browser/owned shutdown and exact Main/tag/assets/body/Latest readbacks before atomic acceptance.",
       "excluded": "New runtime/backend/framework/schema/launcher flags, renderer rebuild, optional native/camera distribution, cold-start/performance/acquisition claims from finite examples or old acceptance transfer.",
       "evidence": "docs/M39_M40_DELIVERY.md",
+      "source_preparation_only": false,
+      "accepted_at": "2026-11-10T08:52:09.657476+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "470da6e699ecf9c442a7f1daa4cb3c36146de8f8",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_record": "docs/M39_M40_ACCEPTANCE.md"
+    },
+    {
+      "id": "M41",
+      "title": "Constant-wind AirSpeed measurements",
+      "max_working_days": 5,
+      "depends_on": [
+        "M40"
+      ],
+      "scope": "Finite immutable WORLD wind for the existing single typed AirSpeed sensor, exact native sensor-frame subtraction and unchanged zero/noise/physics behavior.",
+      "acceptance": "Reviewed interfaces/source/regressions/guide, fresh pinned component reference and literal DATA, actual Scene/canonical/lifecycle controls and all unchanged normal/strict/exact hosted/local+official gates after accepted M39/M40 parent.",
+      "excluded": "Wind forces/services/runtime mutation, new sensor or backend domain, SDK rebuild, RNG parity, transport/framework and distribution refresh.",
+      "evidence": "docs/M41_M42_DELIVERY.md",
+      "source_preparation_only": false
+    },
+    {
+      "id": "M42",
+      "title": "Joint-force commands with canonical joint feedback",
+      "max_working_days": 5,
+      "depends_on": [
+        "M40"
+      ],
+      "scope": "World-hinge Rapier example combining existing ApplyJointForce and JointStatePublisher, bounded force helper mode, actual canonical feedback and reset/coast workflow.",
+      "acceptance": "Reviewed example/helper/regressions/guide, real C++ command and full Model feedback, existing native six-pulse velocity comparisons at unchanged bounds, paired direct-Rapier position/velocity controls, actual canonical removal completion/reset/unconditional disconnected acquisition/owned shutdown and all unchanged normal/strict/exact hosted/local+official gates after accepted M39/M40 parent.",
+      "excluded": "Moving-parent effort expansion, new mechanics/solver/core system, measured effort output, remote packet cancellation, general barrier/transport/framework and distribution refresh.",
+      "evidence": "docs/M41_M42_DELIVERY.md",
       "source_preparation_only": false
     }
   ],
@@ -734,16 +772,18 @@
     "M36": "complete",
     "M37": "complete",
     "M38": "complete",
-    "M39": "in_progress",
-    "M40": "in_progress"
+    "M39": "complete",
+    "M40": "complete",
+    "M41": "in_progress",
+    "M42": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-09",
+  "phase_started_at": "2026-11-10",
   "active_phases": [
-    "M39",
-    "M40"
+    "M41",
+    "M42"
   ],
-  "execution_policy": "D30\u2013D32: atomic M39/M40 over accepted M38 Main00382fbc. Independently reviewed finite translation/native/zero/API contracts and disjoint Source leases; one integrator and serial Root heavy operations. Whole Source and meaningful regression review before fresh component/canonical proofs, full normal/strict coverage/exact hosted/independent DATA and all fresh fifteen-example package/install/browser/shutdown/publication criteria. Both phases remain unaccepted; no inherited pass or old campaign replay.",
+  "execution_policy": "D30\u2013D32: independent M41 constant-wind AirSpeed and M42 world-hinge force/JointState workflow over accepted470da. Root owns shared seams and serial heavy operations. Complete bounded implementation, regression source, guides and independent review, batch findings, then one consolidated qualification with unchanged strict coverage and exact hosted/local+official DATA. No acceptance transfer.",
   "parallel_groups": [
     {
       "phases": [
@@ -861,11 +901,19 @@
       ],
       "integration": "Disjoint Scene offsets and Server/native Source lanes plus maintained distribution Source integrate over accepted00382. Preserve each feature/native criterion and fresh fifteen-example build/notices/package/install/browser/shutdown/publication proofs; one full new normal/strict/exact hosted/independent DATA before accepting both. Root alone releases serial heavy work; no prior result transfers.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M41",
+        "M42"
+      ],
+      "integration": "Disjoint source preparation only over frozen470da overlaps M39/M40 hosted/publication closeout. Actual accepted parent and reviewed complete contracts precede native or consolidated checks; Root owns shared seams and serial heavy execution. Every feature retains its own acceptance proof.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M38 accepted at qualified Main 00382fbc. M37 release 439888006 stays installed Latest. M39/M40 Source is integrated and scoped native/literal DATA passed; Rust and distribution qualification remain pending. Every feature and fresh distribution criterion precedes atomic acceptance.",
+  "acceptance_boundary": "M1\u2013M40 accepted at qualified Main470da; M40 release440119258 is actual installed Latest with seven verified assets. M41/M42 are active bounded parallel source lanes, not accepted. Complete source/native/canonical review and unchanged normal/strict/exact hosted/independent DATA remain mandatory.",
   "current_delivery_group": [
-    "M39",
-    "M40"
+    "M41",
+    "M42"
   ]
 }

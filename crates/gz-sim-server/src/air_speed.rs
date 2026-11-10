@@ -247,3 +247,7 @@ impl Server {
 #[cfg(test)]
 #[path = "../tests/private/air_speed.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/air_speed_wind_native.rs"]
+mod native_wind_tests;

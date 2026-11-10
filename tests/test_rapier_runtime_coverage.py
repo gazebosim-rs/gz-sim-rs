@@ -132,7 +132,7 @@ class DisabledBackendProof(unittest.TestCase):
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 15)
+            self.assertEqual(run.call_count, 17)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -303,8 +303,10 @@ class DisabledBackendProof(unittest.TestCase):
             "examples/m31_pose_static_publisher.sdf", "examples/m33_robot_sensors.sdf",
             "examples/m34_odometry_publisher.sdf", "examples/m35_apply_link_wrench.sdf",
             "examples/m36_wrench_odometry.sdf"))
-        self.assertEqual(MODULE.NOISY_EXAMPLES[13:], (
+        self.assertEqual(MODULE.NOISY_EXAMPLES[13:15], (
             "examples/m38_odometry_3d.sdf", "examples/m39_odometry_translation_offsets.sdf"))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[15:], (
+            "examples/m41_air_speed_wind.sdf", "examples/m42_joint_force_feedback.sdf"))
         self.assertEqual(MODULE.NOISY_ASSETS, ("examples/meshes/m16-asymmetric.obj",))
 
     def test_new_static_example_outputs_are_complete_sorted_finite_and_exact(self):
@@ -415,6 +417,25 @@ class DisabledBackendProof(unittest.TestCase):
                      headline.replace("iterations=2", "iterations=1") + body]
             for coordinate in range(1, 4):
                 for value in ("nan", "inf", "-inf", "bad", str(float(body.split()[coordinate]) + 1e-13)):
+                    fields = body.split()
+                    fields[coordinate] = value
+                    wrong.append(headline + " ".join(fields) + "\n")
+            for stdout in wrong:
+                with self.subTest(source=source, stdout=stdout):
+                    self.assertFalse(MODULE.noisy_output_matches(source, stdout))
+
+    def test_wind_and_force_examples_require_their_own_complete_raw_body_output(self):
+        headline = "simulation_ns=2000000 iterations=2\n"
+        for source, body in (
+            ("examples/m41_air_speed_wind.sdf", "default::rig::body 0 0 3\n"),
+            ("examples/m42_joint_force_feedback.sdf", "default::rotor::body 0 0 0\n"),
+        ):
+            self.assertTrue(MODULE.noisy_output_matches(source, headline + body))
+            wrong = [headline, headline + body + body,
+                     headline + body.replace("::body", "::other"),
+                     headline + body.replace(" 0 0 ", " 0.1 0 ")]
+            for coordinate in range(1, 4):
+                for value in ("nan", "inf", "bad", str(float(body.split()[coordinate]) + 1e-13)):
                     fields = body.split()
                     fields[coordinate] = value
                     wrong.append(headline + " ".join(fields) + "\n")

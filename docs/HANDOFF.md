@@ -1,3 +1,24 @@
+# Current delivery: M41 and M42
+
+M1–M40 are accepted at qualified Main470da. M40 release440119258 (`m40-preview`) is actual Latest with seven byte-verified assets. M41 constant-wind AirSpeed and M42 joint-force feedback are the current disjoint implementation lanes; neither is accepted. Each is at most five working days including review and all required gates.
+
+Read [M39/M40 acceptance](M39_M40_ACCEPTANCE.md) and the [M41/M42 contract](M41_M42_DELIVERY.md). Root owns shared integration and serial heavy work. Complete source/regressions/guides and independent review before consolidated checks. No tests/lint/native execution is released by this status update.
+
+## Historical planning and closeout checkpoints (superseded)
+
+# Current closeout and next source preparation
+
+M1–M38 remain accepted; 42 phases are selected including the two next source-only lanes. M39/M40 complete normal, independent local DATA, exact review CI42778327635 and fresh package/install/browser DATA have passed. Independent official DATA and Main/tag/release/Latest readbacks remain pending; neither M39/M40 nor M41/M42 is accepted. M37 remains installed Latest.
+
+The inherited earlier current-state blocks below are historical checkpoints; their outstanding gates remain requirements until actual completion. The new M41/M42 contract and source-only boundary above them govern this worktree.
+
+## Next source-only wave
+
+M41 constant-wind AirSpeed and M42 joint-force feedback are selected in
+[M41_M42_DELIVERY.md](M41_M42_DELIVERY.md). Contract review precedes code. Root
+continues frozen M39/M40 publication first; no next-wave tests, native execution
+or acceptance before its actual accepted parent and complete independent review.
+
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 

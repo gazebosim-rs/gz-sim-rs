@@ -1,3 +1,22 @@
+# Current delivery: M41 and M42
+
+M1–M40 are accepted at qualified Main470da. M40 release440119258 (`m40-preview`) is actual Latest with seven byte-verified assets. M41 constant-wind AirSpeed and M42 joint-force feedback are the current disjoint implementation lanes; neither is accepted. Each is at most five working days including review and all required gates.
+
+Read [M39/M40 acceptance](docs/M39_M40_ACCEPTANCE.md) and the [M41/M42 contract](docs/M41_M42_DELIVERY.md) (paths relative to repository root). Root owns shared integration and serial heavy work. Complete source/regressions/guides and independent review before consolidated checks. No tests/lint/native execution is released by this status update.
+
+## Historical planning and closeout checkpoints (superseded)
+
+# Current closeout and next source preparation
+
+M1–M38 remain accepted; 42 phases are selected including the two next source-only lanes. M39/M40 complete normal, independent local DATA, exact review CI42778327635 and fresh package/install/browser DATA have passed. Independent official DATA and Main/tag/release/Latest readbacks remain pending; neither M39/M40 nor M41/M42 is accepted. M37 remains installed Latest.
+
+The inherited earlier current-state blocks below are historical checkpoints; their outstanding gates remain requirements until actual completion. The new M41/M42 contract and source-only boundary above them govern this worktree.
+
+> Next source-preparation worktree: read [M41/M42 contract](docs/M41_M42_DELIVERY.md).
+> M39/M40 closeout has priority. Candidate470da is not yet accepted; no next-wave
+> native execution, tests/lint, full checks or publication until actual parent
+> acceptance and complete independent source review. Shared files belong to Root.
+
 # Instructions for implementation agents
 
 > M1–M38 are accepted at qualified Main `00382fbc`; M37 remains installed Latest.

@@ -361,6 +361,7 @@ struct SceneContext<'a> {
     cameras: Vec<Entity>,
     noise_seed: [u8; 32],
     field_world: [f64; 3],
+    wind_world: [f64; 3],
 }
 
 struct ParentModel {
@@ -533,9 +534,9 @@ fn load_world_configured(
         .ok_or_else(|| LoadError::MissingWorld(world_name.into()))?;
     let world = &sdf.worlds[world_index];
     let magnetic_consumer = magnetometer::preflight(&sdf, world, engine)?;
-    air_speed::preflight(&sdf, world, engine)?;
+    let air_speed_consumer = air_speed::preflight(&sdf, world, engine)?;
     logical_camera::preflight(&sdf, world, engine)?;
-    producer_guard::validate(world, magnetic_consumer)?;
+    producer_guard::validate(world, magnetic_consumer, air_speed_consumer)?;
     let wrench_plan = apply_link_wrench::parse(world)?;
     if let Some(plan) = &wrench_plan {
         plan.validate(world, engine)?;
@@ -588,6 +589,7 @@ fn load_world_configured(
         cameras: Vec::new(),
         noise_seed,
         field_world: world.magnetic_field,
+        wind_world: world.wind_linear_velocity,
     };
     let world_entity = spawn_node(
         &mut sim,

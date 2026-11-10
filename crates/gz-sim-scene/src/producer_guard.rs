@@ -4,11 +4,25 @@
 
 use crate::{LoadError, require};
 
-pub(super) fn validate(world: &sdformat::World, magnetic_consumer: bool) -> Result<(), LoadError> {
+pub(super) fn validate(
+    world: &sdformat::World,
+    magnetic_consumer: bool,
+    air_speed_consumer: bool,
+) -> Result<(), LoadError> {
     let name = &world.name;
     require(world.joints.is_empty(), name, "world joints")?;
     require(world.extensions.is_empty(), name, "world extensions")?;
-    require(world.wind_linear_velocity == [0.0; 3], name, "world wind")?;
+    // Only the caller's complete typed AirSpeed preflight admits nonzero wind.
+    // This is sensor-relative airflow; model/link wind forces remain refused.
+    require(
+        world
+            .wind_linear_velocity
+            .iter()
+            .all(|value| value.is_finite())
+            && (air_speed_consumer || world.wind_linear_velocity == [0.0; 3]),
+        name,
+        "world wind",
+    )?;
     // The caller's complete typed magnetometer preflight runs before Simulation
     // creation. Only that admitted consumer may enable a nondefault finite field.
     require(

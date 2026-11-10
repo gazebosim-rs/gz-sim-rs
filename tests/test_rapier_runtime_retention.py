@@ -633,3 +633,36 @@ class AuxiliaryRetention(unittest.TestCase):
         self.report["noisy_examples"] = json.loads(baseline)
         self.write_json("noisy-examples.json", self.report["noisy_examples"])
         self.finish_manifest()
+
+    def test_wind_and_force_runs_cannot_reuse_old_invocations_or_forge_success(self):
+        baseline = json.dumps(self.report["noisy_examples"])
+        for source in ("examples/m41_air_speed_wind.sdf", "examples/m42_joint_force_feedback.sdf"):
+            index = QUALIFIER.NOISY_EXAMPLES.index(source)
+            valid = json.loads(baseline)["runs"][index]["stdout"]
+            for field, altered in (
+                ("actual_exit_code", 1),
+                ("stderr", "new example failed\n"),
+                ("argv", json.loads(baseline)["runs"][12]["argv"]),
+                ("source", QUALIFIER.NOISY_EXAMPLES[12]),
+                ("stdout", valid.replace(" 0 0 ", " 0.1 0 ")),
+                ("fixture_sha256", "0" * 64),
+                ("fixture_mode", 0o600),
+            ):
+                with self.subTest(source=source, field=field):
+                    record = json.loads(baseline)
+                    record["runs"][index][field] = altered
+                    self.report["noisy_examples"] = record
+                    self.write_json("noisy-examples.json", record)
+                    self.finish_manifest()
+                    with self.assertRaisesRegex(ValueError, "noisy-example"):
+                        QUALIFIER.validate_evidence(self.root, self.directory)
+            record = json.loads(baseline)
+            record["runs"].pop(index)
+            self.report["noisy_examples"] = record
+            self.write_json("noisy-examples.json", record)
+            self.finish_manifest()
+            with self.assertRaisesRegex(ValueError, "noisy-example"):
+                QUALIFIER.validate_evidence(self.root, self.directory)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()

@@ -105,6 +105,8 @@ pub(super) struct AirSpeed {
     noise: Option<Box<PressureNoise>>,
     link: u64,
     offset: DVec3,
+    // Loaded WORLD airflow only; InitialScene clones this immutable configuration.
+    wind_world: [f64; 3],
 }
 
 #[derive(Component, Debug)]
@@ -255,7 +257,7 @@ pub(super) fn preflight(
     sdf: &Sdf,
     world: &sdformat::World,
     engine: PhysicsEngine,
-) -> Result<(), LoadError> {
+) -> Result<bool, LoadError> {
     fn selected(sensor: &sdformat::Sensor) -> bool {
         sensor.air_speed().is_some()
             || sensor.effective_type() == Some(sdformat::SensorType::AirSpeed)
@@ -284,9 +286,12 @@ pub(super) fn preflight(
                 require(*count == 1, &world.name, "multiple air_speeds")?;
                 require(top, &model.scoped_name, "air_speed top-level model")?;
                 require(
-                    world.wind_linear_velocity == [0.0; 3],
+                    world
+                        .wind_linear_velocity
+                        .iter()
+                        .all(|value| value.is_finite()),
                     &world.name,
-                    "air_speed zero world wind",
+                    "air_speed finite world wind",
                 )?;
                 let expected = sdformat::Atmosphere::default();
                 let at = &world.atmosphere;
@@ -319,7 +324,7 @@ pub(super) fn preflight(
     for model in &world.models {
         visit(sdf, world, model, engine, true, &mut count)?;
     }
-    Ok(())
+    Ok(count == 1)
 }
 
 pub(super) fn spawn(
@@ -407,6 +412,7 @@ pub(super) fn spawn(
             noise,
             link: parent.id,
             offset: DVec3::from_array(local.translation),
+            wind_world: effective_wind(context.wind_world),
         },
     ));
     Ok(())
@@ -452,6 +458,47 @@ struct AirSpeedScheduleFault {
     source: schedule::ScheduleError,
 }
 
+// The old zero path did not subtract a rotated zero. Preserve every old bit,
+// including signed velocity zeros, while normalizing an entirely zero config.
+fn effective_wind(wind: [f64; 3]) -> [f64; 3] {
+    if wind == [0.0; 3] { [0.0; 3] } else { wind }
+}
+
+// gz-math Quaternion.hh: Inverse(q) * (Quaternion(0, wind) * q).
+// Keep Hamilton products and the inverse norm in native scalar order rather
+// than using the optimized quaternion/vector shortcut or rotating point-wind.
+fn wind_to_sensor(q: [f64; 4], wind: [f64; 3]) -> [f64; 3] {
+    fn multiply(a: [f64; 4], b: [f64; 4]) -> [f64; 4] {
+        let [x, y, z, w] = a;
+        let [bx, by, bz, bw] = b;
+        [
+            w * bx + x * bw + y * bz - z * by,
+            w * by - x * bz + y * bw + z * bx,
+            w * bz + x * by - y * bx + z * bw,
+            w * bw - x * bx - y * by - z * bz,
+        ]
+    }
+    let [x, y, z, w] = q;
+    // The caller already requires a finite unit quaternion; native's near-zero
+    // inverse fallback cannot occur within that admitted domain.
+    let norm = w * w + x * x + y * y + z * z;
+    let inverse = [-x / norm, -y / norm, -z / norm, w / norm];
+    let rotated = multiply(inverse, multiply([wind[0], wind[1], wind[2], 0.0], q));
+    [rotated[0], rotated[1], rotated[2]]
+}
+
+fn relative_air_velocity(velocity: [f64; 3], q: [f64; 4], wind: [f64; 3]) -> [f64; 3] {
+    if wind == [0.0; 3] {
+        return velocity;
+    }
+    let rotated = wind_to_sensor(q, wind);
+    [
+        velocity[0] - rotated[0],
+        velocity[1] - rotated[1],
+        velocity[2] - rotated[2],
+    ]
+}
+
 fn sample(
     (time, interest): (Res<UpdateInfo>, Option<Res<Interest>>),
     fault: Res<StepFault>,
@@ -493,7 +540,11 @@ fn sample(
         {
             let input = AirSpeedInput {
                 world_z: pose.translation[2],
-                velocity_sensor: (rotation.inverse() * point).to_array(),
+                velocity_sensor: relative_air_velocity(
+                    (rotation.inverse() * point).to_array(),
+                    pose.rotation,
+                    sensor.wind_world,
+                ),
             };
             match &mut sensor.noise {
                 Some(noise) => noise.apply(input),
@@ -523,3 +574,69 @@ fn reset(mut sensors: Query<(Entity, &mut AirSpeed)>, mut commands: Commands) {
 #[cfg(test)]
 #[path = "../tests/private/air_speed.rs"]
 mod tests;
+
+#[cfg(test)]
+mod wind_tests {
+    use super::*;
+
+    #[test]
+    fn whole_zero_bypass_preserves_velocity_bits_and_nonzero_wind_component_bits() {
+        let velocity = [-0.0, 0.0, -0.0];
+        for zero in [[0.0; 3], [-0.0, 0.0, -0.0]] {
+            assert_eq!(effective_wind(zero).map(f64::to_bits), [0; 3]);
+            assert_eq!(
+                relative_air_velocity(velocity, [0.0, 0.0, 0.0, 1.0], zero).map(f64::to_bits),
+                velocity.map(f64::to_bits)
+            );
+        }
+        let wind = [-0.0, 1.0, -0.0];
+        assert_eq!(
+            effective_wind(wind).map(f64::to_bits),
+            wind.map(f64::to_bits)
+        );
+    }
+
+    #[test]
+    fn wind_is_rotated_separately_and_invalid_ideal_input_draws_no_noise() {
+        assert_eq!(
+            relative_air_velocity([3.0, 4.0, 5.0], [0.0, 0.0, 0.0, 1.0], [1.0, -2.0, 0.5]),
+            [2.0, 6.0, 4.5]
+        );
+        assert_eq!(
+            relative_air_velocity([3.0, 4.0, 5.0], [0.0, 0.0, 1.0, 0.0], [1.0, -2.0, 0.5]),
+            [4.0, 2.0, 4.5]
+        );
+        let config = sdformat::Noise {
+            kind: sdformat::NoiseKind::Gaussian,
+            mean: 0.1,
+            stddev: 0.01,
+            ..Default::default()
+        };
+        let mut actual = PressureNoise::new(&config, [19; 32], 7).unwrap().unwrap();
+        let mut untouched = actual.clone();
+        let invalid = AirSpeedInput {
+            world_z: 3.0,
+            velocity_sensor: relative_air_velocity(
+                [f64::MAX, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+                [-f64::MAX, 0.0, 0.0],
+            ),
+        };
+        assert_eq!(
+            actual.apply(invalid),
+            Err(AirSpeedSampleError::Ideal(InvalidAirSpeedInput))
+        );
+        let valid = AirSpeedInput {
+            world_z: 3.0,
+            velocity_sensor: [2.0, 0.0, 0.0],
+        };
+        assert_eq!(
+            actual.apply(valid).unwrap(),
+            untouched.apply(valid).unwrap()
+        );
+    }
+}
+
+#[cfg(test)]
+#[path = "../tests/private/air_speed_wind_native.rs"]
+mod wind_native_tests;

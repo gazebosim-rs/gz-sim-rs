@@ -406,7 +406,7 @@ fn strict_noise_metadata_domain_nested_duplicate_and_backend_admission_are_atomi
         .replace("</link></model>", "</link></model></model>"),
         XML.replace(
             "<gravity>0 0 0</gravity>",
-            "<gravity>0 0 0</gravity><wind><linear_velocity>1 0 0</linear_velocity></wind>",
+            "<gravity>0 0 0</gravity><wind><linear_velocity>NaN 0 0</linear_velocity></wind>",
         ),
         XML.replace(
             "<gravity>0 0 0</gravity>",
