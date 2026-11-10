@@ -1,7 +1,34 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Current bounded task: M38-ODOM3D
+## Current source preparation: M43-IMU-REFERENCE and M44-INSTALL
+
+Read [M43/M44 delivery](M43_M44_DELIVERY.md). M41/M42 are accepted at
+Main `73e03b9f` after exact hosted CI and independent official DATA. This is the
+actual parent for the continuing wave. Source preparation overlapped closeout;
+native capture, tests, builds and installation still require complete independent
+source review and Root's serial release.
+
+Light owns the private Scene `imu_reference.rs`, its private and public
+regression leaves, the M43 example and feature guide. Messages owns the Server
+`imu_reference_frames.rs`, transport peer and separate component-reference C++
+leaves. Captured-value fixture and encoder replay follow actual independent
+native/literal DATA, without placeholder expected values. Root owns shared
+Scene admission/reset-test disposition, peer registration and retained-profile
+requirements, packaging and its regressions/guides, and canonical integration.
+SDF reviews complete batches and test intent independently.
+
+The finite native case table is agreed before oracle authorship: 17 fresh
+configurations and six prospective forced updates each, with direct WORLD
+inputs and actual native sensor-axis setter values recorded separately. Named
+references reject spherical metadata; CUSTOM preserves legacy bits/admission.
+Required controls cover all named frames, actual motion, disabled orientation,
+noise/covariance preservation, demand/pause/rate, reset/removal and canonical
+shutdown. M44 requires fresh eighteen-example, three-executable distribution,
+clean installation, force/feedback and default robot browser evidence. Neither
+scope is accepted by source completion or by an earlier phase's evidence.
+
+## Historical bounded task: M38-ODOM3D
 
 Accepted parent: `6d2d53209174e3398b79909553e4fc5fd7fe05e8`.
 Implement the noiseless 3D ground-truth odometry contract in

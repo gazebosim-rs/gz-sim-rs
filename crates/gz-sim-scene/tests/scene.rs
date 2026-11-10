@@ -123,6 +123,64 @@ fn static_parent_and_nested_frame_rotation_reach_ecs_and_sensor() {
 }
 
 #[test]
+fn former_ned_refusal_loads_actual_angular_motion_and_resets_healthy() {
+    use gz_sim_core::{EntityId, entity_by_id};
+    use gz_sim_scene::{queue_link_world_velocity, reset_loaded_world};
+
+    let xml = WORLD.replace(
+        "<always_on>true</always_on>",
+        "<imu><orientation_reference_frame><localization>NED</localization></orientation_reference_frame></imu>",
+    );
+    let mut sim = load(&xml).unwrap();
+    let id = |sim: &gz_sim_core::Simulation, name: &str| {
+        sim.world()
+            .iter_entities()
+            .find(|entity| entity.get::<Name>().is_some_and(|value| value.0 == name))
+            .unwrap()
+            .get::<EntityId>()
+            .unwrap()
+            .get()
+    };
+    let sensor_id = id(&sim, "default::ball::body::imu");
+    let link_id = id(&sim, "default::ball::body");
+    for epoch in 0..2 {
+        // Resolve loaded identities again after reset; old ECS handles do not
+        // establish ownership in a reconstructed world.
+        let sensor = entity_by_id(sim.world(), sensor_id).unwrap();
+        let link = entity_by_id(sim.world(), link_id).unwrap();
+        let initial_pose = *sim.world().get::<WorldPose>(link).unwrap();
+        assert!(sim.world().get::<ImuSample>(sensor).is_none());
+        queue_link_world_velocity(&mut sim, link_id, [0.0; 3], [0.3, -0.4, 0.5]).unwrap();
+        sim.step_exact(1).unwrap();
+        assert_ne!(
+            sim.world().get::<WorldPose>(link).unwrap().rotation,
+            initial_pose.rotation
+        );
+        let sample = sim.world().get::<ImuSample>(sensor).unwrap();
+        assert_eq!(
+            (sample.time, sample.epoch),
+            (Duration::from_millis(1), epoch)
+        );
+        let reading = sample.reading.as_ref().unwrap();
+        assert!(
+            reading
+                .angular_velocity
+                .iter()
+                .all(|value| value.is_finite() && value.abs() > 0.1)
+        );
+        assert!(reading.orientation.iter().all(|value| value.is_finite()));
+        reset_loaded_world(&mut sim, |_| ()).unwrap();
+        assert_eq!(sim.elapsed(), Duration::ZERO);
+        assert_eq!(id(&sim, "default::ball::body::imu"), sensor_id);
+        assert_eq!(id(&sim, "default::ball::body"), link_id);
+        let reset_link = entity_by_id(sim.world(), link_id).unwrap();
+        let reset_pose = sim.world().get::<WorldPose>(reset_link).unwrap();
+        assert_eq!(reset_pose.translation, initial_pose.translation);
+        assert_eq!(reset_pose.rotation, initial_pose.rotation);
+    }
+}
+
+#[test]
 fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
     let mut existing = load(WORLD).unwrap();
     existing.step_exact(3).unwrap();
@@ -176,11 +234,6 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
             "<always_on>true</always_on>",
             "<pose>1 0 0 0 0 0</pose>",
             "offset IMU",
-        ),
-        (
-            "<always_on>true</always_on>",
-            "<imu><orientation_reference_frame><localization>NED</localization></orientation_reference_frame></imu>",
-            "IMU orientation",
         ),
         (
             "<always_on>true</always_on>",

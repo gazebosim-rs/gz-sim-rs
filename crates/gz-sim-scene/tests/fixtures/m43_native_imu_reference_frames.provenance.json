@@ -1,0 +1,1267 @@
+{
+  "schema_version": 1,
+  "state": "ACTUAL_M43_COMPONENT_LITERAL_DATA_RUST_REPLAY_PENDING",
+  "input_domain": "DIRECT_SENSOR_WORLD_POSE_AND_WORLD_VECTORS_WITH_NATIVE_SENSOR_AXIS_SETTERS",
+  "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+  "capture_tree": "504e3ca9aff79821b9fdea89eeb8e954ef7333de",
+  "helper_source_sha256": "42a811531d52eaa93679e62e66ef19d63d719c42f8a9faa072fbea03ca2a1072",
+  "fixture_sha256": "94a3c58473a9628ce26b7e4103d1d3ff7f54ec50ab707f021d7c75b6fd61519f",
+  "fixture_bytes": 387554,
+  "native_capture_method_sha256": "06f9412729363a2fbd8cf8799c94ba6f75b34c26fdaa93525050eb21380d2668",
+  "native_result_sha256": "dd70c36f8e1bec49e0cc011c14b8fe6dc73bc81a048ab2f3e1247e900e50f8d3",
+  "native_DATA_method_sha256": "12aa5a6cb2f767e72d1abf72376415b4f98ff71233509b359063fce65e667ab4",
+  "native_DATA_sha256": "c1c9586032af2190029794e5e0a2afc7a91d83eee3fb596d8807219dc0720550",
+  "native_actual_exit_receipt_sha256": "313a6af1a8e0fd9bc1f77104c9dc7a8f0d9361d849304520b426332df1c9479e",
+  "native_DATA_actual_exit_receipt_sha256": "f4279b552ea8af07a47e6d938c7fd79f30b1a9c890f2fc9e88be106c76770376",
+  "generator_source_sha256": "8f5b4d599854d41894b7d1934963458a6b2bdebadbc96115fc306563d9184431",
+  "generated_provenance_sha256": "005e6a19d2264213fa7f27819cd8616d7e6fa5a7b1025997f6ac6d6a7a9a2334",
+  "generator_actual_exit_receipt_sha256": "13282c5b539f4037de44936ba6999dd1c70546aac8447a026f85aa61ec178ffb",
+  "literal_DATA_method_sha256": "7a8967a775f899a16c6e9e76fb14a5817b06182b11c9345693f01a8c5b2dbf5d",
+  "literal_DATA_sha256": "7fa2262b8bd2a2db9f12f49eae66cf81cf2156873010bd558cf3907296ac185f",
+  "literal_DATA_actual_exit_receipt_sha256": "bf35411da09735c19279dca9885d09ef9d674583f38ac6e8ae8694645cbad111",
+  "counts": {
+    "Observed": 102,
+    "Suppressed": 0,
+    "canonical_packets": 102,
+    "configuration_count": 17,
+    "input_calls": 102
+  },
+  "configuration_count": 17,
+  "disabled_orientation_count": 24,
+  "compiler_recipe": {
+    "argv": [
+      "/usr/bin/clang++",
+      "-std=c++17",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "/home/nkoenig/work/gazebo/rust/gz-sim-m43-native-console-reference/crates/gz-sim-server/tests/native_imu_reference_frames.cc",
+      "-o",
+      "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/sensors11",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/cmake6",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/math10",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/utils5",
+      "-I/usr/include/eigen3",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/common8",
+      "-I/usr/include/uuid",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/transport16",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/msgs13",
+      "-isystem",
+      "/usr/include/mit-krb5",
+      "-I/usr/include/pgm-5.3",
+      "-I/usr/include/libxml2",
+      "-I/usr/include/x86_64-linux-gnu",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/rendering11",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/plugin5",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/sdformat17",
+      "-std=c++17",
+      "-L/home/nkoenig/local/lib/pkgconfig/../../lib",
+      "-lgz-sensors-imu",
+      "-lgz-sensors",
+      "-lgz-transport",
+      "-lgz-rendering",
+      "-lgz-common",
+      "-luuid",
+      "-lgz-plugin",
+      "-lGL",
+      "-lgz-msgs",
+      "-lprotobuf",
+      "-lsdformat",
+      "-ltinyxml2",
+      "-lgz-math",
+      "-lgz-utils",
+      "-Wl,-rpath,/home/nkoenig/local/lib:/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib",
+      "-Wl,-rpath-link,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib"
+    ],
+    "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m43-native-console-reference",
+    "actual_exit_code": 0,
+    "compiler_version_stdout_sha256": "3635b8631d4ebcd8ed7586f4e01e7a6b44407de9d38db6e01daca9c242ed7a53",
+    "pkg_config_argv": [
+      "/usr/bin/pkg-config",
+      "--cflags",
+      "--libs",
+      "gz-sensors-imu"
+    ],
+    "pkg_config_flags": [
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/sensors11",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/cmake6",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/math10",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/utils5",
+      "-I/usr/include/eigen3",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/common8",
+      "-I/usr/include/uuid",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/transport16",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/msgs13",
+      "-isystem",
+      "/usr/include/mit-krb5",
+      "-I/usr/include/pgm-5.3",
+      "-I/usr/include/libxml2",
+      "-I/usr/include/x86_64-linux-gnu",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/rendering11",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/plugin5",
+      "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/sdformat17",
+      "-std=c++17",
+      "-L/home/nkoenig/local/lib/pkgconfig/../../lib",
+      "-lgz-sensors-imu",
+      "-lgz-sensors",
+      "-lgz-transport",
+      "-lgz-rendering",
+      "-lgz-common",
+      "-luuid",
+      "-lgz-plugin",
+      "-lGL",
+      "-lgz-msgs",
+      "-lprotobuf",
+      "-lsdformat",
+      "-ltinyxml2",
+      "-lgz-math",
+      "-lgz-utils"
+    ],
+    "package_versions": {
+      "gz-sensors-imu": "11.0.0",
+      "gz-sensors": "11.0.0",
+      "gz-math": "10.0.0",
+      "gz-common": "8.0.0",
+      "gz-utils": "5.0.0",
+      "gz-transport": "16.0.0",
+      "gz-rendering": "11.0.0",
+      "gz-plugin": "5.0.0",
+      "gz-msgs": "13.0.0",
+      "sdformat": "17.0.0"
+    }
+  },
+  "upstream_source_revisions": {
+    "gz-sensors": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+    "gz-math": "1316ed334f4d5bda7be59aae07cd6e8ff31cfe13",
+    "gz-sim_handoff_source_only": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+    "gz-common": "4daa84f2e7e23eed296d6b997fac88e63b0a450d",
+    "gz-utils": "eafd2035e344eeb28ccab03409093637b89bee35"
+  },
+  "component_provider": {
+    "path": "/home/nkoenig/local/lib/libgz-sensors-imu.so.11.0.0~pre2",
+    "sha256": "77d8094b2599888719132315c3c768919cf430e09b773072a22ad3f9902c84c9"
+  },
+  "saved_sdk_closure_count": 349,
+  "actual_projected_root_count": 13,
+  "actual_projected_node_count": 50,
+  "separate_component_root_count": 1,
+  "actual_mapped_provider_count": 51,
+  "actual_mapped_providers": {
+    "/home/nkoenig/local/lib/libgz-common-graphics.so.8.0.0~pre2": "092dc2f86ca64905722d5fb2775934b696e20e0d64b2d0578ba097ccf025c41a",
+    "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2": "93d9c64716d8b5efdb5862630cc33e62da97785d55e401ed19e4571c9b03df8d",
+    "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2": "288c6f52fac45359f5de67d97e0069b7f37420f5f78888e61406b8f565656c4f",
+    "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2": "0504be34705191623dce9654e7b659663d87cdb92a3b99c83db13a7f60f13659",
+    "/home/nkoenig/local/lib/libgz-plugin-loader.so.5.0.0~pre2": "b8b880f8f67a35b81400a5efe24746c503e8e6265688fdf297e6129b2494823e",
+    "/home/nkoenig/local/lib/libgz-plugin.so.5.0.0~pre2": "1adf86c64ac236357b75c9052e2c2252bfa7f5d50140be266be41560451bfeb3",
+    "/home/nkoenig/local/lib/libgz-rendering.so.11.0.0~pre2": "0518fe836bf8300ffbb4e400b23564da71080b24bed6d98d01a0eb1cabfef564",
+    "/home/nkoenig/local/lib/libgz-sensors-imu.so.11.0.0~pre2": "77d8094b2599888719132315c3c768919cf430e09b773072a22ad3f9902c84c9",
+    "/home/nkoenig/local/lib/libgz-sensors.so.11.0.0~pre2": "3d12bbc482784363616d903290a2b958cf28904a97871b49da0b6c6e663d09ad",
+    "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2": "bc9b06e4337e638b4f15d2397c974d34dd99a33957a7756e2fc424f78f08309a",
+    "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2": "9de1010066534024cb88512faf663bc6cf4362f08ed2865c9399e02aab8e51d4",
+    "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2": "2e91419fd59b6995ee8fada80e106dac5644d3d44cd2e8bc6655547433e51ae6",
+    "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2": "bcc864bcee56b49c13081e29722051e26c036260e3dd037e7736aa2b8620358f",
+    "/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib/libzenohc.so": "de63c0072f4186cf55d325773962ea6621d391629c8b33edf276bb09062b68f5",
+    "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+    "/usr/lib/x86_64-linux-gnu/libGL.so.1.7.0": "67f471213576d225d38347a0b6d2a08a231980685301ff6461bd74d3994e5027",
+    "/usr/lib/x86_64-linux-gnu/libGLX.so.0.0.0": "16fc8a37eea9210dc83c57eeff5aedc10ab4c6673f2f97e8bb6ee103df657b40",
+    "/usr/lib/x86_64-linux-gnu/libGLdispatch.so.0.0.0": "ca01a91104c8887b3d8e59499b58cbb8f604cc285666b50d9ec888eb0c915182",
+    "/usr/lib/x86_64-linux-gnu/libX11.so.6.4.0": "edd2ddf6e00a81c40b8645f7dbb6d6603c6a0a78d583bdbe7491d8a84de6e3b6",
+    "/usr/lib/x86_64-linux-gnu/libXau.so.6.0.0": "8040da3f8516c1acfe39f04ff022480cdb273705ba5e7a4ca70bbdb1527cd67a",
+    "/usr/lib/x86_64-linux-gnu/libXdmcp.so.6.0.0": "667d97d6da16016400ab10de9f83ef4ab209ceb6adf68ff9650225ec13e723b0",
+    "/usr/lib/x86_64-linux-gnu/libassimp.so.5.3.0": "f5524225032201d129cac2adf305af9c7ffcf612d8662f3c87a2d891d5cd3d18",
+    "/usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1": "e86cd4f0019f42c2ba5e60602e0edc8694d2948377d98c3654d0f6bddb5254bb",
+    "/usr/lib/x86_64-linux-gnu/libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+    "/usr/lib/x86_64-linux-gnu/libcom_err.so.2.1": "022943b3b11c860b049bce41342f1c2594941b7b401d95dfdf235521099fee08",
+    "/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0": "bb9ced68ce1209c48b55ddcebe913542197dc745c71febd65205ff0a4d833651",
+    "/usr/lib/x86_64-linux-gnu/libdraco.so.8.0.0": "b368d354f2778606b2553037fc8a3212719ee76a82711c60f7c72de49818e781",
+    "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0": "da008b908b32e428eaa1c09e36d6894c8f88362e254b503c7c2c6112b4ec9ed0",
+    "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+    "/usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2.2": "c7aa00cf51646f7c32f196d329a562bc873ff32906c9caf6554ca489dd657507",
+    "/usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1": "b37407fb2930939bf78b47267019cd201a8af1f4b6a3852249c849cf3a985798",
+    "/usr/lib/x86_64-linux-gnu/libkeyutils.so.1.10": "f48214417757f18793ed6e180cc14ee1d6f04252a518fc7270e8ca1d0b4260fe",
+    "/usr/lib/x86_64-linux-gnu/libkrb5.so.3.3": "fad617a72b5839d30143e7db03281279089def6f18788cbb0b7f86385301bf04",
+    "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1": "936bae947a838bd47676a419dfcfb036d0163249215b58ec706ec7d46b7497aa",
+    "/usr/lib/x86_64-linux-gnu/libm.so.6": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+    "/usr/lib/x86_64-linux-gnu/libmd.so.0.1.0": "423e18586b6ea740f4465afd64f7a9a4cb7264ed979c8e7256f9085af5345fef",
+    "/usr/lib/x86_64-linux-gnu/libminizip.so.1.0.0": "7397458805900a67287673a7d469d1ff207525ae7694ed885e8603d0164828bf",
+    "/usr/lib/x86_64-linux-gnu/libnorm.so.1": "2543db995aa530bda8d145126b25c08d54cfe3348993e11eb75c30d6b43f5e72",
+    "/usr/lib/x86_64-linux-gnu/libpgm-5.3.so.0.0.128": "46e1d5126ff73b9ba0c340b2cf0245d77620f85524c6fc967d533be6d19bdada",
+    "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12": "53a2a625a30418d6ea84438b04c9196214dec51a30476596ee9be45ccadb0404",
+    "/usr/lib/x86_64-linux-gnu/libpugixml.so.1.14": "b5493d9c8c6e36e3b72e38564b7e287ad925ab717577ded997465f9ac9da1c9e",
+    "/usr/lib/x86_64-linux-gnu/libresolv.so.2": "1d730ea434da5a5595bc6a961d7a9ace83e03703205df9644044b3dca79c362f",
+    "/usr/lib/x86_64-linux-gnu/libsodium.so.23.3.0": "fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5",
+    "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0": "62bb2fbc92edc05b35888e624882b78f5b38c0aca6a3df7ab7db32bb9c2629b6",
+    "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+    "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0": "f9e01d87fb78af744a426af8c992e94abf8cd3810a256e117bcc94cd84d2be6d",
+    "/usr/lib/x86_64-linux-gnu/liburdfdom_model.so.4.0": "ac27f211accb66a3f461d8d0b09b9ff123e306e68a0bac0f7c502203d7cbb34e",
+    "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0": "78d7f4d6f27b7dffc1c84dfe2f83e84aefa6f6ceeffc6ac4bc41f9fbc61cb84e",
+    "/usr/lib/x86_64-linux-gnu/libxcb.so.1.1.0": "7958a0136b121bdc4c708968569ad152a9ed208ab026e2537b1005dde64ca440",
+    "/usr/lib/x86_64-linux-gnu/libz.so.1.3": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+    "/usr/lib/x86_64-linux-gnu/libzmq.so.5.2.5": "c56acd8baaec3d869f7e23a194870302acef6d86384f1f0fe946fb81c7015a42"
+  },
+  "modes": {
+    "custom-disabled": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "e485e05d99961109091eb4d61f0e68189d343c6df10bd014dba89ec18563def2",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "87f15af15cb7d0e660e1358a44b6cf85c551e79b0edb6411d7bcc1683b93c9c6"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "b64408e3e487f13fbf4af6cf20ebe51768f30fe18f6457d2c96d65a065bb501e"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "6a54b18fea40ff82fdcb14a214ab875c460abdb67d82e3930299d76ec4df3858"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "eeb1bc79322013d78d4f5fe834dcc6f9483a656d345711396a189512dc0a52b9"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "064a738060cc33cc62b63838b22de426d592c62772f400d2abff49b76741e345"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "2606e39a1788dbe15b014b78fd63393f8263464b8485d7afcf4741109641736a"
+        }
+      ]
+    },
+    "custom-explicit-motion": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "3c8307671c0ad6e56c0e4bfcb59efe86a4a4963ab3560b20031e0da9aeb07f6f",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "03766f6b0cbd4cad3206db9edb14f504e30b1dd2a76e03eafb45b5b7b3b0409c"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "8b360e60ea413a9c7843be1c0ff7699ce74c3ee886889d28c9f0424473f5faa6"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "84c95dbc5afcb97f8024b4ac5641c528e60d85ec045d944af77b493df9695905"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "31edd0f70b0432a9930bd3844d8a02c81d79fd165cffb475978d6aa92540e893"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "5205f2afe0fb055864e46bbd5a73ce8b727acbad48d4f59096cf55a30f1bb6fc"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "6530ad3734c9d8de12716fe48f6313d23fdfff5e9fbf06dd6f5e15933cf9a7ce"
+        }
+      ]
+    },
+    "custom-mean": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "31acda4cf5980e80af0b6cf51c55b8c2a261c995bf6d31b6c96a41c76f01a2f0",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "edaf26ec91837f0f2a08d7921a8f9cd48a9a4c0aa5de28f8c478bad2300331c1"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "5adae5c71c4cc749d7fda178a8a50df9f277ccd4bcf5fa6b4a25f4feaca35eee"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "7078a091d0069fe70cad76c59422f01527b257ddc42e3f2ed9d7631eb7e33cd7"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "880fe59d4e358c82b9f4f9afe1f8a45666cc3a639ba12e7201a793d399c064c6"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "d67698b96b743ee3c167ab93abcc7f3f0d4090db125b011835bfb38393ea1bb2"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "1924a38cf7550ac57bdd20e573781bb78c37e357848eba73d6159709041deb99"
+        }
+      ]
+    },
+    "custom-motion": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "386bb068d496078f912966ed0786996e610ce31d99b3796082a2e3c7b0ca440b",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "03766f6b0cbd4cad3206db9edb14f504e30b1dd2a76e03eafb45b5b7b3b0409c"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "8b360e60ea413a9c7843be1c0ff7699ce74c3ee886889d28c9f0424473f5faa6"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "84c95dbc5afcb97f8024b4ac5641c528e60d85ec045d944af77b493df9695905"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "31edd0f70b0432a9930bd3844d8a02c81d79fd165cffb475978d6aa92540e893"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "5205f2afe0fb055864e46bbd5a73ce8b727acbad48d4f59096cf55a30f1bb6fc"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "6530ad3734c9d8de12716fe48f6313d23fdfff5e9fbf06dd6f5e15933cf9a7ce"
+        }
+      ]
+    },
+    "custom-sign": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "6dfed3ed6c7cbe931be8e655816be887ef801d5652eda2d4f69cb94e7a420477",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "03766f6b0cbd4cad3206db9edb14f504e30b1dd2a76e03eafb45b5b7b3b0409c"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "c541ef434fb98d0fea9364bae4253da484b73b9989f3853d2d7f2032c101ef7d"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "84c95dbc5afcb97f8024b4ac5641c528e60d85ec045d944af77b493df9695905"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "54781b9eb378d7a74c9e7612dd2dd66fafab55215f6526a76ae819354e8195a3"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "7212f571b22bd961d6978b569517d6e636fccce3f5a3ede2c986fe55eb714b85"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "12989514a3a64caca223134eccd6e84a15ce42e071b23275ff31f6579c4be7f5"
+        }
+      ]
+    },
+    "enu-disabled": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "710120b18425e21f3b11f18b94688ec74fd263be873d18c29542639a9f5e715c",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "87f15af15cb7d0e660e1358a44b6cf85c551e79b0edb6411d7bcc1683b93c9c6"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "b64408e3e487f13fbf4af6cf20ebe51768f30fe18f6457d2c96d65a065bb501e"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "6a54b18fea40ff82fdcb14a214ab875c460abdb67d82e3930299d76ec4df3858"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "eeb1bc79322013d78d4f5fe834dcc6f9483a656d345711396a189512dc0a52b9"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "064a738060cc33cc62b63838b22de426d592c62772f400d2abff49b76741e345"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "2606e39a1788dbe15b014b78fd63393f8263464b8485d7afcf4741109641736a"
+        }
+      ]
+    },
+    "enu-mean": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "66bc89d7c1e8191cfe3450d9626a6743e31ad9af137fed89596b0e11ee26b08d",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "3c9b00cc338327a8c6c82e336f9ecb310ea1d90fc0f42e798114aabacbca6910"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "ba6f2f04672ab37cdb5397e57db6f158f9aad40405726bf3b0cb166c6446d31e"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "de87274bcd222c1da428e166e14852109258ea3e81269753f0733b5a2e648c57"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "06e92d0fd42c7a352b2d0af455f72b7606a48fd18ac6968ea6a5e5a5199eb4e6"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "7c3371af539e7ed646d8eb0b46c77ec585c2140746089f7dc133270d496c6891"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "e949c8b7c7215b8c478b510e4e03eca0c977a9af421a9eba9a4d0feb70947218"
+        }
+      ]
+    },
+    "enu-motion": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "6a292b2395aa0993b452c482beac8fd9ca18c236eed66ab7efdb2751434e1f63",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "5764135f84b8418939bd61757ed82341c251bee0e6bbf7b73da402acaeb440ad"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "e750adf9019a02f0de2f8d608cd75e616195d8c5e72232c585fa97ffeb3bedf4"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "d0e267924fef657198ada9eed1957e8c13cc9db81dbc48a0aa0d6e60c237485d"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "f94aa3bf5f4aca0728188028e6f52540ffff340937af38cb8051baabb68e36cb"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "0281e9df7726d3bae5e94577f408e46d45e1f866ca0402c2f5924637d03753ed"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "b9509a100e6ef5a9860ce73d24ca56a076be7c23b690a2116dda6a1325ad2723"
+        }
+      ]
+    },
+    "enu-sign": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "047bc8b791c16f89e95f5f0497f38946f40cbd605374548a15f2edd02fd5a67a",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "5764135f84b8418939bd61757ed82341c251bee0e6bbf7b73da402acaeb440ad"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "6031476053f8eff1137ce774bf1d19c1be4ef0fc293087437fcb220800d63a5b"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "d0e267924fef657198ada9eed1957e8c13cc9db81dbc48a0aa0d6e60c237485d"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "7e747e142fbccba58601bb8c16d7109be4928baa253256a88649ff45421b5359"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "2286673a0cc26d59ca2f100fed81c71cbf8b98e40aafbe891f4181cadf39100e"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "7179801894f56b3d0033367a89adf44df00c52f19d58d4378ee933c86d49b83e"
+        }
+      ]
+    },
+    "ned-disabled": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "fcb4b3c47f4d7b1f698e3107c3f50a50cb0dbd985c49bac605137d4669f45458",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "87f15af15cb7d0e660e1358a44b6cf85c551e79b0edb6411d7bcc1683b93c9c6"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "b64408e3e487f13fbf4af6cf20ebe51768f30fe18f6457d2c96d65a065bb501e"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "6a54b18fea40ff82fdcb14a214ab875c460abdb67d82e3930299d76ec4df3858"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "eeb1bc79322013d78d4f5fe834dcc6f9483a656d345711396a189512dc0a52b9"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "064a738060cc33cc62b63838b22de426d592c62772f400d2abff49b76741e345"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "2606e39a1788dbe15b014b78fd63393f8263464b8485d7afcf4741109641736a"
+        }
+      ]
+    },
+    "ned-mean": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "a6695ae0122b512d44214f6a5fabf2f3ca7d86c29c67dfef8c85b676b55ea88d",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "efc82490c170cc223f67cf5476bc7b705dbacf83aff4abbd6d381760243b1a84"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "79ba685972dfbb2b6b5d678f35a6f2f401d4dd406115a5268dea4ce8ea2ec6bb"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "b417cf92689fde652f0adad942de8713ab61eab0372ef0a971a7340f13a6596b"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "a8f14b90d82479c013c0f4a47006093e01b5256774cf0c884f9427b8f2de5f7a"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "da6769aeee9a874857f05d9dbaeb12ba22c9ffca880037ac74aea838151ba007"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "7610c7565e63f1fd1887f85bac78d8715ad3029ec729b346fd8f7135b466fda9"
+        }
+      ]
+    },
+    "ned-motion": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "df3c332ecc990a5a03c360f15bc8da860cd63b7484f82c9c1f81b74a7ac86c41",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "3c6d8839c37c2258ba2e0469f0c47046384dfe376f19da80d668077ef93715d4"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "b5a327cdd3f5037b59386310a8359ccccb4da7b1121d8723faf59f7cd65b579b"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "8b9abed49ca36dce7e22dafe4425fa844b4b0afabfbbf220f7839872bf1caa5f"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "158dcdd85f3bfa7b9d6348734f898a147f0a6c1bce6e8453d41e4b3204c15122"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "3b2de5986302b569e6563331725afde282e5a70354d45d960588a8b4fdbb2193"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "a57da3c4aa03d96ca3ebc37f13c5a72b854826fb34cdd864ac9553d74a59c4a1"
+        }
+      ]
+    },
+    "ned-sign": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "a83de9642a4fc94f7e9d92392ad50def3122b75dcd697789b459f8f99e2d6075",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "3c6d8839c37c2258ba2e0469f0c47046384dfe376f19da80d668077ef93715d4"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "128483b081c4a83fe1e2009f2ecf0bf9e2b429d6199c285b3ba0b2ae4dd9fc75"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "8b9abed49ca36dce7e22dafe4425fa844b4b0afabfbbf220f7839872bf1caa5f"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "56299ec72e380f3198f18c7f72d05e65f4676f277a734d84481c952fa9a46073"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "e753217b6890c0142dc7a4f571024b196eb92d3bd01c6f0bd6e42eb1627bebcf"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "e1507cf8f27181d3a7ff1392ea5a0288618c0973b67a119a01219bd219831d66"
+        }
+      ]
+    },
+    "nwu-disabled": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "9709c1b64d641c6a179197d5a9048885342d05f47211667c62537b5612863361",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "87f15af15cb7d0e660e1358a44b6cf85c551e79b0edb6411d7bcc1683b93c9c6"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "b64408e3e487f13fbf4af6cf20ebe51768f30fe18f6457d2c96d65a065bb501e"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "6a54b18fea40ff82fdcb14a214ab875c460abdb67d82e3930299d76ec4df3858"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "eeb1bc79322013d78d4f5fe834dcc6f9483a656d345711396a189512dc0a52b9"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "064a738060cc33cc62b63838b22de426d592c62772f400d2abff49b76741e345"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "2606e39a1788dbe15b014b78fd63393f8263464b8485d7afcf4741109641736a"
+        }
+      ]
+    },
+    "nwu-mean": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "6d7b1fb7099908329491b80a582b4efe1172c03ad5506e3aef525829c58491a7",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "063e489e0c18de6b96578a65d33c13f6ad4ec99e30349169e0ef8969b2a56803"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "1c6d3ce04c6d235c93d2128d342c05ed200b6bff9362d9fca172231879ae3ce8"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "d4c2edd88c3013e72f360da833a66cfe4679b5551964d5ded7dec5c1792405ec"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "48b466b8cbbb1eeb5a94ac802bfef3aa97bdf6934e716285bcf2c6c691fa9428"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "9a2f602b4e181039d8ff13be7fa2aab0e2ed2a1c076863337bb8c4b7496cc6b8"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "f614813cd2255ac505634bfa35d5f48bff034efc8981ed454035b27fd8a7d835"
+        }
+      ]
+    },
+    "nwu-motion": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "fcf84b340be11da6209894acdbeed3ebfa2ff611acf65c905bc6900c022aacfd",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "05dc13527f4f585edb10804dcd2e496683f0e6f225d5c7bc1e8e76f79455ae6c"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "e72b2e97522f7cc4515508b01f5749ac33adbe6285b4758f55c8853642169413"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "f9d3ac7c27e991b73a9026a90b742f36f53fc75b30da04f970ec807049345183"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "2b308efb83e4a21a470efb3e2bc8d63e645062f5b5874c7fcffb66e4381be720"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "ce3d66b94a093ed141efa7dcdad374870f4f93ec338b544d606c789cd68352f9"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "1a1247ba6675820806c137f9fd2af0d67f4667df31a2b8ccc35c89cc644e8e50"
+        }
+      ]
+    },
+    "nwu-sign": {
+      "configuration_count": 1,
+      "input_calls": 6,
+      "observations": 6,
+      "suppressed_calls": 0,
+      "stdout_sha256": "1635ae629bec566f4f3493ec59f48dc7f60c6bb5a11fe6293cb4925b67c143bc",
+      "wire_hashes": [
+        {
+          "header_sha256": "6aee03c486b5d602b6c3823595d38d6656d360aaefe366cddbc2412bc075f901",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "05dc13527f4f585edb10804dcd2e496683f0e6f225d5c7bc1e8e76f79455ae6c"
+        },
+        {
+          "header_sha256": "0db612ac3837212e21aedbc4c5dd83c45f88e8a8d658d5f9ad1e3ac22906939c",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "b7af3c72d0ce99a096a5a11708bee572992fb63803d6d919bfdf43a8dfa120ff"
+        },
+        {
+          "header_sha256": "dc9a3e3cf7adc6976f4340d6bf121114905c63b66f05f5e590aabe28711d3879",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "f9d3ac7c27e991b73a9026a90b742f36f53fc75b30da04f970ec807049345183"
+        },
+        {
+          "header_sha256": "a2573e40780634b185622a1135f8d7bb47e05ebeb71ee0ec1a69c07dba95d85d",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "4ae9941797de2eb5094f21cb52d8e43518b4268be581157cc362aa6cdefff0e2"
+        },
+        {
+          "header_sha256": "6e69abdcc8a9a52973eea204aeb6a9765d6a70746648c19a42e815b424912930",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "e3b64db283aeefeb84eb654eeb8c7cac7635ea9a88b043e2719e05bb94216147"
+        },
+        {
+          "header_sha256": "0c1de1933ef4355adab95ebd73b4ea7cf61f90ec27f4004b66d08a2158f02cd6",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "b1d4fc6960075ff41ef6af028b2bed12a663469eb4b84051fba9a7859e861b1c"
+        }
+      ]
+    }
+  },
+  "native_invocations": {
+    "custom-motion": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "custom-motion",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-custom-motion.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "386bb068d496078f912966ed0786996e610ce31d99b3796082a2e3c7b0ca440b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "514aec44ab5b0b95e4fd38cece7feb3934ff7bb1e32ba46ed3fa62649caacc76"
+    },
+    "enu-motion": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "enu-motion",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-enu-motion.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "6a292b2395aa0993b452c482beac8fd9ca18c236eed66ab7efdb2751434e1f63",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "03ad85a98eacf44b559e9182cd3913f651cfeef51a1361512287727b1b941caf"
+    },
+    "ned-motion": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "ned-motion",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-ned-motion.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "df3c332ecc990a5a03c360f15bc8da860cd63b7484f82c9c1f81b74a7ac86c41",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "adc5b4351130692ff82be519cceab7043afd6d743040bf4449868adc322e32c4"
+    },
+    "nwu-motion": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "nwu-motion",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-nwu-motion.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "fcf84b340be11da6209894acdbeed3ebfa2ff611acf65c905bc6900c022aacfd",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "f79861b103b1e01c98eca2fca06135e9d5d09cfd60d3f993cfaa23289e335f61"
+    },
+    "custom-sign": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "custom-sign",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-custom-sign.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "6dfed3ed6c7cbe931be8e655816be887ef801d5652eda2d4f69cb94e7a420477",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "b4b8624b8938b141deb65bb6d72adab2cc3fa266a5b19ccdffeb8648b8e42576"
+    },
+    "enu-sign": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "enu-sign",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-enu-sign.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "047bc8b791c16f89e95f5f0497f38946f40cbd605374548a15f2edd02fd5a67a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "8d3ce997a999c371ce93985bd3d3175e79e24939fe3bdf32113586d2a06851e6"
+    },
+    "ned-sign": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "ned-sign",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-ned-sign.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "a83de9642a4fc94f7e9d92392ad50def3122b75dcd697789b459f8f99e2d6075",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "22a22255bd934923e2f121feb7162b1487fbc8315993dc143c271b16e89eb14d"
+    },
+    "nwu-sign": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "nwu-sign",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-nwu-sign.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "1635ae629bec566f4f3493ec59f48dc7f60c6bb5a11fe6293cb4925b67c143bc",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "da1604039d2ccfe2bb2355b9e6841ba1c4edc12a437cf536fec3b0809b89bfe9"
+    },
+    "custom-disabled": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "custom-disabled",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-custom-disabled.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "e485e05d99961109091eb4d61f0e68189d343c6df10bd014dba89ec18563def2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "95cd3dcb95778d16cb053940c4e29c17df83d90a5e710163c12051262116bf9b"
+    },
+    "enu-disabled": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "enu-disabled",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-enu-disabled.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "710120b18425e21f3b11f18b94688ec74fd263be873d18c29542639a9f5e715c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "c4771c405899e3195fbbe5abf82880b09fe04475c7d747a09e68a807e0bb37ab"
+    },
+    "ned-disabled": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "ned-disabled",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-ned-disabled.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "fcb4b3c47f4d7b1f698e3107c3f50a50cb0dbd985c49bac605137d4669f45458",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "2329d66beca7aa7e3ae0d48c2ab5de5f2459bed2fa2a87a098ebca95aff6fc03"
+    },
+    "nwu-disabled": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "nwu-disabled",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-nwu-disabled.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "9709c1b64d641c6a179197d5a9048885342d05f47211667c62537b5612863361",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "af628c9fe55c023468055bf6740aa3d983eedb1638539f4cef03cd1419d4bfe6"
+    },
+    "custom-mean": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "custom-mean",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-custom-mean.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "31acda4cf5980e80af0b6cf51c55b8c2a261c995bf6d31b6c96a41c76f01a2f0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "880dbae7cb5f61c836c14b4e5a08d61f6c3e4927196c359e864c1b19f2668dc4"
+    },
+    "enu-mean": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "enu-mean",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-enu-mean.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "66bc89d7c1e8191cfe3450d9626a6743e31ad9af137fed89596b0e11ee26b08d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "21f504db9d302a968c60fcc5786cbc359008f6acae5f3aa4d606d9c11e75a86a"
+    },
+    "ned-mean": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "ned-mean",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-ned-mean.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "a6695ae0122b512d44214f6a5fabf2f3ca7d86c29c67dfef8c85b676b55ea88d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "e25ed7988876e3b976077291555c3c894c8853053099dd913ecad860694a006e"
+    },
+    "nwu-mean": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "nwu-mean",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-nwu-mean.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "6d7b1fb7099908329491b80a582b4efe1172c03ad5506e3aef525829c58491a7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "console_log_sha256": "d625c990677adf89644c7a9b29e9a0b3ad3bc3797662b37e87487e6813f254f5"
+    },
+    "custom-explicit-motion": {
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/native-imu-reference",
+        "custom-explicit-motion",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m43-m44-delivery/native-imu-reference-b3wuxi6k/imu-reference-custom-explicit-motion.maps"
+      ],
+      "actual_exit_code": 0,
+      "stdout_sha256": "3c8307671c0ad6e56c0e4bfcb59efe86a4a4963ab3560b20031e0da9aeb07f6f",
+      "stderr_sha256": "ff8df3ef615788a1735bd80047c229c9fbc59638f1f02713229515229f40e154",
+      "console_log_sha256": "bcc4a6d101de5e43feadcfe8c90fda2f9bfc30541c05781fea9f0cd7c78948bf"
+    }
+  },
+  "limits": "Actual independently audited Sensors-component literal extraction only. WORLD pose/vectors and native reverse-rotated setters remain distinct actual input ledgers; scalar replay consumes the sensor-axis setters directly, without inverse reconstruction or MODEL-parent composition. All numeric outputs are captured bits, not expected math. Disabled orientation is absent on wire; getter remains an independent observation. Exact captured-value header/wire encoder replay is separate from componentwise strict <1e-9 native/Rust numeric replay and live current-Scene wire proof. Zero-variance means do not supply RNG-stream equivalence. No original-system execution, native Physics/trajectory, nonzero-heading/geodesy, SDK rebuild, old campaign replay, product or workload execution is supplied. Fixed-grammar DATA, current Source and normal/hosted acceptance remain required.",
+  "fixture_representation": "Observed holds a shared static NativeOutput reference. All captured bits and wire bytes are unchanged; no heap allocation or lint allowance was added.",
+  "preserved_prior_fixture_sha256": "597f9ccc4407d2ee2349acd22dc88c026ed71c84dd26b41b9841aa66511ff6c4",
+  "preserved_prior_literal_DATA_sha256": "fe1603c62283d4eaab8d05e8fe536cc1f03542ba91734cdd607802f16d5a328c",
+  "normal_layout_failure_receipt_sha256": "0ad5ee59ddb88a1b427d44b39e821db232954de12cb68213614bd4cadab63772"
+}

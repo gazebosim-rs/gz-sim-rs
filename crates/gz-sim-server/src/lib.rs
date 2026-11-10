@@ -1963,3 +1963,7 @@ mod camera_ownership_tests;
 #[cfg(test)]
 #[path = "../tests/private/m34_m35_endpoints.rs"]
 mod m34_m35_endpoint_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/imu_reference_frames_native.rs"]
+mod imu_reference_frames_native;

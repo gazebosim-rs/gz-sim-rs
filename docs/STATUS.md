@@ -1,7 +1,24 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Current status: M41 and M42 over accepted M39/M40
+## Current status: M43 and M44 over accepted M41/M42
+
+M1–M42 are accepted at qualified Main `73e03b9f`. The complete normal hook,
+strict coverage, exact hosted CI 42808865907 attempt 1 and independent local
+and official DATA passed before actual nonforced Main promotion and readback.
+See [M41/M42 acceptance](M41_M42_ACCEPTANCE.md). M40 release 440119258 remains
+the latest accepted installed preview; M41/M42 do not claim a package refresh.
+
+[M43/M44](M43_M44_DELIVERY.md) are the current bounded source lanes among 44
+selected phases: named IMU orientation references and an eighteen-example,
+three-executable Ubuntu preview. Disjoint Scene, Server/reference and packaging
+source work is independently reviewed in parts. Scoped native component and
+literal DATA passed; Rust and fresh distribution/install/browser qualification
+remain pending. Neither phase is
+accepted. Root owns shared integration and serial heavy operations; complete
+source and review before consolidated checks, preserving every required gate.
+
+## Historical M41/M42 source checkpoint (superseded)
 
 M1–M40 are accepted at qualified Main `470da6e6`.
 [M39/M40 acceptance](M39_M40_ACCEPTANCE.md) records the full normal and strict

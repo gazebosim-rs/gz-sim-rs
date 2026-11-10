@@ -1,8 +1,20 @@
-# Current delivery: M41 and M42
+# Current delivery: M43 and M44
 
-M1–M40 are accepted at qualified Main470da. M40 release440119258 (`m40-preview`) is actual Latest with seven byte-verified assets. M41 constant-wind AirSpeed and M42 joint-force feedback are the current disjoint implementation lanes; neither is accepted. Each is at most five working days including review and all required gates.
+M1–M42 are accepted at qualified Main `73e03b9f741689b1538898bde96bf975a49f068e`.
+M41 constant-wind AirSpeed and M42 joint-force feedback passed the complete
+normal hook, strict coverage, exact hosted CI 42808865907 attempt 1 and
+independent local/official DATA, followed by normal Main push and readback.
+M40 release 440119258 (`m40-preview`) remains the latest installed preview.
 
-Read [M39/M40 acceptance](M39_M40_ACCEPTANCE.md) and the [M41/M42 contract](M41_M42_DELIVERY.md). Root owns shared integration and serial heavy work. Complete source/regressions/guides and independent review before consolidated checks. No tests/lint/native execution is released by this status update.
+M43 adds named IMU orientation references; M44 refreshes the preview with
+eighteen examples and the installed joint-command helper. Source work proceeds
+in parallel with explicit leases; Root owns shared integration and serial heavy
+operations. Neither phase is accepted. Complete implementation, regression
+source, guides and independent review before consolidated checks. Fresh native,
+Rust, distribution, clean installation and browser proofs remain required. Each
+phase is bounded at five working days including review and mandatory checks.
+
+Read [M41/M42 acceptance](M41_M42_ACCEPTANCE.md) and the [M43/M44 contract](M43_M44_DELIVERY.md).
 
 ## Historical planning and closeout checkpoints (superseded)
 

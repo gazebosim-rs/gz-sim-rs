@@ -636,7 +636,8 @@ class AuxiliaryRetention(unittest.TestCase):
 
     def test_wind_and_force_runs_cannot_reuse_old_invocations_or_forge_success(self):
         baseline = json.dumps(self.report["noisy_examples"])
-        for source in ("examples/m41_air_speed_wind.sdf", "examples/m42_joint_force_feedback.sdf"):
+        for source in ("examples/m41_air_speed_wind.sdf", "examples/m42_joint_force_feedback.sdf",
+                       "examples/m43_imu_reference_frames.sdf"):
             index = QUALIFIER.NOISY_EXAMPLES.index(source)
             valid = json.loads(baseline)["runs"][index]["stdout"]
             for field, altered in (
@@ -644,7 +645,7 @@ class AuxiliaryRetention(unittest.TestCase):
                 ("stderr", "new example failed\n"),
                 ("argv", json.loads(baseline)["runs"][12]["argv"]),
                 ("source", QUALIFIER.NOISY_EXAMPLES[12]),
-                ("stdout", valid.replace(" 0 0 ", " 0.1 0 ")),
+                ("stdout", valid.replace(" 0 0 ", " 0.1 0 ").replace(" 2 -1 3", " 2.1 -1 3")),
                 ("fixture_sha256", "0" * 64),
                 ("fixture_mode", 0o600),
             ):

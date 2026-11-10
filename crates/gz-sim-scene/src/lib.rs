@@ -66,6 +66,7 @@ pub use world_edit::{ModelState, WorldEditError, model_state, model_visual_pose,
 mod world_spawn;
 pub use world_spawn::{ModelTemplate, prepare_model_template, spawn_model_template};
 mod imu_lifecycle;
+mod imu_reference;
 mod lidar;
 pub use lidar::{LidarPublication, LidarSample, clear_lidar_interest, set_lidar_interest};
 mod logical_camera;
@@ -356,6 +357,7 @@ pub struct ImuPublication {
 
 struct SceneContext<'a> {
     world: &'a str,
+    has_spherical_coordinates: bool,
     links: BTreeMap<String, u64>,
     visuals: Vec<Entity>,
     cameras: Vec<Entity>,
@@ -584,6 +586,7 @@ fn load_world_configured(
     };
     let mut context = SceneContext {
         world: world_name,
+        has_spherical_coordinates: world.spherical_coordinates.is_some(),
         links: BTreeMap::new(),
         visuals: Vec::new(),
         cameras: Vec::new(),
@@ -1291,13 +1294,8 @@ fn build_model(
                 entity: name.clone(),
                 feature: "non-IMU sensors",
             })?;
-            require(
-                config.localization == "CUSTOM"
-                    && config.custom_rpy == [0.0; 3]
-                    && config.custom_rpy_parent_frame.is_empty(),
-                &name,
-                "IMU orientation configuration",
-            )?;
+            let reference_frame =
+                imu_reference::validate(config, context.has_spherical_coordinates, &name)?;
             let schedule =
                 SampleSchedule::new(sensor.update_rate).map_err(|_| LoadError::Unsupported {
                     entity: name.clone(),
@@ -1366,7 +1364,10 @@ fn build_model(
                 Imu {
                     link: link_id,
                     rotation: DQuat::from_array(local.rotation),
-                    reference: DQuat::from_array(pose.rotation) * DQuat::from_array(local.rotation),
+                    reference: imu_reference::reference(
+                        reference_frame,
+                        DQuat::from_array(pose.rotation) * DQuat::from_array(local.rotation),
+                    ),
                     previous_velocity: DVec3::ZERO,
                     schedule,
                     sdf_rate_hz: sensor.update_rate,

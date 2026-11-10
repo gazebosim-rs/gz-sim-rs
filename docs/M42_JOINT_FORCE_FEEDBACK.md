@@ -6,12 +6,12 @@
 This bounded workflow combines existing ApplyJointForce and JointStatePublisher
 on an already supported WORLD-hinge Rapier body. It adds an example, regression
 controls and the `force` mode in the existing `joint_command` helper; it expands
-no mechanical, publication, transport or backend domain. Implementation Source
-must finish independent review, then the full mandatory normal hook, strict
-workspace/per-crate coverage, exact hosted CI and independent DATA before
-acceptance. Source preparation and instructions below are not execution results.
-M41/M42 also require the actual accepted M39/M40 parent. No new preview package
-or repeat browser acceptance is part of this wave.
+no mechanical, publication, transport or backend domain. M41/M42 are accepted
+at Main `73e03b9f` over accepted M40 after independent source review, the full
+normal hook and strict coverage, exact CI 42808865907 attempt 1 and independent
+local/official DATA. See [the acceptance record](M41_M42_ACCEPTANCE.md). The
+commands below describe use, not an additional execution receipt. No new preview
+package or repeat browser acceptance is part of this wave.
 
 ## Example and commands
 
@@ -52,8 +52,8 @@ GZ_PARTITION=m42 target/debug/examples/joint_command tcp/127.0.0.1:7449 force 0 
 GZ_PARTITION=m42 target/debug/examples/joint_command tcp/127.0.0.1:7449 force -1.5 1
 ```
 
-These instructions require Root's shared `joint_command` force-mode integration;
-position and velocity modes keep their previous topics and behavior. Force uses
+The maintained `joint_command` force mode is integrated; position and velocity
+modes keep their previous topics and behavior. Force uses
 finite Nm and the existing finite repeat interval 0..=3600 seconds, and a successful
 invocation explicitly publishes zero effort at its end. Zero coasts; it is not
 braking or a stopped-state guarantee. Matching or successful Publish establishes
@@ -129,8 +129,8 @@ The first executed headless batch exposed the new controls' incorrect DART
 position comparison in both Scene and Server. The unchanged native-rate controls
 passed. The correction retains the native fixture and all six rate assertions,
 adds the direct-input Rapier position reference, and changes no inertia, solver,
-production API or tolerance. That batch failed; a complete reviewed retry is
-required before qualification.
+production API or tolerance. That batch remains failed; the later complete reviewed normal retry
+and exact hosted CI passed before qualification.
 
 The public Server/C++ workflow observes actual canonical input and full Model
 feedback for those pulses, positive effort, explicit zero coasting and opposite

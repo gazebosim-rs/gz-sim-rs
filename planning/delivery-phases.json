@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-10",
   "execution_state": "active",
-  "current_phase": "M41",
+  "current_phase": "M43",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -716,7 +716,13 @@
       "acceptance": "Reviewed interfaces/source/regressions/guide, fresh pinned component reference and literal DATA, actual Scene/canonical/lifecycle controls and all unchanged normal/strict/exact hosted/local+official gates after accepted M39/M40 parent.",
       "excluded": "Wind forces/services/runtime mutation, new sensor or backend domain, SDK rebuild, RNG parity, transport/framework and distribution refresh.",
       "evidence": "docs/M41_M42_DELIVERY.md",
-      "source_preparation_only": false
+      "source_preparation_only": false,
+      "accepted_at": "2026-11-10T12:30:22.209614+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "73e03b9f741689b1538898bde96bf975a49f068e",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_record": "docs/M41_M42_ACCEPTANCE.md"
     },
     {
       "id": "M42",
@@ -729,6 +735,38 @@
       "acceptance": "Reviewed example/helper/regressions/guide, real C++ command and full Model feedback, existing native six-pulse velocity comparisons at unchanged bounds, paired direct-Rapier position/velocity controls, actual canonical removal completion/reset/unconditional disconnected acquisition/owned shutdown and all unchanged normal/strict/exact hosted/local+official gates after accepted M39/M40 parent.",
       "excluded": "Moving-parent effort expansion, new mechanics/solver/core system, measured effort output, remote packet cancellation, general barrier/transport/framework and distribution refresh.",
       "evidence": "docs/M41_M42_DELIVERY.md",
+      "source_preparation_only": false,
+      "accepted_at": "2026-11-10T12:30:22.209614+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "73e03b9f741689b1538898bde96bf975a49f068e",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      },
+      "acceptance_record": "docs/M41_M42_ACCEPTANCE.md"
+    },
+    {
+      "id": "M43",
+      "title": "Named IMU orientation references",
+      "max_working_days": 5,
+      "depends_on": [
+        "M42"
+      ],
+      "scope": "ENU, NED and NWU immutable orientation references in the existing centered IMU domain; default CUSTOM remains bit-preserving. Named references reject spherical metadata. Gyro, specific force, noise, rates, physics and schemas retain their accepted contracts.",
+      "acceptance": "Independently reviewed source, regressions and guide; actual pinned finite component reference and literal DATA; sign-sensitive native component bounds below 1e-9, exact captured encoder replay and actual live canonical lifecycle controls; all unchanged normal/strict/exact hosted/local and official DATA plus the fresh M44 distribution proofs before atomic acceptance.",
+      "excluded": "Nonzero heading/geodesy, custom RPY or parent frames, runtime reference mutation, native Physics or RNG parity, new public sensor API, backend or transport framework.",
+      "evidence": "docs/M43_M44_DELIVERY.md",
+      "source_preparation_only": false
+    },
+    {
+      "id": "M44",
+      "title": "Eighteen-example preview and installed joint-command helper",
+      "max_working_days": 5,
+      "depends_on": [
+        "M43"
+      ],
+      "scope": "Refresh the native-free Ubuntu 24.04 x86_64 preview with the retained fifteen-example prefix plus M41/M42/M43, and a third source-bound joint_command ELF installed as bin/gz-joint-command. Preserve the default robot, six accepted viewer files and both gzip budgets.",
+      "acceptance": "Fresh serial release artifacts, actual metadata/notices/three-ELF closure, assembly/relocation and independent package DATA; actual nonroot clean Ubuntu installation of all eighteen finite examples, installed canonical joint-force/feedback, maintained browser default robot Play/forward/turn/Pause/Reset/owned shutdown; unchanged full normal/strict/exact hosted/local and official DATA, normal Main/tag/seven release assets/notes/Latest readbacks before atomic M43/M44 acceptance.",
+      "excluded": "Renderer rebuild, optional RGB/depth/native-backend distributions, new packaging/runtime framework, altered default robot, browser telemetry widgets, cross-engine trajectory/performance or universal-platform claims.",
+      "evidence": "docs/M43_M44_DELIVERY.md",
       "source_preparation_only": false
     }
   ],
@@ -774,16 +812,18 @@
     "M38": "complete",
     "M39": "complete",
     "M40": "complete",
-    "M41": "in_progress",
-    "M42": "in_progress"
+    "M41": "complete",
+    "M42": "complete",
+    "M43": "in_progress",
+    "M44": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-10",
   "active_phases": [
-    "M41",
-    "M42"
+    "M43",
+    "M44"
   ],
-  "execution_policy": "D30\u2013D32: independent M41 constant-wind AirSpeed and M42 world-hinge force/JointState workflow over accepted470da. Root owns shared seams and serial heavy operations. Complete bounded implementation, regression source, guides and independent review, batch findings, then one consolidated qualification with unchanged strict coverage and exact hosted/local+official DATA. No acceptance transfer.",
+  "execution_policy": "D30\u2013D32: disjoint M43 Scene/reference/Server source and M44 packaging work over accepted Main73e03. Root owns shared integration and serial heavy operations. Finish bounded source, regression code, guides and independent review; batch findings before one complete normal/strict/exact hosted/local and official qualification. Fresh distribution, installation, canonical force feedback, browser and publication proofs are required before either phase is accepted.",
   "parallel_groups": [
     {
       "phases": [
@@ -909,11 +949,19 @@
       ],
       "integration": "Disjoint source preparation only over frozen470da overlaps M39/M40 hosted/publication closeout. Actual accepted parent and reviewed complete contracts precede native or consolidated checks; Root owns shared seams and serial heavy execution. Every feature retains its own acceptance proof.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M43",
+        "M44"
+      ],
+      "integration": "Disjoint Scene and Server/reference leaves and maintained packaging source may proceed in parallel over accepted73e03. M44 depends on integrated M43 for actual builds and installation. Root serializes local heavy operations; source review and hosted CI may overlap. Keep every feature and distribution acceptance proof and all prior accepted evidence.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M40 accepted at qualified Main470da; M40 release440119258 is actual installed Latest with seven verified assets. M41/M42 are active bounded parallel source lanes, not accepted. Complete source/native/canonical review and unchanged normal/strict/exact hosted/independent DATA remain mandatory.",
+  "acceptance_boundary": "M1\u2013M42 accepted at qualified Main73e03 after actual full normal, exact CI42808865907 attempt1 and independent local/official DATA. M40 release440119258 remains the latest installed preview. M43/M44 are in progress with reviewed source preparation, not accepted; scoped native component and literal DATA passed; Rust and fresh distribution qualification remain pending.",
   "current_delivery_group": [
-    "M41",
-    "M42"
+    "M43",
+    "M44"
   ]
 }

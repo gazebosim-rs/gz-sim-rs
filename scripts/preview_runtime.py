@@ -47,7 +47,7 @@ def verify_prefix(prefix):
     files = manifest['files']
     if 'manifest.json' in files:
         raise ValueError('manifest cannot list itself')
-    required = {'bin/gz-preview', 'bin/gz-sim-rs', 'bin/gz-drive-command',
+    required = {'bin/gz-preview', 'bin/gz-sim-rs', 'bin/gz-drive-command', 'bin/gz-joint-command',
                 'share/robot.sdf', 'share/zenoh.json5', 'web/index.html', 'web/startup.mjs',
                 'LICENSE', 'NOTICE', 'notices.json',
                 *{'web/target/wasm32-unknown-unknown/release/' + flavor + '/' + name

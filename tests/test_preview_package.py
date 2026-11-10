@@ -45,6 +45,7 @@ class PreviewPackage(unittest.TestCase):
                      'docs/M32_INSTALL.md', 'docs/M32_CAPABILITIES.md', 'docs/M32_PREVIEW.md',
                      'docs/M37_INSTALL.md', 'docs/M37_CAPABILITIES.md', 'docs/M37_PREVIEW.md',
                      'docs/M40_INSTALL.md', 'docs/M40_CAPABILITIES.md', 'docs/M40_PREVIEW.md',
+                     'docs/M44_INSTALL.md', 'docs/M44_CAPABILITIES.md', 'docs/M44_PREVIEW.md',
                      *['examples/' + name for name in package.NOISY_EXAMPLES], 'LICENSE', 'NOTICE']:
             path = self.source / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -67,7 +68,8 @@ class PreviewPackage(unittest.TestCase):
             path.write_bytes(b'\0asm\x01\0\0\0' if name.endswith('.wasm') else b'fixture browser text')
             self.viewer_hashes[name] = sha(path)
         self.binaries, artifacts, packages = {}, [], []
-        for target, crate in [('gz-sim-rs', 'gz-sim-cli'), ('drive_command', 'gz-sim-server')]:
+        for target, crate in [('gz-sim-rs', 'gz-sim-cli'), ('drive_command', 'gz-sim-server'),
+                              ('joint_command', 'gz-sim-server')]:
             path = self.directory / target
             header = bytearray(64)
             header[:6] = b'\x7fELF\x02\x01'
@@ -75,14 +77,15 @@ class PreviewPackage(unittest.TestCase):
             path.write_bytes(header)
             path.chmod(0o755)
             crate_root = self.source / 'crates' / crate
-            crate_root.mkdir(parents=True)
+            crate_root.mkdir(parents=True, exist_ok=True)
             (crate_root / 'Cargo.toml').write_text('fixture')
             identity = 'path+file://' + str(crate_root) + '#0.1.0'
             artifacts.append({'reason': 'compiler-artifact', 'executable': str(path),
                               'package_id': identity, 'target': {'name': target}, 'features': [],
                               'profile': {'test': False, 'opt_level': '3'}})
-            packages.append({'id': identity, 'name': crate, 'version': '0.1.0', 'source': None,
-                             'license': 'Apache-2.0', 'manifest_path': str(crate_root / 'Cargo.toml')})
+            if not any(entry['id'] == identity for entry in packages):
+                packages.append({'id': identity, 'name': crate, 'version': '0.1.0', 'source': None,
+                                 'license': 'Apache-2.0', 'manifest_path': str(crate_root / 'Cargo.toml')})
             self.binaries[target] = path
         self.transcript = self.directory / 'cargo.jsonl'
         self.transcript.write_text(''.join(json.dumps(event) + '\n' for event in [*artifacts, {'reason': 'build-finished', 'success': True}]))
@@ -109,6 +112,7 @@ class PreviewPackage(unittest.TestCase):
                      'repositories': {'gz-sim-rs': 'a' * 40, 'gzweb-rs': 'b' * 40},
                      'simulator': self.binary_record('gz-sim-rs'),
                      'drive_command': self.binary_record('drive_command'),
+                     'joint_command': self.binary_record('joint_command'),
                      'viewer_root': str(self.viewer), 'viewer_files': self.viewer_hashes,
                      'cargo_metadata': [
                          {'path': str(metadata), 'sha256': sha(metadata), 'repository': 'gz-sim-rs',
@@ -131,7 +135,7 @@ class PreviewPackage(unittest.TestCase):
 
     def refresh_transcript(self):
         self.transcript.write_text(''.join(json.dumps(event) + '\n' for event in [*self.artifacts, {'reason': 'build-finished', 'success': True}]))
-        for key in ['simulator', 'drive_command']:
+        for key in ['simulator', 'drive_command', 'joint_command']:
             self.spec[key]['cargo_messages_sha256'] = sha(self.transcript)
 
     def refuse(self, expression):
@@ -151,9 +155,9 @@ class PreviewPackage(unittest.TestCase):
         self.assertNotIn(str(self.directory), (self.output / 'notices.json').read_text())
         selected = {'examples/m19_robot.sdf': 'share/robot.sdf',
                     'examples/meshes/m16-asymmetric.obj': 'share/meshes/m16-asymmetric.obj',
-                    'docs/M40_INSTALL.md': 'INSTALL.md',
-                    'docs/M40_CAPABILITIES.md': 'CAPABILITIES.md',
-                    'docs/M40_PREVIEW.md': 'PREVIEW.md',
+                    'docs/M44_INSTALL.md': 'INSTALL.md',
+                    'docs/M44_CAPABILITIES.md': 'CAPABILITIES.md',
+                    'docs/M44_PREVIEW.md': 'PREVIEW.md',
                     **{'examples/' + name: 'share/examples/' + name for name in package.NOISY_EXAMPLES}}
         for source, installed in selected.items():
             with self.subTest(installed=installed):
@@ -228,7 +232,7 @@ class PreviewPackage(unittest.TestCase):
                 self.assertEqual(mesh.read_bytes(), original)
 
     def test_dedicated_guides_are_required_even_when_legacy_sources_exist(self):
-        for name in ('M40_INSTALL.md', 'M40_CAPABILITIES.md', 'M40_PREVIEW.md'):
+        for name in ('M44_INSTALL.md', 'M44_CAPABILITIES.md', 'M44_PREVIEW.md'):
             with self.subTest(guide=name):
                 guide = self.source / 'docs' / name
                 original = guide.read_bytes()
@@ -242,6 +246,7 @@ class PreviewPackage(unittest.TestCase):
                 self.assertTrue((self.source / 'docs/M29_INSTALL.md').is_file())
                 self.assertTrue((self.source / 'docs/M32_INSTALL.md').is_file())
                 self.assertTrue((self.source / 'docs/M37_INSTALL.md').is_file())
+                self.assertTrue((self.source / 'docs/M40_INSTALL.md').is_file())
                 self.refuse('regular')
                 self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
                 guide.write_bytes(original)
@@ -250,16 +255,16 @@ class PreviewPackage(unittest.TestCase):
         self.assertIn('CAPABILITIES.md', output['files'])
         self.assertIn('PREVIEW.md', output['files'])
         self.assertEqual((self.output / 'INSTALL.md').read_bytes(),
-                         (self.source / 'docs/M40_INSTALL.md').read_bytes())
-        for phase in ('M12', 'M19', 'M20', 'M25', 'M29', 'M32', 'M37'):
+                         (self.source / 'docs/M44_INSTALL.md').read_bytes())
+        for phase in ('M12', 'M19', 'M20', 'M25', 'M29', 'M32', 'M37', 'M40'):
             self.assertNotEqual((self.output / 'INSTALL.md').read_bytes(),
                                 (self.source / ('docs/' + phase + '_INSTALL.md')).read_bytes())
 
-    def test_m40_documented_archive_root_examples_and_installed_launcher_survive_relocation(self):
+    def test_m44_documented_archive_root_examples_and_installed_launcher_survive_relocation(self):
         for name in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
-            shutil.copyfile(ROOT / ('docs/M40_' + name + '.md'),
-                            self.source / ('docs/M40_' + name + '.md'))
-        output = self.directory / 'gz-preview-m40-linux-x86_64'
+            shutil.copyfile(ROOT / ('docs/M44_' + name + '.md'),
+                            self.source / ('docs/M44_' + name + '.md'))
+        output = self.directory / 'gz-preview-m44-linux-x86_64'
         archive = self.directory / (output.name + '.tar.gz')
         manifest = package.assemble(self.spec, output, archive)
         self.assertEqual((output / 'bin/gz-preview').read_bytes(),
@@ -268,14 +273,14 @@ class PreviewPackage(unittest.TestCase):
         with tarfile.open(archive, 'r:gz') as packed:
             self.assertTrue(all(member.name.startswith(output.name + '/') for member in packed.getmembers()))
             self.assertEqual(packed.extractfile(output.name + '/INSTALL.md').read(),
-                             (ROOT / 'docs/M40_INSTALL.md').read_bytes())
+                             (ROOT / 'docs/M44_INSTALL.md').read_bytes())
             self.assertEqual(packed.extractfile(output.name + '/bin/gz-preview').read(),
                              (self.source / 'scripts/preview_runtime.py').read_bytes())
-        moved = self.directory / 'relocated-m40'
+        moved = self.directory / 'relocated-m44'
         shutil.move(output, moved)
         self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
         self.assertIn(archive.name, (moved / 'INSTALL.md').read_text())
-        self.assertIn('gz-preview-m40-linux-x86_64', (moved / 'INSTALL.md').read_text())
+        self.assertIn('gz-preview-m44-linux-x86_64', (moved / 'INSTALL.md').read_text())
         with patch.object(runtime, 'serve', return_value=0) as serve:
             self.assertEqual(runtime.main(['run', '--lifecycle', '--http-port', '8082'], moved), 0)
             serve.assert_called_once_with(moved, 8082, 9014, 'gz-preview', lifecycle=True)
@@ -517,7 +522,7 @@ class PreviewPackage(unittest.TestCase):
         expected = (*old, 'm33_robot_sensors.sdf', 'm34_odometry_publisher.sdf',
                     'm35_apply_link_wrench.sdf', 'm36_wrench_odometry.sdf',
                     'm38_odometry_3d.sdf', 'm39_odometry_translation_offsets.sdf')
-        self.assertEqual(package.NOISY_EXAMPLES, expected)
+        self.assertEqual(package.NOISY_EXAMPLES[:len(expected)], expected)
         preview = (ROOT / 'docs/M40_PREVIEW.md').read_text()
         for name in expected:
             self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name + '"', preview)
@@ -581,6 +586,76 @@ class PreviewPackage(unittest.TestCase):
             for old in package.NOISY_EXAMPLES[:13]:
                 self.assertEqual((moved / 'share/examples' / old).read_bytes(),
                                  (self.source / 'examples' / old).read_bytes())
+
+
+    def test_joint_helper_requires_its_own_release_artifact_and_notice_closure(self):
+        record = self.spec.pop('joint_command')
+        self.refuse('joint-command release artifact')
+        self.spec['joint_command'] = record
+        own = self.artifacts[2]
+        for field, value in (('target', {'name': 'drive_command'}),
+                             ('package_id', 'registry+https://example.invalid#foreign@1.0.0'),
+                             ('features', ['native-backends'])):
+            previous = own[field]
+            own[field] = value
+            self.refresh_transcript()
+            self.refuse('exactly one Cargo artifact|native-free')
+            own[field] = previous
+        self.refresh_transcript()
+        # A dependency present only in the joint helper's actual transcript
+        # cannot be omitted by reusing the drive helper's notice selection.
+        joint_transcript = self.directory / 'joint-cargo.jsonl'
+        events = [own, {'reason': 'compiler-artifact', 'executable': None,
+                        'package_id': 'registry+https://example.invalid#joint-only@1.0.0'},
+                  {'reason': 'build-finished', 'success': True}]
+        joint_transcript.write_text(''.join(json.dumps(event) + '\n' for event in events))
+        record.update(cargo_messages=str(joint_transcript), cargo_messages_sha256=sha(joint_transcript))
+        self.refuse('notices omit native compiler artifact packages')
+        self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+
+    def test_joint_helper_is_source_bound_in_archive_and_relocated_prefix(self):
+        archive = self.directory / 'three-executables.tar.gz'
+        manifest = package.assemble(self.spec, self.output, archive)
+        original = self.binaries['joint_command'].read_bytes()
+        name = 'bin/gz-joint-command'
+        self.assertEqual(manifest['files'][name],
+                         {'bytes': len(original), 'sha256': sha(self.binaries['joint_command']), 'mode': 0o755})
+        with tarfile.open(archive, 'r:gz') as packed:
+            member = packed.getmember(self.output.name + '/' + name)
+            self.assertTrue(member.isfile())
+            self.assertEqual(member.mode, 0o755)
+            self.assertEqual(packed.extractfile(member).read(), original)
+        moved = self.directory / 'three executable relocated prefix'
+        shutil.move(self.output, moved)
+        self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
+        target = moved / name
+        for raw, mode in ((original + b'changed', 0o755), (original, 0o644)):
+            target.write_bytes(raw)
+            target.chmod(mode)
+            with self.assertRaisesRegex(ValueError, 'differs'):
+                runtime.verify_prefix(moved)
+        target.write_bytes(original)
+        target.chmod(0o755)
+        self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
+
+    def test_m44_guides_preserve_fifteen_examples_and_add_three_finite_commands(self):
+        self.assertEqual(len(package.NOISY_EXAMPLES), 18)
+        self.assertEqual(package.NOISY_EXAMPLES[15:],
+                         ('m41_air_speed_wind.sdf', 'm42_joint_force_feedback.sdf',
+                          'm43_imu_reference_frames.sdf'))
+        preview = (ROOT / 'docs/M44_PREVIEW.md').read_text()
+        for name in package.NOISY_EXAMPLES:
+            self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name + '"', preview)
+        self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 18)
+        for topic in ('/m42/joint_state', '/m43/imu'):
+            self.assertIn(topic, preview)
+        install = (ROOT / 'docs/M44_INSTALL.md').read_text()
+        self.assertIn('gz-preview-m44-linux-x86_64.tar.gz', install)
+        self.assertIn('"$preview_prefix/bin/gz-joint-command" tcp/127.0.0.1:7449 force 1.5 1', install)
+        self.assertIn('Zero coasts', install)
+        self.assertIn('matching alone does not prove', install)
+        for name in ('M40_INSTALL.md', 'M40_CAPABILITIES.md', 'M40_PREVIEW.md'):
+            self.assertTrue((ROOT / 'docs' / name).is_file())
 
 
 if __name__ == '__main__':

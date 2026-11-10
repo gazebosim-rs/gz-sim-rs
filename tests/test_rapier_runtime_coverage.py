@@ -132,7 +132,7 @@ class DisabledBackendProof(unittest.TestCase):
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 17)
+            self.assertEqual(run.call_count, 18)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -306,7 +306,8 @@ class DisabledBackendProof(unittest.TestCase):
         self.assertEqual(MODULE.NOISY_EXAMPLES[13:15], (
             "examples/m38_odometry_3d.sdf", "examples/m39_odometry_translation_offsets.sdf"))
         self.assertEqual(MODULE.NOISY_EXAMPLES[15:], (
-            "examples/m41_air_speed_wind.sdf", "examples/m42_joint_force_feedback.sdf"))
+            "examples/m41_air_speed_wind.sdf", "examples/m42_joint_force_feedback.sdf",
+            "examples/m43_imu_reference_frames.sdf"))
         self.assertEqual(MODULE.NOISY_ASSETS, ("examples/meshes/m16-asymmetric.obj",))
 
     def test_new_static_example_outputs_are_complete_sorted_finite_and_exact(self):
@@ -429,11 +430,12 @@ class DisabledBackendProof(unittest.TestCase):
         for source, body in (
             ("examples/m41_air_speed_wind.sdf", "default::rig::body 0 0 3\n"),
             ("examples/m42_joint_force_feedback.sdf", "default::rotor::body 0 0 0\n"),
+            ("examples/m43_imu_reference_frames.sdf", "default::rig::body 2 -1 3\n"),
         ):
             self.assertTrue(MODULE.noisy_output_matches(source, headline + body))
             wrong = [headline, headline + body + body,
                      headline + body.replace("::body", "::other"),
-                     headline + body.replace(" 0 0 ", " 0.1 0 ")]
+                     headline + body.replace(" 0 0 ", " 0.1 0 ").replace(" 2 -1 3", " 2.1 -1 3")]
             for coordinate in range(1, 4):
                 for value in ("nan", "inf", "bad", str(float(body.split()[coordinate]) + 1e-13)):
                     fields = body.split()

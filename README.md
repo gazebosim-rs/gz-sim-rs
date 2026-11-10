@@ -29,6 +29,21 @@ The [live progress dashboard](https://gazebosim-rs.github.io/rewrite-progress/)
 tracks accepted increments, current development, remaining scope and evidence
 across the four target repositories. Repository agents publish their own updates.
 
+## Current delivery
+
+M1–M42 are accepted at qualified Main `73e03b9f`; see
+[M41/M42 acceptance](docs/M41_M42_ACCEPTANCE.md). The latest installed preview is
+[m40-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m40-preview),
+with its matching [installation](docs/M40_INSTALL.md) and
+[capability](docs/M40_CAPABILITIES.md) guides.
+
+[M43/M44](docs/M43_M44_DELIVERY.md) are in development: named IMU orientation
+references and an eighteen-example preview with the joint-command helper. Their
+source and native component evidence do not qualify a new installed release.
+Fresh Rust, hosted, package, installation and browser proofs remain required.
+
+## Historical delivery notes
+
 M1–M20 runtimes and the bounded distribution are accepted. Download the
 [Ubuntu 24.04 x86_64 integrated preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m20-preview)
 and its checksum, then follow the included installation guide. It packages the

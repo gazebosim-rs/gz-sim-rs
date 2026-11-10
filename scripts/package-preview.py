@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Assemble an explicitly source-bound M40 Linux preview, without building inputs."""
+"""Assemble an explicitly source-bound M44 Linux preview, without building inputs."""
 import argparse
 import gzip
 import hashlib
@@ -32,7 +32,9 @@ NOISY_EXAMPLES = (
     'm30_logical_camera.sdf', 'm31_pose_static_publisher.sdf',
     'm33_robot_sensors.sdf', 'm34_odometry_publisher.sdf',
     'm35_apply_link_wrench.sdf', 'm36_wrench_odometry.sdf',
-    'm38_odometry_3d.sdf', 'm39_odometry_translation_offsets.sdf')
+    'm38_odometry_3d.sdf', 'm39_odometry_translation_offsets.sdf',
+    'm41_air_speed_wind.sdf', 'm42_joint_force_feedback.sdf',
+    'm43_imu_reference_frames.sdf')
 
 
 def regular(path, maximum=MAX_FILE):
@@ -155,6 +157,9 @@ def assemble(spec, output, archive=None):
         raise ValueError('exact simulator and viewer commit identities are required')
     simulator, native_ids = binary_input(spec['simulator'], 'gz-sim-rs', 'gz-sim-cli')
     sender, helper_ids = binary_input(spec['drive_command'], 'drive_command', 'gz-sim-server')
+    if not isinstance(spec.get('joint_command'), dict):
+        raise ValueError('a joint-command release artifact record is required')
+    joint_sender, joint_ids = binary_input(spec['joint_command'], 'joint_command', 'gz-sim-server')
     viewer_root = Path(spec['viewer_root'])
     if not viewer_root.is_absolute() or not viewer_root.is_dir() or viewer_root.is_symlink():
         raise ValueError('an absolute accepted viewer bundle directory is required')
@@ -205,7 +210,7 @@ def assemble(spec, output, archive=None):
                           'packages': [by_id[identity] for identity in selected]})
     if configurations != {'native', 'viewer-webgpu', 'viewer-webgl2'}:
         raise ValueError('native and both accepted viewer feature graphs are required')
-    if not (native_ids | helper_ids) <= admitted_ids:
+    if not (native_ids | helper_ids | joint_ids) <= admitted_ids:
         raise ValueError('notices omit native compiler artifact packages')
     extras = {name: regular(path, 1024 * 1024) for name, path in spec['extra_notices'].items()}
     if not {'licenses/Apache-2.0.txt', 'OSRF-NOTICE.txt', 'Geist-OFL.txt',
@@ -231,6 +236,7 @@ def assemble(spec, output, archive=None):
         prefix.mkdir()
         copy_file(simulator, prefix / 'bin/gz-sim-rs', 0o755, spec['simulator']['sha256'])
         copy_file(sender, prefix / 'bin/gz-drive-command', 0o755, spec['drive_command']['sha256'])
+        copy_file(joint_sender, prefix / 'bin/gz-joint-command', 0o755, spec['joint_command']['sha256'])
         copy_file(regular(ROOT / 'scripts/preview_runtime.py'), prefix / 'bin/gz-preview', 0o755)
         copy_file(regular(ROOT / 'examples/m19_robot.sdf'), prefix / 'share/robot.sdf')
         copy_file(mesh, prefix / 'share/meshes/m16-asymmetric.obj', expected=mesh_sha)
@@ -244,9 +250,9 @@ def assemble(spec, output, archive=None):
                                       'scouting': {'multicast': {'enabled': False}}}, indent=2) + '\n')
         for name, path in viewer.items():
             copy_file(path, prefix / 'web' / name, expected=spec['viewer_files'][name])
-        for source_name, installed_name in (('M40_INSTALL.md', 'INSTALL.md'),
-                                            ('M40_CAPABILITIES.md', 'CAPABILITIES.md'),
-                                            ('M40_PREVIEW.md', 'PREVIEW.md')):
+        for source_name, installed_name in (('M44_INSTALL.md', 'INSTALL.md'),
+                                            ('M44_CAPABILITIES.md', 'CAPABILITIES.md'),
+                                            ('M44_PREVIEW.md', 'PREVIEW.md')):
             copy_file(regular(ROOT / 'docs' / source_name), prefix / installed_name)
         copy_file(regular(ROOT / 'LICENSE'), prefix / 'LICENSE')
         copy_file(regular(ROOT / 'NOTICE'), prefix / 'NOTICE')

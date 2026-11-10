@@ -31,7 +31,7 @@ class InstalledPreview(unittest.TestCase):
         self.directory = Path(temporary.name)
         self.prefix = self.directory / 'installed prefix'
         self.prefix.mkdir()
-        names = ['bin/gz-sim-rs', 'bin/gz-drive-command', 'share/robot.sdf',
+        names = ['bin/gz-sim-rs', 'bin/gz-drive-command', 'bin/gz-joint-command', 'share/robot.sdf',
                  'share/zenoh.json5', 'web/index.html', 'web/startup.mjs']
         names += ['web/target/wasm32-unknown-unknown/release/' + flavor + '/' + name
                   for flavor in ('webgpu', 'webgl2') for name in ('gzweb.js', 'gzweb_bg.wasm')]
@@ -364,6 +364,23 @@ class InstalledPreview(unittest.TestCase):
         with patch.object(preview, 'serve') as serve:
             self.assertEqual(preview.main(['run', '--ws-port', '70000'], self.prefix), 1)
             serve.assert_not_called()
+
+
+    def test_joint_helper_is_required_even_if_manifest_is_rewritten(self):
+        name = 'bin/gz-joint-command'
+        entry = self.files.pop(name)
+        target = self.prefix / name
+        original = target.read_bytes()
+        target.unlink()
+        self.save_manifest()
+        with patch.object(preview, 'serve') as serve:
+            self.assertEqual(preview.main(['run'], self.prefix), 1)
+            serve.assert_not_called()
+        target.write_bytes(original)
+        target.chmod(0o755)
+        self.files[name] = entry
+        self.save_manifest()
+        self.assertEqual(preview.verify_prefix(self.prefix)['files'], self.files)
 
 
 if __name__ == '__main__':

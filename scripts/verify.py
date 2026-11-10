@@ -524,7 +524,7 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                                   renderer_executables(result.stdout, env["CARGO_TARGET_DIR"]))
     contract_path = ROOT / "planning/coverage-profiles.json"
     if contract_path.is_file() and json.loads(contract_path.read_text()).get("version") == 2:
-        expected = {"camera"} if name == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "air_speed_wind", "joint_force_feedback"}
+        expected = {"camera"} if name == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "air_speed_wind", "joint_force_feedback", "imu_reference_frames"}
         peers = check_native_peer_evidence(directory / "native-peers", expected)
         (directory / "native-peers.json").write_text(json.dumps(peers, indent=2) + "\n")
     objects = []
@@ -857,7 +857,7 @@ def retain_profile_evidence(candidate, output, hashes, missing):
             else:
                 peer_index = base / "native-peers.json"
                 if peer_index.is_file() and not peer_index.is_symlink():
-                    expected = {"camera"} if profile == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "air_speed_wind", "joint_force_feedback"}
+                    expected = {"camera"} if profile == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "air_speed_wind", "joint_force_feedback", "imu_reference_frames"}
                     try:
                         actual = check_native_peer_evidence(peers, expected, {
                             "reference_sha256": data["zenoh_reference"]["environment_sha256"],

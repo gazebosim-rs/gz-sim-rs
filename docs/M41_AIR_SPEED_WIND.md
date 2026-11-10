@@ -4,15 +4,17 @@
 # Constant WORLD wind for AirSpeed
 
 M41 extends the existing loaded AirSpeed sensor with a finite, constant WORLD
-wind vector over accepted M39/M40 Main `470da6e6`. Its fresh scoped component
-capture, independent native DATA and fixed-grammar literal DATA passed with
-actual exits 0. The exact 91-reading scalar and 91-packet/header Rust controls
-passed in the first executed feature headless batch. That batch failed elsewhere,
-including the wind Server test's use of the narrow world-edit removal API for a
-sensor-bearing model; it supplies no whole-run qualification. The source
-correction uses the existing canonical removal service, with no production or
-fixture change. Complete Rust/coverage/hosted/local/official qualification and
-M41/M42 acceptance remain pending. M40 remains the installed Latest.
+wind vector. M41/M42 are accepted at Main `73e03b9f` over M40 `470da6e6` after
+independent source/native/literal review, the full normal hook and strict
+coverage, exact CI 42808865907 attempt 1 and independent local/official DATA.
+See [the acceptance record](M41_M42_ACCEPTANCE.md). M40 remains installed Latest.
+
+The exact 91-reading scalar and 91-packet/header controls passed in the first
+feature headless batch, which failed elsewhere, including a wind Server test
+using the narrow editable-model removal API for a sensor-bearing owner. That
+failed batch remains failed. The correction uses the existing canonical removal
+service without changing production or fixture bytes; the later complete normal,
+canonical Server/C++ lifecycle and hosted qualification passed.
 
 `examples/m41_air_speed_wind.sdf` retains the M26 free Rapier body, gravity zero,
 1 ms step, sensor offset `(0, .5, .5)` and local yaw pi/4. Its WORLD wind is
@@ -151,6 +153,6 @@ lease. Malformed/nonfinite wind, unused-world wind, physical wind modes and all
 neighboring topology/backend/noise/atmosphere refusals remain meaningful negative
 controls. The recorded native/literal and individual Rust replay results remain
 scoped; the reviewed correction and complete unchanged normal/strict/hosted/local/
-official gates, including the whole canonical Server/C++ lifecycle, remain
-necessary before acceptance. No cross-engine trajectory, original system
+official gates, including the whole canonical Server/C++ lifecycle, subsequently
+passed before Main acceptance. No cross-engine trajectory, original system
 execution, RNG, performance or legal parity is claimed.
