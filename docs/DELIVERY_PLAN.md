@@ -1,21 +1,31 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 
-## Current M34/M35 source wave
+## Current combined M36/M37 delivery
 
-M1–M33 are accepted at qualified Main `17dd62f2`. M33 passed its full normal
-hook, exact hosted CI42667053571 attempt1 and independent local/official DATA,
-then normal nonforced Main promotion and exact readback. M32 remains installed
-Latest. M34 ground-truth odometry and M35 canonical wrench inputs are active in
-parallel source lanes under [recorded scope and leases](M34_M35_DELIVERY.md).
-Both implementations and their source reviews are complete. The original native
-systems supplied independently audited reference records: 221 odometry packet
-triples and 32 wrench command records. A separately audited literal fixture now
-backs the new Rust numeric and serialization regressions. The full normal hook,
-strict coverage, exact hosted CI and independent local/official audits remain
-required before either phase is accepted. See [M33 acceptance](M33_ACCEPTANCE.md)
-and the [reference checkpoint](M34_M35_DELIVERY.md#native-reference-checkpoint).
+M1–M35 are accepted at qualified Main `1982ce86`; M32 remains installed Latest.
+M34/M35's full normal, exact hosted CI42715967423 attempt1, independent
+native/local/official DATA and exact Main promotion are recorded in
+[M34_M35_ACCEPTANCE.md](M34_M35_ACCEPTANCE.md).
+
+[M36/M37 are one atomic delivery](M36_M37_DELIVERY.md) over that accepted parent.
+Both complete functional/package source batches, meaningful regressions and
+guides have independent Source review. A new combined candidate must pass the
+full normal hook, strict workspace/per-crate/actual-parent coverage, exact hosted
+CI and independent local/official DATA. Fresh source-bound release inputs,
+notices/ELF/archive/relocation DATA, clean Ubuntu nonroot installation with all
+thirteen examples, actual default-robot browser controls and owned shutdown,
+and Main/tag/assets/body/Latest readbacks remain required before either phase
+is accepted. No M36 or M37 acceptance is claimed.
+
+This supersedes only the intermediate M36-acceptance-before-M37 sequence. The
+already-running M36-only normal gate may finish and is retained as provisional
+historical evidence; it cannot qualify the combined candidate. Every individual
+M36 canonical/physics-feedback/lifecycle criterion and M37 distribution criterion
+is preserved. Root releases serial heavy operations after complete Source and
+procedure review. No old gate, test, installation or browser success transfers.
 
 <!-- SPDX-License-Identifier: Apache-2.0 -->
+
 
 # Weekly delivery plan
 

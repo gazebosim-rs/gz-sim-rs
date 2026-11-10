@@ -20,6 +20,7 @@ CLIENTS = {
     'robot_sensors': 'crates/gz-sim-server/tests/native_robot_sensors.cc',
     'odometry_publisher': 'crates/gz-sim-server/tests/native_odometry_publisher.cc',
     'apply_link_wrench': 'crates/gz-sim-server/tests/native_apply_link_wrench.cc',
+    'wrench_odometry': 'crates/gz-sim-server/tests/native_wrench_odometry.cc',
 }
 spec = importlib.util.spec_from_file_location('zenoh_bootstrap', ROOT / 'scripts/bootstrap-zenoh-native.py')
 bootstrap = importlib.util.module_from_spec(spec)

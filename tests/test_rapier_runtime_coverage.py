@@ -118,19 +118,21 @@ class DisabledBackendProof(unittest.TestCase):
             binary.parent.mkdir(parents=True)
             binary.write_bytes(b"mocked executable bytes; this test does not launch it")
             binary.chmod(0o755)
-            for source in MODULE.NOISY_EXAMPLES:
+            for source in (*MODULE.NOISY_EXAMPLES, *MODULE.NOISY_ASSETS):
                 fixture = root / source
-                fixture.parent.mkdir(exist_ok=True)
+                fixture.parent.mkdir(parents=True, exist_ok=True)
                 fixture.write_text("fixture Source: " + source)
+                if source in MODULE.NOISY_ASSETS:
+                    fixture.chmod(0o664)
             objects = [{"retained_path": "objects/gz-sim-rs", "sha256": MODULE.digest(binary),
                         "cargo_artifact": {"target": {"name": "gz-sim-rs"}}}]
             results = [subprocess.CompletedProcess([], 0, MODULE.NOISY_OUTPUT + "".join(
-                name + " " + " ".join(map(str, xyz)) + "\n"
+                name + " " + " ".join(map(str, xyz if xyz is not None else (0, 0, 0))) + "\n"
                 for name, xyz in sorted(MODULE.NOISY_LINKS[source].items())), "")
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 9)
+            self.assertEqual(run.call_count, 13)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -140,6 +142,13 @@ class DisabledBackendProof(unittest.TestCase):
                 self.assertEqual(call.kwargs["env"], {"LLVM_PROFILE_FILE": "/owned/raw"})
                 self.assertEqual(call.kwargs["timeout"], 30)
             self.assertEqual(json.loads((directory / "noisy-examples.json").read_text()), record)
+            asset = directory / "examples/meshes/m16-asymmetric.obj"
+            self.assertEqual(asset.read_bytes(), (root / "examples/meshes/m16-asymmetric.obj").read_bytes())
+            self.assertEqual((root / "examples/meshes/m16-asymmetric.obj").stat().st_mode & 0o777, 0o664)
+            self.assertEqual(asset.stat().st_mode & 0o777, 0o644)
+            self.assertEqual(record["assets"], [{"source": "examples/meshes/m16-asymmetric.obj",
+                              "retained_path": "examples/meshes/m16-asymmetric.obj",
+                              "sha256": MODULE.digest(asset), "bytes": asset.stat().st_size, "mode": 0o644}])
 
     def test_failed_copied_noisy_example_retains_actual_failure_and_stops_without_later_runs(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -152,6 +161,10 @@ class DisabledBackendProof(unittest.TestCase):
             fixture = root / MODULE.NOISY_EXAMPLES[0]
             fixture.parent.mkdir()
             fixture.write_text("malformed SDF test input")
+            asset = root / MODULE.NOISY_ASSETS[0]
+            asset.parent.mkdir(parents=True)
+            asset.write_bytes(b"owned synthetic relative OBJ")
+            asset.chmod(0o644)
             objects = [{"retained_path": "objects/gz-sim-rs", "sha256": MODULE.digest(binary),
                         "cargo_artifact": {"target": {"name": "gz-sim-rs"}}}]
             result = subprocess.CompletedProcess([], 1, "", "SDF parse failed\n")
@@ -216,7 +229,7 @@ class DisabledBackendProof(unittest.TestCase):
                     self.assertFalse(MODULE.noisy_output_matches(source, wrong))
 
     def test_m32_appends_both_existing_scenes_without_replacing_any_control(self):
-        self.assertEqual(MODULE.NOISY_EXAMPLES, (
+        self.assertEqual(MODULE.NOISY_EXAMPLES[:9], (
             "examples/m21_altimeter_noise.sdf", "examples/m22_air_pressure_noise.sdf",
             "examples/m23_magnetometer_noise.sdf", "examples/m24_cpu_lidar_noise.sdf",
             "examples/m26_air_speed.sdf", "examples/m27_pose_publisher.sdf",
@@ -280,3 +293,111 @@ class DisabledBackendProof(unittest.TestCase):
                         changed[row_index][coordinate] = value
                         wrong = headline + "".join(" ".join(row) + "\n" for row in changed)
                         self.assertFalse(MODULE.noisy_output_matches(source, wrong))
+
+    def test_thirteen_examples_preserve_the_literal_old_nine_prefix_and_relative_obj(self):
+        self.assertEqual(MODULE.NOISY_EXAMPLES, (
+            "examples/m21_altimeter_noise.sdf", "examples/m22_air_pressure_noise.sdf",
+            "examples/m23_magnetometer_noise.sdf", "examples/m24_cpu_lidar_noise.sdf",
+            "examples/m26_air_speed.sdf", "examples/m27_pose_publisher.sdf",
+            "examples/m28_air_speed_noise.sdf", "examples/m30_logical_camera.sdf",
+            "examples/m31_pose_static_publisher.sdf", "examples/m33_robot_sensors.sdf",
+            "examples/m34_odometry_publisher.sdf", "examples/m35_apply_link_wrench.sdf",
+            "examples/m36_wrench_odometry.sdf"))
+        self.assertEqual(MODULE.NOISY_ASSETS, ("examples/meshes/m16-asymmetric.obj",))
+
+    def test_new_static_example_outputs_are_complete_sorted_finite_and_exact(self):
+        headline = "simulation_ns=2000000 iterations=2\n"
+        cases = {
+            "examples/m34_odometry_publisher.sdf": "default::rig::body 2 -1 3\n",
+            "examples/m35_apply_link_wrench.sdf": "default::other::body 0 3 0\ndefault::rig::body 0 0 0\n",
+            "examples/m36_wrench_odometry.sdf": "default::rig::body 2 -1 3\n",
+        }
+        for source, poses in cases.items():
+            valid = headline + poses
+            self.assertTrue(MODULE.noisy_output_matches(source, valid))
+            rows = poses.splitlines()
+            invalid = [headline, valid.rstrip("\n"), valid + "\n", valid + "default::extra::body 0 0 0\n",
+                       valid.replace("iterations=2", "iterations=1"), valid.replace("2000000", "1000000"),
+                       valid.replace(rows[0].split()[0], "default::wrong::body")]
+            if len(rows) > 1:
+                invalid += [headline + "\n".join(reversed(rows)) + "\n", headline + rows[0] + "\n"]
+            for index, row in enumerate(rows):
+                for coordinate in range(1, 4):
+                    for value in ["nan", "inf", "-inf", "bad", str(float(row.split()[coordinate]) + 1e-12)]:
+                        changed = rows.copy()
+                        fields = row.split()
+                        fields[coordinate] = value
+                        changed[index] = " ".join(fields)
+                        invalid.append(headline + "\n".join(changed) + "\n")
+            for wrong in invalid:
+                with self.subTest(source=source, stdout=wrong):
+                    self.assertFalse(MODULE.noisy_output_matches(source, wrong))
+
+    def test_m33_dynamic_rows_are_explicitly_finite_only_but_static_rows_stay_exact(self):
+        source = "examples/m33_robot_sensors.sdf"
+        headline = "simulation_ns=2000000 iterations=2\n"
+        # Deliberately arbitrary dynamic coordinates show the selected limitation:
+        # this output shape earns finite load/step credit, never trajectory credit.
+        poses = ["default::ground::body 0 0 -0.1", "default::m33_target::body 3 0 0.55",
+                 "default::obj_landmark::body 1.5 1.5 0", "default::robot::base_link 100 -200 300",
+                 "default::robot::left_wheel -1e100 2e100 3e100", "default::robot::right_wheel 0 0 -0"]
+        valid = headline + "\n".join(poses) + "\n"
+        self.assertTrue(MODULE.noisy_output_matches(source, valid))
+        invalid = [headline, valid.rstrip("\n"), valid + "\n", valid + "default::extra::body 0 0 0\n",
+                   headline + "\n".join(reversed(poses)) + "\n", headline + "\n".join(poses[:-1]) + "\n",
+                   valid.replace("iterations=2", "iterations=1"), valid.replace("2000000", "1000000"),
+                   valid.replace("robot::left_wheel", "robot::wrong")]
+        for index, row in enumerate(poses):
+            for coordinate in range(1, 4):
+                values = ["nan", "inf", "-inf", "1e999", "bad"]
+                if index < 3:
+                    values.append(str(float(row.split()[coordinate]) + 1e-12))
+                for value in values:
+                    fields = row.split()
+                    fields[coordinate] = value
+                    changed = poses.copy()
+                    changed[index] = " ".join(fields)
+                    invalid.append(headline + "\n".join(changed) + "\n")
+        for wrong in invalid:
+            with self.subTest(stdout=wrong):
+                self.assertFalse(MODULE.noisy_output_matches(source, wrong))
+
+    def test_relative_obj_source_refusal_precedes_execution_and_post_run_tamper_is_retained(self):
+        for fault in ["missing", "linked", "executable", "oversized", "post-run"]:
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                directory = root / "artifacts/asset-control"
+                binary = directory / "objects/gz-sim-rs"
+                binary.parent.mkdir(parents=True)
+                binary.write_bytes(b"synthetic CLI identity, not an executable")
+                binary.chmod(0o755)
+                first = root / MODULE.NOISY_EXAMPLES[0]
+                first.parent.mkdir()
+                first.write_text("synthetic SDF metadata")
+                asset = root / "examples/meshes/m16-asymmetric.obj"
+                asset.parent.mkdir()
+                asset.write_bytes(b"v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n")
+                asset.chmod(0o644)
+                if fault == "missing":
+                    asset.unlink()
+                elif fault == "linked":
+                    real = root / "real.obj"
+                    asset.rename(real)
+                    asset.symlink_to(real)
+                elif fault == "executable":
+                    asset.chmod(0o744)
+                elif fault == "oversized":
+                    asset.write_bytes(b"x" * (1024**2 + 1))
+                objects = [{"retained_path": "objects/gz-sim-rs", "sha256": MODULE.digest(binary),
+                            "cargo_artifact": {"target": {"name": "gz-sim-rs"}}}]
+                def completed(*args, **kwargs):
+                    (directory / "examples/meshes/m16-asymmetric.obj").write_bytes(b"changed while CLI was running")
+                    return subprocess.CompletedProcess([], 0, "simulation_ns=2000000 iterations=2\ndefault::rig::body 0 0 3\n", "")
+                with patch.object(MODULE.subprocess, "run", side_effect=completed) as run:
+                    with self.assertRaisesRegex(ValueError, "noisy-example asset"):
+                        MODULE.run_noisy_examples(root, directory, objects, {})
+                self.assertEqual(run.call_count, 1 if fault == "post-run" else 0)
+                if fault == "post-run":
+                    record = json.loads((directory / "noisy-examples.json").read_text())
+                    self.assertEqual(len(record["runs"]), 1)
+                    self.assertEqual(record["runs"][0]["actual_exit_code"], 0)

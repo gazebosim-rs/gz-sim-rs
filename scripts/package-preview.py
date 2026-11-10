@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Assemble an explicitly source-bound M32 Linux preview, without building inputs."""
+"""Assemble an explicitly source-bound M37 Linux preview, without building inputs."""
 import argparse
 import gzip
 import hashlib
@@ -29,7 +29,9 @@ NOISY_EXAMPLES = (
     'm21_altimeter_noise.sdf', 'm22_air_pressure_noise.sdf',
     'm23_magnetometer_noise.sdf', 'm24_cpu_lidar_noise.sdf',
     'm26_air_speed.sdf', 'm27_pose_publisher.sdf', 'm28_air_speed_noise.sdf',
-    'm30_logical_camera.sdf', 'm31_pose_static_publisher.sdf')
+    'm30_logical_camera.sdf', 'm31_pose_static_publisher.sdf',
+    'm33_robot_sensors.sdf', 'm34_odometry_publisher.sdf',
+    'm35_apply_link_wrench.sdf', 'm36_wrench_odometry.sdf')
 
 
 def regular(path, maximum=MAX_FILE):
@@ -222,6 +224,7 @@ def assemble(spec, output, archive=None):
         if source.resolve() != ROOT.resolve() / relative:
             raise ValueError('fixed example sources may not traverse linked directories')
         examples[name] = source
+    mesh_sha = digest(mesh)
     with tempfile.TemporaryDirectory(prefix='.gz-preview-assembly-', dir=output.parent) as temporary:
         prefix = Path(temporary) / 'prefix'
         prefix.mkdir()
@@ -229,7 +232,10 @@ def assemble(spec, output, archive=None):
         copy_file(sender, prefix / 'bin/gz-drive-command', 0o755, spec['drive_command']['sha256'])
         copy_file(regular(ROOT / 'scripts/preview_runtime.py'), prefix / 'bin/gz-preview', 0o755)
         copy_file(regular(ROOT / 'examples/m19_robot.sdf'), prefix / 'share/robot.sdf')
-        copy_file(mesh, prefix / 'share/meshes/m16-asymmetric.obj')
+        copy_file(mesh, prefix / 'share/meshes/m16-asymmetric.obj', expected=mesh_sha)
+        # M33's unchanged relative URI resolves from share/examples, while the
+        # default robot retains its original share/meshes location.
+        copy_file(mesh, prefix / 'share/examples/meshes/m16-asymmetric.obj', expected=mesh_sha)
         for name, source in examples.items():
             copy_file(source, prefix / 'share/examples' / name)
         config = prefix / 'share/zenoh.json5'
@@ -237,9 +243,9 @@ def assemble(spec, output, archive=None):
                                       'scouting': {'multicast': {'enabled': False}}}, indent=2) + '\n')
         for name, path in viewer.items():
             copy_file(path, prefix / 'web' / name, expected=spec['viewer_files'][name])
-        for source_name, installed_name in (('M32_INSTALL.md', 'INSTALL.md'),
-                                            ('M32_CAPABILITIES.md', 'CAPABILITIES.md'),
-                                            ('M32_PREVIEW.md', 'PREVIEW.md')):
+        for source_name, installed_name in (('M37_INSTALL.md', 'INSTALL.md'),
+                                            ('M37_CAPABILITIES.md', 'CAPABILITIES.md'),
+                                            ('M37_PREVIEW.md', 'PREVIEW.md')):
             copy_file(regular(ROOT / 'docs' / source_name), prefix / installed_name)
         copy_file(regular(ROOT / 'LICENSE'), prefix / 'LICENSE')
         copy_file(regular(ROOT / 'NOTICE'), prefix / 'NOTICE')

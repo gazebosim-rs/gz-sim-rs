@@ -1,33 +1,28 @@
 # Instructions for implementation agents
 
-> M1–M33 are accepted at qualified Main `17dd62f2`; M32 remains installed Latest.
-> Current work is [M34/M35](docs/M34_M35_DELIVERY.md), with independently reviewed
-> contracts, reviewed implementation and audited native reference records.
-> Full normal/strict coverage/hosted qualification remains pending.
+> M1–M35 accepted at qualified Main `1982ce86`; M32 remains installed Latest.
+> Current work is the atomic [M36/M37 delivery](docs/M36_M37_DELIVERY.md).
+> Both source batches are independently reviewed; neither phase is accepted.
 
-Read `docs/HANDOFF.md` first for the current state and next tasks, then
-`docs/PLAN.md`, `docs/DECISIONS.md`, and the document for your assigned area.
-Confirmed owner decisions override proposals. Do not resolve an outstanding
-product decision by silently deleting behavior. Read `docs/STATUS.md` to distinguish
-implemented behavior and checks from planned release requirements.
+Read docs/HANDOFF.md, docs/PLAN.md, docs/DECISIONS.md and the assigned-area guide.
+Confirmed owner decisions supersede proposals. Preserve Fuel and paused work.
 
-## Current qualification and parallel source priority (D30–D32)
+## Current integration and qualification priority (D30–D32)
 
-M33 is accepted after its full normal hook, exact hosted CI42667053571 attempt1,
-independent local/official DATA and normal Main promotion/readback at17dd62f2.
-Preserve its frozen qualification source and every original failure. M32 stays
-installed Latest; no package/browser refresh is selected for M34/M35.
+The combined candidate uses accepted parent1982ce86, with every M36 functional/
+canonical/native-origin criterion and every M37 distribution criterion intact.
+Root owns shared records/integration and all serial heavy releases. Light owns
+M37 package/test/three-guide leaves; Messages owns its qualifier/two-test leaves;
+SDF independently reviews complete Source. All functional leaves are frozen.
 
-Read docs/M34_M35_DELIVERY.md and the two reviewed contracts. Light and Messages
-have Root release for their exact disjoint eight new leaves each. Root owns all
-shared admission, scheduling, reset, IO, counters, peer registry AND CLI guards,
-integration and serial execution. The wave is bound to actually accepted M33.
-Implementation and source review are complete; the native reference records and
-generated odometry fixture have independent retained DATA review. Preserve those
-captures and the original failed method results. Finish the final source review
-before Root releases one consolidated normal hook, strict coverage, exact hosted
-CI and independent local/official qualification. No acceptance is inferred.
-Preserve Fuel and paused work.
+Require a new complete normal/strict coverage/exact hosted cycle, independent
+local/official DATA and fresh release/notice/package/clean-install/thirteen-example/
+browser/owned-shutdown/Main/tag/assets/Latest proofs before atomic acceptance.
+The earlier M36-only normal run may finish; preserve it as provisional evidence,
+never as qualification of the combined tree. No per-edit tests/lint or weakening.
+Intermediate M36 acceptance is superseded by docs/M36_M37_DELIVERY.md, not by a
+transfer of previous success. Existing exact leases and Source-mode protections
+remain in force. Keep all originals, failures, captures and frozen trees intact.
 
 ## Architecture
 

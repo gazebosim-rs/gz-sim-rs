@@ -146,7 +146,7 @@ class SelectedNativeGate(unittest.TestCase):
             (base / 'raw/control.profraw').write_text('not an LLVM profile')
             peers = base / 'native-peers'
             peers.mkdir()
-            expected = {'camera'} if profile == 'renderer' else {'clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench'}
+            expected = {'camera'} if profile == 'renderer' else {'clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry'}
             for client in sorted(expected):
                 output = peers / (client + '-control')
                 output.mkdir()
@@ -171,7 +171,7 @@ class SelectedNativeGate(unittest.TestCase):
             self.assertEqual((output / 'zenoh-native-reference.json').read_bytes(), (run / 'zenoh-native-reference.json').read_bytes())
             preparation = Path(run.name) / 'renderer/renderer-build-output.log'
             self.assertEqual((output / preparation).read_bytes(), (coverage / preparation).read_bytes())
-            for profile, clients in [('headless', ['clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench']), ('renderer', ['camera'])]:
+            for profile, clients in [('headless', ['clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry']), ('renderer', ['camera'])]:
                 for client in clients:
                     relative = Path(run.name) / profile / 'native-peers' / (client + '-control')
                     for filename in ['source.cc', client + '-client', 'provenance.json']:
@@ -207,6 +207,16 @@ class SelectedNativeGate(unittest.TestCase):
                 with patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
                     with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
                         verify.retain_staged_evidence('a' * 40, candidate, 'passed')
+
+    def test_current_stage_rejects_missing_wrench_odometry_peer_input(self):
+        root, candidate, coverage, _, index = self.staged_fixture()
+        source = verify.zenoh_peer.CLIENTS['wrench_odometry']
+        self.assertEqual(source, 'crates/gz-sim-server/tests/native_wrench_odometry.cc')
+        index['inputs'].pop(source)
+        (coverage / 'profile-index.json').write_text(json.dumps(index))
+        with patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
+                verify.retain_staged_evidence('a' * 40, candidate, 'passed')
 
     def test_current_rgb_stage_requires_the_renderer_build_output(self):
         root, candidate, _, run, _ = self.staged_fixture()

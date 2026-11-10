@@ -28,7 +28,7 @@ class AuxiliaryRetention(unittest.TestCase):
                      "scripts/check-rapier-runtime.py", "crates/gz-sim-cli/tests/empty.sdf",
                      "crates/gz-sim-cli/src/live.rs",
                      "crates/gz-camera-output/tests/fixtures/m5-rgb.sdf",
-                     "crates/gz-camera-output/tests/fixtures/m6-depth.sdf", *QUALIFIER.NOISY_EXAMPLES,
+                     "crates/gz-camera-output/tests/fixtures/m6-depth.sdf", *QUALIFIER.NOISY_EXAMPLES, *QUALIFIER.NOISY_ASSETS,
                      "crates/gz-sim-proto/schema-source.json", "crates/gz-sim-proto/schemas/manifest.json",
                      "third_party/prost-derive-0.14.4/Cargo.toml", "third_party/prost-derive-0.14.4/LICENSE",
                      "third_party/prost-derive-0.14.4/src/lib.rs",
@@ -36,6 +36,8 @@ class AuxiliaryRetention(unittest.TestCase):
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("fixture input\n")
+            if name in QUALIFIER.NOISY_ASSETS:
+                path.chmod(0o644)
         (self.root / "scripts/qualify-rapier-runtime.py").write_bytes(
             (ROOT / "scripts/qualify-rapier-runtime.py").read_bytes())
         (self.root / "scripts/check-rapier-runtime.py").write_bytes(
@@ -120,8 +122,12 @@ class AuxiliaryRetention(unittest.TestCase):
                                   "fixture_mode": (self.root / source).stat().st_mode & 0o777,
                                   "argv": QUALIFIER.noisy_command(self.directory / cli["retained_path"], self.directory / saved),
                                   "actual_exit_code": 0, "stdout": (QUALIFIER.NOISY_OUTPUT + "".join(
-                                      name + " " + " ".join(map(str, xyz)) + "\n"
+                                      name + " " + " ".join(map(str, xyz if xyz is not None else (0, 0, 0))) + "\n"
                                       for name, xyz in sorted(QUALIFIER.NOISY_LINKS[source].items()))), "stderr": ""})
+        for source in QUALIFIER.NOISY_ASSETS:
+            self.write(source, (self.root / source).read_bytes())
+            (self.directory / source).chmod(0o644)
+        noisy["assets"] = QUALIFIER.noisy_asset_bindings(self.root, self.directory)
         self.report["noisy_examples"] = noisy
         self.write_json("noisy-examples.json", noisy)
         self.finish_manifest()
@@ -246,7 +252,7 @@ class AuxiliaryRetention(unittest.TestCase):
     def test_source_or_build_input_change_invalidates_evidence(self):
         for name in ["Cargo.lock", QUALIFIER.SCENE, "third_party/prost-derive-0.14.4/Cargo.toml",
                      "third_party/prost-derive-0.14.4/LICENSE", "third_party/prost-derive-0.14.4/src/lib.rs",
-                     *QUALIFIER.NOISY_EXAMPLES]:
+                     *QUALIFIER.NOISY_EXAMPLES, *QUALIFIER.NOISY_ASSETS]:
             path = self.root / name
             old = path.read_bytes()
             path.write_bytes(old + b"changed\n")
@@ -479,6 +485,122 @@ class AuxiliaryRetention(unittest.TestCase):
                     self.finish_manifest()
                     with self.assertRaisesRegex(ValueError, "noisy-example execution"):
                         QUALIFIER.validate_evidence(self.root, self.directory)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()
+
+    def test_m37_asset_is_source_bound_and_retained_with_the_original_relative_path(self):
+        source = "examples/meshes/m16-asymmetric.obj"
+        # Local Source permissions are not the retained payload's normalized mode.
+        (self.root / source).chmod(0o664)
+        self.assertEqual(self.report["noisy_examples"]["assets"], [{
+            "source": source, "retained_path": source, "sha256": QUALIFIER.digest(self.root / source),
+            "bytes": (self.root / source).stat().st_size, "mode": 0o644}])
+        self.assertIn(source, self.report["sources_and_inputs"])
+        self.assertIn(source, self.report["artifacts_sha256"])
+        QUALIFIER.validate_evidence(self.root, self.directory)
+        self.assertEqual((self.root / source).stat().st_mode & 0o777, 0o664)
+        self.assertEqual((self.directory / source).stat().st_mode & 0o777, 0o644)
+        (self.root / source).chmod(0o744)
+        with self.assertRaisesRegex(ValueError, "unsafe relative noisy-example asset"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_rehashed_relative_asset_loss_substitution_or_mode_cannot_be_accepted(self):
+        source = "examples/meshes/m16-asymmetric.obj"
+        asset = self.directory / source
+        original = asset.read_bytes()
+        baseline = json.dumps(self.report["noisy_examples"])
+        for fault in ["missing", "bytes", "mode", "symlink", "record-path", "record-source", "record-size", "record-sha", "extra-asset"]:
+            with self.subTest(fault=fault):
+                record = json.loads(baseline)
+                if fault == "missing":
+                    asset.unlink()
+                elif fault == "bytes":
+                    asset.write_bytes(b"rehashed replacement OBJ")
+                    record["assets"][0]["sha256"] = QUALIFIER.digest(asset)
+                    record["assets"][0]["bytes"] = asset.stat().st_size
+                elif fault == "mode":
+                    asset.chmod(0o600)
+                    record["assets"][0]["mode"] = 0o600
+                elif fault == "symlink":
+                    asset.unlink()
+                    asset.symlink_to(self.root / source)
+                elif fault == "record-path":
+                    record["assets"][0]["retained_path"] = "elsewhere.obj"
+                elif fault == "record-source":
+                    record["assets"][0]["source"] = "examples/other.obj"
+                elif fault == "record-size":
+                    record["assets"][0]["bytes"] += 1
+                elif fault == "record-sha":
+                    record["assets"][0]["sha256"] = "0" * 64
+                else:
+                    record["assets"].append(record["assets"][0].copy())
+                self.report["noisy_examples"] = record
+                self.write_json("noisy-examples.json", record)
+                self.finish_manifest()
+                with self.assertRaises(ValueError):
+                    QUALIFIER.validate_evidence(self.root, self.directory)
+                if asset.is_symlink() or asset.exists():
+                    asset.unlink()
+                asset.write_bytes(original)
+                asset.chmod(0o644)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()
+
+    def test_relative_mesh_parent_cannot_alias_another_owned_directory(self):
+        parent = self.directory / "examples/meshes"
+        real = self.directory / "relocated-meshes"
+        parent.rename(real)
+        parent.symlink_to(real, target_is_directory=True)
+        self.finish_manifest()
+        with self.assertRaisesRegex(ValueError, "unsafe native-off evidence path"):
+            QUALIFIER.validate_evidence(self.root, self.directory)
+        parent.unlink()
+        real.rename(parent)
+        self.finish_manifest()
+
+    def test_all_four_m37_runs_keep_their_own_invocation_fixture_and_complete_output(self):
+        baseline = json.dumps(self.report["noisy_examples"])
+        for source in ["examples/m33_robot_sensors.sdf", "examples/m34_odometry_publisher.sdf",
+                       "examples/m35_apply_link_wrench.sdf", "examples/m36_wrench_odometry.sdf"]:
+            index = QUALIFIER.NOISY_EXAMPLES.index(source)
+            valid = json.loads(baseline)["runs"][index]["stdout"]
+            rows = valid.splitlines()
+            wrong_outputs = [QUALIFIER.NOISY_OUTPUT, valid.rstrip("\n"), valid + "default::extra::body 0 0 0\n",
+                             valid.replace("iterations=2", "iterations=1")]
+            if len(rows) > 2:
+                wrong_outputs.append(rows[0] + "\n" + "\n".join(reversed(rows[1:])) + "\n")
+            for coordinate in range(1, 4):
+                fields = rows[1].split()
+                fields[coordinate] = "nan"
+                wrong_outputs.append(rows[0] + "\n" + " ".join(fields) + "\n" + "\n".join(rows[2:]) + ("\n" if rows[2:] else ""))
+            for field, wrong in [("actual_exit_code", 1), ("stderr", "load failed\n"),
+                                 ("argv", json.loads(baseline)["runs"][0]["argv"]),
+                                 ("source", QUALIFIER.NOISY_EXAMPLES[0]),
+                                 ("fixture_sha256", "0" * 64), ("fixture_mode", 0o600),
+                                 *[("stdout", value) for value in wrong_outputs]]:
+                with self.subTest(source=source, field=field, value=wrong):
+                    record = json.loads(baseline)
+                    record["runs"][index][field] = wrong
+                    self.report["noisy_examples"] = record
+                    self.write_json("noisy-examples.json", record)
+                    self.finish_manifest()
+                    with self.assertRaisesRegex(ValueError, "noisy-example"):
+                        QUALIFIER.validate_evidence(self.root, self.directory)
+        for fault in ["missing", "duplicate", "reordered"]:
+            record = json.loads(baseline)
+            if fault == "missing":
+                record["runs"].pop(9)
+            elif fault == "duplicate":
+                record["runs"][9] = record["runs"][10].copy()
+            else:
+                record["runs"][9], record["runs"][10] = record["runs"][10], record["runs"][9]
+            self.report["noisy_examples"] = record
+            self.write_json("noisy-examples.json", record)
+            self.finish_manifest()
+            with self.subTest(fault=fault), self.assertRaisesRegex(ValueError, "noisy-example"):
+                QUALIFIER.validate_evidence(self.root, self.directory)
         self.report["noisy_examples"] = json.loads(baseline)
         self.write_json("noisy-examples.json", self.report["noisy_examples"])
         self.finish_manifest()

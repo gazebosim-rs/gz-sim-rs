@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Additional native-off execution proof; never replaces the full coverage profiles.
 
-Nine copied example SDFs run once each through the retained actual CLI. These
+Thirteen copied example SDFs run once each through the retained actual CLI. These
 finite load/step controls are separate from Rust test counts and canonical wire
 or statistical/native-model evidence; clean installed runs remain separate.
 """
@@ -36,7 +36,12 @@ NOISY_EXAMPLES = (
     "examples/m28_air_speed_noise.sdf",
     "examples/m30_logical_camera.sdf",
     "examples/m31_pose_static_publisher.sdf",
+    "examples/m33_robot_sensors.sdf",
+    "examples/m34_odometry_publisher.sdf",
+    "examples/m35_apply_link_wrench.sdf",
+    "examples/m36_wrench_odometry.sdf",
 )
+NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
 NOISY_LINKS = {
     **{source: {"default::rig::body": (0, 0, 3)} for source in NOISY_EXAMPLES[:3]},
@@ -56,6 +61,21 @@ NOISY_LINKS = {
         "default::rig::base": (1, 2, 3),
         "default::rig::tip": (1 + 0.8 * math.cos(0.6), 2 + 0.8 * math.sin(0.6), 3),
     },
+    "examples/m33_robot_sensors.sdf": {
+        "default::ground::body": (0, 0, -0.1),
+        "default::m33_target::body": (3, 0, 0.55),
+        "default::obj_landmark::body": (1.5, 1.5, 0),
+        # Gravity/contact-dependent robot poses have finite load/step credit only.
+        "default::robot::base_link": None,
+        "default::robot::left_wheel": None,
+        "default::robot::right_wheel": None,
+    },
+    "examples/m34_odometry_publisher.sdf": {"default::rig::body": (2, -1, 3)},
+    "examples/m35_apply_link_wrench.sdf": {
+        "default::other::body": (0, 3, 0),
+        "default::rig::body": (0, 0, 0),
+    },
+    "examples/m36_wrench_odometry.sdf": {"default::rig::body": (2, -1, 3)},
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
 TARGETS = {
@@ -232,7 +252,12 @@ def noisy_output_matches(source, stdout):
             actual = tuple(float(value) for value in fields[1:])
         except ValueError:
             return False
-        if source in {"examples/m27_pose_publisher.sdf", "examples/m31_pose_static_publisher.sdf"}:
+        if position is None:
+            # Only the three explicitly listed M33 dynamic links use this policy.
+            # This is finite stepping, not a trajectory expectation or tolerance.
+            if not all(math.isfinite(value) for value in actual):
+                return False
+        elif source in {"examples/m27_pose_publisher.sdf", "examples/m31_pose_static_publisher.sdf"}:
             # These two fixtures share the same unforced, zero-gravity geometry.
             # Keep the existing 1e-12 native component bound for f64 composition;
             # all other fixtures, including LogicalCamera, stay exact.
@@ -244,8 +269,31 @@ def noisy_output_matches(source, stdout):
     return True
 
 
+def noisy_asset_bindings(root, directory):
+    bindings = []
+    for source in NOISY_ASSETS:
+        original = root / source
+        retained = directory / source
+        for base, path, is_source in [(root, original, True), (directory, retained, False)]:
+            if (not path.is_file() or path.is_symlink()
+                    or any((base / parent).is_symlink() for parent in Path(source).parents)
+                    or not 0 < path.stat().st_size <= 1024**2
+                    or (path.stat().st_mode & 0o111 if is_source
+                        else path.stat().st_mode & 0o777 != 0o644)):
+                raise ValueError("missing or unsafe relative noisy-example asset: " + source)
+        # Source POSIX write bits may differ (e.g. 0664 locally, 0644 in a
+        # SourceZIP). The caller binds Git mode 100644 separately; this record's
+        # mode describes only the newly normalized owned retained copy.
+        expected = {"source": source, "retained_path": source,
+                    "sha256": digest(original), "bytes": original.stat().st_size, "mode": 0o644}
+        if digest(retained) != expected["sha256"] or retained.stat().st_size != expected["bytes"]:
+            raise ValueError("relative noisy-example asset differs: " + source)
+        bindings.append(expected)
+    return bindings
+
+
 def validate_noisy_examples(root, directory, record, observed_root, objects):
-    """Require the nine actual copied-binary controls, not Rust test-count credit."""
+    """Require thirteen actual copied-binary controls, not Rust test-count credit."""
     if not isinstance(record, dict) or record.get("schema_version") != 1:
         raise ValueError("missing copied noisy-example executions")
     if json.loads((directory / "noisy-examples.json").read_text()) != record:
@@ -262,6 +310,8 @@ def validate_noisy_examples(root, directory, record, observed_root, objects):
     mode = (directory / cli["retained_path"]).stat().st_mode & 0o777
     if record.get("binary") != {"retained_path": cli["retained_path"], "sha256": cli["sha256"], "mode": mode} or not mode & 0o111:
         raise ValueError("noisy-example copied CLI identity differs")
+    if record.get("assets") != noisy_asset_bindings(root, directory):
+        raise ValueError("relative noisy-example asset bindings differ")
     runs = record.get("runs")
     if not isinstance(runs, list) or len(runs) != len(NOISY_EXAMPLES):
         raise ValueError("missing or duplicate noisy-example executions")
@@ -291,6 +341,19 @@ def run_noisy_examples(root, directory, objects, env):
               "binary": {"retained_path": cli["retained_path"], "sha256": cli["sha256"],
                          "mode": binary.stat().st_mode & 0o777}, "runs": []}
     (directory / "examples").mkdir()
+    for source in NOISY_ASSETS:
+        original = root / source
+        if (not original.is_file() or original.is_symlink()
+                or any((root / parent).is_symlink() for parent in Path(source).parents)
+                or not 0 < original.stat().st_size <= 1024**2
+                or original.stat().st_mode & 0o111):
+            raise ValueError("missing or unsafe source noisy-example asset: " + source)
+        retained = directory / source
+        retained.parent.mkdir(parents=True)
+        shutil.copy2(original, retained)
+        retained.chmod(0o644)
+    record["assets"] = noisy_asset_bindings(root, directory)
+    (directory / "noisy-examples.json").write_text(json.dumps(record, indent=2) + "\n")
     for source in NOISY_EXAMPLES:
         original = root / source; saved = "examples/" + original.name; fixture = directory / saved
         expected = digest(original); mode = original.stat().st_mode & 0o777
@@ -305,6 +368,8 @@ def run_noisy_examples(root, directory, objects, env):
         (directory / "noisy-examples.json").write_text(json.dumps(record, indent=2) + "\n")
         if result.returncode != 0 or not noisy_output_matches(source, result.stdout) or result.stderr:
             raise ValueError("copied noisy example did not complete two exact steps: " + source)
+        if record["assets"] != noisy_asset_bindings(root, directory):
+            raise ValueError("relative noisy-example asset changed during execution")
         if digest(binary) != cli["sha256"] or digest(original) != expected or digest(fixture) != expected:
             raise ValueError("noisy-example binary/source/copy changed during execution")
     validate_noisy_examples(root, directory, record, root, objects)
@@ -316,7 +381,7 @@ def inputs(root=ROOT):
              ".cargo/config.toml", "scripts/rustc-coverage.py", "scripts/verify.py",
              "scripts/qualify-rapier-runtime.py", "scripts/check-rapier-runtime.py",
              "crates/gz-sim-cli/tests/empty.sdf", "crates/gz-camera-output/tests/fixtures/m5-rgb.sdf",
-             "crates/gz-camera-output/tests/fixtures/m6-depth.sdf", *NOISY_EXAMPLES]]
+             "crates/gz-camera-output/tests/fixtures/m6-depth.sdf", *NOISY_EXAMPLES, *NOISY_ASSETS]]
     paths += sorted((root / "crates").rglob("*.rs"))
     paths += sorted((root / "crates").glob("*/Cargo.toml"))
     paths += sorted((root / "crates/gz-sim-proto/schemas").rglob("*.proto"))
@@ -355,7 +420,7 @@ def validate_evidence(root, directory, report=None):
     if not isinstance(hashes, dict) or not hashes:
         raise ValueError("missing native-off artifact bindings")
     required = {"inputs.json", "commands.json", "cargo-events.json", "objects.json", "rustc-coverage.py",
-                "closure.stdout", "closure.stderr", "coverage.json", "coverage.lcov", "merged.profdata", "noisy-examples.json"}
+                "closure.stdout", "closure.stderr", "coverage.json", "coverage.lcov", "merged.profdata", "noisy-examples.json", *NOISY_ASSETS}
     required |= {test + "." + stream for test, _ in TARGETS.values() for stream in ["stdout", "stderr"]}
     if not required <= hashes.keys() or not any(name.startswith("raw/") and name.endswith(".profraw") for name in hashes):
         raise ValueError("missing required native-off raw/report evidence")
