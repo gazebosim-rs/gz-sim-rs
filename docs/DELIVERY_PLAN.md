@@ -1,6 +1,29 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Current combined M36/M37 delivery
+## Current delivery: M38 noiseless 3D odometry
+
+M1–M37 are accepted at qualified Main `6d2d5320`; [M36/M37 acceptance](M36_M37_ACCEPTANCE.md)
+and verified [m37-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m37-preview)
+close the atomic delivery. There are 38 selected phases and 37 accepted.
+
+[M38](M38_DELIVERY.md) adds explicit noiseless three-dimensional ground-truth
+odometry to the existing admitted Rapier models and three canonical streams,
+preserving default planar behavior and every old fixture. Budget: at most five
+working days including independent review and all mandatory gates. Its Scene
+and Server/native Source lanes may proceed in parallel after contract review;
+shared integration and heavy verification have one owner. Reviewed Source and
+the native fixture are integrated; original-system capture and independent
+native/literal DATA passed. Rust and full qualification remain pending. No
+check or acceptance transfers from M37. The installed preview remains M37; this source
+increment does not repeat packaging or browser qualification. After accepting
+M38, select the next useful retained increment without another owner prompt.
+
+The following earlier current-state statements are historical and superseded.
+
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+
+## Historical M36/M37 qualification checkpoint (superseded)
 
 M1–M35 are accepted at qualified Main `1982ce86`; M32 remains installed Latest.
 M34/M35's full normal, exact hosted CI42715967423 attempt1, independent

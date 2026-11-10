@@ -1,6 +1,24 @@
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
+## Current bounded delivery
+
+M1–M37 are accepted at qualified Main `6d2d5320`; the verified installed Latest
+is [m37-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m37-preview).
+See [M36/M37 acceptance](M36_M37_ACCEPTANCE.md). Continue
+[M38 noiseless 3D odometry](M38_DELIVERY.md) under D30–D32, preserving default
+planar behavior and every required gate. Independent Scene and Server/native
+Source lanes work over the same accepted parent; integration and heavy checks
+remain serial. Reviewed Source and the actual native fixture are integrated.
+Scoped original-system capture and independent native/literal DATA passed;
+Rust checks, full qualification and acceptance remain pending. This phase does
+not refresh the installed package or repeat accepted browser qualification.
+
+The earlier delivery checkpoints below are historical and superseded.
+
 # Implementation plan
 
-## Current delivery priority (D30, 2026-11-02)
+## Historical delivery priority (D30, 2026-11-02)
 
 M1–M12 runtimes/distribution are accepted; see the [delivery plan](DELIVERY_PLAN.md)
 and [M12 acceptance](M12_ACCEPTANCE.md). The published Ubuntu 24.04 x86_64 preview

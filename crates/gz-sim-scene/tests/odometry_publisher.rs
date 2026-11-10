@@ -116,7 +116,7 @@ fn unthrottled_nonzero_pose_transient_fills_and_exits_ten_sample_window() {
 fn admission_rejects_unsupported_or_ambiguous_metadata_without_losing_old_loader_domain() {
     let plugin = "<dimensions>2</dimensions>";
     for fields in [
-        "<dimensions>3</dimensions>",
+        "<dimensions>4</dimensions>",
         "<dimensions>2</dimensions><dimensions>2</dimensions>",
         "<dimensions>2</dimensions><gaussian_noise>0.01</gaussian_noise>",
         "<dimensions>2</dimensions><xyz_offset>0 1 0</xyz_offset>",

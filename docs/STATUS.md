@@ -1,6 +1,28 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Current combined M36/M37 delivery
+## Current status: M38 integrated Source and native reference
+
+M1–M37 are accepted at qualified Main `6d2d5320`; release 439888006,
+[m37-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m37-preview),
+is verified Latest. [M36/M37 acceptance](M36_M37_ACCEPTANCE.md) records the
+full normal, exact hosted CI, independent DATA, fresh thirteen-example install,
+eight-image browser/shutdown proof and exact Main/tag/assets/body/Latest reads.
+
+[M38 noiseless 3D odometry](M38_DELIVERY.md) is selected over that accepted
+parent. Scene and Server Source, meaningful regressions and the actual native
+fixture are integrated after independent review. The original-system capture
+and independent native/literal DATA passed: 510 inputs, 429 triples and 1,287
+canonical packets. Rust compilation/replay and the full normal/strict coverage,
+exact hosted CI and independent qualification DATA remain pending. Root runs
+heavy checks serially. No M38 acceptance is claimed. M37 remains the installed preview; M38 does
+not repeat package/browser qualification. All earlier evidence is preserved.
+
+Earlier current-state descriptions below are historical and superseded.
+
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+
+## Historical M36/M37 qualification checkpoint (superseded)
 
 M1–M35 are accepted at qualified Main `1982ce86`; M32 remains installed Latest.
 M34/M35's full normal, exact hosted CI42715967423 attempt1, independent

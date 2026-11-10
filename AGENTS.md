@@ -1,28 +1,28 @@
 # Instructions for implementation agents
 
-> M1–M35 accepted at qualified Main `1982ce86`; M32 remains installed Latest.
-> Current work is the atomic [M36/M37 delivery](docs/M36_M37_DELIVERY.md).
-> Both source batches are independently reviewed; neither phase is accepted.
+> M1–M37 are accepted at qualified Main `6d2d5320`; M37 is installed Latest.
+> See [M36/M37 acceptance](docs/M36_M37_ACCEPTANCE.md).
+> Current work is [M38 noiseless 3D odometry](docs/M38_DELIVERY.md).
 
 Read docs/HANDOFF.md, docs/PLAN.md, docs/DECISIONS.md and the assigned-area guide.
 Confirmed owner decisions supersede proposals. Preserve Fuel and paused work.
 
 ## Current integration and qualification priority (D30–D32)
 
-The combined candidate uses accepted parent1982ce86, with every M36 functional/
-canonical/native-origin criterion and every M37 distribution criterion intact.
-Root owns shared records/integration and all serial heavy releases. Light owns
-M37 package/test/three-guide leaves; Messages owns its qualifier/two-test leaves;
-SDF independently reviews complete Source. All functional leaves are frozen.
+M38 starts at accepted `6d2d53209174e3398b79909553e4fc5fd7fe05e8`.
+Root owns shared records, integration and serial heavy checks. Light owns the
+Scene odometry leaf, its tests, example and guide. Messages owns the Server
+canonical-peer/native-reference lane. SDF reviews the complete contract and
+Source independently. Agree the bounded 3D arithmetic, mode/reconstruction
+identity and finite native cases before runtime edits. Separate worktrees and
+explicit file leases permit parallel Source work; they do not transfer checks.
 
-Require a new complete normal/strict coverage/exact hosted cycle, independent
-local/official DATA and fresh release/notice/package/clean-install/thirteen-example/
-browser/owned-shutdown/Main/tag/assets/Latest proofs before atomic acceptance.
-The earlier M36-only normal run may finish; preserve it as provisional evidence,
-never as qualification of the combined tree. No per-edit tests/lint or weakening.
-Intermediate M36 acceptance is superseded by docs/M36_M37_DELIVERY.md, not by a
-transfer of previous success. Existing exact leases and Source-mode protections
-remain in force. Keep all originals, failures, captures and frozen trees intact.
+Complete implementation, meaningful regression source, guides and independent
+review, then batch findings before one consolidated normal qualification.
+Keep every strict coverage gate and exact hosted CI before Main acceptance.
+No per-edit tests/lint, additional process framework, new backend/schema/
+transport, Fuel edit or package/browser refresh belongs to M38. M37 remains
+installed Latest. Preserve all accepted and failed original evidence.
 
 ## Architecture
 

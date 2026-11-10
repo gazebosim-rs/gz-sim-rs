@@ -10,8 +10,9 @@ use gz_sim_proto::msgs::{
     TwistWithCovariance, header::Map,
 };
 use gz_sim_scene::{
-    EntityKind, GroundTruthOdometryPublication as Metadata, GroundTruthOdometrySample as Sample,
-    Name, PendingResetRemoval,
+    EntityKind, GroundTruthOdometryDimensions as Dimensions,
+    GroundTruthOdometryPublication as Metadata, GroundTruthOdometrySample as Sample, Name,
+    PendingResetRemoval,
 };
 pub(super) struct Stream {
     entity: Entity,
@@ -62,10 +63,11 @@ fn packets(
 ) -> Option<(Odometry, OdometryWithCovariance, PoseV)> {
     if !valid(metadata, owner)
         || sample.revision == 0
-        || sample.pose.translation[2] != 0.0
-        || sample.linear[2] != 0.0
-        || sample.angular[0] != 0.0
-        || sample.angular[1] != 0.0
+        || (metadata.dimensions == Dimensions::Two
+            && (sample.pose.translation[2] != 0.0
+                || sample.linear[2] != 0.0
+                || sample.angular[0] != 0.0
+                || sample.angular[1] != 0.0))
         || !sample
             .pose
             .translation
@@ -316,6 +318,7 @@ mod tests {
     #[test]
     fn all_three_packets_share_pose_stamp_and_headers_without_encoder_sequence() {
         let metadata = Metadata {
+            dimensions: Dimensions::Two,
             model_name: "rig".into(),
             odom_frame: "odom".into(),
             robot_base_frame: "base".into(),
@@ -392,6 +395,7 @@ mod tests {
             include!("../../gz-sim-scene/tests/fixtures/m34_native_odometry.rs");
         }
         let metadata = Metadata {
+            dimensions: Dimensions::Two,
             model_name: "rig".into(),
             odom_frame: "m34/odom".into(),
             robot_base_frame: "m34/base".into(),
@@ -779,5 +783,239 @@ mod tests {
         server.retire_ground_truth_odometry();
         assert!(server.ground_truth_odometries.is_empty());
         assert!(weak.iter().all(|lease| lease.upgrade().is_none()));
+    }
+
+    #[test]
+    fn three_dimensional_packets_retain_xyz_and_all_two_dimensional_zero_refusals() {
+        let metadata = Metadata {
+            dimensions: Dimensions::Three,
+            model_name: "rig".into(),
+            odom_frame: "m38/odom".into(),
+            robot_base_frame: "m38/base".into(),
+            odom_topic: "/m38/odometry".into(),
+            covariance_topic: "/m38/odometry_covariance".into(),
+            tf_topic: "/m38/transform".into(),
+        };
+        let sample = Sample {
+            time: Duration::from_millis(20),
+            epoch: 7,
+            revision: 1,
+            pose: gz_sim_scene::WorldPose {
+                translation: [2.0, -1.0, 3.0],
+                rotation: [0.0, 0.0, 0.0, 1.0],
+            },
+            linear: [0.25, -0.5, 0.75],
+            angular: [-0.1, 0.2, -0.3],
+        };
+        let (odom, covariance, transform) = packets(&metadata, 1, &sample).unwrap();
+        let pose = odom.pose.as_ref().unwrap();
+        assert_eq!(
+            pose.position.as_ref().map(|v| [v.x, v.y, v.z]),
+            Some(sample.pose.translation)
+        );
+        let twist = odom.twist.as_ref().unwrap();
+        assert_eq!(
+            twist.linear.as_ref().map(|v| [v.x, v.y, v.z]),
+            Some(sample.linear)
+        );
+        assert_eq!(
+            twist.angular.as_ref().map(|v| [v.x, v.y, v.z]),
+            Some(sample.angular)
+        );
+        assert_eq!(covariance.header, odom.header);
+        assert_eq!(
+            covariance.pose_with_covariance.as_ref().unwrap().pose,
+            odom.pose
+        );
+        assert_eq!(
+            covariance.twist_with_covariance.as_ref().unwrap().twist,
+            odom.twist
+        );
+        for values in [
+            covariance.pose_with_covariance.unwrap().covariance,
+            covariance.twist_with_covariance.unwrap().covariance,
+        ] {
+            assert_eq!(values.unwrap().data, [0.0; 36]);
+        }
+        assert!(transform.header.is_none());
+        assert_eq!(transform.pose.len(), 1);
+        let mut tf = transform.pose[0].clone();
+        assert_eq!(tf.header.take(), odom.header);
+        assert_eq!(Some(tf), odom.pose);
+        let planar = Metadata {
+            dimensions: Dimensions::Two,
+            ..metadata.clone()
+        };
+        let zero = Sample {
+            pose: gz_sim_scene::WorldPose {
+                translation: [2.0, -1.0, 0.0],
+                rotation: sample.pose.rotation,
+            },
+            linear: [0.25, -0.5, 0.0],
+            angular: [0.0, 0.0, -0.3],
+            ..sample
+        };
+        assert!(packets(&planar, 1, &zero).is_some());
+        let mut cases = [zero; 4];
+        cases[0].pose.translation[2] = 3.0;
+        cases[1].linear[2] = 0.75;
+        cases[2].angular[0] = -0.1;
+        cases[3].angular[1] = 0.2;
+        for value in cases {
+            assert!(packets(&planar, 1, &value).is_none());
+            assert!(packets(&metadata, 1, &value).is_some());
+        }
+        let mut bad = [sample; 7];
+        bad[0].pose.translation[2] = f64::NAN;
+        bad[1].linear[2] = f64::INFINITY;
+        bad[2].angular[0] = f64::NAN;
+        bad[3].angular[1] = f64::NEG_INFINITY;
+        bad[4].pose.rotation = [0.0; 4];
+        bad[5].revision = 0;
+        bad[6].time = Duration::from_secs(i64::MAX as u64 + 1);
+        for value in bad {
+            assert!(packets(&metadata, 1, &value).is_none());
+        }
+    }
+
+    #[test]
+    fn dimensionality_mutation_cannot_reuse_a_prepared_stream_or_publish_stale_data() {
+        let mut server = negative_control_server();
+        server.simulation.step_exact(20).unwrap();
+        let entity = server.ground_truth_odometries[0].entity;
+        let metadata = server
+            .simulation
+            .world()
+            .get::<Metadata>(entity)
+            .unwrap()
+            .clone();
+        assert_eq!(metadata.dimensions, Dimensions::Two);
+        assert!(
+            server
+                .ground_truth_odometries
+                .iter()
+                .all(|s| s.live(&server.simulation))
+        );
+        let clock = (server.simulation.epoch(), server.simulation.elapsed());
+        let before = server.counters();
+        server
+            .simulation
+            .world_mut()
+            .entity_mut(entity)
+            .insert(Metadata {
+                dimensions: Dimensions::Three,
+                ..metadata.clone()
+            });
+        assert!(
+            server
+                .ground_truth_odometries
+                .iter()
+                .all(|s| !s.live(&server.simulation))
+        );
+        server.publish_ground_truth_odometry();
+        assert_eq!(
+            server.counters().ground_truth_odometry_queued,
+            before.ground_truth_odometry_queued
+        );
+        assert_eq!(
+            server.counters().ground_truth_odometry_covariance_queued,
+            before.ground_truth_odometry_covariance_queued
+        );
+        assert_eq!(
+            server.counters().ground_truth_odometry_tf_queued,
+            before.ground_truth_odometry_tf_queued
+        );
+        assert_eq!(
+            server.counters().ground_truth_odometry_invalid_samples,
+            before.ground_truth_odometry_invalid_samples
+        );
+        assert_eq!(
+            (server.simulation.epoch(), server.simulation.elapsed()),
+            clock
+        );
+        // This is a metadata identity control, not an advance with a tampered mode.
+        server
+            .simulation
+            .world_mut()
+            .entity_mut(entity)
+            .insert(metadata);
+        assert!(
+            server
+                .ground_truth_odometries
+                .iter()
+                .all(|s| s.live(&server.simulation))
+        );
+        server.shutdown();
+    }
+    #[test]
+    fn actual_three_dimensional_native_values_encode_all_1287_canonical_packets() {
+        mod reference {
+            include!("../../gz-sim-scene/tests/fixtures/m38_native_odometry_3d.rs");
+        }
+        let metadata = Metadata {
+            dimensions: Dimensions::Three,
+            model_name: "rig".into(),
+            odom_frame: "m38/odom".into(),
+            robot_base_frame: "m38/base".into(),
+            odom_topic: "/m38/odometry".into(),
+            covariance_topic: "/m38/odometry_covariance".into(),
+            tf_topic: "/m38/transform".into(),
+        };
+        let mut inputs = 0;
+        let mut acquisitions = 0;
+        let mut suppressed = 0;
+        let mut canonical_packets = 0;
+        assert_eq!(reference::CASES.len(), 16);
+        for &(mode, _, ticks) in reference::CASES {
+            // Reload generations are separate fixture cases. Rust revision and
+            // epoch are local bookkeeping; neither is invented in native headers.
+            let mut revision = 0;
+            for &(time_ns, _, _, _, expected) in ticks {
+                inputs += 1;
+                let reference::Publication::Observed((pose_bits, linear_bits, angular_bits, wire)) =
+                    expected
+                else {
+                    suppressed += 1;
+                    continue;
+                };
+                revision += 1;
+                let pose = pose_bits.map(f64::from_bits);
+                let sample = Sample {
+                    time: Duration::from_nanos(time_ns),
+                    epoch: 7,
+                    revision,
+                    pose: gz_sim_scene::WorldPose {
+                        translation: [pose[0], pose[1], pose[2]],
+                        rotation: [pose[3], pose[4], pose[5], pose[6]],
+                    },
+                    linear: linear_bits.map(f64::from_bits),
+                    angular: angular_bits.map(f64::from_bits),
+                };
+                let (odometry, covariance, transform) = packets(&metadata, 1, &sample)
+                    .unwrap_or_else(|| {
+                        panic!("actual native 3D values were rejected: {mode}/{time_ns}")
+                    });
+                // These are actual output bits already in the final odometry
+                // frame. MODEL->WORLD conversion belongs to input replay only.
+                let encoded = [
+                    odometry.encode_to_vec(),
+                    covariance.encode_to_vec(),
+                    transform.encode_to_vec(),
+                ];
+                for (channel, (actual, expected)) in encoded.iter().zip(wire).enumerate() {
+                    assert_eq!(
+                        actual.as_slice(),
+                        expected,
+                        "actual native 3D canonical bytes: {mode}/{time_ns}/channel{channel}"
+                    );
+                    canonical_packets += 1;
+                }
+                acquisitions += 1;
+            }
+        }
+        assert_eq!(
+            (inputs, acquisitions, suppressed, canonical_packets),
+            (510, 429, 81, 1287)
+        );
     }
 }

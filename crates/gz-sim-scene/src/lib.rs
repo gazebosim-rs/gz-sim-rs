@@ -20,8 +20,8 @@ pub use joint_state_publisher::{
     JointStateJointPublication, JointStatePublication, JointStateSample, JointStateValue,
 };
 pub use odometry_publisher::{
-    GroundTruthOdometryError, GroundTruthOdometryPublication, GroundTruthOdometrySample,
-    GroundTruthOdometryScheduleFault,
+    GroundTruthOdometryDimensions, GroundTruthOdometryError, GroundTruthOdometryPublication,
+    GroundTruthOdometrySample, GroundTruthOdometryScheduleFault,
 };
 pub use pose_publisher::{
     PoseFramePublication, PoseFrameValue, PosePublication, PoseSample, StaticPosePublication,

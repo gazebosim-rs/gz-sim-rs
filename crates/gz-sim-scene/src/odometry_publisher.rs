@@ -1,11 +1,19 @@
 // Copyright (C) 2021, 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Loaded noiseless 2D ground-truth odometry, separate from wheel integration.
+//! Loaded noiseless ground-truth odometry, separate from wheel integration.
 use super::*;
 use std::collections::BTreeSet;
 
+/// Native pose-derived odometry mode; omitted XML dimensions select `Two`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum GroundTruthOdometryDimensions {
+    Two,
+    Three,
+}
+
 #[derive(Component, Clone, Debug, PartialEq)]
 pub struct GroundTruthOdometryPublication {
+    pub dimensions: GroundTruthOdometryDimensions,
     pub model_name: String,
     pub odom_frame: String,
     pub robot_base_frame: String,
@@ -77,9 +85,12 @@ pub(super) struct Publisher {
     last_publication: Duration,
     revision: u64,
     means: [Mean; 3],
+    spatial_means: Option<[Mean; 3]>,
 }
 impl Publisher {
     fn new(owner: u64, publication: GroundTruthOdometryPublication, period: Duration) -> Self {
+        let spatial_means = (publication.dimensions == GroundTruthOdometryDimensions::Three)
+            .then(|| std::array::from_fn(|_| Mean::default()));
         Self {
             owner,
             publication,
@@ -92,6 +103,7 @@ impl Publisher {
             last_publication: Duration::ZERO,
             revision: 0,
             means: std::array::from_fn(|_| Mean::default()),
+            spatial_means,
         }
     }
 }
@@ -161,6 +173,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
         return Err(bad());
     }
     let mut publication = GroundTruthOdometryPublication {
+        dimensions: GroundTruthOdometryDimensions::Two,
         model_name: model.name.clone(),
         odom_frame: format!("{}/odom", model.name),
         robot_base_frame: format!("{}/base_footprint", model.name),
@@ -188,6 +201,9 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
         let text = child.text().unwrap_or_default().trim();
         match child.tag_name().name() {
             "dimensions" if text == "2" => {}
+            "dimensions" if text == "3" => {
+                publication.dimensions = GroundTruthOdometryDimensions::Three;
+            }
             "odom_publish_frequency" => {
                 frequency = period(text.parse().map_err(|_| bad())?).ok_or_else(bad)?
             }
@@ -410,6 +426,56 @@ fn velocities(
         .then_some(result)
         .ok_or(GroundTruthOdometryError::Arithmetic)
 }
+// Keep the accepted planar function above unchanged: its f32 yaw trigonometry
+// is deliberately different from the native spatial quaternion rotation.
+fn spatial_velocities(
+    previous: WorldPose,
+    pose: WorldPose,
+    dt: f64,
+) -> Result<[f64; 6], GroundTruthOdometryError> {
+    let rotate_reverse = |value: [f64; 3]| {
+        let rotated = mul(
+            inverse(pose.rotation),
+            mul([value[0], value[1], value[2], 0.0], pose.rotation),
+        );
+        [rotated[0], rotated[1], rotated[2]]
+    };
+    let displacement = std::array::from_fn(|i| pose.translation[i] - previous.translation[i]);
+    let linear = rotate_reverse(displacement).map(|value| value / dt);
+    let mut current = pose.rotation;
+    let a = current;
+    let b = previous.rotation;
+    if a[3] * b[3] + a[0] * b[0] + a[1] * b[1] + a[2] * b[2] < 0.0 {
+        current = current.map(|value| -value);
+    }
+    let delta = mul(current, inverse(previous.rotation));
+    let squared = delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2];
+    let (axis, angle) = if squared <= 1e-12 {
+        ([1.0, 0.0, 0.0], 0.0)
+    } else {
+        let inv_length = 1.0 / squared.sqrt();
+        (
+            [
+                delta[0] * inv_length,
+                delta[1] * inv_length,
+                delta[2] * inv_length,
+            ],
+            2.0 * delta[3].acos(),
+        )
+    };
+    // The sign adjustment selects only rotationDiff. Native body rotation uses
+    // the original current quaternion, including its original IEEE signs.
+    let angular = rotate_reverse(axis.map(|value| (angle / dt) * value));
+    let values = [
+        linear[0], linear[1], linear[2], angular[0], angular[1], angular[2],
+    ];
+    values
+        .into_iter()
+        .all(f64::is_finite)
+        .then_some(values)
+        .ok_or(GroundTruthOdometryError::Arithmetic)
+}
+
 impl Publisher {
     fn advance(
         &mut self,
@@ -437,12 +503,40 @@ impl Publisher {
             native_pose_mul(native_zero_offset_inverse(), pose),
             native_zero_offset(),
         );
-        let values = velocities(self.previous_pose, pose, elapsed.as_secs_f64())?;
-        let means = [
-            self.means[0].push(values[0])?,
-            self.means[1].push(values[1])?,
-            self.means[2].push(values[2])?,
-        ];
+        let (linear, angular) = match self.publication.dimensions {
+            GroundTruthOdometryDimensions::Two => {
+                let values = velocities(self.previous_pose, pose, elapsed.as_secs_f64())?;
+                let means = [
+                    self.means[0].push(values[0])?,
+                    self.means[1].push(values[1])?,
+                    self.means[2].push(values[2])?,
+                ];
+                ([means[0], means[1], 0.0], [0.0, 0.0, means[2]])
+            }
+            GroundTruthOdometryDimensions::Three => {
+                let values = spatial_velocities(self.previous_pose, pose, elapsed.as_secs_f64())?;
+                let extra = self
+                    .spatial_means
+                    .as_mut()
+                    .ok_or(GroundTruthOdometryError::Identity)?;
+                (
+                    // Native adds DblNormal(0, 0), which returns +0 without RNG.
+                    // Keep the addition, including underflowed mean -0 -> +0.
+                    [
+                        self.means[0].push(values[0])?,
+                        self.means[1].push(values[1])?,
+                        extra[0].push(values[2])?,
+                    ]
+                    .map(|value| value + 0.0),
+                    [
+                        extra[1].push(values[3])?,
+                        extra[2].push(values[4])?,
+                        self.means[2].push(values[5])?,
+                    ]
+                    .map(|value| value + 0.0),
+                )
+            }
+        };
         self.previous_pose = pose;
         self.previous_time = Some(time.sim_time);
         let diff = time
@@ -458,14 +552,16 @@ impl Publisher {
             .ok_or(GroundTruthOdometryError::Revision)?;
         self.last_publication = time.sim_time;
         let mut published = pose;
-        published.translation[2] = 0.0;
+        if self.publication.dimensions == GroundTruthOdometryDimensions::Two {
+            published.translation[2] = 0.0;
+        }
         Ok(Some(GroundTruthOdometrySample {
             time: time.sim_time,
             epoch: time.epoch,
             revision: self.revision,
             pose: published,
-            linear: [means[0], means[1], 0.0],
-            angular: [0.0, 0.0, means[2]],
+            linear,
+            angular,
         }))
     }
 }
@@ -565,6 +661,7 @@ mod tests {
     use super::*;
     fn metadata() -> GroundTruthOdometryPublication {
         GroundTruthOdometryPublication {
+            dimensions: GroundTruthOdometryDimensions::Two,
             model_name: "rig".into(),
             odom_frame: "rig/odom".into(),
             robot_base_frame: "rig/base".into(),
@@ -837,6 +934,18 @@ mod tests {
         );
         assert_eq!(plan.publication.tf_topic, "/model/rig/pose");
         assert_eq!(plan.publication.robot_base_frame, "rig/base_footprint");
+        assert_eq!(
+            plan.publication.dimensions,
+            GroundTruthOdometryDimensions::Two
+        );
+        assert_eq!(
+            parse(&configured("<dimensions>3</dimensions>"))
+                .unwrap()
+                .unwrap()
+                .publication
+                .dimensions,
+            GroundTruthOdometryDimensions::Three
+        );
         let positive = "<!-- root --> <dimensions> 2 </dimensions><gaussian_noise>-0</gaussian_noise><xyz_offset>0 0 0</xyz_offset><rpy_offset>0 0 0</rpy_offset><xyz_global_offset>0 0 0</xyz_global_offset><rpy_global_offset>0 0 0</rpy_global_offset><odom_publish_frequency>90909090.90909092</odom_publish_frequency>";
         assert_eq!(
             parse(&configured(positive)).unwrap().unwrap().period,
@@ -846,7 +955,7 @@ mod tests {
         absent.plugins.clear();
         assert!(parse(&absent).unwrap().is_none());
         for content in [
-            "<dimensions>3</dimensions>",
+            "<dimensions>4</dimensions>",
             "<dimensions>bad</dimensions>",
             "<dimensions>2</dimensions><dimensions>2</dimensions>",
             "<gaussian_noise>NaN</gaussian_noise>",
@@ -1048,5 +1157,398 @@ mod tests {
             (inputs, observed, unobserved, suppressed),
             (301, 221, 15, 65)
         );
+    }
+
+    fn spatial_metadata() -> GroundTruthOdometryPublication {
+        GroundTruthOdometryPublication {
+            dimensions: GroundTruthOdometryDimensions::Three,
+            ..metadata()
+        }
+    }
+    fn spatial_pose(position: [f64; 3]) -> WorldPose {
+        WorldPose {
+            translation: position,
+            rotation: [0.0, 0.0, 0.0, 1.0],
+        }
+    }
+    #[test]
+    fn spatial_startup_retains_z_and_six_independent_ten_sample_histories() {
+        let mut publisher = Publisher::new(1, spatial_metadata(), Duration::ZERO);
+        let input = spatial_pose([2.0, -1.0, 3.0]);
+        assert!(publisher.advance(input, clock(0)).unwrap().is_none());
+        for nanos in [0, 1, 1000] {
+            assert!(
+                publisher
+                    .advance(spatial_pose([9.0; 3]), clock(nanos))
+                    .unwrap()
+                    .is_none()
+            );
+        }
+        assert_eq!(publisher.previous_pose.translation, [0.0; 3]);
+        let first = publisher.advance(input, clock(1_000_000)).unwrap().unwrap();
+        assert_eq!(first.pose.translation, [2.0, -1.0, 3.0]);
+        assert_eq!(first.linear, [2000.0, -1000.0, 3000.0]);
+        assert_eq!(first.angular, [0.0; 3]);
+        for count in 2..=10 {
+            let sample = publisher
+                .advance(input, clock(count * 1_000_000))
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                sample.linear,
+                first.linear.map(|value| value / count as f64)
+            );
+            assert_eq!(sample.angular, [0.0; 3]);
+        }
+        assert_eq!(
+            publisher
+                .advance(input, clock(11_000_000))
+                .unwrap()
+                .unwrap()
+                .linear,
+            [0.0; 3]
+        );
+        assert!(publisher.means.iter().all(|mean| mean.count == 10));
+        assert!(
+            publisher
+                .spatial_means
+                .as_ref()
+                .unwrap()
+                .iter()
+                .all(|mean| mean.count == 10)
+        );
+        assert!(
+            Publisher::new(1, metadata(), Duration::ZERO)
+                .spatial_means
+                .is_none()
+        );
+    }
+    #[test]
+    fn spatial_throttle_preserves_all_six_histories_and_current_body_rotation() {
+        let mut every = Publisher::new(1, spatial_metadata(), Duration::ZERO);
+        let mut limited = Publisher::new(1, spatial_metadata(), Duration::from_millis(20));
+        let mut input = spatial_pose([0.0; 3]);
+        every.advance(input, clock(0)).unwrap();
+        limited.advance(input, clock(0)).unwrap();
+        for tick in 1..=20 {
+            input.translation = [
+                tick as f64 * 0.001,
+                tick as f64 * -0.002,
+                tick as f64 * 0.003,
+            ];
+            input.rotation = DQuat::from_euler(
+                glam::EulerRot::XYZ,
+                tick as f64 * 0.002,
+                tick as f64 * 0.003,
+                tick as f64 * 0.004,
+            )
+            .to_array();
+            let observed = every
+                .advance(input, clock(tick * 1_000_000))
+                .unwrap()
+                .unwrap();
+            let throttled = limited.advance(input, clock(tick * 1_000_000)).unwrap();
+            if tick < 20 {
+                assert!(throttled.is_none());
+            } else {
+                let throttled = throttled.unwrap();
+                assert_eq!(
+                    throttled.linear.map(f64::to_bits),
+                    observed.linear.map(f64::to_bits)
+                );
+                assert_eq!(
+                    throttled.angular.map(f64::to_bits),
+                    observed.angular.map(f64::to_bits)
+                );
+                assert!(throttled.angular.into_iter().all(|value| value != 0.0));
+                assert_eq!(throttled.revision, 1);
+            }
+        }
+        let same = spatial_velocities(input, input, 0.001).unwrap();
+        assert_eq!(same, [0.0; 6]);
+        let mut signed = input;
+        signed.rotation = signed.rotation.map(|value| -value);
+        assert_eq!(spatial_velocities(input, signed, 0.001).unwrap(), same);
+        let previous = spatial_pose([0.0; 3]);
+        let tiny = WorldPose {
+            rotation: [1e-7, 0.0, 0.0, (1.0_f64 - 1e-14).sqrt()],
+            ..previous
+        };
+        assert_eq!(
+            &spatial_velocities(previous, tiny, 0.001).unwrap()[3..],
+            &[0.0; 3]
+        );
+    }
+    #[test]
+    fn spatial_mode_is_owned_metadata_and_invalid_math_removes_stale_sample() {
+        let mut sim = Simulation::new(Duration::from_millis(1)).unwrap();
+        let entity = sim
+            .world_mut()
+            .spawn((
+                EntityKind::Model,
+                spatial_metadata(),
+                spatial_pose([0.0; 3]),
+            ))
+            .id();
+        let id = gz_sim_core::assign_id(sim.world_mut(), entity).unwrap();
+        sim.world_mut().entity_mut(entity).insert(Publisher::new(
+            id,
+            spatial_metadata(),
+            Duration::ZERO,
+        ));
+        install(&mut sim);
+        sim.step_exact(2).unwrap();
+        assert!(
+            sim.world()
+                .get::<GroundTruthOdometrySample>(entity)
+                .is_some()
+        );
+        sim.world_mut()
+            .get_mut::<GroundTruthOdometryPublication>(entity)
+            .unwrap()
+            .dimensions = GroundTruthOdometryDimensions::Two;
+        assert_eq!(
+            sim.step_exact(1).unwrap_err(),
+            gz_sim_core::StepError::Faulted
+        );
+        assert!(
+            sim.world()
+                .get::<GroundTruthOdometrySample>(entity)
+                .is_none()
+        );
+        let fault = sim
+            .world()
+            .resource::<StepFault>()
+            .error()
+            .unwrap()
+            .downcast_ref::<GroundTruthOdometryScheduleFault>()
+            .unwrap();
+        assert_eq!(
+            (fault.entity, fault.source),
+            (id, GroundTruthOdometryError::Identity)
+        );
+
+        let mut publisher = Publisher::new(1, spatial_metadata(), Duration::ZERO);
+        publisher.advance(spatial_pose([0.0; 3]), clock(0)).unwrap();
+        let bad = WorldPose {
+            translation: [f64::NAN, 0.0, 0.0],
+            ..spatial_pose([0.0; 3])
+        };
+        assert_eq!(
+            publisher.advance(bad, clock(1_000_000)).unwrap_err(),
+            GroundTruthOdometryError::Pose
+        );
+        assert_eq!(publisher.previous_time, Some(Duration::ZERO));
+        assert_eq!(
+            spatial_velocities(
+                spatial_pose([-f64::MAX; 3]),
+                spatial_pose([f64::MAX; 3]),
+                0.001
+            )
+            .unwrap_err(),
+            GroundTruthOdometryError::Arithmetic
+        );
+        // A finite nonunit delta can make acos invalid; no normalization or
+        // clamping converts this private arithmetic failure to a reading.
+        let nonunit = WorldPose {
+            rotation: [0.1, 0.0, 0.0, 2.0],
+            ..spatial_pose([0.0; 3])
+        };
+        assert_eq!(
+            spatial_velocities(spatial_pose([0.0; 3]), nonunit, 0.001).unwrap_err(),
+            GroundTruthOdometryError::Arithmetic
+        );
+        publisher.spatial_means = None;
+        assert_eq!(
+            publisher
+                .advance(spatial_pose([0.0; 3]), clock(1_000_000))
+                .unwrap_err(),
+            GroundTruthOdometryError::Identity
+        );
+    }
+
+    #[test]
+    fn actual_three_dimensional_native_inputs_match_scalar_and_dispatcher_bits() {
+        mod reference {
+            include!("../tests/fixtures/m38_native_odometry_3d.rs");
+        }
+        use reference::Publication;
+        let modes: Vec<_> = reference::CASES.iter().map(|(mode, _, _)| *mode).collect();
+        assert_eq!(
+            modes,
+            [
+                "identity",
+                "stationary_tilted",
+                "translate_x",
+                "translate_y",
+                "translate_z",
+                "rotate_roll",
+                "rotate_pitch",
+                "rotate_yaw",
+                "tilted_screw",
+                "quaternion_sign",
+                "angular_threshold",
+                "rate",
+                "micro",
+                "pause_equal",
+                "reload/0",
+                "reload/1"
+            ]
+        );
+        let mut inputs = 0;
+        let mut observed = 0;
+        let mut suppressed = 0;
+        let bits = |sample: GroundTruthOdometrySample| {
+            (
+                [
+                    sample.pose.translation[0].to_bits(),
+                    sample.pose.translation[1].to_bits(),
+                    sample.pose.translation[2].to_bits(),
+                    sample.pose.rotation[0].to_bits(),
+                    sample.pose.rotation[1].to_bits(),
+                    sample.pose.rotation[2].to_bits(),
+                    sample.pose.rotation[3].to_bits(),
+                ],
+                sample.linear.map(f64::to_bits),
+                sample.angular.map(f64::to_bits),
+            )
+        };
+        for (case_index, &(mode, period_ns, ticks)) in reference::CASES.iter().enumerate() {
+            let epoch = 7 + case_index as u64;
+            let publication = spatial_metadata();
+            let mut world = World::new();
+            world.insert_resource(StepFault::default());
+            let entity = world.spawn((EntityKind::Model, publication.clone())).id();
+            let owner = gz_sim_core::assign_id(&mut world, entity).unwrap();
+            let mut scalar = Publisher::new(owner, publication, Duration::from_nanos(period_ns));
+            world.entity_mut(entity).insert(scalar.clone());
+            let mut iteration = 0;
+            for &(time_ns, dt_ns, paused, input_bits, expected) in ticks {
+                inputs += 1;
+                let input = input_bits.map(f64::from_bits);
+                let model_pose = WorldPose {
+                    translation: [input[0], input[1], input[2]],
+                    rotation: [input[3], input[4], input[5], input[6]],
+                };
+                // The oracle records a MODEL Pose component. Native Util::worldPose
+                // left-composes its identity parent's Pose before UpdateOdometry.
+                // Both paths below receive WORLD input, as production requires.
+                let pose = native_pose_mul(native_zero_offset(), model_pose);
+                assert!(
+                    valid_pose(pose),
+                    "invalid actual reference input: {mode}/{time_ns}"
+                );
+                let sim_time = Duration::from_nanos(time_ns);
+                let dt = Duration::from_nanos(dt_ns);
+                let info = UpdateInfo {
+                    start_time: sim_time.checked_sub(dt).unwrap(),
+                    sim_time,
+                    dt,
+                    iteration,
+                    epoch,
+                    paused,
+                };
+                if !paused {
+                    iteration += 1;
+                }
+                // Publisher::advance's private contract is unpaused input. In parallel,
+                // exercise the real production dispatcher on EVERY row, including both
+                // paused calls: an accidental paused advance is not hidden by this test.
+                let actual = if paused {
+                    None
+                } else {
+                    scalar.advance(pose, info).unwrap()
+                };
+                let previous = world.get::<Publisher>(entity).unwrap().revision;
+                let held = world.get::<GroundTruthOdometrySample>(entity).copied();
+                world.entity_mut(entity).insert(pose);
+                world.insert_resource(info);
+                sample(&mut world);
+                assert!(
+                    world.resource::<StepFault>().error().is_none(),
+                    "dispatch fault: {mode}/{time_ns}"
+                );
+                let state = world.get::<Publisher>(entity).unwrap();
+                assert_eq!(
+                    state.previous_time, scalar.previous_time,
+                    "history clock: {mode}/{time_ns}"
+                );
+                assert_eq!(
+                    state.previous_pose.translation.map(f64::to_bits),
+                    scalar.previous_pose.translation.map(f64::to_bits)
+                );
+                assert_eq!(
+                    state.previous_pose.rotation.map(f64::to_bits),
+                    scalar.previous_pose.rotation.map(f64::to_bits)
+                );
+                assert_eq!(
+                    (state.last_publication, state.revision),
+                    (scalar.last_publication, scalar.revision)
+                );
+                for (dispatch, direct) in state.means.iter().zip(&scalar.means) {
+                    assert_eq!(dispatch.count, direct.count);
+                    assert_eq!(
+                        dispatch.values.map(f64::to_bits),
+                        direct.values.map(f64::to_bits)
+                    );
+                }
+                for (dispatch, direct) in state
+                    .spatial_means
+                    .as_ref()
+                    .unwrap()
+                    .iter()
+                    .zip(scalar.spatial_means.as_ref().unwrap())
+                {
+                    assert_eq!(dispatch.count, direct.count);
+                    assert_eq!(
+                        dispatch.values.map(f64::to_bits),
+                        direct.values.map(f64::to_bits)
+                    );
+                }
+                let dispatched = (state.revision != previous)
+                    .then(|| *world.get::<GroundTruthOdometrySample>(entity).unwrap());
+                assert_eq!(
+                    dispatched.map(bits),
+                    actual.map(bits),
+                    "direct/dispatch: {mode}/{time_ns}"
+                );
+                match expected {
+                    Publication::Suppressed => {
+                        suppressed += 1;
+                        assert!(
+                            actual.is_none(),
+                            "native suppressed publication: {mode}/{time_ns}"
+                        );
+                        assert_eq!(state.revision, previous);
+                        assert_eq!(
+                            world
+                                .get::<GroundTruthOdometrySample>(entity)
+                                .copied()
+                                .map(bits),
+                            held.map(bits)
+                        );
+                        assert_eq!(
+                            world
+                                .get::<GroundTruthOdometrySample>(entity)
+                                .map(|s| (s.time, s.epoch, s.revision)),
+                            held.map(|s| (s.time, s.epoch, s.revision))
+                        );
+                    }
+                    Publication::Observed((pose_bits, linear_bits, angular_bits, _wire_bytes)) => {
+                        observed += 1;
+                        let actual = actual.unwrap_or_else(|| {
+                            panic!("missing native-time sample: {mode}/{time_ns}")
+                        });
+                        assert_eq!((actual.time, actual.epoch), (sim_time, epoch));
+                        assert_eq!(
+                            bits(actual),
+                            (pose_bits, linear_bits, angular_bits),
+                            "actual native numeric bits: {mode}/{time_ns}"
+                        );
+                    }
+                }
+            }
+        }
+        assert_eq!((inputs, observed, suppressed), (510, 429, 81));
     }
 }

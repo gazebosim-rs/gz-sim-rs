@@ -1,6 +1,32 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Current combined M36/M37 delivery
+# Current coordinator handoff: M38
+
+M1–M37 are accepted at qualified Main `6d2d5320`. The verified Latest is
+[m37-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m37-preview),
+release 439888006. [M36/M37 acceptance](M36_M37_ACCEPTANCE.md) records the actual
+full normal, exact hosted CI, independent DATA, fresh thirteen-example install,
+eight-image browser/shutdown proof and Main/tag/seven-assets/body/Latest readbacks.
+All original failures remain preserved; no previous failed exit became zero.
+
+Continue [M38 noiseless 3D odometry](M38_DELIVERY.md) over that accepted parent.
+Scene and Server implementation, regression Source and native fixture are
+integrated after independent contract and Source review. The actual scoped
+original-system reference passed in 54.957857504 seconds; independent native
+and literal DATA confirm 510 inputs, 429 triples and 1,287 canonical packets.
+The fixture and both Rust replay controls are inserted, but have not yet run.
+Root owns shared seams and serial heavy verification. Complete final whole
+Source review, then one consolidated full normal with unchanged strict coverage,
+exact hosted CI and independent local/official DATA before acceptance. M37
+remains installed Latest; M38 has no package/browser refresh. Continue the next
+useful bounded phase after acceptance under D32.
+
+The following checkpoints are historical and superseded by this current state.
+
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+
+## Historical M36/M37 qualification checkpoint (superseded)
 
 M1–M35 are accepted at qualified Main `1982ce86`; M32 remains installed Latest.
 M34/M35's full normal, exact hosted CI42715967423 attempt1, independent

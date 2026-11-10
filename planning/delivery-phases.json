@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-09",
   "execution_state": "active",
-  "current_phase": "M36",
+  "current_phase": "M38",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -653,6 +653,19 @@
       "excluded": "Runtime/schema/backend/transport expansion, renderer rebuild, new launcher options/frameworks, native captures, performance/trajectory/acquisition claims from two-step examples, old acceptance transfer.",
       "evidence": "docs/M37_DELIVERY.md",
       "source_preparation_only": false
+    },
+    {
+      "id": "M38",
+      "title": "Noiseless 3D ground-truth odometry",
+      "max_working_days": 5,
+      "depends_on": [
+        "M37"
+      ],
+      "scope": "Explicit dimensions=3 for the existing admitted noiseless Rapier ground-truth odometry built-in and its three canonical streams, preserving the exact default planar path and all prior numerical and wire controls.",
+      "acceptance": "Review original-system and Math arithmetic, typed mode/reconstruction identity and finite native cases before runtime edits; acquire and independently audit fresh scoped 3D component reference; require full-pose/body-twist/history/lifecycle/refusal and real three-stream C++ peer controls, complete Source/regressions/guides/review, one full normal hook with unchanged strict coverage, exact hosted CI and independent local/official DATA before qualified Main acceptance.",
+      "excluded": "Noise/offset or backend/topology expansion, new dependencies/transport/schema/solver/frameworks, pose/velocity teleportation, package/browser refresh and performance/native-Physics trajectory claims.",
+      "evidence": "docs/M38_DELIVERY.md",
+      "source_preparation_only": false
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -692,16 +705,16 @@
     "M33": "complete",
     "M34": "complete",
     "M35": "complete",
-    "M36": "in_progress",
-    "M37": "in_progress"
+    "M36": "complete",
+    "M37": "complete",
+    "M38": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-09",
   "active_phases": [
-    "M36",
-    "M37"
+    "M38"
   ],
-  "execution_policy": "D30\u2013D32 atomic M36/M37 integration over accepted Main1982ce86: complete independently reviewed functional/package/regression/guide sources, one new full normal/strict coverage/exact hosted qualification and independent local/official DATA, then fresh source-bound release/notices/ELF/package/relocation/cleanUbuntu/thirteen-installed-example/browser/owned-shutdown/Main/tag/seven-assets/body/Latest proofs before accepting both phases together. Preserve every individual M36 and M37 criterion. The already-running M36-only normal may finish as provisional historical evidence; no result or acceptance transfers. Supersedes only intermediate M36 acceptance before M37 execution. Root alone releases serial heavy jobs after exact Source/procedure review.",
+  "execution_policy": "D30\u2013D32: M38 over accepted Main 6d2d5320. Review bounded 3D arithmetic/mode/native-case contracts before implementation. Parallel disjoint Scene and Server/native Source worktrees with one integrator; Root alone runs heavy work. Finish implementation, regression source, guides and independent review, batch findings, then one consolidated full normal with unchanged strict coverage, exact hosted CI and independent DATA before acceptance. M37 remains installed Latest; no package/browser repeat or old acceptance transfer.",
   "parallel_groups": [
     {
       "phases": [
@@ -813,9 +826,8 @@
       "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M35 accepted at Main1982ce86; M32 remains installed Latest. M36/M37 form one atomic candidate over that accepted parent. Neither is accepted. New full normal, strict coverage, exact hosted and independent local/official proofs plus all fresh M37 distribution/browser/publication criteria are mandatory. The prior M36-only normal is provisional and cannot qualify this combined tree.",
+  "acceptance_boundary": "M1\u2013M37 accepted at qualified Main 6d2d5320. Verified Latest m37-preview release439888006 retains all seven exact assets/body/checksums, thirteen-example clean install and fresh browser/shutdown proofs. M38 is selected and unaccepted; every new Source/native/canonical/normal/coverage/hosted/independent DATA criterion remains required.",
   "current_delivery_group": [
-    "M36",
-    "M37"
+    "M38"
   ]
 }

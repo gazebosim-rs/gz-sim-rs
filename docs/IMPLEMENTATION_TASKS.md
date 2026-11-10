@@ -1,3 +1,23 @@
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
+## Current bounded task: M38-ODOM3D
+
+Accepted parent: `6d2d53209174e3398b79909553e4fc5fd7fe05e8`.
+Implement the noiseless 3D ground-truth odometry contract in
+[M38_DELIVERY.md](M38_DELIVERY.md). Light owns Scene leaves/tests/example/guide;
+Messages owns the Server canonical peer and scoped original-system native
+helper/cases/fixture; Root owns shared configuration and registration, CLI/
+profile/retention requirements, integration and records. SDF independently
+reviews semantics and test integrity. Agree exact arithmetic, type seams and
+finite native cases before runtime edits. The implementation and actual native
+fixture are now integrated; the guide names concrete controls. Original-system
+capture and independent native/literal DATA passed. Rust tests/lint and full
+qualification have not run. Finish whole Source review before the consolidated
+mandatory verification.
+
+The older current-task descriptions below are historical checkpoints.
+
 # Implementation work packets
 
 Each packet is a bounded assignment. Split broad packets by the named system or
@@ -10,7 +30,7 @@ files, upstream test IDs, dependency decisions, code revision, exact check comma
 results, coverage, relevant benchmark data, reviewer, and unresolved limits.
 The task author cannot independently retire tests or approve coverage exclusions.
 
-## Current delivery: atomic M21–M25 sensor preview
+## Historical atomic M21–M25 task checkpoint (superseded)
 
 [M21_M25_DELIVERY.md](M21_M25_DELIVERY.md) supersedes serial intermediate-parent
 qualification with one new complete candidate over accepted M20. Every per-phase

@@ -52,7 +52,7 @@ class ZenohPeerTests(unittest.TestCase):
                     self.assertEqual(json.loads(result.stdout), expected)
                     self.assertEqual(json.loads(record.read_text()), expected)
             marker = record.read_bytes()
-            for client in ['camera', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry']:
+            for client in ['camera', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d']:
                 for profile in ['transport-client-v1', 'clean-headless-sdk-v1']:
                     with self.subTest(client=client, profile=profile):
                         result = subprocess.run([
