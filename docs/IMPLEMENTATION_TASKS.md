@@ -1,7 +1,32 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Current source preparation: M43-IMU-REFERENCE and M44-INSTALL
+## Current provisional local development: M45-IMU-CUSTOM-WORLD
+
+Read [M45 delivery](M45_DELIVERY.md). This integrated candidate uses exact locally
+qualified a08f0b50, preserving all containment repairs; accepted Main remains 73e03b9f.
+The prior Source lane 9a is preserved. M43/M44 exact hosted/official and publication
+are pending after the fresh snapshot TLS/select setup failure. No retry is released.
+Reviewed timing amendment 5d823a75 permits one provisional full LOCAL qualification
+only after complete Source/integration/tree/runner review and serial Root release.
+Actual accepted predecessor, exact hosted/official and Main/readbacks still govern
+publication and acceptance. No original proof is relabelled or transferred.
+
+The standalone original-component capture and native/literal DATA passed for 14 new
+configurations and 84 calls. The exact fixture/provenance copies are inserted. Light
+and Messages completed the two new private native consumer leaves; SDF reviewed
+their complete Source. Root owns append-only cfg hooks and shared Source/docs,
+complete integration review and serial release. No M45 Rust check has run. Preserve
+every old fixture/test body, strict bound and actual failure; no placeholders.
+
+M45 admits effective CUSTOM angles with explicit world parent while preserving
+legacy initial-relative bits and named frame arithmetic. Its new development
+example becomes the nineteenth finite CLI qualification input; M44's eighteen
+archived examples and package bytes remain unchanged. M45 selects no new
+package or browser refresh. Keep actual physical-force, lifecycle, canonical
+wire, strict coverage and exact hosted checks before acceptance.
+
+## Historical source preparation: M43-IMU-REFERENCE and M44-INSTALL
 
 Read [M43/M44 delivery](M43_M44_DELIVERY.md). M41/M42 are accepted at
 Main `73e03b9f` after exact hosted CI and independent official DATA. This is the

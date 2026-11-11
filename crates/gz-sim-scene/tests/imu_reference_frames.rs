@@ -288,15 +288,43 @@ fn named_spherical_and_custom_configuration_boundaries_remain_typed() {
     reset_loaded_world(&mut legacy, |_| ()).unwrap();
     legacy.step_exact(1).unwrap();
     assert_eq!(sample(&legacy).2, first.2);
+    // M45 admits explicit CUSTOM/world zero as a world reference, rather than
+    // the legacy initial-relative reference. Preserve this former refusal slot
+    // as a real motion/reset control on the unchanged M43 fixture.
+    let world_zero = localized("CUSTOM").replace(
+        "</orientation_reference_frame>",
+        "<custom_rpy parent_frame='world'>0 0 0</custom_rpy></orientation_reference_frame>",
+    );
+    let mut world = load(&world_zero);
+    let old_sensor = sensor(&world);
+    let public = named(&world, "default::rig::body::imu").1;
+    let initial = world.world().get::<WorldPose>(old_sensor).unwrap().rotation;
+    drive(&mut world);
+    world.step_exact(20).unwrap();
+    let first = sample(&world);
+    named_geometry(&world, "ENU");
+    assert_ne!(
+        world.world().get::<WorldPose>(old_sensor).unwrap().rotation,
+        initial
+    );
+    assert!(first.2.angular_velocity.into_iter().any(|v| v.abs() > 0.1));
+    reset_loaded_world(&mut world, |_| ()).unwrap();
+    let restored = entity_by_id(world.world(), public).unwrap();
+    assert_eq!(restored, sensor(&world));
+    assert_ne!(restored, old_sensor);
+    assert!(world.world().get::<ImuSample>(restored).is_none());
+    assert_eq!(world.elapsed(), Duration::ZERO);
+    drive(&mut world);
+    world.step_exact(20).unwrap();
+    named_geometry(&world, "ENU");
+    let replay = sample(&world);
+    assert_eq!((replay.0, replay.2), (first.0, first.2));
+    assert_eq!(replay.1, first.1 + 1);
     for xml in [
         localized("UNKNOWN"),
         localized("CUSTOM").replace(
             "</orientation_reference_frame>",
             "<custom_rpy>0 0 0.1</custom_rpy></orientation_reference_frame>",
-        ),
-        localized("CUSTOM").replace(
-            "</orientation_reference_frame>",
-            "<custom_rpy parent_frame='world'>0 0 0</custom_rpy></orientation_reference_frame>",
         ),
     ] {
         assert!(matches!(

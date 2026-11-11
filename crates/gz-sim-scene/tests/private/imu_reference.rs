@@ -81,7 +81,15 @@ fn validation_is_named_only_and_preserves_neighboring_refusals() {
         assert!(validate(&config, false, "sensor").is_err());
         config.custom_rpy = [0.0; 3];
         config.custom_rpy_parent_frame = "world".into();
-        assert!(validate(&config, false, "sensor").is_err());
+        if name == "CUSTOM" {
+            assert_eq!(
+                validate(&config, false, "sensor").unwrap(),
+                Frame::CustomWorld([0.0f64.to_bits(); 3])
+            );
+            assert!(validate(&config, true, "sensor").is_err());
+        } else {
+            assert!(validate(&config, false, "sensor").is_err());
+        }
     }
     for name in ["", "ned", "NONE", "UNKNOWN"] {
         let config = sdformat::Imu {
@@ -92,4 +100,81 @@ fn validation_is_named_only_and_preserves_neighboring_refusals() {
             matches!(validate(&config, false, "sensor"), Err(LoadError::Unsupported { entity, feature: "IMU orientation configuration" }) if entity == "sensor")
         );
     }
+}
+
+#[test]
+fn custom_world_payload_keeps_angle_bits_and_ignores_initial_reference() {
+    let initial = DQuat::from_xyzw(-0.0, 0.0, -0.0, -1.0);
+    for angles in [
+        [-0.0, 0.0, -0.0],
+        [0.3, -0.4, 0.5],
+        [std::f64::consts::PI, 0.0, -std::f64::consts::PI],
+        [0.0, std::f64::consts::FRAC_PI_2, 0.0],
+    ] {
+        let config = sdformat::Imu {
+            custom_rpy: angles,
+            custom_rpy_parent_frame: "world".into(),
+            ..Default::default()
+        };
+        let frame = validate(&config, false, "sensor").unwrap();
+        assert_eq!(frame, Frame::CustomWorld(angles.map(f64::to_bits)));
+        let selected = reference(frame, initial);
+        assert_eq!(
+            selected.to_array().map(f64::to_bits),
+            reference(frame, DQuat::from_rotation_x(0.7))
+                .to_array()
+                .map(f64::to_bits)
+        );
+        // Independent axis-angle construction checks geometry, not native bits.
+        let expected = DQuat::from_rotation_z(angles[2])
+            * DQuat::from_rotation_y(angles[1])
+            * DQuat::from_rotation_x(angles[0]);
+        for (actual, expected) in selected.to_array().into_iter().zip(expected.to_array()) {
+            assert!((actual - expected).abs() < 1e-9);
+        }
+        assert!((selected.length_squared() - 1.0).abs() < 1e-12);
+        assert_eq!(
+            reference(Frame::Custom, initial)
+                .to_array()
+                .map(f64::to_bits),
+            initial.to_array().map(f64::to_bits)
+        );
+    }
+}
+
+#[test]
+fn custom_world_rejects_unrepresentable_angles_geodesy_and_other_parents() {
+    let mut config = sdformat::Imu {
+        custom_rpy: [0.3, -0.4, 0.5],
+        custom_rpy_parent_frame: "world".into(),
+        ..Default::default()
+    };
+    assert!(validate(&config, true, "sensor").is_err());
+    for value in [
+        f64::NAN,
+        f64::INFINITY,
+        f64::NEG_INFINITY,
+        f64::from_bits(1),
+    ] {
+        config.custom_rpy[1] = value;
+        assert!(matches!(
+            validate(&config, false, "sensor"),
+            Err(LoadError::Unsupported {
+                feature: "IMU orientation configuration",
+                ..
+            })
+        ));
+    }
+    config.custom_rpy = [0.3, -0.4, 0.5];
+    for parent in ["", "body", "World", "default", "world "] {
+        config.custom_rpy_parent_frame = parent.into();
+        assert!(validate(&config, false, "sensor").is_err());
+    }
+    config.custom_rpy_parent_frame = "world".into();
+    for name in ["ENU", "NED", "NWU", "UNKNOWN"] {
+        config.localization = name.into();
+        assert!(validate(&config, false, "sensor").is_err());
+    }
+    config.localization = "CUSTOM".into();
+    assert!(validate(&config, false, "sensor").is_ok());
 }

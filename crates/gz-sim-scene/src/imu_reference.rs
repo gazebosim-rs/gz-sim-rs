@@ -6,6 +6,7 @@ use super::{DQuat, LoadError};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Frame {
     Custom,
+    CustomWorld([u64; 3]),
     Enu,
     Ned,
     Nwu,
@@ -20,6 +21,17 @@ pub(super) fn validate(
         entity: entity.to_owned(),
         feature: "IMU orientation configuration",
     };
+    if config.localization == "CUSTOM" && config.custom_rpy_parent_frame == "world" {
+        if world_has_spherical
+            || config
+                .custom_rpy
+                .iter()
+                .any(|angle| !angle.is_finite() || angle.is_subnormal())
+        {
+            return Err(bad());
+        }
+        return Ok(Frame::CustomWorld(config.custom_rpy.map(f64::to_bits)));
+    }
     if config.custom_rpy != [0.0; 3] || !config.custom_rpy_parent_frame.is_empty() {
         return Err(bad());
     }
@@ -51,8 +63,24 @@ fn table_rotation(roll: f64, yaw: f64) -> [f64; 4] {
     [x / length, y / length, z / length, w / length]
 }
 
+// Sensors constructs Quaternion(custom_rpy) before the world-reference product.
+// Keep the existing named table operation path independent of this new input.
+fn custom_rotation(angles: [u64; 3]) -> [f64; 4] {
+    let [roll, pitch, yaw] = angles.map(f64::from_bits);
+    let phi = roll / 2.0;
+    let the = pitch / 2.0;
+    let psi = yaw / 2.0;
+    let w = phi.cos() * the.cos() * psi.cos() + phi.sin() * the.sin() * psi.sin();
+    let x = phi.sin() * the.cos() * psi.cos() - phi.cos() * the.sin() * psi.sin();
+    let y = phi.cos() * the.sin() * psi.cos() + phi.sin() * the.cos() * psi.sin();
+    let z = phi.cos() * the.cos() * psi.sin() - phi.sin() * the.sin() * psi.cos();
+    let length = (w * w + x * x + y * y + z * z).sqrt();
+    [x / length, y / length, z / length, w / length]
+}
+
 pub(super) fn reference(frame: Frame, initial: DQuat) -> DQuat {
     let q = match frame {
+        Frame::CustomWorld(angles) => custom_rotation(angles),
         Frame::Enu => table_rotation(0.0, 0.0),
         Frame::Ned => table_rotation(std::f64::consts::PI, std::f64::consts::FRAC_PI_2),
         Frame::Nwu => table_rotation(0.0, std::f64::consts::FRAC_PI_2),
@@ -78,3 +106,7 @@ mod tests;
 #[cfg(test)]
 #[path = "../tests/private/imu_reference_native.rs"]
 mod native_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/imu_custom_world_native.rs"]
+mod custom_world_native_tests;

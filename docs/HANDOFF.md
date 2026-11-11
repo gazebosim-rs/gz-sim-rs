@@ -1,3 +1,33 @@
+# Current provisional local development: M45 CUSTOM world-relative IMU angles
+
+M43/M44's original runtime/package proofs remain frozen at9a40768d/tree5872e52f.
+Their containment repair a08f0b50/tree5c22 passed the complete normal hook and
+independent local DATA over that Source parent. Accepted Main remains 73e03b9f.
+The fresh hosted run 43024343885 failed signed snapshot TLS/select setup before
+product checks; the previous9a run 42845720294 was cancelled. Both failures and
+all original local/native/package/install/feedback/browser/visual proofs remain
+retained in the primary artifacts/m43-m44-delivery. No retry/probe is released.
+The reviewed one-package lineage amendment 0f2eea1d/adoption78d5cd56 retains exact
+9a build/manifest/proof identities while separately qualifyinga08. No rebuilt
+ELF/graph equality or CI credit is inferred. Hosted/official and all public
+Main/tag/release/Latest readbacks still precede acceptance; M40 remains Latest.
+
+M45 is integrated for PROVISIONAL local development over exact locally qualified
+Source parent a08, under reviewed timing amendment 5d823a75/adoptionab9586b5. Its
+original Source-authorship basis 9a and standalone component capture parent73e
+remain separate. The component capture and native/literal DATA passed for 14 new
+configurations and 84 observations; exact audited fixture copies and both new private
+consumer leaves are now prepared. No M45 Rust pass is claimed.
+Read [M45 contract](M45_DELIVERY.md). Complete Source/integration/tree/runner review
+must precede one ordinary full LOCAL normal hook and independent retained DATA.
+Strict coverage, all jobs, actual exits and resource floors are unchanged. Actual
+accepted M43/M44, exact hosted/official and Main/readbacks still precede M45 hosted
+publication and acceptance. If the eventual parent changes, local evidence does
+not transfer automatically. No package/browser refresh or old replay is selected.
+The five-working-day scope budget and all original exclusions remain.
+
+The inherited M43/M44 closeout and older checkpoints below remain historical.
+
 # Current delivery: M43 and M44
 
 M1–M42 are accepted at qualified Main `73e03b9f741689b1538898bde96bf975a49f068e`.

@@ -1,7 +1,32 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Current status: M43 and M44 over accepted M41/M42
+## Current status: M45 provisional local development and M43/M44 closeout
+
+M1-M42 remain accepted at Main `73e03b9f`: 175 accepted slices among 45 selected
+phases. M40 release 440119258 remains Latest. No M43, M44 or M45 acceptance is
+claimed. See [M45 delivery](M45_DELIVERY.md) and the retained M41/M42 acceptance.
+
+The original M43/M44 candidate 9a passed its local normal, native/literal DATA,
+three-executable release/package, supported installation, installed feedback and
+browser/visual proofs. Its repaired qualifier a08 passed the complete normal hook
+and independent local DATA. Hosted run 43024343885 failed locked snapshot TLS/select
+setup before product checks; the earlier9a hosted run was cancelled. Exact hosted,
+official DATA and all publication readbacks remain required. The reviewed narrow
+lineage amendment retains the actual 9a package and build identities while qualifying
+a08 separately; it makes no graph/ELF equivalence or inherited CI claim.
+
+M45 original-component acquisition and native/literal DATA passed for 14 new
+configurations and 84 observations over accepted 73e. Exact audited fixture copies
+and both new private consumer Sources are prepared. The integrated development
+checkout uses locally qualified a08 with all containment repairs preserved. A
+reviewed timing amendment permits one provisional full LOCAL qualification only
+after complete Source/integration/tree/runner review and serial Root release.
+No M45 Rust pass is claimed. Actual accepted predecessor plus exact hosted/official
+and Main/readbacks still govern M45 hosted publication and acceptance. No retry,
+probe, extra package/browser replay or weaker gate is released.
+
+## Historical M43/M44 Source checkpoint (superseded)
 
 M1–M42 are accepted at qualified Main `73e03b9f`. The complete normal hook,
 strict coverage, exact hosted CI 42808865907 attempt 1 and independent local

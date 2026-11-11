@@ -1,0 +1,2734 @@
+{
+  "actual_DATA_exit_receipt_sha256": "65c8c1bbba10c24db15cc91f1bf7e33bb954ba2d14c5ed007a43769b08041fc1",
+  "actual_generator_exit_zero_required": true,
+  "capture_tree": "31da553a15fcd67daaacf8007c051d09d6789a18",
+  "counts": {
+    "Observed": 84,
+    "Suppressed": 0,
+    "canonical_packets": 84,
+    "configuration_count": 14,
+    "input_calls": 84
+  },
+  "fixture_bytes": 315386,
+  "fixture_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-replay-generated/m45_native_imu_custom_world.rs",
+  "fixture_sha256": "eb47abb6508d427a44f6129f1455fc6d15aac15a21df28ae44cbeba1c648e794",
+  "helper_source_sha256": "b96b51ecfc03d9dd55810fbb0ff823dfac5f98dff2a40b7a0bb64663663de24c",
+  "independent_fixture_source_data_review_required": true,
+  "input_bindings": {
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/generate-native-imu-custom-world-fixture-accepted-parent.py": {
+      "bytes": 25962,
+      "mode": "0o664",
+      "sha256": "be2306f26ce278eb614ad220ebe12414ea0e5b24f2a046d683fcce1b755fe565"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-audit-actual-exit.json": {
+      "bytes": 1026,
+      "mode": "0o664",
+      "sha256": "65c8c1bbba10c24db15cc91f1bf7e33bb954ba2d14c5ed007a43769b08041fc1"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-audit.json": {
+      "bytes": 230815,
+      "mode": "0o664",
+      "sha256": "ba39c126e797b2e81bc8ed4370658936f3cfc28b42c0dd68fcab17fb72c58f8b"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-audit.py": {
+      "bytes": 41910,
+      "mode": "0o664",
+      "sha256": "ddd117614d3124e545091b45479d7e78de3fc507fe0d2b8466bde3b6ff48d732"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-boundary-mixed-sign.stdout": {
+      "bytes": 17353,
+      "mode": "0o664",
+      "sha256": "311ca5897bb162f5aeb30e4595fbfee6e70d321625cb09a8b7e0a7b9668c8743"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-disabled-mixed.stdout": {
+      "bytes": 16391,
+      "mode": "0o664",
+      "sha256": "c3767bbdd948e2b6faa54f0411b07cbe92220ea2b050f4c8eebe418646e47519"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-mean-mixed-default.stdout": {
+      "bytes": 20710,
+      "mode": "0o664",
+      "sha256": "89d1200eb7562338f4c653a740efb8e10814b9460a98f89b4ec873cb04d6d308"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-mixed-sign-default.stdout": {
+      "bytes": 17247,
+      "mode": "0o664",
+      "sha256": "a1c5ef92f8ffbe998504d1c7e14d138d921f1bda48143ae5493f337f3027bcae"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-mixed.stdout": {
+      "bytes": 17176,
+      "mode": "0o664",
+      "sha256": "e8a26c4927b0ae3faa54b34eb1d42938b98d89bfc2058806efe3cfaa2610697a"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-pitch-half-pi-default.stdout": {
+      "bytes": 17237,
+      "mode": "0o664",
+      "sha256": "43b18efe0183669bd6313ec099df3f223dfd876174930d7e60fc49399df17ed6"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-pitch.stdout": {
+      "bytes": 17134,
+      "mode": "0o664",
+      "sha256": "73fd9fd0024b721aa4161f5b06986e59c7d824cc58f8a1cd52c3c2c83a00d173"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-roll.stdout": {
+      "bytes": 17121,
+      "mode": "0o664",
+      "sha256": "cb987ba3dbf84d022ff715b0d01d9fd4b63482203fc810b3e804baf26f98431c"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-signed-zero.stdout": {
+      "bytes": 17163,
+      "mode": "0o664",
+      "sha256": "91f7ebf8425b578f492914e28036121bc4b94ea5a4fd690a4a9d9586271d6e7e"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-yaw-default.stdout": {
+      "bytes": 17129,
+      "mode": "0o664",
+      "sha256": "5885f3650d8ffdae8058cec1f093c50e3346b85fd29562d48c1666e156584d97"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-yaw-negative-pi.stdout": {
+      "bytes": 17239,
+      "mode": "0o664",
+      "sha256": "f9e1db2703797f142e90e114189727ab090fb45549284941cf61d8dd97e0835a"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-yaw-pi.stdout": {
+      "bytes": 17141,
+      "mode": "0o664",
+      "sha256": "29bf27671fd2b8047a202684570974bcc3d29178308ac836e1f184c875bc648b"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-zero-default.stdout": {
+      "bytes": 17104,
+      "mode": "0o664",
+      "sha256": "ab9f56ee4558de03c4071226cd5b379d2c5f1b425145c06a58b5761ea5b076a5"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-zero-explicit.stdout": {
+      "bytes": 17184,
+      "mode": "0o664",
+      "sha256": "0dfcd38297521f468ff88ff8f8da203102aa9bbf63b59c1295b6d385a4fdc436"
+    }
+  },
+  "input_domain": "DIRECT_SENSOR_WORLD_POSE_AND_WORLD_VECTORS_WITH_NATIVE_SENSOR_AXIS_SETTERS",
+  "limits": "Actual independently audited Sensors-component literal extraction only. WORLD pose/vectors and native reverse-rotated setters remain distinct actual input ledgers; scalar replay consumes the sensor-axis setters directly, without inverse reconstruction or MODEL-parent composition. All numeric outputs are captured bits, not expected math. Disabled orientation is absent on wire; getter remains an independent observation. Exact captured-value header/wire encoder replay is separate from componentwise strict <1e-9 native/Rust numeric replay and live current-Scene wire proof. Zero-variance means do not supply RNG-stream equivalence. No original-system execution, native Physics/trajectory, nonzero-heading/geodesy, SDK rebuild, old campaign replay, product or workload execution is supplied. Fixed-grammar DATA, current Source and normal/hosted acceptance remain required.",
+  "method_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/generate-native-imu-custom-world-fixture-accepted-parent.py",
+  "method_sha256": "be2306f26ce278eb614ad220ebe12414ea0e5b24f2a046d683fcce1b755fe565",
+  "modes": {
+    "world-boundary-mixed-sign": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "400921fb54442d18",
+            "3fc999999999999a",
+            "c00921fb54442d18"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": true,
+          "mode": "world-boundary-mixed-sign",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "400921fb54442d18",
+            "3fc999999999999a",
+            "c00921fb54442d18"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "3c9352a3ba6da1cf",
+            "bfefd712f9a817c1",
+            "bc9352a3ba6da1cf",
+            "bfb98eaecb8bcb2c"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d626f756e646172792d6d697865642d7369676e3c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c6c6f63616c697a6174696f6e3e435553544f4d3c2f6c6f63616c697a6174696f6e3e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e332e3134313539323635333538393739333120302e3230303030303030303030303030303031202d332e313431353932363533353839373933313c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-boundary-mixed-sign",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-boundary-mixed-sign.stdout",
+      "stdout_sha256": "311ca5897bb162f5aeb30e4595fbfee6e70d321625cb09a8b7e0a7b9668c8743",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "edf8498342629cdd238c681161283f81458581337cdd5c4491eb2a53cb1c6c9b"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "6a74631d3c3a5bde8e0fc60fee1fb92331a3c9c2a0014422c42f0a92c727d659"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "2348c82029480b5e8770eb06a083e5cf497639c7a716ea271d7858d07a081f45"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "7014d4abf14c99f34abe6d446c44d0e29f589c3e249e423a48fcc188c83beeef"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "d00777ff0af64529fdcf76923c14ae1913fbdc20b0b55e407bf06fe190ebb14c"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "4b90c3dc6049596cf166b5bd236e6df25ab0d7b2371e4d25268ec1e31965694c"
+        }
+      ]
+    },
+    "world-disabled-mixed": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "3fd6666666666666",
+            "bfd0000000000000",
+            "3fe6666666666666"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": true,
+          "mode": "world-disabled-mixed",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": false,
+          "orientation_enabled_actual": false,
+          "parsed_custom_rpy_bits": [
+            "3fd6666666666666",
+            "bfd0000000000000",
+            "3fe6666666666666"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "3fca28ee14fccad7",
+            "bfacb8100490a9ce",
+            "3fd6bf267892302b",
+            "3fed21b5079e253b"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d64697361626c65642d6d697865643c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e66616c73653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c6c6f63616c697a6174696f6e3e435553544f4d3c2f6c6f63616c697a6174696f6e3e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e302e3334393939393939393939393939393938202d302e323520302e36393939393939393939393939393939363c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-disabled-mixed",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-disabled-mixed.stdout",
+      "stdout_sha256": "c3767bbdd948e2b6faa54f0411b07cbe92220ea2b050f4c8eebe418646e47519",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "c9cfc04acbd8cfb9bdebe2bb785a4a4a980bec0fb84e01811f8c3f4b87a09334"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "538fdf1b38e5fffb2778f3af544fb62ae17d75e033cb6cd32188863a949624e0"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "c582f3ec903d635cf02143740f20c20d1d14e024eaf6709b7e4653ee65005157"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "3bbd502ec206965a3875244fdbd6d85a3c9c4ea4fbdcd33e56c347878f2d30a0"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "c68904547ece04dac542bac6790bc1f03624e239d1c01856bb57e6b6d0525f3e"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "1a7859b9d554cea7dcf9402cc2741dc83462d2eaad08a869926ef1e36b0f65ec"
+        }
+      ]
+    },
+    "world-mean-mixed-default": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "3fd6666666666666",
+            "bfd0000000000000",
+            "3fe6666666666666"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": false,
+          "mode": "world-mean-mixed-default",
+          "noise": [
+            {
+              "kind": "gaussian",
+              "parameters_bits": [
+                "3fb999999999999a",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "gaussian",
+              "parameters_bits": [
+                "bfc999999999999a",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "gaussian",
+              "parameters_bits": [
+                "3fd3333333333333",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "gaussian",
+              "parameters_bits": [
+                "bfa47ae147ae147b",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "gaussian",
+              "parameters_bits": [
+                "3fa999999999999a",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "gaussian",
+              "parameters_bits": [
+                "bfaeb851eb851eb8",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "3fd6666666666666",
+            "bfd0000000000000",
+            "3fe6666666666666"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "3fca28ee14fccad7",
+            "bfacb8100490a9ce",
+            "3fd6bf267892302b",
+            "3fed21b5079e253b"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d6d65616e2d6d697865642d64656661756c743c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e302e3334393939393939393939393939393938202d302e323520302e36393939393939393939393939393939363c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c6c696e6561725f616363656c65726174696f6e3e3c783e3c6e6f69736520747970653d27676175737369616e273e3c6d65616e3e302e31303030303030303030303030303030313c2f6d65616e3e3c7374646465763e303c2f7374646465763e3c626961735f6d65616e3e303c2f626961735f6d65616e3e3c626961735f7374646465763e303c2f626961735f7374646465763e3c64796e616d69635f626961735f7374646465763e303c2f64796e616d69635f626961735f7374646465763e3c64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e303c2f64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e3c707265636973696f6e3e303c2f707265636973696f6e3e3c2f6e6f6973653e3c2f783e3c793e3c6e6f69736520747970653d27676175737369616e273e3c6d65616e3e2d302e32303030303030303030303030303030313c2f6d65616e3e3c7374646465763e303c2f7374646465763e3c626961735f6d65616e3e303c2f626961735f6d65616e3e3c626961735f7374646465763e303c2f626961735f7374646465763e3c64796e616d69635f626961735f7374646465763e303c2f64796e616d69635f626961735f7374646465763e3c64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e303c2f64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e3c707265636973696f6e3e303c2f707265636973696f6e3e3c2f6e6f6973653e3c2f793e3c7a3e3c6e6f69736520747970653d27676175737369616e273e3c6d65616e3e302e32393939393939393939393939393939393c2f6d65616e3e3c7374646465763e303c2f7374646465763e3c626961735f6d65616e3e303c2f626961735f6d65616e3e3c626961735f7374646465763e303c2f626961735f7374646465763e3c64796e616d69635f626961735f7374646465763e303c2f64796e616d69635f626961735f7374646465763e3c64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e303c2f64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e3c707265636973696f6e3e303c2f707265636973696f6e3e3c2f6e6f6973653e3c2f7a3e3c2f6c696e6561725f616363656c65726174696f6e3e3c616e67756c61725f76656c6f636974793e3c783e3c6e6f69736520747970653d27676175737369616e273e3c6d65616e3e2d302e3034303030303030303030303030303030313c2f6d65616e3e3c7374646465763e303c2f7374646465763e3c626961735f6d65616e3e303c2f626961735f6d65616e3e3c626961735f7374646465763e303c2f626961735f7374646465763e3c64796e616d69635f626961735f7374646465763e303c2f64796e616d69635f626961735f7374646465763e3c64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e303c2f64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e3c707265636973696f6e3e303c2f707265636973696f6e3e3c2f6e6f6973653e3c2f783e3c793e3c6e6f69736520747970653d27676175737369616e273e3c6d65616e3e302e3035303030303030303030303030303030333c2f6d65616e3e3c7374646465763e303c2f7374646465763e3c626961735f6d65616e3e303c2f626961735f6d65616e3e3c626961735f7374646465763e303c2f626961735f7374646465763e3c64796e616d69635f626961735f7374646465763e303c2f64796e616d69635f626961735f7374646465763e3c64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e303c2f64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e3c707265636973696f6e3e303c2f707265636973696f6e3e3c2f6e6f6973653e3c2f793e3c7a3e3c6e6f69736520747970653d27676175737369616e273e3c6d65616e3e2d302e3035393939393939393939393939393939383c2f6d65616e3e3c7374646465763e303c2f7374646465763e3c626961735f6d65616e3e303c2f626961735f6d65616e3e3c626961735f7374646465763e303c2f626961735f7374646465763e3c64796e616d69635f626961735f7374646465763e303c2f64796e616d69635f626961735f7374646465763e3c64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e303c2f64796e616d69635f626961735f636f7272656c6174696f6e5f74696d653e3c707265636973696f6e3e303c2f707265636973696f6e3e3c2f6e6f6973653e3c2f7a3e3c2f616e67756c61725f76656c6f636974793e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-mean-mixed-default",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-mean-mixed-default.stdout",
+      "stdout_sha256": "89d1200eb7562338f4c653a740efb8e10814b9460a98f89b4ec873cb04d6d308",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "d626193a494fa4a54f9fe7dfa4862b5302d0097d797e6c37f1ea504df6f83897"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "efcf530e4134d9148d0bf333f7854a7d2979c21765385513c4b68c47cba9cd70"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "1483b93b1be068b05c98dc68880aff69dc964dc68ff64b1f4b4c8a337ee7391c"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "a5ade4e806486de7bcfd4b036899bb050c0162ceb1634e4814b8322825784863"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "3f1236d3b5eca9473628ab8d992c31d429d772eed7bcdac2aeefe2496ebeef07"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "b696464a5c1f0946f80f85ff2db0012f30269a1b33a1fc78dd1656ccce34ebb6"
+        }
+      ]
+    },
+    "world-mixed": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "3fd6666666666666",
+            "bfd0000000000000",
+            "3fe6666666666666"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": true,
+          "mode": "world-mixed",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "3fd6666666666666",
+            "bfd0000000000000",
+            "3fe6666666666666"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "3fca28ee14fccad7",
+            "bfacb8100490a9ce",
+            "3fd6bf267892302b",
+            "3fed21b5079e253b"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d6d697865643c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c6c6f63616c697a6174696f6e3e435553544f4d3c2f6c6f63616c697a6174696f6e3e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e302e3334393939393939393939393939393938202d302e323520302e36393939393939393939393939393939363c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-mixed",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-mixed.stdout",
+      "stdout_sha256": "e8a26c4927b0ae3faa54b34eb1d42938b98d89bfc2058806efe3cfaa2610697a",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "9a35398d2d8cf5586da6cf4a62c186cdacce2a33ccba0285883f9bfd71b03811"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "5ed4e27ad866d5625a0a81fecfdad4292536fa88a90e6548a94e4fe887ccb513"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "5abbe83269895353740f7f62c0bd4f19b61c1af40d943a4a3f74acc40873e43d"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "76525e23a998a4b879c14b724ea7427cd584c69bb913c9f885a99f4261e28aa4"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "dbe91667386435ce7618daabb09cf2d232c22504e0cea29e92d6fc9341af7620"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "076de7598024d395dd394f93ae58ace25ea36d18156bf7b65a009a0b90e156b4"
+        }
+      ]
+    },
+    "world-mixed-sign-default": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "3fd6666666666666",
+            "bfd0000000000000",
+            "3fe6666666666666"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": false,
+          "mode": "world-mixed-sign-default",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "3fd6666666666666",
+            "bfd0000000000000",
+            "3fe6666666666666"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "3fca28ee14fccad7",
+            "bfacb8100490a9ce",
+            "3fd6bf267892302b",
+            "3fed21b5079e253b"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d6d697865642d7369676e2d64656661756c743c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e302e3334393939393939393939393939393938202d302e323520302e36393939393939393939393939393939363c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-mixed-sign-default",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-mixed-sign-default.stdout",
+      "stdout_sha256": "a1c5ef92f8ffbe998504d1c7e14d138d921f1bda48143ae5493f337f3027bcae",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "9a35398d2d8cf5586da6cf4a62c186cdacce2a33ccba0285883f9bfd71b03811"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "1adfcc996d6dfebf7bfe3abfdd07249066c03a5c2ed07b38c4cbd84741b3bd65"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "5abbe83269895353740f7f62c0bd4f19b61c1af40d943a4a3f74acc40873e43d"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "1d99a41e1e52e9707a85af06f750a508befd740383e39e557f81c38dc54e8713"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "35dacf9c3196ad4c627df1678c043e406b45dad12162dffe2d212a9adbb3ea00"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "4bad957e05b0bd7495ea2930f2d64116f295d3cf87497b84a81a7ba10de3700f"
+        }
+      ]
+    },
+    "world-pitch": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "0000000000000000",
+            "bfd3333333333333",
+            "0000000000000000"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": true,
+          "mode": "world-pitch",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "0000000000000000",
+            "bfd3333333333333",
+            "0000000000000000"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "0000000000000000",
+            "bfc320c9e9dfed23",
+            "0000000000000000",
+            "3fefa4033e5ee938"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d70697463683c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c6c6f63616c697a6174696f6e3e435553544f4d3c2f6c6f63616c697a6174696f6e3e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e30202d302e323939393939393939393939393939393920303c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-pitch",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-pitch.stdout",
+      "stdout_sha256": "73fd9fd0024b721aa4161f5b06986e59c7d824cc58f8a1cd52c3c2c83a00d173",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "82ac7e960c4e61da927fc25b806557e83754a1d7e7ecbffc29c89ee830db98f0"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "686f6658109c5b23bd3f3bc5b5850619bf4d8dfac03ebec9c34c15e104efe076"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "a10d37ddbc3cf9c2be0724d2cda7c85eb4c282e0630b9e0ff9983e5c77027a9d"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "8c3f68ca84bb600ad307ba6d00da375b7dad84b10546ee4ec04cea2c37e8ac65"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "73c19bfc1e2886f3e8326dbc62e13b82dc366d7c20be168583f70a1a1e465317"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "de2927a01a89cb342e81d1273573ae6c74a99e1f85ae8d7548a0a5a0a4a2ff97"
+        }
+      ]
+    },
+    "world-pitch-half-pi-default": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "0000000000000000",
+            "3ff921fb54442d18",
+            "0000000000000000"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": false,
+          "mode": "world-pitch-half-pi-default",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "0000000000000000",
+            "3ff921fb54442d18",
+            "0000000000000000"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "0000000000000000",
+            "3fe6a09e667f3bcc",
+            "0000000000000000",
+            "3fe6a09e667f3bcd"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d70697463682d68616c662d70692d64656661756c743c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e3020312e3537303739363332363739343839363620303c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-pitch-half-pi-default",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-pitch-half-pi-default.stdout",
+      "stdout_sha256": "43b18efe0183669bd6313ec099df3f223dfd876174930d7e60fc49399df17ed6",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "04bb4855ef2c8e2d49486a8dd7a3dc1d9937bb10b53001a02b88bc3b6ca53661"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "5e62cb33c8ca29d7d6ddea3f0d68c55f491a7cae80a3a787c2cd604a34c1cf98"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "02871ee95f95aa692ef12c67180815ccb7ba417b55ba7d86fa37acb21354f7e7"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "a43bb77bb328f3114272f86805db054a48e92ab55e15b45d96241509b7e7b1d1"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "5abc125e1e02068857b55bc85bc3d1e4279a7dacc30b60a11dcbec5857ce60d5"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "53ab33609dfdef6c47687d7b48f8624ccc3dccaf4c314f0c15cdffebe8cc8013"
+        }
+      ]
+    },
+    "world-roll": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "3fd999999999999a",
+            "0000000000000000",
+            "0000000000000000"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": true,
+          "mode": "world-roll",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "3fd999999999999a",
+            "0000000000000000",
+            "0000000000000000"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "3fc96dff233dd2bc",
+            "0000000000000000",
+            "0000000000000000",
+            "3fef5cb49577627a"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d726f6c6c3c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c6c6f63616c697a6174696f6e3e435553544f4d3c2f6c6f63616c697a6174696f6e3e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e302e3430303030303030303030303030303032203020303c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-roll",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-roll.stdout",
+      "stdout_sha256": "cb987ba3dbf84d022ff715b0d01d9fd4b63482203fc810b3e804baf26f98431c",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "4fe7f1e5961a0dfc4a4c497ef1debf7becdd70ea3aadfc03966fec59e08a1b71"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "c8b51c40bf3b217f8b70321bb377276e5265fa2a9b812b7110c4ea2ac34834af"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "bc66282f458dbc702e8728807f8b191ad3fa544e7a0f75288cda9849df4360af"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "30e191da0791f6d7c88a578b8d3f7d14f316b6f782b615733f2a4a663074978a"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "fed36a25a33d8a744767d6b63b44637380736bfc52a1b0d4b6176a12636e2fc1"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "761b47e724d5cd7d67f1ae660fe986c72aa236fad542cdfd37c750775f35139e"
+        }
+      ]
+    },
+    "world-signed-zero": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "8000000000000000",
+            "0000000000000000",
+            "8000000000000000"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": true,
+          "mode": "world-signed-zero",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "8000000000000000",
+            "0000000000000000",
+            "8000000000000000"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d7369676e65642d7a65726f3c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c6c6f63616c697a6174696f6e3e435553544f4d3c2f6c6f63616c697a6174696f6e3e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e2d302030202d303c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-signed-zero",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-signed-zero.stdout",
+      "stdout_sha256": "91f7ebf8425b578f492914e28036121bc4b94ea5a4fd690a4a9d9586271d6e7e",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "3111cdf4591eee78396a0eb941364fed18a4cc70fb10025c3af1f2e06f1c869d"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "901e40bebff1ca923fda3bc62e67efc66c701608767d36002d26093cc63762bd"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "cb43bef73b215d0f329820bd291813261ea5dacbd3d76a09b60022f761c97bd7"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "36aecd0e0f3d7e060fd36f4a7a8ac60a8ce60d4d7cea103205d39b09cd33fa3e"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "21c420bdf824627b319c9f1ed28be370acba409053ede2dd45a501627cc6c344"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "88b19107b5624564dcc07dc77c56090e462217d568ac163fdb2bcc8f2a91e452"
+        }
+      ]
+    },
+    "world-yaw-default": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "3fe3333333333333"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": false,
+          "mode": "world-yaw-default",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "3fe3333333333333"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "3fd2e9cd95baba33",
+            "3fee921dd42f09ba"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d7961772d64656661756c743c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e30203020302e35393939393939393939393939393939383c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-yaw-default",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-yaw-default.stdout",
+      "stdout_sha256": "5885f3650d8ffdae8058cec1f093c50e3346b85fd29562d48c1666e156584d97",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "0629dca9a13971b137b14f6369947af03c544a79bcbd2b7e445bb669639dd2cc"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "0c59b5ebbffcfd744f53d2cb7fc810bb4d054ed021557945177688103db2fdc7"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "cc7b4e24d129f24703130fadee252e6db5f9a77b2825f4f063d11c500c0d0679"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "65c5a315829c9036a68d7c73590a6d9ae2b4152a77fd118e680b59cff0b29435"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "f2b508bb9f55fa188f96cc35f42113e74254cd367362af9a622a52a179aff1b5"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "692268f556124d65ae17f79834ac75f06dba9832a5188393a6fbedd1c45ee096"
+        }
+      ]
+    },
+    "world-yaw-negative-pi": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "c00921fb54442d18"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": true,
+          "mode": "world-yaw-negative-pi",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "c00921fb54442d18"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "bff0000000000000",
+            "3c91a62633145c07"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d7961772d6e656761746976652d70693c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c6c6f63616c697a6174696f6e3e435553544f4d3c2f6c6f63616c697a6174696f6e3e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e302030202d332e313431353932363533353839373933313c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-yaw-negative-pi",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-yaw-negative-pi.stdout",
+      "stdout_sha256": "f9e1db2703797f142e90e114189727ab090fb45549284941cf61d8dd97e0835a",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "8bf0b3a865a6b3a7043c2718c9586e2c3d9974738f682428ec57ebefd7211101"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "50c65c7441b2e438058b975b2fd95f613784b5b857ca9a108ddd8f657cd90a72"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "8849ab27042d1dbd037e134ba6af56cbd7f231da8ae10c2781aa44e8f923489d"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "6d3a59b7258d7a47978e494cdfcceda51503613bdbab45fe6d36c72ae312fe8f"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "bdce65daa5a2b6334fd1ef3ca251a1077dd8d6225aed98f4d03564fae2203360"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "df8d4e688dad7822eadbf2d114531b6599a5a51480577fe097279f009f671d2f"
+        }
+      ]
+    },
+    "world-yaw-pi": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "400921fb54442d18"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": true,
+          "mode": "world-yaw-pi",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "400921fb54442d18"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000",
+            "3c91a62633145c07"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d7961772d70693c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c6c6f63616c697a6174696f6e3e435553544f4d3c2f6c6f63616c697a6174696f6e3e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e30203020332e313431353932363533353839373933313c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-yaw-pi",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-yaw-pi.stdout",
+      "stdout_sha256": "29bf27671fd2b8047a202684570974bcc3d29178308ac836e1f184c875bc648b",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "aed7d357f9952b04251a77c58086e8f9e31a46ee8e673cc5655a91903bb4df02"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "87e6ca796a8225061ea09f6dc201785f1c917ed7a88cba6e6b91e37b3262dff5"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "91b0b9817b8809401f7a438e35699ca692bf38ddb4ea3e911553de3c7ebd8934"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "879e7f5132da7027a4b1fac85637fee27720eab690cc62a13962ca992036e856"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "805caaab5873162e8442889c1973f0f78e6ad1137c71991ea618235f49862601"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "df8d4e688dad7822eadbf2d114531b6599a5a51480577fe097279f009f671d2f"
+        }
+      ]
+    },
+    "world-zero-default": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": false,
+          "mode": "world-zero-default",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d7a65726f2d64656661756c743c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e30203020303c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-zero-default",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-zero-default.stdout",
+      "stdout_sha256": "ab9f56ee4558de03c4071226cd5b379d2c5f1b425145c06a58b5761ea5b076a5",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "3111cdf4591eee78396a0eb941364fed18a4cc70fb10025c3af1f2e06f1c869d"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "7301ba9a067c1edfe6ce29d4380a19405446b78ffae919de32b1c9785e90b967"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "cb43bef73b215d0f329820bd291813261ea5dacbd3d76a09b60022f761c97bd7"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "579c82118c4a0f071651814b3cebd108b1f3a44552e166a0995e0fa5ff190bbb"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "4b83f5eac43d0dc356fc02834b634de811ec50a59cae0e8decc063d129b03172"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "d7e578f6c54b4fd9b1d4c569d5b8a6f73c8cb2f39da20d829724388f2761ed2b"
+        }
+      ]
+    },
+    "world-zero-explicit": {
+      "configurations": [
+        {
+          "console_verbosity": 1,
+          "custom_parent": "world",
+          "custom_rpy_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000"
+          ],
+          "expected_warning": "NONE",
+          "frame_id": "m45/native/imu",
+          "initial_body_rpy_bits": [
+            "3fc999999999999a",
+            "bfd3333333333333",
+            "3fe3333333333333"
+          ],
+          "initial_sensor_world_quaternion_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "instance": 0,
+          "kind": "configuration",
+          "localization": "CUSTOM",
+          "localization_tag_present": true,
+          "mode": "world-zero-explicit",
+          "noise": [
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            },
+            {
+              "kind": "none",
+              "parameters_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000"
+              ]
+            }
+          ],
+          "orientation_enabled": true,
+          "orientation_enabled_actual": true,
+          "parsed_custom_rpy_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000"
+          ],
+          "rate": 0,
+          "reference_after_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ],
+          "reference_before_bits": [
+            "bfb3f4f1981c6ea0",
+            "bfc56a4c6dca67a0",
+            "3fd9930edaa637d1",
+            "3fecbbb7675c2014"
+          ],
+          "reference_tag_present": true,
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d27696d752720747970653d27696d75273e3c746f7069633e2f6d34352f6e61746976652f696d755f637573746f6d5f776f726c642f776f726c642d7a65726f2d6578706c696369743c2f746f7069633e3c6672616d655f69643e6d34352f6e61746976652f696d753c2f6672616d655f69643e3c7570646174655f726174653e303c2f7570646174655f726174653e3c616c776179735f6f6e3e747275653c2f616c776179735f6f6e3e3c696d753e3c656e61626c655f6f7269656e746174696f6e3e747275653c2f656e61626c655f6f7269656e746174696f6e3e3c6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c6c6f63616c697a6174696f6e3e435553544f4d3c2f6c6f63616c697a6174696f6e3e3c637573746f6d5f72707920706172656e745f6672616d653d27776f726c64273e30203020303c2f637573746f6d5f7270793e3c2f6f7269656e746174696f6e5f7265666572656e63655f6672616d653e3c2f696d753e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor_name": "imu",
+          "sensor_rpy_bits": [
+            "bfd999999999999a",
+            "3fb999999999999a",
+            "3fd0000000000000"
+          ],
+          "topic": "/m45/native/imu_custom_world/world-zero-explicit",
+          "world_frame": "ENU",
+          "world_frame_call": true,
+          "world_heading_bits": "0000000000000000"
+        }
+      ],
+      "input_calls": 6,
+      "observations": 6,
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-imu-custom-world-rwn5qixm/imu-custom-world-world-zero-explicit.stdout",
+      "stdout_sha256": "0dfcd38297521f468ff88ff8f8da203102aa9bbf63b59c1295b6d385a4fdc436",
+      "suppressed_calls": 0,
+      "wire_hashes": [
+        {
+          "header_sha256": "6d33a6d8a7a608bd6ae28058a100d937bc187a51e7deed2f0be8ba4e0d4bc8f9",
+          "index": 0,
+          "instance": 0,
+          "time_ns": 1000000,
+          "wire_sha256": "3111cdf4591eee78396a0eb941364fed18a4cc70fb10025c3af1f2e06f1c869d"
+        },
+        {
+          "header_sha256": "9948e345b6ba90ebc0805cfbd303ace150175b55e65e05993492d077e1e2c27f",
+          "index": 1,
+          "instance": 0,
+          "time_ns": 2000000,
+          "wire_sha256": "7301ba9a067c1edfe6ce29d4380a19405446b78ffae919de32b1c9785e90b967"
+        },
+        {
+          "header_sha256": "95ed678d1f369b89f94d0c6e331e0013b21a0448ba1c7c6ec36a33852c33b0a7",
+          "index": 2,
+          "instance": 0,
+          "time_ns": 5000000,
+          "wire_sha256": "cb43bef73b215d0f329820bd291813261ea5dacbd3d76a09b60022f761c97bd7"
+        },
+        {
+          "header_sha256": "fa74386fd2ff4cf410c359197f1fb019d411dfd3ae6ba9854957c882dbaee52c",
+          "index": 3,
+          "instance": 0,
+          "time_ns": 10000000,
+          "wire_sha256": "579c82118c4a0f071651814b3cebd108b1f3a44552e166a0995e0fa5ff190bbb"
+        },
+        {
+          "header_sha256": "965eb755145907f52473b3d864a2db5c134f879cc87ecc3bcd0f9baa20bdbd8e",
+          "index": 4,
+          "instance": 0,
+          "time_ns": 20000000,
+          "wire_sha256": "4b83f5eac43d0dc356fc02834b634de811ec50a59cae0e8decc063d129b03172"
+        },
+        {
+          "header_sha256": "254ac08a3ff157401b615d8e044e915cdfe24ff46f604c8e45293529cced2b2f",
+          "index": 5,
+          "instance": 0,
+          "time_ns": 30000000,
+          "wire_sha256": "d7e578f6c54b4fd9b1d4c569d5b8a6f73c8cb2f39da20d829724388f2761ed2b"
+        }
+      ]
+    }
+  },
+  "native_DATA_method_sha256": "ddd117614d3124e545091b45479d7e78de3fc507fe0d2b8466bde3b6ff48d732",
+  "native_DATA_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m45-delivery/native-audit.json",
+  "native_DATA_sha256": "ba39c126e797b2e81bc8ed4370658936f3cfc28b42c0dd68fcab17fb72c58f8b",
+  "native_procedure_sha256": "5d77ea3c2468b4636648cd391d577a184975f06abef34190d2d5113dba02c873",
+  "native_result_sha256": "57c09118bd17e1dec3abfe17533c8eb7859d748090264a8cd81a226dfa550f56",
+  "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+  "product_or_native_commands_executed": false,
+  "repository_source_modified": false,
+  "resource_minima_snapshot_before_outputs": {
+    "/dev/shm": 9852428288,
+    "/home/nkoenig/work/gazebo/rust": 270051835904,
+    "/run/user/1000": 1257918464,
+    "MemAvailable": 31701561344
+  },
+  "state": "M45_NATIVE_IMU_CUSTOM_WORLD_FIXTURE_GENERATED_PENDING_SOURCE_DATA_REVIEW"
+}

@@ -1967,3 +1967,7 @@ mod m34_m35_endpoint_tests;
 #[cfg(test)]
 #[path = "../tests/private/imu_reference_frames_native.rs"]
 mod imu_reference_frames_native;
+
+#[cfg(test)]
+#[path = "../tests/private/imu_custom_world_native.rs"]
+mod imu_custom_world_native;

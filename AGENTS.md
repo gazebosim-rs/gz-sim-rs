@@ -1,3 +1,41 @@
+# Current work: M45 provisional local qualification
+
+This integrated checkout uses exact Source parent a08f0b50/tree5c22, which passed
+its full normal hook and independent local DATA but is NOT accepted. Accepted
+Main remains 73e03b9f while M43/M44 hosted/official and publication closeout remain
+pending. The earlier Source preparation basis 9a, actual component capture parent73e
+and eventual accepted integration parent are distinct facts; do not relabel them.
+Read docs/M45_DELIVERY.md and docs/M45_IMU_CUSTOM_WORLD.md.
+
+The owner-directed D31/D32 timing amendment 5d823a75, independently Source reviewed
+and adopted as ab9586b5, permits a NEW integrated candidate over exact locally
+qualified a08 for provisional local development. All a08 containment repairs remain
+required. Light and Messages have completed the two new private native consumer
+leaves; their Source is frozen pending complete integration review. Root owns
+shared registration, integration, source/mode inventories, docs and serial release.
+No Cargo/lock/workflow/solver/public Server API/viewer/package/launcher/Fuel change
+is leased. Preserve all old tests, fixtures and actual failed/successful evidence.
+
+No formatter, test, lint, build or product/native invocation is released by this
+file. Finish and independently review the complete bounded Source/regression/docs
+batch and exact integrated tree, then separately review and release one ordinary
+full LOCAL normal hook plus retained independent DATA. Results remain PROVISIONAL.
+Keep strict workspace/per-crate/actual-parent coverage, all jobs, actual host floors,
+14GiB initial full-gate reserve, actual exits and final guards unchanged. No targeted
+trials or per-edit checks. Batch real failures before affected reruns.
+
+M45 hosted publication, Main and acceptance still require the actually accepted
+M43/M44 predecessor, exact hosted success, independent official DATA and ordinary
+readbacks. No CI retry/probe/mirror/pin/workflow workaround is released. If the
+accepted predecessor changes from a08, no local evidence transfers automatically.
+The old9a M44 package keeps its own build/proof identities under separately reviewed
+contract amendment 0f2eea1d/adoption78d5cd56; no a08 graph/ELF equality is inferred.
+
+## Preserved containment-repair and original delivery instructions
+
+The following text is the unchanged a08 instruction record. Its former authoring
+leases are historical; the current scope and release conditions above govern.
+
 # Current work: M43/M44 cancelled-CI containment repair
 
 This isolated checkout preserves the exact 9a40768d candidate as its basis.
