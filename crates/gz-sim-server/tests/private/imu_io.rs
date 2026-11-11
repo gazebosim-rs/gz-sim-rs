@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
+use crate::tests::callback_release;
 use gz_sim_proto::{
     msgs::{Header, Quaternion, Time, Vector3d, header::Map},
     prost::Message,
@@ -313,6 +314,8 @@ fn stalled_io_put_does_not_hold_cpu_lease_and_following_retired_frame_cancels() 
         registry.reconcile(false);
         assert!(registry.is_empty());
     });
+    // Declared after IO/subscriber ownership so unwinding releases before cleanup.
+    let callback_release_guard = callback_release::CallbackRelease::new(Arc::clone(&release));
     let lease = lease.recv_timeout(Duration::from_secs(3)).unwrap();
     assert_eq!(Arc::strong_count(&lease), 1);
     let weak = Arc::downgrade(&lease);
@@ -325,8 +328,7 @@ fn stalled_io_put_does_not_hold_cpu_lease_and_following_retired_frame_cancels() 
         dropped.send(()).unwrap();
     });
     let cpu_drop_before_io_resumed = completion.recv_timeout(Duration::from_secs(1));
-    *release.0.lock().unwrap() = true;
-    release.1.notify_all();
+    callback_release_guard.release();
     cpu.join().unwrap();
     io.join().unwrap();
     cpu_drop_before_io_resumed.expect("CPU lease drop waited for stalled native publication");
@@ -356,4 +358,95 @@ fn zero_strong_count_before_cpu_destructor_cannot_reuse_an_expired_topic_lease()
     assert!(!registry.publish(stale).unwrap());
     assert_eq!(registry.entries.len(), 1);
     assert_eq!(count_tokens(&session), 1);
+}
+
+#[test]
+fn callback_release_error_return_unblocks_an_entered_callback() {
+    fn return_error(
+        gate: Arc<(std::sync::Mutex<bool>, std::sync::Condvar)>,
+        started: mpsc::Receiver<()>,
+    ) -> Result<(), &'static str> {
+        let _release = callback_release::CallbackRelease::new(gate);
+        started.recv_timeout(Duration::from_secs(1)).unwrap();
+        Err("controlled early return")
+    }
+    let gate = Arc::new((std::sync::Mutex::new(false), std::sync::Condvar::new()));
+    let callback_gate = Arc::clone(&gate);
+    let (entered, started) = mpsc::sync_channel(1);
+    let callback = std::thread::spawn(move || {
+        let (lock, condition) = &*callback_gate;
+        let released = lock.lock().unwrap();
+        entered.send(()).unwrap();
+        let (released, timeout) = condition
+            .wait_timeout_while(released, Duration::from_secs(3), |released| !*released)
+            .unwrap();
+        *released && !timeout.timed_out()
+    });
+    let result = return_error(gate, started);
+    assert_eq!(result, Err("controlled early return"));
+    assert!(callback.join().unwrap());
+}
+
+#[test]
+fn callback_release_unwind_precedes_owner_cleanup() {
+    struct OwnerCleanup {
+        gate: Arc<(std::sync::Mutex<bool>, std::sync::Condvar)>,
+        released_before_cleanup: Arc<std::sync::atomic::AtomicBool>,
+    }
+    impl Drop for OwnerCleanup {
+        fn drop(&mut self) {
+            self.released_before_cleanup
+                .store(*self.gate.0.lock().unwrap(), Ordering::Relaxed);
+        }
+    }
+    let gate = Arc::new((std::sync::Mutex::new(false), std::sync::Condvar::new()));
+    let released_before_cleanup = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let callback_gate = Arc::clone(&gate);
+    let (entered, started) = mpsc::sync_channel(1);
+    let callback = std::thread::spawn(move || {
+        let (lock, condition) = &*callback_gate;
+        let released = lock.lock().unwrap();
+        entered.send(()).unwrap();
+        let (released, timeout) = condition
+            .wait_timeout_while(released, Duration::from_secs(3), |released| !*released)
+            .unwrap();
+        *released && !timeout.timed_out()
+    });
+    let unwind_gate = Arc::clone(&gate);
+    let unwind_cleanup = Arc::clone(&released_before_cleanup);
+    let result = std::panic::catch_unwind(move || {
+        let _owner = OwnerCleanup {
+            gate: Arc::clone(&unwind_gate),
+            released_before_cleanup: unwind_cleanup,
+        };
+        let _release = callback_release::CallbackRelease::new(unwind_gate);
+        started.recv_timeout(Duration::from_secs(1)).unwrap();
+        panic!("controlled assertion unwind");
+    });
+    let panic = result.expect_err("controlled assertion did not unwind");
+    assert_eq!(
+        panic.downcast_ref::<&str>(),
+        Some(&"controlled assertion unwind")
+    );
+    assert!(released_before_cleanup.load(Ordering::Relaxed));
+    assert!(callback.join().unwrap());
+}
+
+#[test]
+fn callback_release_is_idempotent_and_remembers_release_before_late_entry() {
+    let gate = Arc::new((std::sync::Mutex::new(false), std::sync::Condvar::new()));
+    let release = callback_release::CallbackRelease::new(Arc::clone(&gate));
+    release.release();
+    release.release();
+    drop(release);
+    let callback = std::thread::spawn(move || {
+        let (lock, condition) = &*gate;
+        let (released, timeout) = condition
+            .wait_timeout_while(lock.lock().unwrap(), Duration::from_secs(1), |released| {
+                !*released
+            })
+            .unwrap();
+        *released && !timeout.timed_out()
+    });
+    assert!(callback.join().unwrap());
 }

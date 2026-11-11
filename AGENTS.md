@@ -1,3 +1,20 @@
+# Current work: M43/M44 cancelled-CI containment repair
+
+This isolated checkout preserves the exact 9a40768d candidate as its basis.
+The frozen original and the separate M45 Source-preparation tree remain unchanged.
+Read docs/CI_PROFILE_CONTAINMENT.md. This work addresses confirmed qualification
+and test failure-path gaps; the specific hosted hanging test and cancellation
+cause remain unknown. No checks or CI retry are released during Source authorship.
+
+Root owns scripts/profile_process.py, scripts/verify.py, Python regression source
+and shared docs/integration. Messages owns the nine controlled-callback test leaves
+and tests/support/callback_release.rs. Light owns the single native_forces.rs test
+leaf. SDF reviews the complete batch. Preserve every product assertion, all three
+native force controls and strict coverage/normal/hosted requirements. No production
+Rust, runtime dependency, schema, workflow, package or Fuel edit is selected.
+
+The earlier task instructions below describe the unchanged candidate basis.
+
 # Current delivery: M43 and M44
 
 M1–M42 are accepted at qualified Main `73e03b9f741689b1538898bde96bf975a49f068e`.

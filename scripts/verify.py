@@ -17,6 +17,7 @@ import tempfile
 # Keep the source-bound proto proof independent of renderer test support.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import proto_inputs
+import profile_process
 import zenoh_peer
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -501,8 +502,9 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
         if "gz-sim-cli" in crates:
             # Build-only preparation supplies actual cross-package paths before
             # tests run. It executes no test, CLI, renderer or network probe.
-            preparation = subprocess.run([*command, "--no-run", "--message-format=json"],
-                                         cwd=ROOT, env=env, capture_output=True, text=True)
+            preparation = profile_process.run([*command, "--no-run", "--message-format=json"],
+                                              cwd=ROOT, env=env, directory=directory,
+                                              label="renderer-build")
             (directory / "renderer-build-output.log").write_text(preparation.stdout + preparation.stderr)
             if preparation.returncode:
                 raise subprocess.CalledProcessError(preparation.returncode, preparation.args,
@@ -515,7 +517,8 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
     if name == "renderer":
         # Preserve adapter identity in evidence, including for successful tests.
         test_command += ["--", "--nocapture"]
-    result = subprocess.run(test_command, cwd=ROOT, env=env, capture_output=True, text=True)
+    result = profile_process.run(test_command, cwd=ROOT, env=env,
+                                 directory=directory, label="tests")
     (directory / "test-output.log").write_text(result.stdout + result.stderr)
     if result.returncode:
         raise subprocess.CalledProcessError(result.returncode, result.args, result.stdout, result.stderr)
@@ -718,7 +721,7 @@ def coverage(changed_file=None):
                                  ROOT / "tests/support/zenoh_peer.rs",
                                  *[ROOT / name for name in zenoh_peer.bootstrap.INPUTS],
                                  *native_peer_inputs(),
-                                 wrapper, ROOT / "scripts/verify.py",
+                                 wrapper, ROOT / "scripts/verify.py", ROOT / "scripts/profile_process.py",
                                  ROOT / "planning/coverage-profiles.json", ROOT / "scripts/proto_inputs.py",
                                  ROOT / proto_inputs.AUDITOR,
                                  ROOT / "crates/gz-sim-proto/schema-source.json",
@@ -827,6 +830,15 @@ def retain_profile_evidence(candidate, output, hashes, missing):
         contract = json.loads(contract_path.read_text())
         if contract.get("version") == 2 and "zenoh_reference" not in data:
             missing.append("zenoh_reference")
+    process_helper = candidate / "scripts/profile_process.py"
+    if "scripts/profile_process.py" in data.get("inputs", {}) or os.path.lexists(process_helper):
+        if (process_helper.is_symlink() or not process_helper.is_file()
+                or not process_helper.resolve().is_relative_to(candidate.resolve())):
+            missing.append("profile_process source input")
+        else:
+            helper_digest = hashlib.sha256(process_helper.read_bytes()).hexdigest()
+            if data.get("inputs", {}).get("scripts/profile_process.py") != helper_digest:
+                missing.append("profile_process input binding")
     if "zenoh_reference" in data:
         name = "zenoh-native-reference.json"
         source = coverage / run_name / name
@@ -845,6 +857,11 @@ def retain_profile_evidence(candidate, output, hashes, missing):
         required = ["test-output.log", "coverage.json", "coverage.lcov", "summary.json",
                     "evidence.json", "merged.profdata", "proto-generated.json",
                     "proto-facade-audit.json", "proto-facade-audit-output.log", "proto-generated.rs", "proto-descriptor.pb", "proto-coverage.json", "coverage-unfiltered.lcov"]
+        # Partial child transcripts survive an interrupted profile even when
+        # no final test-output/evidence file was produced.
+        for diagnostic in ("tests.stdout", "tests.stderr", "renderer-build.stdout", "renderer-build.stderr"):
+            if (base / diagnostic).is_file():
+                required.append(diagnostic)
         if profile == "renderer":
             required.append("facade-audit.json")
             if contract_path.is_file() and RGB_FEATURE in contract["profiles"]["renderer"].get("features", []):

@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
+use crate::tests::callback_release;
 use gz_sim_proto::{
     msgs::Double,
     prost::{Message, Name},
@@ -685,6 +686,8 @@ fn in_flight_overflow_remains_counted_after_retirement_and_restart() {
             installed.send(()).unwrap();
             finished.recv().unwrap();
         });
+        // Release before the IO owner's control channels disappear on any unwind.
+        let callback_release_guard = callback_release::CallbackRelease::new(Arc::clone(&release));
         prepared.recv_timeout(Duration::from_secs(3)).unwrap();
         let mut forces = Forces {
             streams: vec![Stream {
@@ -716,8 +719,7 @@ fn in_flight_overflow_remains_counted_after_retirement_and_restart() {
             retired.send(forces).unwrap();
         });
         let retired_while_callback_running = result.recv_timeout(Duration::from_secs(2));
-        *release.0.lock().unwrap() = true;
-        release.1.notify_all();
+        callback_release_guard.release();
         putter.join().unwrap();
         retirer.join().unwrap();
         finish.send(()).unwrap();

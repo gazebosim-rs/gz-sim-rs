@@ -24,6 +24,11 @@ thiserror.workspace = true
 [target.'cfg(unix)'.dependencies]
 nix = { version = "=0.31.3", default-features = false, features = ["hostname", "user"] }
 
+[target.'cfg(unix)'.dev-dependencies]
+# Safe, test-only child pipe and process-group containment APIs. Keep the
+# existing runtime nix version and hostname/user feature selection unchanged.
+nix = { version = "=0.31.3", default-features = false, features = ["fs", "process", "signal"] }
+
 [dev-dependencies]
 gz-physics = { path = "../gz-physics" }
 # Inspect the live test listener instead of releasing a speculative port.

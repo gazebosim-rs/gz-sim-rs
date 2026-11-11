@@ -77,7 +77,7 @@ class SelectedNativeGate(unittest.TestCase):
             if mutate and len(profiles) == 1:
                 # This runs after coverage() captures its inputs. No actual
                 # native fixture is modified and no compiler is called.
-                fixture = root / verify.zenoh_peer.CLIENTS['clock']
+                fixture = root / (mutate if isinstance(mutate, str) else verify.zenoh_peer.CLIENTS['clock'])
                 fixture.write_bytes(fixture.read_bytes() + b'\n// copied native fixture changed\n')
             return {}, frozenset()
 
@@ -104,11 +104,19 @@ class SelectedNativeGate(unittest.TestCase):
         index = json.loads((root / 'artifacts/coverage/profile-index.json').read_text())
         for path in verify.zenoh_peer.CLIENTS.values():
             self.assertEqual(index['inputs'][path], digest((root / path).read_bytes()))
+        self.assertEqual(index['inputs']['scripts/profile_process.py'],
+                         digest((root / 'scripts/profile_process.py').read_bytes()))
         self.assertEqual(index['zenoh_reference']['environment_sha256'], digest(blob))
         self.assertEqual((root / 'artifacts/coverage' / index['run'] / 'zenoh-native-reference.json').read_bytes(), blob)
 
     def test_native_fixture_drift_fails_integrated_coverage(self):
         _, _, profiles, execute = self.coverage_fixture(mutate=True)
+        with self.assertRaisesRegex(ValueError, 'verification inputs changed between profiles'):
+            execute()
+        self.assertEqual(profiles, ['headless', 'renderer'])
+
+    def test_process_helper_drift_fails_integrated_coverage(self):
+        _, _, profiles, execute = self.coverage_fixture(mutate='scripts/profile_process.py')
         with self.assertRaisesRegex(ValueError, 'verification inputs changed between profiles'):
             execute()
         self.assertEqual(profiles, ['headless', 'renderer'])
@@ -132,6 +140,10 @@ class SelectedNativeGate(unittest.TestCase):
                  'zenoh_reference': {'environment_sha256': digest(blob)},
                  'inputs': {'scripts/zenoh_peer.py': helper, **{
                      path: fixtures[client] for client, path in verify.zenoh_peer.CLIENTS.items()}}}
+        process_helper = candidate / 'scripts/profile_process.py'
+        process_helper.parent.mkdir()
+        process_helper.write_text('# synthetic source identity, never executed\n')
+        index['inputs']['scripts/profile_process.py'] = digest(process_helper.read_bytes())
         (coverage / 'profile-index.json').write_text(json.dumps(index))
         required = ['test-output.log', 'coverage.json', 'coverage.lcov', 'summary.json',
                     'evidence.json', 'merged.profdata', 'proto-generated.json', 'proto-facade-audit.json',
@@ -162,6 +174,23 @@ class SelectedNativeGate(unittest.TestCase):
             records = verify.check_native_peer_evidence(peers, expected, binding)
             (base / 'native-peers.json').write_text(json.dumps(records))
         return root, candidate, coverage, run, index
+
+    def test_missing_or_changed_process_helper_binding_cannot_qualify_retention(self):
+        for alteration in ('missing', 'changed', 'missing_file', 'dangling_symlink'):
+            root, candidate, coverage, _, index = self.staged_fixture()
+            if alteration == 'missing':
+                index['inputs'].pop('scripts/profile_process.py')
+            elif alteration == 'changed':
+                (candidate / 'scripts/profile_process.py').write_text('# changed source\n')
+            else:
+                helper = candidate / 'scripts/profile_process.py'
+                helper.unlink()
+                if alteration == 'dangling_symlink':
+                    helper.symlink_to(candidate / 'absent.py')
+            (coverage / 'profile-index.json').write_text(json.dumps(index))
+            with self.subTest(alteration=alteration), patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
+                    verify.retain_staged_evidence('a' * 40, candidate, 'passed')
 
     def test_current_stage_retains_clients_and_rejects_missing_metadata_contract(self):
         root, candidate, coverage, run, index = self.staged_fixture()

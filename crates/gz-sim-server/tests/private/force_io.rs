@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
+use crate::tests::callback_release;
 use std::time::Duration;
 
 fn session() -> zenoh::Session {
@@ -315,6 +316,8 @@ fn real_running_callback_keeps_only_bounded_release_witness_after_io_retirement(
         assert_eq!(declarations.endpoints.capacity(), 0);
         assert!(weak.upgrade().is_none());
     });
+    // Release before the IO owner's control channels disappear on any unwind.
+    let callback_release_guard = callback_release::CallbackRelease::new(Arc::clone(&release));
     prepared.recv_timeout(Duration::from_secs(3)).unwrap();
     let writer = session.clone();
     let publisher = std::thread::spawn(move || scalar(&writer, &key, 1.0));
@@ -323,8 +326,7 @@ fn real_running_callback_keeps_only_bounded_release_witness_after_io_retirement(
     drop(receiver);
     retire.send(()).unwrap();
     let released_without_waiting_for_callback = observed.recv_timeout(Duration::from_secs(1));
-    *release.0.lock().unwrap() = true;
-    release.1.notify_all();
+    callback_release_guard.release();
     publisher.join().unwrap();
     finish.send(()).unwrap();
     io.join().unwrap();

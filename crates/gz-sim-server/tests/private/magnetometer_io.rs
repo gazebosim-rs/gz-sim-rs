@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
+use crate::tests::callback_release;
 use gz_sim_proto::{
     msgs::{Header, Magnetometer, Time, header::Map},
     prost::Message,
@@ -308,6 +309,8 @@ fn magnetometer_stalled_io_put_does_not_hold_cpu_lease_and_following_retired_fra
         registry.reconcile(false);
         assert!(registry.is_empty());
     });
+    // Declared after IO/subscriber ownership so unwinding releases before cleanup.
+    let callback_release_guard = callback_release::CallbackRelease::new(Arc::clone(&release));
     let lease = lease.recv_timeout(Duration::from_secs(3)).unwrap();
     assert_eq!(Arc::strong_count(&lease), 1);
     let weak = Arc::downgrade(&lease);
@@ -323,8 +326,7 @@ fn magnetometer_stalled_io_put_does_not_hold_cpu_lease_and_following_retired_fra
         dropped.send(()).unwrap();
     });
     let cpu_drop_before_io_resumed = completion.recv_timeout(Duration::from_secs(1));
-    *release.0.lock().unwrap() = true;
-    release.1.notify_all();
+    callback_release_guard.release();
     cpu.join().unwrap();
     io.join().unwrap();
     cpu_drop_before_io_resumed.expect("CPU lease drop waited for stalled native publication");

@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
+#[path = "../../../../tests/support/callback_release.rs"]
+pub(crate) mod callback_release;
+
 #[path = "world_edit.rs"]
 mod world_edit;
 use std::{

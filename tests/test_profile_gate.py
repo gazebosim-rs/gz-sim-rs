@@ -303,7 +303,7 @@ class FeatureProfiles(unittest.TestCase):
             prepared = SimpleNamespace(returncode=0, stdout="\n".join(map(json.dumps, artifacts)), stderr="build only", args=["cargo", "test", "--no-run"])
             failed = SimpleNamespace(returncode=1, stdout="actual test failure", stderr="", args=["cargo", "test"])
             crates = {package: [root / "crates" / package / "src/main.rs"] for package in ("gz-sim-cli", "gz-render-worker")}
-            with patch.object(verify, "ROOT", root), patch.object(verify.subprocess, "run", side_effect=[prepared, failed]) as run:
+            with patch.object(verify, "ROOT", root), patch.object(verify.profile_process, "run", side_effect=[prepared, failed]) as run:
                 with self.assertRaises(subprocess.CalledProcessError):
                     verify.profile_coverage("renderer", crates, ["cargo", "test", "--features", "gz-sim-cli/rgb-camera"],
                         root / "profile", {}, root / "wrapper", root, "rustc")
@@ -324,7 +324,7 @@ class FeatureProfiles(unittest.TestCase):
             artifact = self.renderer_artifact(root, "gz-sim-rs")
             failed = SimpleNamespace(returncode=1, stdout="build stopped", stderr="compiler failure",
                                      args=["cargo", "test", "--no-run"])
-            with patch.object(verify, "ROOT", root), patch.object(verify.subprocess, "run", return_value=failed) as run:
+            with patch.object(verify, "ROOT", root), patch.object(verify.profile_process, "run", return_value=failed) as run:
                 with self.assertRaises(subprocess.CalledProcessError):
                     verify.profile_coverage("renderer", {"gz-sim-cli": [Path(artifact["target"]["src_path"])]},
                         ["cargo", "test"], root / "profile", {}, root / "wrapper", root, "rustc")
@@ -411,7 +411,7 @@ class FeatureProfiles(unittest.TestCase):
             source.write_text("pub fn answer() -> i32 { 42 }\n")
             output = root / "profile"
             result = SimpleNamespace(returncode=0, stdout=json.dumps({"reason": "compiler-artifact", "executable": "/tmp/probe"}), stderr="", args=["cargo"])
-            with patch.object(verify, "ROOT", root), patch.object(verify.subprocess, "run", return_value=result), patch.object(verify, "run", return_value=SimpleNamespace(stdout="rustc")):
+            with patch.object(verify, "ROOT", root), patch.object(verify.profile_process, "run", return_value=result), patch.object(verify, "run", return_value=SimpleNamespace(stdout="rustc")):
                 with self.assertRaisesRegex(ValueError, "no raw coverage profiles"):
                     verify.profile_coverage("headless", {"crate": [source]}, ["cargo"], output, {}, root / "wrapper", root, "rustc")
             self.assertTrue((output / "test-output.log").is_file())
@@ -518,6 +518,7 @@ class FeatureProfiles(unittest.TestCase):
                         return SimpleNamespace()
 
                     with patch.object(verify, "ROOT", root), \
+                         patch.object(verify.profile_process, "run", side_effect=cargo), \
                          patch.object(verify.subprocess, "run", side_effect=cargo), \
                          patch.object(verify, "run", side_effect=llvm), \
                          patch.object(verify.proto_inputs, "generated_inputs", return_value=proto_evidence):
@@ -600,7 +601,7 @@ class FeatureProfiles(unittest.TestCase):
                         "target": {"name": "gz-render-worker", "kind": ["bin"], "src_path": str(root / "crates/gz-render-worker/src/main.rs")},
                         "profile": {"test": False}}
                 return SimpleNamespace(returncode=0, stdout=json.dumps(item), stderr="", args=["cargo"])
-            with patch.object(verify, "ROOT", root), patch.object(verify.subprocess, "run", side_effect=fake_cargo), patch.object(verify, "run", return_value=SimpleNamespace(stdout="rustc")):
+            with patch.object(verify, "ROOT", root), patch.object(verify.profile_process, "run", side_effect=fake_cargo), patch.object(verify, "run", return_value=SimpleNamespace(stdout="rustc")):
                 with self.assertRaisesRegex(ValueError, "worker emitted no raw profile"):
                     verify.profile_coverage("renderer", {"crate": [source]}, ["cargo"], root / "profile", {}, root / "wrapper", root, "rustc")
 
@@ -611,7 +612,7 @@ class FeatureProfiles(unittest.TestCase):
             source.parent.mkdir()
             source.write_text("original")
             result = SimpleNamespace(returncode=0, stdout=json.dumps({"reason": "compiler-artifact", "executable": "/tmp/not-the-worker", "target": {"name": "other", "kind": ["bin"]}, "profile": {"test": False}}), stderr="", args=["cargo"])
-            with patch.object(verify, "ROOT", root), patch.object(verify.subprocess, "run", return_value=result):
+            with patch.object(verify, "ROOT", root), patch.object(verify.profile_process, "run", return_value=result):
                 with self.assertRaisesRegex(ValueError, "worker binary absent"):
                     verify.profile_coverage("renderer", {"crate": [source]}, ["cargo"], root / "profile", {}, root / "wrapper", root, "rustc")
 
@@ -634,7 +635,7 @@ class FeatureProfiles(unittest.TestCase):
                                    "src_path": str(root / "crates/gz-render-worker/src/main.rs")},
                         "profile": {"test": False}}
                 return SimpleNamespace(returncode=0, stdout=json.dumps(item), stderr="", args=["cargo"])
-            with patch.object(verify, "ROOT", root), patch.object(verify.subprocess, "run", side_effect=fake_cargo), patch.object(verify, "run", return_value=SimpleNamespace(stdout="rustc")):
+            with patch.object(verify, "ROOT", root), patch.object(verify.profile_process, "run", side_effect=fake_cargo), patch.object(verify, "run", return_value=SimpleNamespace(stdout="rustc")):
                 with self.assertRaisesRegex(ValueError, "auditor changed"):
                     verify.profile_coverage("renderer", {"crate": [source]}, ["cargo"], root / "profile", {}, root / "wrapper", root, "rustc")
 
@@ -645,7 +646,7 @@ class FeatureProfiles(unittest.TestCase):
             source.parent.mkdir()
             source.write_text("original")
             result = SimpleNamespace(returncode=0, stdout=json.dumps({"reason": "compiler-artifact", "executable": "/tmp/probe"}), stderr="", args=["cargo"])
-            with patch.object(verify, "ROOT", root), patch.object(verify.subprocess, "run", return_value=result), patch.object(verify, "run", return_value=SimpleNamespace(stdout="changed rustc")):
+            with patch.object(verify, "ROOT", root), patch.object(verify.profile_process, "run", return_value=result), patch.object(verify, "run", return_value=SimpleNamespace(stdout="changed rustc")):
                 with self.assertRaisesRegex(ValueError, "compiler changed"):
                     verify.profile_coverage("headless", {"crate": [source]}, ["cargo"], root / "profile", {}, root / "wrapper", root, "rustc")
 
@@ -660,7 +661,7 @@ class FeatureProfiles(unittest.TestCase):
                 source.write_text("changed")
                 (output / "raw" / "one.profraw").write_bytes(b"raw")
                 return SimpleNamespace(returncode=0, stdout=json.dumps({"reason": "compiler-artifact", "executable": "/tmp/probe"}), stderr="", args=["cargo"])
-            with patch.object(verify, "ROOT", root), patch.object(verify.subprocess, "run", side_effect=fake_cargo), patch.object(verify, "run", return_value=SimpleNamespace(stdout="rustc")):
+            with patch.object(verify, "ROOT", root), patch.object(verify.profile_process, "run", side_effect=fake_cargo), patch.object(verify, "run", return_value=SimpleNamespace(stdout="rustc")):
                 with self.assertRaisesRegex(ValueError, "sources changed"):
                     verify.profile_coverage("headless", {"crate": [source]}, ["cargo"], output, {}, root / "wrapper", root, "rustc")
 
@@ -678,6 +679,8 @@ class FeatureProfiles(unittest.TestCase):
                 for name in ("test-output.log", "coverage.json", "coverage.lcov", "summary.json", "evidence.json", "merged.profdata", "proto-generated.json", "proto-facade-audit.json", "proto-facade-audit-output.log", "proto-generated.rs", "proto-descriptor.pb", "proto-coverage.json", "coverage-unfiltered.lcov"):
                     (base / name).write_text(profile)
                 (base / "raw" / "one.profraw").write_text(profile)
+                for channel in ("stdout", "stderr"):
+                    (base / ("tests." + channel)).write_text(profile + channel)
                 if profile == "renderer":
                     (base / "facade-audit.json").write_text("proof")
             hashes, missing = {}, []
@@ -685,6 +688,23 @@ class FeatureProfiles(unittest.TestCase):
             self.assertEqual(missing, [])
             self.assertEqual((output / "profiles-test/headless/raw/one.profraw").read_text(), "headless")
             self.assertEqual((output / "profiles-test/renderer/raw/one.profraw").read_text(), "renderer")
+            for profile in ("headless", "renderer"):
+                for channel in ("stdout", "stderr"):
+                    relative = f"profiles-test/{profile}/tests.{channel}"
+                    raw = (profile + channel).encode()
+                    self.assertEqual((output / relative).read_bytes(), raw)
+                    self.assertEqual(hashes[relative], hashlib.sha256(raw).hexdigest())
+            # A cancelled profile may never finalize test-output.log. Partial
+            # channels must still be retained without granting a passing stage.
+            final_log = coverage / "profiles-test/headless/test-output.log"
+            final_log.unlink()
+            partial = Path(tmp) / "partial"
+            partial.mkdir()
+            partial_hashes, partial_missing = {}, []
+            verify.retain_profile_evidence(candidate, partial, partial_hashes, partial_missing)
+            self.assertIn("profiles-test/headless/test-output.log", partial_missing)
+            self.assertEqual((partial / "profiles-test/headless/tests.stdout").read_text(), "headlessstdout")
+            final_log.write_text("headless")
             for name in ("proto-coverage.json", "coverage-unfiltered.lcov"):
                 relative = "profiles-test/headless/" + name
                 self.assertEqual((output / relative).read_bytes(), b"headless")
