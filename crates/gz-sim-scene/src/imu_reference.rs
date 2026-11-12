@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Immutable, validated IMU reference selection in the zero-heading domain.
+//! Immutable IMU reference selection with validated world heading.
 use super::{DQuat, LoadError};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -10,45 +10,73 @@ pub(super) enum Frame {
     Enu,
     Ned,
     Nwu,
+    EnuHeading(u64),
+    NedHeading(u64),
+    NwuHeading(u64),
+    CustomWorldHeading([u64; 3], u64),
 }
 
 pub(super) fn validate(
     config: &sdformat::Imu,
-    world_has_spherical: bool,
+    spherical: Option<&sdformat::SphericalCoordinates>,
     entity: &str,
 ) -> Result<Frame, LoadError> {
     let bad = || LoadError::Unsupported {
         entity: entity.to_owned(),
         feature: "IMU orientation configuration",
     };
-    if config.localization == "CUSTOM" && config.custom_rpy_parent_frame == "world" {
-        if world_has_spherical
-            || config
-                .custom_rpy
-                .iter()
-                .any(|angle| !angle.is_finite() || angle.is_subnormal())
+    let frame = if config.localization == "CUSTOM" && config.custom_rpy_parent_frame == "world" {
+        if config
+            .custom_rpy
+            .iter()
+            .any(|angle| !angle.is_finite() || angle.is_subnormal())
         {
             return Err(bad());
         }
-        return Ok(Frame::CustomWorld(config.custom_rpy.map(f64::to_bits)));
-    }
-    if config.custom_rpy != [0.0; 3] || !config.custom_rpy_parent_frame.is_empty() {
-        return Err(bad());
-    }
-    let frame = match config.localization.as_str() {
-        "CUSTOM" => Frame::Custom,
-        "ENU" => Frame::Enu,
-        "NED" => Frame::Ned,
-        "NWU" => Frame::Nwu,
-        _ => return Err(bad()),
+        Frame::CustomWorld(config.custom_rpy.map(f64::to_bits))
+    } else {
+        if config.custom_rpy != [0.0; 3] || !config.custom_rpy_parent_frame.is_empty() {
+            return Err(bad());
+        }
+        match config.localization.as_str() {
+            // Legacy initial-reference admission never consumed spherical metadata.
+            "CUSTOM" => return Ok(Frame::Custom),
+            "ENU" => Frame::Enu,
+            "NED" => Frame::Ned,
+            "NWU" => Frame::Nwu,
+            _ => return Err(bad()),
+        }
     };
-    if frame != Frame::Custom && world_has_spherical {
+    let Some(world) = spherical else {
+        return Ok(frame);
+    };
+    if world.surface != sdformat::SphericalSurface::EarthWgs84
+        || world.orientation != sdformat::WorldFrameOrientation::EastNorthUp
+        || [
+            world.latitude_radians,
+            world.longitude_radians,
+            world.elevation,
+        ]
+        .iter()
+        .any(|value| !value.is_finite() || *value != 0.0)
+        || !world.heading_radians.is_finite()
+        || world.heading_radians.is_subnormal()
+        || world.heading_radians.abs() > std::f64::consts::PI
+    {
         return Err(bad());
     }
-    Ok(frame)
+    let heading = world.heading_radians.to_bits();
+    Ok(match frame {
+        Frame::Enu => Frame::EnuHeading(heading),
+        Frame::Ned => Frame::NedHeading(heading),
+        Frame::Nwu => Frame::NwuHeading(heading),
+        Frame::CustomWorld(angles) => Frame::CustomWorldHeading(angles, heading),
+        // All other variants are constructed only by this validated handoff.
+        _ => return Err(bad()),
+    })
 }
 
-// Only the three fixed ENU-source table entries from ImuSensor.cc are needed.
+// Fixed ENU-source table entries and world-heading yaw from ImuSensor.cc.
 // Preserve Quaternion::SetFromEuler's scalar order and normalization. These
 // constants have unit norm, so its near-zero fallback is outside this domain.
 fn table_rotation(roll: f64, yaw: f64) -> [f64; 4] {
@@ -79,18 +107,31 @@ fn custom_rotation(angles: [u64; 3]) -> [f64; 4] {
 }
 
 pub(super) fn reference(frame: Frame, initial: DQuat) -> DQuat {
-    let q = match frame {
-        Frame::CustomWorld(angles) => custom_rotation(angles),
-        Frame::Enu => table_rotation(0.0, 0.0),
-        Frame::Ned => table_rotation(std::f64::consts::PI, std::f64::consts::FRAC_PI_2),
-        Frame::Nwu => table_rotation(0.0, std::f64::consts::FRAC_PI_2),
+    let (q, heading) = match frame {
+        Frame::CustomWorld(angles) => (custom_rotation(angles), 0.0),
+        Frame::Enu => (table_rotation(0.0, 0.0), 0.0),
+        Frame::Ned => (
+            table_rotation(std::f64::consts::PI, std::f64::consts::FRAC_PI_2),
+            0.0,
+        ),
+        Frame::Nwu => (table_rotation(0.0, std::f64::consts::FRAC_PI_2), 0.0),
+        Frame::EnuHeading(bits) => (table_rotation(0.0, 0.0), f64::from_bits(bits)),
+        Frame::NedHeading(bits) => (
+            table_rotation(std::f64::consts::PI, std::f64::consts::FRAC_PI_2),
+            f64::from_bits(bits),
+        ),
+        Frame::NwuHeading(bits) => (
+            table_rotation(0.0, std::f64::consts::FRAC_PI_2),
+            f64::from_bits(bits),
+        ),
+        Frame::CustomWorldHeading(angles, bits) => (custom_rotation(angles), f64::from_bits(bits)),
         // Return the exact pre-existing initial-sensor product.
         Frame::Custom => return initial,
     };
-    // Sim supplies Quaternion(0,0,heading) in ENU, with heading fixed at +0.
+    // Sim supplies Quaternion(0,0,heading) in ENU; absent metadata keeps +0.
     // Sensors then evaluates worldRelativeOrientation * transformTable entry.
     let [x, y, z, w] = q;
-    let [ax, ay, az, aw] = table_rotation(0.0, 0.0);
+    let [ax, ay, az, aw] = table_rotation(0.0, heading);
     DQuat::from_xyzw(
         aw * x + ax * w + ay * z - az * y,
         aw * y - ax * z + ay * w + az * x,
@@ -110,3 +151,7 @@ mod native_tests;
 #[cfg(test)]
 #[path = "../tests/private/imu_custom_world_native.rs"]
 mod custom_world_native_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/imu_world_heading_native.rs"]
+mod world_heading_native_tests;

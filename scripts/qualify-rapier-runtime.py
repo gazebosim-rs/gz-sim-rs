@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Additional native-off execution proof; never replaces the full coverage profiles.
 
-Twenty-one copied example SDFs run once each through the retained actual CLI. These
+Twenty-two copied example SDFs run once each through the retained actual CLI. These
 finite load/step controls are separate from Rust test counts and canonical wire
 or statistical/native-model evidence; clean installed runs remain separate.
 """
@@ -48,6 +48,7 @@ NOISY_EXAMPLES = (
     "examples/m45_imu_custom_world.sdf",
     "examples/m46_odometry_rotation_offsets.sdf",
     "examples/m47_odometry_noise.sdf",
+    "examples/m48_imu_world_heading.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -92,6 +93,7 @@ NOISY_LINKS = {
     "examples/m45_imu_custom_world.sdf": {"default::rig::body": (2, -1, 3)},
     "examples/m46_odometry_rotation_offsets.sdf": {"default::rig::body": (2, -1, 3)},
     "examples/m47_odometry_noise.sdf": {"default::rig::body": (2, -1, 3)},
+    "examples/m48_imu_world_heading.sdf": {"default::rig::body": (2, -1, 3)},
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
 TARGETS = {

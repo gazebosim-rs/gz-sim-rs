@@ -639,7 +639,8 @@ class AuxiliaryRetention(unittest.TestCase):
         for source in ("examples/m41_air_speed_wind.sdf", "examples/m42_joint_force_feedback.sdf",
                        "examples/m43_imu_reference_frames.sdf", "examples/m45_imu_custom_world.sdf",
                        "examples/m46_odometry_rotation_offsets.sdf",
-                       "examples/m47_odometry_noise.sdf"):
+                       "examples/m47_odometry_noise.sdf",
+                       "examples/m48_imu_world_heading.sdf"):
             index = QUALIFIER.NOISY_EXAMPLES.index(source)
             valid = json.loads(baseline)["runs"][index]["stdout"]
             for field, altered in (

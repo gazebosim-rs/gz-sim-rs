@@ -1,3 +1,51 @@
+# Current work: M48 IMU world-heading references
+
+Read docs/M48_DELIVERY.md. This isolated checkout starts at exact locally
+qualified M47 f27a37fd, not accepted Main. Its full local normal and independent
+DATA passed; preserve all frozen M43–M47 trees and original evidence. Contract
+review precedes leaf authorship; Root owns shared loader/registration/planning
+seams and serial heavy execution. Independent Scene and Server/native leaves
+receive explicit file leases. Complete implementation, regression source and
+docs, batch independent review findings, then one consolidated verification.
+No per-edit checks, CI retry, snapshot workaround, package/browser refresh,
+Cargo/lock/workflow/Fuel/backend/renderer change or gate weakening is selected.
+Publication and acceptance still require the actual accepted predecessor, exact
+hosted success, independent official DATA and ordinary Main/readbacks.
+
+The third normal attempt stopped after 4.166 seconds at the required formatting
+check, before compilation or tests. Root had omitted formatting the completed
+Server assertion correction. One affected Server formatter pass then completed
+in 0.685 seconds, changing only that file's layout. Assertion values, inputs,
+production code and fixtures remain unchanged. Preserve the failed `96426233`
+source and its original method/log/result; all three actual failures stay failed.
+The complete normal hook, strict coverage and independent local DATA still need
+a successful actual result. No native reference or DATA reader is repeated.
+
+The second complete normal attempt failed after 1600.379 seconds with two
+headless test failures, after both Clippy runs and all 403 aggregate Python
+cases passed. One new Scene test compared a held 100 Hz reading to the current
+moving pose; its correction preserves all 21 strict geometry checks using the
+actual acquisition pose, with exact held-sample and 1/10/20 ms cadence assertions.
+One Server test expected a loader refusal for decimal `1e-310`, which the pinned
+parser rejects first. That original input now requires exact parser InvalidValue
+and conversion diagnostics; five loader-refusal cases remain, and normal degree
+input `1e-306` adds the actual subnormal-radian loader boundary. Production code,
+numerical bounds and native/literal fixtures are unchanged. Preserve the failed
+`e6eeb0a4` source, all logs and partial evidence. No successful full normal,
+renderer/strict coverage or local DATA result is claimed. No reference, reader
+or formatter is repeated; a separately reviewed full retry remains required.
+
+The first complete M48 local normal hook failed after 84.164 seconds at
+required Clippy compilation, before tests or coverage. Rust E0502 identified
+an immutable borrow of spherical metadata extending across later model mutation.
+The correction stores one owned metadata snapshot during loading and borrows it
+only for validation. Values, reference arithmetic, all assertions and every
+native/literal fixture are unchanged. Original failed tree `47840d61`, logs and
+packet remain retained. No native capture, data reader or formatter is repeated;
+a separately reviewed complete normal retry remains required.
+
+The earlier work instructions below are historical records.
+
 # Current work: M47 Gaussian odometry velocity noise
 
 Read docs/M47_DELIVERY.md. This new isolated checkout starts at exact locally

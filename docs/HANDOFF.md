@@ -1,3 +1,61 @@
+# Current development: M48 IMU world-heading references
+
+[M47](M47_DELIVERY.md) passed its complete provisional local normal hook in
+2062.426 seconds and independent retained DATA at clean commit `f27a37fd`:
+1757 headless and 1047 renderer profile passes with overlap, 403 aggregate
+Python tests and 21 finite examples. Strict coverage passed; changed Scene
+production lines were 152/155. All original failed attempts remain retained.
+M47 is locally qualified, not accepted. M1–M42 remain accepted and M40 remains
+the installed Latest. Hosted qualification and publication of M43–M47 are still
+blocked; no retry, snapshot probe or workaround is released.
+
+[M48](M48_DELIVERY.md) selects heading-aware ENU/NED/NWU and CUSTOM/world IMU
+orientation references in a closed metadata domain. The new isolated checkout
+starts at exact local M47 `f27a37fd`; every frozen predecessor remains intact.
+Independent contract and complete implementation review passed. The fresh
+original Sensors/Math capture completed in 32.537 seconds with all 89 stages
+successful; independent native and fixed-grammar literal DATA passed for all
+44 configurations and 264 packets (240 orientation-present, 24 absent).
+Audited fixture consumers are integrated for final Source review. Rust tests,
+lint, strict coverage and the complete normal hook remain pending. Preserve the
+strict gates and actual
+accepted-predecessor/hosted/official/Main requirements before publication.
+
+The third normal attempt stopped after 4.166 seconds at the required formatting
+check, before compilation or tests. Root had omitted formatting the completed
+Server assertion correction. One affected Server formatter pass then completed
+in 0.685 seconds, changing only that file's layout. Assertion values, inputs,
+production code and fixtures remain unchanged. Preserve the failed `96426233`
+source and its original method/log/result; all three actual failures stay failed.
+The complete normal hook, strict coverage and independent local DATA still need
+a successful actual result. No native reference or DATA reader is repeated.
+
+The second complete normal attempt failed after 1600.379 seconds with two
+headless test failures, after both Clippy runs and all 403 aggregate Python
+cases passed. One new Scene test compared a held 100 Hz reading to the current
+moving pose; its correction preserves all 21 strict geometry checks using the
+actual acquisition pose, with exact held-sample and 1/10/20 ms cadence assertions.
+One Server test expected a loader refusal for decimal `1e-310`, which the pinned
+parser rejects first. That original input now requires exact parser InvalidValue
+and conversion diagnostics; five loader-refusal cases remain, and normal degree
+input `1e-306` adds the actual subnormal-radian loader boundary. Production code,
+numerical bounds and native/literal fixtures are unchanged. Preserve the failed
+`e6eeb0a4` source, all logs and partial evidence. No successful full normal,
+renderer/strict coverage or local DATA result is claimed. No reference, reader
+or formatter is repeated; a separately reviewed full retry remains required.
+
+The first complete M48 local normal hook failed after 84.164 seconds at
+required Clippy compilation, before tests or coverage. Rust E0502 identified
+an immutable borrow of spherical metadata extending across later model mutation.
+The correction stores one owned metadata snapshot during loading and borrows it
+only for validation. Values, reference arithmetic, all assertions and every
+native/literal fixture are unchanged. Original failed tree `47840d61`, logs and
+packet remain retained. No native capture, data reader or formatter is repeated;
+a separately reviewed complete normal retry remains required.
+
+The earlier checkpoints below remain historical; their pending-result wording
+does not override the actual M47 local outcome recorded above.
+
 # Current development: M47 Gaussian odometry velocity noise
 
 [M46](M46_DELIVERY.md) passed its full provisional local normal hook and

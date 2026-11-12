@@ -29,6 +29,7 @@ CLIENTS = {
     'joint_force_feedback': 'crates/gz-sim-server/tests/native_joint_force_feedback.cc',
     'imu_reference_frames': 'crates/gz-sim-server/tests/native_imu_reference_frames_peer.cc',
     'imu_custom_world': 'crates/gz-sim-server/tests/native_imu_custom_world_peer.cc',
+    'imu_world_heading': 'crates/gz-sim-server/tests/native_imu_world_heading_peer.cc',
 }
 spec = importlib.util.spec_from_file_location('zenoh_bootstrap', ROOT / 'scripts/bootstrap-zenoh-native.py')
 bootstrap = importlib.util.module_from_spec(spec)

@@ -358,7 +358,7 @@ pub struct ImuPublication {
 
 struct SceneContext<'a> {
     world: &'a str,
-    has_spherical_coordinates: bool,
+    spherical_coordinates: Option<sdformat::SphericalCoordinates>,
     links: BTreeMap<String, u64>,
     visuals: Vec<Entity>,
     cameras: Vec<Entity>,
@@ -587,7 +587,7 @@ fn load_world_configured(
     };
     let mut context = SceneContext {
         world: world_name,
-        has_spherical_coordinates: world.spherical_coordinates.is_some(),
+        spherical_coordinates: world.spherical_coordinates.clone(),
         links: BTreeMap::new(),
         visuals: Vec::new(),
         cameras: Vec::new(),
@@ -1296,7 +1296,7 @@ fn build_model(
                 feature: "non-IMU sensors",
             })?;
             let reference_frame =
-                imu_reference::validate(config, context.has_spherical_coordinates, &name)?;
+                imu_reference::validate(config, context.spherical_coordinates.as_ref(), &name)?;
             let schedule =
                 SampleSchedule::new(sensor.update_rate).map_err(|_| LoadError::Unsupported {
                     entity: name.clone(),

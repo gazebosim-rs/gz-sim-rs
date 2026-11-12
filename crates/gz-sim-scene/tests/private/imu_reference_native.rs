@@ -121,7 +121,7 @@ fn actual_native_named_references_match_all_component_readings_at_unchanged_boun
             imu.linear_acceleration[i] = noise(config.noise[i]);
             imu.angular_velocity[i] = noise(config.noise[i + 3]);
         }
-        let frame = validate(&imu, false, config.sensor_name).unwrap();
+        let frame = validate(&imu, None, config.sensor_name).unwrap();
         // Native records this as the initial WORLD sensor quaternion. Do not
         // add a MODEL/parent composition, reverse-engineer it from RPY, or use
         // the recorded reference_after in place of the implementation under test.

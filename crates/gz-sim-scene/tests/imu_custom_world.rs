@@ -291,8 +291,42 @@ fn custom_world_preserves_typed_parent_geodesy_and_sensor_domain_refusals() {
             "<gravity>0 0 0</gravity>",
             &format!("<gravity>0 0 0</gravity>{spherical}"),
         );
+        // This exact former heading-zero spherical refusal is now a physical
+        // load/motion/healthy-reset positive, with every neighboring refusal kept.
+        let mut sim = load(&xml);
+        let public = named(&sim, "default::rig::body::imu").1;
+        let body = named(&sim, "default::rig::body").1;
+        let initial = *sim
+            .world()
+            .get::<WorldPose>(named(&sim, "default::rig::body").0)
+            .unwrap();
+        queue_link_world_wrench(&mut sim, body, [8.0, -4.0, 2.0], [2.0, -3.0, 4.0]).unwrap();
+        sim.step_exact(1).unwrap();
+        assert!(sample(&sim).2.specific_force.iter().any(|v| v.abs() > 1.0));
+        sim.step_exact(19).unwrap();
+        let first = sample(&sim);
+        assert!(first.2.angular_velocity.iter().any(|v| v.abs() > 0.001));
+        let pose = sim
+            .world()
+            .get::<WorldPose>(named(&sim, "default::rig::body").0)
+            .unwrap();
+        assert_ne!(pose.rotation, initial.rotation);
+        geometry(&sim, [0.3, -0.4, 0.5]);
+        reset_loaded_world(&mut sim, |_| ()).unwrap();
+        assert_eq!(entity_by_id(sim.world(), public), Some(sensor(&sim)));
+        assert_eq!(named(&sim, "default::rig::body").1, body);
+        assert!(sim.world().get::<ImuSample>(sensor(&sim)).is_none());
+        queue_link_world_wrench(&mut sim, body, [8.0, -4.0, 2.0], [2.0, -3.0, 4.0]).unwrap();
+        sim.step_exact(20).unwrap();
+        assert_eq!((sample(&sim).0, sample(&sim).2), (first.0, first.2));
+        assert_eq!(sample(&sim).1, first.1 + 1);
+        geometry(&sim, [0.3, -0.4, 0.5]);
+        let geodesy = xml.replace(
+            "<latitude_deg>0</latitude_deg>",
+            "<latitude_deg>1</latitude_deg>",
+        );
         assert!(matches!(
-            try_load(&xml),
+            try_load(&geodesy),
             Err(LoadError::Unsupported {
                 feature: "IMU orientation configuration",
                 ..

@@ -1971,3 +1971,7 @@ mod imu_reference_frames_native;
 #[cfg(test)]
 #[path = "../tests/private/imu_custom_world_native.rs"]
 mod imu_custom_world_native;
+
+#[cfg(test)]
+#[path = "../tests/private/imu_world_heading_native.rs"]
+mod imu_world_heading_native;
