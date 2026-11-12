@@ -11,6 +11,7 @@ fn metadata() -> GroundTruthOdometryPublication {
     GroundTruthOdometryPublication {
         dimensions: GroundTruthOdometryDimensions::Two,
         offsets: GroundTruthOdometryOffsets::default(),
+        gaussian_noise: GroundTruthOdometryNoise::default(),
         model_name: "rig".into(),
         odom_frame: "m46/odom".into(),
         robot_base_frame: "m46/base".into(),

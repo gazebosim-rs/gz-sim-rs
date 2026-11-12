@@ -24,6 +24,7 @@ CLIENTS = {
     'odometry_3d': 'crates/gz-sim-server/tests/native_odometry_3d.cc',
     'odometry_translation_offsets': 'crates/gz-sim-server/tests/native_odometry_translation_offsets.cc',
     'odometry_rotation_offsets': 'crates/gz-sim-server/tests/native_odometry_rotation_offsets.cc',
+    'odometry_noise': 'crates/gz-sim-server/tests/native_odometry_noise.cc',
     'air_speed_wind': 'crates/gz-sim-server/tests/native_air_speed_wind.cc',
     'joint_force_feedback': 'crates/gz-sim-server/tests/native_joint_force_feedback.cc',
     'imu_reference_frames': 'crates/gz-sim-server/tests/native_imu_reference_frames_peer.cc',

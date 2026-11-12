@@ -1,3 +1,24 @@
+# Current work: M47 Gaussian odometry velocity noise
+
+Read docs/M47_DELIVERY.md. This new isolated checkout starts at exact locally
+qualified M46 cca6b07d, not accepted Main. M46 full local normal and independent
+DATA passed. Preserve the frozen M43–M46 candidates and their original evidence.
+Root owns contract/API, shared loader/export/qualifier/planning/tracker seams and
+serial heavy execution. Independent Scene and Server/reference leaves require
+explicit leases after contract review. Finish implementation, regression Source,
+docs and independent review, batch findings, then run consolidated checks only.
+No Cargo/lock/workflow/Fuel/renderer/backend/package/launcher change, CI retry or
+snapshot workaround is selected. Publication and acceptance retain actual
+accepted predecessor, exact hosted/official and ordinary Main/readback gates.
+
+The first complete normal hook failed Clippy before tests: a retained M46 replay
+initializer missed the new default-noise field. The complete constructor inventory
+closed with only that explicit-default correction, preserving every assertion.
+Keep the failed2aff tree and all output. No second formatter/native run; one full
+normal retry needs final Source/tree/procedure review and Root release.
+
+The earlier instructions below are historical qualification records.
+
 # Current work: M46 rotated odometry frames
 
 Read docs/M46_DELIVERY.md. This new isolated checkout starts at exact locally

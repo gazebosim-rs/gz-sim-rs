@@ -15,6 +15,18 @@ impl NoiseStream {
         Self(rng)
     }
 
+    /// One zero-mean white Gaussian contribution, without a bias model.
+    /// Deviations through f64 epsilon return positive zero without a draw.
+    /// Invalid parameters consume nothing; a nonfinite draw returns an error
+    /// after consuming randomness. Callers needing rollback can stage a clone.
+    pub fn white_gaussian(&mut self, stddev: f64) -> Result<f64, InvalidNoise> {
+        if !stddev.is_finite() || stddev < 0.0 {
+            return Err(InvalidNoise);
+        }
+        let value = self.normal(0.0, stddev);
+        value.is_finite().then_some(value).ok_or(InvalidNoise)
+    }
+
     fn normal(&mut self, mean: f64, stddev: f64) -> f64 {
         // Native Rand::DblNormal returns the mean at this zero threshold.
         if stddev <= f64::EPSILON {

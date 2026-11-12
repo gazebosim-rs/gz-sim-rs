@@ -158,7 +158,7 @@ class SelectedNativeGate(unittest.TestCase):
             (base / 'raw/control.profraw').write_text('not an LLVM profile')
             peers = base / 'native-peers'
             peers.mkdir()
-            expected = {'camera'} if profile == 'renderer' else {'clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world'}
+            expected = {'camera'} if profile == 'renderer' else {'clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world'}
             for client in sorted(expected):
                 output = peers / (client + '-control')
                 output.mkdir()
@@ -200,7 +200,7 @@ class SelectedNativeGate(unittest.TestCase):
             self.assertEqual((output / 'zenoh-native-reference.json').read_bytes(), (run / 'zenoh-native-reference.json').read_bytes())
             preparation = Path(run.name) / 'renderer/renderer-build-output.log'
             self.assertEqual((output / preparation).read_bytes(), (coverage / preparation).read_bytes())
-            for profile, clients in [('headless', ['clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world']), ('renderer', ['camera'])]:
+            for profile, clients in [('headless', ['clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world']), ('renderer', ['camera'])]:
                 for client in clients:
                     relative = Path(run.name) / profile / 'native-peers' / (client + '-control')
                     for filename in ['source.cc', client + '-client', 'provenance.json']:
@@ -271,6 +271,16 @@ class SelectedNativeGate(unittest.TestCase):
         root, candidate, coverage, _, index = self.staged_fixture()
         source = verify.zenoh_peer.CLIENTS['odometry_rotation_offsets']
         self.assertEqual(source, 'crates/gz-sim-server/tests/native_odometry_rotation_offsets.cc')
+        index['inputs'].pop(source)
+        (coverage / 'profile-index.json').write_text(json.dumps(index))
+        with patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
+                verify.retain_staged_evidence('a' * 40, candidate, 'passed')
+
+    def test_current_stage_rejects_missing_gaussian_odometry_peer_input(self):
+        root, candidate, coverage, _, index = self.staged_fixture()
+        source = verify.zenoh_peer.CLIENTS['odometry_noise']
+        self.assertEqual(source, 'crates/gz-sim-server/tests/native_odometry_noise.cc')
         index['inputs'].pop(source)
         (coverage / 'profile-index.json').write_text(json.dumps(index))
         with patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):

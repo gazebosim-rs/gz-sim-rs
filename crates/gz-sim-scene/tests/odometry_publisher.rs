@@ -118,7 +118,7 @@ fn admission_rejects_unsupported_or_ambiguous_metadata_without_losing_old_loader
     for fields in [
         "<dimensions>4</dimensions>",
         "<dimensions>2</dimensions><dimensions>2</dimensions>",
-        "<dimensions>2</dimensions><gaussian_noise>0.01</gaussian_noise>",
+        "<dimensions>2</dimensions><gaussian_noise>-0.01</gaussian_noise>",
         "<dimensions>2</dimensions><xyz_offset>0 NaN 0</xyz_offset>",
         "<dimensions>2</dimensions><rpy_global_offset>0 0 NaN</rpy_global_offset>",
         "<dimensions>2</dimensions><unknown>0</unknown>",

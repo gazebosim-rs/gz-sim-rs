@@ -797,6 +797,20 @@
       "evidence": "docs/M46_DELIVERY.md",
       "source_preparation_only": false,
       "provisional_local_only": true
+    },
+    {
+      "id": "M47",
+      "title": "Gaussian ground-truth odometry velocity noise",
+      "max_working_days": 5,
+      "depends_on": [
+        "M46"
+      ],
+      "scope": "Finite nonnegative gaussian_noise for existing Two/Three OdometryPublisher. Six ordered velocity draws precede throttling; both covariance matrices carry wire-rounded variance, while physical pose/TF and noiseless paths remain unchanged. Complete implementation, regressions and guides passed independent review over locally qualified M46 cca6, followed by one formatter. Fresh original-component capture and independent native DATA passed for16modes/18configs/1418inputs/1316triples/3948packets/102suppressed, with512stationary observations eachTwo/Three under unchanged upstream bounds. All349 current nodes and337mapped providers are bound under the explicit one-package environment update; historical baseline and both pre-child failures remain retained. Full Rust/normal qualification is pending at this source checkpoint; no acceptance is claimed. The first normal hook actually failed after178.137 seconds at required Clippy before tests/coverage: a retained M46 replay constructor omitted the new field. Complete initializer review closed with one explicit default-noise correction; all numeric/wire assertions and original failed evidence are preserved. Corrected full qualification remains required.",
+      "acceptance": "Complete reviewed implementation, regressions and guides; scoped original-system distribution/covariance observations; meaningful real-motion, seeded lifecycle and complete three-stream canonical controls. Full unchanged normal hook with strict workspace/per-crate/actual-parent coverage and independent local DATA; actual accepted predecessor, exact hosted success, independent official DATA and normal Main/readbacks before publication or acceptance.",
+      "excluded": "Bias/quantization, native-global RNG byte parity, new backends/dependencies/frameworks, SDK rebuild/native Physics, renderer/package/browser refresh, CI workaround and acceptance transfer.",
+      "evidence": "docs/M47_DELIVERY.md",
+      "source_preparation_only": false,
+      "provisional_local_only": true
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -846,7 +860,8 @@
     "M43": "in_progress",
     "M44": "in_progress",
     "M45": "in_progress",
-    "M46": "in_progress"
+    "M46": "in_progress",
+    "M47": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-10",
@@ -854,9 +869,10 @@
     "M43",
     "M44",
     "M45",
-    "M46"
+    "M46",
+    "M47"
   ],
-  "execution_policy": "D30-D32: Root integrates disjoint bounded Source and alone releases serial heavy operations. Finish implementation, regression Source, guides and independent review, then batch findings before one complete unchanged normal/strict qualification. M45 uses reviewed provisional local timing over exact locally qualified a08 while accepted predecessor and all hosted/official/publication gates remain mandatory for release. Retained M43/M44 proofs remain scoped to their actual identities: original 9a payload and repaired a08 qualifier under the reviewed one-package lineage amendment. No source, package, graph or binary identity is relabelled; no CI retry/probe is released. M46 rotated odometry Source development uses immutable locally qualified e66; complete independent review precedes one consolidated local qualification. All release dependencies remain mandatory.",
+  "execution_policy": "D30-D32: Root integrates disjoint bounded Source and alone releases serial heavy operations. Finish implementation, regression Source, guides and independent review, then batch findings before one complete unchanged normal/strict qualification. M45 uses reviewed provisional local timing over exact locally qualified a08 while accepted predecessor and all hosted/official/publication gates remain mandatory for release. Retained M43/M44 proofs remain scoped to their actual identities: original 9a payload and repaired a08 qualifier under the reviewed one-package lineage amendment. No source, package, graph or binary identity is relabelled; no CI retry/probe is released. M46 rotated odometry Source development uses immutable locally qualified e66; complete independent review precedes one consolidated local qualification. All release dependencies remain mandatory. M47 contract/Source preparation over exact locally qualified M46 cca6 is selected; every complete-batch review and execution gate remains mandatory. M47 complete Source and format integration are independently clear; one fresh reference uses a reviewed current349 manifest after a recorded single transitive MySQL package upgrade. Full local/hosted gates remain unchanged.",
   "parallel_groups": [
     {
       "phases": [
@@ -1009,9 +1025,20 @@
       ],
       "integration": "Frozen M43-M45 qualification and hosted/publication closeout remain separate. M46 source development proceeds over exact locally qualified e66; independently reviewed complete source precedes any provisional local checks. Root serializes heavy work. Accepted predecessor and exact hosted/official/Main remain release prerequisites; no CI retry or evidence transfer.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M43",
+        "M44",
+        "M45",
+        "M46",
+        "M47"
+      ],
+      "integration": "Frozen M43\u2013M46 qualification and evidence remain unchanged while M47 contract and disjoint Source leaves are prepared over exact locally qualified M46 cca6. Root owns shared seams and serial heavy operations; complete independent contract and Source review precedes new local qualification. All accepted-predecessor/hosted/official/Main release gates remain mandatory.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M43/M44 original 9a runtime/release/package/install/feedback/browser/visual proofs are retained. Their repaira08 passed full normal/strict coverage and independent local DATA, but current hosted run 43024343885 failed snapshot TLS/select setup before product checks; earlier9a run 42845720294 ended cancelled. Exact hosted/official and normal Main/tag/seven-assets/body/Latest readbacks still govern atomic acceptance. M45 native/literal DATA passed independently over accepted 73e; reviewed timing amendment 5d823a75 permits provisional full LOCAL qualification over exact locally qualified a08 only after complete Source/integration/tree/runner review and serial Root release. Actual accepted M43/M44 and exact M45 hosted/official/Main remain mandatory before M45 hosted publication or acceptance. No acceptance or CI success transfers. M45 full provisional local normal and independent DATA have now passed at e66. M46 Source is integrated and scoped native/literal DATA have passed for 30 modes and 858 triples. Rust, full normal/strict local, exact hosted/official and acceptance gates remain pending; no runtime or phase acceptance is transferred.",
+  "acceptance_boundary": "M43/M44 original 9a runtime/release/package/install/feedback/browser/visual proofs are retained. Their repaira08 passed full normal/strict coverage and independent local DATA, but current hosted run 43024343885 failed snapshot TLS/select setup before product checks; earlier9a run 42845720294 ended cancelled. Exact hosted/official and normal Main/tag/seven-assets/body/Latest readbacks still govern atomic acceptance. M45 native/literal DATA passed independently over accepted 73e; reviewed timing amendment 5d823a75 permits provisional full LOCAL qualification over exact locally qualified a08 only after complete Source/integration/tree/runner review and serial Root release. Actual accepted M43/M44 and exact M45 hosted/official/Main remain mandatory before M45 hosted publication or acceptance. No acceptance or CI success transfers. M45 full provisional local normal and independent DATA have now passed at e66. M46 Source is integrated and scoped native/literal DATA have passed for 30 modes and 858 triples. Rust, full normal/strict local, exact hosted/official and acceptance gates remain pending; no runtime or phase acceptance is transferred. Later actual outcome: M46 full local normal and independent DATA passed at cca6/treeebcf (1735H/1034R overlapping,402Python,20finite). It remains unaccepted. M47 is selected for contract/Source preparation only, with no checks run or inherited acceptance. M47 full Source and formatting are complete; fresh original-component reference and independent native DATA passed, while Rust/full normal checks remain pending at this source checkpoint. One current-provider baseline update retains all349 identities and the original historical manifest; no SDK rebuild, weakened guard or old qualification transfer. The first M47 full normal failed Clippy compilation before tests/coverage. One missing explicit default-noise field in the retained M46 replay consumer is corrected after complete constructor review; all original assertions and failure evidence remain. No native/formatter replay or Rust pass is claimed; a new complete normal outcome is required.",
   "current_delivery_group": [
     "M43",
     "M44"

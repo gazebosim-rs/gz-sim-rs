@@ -20,8 +20,9 @@ pub use joint_state_publisher::{
     JointStateJointPublication, JointStatePublication, JointStateSample, JointStateValue,
 };
 pub use odometry_publisher::{
-    GroundTruthOdometryDimensions, GroundTruthOdometryError, GroundTruthOdometryOffsets,
-    GroundTruthOdometryPublication, GroundTruthOdometrySample, GroundTruthOdometryScheduleFault,
+    GroundTruthOdometryDimensions, GroundTruthOdometryError, GroundTruthOdometryNoise,
+    GroundTruthOdometryOffsets, GroundTruthOdometryPublication, GroundTruthOdometrySample,
+    GroundTruthOdometryScheduleFault,
 };
 pub use pose_publisher::{
     PoseFramePublication, PoseFrameValue, PosePublication, PoseSample, StaticPosePublication,
@@ -1389,7 +1390,15 @@ fn build_model(
             controller_plan.is_some(),
         )?;
         if let Some(plan) = &ground_truth_plan {
-            odometry_publisher::build(sdf, sim, model, model_entity, backend, plan)?;
+            odometry_publisher::build(
+                sdf,
+                sim,
+                model,
+                model_entity,
+                backend,
+                plan,
+                context.noise_seed,
+            )?;
         }
         if let Some(plan) = &pose_plan {
             pose_publisher::build(sdf, sim, model, model_entity, backend, plan)?;

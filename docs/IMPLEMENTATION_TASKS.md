@@ -1,3 +1,37 @@
+# Current development: M47 Gaussian odometry velocity noise
+
+[M46](M46_DELIVERY.md) passed its full provisional local normal hook and
+independent retained local audit at clean commit `cca6b07d`: 1735 headless and
+1034 renderer profile passes with overlap, 402 aggregate Python tests, 20 finite
+examples and all strict coverage gates. Both prior failures remain retained.
+It is not accepted or publicly qualified. M1–M42 remain accepted and M40 remains
+the installed Latest release; M43–M46 hosted/publication closeout remains blocked.
+
+[M47](M47_DELIVERY.md) implements finite nonnegative Gaussian velocity noise
+for the existing Two/Three OdometryPublisher, with native covariance and unchanged
+physical pose. The complete Source, regressions and guides passed independent
+review, and the single formatter passed. Fresh original-component capture and
+independent retained native DATA passed: 16 modes, 18 configurations, 1418 inputs,
+1316 triples and 3948 packets. The reviewed current-provider update preserves the
+historical baseline; all 349 current nodes and 337 loaded providers were checked.
+At this pre-verification source checkpoint, Rust tests, lint and the full normal
+hook remain pending; scoped native DATA does not supply that qualification.
+No CI retry/probe, acceptance waiver, package/browser refresh or Fuel work is
+selected. Accepted predecessor and all normal hosted/official/Main gates remain
+mandatory for publication and acceptance. See the M47 contract for both retained
+pre-child failures and the precise current-provider baseline.
+
+The first full normal hook returned actual exit one after 178.137 seconds at
+required Clippy compilation, before tests or coverage. One retained M46 Server
+replay initializer omitted the newly required `gaussian_noise` field. The complete
+21-constructor/alias inventory found no further omission. Its correction adds
+only `Default::default()` noise to that initializer, preserving every original
+numeric and wire assertion. The failed source/tree/logs remain retained; no
+native reference, audit or formatter is repeated. A separately reviewed complete
+normal retry is still required; no Rust or coverage pass is claimed.
+
+The older checkpoints below remain historical, with original evidence preserved.
+
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 

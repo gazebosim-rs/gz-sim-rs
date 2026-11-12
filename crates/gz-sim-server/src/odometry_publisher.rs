@@ -32,6 +32,9 @@ fn channels(metadata: &Metadata) -> [(Channel, &str); 3] {
 }
 fn valid(metadata: &Metadata, owner: u64) -> bool {
     owner != 0
+        && metadata.gaussian_noise.stddev().is_finite()
+        && metadata.gaussian_noise.stddev() >= 0.0
+        && metadata.gaussian_noise.variance().is_finite()
         && !metadata.model_name.is_empty()
         && !metadata.model_name.contains("::")
         && [&metadata.odom_frame, &metadata.robot_base_frame]
@@ -65,9 +68,10 @@ fn packets(
         || sample.revision == 0
         || (metadata.dimensions == Dimensions::Two
             && (sample.pose.translation[2] != 0.0
-                || sample.linear[2] != 0.0
-                || sample.angular[0] != 0.0
-                || sample.angular[1] != 0.0))
+                || (metadata.gaussian_noise.stddev() <= f64::EPSILON
+                    && (sample.linear[2] != 0.0
+                        || sample.angular[0] != 0.0
+                        || sample.angular[1] != 0.0))))
         || !sample
             .pose
             .translation
@@ -109,7 +113,15 @@ fn packets(
         twist: Some(twist.clone()),
     };
     let covariance = FloatV {
-        data: vec![0.0; 36],
+        data: (0..36)
+            .map(|index| {
+                if index % 7 == 0 {
+                    metadata.gaussian_noise.variance()
+                } else {
+                    0.0
+                }
+            })
+            .collect(),
         ..Default::default()
     };
     let cov = OdometryWithCovariance {
@@ -320,6 +332,7 @@ mod tests {
         let metadata = Metadata {
             dimensions: Dimensions::Two,
             offsets: Default::default(),
+            gaussian_noise: Default::default(),
             model_name: "rig".into(),
             odom_frame: "odom".into(),
             robot_base_frame: "base".into(),
@@ -398,6 +411,7 @@ mod tests {
         let metadata = Metadata {
             dimensions: Dimensions::Two,
             offsets: Default::default(),
+            gaussian_noise: Default::default(),
             model_name: "rig".into(),
             odom_frame: "m34/odom".into(),
             robot_base_frame: "m34/base".into(),
@@ -792,6 +806,7 @@ mod tests {
         let metadata = Metadata {
             dimensions: Dimensions::Three,
             offsets: Default::default(),
+            gaussian_noise: Default::default(),
             model_name: "rig".into(),
             odom_frame: "m38/odom".into(),
             robot_base_frame: "m38/base".into(),
@@ -958,6 +973,7 @@ mod tests {
         let metadata = Metadata {
             dimensions: Dimensions::Three,
             offsets: Default::default(),
+            gaussian_noise: Default::default(),
             model_name: "rig".into(),
             odom_frame: "m38/odom".into(),
             robot_base_frame: "m38/base".into(),
@@ -1183,6 +1199,7 @@ mod tests {
             let metadata = Metadata {
                 dimensions,
                 offsets,
+                gaussian_noise: Default::default(),
                 model_name: "rig".into(),
                 odom_frame: "m39/odom".into(),
                 robot_base_frame: "m39/base".into(),
@@ -1250,3 +1267,7 @@ mod rotation_offset_tests;
 #[cfg(test)]
 #[path = "../tests/private/odometry_rotation_offsets_native.rs"]
 mod rotation_native_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/odometry_noise.rs"]
+mod noise_tests;

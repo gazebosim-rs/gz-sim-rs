@@ -474,7 +474,7 @@ fn malformed_nonfinite_rotation_and_other_configuration_refusals_remain_closed()
         }
     }
     for extra in [
-        "<gaussian_noise>0.01</gaussian_noise>",
+        "<gaussian_noise>-0.01</gaussian_noise>",
         "<dimensions>4</dimensions>",
         "<unknown/>",
     ] {

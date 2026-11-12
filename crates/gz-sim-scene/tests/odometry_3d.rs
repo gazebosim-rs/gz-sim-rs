@@ -333,7 +333,7 @@ fn dimensions_admission_preserves_planar_defaults_and_refuses_other_metadata() {
         "<dimensions><![CDATA[3]]></dimensions>",
         "<dimensions><nested/></dimensions>",
         "<dimensions value='3'>3</dimensions>",
-        "<dimensions>3</dimensions><gaussian_noise>0.01</gaussian_noise>",
+        "<dimensions>3</dimensions><gaussian_noise>-0.01</gaussian_noise>",
         "<dimensions>3</dimensions><xyz_offset>0 0 NaN</xyz_offset>",
     ] {
         assert!(

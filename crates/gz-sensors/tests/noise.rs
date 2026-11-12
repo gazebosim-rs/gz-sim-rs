@@ -14,6 +14,79 @@ fn moments(values: &[f64]) -> (f64, f64) {
     (mean, variance)
 }
 
+#[test]
+fn white_only_draws_match_the_owned_generator_without_bias_initialization() {
+    let mut actual = stream(7);
+    let mut expected = ChaCha8Rng::from_seed([42; 32]);
+    expected.set_stream(7);
+    let mut unrelated = stream(8);
+    let mut differs = false;
+    for _ in 0..512 {
+        let standard: f64 = rand_distr::StandardNormal.sample(&mut expected);
+        let value = actual.white_gaussian(0.25).unwrap();
+        assert_eq!(value.to_bits(), (0.0 + standard * 0.25).to_bits());
+        differs |= value.to_bits() != unrelated.white_gaussian(0.25).unwrap().to_bits();
+    }
+    assert!(differs);
+    let mut snapshot = actual.clone();
+    for _ in 0..32 {
+        assert_eq!(
+            actual.white_gaussian(1.0).unwrap().to_bits(),
+            snapshot.white_gaussian(1.0).unwrap().to_bits()
+        );
+    }
+}
+
+#[test]
+fn white_zero_threshold_and_invalid_parameters_do_not_consume_randomness() {
+    let mut actual = stream(9);
+    let mut untouched = actual.clone();
+    for sigma in [
+        -0.0,
+        0.0,
+        f64::from_bits(1),
+        f64::EPSILON / 2.0,
+        f64::EPSILON,
+    ] {
+        assert_eq!(
+            actual.white_gaussian(sigma).unwrap().to_bits(),
+            0.0_f64.to_bits()
+        );
+    }
+    for sigma in [
+        -f64::from_bits(1),
+        -1.0,
+        f64::NAN,
+        f64::INFINITY,
+        f64::NEG_INFINITY,
+    ] {
+        assert_eq!(actual.white_gaussian(sigma), Err(InvalidNoise));
+    }
+    for _ in 0..32 {
+        assert_eq!(
+            actual.white_gaussian(1.0).unwrap().to_bits(),
+            untouched.white_gaussian(1.0).unwrap().to_bits()
+        );
+    }
+}
+
+#[test]
+fn white_overflow_is_an_error_instead_of_a_successful_nonfinite_contribution() {
+    let mut random = stream(11);
+    let mut finite = 0;
+    let mut rejected = 0;
+    for _ in 0..512 {
+        match random.white_gaussian(f64::MAX) {
+            Ok(value) => {
+                assert!(value.is_finite());
+                finite += 1;
+            }
+            Err(InvalidNoise) => rejected += 1,
+        }
+    }
+    assert!(finite > 0 && rejected > 0);
+}
+
 fn gaussian(p: GaussianParameters, random: &mut NoiseStream) {
     let mut noise = GaussianNoise::new(p, random).unwrap();
     assert_eq!(noise.parameters(), p);

@@ -1,7 +1,8 @@
 // Copyright (C) 2021, 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Loaded noiseless ground-truth odometry, separate from wheel integration.
+//! Loaded pose-derived ground-truth odometry, separate from wheel integration.
 use super::*;
+use gz_sensors::NoiseStream;
 use std::collections::BTreeSet;
 
 /// Native pose-derived odometry mode; omitted XML dimensions select `Two`.
@@ -88,10 +89,35 @@ impl GroundTruthOdometryOffsets {
     }
 }
 
+/// Immutable native Twist standard deviation and float-wire covariance domain.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct GroundTruthOdometryNoise {
+    sigma: u64,
+}
+impl GroundTruthOdometryNoise {
+    pub fn from_stddev(sigma: f64) -> Result<Self, GroundTruthOdometryError> {
+        let square = sigma * sigma;
+        if !sigma.is_finite() || sigma < 0.0 || !square.is_finite() || !(square as f32).is_finite()
+        {
+            return Err(GroundTruthOdometryError::Noise);
+        }
+        Ok(Self {
+            sigma: if sigma == 0.0 { 0 } else { sigma.to_bits() },
+        })
+    }
+    pub fn stddev(self) -> f64 {
+        f64::from_bits(self.sigma)
+    }
+    pub fn variance(self) -> f32 {
+        (self.stddev() * self.stddev()) as f32
+    }
+}
+
 #[derive(Component, Clone, Debug, PartialEq)]
 pub struct GroundTruthOdometryPublication {
     pub dimensions: GroundTruthOdometryDimensions,
     pub offsets: GroundTruthOdometryOffsets,
+    pub gaussian_noise: GroundTruthOdometryNoise,
     pub model_name: String,
     pub odom_frame: String,
     pub robot_base_frame: String,
@@ -117,6 +143,10 @@ pub enum GroundTruthOdometryError {
     Pose,
     #[error("ground-truth odometry offsets must be finite")]
     Offset,
+    #[error(
+        "ground-truth odometry noise must be finite, nonnegative and have finite float covariance"
+    )]
+    Noise,
     #[error("ground-truth odometry clock is backward or unrepresentable")]
     Time,
     #[error("ground-truth odometry arithmetic is not finite")]
@@ -166,11 +196,23 @@ pub(super) struct Publisher {
     revision: u64,
     means: [Mean; 3],
     spatial_means: Option<[Mean; 3]>,
+    noise_stream: Option<Box<NoiseStream>>,
 }
 impl Publisher {
+    #[cfg(test)]
     fn new(owner: u64, publication: GroundTruthOdometryPublication, period: Duration) -> Self {
+        Self::seeded(owner, publication, period, [0; 32])
+    }
+    fn seeded(
+        owner: u64,
+        publication: GroundTruthOdometryPublication,
+        period: Duration,
+        seed: [u8; 32],
+    ) -> Self {
         let spatial_means = (publication.dimensions == GroundTruthOdometryDimensions::Three)
             .then(|| std::array::from_fn(|_| Mean::default()));
+        let noise_stream = (publication.gaussian_noise.stddev() > f64::EPSILON)
+            .then(|| Box::new(NoiseStream::new(seed, owner)));
         Self {
             owner,
             publication,
@@ -184,6 +226,7 @@ impl Publisher {
             revision: 0,
             means: std::array::from_fn(|_| Mean::default()),
             spatial_means,
+            noise_stream,
         }
     }
 }
@@ -255,6 +298,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
     let mut publication = GroundTruthOdometryPublication {
         dimensions: GroundTruthOdometryDimensions::Two,
         offsets: GroundTruthOdometryOffsets::default(),
+        gaussian_noise: GroundTruthOdometryNoise::default(),
         model_name: model.name.clone(),
         odom_frame: format!("{}/odom", model.name),
         robot_base_frame: format!("{}/base_footprint", model.name),
@@ -314,9 +358,8 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
             }
             "gaussian_noise" => {
                 let value: f64 = text.parse().map_err(|_| bad())?;
-                if !value.is_finite() || value != 0.0 {
-                    return Err(bad());
-                }
+                publication.gaussian_noise =
+                    GroundTruthOdometryNoise::from_stddev(value).map_err(|_| bad())?;
             }
             "xyz_offset" | "xyz_global_offset" => {
                 let values: Result<Vec<f64>, _> = text.split_whitespace().map(str::parse).collect();
@@ -402,6 +445,7 @@ pub(super) fn build(
     entity: Entity,
     _backend: &PhysicsBackend,
     plan: &Plan,
+    seed: [u8; 32],
 ) -> Result<(), LoadError> {
     let owner = sim
         .world()
@@ -410,7 +454,7 @@ pub(super) fn build(
         .get();
     sim.world_mut().entity_mut(entity).insert((
         plan.publication.clone(),
-        Publisher::new(owner, plan.publication.clone(), plan.period),
+        Publisher::seeded(owner, plan.publication.clone(), plan.period, seed),
     ));
     Ok(())
 }
@@ -703,8 +747,160 @@ fn spatial_velocities(
         .ok_or(GroundTruthOdometryError::Arithmetic)
 }
 
+// Only mutable history and a stack copy of RNG state are staged. Publication
+// strings and the owned Box are not cloned or allocated per acquisition.
+struct NoisyState {
+    previous_time: Option<Duration>,
+    previous_pose: WorldPose,
+    last_publication: Duration,
+    revision: u64,
+    means: [Mean; 3],
+    spatial_means: Option<[Mean; 3]>,
+    stream: Option<NoiseStream>,
+}
 impl Publisher {
     fn advance(
+        &mut self,
+        pose: WorldPose,
+        time: UpdateInfo,
+    ) -> Result<Option<GroundTruthOdometrySample>, GroundTruthOdometryError> {
+        if self.publication.gaussian_noise == GroundTruthOdometryNoise::default() {
+            return self.advance_noiseless(pose, time);
+        }
+        let mut candidate = NoisyState {
+            previous_time: self.previous_time,
+            previous_pose: self.previous_pose,
+            last_publication: self.last_publication,
+            revision: self.revision,
+            means: self.means.clone(),
+            spatial_means: self.spatial_means.clone(),
+            stream: self.noise_stream.as_deref().cloned(),
+        };
+        let result = candidate.advance(pose, time, &self.publication, self.period)?;
+        if candidate.stream.is_some() != self.noise_stream.is_some() {
+            return Err(GroundTruthOdometryError::Identity);
+        }
+        if let (Some(destination), Some(stream)) = (&mut self.noise_stream, candidate.stream) {
+            **destination = stream;
+        }
+        self.previous_time = candidate.previous_time;
+        self.previous_pose = candidate.previous_pose;
+        self.last_publication = candidate.last_publication;
+        self.revision = candidate.revision;
+        self.means = candidate.means;
+        self.spatial_means = candidate.spatial_means;
+        Ok(result)
+    }
+}
+impl NoisyState {
+    fn advance(
+        &mut self,
+        pose: WorldPose,
+        time: UpdateInfo,
+        publication: &GroundTruthOdometryPublication,
+        period: Duration,
+    ) -> Result<Option<GroundTruthOdometrySample>, GroundTruthOdometryError> {
+        let Some(previous_time) = self.previous_time else {
+            self.previous_time = Some(time.sim_time);
+            return Ok(None);
+        };
+        let elapsed = time
+            .sim_time
+            .checked_sub(previous_time)
+            .filter(|d| d.as_nanos() < i64::MAX as u128)
+            .ok_or(GroundTruthOdometryError::Time)?;
+        if elapsed.as_secs_f64() <= 1e-6 {
+            return Ok(None);
+        }
+        if !valid_pose(pose) {
+            return Err(GroundTruthOdometryError::Pose);
+        }
+        // Input is already WORLD pose. Even admitted zero offsets execute the
+        // native scalar operations; omitting them changes IEEE signed-zero bits.
+        let pose = offset_pose(pose, publication.offsets)?;
+        let (linear, angular) = match publication.dimensions {
+            GroundTruthOdometryDimensions::Two => {
+                let values = velocities(self.previous_pose, pose, elapsed.as_secs_f64())?;
+                let means = [
+                    self.means[0].push(values[0])?,
+                    self.means[1].push(values[1])?,
+                    self.means[2].push(values[2])?,
+                ];
+                ([means[0], means[1], 0.0], [0.0, 0.0, means[2]])
+            }
+            GroundTruthOdometryDimensions::Three => {
+                let values = spatial_velocities(self.previous_pose, pose, elapsed.as_secs_f64())?;
+                let extra = self
+                    .spatial_means
+                    .as_mut()
+                    .ok_or(GroundTruthOdometryError::Identity)?;
+                (
+                    [
+                        self.means[0].push(values[0])?,
+                        self.means[1].push(values[1])?,
+                        extra[0].push(values[2])?,
+                    ],
+                    [
+                        extra[1].push(values[3])?,
+                        extra[2].push(values[4])?,
+                        self.means[2].push(values[5])?,
+                    ],
+                )
+            }
+        };
+        let mut draws = [0.0; 6];
+        if let Some(stream) = &mut self.stream {
+            for value in &mut draws {
+                *value = stream
+                    .white_gaussian(publication.gaussian_noise.stddev())
+                    .map_err(|_| GroundTruthOdometryError::Arithmetic)?;
+            }
+        }
+        let (linear, angular) = if publication.dimensions == GroundTruthOdometryDimensions::Two {
+            // Native Two's three absent kinematic axes are the noise itself.
+            (
+                [linear[0] + draws[0], linear[1] + draws[1], draws[2]],
+                [draws[3], draws[4], angular[2] + draws[5]],
+            )
+        } else {
+            (
+                std::array::from_fn(|i| linear[i] + draws[i]),
+                std::array::from_fn(|i| angular[i] + draws[i + 3]),
+            )
+        };
+        if !linear.into_iter().chain(angular).all(f64::is_finite) {
+            return Err(GroundTruthOdometryError::Arithmetic);
+        }
+        self.previous_pose = pose;
+        self.previous_time = Some(time.sim_time);
+        let diff = time
+            .sim_time
+            .checked_sub(self.last_publication)
+            .ok_or(GroundTruthOdometryError::Time)?;
+        if !diff.is_zero() && diff < period {
+            return Ok(None);
+        }
+        self.revision = self
+            .revision
+            .checked_add(1)
+            .ok_or(GroundTruthOdometryError::Revision)?;
+        self.last_publication = time.sim_time;
+        let mut published = pose;
+        if publication.dimensions == GroundTruthOdometryDimensions::Two {
+            published.translation[2] = 0.0;
+        }
+        Ok(Some(GroundTruthOdometrySample {
+            time: time.sim_time,
+            epoch: time.epoch,
+            revision: self.revision,
+            pose: published,
+            linear,
+            angular,
+        }))
+    }
+}
+impl Publisher {
+    fn advance_noiseless(
         &mut self,
         pose: WorldPose,
         time: UpdateInfo,
@@ -887,6 +1083,7 @@ mod tests {
         GroundTruthOdometryPublication {
             dimensions: GroundTruthOdometryDimensions::Two,
             offsets: GroundTruthOdometryOffsets::default(),
+            gaussian_noise: GroundTruthOdometryNoise::default(),
             model_name: "rig".into(),
             odom_frame: "rig/odom".into(),
             robot_base_frame: "rig/base".into(),
@@ -1185,7 +1382,7 @@ mod tests {
             "<dimensions>2</dimensions><dimensions>2</dimensions>",
             "<gaussian_noise>NaN</gaussian_noise>",
             "<gaussian_noise>bad</gaussian_noise>",
-            "<gaussian_noise>1</gaussian_noise>",
+            "<gaussian_noise>-1</gaussian_noise>",
             "<xyz_offset>0 0</xyz_offset>",
             "<xyz_offset>0 0 NaN</xyz_offset>",
             "<xyz_offset>0 0 bad</xyz_offset>",
@@ -2401,3 +2598,7 @@ mod tests {
 #[cfg(test)]
 #[path = "../tests/private/odometry_rotation_offsets_native.rs"]
 mod rotation_native_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/odometry_noise.rs"]
+mod noise_tests;

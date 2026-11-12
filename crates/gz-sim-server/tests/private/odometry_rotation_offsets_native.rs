@@ -80,6 +80,7 @@ fn actual_rotated_native_values_encode_all_2574_canonical_packets() {
         let metadata = Metadata {
             dimensions,
             offsets,
+            gaussian_noise: Default::default(),
             model_name: "rig".into(),
             odom_frame: "m46/odom".into(),
             robot_base_frame: "m46/base".into(),

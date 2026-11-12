@@ -422,7 +422,7 @@ fn malformed_nonfinite_translation_and_unrelated_refusals_remain_closed() {
         // positives in odometry_rotation_offsets; invalid RPY stays refused.
         "<rpy_offset>0 0 NaN</rpy_offset>",
         "<rpy_global_offset>inf 0 0</rpy_global_offset>",
-        "<gaussian_noise>0.01</gaussian_noise>",
+        "<gaussian_noise>-0.01</gaussian_noise>",
     ] {
         assert!(
             load_world_with_sdf_step(
