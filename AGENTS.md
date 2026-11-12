@@ -1,4 +1,17 @@
-# Current work: M45 provisional local qualification
+# Current work: M46 rotated odometry frames
+
+Read docs/M46_DELIVERY.md. This new isolated checkout starts at exact locally
+qualified M45 e66c21e7, not accepted Main. M45 full local normal and independent
+audit passed; M43–M45 hosted/publication closeout remains separate and blocked.
+Preserve all frozen candidates and old fixtures. Source work is leased only after
+independent contract/API review. Complete Source, meaningful regressions and docs
+with independent review before consolidated checks; no per-edit test/lint runs.
+Root serializes heavy operations. No new CI retry/probe, gate weakening, Fuel,
+Cargo/lock/workflow, renderer, package or launcher change is selected.
+
+The earlier instructions below are historical qualification records.
+
+# Prior work: M45 provisional local qualification
 
 This integrated checkout uses exact Source parent a08f0b50/tree5c22, which passed
 its full normal hook and independent local DATA but is NOT accepted. Accepted

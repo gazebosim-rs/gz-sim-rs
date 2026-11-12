@@ -1,7 +1,48 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-## Current provisional local development: M45-IMU-CUSTOM-WORLD
+## Current bounded task: M46-ODOMETRY-ROTATION
+
+The second normal attempt passed both required Clippy runs, then ran 402 Python
+cases with one failure: the mocked finite-example invocation assertion still
+expected 19 rather than the selected 20. The correction keeps an exact 20-run
+assertion, the original nineteen-source prefix and every per-source check.
+Runtime profiles and feature numeric tests were not reached. Both failed
+attempts remain retained; no native/literal evidence is repeated.
+
+The first complete normal attempt stopped at required Clippy before tests or
+coverage: `clippy::neg_multiply` rejected `value * -1.0`. The reviewed correction
+uses unary `-value`, preserving every admitted finite value and signed-zero bit,
+with all subsequent arithmetic and assertions unchanged. The original failed
+source tree, packet and logs remain retained. No lint suppression or native/data
+replay is selected. The corrected full normal pass is pending separate review.
+
+M46 implementation and regression Sources have passed independent leaf review.
+Fresh original-system capture and independent native/literal audits passed for
+30 modes, 32 configurations, 1,020 calls and 858 triples (2,574 canonical messages).
+The audited fixture and reviewed numeric/encoder consumers are integrated.
+Complete integration review now precedes one full normal/strict local pass.
+Rust checks and all hosted/publication prerequisites remain pending; reference
+proofs do not supply Rust acceptance.
+
+Read [M46 delivery](M46_DELIVERY.md). Develop finite local/global rotational
+odometry offsets over exact locally qualified M45 `e66c21e7` in the new isolated
+worktree. M45 full normal and independent local audit passed; neither that
+provisional result nor the M46 selection supplies acceptance. M1–M42 remain
+accepted at `73e03b9f`; M43–M45 hosted/publication closeout remains pending after
+snapshot setup failure. No retry or probe is released.
+
+Light owns the Scene production/private test leaf, new public regression leaf,
+example and feature guide. Messages owns new Server regression and native-peer
+leaves plus the bounded native case design. Root owns shared registration,
+qualification, approved old-negative dispositions, planning/status and serial
+execution. SDF independently reviews the whole Source. Preserve all old native
+fixtures and every unrelated assertion. Complete implementation, meaningful
+regression Source and docs, batch review fixes, then one consolidated pass.
+The actual native and literal audits passed before fixture insertion. Rust
+qualification remains pending; no package/browser refresh is selected.
+
+## Historical M45 pre-qualification checkpoint: M45-IMU-CUSTOM-WORLD
 
 Read [M45 delivery](M45_DELIVERY.md). This integrated candidate uses exact locally
 qualified a08f0b50, preserving all containment repairs; accepted Main remains 73e03b9f.

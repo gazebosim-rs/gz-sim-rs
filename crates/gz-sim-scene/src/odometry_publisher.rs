@@ -11,13 +11,15 @@ pub enum GroundTruthOdometryDimensions {
     Three,
 }
 
-/// Immutable local/body and global/reference translation configuration.
+/// Immutable local/body and global/reference translation and RPY configuration.
 /// Each wholly zero vector keeps legacy omission semantics; every bit of a
 /// nonzero vector participates in ownership, including its signed-zero entries.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct GroundTruthOdometryOffsets {
     local: [u64; 3],
     global: [u64; 3],
+    local_rpy: [u64; 3],
+    global_rpy: [u64; 3],
 }
 impl GroundTruthOdometryOffsets {
     pub fn from_translations(
@@ -41,7 +43,42 @@ impl GroundTruthOdometryOffsets {
         Ok(Self {
             local: bits(local),
             global: bits(global),
+            local_rpy: [0; 3],
+            global_rpy: [0; 3],
         })
+    }
+    /// Return a new configuration with finite local and global Euler angles.
+    /// Each wholly zero vector preserves the legacy translation-only path.
+    pub fn with_rotations(
+        self,
+        local: [f64; 3],
+        global: [f64; 3],
+    ) -> Result<Self, GroundTruthOdometryError> {
+        if local
+            .into_iter()
+            .chain(global)
+            .any(|value| !value.is_finite())
+        {
+            return Err(GroundTruthOdometryError::Offset);
+        }
+        let bits = |vector: [f64; 3]| {
+            if vector.into_iter().all(|value| value == 0.0) {
+                [0; 3]
+            } else {
+                vector.map(f64::to_bits)
+            }
+        };
+        Ok(Self {
+            local_rpy: bits(local),
+            global_rpy: bits(global),
+            ..self
+        })
+    }
+    pub fn local_rotation_rpy(self) -> [f64; 3] {
+        self.local_rpy.map(f64::from_bits)
+    }
+    pub fn global_rotation_rpy(self) -> [f64; 3] {
+        self.global_rpy.map(f64::from_bits)
     }
     pub fn local_translation(self) -> [f64; 3] {
         self.local.map(f64::from_bits)
@@ -228,6 +265,8 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
     let mut frequency = Duration::from_millis(20);
     let mut local_translation = [0.0; 3];
     let mut global_translation = [0.0; 3];
+    let mut local_rotation = [0.0; 3];
+    let mut global_rotation = [0.0; 3];
     let mut seen = BTreeSet::new();
     for child in root.children() {
         if child.is_comment()
@@ -295,8 +334,14 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
             "rpy_offset" | "rpy_global_offset" => {
                 let values: Result<Vec<f64>, _> = text.split_whitespace().map(str::parse).collect();
                 let values = values.map_err(|_| bad())?;
-                if values.len() != 3 || values.iter().any(|v| !v.is_finite() || *v != 0.0) {
+                let values: [f64; 3] = values.try_into().map_err(|_| bad())?;
+                if values.into_iter().any(|value| !value.is_finite()) {
                     return Err(bad());
+                }
+                if child.tag_name().name() == "rpy_offset" {
+                    local_rotation = values;
+                } else {
+                    global_rotation = values;
                 }
             }
             _ => return Err(bad()),
@@ -304,6 +349,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Plan>, LoadError> {
     }
     publication.offsets =
         GroundTruthOdometryOffsets::from_translations(local_translation, global_translation)
+            .and_then(|offsets| offsets.with_rotations(local_rotation, global_rotation))
             .map_err(|_| bad())?;
     let topics = [
         &publication.odom_topic,
@@ -453,10 +499,76 @@ fn native_translation_inverse(translation: [f64; 3]) -> WorldPose {
         rotation,
     }
 }
+// Quaternion(Vector3 RPY) evaluates SetFromEuler then Normalize in wxyz order.
+// A finite Euler triple constructs a unit quaternion, outside Normalize's
+// near-zero fallback. Zero triples use the exact old constructor identity.
+fn native_offset_rotation(rpy: [f64; 3]) -> [f64; 4] {
+    if rpy == [0.0; 3] {
+        return native_zero_offset().rotation;
+    }
+    let [roll, pitch, yaw] = rpy;
+    let phi = roll / 2.0;
+    let the = pitch / 2.0;
+    let psi = yaw / 2.0;
+    let w = phi.cos() * the.cos() * psi.cos() + phi.sin() * the.sin() * psi.sin();
+    let x = phi.sin() * the.cos() * psi.cos() - phi.cos() * the.sin() * psi.sin();
+    let y = phi.cos() * the.sin() * psi.cos() + phi.sin() * the.cos() * psi.sin();
+    let z = phi.cos() * the.cos() * psi.sin() - phi.sin() * the.sin() * psi.cos();
+    let length = (w * w + x * x + y * y + z * z).sqrt();
+    [x / length, y / length, z / length, w / length]
+}
+fn rotating_offset_pose(
+    pose: WorldPose,
+    offsets: GroundTruthOdometryOffsets,
+) -> Result<WorldPose, GroundTruthOdometryError> {
+    let finite = |pose: WorldPose| {
+        pose.translation
+            .into_iter()
+            .chain(pose.rotation)
+            .all(f64::is_finite)
+    };
+    let rotation = inverse(native_offset_rotation(offsets.global_rotation_rpy()));
+    // Pose3::Inverse uses Quaternion::operator*(Vector3), not CoordPositionAdd.
+    let vector = offsets.global_translation().map(|value| -value);
+    let cross = |a: [f64; 3], b: [f64; 3]| {
+        [
+            a[1] * b[2] - a[2] * b[1],
+            a[2] * b[0] - a[0] * b[2],
+            a[0] * b[1] - a[1] * b[0],
+        ]
+    };
+    let axis = [rotation[0], rotation[1], rotation[2]];
+    let uv = cross(axis, vector);
+    let uuv = cross(axis, uv);
+    let uv = uv.map(|value| value * (2.0 * rotation[3]));
+    let uuv = uuv.map(|value| value * 2.0);
+    let global_inverse = WorldPose {
+        translation: std::array::from_fn(|i| (vector[i] + uv[i]) + uuv[i]),
+        rotation,
+    };
+    let local = WorldPose {
+        translation: offsets.local_translation(),
+        rotation: native_offset_rotation(offsets.local_rotation_rpy()),
+    };
+    if !finite(global_inverse) || !finite(local) {
+        return Err(GroundTruthOdometryError::Arithmetic);
+    }
+    let shifted = native_pose_mul(global_inverse, pose);
+    if !finite(shifted) {
+        return Err(GroundTruthOdometryError::Arithmetic);
+    }
+    let result = native_pose_mul(shifted, local);
+    finite(result)
+        .then_some(result)
+        .ok_or(GroundTruthOdometryError::Arithmetic)
+}
 fn offset_pose(
     pose: WorldPose,
     offsets: GroundTruthOdometryOffsets,
 ) -> Result<WorldPose, GroundTruthOdometryError> {
+    if offsets.local_rpy != [0; 3] || offsets.global_rpy != [0; 3] {
+        return rotating_offset_pose(pose, offsets);
+    }
     if offsets == GroundTruthOdometryOffsets::default() {
         return Ok(native_pose_mul(
             native_pose_mul(native_zero_offset_inverse(), pose),
@@ -1728,8 +1840,8 @@ mod tests {
             "<xyz_global_offset>0 0 bad</xyz_global_offset>",
             "<xyz_global_offset>0 0 1</xyz_global_offset><xyz_global_offset>0 0 1</xyz_global_offset>",
             "<xyz_offset>1<!-- tail -->garbage 2 3</xyz_offset>",
-            "<rpy_offset>0 0 1</rpy_offset>",
-            "<rpy_global_offset>1 0 0</rpy_global_offset>",
+            "<rpy_offset>0 0 NaN</rpy_offset>",
+            "<rpy_global_offset>1 0</rpy_global_offset>",
         ] {
             assert!(parse(&configured(content)).is_err(), "{content}");
         }
@@ -2068,4 +2180,224 @@ mod tests {
         }
         assert_eq!((inputs, observed, suppressed), (1152, 986, 166));
     }
+
+    #[test]
+    fn rotation_configuration_preserves_zero_paths_and_nonzero_identity_bits() {
+        let base =
+            GroundTruthOdometryOffsets::from_translations([0.4, -0.0, 0.2], [-0.7, 0.5, -0.6])
+                .unwrap();
+        assert_eq!(
+            base.with_rotations([-0.0, 0.0, -0.0], [0.0, -0.0, -0.0])
+                .unwrap(),
+            base
+        );
+        let signed = base
+            .with_rotations([0.3, -0.0, 0.0], [-0.0, 0.0, -0.0])
+            .unwrap();
+        assert_eq!(
+            signed.local_rotation_rpy().map(f64::to_bits),
+            [0.3_f64.to_bits(), (-0.0_f64).to_bits(), 0]
+        );
+        assert_eq!(signed.global_rotation_rpy().map(f64::to_bits), [0; 3]);
+        assert_eq!(
+            signed.local_translation().map(f64::to_bits),
+            base.local_translation().map(f64::to_bits)
+        );
+        assert_eq!(
+            signed.global_translation().map(f64::to_bits),
+            base.global_translation().map(f64::to_bits)
+        );
+        assert_ne!(
+            signed,
+            base.with_rotations([0.3, 0.0, 0.0], [0.0; 3]).unwrap()
+        );
+        let global = base.with_rotations([0.0; 3], [0.2, -0.0, 0.0]).unwrap();
+        assert_ne!(
+            global,
+            base.with_rotations([0.0; 3], [0.2, 0.0, 0.0]).unwrap()
+        );
+        assert_eq!(global.with_rotations([0.0; 3], [0.0; 3]).unwrap(), base);
+        for bad in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            for index in 0..3 {
+                let mut vector = [0.0; 3];
+                vector[index] = bad;
+                assert_eq!(
+                    base.with_rotations(vector, [0.0; 3]),
+                    Err(GroundTruthOdometryError::Offset)
+                );
+                assert_eq!(
+                    base.with_rotations([0.0; 3], vector),
+                    Err(GroundTruthOdometryError::Offset)
+                );
+            }
+        }
+        for (content, local, global) in [
+            ("<rpy_offset>0 0 1</rpy_offset>", [0.0, 0.0, 1.0], [0.0; 3]),
+            (
+                "<rpy_global_offset>1 0 0</rpy_global_offset>",
+                [0.0; 3],
+                [1.0, 0.0, 0.0],
+            ),
+        ] {
+            let plan = parse(&configured(content)).unwrap().unwrap();
+            assert_eq!(
+                plan.publication.dimensions,
+                GroundTruthOdometryDimensions::Two
+            );
+            assert_eq!(
+                plan.publication.offsets,
+                GroundTruthOdometryOffsets::default()
+                    .with_rotations(local, global)
+                    .unwrap()
+            );
+        }
+        let input = WorldPose {
+            translation: [-0.0, 0.0, -0.0],
+            rotation: [-0.0, -0.0, 0.0, 1.0],
+        };
+        for value in [GroundTruthOdometryOffsets::default(), base] {
+            let old = offset_pose(input, value).unwrap();
+            let explicit =
+                offset_pose(input, value.with_rotations([-0.0; 3], [-0.0; 3]).unwrap()).unwrap();
+            assert_eq!(
+                old.translation.map(f64::to_bits),
+                explicit.translation.map(f64::to_bits)
+            );
+            assert_eq!(
+                old.rotation.map(f64::to_bits),
+                explicit.rotation.map(f64::to_bits)
+            );
+        }
+    }
+    #[test]
+    fn rotating_inverse_and_composition_overflow_precede_every_history_change() {
+        for (local, global, local_rpy, global_rpy, position) in [
+            (
+                [f64::MAX, 0.0, 0.0],
+                [0.0; 3],
+                [0.1, 0.0, 0.0],
+                [0.0; 3],
+                [f64::MAX, 0.0, 0.0],
+            ),
+            (
+                [0.0; 3],
+                [-f64::MAX, 0.0, 0.0],
+                [0.0; 3],
+                [0.1, 0.0, 0.0],
+                [f64::MAX, 0.0, 0.0],
+            ),
+            (
+                [0.0; 3],
+                [f64::MAX, f64::MAX, 0.0],
+                [0.0; 3],
+                [0.0, 0.0, std::f64::consts::FRAC_PI_4],
+                [0.0; 3],
+            ),
+        ] {
+            for dimensions in [
+                GroundTruthOdometryDimensions::Two,
+                GroundTruthOdometryDimensions::Three,
+            ] {
+                let mut metadata = metadata();
+                metadata.dimensions = dimensions;
+                metadata.offsets = GroundTruthOdometryOffsets::from_translations(local, global)
+                    .unwrap()
+                    .with_rotations(local_rpy, global_rpy)
+                    .unwrap();
+                let mut publisher = Publisher::new(1, metadata, Duration::ZERO);
+                let input = spatial_pose(position);
+                assert!(publisher.advance(input, clock(0)).unwrap().is_none());
+                assert_eq!(
+                    publisher.advance(input, clock(1_000_000)).unwrap_err(),
+                    GroundTruthOdometryError::Arithmetic
+                );
+                assert_eq!(publisher.previous_time, Some(Duration::ZERO));
+                assert_eq!(
+                    publisher.previous_pose.translation.map(f64::to_bits),
+                    [0; 3]
+                );
+                assert_eq!(publisher.previous_pose.rotation, [0.0, 0.0, 0.0, 1.0]);
+                assert_eq!(
+                    (publisher.last_publication, publisher.revision),
+                    (Duration::ZERO, 0)
+                );
+                assert!(publisher.means.iter().all(|mean| mean.count == 0));
+                if let Some(extra) = &publisher.spatial_means {
+                    assert!(extra.iter().all(|mean| mean.count == 0));
+                }
+            }
+        }
+    }
+    #[test]
+    fn rotated_pose_history_retains_equal_time_and_throttled_six_channel_state() {
+        for dimensions in [
+            GroundTruthOdometryDimensions::Two,
+            GroundTruthOdometryDimensions::Three,
+        ] {
+            let mut metadata = metadata();
+            metadata.dimensions = dimensions;
+            metadata.offsets =
+                GroundTruthOdometryOffsets::from_translations([0.4, -0.3, 0.2], [-0.7, 0.5, -0.6])
+                    .unwrap()
+                    .with_rotations([0.3, -0.4, 0.5], [-0.2, 0.25, -0.35])
+                    .unwrap();
+            let mut every = Publisher::new(1, metadata.clone(), Duration::ZERO);
+            let mut limited = Publisher::new(1, metadata, Duration::from_millis(20));
+            let mut input = spatial_pose([2.0, -1.0, 3.0]);
+            every.advance(input, clock(0)).unwrap();
+            limited.advance(input, clock(0)).unwrap();
+            for tick in 1..=20 {
+                input.translation[0] += 0.001;
+                input.rotation = DQuat::from_rotation_z(tick as f64 * 0.002).to_array();
+                let full = every
+                    .advance(input, clock(tick * 1_000_000))
+                    .unwrap()
+                    .unwrap();
+                let throttled = limited.advance(input, clock(tick * 1_000_000)).unwrap();
+                if tick < 20 {
+                    assert!(throttled.is_none());
+                } else {
+                    let throttled = throttled.unwrap();
+                    assert_eq!(
+                        throttled.linear.map(f64::to_bits),
+                        full.linear.map(f64::to_bits)
+                    );
+                    assert_eq!(
+                        throttled.angular.map(f64::to_bits),
+                        full.angular.map(f64::to_bits)
+                    );
+                    assert_eq!(
+                        throttled.pose.translation.map(f64::to_bits),
+                        full.pose.translation.map(f64::to_bits)
+                    );
+                    assert_eq!(
+                        throttled.pose.rotation.map(f64::to_bits),
+                        full.pose.rotation.map(f64::to_bits)
+                    );
+                }
+            }
+            let previous = limited.previous_pose;
+            let revision = limited.revision;
+            let count = limited.means[0].count;
+            assert!(limited.advance(input, clock(20_000_000)).unwrap().is_none());
+            assert_eq!(
+                limited.previous_pose.translation.map(f64::to_bits),
+                previous.translation.map(f64::to_bits)
+            );
+            assert_eq!(
+                limited.previous_pose.rotation.map(f64::to_bits),
+                previous.rotation.map(f64::to_bits)
+            );
+            assert_eq!(limited.revision, revision);
+            assert_eq!(limited.means[0].count, count);
+            assert!(limited.means.iter().all(|mean| mean.count == 10));
+            if let Some(extra) = &limited.spatial_means {
+                assert!(extra.iter().all(|mean| mean.count == 10));
+            }
+        }
+    }
 }
+
+#[cfg(test)]
+#[path = "../tests/private/odometry_rotation_offsets_native.rs"]
+mod rotation_native_tests;

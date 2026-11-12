@@ -1242,3 +1242,11 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "../tests/private/odometry_rotation_offsets.rs"]
+mod rotation_offset_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/odometry_rotation_offsets_native.rs"]
+mod rotation_native_tests;

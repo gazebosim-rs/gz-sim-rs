@@ -418,8 +418,10 @@ fn malformed_nonfinite_translation_and_unrelated_refusals_remain_closed() {
         );
     }
     for extra in [
-        "<rpy_offset>0 0 0.1</rpy_offset>",
-        "<rpy_global_offset>0.1 0 0</rpy_global_offset>",
+        // M46 keeps the former finite rows as stronger real-motion/reset
+        // positives in odometry_rotation_offsets; invalid RPY stays refused.
+        "<rpy_offset>0 0 NaN</rpy_offset>",
+        "<rpy_global_offset>inf 0 0</rpy_global_offset>",
         "<gaussian_noise>0.01</gaussian_noise>",
     ] {
         assert!(

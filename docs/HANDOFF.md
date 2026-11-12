@@ -1,3 +1,50 @@
+# Current development: M46 rotated odometry frames
+
+The second normal attempt passed both required Clippy runs, then ran 402 Python
+cases with one failure: the mocked finite-example invocation assertion still
+expected 19 rather than the selected 20. The correction keeps an exact 20-run
+assertion, the original nineteen-source prefix and every per-source check.
+Runtime profiles and feature numeric tests were not reached. Both failed
+attempts remain retained; no native/literal evidence is repeated.
+
+The first complete normal attempt stopped at required Clippy before tests or
+coverage: `clippy::neg_multiply` rejected `value * -1.0`. The reviewed correction
+uses unary `-value`, preserving every admitted finite value and signed-zero bit,
+with all subsequent arithmetic and assertions unchanged. The original failed
+source tree, packet and logs remain retained. No lint suppression or native/data
+replay is selected. The corrected full normal pass is pending separate review.
+
+M46 implementation and regression Sources have passed independent leaf review.
+Fresh original-system capture and independent native/literal audits passed for
+30 modes, 32 configurations, 1,020 calls and 858 triples (2,574 canonical messages).
+The audited fixture and reviewed numeric/encoder consumers are integrated.
+Complete integration review now precedes one full normal/strict local pass.
+Rust checks and all hosted/publication prerequisites remain pending; reference
+proofs do not supply Rust acceptance.
+
+M1–M42 remain accepted at Main `73e03b9f`; 46 phases are selected and M40
+remains the installed Latest. M43–M45 are unaccepted. M43/M44 hosted run
+43024343885 failed locked Ubuntu snapshot setup before product checks; recovery
+is unverified and no retry or probe is released. Their completed local runtime,
+package, installation and browser evidence remains retained under its actual
+source/build lineage.
+
+M45 clean local commit `e66c21e739089670b24e23b91fcd1363935b9a39` passed the
+full normal hook and independent local audit: 1,717 headless and 1,022 renderer
+passes with overlap, 401 aggregate Python tests, and all strict coverage gates.
+This is provisional evidence; exact hosted/official qualification, accepted
+predecessor and Main/readbacks remain required before publication/acceptance.
+
+[M46](M46_DELIVERY.md) selects finite local/global rotational odometry offsets,
+combined with existing translations, in both dimensions. Source development uses
+that exact locally qualified M45 commit in a new isolated worktree. Independent
+review, meaningful native and real-motion/canonical regressions, one consolidated
+normal pass, strict coverage and every release gate remain mandatory. M46
+tests have not run. The first Clippy failure and reference audits are recorded above. No package/browser
+refresh is selected.
+
+The earlier checkpoints below retain their historical scope and evidence.
+
 # Current provisional local development: M45 CUSTOM world-relative IMU angles
 
 M43/M44's original runtime/package proofs remain frozen at9a40768d/tree5872e52f.
