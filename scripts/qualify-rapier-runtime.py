@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Additional native-off execution proof; never replaces the full coverage profiles.
 
-Twenty-five copied example SDFs run once each through the retained actual CLI. These
+Twenty-six copied example SDFs run once each through the retained actual CLI. These
 finite load/step controls are separate from Rust test counts and canonical wire
 or statistical/native-model evidence; clean installed runs remain separate.
 """
@@ -52,6 +52,7 @@ NOISY_EXAMPLES = (
     "examples/m49_multiple_altimeters.sdf",
     "examples/m50_multiple_air_pressures.sdf",
     "examples/m51_multiple_air_speeds.sdf",
+    "examples/m52_multiple_magnetometers.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -100,6 +101,7 @@ NOISY_LINKS = {
     "examples/m49_multiple_altimeters.sdf": {"default::rig::body": (0, 0, 3)},
     "examples/m50_multiple_air_pressures.sdf": {"default::rig::body": (0, 0, 3)},
     "examples/m51_multiple_air_speeds.sdf": {"default::rig::body": (0, 0, 3)},
+    "examples/m52_multiple_magnetometers.sdf": {"default::rig::body": (0, 0, 3)},
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
 TARGETS = {

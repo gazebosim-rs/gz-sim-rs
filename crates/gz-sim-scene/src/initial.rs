@@ -495,6 +495,24 @@ pub fn initial_magnetometer_publications(
         .filter_map(|node| node.magnetometer_publication.as_ref()))
 }
 
+/// Initial magnetic identities and metadata, including removed original sensors.
+/// The name retains its world scope; publication entity names omit that prefix.
+/// This borrows the immutable loader blueprint and performs no IO or mutation.
+pub fn initial_magnetometer_publications_with_identity(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = (u64, EntityKind, &str, &MagnetometerPublication)>, SceneResetError>
+{
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.0.nodes.iter().filter_map(|node| {
+        node.magnetometer_publication
+            .as_ref()
+            .map(|metadata| (node.id.get(), node.kind, node.name.as_str(), metadata))
+    }))
+}
+
 /// Initial joint-state configurations paired with stable loaded model IDs.
 pub fn initial_joint_state_publications(
     sim: &Simulation,

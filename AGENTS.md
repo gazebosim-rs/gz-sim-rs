@@ -1,3 +1,42 @@
+## Current M52 native and fixed-literal evidence
+
+The new original Magnetometer System campaign returned actual Root zero in
+24.871 seconds, and its independent retained native DATA audit passed. All 34
+child stages succeeded. It retained 12 configurations, 501 explicit SENSOR WORLD
+pose and constant WORLD field inputs, and 42 received canonical packets across
+339 mapped library paths. The 119 System calls are helper-summary and pinned
+Source attestations, not invented individual call records. All 58 genuine
+missing-spherical warnings and complete owned Console logs are retained. No SDK,
+component or System provider was rebuilt; no native Physics or RNG/demand parity
+is inferred. Current349, the two separate link providers, the exact magnetometer
+component and original M17 System provider remain distinct guarded roles.
+
+Actual fixed-literal generation and independent literal DATA also passed. The
+immutable fixture copies all 501 inputs, 42 borrowed actual outputs, 459 inputs
+without a matching packet and one active-peer removal event. None does not prove
+an internal update or draw was skipped. The retained native component bound is
+1e-15 Tesla, separate from live geometry's 1e-18 and exact full-wire obligations.
+Observed numeric and canonical-wire consumer Source is independently reviewed;
+no M52 Rust/Python/full normal/coverage/local-audit pass has happened yet.
+Complete the consolidated Source review and formatter before one full normal
+hook with every strict gate. Prior accepted phases, M40 Latest and all accepted-
+predecessor, exact hosted/official and Main/readback boundaries remain unchanged.
+Older checkpoint text below retains its original historical scope.
+
+## Current M52 integrated source development
+
+M52 admits independent loaded magnetometers under docs/M52_DELIVERY.md.
+This separate checkout derives from locally qualified, unaccepted M51 ea921f58.
+M51 complete normal and independent local DATA passed; no M52 result transfers.
+Preserve all old trees, all three M51 failed attempts, prior evidence and Fuel.
+Root owns shared files/integration and serial heavy releases. Scene/Server
+agents work only their explicit leased preparation paths. No M52 formatter,
+test, lint, Cargo metadata, provider/native/SDK/package/browser/CI operation is
+released. Finish the bounded Source/regression/docs batch and independent whole
+review before one consolidated verification. Keep all acceptance gates intact.
+
+Old instructions below describe retained historical checkpoints.
+
 ## Current M51 retained native evidence
 
 One fresh original AirSpeed System pair/eight/active-peer-removal capture returned

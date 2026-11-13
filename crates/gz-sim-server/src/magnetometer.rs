@@ -3,12 +3,15 @@
 //! Canonical ideal magnetometer stream; physics and acquisition remain in Scene.
 use super::*;
 use gz_sim_proto::msgs::{Header, Magnetometer, header::Map};
-use gz_sim_scene::{EntityKind, MagnetometerPublication, MagnetometerSample, PendingResetRemoval};
+use gz_sim_scene::{
+    EntityKind, MagnetometerPublication, MagnetometerSample, Name, PendingResetRemoval,
+};
 use std::collections::BTreeSet;
 
 pub(super) struct Stream {
     entity: Entity,
     identity: u64,
+    scoped_name: String,
     pub(super) metadata: MagnetometerPublication,
     pub(super) endpoint: String,
     pub(super) publisher: Arc<world_io::MagnetometerOutput>,
@@ -47,41 +50,110 @@ fn packet(
     })
 }
 
-pub(super) type Prepared =
-    BTreeMap<String, (MagnetometerPublication, Arc<world_io::MagnetometerOutput>)>;
+// Reset metadata retains the immutable loaded identity, not only its endpoint.
+// Keep the legacy metadata/lease tuple prefix for existing private controls.
+pub(super) type Prepared = BTreeMap<
+    String,
+    (
+        MagnetometerPublication,
+        Arc<world_io::MagnetometerOutput>,
+        u64,
+        String,
+    ),
+>;
+const MAX_MAGNETOMETERS: usize = 8;
 
-/// `occupied` contains every non-magnetometer reserved/publication/input/service key,
-/// already resolved using these ServerOptions. Check all metadata before any IO.
+fn world_name(simulation: &Simulation) -> Result<&str, Error> {
+    let mut owners = simulation
+        .world()
+        .iter_entities()
+        .filter(|e| e.get::<EntityKind>() == Some(&EntityKind::World));
+    let owner = owners.next().ok_or(Error::MagnetometerIdentity)?;
+    if owners.next().is_some() {
+        return Err(Error::MagnetometerIdentity);
+    }
+    owner
+        .get::<Name>()
+        .map(|name| name.0.as_str())
+        .filter(|name| !name.is_empty())
+        .ok_or(Error::MagnetometerIdentity)
+}
+
+fn valid_owner(
+    world: &str,
+    id: u64,
+    kind: EntityKind,
+    name: &str,
+    metadata: &MagnetometerPublication,
+) -> bool {
+    id != 0
+        && kind == EntityKind::Sensor
+        && valid_metadata(metadata)
+        && name
+            .strip_prefix(world)
+            .and_then(|tail| tail.strip_prefix("::"))
+            == Some(metadata.entity_name.as_str())
+}
+
+/// Validate the entire immutable reset set before even looking up a CPU lease.
 pub(super) fn prepare_reset(
     server: &Server,
     occupied: &BTreeSet<String>,
 ) -> Result<Prepared, Error> {
-    let metadata: Vec<_> = gz_sim_scene::initial_magnetometer_publications(&server.simulation)?
-        .cloned()
-        .collect();
-    if metadata.len() > 1 || metadata.iter().any(|m| !valid_metadata(m)) {
+    let originals: Vec<_> =
+        gz_sim_scene::initial_magnetometer_publications_with_identity(&server.simulation)?
+            .map(|(id, kind, name, metadata)| (id, kind, name.to_owned(), metadata.clone()))
+            .collect();
+    if originals.len() > MAX_MAGNETOMETERS {
         return Err(Error::MagnetometerIdentity);
     }
-    let mut prepared = BTreeMap::new();
-    for metadata in metadata {
-        let key = server
-            .network_config
-            .topic_key(&options::as_valid_topic(&metadata.topic))?;
-        if occupied.contains(&key) {
+    if originals.is_empty() {
+        return Ok(BTreeMap::new());
+    }
+    let world = world_name(&server.simulation)?;
+    let mut ids = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut keys = occupied.clone();
+    let mut selected = Vec::new();
+    for (id, kind, name, metadata) in originals {
+        if !valid_owner(world, id, kind, &name, &metadata)
+            || !ids.insert(id)
+            || !names.insert(name.clone())
+        {
             return Err(Error::MagnetometerIdentity);
         }
-        let publisher = match server
+        let endpoint = server
+            .network_config
+            .topic_key(&options::as_valid_topic(&metadata.topic))?;
+        if !keys.insert(endpoint.clone()) {
+            return Err(Error::MagnetometerIdentity);
+        }
+        selected.push((id, name, metadata, endpoint));
+    }
+    // Check every reusable binding before the first possible declaration. A
+    // later bad reset entry cannot follow an earlier publisher side effect.
+    for (id, name, metadata, endpoint) in &selected {
+        if let Some(stream) = server
             .magnetometers
             .iter()
-            .find(|stream| stream.endpoint == key)
+            .find(|s| &s.endpoint == endpoint)
+            && (stream.identity != *id
+                || &stream.scoped_name != name
+                || &stream.metadata != metadata)
         {
+            return Err(Error::ResetMagnetometers);
+        }
+    }
+    let mut prepared = BTreeMap::new();
+    for (id, name, metadata, endpoint) in selected {
+        let publisher = match server.magnetometers.iter().find(|s| s.endpoint == endpoint) {
             Some(stream) => Arc::clone(&stream.publisher),
             None => server
                 .world_io
-                .magnetometer_output(key.clone())
+                .magnetometer_output(endpoint.clone())
                 .map_err(|error| Error::WorldNetwork(error.to_string()))?,
         };
-        prepared.insert(key, (metadata, publisher));
+        prepared.insert(endpoint, (metadata, publisher, id, name));
     }
     Ok(prepared)
 }
@@ -96,61 +168,91 @@ pub(super) fn streams(
     let candidates: Vec<_> = simulation
         .world()
         .iter_entities()
-        .filter(|entity| !entity.contains::<PendingResetRemoval>())
-        .filter(|entity| entity.contains::<MagnetometerPublication>())
-        .map(|entity| entity.id())
+        .filter(|e| !e.contains::<PendingResetRemoval>() && e.contains::<MagnetometerPublication>())
+        .map(|e| e.id())
         .collect();
-    if candidates.len() > 1 {
+    if candidates.len() > MAX_MAGNETOMETERS {
         return Err(Error::MagnetometerIdentity);
     }
-    // No declaration before count, ownership, metadata and reset-binding validation.
+    if candidates.is_empty() {
+        return if prepared.is_some_and(|p| !p.is_empty()) {
+            Err(Error::ResetMagnetometers)
+        } else {
+            Ok(Vec::new())
+        };
+    }
+    let world = world_name(simulation)?;
+    let originals: Vec<_> =
+        gz_sim_scene::initial_magnetometer_publications_with_identity(simulation)?
+            .map(|(id, kind, name, metadata)| (id, kind, name.to_owned(), metadata.clone()))
+            .collect();
+    let mut ids = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut keys = occupied.clone();
     let mut selected = Vec::new();
     for entity in candidates {
-        let entity = simulation.world().entity(entity);
-        let metadata = entity
+        let owner = simulation.world().entity(entity);
+        let metadata = owner
             .get::<MagnetometerPublication>()
-            .expect("candidate owns metadata");
-        let id = entity
+            .expect("selected metadata");
+        let id = owner
             .get::<EntityId>()
             .ok_or(Error::MagnetometerIdentity)?
             .get();
-        if !valid_metadata(metadata)
-            || entity.get::<EntityKind>() != Some(&EntityKind::Sensor)
-            || entity_by_id(simulation.world(), id) != Some(entity.id())
+        let name = owner.get::<Name>().ok_or(Error::MagnetometerIdentity)?;
+        let kind = owner
+            .get::<EntityKind>()
+            .ok_or(Error::MagnetometerIdentity)?;
+        let original = originals
+            .iter()
+            .find(|(initial_id, initial_kind, initial_name, _)| {
+                *initial_id == id && initial_kind == kind && initial_name == &name.0
+            });
+        if !valid_owner(world, id, *kind, &name.0, metadata)
+            || entity_by_id(simulation.world(), id) != Some(entity)
+            || original.is_none()
+            || !ids.insert(id)
+            || !names.insert(name.0.clone())
         {
             return Err(Error::MagnetometerIdentity);
         }
-        let endpoint = options.topic_key(&crate::options::as_valid_topic(&metadata.topic))?;
-        if occupied.contains(&endpoint) {
+        // A valid but changed topic or frame still violates the immutable
+        // loaded blueprint. Preserve the existing prepared-reset error layer.
+        if &original.expect("validated original owner").3 != metadata {
+            return Err(if prepared.is_some() {
+                Error::ResetMagnetometers
+            } else {
+                Error::MagnetometerIdentity
+            });
+        }
+        let endpoint = options.topic_key(&options::as_valid_topic(&metadata.topic))?;
+        if !keys.insert(endpoint.clone()) {
             return Err(Error::MagnetometerIdentity);
         }
         if let Some(prepared) = prepared {
-            let (original, _) = prepared.get(&endpoint).ok_or(Error::ResetMagnetometers)?;
-            if original != metadata {
+            let (original, _, initial_id, initial_name) =
+                prepared.get(&endpoint).ok_or(Error::ResetMagnetometers)?;
+            if *initial_id != id || initial_name != &name.0 || original != metadata {
                 return Err(Error::ResetMagnetometers);
             }
         }
-        selected.push((entity.id(), id, metadata.clone(), endpoint));
+        selected.push((entity, id, name.0.clone(), metadata.clone(), endpoint));
     }
-    if prepared.is_some_and(|prepared| prepared.len() != selected.len()) {
+    if prepared.is_some_and(|p| p.len() != selected.len()) {
         return Err(Error::ResetMagnetometers);
     }
     let mut result = Vec::new();
-    for (entity, identity, metadata, endpoint) in selected {
+    for (entity, identity, scoped_name, metadata, endpoint) in selected {
         let publisher = match prepared {
-            Some(prepared) => Arc::clone(
-                &prepared
-                    .get(&endpoint)
-                    .expect("prepared endpoint validated before IO")
-                    .1,
-            ),
+            Some(p) => Arc::clone(&p.get(&endpoint).expect("entire prepared set validated").1),
             None => io
                 .magnetometer_output(endpoint.clone())
-                .map_err(|error| Error::WorldNetwork(error.to_string()))?,
+                .map_err(|e| Error::WorldNetwork(e.to_string()))?,
         };
         result.push(Stream {
             entity,
             identity,
+            scoped_name,
             metadata,
             endpoint,
             publisher,
@@ -165,6 +267,9 @@ impl Stream {
     fn live(&self, simulation: &Simulation) -> bool {
         let world = simulation.world();
         world.get::<EntityKind>(self.entity) == Some(&EntityKind::Sensor)
+            && world
+                .get::<Name>(self.entity)
+                .is_some_and(|name| name.0 == self.scoped_name)
             && world.get::<MagnetometerPublication>(self.entity) == Some(&self.metadata)
             && world.get::<EntityId>(self.entity).map(EntityId::get) == Some(self.identity)
             && entity_by_id(world, self.identity) == Some(self.entity)
@@ -247,3 +352,7 @@ impl Server {
 #[cfg(test)]
 #[path = "../tests/private/magnetometer.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_magnetometers_native.rs"]
+mod multiple_magnetometers_native;

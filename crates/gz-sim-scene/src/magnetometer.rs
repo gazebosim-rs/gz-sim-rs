@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One loaded Rapier magnetometer with optional sensor-axis noise; no transport ownership.
+//! Up to eight loaded Rapier magnetometers with independent sensor-axis noise.
 use super::*;
 use gz_sensors::magnetometer::{InvalidMagnetometerInput, MagnetometerInput, MagnetometerReading};
 use gz_sensors::{GaussianNoise, GaussianParameters, InvalidNoise, NoiseStream};
@@ -270,7 +270,7 @@ pub(super) fn preflight(
                     continue;
                 }
                 *count += 1;
-                require(*count == 1, &world.name, "multiple magnetometers")?;
+                require(*count <= 8, &world.name, "multiple magnetometers")?;
                 require(
                     world.spherical_coordinates.is_none(),
                     &world.name,
@@ -296,7 +296,7 @@ pub(super) fn preflight(
     for model in &world.models {
         visit(sdf, world, model, engine, &mut count)?;
     }
-    Ok(count == 1)
+    Ok(count > 0)
 }
 
 pub(super) fn spawn(
@@ -310,9 +310,11 @@ pub(super) fn spawn(
 ) -> Result<(), LoadError> {
     let name = format!("{}::{}", parent.link.scoped_name, sensor.name);
     require(
-        !sim.world()
+        sim.world()
             .iter_entities()
-            .any(|entity| entity.contains::<Magnetometer>()),
+            .filter(|entity| entity.contains::<Magnetometer>())
+            .count()
+            < 8,
         &name,
         "multiple magnetometers",
     )?;
@@ -484,3 +486,7 @@ fn reset(mut sensors: Query<(Entity, &mut Magnetometer)>, mut commands: Commands
 #[cfg(test)]
 #[path = "../tests/private/magnetometer.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_magnetometers_native.rs"]
+mod multiple_magnetometers_native_tests;

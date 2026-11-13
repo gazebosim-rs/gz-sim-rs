@@ -643,7 +643,8 @@ class AuxiliaryRetention(unittest.TestCase):
                        "examples/m48_imu_world_heading.sdf",
                        "examples/m49_multiple_altimeters.sdf",
                        "examples/m50_multiple_air_pressures.sdf",
-                       "examples/m51_multiple_air_speeds.sdf"):
+                       "examples/m51_multiple_air_speeds.sdf",
+                       "examples/m52_multiple_magnetometers.sdf"):
             index = QUALIFIER.NOISY_EXAMPLES.index(source)
             valid = json.loads(baseline)["runs"][index]["stdout"]
             for field, altered in (

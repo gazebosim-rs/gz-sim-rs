@@ -1,0 +1,1410 @@
+{
+  "schema_version": 1,
+  "state": "ACTUAL_M52_SCOPED_ORIGINAL_SYSTEM_AND_LITERAL_PROVENANCE",
+  "source_program": {
+    "path": "crates/gz-sim-server/tests/native_multiple_magnetometers.cc",
+    "sha256": "7dfd4f0a8131f37383865c119747dbaf804082e5836ce6fa5c20bbc1f6d50e62"
+  },
+  "capture": {
+    "tree": "bf11c39cda34f692bf22711731491da965db8ad7",
+    "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+    "runtime_parent": "ea921f5886b02bbe576e328848899fd276696208",
+    "runtime_parent_accepted": false,
+    "actual_exit_code": 0,
+    "elapsed_seconds": 24.870628727134317,
+    "mode_count": 3,
+    "configuration_count": 12,
+    "system_calls": 119,
+    "input_rows": 501,
+    "canonical_packets": 42,
+    "native_family_demand_policy": true,
+    "native_physics_executed": false,
+    "old_native_modes_replayed": false,
+    "original_DSO_rebuilt": false
+  },
+  "commands": [
+    {
+      "name": "head-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/head-before.stdout",
+        "bytes": 41,
+        "sha256": "a6b29c43d4da204f48a26afdd7c12656cf011ddcdf310d5aa4e97892b4d981c4"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/head-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10852976306341588
+    },
+    {
+      "name": "index-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--cached",
+        "bf11c39cda34f692bf22711731491da965db8ad7",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/index-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/index-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10745409806258976
+    },
+    {
+      "name": "worktree-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/worktree-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/worktree-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10804085689596832
+    },
+    {
+      "name": "untracked-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/untracked-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/untracked-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10801835590973496
+    },
+    {
+      "name": "compiler",
+      "argv": [
+        "/usr/bin/clang++",
+        "--version"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/compiler.stdout",
+        "bytes": 110,
+        "sha256": "3635b8631d4ebcd8ed7586f4e01e7a6b44407de9d38db6e01daca9c242ed7a53"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/compiler.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.20783263398334384
+    },
+    {
+      "name": "original-head",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-head.stdout",
+        "bytes": 41,
+        "sha256": "fe2ff9496387c2e9e70b2edfa8f779598aaf0ef8ec26cae206397e5f053afd51"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-head.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10730237397365272
+    },
+    {
+      "name": "original-source-0",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/systems/magnetometer/Magnetometer.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-0.stdout",
+        "bytes": 23324,
+        "sha256": "e299ea82d4ef3bc5065884320d1c252197d8045db931f9d2bf118bbfee479150"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-0.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10750427306629717
+    },
+    {
+      "name": "original-source-1",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/systems/magnetometer/Magnetometer.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-1.stdout",
+        "bytes": 2078,
+        "sha256": "014070ad50bd4135363ef6e35bec53e962334e731a2192c36ec40a62ab1776a7"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10748337302356958
+    },
+    {
+      "name": "original-source-2",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/System.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-2.stdout",
+        "bytes": 9304,
+        "sha256": "3e8879eff438b8fc69e7550b9fc9af7b9e2909f67b7dd689d7ebdf72861d2b9a"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10755503713153303
+    },
+    {
+      "name": "original-source-3",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/SystemLoader.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-3.stdout",
+        "bytes": 2417,
+        "sha256": "2c66d508d93d8a520af2d3d733f79283dfb8b06c55d3ef6271be89c5b052a612"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-3.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10835441388189793
+    },
+    {
+      "name": "original-source-4",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/EntityComponentManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-4.stdout",
+        "bytes": 47284,
+        "sha256": "baec922ba18c4554c1b7290808cc95e4141e8a2751958df8072d2ff93d1df107"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-4.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1077305159997195
+    },
+    {
+      "name": "original-source-5",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/EventManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-5.stdout",
+        "bytes": 6186,
+        "sha256": "158ce2a91ac25a4857631b7c3283ae13eab69a9d85bc18821a64d01a3c6a1c37"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-5.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10753732407465577
+    },
+    {
+      "name": "original-source-6",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/Util.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-6.stdout",
+        "bytes": 19419,
+        "sha256": "283175552768d01176100f12dc5fd0b83af8c8fed0800dc43ac901ce3844664a"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-6.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10774634499102831
+    },
+    {
+      "name": "original-source-7",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/Util.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-7.stdout",
+        "bytes": 33072,
+        "sha256": "6e35af3fa7c0a13d420a6cabae954177c16938d27d543d3e9f432fd980ade270"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-7.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10764520592056215
+    },
+    {
+      "name": "original-source-8",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Magnetometer.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-8.stdout",
+        "bytes": 1400,
+        "sha256": "2dc1eecc569dd56b31e18f95f65b7f167a0d27064d15de7ae455397f5efa33c7"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-8.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10766203794628382
+    },
+    {
+      "name": "original-source-9",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Name.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-9.stdout",
+        "bytes": 1314,
+        "sha256": "786063562ed4567b70cd082d63ad67ce99dba68be92a9c180ca2fc9a76b5d99c"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-9.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10779057792387903
+    },
+    {
+      "name": "original-source-10",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/ParentEntity.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-10.stdout",
+        "bytes": 1601,
+        "sha256": "0c702ccf0655f2afb4007a48d01dd433105e149a4bd254ae1137d94b444c1a19"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-10.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10846130503341556
+    },
+    {
+      "name": "original-source-11",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Pose.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-11.stdout",
+        "bytes": 1722,
+        "sha256": "28fe8a59494b821b4c765e626154bc234fd1f17f5b4dc66f535b317328f697f8"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-11.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1085042948834598
+    },
+    {
+      "name": "original-source-12",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Sensor.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-12.stdout",
+        "bytes": 1617,
+        "sha256": "20541297c39c8ae485df71f54b8db53c0a2eb6b8453d0da77a2a8c188047fe92"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-12.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10779235209338367
+    },
+    {
+      "name": "original-source-13",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/World.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-13.stdout",
+        "bytes": 2192,
+        "sha256": "fbd6f297e2eb1a937bd6f302f2f8e87e427bdffe36c8b03b877b196787a4802c"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-13.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1086194310337305
+    },
+    {
+      "name": "original-source-14",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Model.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-14.stdout",
+        "bytes": 4000,
+        "sha256": "22b96ddd28383fe11a278da6ad8687ed058f3b3f370f89d34bf1ebf4474a6990"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-14.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10869753709994256
+    },
+    {
+      "name": "original-source-15",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Link.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-15.stdout",
+        "bytes": 1138,
+        "sha256": "27eab5791f2b3906453eeac6e96c067e2b2adcacb74a3316451b5d16efec858b"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-15.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1078622629866004
+    },
+    {
+      "name": "original-source-16",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/EntityComponentManager.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-16.stdout",
+        "bytes": 68945,
+        "sha256": "5191369a9778247b7fec6dc5520e29e6b5acf8a4593e70701aedbdb53370d8c3"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-16.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10808280482888222
+    },
+    {
+      "name": "original-source-17",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/detail/EntityComponentManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-17.stdout",
+        "bytes": 13702,
+        "sha256": "711430d754004dd0bc559c4c94bf7f6f0c6c01c073b0e195353c3ecc8b8a94a3"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-17.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10791887901723385
+    },
+    {
+      "name": "original-source-18",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/SimulationRunner.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-18.stdout",
+        "bytes": 59165,
+        "sha256": "117271ad24dbe2e326bf860658c110e44859e3bc6509a56b9d43dea1b619bf06"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-18.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10805196803994477
+    },
+    {
+      "name": "original-source-19",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/MagneticField.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-19.stdout",
+        "bytes": 1251,
+        "sha256": "9cfe17b0219405fcc6fb44ef1e4cd95be333d8851ae82432cace6e053135c191"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/original-source-19.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10875051701441407
+    },
+    {
+      "name": "helper-compile",
+      "argv": [
+        "/usr/bin/clang++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/test",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/core/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/src",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/gz_msgs_gen",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/vendor/backward-cpp",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/math10",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/utils5",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/plugin5",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/common8",
+        "-isystem",
+        "/usr/include/uuid",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/fuel_tools12",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/msgs13",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/physics10",
+        "-isystem",
+        "/usr/include/eigen3",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/rendering11",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/transport16",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/sdformat17",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/gui11",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtCore",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6",
+        "-isystem",
+        "/usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQml",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQmlIntegration",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtNetwork",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQuick",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtGui",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQmlModels",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtOpenGL",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQuickControls2",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtWidgets",
+        "-isystem",
+        "/home/nkoenig/work/gazebo/rust/gz-sim/test/gtest_vendor/include",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference/crates/gz-sim-server/tests/native_multiple_magnetometers.cc",
+        "-o",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/native-multiple-magnetometers",
+        "-Wl,-rpath,/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib",
+        "-lstdc++fs",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib/libgz-sim.so.11.0.0~pre3",
+        "-lpthread",
+        "/home/nkoenig/local/lib/libgz-fuel_tools.so.12.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-physics.so.10.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-rendering.so.11.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-profiler.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-av.so.8.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libswscale.so",
+        "/usr/lib/x86_64-linux-gnu/libswscale.so",
+        "/usr/lib/x86_64-linux-gnu/libavdevice.so",
+        "/usr/lib/x86_64-linux-gnu/libavdevice.so",
+        "/usr/lib/x86_64-linux-gnu/libavformat.so",
+        "/usr/lib/x86_64-linux-gnu/libavformat.so",
+        "/usr/lib/x86_64-linux-gnu/libavcodec.so",
+        "/usr/lib/x86_64-linux-gnu/libavcodec.so",
+        "/usr/lib/x86_64-linux-gnu/libavutil.so",
+        "/usr/lib/x86_64-linux-gnu/libavutil.so",
+        "/home/nkoenig/local/lib/libgz-common-io.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-geospatial.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-graphics.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-transport-parameters.so.16.0.0~pre2",
+        "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-gui.so.11.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libprotobuf.so",
+        "/home/nkoenig/local/lib/libgz-common-events.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-plugin-loader.so.5.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-plugin.so.5.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libQt6QuickControls2.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Quick.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6QmlModels.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Qml.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Network.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6OpenGL.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Widgets.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Gui.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Core.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libGLX.so",
+        "/usr/lib/x86_64-linux-gnu/libOpenGL.so",
+        "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
+        "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
+        "/usr/lib/x86_64-linux-gnu/libdw.so",
+        "/usr/lib/x86_64-linux-gnu/libelf.so",
+        "/usr/lib/x86_64-linux-gnu/libpthread.a",
+        "/usr/lib/x86_64-linux-gnu/libz.so",
+        "/usr/lib/x86_64-linux-gnu/libbz2.so",
+        "/usr/lib/x86_64-linux-gnu/liblzma.so",
+        "/usr/lib/x86_64-linux-gnu/libzstd.so",
+        "/home/nkoenig/local/lib/libgz-common-testing.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2",
+        "-lpthread",
+        "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0",
+        "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0",
+        "/usr/lib/x86_64-linux-gnu/libuuid.so",
+        "/usr/lib/x86_64-linux-gnu/libuuid.so",
+        "-Wl,-rpath-link,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib",
+        "-Wl,-rpath,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/helper-compile.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/helper-compile.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 11.195030073169619
+    },
+    {
+      "name": "multiple-magnetometers-pair",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/native-multiple-magnetometers",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m17-m18-delivery/native-magnetometer-joint-state-3e_f7yhi/libgz-sim-magnetometer-system.so.11.0.0~pre3",
+        "pair",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-pair.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-pair.stdout",
+        "bytes": 32350,
+        "sha256": "e9f2be174d7a03df6bed54e8504bdc8e6a27490cb09b82192abb807275a382ea"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-pair.stderr",
+        "bytes": 1380,
+        "sha256": "54d1864760d4e217a9f0be00fbcb0ac0244e06352f521a83f7b8ce802d6d752c"
+      },
+      "elapsed_seconds": 2.2267638279590756
+    },
+    {
+      "name": "multiple-magnetometers-eight",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/native-multiple-magnetometers",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m17-m18-delivery/native-magnetometer-joint-state-3e_f7yhi/libgz-sim-magnetometer-system.so.11.0.0~pre3",
+        "eight",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-eight.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-eight.stdout",
+        "bytes": 127291,
+        "sha256": "e4c216380c786e2879cb991c078c058d1d5a7f2871511ee471c08dd2dafe8181"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-eight.stderr",
+        "bytes": 5550,
+        "sha256": "6d053d698fdbd4a0dea73718cdd3688c94d81847dba239c8799957ef58236e93"
+      },
+      "elapsed_seconds": 2.228766839951277
+    },
+    {
+      "name": "multiple-magnetometers-remove",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/native-multiple-magnetometers",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m17-m18-delivery/native-magnetometer-joint-state-3e_f7yhi/libgz-sim-magnetometer-system.so.11.0.0~pre3",
+        "remove",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-remove.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-remove.stdout",
+        "bytes": 20397,
+        "sha256": "6be6020ded5c34ced1e90b91f37e68454edc4c0cb31c267bb914c385935e12ac"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-remove.stderr",
+        "bytes": 1104,
+        "sha256": "3dfa1ccd6affe4c1eff8431c2424d6043acf24b78f2789e67d1976c90db722d9"
+      },
+      "elapsed_seconds": 2.2283796549309045
+    },
+    {
+      "name": "head-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/head-after.stdout",
+        "bytes": 41,
+        "sha256": "a6b29c43d4da204f48a26afdd7c12656cf011ddcdf310d5aa4e97892b4d981c4"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/head-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.11514796013943851
+    },
+    {
+      "name": "index-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--cached",
+        "bf11c39cda34f692bf22711731491da965db8ad7",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/index-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/index-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1092306359205395
+    },
+    {
+      "name": "worktree-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/worktree-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/worktree-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10936220199801028
+    },
+    {
+      "name": "untracked-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m52-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/untracked-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/untracked-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10934821586124599
+    }
+  ],
+  "original_provider": {
+    "original_plugin_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m17-m18-delivery/native-magnetometer-joint-state-3e_f7yhi/libgz-sim-magnetometer-system.so.11.0.0~pre3",
+    "original_plugin_sha256": "cc8dfc2869ba3c1a6f16ea4a8e52e94faa13660b1313c57589bfaf63585beafc",
+    "reused_aliases": {
+      "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m17-m18-delivery/native-magnetometer-joint-state-3e_f7yhi/libgz-sim-magnetometer-system.so": "libgz-sim-magnetometer-system.so.11.0.0~pre3",
+      "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m17-m18-delivery/native-magnetometer-joint-state-3e_f7yhi/libgz-sim-magnetometer-system.so.11": "libgz-sim-magnetometer-system.so.11.0.0~pre3"
+    },
+    "reused_object_sha256": "2145199493cb9dd8c6fee4268b826f127a6d2a1276cb02ae985b1a7cf03c7fd8"
+  },
+  "retained_M17_actual_zero_provider": {
+    "method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m17-m18-delivery/native-reference.py",
+      "sha256": "c4a8c772f071fade44d7064c5b62b2d84f698cf22bc8e6f1532a9b0df00153ef",
+      "bytes": 22129
+    },
+    "result": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m17-m18-delivery/native-magnetometer-joint-state-3e_f7yhi/result.json",
+      "sha256": "3be14c0414cf761f5ef6de0d2d643d4d070bcbe62acf53643d7c58ddc79d9b05",
+      "bytes": 681898
+    },
+    "independent_retained_audit": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m17-m18-delivery/native-reference-audit.json",
+      "sha256": "d47a6a159bc21d4c47be9a15f0e5945e1b26e9575d4f41bc0dc964c064c20140",
+      "bytes": 6896
+    },
+    "actual_root_exit_code": 0,
+    "independent_raw_wait_receipt_available": false,
+    "actual_root_exit_basis": "Root supplied actual zero plus exact retained stdout/result/source and no sidecar; no independent wait receipt is invented.",
+    "old_observations_not_reused": true
+  },
+  "retained_M17_failed_attempts": [
+    {
+      "result": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m17-m18-delivery/native-magnetometer-joint-state-i3sammi_/result.json",
+        "sha256": "8124a761ec938e1b0978045d32f68cad82475c74bf18869f7d0e8acf7cb97a50",
+        "bytes": 59112
+      },
+      "recorded_controller_exit_code": 1,
+      "recorded_state": "FAILED_NOT_QUALIFIED",
+      "recorded_stage_count": 24,
+      "eligible_provider_proof": false,
+      "not_relabelled": true
+    },
+    {
+      "result": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m17-m18-delivery/native-magnetometer-joint-state-tntzffpr/result.json",
+        "sha256": "21bb20abe86267ab6e49616af596fea6aa5cb79366309d521e791d8495e94fd0",
+        "bytes": 60714
+      },
+      "recorded_controller_exit_code": 1,
+      "recorded_state": "FAILED_NOT_QUALIFIED",
+      "recorded_stage_count": 25,
+      "eligible_provider_proof": false,
+      "not_relabelled": true
+    }
+  ],
+  "sdk": {
+    "sdk_runtime_closure_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m47-delivery/native-sdk-current-dependency-closure.json",
+    "sdk_runtime_closure_sha256": "511ead617c78a01e772249ddbbfa1d995296a08469bedd1742d5453a2b6e9a44",
+    "historical_sdk_closure_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m13-m14-delivery/native-altimeter-current-dependency-closure.json",
+    "historical_sdk_closure_sha256": "370f49a779cbcb32bda7a46698ef2b82b6a13764c898287e0178524e66d7a4fb",
+    "sdk_drift_inventory_sha256": "a484797d83640f13bf17d162b916e4e38636a7cca273fb551bb12f5b5e3ce8eb",
+    "sdk_package_provenance_sha256": "bf5cf8486028b4315f7b7cfa5c387b6d8bcf6137d39f7bc6947a1dcecda656b3",
+    "sdk_closure_nodes": 349,
+    "sdk_baseline_scope": "All349 current identities, explicit historical349 and one installed MySQL .4 to .5 transition; initiator UNKNOWN. No old hash is relabelled current, no SDK rebuild or old proof transfer."
+  },
+  "evidence": {
+    "capture-source-state.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/capture-source-state.json",
+      "sha256": "43b3e577a9aebbe16ae864065eec49b2e72db4aa2d1d59a4c949d826c64fe656",
+      "bytes": 788
+    },
+    "native-reference-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-reference-bound.py",
+      "sha256": "1f7471588cbd077b59083d004a86e06e63518eef9e3046cda3890c420df0f676",
+      "bytes": 54614
+    },
+    "native-reference-plan.md": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-reference-plan.md",
+      "sha256": "01a98f1caa89915c0d5a42295dc20735804121a31083d07543debbb80064cd3e",
+      "bytes": 10562
+    },
+    "native-multiple-magnetometers-zbw99lzg/result.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/result.json",
+      "sha256": "7581dfa4063a280a2244ba1d1a050fe15bc7da766a92099fa6f45969903867a5",
+      "bytes": 317321
+    },
+    "native-reference-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-reference-actual-exit.json",
+      "sha256": "961677d81b7db7528d35e0542a2931511d9606ed3c94bf8b673439151d4e3117",
+      "bytes": 1763
+    },
+    "native-provider-input-contract-final.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-provider-input-contract-final.json",
+      "sha256": "de8767d6fe923c3d6fd5f961334f8127425a2e6bd9a8a9f083ff694306997aa1",
+      "bytes": 19738
+    },
+    "native-provider-input-contract-reviewed.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-provider-input-contract-reviewed.json",
+      "sha256": "446f91c70274c1e4a1c83084fda357902212d897d5f9f9c927f5548424f8e9d2",
+      "bytes": 14166
+    },
+    "magnetometer-component-input-supplement.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/magnetometer-component-input-supplement.json",
+      "sha256": "89a4b61f79f95644667f0d37e1ada7072464dea4b1d6452a72b9aff5bdd42c4a",
+      "bytes": 23367
+    },
+    "inspect-magnetometer-provider.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/inspect-magnetometer-provider.py",
+      "sha256": "2916b3e6c96b350c8bf726f23216c3cb3be163c1b79f0dd61ca36bc0bf010e74",
+      "bytes": 16011
+    },
+    "inspect-magnetometer-provider-plan-reviewed.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/inspect-magnetometer-provider-plan-reviewed.json",
+      "sha256": "e854fe263101a8d5eb84076354879af966ce243f6e8e3f10d8a94ab0b2827e97",
+      "bytes": 2442
+    },
+    "inspect-magnetometer-provider-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/inspect-magnetometer-provider-actual-exit.json",
+      "sha256": "faa56d1163be2192bbeb6a5835c8a628355bd15feefb0b2b81007e915a1bcd0e",
+      "bytes": 1246
+    },
+    "magnetometer-provider-input-saw90t6k/result.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/magnetometer-provider-input-saw90t6k/result.json",
+      "sha256": "d55cd6ae92b0e6c838eadb2ff96f984c579f83c902fc153dbc77831f9844ccf7",
+      "bytes": 26786
+    },
+    "inspect-magnetometer-provider-execution.log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/inspect-magnetometer-provider-execution.log",
+      "sha256": "73710b1fcdd4c0caaac24020beb9723bdc0537794a74de9e939eb6f20eb7ef23",
+      "bytes": 168
+    },
+    "native-audit-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-audit-bound.py",
+      "sha256": "e8c27ef18bd962b3422c8506f64e781c30325935f6b84bff1c146e01c2140ffb",
+      "bytes": 56156
+    },
+    "native-audit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-audit.json",
+      "sha256": "0d2df53753cd982ced330a0b41384b90d8caeed931e04141a18a73d053754688",
+      "bytes": 269687
+    },
+    "native-audit-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-audit-actual-exit.json",
+      "sha256": "eeb7f4cc39f1f9fe21344b6a54582ed92403f8713634a9f2cfb8c527f4bf9b46",
+      "bytes": 1104
+    },
+    "generate-native-multiple-magnetometers-fixture-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/generate-native-multiple-magnetometers-fixture-bound.py",
+      "sha256": "199f736b203d3c450ec1e28aaffcfedf006c910017b3c03fdd8cc78d9be15529",
+      "bytes": 29366
+    },
+    "native-fixture-generation-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-fixture-generation-actual-exit.json",
+      "sha256": "5da622683c9579adcbdbfe4b57631df322204254069c1c550e16d60f6234ffe8",
+      "bytes": 1398
+    },
+    "native-borrowed-fixture-audit-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-borrowed-fixture-audit-bound.py",
+      "sha256": "0c639870912e157e5a0f17c52e38662c1eb57d5ec6ce5d7850ff1191f24c417f",
+      "bytes": 37352
+    },
+    "native-borrowed-fixture-audit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-borrowed-fixture-audit.json",
+      "sha256": "3314c865469986b4eb54e6bf23d5465cec4205a2f0460953e985a8bdc39b7cae",
+      "bytes": 57840
+    },
+    "native-borrowed-fixture-audit-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-borrowed-fixture-audit-actual-exit.json",
+      "sha256": "778d473c8e56701da7b47349209373751ea3721cb46a76b9187d4a99b660190c",
+      "bytes": 1661
+    },
+    "native-link-provider-supplement.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json",
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce",
+      "bytes": 9664
+    }
+  },
+  "native_DATA_state": "INDEPENDENT_M52_MULTIPLE_MAGNETOMETERS_NATIVE_DATA_CLEAR",
+  "literal_DATA_state": "INDEPENDENT_M52_NATIVE_LITERAL_FIXTURE_DATA_CLEAR",
+  "counts": {
+    "canonical_packets": 42,
+    "configuration_count": 12,
+    "input_rows": 501,
+    "observed_packets": 42,
+    "removal_events": 1,
+    "system_calls": 119,
+    "without_observed_packet": 459
+  },
+  "fixture": {
+    "path": "crates/gz-sim-scene/tests/fixtures/m52_native_multiple_magnetometers.rs",
+    "bytes": 201171,
+    "sha256": "31980bd3adb7b85ce4c7edf1ab655e67c38fbaa5e4352aca91aa34eb57eaaf05"
+  },
+  "fixture_provenance": {
+    "path": "crates/gz-sim-scene/tests/fixtures/m52_native_multiple_magnetometers.provenance.json",
+    "sha256": "cabfcfee48c281169b736bdfcc4331f4618af3c1aa11a4ff8d6a2e00db4a978e"
+  },
+  "input_bindings": {
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json": {
+      "bytes": 9664,
+      "mode": "0o664",
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/generate-native-multiple-magnetometers-fixture-bound.py": {
+      "bytes": 29366,
+      "mode": "0o664",
+      "sha256": "199f736b203d3c450ec1e28aaffcfedf006c910017b3c03fdd8cc78d9be15529"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/magnetometer-component-input-supplement.json": {
+      "bytes": 23367,
+      "mode": "0o664",
+      "sha256": "89a4b61f79f95644667f0d37e1ada7072464dea4b1d6452a72b9aff5bdd42c4a"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-audit-actual-exit.json": {
+      "bytes": 1104,
+      "mode": "0o664",
+      "sha256": "eeb7f4cc39f1f9fe21344b6a54582ed92403f8713634a9f2cfb8c527f4bf9b46"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-audit-bound.py": {
+      "bytes": 56156,
+      "mode": "0o664",
+      "sha256": "e8c27ef18bd962b3422c8506f64e781c30325935f6b84bff1c146e01c2140ffb"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-audit-execution.log": {
+      "bytes": 250,
+      "mode": "0o664",
+      "sha256": "08797ead45fe40e64e3f62c68d961bd50e52c6f3436211faf32c9bf436685e9d"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-audit.json": {
+      "bytes": 269687,
+      "mode": "0o664",
+      "sha256": "0d2df53753cd982ced330a0b41384b90d8caeed931e04141a18a73d053754688"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-eight.stdout": {
+      "bytes": 127291,
+      "mode": "0o664",
+      "sha256": "e4c216380c786e2879cb991c078c058d1d5a7f2871511ee471c08dd2dafe8181"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-pair.stdout": {
+      "bytes": 32350,
+      "mode": "0o664",
+      "sha256": "e9f2be174d7a03df6bed54e8504bdc8e6a27490cb09b82192abb807275a382ea"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-remove.stdout": {
+      "bytes": 20397,
+      "mode": "0o664",
+      "sha256": "6be6020ded5c34ced1e90b91f37e68454edc4c0cb31c267bb914c385935e12ac"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/result.json": {
+      "bytes": 317321,
+      "mode": "0o664",
+      "sha256": "7581dfa4063a280a2244ba1d1a050fe15bc7da766a92099fa6f45969903867a5"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-reference-actual-exit.json": {
+      "bytes": 1763,
+      "mode": "0o664",
+      "sha256": "961677d81b7db7528d35e0542a2931511d9606ed3c94bf8b673439151d4e3117"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-reference-execution.log": {
+      "bytes": 140,
+      "mode": "0o664",
+      "sha256": "5008a48937b04f47e880f6428801335c8f59891b912b6e172d6c0ab79e7b0547"
+    }
+  },
+  "input_domain": "DIRECT_ECM_SENSOR_WORLD_POSE_AND_CONSTANT_WORLD_MAGNETIC_FIELD",
+  "magnetometer_component_input": {
+    "source": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/magnetometer-component-input-supplement.json",
+    "source_sha256": "89a4b61f79f95644667f0d37e1ada7072464dea4b1d6452a72b9aff5bdd42c4a",
+    "separate_exact_node_count": 1,
+    "before_and_after_equal": true,
+    "diagnostic_is_runtime_loader_proof": false
+  },
+  "owned_warnings": {
+    "pair": {
+      "console": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-pair.maps.console.log",
+        "bytes": 1910,
+        "sha256": "a187770ba4a18f407306f755069c4b7de7cdf92bb6997409492760ee57b5de83"
+      },
+      "warnings": {
+        "raw_stderr_sha256": "54d1864760d4e217a9f0be00fbcb0ac0244e06352f521a83f7b8ce802d6d752c",
+        "raw_stderr_bytes": 1380,
+        "warning_count": 10,
+        "per_native_entity": {
+          "4": 5,
+          "7": 5
+        },
+        "actual_console_verbosity": 2,
+        "source_file": "Magnetometer.cc",
+        "source_line": 462,
+        "message_template": "Failed to update Magnetometer sensor entity [ENTITY]. Spherical coordinates not set.",
+        "console_warning_records_equal_raw_stderr": true,
+        "scope": "Only exact Source-derived warnings for configured native entity IDs; constant WORLD field retained, no geographic-field equivalence."
+      }
+    },
+    "eight": {
+      "console": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-eight.maps.console.log",
+        "bytes": 7042,
+        "sha256": "356c806d1515c48ec244b04c80ca2147282e9ef01c991a6b33ebb1fa7e92cf48"
+      },
+      "warnings": {
+        "raw_stderr_sha256": "6d053d698fdbd4a0dea73718cdd3688c94d81847dba239c8799957ef58236e93",
+        "raw_stderr_bytes": 5550,
+        "warning_count": 40,
+        "per_native_entity": {
+          "4": 5,
+          "7": 5,
+          "10": 5,
+          "13": 5,
+          "16": 5,
+          "19": 5,
+          "22": 5,
+          "25": 5
+        },
+        "actual_console_verbosity": 2,
+        "source_file": "Magnetometer.cc",
+        "source_line": 462,
+        "message_template": "Failed to update Magnetometer sensor entity [ENTITY]. Spherical coordinates not set.",
+        "console_warning_records_equal_raw_stderr": true,
+        "scope": "Only exact Source-derived warnings for configured native entity IDs; constant WORLD field retained, no geographic-field equivalence."
+      }
+    },
+    "remove": {
+      "console": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m52-delivery/native-multiple-magnetometers-zbw99lzg/multiple-magnetometers-remove.maps.console.log",
+        "bytes": 1638,
+        "sha256": "8f26d0d07f0b79fbb6fd0865cc80e9cfed88c78ae8afa13d6e321989069022c8"
+      },
+      "warnings": {
+        "raw_stderr_sha256": "3dfa1ccd6affe4c1eff8431c2424d6043acf24b78f2789e67d1976c90db722d9",
+        "raw_stderr_bytes": 1104,
+        "warning_count": 8,
+        "per_native_entity": {
+          "4": 4,
+          "7": 4
+        },
+        "actual_console_verbosity": 2,
+        "source_file": "Magnetometer.cc",
+        "source_line": 462,
+        "message_template": "Failed to update Magnetometer sensor entity [ENTITY]. Spherical coordinates not set.",
+        "console_warning_records_equal_raw_stderr": true,
+        "scope": "Only exact Source-derived warnings for configured native entity IDs; constant WORLD field retained, no geographic-field equivalence."
+      }
+    }
+  },
+  "limits": [
+    "Actual independently audited original Magnetometer System multiplicity records copied literally. All501 explicit input rows retain sensor WORLD pose and constant WORLD magnetic field. The42 borrowed outputs preserve all three actual Tesla IEEEbits and complete Header/Magnetometer bytes. No measurement or geographic-field estimator, point velocity, scaling, reference-altitude or positive-component assumption is introduced. An observed=None input means only no matching captured packet; it proves no internal Sensor::Update return, draw or per-sensor deadline state. Native family-wide demand/removal differs from Rust individual ownership. Aggregate119 System calls remain summary metadata; no unrecorded paused-call rows are invented. Actual missing-spherical warning and owned Console cards are copied from independently audited metadata; no clean transcript or warning rows are fabricated. Historical M17 success and both failed attempts remain separate. No Physics, geodesy, native/Rust RNG or individual-disconnect/all-disconnected-removal equivalence. The unchanged direct native component bound1e-15, live geometry1e-18 and exact encoder wire obligations are distinct; no numeric tolerance implies wire equality. Current349, exact2 link providers, exact1 Magnetometer component and selected original System DSO remain distinct roles. Actual generator0, independent fixed-literal DATA, Source consumers/fullnormal/hosted and acceptance remain separately required.",
+    "119 System calls are captured helper-summary and pinned-method attestations, not invented individual raw call rows. All 58 missing-spherical warnings remain genuine retained records for actual native entity IDs.",
+    "Rust observed-value consumers and full normal qualification remain pending at this provenance checkpoint.",
+    "No hosted CI, source publication, installation, browser, release or phase acceptance is supplied."
+  ]
+}

@@ -300,19 +300,76 @@ fn admission_refuses_invalid_noise_metadata_second_sensor_and_other_engines() {
         "</sensor>",
         "</sensor><sensor name='second' type='magnetometer'><magnetometer/></sensor>",
     );
-    assert!(matches!(
-        load_world_with_sdf_step(
-            &twice,
-            "two-magnetometers",
-            "default",
-            &NoResources,
-            PhysicsEngine::Rapier
-        ),
-        Err(LoadError::Unsupported {
-            feature: "multiple magnetometers",
-            ..
-        })
-    ));
+    // The exact old second-sensor input now has a separately required BOTH-
+    // profile motion/geometry/reset proof; adjacent refusals remain unchanged.
+    let mut pair = load(&twice);
+    let names = [
+        "default::rig::body::magnetometer",
+        "default::rig::body::second",
+    ];
+    let handles = names.map(|name| named(&pair, name).0);
+    let ids = names.map(|name| named(&pair, name).1);
+    let metadata = names.map(|name| {
+        pair.world()
+            .get::<MagnetometerPublication>(named(&pair, name).0)
+            .unwrap()
+            .clone()
+    });
+    let body = named(&pair, "default::rig::body").1;
+    let initial = *pair
+        .world()
+        .get::<WorldPose>(named(&pair, "default::rig::body").0)
+        .unwrap();
+    queue_link_world_wrench(&mut pair, body, [8.0, -4.0, 2.0], [2.0, -3.0, 4.0]).unwrap();
+    pair.step_exact(20).unwrap();
+    let moved = pair
+        .world()
+        .get::<WorldPose>(named(&pair, "default::rig::body").0)
+        .unwrap();
+    assert_ne!(moved.translation, initial.translation);
+    assert_ne!(moved.rotation, initial.rotation);
+    let readings = names.map(|name| {
+        let entity = named(&pair, name).0;
+        let sample = pair.world().get::<MagnetometerSample>(entity).unwrap();
+        assert_eq!(sample.time, Duration::from_millis(20));
+        let actual = sample.reading.as_ref().unwrap().field_tesla;
+        let q = pair.world().get::<WorldPose>(entity).unwrap().rotation;
+        for (value, ideal) in actual.into_iter().zip(expected(q, [2e-5, -3e-5, 4e-5])) {
+            assert!((value - ideal).abs() < 1e-18);
+        }
+        (sample.time, actual)
+    });
+    assert_ne!(readings[0].1, readings[1].1);
+    initial::reset_loaded_world(&mut pair, |_| ()).unwrap();
+    let restored = pair
+        .world()
+        .get::<WorldPose>(named(&pair, "default::rig::body").0)
+        .unwrap();
+    assert_eq!(restored.translation, initial.translation);
+    assert_eq!(restored.rotation, initial.rotation);
+    for (index, name) in names.into_iter().enumerate() {
+        let entity = named(&pair, name).0;
+        assert_eq!(entity_by_id(pair.world(), ids[index]), Some(entity));
+        assert_ne!(entity, handles[index]);
+        assert!(pair.world().get::<MagnetometerSample>(entity).is_none());
+        assert_eq!(
+            pair.world().get::<MagnetometerPublication>(entity),
+            Some(&metadata[index])
+        );
+    }
+    queue_link_world_wrench(&mut pair, body, [8.0, -4.0, 2.0], [2.0, -3.0, 4.0]).unwrap();
+    pair.step_exact(20).unwrap();
+    for (index, name) in names.into_iter().enumerate() {
+        let sample = pair
+            .world()
+            .get::<MagnetometerSample>(named(&pair, name).0)
+            .unwrap();
+        assert_eq!(
+            (sample.time, sample.reading.as_ref().unwrap().field_tesla),
+            readings[index]
+        );
+        assert_eq!(sample.epoch, 1);
+    }
     assert!(matches!(
         load_world_with_sdf_step(
             XML,

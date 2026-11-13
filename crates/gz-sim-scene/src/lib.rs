@@ -107,7 +107,8 @@ pub use initial::{
     initial_imu_publications, initial_joint_controller_configurations,
     initial_joint_force_configurations, initial_joint_state_publications,
     initial_lidar_publications, initial_logical_camera_publications,
-    initial_magnetometer_publications, initial_pose_publications, reset_loaded_world,
+    initial_magnetometer_publications, initial_magnetometer_publications_with_identity,
+    initial_pose_publications, reset_loaded_world,
 };
 
 use bevy_ecs::prelude::*;

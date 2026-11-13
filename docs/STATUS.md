@@ -1,3 +1,59 @@
+## Current M52 native and fixed-literal evidence
+
+The new original Magnetometer System campaign returned actual Root zero in
+24.871 seconds, and its independent retained native DATA audit passed. All 34
+child stages succeeded. It retained 12 configurations, 501 explicit SENSOR WORLD
+pose and constant WORLD field inputs, and 42 received canonical packets across
+339 mapped library paths. The 119 System calls are helper-summary and pinned
+Source attestations, not invented individual call records. All 58 genuine
+missing-spherical warnings and complete owned Console logs are retained. No SDK,
+component or System provider was rebuilt; no native Physics or RNG/demand parity
+is inferred. Current349, the two separate link providers, the exact magnetometer
+component and original M17 System provider remain distinct guarded roles.
+
+Actual fixed-literal generation and independent literal DATA also passed. The
+immutable fixture copies all 501 inputs, 42 borrowed actual outputs, 459 inputs
+without a matching packet and one active-peer removal event. None does not prove
+an internal update or draw was skipped. The retained native component bound is
+1e-15 Tesla, separate from live geometry's 1e-18 and exact full-wire obligations.
+Observed numeric and canonical-wire consumer Source is independently reviewed;
+no M52 Rust/Python/full normal/coverage/local-audit pass has happened yet.
+Complete the consolidated Source review and formatter before one full normal
+hook with every strict gate. Prior accepted phases, M40 Latest and all accepted-
+predecessor, exact hosted/official and Main/readback boundaries remain unchanged.
+Older checkpoint text below retains its original historical scope.
+
+## Current delivery: M52 independent loaded magnetometers
+
+M52 source development is active under [the reviewed contract](M52_DELIVERY.md)
+and [behavior guide](M52_MULTIPLE_MAGNETOMETERS.md). Admit zero through eight
+otherwise-supported loaded Rapier magnetometers with independent immutable
+identity, metadata, endpoint, demand, samples and noise/reset ownership. Preserve
+the existing constant WORLD field, inverse sensor WORLD rotation, Tesla units,
+XYZ noise and strict bounds; do not add geodesy or another sensor/backend domain.
+
+Source preparation began over qualified but unaccepted M50 623faca6. The new
+integration checkout adopts locally qualified M51 ea921f58/tree4a29e5df after its
+actual complete normal hook and independent retained DATA passed. M51 recorded
+1828 headless and 1085 overlapping renderer profile passes, 403 aggregate Python
+tests and 25 finite examples. All strict gates passed. These are parent evidence,
+not M52 qualification. Preserve the three failed M51 attempts and every earlier
+failure, original capture, pending worktree and Fuel owner change.
+
+Root owns shared query/registration/guides and serial execution. Disjoint Scene
+and Server/reference source work must finish implementation, regressions, docs
+and independent whole review before consolidated verification. M52 current
+provider inputs, fresh original-System native/literal DATA, observed controls,
+full normal/strict coverage and independent local DATA remain pending. No M52
+formatter, test, metadata, provider or reference operation has run. The finite
+26th example appends to the exact old 25; it is not a browser/install proof.
+
+M1–M42 and 175 slices remain accepted; M40 remains installed Latest. The actually
+accepted predecessor, exact hosted success, independent official DATA and normal
+Main/readbacks still govern publication and acceptance. Hosted snapshot recovery
+has not been demonstrated; no retry, probe or workflow workaround is released.
+Earlier checkpoint records below are retained in their original historical scope.
+
 ## Current M51 retained native evidence
 
 One fresh original AirSpeed System pair/eight/active-peer-removal capture returned
