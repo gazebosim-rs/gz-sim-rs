@@ -1226,3 +1226,121 @@ fn initial_logical_camera_identities_borrow_both_originals_through_removal_and_r
     assert_eq!(sim.elapsed(), Duration::ZERO);
     assert_eq!(sim.epoch(), 1);
 }
+
+#[test]
+fn initial_pose_identity_query_distinguishes_missing_and_empty_blueprints() {
+    let bare = Simulation::new(Duration::from_millis(1)).unwrap();
+    assert!(matches!(
+        initial_pose_publications_with_identity(&bare),
+        Err(SceneResetError::MissingInitialState)
+    ));
+    let sim = load();
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(initial_pose_publications(&sim).unwrap().count(), 0);
+    assert_eq!(
+        initial_pose_publications_with_identity(&sim)
+            .unwrap()
+            .count(),
+        0
+    );
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+}
+
+#[test]
+fn initial_pose_identities_borrow_all_originals_through_owner_removal_and_loaded_reset() {
+    let source = include_str!("../fixtures/m31_pose_static_publisher.sdf");
+    let start = source.find("<model name=\"rig\"").unwrap();
+    let end = start + source[start..].find("</model>").unwrap() + "</model>".len();
+    let peer = source[start..end]
+        .replace("name=\"rig\"", "name=\"peer\"")
+        .replace("<pose>1 2 3 0 0 0.6</pose>", "<pose>1 8 3 0 0 0.6</pose>")
+        .replace("/m31/pose", "/m55/peer_pose");
+    let xml = format!("{}{}{}", &source[..end], peer, &source[end..])
+        .replace("world name=\"default\"", "world name=\"warehouse_floor\"");
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "pose-identities.sdf",
+        "warehouse_floor",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let collect = |sim: &Simulation| {
+        initial_pose_publications_with_identity(sim)
+            .unwrap()
+            .map(|(identity, kind, name, metadata)| {
+                (identity, kind, name.to_owned(), metadata.clone())
+            })
+            .collect::<Vec<_>>()
+    };
+    let snapshots = collect(&sim);
+    assert_eq!(snapshots.len(), 2);
+    assert_ne!(snapshots[0].0, snapshots[1].0);
+    let mut actual_names = snapshots
+        .iter()
+        .map(|row| row.2.as_str())
+        .collect::<Vec<_>>();
+    actual_names.sort();
+    assert_eq!(
+        actual_names,
+        ["warehouse_floor::peer", "warehouse_floor::rig"]
+    );
+    let old_entities = snapshots
+        .iter()
+        .map(|row| named(&sim, &row.2))
+        .collect::<Vec<_>>();
+    for ((identity, kind, name, metadata), (legacy_id, legacy)) in
+        initial_pose_publications_with_identity(&sim)
+            .unwrap()
+            .zip(initial_pose_publications(&sim).unwrap())
+    {
+        assert_eq!(identity, legacy_id);
+        assert_eq!(identity, id(&sim, name));
+        assert_eq!(kind, EntityKind::Model);
+        assert_eq!(
+            name.strip_prefix("warehouse_floor::"),
+            Some(metadata.model_name.as_str())
+        );
+        assert!(std::ptr::eq(metadata, legacy));
+        assert!(metadata.static_publication.is_some());
+    }
+    sim.step_exact(3).unwrap();
+    let removed_id = id(&sim, "warehouse_floor::rig");
+    remove_model(&mut sim, removed_id).unwrap();
+    let removed = snapshots
+        .iter()
+        .find(|row| row.2 == "warehouse_floor::rig")
+        .unwrap();
+    assert!(entity_by_id(sim.world(), removed.0).is_none());
+    let peer = snapshots
+        .iter()
+        .find(|row| row.2 == "warehouse_floor::peer")
+        .unwrap();
+    assert!(entity_by_id(sim.world(), peer.0).is_some());
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(collect(&sim), snapshots);
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    for (snapshot, old_entity) in snapshots.iter().zip(old_entities) {
+        let restored = entity_by_id(sim.world(), snapshot.0).unwrap();
+        assert_ne!(restored, old_entity);
+        assert_eq!(
+            sim.world().get::<EntityKind>(restored),
+            Some(&EntityKind::Model)
+        );
+        assert_eq!(sim.world().get::<Name>(restored).unwrap().0, snapshot.2);
+        assert_eq!(
+            sim.world().get::<PosePublication>(restored),
+            Some(&snapshot.3)
+        );
+    }
+    assert_eq!(collect(&sim), snapshots);
+    assert_eq!(sim.elapsed(), Duration::ZERO);
+    assert_eq!(sim.epoch(), 1);
+}

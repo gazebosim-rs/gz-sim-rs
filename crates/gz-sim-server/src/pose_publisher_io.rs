@@ -18,8 +18,15 @@ pub(super) struct PosePublisherId(uuid::Uuid);
 /// Contains no Session, publisher, listener or liveliness declaration.
 pub(super) struct PosePublisherOutput {
     id: PosePublisherId,
+    endpoint: String,
     retired: mpsc::SyncSender<PosePublisherId>,
     dirty: Arc<AtomicBool>,
+}
+impl PosePublisherOutput {
+    /// Validate the immutable setup binding without touching publication IO.
+    pub(super) fn matches_endpoint(&self, endpoint: &str) -> bool {
+        self.endpoint == endpoint
+    }
 }
 impl Drop for PosePublisherOutput {
     fn drop(&mut self) {
@@ -102,6 +109,7 @@ impl PosePublisherDeclarations {
             .get_or_insert_with(|| Arc::new(AtomicBool::new(false)));
         let output = Arc::new(PosePublisherOutput {
             id: PosePublisherId(uuid::Uuid::new_v4()),
+            endpoint: key.clone(),
             retired,
             dirty: Arc::clone(dirty),
         });

@@ -646,7 +646,8 @@ class AuxiliaryRetention(unittest.TestCase):
                        "examples/m51_multiple_air_speeds.sdf",
                        "examples/m52_multiple_magnetometers.sdf",
                        "examples/m53_multiple_logical_cameras.sdf",
-                       "examples/m54_multiple_lidars.sdf"):
+                       "examples/m54_multiple_lidars.sdf",
+                       "examples/m55_multiple_pose_publishers.sdf"):
             index = QUALIFIER.NOISY_EXAMPLES.index(source)
             valid = json.loads(baseline)["runs"][index]["stdout"]
             for field, altered in (
@@ -655,7 +656,8 @@ class AuxiliaryRetention(unittest.TestCase):
                 ("argv", json.loads(baseline)["runs"][12]["argv"]),
                 ("source", QUALIFIER.NOISY_EXAMPLES[12]),
                 ("stdout", valid.replace(" 0 0 ", " 0.1 0 ").replace(" 2 -1 3", " 2.1 -1 3")
-                 .replace("default::left_scanner::body 0 2 0", "default::left_scanner::body 0.1 2 0")),
+                 .replace("default::left_scanner::body 0 2 0", "default::left_scanner::body 0.1 2 0")
+                 .replace("default::peer::base 1 8 3", "default::peer::base 1.1 8 3")),
                 ("fixture_sha256", "0" * 64),
                 ("fixture_mode", 0o600),
             ):

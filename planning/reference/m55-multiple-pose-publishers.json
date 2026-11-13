@@ -1,0 +1,1808 @@
+{
+  "schema_version": 1,
+  "state": "ACTUAL_M55_DIRECT_ORIGINAL_OBJECT_LOCAL_INPUT_NATIVE_AND_LITERAL_PROVENANCE",
+  "source_program": {
+    "path": "crates/gz-sim-scene/tests/native_multiple_pose_publishers.cc",
+    "sha256": "7af47ad1bcf8daf482bc8a3aa4b119b9d177718776abde7af8d75af0bc0758ed"
+  },
+  "capture": {
+    "tree": "08b5a33b77593e97a4e1a9e3762fa87ca721900e",
+    "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+    "runtime_parent": "d140e51e56b8c83d3857ad16977472412a9629f8",
+    "runtime_parent_accepted": false,
+    "actual_Root_exit_code": 0,
+    "controller_elapsed_seconds": 23.10634879907593,
+    "actual_child_stages": 30,
+    "all_child_exits_zero_and_reaped": true,
+    "mode_count": 2,
+    "counts": {
+      "configuration_count": 10,
+      "direct_post_update_calls": 40,
+      "input_rows": 40,
+      "observed_vectors": 65,
+      "canonical_packets": 65,
+      "pose_records": 95
+    },
+    "standalone_Header_byte_copies": 95,
+    "standalone_Pose_byte_copies": 95,
+    "standalone_copies_are_additional_transport_messages": false,
+    "mapped_library_identities": 336,
+    "all_four_operating_floors_held": true,
+    "original_System_object_link_input": {
+      "source": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-direct-object-input-contract-final-source-closed.json",
+      "source_sha256": "8da1da78a679dadafd7d51e470cfbbf51851e6f73faaac9483168c7c45a713b4",
+      "object_is_mapped_provider": false,
+      "before": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-static-publisher-gmj1r1kp/PosePublisher.cc.o",
+        "sha256": "e5faf2cabdd8c672aeb6108d554c50e9bcf229e58134892f79b610e8b8a138c3",
+        "bytes": 396456,
+        "fingerprint": [
+          66307,
+          52857423,
+          33204,
+          396456,
+          1794219772678018982,
+          1794219772682018972
+        ],
+        "ELF": {
+          "class": 64,
+          "byte_order": "little",
+          "machine": 62,
+          "type": 1,
+          "first20_hex": "7f454c4602010100000000000000000001003e00"
+        },
+        "Source_to_binary_equivalence_proved": false
+      },
+      "historical_failed_diagnostic_used_as_zero": false,
+      "after": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-static-publisher-gmj1r1kp/PosePublisher.cc.o",
+        "sha256": "e5faf2cabdd8c672aeb6108d554c50e9bcf229e58134892f79b610e8b8a138c3",
+        "bytes": 396456,
+        "fingerprint": [
+          66307,
+          52857423,
+          33204,
+          396456,
+          1794219772678018982,
+          1794219772682018972
+        ],
+        "ELF": {
+          "class": 64,
+          "byte_order": "little",
+          "machine": 62,
+          "type": 1,
+          "first20_hex": "7f454c4602010100000000000000000001003e00"
+        },
+        "Source_to_binary_equivalence_proved": false
+      }
+    },
+    "owned_helper_ELF_metadata": {
+      "needed": [
+        "libgz-sim.so.11",
+        "libgz-fuel_tools.so.12",
+        "libgz-physics.so.10",
+        "libgz-rendering.so.11",
+        "libgz-common-profiler.so.8",
+        "libgz-common-av.so.8",
+        "libswscale.so.7",
+        "libavdevice.so.60",
+        "libavformat.so.60",
+        "libavcodec.so.60",
+        "libavutil.so.58",
+        "libgz-common-io.so.8",
+        "libgz-common-geospatial.so.8",
+        "libgz-common-graphics.so.8",
+        "libgz-transport-parameters.so.16",
+        "libsdformat.so.17",
+        "libgz-gui.so.11",
+        "libgz-transport.so.16",
+        "libgz-msgs.so.13",
+        "libprotobuf.so.32",
+        "libgz-common-events.so.8",
+        "libgz-math.so.10",
+        "libgz-plugin-loader.so.5",
+        "libgz-plugin.so.5",
+        "libgz-utils.so.5",
+        "libQt6QuickControls2.so.6",
+        "libQt6Quick.so.6",
+        "libQt6QmlModels.so.6",
+        "libQt6Qml.so.6",
+        "libQt6Network.so.6",
+        "libQt6OpenGL.so.6",
+        "libQt6Widgets.so.6",
+        "libQt6Gui.so.6",
+        "libQt6Core.so.6",
+        "libGLX.so.0",
+        "libOpenGL.so.0",
+        "libtinyxml2.so.10",
+        "libdw.so.1",
+        "libelf.so.1",
+        "libz.so.1",
+        "libbz2.so.1.0",
+        "liblzma.so.5",
+        "libzstd.so.1",
+        "libgz-common-testing.so.8",
+        "libgz-common.so.8",
+        "libgz-utils-log.so.5",
+        "libspdlog.so.1.12",
+        "libfmt.so.9",
+        "libuuid.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ],
+      "RPATH": [],
+      "RUNPATH": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib:/home/nkoenig/local/lib:/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib"
+      ],
+      "resolved_needed": {
+        "libgz-sim.so.11": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib/libgz-sim.so.11.0.0~pre3",
+        "libgz-fuel_tools.so.12": "/home/nkoenig/local/lib/libgz-fuel_tools.so.12.0.0~pre2",
+        "libgz-physics.so.10": "/home/nkoenig/local/lib/libgz-physics.so.10.0.0~pre2",
+        "libgz-rendering.so.11": "/home/nkoenig/local/lib/libgz-rendering.so.11.0.0~pre2",
+        "libgz-common-profiler.so.8": "/home/nkoenig/local/lib/libgz-common-profiler.so.8.0.0~pre2",
+        "libgz-common-av.so.8": "/home/nkoenig/local/lib/libgz-common-av.so.8.0.0~pre2",
+        "libswscale.so.7": "/usr/lib/x86_64-linux-gnu/libswscale.so.7.5.100",
+        "libavdevice.so.60": "/usr/lib/x86_64-linux-gnu/libavdevice.so.60.3.100",
+        "libavformat.so.60": "/usr/lib/x86_64-linux-gnu/libavformat.so.60.16.100",
+        "libavcodec.so.60": "/usr/lib/x86_64-linux-gnu/libavcodec.so.60.31.102",
+        "libavutil.so.58": "/usr/lib/x86_64-linux-gnu/libavutil.so.58.29.100",
+        "libgz-common-io.so.8": "/home/nkoenig/local/lib/libgz-common-io.so.8.0.0~pre2",
+        "libgz-common-geospatial.so.8": "/home/nkoenig/local/lib/libgz-common-geospatial.so.8.0.0~pre2",
+        "libgz-common-graphics.so.8": "/home/nkoenig/local/lib/libgz-common-graphics.so.8.0.0~pre2",
+        "libgz-transport-parameters.so.16": "/home/nkoenig/local/lib/libgz-transport-parameters.so.16.0.0~pre2",
+        "libsdformat.so.17": "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2",
+        "libgz-gui.so.11": "/home/nkoenig/local/lib/libgz-gui.so.11.0.0~pre2",
+        "libgz-transport.so.16": "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2",
+        "libgz-msgs.so.13": "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+        "libprotobuf.so.32": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+        "libgz-common-events.so.8": "/home/nkoenig/local/lib/libgz-common-events.so.8.0.0~pre2",
+        "libgz-math.so.10": "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+        "libgz-plugin-loader.so.5": "/home/nkoenig/local/lib/libgz-plugin-loader.so.5.0.0~pre2",
+        "libgz-plugin.so.5": "/home/nkoenig/local/lib/libgz-plugin.so.5.0.0~pre2",
+        "libgz-utils.so.5": "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2",
+        "libQt6QuickControls2.so.6": "/usr/lib/x86_64-linux-gnu/libQt6QuickControls2.so.6.4.2",
+        "libQt6Quick.so.6": "/usr/lib/x86_64-linux-gnu/libQt6Quick.so.6.4.2",
+        "libQt6QmlModels.so.6": "/usr/lib/x86_64-linux-gnu/libQt6QmlModels.so.6.4.2",
+        "libQt6Qml.so.6": "/usr/lib/x86_64-linux-gnu/libQt6Qml.so.6.4.2",
+        "libQt6Network.so.6": "/usr/lib/x86_64-linux-gnu/libQt6Network.so.6.4.2",
+        "libQt6OpenGL.so.6": "/usr/lib/x86_64-linux-gnu/libQt6OpenGL.so.6.4.2",
+        "libQt6Widgets.so.6": "/usr/lib/x86_64-linux-gnu/libQt6Widgets.so.6.4.2",
+        "libQt6Gui.so.6": "/usr/lib/x86_64-linux-gnu/libQt6Gui.so.6.4.2",
+        "libQt6Core.so.6": "/usr/lib/x86_64-linux-gnu/libQt6Core.so.6.4.2",
+        "libGLX.so.0": "/usr/lib/x86_64-linux-gnu/libGLX.so.0.0.0",
+        "libOpenGL.so.0": "/usr/lib/x86_64-linux-gnu/libOpenGL.so.0.0.0",
+        "libtinyxml2.so.10": "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0",
+        "libdw.so.1": "/usr/lib/x86_64-linux-gnu/libdw-0.190.so",
+        "libelf.so.1": "/usr/lib/x86_64-linux-gnu/libelf-0.190.so",
+        "libz.so.1": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+        "libbz2.so.1.0": "/usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4",
+        "liblzma.so.5": "/usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5",
+        "libzstd.so.1": "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5",
+        "libgz-common-testing.so.8": "/home/nkoenig/local/lib/libgz-common-testing.so.8.0.0~pre2",
+        "libgz-common.so.8": "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2",
+        "libgz-utils-log.so.5": "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2",
+        "libspdlog.so.1.12": "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0",
+        "libfmt.so.9": "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0",
+        "libuuid.so.1": "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0",
+        "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+        "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+        "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+        "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+      },
+      "reachable_saved_metadata": {
+        "/home/nkoenig/local/lib/libgz-common-av.so.8.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c09d520cdf4a8118cbd882d3fad6411e6e920952130b838d2302dcdade5e98f4"
+        },
+        "/home/nkoenig/local/lib/libgz-common-events.so.8.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c1a6d2a84d9d8abc37622b5e49b4659b965427ef559fb1ee9310020eb78f0114"
+        },
+        "/home/nkoenig/local/lib/libgz-common-geospatial.so.8.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0dbdaf4ddd78f50fd9a986ae6c5a449368ce5f5fcb1acf4ea0ade1868f12c268"
+        },
+        "/home/nkoenig/local/lib/libgz-common-graphics.so.8.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c3daedd3bc816e8aee371be13a7b438b38be7b1d981e520d528272dbead2252c"
+        },
+        "/home/nkoenig/local/lib/libgz-common-io.so.8.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "beae5710e32b7b2c6e0c090571574ecef5360cec0bb75f4107610eea61a894ba"
+        },
+        "/home/nkoenig/local/lib/libgz-common-profiler.so.8.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "114e849df83b7cdacff7b0a8ea45a53aab181837f232f815cdab354cc619aa02"
+        },
+        "/home/nkoenig/local/lib/libgz-common-testing.so.8.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "8772edfb16b6e0f8b733a133875bfa92c26b5b2fafd481610162cb70f7717fa5"
+        },
+        "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d2ef9729edc0b0a4a147cc74fb9a1b5cde45dd90bd12b7162d0ef5adc3b6d629"
+        },
+        "/home/nkoenig/local/lib/libgz-fuel_tools.so.12.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "65ddc404892ccb9df244153e949632bee2834efe4fb3c2fcc72891d764e9d69b"
+        },
+        "/home/nkoenig/local/lib/libgz-gui.so.11.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "8ed78e971dc1148dee6a589f8bb5fa25c2232e8611b306f1abaae33f137aa969"
+        },
+        "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b6e05f8d28602efaa8c764afbf4c0e1921827587b13c5209356752989c9de5fe"
+        },
+        "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3a5efa089ae326306d2511572f754369a6e8cf6f23ce9973ab7272a4e6e21089"
+        },
+        "/home/nkoenig/local/lib/libgz-physics.so.10.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6cd07fd76a0eb8686694f52aad3a3ca990a9310754e5fc2a186b6b0b7a748e81"
+        },
+        "/home/nkoenig/local/lib/libgz-plugin-loader.so.5.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "84c9e55fdfd0a31d3703c4379096987f271df791894e4596dd15ea91572d7311"
+        },
+        "/home/nkoenig/local/lib/libgz-plugin.so.5.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0a9a229bee6ee27d4c03e7640cb77018fc2ddd20301b8157ea599e704f650c30"
+        },
+        "/home/nkoenig/local/lib/libgz-rendering.so.11.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "cc7fca1879155792e0bea09142126b458fbe99d2b84d89e81d815e18fc349a69"
+        },
+        "/home/nkoenig/local/lib/libgz-transport-parameters.so.16.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "95f65422d63206b620a156529d2ad17fb54edfd40cb8443e1e1286d16afe2d22"
+        },
+        "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b8a9ec30879e285f83462fad128dc5546d5e2d5cf588f7c9eb206ce963cd51e3"
+        },
+        "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a44ebc2441ad62a226b17f24c3470c07e601b38d21e3391d586cbcf4062c8efc"
+        },
+        "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4280d902d9b1a8ad1e1bd5fd9ecbcadde57f8a6824c91f486a5a5707ae169ce9"
+        },
+        "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "97762e0d8dacdb2fad41e424e6d1235d1841b8fa2da94c9da1c1a64989b785ee"
+        },
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib/libgz-sim.so.11.0.0~pre3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "dc9e83b4a5edec97390a026e7c387f6f214bba1a99767e1267442a8a3cf5a018"
+        },
+        "/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib/libzenohc.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "9dd398f8f3f87f693d948692084f29b59a0bbe642b0259cc946cc4dd5cdef427"
+        },
+        "/usr/lib/libarmadillo.so.12.6.7": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d32b1e999caa23f2efb49325fb75000e39316c79f1588e103953295948d59079"
+        },
+        "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f0cd468a3c8ba6a7cafcd0a43ba99f3afd23410c925d0bd41a48d04488997f59"
+        },
+        "/usr/lib/x86_64-linux-gnu/libEGL.so.1.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c8159af58fb54141bc1fa42cfc77d63f2d3a86e432968899ec7d7477ba36d4cd"
+        },
+        "/usr/lib/x86_64-linux-gnu/libFLAC.so.12.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "83e0298bce5fc4313aaa0aaeb1e0aa75229e199f9bbee6b03d5913a5bec90273"
+        },
+        "/usr/lib/x86_64-linux-gnu/libGL.so.1.7.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6bfa62d2d3934827dd2b2c9943692f006968c10dda08e0c44cd40583a58b1ce5"
+        },
+        "/usr/lib/x86_64-linux-gnu/libGLX.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d780ddea6c0c1c17a39524dfc298073bfb39a9722e310ce7b075673125130b63"
+        },
+        "/usr/lib/x86_64-linux-gnu/libGLdispatch.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5f590d9f3017eb363c95371325560c1d2f63ed5af90a760ef3006796901538c0"
+        },
+        "/usr/lib/x86_64-linux-gnu/libLerc.so.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "1d9de96a4b51d04496d92dc068525d4bf887ee2f817caf4fab7247da3b9db61d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "75d437984e629cc984f8733061d4b1aaacaaa47f5ad04ea0c738940100f4e75f"
+        },
+        "/usr/lib/x86_64-linux-gnu/libOpenGL.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c1cf1ecdeefb4eedeb2076708459cbee2c178c18da6674a2eaf9634866127129"
+        },
+        "/usr/lib/x86_64-linux-gnu/libQt6Core.so.6.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "74cefa74cfddefc035e4236a1d4cff6ebaf2c513e70de4c2511d43e51913e855"
+        },
+        "/usr/lib/x86_64-linux-gnu/libQt6DBus.so.6.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "998f609f98144116ef90189a89c8cb50c0bdb73c69d547efb1aceeb0c33fbdaf"
+        },
+        "/usr/lib/x86_64-linux-gnu/libQt6Gui.so.6.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f09e79d93ec2a3bd7cbd8f3e3165dde7c484e159fc52a478233ff40918d42401"
+        },
+        "/usr/lib/x86_64-linux-gnu/libQt6Network.so.6.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c260276b31bd1cb6b654351bf8cfe80fd1ed47e43f23045fd7ec802a00a196a4"
+        },
+        "/usr/lib/x86_64-linux-gnu/libQt6OpenGL.so.6.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "1e6b4e0dab24bce979359625a36869d6afa359073a89c69de7963b324e2472b7"
+        },
+        "/usr/lib/x86_64-linux-gnu/libQt6Qml.so.6.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "570fa2168dde25ae6c028e702c86b9596da2b394d21a9f0c97850ca32f35f360"
+        },
+        "/usr/lib/x86_64-linux-gnu/libQt6QmlModels.so.6.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "037912d07b4e6d7e3e846902ea21701bc2b81aa7308d3d0285ed5e937aad91b1"
+        },
+        "/usr/lib/x86_64-linux-gnu/libQt6Quick.so.6.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3e216ed3c602747255d17fb681cfb5e11c3ea430aaf9e8753dc8aa5423f8c052"
+        },
+        "/usr/lib/x86_64-linux-gnu/libQt6QuickControls2.so.6.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "bc4ecbd4d753606e2c8e5914d158417abcc54a32cec3409563a6a6f7df12bb19"
+        },
+        "/usr/lib/x86_64-linux-gnu/libQt6QuickTemplates2.so.6.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "1ddcf3ace0525c5e93c31ba1dbf59fc866cd877b4994b7b4c71bde4db4746d98"
+        },
+        "/usr/lib/x86_64-linux-gnu/libQt6Widgets.so.6.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6708f22a36d528bb75f1f259e16d938298d3b5b06a80d8b7a0f071f610174a7e"
+        },
+        "/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0.3000.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4e64c4014a1b2cc41f242b5deacd6156445e94441cb4c430990fa5704332823e"
+        },
+        "/usr/lib/x86_64-linux-gnu/libSvtAv1Enc.so.1.7.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3cc632fac2c83737f22823d1ae2216cb72834c0eed4fb7a731f23e053fd53593"
+        },
+        "/usr/lib/x86_64-linux-gnu/libX11-xcb.so.1.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "bdad7df885c3527323a073e72e040d69f985d1b26daeb4ff36dcd839451445b6"
+        },
+        "/usr/lib/x86_64-linux-gnu/libX11.so.6.4.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "af864a44e9c85e906b289f8c853f7f826a94b9ad8c7057913c17ddcc9a4d61ca"
+        },
+        "/usr/lib/x86_64-linux-gnu/libXau.so.6.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "1f2d36b043b849fa0717b7ff6f992db7fe8adcd820b47d637e8249162fa0c9a5"
+        },
+        "/usr/lib/x86_64-linux-gnu/libXcursor.so.1.0.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c3e9ac99682c68fc185138564a71d37bff21128f97dd17c639d244de200e7db1"
+        },
+        "/usr/lib/x86_64-linux-gnu/libXdmcp.so.6.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "fdcfec2b01dc6d6a974f05cec1504c21e562dcacf8a20f9f1f7fd8bf852ee879"
+        },
+        "/usr/lib/x86_64-linux-gnu/libXext.so.6.4.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "9d4c5afad5a3c2f9a4c62e70f4b28eac08fd31a6a0e08ae2a8104c760a8ea17a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libXfixes.so.3.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "71c81b69f04b4ed1233830428735520b76ae5b0a0cb29ee95316da38f5cb76ae"
+        },
+        "/usr/lib/x86_64-linux-gnu/libXi.so.6.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0bdc5868a04f50646e88b69bbd8c27eb441e6aa4beb5b302be43f646dfed0591"
+        },
+        "/usr/lib/x86_64-linux-gnu/libXrandr.so.2.2.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6287a7c341735f30780da5c5be74a0b034acfdf60d1556c3ac4c9c63b5ef31f9"
+        },
+        "/usr/lib/x86_64-linux-gnu/libXrender.so.1.3.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c72c86f5e4b1e4e4240940d2d45e95cc88137a3629f2b5b7fd55dc33c1ef5ccb"
+        },
+        "/usr/lib/x86_64-linux-gnu/libXss.so.1.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "38177ccd97e4ae9591bb80f28dff4c7196e54adc34601ba01b2e6918deb5f143"
+        },
+        "/usr/lib/x86_64-linux-gnu/libXv.so.1.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "40a981d65c915863abfa4b805a6546b1829fa44e7949e3af37ec4c005d6755b1"
+        },
+        "/usr/lib/x86_64-linux-gnu/libaec.so.0.1.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "10e086702c32fc5eec11739821b7130e05d8c6093772ea84510b213f60ceec43"
+        },
+        "/usr/lib/x86_64-linux-gnu/libaom.so.3.8.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d6af576da82ed113c088247068c23a67d9a51f7b7f39913c5360f0d42050745a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libapparmor.so.1.17.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0d464804e4bdf44fae9fa97163198dc180104c7b5044b60c5d16abdd9225ed22"
+        },
+        "/usr/lib/x86_64-linux-gnu/libarpack.so.2.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "806f48643af6a7d764468a0c44a48e89070a519495e5e1dd712d9d1c9de41fdf"
+        },
+        "/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a4e859270a478444c9a5a2067fde45a84645aef003daa669794f135520236a7e"
+        },
+        "/usr/lib/x86_64-linux-gnu/libass.so.9.2.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5f73e7a3500bab0c49a1893cf78c162a3ae3148327831e345dccbd12b4f5bef2"
+        },
+        "/usr/lib/x86_64-linux-gnu/libassimp.so.5.3.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6d2420584f7b4121d8cb9c8776feb4d0950ceb9dc3fa7af1b0a190f7009738d8"
+        },
+        "/usr/lib/x86_64-linux-gnu/libasyncns.so.0.3.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "1d9d2a12caa8d92dd2861af15800551e38b4c447d6b21db74e15a7b26b09911d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libavc1394.so.0.3.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "802ed0459bf425317dc4b26ebec382ecfee92d29e19496c90e7c665b6b71eaf6"
+        },
+        "/usr/lib/x86_64-linux-gnu/libavcodec.so.60.31.102": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0805402e7736bfc405aa04e71fb42b6991a3fcba8dc6257a05d622cc820bda1c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libavdevice.so.60.3.100": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "96472ef4d9d5c5ac0bbe697fcca6bd4e9566c4ea6b8dfe1ad10669950e278b15"
+        },
+        "/usr/lib/x86_64-linux-gnu/libavfilter.so.9.12.100": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "08309c243ca53a61afbbbcbf722d1d523159500388e2281d97a9d20ba4963e7f"
+        },
+        "/usr/lib/x86_64-linux-gnu/libavformat.so.60.16.100": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f7b12ab7e8bc5d4e8d7b35448945790b076c0a627f831b3fadab83d91ff7b94e"
+        },
+        "/usr/lib/x86_64-linux-gnu/libavutil.so.58.29.100": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "18f8d57a1b1d27db5d1d399e8048080a7eab5a922a9076b169e36d945e1e8251"
+        },
+        "/usr/lib/x86_64-linux-gnu/libb2.so.1.0.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a8bd52745bdfb97b403b8f135027bf7253733d4f31f282965710b79e80706218"
+        },
+        "/usr/lib/x86_64-linux-gnu/libblkid.so.1.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4f3eb0f2186bc7a2e949d318563e33e776b2f08819bcd7ef3801a288291f3729"
+        },
+        "/usr/lib/x86_64-linux-gnu/libblosc.so.1.21.5": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4ed5650369841529eadab9a953e1c282782b18a5554a37ec924856eaaf01e028"
+        },
+        "/usr/lib/x86_64-linux-gnu/libbluray.so.2.4.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "32fb6d5c70a3c393abda9857181c85dec60733ff047990971fba4682e5e2b606"
+        },
+        "/usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b76cb2c268e62cea5fc4746d70ae8c3bfcdaf40bffa8e72a0a7be7bd0d973f48"
+        },
+        "/usr/lib/x86_64-linux-gnu/libbrotlidec.so.1.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ce5d36d27a8f68a487d6bde87ee64611a18e09b63f48c978666423746743355d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libbrotlienc.so.1.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4d5a59848d08fe258b76f60e92e7215768243948b4caaaa5994cb91bd0a9bf3b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libbs2b.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5630db3978898a8616ae6c94b1c82e9dc0bd7525ab2bc0fc6dd71b7b7358a753"
+        },
+        "/usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "bf3bf820cd6fb2ae0c1281aed9818f49df4408e0853161cb08a9f62c6b7f033f"
+        },
+        "/usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7fe5576b60f9f9a3df039b9add31a194813628e67596e676a1472b8f383e392b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libc.so.6": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ea683eb925f879401aeaaa236748caac4cca32c63ed098f8b97ed860023b4f42"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcaca.so.0.99.20": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "233edf5969c61115d85a11d17a84b69d0bde263219070c1c3fa5b4934944422a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcairo-gobject.so.2.11800.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3d986752c8f78d065342a0cf00e52793b31f08a427de17cf50e4c3b57a5c52b2"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcairo.so.2.11800.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "afc16c016645c4116049d30d41a54f5bb03175a09248437d723f60bbe65b5fdc"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcap.so.2.66": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a6a285f014609329f80de1cb0528c79a91db19402aff8772f2554e294b0502ff"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcdio.so.19.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b56abde3cc87c183072e4110229cfca92d2ee41346dddfee1dbf1bcf1e125e6a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcdio_cdda.so.2.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "701397b9f2b74d35d47155972558b6347a85f96aeac16c979038f978a0f91085"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcdio_paranoia.so.2.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "01bf753ebc3e985490436a20d3d117b458c48450b409341991d755025346ed47"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcfitsio.so.10.4.3.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "af164c187aa773402e438b4f393e7225bc02f3105b082ab0d5b59944c20c3617"
+        },
+        "/usr/lib/x86_64-linux-gnu/libchromaprint.so.1.5.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a71358dcc52239dfdbd7f109448f7cc8cd17e1af488f74ae1aea5b8cd8508e46"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcjson.so.1.7.17": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "427f1c348daa701e96611afe44f78c415900c9bc3b747f44d6657a6fd25d1451"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcodec2.so.1.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6ca3817adfea4e2db21fdf9c25994a73b33abe8d84eade37c934eb1aa091029c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcom_err.so.2.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c84502a1fe60755bcdf529aaac91ded037d606ffec9e1c7a9998df7cedb15b8c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "dbd4c58e72a9662ad0611891d3748ddd821f1c9d489e7bd2c8a9c5ec7f5d3017"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcrypto.so.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b696e0587ff6361a48021fce2a3a49d71ac102445de3678315f5bca5857bfe06"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcurl-gnutls.so.4.8.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e4ec36c8883ae746594f30fd9115416343cafd4e4e92d1794c732d59b271575a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libcurl.so.4.8.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "8800f830dbb0d9dd2e74ef77544a0839e297e5c66ddcf1f82b5061e12461b09c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdatrie.so.1.4.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "fa858c42d0250a90d554aa2b9606bb033df3fa107f12f4c5b40bf93def5276e0"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdav1d.so.7.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "30f9085586fe173a9e2d2703a3452f589590712ce8263726a5b4314a40627843"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdb-5.3.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "2f26c6470a0f9d3bbd473e868b70e2e8b66985186e194e399bc9b427d841eae0"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdbus-1.so.3.32.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b89e895526a4882cc9081792ee396d9ff127baaa0a7cb943bf2912c4acad1f2b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdc1394.so.25.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a171403a607d2e6235272ee9d8092da2b9e99cf56cdb5e5b348b499de4244783"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdecor-0.so.0.200.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "185c5935239fde4da9949382732a085e761e0ef1c0a7cef6a362489d5215d5c6"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdeflate.so.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f1f130a0ed8db01f449ef464b5884c9c2fdccbb0ba75594b7e845081b8e74c2c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdfalt.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ae72cea503bfef0dcb06c1a5833a3d387bcebcb3d7e14d796f0b3add08d43f9d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdouble-conversion.so.3.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7ed147fa98151ea9dc09ed944822d2cd5cfb819add5457437623575b4fba4dcc"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdraco.so.8.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "db7ba6e8f7b84bd95a5dce9e54dd53973e73b1f1458956d3ee4985d89ce7a84c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdrm.so.2.125.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ba72e67b4e8cee490325ff6fd01869f7a90c7f7b553a2ecf80084ca20d44c360"
+        },
+        "/usr/lib/x86_64-linux-gnu/libduktape.so.207": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e71d10f10023c428dc7422e1db496cc87bdfe371bdcc0d51df3ca808d9e3cdb4"
+        },
+        "/usr/lib/x86_64-linux-gnu/libdw-0.190.so": {
+          "scope": "separate-exact-two-link-inputs",
+          "saved_row_sha256": "e8f9ac08ef6f13eb52c534056ef26e14b047ce22b1d0a6fc02d1edd0fafdae92"
+        },
+        "/usr/lib/x86_64-linux-gnu/libelf-0.190.so": {
+          "scope": "separate-exact-two-link-inputs",
+          "saved_row_sha256": "0acab8c163f3cd31189579c491d0ad4b45137c7f1929e418011a22770f40552a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libexpat.so.1.9.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b624604c85f02616ea1ea60bce2d4046838a49dbf3aafda874c87ff7a08c98e7"
+        },
+        "/usr/lib/x86_64-linux-gnu/libffi.so.8.1.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5980b1188a4aac55976d16c08bb9ebd86d853a94eeafa45f83ee7b0a9259a43f"
+        },
+        "/usr/lib/x86_64-linux-gnu/libfftw3.so.3.6.10": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e2236ea11157e5b7ccfb4c9561b3aad01559f5e302584f7396525fd6452bdd17"
+        },
+        "/usr/lib/x86_64-linux-gnu/libflite.so.2.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "793f6bca9ca3fb6320dc371ce56164d93492383faafef8ae887c29dc821d5dc0"
+        },
+        "/usr/lib/x86_64-linux-gnu/libflite_cmu_us_awb.so.2.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0c945d6ec35cc1e99a79a74ceb6beafd3770384367c9b516aca50650b8d0184d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libflite_cmu_us_kal.so.2.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "616ac0b8750f3b3d95547f1256c49c2f158aa893b0cd75f040be22ad74152284"
+        },
+        "/usr/lib/x86_64-linux-gnu/libflite_cmu_us_kal16.so.2.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5b34d2b6869df076768f522ca3f0961a7a5b622b3f18d7521c6afd722c26e5bb"
+        },
+        "/usr/lib/x86_64-linux-gnu/libflite_cmu_us_rms.so.2.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "8afb8decbf78823c247cb41a3db250bafc09f0f9339258e0601971be522731a3"
+        },
+        "/usr/lib/x86_64-linux-gnu/libflite_cmu_us_slt.so.2.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "bff664ed7df0fad40fce9e2bfb0dfcdad7f5f4016e7e8df6d90f9a8151c3ec31"
+        },
+        "/usr/lib/x86_64-linux-gnu/libflite_cmulex.so.2.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "1c4c5df9f32653889acdb90fd248c313dbb76701df63b93cc6f08130b1644bda"
+        },
+        "/usr/lib/x86_64-linux-gnu/libflite_usenglish.so.2.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "016afcf6e0bae78e3b3dbbe943a52ddea4c6f1269053e34529734467d4d3219e"
+        },
+        "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "89badfbd5897f7b5e69e6daff3061df88dccce1647b2f775583d888d7cd1fc8b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libfontconfig.so.1.12.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "9a9cdd506855224924b35d2354b12b83528fab908eb5b29783634842936c743a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libfreetype.so.6.20.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "bdb7b7e49879832881a62870369263fe457ccd46e12076e51cd7c2bbc60bdd03"
+        },
+        "/usr/lib/x86_64-linux-gnu/libfreexl.so.1.2.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f087ffc936e244072c727d59c3a3da49cf73e5dfcfa3896228438ba3c2b84ce5"
+        },
+        "/usr/lib/x86_64-linux-gnu/libfribidi.so.0.4.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "9f405968db2a8f0c76bd44cebf363d5768d5823ae987ef2b7290df38db5c1a99"
+        },
+        "/usr/lib/x86_64-linux-gnu/libfyba.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ff9a445052adaa3c5ab57a583d5d290d506b90bfc8e454b78e46e419a9198b55"
+        },
+        "/usr/lib/x86_64-linux-gnu/libfygm.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a8fda5e2b78a3237176ffd603125d2367322b19cfce1222a47cf3dc97aeda29a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libfyut.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f4d72ad12b294b809f64b4d8827dbffb4f619df1baddb89137b5f55d6b721c14"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgbm.so.1.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "2912eb69509ee8699e2b305b6a73dd38d2d031965bb9348831665a3bac790190"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e99dced6edc16cd058c4b4648c293f3bd63e3c677f353d73b79d78ebdd4b0751"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgcrypt.so.20.4.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d1ee11f1bce7383d80c4df1269ca874020eb53621978b3b7236bb241ec9d5c17"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgdal.so.34.3.8.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d3ee0907f4f2ec97eca60515bbe7a416407cc30da10d087c0f04741342be82a2"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0.4200.10": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "00c6e0e4f3ba3db079e62e3061b535d01bd9a0fc3ce695d1f903e320bc101c7a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgeos.so.3.12.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "406fb7223e545b552042bf4a7cb29c24595e6eaa76ad8cafac64315da27c30ba"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgeos_c.so.1.18.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "fa19b302f180c768287d060634dd75b87ca7ae82d1ea0c7ab1a0e1236bd38ad8"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgeotiff.so.5.2.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b9751a179ee59c6fc44bd37542c015dcd993f882c865dfefa5d002e612b185b9"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgfortran.so.5.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e6c16bea6944e61574e9e9d5316353f5e0191a6e639047fc65728f92ea2b7799"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgif.so.7.2.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f1d669f464ec396a8354d0a9b1f7fed1e5e06451ec741fa3649e56a159605045"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.8000.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "73077733831c9b5f97aeda556bb35b75e445407ae1145b1a08b1551445dd5258"
+        },
+        "/usr/lib/x86_64-linux-gnu/libglib-2.0.so.0.8000.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "8ef5c102527ca9a04a63e5b616bd0bd9fd622f979c3b00aa0ac4af918fad8627"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgme.so.0.6.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "88660f954ae0337641cbc2af85e0a531cf20d23cfedc9c2cff3ae5850f4a7cff"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgmodule-2.0.so.0.8000.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "81e39e4b5386c7dfbd19d94d6324345b01c225abbea2c6d82e0754831b520148"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "25c41a79e9f398fb7c39b7bf6d86e8068a428038b1ffb37832f4db47cf809e7b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgnutls.so.30.37.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4594067e1e789117526301f694522cbfe7a48123c5802bd9776813f229705f45"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.8000.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "468aade63eb57cc6fbfbe1210e06810cc1743ece366abb70304422bbfe0eb6b2"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "92982ffc6ae421489d8321320b0aa5073c8de99c8a70929ae7c6b34b9a78bc00"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgpg-error.so.0.34.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e5b94a50f660f8d2bacfe1daf9c1149662624e8dd0e7b9735ccc5b47ce9b7fd5"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgraphite2.so.3.2.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7e758be53b71591617ffd28e44d5d92fb06fdfe9e7298eeb4cce5d7a31758668"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgsm.so.1.0.19": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b13e7cacadc6f5d677ecbd9381e42a24d285306bfef4c65da42144b96a4fe126"
+        },
+        "/usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0f94e3f660c310eb3c0a3ea833c1ddda2be272f5decfef2bd014032384a8377d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libharfbuzz.so.0.60830.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "2d89decd791a265310d2ad73986fba5146e2adebf41be46c445dace07cfcda77"
+        },
+        "/usr/lib/x86_64-linux-gnu/libhdf5_serial.so.103.4.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b4e33842137a65487208ce5305649d3ef19b350449eb36d9de44f8dc103acb99"
+        },
+        "/usr/lib/x86_64-linux-gnu/libhdf5_serial_hl.so.100.1.7": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b5a4df0180425ef59d958da9b409a72bd7a6ee14c798e1df3148fd4a50f5020e"
+        },
+        "/usr/lib/x86_64-linux-gnu/libheif.so.1.17.6": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d6bcb5dc525b52a242e9ca6df966f79bf62aa4560378684ff022ff0800522f2d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libhogweed.so.6.8": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4a98601df82bf6d5897f651567cc2fdb4ec240122fc90d483c9ad2a4eec438d9"
+        },
+        "/usr/lib/x86_64-linux-gnu/libhwy.so.1.0.7": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "14facabb6fbc314ca2cca6eebc73536b621d9fa1f9375378e528396b64b5f89a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libicudata.so.74.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c7978b5c8305fb196d0e72aecf40941297e5ab1124d6afa52e337507a9e8aa35"
+        },
+        "/usr/lib/x86_64-linux-gnu/libicui18n.so.74.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "32835be423560c19652e5be10a4879fc4024b1788d6860ce785f5010b9c51c98"
+        },
+        "/usr/lib/x86_64-linux-gnu/libicuuc.so.74.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "eb8aa520ca513497181c9b96e7e18f96cf508b5e074d4915fe8e604aa415eeb6"
+        },
+        "/usr/lib/x86_64-linux-gnu/libidn2.so.0.4.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7aaa5cc85951a44a0282f41c336aa7415f6734ff22c5a37841613141d0e6d77d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libiec61883.so.0.1.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e8f417d71713d465b430bb704f263e7245fa0e24bcf2f04a8f87ce48f3cbdf6d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libjack.so.0.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6e9876157431f9f414679b65558f444ea2e036cfa65a29b78d3ef9b93fc0f4f4"
+        },
+        "/usr/lib/x86_64-linux-gnu/libjbig.so.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "48ba287a2fa7b9e0aeffdffb6fa672c77a986b5810f4bebd96fdd4bae80397a7"
+        },
+        "/usr/lib/x86_64-linux-gnu/libjpeg.so.8.2.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "16ed2378338a7df00b0e315818d787f293c25d2651d0891de3f3cd3247e856ca"
+        },
+        "/usr/lib/x86_64-linux-gnu/libjson-c.so.5.3.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6dc67d75bee2b0c283fb9ef2956238350971b53bcaf26166145209e15aaa7026"
+        },
+        "/usr/lib/x86_64-linux-gnu/libjsoncpp.so.1.9.5": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3b2370ac906b7c146844423b637b4d78606b9e322df0c9b48c8511735fd1799b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libjxl.so.0.7.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4b3172aa6ce44b845d2eebb1a3efd76d0c4f81d07d83d5df1402d3e579cbcf2e"
+        },
+        "/usr/lib/x86_64-linux-gnu/libjxl_threads.so.0.7.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "68995ddf0fda9d8d92557d5d349068023fcda9e899ad1e2784bca928e848645a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e35cd0036bb66e1a8d016e9b9c8067f84726a9e9fe58b7d899f1d0de833d0b98"
+        },
+        "/usr/lib/x86_64-linux-gnu/libkeyutils.so.1.10": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "85d34ffe04f7419e0330a7a1067e92441131417eff62ed33e1e6c558efca89f6"
+        },
+        "/usr/lib/x86_64-linux-gnu/libkmlbase.so.1.3.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c098c5bb346a11e63771b15980087c422cb101d248caf52e41a44e2eb0da60ff"
+        },
+        "/usr/lib/x86_64-linux-gnu/libkmldom.so.1.3.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "70a699d31c9f35057c31349b72ce89debf5f0e253e1b197aecb909d56348aef8"
+        },
+        "/usr/lib/x86_64-linux-gnu/libkmlengine.so.1.3.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "07c4cb45ce99254f88747c29e5df0e077aad5fbb954dcf611b06725851f30efe"
+        },
+        "/usr/lib/x86_64-linux-gnu/libkrb5.so.3.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "57874ff153898404675639cdb6645142b3c00471ba51a626167c5bbc6de53515"
+        },
+        "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "1bf5a80444cd031a286af95e029d8d040ca01f2451f2cc36c8673cfaaa3a8035"
+        },
+        "/usr/lib/x86_64-linux-gnu/liblber.so.2.0.200": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "84d6bb5039408749331d8f9428a422d67b2807a91ed9b1ae336a9105914be2fc"
+        },
+        "/usr/lib/x86_64-linux-gnu/liblcms2.so.2.0.14": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7c491ca200a8cef42d4a61bcb16b25b231cec614e2b5296ac51e6d9e41d3aafe"
+        },
+        "/usr/lib/x86_64-linux-gnu/libldap.so.2.0.200": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5071fb7b37e939cb69d9ef5f634f8ba1c0175afdf3b5fcd4a8658ed5b5fc8ae7"
+        },
+        "/usr/lib/x86_64-linux-gnu/liblilv-0.so.0.24.22": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7394387a666aaeaf90f476e6c90f59df18e7d4e833e115b5280c44300bbb67a7"
+        },
+        "/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "867ffd0bd8e9928d3ca36209a117f64f02baf9766c8a8e5a7df3de199cc5cc05"
+        },
+        "/usr/lib/x86_64-linux-gnu/liblz4.so.1.9.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e3a0d0ee377a4feee6b6880f2fa87184ae137e613596c77dc1566b397319deb3"
+        },
+        "/usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c0beb9caf018a53dc4a2cb804e235faa8a8cf97155f8ebf7cbae1a7fdc211cec"
+        },
+        "/usr/lib/x86_64-linux-gnu/libm.so.6": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "cc8a79666b4243eccccbcca3d12c45cd58a4502c83b8a165b809ac8d177bb755"
+        },
+        "/usr/lib/x86_64-linux-gnu/libmbedcrypto.so.2.28.8": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "64ecd5c5c4cc14e7bf3bf624edadc04d722695cdbf35ba3ef8a6b3546f39a6b4"
+        },
+        "/usr/lib/x86_64-linux-gnu/libmd.so.0.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "bb0248884494215857e35de702742dbd2e5f8bd4705a73ff29274835ce239c42"
+        },
+        "/usr/lib/x86_64-linux-gnu/libmd4c.so.0.4.8": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "bb3496e179e37486ce3a9fa9208ef78e9d489aad0e4f1efa58809d9f661df227"
+        },
+        "/usr/lib/x86_64-linux-gnu/libmfhdfalt.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0b1b300dcce071a9dcd5761014f961df869d2ced339e1ad693537aa07d433c46"
+        },
+        "/usr/lib/x86_64-linux-gnu/libminizip.so.1.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "814271e70784086038e152a203e3992eb886c0ba0f1a667f194b40f58e52463b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libmount.so.1.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "cb42f346ac123286e00b71c9d54969263139efddc681203ed4b0edbe59354357"
+        },
+        "/usr/lib/x86_64-linux-gnu/libmp3lame.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c6668eee3d8abe129cc45ff5b78e76d68fc174d40b43ef381717bef3837256e8"
+        },
+        "/usr/lib/x86_64-linux-gnu/libmpg123.so.0.48.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "24aeb24042a6eb69c08ed6d89dc3dd0d030fa2055c437b2f333a319231543204"
+        },
+        "/usr/lib/x86_64-linux-gnu/libmysofa.so.1.3.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "05ad12f6804c4831ba0924b31b433b560120eba44256a71b9301852ced76456b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libmysqlclient.so.21.2.46": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "800f1db83dfaf9c8fc0fe023509949457ac21c45ca05440056c834fde390172c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libncursesw.so.6.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ef5b0188efdf67a2c919426fd1ddfc57eccfe0d5fbb47f6ac9d0c063ef976ddb"
+        },
+        "/usr/lib/x86_64-linux-gnu/libnetcdf.so.19": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a82baac57453a046cd470b01ac07394895fa8b847142c0ba00aa4bd0887ee5a7"
+        },
+        "/usr/lib/x86_64-linux-gnu/libnettle.so.8.8": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "dd92beda0d2dfcc08f645773cc90845684baafa4c99018c6d09e13a828f619ef"
+        },
+        "/usr/lib/x86_64-linux-gnu/libnghttp2.so.14.26.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f6b7df4efcb40c66427d8702bff8f3675c46eea9fef3caba4eb6502babf2ab82"
+        },
+        "/usr/lib/x86_64-linux-gnu/libnorm.so.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3064ebc32225bc8ba4646a69e47c0dd0077e9427204f484542d74d96da4069b0"
+        },
+        "/usr/lib/x86_64-linux-gnu/libnspr4.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7b08f9c35928975d66f1f3050118459d1e1be6797b8c8aad81e40ab18e9e528d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libnss3.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "99528277fb21f2a8f93910fcada0fc6360630dcc5f43ab4dd23941e78f9a5eb7"
+        },
+        "/usr/lib/x86_64-linux-gnu/libnssutil3.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "81793859c8b5881a912e52e1ca3695dc70b3361afbd0e80129e7b35f39c76514"
+        },
+        "/usr/lib/x86_64-linux-gnu/libnuma.so.1.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "78f27cb134364ca480ee8d8a0cb9c6d2b84cdd5c46c86d1ff672ebdf91fa7427"
+        },
+        "/usr/lib/x86_64-linux-gnu/libodbc.so.2.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7e65dae1e05c03cd6e9bdb2e47745de340f9d6d5e1a9ace4421c5ee33a2b832a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libodbcinst.so.2.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "39750ad844bbe8c13a47f554367a3aaf4856de34de42c1f4c5c81ef3a9a41abd"
+        },
+        "/usr/lib/x86_64-linux-gnu/libogdi.so.4.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7f5947c28552823789e2db04bf0ac870cec671a1bea68bc73c61b3724e6935b2"
+        },
+        "/usr/lib/x86_64-linux-gnu/libogg.so.0.8.5": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d8ca889e37c5e22719608b2ca7968e9ba1342846d47c6977e14351e9f9d10af8"
+        },
+        "/usr/lib/x86_64-linux-gnu/libopenal.so.1.23.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "95176e854c47b3d4468a367e1776392ff2a072fffe301e6a01b1024e82126e8f"
+        },
+        "/usr/lib/x86_64-linux-gnu/libopenjp2.so.2.5.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4027a5e10d222e9f9b52c826b0d0fc978f7085692dc1d739bed781ba0199e69c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libopenmpt.so.0.4.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "9d0d5ecf1065bbf83252ea4697ea2027659d14f21a082c498d593459d560b54d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libopus.so.0.9.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "76bdd05dd625c586fb01bc72dcbb73447866580ada31e94416cd90b436c044af"
+        },
+        "/usr/lib/x86_64-linux-gnu/libp11-kit.so.0.3.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "966dbdcc37c365d25b027248477003cd239d92175f53b38e2b43319f0245ae45"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpango-1.0.so.0.5200.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "1b83f4d1fe3c182892fcbe9c006d28c4ca908ffeae97bbec2c64fa798b7436b2"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpangocairo-1.0.so.0.5200.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0404ca110729c95867b64164ac149448e3cbec02231f1395c57fb58d6841635a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpangoft2-1.0.so.0.5200.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "2410b3273fe43b2029cf31ea6a097aecb7413e34ad85fa098bc3de3eafb12c49"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpcre2-16.so.0.11.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "9c54fd0551fd1789cdf907eaeedeeaccb7bea0b5f851175f28b9136e5ed70382"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.11.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3f2e33463777580af2383cf7af885d6c7e7dc2ade8a08d6b49b7a894c418154d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpgm-5.3.so.0.0.128": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3b89bc0e2b9a68a154656ccdc5a26b824317b3e609a8f1e967f2b80befad01e8"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpixman-1.so.0.42.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "437948558ca0b4ff4fa225069d1c7331d056832093fa513532da7e511ef660b5"
+        },
+        "/usr/lib/x86_64-linux-gnu/libplacebo.so.338": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "38b51412610097717985df0ea22997b7583e2e00367169717d7e881abf3ce9d1"
+        },
+        "/usr/lib/x86_64-linux-gnu/libplc4.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ace354bdd2abdc73c17d08c21dd5613045b87fdba577a935d51678d314bcbfc7"
+        },
+        "/usr/lib/x86_64-linux-gnu/libplds4.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6e91f8d8331e20b9277cc9fb7f654e3803a573a8fb63d1b131cde3b935acd2e9"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpng16.so.16.43.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c5d0644c3d5ab0be2d6eb6aa153d3d79b1e65240bd1cfda2b92cf077a5ccc5a1"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpocketsphinx.so.3.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "391644b11a391675013683bc17924d703986870a2c523642a6c1b878229fc1fc"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpoppler.so.134.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a717ee547be514348a879a51392f128a1ce48226b8a4432c7dc24df7f2165a26"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpostproc.so.57.3.100": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "94240858cf7b72002ad40a2225aefe5977c8453fca3701ce0fa2326701f62d45"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpq.so.5.16": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b1b88485eb23047ac39d73245be7696a5ce2a0bc066d8615fc949d9fedc2dcc0"
+        },
+        "/usr/lib/x86_64-linux-gnu/libproj.so.25.9.4.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "187179e68fcfce3687a0af88f46fd54875fb8caa4a1bd1238f8d52a19661aeca"
+        },
+        "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "9aab1d53669d5f2be38cbb25b5b292e0125cb487e97a01963ed0dcaa760178ac"
+        },
+        "/usr/lib/x86_64-linux-gnu/libproxy.so.0.5.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4d40bb0aa6b35b1a5592ca2443b7419ce50ba815d44470b8757cedd364a5df04"
+        },
+        "/usr/lib/x86_64-linux-gnu/libproxy/libpxbackend-1.0.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d4fbc67b59fe17010480b12955789935f08cd0bd166162b45629b9733ad6ea9b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpsl.so.5.3.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "36525bab37cae0437430d1addd6ad3ea3238d965461b595448107ea21840b0d7"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpugixml.so.1.14": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5ce986c5e67cccea6338677097e1b62768d3fb0ffd6198170881e61891cbd724"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpulse.so.0.24.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "00fea079ed90ea217c67af38287f7345419c3216f900700147e2b0c66d9c5d08"
+        },
+        "/usr/lib/x86_64-linux-gnu/libpython3.12.so.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "01db9bb330f4b4c0078f691b0fa761c6339284c4c96e5d39d5c73bbd13f52571"
+        },
+        "/usr/lib/x86_64-linux-gnu/libqhull_r.so.8.0.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0125a34815225c1d60a09a59996426d9a2a26eb4d136ea256572830edade5c25"
+        },
+        "/usr/lib/x86_64-linux-gnu/librabbitmq.so.4.5.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d160a7a94f82b62d75d7341b7f8aafe190d4a1835b2f0e3590a4789c8332b48a"
+        },
+        "/usr/lib/x86_64-linux-gnu/librav1e.so.0.7.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0f903b4d6af30309e3991b17f2ebc4861c928327aadb8a2eb752b6ae397b8a74"
+        },
+        "/usr/lib/x86_64-linux-gnu/libraw1394.so.11.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "eb11e8b28d6dac581304613b25db815f1406ca4225795a620027bdae3c13f461"
+        },
+        "/usr/lib/x86_64-linux-gnu/libresolv.so.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c795af3f27a877553db63ecefae44cdf370a6c20821be598405f316e10767bd4"
+        },
+        "/usr/lib/x86_64-linux-gnu/librist.so.4.3.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0ee3d25a161b80c4735af2fe2bf41c1647f83cb1bd122fc16df04842577916b8"
+        },
+        "/usr/lib/x86_64-linux-gnu/librom1394.so.0.3.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b40e5cadb7ce1f53bae44aa6826093a429aecacaba7794bb280cef0432861c19"
+        },
+        "/usr/lib/x86_64-linux-gnu/librsvg-2.so.2.50.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f7e9335f96517b05e05dcea4dc5c2fda8f02dbfab4b26366caa2bb7835b4022d"
+        },
+        "/usr/lib/x86_64-linux-gnu/librtmp.so.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c96e178befeafe8fec6acedeba6d672a8c132cb67e81c3eee2f015cf8da2470e"
+        },
+        "/usr/lib/x86_64-linux-gnu/librttopo.so.1.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7c36c79fe342b3411b17423dda302102bef08858616f356a50ef9753178d6e4d"
+        },
+        "/usr/lib/x86_64-linux-gnu/librubberband.so.2.3.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "2ff5d49200f327f0dc764cc973c8f4d82f7a41ccbe571b2ce2650882bfb638cc"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsamplerate.so.0.2.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "8e4b33c5538af1934ab7c89039f3ecdef86c71f466ad637b4649d9d88825b285"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsasl2.so.2.0.25": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5146044879172337e0de780736c3a5db21679f4b1b447480e36e1e12e1894d68"
+        },
+        "/usr/lib/x86_64-linux-gnu/libselinux.so.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c3f227f3c1b7029f24e1955e8ef0a822b616f68b534a991f8ff1c2bc9151292b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libserd-0.so.0.32.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "196ce2d46e185bf8841a1a086f429b998286703d73f2b9b0401de40f79924247"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsharpyuv.so.0.0.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e4e3c111c9173b6104f38093885de8943aefd3147acccb54f94348d0eee5bee3"
+        },
+        "/usr/lib/x86_64-linux-gnu/libshine.so.3.0.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "06a8f3eddaeb022b061c1030222bf1d915860ac7a0df33e4ebc0841fbc9292eb"
+        },
+        "/usr/lib/x86_64-linux-gnu/libslang.so.2.3.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a2b8d5bf252a7428f029010518533e7eaa3b5e0cf023daa0c367c2c0daea9781"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsmime3.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "dad37aebc030f6e14affc86a687a56175c1d1dd240e272a3bffd3735c991ec57"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsnappy.so.1.1.10": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e3c0b539e5e28e5224797797caa0613f8ba0c2b1865f9dbdbabd0efbcc441483"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsndfile.so.1.0.37": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "bccc16edaaf64be2676885801ff74f131b247969ad0a097ef0ea738c1b9ed3ae"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsndio.so.7.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "da50d43113f4da7e317c2467cc0fc28a13b3ee644a377f049b8f725c01b69f4c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsodium.so.23.3.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "19d0673ab6b17f9a73943e0b9feedea08ecd1b31ed0028dda1c561b747b63133"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsord-0.so.0.16.16": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "37bc5e6b63fe0c0305ab82a4180092bc9ad4fbbc23a344cd298aacfa961b248e"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsoxr.so.0.1.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "800d5d362fa67231c7ede73a526c896787e483d39eb843f1d2ce27f48b8bb472"
+        },
+        "/usr/lib/x86_64-linux-gnu/libspatialite.so.8.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f8414b50ae5c0753d11684f5454564a8c791c4cab7f7a513136825cc5f32e1b3"
+        },
+        "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7612c87c458241a1725e5248f0fe96ffba3336f61073db54e96d28285f0c44e7"
+        },
+        "/usr/lib/x86_64-linux-gnu/libspeex.so.1.5.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "319c6ef378d0b935680f97c579679ad199e1ac3551977a274910d0136c9f15e5"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsphinxbase.so.3.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5aab8956277a87678389e4853076254cc9aded62c9424876c076e3fa21a25eb0"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "216fc2b0743da178a21d6e325eca1c9167ff5466e213bc9894aded238e154675"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsratom-0.so.0.6.16": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a61f44273be9153caf04100dbb5f4e13b1a4b4936c58dd29ccff8188ce1eb184"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsrt-gnutls.so.1.5.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6812ec5a3616eb0bdb6a3e2137755408d39bbe24d050b5e19288582832881d0a"
+        },
+        "/usr/lib/x86_64-linux-gnu/libssh-gcrypt.so.4.9.6": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ba582ade089257223da0988bc15dadec019e5748c7e82711a879f8c95115863c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libssh.so.4.9.6": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6d9b705f3a3126222d5edbca0b25268b7233053f78cc681687191b8d9bcde045"
+        },
+        "/usr/lib/x86_64-linux-gnu/libssl.so.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ff92be4eda279105183c7fc630196fd13eeb1fac56c278c94635f53bcbefebe3"
+        },
+        "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5d79100dcd46a235065329a25646513fee162144e5665dac7b52107c56ed43a5"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsuperlu.so.6.0.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5c0773b8593b82ca0dedec950d34c06b9878472230f0ad80f5e8d7eaf7234156"
+        },
+        "/usr/lib/x86_64-linux-gnu/libswresample.so.4.12.100": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a64052c2fc167b373a6094a6fe94babd56bd7444b2aa7d1ca36866f9d07de27b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libswscale.so.7.5.100": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ebb6480bf4a4be18049e89954988e957baf5dd408735a2efdf46a978ecbc228b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsystemd.so.0.38.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "324d0c17873df69b5b52f5f6342aef3720cfef919a3ec4bd6c45df3cab809820"
+        },
+        "/usr/lib/x86_64-linux-gnu/libsz.so.2.0.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4c12c63dcf89c33d0913bd33c54620a7c7951845038a028366978240c43f0760"
+        },
+        "/usr/lib/x86_64-linux-gnu/libtasn1.so.6.6.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "4343a94b5f7a425872c6d61765dc89b01f672a937face0f23bd8c47a7e1bc29d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libthai.so.0.3.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d08ce2512d86511b88dc6b74d83e6a5f216b2f76208f81da712174d421d9efa7"
+        },
+        "/usr/lib/x86_64-linux-gnu/libtheoradec.so.1.1.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5066b35032690fd7cbe403aa2ba1ca4491ea807f54c594ae6f09998301e820eb"
+        },
+        "/usr/lib/x86_64-linux-gnu/libtheoraenc.so.1.1.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f158df85fa3e97c5272f99168d60b720a7083116ab91a3db5030b9e31ea61540"
+        },
+        "/usr/lib/x86_64-linux-gnu/libtiff.so.6.0.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "a833d6d1db2f36f13285d8c730d29c46933715c5db827232c4ec48083524023b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libtinfo.so.6.4": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "559e0831cd2e29cf0b27ce2632f71efe850ae343a6dd394b74fcf91feb2ceba9"
+        },
+        "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ac3ca0c9681e47492d08ab6566dedd4834ad1db258759c463ebb36c2e8dc0b5b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libtirpc.so.3.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "fe7f9cdbc2105db702e76e2bf2b85a9f4e97f4010a1cd665fa4263955b2c7136"
+        },
+        "/usr/lib/x86_64-linux-gnu/libtwolame.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "8584a2be40e5bc3cd455fd9c063db4f44caab6c9e75cc805aa566e7475e20aec"
+        },
+        "/usr/lib/x86_64-linux-gnu/libudev.so.1.7.8": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "e3a229abc09d96b05b019533c589157341a7f415db7b4d93dad8224f00ae48f7"
+        },
+        "/usr/lib/x86_64-linux-gnu/libudfread.so.0.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "42a0e2a6b54652091ea5ca9e03e90cd709daae0bea542bc0ea03e031fe6f45ea"
+        },
+        "/usr/lib/x86_64-linux-gnu/libunibreak.so.5.0.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "cb054e0e274165914cecf304dbdb2e3b659410825ab0da5e8afdff5b76beaa5f"
+        },
+        "/usr/lib/x86_64-linux-gnu/libunistring.so.5.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3aa5b76c7fbd0dd489c7b67d9b832802a6f95c2b930998e81c817cd51ac53452"
+        },
+        "/usr/lib/x86_64-linux-gnu/liburdfdom_model.so.4.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "bad64acade5d77a77135057a2c248397532b74ca878c569d1cd6d2e52e0bbdb5"
+        },
+        "/usr/lib/x86_64-linux-gnu/liburiparser.so.1.0.30": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3d64abe76172e84ca6bfe68f2b465ba706bfca28c263b356a2b6e11687374188"
+        },
+        "/usr/lib/x86_64-linux-gnu/libusb-1.0.so.0.4.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5cd15b87c436d2e18d3cf7707ce4c57e2fe008ba7a7523beacc2aa635fb11319"
+        },
+        "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "2a9a4533158dfbf4ed258f638ab0f93052d8afd8aeb26136336e4caec610139d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libva-drm.so.2.2000.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "10ca320506acdef86f5d271848d96fd7648700b61c8de1efed6e5a5b44b3af17"
+        },
+        "/usr/lib/x86_64-linux-gnu/libva-x11.so.2.2000.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3e25964b5ad0893beab0073d682239a5cc8e966ced72c390aa963a018f703d16"
+        },
+        "/usr/lib/x86_64-linux-gnu/libva.so.2.2000.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "5ef0435021f4c19adac23777843381155b00c09b1db4c87d36bb49177bf3ab90"
+        },
+        "/usr/lib/x86_64-linux-gnu/libvdpau.so.1.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "2cf374a141efee7c73ac9998419cefcdf77a4c5f392c72ade5ba4d78cbb92701"
+        },
+        "/usr/lib/x86_64-linux-gnu/libvidstab.so.1.1": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f6b2f4c03762973b83370e1024e121088c8ce2d4cef93ed7003dd4b9f01161cb"
+        },
+        "/usr/lib/x86_64-linux-gnu/libvorbis.so.0.4.9": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "385711f03564ab2b66a36af083c2cb094c9f5ac02fcaed45f505259349d2ae7f"
+        },
+        "/usr/lib/x86_64-linux-gnu/libvorbisenc.so.2.0.12": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d8401bc2e8b44cc01a8fed31b009b0e02502498e706331dd5b6e22df24191857"
+        },
+        "/usr/lib/x86_64-linux-gnu/libvorbisfile.so.3.3.8": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "ea9e8686cf3fca8f6beaa3f9f029e5b4007e7d6f4a78e16624f7b6fac9746606"
+        },
+        "/usr/lib/x86_64-linux-gnu/libvpl.so.2.9": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "306d1a423b166f1565198bcf3b2b4c416f57af731f58f8077731d18d2eb3755b"
+        },
+        "/usr/lib/x86_64-linux-gnu/libvpx.so.9.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "8885503a35c0c80d597120f666036e5acf1a3562658e3bb5f6ebf63895410abe"
+        },
+        "/usr/lib/x86_64-linux-gnu/libvulkan.so.1.3.275": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3dad452a41d89bf964e07924c03db2f61e8aa41780774505de6f873e217b982f"
+        },
+        "/usr/lib/x86_64-linux-gnu/libwayland-client.so.0.22.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "faec0a511c05e2fe5b38246b6600c6f453a097a0ddffbabb5614b19cbac6fa0c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libwayland-cursor.so.0.22.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "1505b381aa68f91f9b1b0af5990e3f989d67db505d678bcbe0b61ccef1549f87"
+        },
+        "/usr/lib/x86_64-linux-gnu/libwayland-egl.so.1.22.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "c08ce023d67e003914aa7f9fc6737be72b948e4560de1545a7f49a507d046a45"
+        },
+        "/usr/lib/x86_64-linux-gnu/libwebp.so.7.1.8": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b2bebc5de569e5414aca030534b818c9bb5b2d5533ef485d4229dadb25e99b45"
+        },
+        "/usr/lib/x86_64-linux-gnu/libwebpmux.so.3.0.13": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "81e6aaf79977934306b78727919d9e7d6710336d3730881846c504335b094a7d"
+        },
+        "/usr/lib/x86_64-linux-gnu/libx264.so.164": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0dd9f495feb521fa1fc96de8b000d1f3ef498676b0ec211232f3154eaa486160"
+        },
+        "/usr/lib/x86_64-linux-gnu/libx265.so.199": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "28a3017e065d57673e343a9028bfbb050dd18e1923a7aed4b721023d7491e6b9"
+        },
+        "/usr/lib/x86_64-linux-gnu/libxcb-dri3.so.0.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "87f54808f2a19e6cd65d31fc6f742ce7370427194a2a5995378a914c912b6ecc"
+        },
+        "/usr/lib/x86_64-linux-gnu/libxcb-render.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "00581f2ac59581aee8740acb4999a2a7911a69d0293bfd3c0b1bece95659854c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libxcb-shape.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "fbf207c08afeff817a40d00e3d8a6c935f0f15de863bf286aab2d09aa6a3e515"
+        },
+        "/usr/lib/x86_64-linux-gnu/libxcb-shm.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "b0e123d587b17e2d6ab7d77c3d510c49ba558ee9886d8e387c8da83101e96c68"
+        },
+        "/usr/lib/x86_64-linux-gnu/libxcb-xfixes.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "6683f2a0f0c11011d256afdd632052d92fc5112190988946fd67940a8fe59bc8"
+        },
+        "/usr/lib/x86_64-linux-gnu/libxcb.so.1.1.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "92aec1b0d3a75df294c950a771dcb9b6a6f2e4698666a9d1eaaceb6284dbe682"
+        },
+        "/usr/lib/x86_64-linux-gnu/libxerces-c-3.2.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d2eabd0a437dcc2fc4604c3996abf080f28b0a9c15f8c427f37f2afe1da4e07f"
+        },
+        "/usr/lib/x86_64-linux-gnu/libxkbcommon.so.0.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "216b15c2b0207fee7be741d5167ea2af9a6c7ba55afca8bab0b4d1bffccd3422"
+        },
+        "/usr/lib/x86_64-linux-gnu/libxml2.so.2.9.14": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "12c057240f156f8e3dff529cfe694eee7f3f17e491d2a4ad5a553a3352b07a5e"
+        },
+        "/usr/lib/x86_64-linux-gnu/libxvidcore.so.4.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "d3abd17b35de6d24011050a1494e8713a1654b136e92b85ad775de6d327e2362"
+        },
+        "/usr/lib/x86_64-linux-gnu/libyaml-0.so.2.0.9": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f9dc38d49fd878609aa105b8770a66cc77e73d99a1ee8860566ac1b5ee1a5501"
+        },
+        "/usr/lib/x86_64-linux-gnu/libz.so.1.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "af479547e4427f78a76c5b2309a0e129b73035519e5967832bffe4f2ba659ebf"
+        },
+        "/usr/lib/x86_64-linux-gnu/libzimg.so.2.0.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "50487766d72e15f5b4a3d85d1a9748137fff7c098a7cfecbd9d5c732880cc135"
+        },
+        "/usr/lib/x86_64-linux-gnu/libzip.so.4.0": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "0fde57700106e537650cea946aa8417dad640852eb7a01e6ded5521b341e2bed"
+        },
+        "/usr/lib/x86_64-linux-gnu/libzix-0.so.0.4.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "7b862ddcc8e65c9194817c3502b65591b6d20c97333ab61bb5ead96d02a8191c"
+        },
+        "/usr/lib/x86_64-linux-gnu/libzmq.so.5.2.5": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "f6c1c081ef10d66b794d30cd01cadfe562c85a2a2f5f2cc32d4294b776deb976"
+        },
+        "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "3f917c544191d946deffe4488a84dbd7a95c34130a22bd09c5d0e4beac92b6b1"
+        },
+        "/usr/lib/x86_64-linux-gnu/libzvbi.so.0.13.2": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "712ca14db0d31d4d4674ad282dcc3afadcb03a955ffc1a41059cd597cd796680"
+        },
+        "/usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "bdcac3fc737c7d30b7f76a81b4bcc90f79faa5e63071ea0a30f189e606468b54"
+        },
+        "/usr/lib/x86_64-linux-gnu/openblas-pthread/liblapack.so.3": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "20ee99a642a55fb8696cbc3e9ad54cfc0e3b86444de315302ab817d4918a02ca"
+        },
+        "/usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "9d1f43e3c8303e61f395d665bf7baabef0c40ae666c78dfffc7769d24b0a931a"
+        },
+        "/usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-16.1.so": {
+          "scope": "unchanged-current349",
+          "saved_row_sha256": "54a0142caf3b7daaf7966ca6ede401f553b45007fcce4876474daf99ab885b31"
+        }
+      },
+      "runtime_loader_proof": false,
+      "Source_to_binary_equivalence_proved": false
+    }
+  },
+  "input_domain": "DIRECT_ORIGINAL_OBJECT_SYSTEM_LOCAL_POSE_ECM",
+  "evidence": {
+    "capture_method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-reference-bound.py",
+      "sha256": "cd82532b3431cbaecbdbd55c607eb74a67ee2a7399f6eb75b45bf8334a9812e2",
+      "bytes": 89376
+    },
+    "capture_plan": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-reference-plan-reviewed.md",
+      "sha256": "50ce4778273e19c67eb148683e4b98d623f6d7b9424213db8b6eeddd87673aae",
+      "bytes": 10580
+    },
+    "capture_release": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-reference-release.json",
+      "sha256": "d9569313d06e522bfd9eb1403c32e9505d8f8d6eba312fdefd09658bac4c152a",
+      "bytes": 1893
+    },
+    "capture_actual_exit": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-reference-actual-exit.json",
+      "sha256": "9193c44547e2849d54ac2a5153d472e8319b2d7a527779fa67275f64dae530ea",
+      "bytes": 2277
+    },
+    "capture_primary_log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-reference-execution.log",
+      "sha256": "e6f952757d9b2df06496ba4f1e4bb5de5a9a2d2df17d7d85e87345eb349d4cef",
+      "bytes": 142
+    },
+    "native_DATA_method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-audit-bound.py",
+      "sha256": "6a333490294b08a0d841486322b5d76205f23a559fa9b96133986ee71e3ffda1",
+      "bytes": 110276
+    },
+    "native_DATA_report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-audit.json",
+      "sha256": "f453636447ad0d600294b0919d16de35930f996c84e01b1d7219033c70173c7a",
+      "bytes": 447395
+    },
+    "native_DATA_actual_exit": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-audit-actual-exit.json",
+      "sha256": "c56ced5b1323cbb56d30a6c3b124d6570f43791a3b6d085bec1452635255fae8",
+      "bytes": 1509
+    },
+    "native_DATA_primary_log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-audit-execution.log",
+      "sha256": "409afb945abf078285795a31660d9a10495d80704381e29311ea855dd59d7689",
+      "bytes": 252
+    },
+    "generator_method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/generate-native-multiple-pose-publishers-fixture-bound.py",
+      "sha256": "4d58fd2b65c7ad4304afeab3a5095993311d03456c689013e18a3ae4fd0c368e",
+      "bytes": 35010
+    },
+    "generator_actual_exit": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-fixture-generation-actual-exit.json",
+      "sha256": "eaedb44022e6047e37872079afd5108a4cb81613bc98a582c13975b5c8bc80c4",
+      "bytes": 1601
+    },
+    "generator_primary_log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-fixture-generator-execution.log",
+      "sha256": "d9a326e3fe641321831c6f1b36aacf2a8fc7458465bbd84a1a6d53df2a5a738f",
+      "bytes": 717
+    },
+    "literal_DATA_method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-borrowed-fixture-audit-bound.py",
+      "sha256": "b09f900eab51fb4878d866c4a035d895401e7c69d85a16d51485eba5d183e0cf",
+      "bytes": 41776
+    },
+    "literal_DATA_report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-borrowed-fixture-audit.json",
+      "sha256": "31e23ef58f73dfd4acfaf2184043170af7362df48d98692819dd4f8db76808bb",
+      "bytes": 15805
+    },
+    "literal_DATA_actual_exit": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-borrowed-fixture-audit-actual-exit.json",
+      "sha256": "0c4f78c5d1a31c020b76eadda680ec0988475acb0458e9dacfcbba0e05c42db7",
+      "bytes": 1894
+    },
+    "literal_DATA_primary_log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-borrowed-fixture-audit-execution.log",
+      "sha256": "5f76bdabf7c003adac87fdc37efa0dd9d9acc3ee603983fe8da224ea4f139847",
+      "bytes": 433
+    },
+    "provider_input_contract": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-direct-object-input-contract-final-source-closed.json",
+      "sha256": "8da1da78a679dadafd7d51e470cfbbf51851e6f73faaac9483168c7c45a713b4",
+      "bytes": 49928
+    },
+    "capture_source_state": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/capture-source-state.json",
+      "sha256": "bff5eaefcf2d9d7bc30d7e46f050e7ac37f7d9dde79deafcc17e43c4489c7ee2",
+      "bytes": 1090
+    },
+    "runtime_Source_adoption": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/integrated-source-adoption-reviewed.json",
+      "sha256": "61014c80552ed3aaf94bcf1dd1e3258e543d832ed23cdb4a7a96e519e062be45",
+      "bytes": 18843
+    },
+    "frozen_runtime_input_source": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/frozen-capture-runtime-source.json",
+      "sha256": "0afdd6c6a964a918daef3a3211c4ad69da95552fb47474e47aa6a0e178c3422b",
+      "bytes": 5577
+    },
+    "evidence_API": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-evidence-api-contract-complete.json",
+      "sha256": "f85a308508a8ffe66b2e6945de16d3e9ce213cd194199841e75bb8fbf94ea1ff",
+      "bytes": 8469
+    },
+    "capture_result": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-multiple-pose-publishers-ksqds_9c/result.json",
+      "sha256": "df62946ee38411b7176af00081d7883ac2fc7f51fef2073da9282662c17c7de6",
+      "bytes": 368054
+    }
+  },
+  "immutable_fixture": {
+    "path": "crates/gz-sim-scene/tests/fixtures/m55_native_multiple_pose_publishers.rs",
+    "sha256": "c9821424254463b7260fe9ea92d3a92f67e2f32d8cd3a6cbe2861ef7fb8bae7c",
+    "bytes": 255167,
+    "provenance_path": "crates/gz-sim-scene/tests/fixtures/m55_native_multiple_pose_publishers.provenance.json",
+    "provenance_sha256": "b3760fec63358dacd9862cd062fcc7f98be46d4606ef5d3ca4279c1a4e2b17e9",
+    "native_DATA_actual_Root_exit_code": 0,
+    "generator_actual_Root_exit_code": 0,
+    "literal_DATA_actual_Root_exit_code": 0
+  },
+  "mode_counts": {
+    "eight": {
+      "canonical_packets": 52,
+      "configuration_count": 8,
+      "direct_post_update_calls": 32,
+      "input_rows": 32,
+      "observed_vectors": 52,
+      "pose_records": 76
+    },
+    "pair": {
+      "canonical_packets": 13,
+      "configuration_count": 2,
+      "direct_post_update_calls": 8,
+      "input_rows": 8,
+      "observed_vectors": 13,
+      "pose_records": 19
+    }
+  },
+  "sdk_scope": {
+    "current_saved_node_count": 349,
+    "current_snapshot_sha256": "511ead617c78a01e772249ddbbfa1d995296a08469bedd1742d5453a2b6e9a44",
+    "historical_snapshot_sha256": "370f49a779cbcb32bda7a46698ef2b82b6a13764c898287e0178524e66d7a4fb",
+    "drift_inventory_sha256": "a484797d83640f13bf17d162b916e4e38636a7cca273fb551bb12f5b5e3ce8eb",
+    "package_provenance_sha256": "bf5cf8486028b4315f7b7cfa5c387b6d8bcf6137d39f7bc6947a1dcecda656b3",
+    "separate_link_provider_count": 2,
+    "supplement": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json",
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce",
+      "bytes": 9664
+    },
+    "original_object_is_a_mapped_provider": false,
+    "original_provider_or_SDK_rebuilt": false
+  },
+  "retained_M31_actual_System_provenance": {
+    "actual_root_exit_basis": "Root supplied actual zero plus exact retained stdout/result/source and no sidecar; no independent wait receipt is invented.",
+    "actual_root_exit_code_in_native_DATA": 0,
+    "generated_DSO_sha256": "1a4e0d7929a55dbc85613c1ab99a3a77bcbe20e32d9d2e8576d52b72592450cd",
+    "generated_object_sha256": "e5faf2cabdd8c672aeb6108d554c50e9bcf229e58134892f79b610e8b8a138c3",
+    "independent_raw_wait_receipt_available": false,
+    "native_DATA": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-audit.json",
+      "sha256": "642febde52935cb3f7d2d055ac68fd5b9962b3ec393262cf36b832b16f5a7bf2"
+    },
+    "native_DATA_Source": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-audit.py",
+      "sha256": "1bdcd211bf6676ca7e7c853488ec23d8a204a4523ff723d7c8e2577e02e9ae13"
+    },
+    "old_observations_reused_as_M55_data": false,
+    "producer_Source": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-reference.py",
+      "sha256": "0edd6c8f7ef74a6fc30e983b82cc4c5abe369c102b693ef19889221b7a22f13f"
+    },
+    "recorded_controller_exit_code": 0,
+    "recorded_result_state": "NATIVE_M31_POSE_STATIC_REFERENCE_COMPLETED_PENDING_INDEPENDENT_DATA",
+    "recorded_stage_count": 21,
+    "reference_kind": "Original M31 System compiled into a retained packet; seven old modes are historical only, never replayed by this diagnostic.",
+    "result": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-static-publisher-gmj1r1kp/result.json",
+      "sha256": "3d07109836ea27fe3dc893c6d7059ff24e2e6f9ee30dacc94aca4c8823e750e6"
+    }
+  },
+  "retained_failed_DSO_input_diagnostic": {
+    "actual_Root_receipt": {
+      "bytes": 2240,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/provider-input-diagnostic-actual-exit.json",
+      "sha256": "ee558685107fe41fcb7b23129295951cbfc65574532a179016bb75a972ac3e49"
+    },
+    "actual_readelf_children": 2,
+    "actual_root_exit_code": 1,
+    "child_exit_codes": [
+      0,
+      0
+    ],
+    "hold_reason": "AssertionError('HELD: empty ELF search path entry')",
+    "method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/inspect-pose-publisher-provider-bound.py",
+      "sha256": "8b26596777aac560950aed25b7ddd34af11be0b89b4b1917d8cad33b113f8b58"
+    },
+    "named_symbol_table_retained": false,
+    "native_DSO_or_helper_executed": false,
+    "object_extraction": {
+      "after_field": "binary_inputs_after.System_object",
+      "before_and_after_equal": true,
+      "before_field": "binary_inputs_before.System_object",
+      "observed_card": {
+        "ELF": {
+          "byte_order": "little",
+          "class": 64,
+          "first20_hex": "7f454c4602010100000000000000000001003e00",
+          "machine": 62,
+          "type": 1
+        },
+        "Source_to_binary_equivalence_proved": false,
+        "bytes": 396456,
+        "fingerprint": [
+          66307,
+          52857423,
+          33204,
+          396456,
+          1794219772678018982,
+          1794219772682018972
+        ],
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-static-publisher-gmj1r1kp/PosePublisher.cc.o",
+        "sha256": "e5faf2cabdd8c672aeb6108d554c50e9bcf229e58134892f79b610e8b8a138c3"
+      },
+      "scope": "Only this exact immutable ET_REL/hash/size/header/fingerprint observation is reused after independent retained metadata review. The report/receipt remain exit1 and no loader/closure/qualification credit is inferred."
+    },
+    "primary_log": {
+      "bytes": 240,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/pose-publisher-provider-input-execution.log",
+      "sha256": "b4c7e27889cbfae016c4ad8779cb2a7b3e84d898af6cde424bccf81e767d785b"
+    },
+    "provider_modified_or_built": false,
+    "repeated_diagnostic_released": false,
+    "result": {
+      "bytes": 21929,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/pose-publisher-provider-input-rsxvyaxb/result.json",
+      "sha256": "5f05051f4ddf4e1752dab4572a797c640cfd2b1d4c8c493b8c870c69845e90da"
+    },
+    "static_dependency_closure_admitted": false,
+    "tool_exit_basis": {
+      "actual_exit_code": 1,
+      "completion_chunk": "36610a",
+      "no_running_session_returned": true
+    }
+  },
+  "comparison_scope": {
+    "controlled_inputs": "All finite model/base/tip parent-LOCAL poses and actual public ECM getter values for complete named World/model/link/canonical-link/joint configurations. Original public Configure/PostUpdate calls; Source-bound call_index supplies iteration.",
+    "numeric": "Unique child-frame keyed LOCAL components at the retained absolute1e-12 bound; signed-zero/native ordering and all full native wire bytes remain retained.",
+    "wire": "Actual native unordered Pose_V vectors contain95per-PoseHeaders/Posebodies and65wholevector byte strings. Their literal equality is independently audited; fullRust/native lexical-vector byte equality is not claimed. Separate maintained actual C++peer tests prove Rust lexical canonical packets.",
+    "physical": "Existing separate real-force/torque/joint-motor and lifecycle Rust controls are mandatory; captured LOCAL ECM inputs do not establish original Physics or trajectory equivalence."
+  },
+  "not_claimed": [
+    "Server/plugin-loader execution",
+    "Original Physics/schedule/demand/lifecycle/reset/removal equivalence",
+    "Global RNG or performance equivalence",
+    "Source-to-binary equivalence",
+    "M55 Rust test/full normal/coverage qualification",
+    "Hosted success, publication or acceptance"
+  ],
+  "M55_accepted": false
+}

@@ -190,10 +190,85 @@ fn pose_plan_domain_is_flat_rapier_and_one_publisher_static_models_are_not_stati
             .is_err()
     );
     let live = load(XML);
-    assert!(
-        p.validate(&m, &live, Some("rapier"), (true, false))
-            .is_err()
-    );
+    p.validate(&m, &live, Some("rapier"), (true, false))
+        .unwrap();
+    // The old count-only refusal is now a distinct-owner physical positive.
+    // Keep this SAME existing control separately required in both profiles.
+    let mut pair = load(&multiple_pose_fixture());
+    let owners: Vec<_> = pair
+        .world()
+        .iter_entities()
+        .filter(|e| e.contains::<PosePublication>())
+        .map(|e| {
+            (
+                e.id(),
+                e.get::<EntityId>().unwrap().get(),
+                e.get::<PosePublication>().unwrap().clone(),
+            )
+        })
+        .collect();
+    assert_eq!(owners.len(), 2);
+    assert_ne!(owners[0].1, owners[1].1);
+    let joints: Vec<_> = pair
+        .world()
+        .iter_entities()
+        .filter(|e| {
+            e.get::<Name>()
+                .is_some_and(|n| n.0.ends_with("::tip_hinge"))
+        })
+        .map(|e| e.get::<JointHandle>().unwrap().id())
+        .collect();
+    assert_eq!(joints.len(), 2);
+    for joint in &joints {
+        pair.world_mut()
+            .resource_mut::<PhysicsBackend>()
+            .set_joint_velocity_motor(
+                *joint,
+                Some(gz_physics::JointVelocityMotor {
+                    target_velocity: 0.5,
+                    max_force: 0.5,
+                }),
+            )
+            .unwrap();
+    }
+    pair.step_exact(100).unwrap();
+    for joint in joints {
+        let measured = pair
+            .world()
+            .resource::<PhysicsBackend>()
+            .joint_state(joint)
+            .unwrap();
+        assert!(measured.position.abs() > 0.0 && measured.velocity.abs() > 0.0);
+    }
+    for (entity, _, metadata) in &owners {
+        let value = pair.world().get::<PoseSample>(*entity).unwrap();
+        assert_eq!(
+            (value.time, value.epoch, value.revision),
+            (Duration::from_millis(100), 0, 10)
+        );
+        assert_eq!(value.poses.len(), metadata.poses.len());
+        for frame in &value.poses {
+            let local = pair
+                .world()
+                .get::<LocalPose>(gz_sim_core::entity_by_id(pair.world(), frame.identity).unwrap())
+                .unwrap()
+                .0;
+            assert_eq!(frame.pose.translation, local.translation);
+            assert_eq!(frame.pose.rotation, local.rotation);
+        }
+    }
+    reset_loaded_world(&mut pair, |_| ()).unwrap();
+    for (old, identity, metadata) in owners {
+        let restored = gz_sim_core::entity_by_id(pair.world(), identity).unwrap();
+        assert_ne!(restored, old);
+        assert_eq!(
+            pair.world().get::<PosePublication>(restored),
+            Some(&metadata)
+        );
+        assert!(pair.world().get::<PoseSample>(restored).is_none());
+    }
+    assert_eq!(pair.elapsed(), Duration::ZERO);
+    assert_eq!(pair.epoch(), 1);
 }
 #[test]
 fn pose_cadence_skips_all_paused_ticks_but_equal_unpaused_and_rewind_are_eligible() {
@@ -332,4 +407,64 @@ fn pose_absence_last_removal_and_loaded_restore_release_and_reinstall_only_owned
     let restored = gz_sim_core::entity_by_id(live.world(), id).unwrap();
     live.step_exact(10).unwrap();
     assert!(live.world().get::<PoseSample>(restored).is_some());
+}
+
+fn multiple_pose_fixture() -> String {
+    let start = XML.find("  <model ").unwrap();
+    let end = XML.rfind("</model>").unwrap() + "</model>".len();
+    let second = XML[start..end]
+        .replace("rig", "peer")
+        .replace("<pose>1 2 3 0 0 0.6</pose>", "<pose>1 6 3 0 0 0.6</pose>")
+        .replace("/m27/pose", "/m55/private/peer");
+    format!("{}{}{}", &XML[..end], second, &XML[end..])
+}
+
+#[test]
+fn multiple_pose_equal_rewind_clocks_and_owner_fault_preserve_global_terminal_boundary() {
+    let mut sim = load(&multiple_pose_fixture());
+    let owners: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter(|e| e.contains::<Publisher>())
+        .map(|e| e.id())
+        .collect();
+    assert_eq!(owners.len(), 2);
+    sim.step_exact(10).unwrap();
+    for entity in &owners {
+        assert_eq!(sim.world().get::<PoseSample>(*entity).unwrap().revision, 1);
+    }
+    sim.world_mut().resource_mut::<UpdateInfo>().paused = false;
+    sample(sim.world_mut());
+    for entity in &owners {
+        assert_eq!(sim.world().get::<PoseSample>(*entity).unwrap().revision, 2);
+    }
+    // A backwards unpaused component boundary is eligible, not a new Physics step.
+    sim.world_mut().resource_mut::<UpdateInfo>().sim_time = Duration::from_millis(9);
+    sample(sim.world_mut());
+    for entity in &owners {
+        let value = sim.world().get::<PoseSample>(*entity).unwrap();
+        assert_eq!((value.time, value.revision), (Duration::from_millis(9), 3));
+    }
+    let invalid = owners[0];
+    let before_peer = sim.world().get::<PoseSample>(owners[1]).unwrap().clone();
+    sim.world_mut()
+        .get_mut::<Publisher>(invalid)
+        .unwrap()
+        .revision = u64::MAX;
+    sample(sim.world_mut());
+    assert!(sim.world().get::<PoseSample>(invalid).is_none());
+    assert!(sim.world().resource::<StepFault>().error().is_some());
+    let peer = sim.world().get::<PoseSample>(owners[1]).unwrap();
+    // Bevy owner iteration order is not an atomic all-owner sample promise.
+    assert!(peer.revision == before_peer.revision || peer.revision == before_peer.revision + 1);
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(sim.step_exact(1).unwrap_err(), StepError::Faulted);
+    assert!(matches!(
+        reset_loaded_world(&mut sim, |_| ()),
+        Err(SceneResetError::Clock(StepError::Faulted))
+    ));
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
 }

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import importlib.util
 import json
+import math
 import subprocess
 from pathlib import Path
 import tempfile
@@ -132,7 +133,7 @@ class DisabledBackendProof(unittest.TestCase):
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 28)
+            self.assertEqual(run.call_count, 29)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -317,7 +318,8 @@ class DisabledBackendProof(unittest.TestCase):
         self.assertEqual(MODULE.NOISY_EXAMPLES[24:25], ("examples/m51_multiple_air_speeds.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[25:26], ("examples/m52_multiple_magnetometers.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[26:27], ("examples/m53_multiple_logical_cameras.sdf",))
-        self.assertEqual(MODULE.NOISY_EXAMPLES[27:], ("examples/m54_multiple_lidars.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[27:28], ("examples/m54_multiple_lidars.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[28:], ("examples/m55_multiple_pose_publishers.sdf",))
         self.assertEqual(MODULE.NOISY_ASSETS, ("examples/meshes/m16-asymmetric.obj",))
 
     def test_new_static_example_outputs_are_complete_sorted_finite_and_exact(self):
@@ -327,6 +329,10 @@ class DisabledBackendProof(unittest.TestCase):
             "examples/m35_apply_link_wrench.sdf": "default::other::body 0 3 0\ndefault::rig::body 0 0 0\n",
             "examples/m36_wrench_odometry.sdf": "default::rig::body 2 -1 3\n",
             "examples/m54_multiple_lidars.sdf": "default::left_scanner::body 0 2 0\ndefault::right_scanner::body 0 -2 0\ndefault::wall::body 5 0 0\n",
+            "examples/m55_multiple_pose_publishers.sdf": ("default::peer::base 1 8 3\n"
+                f"default::peer::tip {1 + 0.8 * math.cos(0.6)} {8 + 0.8 * math.sin(0.6)} 3\n"
+                "default::rig::base 1 2 3\n"
+                f"default::rig::tip {1 + 0.8 * math.cos(0.6)} {2 + 0.8 * math.sin(0.6)} 3\n"),
         }
         for source, poses in cases.items():
             valid = headline + poses
@@ -339,7 +345,16 @@ class DisabledBackendProof(unittest.TestCase):
                 invalid += [headline + "\n".join(reversed(rows)) + "\n", headline + rows[0] + "\n"]
             for index, row in enumerate(rows):
                 for coordinate in range(1, 4):
-                    for value in ["nan", "inf", "-inf", "bad", str(float(row.split()[coordinate]) + 1e-12)]:
+                    # M55 composes the same unforced local geometry as M27/M31.
+                    # Keep its existing 1e-12 acceptance bound and test outside it.
+                    delta = 1e-9 if source == "examples/m55_multiple_pose_publishers.sdf" else 1e-12
+                    if source == "examples/m55_multiple_pose_publishers.sdf":
+                        near = rows.copy()
+                        fields = row.split()
+                        fields[coordinate] = str(float(fields[coordinate]) + 0.5e-12)
+                        near[index] = " ".join(fields)
+                        self.assertTrue(MODULE.noisy_output_matches(source, headline + "\n".join(near) + "\n"))
+                    for value in ["nan", "inf", "-inf", "bad", str(float(row.split()[coordinate]) + delta)]:
                         changed = rows.copy()
                         fields = row.split()
                         fields[coordinate] = value

@@ -235,9 +235,11 @@ impl Plan {
             )?;
         }
         require(
-            !sim.world()
+            sim.world()
                 .iter_entities()
-                .any(|e| e.contains::<Publisher>()),
+                .filter(|e| e.contains::<Publisher>())
+                .count()
+                < 8,
             &model.scoped_name,
             "multiple pose-publisher models",
         )
@@ -516,3 +518,7 @@ mod tests;
 #[cfg(test)]
 #[path = "../tests/private/pose_static_publication.rs"]
 mod static_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_pose_publishers_native.rs"]
+mod multiple_pose_publishers_native_tests;

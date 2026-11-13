@@ -1,0 +1,2457 @@
+{
+  "actual_DATA_exit_receipt_sha256": "c56ced5b1323cbb56d30a6c3b124d6570f43791a3b6d085bec1452635255fae8",
+  "actual_generator_exit_zero_required": true,
+  "actual_native_exit_receipt_sha256": "9193c44547e2849d54ac2a5153d472e8319b2d7a527779fa67275f64dae530ea",
+  "capture_tree": "08b5a33b77593e97a4e1a9e3762fa87ca721900e",
+  "counts": {
+    "canonical_packets": 65,
+    "configuration_count": 10,
+    "direct_post_update_calls": 40,
+    "input_rows": 40,
+    "observed_vectors": 65,
+    "pose_records": 95
+  },
+  "evidence_api_contract": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-evidence-api-contract-complete.json",
+    "sha256": "f85a308508a8ffe66b2e6945de16d3e9ce213cd194199841e75bb8fbf94ea1ff"
+  },
+  "fixture_bytes": 255167,
+  "fixture_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-replay-generated/m55_native_multiple_pose_publishers.rs",
+  "fixture_sha256": "c9821424254463b7260fe9ea92d3a92f67e2f32d8cd3a6cbe2861ef7fb8bae7c",
+  "helper_source_sha256": "7af47ad1bcf8daf482bc8a3aa4b119b9d177718776abde7af8d75af0bc0758ed",
+  "historical_sdk_closure_sha256": "370f49a779cbcb32bda7a46698ef2b82b6a13764c898287e0178524e66d7a4fb",
+  "independent_fixture_source_data_review_required": true,
+  "input_bindings": {
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json": {
+      "bytes": 9664,
+      "mode": "0o664",
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/generate-native-multiple-pose-publishers-fixture-bound.py": {
+      "bytes": 35010,
+      "mode": "0o664",
+      "sha256": "4d58fd2b65c7ad4304afeab3a5095993311d03456c689013e18a3ae4fd0c368e"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-audit-actual-exit.json": {
+      "bytes": 1509,
+      "mode": "0o664",
+      "sha256": "c56ced5b1323cbb56d30a6c3b124d6570f43791a3b6d085bec1452635255fae8"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-audit-bound.py": {
+      "bytes": 110276,
+      "mode": "0o664",
+      "sha256": "6a333490294b08a0d841486322b5d76205f23a559fa9b96133986ee71e3ffda1"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-audit-execution.log": {
+      "bytes": 252,
+      "mode": "0o644",
+      "sha256": "409afb945abf078285795a31660d9a10495d80704381e29311ea855dd59d7689"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-audit.json": {
+      "bytes": 447395,
+      "mode": "0o664",
+      "sha256": "f453636447ad0d600294b0919d16de35930f996c84e01b1d7219033c70173c7a"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-direct-object-input-contract-final-source-closed.json": {
+      "bytes": 49928,
+      "mode": "0o664",
+      "sha256": "8da1da78a679dadafd7d51e470cfbbf51851e6f73faaac9483168c7c45a713b4"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-evidence-api-contract-complete.json": {
+      "bytes": 8469,
+      "mode": "0o664",
+      "sha256": "f85a308508a8ffe66b2e6945de16d3e9ce213cd194199841e75bb8fbf94ea1ff"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-multiple-pose-publishers-ksqds_9c/multiple-pose-publishers-eight.stdout": {
+      "bytes": 135654,
+      "mode": "0o664",
+      "sha256": "1c8d6c63f6a122c1f8af7e55dbabb825a850b587f209ba4e66ce5fe8e2b86264"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-multiple-pose-publishers-ksqds_9c/multiple-pose-publishers-pair.stdout": {
+      "bytes": 34082,
+      "mode": "0o664",
+      "sha256": "0386464302864c38d70351c6243e9db4e68430999d190d9a779489334c6b0d02"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-multiple-pose-publishers-ksqds_9c/result.json": {
+      "bytes": 368054,
+      "mode": "0o664",
+      "sha256": "df62946ee38411b7176af00081d7883ac2fc7f51fef2073da9282662c17c7de6"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-reference-actual-exit.json": {
+      "bytes": 2277,
+      "mode": "0o664",
+      "sha256": "9193c44547e2849d54ac2a5153d472e8319b2d7a527779fa67275f64dae530ea"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-reference-bound.py": {
+      "bytes": 89376,
+      "mode": "0o664",
+      "sha256": "cd82532b3431cbaecbdbd55c607eb74a67ee2a7399f6eb75b45bf8334a9812e2"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-reference-execution.log": {
+      "bytes": 142,
+      "mode": "0o644",
+      "sha256": "e6f952757d9b2df06496ba4f1e4bb5de5a9a2d2df17d7d85e87345eb349d4cef"
+    }
+  },
+  "input_domain": "DIRECT_ORIGINAL_OBJECT_SYSTEM_LOCAL_POSE_ECM",
+  "limits": "Actual independently audited unchanged-original-object System controlled-LOCAL-input literal data only. Native order is untouched; child-keyed numeric1e-12 and lexical Rust canonical wire/live Physics controls are separate obligations. No output/pose estimator, sorted native-wire equality, Server/plugin-loader/Physics/lifecycle/reset/removal/demand/RNG/Source-binary equivalence or old M31 replay. Current349 and exact-two link providers remain distinct; original object is a link input, historical DSO diagnostic remains failed1. Actual generator0, independent literal DATA, observed consumers/fullnormal/hosted/acceptance remain separately required.",
+  "method_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/generate-native-multiple-pose-publishers-fixture-bound.py",
+  "method_sha256": "4d58fd2b65c7ad4304afeab3a5095993311d03456c689013e18a3ae4fd0c368e",
+  "modes": {
+    "eight": {
+      "canonical_packets": 52,
+      "configurations": [
+        {
+          "child_link_name": "tip",
+          "console_verbosity": 2,
+          "dynamic_rate_bits": "4059000000000000",
+          "entities": [
+            {
+              "canonical_link": false,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "3ff0000000000000",
+                "4000000000000000",
+                "4008000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "model",
+              "name": "rig0",
+              "native_entity": 2,
+              "parent_entity": 1,
+              "selected": true
+            },
+            {
+              "canonical_link": true,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "3ff4000000000000",
+                "4004000000000000",
+                "4006000000000000",
+                "3f99867ef418321d",
+                "bf5eb021807a972b",
+                "bfb32d0f0e85bea5",
+                "3fefe66b0a68550d"
+              ],
+              "kind": "link",
+              "name": "base",
+              "native_entity": 3,
+              "parent_entity": 2,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "dynamic",
+              "initial_local_pose_bits": [
+                "3ff8000000000000",
+                "4008000000000000",
+                "4004000000000000",
+                "3fa94d4f7aefda4d",
+                "bf7e97990c2d519f",
+                "bfc31aab4481dc2a",
+                "3fef99e3c78fbd1e"
+              ],
+              "kind": "link",
+              "name": "tip",
+              "native_entity": 4,
+              "parent_entity": 2,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "unselected",
+              "initial_local_pose_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "joint",
+              "name": "hinge",
+              "native_entity": 5,
+              "parent_entity": 2,
+              "selected": false
+            }
+          ],
+          "joint_type": 6,
+          "kind": "configuration",
+          "mode": "eight",
+          "model_canonical_link": 3,
+          "name": "rig0",
+          "native_entity": 2,
+          "owner": 0,
+          "parent_link_name": "base",
+          "sdf_xml_hex": "3c706c7567696e206e616d653d27677a3a3a73696d3a3a73797374656d733a3a506f73655075626c6973686572272066696c656e616d653d276469726563742d6f726967696e616c2d6f626a6563742d6e6f742d612d6c6f616465722d696e707574273e0a20203c7075626c6973685f6c696e6b5f706f73653e747275653c2f7075626c6973685f6c696e6b5f706f73653e0a20203c7075626c6973685f6d6f64656c5f706f73653e747275653c2f7075626c6973685f6d6f64656c5f706f73653e0a20203c7075626c6973685f6e65737465645f6d6f64656c5f706f73653e66616c73653c2f7075626c6973685f6e65737465645f6d6f64656c5f706f73653e0a20203c7075626c6973685f76697375616c5f706f73653e66616c73653c2f7075626c6973685f76697375616c5f706f73653e0a20203c7075626c6973685f636f6c6c6973696f6e5f706f73653e66616c73653c2f7075626c6973685f636f6c6c6973696f6e5f706f73653e0a20203c7075626c6973685f73656e736f725f706f73653e66616c73653c2f7075626c6973685f73656e736f725f706f73653e0a20203c7573655f706f73655f766563746f725f6d73673e747275653c2f7573655f706f73655f766563746f725f6d73673e0a20203c7374617469635f7075626c69736865723e747275653c2f7374617469635f7075626c69736865723e0a20203c7570646174655f6672657175656e63793e3130303c2f7570646174655f6672657175656e63793e0a20203c7374617469635f7570646174655f6672657175656e63793e32353c2f7374617469635f7570646174655f6672657175656e63793e0a20203c746f7069633e2f6d35352f6e61746976652f6e61746976652d6d756c7469706c652d706f73652d7075626c6973686572732d6b737164735f39632f65696768742f706f7365303c2f746f7069633e0a3c2f706c7567696e3e0a",
+          "static_publisher": true,
+          "static_rate_bits": "4039000000000000",
+          "static_topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose0_static",
+          "topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose0",
+          "use_pose_vector_msg": true,
+          "world_entity": 1,
+          "world_name": "default",
+          "world_pose_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ]
+        },
+        {
+          "child_link_name": "tip",
+          "console_verbosity": 2,
+          "dynamic_rate_bits": "4049000000000000",
+          "entities": [
+            {
+              "canonical_link": false,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4000000000000000",
+                "4014000000000000",
+                "4008000000000000",
+                "bf505b3f48773081",
+                "3f846099b9f475d5",
+                "3fb98e5b0ca96870",
+                "3fefd6aaa4708391"
+              ],
+              "kind": "model",
+              "name": "rig1",
+              "native_entity": 6,
+              "parent_entity": 1,
+              "selected": true
+            },
+            {
+              "canonical_link": true,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4002000000000000",
+                "4016000000000000",
+                "4006000000000000",
+                "3f995508d6e3aedd",
+                "3f85bf1ca67439b3",
+                "3f995508d6e3aee0",
+                "3feffa85ddb81e65"
+              ],
+              "kind": "link",
+              "name": "base",
+              "native_entity": 7,
+              "parent_entity": 6,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "dynamic",
+              "initial_local_pose_bits": [
+                "4004000000000000",
+                "4018000000000000",
+                "4004000000000000",
+                "3fa9cfc809cb4533",
+                "3f7ea04493c5577a",
+                "bfa9cfc809cb4531",
+                "3fefeaec8230caba"
+              ],
+              "kind": "link",
+              "name": "tip",
+              "native_entity": 8,
+              "parent_entity": 6,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "unselected",
+              "initial_local_pose_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "joint",
+              "name": "hinge",
+              "native_entity": 9,
+              "parent_entity": 6,
+              "selected": false
+            }
+          ],
+          "joint_type": 6,
+          "kind": "configuration",
+          "mode": "eight",
+          "model_canonical_link": 7,
+          "name": "rig1",
+          "native_entity": 6,
+          "owner": 1,
+          "parent_link_name": "base",
+          "sdf_xml_hex": "3c706c7567696e206e616d653d27677a3a3a73696d3a3a73797374656d733a3a506f73655075626c6973686572272066696c656e616d653d276469726563742d6f726967696e616c2d6f626a6563742d6e6f742d612d6c6f616465722d696e707574273e0a20203c7075626c6973685f6c696e6b5f706f73653e747275653c2f7075626c6973685f6c696e6b5f706f73653e0a20203c7075626c6973685f6d6f64656c5f706f73653e747275653c2f7075626c6973685f6d6f64656c5f706f73653e0a20203c7075626c6973685f6e65737465645f6d6f64656c5f706f73653e66616c73653c2f7075626c6973685f6e65737465645f6d6f64656c5f706f73653e0a20203c7075626c6973685f76697375616c5f706f73653e66616c73653c2f7075626c6973685f76697375616c5f706f73653e0a20203c7075626c6973685f636f6c6c6973696f6e5f706f73653e66616c73653c2f7075626c6973685f636f6c6c6973696f6e5f706f73653e0a20203c7075626c6973685f73656e736f725f706f73653e66616c73653c2f7075626c6973685f73656e736f725f706f73653e0a20203c7573655f706f73655f766563746f725f6d73673e747275653c2f7573655f706f73655f766563746f725f6d73673e0a20203c7374617469635f7075626c69736865723e747275653c2f7374617469635f7075626c69736865723e0a20203c7570646174655f6672657175656e63793e35303c2f7570646174655f6672657175656e63793e0a20203c7374617469635f7570646174655f6672657175656e63793e3130303c2f7374617469635f7570646174655f6672657175656e63793e0a20203c746f7069633e2f6d35352f6e61746976652f6e61746976652d6d756c7469706c652d706f73652d7075626c6973686572732d6b737164735f39632f65696768742f706f7365313c2f746f7069633e0a3c2f706c7567696e3e0a",
+          "static_publisher": true,
+          "static_rate_bits": "4059000000000000",
+          "static_topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose1_static",
+          "topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose1",
+          "use_pose_vector_msg": true,
+          "world_entity": 1,
+          "world_name": "default",
+          "world_pose_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ]
+        },
+        {
+          "child_link_name": "tip",
+          "console_verbosity": 2,
+          "dynamic_rate_bits": "4059000000000000",
+          "entities": [
+            {
+              "canonical_link": false,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4008000000000000",
+                "4020000000000000",
+                "4008000000000000",
+                "bf70461ebe356bfc",
+                "3f941207668a3cc9",
+                "3fc96cb1d64203df",
+                "3fef5b19872068f1"
+              ],
+              "kind": "model",
+              "name": "rig2",
+              "native_entity": 10,
+              "parent_entity": 1,
+              "selected": true
+            },
+            {
+              "canonical_link": true,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "400a000000000000",
+                "4021000000000000",
+                "4006000000000000",
+                "3f96d71507da9c91",
+                "3f9780d2280b9b4b",
+                "3fbfc5fd619c337d",
+                "3fefbc6dcdd7e453"
+              ],
+              "kind": "link",
+              "name": "base",
+              "native_entity": 11,
+              "parent_entity": 10,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "dynamic",
+              "initial_local_pose_bits": [
+                "400c000000000000",
+                "4022000000000000",
+                "4004000000000000",
+                "3fa90a8784a89d8b",
+                "3f96fc1e3ffeb633",
+                "3fa90a8784a89d8d",
+                "3fefea4fe1d2c2a8"
+              ],
+              "kind": "link",
+              "name": "tip",
+              "native_entity": 12,
+              "parent_entity": 10,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "unselected",
+              "initial_local_pose_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "joint",
+              "name": "hinge",
+              "native_entity": 13,
+              "parent_entity": 10,
+              "selected": false
+            }
+          ],
+          "joint_type": 6,
+          "kind": "configuration",
+          "mode": "eight",
+          "model_canonical_link": 11,
+          "name": "rig2",
+          "native_entity": 10,
+          "owner": 2,
+          "parent_link_name": "base",
+          "sdf_xml_hex": "3c706c7567696e206e616d653d27677a3a3a73696d3a3a73797374656d733a3a506f73655075626c6973686572272066696c656e616d653d276469726563742d6f726967696e616c2d6f626a6563742d6e6f742d612d6c6f616465722d696e707574273e0a20203c7075626c6973685f6c696e6b5f706f73653e747275653c2f7075626c6973685f6c696e6b5f706f73653e0a20203c7075626c6973685f6d6f64656c5f706f73653e747275653c2f7075626c6973685f6d6f64656c5f706f73653e0a20203c7075626c6973685f6e65737465645f6d6f64656c5f706f73653e66616c73653c2f7075626c6973685f6e65737465645f6d6f64656c5f706f73653e0a20203c7075626c6973685f76697375616c5f706f73653e66616c73653c2f7075626c6973685f76697375616c5f706f73653e0a20203c7075626c6973685f636f6c6c6973696f6e5f706f73653e66616c73653c2f7075626c6973685f636f6c6c6973696f6e5f706f73653e0a20203c7075626c6973685f73656e736f725f706f73653e66616c73653c2f7075626c6973685f73656e736f725f706f73653e0a20203c7573655f706f73655f766563746f725f6d73673e747275653c2f7573655f706f73655f766563746f725f6d73673e0a20203c7374617469635f7075626c69736865723e747275653c2f7374617469635f7075626c69736865723e0a20203c7570646174655f6672657175656e63793e3130303c2f7570646174655f6672657175656e63793e0a20203c7374617469635f7570646174655f6672657175656e63793e32353c2f7374617469635f7570646174655f6672657175656e63793e0a20203c746f7069633e2f6d35352f6e61746976652f6e61746976652d6d756c7469706c652d706f73652d7075626c6973686572732d6b737164735f39632f65696768742f706f7365323c2f746f7069633e0a3c2f706c7567696e3e0a",
+          "static_publisher": true,
+          "static_rate_bits": "4039000000000000",
+          "static_topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose2_static",
+          "topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose2",
+          "use_pose_vector_msg": true,
+          "world_entity": 1,
+          "world_name": "default",
+          "world_pose_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ]
+        },
+        {
+          "child_link_name": "tip",
+          "console_verbosity": 2,
+          "dynamic_rate_bits": "4049000000000000",
+          "entities": [
+            {
+              "canonical_link": false,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4010000000000000",
+                "4026000000000000",
+                "4008000000000000",
+                "bf82276f0a91e7c7",
+                "3f9d57f1e81e46e7",
+                "3fd2e79fd9db1593",
+                "3fee8e9853ed0504"
+              ],
+              "kind": "model",
+              "name": "rig3",
+              "native_entity": 14,
+              "parent_entity": 1,
+              "selected": true
+            },
+            {
+              "canonical_link": true,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4011000000000000",
+                "4027000000000000",
+                "4006000000000000",
+                "3f92171a3d33933c",
+                "3fa1d1f198619f40",
+                "3fcc7139cc10af11",
+                "3fef2ccbdb032627"
+              ],
+              "kind": "link",
+              "name": "base",
+              "native_entity": 15,
+              "parent_entity": 14,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "dynamic",
+              "initial_local_pose_bits": [
+                "4012000000000000",
+                "4028000000000000",
+                "4004000000000000",
+                "3fa6ff9a8878e126",
+                "3fa2fd12e9954c0a",
+                "3fc2e7e555859c8c",
+                "3fef9815b832782d"
+              ],
+              "kind": "link",
+              "name": "tip",
+              "native_entity": 16,
+              "parent_entity": 14,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "unselected",
+              "initial_local_pose_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "joint",
+              "name": "hinge",
+              "native_entity": 17,
+              "parent_entity": 14,
+              "selected": false
+            }
+          ],
+          "joint_type": 6,
+          "kind": "configuration",
+          "mode": "eight",
+          "model_canonical_link": 15,
+          "name": "rig3",
+          "native_entity": 14,
+          "owner": 3,
+          "parent_link_name": "base",
+          "sdf_xml_hex": "3c706c7567696e206e616d653d27677a3a3a73696d3a3a73797374656d733a3a506f73655075626c6973686572272066696c656e616d653d276469726563742d6f726967696e616c2d6f626a6563742d6e6f742d612d6c6f616465722d696e707574273e0a20203c7075626c6973685f6c696e6b5f706f73653e747275653c2f7075626c6973685f6c696e6b5f706f73653e0a20203c7075626c6973685f6d6f64656c5f706f73653e747275653c2f7075626c6973685f6d6f64656c5f706f73653e0a20203c7075626c6973685f6e65737465645f6d6f64656c5f706f73653e66616c73653c2f7075626c6973685f6e65737465645f6d6f64656c5f706f73653e0a20203c7075626c6973685f76697375616c5f706f73653e66616c73653c2f7075626c6973685f76697375616c5f706f73653e0a20203c7075626c6973685f636f6c6c6973696f6e5f706f73653e66616c73653c2f7075626c6973685f636f6c6c6973696f6e5f706f73653e0a20203c7075626c6973685f73656e736f725f706f73653e66616c73653c2f7075626c6973685f73656e736f725f706f73653e0a20203c7573655f706f73655f766563746f725f6d73673e747275653c2f7573655f706f73655f766563746f725f6d73673e0a20203c7374617469635f7075626c69736865723e747275653c2f7374617469635f7075626c69736865723e0a20203c7570646174655f6672657175656e63793e35303c2f7570646174655f6672657175656e63793e0a20203c7374617469635f7570646174655f6672657175656e63793e3130303c2f7374617469635f7570646174655f6672657175656e63793e0a20203c746f7069633e2f6d35352f6e61746976652f6e61746976652d6d756c7469706c652d706f73652d7075626c6973686572732d6b737164735f39632f65696768742f706f7365333c2f746f7069633e0a3c2f706c7567696e3e0a",
+          "static_publisher": true,
+          "static_rate_bits": "4059000000000000",
+          "static_topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose3_static",
+          "topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose3",
+          "use_pose_vector_msg": true,
+          "world_entity": 1,
+          "world_name": "default",
+          "world_pose_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ]
+        },
+        {
+          "child_link_name": "tip",
+          "console_verbosity": 2,
+          "dynamic_rate_bits": "4059000000000000",
+          "entities": [
+            {
+              "canonical_link": false,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4014000000000000",
+                "402c000000000000",
+                "4008000000000000",
+                "bf8fe4845661f4a1",
+                "3fa2dbb98164eb5e",
+                "3fd8e72069f592f7",
+                "3fed734bd3ea88a3"
+              ],
+              "kind": "model",
+              "name": "rig4",
+              "native_entity": 18,
+              "parent_entity": 1,
+              "selected": true
+            },
+            {
+              "canonical_link": true,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4015000000000000",
+                "402d000000000000",
+                "4006000000000000",
+                "3f86554e65369359",
+                "3fa77ae8443539c6",
+                "3fd45a3768a598bc",
+                "3fee4d22cd339e48"
+              ],
+              "kind": "link",
+              "name": "base",
+              "native_entity": 19,
+              "parent_entity": 18,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "dynamic",
+              "initial_local_pose_bits": [
+                "4016000000000000",
+                "402e000000000000",
+                "4004000000000000",
+                "3fa3b6ffc6284ca9",
+                "3faa239ad93e0e6e",
+                "3fcf5ade9a176821",
+                "3feef51ede18a1a5"
+              ],
+              "kind": "link",
+              "name": "tip",
+              "native_entity": 20,
+              "parent_entity": 18,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "unselected",
+              "initial_local_pose_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "joint",
+              "name": "hinge",
+              "native_entity": 21,
+              "parent_entity": 18,
+              "selected": false
+            }
+          ],
+          "joint_type": 6,
+          "kind": "configuration",
+          "mode": "eight",
+          "model_canonical_link": 19,
+          "name": "rig4",
+          "native_entity": 18,
+          "owner": 4,
+          "parent_link_name": "base",
+          "sdf_xml_hex": "3c706c7567696e206e616d653d27677a3a3a73696d3a3a73797374656d733a3a506f73655075626c6973686572272066696c656e616d653d276469726563742d6f726967696e616c2d6f626a6563742d6e6f742d612d6c6f616465722d696e707574273e0a20203c7075626c6973685f6c696e6b5f706f73653e747275653c2f7075626c6973685f6c696e6b5f706f73653e0a20203c7075626c6973685f6d6f64656c5f706f73653e747275653c2f7075626c6973685f6d6f64656c5f706f73653e0a20203c7075626c6973685f6e65737465645f6d6f64656c5f706f73653e66616c73653c2f7075626c6973685f6e65737465645f6d6f64656c5f706f73653e0a20203c7075626c6973685f76697375616c5f706f73653e66616c73653c2f7075626c6973685f76697375616c5f706f73653e0a20203c7075626c6973685f636f6c6c6973696f6e5f706f73653e66616c73653c2f7075626c6973685f636f6c6c6973696f6e5f706f73653e0a20203c7075626c6973685f73656e736f725f706f73653e66616c73653c2f7075626c6973685f73656e736f725f706f73653e0a20203c7573655f706f73655f766563746f725f6d73673e747275653c2f7573655f706f73655f766563746f725f6d73673e0a20203c7374617469635f7075626c69736865723e747275653c2f7374617469635f7075626c69736865723e0a20203c7570646174655f6672657175656e63793e3130303c2f7570646174655f6672657175656e63793e0a20203c7374617469635f7570646174655f6672657175656e63793e32353c2f7374617469635f7570646174655f6672657175656e63793e0a20203c746f7069633e2f6d35352f6e61746976652f6e61746976652d6d756c7469706c652d706f73652d7075626c6973686572732d6b737164735f39632f65696768742f706f7365343c2f746f7069633e0a3c2f706c7567696e3e0a",
+          "static_publisher": true,
+          "static_rate_bits": "4039000000000000",
+          "static_topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose4_static",
+          "topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose4",
+          "use_pose_vector_msg": true,
+          "world_entity": 1,
+          "world_name": "default",
+          "world_pose_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ]
+        },
+        {
+          "child_link_name": "tip",
+          "console_verbosity": 2,
+          "dynamic_rate_bits": "4049000000000000",
+          "entities": [
+            {
+              "canonical_link": false,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4018000000000000",
+                "4031000000000000",
+                "4008000000000000",
+                "bf98894ef632bdcd",
+                "3fa674edd2662e0b",
+                "3fdea51768460be6",
+                "3fec0c2bf95aa940"
+              ],
+              "kind": "model",
+              "name": "rig5",
+              "native_entity": 22,
+              "parent_entity": 1,
+              "selected": true
+            },
+            {
+              "canonical_link": true,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4019000000000000",
+                "4031800000000000",
+                "4006000000000000",
+                "3f61908de81088c8",
+                "3fac937ea74bc6b3",
+                "3fda4643b16aeff3",
+                "3fed1fcafec864ee"
+              ],
+              "kind": "link",
+              "name": "base",
+              "native_entity": 23,
+              "parent_entity": 22,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "dynamic",
+              "initial_local_pose_bits": [
+                "401a000000000000",
+                "4032000000000000",
+                "4004000000000000",
+                "3f9e7d179a717203",
+                "3fb062bea0631a51",
+                "3fd5bd8f43f06aae",
+                "3fee0322b8e966d7"
+              ],
+              "kind": "link",
+              "name": "tip",
+              "native_entity": 24,
+              "parent_entity": 22,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "unselected",
+              "initial_local_pose_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "joint",
+              "name": "hinge",
+              "native_entity": 25,
+              "parent_entity": 22,
+              "selected": false
+            }
+          ],
+          "joint_type": 6,
+          "kind": "configuration",
+          "mode": "eight",
+          "model_canonical_link": 23,
+          "name": "rig5",
+          "native_entity": 22,
+          "owner": 5,
+          "parent_link_name": "base",
+          "sdf_xml_hex": "3c706c7567696e206e616d653d27677a3a3a73696d3a3a73797374656d733a3a506f73655075626c6973686572272066696c656e616d653d276469726563742d6f726967696e616c2d6f626a6563742d6e6f742d612d6c6f616465722d696e707574273e0a20203c7075626c6973685f6c696e6b5f706f73653e747275653c2f7075626c6973685f6c696e6b5f706f73653e0a20203c7075626c6973685f6d6f64656c5f706f73653e747275653c2f7075626c6973685f6d6f64656c5f706f73653e0a20203c7075626c6973685f6e65737465645f6d6f64656c5f706f73653e66616c73653c2f7075626c6973685f6e65737465645f6d6f64656c5f706f73653e0a20203c7075626c6973685f76697375616c5f706f73653e66616c73653c2f7075626c6973685f76697375616c5f706f73653e0a20203c7075626c6973685f636f6c6c6973696f6e5f706f73653e66616c73653c2f7075626c6973685f636f6c6c6973696f6e5f706f73653e0a20203c7075626c6973685f73656e736f725f706f73653e66616c73653c2f7075626c6973685f73656e736f725f706f73653e0a20203c7573655f706f73655f766563746f725f6d73673e747275653c2f7573655f706f73655f766563746f725f6d73673e0a20203c7374617469635f7075626c69736865723e747275653c2f7374617469635f7075626c69736865723e0a20203c7570646174655f6672657175656e63793e35303c2f7570646174655f6672657175656e63793e0a20203c7374617469635f7570646174655f6672657175656e63793e3130303c2f7374617469635f7570646174655f6672657175656e63793e0a20203c746f7069633e2f6d35352f6e61746976652f6e61746976652d6d756c7469706c652d706f73652d7075626c6973686572732d6b737164735f39632f65696768742f706f7365353c2f746f7069633e0a3c2f706c7567696e3e0a",
+          "static_publisher": true,
+          "static_rate_bits": "4059000000000000",
+          "static_topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose5_static",
+          "topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose5",
+          "use_pose_vector_msg": true,
+          "world_entity": 1,
+          "world_name": "default",
+          "world_pose_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ]
+        },
+        {
+          "child_link_name": "tip",
+          "console_verbosity": 2,
+          "dynamic_rate_bits": "4059000000000000",
+          "entities": [
+            {
+              "canonical_link": false,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "401c000000000000",
+                "4034000000000000",
+                "4008000000000000",
+                "bfa155dd8193e1de",
+                "3fa956cf460176f4",
+                "3fe2093a471b2f32",
+                "3fea5cfba1e5401d"
+              ],
+              "kind": "model",
+              "name": "rig6",
+              "native_entity": 26,
+              "parent_entity": 1,
+              "selected": true
+            },
+            {
+              "canonical_link": true,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "401d000000000000",
+                "4034800000000000",
+                "4006000000000000",
+                "bf815007c156e74e",
+                "3fb07b1cd9909782",
+                "3fdfed48c3f6e966",
+                "3feba7ebd8e321e1"
+              ],
+              "kind": "link",
+              "name": "base",
+              "native_entity": 27,
+              "parent_entity": 26,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "dynamic",
+              "initial_local_pose_bits": [
+                "401e000000000000",
+                "4035000000000000",
+                "4004000000000000",
+                "3f93536d4a2f8c5d",
+                "3fb35c4b1642ac11",
+                "3fdb948c28879fa1",
+                "3fecc4aa71699e33"
+              ],
+              "kind": "link",
+              "name": "tip",
+              "native_entity": 28,
+              "parent_entity": 26,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "unselected",
+              "initial_local_pose_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "joint",
+              "name": "hinge",
+              "native_entity": 29,
+              "parent_entity": 26,
+              "selected": false
+            }
+          ],
+          "joint_type": 6,
+          "kind": "configuration",
+          "mode": "eight",
+          "model_canonical_link": 27,
+          "name": "rig6",
+          "native_entity": 26,
+          "owner": 6,
+          "parent_link_name": "base",
+          "sdf_xml_hex": "3c706c7567696e206e616d653d27677a3a3a73696d3a3a73797374656d733a3a506f73655075626c6973686572272066696c656e616d653d276469726563742d6f726967696e616c2d6f626a6563742d6e6f742d612d6c6f616465722d696e707574273e0a20203c7075626c6973685f6c696e6b5f706f73653e747275653c2f7075626c6973685f6c696e6b5f706f73653e0a20203c7075626c6973685f6d6f64656c5f706f73653e747275653c2f7075626c6973685f6d6f64656c5f706f73653e0a20203c7075626c6973685f6e65737465645f6d6f64656c5f706f73653e66616c73653c2f7075626c6973685f6e65737465645f6d6f64656c5f706f73653e0a20203c7075626c6973685f76697375616c5f706f73653e66616c73653c2f7075626c6973685f76697375616c5f706f73653e0a20203c7075626c6973685f636f6c6c6973696f6e5f706f73653e66616c73653c2f7075626c6973685f636f6c6c6973696f6e5f706f73653e0a20203c7075626c6973685f73656e736f725f706f73653e66616c73653c2f7075626c6973685f73656e736f725f706f73653e0a20203c7573655f706f73655f766563746f725f6d73673e747275653c2f7573655f706f73655f766563746f725f6d73673e0a20203c7374617469635f7075626c69736865723e747275653c2f7374617469635f7075626c69736865723e0a20203c7570646174655f6672657175656e63793e3130303c2f7570646174655f6672657175656e63793e0a20203c7374617469635f7570646174655f6672657175656e63793e32353c2f7374617469635f7570646174655f6672657175656e63793e0a20203c746f7069633e2f6d35352f6e61746976652f6e61746976652d6d756c7469706c652d706f73652d7075626c6973686572732d6b737164735f39632f65696768742f706f7365363c2f746f7069633e0a3c2f706c7567696e3e0a",
+          "static_publisher": true,
+          "static_rate_bits": "4039000000000000",
+          "static_topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose6_static",
+          "topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose6",
+          "use_pose_vector_msg": true,
+          "world_entity": 1,
+          "world_name": "default",
+          "world_pose_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ]
+        },
+        {
+          "child_link_name": "tip",
+          "console_verbosity": 2,
+          "dynamic_rate_bits": "4049000000000000",
+          "entities": [
+            {
+              "canonical_link": false,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4020000000000000",
+                "4037000000000000",
+                "4008000000000000",
+                "bfa711e5ab0a649d",
+                "3fab63ba678698d2",
+                "3fe49081c1f7833a",
+                "3fe86a3e269e5c41"
+              ],
+              "kind": "model",
+              "name": "rig7",
+              "native_entity": 30,
+              "parent_entity": 1,
+              "selected": true
+            },
+            {
+              "canonical_link": true,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4020800000000000",
+                "4037800000000000",
+                "4006000000000000",
+                "bf952f4db56e50ed",
+                "3fb2404959f94666",
+                "3fe2a044e7028417",
+                "3fe9e9731419bff7"
+              ],
+              "kind": "link",
+              "name": "base",
+              "native_entity": 31,
+              "parent_entity": 30,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "dynamic",
+              "initial_local_pose_bits": [
+                "4021000000000000",
+                "4038000000000000",
+                "4004000000000000",
+                "3f788a9f074a95e9",
+                "3fb5eabb4ae25245",
+                "3fe0919db066eef1",
+                "3feb3d09e97283ef"
+              ],
+              "kind": "link",
+              "name": "tip",
+              "native_entity": 32,
+              "parent_entity": 30,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "unselected",
+              "initial_local_pose_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "joint",
+              "name": "hinge",
+              "native_entity": 33,
+              "parent_entity": 30,
+              "selected": false
+            }
+          ],
+          "joint_type": 6,
+          "kind": "configuration",
+          "mode": "eight",
+          "model_canonical_link": 31,
+          "name": "rig7",
+          "native_entity": 30,
+          "owner": 7,
+          "parent_link_name": "base",
+          "sdf_xml_hex": "3c706c7567696e206e616d653d27677a3a3a73696d3a3a73797374656d733a3a506f73655075626c6973686572272066696c656e616d653d276469726563742d6f726967696e616c2d6f626a6563742d6e6f742d612d6c6f616465722d696e707574273e0a20203c7075626c6973685f6c696e6b5f706f73653e747275653c2f7075626c6973685f6c696e6b5f706f73653e0a20203c7075626c6973685f6d6f64656c5f706f73653e747275653c2f7075626c6973685f6d6f64656c5f706f73653e0a20203c7075626c6973685f6e65737465645f6d6f64656c5f706f73653e66616c73653c2f7075626c6973685f6e65737465645f6d6f64656c5f706f73653e0a20203c7075626c6973685f76697375616c5f706f73653e66616c73653c2f7075626c6973685f76697375616c5f706f73653e0a20203c7075626c6973685f636f6c6c6973696f6e5f706f73653e66616c73653c2f7075626c6973685f636f6c6c6973696f6e5f706f73653e0a20203c7075626c6973685f73656e736f725f706f73653e66616c73653c2f7075626c6973685f73656e736f725f706f73653e0a20203c7573655f706f73655f766563746f725f6d73673e747275653c2f7573655f706f73655f766563746f725f6d73673e0a20203c7374617469635f7075626c69736865723e747275653c2f7374617469635f7075626c69736865723e0a20203c7570646174655f6672657175656e63793e35303c2f7570646174655f6672657175656e63793e0a20203c7374617469635f7570646174655f6672657175656e63793e3130303c2f7374617469635f7570646174655f6672657175656e63793e0a20203c746f7069633e2f6d35352f6e61746976652f6e61746976652d6d756c7469706c652d706f73652d7075626c6973686572732d6b737164735f39632f65696768742f706f7365373c2f746f7069633e0a3c2f706c7567696e3e0a",
+          "static_publisher": true,
+          "static_rate_bits": "4059000000000000",
+          "static_topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose7_static",
+          "topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/eight/pose7",
+          "use_pose_vector_msg": true,
+          "world_entity": 1,
+          "world_name": "default",
+          "world_pose_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ]
+        }
+      ],
+      "console": {
+        "bytes": 0,
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-multiple-pose-publishers-ksqds_9c/multiple-pose-publishers-eight.maps.console.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "input_rows": 32,
+      "input_scope": "Explicit finite model/base/tip parent-LOCAL poses and actual public ECM getters, configuration/classification inputs; no Physics trajectory or output estimator.",
+      "observed_vectors": 52,
+      "ordering": "Actual native callback vector and contained Pose order preserved without sorting. Owner/call/time are joined to input; not invented wire fields.",
+      "pose_records": 76,
+      "stderr_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-multiple-pose-publishers-ksqds_9c/multiple-pose-publishers-eight.stderr",
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-multiple-pose-publishers-ksqds_9c/multiple-pose-publishers-eight.stdout",
+      "stdout_sha256": "1c8d6c63f6a122c1f8af7e55dbabb825a850b587f209ba4e66ce5fe8e2b86264",
+      "summary": {
+        "canonical_packets": 52,
+        "configuration_count": 8,
+        "direct_post_update_calls": 32,
+        "global_RNG_equivalence_claimed": false,
+        "input_rows": 32,
+        "kind": "summary",
+        "mode": "eight",
+        "native_Physics_executed": false,
+        "native_demand_or_lifecycle_equivalence_claimed": false,
+        "observed_vectors": 52,
+        "old_native_modes_replayed": false,
+        "original_Server_or_plugin_loader_executed": false,
+        "original_object_linked_System_scope": true,
+        "pose_records": 76
+      },
+      "wire_hashes": [
+        {
+          "call_index": 0,
+          "channel": "static",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "2ff5fc9881c40608a254542aaf6979855d0fe0d48c8d774574c13fb080c88900",
+              "pose_sha256": "01c5afd7bf7f9b6b745370df4707273e6df3dd16f18a3a4f662c8196e65bf089"
+            },
+            {
+              "header_sha256": "f6a04c2fa69424092c2e1f689a5c187a15905f4647f1441df4015618340a1758",
+              "pose_sha256": "87336f59c00b777f66cd84d9dc2b4f1e3115172146ae55bbb47246bce5beef70"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "5823ce5890a5896fef3eaf07a9528e4c42267999f19c2f5b28c6afda8ca50f35"
+        },
+        {
+          "call_index": 0,
+          "channel": "dynamic",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "d8cffa0c921c023af9d0661be9131c8b1042922114f34c890661527e38bde3a2",
+              "pose_sha256": "67eefefbba3cac1251c4aa13a2128a5ef16067e83653fda6668a5f1f4076090b"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "bb17c5a13bce3f0cf426022a18c2d65afeb6b6af40004a215c86a46c92935384"
+        },
+        {
+          "call_index": 0,
+          "channel": "static",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "44fa8995e4f7eb12c8d74c13b16fe41bd3cb0e96cead191df4774badf7a25bb5",
+              "pose_sha256": "062e3455d7a0df37b9f2135d329cb9e3facd75cb3251531999aef89056b13d12"
+            },
+            {
+              "header_sha256": "3e470d49503affc1149150cd1b4a39e8a13452c2e871ebbc798b48f69b5cab46",
+              "pose_sha256": "c45932faa7732f7f597d23e8b1a7c06da94f8574a92140460dbf75fcdc4b9258"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "1ffeabf7f12373470dbdf2d9b8bdcd94d50bb25a7973db2cfff8eb0584508fc8"
+        },
+        {
+          "call_index": 0,
+          "channel": "dynamic",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "e70793780f52bac1523ef58a1696412f0f1ca05647882a9689fdeedb8c6204d3",
+              "pose_sha256": "4248a85df825959720d56c22714a33f85e19de3226a6240258d225cdf3989d7d"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "0469659c7e6f1ec350defa718ec6143a7ed808f89e95b003f50afa7a35f44656"
+        },
+        {
+          "call_index": 0,
+          "channel": "static",
+          "owner": 2,
+          "records": [
+            {
+              "header_sha256": "cf931de1dafdbeb54ce3a3591fc275bdb130ca0f279f0842e2de6b44f2038498",
+              "pose_sha256": "da4a584afcf4fbc384611b339b80ebcd4e0a1d2adb10e1c2911e9ad6a11f8b4b"
+            },
+            {
+              "header_sha256": "a8110e6f2600136127fe46a0c0d86fa932b4736f34b7182311a4960eac5fefff",
+              "pose_sha256": "4659c582d20a5e49c1088bb2305a4f55f4e396b16e63ca2f6afa544ea11fe8ea"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "d3dc6ebf8e7437692ef533943e2f5b1d2f306e7fa887fbaa2e853ef5e7ba1686"
+        },
+        {
+          "call_index": 0,
+          "channel": "dynamic",
+          "owner": 2,
+          "records": [
+            {
+              "header_sha256": "bcf9897fd65cab855df5ca46fbdc61deb7d52723e07128cddd30781c0acf58f2",
+              "pose_sha256": "4fc04196117aaad743a792635cbd8951cf4b18596ee6c80d2d760ecb13281f5c"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "a61bf23c3b70e85eb3341b4076f736525169235beb039180080bf5924ce1c7d6"
+        },
+        {
+          "call_index": 0,
+          "channel": "static",
+          "owner": 3,
+          "records": [
+            {
+              "header_sha256": "d9cad3485472477a34ca4d887e87167e94595fe1e649fbad0a028c4626ae5326",
+              "pose_sha256": "9d03ec141fdaba36dab515d6b0cfc5bf445972381b400bbcb896ebe774492ac4"
+            },
+            {
+              "header_sha256": "8f5a4809d9158cb60c9b9cd1d90d01e9c240d430c77bd1adba096cc0c8ed6b3d",
+              "pose_sha256": "dcee00bcc9f2ef38337086f8b0321ff2ec3f7b40b183ef2d799d014c82b5f0f8"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "5323578c140f5566c0bd1c50af62f58f65b6eaab1be2947e5ab15c4d3c6363c8"
+        },
+        {
+          "call_index": 0,
+          "channel": "dynamic",
+          "owner": 3,
+          "records": [
+            {
+              "header_sha256": "60e9cc4aab307d686e99abdcbf84cf9c52b30d98ad66a4da19a8b616f59c1c37",
+              "pose_sha256": "147a9c5121c6d30a36c06c062bb562589654ac21a888f3d53b49d978191b12bc"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "fed20f571974e583b69b733041f0cc7140ed48afb0f41ae5d80c49e44000d2f0"
+        },
+        {
+          "call_index": 0,
+          "channel": "static",
+          "owner": 4,
+          "records": [
+            {
+              "header_sha256": "f8dd5c58cf2fe13883573623596b88e84316e952bf7a614ffa0d7eac3c4765c7",
+              "pose_sha256": "032b7f9719ea3bdd08553993340464d7d6480c1d15bd7e97fa5bfe931f872e6c"
+            },
+            {
+              "header_sha256": "6ac18ba415a16a115c57d6604ae9b0117e5ffaa212daeb189a147afe8a8301ee",
+              "pose_sha256": "dbe82b6cd822258604e97b4eb7bef18624e1f0b41ef851410eb653c842887586"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "7d931af3b347e1e11f75ef566a84ebbec85353047ba3d59dc7a60874550c2ad9"
+        },
+        {
+          "call_index": 0,
+          "channel": "dynamic",
+          "owner": 4,
+          "records": [
+            {
+              "header_sha256": "165e3e81dab6d0a237d49a8c7c1b5a740213d8cfb2c91cfaf0a939ab1e34aee7",
+              "pose_sha256": "bc1b7a9b6006a6cd3660008be9b5981594aca04940f110b93e016555577818df"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "df1db113c0c0359e20cd9d2263026ec72623cd5b4ca31c05fca6e4d5e00516b8"
+        },
+        {
+          "call_index": 0,
+          "channel": "static",
+          "owner": 5,
+          "records": [
+            {
+              "header_sha256": "3a0f7938fa907e12211b27e66eca5df6dc743785d9a51d6ff4e64103998366d4",
+              "pose_sha256": "d5b98f4663e562f81cd3c9e1eff5fb7076a437b56ce1752d5e82398725ac89eb"
+            },
+            {
+              "header_sha256": "89f504f09fe3f19071647d216fa5f02a2bb96c0aa70bdc3318dc7755b61d0230",
+              "pose_sha256": "e869752a37031f50d9213ab36f56bbdee6b5fc94ab4a2455493508fddbca5ab3"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "031c5b00558f88983323a0f166aa2897b6c904116606e054326b3afecf4d1101"
+        },
+        {
+          "call_index": 0,
+          "channel": "dynamic",
+          "owner": 5,
+          "records": [
+            {
+              "header_sha256": "f42bf530c111516a500be8ea743a006a67c84f6662732a5743fe454e5633b7f7",
+              "pose_sha256": "14cf471c4cb510b1e8c454d98a51c5c037e605fdd5f45df79c605e32aedd2534"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "236e66a325370ea83dbefa47a6a4207c2cf00abe8a5ca1967ed5f21511249e74"
+        },
+        {
+          "call_index": 0,
+          "channel": "static",
+          "owner": 6,
+          "records": [
+            {
+              "header_sha256": "55e325ba258821e38ac9ee80dccd832f506d0f43c7e601625b44d6cc50f84593",
+              "pose_sha256": "429d3255e998d4d3baec2e8bc2f1ae58032ac8028b263071bd17a77b6cdc625c"
+            },
+            {
+              "header_sha256": "8d488b48933d863d2cff606e040b7b4b91e2ebea68b5f45d7653e6bd45555d5c",
+              "pose_sha256": "7a75e4d708cc77a5d56526db553e2b3f80b26d8a883c8ee303cbdbfad4e6af11"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "35529bd2c8b712fbf82c9a2e10689a9aa9a4bd8f77425fb275b4a69f0e83bb75"
+        },
+        {
+          "call_index": 0,
+          "channel": "dynamic",
+          "owner": 6,
+          "records": [
+            {
+              "header_sha256": "286b0b9e4518cd64aff938c60085fb248296975681b35f84c977ecd34480740c",
+              "pose_sha256": "0d456955318670bc7020c34024bb4c66db2680ff051838b64259c07a8049b7c1"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "49d774f590a56f96b08337f429bab3b32f9e2a3badbc11b2dda6ec7b75076a5c"
+        },
+        {
+          "call_index": 0,
+          "channel": "static",
+          "owner": 7,
+          "records": [
+            {
+              "header_sha256": "b5f49af3a9786753f9048b679138d010b59717264b3aae5c12b7545640af8c6c",
+              "pose_sha256": "b9297f39b747489d330f74e48458991e2bc02918bc96834e22dc5b5fbf152511"
+            },
+            {
+              "header_sha256": "8df62f085ffaf461747cab4cef514508fc108549de7b915c90f925186ddd7685",
+              "pose_sha256": "6ebcdf036170affc48931ae8b5596f747aae1e6e4bf5b63c554fb38b117ce806"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "6a5b703ae08222d01cb3748f9389ce381ef8d026945d38fdb6e44759c20bb164"
+        },
+        {
+          "call_index": 0,
+          "channel": "dynamic",
+          "owner": 7,
+          "records": [
+            {
+              "header_sha256": "6bb30993b709d7742ef6550e4b5f678ee84901659e81333f5cee1a51574eb5c4",
+              "pose_sha256": "9557b8948a4d516b5f9cdcae8739d62c4057fcea464502838e7813c21c05c311"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "03efdb804ff5b721d8abce467e5023f596578f915ae35bbbf08da6a734d8872f"
+        },
+        {
+          "call_index": 1,
+          "channel": "dynamic",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "27123528e093ac9c0518ddddea60c84b9503b3c85a063cf5113c02e3b9636b01",
+              "pose_sha256": "83d26c9a644a741f349dc08671da556fc978b5e1ae7ab05ea4d95094b2331f04"
+            }
+          ],
+          "time_ns": 10000000,
+          "wire_sha256": "4d327eec03f2e2f09066054a3d5c901ca63e782b4e84855e151cfd03f90728b0"
+        },
+        {
+          "call_index": 1,
+          "channel": "static",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "e77193265d0cf9d3bb69d2095697f1cd99c972d6a8890ea6772c42c58334736b",
+              "pose_sha256": "c5bd01d4d0219f554ce97bc0ac3acfa6ca60c9fd4df276e9ef1da5cd8e60533f"
+            },
+            {
+              "header_sha256": "ab8e389d937d2d24ddb9471be480f983b84a9bded40742c51ecb481fe80e12c2",
+              "pose_sha256": "0794f0bd93f2a09e1e873f03b438396627d1433a8afc06f34243d30625db6879"
+            }
+          ],
+          "time_ns": 10000000,
+          "wire_sha256": "9bd1821cc0988728c47a2e94aba6827334613dcf64d2918aed916730265214d8"
+        },
+        {
+          "call_index": 1,
+          "channel": "dynamic",
+          "owner": 2,
+          "records": [
+            {
+              "header_sha256": "aa2585cf6b8c892cfdbf2ebf4de3240dc82b0fd0efb0663a5a416daf7284ab86",
+              "pose_sha256": "9dd6d8073675e9c6163b439c330620280686900f8f440ff2041177c1013a7469"
+            }
+          ],
+          "time_ns": 10000000,
+          "wire_sha256": "5bff78162c792cfb6694cbd99009835979f0c161a91e635f3ac499de82d13e6b"
+        },
+        {
+          "call_index": 1,
+          "channel": "static",
+          "owner": 3,
+          "records": [
+            {
+              "header_sha256": "aedc7d78cb1a3b46226bd33e0104873dd9fae94070a9c8d77a2dfbe1b9d875ce",
+              "pose_sha256": "c27422065029fdc3024515ca416e87488fcbb491d8a653897a4d174db6901bbf"
+            },
+            {
+              "header_sha256": "8a0f9337cd1b206d52f0f8ef3a6b0728e212155fb8a7e9bfacc0ade7f03b6b37",
+              "pose_sha256": "5028a70faffc46f6882b99b20199a13fbf7b9cef093c93d6a973072e2731420b"
+            }
+          ],
+          "time_ns": 10000000,
+          "wire_sha256": "fd9092f250db6be35cac02dad8a42187455c71a59272be57a2f34f72a33fc228"
+        },
+        {
+          "call_index": 1,
+          "channel": "dynamic",
+          "owner": 4,
+          "records": [
+            {
+              "header_sha256": "bb36c401d39a2648c4d5b6438758238921311381b17857d607363a1452d0e480",
+              "pose_sha256": "fa342f109f974fd2a2043404cac8cf24f1f0c748b539440b3f0c9483637a4186"
+            }
+          ],
+          "time_ns": 10000000,
+          "wire_sha256": "6e4c554ab66974f5aacc5c5411f9cad8461d98230519cd6cad7d754fa1ec5834"
+        },
+        {
+          "call_index": 1,
+          "channel": "static",
+          "owner": 5,
+          "records": [
+            {
+              "header_sha256": "5a34a556960017c6321966788b7a8cd8f5846f26b607b1c1b92e1c3d31d6c9fb",
+              "pose_sha256": "104d1720a83ac226af8fdf068e4d270ea448e301b351d2b2b4c5c0e7e4f96a28"
+            },
+            {
+              "header_sha256": "bb135fa90b9a8342c72849f04643eba7891820e06fd3f0f143bd116a9f72c3ec",
+              "pose_sha256": "be699f808075836f8ed7bdfbbdf4e71c74f75a3e4430552177ff5d4335c978ca"
+            }
+          ],
+          "time_ns": 10000000,
+          "wire_sha256": "d9298410c7e37acae3bdfc7aa5f45a83f4cec26f4e968c75119463dadefd3ab7"
+        },
+        {
+          "call_index": 1,
+          "channel": "dynamic",
+          "owner": 6,
+          "records": [
+            {
+              "header_sha256": "6a974cf72f1f5f297be001c2d31c77e7bc042cab12bcf4f51622253b706d1ab3",
+              "pose_sha256": "4b0277220275e17e884dae88ea42e13832ce2b82ba36e191a98dbdf508f6d6de"
+            }
+          ],
+          "time_ns": 10000000,
+          "wire_sha256": "95a83e9bc431356c4b721d90a700d8cfa12c3b7241b9ce9a9c6502f2a45e69d8"
+        },
+        {
+          "call_index": 1,
+          "channel": "static",
+          "owner": 7,
+          "records": [
+            {
+              "header_sha256": "60c1bfe696555b9ed04fd633e96bfabd00b86471f69799dedd44f2b10be2f023",
+              "pose_sha256": "cf1ff8a683e000f45f2f01ec6c5acc0ef258bf8c35117bc838590b10e869389c"
+            },
+            {
+              "header_sha256": "cd02552a463a34e21f0ccfd21a47fbc8e87e99b3302d6ad722e6824ba449656d",
+              "pose_sha256": "001f7dee64dd0b55fbf4e51313a99368d18fc7053db2dad8572b9e3cef26f30e"
+            }
+          ],
+          "time_ns": 10000000,
+          "wire_sha256": "0f5ffc48d2b1a51e7feb4f75675c08b76ba7b9d2bf174a756bb12006840c5987"
+        },
+        {
+          "call_index": 2,
+          "channel": "dynamic",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "55efda011e7423531aec16aa3d4ba03db3c3e1eb403e5c1ef96b604d2a57db69",
+              "pose_sha256": "701fd5356f4166762296a88ac26aa899d902a4af017ea20323b5ffb79fa3ed1d"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "02f12fbae8d1ae3b98f74e889d9b73415be21c5d5f0e7b4a78cb7b24ea04f98a"
+        },
+        {
+          "call_index": 2,
+          "channel": "static",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "f0b3bcae5dfef9a89f4bc66a8965bed9f8313fca92c23054a1c19cea78176c15",
+              "pose_sha256": "9dd39eda5c6f068b86f17201309c67de0063349c1a424ef0d86439266338431d"
+            },
+            {
+              "header_sha256": "355ae13cda58e06658f08fc6069fde1748b6e126f6990e1fdd25bde2e72b5c3e",
+              "pose_sha256": "5902cd3aa9fab217552755412f6328c73af90beff7ac7ce2c13cc9b54566bedd"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "0b8b09fddc636ad19ba40da7868c867c1ef6b69e50dfce20370e39481dd7785d"
+        },
+        {
+          "call_index": 2,
+          "channel": "dynamic",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "84931af0c6e535100416f405d6ff36579e84f769266c03c9cced05e85439a775",
+              "pose_sha256": "886e776c78f755d449abb5d1e700460db3f2683d0765de3d8647ad7b1b94a139"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "7eb969f5140a12240a679f82f4f40916bd285f0e9fa215a9c6775a3061339550"
+        },
+        {
+          "call_index": 2,
+          "channel": "dynamic",
+          "owner": 2,
+          "records": [
+            {
+              "header_sha256": "731a73788b72c3516c6d107607e6b95b4fbda9ab3a2ab711110a39f4f21c214c",
+              "pose_sha256": "2217e42a2fccb2850fbe4ab92d9f14249b1c76688ebaf74388b7b5afa7faad64"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "c76f7bcbc8c42adcd75bdb8351b84a47f60e2416d7441ad14ef7e2836933c854"
+        },
+        {
+          "call_index": 2,
+          "channel": "static",
+          "owner": 3,
+          "records": [
+            {
+              "header_sha256": "cb0d3421c351e00dea4c96a4aa98f8c3266e16058969c4c872b575fe45be5cd9",
+              "pose_sha256": "50138866a47d00f4413ba0bc69445b8d849961457fb6c93f1f4f2c9dc0603afd"
+            },
+            {
+              "header_sha256": "a6912f2820d8bde51bd3243030580c92a130c5c0421414d3fb0c365641b53572",
+              "pose_sha256": "6e7410741713cd386830ed4ec641e21df20e7591a946652e728129eda537217b"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "ad62147a5be6af905c66259600da3228f1cb5e32ebdc63e257628f1a82743041"
+        },
+        {
+          "call_index": 2,
+          "channel": "dynamic",
+          "owner": 3,
+          "records": [
+            {
+              "header_sha256": "13375e5637f5c87c8257a959a834556fdbfd631d971433905b62081cfbbe4544",
+              "pose_sha256": "96f5bc604b554bd2f194f4f9fe89df1a8ef960cace7608fbaaf71492dfa541d8"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "be9ff80cb35fb29a46b8eb3626cb38181058bc8c7f7f1f3c7c38f85f21c223b6"
+        },
+        {
+          "call_index": 2,
+          "channel": "dynamic",
+          "owner": 4,
+          "records": [
+            {
+              "header_sha256": "93cca95e9d7cfe484c2b0810c5d5c033169ac5f09dbe828ce7d926a7b9de90fb",
+              "pose_sha256": "fb223290c3ab613c884bc6259577562e8c459ad094acae2c638e9d1420deceae"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "e8d474bc50bb2bcf63dcbf0a7c254f456107869d43808d710489aea09210dc14"
+        },
+        {
+          "call_index": 2,
+          "channel": "static",
+          "owner": 5,
+          "records": [
+            {
+              "header_sha256": "1bfc94d006cba1bb39a4e3692dd8d01037e23aebfae5840ef42274e7243b235d",
+              "pose_sha256": "fad108e8572fecc21e91548c31d61f6acf67f8a42172ce38c45cdc0a82147543"
+            },
+            {
+              "header_sha256": "1f30f9f850caac395f1295adf605a8e3a74b0e6f95dba3510bda0c3c7e22a798",
+              "pose_sha256": "3da080a8d75115e780e36c0d0ee24a833eec8ae892171408cbe8f7132f793ab1"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "1e5cf219ada1893a0b6dfec7ba3f851172f947b399d6b94529488aade6e76fde"
+        },
+        {
+          "call_index": 2,
+          "channel": "dynamic",
+          "owner": 5,
+          "records": [
+            {
+              "header_sha256": "a64bcaf51f84dea0292565c4482a207da3ec052b049ec20cf6aaad0fd63e0684",
+              "pose_sha256": "2c42be9c6d79964cd659a9cfcd0be36acfcffbcf050586c7cda4f90719398f60"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "684384b62074acf2f7823a58d1f1c230e623f43023627170616d0935e5a1a148"
+        },
+        {
+          "call_index": 2,
+          "channel": "dynamic",
+          "owner": 6,
+          "records": [
+            {
+              "header_sha256": "9c80b5ef82553b27027015a725a8f57419020c30c070466d5adc3fd5098b1e18",
+              "pose_sha256": "e2ebb93d54d8facad71b75816fd593c3fd77c0033611b9b93d3bef2916d51ca2"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "e0c04fc5e5bda74f97f63193bed788efba4286a59dac2b19b01a0d32bf0b109c"
+        },
+        {
+          "call_index": 2,
+          "channel": "static",
+          "owner": 7,
+          "records": [
+            {
+              "header_sha256": "f57aabfd8a15142a21f7be6f7b6c9de42b45f0c953915a2a94f610be3aacb849",
+              "pose_sha256": "c24b5d99e205737afaa03c72e06fbdd00301628247fa529e86bd12f008d4a9b9"
+            },
+            {
+              "header_sha256": "b2745c806952164ad9cc6dd2275c076bd7c86a0dbdaf0c6f9500bb6264e1ee6c",
+              "pose_sha256": "acf8067fa8b8b4d9ed3f858cef4b938db2044e6cc89e3aadb95a556212bb1613"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "2e049dced2b9733628b7096c39e8a639ba70094c8d49ae697c5992961bf005bc"
+        },
+        {
+          "call_index": 2,
+          "channel": "dynamic",
+          "owner": 7,
+          "records": [
+            {
+              "header_sha256": "f3034f16343f17610927675e2b94e19acfcb5a008bfd00137f55f8174e0bd888",
+              "pose_sha256": "365ae75659ce2acdc04387bbb84c5cdf94e9786db79282059b07f2f0a8e4412c"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "903de7526469b498bf4d774ce5b419431a27ce3911c98f15f3700f3269aa6d39"
+        },
+        {
+          "call_index": 3,
+          "channel": "static",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "1cb47c942aa3fd7dd375275df360e3f95028ca37b38080111acf258bebb87ac5",
+              "pose_sha256": "1599a056f9707c55df83ed6c467d46ef1cd5004763d7b3c8d62217790cf80e0b"
+            },
+            {
+              "header_sha256": "be7b86af354c78585eb9278178b3c75dd6c112f7b3d19b3dc365a0a16a101d08",
+              "pose_sha256": "5a457be5feb5ee8025fd7c8a99021c800589e8fe81197d4ef0138935b13d3d55"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "454ea80e930747757eaacc108000374cf4dcaf96065400f33f11287fe8d69b33"
+        },
+        {
+          "call_index": 3,
+          "channel": "dynamic",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "10f8a86b2161e46498dc4cf597695fbc72ae7228c6a821f9a8a86f0ea9252709",
+              "pose_sha256": "4e80ae7fb39afc32c62ff73bc6fdb98b8186e3b40d332019a0b904e295804d62"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "aa71607ef4db3e79667c1976085d3d2d128842b522f356ebedbcd09f06ebe40c"
+        },
+        {
+          "call_index": 3,
+          "channel": "static",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "6665893b24254a24f6939c4e8fbad4b356b4e5ae36043139191c350ab375b926",
+              "pose_sha256": "e15a69613873c9cc39fd4de9135b00cde528475507af64ec5e3685381d9960b7"
+            },
+            {
+              "header_sha256": "04528eae607ec1aa27f003f69bedb438a928473899350a84c3cafc0cb6c35018",
+              "pose_sha256": "2e3ae44c2b07bb39f2047d9eabfe04e2ca442d319a96f954d71026512e2ecd64"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "0670b1e85ddc3b89cb6fce6c582bc030761301284aa16e8ff615af52606a5a92"
+        },
+        {
+          "call_index": 3,
+          "channel": "dynamic",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "f978ed9bfe661884693593f72d26f741bac6a78eab93406cdf03c171df2f790c",
+              "pose_sha256": "5618dc20d1b9ede8e3d43d05d3f948fecd96074f4fb0653db13663a9981bdb52"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "accfefed73584d53efd66f768d2d54f8e03189585a99356a60c62e2d38a0f0ca"
+        },
+        {
+          "call_index": 3,
+          "channel": "static",
+          "owner": 2,
+          "records": [
+            {
+              "header_sha256": "439e17f6d7eceeecb5ef34e75a23ae9a338163a4976ebf5a75f24fbc8e643b67",
+              "pose_sha256": "7250500a27d1c43ff77b284ec8d77dbecd57d8eacdc55dee408208d212a8d30b"
+            },
+            {
+              "header_sha256": "8a7d5f17afc5e4cee576af3d06c340759fe56c8faab0a5634afa38873b1ec3d9",
+              "pose_sha256": "8ef0f70777d733cdbd7d4180a2fa73f9bf6b186c0ea11be9f0987a76b9ee1208"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "c7a9c2591d2ec9d975edd2fa2e1bdd68894c4f9ce5a7ee056c501f214f438c39"
+        },
+        {
+          "call_index": 3,
+          "channel": "dynamic",
+          "owner": 2,
+          "records": [
+            {
+              "header_sha256": "9edf813b5cc5e2809134c3e52fdfa7128eaa0d53f53f4f86b8cbe6c7e8e1cc2b",
+              "pose_sha256": "58810f5a056da98c315679957e321332aa8e1873321add4d59d9c53de753a3c6"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "058074ad64a19c193f6c0796d7b367cb5be44e04513a09c6c0227a9ccf1dda5e"
+        },
+        {
+          "call_index": 3,
+          "channel": "static",
+          "owner": 3,
+          "records": [
+            {
+              "header_sha256": "b5c3c823ca51f7a42a09e8a5e4e3431c51c50783e5e631e6e4b84f00f88f0090",
+              "pose_sha256": "024082376e2b6ef198f16b3dd3d82eaca7e9a4a9dd640cb43521f48c9e3bceb8"
+            },
+            {
+              "header_sha256": "fccb365d89595fcd38ca3e516e81ef14762ee4a57b8688a7e522fba502713bdc",
+              "pose_sha256": "2636e78c6cdb17a7669c49bbb5546436eef920ac063517df2bd8eb44596f3a92"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "23a85fb2eb8e5f55e112a6831e2addf08cc9be54e7a74df03e894779ed40e42d"
+        },
+        {
+          "call_index": 3,
+          "channel": "dynamic",
+          "owner": 3,
+          "records": [
+            {
+              "header_sha256": "431a06f3def9ab28b24f65aca204304a2d4d1819687967be93dce5a39907c375",
+              "pose_sha256": "e2d40c65640c0b006c32d50182b2bea82b679c9d84636b765528e06ca2fe74d8"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "9d354efa4428ba47a9cbf5591d825525d25ec7f2e614c26675ff82a4991d5c80"
+        },
+        {
+          "call_index": 3,
+          "channel": "static",
+          "owner": 4,
+          "records": [
+            {
+              "header_sha256": "ed05cf6b53ee1530bd2b997afd848fcb6f712cefd15408203d35f803789d0cd3",
+              "pose_sha256": "07b0091c667378b96024afc3979088dbb0aaa48e8c62e6fe47bda585296a793e"
+            },
+            {
+              "header_sha256": "6abf86ec58d4582096c311cfcc302c8392fbbd99726a4919775f7d748fc340a5",
+              "pose_sha256": "4559935f29a34718770ff9ea87322fe3aacf9df38dbdbd08f74a378e0e7936da"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "333886d50d3900e0c5c7d91a608d1c2f6eafaa713752179202df1293d97d9577"
+        },
+        {
+          "call_index": 3,
+          "channel": "dynamic",
+          "owner": 4,
+          "records": [
+            {
+              "header_sha256": "b8336870355554b934bab5770d7be0561e40a0b73b3ff9f552ef89f861c452c8",
+              "pose_sha256": "6f492beab4c7f1fa8b512be40951493135b1b85412fac1d1bfa2c8f8de3ab9f0"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "d86e0b64917d3f7a15c211e632fd2799eb6042d8977734dd89baa006fd08283a"
+        },
+        {
+          "call_index": 3,
+          "channel": "static",
+          "owner": 5,
+          "records": [
+            {
+              "header_sha256": "ba879eef1e17fbc608f9d9cb8febc70b4fa8bc27d69114caf9c7ef01279b6883",
+              "pose_sha256": "6f289e857d4263652067aef229fc5737e99ab216215864030ddf938a3a73f42f"
+            },
+            {
+              "header_sha256": "67659ecb231bc90224872873a3e66b10e9cad858d6043255058bd4ec792f7ef0",
+              "pose_sha256": "6cf73e6cfcda87bcedf0751cb740e6d2d6c0211f23d8ed29949556d8e2dd2e77"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "a54a88efcff52f698ed4b9666b3110ad6aff75f2a00f9cde60a0d6a63b8928de"
+        },
+        {
+          "call_index": 3,
+          "channel": "dynamic",
+          "owner": 5,
+          "records": [
+            {
+              "header_sha256": "bcdc1901ca4eb53b15021df525e5dad249cfb63da8279400de724598972a2ec2",
+              "pose_sha256": "0bdbecdf7ec9103c34d67d9b6374ff2fedb11428cc278d2be40f6eea3d813829"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "cb57e375cff636d5c7107a7102859676e811011aa9fa31a4870368cb7783dfce"
+        },
+        {
+          "call_index": 3,
+          "channel": "static",
+          "owner": 6,
+          "records": [
+            {
+              "header_sha256": "b2d1162796e78f61898a7f6a18839c34ea1bbc859011cc49c4f724bf96b0be6f",
+              "pose_sha256": "dcd20fcdcb5c5c33d0dbc32f010792d1365988f3fea05c9dfe31bc8aec0f3789"
+            },
+            {
+              "header_sha256": "8a30e3ac83b73f39e97879a885a0f30aa4be48fa61f91115a86496b069deebaf",
+              "pose_sha256": "e323cf19cd44a7954666ff84e9f220c83d806a0c3b1522c2343fcf3d05a18137"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "d13b1ed1f4c60b88a0cb2d3990328b0baba62b6499457201a29be32d9577d406"
+        },
+        {
+          "call_index": 3,
+          "channel": "dynamic",
+          "owner": 6,
+          "records": [
+            {
+              "header_sha256": "ab6ddaea7b88bb9ea241ab8d914602bb857950ec6a4e13b8b65e8d78b69e8873",
+              "pose_sha256": "55a5249c96d28af1ab90cbad8bdd17686f2eca8664c3d03a7441dab60f66d087"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "7b8ac738d116d04d8af069fafb6f74c0510d18bda2ed6a2a08ca3628c16cc540"
+        },
+        {
+          "call_index": 3,
+          "channel": "static",
+          "owner": 7,
+          "records": [
+            {
+              "header_sha256": "1509fed0d13add8ecdba9adc011c4f6cc98567e297d256c100f9c6995051468b",
+              "pose_sha256": "cf12e535e7523650d390bcae1beae53a87e54c14d277c92dbbedebcc08973cb9"
+            },
+            {
+              "header_sha256": "258485db748238947ee9c788d5ba351453e76e7eea7a2a3b81758ca55aa4d064",
+              "pose_sha256": "2bc834d95cf4303bf8bf28a9105f3e83ed885cad557a210496414bbe70341c4d"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "09c7e39a082c1fcf5f90460525bcada199ac13db2f6d559dd67748451d8d54b7"
+        },
+        {
+          "call_index": 3,
+          "channel": "dynamic",
+          "owner": 7,
+          "records": [
+            {
+              "header_sha256": "def06f8ec2981a1be556c51434d8b2e8f64cbbd033a01f1ed49dc67f4e0d8762",
+              "pose_sha256": "a87951ec6587f2567f22cc1fb5ae9dec1f33ba8eb9ecd130a09fe86e05533051"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "788299a9f053e3c591517b7b283ee4e6fb5813eaf91215162913f9d5102c7374"
+        }
+      ]
+    },
+    "pair": {
+      "canonical_packets": 13,
+      "configurations": [
+        {
+          "child_link_name": "tip",
+          "console_verbosity": 2,
+          "dynamic_rate_bits": "4059000000000000",
+          "entities": [
+            {
+              "canonical_link": false,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "3ff0000000000000",
+                "4000000000000000",
+                "4008000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "model",
+              "name": "rig0",
+              "native_entity": 2,
+              "parent_entity": 1,
+              "selected": true
+            },
+            {
+              "canonical_link": true,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "3ff4000000000000",
+                "4004000000000000",
+                "4006000000000000",
+                "3f99867ef418321d",
+                "bf5eb021807a972b",
+                "bfb32d0f0e85bea5",
+                "3fefe66b0a68550d"
+              ],
+              "kind": "link",
+              "name": "base",
+              "native_entity": 3,
+              "parent_entity": 2,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "dynamic",
+              "initial_local_pose_bits": [
+                "3ff8000000000000",
+                "4008000000000000",
+                "4004000000000000",
+                "3fa94d4f7aefda4d",
+                "bf7e97990c2d519f",
+                "bfc31aab4481dc2a",
+                "3fef99e3c78fbd1e"
+              ],
+              "kind": "link",
+              "name": "tip",
+              "native_entity": 4,
+              "parent_entity": 2,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "unselected",
+              "initial_local_pose_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "joint",
+              "name": "hinge",
+              "native_entity": 5,
+              "parent_entity": 2,
+              "selected": false
+            }
+          ],
+          "joint_type": 6,
+          "kind": "configuration",
+          "mode": "pair",
+          "model_canonical_link": 3,
+          "name": "rig0",
+          "native_entity": 2,
+          "owner": 0,
+          "parent_link_name": "base",
+          "sdf_xml_hex": "3c706c7567696e206e616d653d27677a3a3a73696d3a3a73797374656d733a3a506f73655075626c6973686572272066696c656e616d653d276469726563742d6f726967696e616c2d6f626a6563742d6e6f742d612d6c6f616465722d696e707574273e0a20203c7075626c6973685f6c696e6b5f706f73653e747275653c2f7075626c6973685f6c696e6b5f706f73653e0a20203c7075626c6973685f6d6f64656c5f706f73653e747275653c2f7075626c6973685f6d6f64656c5f706f73653e0a20203c7075626c6973685f6e65737465645f6d6f64656c5f706f73653e66616c73653c2f7075626c6973685f6e65737465645f6d6f64656c5f706f73653e0a20203c7075626c6973685f76697375616c5f706f73653e66616c73653c2f7075626c6973685f76697375616c5f706f73653e0a20203c7075626c6973685f636f6c6c6973696f6e5f706f73653e66616c73653c2f7075626c6973685f636f6c6c6973696f6e5f706f73653e0a20203c7075626c6973685f73656e736f725f706f73653e66616c73653c2f7075626c6973685f73656e736f725f706f73653e0a20203c7573655f706f73655f766563746f725f6d73673e747275653c2f7573655f706f73655f766563746f725f6d73673e0a20203c7374617469635f7075626c69736865723e747275653c2f7374617469635f7075626c69736865723e0a20203c7570646174655f6672657175656e63793e3130303c2f7570646174655f6672657175656e63793e0a20203c7374617469635f7570646174655f6672657175656e63793e32353c2f7374617469635f7570646174655f6672657175656e63793e0a20203c746f7069633e2f6d35352f6e61746976652f6e61746976652d6d756c7469706c652d706f73652d7075626c6973686572732d6b737164735f39632f706169722f706f7365303c2f746f7069633e0a3c2f706c7567696e3e0a",
+          "static_publisher": true,
+          "static_rate_bits": "4039000000000000",
+          "static_topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/pair/pose0_static",
+          "topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/pair/pose0",
+          "use_pose_vector_msg": true,
+          "world_entity": 1,
+          "world_name": "default",
+          "world_pose_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ]
+        },
+        {
+          "child_link_name": "tip",
+          "console_verbosity": 2,
+          "dynamic_rate_bits": "4049000000000000",
+          "entities": [
+            {
+              "canonical_link": false,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4000000000000000",
+                "4014000000000000",
+                "4008000000000000",
+                "bf505b3f48773081",
+                "3f846099b9f475d5",
+                "3fb98e5b0ca96870",
+                "3fefd6aaa4708391"
+              ],
+              "kind": "model",
+              "name": "rig1",
+              "native_entity": 6,
+              "parent_entity": 1,
+              "selected": true
+            },
+            {
+              "canonical_link": true,
+              "declared_channel": "static",
+              "initial_local_pose_bits": [
+                "4002000000000000",
+                "4016000000000000",
+                "4006000000000000",
+                "3f995508d6e3aedd",
+                "3f85bf1ca67439b3",
+                "3f995508d6e3aee0",
+                "3feffa85ddb81e65"
+              ],
+              "kind": "link",
+              "name": "base",
+              "native_entity": 7,
+              "parent_entity": 6,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "dynamic",
+              "initial_local_pose_bits": [
+                "4004000000000000",
+                "4018000000000000",
+                "4004000000000000",
+                "3fa9cfc809cb4533",
+                "3f7ea04493c5577a",
+                "bfa9cfc809cb4531",
+                "3fefeaec8230caba"
+              ],
+              "kind": "link",
+              "name": "tip",
+              "native_entity": 8,
+              "parent_entity": 6,
+              "selected": true
+            },
+            {
+              "canonical_link": false,
+              "declared_channel": "unselected",
+              "initial_local_pose_bits": [
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "0000000000000000",
+                "3ff0000000000000"
+              ],
+              "kind": "joint",
+              "name": "hinge",
+              "native_entity": 9,
+              "parent_entity": 6,
+              "selected": false
+            }
+          ],
+          "joint_type": 6,
+          "kind": "configuration",
+          "mode": "pair",
+          "model_canonical_link": 7,
+          "name": "rig1",
+          "native_entity": 6,
+          "owner": 1,
+          "parent_link_name": "base",
+          "sdf_xml_hex": "3c706c7567696e206e616d653d27677a3a3a73696d3a3a73797374656d733a3a506f73655075626c6973686572272066696c656e616d653d276469726563742d6f726967696e616c2d6f626a6563742d6e6f742d612d6c6f616465722d696e707574273e0a20203c7075626c6973685f6c696e6b5f706f73653e747275653c2f7075626c6973685f6c696e6b5f706f73653e0a20203c7075626c6973685f6d6f64656c5f706f73653e747275653c2f7075626c6973685f6d6f64656c5f706f73653e0a20203c7075626c6973685f6e65737465645f6d6f64656c5f706f73653e66616c73653c2f7075626c6973685f6e65737465645f6d6f64656c5f706f73653e0a20203c7075626c6973685f76697375616c5f706f73653e66616c73653c2f7075626c6973685f76697375616c5f706f73653e0a20203c7075626c6973685f636f6c6c6973696f6e5f706f73653e66616c73653c2f7075626c6973685f636f6c6c6973696f6e5f706f73653e0a20203c7075626c6973685f73656e736f725f706f73653e66616c73653c2f7075626c6973685f73656e736f725f706f73653e0a20203c7573655f706f73655f766563746f725f6d73673e747275653c2f7573655f706f73655f766563746f725f6d73673e0a20203c7374617469635f7075626c69736865723e747275653c2f7374617469635f7075626c69736865723e0a20203c7570646174655f6672657175656e63793e35303c2f7570646174655f6672657175656e63793e0a20203c7374617469635f7570646174655f6672657175656e63793e3130303c2f7374617469635f7570646174655f6672657175656e63793e0a20203c746f7069633e2f6d35352f6e61746976652f6e61746976652d6d756c7469706c652d706f73652d7075626c6973686572732d6b737164735f39632f706169722f706f7365313c2f746f7069633e0a3c2f706c7567696e3e0a",
+          "static_publisher": true,
+          "static_rate_bits": "4059000000000000",
+          "static_topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/pair/pose1_static",
+          "topic": "/m55/native/native-multiple-pose-publishers-ksqds_9c/pair/pose1",
+          "use_pose_vector_msg": true,
+          "world_entity": 1,
+          "world_name": "default",
+          "world_pose_bits": [
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ]
+        }
+      ],
+      "console": {
+        "bytes": 0,
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-multiple-pose-publishers-ksqds_9c/multiple-pose-publishers-pair.maps.console.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "input_rows": 8,
+      "input_scope": "Explicit finite model/base/tip parent-LOCAL poses and actual public ECM getters, configuration/classification inputs; no Physics trajectory or output estimator.",
+      "observed_vectors": 13,
+      "ordering": "Actual native callback vector and contained Pose order preserved without sorting. Owner/call/time are joined to input; not invented wire fields.",
+      "pose_records": 19,
+      "stderr_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-multiple-pose-publishers-ksqds_9c/multiple-pose-publishers-pair.stderr",
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-multiple-pose-publishers-ksqds_9c/multiple-pose-publishers-pair.stdout",
+      "stdout_sha256": "0386464302864c38d70351c6243e9db4e68430999d190d9a779489334c6b0d02",
+      "summary": {
+        "canonical_packets": 13,
+        "configuration_count": 2,
+        "direct_post_update_calls": 8,
+        "global_RNG_equivalence_claimed": false,
+        "input_rows": 8,
+        "kind": "summary",
+        "mode": "pair",
+        "native_Physics_executed": false,
+        "native_demand_or_lifecycle_equivalence_claimed": false,
+        "observed_vectors": 13,
+        "old_native_modes_replayed": false,
+        "original_Server_or_plugin_loader_executed": false,
+        "original_object_linked_System_scope": true,
+        "pose_records": 19
+      },
+      "wire_hashes": [
+        {
+          "call_index": 0,
+          "channel": "static",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "2ff5fc9881c40608a254542aaf6979855d0fe0d48c8d774574c13fb080c88900",
+              "pose_sha256": "01c5afd7bf7f9b6b745370df4707273e6df3dd16f18a3a4f662c8196e65bf089"
+            },
+            {
+              "header_sha256": "f6a04c2fa69424092c2e1f689a5c187a15905f4647f1441df4015618340a1758",
+              "pose_sha256": "87336f59c00b777f66cd84d9dc2b4f1e3115172146ae55bbb47246bce5beef70"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "5823ce5890a5896fef3eaf07a9528e4c42267999f19c2f5b28c6afda8ca50f35"
+        },
+        {
+          "call_index": 0,
+          "channel": "dynamic",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "d8cffa0c921c023af9d0661be9131c8b1042922114f34c890661527e38bde3a2",
+              "pose_sha256": "67eefefbba3cac1251c4aa13a2128a5ef16067e83653fda6668a5f1f4076090b"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "bb17c5a13bce3f0cf426022a18c2d65afeb6b6af40004a215c86a46c92935384"
+        },
+        {
+          "call_index": 0,
+          "channel": "static",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "44fa8995e4f7eb12c8d74c13b16fe41bd3cb0e96cead191df4774badf7a25bb5",
+              "pose_sha256": "062e3455d7a0df37b9f2135d329cb9e3facd75cb3251531999aef89056b13d12"
+            },
+            {
+              "header_sha256": "3e470d49503affc1149150cd1b4a39e8a13452c2e871ebbc798b48f69b5cab46",
+              "pose_sha256": "c45932faa7732f7f597d23e8b1a7c06da94f8574a92140460dbf75fcdc4b9258"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "1ffeabf7f12373470dbdf2d9b8bdcd94d50bb25a7973db2cfff8eb0584508fc8"
+        },
+        {
+          "call_index": 0,
+          "channel": "dynamic",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "e70793780f52bac1523ef58a1696412f0f1ca05647882a9689fdeedb8c6204d3",
+              "pose_sha256": "4248a85df825959720d56c22714a33f85e19de3226a6240258d225cdf3989d7d"
+            }
+          ],
+          "time_ns": 0,
+          "wire_sha256": "0469659c7e6f1ec350defa718ec6143a7ed808f89e95b003f50afa7a35f44656"
+        },
+        {
+          "call_index": 1,
+          "channel": "dynamic",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "27123528e093ac9c0518ddddea60c84b9503b3c85a063cf5113c02e3b9636b01",
+              "pose_sha256": "83d26c9a644a741f349dc08671da556fc978b5e1ae7ab05ea4d95094b2331f04"
+            }
+          ],
+          "time_ns": 10000000,
+          "wire_sha256": "4d327eec03f2e2f09066054a3d5c901ca63e782b4e84855e151cfd03f90728b0"
+        },
+        {
+          "call_index": 1,
+          "channel": "static",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "e77193265d0cf9d3bb69d2095697f1cd99c972d6a8890ea6772c42c58334736b",
+              "pose_sha256": "c5bd01d4d0219f554ce97bc0ac3acfa6ca60c9fd4df276e9ef1da5cd8e60533f"
+            },
+            {
+              "header_sha256": "ab8e389d937d2d24ddb9471be480f983b84a9bded40742c51ecb481fe80e12c2",
+              "pose_sha256": "0794f0bd93f2a09e1e873f03b438396627d1433a8afc06f34243d30625db6879"
+            }
+          ],
+          "time_ns": 10000000,
+          "wire_sha256": "9bd1821cc0988728c47a2e94aba6827334613dcf64d2918aed916730265214d8"
+        },
+        {
+          "call_index": 2,
+          "channel": "dynamic",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "55efda011e7423531aec16aa3d4ba03db3c3e1eb403e5c1ef96b604d2a57db69",
+              "pose_sha256": "701fd5356f4166762296a88ac26aa899d902a4af017ea20323b5ffb79fa3ed1d"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "02f12fbae8d1ae3b98f74e889d9b73415be21c5d5f0e7b4a78cb7b24ea04f98a"
+        },
+        {
+          "call_index": 2,
+          "channel": "static",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "f0b3bcae5dfef9a89f4bc66a8965bed9f8313fca92c23054a1c19cea78176c15",
+              "pose_sha256": "9dd39eda5c6f068b86f17201309c67de0063349c1a424ef0d86439266338431d"
+            },
+            {
+              "header_sha256": "355ae13cda58e06658f08fc6069fde1748b6e126f6990e1fdd25bde2e72b5c3e",
+              "pose_sha256": "5902cd3aa9fab217552755412f6328c73af90beff7ac7ce2c13cc9b54566bedd"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "0b8b09fddc636ad19ba40da7868c867c1ef6b69e50dfce20370e39481dd7785d"
+        },
+        {
+          "call_index": 2,
+          "channel": "dynamic",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "84931af0c6e535100416f405d6ff36579e84f769266c03c9cced05e85439a775",
+              "pose_sha256": "886e776c78f755d449abb5d1e700460db3f2683d0765de3d8647ad7b1b94a139"
+            }
+          ],
+          "time_ns": 20000000,
+          "wire_sha256": "7eb969f5140a12240a679f82f4f40916bd285f0e9fa215a9c6775a3061339550"
+        },
+        {
+          "call_index": 3,
+          "channel": "static",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "1cb47c942aa3fd7dd375275df360e3f95028ca37b38080111acf258bebb87ac5",
+              "pose_sha256": "1599a056f9707c55df83ed6c467d46ef1cd5004763d7b3c8d62217790cf80e0b"
+            },
+            {
+              "header_sha256": "be7b86af354c78585eb9278178b3c75dd6c112f7b3d19b3dc365a0a16a101d08",
+              "pose_sha256": "5a457be5feb5ee8025fd7c8a99021c800589e8fe81197d4ef0138935b13d3d55"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "454ea80e930747757eaacc108000374cf4dcaf96065400f33f11287fe8d69b33"
+        },
+        {
+          "call_index": 3,
+          "channel": "dynamic",
+          "owner": 0,
+          "records": [
+            {
+              "header_sha256": "10f8a86b2161e46498dc4cf597695fbc72ae7228c6a821f9a8a86f0ea9252709",
+              "pose_sha256": "4e80ae7fb39afc32c62ff73bc6fdb98b8186e3b40d332019a0b904e295804d62"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "aa71607ef4db3e79667c1976085d3d2d128842b522f356ebedbcd09f06ebe40c"
+        },
+        {
+          "call_index": 3,
+          "channel": "static",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "6665893b24254a24f6939c4e8fbad4b356b4e5ae36043139191c350ab375b926",
+              "pose_sha256": "e15a69613873c9cc39fd4de9135b00cde528475507af64ec5e3685381d9960b7"
+            },
+            {
+              "header_sha256": "04528eae607ec1aa27f003f69bedb438a928473899350a84c3cafc0cb6c35018",
+              "pose_sha256": "2e3ae44c2b07bb39f2047d9eabfe04e2ca442d319a96f954d71026512e2ecd64"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "0670b1e85ddc3b89cb6fce6c582bc030761301284aa16e8ff615af52606a5a92"
+        },
+        {
+          "call_index": 3,
+          "channel": "dynamic",
+          "owner": 1,
+          "records": [
+            {
+              "header_sha256": "f978ed9bfe661884693593f72d26f741bac6a78eab93406cdf03c171df2f790c",
+              "pose_sha256": "5618dc20d1b9ede8e3d43d05d3f948fecd96074f4fb0653db13663a9981bdb52"
+            }
+          ],
+          "time_ns": 40000000,
+          "wire_sha256": "accfefed73584d53efd66f768d2d54f8e03189585a99356a60c62e2d38a0f0ca"
+        }
+      ]
+    }
+  },
+  "native_DATA_execution_log_sha256": "409afb945abf078285795a31660d9a10495d80704381e29311ea855dd59d7689",
+  "native_DATA_method_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-audit-bound.py",
+  "native_DATA_method_sha256": "6a333490294b08a0d841486322b5d76205f23a559fa9b96133986ee71e3ffda1",
+  "native_DATA_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-audit.json",
+  "native_DATA_sha256": "f453636447ad0d600294b0919d16de35930f996c84e01b1d7219033c70173c7a",
+  "native_execution_log_sha256": "e6f952757d9b2df06496ba4f1e4bb5de5a9a2d2df17d7d85e87345eb349d4cef",
+  "native_procedure_sha256": "cd82532b3431cbaecbdbd55c607eb74a67ee2a7399f6eb75b45bf8334a9812e2",
+  "native_result_sha256": "df62946ee38411b7176af00081d7883ac2fc7f51fef2073da9282662c17c7de6",
+  "original_System_object_input": {
+    "after": {
+      "ELF": {
+        "byte_order": "little",
+        "class": 64,
+        "first20_hex": "7f454c4602010100000000000000000001003e00",
+        "machine": 62,
+        "type": 1
+      },
+      "Source_to_binary_equivalence_proved": false,
+      "bytes": 396456,
+      "fingerprint": [
+        66307,
+        52857423,
+        33204,
+        396456,
+        1794219772678018982,
+        1794219772682018972
+      ],
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-static-publisher-gmj1r1kp/PosePublisher.cc.o",
+      "sha256": "e5faf2cabdd8c672aeb6108d554c50e9bcf229e58134892f79b610e8b8a138c3"
+    },
+    "before": {
+      "ELF": {
+        "byte_order": "little",
+        "class": 64,
+        "first20_hex": "7f454c4602010100000000000000000001003e00",
+        "machine": 62,
+        "type": 1
+      },
+      "Source_to_binary_equivalence_proved": false,
+      "bytes": 396456,
+      "fingerprint": [
+        66307,
+        52857423,
+        33204,
+        396456,
+        1794219772678018982,
+        1794219772682018972
+      ],
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-static-publisher-gmj1r1kp/PosePublisher.cc.o",
+      "sha256": "e5faf2cabdd8c672aeb6108d554c50e9bcf229e58134892f79b610e8b8a138c3"
+    },
+    "historical_failed_diagnostic_used_as_zero": false,
+    "object_is_mapped_provider": false,
+    "source": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-direct-object-input-contract-final-source-closed.json",
+    "source_sha256": "8da1da78a679dadafd7d51e470cfbbf51851e6f73faaac9483168c7c45a713b4"
+  },
+  "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+  "product_or_native_commands_executed": false,
+  "provider_input_contract": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/native-direct-object-input-contract-final-source-closed.json",
+    "sha256": "8da1da78a679dadafd7d51e470cfbbf51851e6f73faaac9483168c7c45a713b4"
+  },
+  "repository_source_modified": false,
+  "resource_minima_snapshot_before_outputs": {
+    "/dev/shm": 9860345856,
+    "/home/nkoenig/work/gazebo/rust": 176578453504,
+    "/run/user/1000": 1257918464,
+    "MemAvailable": 27953344512
+  },
+  "retained_M31_actual_System_provenance": {
+    "actual_root_exit_basis": "Root supplied actual zero plus exact retained stdout/result/source and no sidecar; no independent wait receipt is invented.",
+    "actual_root_exit_code_in_native_DATA": 0,
+    "generated_DSO_sha256": "1a4e0d7929a55dbc85613c1ab99a3a77bcbe20e32d9d2e8576d52b72592450cd",
+    "generated_object_sha256": "e5faf2cabdd8c672aeb6108d554c50e9bcf229e58134892f79b610e8b8a138c3",
+    "independent_raw_wait_receipt_available": false,
+    "native_DATA": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-audit.json",
+      "sha256": "642febde52935cb3f7d2d055ac68fd5b9962b3ec393262cf36b832b16f5a7bf2"
+    },
+    "native_DATA_Source": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-audit.py",
+      "sha256": "1bdcd211bf6676ca7e7c853488ec23d8a204a4523ff723d7c8e2577e02e9ae13"
+    },
+    "old_observations_reused_as_M55_data": false,
+    "producer_Source": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-reference.py",
+      "sha256": "0edd6c8f7ef74a6fc30e983b82cc4c5abe369c102b693ef19889221b7a22f13f"
+    },
+    "recorded_controller_exit_code": 0,
+    "recorded_result_state": "NATIVE_M31_POSE_STATIC_REFERENCE_COMPLETED_PENDING_INDEPENDENT_DATA",
+    "recorded_stage_count": 21,
+    "reference_kind": "Original M31 System compiled into a retained packet; seven old modes are historical only, never replayed by this diagnostic.",
+    "result": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-static-publisher-gmj1r1kp/result.json",
+      "sha256": "3d07109836ea27fe3dc893c6d7059ff24e2e6f9ee30dacc94aca4c8823e750e6"
+    }
+  },
+  "retained_failed_DSO_input_diagnostic": {
+    "actual_Root_receipt": {
+      "bytes": 2240,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/provider-input-diagnostic-actual-exit.json",
+      "sha256": "ee558685107fe41fcb7b23129295951cbfc65574532a179016bb75a972ac3e49"
+    },
+    "actual_readelf_children": 2,
+    "actual_root_exit_code": 1,
+    "child_exit_codes": [
+      0,
+      0
+    ],
+    "hold_reason": "AssertionError('HELD: empty ELF search path entry')",
+    "method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/inspect-pose-publisher-provider-bound.py",
+      "sha256": "8b26596777aac560950aed25b7ddd34af11be0b89b4b1917d8cad33b113f8b58"
+    },
+    "named_symbol_table_retained": false,
+    "native_DSO_or_helper_executed": false,
+    "object_extraction": {
+      "after_field": "binary_inputs_after.System_object",
+      "before_and_after_equal": true,
+      "before_field": "binary_inputs_before.System_object",
+      "observed_card": {
+        "ELF": {
+          "byte_order": "little",
+          "class": 64,
+          "first20_hex": "7f454c4602010100000000000000000001003e00",
+          "machine": 62,
+          "type": 1
+        },
+        "Source_to_binary_equivalence_proved": false,
+        "bytes": 396456,
+        "fingerprint": [
+          66307,
+          52857423,
+          33204,
+          396456,
+          1794219772678018982,
+          1794219772682018972
+        ],
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-pose-static-publisher-gmj1r1kp/PosePublisher.cc.o",
+        "sha256": "e5faf2cabdd8c672aeb6108d554c50e9bcf229e58134892f79b610e8b8a138c3"
+      },
+      "scope": "Only this exact immutable ET_REL/hash/size/header/fingerprint observation is reused after independent retained metadata review. The report/receipt remain exit1 and no loader/closure/qualification credit is inferred."
+    },
+    "primary_log": {
+      "bytes": 240,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/pose-publisher-provider-input-execution.log",
+      "sha256": "b4c7e27889cbfae016c4ad8779cb2a7b3e84d898af6cde424bccf81e767d785b"
+    },
+    "provider_modified_or_built": false,
+    "repeated_diagnostic_released": false,
+    "result": {
+      "bytes": 21929,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m55-delivery/pose-publisher-provider-input-rsxvyaxb/result.json",
+      "sha256": "5f05051f4ddf4e1752dab4572a797c640cfd2b1d4c8c493b8c870c69845e90da"
+    },
+    "static_dependency_closure_admitted": false,
+    "tool_exit_basis": {
+      "actual_exit_code": 1,
+      "completion_chunk": "36610a",
+      "no_running_session_returned": true
+    }
+  },
+  "runtime_source_parent": "d140e51e56b8c83d3857ad16977472412a9629f8",
+  "runtime_source_parent_accepted": false,
+  "sdk_drift_inventory_sha256": "a484797d83640f13bf17d162b916e4e38636a7cca273fb551bb12f5b5e3ce8eb",
+  "sdk_package_provenance_sha256": "bf5cf8486028b4315f7b7cfa5c387b6d8bcf6137d39f7bc6947a1dcecda656b3",
+  "sdk_runtime_closure_sha256": "511ead617c78a01e772249ddbbfa1d995296a08469bedd1742d5453a2b6e9a44",
+  "source_state_sha256": "bff5eaefcf2d9d7bc30d7e46f050e7ac37f7d9dde79deafcc17e43c4489c7ee2",
+  "state": "M55_NATIVE_MULTIPLE_POSE_PUBLISHERS_FIXTURE_GENERATED_PENDING_SOURCE_DATA_REVIEW",
+  "supplemental_link_providers": {
+    "after": {
+      "/usr/lib/x86_64-linux-gnu/libdw-0.190.so": {
+        "aliases": {
+          "/usr/lib/x86_64-linux-gnu/libdw.so": {
+            "owner": "libdw-dev:amd64",
+            "target": "libdw.so.1"
+          },
+          "/usr/lib/x86_64-linux-gnu/libdw.so.1": {
+            "owner": "libdw1t64:amd64",
+            "target": "libdw-0.190.so"
+          }
+        },
+        "bytes": 737696,
+        "owner": "libdw1t64:amd64",
+        "resolved_needed": {
+          "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "libbz2.so.1.0": "/usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4",
+          "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "libelf.so.1": "/usr/lib/x86_64-linux-gnu/libelf-0.190.so",
+          "liblzma.so.5": "/usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5",
+          "libz.so.1": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "libzstd.so.1": "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5"
+        },
+        "sha256": "989dc9873f358a5af7d18d6100cf5fd66531d7990dc47d69068b3c6c96588867",
+        "soname": "libdw.so.1",
+        "version": "0.190-1.1ubuntu0.1"
+      },
+      "/usr/lib/x86_64-linux-gnu/libelf-0.190.so": {
+        "aliases": {
+          "/usr/lib/x86_64-linux-gnu/libelf.so": {
+            "owner": "libelf-dev:amd64",
+            "target": "libelf.so.1"
+          },
+          "/usr/lib/x86_64-linux-gnu/libelf.so.1": {
+            "owner": "libelf1t64:amd64",
+            "target": "libelf-0.190.so"
+          }
+        },
+        "bytes": 121560,
+        "owner": "libelf1t64:amd64",
+        "resolved_needed": {
+          "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "libz.so.1": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "libzstd.so.1": "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5"
+        },
+        "sha256": "248c989360783cdc52f3659921de852c2efcc2097253ce58e34443f856412814",
+        "soname": "libelf.so.1",
+        "version": "0.190-1.1ubuntu0.1"
+      }
+    },
+    "before": {
+      "/usr/lib/x86_64-linux-gnu/libdw-0.190.so": {
+        "aliases": {
+          "/usr/lib/x86_64-linux-gnu/libdw.so": {
+            "owner": "libdw-dev:amd64",
+            "target": "libdw.so.1"
+          },
+          "/usr/lib/x86_64-linux-gnu/libdw.so.1": {
+            "owner": "libdw1t64:amd64",
+            "target": "libdw-0.190.so"
+          }
+        },
+        "bytes": 737696,
+        "owner": "libdw1t64:amd64",
+        "resolved_needed": {
+          "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "libbz2.so.1.0": "/usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4",
+          "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "libelf.so.1": "/usr/lib/x86_64-linux-gnu/libelf-0.190.so",
+          "liblzma.so.5": "/usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5",
+          "libz.so.1": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "libzstd.so.1": "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5"
+        },
+        "sha256": "989dc9873f358a5af7d18d6100cf5fd66531d7990dc47d69068b3c6c96588867",
+        "soname": "libdw.so.1",
+        "version": "0.190-1.1ubuntu0.1"
+      },
+      "/usr/lib/x86_64-linux-gnu/libelf-0.190.so": {
+        "aliases": {
+          "/usr/lib/x86_64-linux-gnu/libelf.so": {
+            "owner": "libelf-dev:amd64",
+            "target": "libelf.so.1"
+          },
+          "/usr/lib/x86_64-linux-gnu/libelf.so.1": {
+            "owner": "libelf1t64:amd64",
+            "target": "libelf-0.190.so"
+          }
+        },
+        "bytes": 121560,
+        "owner": "libelf1t64:amd64",
+        "resolved_needed": {
+          "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "libz.so.1": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "libzstd.so.1": "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5"
+        },
+        "sha256": "248c989360783cdc52f3659921de852c2efcc2097253ce58e34443f856412814",
+        "soname": "libelf.so.1",
+        "version": "0.190-1.1ubuntu0.1"
+      }
+    },
+    "current349_unchanged": true,
+    "mapping_scope": "Bound explicit link inputs; any actual mapped occurrence must match. Original object has no mapped-library role.",
+    "separate_exact_node_count": 2,
+    "source": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json",
+    "source_sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce"
+  }
+}

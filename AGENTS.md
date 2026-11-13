@@ -1,3 +1,72 @@
+## Current M55: endpoint-bound output restoration
+
+The complete four-case correction batch was Source-reviewed and formatted once.
+Before normal3 was invoked, review found a separate concrete prepared-output swap
+gap: distinct output handles could retain valid tuple identity while pointing to
+each other's topics. The bounded correction stores the immutable setup endpoint
+on the CPU output and checks it before reuse/IO, with distinct-swap and duplicate
+refusals under the existing control ID. IO threading, Weak lifetime, queues,
+packets and sampling remain unchanged. Five corrective Rust paths now include
+this narrow IO metadata leaf. Review the complete Source and updated documents,
+then one affected formatting pass/full normal; prior format/failures remain intact.
+No heavy job or normal3 is active. M56 isolated Source preparation continues.
+
+Earlier checkpoints below retain their original historical scope.
+
+## Current M55: complete correction batch after the second normal run
+
+The second full normal returned actual1 in 1696.864 seconds: four cases across
+three targets. The complete logs, partial packet and unqualified tree465548 are
+retained at refs/qualification/m55-normal-attempt2. Coverage is incomplete; no
+M55 local qualification is claimed. The first compile failure also stays failed.
+
+The Source correction batch preserves the queued-wrench refusal on articulated
+models, then uses the existing backend body-wrench API for the same physical
+motion witnesses. Reset preparation preserves valid topic-remap compatibility
+while validating original owner/channel identity before IO. The selected-joint
+fault control observes the earlier global joint fault, full unchanged cache bits,
+no new enqueue and terminal reset refusal; later sampling is not assumed to run.
+All remaining assertions, native/literal bytes and strict gates remain unchanged.
+
+Complete independent Source review and affected formatting before one full
+normal/strict retry and independent retained local DATA. No successful native
+campaign, fixture generator, literal audit or RAW comparison is replayed. M56
+isolated Source work can proceed on qualified unaccepted M54; its final parent
+waits for actual M55 normal/DATA and complete repair/overlap adoption. Accepted
+M1–M42/175 slices and M40 Latest are unchanged; hosted/official/Main gates remain.
+
+Earlier checkpoints below retain their original historical scope.
+
+## Current M55 correction: observed Pose ID comparison
+
+M55's complete implementation, meaningful regression Source and guides passed
+independent review. The scoped reference capture, native DATA, immutable export
+and literal DATA passed separately: 10 configurations, 40 inputs/calls, 65 vectors
+and 95 Pose/Header records. The original DSO-input rejection remains preserved;
+no SDK or provider was rebuilt. Read [the delivery contract](docs/M55_DELIVERY.md) for scope.
+
+The first full normal run failed during Clippy test compilation after 190.704
+seconds, before Rust tests or coverage. Two diagnostics refer to one assertion:
+the decoded protobuf ID is u32 and the retained fixture ID is u64. The reviewed
+correction losslessly widens the actual ID for the same equality. Every wire,
+value, numerical, cadence and lifecycle assertion remains unchanged. No runtime,
+protobuf schema, fixture or native evidence changes. The complete failed tree,
+logs and actual exit remain retained as unqualified evidence.
+
+The single consolidated formatter passed before that run. Corrected Source,
+documentation, provenance and the retained-failure retry procedure must pass
+independent review before one affected full normal/strict coverage retry. No
+Rust test, coverage or independent successful results audit is claimed for M55.
+The original captured 95 inputs stay frozen; Root alone releases serial jobs.
+
+M54 is locally qualified at d140e51e: 1,886 headless and 1,117 overlapping renderer
+passes, 403 aggregate Python checks and 28 finite examples. M1–M42/175 accepted
+slices and M40 Latest remain unchanged. M43–M54 are release-pending. Required
+accepted predecessors, exact hosted success, independent official audits and
+Main/readbacks still precede acceptance. Snapshot recovery is unconfirmed.
+
+Earlier checkpoints below describe retained historical work.
+
 ## Current M54: batched corrections after the first full normal run
 
 M54's first full normal run returned 1 after 1,680.7 seconds. Exactly two headless

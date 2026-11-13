@@ -452,6 +452,22 @@ pub fn initial_pose_publications(
         .filter_map(|node| node.pose_publication.as_ref().map(|p| (node.id.get(), p))))
 }
 
+/// Original PosePublisher owners with their immutable loaded kind and full name.
+/// Removed owners remain available until the initial scene is replaced.
+pub fn initial_pose_publications_with_identity(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = (u64, EntityKind, &str, &PosePublication)>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.0.nodes.iter().filter_map(|node| {
+        node.pose_publication
+            .as_ref()
+            .map(|publication| (node.id.get(), node.kind, node.name.as_str(), publication))
+    }))
+}
+
 /// Initial pose-derived odometry configurations and their stable loaded owners.
 pub fn initial_ground_truth_odometry_publications(
     sim: &Simulation,

@@ -36,6 +36,7 @@ CLIENTS = {
     'multiple_magnetometers': 'crates/gz-sim-server/tests/native_multiple_magnetometers_peer.cc',
     'multiple_logical_cameras': 'crates/gz-sim-server/tests/native_multiple_logical_cameras_peer.cc',
     'multiple_lidars': 'crates/gz-sim-server/tests/native_multiple_lidars_peer.cc',
+    'multiple_pose_publishers': 'crates/gz-sim-server/tests/native_multiple_pose_publishers_peer.cc',
 }
 spec = importlib.util.spec_from_file_location('zenoh_bootstrap', ROOT / 'scripts/bootstrap-zenoh-native.py')
 bootstrap = importlib.util.module_from_spec(spec)

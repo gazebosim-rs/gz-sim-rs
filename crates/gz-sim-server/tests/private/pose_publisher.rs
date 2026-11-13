@@ -826,3 +826,641 @@ fn split_jointless_declares_empty_dynamic_endpoint_but_never_encodes_an_empty_ve
     assert!(dynamic.try_recv().unwrap().is_none());
     assert_eq!(server.counters().invalid_pose_publication_samples, 0);
 }
+
+fn m55_xml(count: usize) -> String {
+    let start = SPLIT_XML.find("  <model name=\"rig\"").unwrap();
+    let end = SPLIT_XML.rfind("</model>").unwrap() + "</model>".len();
+    let template = &SPLIT_XML[start..end];
+    let models = (0..count)
+        .map(|index| {
+            template
+                .replace("name=\"rig\"", &format!("name=\"rig{index}\""))
+                .replace("/m31/pose", &format!("/m55/pose{index}"))
+                .replace(
+                    "<pose>1 2 3 0 0 0.6</pose>",
+                    &format!("<pose>1 {} 3 0 0 0.6</pose>", 2 + 4 * index),
+                )
+        })
+        .collect::<String>();
+    format!("{}{}{}", &SPLIT_XML[..start], models, &SPLIT_XML[end..])
+}
+
+fn m55_owner(server: &Server, index: usize) -> Entity {
+    let name = format!("default::rig{index}");
+    server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|entity| entity.get::<Name>().is_some_and(|value| value.0 == name))
+        .unwrap()
+        .id()
+}
+
+#[test]
+fn multiple_pose_late_owner_and_immutable_metadata_refuse_before_closed_session_io() {
+    for case in 0..10 {
+        let count = if case == 9 { 7 } else { 8 };
+        let mut server = server(&m55_xml(count));
+        assert_eq!(server.pose_publishers.len(), 2 * count);
+        let owner = m55_owner(&server, count - 1);
+        let mut prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
+        match case {
+            0 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(owner)
+                    .remove::<EntityId>();
+            }
+            1 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(owner)
+                    .insert(EntityKind::Visual);
+            }
+            2 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<Name>(owner)
+                    .unwrap()
+                    .0 = "default::other".into();
+            }
+            3 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<PosePublication>(owner)
+                    .unwrap()
+                    .model_name = "other".into();
+            }
+            4 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<PosePublication>(owner)
+                    .unwrap()
+                    .topic = "/m55/unique_changed_dynamic".into();
+            }
+            5 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<PosePublication>(owner)
+                    .unwrap()
+                    .static_publication
+                    .as_mut()
+                    .unwrap()
+                    .topic = "/m55/unique_changed_static".into();
+            }
+            6 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<PosePublication>(owner)
+                    .unwrap()
+                    .static_publication
+                    .as_mut()
+                    .unwrap()
+                    .poses[0]
+                    .frame_id = "nonempty_wrong_world".into();
+            }
+            7 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<PosePublication>(owner)
+                    .unwrap()
+                    .static_publication
+                    .as_mut()
+                    .unwrap()
+                    .poses[0]
+                    .child_frame_id = "rig7::forged".into();
+            }
+            8 => {
+                prepared.values_mut().last().unwrap().3.push_str("_forged");
+            }
+            _ => {
+                // Preserve the original invalid-metadata-without-ID negative.
+                let extra = server.simulation.world_mut().spawn(metadata()).id();
+                assert!(server.simulation.world().get::<EntityId>(extra).is_none());
+            }
+        }
+        server.world_io.session.close().wait().unwrap();
+        let before = boundary(&server);
+        for prepared in [None, Some(&prepared)] {
+            let result = streams(
+                &server.simulation,
+                &server.world_io,
+                &server.network_config,
+                &BTreeSet::new(),
+                prepared,
+            );
+            if case == 8 && prepared.is_none() {
+                // A healthy live set reaches IO when no prepared map is used.
+                assert!(matches!(result, Err(Error::WorldNetwork(_))));
+            } else {
+                assert!(
+                    matches!(
+                        result,
+                        Err(Error::PosePublisherIdentity | Error::ResetPosePublishers)
+                    ),
+                    "case {case}"
+                );
+            }
+            assert_eq!(boundary(&server), before);
+        }
+    }
+}
+
+#[test]
+fn sixteen_pose_endpoints_and_every_prepared_identity_binding_are_atomic() {
+    for case in 0..10 {
+        let mut server = server(&m55_xml(8));
+        let mut prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
+        assert_eq!(prepared.len(), 16);
+        assert_eq!(
+            prepared
+                .values()
+                .map(|entry| entry.0)
+                .collect::<BTreeSet<_>>()
+                .len(),
+            8
+        );
+        let last = prepared.keys().next_back().unwrap().clone();
+        let mut occupied = BTreeSet::new();
+        match case {
+            0 => {
+                prepared.remove(&last);
+            }
+            1 => {
+                let row = prepared.values().next().unwrap().clone();
+                prepared.insert("@/m55/extra@/pose".into(), row);
+            }
+            2 => {
+                prepared.get_mut(&last).unwrap().0 += 1;
+            }
+            3 => {
+                prepared.get_mut(&last).unwrap().1.topic = "/m55/changed".into();
+            }
+            4 => {
+                prepared.get_mut(&last).unwrap().3.clear();
+            }
+            5 => {
+                occupied.insert(last);
+            }
+            6 => {
+                let owner = m55_owner(&server, 7);
+                let first = server
+                    .simulation
+                    .world()
+                    .get::<PosePublication>(m55_owner(&server, 0))
+                    .unwrap()
+                    .topic
+                    .clone();
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<PosePublication>(owner)
+                    .unwrap()
+                    .static_publication
+                    .as_mut()
+                    .unwrap()
+                    .topic = first;
+            }
+            7 => {
+                let clone = server
+                    .simulation
+                    .world()
+                    .get::<PosePublication>(m55_owner(&server, 7))
+                    .unwrap()
+                    .clone();
+                server.simulation.world_mut().spawn(clone);
+            }
+            8 => {
+                // Distinct same-schema outputs can be swapped without creating
+                // duplicate Arcs; identity/metadata/cardinality alone cannot bind them.
+                let keys = prepared
+                    .iter()
+                    .filter(|(key, row)| {
+                        key.as_str() == server.network_config.topic_key(&row.1.topic).unwrap()
+                    })
+                    .map(|(key, _)| key.clone())
+                    .take(2)
+                    .collect::<Vec<_>>();
+                assert_eq!(keys.len(), 2);
+                assert_ne!(prepared[&keys[0]].0, prepared[&keys[1]].0);
+                let left = Arc::clone(&prepared[&keys[0]].2);
+                let right = Arc::clone(&prepared[&keys[1]].2);
+                prepared.get_mut(&keys[0]).unwrap().2 = right;
+                prepared.get_mut(&keys[1]).unwrap().2 = left;
+            }
+            _ => {
+                let other = prepared.keys().find(|key| *key != &last).unwrap().clone();
+                let duplicate = Arc::clone(&prepared[&other].2);
+                prepared.get_mut(&last).unwrap().2 = duplicate;
+            }
+        }
+        server.world_io.session.close().wait().unwrap();
+        let before = boundary(&server);
+        assert!(
+            matches!(
+                streams(
+                    &server.simulation,
+                    &server.world_io,
+                    &server.network_config,
+                    &occupied,
+                    Some(&prepared)
+                ),
+                Err(Error::PosePublisherIdentity | Error::ResetPosePublishers)
+            ),
+            "case {case}"
+        );
+        assert_eq!(boundary(&server), before);
+    }
+    // Retained CPU outputs must still match their OLD endpoints when a valid
+    // remap changes NEW prepared keys. Reject both permutations and duplicates
+    // before lookup/reuse even with a closed session.
+    for swapped in [false, true] {
+        let mut server = server(&m55_xml(2));
+        let other = server
+            .pose_publishers
+            .iter()
+            .position(|stream| {
+                stream.identity != server.pose_publishers[0].identity
+                    && stream.static_channel == server.pose_publishers[0].static_channel
+            })
+            .unwrap();
+        let first = Arc::clone(&server.pose_publishers[0].publisher);
+        let second = Arc::clone(&server.pose_publishers[other].publisher);
+        server.pose_publishers[0].publisher = second;
+        if swapped {
+            server.pose_publishers[other].publisher = first;
+        }
+        server.world_io.session.close().wait().unwrap();
+        let before = boundary(&server);
+        assert!(matches!(
+            prepare_reset(&server, &BTreeSet::new()),
+            Err(Error::ResetPosePublishers)
+        ));
+        assert_eq!(boundary(&server), before);
+    }
+    let mut server = server(&m55_xml(2));
+    let first = server
+        .simulation
+        .world()
+        .get::<PosePublication>(m55_owner(&server, 0))
+        .unwrap()
+        .topic
+        .clone();
+    let second = server
+        .simulation
+        .world()
+        .get::<PosePublication>(m55_owner(&server, 1))
+        .unwrap()
+        .static_publication
+        .as_ref()
+        .unwrap()
+        .topic
+        .clone();
+    server
+        .network_config
+        .add_topic_remap(&second, &first)
+        .unwrap();
+    server.world_io.session.close().wait().unwrap();
+    let before = boundary(&server);
+    assert!(matches!(
+        streams(
+            &server.simulation,
+            &server.world_io,
+            &server.network_config,
+            &BTreeSet::new(),
+            None
+        ),
+        Err(Error::PosePublisherIdentity)
+    ));
+    assert!(matches!(
+        prepare_reset(&server, &BTreeSet::new()),
+        Err(Error::PosePublisherIdentity)
+    ));
+    assert_eq!(boundary(&server), before);
+}
+
+#[test]
+fn pose_prepared_prefix_restores_removed_owners_and_consistent_absence() {
+    let mut server = server(&m55_xml(2));
+    let prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
+    let original = prepared
+        .iter()
+        .map(|(key, value)| {
+            (
+                key.clone(),
+                value.0,
+                value.1.clone(),
+                Arc::clone(&value.2),
+                value.3.clone(),
+            )
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(original.len(), 4);
+    let removed = server
+        .simulation
+        .world()
+        .get::<EntityId>(m55_owner(&server, 1))
+        .unwrap()
+        .get();
+    remove_model(&mut server.simulation, removed).unwrap();
+    server.retire_pose_publishers();
+    assert_eq!(server.pose_publishers.len(), 2);
+    let reset = prepare_reset(&server, &BTreeSet::new()).unwrap();
+    assert_eq!(reset.len(), 4);
+    for (key, id, metadata, output, name) in &original {
+        let entry = &reset[key];
+        assert_eq!((entry.0, &entry.1, &entry.3), (*id, metadata, name));
+        if *id != removed {
+            assert!(Arc::ptr_eq(&entry.2, output));
+        }
+    }
+    assert!(server.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    server.update().unwrap();
+    assert_eq!(server.pose_publishers.len(), 4);
+    assert_eq!(server.simulation.epoch(), 1);
+    for stream in &server.pose_publishers {
+        let expected = reset.get(&stream.endpoint).unwrap();
+        assert_eq!(stream.identity, expected.0);
+        assert_eq!(stream.metadata, expected.1);
+        assert!(stream.last_sample.is_none());
+    }
+    let absent = self::server(&m55_xml(0));
+    assert!(absent.pose_publishers.is_empty());
+    assert!(prepare_reset(&absent, &BTreeSet::new()).unwrap().is_empty());
+    absent.world_io.session.close().wait().unwrap();
+    assert!(
+        streams(
+            &absent.simulation,
+            &absent.world_io,
+            &absent.network_config,
+            &BTreeSet::new(),
+            Some(&Prepared::new())
+        )
+        .unwrap()
+        .is_empty()
+    );
+
+    // Retire one selected ECS link as in the retained single-owner replaced-link
+    // control. This proves cached output/lease refusal, not a new live Physics
+    // link-removal API. The independent loaded peer remains owned and intact.
+    let mut linked = self::server(&m55_xml(2));
+    linked.simulation.step_exact(40).unwrap();
+    linked.publish_pose_publishers();
+    let victim = m55_owner(&linked, 0);
+    let peer = m55_owner(&linked, 1);
+    let identity = linked
+        .simulation
+        .world()
+        .get::<EntityId>(victim)
+        .unwrap()
+        .get();
+    let selected = linked
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<Name>()
+                .is_some_and(|name| name.0 == "default::rig0::tip")
+        })
+        .unwrap()
+        .id();
+    let selected_id = linked
+        .simulation
+        .world()
+        .get::<EntityId>(selected)
+        .unwrap()
+        .get();
+    let leases = linked
+        .pose_publishers
+        .iter()
+        .filter(|stream| stream.identity == identity)
+        .map(|stream| Arc::downgrade(&stream.publisher))
+        .collect::<Vec<_>>();
+    assert_eq!(leases.len(), 2);
+    let queued = linked.counters().pose_publications_queued;
+    let peer_sample = format!(
+        "{:?}/{:?}",
+        linked.simulation.world().get::<PoseSample>(peer),
+        linked.simulation.world().get::<StaticPoseSample>(peer)
+    );
+    assert!(linked.simulation.world_mut().despawn(selected));
+    linked.publish_pose_publishers();
+    assert_eq!(linked.counters().pose_publications_queued, queued);
+    linked.retire_pose_publishers();
+    assert_eq!(linked.pose_publishers.len(), 2);
+    assert!(
+        linked
+            .pose_publishers
+            .iter()
+            .all(|stream| stream.entity == peer)
+    );
+    assert!(leases.iter().all(|lease| lease.upgrade().is_none()));
+    assert_eq!(
+        format!(
+            "{:?}/{:?}",
+            linked.simulation.world().get::<PoseSample>(peer),
+            linked.simulation.world().get::<StaticPoseSample>(peer)
+        ),
+        peer_sample
+    );
+    let restored = prepare_reset(&linked, &BTreeSet::new()).unwrap();
+    assert_eq!(restored.len(), 4);
+    drop(restored);
+    assert!(linked.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    linked.update().unwrap();
+    assert_eq!(linked.pose_publishers.len(), 4);
+    let restored_link = entity_by_id(linked.simulation.world(), selected_id).unwrap();
+    assert_ne!(restored_link, selected);
+    assert!(
+        linked
+            .simulation
+            .world()
+            .get::<PoseSample>(m55_owner(&linked, 0))
+            .is_none()
+    );
+    linked.simulation.step_exact(40).unwrap();
+    // Advancing with a lost selected frame keeps the unchanged GLOBAL fault
+    // contract; it does not promise per-owner fault isolation or rollback.
+    let failed_owner = m55_owner(&linked, 0);
+    assert!(
+        linked
+            .simulation
+            .world()
+            .get::<PoseSample>(failed_owner)
+            .is_some()
+    );
+    assert!(
+        linked
+            .simulation
+            .world()
+            .get::<StaticPoseSample>(failed_owner)
+            .is_some()
+    );
+    // Fence both owners' existing revisions before observing failure-only enqueue.
+    linked.publish_pose_publishers();
+    let capture_cached = |server: &Server| {
+        let bits = |sample: &PoseSample| {
+            (
+                sample.time,
+                sample.epoch,
+                sample.revision,
+                sample
+                    .poses
+                    .iter()
+                    .map(|frame| {
+                        (
+                            frame.identity,
+                            frame.pose.translation.map(f64::to_bits),
+                            frame.pose.rotation.map(f64::to_bits),
+                        )
+                    })
+                    .collect::<Vec<_>>(),
+            )
+        };
+        (
+            server
+                .simulation
+                .world()
+                .get::<PoseSample>(failed_owner)
+                .map(bits),
+            server
+                .simulation
+                .world()
+                .get::<StaticPoseSample>(failed_owner)
+                .map(|sample| bits(&sample.0)),
+        )
+    };
+    let cached = capture_cached(&linked);
+    let queued = linked.counters().pose_publications_queued;
+    assert!(linked.simulation.world_mut().despawn(restored_link));
+    assert_eq!(
+        linked.simulation.step_exact(10).unwrap_err(),
+        gz_sim_core::StepError::Faulted
+    );
+    assert_eq!(
+        linked.simulation.fault().unwrap().to_string(),
+        "loaded joint bindings are incomplete or belong to a different backend"
+    );
+    // Joint preflight faults before the pose sampler. Global terminal faults
+    // do not run later samplers, clear earlier caches, or roll peers back.
+    assert_eq!(capture_cached(&linked), cached);
+    linked.publish_pose_publishers();
+    assert_eq!(linked.counters().pose_publications_queued, queued);
+    let before = boundary(&linked);
+    assert!(!linked.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    assert!(matches!(
+        linked.update(),
+        Err(Error::Step(gz_sim_core::StepError::Faulted))
+    ));
+    assert_eq!(boundary(&linked), before);
+}
+
+#[test]
+fn pose_maximum_selected_records_and_live_or_removed_peer_reservations_hold_before_io() {
+    let mut models = String::new();
+    for owner in 0..8 {
+        let links = (0..127).map(|link| format!("<link name='body{link}'><pose>{} 0 0 0 0 0</pose><inertial><mass>1</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><box><size>0.05 0.05 0.05</size></box></geometry></collision></link>", link as f64 * 0.2)).collect::<String>();
+        models.push_str(&format!("<model name='rig{owner}' canonical_link='body0'><pose>0 {} 3 0 0 0</pose>{links}<plugin filename='gz-sim-pose-publisher-system' name='gz::sim::systems::PosePublisher'><use_pose_vector_msg>true</use_pose_vector_msg><publish_model_pose>true</publish_model_pose><static_publisher>true</static_publisher><topic>/m55/max{owner}</topic></plugin></model>", owner * 100));
+    }
+    let source = format!(
+        "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='step' type='ignored'><max_step_size>0.001</max_step_size></physics>{models}</world></sdf>"
+    );
+    let maximum = server(&source);
+    assert_eq!(maximum.pose_publishers.len(), 16);
+    let prepared = prepare_reset(&maximum, &BTreeSet::new()).unwrap();
+    assert_eq!(prepared.len(), 16);
+    let metadata = gz_sim_scene::initial_pose_publications(&maximum.simulation)
+        .unwrap()
+        .map(|(_, publication)| publication.clone())
+        .collect::<Vec<_>>();
+    assert_eq!(metadata.len(), 8);
+    assert!(metadata.iter().all(|publication| publication.poses.len()
+        + publication.static_publication.as_ref().unwrap().poses.len()
+        == 128));
+    maximum.world_io.session.close().wait().unwrap();
+    let before = boundary(&maximum);
+    let restored = streams(
+        &maximum.simulation,
+        &maximum.world_io,
+        &maximum.network_config,
+        &BTreeSet::new(),
+        Some(&prepared),
+    )
+    .unwrap();
+    assert_eq!(restored.len(), 16);
+    assert_eq!(boundary(&maximum), before);
+    drop(restored);
+
+    let peer = "<model name='imu_owner'><link name='body'><inertial><mass>1</mass><inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial><collision name='shape'><geometry><box><size>0.1 0.1 0.1</size></box></geometry></collision><sensor name='imu' type='imu'><topic>/m55/imu</topic><update_rate>100</update_rate><imu/></sensor></link></model>";
+    for remove in [false, true] {
+        let source = m55_xml(2).replace("</world>", &format!("{peer}</world>"));
+        let mut server = server(&source);
+        if remove {
+            let id = server
+                .simulation
+                .world()
+                .iter_entities()
+                .find(|entity| {
+                    entity
+                        .get::<Name>()
+                        .is_some_and(|name| name.0 == "default::imu_owner")
+                })
+                .unwrap()
+                .get::<EntityId>()
+                .unwrap()
+                .get();
+            remove_model(&mut server.simulation, id).unwrap();
+        }
+        server
+            .network_config
+            .add_topic_remap("/m55/pose1_static", "/m55/imu")
+            .unwrap();
+        server.world_io.session.close().wait().unwrap();
+        let before = boundary(&server);
+        assert!(matches!(
+            streams(
+                &server.simulation,
+                &server.world_io,
+                &server.network_config,
+                &BTreeSet::new(),
+                None
+            ),
+            Err(Error::PosePublisherIdentity)
+        ));
+        assert!(matches!(
+            prepare_reset(&server, &BTreeSet::new()),
+            Err(Error::PosePublisherIdentity)
+        ));
+        assert_eq!(boundary(&server), before);
+    }
+}

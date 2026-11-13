@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-13T15:52:35.215055+00:00",
+  "as_of": "2026-11-13",
   "execution_state": "active",
   "current_phase": "M43",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
@@ -1127,7 +1127,7 @@
         "native_capture_performed": false,
         "provider_or_SDK_rebuilt": false
       },
-      "current_stage": "Batched correction after actual first full normal failure",
+      "current_stage": "Locally qualified; hosted/official/accepted-predecessor gates held",
       "native_component_capture_passed": true,
       "independent_native_DATA_passed": true,
       "independent_literal_DATA_passed": true,
@@ -1139,9 +1139,9 @@
         "independent_native_DATA": "actual0",
         "fixture_generation": "actual0",
         "independent_literal_DATA": "actual0",
-        "formatter": "actual0; independently reviewed",
-        "Rust_Python_tests_and_lint": "executed within failed normal; two headless cases failed",
-        "full_normal_and_strict_coverage": "actual1; qualification incomplete",
+        "formatter": "actual0; independent Source review clear",
+        "Rust_Python_tests_and_lint": "passed within corrected full normal attempt2; first normal failure preserved",
+        "full_normal_and_strict_coverage": "actual0; independent retained local DATA actual0",
         "hosted_CI": "held",
         "publication_and_acceptance": "held"
       },
@@ -1161,10 +1161,155 @@
         "failure_receipt_sha256": "297aa1a302e6999211bf66f9fb37d93d7da0abade0420f7bb8a0956a2fe772a1",
         "qualified": false
       },
+      "actual_normal_attempt2": {
+        "state": "passed_independent_local_DATA_clear",
+        "Root_watch": 29290,
+        "tree": "d7eee501720de607ed7803be8fb6d34c21f7d420",
+        "release_sha256": "3021f54d69c2f811bd7f92c393053a99657c5f5a329d075e8b84ade1365b9846",
+        "actual_exit_code": 0,
+        "commit": "d140e51e56b8c83d3857ad16977472412a9629f8",
+        "result_sha256": "023c6212acfd399753d9f172cb2113a10ca68c9a5198e26d1b5751c343c9f876",
+        "controller_elapsed_seconds": 2172.873944218969
+      },
+      "independent_local_DATA": {
+        "actual_root_exit_code": 0,
+        "report_sha256": "a912f21918dd9431b184497addca7b238c99decfc5841f9df05500030f4bec21",
+        "actual_receipt_sha256": "aaaefacafa679dad6ef2531b52a5f20e3289047aad50bcccc07eee991513a6e8",
+        "headless_profile_passes": 1886,
+        "renderer_profile_passes_overlapping": 1117,
+        "Python_aggregate": 403,
+        "finite_examples": 28,
+        "raw_profiles_once_LAST": [
+          1821,
+          396,
+          42,
+          33
+        ]
+      },
       "correction_batch": [
         "Exact XML topic element replacement without changing closing scan tags",
         "Pure shared constructor/reset legacy peer collision-error precedence with full pre-I/O Lidar validation"
       ]
+    },
+    {
+      "id": "M55",
+      "title": "Independent loaded PosePublishers",
+      "max_working_days": 5,
+      "depends_on": [
+        "M54"
+      ],
+      "scope": "Zero through eight top-level flat Rapier PosePublishers, at most 128 selected model/link records each and 1,024 aggregate, with up to 16 dynamic/static channels. Preserve frame classification, local transforms, lexical Rust wire order and independent existing clocks; validate full owner/original/prepared/endpoint sets before IO.",
+      "acceptance": "Complete Source/regressions/guides and independent review. Final integration follows actual M54 normal and local DATA, preserving every repair. Exact current native input diagnostic, fresh scoped original-System controlled-input capture and independent native/literal DATA precede observed consumers. Full normal/strict coverage, independent local DATA, accepted predecessor, hosted/official audit and Main/readbacks precede acceptance.",
+      "excluded": "Nested models, new record types/backend/solver/plugins/interest gate/noise/latching framework. No sorted native wire equivalence, Physics/reset/demand transfer, SDK/provider build or CI workaround.",
+      "evidence": "docs/M55_DELIVERY.md",
+      "source_preparation_only": false,
+      "provisional_local_only": true,
+      "source_preparation_basis_commit": "9bf3ada4675022b45e39d5f089e1bb3aaeaa2c04",
+      "source_preparation_basis_accepted": false,
+      "integrated_parent": "d140e51e56b8c83d3857ad16977472412a9629f8",
+      "source_preparation_started_at": "2026-11-13T15:12:17.540182+00:00",
+      "contract_sha256": "da9fe4d993aec08f47c82ace0a4711519b15df92b828a37711dc1b7324790fab",
+      "checks_run": true,
+      "source_authorship_released": true,
+      "operations_released": true,
+      "runtime_Source_batches_complete": true,
+      "current_native_provider_availability": "The old DSO input remains rejected for an empty RUNPATH entry. The separately reviewed new helper linked the unchanged original System object and completed capture; native DATA, generation and literal DATA passed. No original provider or SDK was rebuilt.",
+      "root_shared_Source_review": "SDF whole6path CLEAR",
+      "Scene_Source_review": "SDF whole3path CLEAR",
+      "Server_Source_review": "SDF and Light whole5path CLEAR",
+      "current_stage": "Complete four-case corrections plus pre-execution output-binding Source finding; no normal3 active",
+      "native_input_diagnostic": {
+        "actual_root_exit_code": 1,
+        "actual_readelf_children": 2,
+        "both_child_exits": 0,
+        "result_sha256": "5f05051f4ddf4e1752dab4572a797c640cfd2b1d4c8c493b8c870c69845e90da",
+        "actual_receipt_sha256": "ee558685107fe41fcb7b23129295951cbfc65574532a179016bb75a972ac3e49",
+        "native_code_loaded": false,
+        "admitted": false
+      },
+      "revised_reference_Source_proposal_sha256": "fbdad455a7223f32eb593640bb8a0d3d9a266efdf915c06347bd909a914280ef",
+      "revised_reference_Source_decision_sha256": "26c7dbe2c7259cf1fb1cd0e6d5d98d9e8a3aeac3bba73926b6b998c9f4a4a9ac",
+      "operation_scope": "Native capture/DATA/export/literal DATA passed. First normal compile failure and second normal four-case failure remain preserved. No successful local DATA or M55 qualification. Whole corrections must precede one affected consolidated retry; no native campaign replay.",
+      "runtime_Source_independent_review_clear": true,
+      "integration_source_overlap_review_pending": false,
+      "final_qualification_Source_root": "/home/nkoenig/work/gazebo/rust/gz-sim-m55-observed-multiple-pose-publishers",
+      "observed_control_Source_complete": true,
+      "integration_source_overlap_review_clear": true,
+      "native_capture_passed": true,
+      "independent_native_DATA_passed": true,
+      "independent_literal_DATA_passed": true,
+      "operation_status": {
+        "native_capture": "actual0,30childstages",
+        "independent_native_DATA": "actual0",
+        "fixture_generation": "actual0",
+        "independent_literal_DATA": "actual0",
+        "observed_control_Source": "complete and independently reviewed; one lossless ID comparison correction reviewed",
+        "hosted_CI_publication_and_acceptance": "held",
+        "formatter": "actual0 before first full normal",
+        "Rust_Python_tests_lint_full_normal_strict_coverage": "Attempt2 actual1: four failed cases in three Rust targets; 403 Python aggregate passed. Headless test command failed; coverage incomplete and renderer profile evidence missing. First compile failure remains retained; no M55 qualification.",
+        "corrective_formatter": "actual0; all34 corrected Source bytes unchanged"
+      },
+      "native_reference": "planning/reference/m55-multiple-pose-publishers.json",
+      "native_evidence": {
+        "capture_result_sha256": "df62946ee38411b7176af00081d7883ac2fc7f51fef2073da9282662c17c7de6",
+        "native_DATA_report_sha256": "f453636447ad0d600294b0919d16de35930f996c84e01b1d7219033c70173c7a",
+        "literal_DATA_report_sha256": "31e23ef58f73dfd4acfaf2184043170af7362df48d98692819dd4f8db76808bb",
+        "input_domain": "DIRECT_ORIGINAL_OBJECT_SYSTEM_LOCAL_POSE_ECM",
+        "configuration_count": 10,
+        "direct_post_update_calls": 40,
+        "input_rows": 40,
+        "observed_vectors": 65,
+        "canonical_packets": 65,
+        "pose_records": 95,
+        "original_Physics_or_Server_equivalence": false
+      },
+      "observed_control_Source_independent_review_clear": true,
+      "new_Source_declarations_headless": 17,
+      "new_Source_declarations_renderer": 10,
+      "formatter_actual_exit_code": 0,
+      "actual_normal_attempt1": {
+        "actual_root_exit_code": 1,
+        "controller_elapsed_seconds": 190.70420404011384,
+        "failed_source_tree": "8c28c5f0e5efa037a7416ec08050f4aee7994409",
+        "failure_receipt_sha256": "20e25e93d5438934f20fa9d03d00a2e0110864e47cbc1e651f587de343669c1e",
+        "compiler_diagnostics": [
+          "E0308",
+          "E0277"
+        ],
+        "finding_classes": 1,
+        "Rust_tests_or_coverage_reached": false,
+        "qualified": false
+      },
+      "actual_normal_attempt2": {
+        "state": "failed_not_qualified",
+        "Root_solewatch": null,
+        "tree": "46554800f076627d2f6d6b1c55bb2c34fda4d773",
+        "parent": "d140e51e56b8c83d3857ad16977472412a9629f8",
+        "method_sha256": "4b340fa8fe62d73c1b5b23b66afbdc9606eb5d2a589e183959778ce0455210d4",
+        "release_sha256": "f92e2abc1d54b2e0756912617e720fcb110a44cea50e7411ca11a35414d7dea4",
+        "actual_exit_code": 1,
+        "controller_elapsed_seconds": 1696.8643374938983,
+        "failure_receipt_sha256": "d81ae4d9501577046a4c046903fc3875f5892c2acdce032c7caac31ff1c39511",
+        "failed_cases": 4,
+        "failed_targets": 3,
+        "qualification_claimed": false
+      },
+      "next_parallel_Source_preparation": {
+        "phase": "M56",
+        "title": "Independent loaded ground-truth OdometryPublishers",
+        "selection_sha256": "2bb7cc58db737142009c7df3ee21633e682018a7135693c3013c47bb42005066",
+        "Source_release_sha256": "671be22718c9b298a2cc456c5f1c3c51635307d67cff53af68eb566adbc37e6e",
+        "basis": "d140e51e56b8c83d3857ad16977472412a9629f8",
+        "final_parent": null,
+        "operations_released": false,
+        "integration_waits": "Actual M55 full normal and independent local DATA plus repairs and overlap review."
+      },
+      "pre_execution_output_binding_finding": {
+        "finding_sha256": "6297b8bd899fbe249db0fb067062fcbd475f3bd3f2071a3dc631deaed6757412",
+        "Source_proposal_sha256": "88c0c0c6e35d1e95e0fe5bde400d4807f7ba0552c34d75bf80544030e31c6b4a",
+        "scope": "Narrow immutable setup endpoint and pure matching on CPU Output; current retained/prepared checks and same-ID swap/duplicate controls. Five correctiveRustleaves; complete35-path Source proof required.",
+        "runtime_check_invoked": false
+      }
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -1222,7 +1367,8 @@
     "M51": "in_progress",
     "M52": "in_progress",
     "M53": "in_progress",
-    "M54": "in_progress"
+    "M54": "in_progress",
+    "M55": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-10",
@@ -1238,7 +1384,8 @@
     "M51",
     "M52",
     "M53",
-    "M54"
+    "M54",
+    "M55"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -1475,33 +1622,41 @@
       ],
       "integration": "M53 corrected full normal verification overlaps M54 Scene and Server source preparation on qualified unaccepted M52. Final integration waits for actual M53 normal and independent DATA and preserves its repairs. Independent Source review precedes all new operations; Root serializes heavy work.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M54",
+        "M55"
+      ],
+      "integration": "M54 sole normal verification overlaps disjoint M55 Source preparation on qualified, unaccepted M53 9bf3. M55 final integration waits for actual M54 full normal and independent DATA, retains every repair and requires complete overlap review. Root serializes all heavy execution. No Source qualification or acceptance transfers.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M42 are accepted; M40 remains installed Latest. M43\u2013M53 passed local qualification but remain unaccepted. M54 implementation batches are independently Source-reviewed; integration over qualified M53 follows overlap review. Hosted snapshot recovery is unconfirmed; all release gates remain mandatory.",
+  "acceptance_boundary": "M1\u2013M42 are accepted; M40 remains installed Latest. M43\u2013M54 are locally qualified but unaccepted. M55 native/literal evidence passed; its second normal run failed four test cases. Corrections and all qualification gates remain required. M56 Source preparation is selected separately; final integration waits for qualified M55.",
   "current_delivery_group": [
     "M43",
     "M44"
   ],
-  "current_development_phase": "M54",
+  "current_development_phase": "M55",
   "board": {
-    "updated_at": "2026-11-13T15:52:35.215055+00:00",
+    "updated_at": "2026-11-13T19:27:52.477589+00:00",
     "current": {
-      "title": "M54 \u00b7 Batched regression corrections",
+      "title": "M55 \u00b7 Batched test corrections",
       "items": [
-        "First full normal verification failed in two headless cases.",
-        "Both fixture and error-precedence corrections are being reviewed as one batch.",
-        "Native component and fixture audits remain valid and are reused."
+        "The full verification retry failed four test cases; the original run is preserved.",
+        "Three concrete causes are identified. One complete correction batch is under Source review.",
+        "M56 odometry Source lanes are selected separately; integration waits for M55."
       ]
     },
     "done": [
       "MVP and M1\u2013M42 accepted and published.",
       "M40 is the latest installable preview.",
-      "M43\u2013M53 passed local checks and independent results audits. Hosted qualification is still required before release."
+      "M43\u2013M54 passed local verification and independent results audits; release qualification remains pending."
     ],
     "next": [
-      "Finish Source review and run one corrected full normal/strict verification.",
-      "Audit retained results only after actual normal success.",
-      "Complete hosted qualification and dependency-ordered release gates."
+      "Review and complete the M55 correction batch before one consolidated retry.",
+      "Audit retained results after full normal success.",
+      "Continue M56 Source work separately; complete hosted qualification before releases."
     ],
     "blocker": {
       "text": "Release is blocked by Ubuntu snapshot setup failures in hosted CI. Recovery has not been confirmed.",

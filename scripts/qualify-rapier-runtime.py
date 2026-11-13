@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Additional native-off execution proof; never replaces the full coverage profiles.
 
-Twenty-eight copied example SDFs run once each through the retained actual CLI. These
+Twenty-nine copied example SDFs run once each through the retained actual CLI. These
 finite load/step controls are separate from Rust test counts and canonical wire
 or statistical/native-model evidence; clean installed runs remain separate.
 """
@@ -55,6 +55,7 @@ NOISY_EXAMPLES = (
     "examples/m52_multiple_magnetometers.sdf",
     "examples/m53_multiple_logical_cameras.sdf",
     "examples/m54_multiple_lidars.sdf",
+    "examples/m55_multiple_pose_publishers.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -109,6 +110,12 @@ NOISY_LINKS = {
         "default::left_scanner::body": (0, 2, 0),
         "default::right_scanner::body": (0, -2, 0),
         "default::wall::body": (5, 0, 0),
+    },
+    "examples/m55_multiple_pose_publishers.sdf": {
+        "default::rig::base": (1, 2, 3),
+        "default::rig::tip": (1 + 0.8 * math.cos(0.6), 2 + 0.8 * math.sin(0.6), 3),
+        "default::peer::base": (1, 8, 3),
+        "default::peer::tip": (1 + 0.8 * math.cos(0.6), 8 + 0.8 * math.sin(0.6), 3),
     },
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
@@ -291,8 +298,9 @@ def noisy_output_matches(source, stdout):
             # This is finite stepping, not a trajectory expectation or tolerance.
             if not all(math.isfinite(value) for value in actual):
                 return False
-        elif source in {"examples/m27_pose_publisher.sdf", "examples/m31_pose_static_publisher.sdf"}:
-            # These two fixtures share the same unforced, zero-gravity geometry.
+        elif source in {"examples/m27_pose_publisher.sdf", "examples/m31_pose_static_publisher.sdf",
+                       "examples/m55_multiple_pose_publishers.sdf"}:
+            # These fixtures share the same unforced, zero-gravity articulated geometry.
             # Keep the existing 1e-12 native component bound for f64 composition;
             # all other fixtures, including LogicalCamera, stay exact.
             if not all(math.isfinite(value) and math.isclose(value, expected, rel_tol=0, abs_tol=1e-12)
