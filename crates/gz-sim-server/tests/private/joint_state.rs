@@ -616,7 +616,9 @@ fn joint_state_removed_or_reused_joint_identity_cannot_publish_or_retain_old_str
 // endpoint interactions have their own M34/M35 fixture and controls.
 fn family_key(server: &Server, family: PublicationFamily) -> String {
     match family {
-        PublicationFamily::GroundTruthOdometry | PublicationFamily::LinkWrench => {
+        PublicationFamily::Lidar
+        | PublicationFamily::GroundTruthOdometry
+        | PublicationFamily::LinkWrench => {
             panic!("outside retained seven-family fixture")
         }
         PublicationFamily::Altimeter => server.altimeters[0].endpoint.clone(),
@@ -635,7 +637,9 @@ fn family_key(server: &Server, family: PublicationFamily) -> String {
 }
 fn topic_mut(server: &mut Server, family: PublicationFamily, value: String) {
     match family {
-        PublicationFamily::GroundTruthOdometry | PublicationFamily::LinkWrench => {
+        PublicationFamily::Lidar
+        | PublicationFamily::GroundTruthOdometry
+        | PublicationFamily::LinkWrench => {
             panic!("outside retained seven-family fixture")
         }
         PublicationFamily::Altimeter => {
@@ -747,7 +751,9 @@ fn assert_family_refuses(
     options: &ServerOptions,
 ) {
     match family {
-        PublicationFamily::GroundTruthOdometry | PublicationFamily::LinkWrench => {
+        PublicationFamily::Lidar
+        | PublicationFamily::GroundTruthOdometry
+        | PublicationFamily::LinkWrench => {
             panic!("outside retained seven-family fixture")
         }
         PublicationFamily::Altimeter => assert!(matches!(

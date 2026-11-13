@@ -798,3 +798,628 @@ fn runtime_kind_mutation_withholds_a_fresh_scan_and_retires_the_original_lease()
     assert!(server.lidars.is_empty() && server.lidars.capacity() == 0);
     assert!(original.upgrade().is_none());
 }
+
+fn multiple_xml(count: usize) -> String {
+    let start = XML.find("<model name='rig'>").unwrap();
+    let end = start + XML[start..].find("</model>").unwrap() + "</model>".len();
+    let original = &XML[start..end];
+    let owners = (0..count)
+        .map(|index| {
+            original
+                .replace("model name='rig'", &format!("model name='rig{index}'"))
+                .replace("/m7/scan", &format!("/m54/scan{index}"))
+                .replace("rig/body/lidar", &format!("rig{index}/body/lidar"))
+                .replace(
+                    "<pose>0 0 1 0 0 0</pose>",
+                    &format!("<pose>0 {} 1 0 0 0</pose>", index * 30),
+                )
+        })
+        .collect::<String>();
+    format!("{}{}{}", &XML[..start], owners, &XML[end..])
+}
+
+#[test]
+fn late_invalid_original_owner_is_refused_before_any_closed_session_io() {
+    for case in 0..10 {
+        let (mut host, _, _) = server(&multiple_xml(8));
+        let first = host.lidars[0].entity;
+        let last = host.lidars[7].entity;
+        let first_name = host
+            .simulation
+            .world()
+            .get::<SceneName>(first)
+            .unwrap()
+            .0
+            .clone();
+        match case {
+            0 => {
+                host.simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .remove::<EntityId>();
+            }
+            1 => {
+                host.simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .insert(EntityKind::Link);
+            }
+            2 => host
+                .simulation
+                .world_mut()
+                .get_mut::<LidarPublication>(last)
+                .unwrap()
+                .frame_id
+                .clear(),
+            3 => {
+                host.simulation
+                    .world_mut()
+                    .get_mut::<LidarPublication>(last)
+                    .unwrap()
+                    .config
+                    .samples = 129
+            }
+            4 => {
+                host.simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .insert(SceneName("default::foreign::lidar".into()));
+            }
+            5 => {
+                host.simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .insert(SceneName(first_name));
+            }
+            6 => {
+                host.simulation
+                    .world_mut()
+                    .get_mut::<LidarPublication>(last)
+                    .unwrap()
+                    .frame_id = "valid/changed/frame".into()
+            }
+            7 => {
+                host.simulation
+                    .world_mut()
+                    .get_mut::<LidarPublication>(last)
+                    .unwrap()
+                    .topic = "/valid/changed/topic".into()
+            }
+            8 => {
+                let id = host
+                    .simulation
+                    .world_mut()
+                    .entity_mut(first)
+                    .take::<EntityId>()
+                    .unwrap();
+                host.simulation.world_mut().entity_mut(last).insert(id);
+            }
+            _ => {
+                host.simulation.world_mut().spawn((metadata(),));
+            }
+        }
+        let counts: Vec<_> = host
+            .lidars
+            .iter()
+            .map(|s| Arc::strong_count(&s.publisher))
+            .collect();
+        host.world_io.session.close().wait().unwrap();
+        assert!(
+            matches!(
+                streams(
+                    &host.simulation,
+                    &host.world_io,
+                    &host.network_config,
+                    &[],
+                    None
+                ),
+                Err(Error::LidarIdentity)
+            ),
+            "late owner case {case}"
+        );
+        assert_eq!(host.lidars.len(), 8);
+        assert_eq!(
+            host.lidars
+                .iter()
+                .map(|s| Arc::strong_count(&s.publisher))
+                .collect::<Vec<_>>(),
+            counts
+        );
+    }
+}
+
+#[test]
+fn all_normalized_occupied_and_prepared_keys_are_atomic_for_eight_owners() {
+    let (boundary, _, _) =
+        server(&multiple_xml(8).replace("<samples>3</samples>", "<samples>128</samples>"));
+    assert_eq!(
+        boundary
+            .lidars
+            .iter()
+            .map(|s| s.metadata.config.samples)
+            .sum::<usize>(),
+        1024
+    );
+    assert_eq!(prepare_reset(&boundary).unwrap().len(), 8);
+    drop(boundary);
+    for case in 0..6 {
+        let (host, _, _) = server(&multiple_xml(8));
+        let mut prepared = prepare_reset(&host).unwrap();
+        let first = host.lidars[0].endpoint.clone();
+        let last = host.lidars[7].endpoint.clone();
+        match case {
+            0 => {
+                let id = prepared[&first].2;
+                prepared.get_mut(&last).unwrap().2 = id;
+            }
+            1 => {
+                let name = prepared[&first].3.clone();
+                prepared.get_mut(&last).unwrap().3 = name;
+            }
+            2 => prepared.get_mut(&last).unwrap().0.frame_id = "changed/reset/frame".into(),
+            3 => {
+                prepared.remove(&last);
+            }
+            4 => {
+                let extra = prepared[&last].clone();
+                prepared.insert("extra/prepared/key".into(), extra);
+            }
+            _ => {
+                prepared.get_mut(&last).unwrap().0.topic = "/changed/reset/topic".into();
+            }
+        }
+        let counts: Vec<_> = host
+            .lidars
+            .iter()
+            .map(|s| Arc::strong_count(&s.publisher))
+            .collect();
+        host.world_io.session.close().wait().unwrap();
+        assert!(
+            matches!(
+                streams(
+                    &host.simulation,
+                    &host.world_io,
+                    &host.network_config,
+                    &[],
+                    Some(&prepared)
+                ),
+                Err(Error::ResetLidars)
+            ),
+            "prepared case {case}"
+        );
+        assert_eq!(
+            host.lidars
+                .iter()
+                .map(|s| Arc::strong_count(&s.publisher))
+                .collect::<Vec<_>>(),
+            counts
+        );
+    }
+    let (host, _, _) = server(&multiple_xml(8));
+    for destination in ["/m54/scan0", "/world/default/clock"] {
+        let mut options = host.network_config.clone();
+        options.add_topic_remap("/m54/scan7", destination).unwrap();
+        assert!(matches!(
+            streams(&host.simulation, &host.world_io, &options, &[], None),
+            Err(Error::LidarIdentity)
+        ));
+    }
+    let normalized = multiple_xml(8).replace("/m54/scan7", "/m54/sca@n0");
+    let simulation = load_world_with_sdf_step(
+        &normalized,
+        "normalized-lidars",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    host.world_io.session.close().wait().unwrap();
+    assert!(matches!(
+        streams(&simulation, &host.world_io, &host.network_config, &[], None),
+        Err(Error::LidarIdentity)
+    ));
+}
+
+#[test]
+fn prepared_original_identity_prefix_and_empty_manual_family_are_preserved() {
+    let (mut host, _, _) = server(&multiple_xml(2));
+    let prepared = prepare_reset(&host).unwrap();
+    assert_eq!(prepared.len(), 2);
+    let restored = streams(
+        &host.simulation,
+        &host.world_io,
+        &host.network_config,
+        &[],
+        Some(&prepared),
+    )
+    .unwrap();
+    for stream in &restored {
+        let original = &prepared[&stream.endpoint];
+        assert_eq!(original.0, stream.metadata);
+        assert!(Arc::ptr_eq(&original.1, &stream.publisher));
+        assert_eq!(
+            (original.2, original.3.as_str()),
+            (stream.identity, stream.scoped_name.as_str())
+        );
+    }
+    drop(restored);
+    drop(prepared);
+    for name in ["default::rig0", "default::rig1"] {
+        let id = host
+            .simulation
+            .world()
+            .iter_entities()
+            .find(|e| e.get::<SceneName>().is_some_and(|n| n.0 == name))
+            .unwrap()
+            .get::<EntityId>()
+            .unwrap()
+            .get();
+        remove_model(&mut host.simulation, id).unwrap();
+    }
+    host.retire_lidars();
+    assert!(host.lidars.is_empty() && host.lidars.capacity() == 0);
+    assert_eq!(prepare_reset(&host).unwrap().len(), 2);
+    assert!(
+        streams(
+            &host.simulation,
+            &host.world_io,
+            &host.network_config,
+            &[],
+            None
+        )
+        .unwrap()
+        .is_empty()
+    );
+    let empty = gz_sim_core::Simulation::new(Duration::from_millis(1)).unwrap();
+    assert!(
+        streams(&empty, &host.world_io, &host.network_config, &[], None)
+            .unwrap()
+            .is_empty()
+    );
+    let (absent, _, _) = server("<sdf version='1.12'><world name='default'/></sdf>");
+    assert!(prepare_reset(&absent).unwrap().is_empty());
+    host.simulation = empty;
+    assert!(matches!(
+        prepare_reset(&host),
+        Err(Error::Reset(
+            gz_sim_scene::SceneResetError::MissingInitialState
+        ))
+    ));
+}
+
+#[test]
+fn live_and_removed_original_imu_and_typed_peer_keys_remain_reserved() {
+    let (host, _, _) = server("<sdf version='1.12'><world name='default'/></sdf>");
+    host.world_io.session.close().wait().unwrap();
+    for sensor in [
+        "<sensor name='peer' type='imu'><topic>/m54/scan1</topic><imu/></sensor>",
+        "<sensor name='peer' type='air_pressure'><topic>/m54/scan1</topic><air_pressure/></sensor>",
+    ] {
+        let model = format!(
+            "<model name='peer'><pose>0 300 3 0 0 0</pose><link name='body'><collision name='shape'><geometry><box><size>.2 .2 .2</size></box></geometry></collision>{sensor}</link></model>"
+        );
+        let text = multiple_xml(2).replace("</world>", &format!("{model}</world>"));
+        let mut simulation = load_world_with_sdf_step(
+            &text,
+            "lidar-peer-reservations",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::Rapier,
+        )
+        .unwrap();
+        assert!(matches!(
+            streams(&simulation, &host.world_io, &host.network_config, &[], None),
+            Err(Error::LidarIdentity)
+        ));
+        let owner = simulation
+            .world()
+            .iter_entities()
+            .find(|e| e.get::<SceneName>().is_some_and(|n| n.0 == "default::peer"))
+            .unwrap()
+            .get::<EntityId>()
+            .unwrap()
+            .get();
+        remove_model(&mut simulation, owner).unwrap();
+        assert!(matches!(
+            streams(&simulation, &host.world_io, &host.network_config, &[], None),
+            Err(Error::LidarIdentity)
+        ));
+    }
+
+    // Exercise the constructor/reset boundary separately from direct streams:
+    // direct Lidar validation above still rejects every reserved peer as Lidar.
+    // The boundary selects the historical peer error without output lookup, even
+    // with a closed session and conflicts in both remapping directions.
+    fn models(text: &str) -> &str {
+        &text[text.find("<model ").unwrap()..text.rfind("</world>").unwrap()]
+    }
+    fn expect_peer(result: Result<(), Error>, family: LidarLegacyPeer) {
+        let correct = match family {
+            LidarLegacyPeer::DiffDrive => matches!(result, Err(Error::DiffDriveIdentity)),
+            LidarLegacyPeer::JointController => {
+                matches!(result, Err(Error::JointControllerIdentity))
+            }
+            LidarLegacyPeer::Altimeter => matches!(result, Err(Error::AltimeterIdentity)),
+            LidarLegacyPeer::AirPressure => matches!(result, Err(Error::AirPressureIdentity)),
+            LidarLegacyPeer::Magnetometer => matches!(result, Err(Error::MagnetometerIdentity)),
+            LidarLegacyPeer::JointState => matches!(result, Err(Error::JointStateIdentity)),
+        };
+        assert!(
+            correct,
+            "legacy peer collision must retain its exact typed error"
+        );
+    }
+    let sensors = "<model name='sensor_peer'><static>true</static><pose>0 300 3 0 0 0</pose><link name='body'><collision name='shape'><geometry><box><size>.2 .2 .2</size></box></geometry></collision><sensor name='imu' type='imu'><topic>/m54/peer_imu</topic><imu/></sensor><sensor name='altimeter' type='altimeter'><topic>/m54/peer_altimeter</topic><altimeter/></sensor><sensor name='air_pressure' type='air_pressure'><topic>/m54/peer_pressure</topic><air_pressure/></sensor><sensor name='magnetometer' type='magnetometer'><topic>/m54/peer_magnetometer</topic><magnetometer/></sensor></link></model>";
+    let joint_state = models(include_str!(
+        "../../../gz-sim-scene/tests/fixtures/m18_joint_state.sdf"
+    ))
+    .replace("model name=\"arm\"", "model name=\"state_arm\"");
+    let controllers = models(include_str!(
+        "../../../../examples/m9_joint_controllers.sdf"
+    ))
+    .replace("model name=\"ground\"", "model name=\"control_ground\"")
+    .replace("model name=\"arm\"", "model name=\"control_arm\"");
+    let drive = models(include_str!("../../../../examples/m8_diff_drive.sdf"))
+        .replace("model name=\"ground\"", "model name=\"drive_ground\"");
+    let xml = multiple_xml(2).replace(
+        "</world>",
+        &format!("{sensors}{joint_state}{controllers}{drive}</world>"),
+    );
+    let (mut host, _, _) = server(&xml);
+    let drive_topic = host
+        .simulation
+        .world()
+        .iter_entities()
+        .find_map(|e| {
+            e.get::<gz_sim_scene::DiffDriveConfiguration>()
+                .map(|m| m.topic.clone())
+        })
+        .unwrap();
+    let controller_topic = host
+        .simulation
+        .world()
+        .iter_entities()
+        .find_map(|e| {
+            e.get::<gz_sim_scene::JointControllerConfiguration>()
+                .map(|m| m.topic.clone())
+        })
+        .unwrap();
+    let peers = [
+        (LidarLegacyPeer::DiffDrive, drive_topic),
+        (LidarLegacyPeer::JointController, controller_topic),
+        (LidarLegacyPeer::Altimeter, "/m54/peer_altimeter".to_owned()),
+        (
+            LidarLegacyPeer::AirPressure,
+            "/m54/peer_pressure".to_owned(),
+        ),
+        (
+            LidarLegacyPeer::Magnetometer,
+            "/m54/peer_magnetometer".to_owned(),
+        ),
+        (LidarLegacyPeer::JointState, "/m18/joint_state".to_owned()),
+    ];
+    let original_options = host.network_config.clone();
+    let counts: Vec<_> = host
+        .lidars
+        .iter()
+        .map(|s| Arc::strong_count(&s.publisher))
+        .collect();
+    host.world_io.session.close().wait().unwrap();
+    for (family, topic) in &peers {
+        for reverse in [false, true] {
+            host.network_config = original_options.clone();
+            let (from, to) = if reverse {
+                (topic.as_str(), "/m54/scan1")
+            } else {
+                ("/m54/scan1", topic.as_str())
+            };
+            host.network_config.add_topic_remap(from, to).unwrap();
+            expect_peer(
+                validate_lidar_peer_topics(
+                    &host.simulation,
+                    &host.world_io,
+                    &host.network_config,
+                    None,
+                ),
+                *family,
+            );
+            expect_peer(
+                validate_lidar_peer_topics(
+                    &host.simulation,
+                    &host.world_io,
+                    &host.network_config,
+                    Some(&host),
+                ),
+                *family,
+            );
+            assert_eq!(
+                host.lidars
+                    .iter()
+                    .map(|s| Arc::strong_count(&s.publisher))
+                    .collect::<Vec<_>>(),
+                counts
+            );
+        }
+    }
+    // With simultaneous input/typed aliases constructor keeps drive-first order;
+    // reset keeps typed preparations before reconstructed drive/controller IO.
+    host.network_config = original_options.clone();
+    host.network_config
+        .add_topic_remap("/m54/scan0", &peers[0].1)
+        .unwrap();
+    host.network_config
+        .add_topic_remap("/m54/scan1", "/m54/peer_magnetometer")
+        .unwrap();
+    expect_peer(
+        validate_lidar_peer_topics(&host.simulation, &host.world_io, &host.network_config, None),
+        LidarLegacyPeer::DiffDrive,
+    );
+    expect_peer(
+        validate_lidar_peer_topics(
+            &host.simulation,
+            &host.world_io,
+            &host.network_config,
+            Some(&host),
+        ),
+        LidarLegacyPeer::Magnetometer,
+    );
+    // Never infer precedence by subtracting peer keys: a shared IMU role wins.
+    host.network_config = original_options.clone();
+    host.network_config
+        .add_topic_remap("/m54/scan1", "/m54/peer_magnetometer")
+        .unwrap();
+    host.network_config
+        .add_topic_remap("/m54/peer_imu", "/m54/peer_magnetometer")
+        .unwrap();
+    for reset in [None, Some(&host)] {
+        assert!(matches!(
+            validate_lidar_peer_topics(
+                &host.simulation,
+                &host.world_io,
+                &host.network_config,
+                reset
+            ),
+            Err(Error::LidarIdentity)
+        ));
+    }
+    // Own duplicate endpoints and malformed late metadata cannot be masked by a
+    // peer collision, and no failed validation may borrow an output lease.
+    host.network_config = original_options.clone();
+    host.network_config
+        .add_topic_remap("/m54/scan0", "/m54/peer_magnetometer")
+        .unwrap();
+    host.network_config
+        .add_topic_remap("/m54/scan1", "/m54/peer_magnetometer")
+        .unwrap();
+    for reset in [None, Some(&host)] {
+        assert!(matches!(
+            validate_lidar_peer_topics(
+                &host.simulation,
+                &host.world_io,
+                &host.network_config,
+                reset
+            ),
+            Err(Error::LidarIdentity)
+        ));
+    }
+    host.network_config = original_options.clone();
+    host.network_config
+        .add_topic_remap("/m54/scan1", "/m54/peer_magnetometer")
+        .unwrap();
+    let last = host.lidars[1].entity;
+    let saved = host
+        .simulation
+        .world()
+        .get::<LidarPublication>(last)
+        .unwrap()
+        .clone();
+    host.simulation
+        .world_mut()
+        .get_mut::<LidarPublication>(last)
+        .unwrap()
+        .frame_id
+        .clear();
+    assert!(matches!(
+        validate_lidar_peer_topics(&host.simulation, &host.world_io, &host.network_config, None),
+        Err(Error::LidarIdentity)
+    ));
+    host.simulation.world_mut().entity_mut(last).insert(saved);
+    // A reset descriptor mismatch also precedes the otherwise valid peer alias.
+    host.network_config = original_options.clone();
+    host.network_config
+        .add_topic_remap("/m54/peer_magnetometer", "/m54/scan1")
+        .unwrap();
+    host.lidars[1].scoped_name.push_str("_changed");
+    assert!(matches!(
+        validate_lidar_peer_topics(
+            &host.simulation,
+            &host.world_io,
+            &host.network_config,
+            Some(&host)
+        ),
+        Err(Error::ResetLidars)
+    ));
+    host.lidars[1].scoped_name = host
+        .simulation
+        .world()
+        .get::<SceneName>(last)
+        .unwrap()
+        .0
+        .clone();
+    // Removed originals remain occupied for loaded reset. With no current peer,
+    // constructor retains the direct Lidar refusal rather than inventing a live
+    // typed stream; reset still restores the original typed-family error.
+    host.network_config = original_options.clone();
+    let removed = host
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|e| {
+            e.get::<SceneName>()
+                .is_some_and(|n| n.0 == "default::sensor_peer")
+        })
+        .unwrap()
+        .get::<EntityId>()
+        .unwrap()
+        .get();
+    remove_model(&mut host.simulation, removed).unwrap();
+    for (family, topic) in &peers[2..5] {
+        host.network_config = original_options.clone();
+        host.network_config
+            .add_topic_remap("/m54/scan1", topic)
+            .unwrap();
+        assert!(matches!(
+            validate_lidar_peer_topics(
+                &host.simulation,
+                &host.world_io,
+                &host.network_config,
+                None
+            ),
+            Err(Error::LidarIdentity)
+        ));
+        expect_peer(
+            validate_lidar_peer_topics(
+                &host.simulation,
+                &host.world_io,
+                &host.network_config,
+                Some(&host),
+            ),
+            *family,
+        );
+    }
+    // Removing the Lidar owner does not donate its original restored endpoint.
+    host.network_config = original_options.clone();
+    let lidar_owner = host
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|e| e.get::<SceneName>().is_some_and(|n| n.0 == "default::rig1"))
+        .unwrap()
+        .get::<EntityId>()
+        .unwrap()
+        .get();
+    remove_model(&mut host.simulation, lidar_owner).unwrap();
+    host.network_config
+        .add_topic_remap("/m18/joint_state", "/m54/scan1")
+        .unwrap();
+    expect_peer(
+        validate_lidar_peer_topics(&host.simulation, &host.world_io, &host.network_config, None),
+        LidarLegacyPeer::JointState,
+    );
+    expect_peer(
+        validate_lidar_peer_topics(
+            &host.simulation,
+            &host.world_io,
+            &host.network_config,
+            Some(&host),
+        ),
+        LidarLegacyPeer::JointState,
+    );
+    assert_eq!(
+        host.lidars
+            .iter()
+            .map(|s| Arc::strong_count(&s.publisher))
+            .collect::<Vec<_>>(),
+        counts
+    );
+}

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Additional native-off execution proof; never replaces the full coverage profiles.
 
-Twenty-six copied example SDFs run once each through the retained actual CLI. These
+Twenty-eight copied example SDFs run once each through the retained actual CLI. These
 finite load/step controls are separate from Rust test counts and canonical wire
 or statistical/native-model evidence; clean installed runs remain separate.
 """
@@ -54,6 +54,7 @@ NOISY_EXAMPLES = (
     "examples/m51_multiple_air_speeds.sdf",
     "examples/m52_multiple_magnetometers.sdf",
     "examples/m53_multiple_logical_cameras.sdf",
+    "examples/m54_multiple_lidars.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -104,6 +105,11 @@ NOISY_LINKS = {
     "examples/m51_multiple_air_speeds.sdf": {"default::rig::body": (0, 0, 3)},
     "examples/m52_multiple_magnetometers.sdf": {"default::rig::body": (0, 0, 3)},
     "examples/m53_multiple_logical_cameras.sdf": {"default::rig::body": (0, 0, 3)},
+    "examples/m54_multiple_lidars.sdf": {
+        "default::left_scanner::body": (0, 2, 0),
+        "default::right_scanner::body": (0, -2, 0),
+        "default::wall::body": (5, 0, 0),
+    },
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
 TARGETS = {

@@ -323,6 +323,23 @@ pub fn initial_lidar_publications(
         .filter_map(|node| node.lidar_publication.as_ref()))
 }
 
+/// Initial lidar identities and metadata, including removed original sensors.
+/// The name retains its world scope; publication entity names omit that prefix.
+/// This borrows the immutable loader blueprint and performs no IO or mutation.
+pub fn initial_lidar_publications_with_identity(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = (u64, EntityKind, &str, &LidarPublication)>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.0.nodes.iter().filter_map(|node| {
+        node.lidar_publication
+            .as_ref()
+            .map(|metadata| (node.id.get(), node.kind, node.name.as_str(), metadata))
+    }))
+}
+
 /// Initial loaded altimeter metadata, including removed original entities.
 pub fn initial_altimeter_publications(
     sim: &Simulation,

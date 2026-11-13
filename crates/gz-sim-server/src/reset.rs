@@ -21,6 +21,12 @@ impl Server {
     pub(super) fn reset_scene(&mut self) -> Result<UpdateInfo, Error> {
         validate_air_speed_and_pose_topics(&self.simulation, &self.world_io, &self.network_config)?;
         validate_new_system_topics(&self.simulation, &self.world_io, &self.network_config)?;
+        validate_lidar_peer_topics(
+            &self.simulation,
+            &self.world_io,
+            &self.network_config,
+            Some(self),
+        )?;
         // Reserve missing endpoints before changing the scene. Live shared leases survive.
         let existing: BTreeMap<_, _> = self
             .imus

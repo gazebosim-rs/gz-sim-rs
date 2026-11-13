@@ -259,6 +259,26 @@ fn sensor_reserved_keys(
     io: &world_io::WorldIo,
     config: &ServerOptions,
 ) -> Result<BTreeSet<String>, Error> {
+    sensor_reserved_keys_with_lidars(simulation, io, config, true)
+}
+
+// Lidar admission must reserve every peer family without reserving itself.
+fn sensor_reserved_keys_with_lidars(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+    include_lidars: bool,
+) -> Result<BTreeSet<String>, Error> {
+    sensor_reserved_keys_with_peer_inputs(simulation, io, config, include_lidars, true)
+}
+
+fn sensor_reserved_keys_with_peer_inputs(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+    include_lidars: bool,
+    include_legacy_peer_inputs: bool,
+) -> Result<BTreeSet<String>, Error> {
     let mut keys = io.reserved_keys();
     keys.insert(config.topic_key("/clock")?);
     let imu = |keys: &mut BTreeSet<String>, metadata: &ImuPublication| -> Result<(), Error> {
@@ -292,16 +312,20 @@ fn sensor_reserved_keys(
         if let Some(metadata) = entity.get::<ImuPublication>() {
             imu(&mut keys, metadata)?;
         }
-        if let Some(metadata) = entity.get::<gz_sim_scene::LidarPublication>() {
+        if include_lidars && let Some(metadata) = entity.get::<gz_sim_scene::LidarPublication>() {
             keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
         }
-        if let Some(metadata) = entity.get::<gz_sim_scene::DiffDriveConfiguration>() {
+        if include_legacy_peer_inputs
+            && let Some(metadata) = entity.get::<gz_sim_scene::DiffDriveConfiguration>()
+        {
             drive(&mut keys, metadata)?;
         }
         if let Some(metadata) = entity.get::<gz_sim_scene::JointForceConfiguration>() {
             force(&mut keys, metadata)?;
         }
-        if let Some(metadata) = entity.get::<gz_sim_scene::JointControllerConfiguration>() {
+        if include_legacy_peer_inputs
+            && let Some(metadata) = entity.get::<gz_sim_scene::JointControllerConfiguration>()
+        {
             keys.insert(config.topic_key(&metadata.topic)?);
         }
     }
@@ -310,18 +334,25 @@ fn sensor_reserved_keys(
             for metadata in values {
                 imu(&mut keys, metadata)?;
             }
-            for metadata in gz_sim_scene::initial_lidar_publications(simulation)? {
-                keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+            if include_lidars {
+                for metadata in gz_sim_scene::initial_lidar_publications(simulation)? {
+                    keys.insert(config.topic_key(&options::as_valid_topic(&metadata.topic))?);
+                }
             }
-            for metadata in gz_sim_scene::initial_diff_drive_configurations(simulation)? {
-                drive(&mut keys, metadata)?;
+            if include_legacy_peer_inputs {
+                for metadata in gz_sim_scene::initial_diff_drive_configurations(simulation)? {
+                    drive(&mut keys, metadata)?;
+                }
             }
             for (_, metadata) in gz_sim_scene::initial_joint_force_configurations(simulation)? {
                 force(&mut keys, metadata)?;
             }
-            for (_, metadata) in gz_sim_scene::initial_joint_controller_configurations(simulation)?
-            {
-                keys.insert(config.topic_key(&metadata.topic)?);
+            if include_legacy_peer_inputs {
+                for (_, metadata) in
+                    gz_sim_scene::initial_joint_controller_configurations(simulation)?
+                {
+                    keys.insert(config.topic_key(&metadata.topic)?);
+                }
             }
         }
         Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
@@ -334,6 +365,7 @@ fn sensor_reserved_keys(
 // peers. A removed peer cannot donate a key that loaded reset will restore.
 #[derive(Clone, Copy, PartialEq)]
 enum PublicationFamily {
+    Lidar,
     Altimeter,
     AirPressure,
     AirSpeed,
@@ -418,6 +450,164 @@ fn new_system_roles(
     }
     Ok(roles)
 }
+fn lidar_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    typed_reserved_keys(simulation, io, config, PublicationFamily::Lidar)
+}
+
+// This is a separate role collection, never full-set subtraction: an IMU or
+// service sharing a peer key must retain its earlier Lidar/setup error.
+fn lidar_priority_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    sensor_reserved_keys_with_peer_inputs(simulation, io, config, false, false)
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum LidarLegacyPeer {
+    DiffDrive,
+    JointController,
+    Altimeter,
+    AirPressure,
+    Magnetometer,
+    JointState,
+}
+
+// Lidar gained all-family reservations without moving the legacy family that
+// reports an inter-family alias. Validate own identities first, then select the
+// old constructor/reset collision order, then validate the full reserved set.
+// Every operation here is pure; no output lookup, Arc clone or declaration.
+fn validate_lidar_peer_topics(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+    reset: Option<&Server>,
+) -> Result<(), Error> {
+    let lidar_keys = lidar::boundary_keys(simulation, config, io, reset, true)?;
+    if lidar_keys.is_empty() {
+        return Ok(());
+    }
+    let mut active = BTreeSet::new();
+    let mut roles: BTreeMap<LidarLegacyPeer, BTreeSet<String>> = BTreeMap::new();
+    let mut add = |family, raw: &str| -> Result<(), Error> {
+        roles
+            .entry(family)
+            .or_default()
+            .insert(config.topic_key(&options::as_valid_topic(raw))?);
+        Ok(())
+    };
+    for entity in simulation.world().iter_entities() {
+        if entity.contains::<gz_sim_scene::PendingResetRemoval>() {
+            continue;
+        }
+        if let Some(metadata) = entity.get::<gz_sim_scene::DiffDriveConfiguration>() {
+            active.insert(LidarLegacyPeer::DiffDrive);
+            add(LidarLegacyPeer::DiffDrive, &metadata.topic)?;
+            add(LidarLegacyPeer::DiffDrive, &metadata.odom_topic)?;
+        }
+        if let Some(metadata) = entity.get::<gz_sim_scene::JointControllerConfiguration>() {
+            active.insert(LidarLegacyPeer::JointController);
+            add(LidarLegacyPeer::JointController, &metadata.topic)?;
+        }
+        macro_rules! current {
+            ($family:ident, $metadata:ty) => {
+                if let Some(metadata) = entity.get::<$metadata>() {
+                    active.insert(LidarLegacyPeer::$family);
+                    add(LidarLegacyPeer::$family, &metadata.topic)?;
+                }
+            };
+        }
+        current!(Altimeter, gz_sim_scene::AltimeterPublication);
+        current!(AirPressure, gz_sim_scene::AirPressurePublication);
+        current!(Magnetometer, gz_sim_scene::MagnetometerPublication);
+        current!(JointState, gz_sim_scene::JointStatePublication);
+    }
+    macro_rules! initial {
+        ($family:ident, $getter:ident, $pattern:pat, $metadata:ident) => {
+            if reset.is_some() || active.contains(&LidarLegacyPeer::$family) {
+                match gz_sim_scene::$getter(simulation) {
+                    Ok(values) => {
+                        for $pattern in values {
+                            add(LidarLegacyPeer::$family, &$metadata.topic)?;
+                        }
+                    }
+                    Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+                    Err(error) => return Err(error.into()),
+                }
+            }
+        };
+    }
+    initial!(
+        Altimeter,
+        initial_altimeter_publications,
+        metadata,
+        metadata
+    );
+    initial!(
+        AirPressure,
+        initial_air_pressure_publications,
+        metadata,
+        metadata
+    );
+    initial!(
+        Magnetometer,
+        initial_magnetometer_publications,
+        metadata,
+        metadata
+    );
+    initial!(
+        JointState,
+        initial_joint_state_publications,
+        (_, metadata),
+        metadata
+    );
+    // Constructor drive/controller checks use current channels. Loaded reset
+    // restores their original roles after the typed publication preparations.
+    if reset.is_some() {
+        for metadata in diff_drive::initial(simulation)? {
+            add(LidarLegacyPeer::DiffDrive, &metadata.topic)?;
+            add(LidarLegacyPeer::DiffDrive, &metadata.odom_topic)?;
+        }
+        for metadata in joint_controllers::initial(simulation)?.values() {
+            add(LidarLegacyPeer::JointController, &metadata.topic)?;
+        }
+    }
+    let typed = [
+        LidarLegacyPeer::Altimeter,
+        LidarLegacyPeer::AirPressure,
+        LidarLegacyPeer::Magnetometer,
+        LidarLegacyPeer::JointState,
+    ];
+    let inputs = [LidarLegacyPeer::DiffDrive, LidarLegacyPeer::JointController];
+    let order: Vec<_> = if reset.is_some() {
+        typed.into_iter().chain(inputs).collect()
+    } else {
+        inputs.into_iter().chain(typed).collect()
+    };
+    for family in order {
+        if roles
+            .get(&family)
+            .is_some_and(|keys| !keys.is_disjoint(&lidar_keys))
+        {
+            return Err(match family {
+                LidarLegacyPeer::DiffDrive => Error::DiffDriveIdentity,
+                LidarLegacyPeer::JointController => Error::JointControllerIdentity,
+                LidarLegacyPeer::Altimeter => Error::AltimeterIdentity,
+                LidarLegacyPeer::AirPressure => Error::AirPressureIdentity,
+                LidarLegacyPeer::Magnetometer => Error::MagnetometerIdentity,
+                LidarLegacyPeer::JointState => Error::JointStateIdentity,
+            });
+        }
+    }
+    lidar::boundary_keys(simulation, config, io, reset, false)?;
+    Ok(())
+}
+
 fn new_system_reserved_keys(
     sim: &Simulation,
     io: &world_io::WorldIo,
@@ -474,7 +664,11 @@ fn typed_reserved_keys(
     config: &ServerOptions,
     own: PublicationFamily,
 ) -> Result<BTreeSet<String>, Error> {
-    let mut keys = sensor_reserved_keys(simulation, io, config)?;
+    let mut keys = if own == PublicationFamily::Lidar {
+        sensor_reserved_keys_with_lidars(simulation, io, config, false)?
+    } else {
+        sensor_reserved_keys(simulation, io, config)?
+    };
     for entity in simulation.world().iter_entities() {
         if entity.contains::<gz_sim_scene::PendingResetRemoval>() {
             continue;
@@ -1043,6 +1237,7 @@ impl Server {
         ])?);
         validate_air_speed_and_pose_topics(&simulation, &world_io, &config)?;
         validate_new_system_topics(&simulation, &world_io, &config)?;
+        validate_lidar_peer_topics(&simulation, &world_io, &config, None)?;
         let mut imus = Vec::new();
         let mut imu_publishers: BTreeMap<String, Weak<world_io::ImuOutput>> = BTreeMap::new();
         for entity in simulation.world().iter_entities() {

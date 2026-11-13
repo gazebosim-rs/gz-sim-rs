@@ -310,16 +310,81 @@ fn unsupported_sensor_domains_fail_admission_explicitly() {
             XML[start..end].replace("name=\"laser\"", "name=\"second\"")
         ),
     );
-    assert!(
-        load_world_with_engine(
-            &doubled,
-            "two.sdf",
-            "default",
-            Duration::from_millis(1),
-            &NoResources,
-            PhysicsEngine::Rapier
+    // Keep the exact formerly refused input: both sensors and both bodies are
+    // static, with the same topic/frame. IO uniqueness belongs to Server.
+    let mut dual = load_world_with_engine(
+        &doubled,
+        "two.sdf",
+        "default",
+        Duration::from_millis(1),
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let (first, first_id) = named(&dual, "default::scanner::body::laser");
+    let (second, second_id) = named(&dual, "default::scanner::body::second");
+    assert_ne!(first_id, second_id);
+    let counts = dual.scheduled_system_counts();
+    for entity in [first, second] {
+        let metadata = dual.world().get::<LidarPublication>(entity).unwrap();
+        assert_eq!(metadata.topic, "/scan");
+        assert_eq!(metadata.frame_id, "laser_frame");
+        assert_eq!(metadata.config.samples, 3);
+    }
+    set_lidar_interest(&mut dual, [first]);
+    dual.step_exact(1).unwrap();
+    assert!(dual.world().get::<LidarSample>(second).is_none());
+    set_lidar_interest(&mut dual, [first, second]);
+    dual.step_exact(9).unwrap();
+    let snapshot = |sim: &Simulation, entity| {
+        let scan = sim.world().get::<LidarSample>(entity).unwrap();
+        (
+            scan.time,
+            scan.epoch,
+            scan.world_pose.translation,
+            scan.world_pose.rotation,
+            scan.ranges.clone(),
         )
-        .is_err()
+    };
+    let reading = snapshot(&dual, first);
+    assert_eq!(reading, snapshot(&dual, second));
+    assert_eq!((reading.0, reading.1), (Duration::from_millis(10), 0));
+    assert_eq!(reading.2, [0.0; 3]);
+    assert_eq!(reading.3, [0.0, 0.0, 0.0, 1.0]);
+    for (actual, expected) in
+        reading
+            .4
+            .iter()
+            .zip([4.0 * 2.0_f64.sqrt(), 4.0, 4.0 * 2.0_f64.sqrt()])
+    {
+        assert!((actual - expected).abs() < 1e-10);
+    }
+    dual.set_paused(true);
+    dual.tick().unwrap();
+    assert_eq!(snapshot(&dual, first), reading);
+    assert_eq!(snapshot(&dual, second), reading);
+    dual.set_paused(false);
+    let scanner = named(&dual, "default::scanner").1;
+    remove_model(&mut dual, scanner).unwrap();
+    assert!(gz_sim_core::entity_by_id(dual.world(), first_id).is_none());
+    assert!(gz_sim_core::entity_by_id(dual.world(), second_id).is_none());
+    assert!(!dual.world().contains_resource::<Installed>());
+    assert!(!dual.world().contains_resource::<Interest>());
+    assert_eq!(dual.scheduled_system_counts(), (counts.0 - 1, counts.1 - 1));
+    assert_eq!(initial_lidar_publications(&dual).unwrap().count(), 2);
+    reset_loaded_world(&mut dual, |_| ()).unwrap();
+    assert_eq!(dual.scheduled_system_counts(), counts);
+    let restored =
+        [first_id, second_id].map(|id| gz_sim_core::entity_by_id(dual.world(), id).unwrap());
+    assert_ne!(restored[0], first);
+    assert_ne!(restored[1], second);
+    dual.step_exact(1).unwrap();
+    let after = snapshot(&dual, restored[0]);
+    assert_eq!(after, snapshot(&dual, restored[1]));
+    assert_eq!((after.0, after.1), (Duration::from_millis(1), 1));
+    assert_eq!(
+        (after.2, after.3, &after.4),
+        (reading.2, reading.3, &reading.4)
     );
     assert!(
         load_world_with_engine(
@@ -376,5 +441,83 @@ fn moving_offset_sensor_uses_committed_pose_and_continuous_range_clipping() {
             .ranges
             .iter()
             .all(|distance| *distance == f64::INFINITY)
+    );
+}
+
+#[test]
+fn multiple_owner_fault_remains_global_terminal_without_partial_or_stale_bad_scan() {
+    let start = XML.find("<sensor name").unwrap();
+    let end = start + XML[start..].find("</sensor>").unwrap() + "</sensor>".len();
+    let doubled = XML.replace(
+        &XML[start..end],
+        &format!(
+            "{}{}",
+            &XML[start..end],
+            XML[start..end].replace("name=\"laser\"", "name=\"second\"")
+        ),
+    );
+    let mut sim = load(&doubled);
+    let (invalid, _) = named(&sim, "default::scanner::body::laser");
+    let (peer, _) = named(&sim, "default::scanner::body::second");
+    sim.step_exact(1).unwrap();
+    assert_eq!(
+        sim.world()
+            .get::<LidarSample>(invalid)
+            .unwrap()
+            .ranges
+            .len(),
+        3
+    );
+    assert_eq!(
+        sim.world().get::<LidarSample>(peer).unwrap().ranges.len(),
+        3
+    );
+    // Private fault injection changes no production admission or recovery API.
+    sim.world_mut().get_mut::<Lidar>(invalid).unwrap().link = u64::MAX;
+    assert!(sim.step_exact(9).is_err());
+    assert!(sim.is_faulted());
+    assert!(
+        sim.fault()
+            .unwrap()
+            .to_string()
+            .contains("missing lidar link")
+    );
+    assert!(sim.world().get::<LidarSample>(invalid).is_none());
+    let scan = sim.world().get::<LidarSample>(peer).unwrap();
+    assert_eq!(scan.ranges.len(), 3);
+    assert!(scan.ranges.iter().all(|range| range.is_finite()));
+    // Query order does not promise whether the peer acquired before the fault.
+    // Either retained complete scan is frozen once the whole Scene is terminal.
+    let peer_reading = (
+        scan.time,
+        scan.epoch,
+        scan.world_pose.translation,
+        scan.world_pose.rotation,
+        scan.ranges.clone(),
+    );
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert!(matches!(
+        sim.step_exact(1),
+        Err(gz_sim_core::StepError::Faulted)
+    ));
+    assert!(matches!(
+        reset_loaded_world(&mut sim, |_| ()),
+        Err(SceneResetError::Clock(gz_sim_core::StepError::Faulted))
+    ));
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+    assert!(sim.world().get::<LidarSample>(invalid).is_none());
+    let scan = sim.world().get::<LidarSample>(peer).unwrap();
+    assert_eq!(
+        (
+            scan.time,
+            scan.epoch,
+            scan.world_pose.translation,
+            scan.world_pose.rotation,
+            scan.ranges.clone()
+        ),
+        peer_reading
     );
 }

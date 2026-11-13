@@ -180,9 +180,11 @@ pub(super) fn spawn(
         "non-IMU sensors",
     )?;
     require(
-        !sim.world()
+        sim.world()
             .iter_entities()
-            .any(|entity| entity.contains::<Lidar>()),
+            .filter(|entity| entity.contains::<Lidar>())
+            .count()
+            < 8,
         &name,
         "multiple CPU lidars",
     )?;
@@ -416,3 +418,7 @@ fn reset(mut sensors: Query<(Entity, &mut Lidar)>, mut commands: Commands) {
 #[cfg(test)]
 #[path = "../tests/private/lidar.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_lidars_native.rs"]
+mod multiple_lidars_native_tests;

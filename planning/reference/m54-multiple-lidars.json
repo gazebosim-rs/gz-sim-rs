@@ -1,0 +1,1083 @@
+{
+  "schema_version": 1,
+  "state": "ACTUAL_M54_SCOPED_COMPONENT_AND_LITERAL_PROVENANCE",
+  "source_program": {
+    "path": "crates/gz-sim-scene/tests/native_multiple_lidars.cc",
+    "sha256": "1fc4ebd69559d95a311fcb6906e184f0a4c5bfdcb30b47eb0f2ed02548858d5b"
+  },
+  "capture": {
+    "tree": "a3a930f378abb33aa7ea9eebaf0d0ab3807771cb",
+    "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+    "runtime_parent": "9bf3ada4675022b45e39d5f089e1bb3aaeaa2c04",
+    "runtime_parent_accepted": false,
+    "actual_exit_code": 0,
+    "elapsed_seconds": 17.974367019021884,
+    "mode_count": 2,
+    "canonical_packets": 30,
+    "configuration_count": 10,
+    "direct_update_calls": 30,
+    "finite_range_elements": 1719,
+    "generated_ray_count": 1032,
+    "input_rows": 30,
+    "observed_scans": 30,
+    "positive_infinite_range_elements": 1377,
+    "range_elements": 3096,
+    "ray_result_elements": 3096,
+    "original_DSO_rebuilt": false,
+    "old_native_modes_replayed": false,
+    "native_physics_executed": false,
+    "original_system_executed": false,
+    "native_schedule_or_demand_equivalence_claimed": false,
+    "native_lifecycle_equivalence_claimed": false,
+    "global_rng_equivalence_claimed": false,
+    "pointcloud_subscribers_created": false,
+    "actual_Root_exit_code": 0,
+    "wrapper_elapsed_seconds": 18.05848283902742,
+    "actual_child_stages": 25,
+    "mapped_library_count": 51,
+    "standalone_Header_byte_copies": 30,
+    "standalone_Header_copies_are_extra_transport_messages": false
+  },
+  "commands": [
+    {
+      "name": "head-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/head-before.stdout",
+        "bytes": 41,
+        "sha256": "a6b29c43d4da204f48a26afdd7c12656cf011ddcdf310d5aa4e97892b4d981c4"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/head-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10910297208465636
+    },
+    {
+      "name": "index-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--cached",
+        "a3a930f378abb33aa7ea9eebaf0d0ab3807771cb",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/index-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/index-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10799744096584618
+    },
+    {
+      "name": "worktree-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/worktree-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/worktree-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10822849301621318
+    },
+    {
+      "name": "untracked-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/untracked-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/untracked-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10785199794918299
+    },
+    {
+      "name": "compiler",
+      "argv": [
+        "/usr/bin/clang++",
+        "--version"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/compiler.stdout",
+        "bytes": 110,
+        "sha256": "3635b8631d4ebcd8ed7586f4e01e7a6b44407de9d38db6e01daca9c242ed7a53"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/compiler.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10704893409274518
+    },
+    {
+      "name": "upstream-revision-gz-sensors",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sensors",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-revision-gz-sensors.stdout",
+        "bytes": 41,
+        "sha256": "99ff6e96f8483120d439c0d7feb20d5160908f6e3884e39c2f0dee2c044bd824"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-revision-gz-sensors.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1072102258913219
+    },
+    {
+      "name": "upstream-gz-sensors-0",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sensors",
+        "show",
+        "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f:src/CpuLidarSensor.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-sensors-0.stdout",
+        "bytes": 14687,
+        "sha256": "1c839efc4e5c3650eb41dd32f3f62bbe9b9b0c640fd70712e018c9c5251587a9"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-sensors-0.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10716410889290273
+    },
+    {
+      "name": "upstream-gz-sensors-1",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sensors",
+        "show",
+        "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f:include/gz/sensors/CpuLidarSensor.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-sensors-1.stdout",
+        "bytes": 4205,
+        "sha256": "3e53bdfac804e9367902f6d9e388aab088d29b0d0eb00edc70da360732004eed"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-sensors-1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10787705495022237
+    },
+    {
+      "name": "upstream-gz-sensors-2",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sensors",
+        "show",
+        "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f:include/gz/sensors/SensorFactory.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-sensors-2.stdout",
+        "bytes": 4904,
+        "sha256": "624e5a4e296bef7d7c8b7558e99dd54b2f3ee3968855b6e4a2f8619ef851af8b"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-sensors-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10796623211354017
+    },
+    {
+      "name": "upstream-gz-sensors-3",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sensors",
+        "show",
+        "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f:src/Sensor.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-sensors-3.stdout",
+        "bytes": 20042,
+        "sha256": "5fb2ea0aaa27b960c463c82de3074ad0bb221341454fb999946eca9f5afff2a2"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-sensors-3.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10802325885742903
+    },
+    {
+      "name": "upstream-gz-sensors-4",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sensors",
+        "show",
+        "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f:include/gz/sensors/Sensor.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-sensors-4.stdout",
+        "bytes": 10475,
+        "sha256": "5938859b63479e6bd872f5df6bc48070c9a733fa3f7a240da7bfa3adbde3156b"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-sensors-4.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10808233893476427
+    },
+    {
+      "name": "upstream-revision-gz-math",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-math",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-revision-gz-math.stdout",
+        "bytes": 41,
+        "sha256": "69534b59eaccc85646eb0bc47542c7eec321da38345cc1a37eba962af0cc3393"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-revision-gz-math.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10723109496757388
+    },
+    {
+      "name": "upstream-gz-math-0",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-math",
+        "show",
+        "1316ed334f4d5bda7be59aae07cd6e8ff31cfe13:include/gz/math/Pose3.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-math-0.stdout",
+        "bytes": 15837,
+        "sha256": "6bfc53f0bd22a3e1596bbdb07c24bacdac9e17bd8178b9373d8df1b01e4fc6f6"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-math-0.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1073559292126447
+    },
+    {
+      "name": "upstream-gz-math-1",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-math",
+        "show",
+        "1316ed334f4d5bda7be59aae07cd6e8ff31cfe13:include/gz/math/Quaternion.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-math-1.stdout",
+        "bytes": 34976,
+        "sha256": "9170601444da93735b4d14b369cc4266fafc7655657a6af7613e31206382b873"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-math-1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10740650398656726
+    },
+    {
+      "name": "upstream-gz-math-2",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-math",
+        "show",
+        "1316ed334f4d5bda7be59aae07cd6e8ff31cfe13:include/gz/math/Vector3.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-math-2.stdout",
+        "bytes": 23942,
+        "sha256": "b4e8d01584139efba180bf530c95e18101aee4fb070aa93b8ddfe7cc38282a38"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/upstream-gz-math-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10756351705640554
+    },
+    {
+      "name": "pkg-config",
+      "argv": [
+        "/usr/bin/pkg-config",
+        "--cflags",
+        "--libs",
+        "gz-sensors-cpu_lidar"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/pkg-config.stdout",
+        "bytes": 994,
+        "sha256": "43f81026c0a8606a79cad8b7ea3c75036150c00fb1420780ebb43ff557859894"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/pkg-config.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10755422106012702
+    },
+    {
+      "name": "prefix-cpu-lidar",
+      "argv": [
+        "/usr/bin/pkg-config",
+        "--variable=prefix",
+        "gz-sensors-cpu_lidar"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/prefix-cpu-lidar.stdout",
+        "bytes": 41,
+        "sha256": "4994cf4971e573b0aa5375802705b117d2a818552aa788cf4c4044b3660d96f2"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/prefix-cpu-lidar.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10820561111904681
+    },
+    {
+      "name": "package-versions",
+      "argv": [
+        "/usr/bin/pkg-config",
+        "--modversion",
+        "gz-sensors-cpu_lidar",
+        "gz-sensors",
+        "gz-math",
+        "gz-msgs",
+        "gz-transport",
+        "sdformat"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/package-versions.stdout",
+        "bytes": 42,
+        "sha256": "696e4d11ce229bd19dffbf827cc9a2d515cbd1d24432a9a1723e3babe381fdd1"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/package-versions.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10829949588514864
+    },
+    {
+      "name": "helper-compile",
+      "argv": [
+        "/usr/bin/clang++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference/crates/gz-sim-scene/tests/native_multiple_lidars.cc",
+        "-o",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/native-multiple-lidars",
+        "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/sensors11",
+        "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/cmake6",
+        "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/math10",
+        "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/utils5",
+        "-I/usr/include/eigen3",
+        "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/common8",
+        "-I/usr/include/uuid",
+        "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/transport16",
+        "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/msgs13",
+        "-isystem",
+        "/usr/include/mit-krb5",
+        "-I/usr/include/pgm-5.3",
+        "-I/usr/include/libxml2",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/rendering11",
+        "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/plugin5",
+        "-I/home/nkoenig/local/lib/pkgconfig/../../include/gz/sdformat17",
+        "-std=c++17",
+        "-L/home/nkoenig/local/lib/pkgconfig/../../lib",
+        "-lgz-sensors-cpu_lidar",
+        "-lgz-sensors",
+        "-lgz-transport",
+        "-lgz-rendering",
+        "-lgz-common",
+        "-luuid",
+        "-lgz-plugin",
+        "-lGL",
+        "-lgz-msgs",
+        "-lprotobuf",
+        "-lsdformat",
+        "-ltinyxml2",
+        "-lgz-math",
+        "-lgz-utils",
+        "-Wl,-rpath,/home/nkoenig/local/lib:/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib",
+        "-Wl,-rpath-link,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/helper-compile.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/helper-compile.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 8.459994436940178
+    },
+    {
+      "name": "multiple-lidars-pair",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/native-multiple-lidars",
+        "pair",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/multiple-lidars-pair.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/multiple-lidars-pair.stdout",
+        "bytes": 22937,
+        "sha256": "7eaccb25f8cfaaa7f6b9779f7b598ba4fc93d0ca2c7c9d49a6ddc86ba47ec4c1"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/multiple-lidars-pair.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 2.1203714930452406
+    },
+    {
+      "name": "multiple-lidars-eight",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/native-multiple-lidars",
+        "eight",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/multiple-lidars-eight.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/multiple-lidars-eight.stdout",
+        "bytes": 1351011,
+        "sha256": "3467568db27e56d45ad81bee904e957fb4e1c4574bcf2ddcf34c6dc264625d66"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/multiple-lidars-eight.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 2.122482357081026
+    },
+    {
+      "name": "head-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/head-after.stdout",
+        "bytes": 41,
+        "sha256": "a6b29c43d4da204f48a26afdd7c12656cf011ddcdf310d5aa4e97892b4d981c4"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/head-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1131544488016516
+    },
+    {
+      "name": "index-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--cached",
+        "a3a930f378abb33aa7ea9eebaf0d0ab3807771cb",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/index-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/index-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10843334696255624
+    },
+    {
+      "name": "worktree-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/worktree-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/worktree-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10818668501451612
+    },
+    {
+      "name": "untracked-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m54-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/untracked-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/untracked-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10837957612238824
+    }
+  ],
+  "evidence": {
+    "native-reference-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-reference-bound.py",
+      "sha256": "0b7cb994f2426dd4555d6b4eddf5c9ae7dd80a9964eddd44e6897e9f6fbb0fd2",
+      "bytes": 55222
+    },
+    "native-reference-plan.md": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-reference-plan.md",
+      "sha256": "8071cb62d8fa78fc5833d95fd69cec84fedebad2608fb818c4bb3f9407f0fe25",
+      "bytes": 7623
+    },
+    "native-multiple-lidars-88otvwow/result.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/result.json",
+      "sha256": "f983520536276bb13f41471ad321c1763ed010daac8486ce63c57b1ec0f30d6e",
+      "bytes": 498349
+    },
+    "native-reference-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-reference-actual-exit.json",
+      "sha256": "f329fb8f29c56a8d6bd5a75ad775104995120c82e1733db7e9802dc9989e42a3",
+      "bytes": 1711
+    },
+    "native-reference-execution.log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-reference-execution.log",
+      "sha256": "a0f82510bf0f9b66905388efa1c698173d2e8aa38c6514214c04bab3789333f4",
+      "bytes": 133
+    },
+    "native-audit-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-audit-bound.py",
+      "sha256": "45ef3c9fad4c913fa1ee5ad79f7b65f5de2d1fd9aaef7be195cef0cc30039cbd",
+      "bytes": 62733
+    },
+    "native-audit-plan.md": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-audit-plan.md",
+      "sha256": "8645bf5172efcdf5dd874a11ceaa7444f48968b3cce028f765cf041e08ff0d5b",
+      "bytes": 4374
+    },
+    "native-audit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-audit.json",
+      "sha256": "2e3fc58ea336ba1c14006f86b172158c802e16b0815fbc027318155ea29c7f0d",
+      "bytes": 456675
+    },
+    "native-audit-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-audit-actual-exit.json",
+      "sha256": "19ee7fb7958331ea66fc5b107524fc205f072c78e838966f90cca014dc5bee78",
+      "bytes": 1602
+    },
+    "native-audit-execution.log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-audit-execution.log",
+      "sha256": "60202f4928eefe9bdb6a4408f7d2beaec63e4ff874cc06786035355de4a1888a",
+      "bytes": 243
+    },
+    "generate-native-multiple-lidars-fixture-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/generate-native-multiple-lidars-fixture-bound.py",
+      "sha256": "8a2c7befa28ef3ddcad4f493f0945e479bc9719467ebc880ccce32177dbb482d",
+      "bytes": 34839
+    },
+    "generate-native-multiple-lidars-fixture-reviewed-plan.md": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/generate-native-multiple-lidars-fixture-reviewed-plan.md",
+      "sha256": "d1a3ca1918ea8591a056e35dd2894ff07320d5f6f10bee5569a1f4af7486159d",
+      "bytes": 7073
+    },
+    "native-fixture-generation-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-fixture-generation-actual-exit.json",
+      "sha256": "85d847ca5694c5c22cb321b418e7dac688979f61f0f1fb7459bdb02715b7d535",
+      "bytes": 1447
+    },
+    "native-fixture-generator-execution.log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-fixture-generator-execution.log",
+      "sha256": "b1dc1d8f0813248bb3747889a53dfd1a44a2f73ad13661d62db6b5dae8102a0f",
+      "bytes": 699
+    },
+    "native-borrowed-fixture-audit-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-borrowed-fixture-audit-bound.py",
+      "sha256": "70aa0cce61baa88355d068165f8a23614b04940f2d99326af346007e1fc791d5",
+      "bytes": 43515
+    },
+    "native-borrowed-fixture-audit-plan-reviewed.md": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-borrowed-fixture-audit-plan-reviewed.md",
+      "sha256": "ff379a93cd0c6dc2d363c0bb192870ed5eb08621d1642afdafa65a556c92c3f1",
+      "bytes": 8174
+    },
+    "native-borrowed-fixture-audit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-borrowed-fixture-audit.json",
+      "sha256": "3a6bab986daf2f8150c892499cc07a8efd03dffa7adb6256e885c8c1081dccb6",
+      "bytes": 28872
+    },
+    "native-borrowed-fixture-audit-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-borrowed-fixture-audit-actual-exit.json",
+      "sha256": "c900cb077b08c89ee0cfd2a9051e68ca112d05932ee38889d34b0eb81259605a",
+      "bytes": 1928
+    },
+    "native-literal-audit-execution.log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-literal-audit-execution.log",
+      "sha256": "46ed596cce1367657442ed20193f141f665331dc5f74c72a2bc970ca8055c23c",
+      "bytes": 433
+    },
+    "cpu-lidar-component-input-supplement.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/cpu-lidar-component-input-supplement.json",
+      "sha256": "38bb73d7ce43d138cf8752c1004843c55d319fb709a7669273eec98cf36b326c",
+      "bytes": 10497
+    },
+    "native-provider-input-contract-current.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-provider-input-contract-current.json",
+      "sha256": "e505fd1c72eb2b5c821237209d6fbd7f9d3aac5d1570fb5d77200db156a90e80",
+      "bytes": 18611
+    },
+    "capture-source-state.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/capture-source-state.json",
+      "sha256": "b5383858da4cb0686c1351f6291cc01b40165cd525a181b424eeb2060feb2a80",
+      "bytes": 976
+    }
+  },
+  "native_DATA_state": "INDEPENDENT_M54_MULTIPLE_LIDARS_NATIVE_DATA_CLEAR",
+  "literal_DATA_state": "INDEPENDENT_M54_NATIVE_LITERAL_FIXTURE_DATA_CLEAR",
+  "counts": {
+    "canonical_packets": 30,
+    "configuration_count": 10,
+    "direct_update_calls": 30,
+    "finite_range_elements": 1719,
+    "generated_ray_count": 1032,
+    "input_rows": 30,
+    "observed_scans": 30,
+    "positive_infinite_range_elements": 1377,
+    "range_elements": 3096,
+    "ray_result_elements": 3096
+  },
+  "fixture": {
+    "path": "crates/gz-sim-scene/tests/fixtures/m54_native_multiple_lidars.rs",
+    "sha256": "9c5ca1bfea71a7a552872397ff345b0c3563ff2a40624714295e4947d51d879b",
+    "bytes": 1559877
+  },
+  "fixture_provenance": {
+    "path": "crates/gz-sim-scene/tests/fixtures/m54_native_multiple_lidars.provenance.json",
+    "sha256": "780505a9119775e8597e1a48d91a14a124accedb93635dde10935d0919496f43",
+    "bytes": 439887
+  },
+  "input_bindings": {
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json": {
+      "bytes": 9664,
+      "mode": "0o664",
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/cpu-lidar-component-input-supplement.json": {
+      "bytes": 10497,
+      "mode": "0o664",
+      "sha256": "38bb73d7ce43d138cf8752c1004843c55d319fb709a7669273eec98cf36b326c"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/generate-native-multiple-lidars-fixture-bound.py": {
+      "bytes": 34839,
+      "mode": "0o664",
+      "sha256": "8a2c7befa28ef3ddcad4f493f0945e479bc9719467ebc880ccce32177dbb482d"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-audit-actual-exit.json": {
+      "bytes": 1602,
+      "mode": "0o664",
+      "sha256": "19ee7fb7958331ea66fc5b107524fc205f072c78e838966f90cca014dc5bee78"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-audit-bound.py": {
+      "bytes": 62733,
+      "mode": "0o664",
+      "sha256": "45ef3c9fad4c913fa1ee5ad79f7b65f5de2d1fd9aaef7be195cef0cc30039cbd"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-audit-execution.log": {
+      "bytes": 243,
+      "mode": "0o664",
+      "sha256": "60202f4928eefe9bdb6a4408f7d2beaec63e4ff874cc06786035355de4a1888a"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-audit.json": {
+      "bytes": 456675,
+      "mode": "0o664",
+      "sha256": "2e3fc58ea336ba1c14006f86b172158c802e16b0815fbc027318155ea29c7f0d"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/multiple-lidars-eight.stdout": {
+      "bytes": 1351011,
+      "mode": "0o664",
+      "sha256": "3467568db27e56d45ad81bee904e957fb4e1c4574bcf2ddcf34c6dc264625d66"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/multiple-lidars-pair.stdout": {
+      "bytes": 22937,
+      "mode": "0o664",
+      "sha256": "7eaccb25f8cfaaa7f6b9779f7b598ba4fc93d0ca2c7c9d49a6ddc86ba47ec4c1"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/result.json": {
+      "bytes": 498349,
+      "mode": "0o664",
+      "sha256": "f983520536276bb13f41471ad321c1763ed010daac8486ce63c57b1ec0f30d6e"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-provider-input-contract-current.json": {
+      "bytes": 18611,
+      "mode": "0o664",
+      "sha256": "e505fd1c72eb2b5c821237209d6fbd7f9d3aac5d1570fb5d77200db156a90e80"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-reference-actual-exit.json": {
+      "bytes": 1711,
+      "mode": "0o664",
+      "sha256": "f329fb8f29c56a8d6bd5a75ad775104995120c82e1733db7e9802dc9989e42a3"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-reference-bound.py": {
+      "bytes": 55222,
+      "mode": "0o664",
+      "sha256": "0b7cb994f2426dd4555d6b4eddf5c9ae7dd80a9964eddd44e6897e9f6fbb0fd2"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-reference-execution.log": {
+      "bytes": 133,
+      "mode": "0o664",
+      "sha256": "a0f82510bf0f9b66905388efa1c698173d2e8aa38c6514214c04bab3789333f4"
+    }
+  },
+  "input_domain": "DIRECT_SENSOR_FACTORY_POSE_AND_RAY_RESULTS",
+  "console_artifacts": {
+    "pair": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/multiple-lidars-pair.maps.console.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "eight": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-multiple-lidars-88otvwow/multiple-lidars-eight.maps.console.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "sdk": {
+    "sdk_nodes": 349,
+    "sdk_runtime_closure_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m47-delivery/native-sdk-current-dependency-closure.json",
+    "sdk_runtime_closure_sha256": "511ead617c78a01e772249ddbbfa1d995296a08469bedd1742d5453a2b6e9a44",
+    "historical_sdk_closure_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m13-m14-delivery/native-altimeter-current-dependency-closure.json",
+    "historical_sdk_closure_sha256": "370f49a779cbcb32bda7a46698ef2b82b6a13764c898287e0178524e66d7a4fb",
+    "sdk_drift_inventory_sha256": "a484797d83640f13bf17d162b916e4e38636a7cca273fb551bb12f5b5e3ce8eb",
+    "sdk_package_provenance_sha256": "bf5cf8486028b4315f7b7cfa5c387b6d8bcf6137d39f7bc6947a1dcecda656b3",
+    "sdk_changed_node": "/usr/lib/x86_64-linux-gnu/libmysqlclient.so.21.2.46",
+    "sdk_unchanged_nodes": 348
+  },
+  "retained_M23_M24_actual_zero_component": {
+    "actual_root_exit_basis": "Root supplied actual process zero plus retained result/log/source; no controller wait receipt is invented.",
+    "actual_root_exit_code_in_native_DATA": 0,
+    "independent_raw_wait_receipt_available": false,
+    "native_DATA": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m23-m24-delivery/native-audit.json",
+      "sha256": "5853f74cc40a6b636ae3efdc300e9ca169bd0bcb010db17a32e3fe409489a809"
+    },
+    "native_DATA_Source": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m23-m24-delivery/native-audit.py",
+      "sha256": "f504d59190c7a3d1a7ba3c952ab2fdef1f1b3d45e81c043a781f20bbbe6e4b68"
+    },
+    "old_observations_reused_as_M54_data": false,
+    "producer_Source": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m23-m24-delivery/native-reference.py",
+      "sha256": "61577be9661d011521b72a846083c2242a8dd13e2a194c0d77f975522a4c51ef"
+    },
+    "recorded_controller_exit_code": 0,
+    "recorded_result_state": "NATIVE_MAGNETOMETER_CPU_LIDAR_NOISE_COMPLETED_PENDING_INDEPENDENT_DATA",
+    "recorded_stage_count": 38,
+    "reference_kind": "SensorFactory component GenerateRays/SetRaycastResults/Ranges; historical wire timestamps not observed.",
+    "result": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m23-m24-delivery/native-magnetometer-cpu-lidar-noise-beodlc_3/result.json",
+      "sha256": "5178c77751f2b8bbba6cd49ff19f0baff5c38d0097eba1a2ca01f53623c2fd29"
+    }
+  },
+  "cpu_lidar_component_input": {
+    "source": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/cpu-lidar-component-input-supplement.json",
+    "source_sha256": "38bb73d7ce43d138cf8752c1004843c55d319fb709a7669273eec98cf36b326c",
+    "separate_exact_node_count": 1,
+    "before_and_after_equal": true,
+    "component": {
+      "path": "/home/nkoenig/local/lib/libgz-sensors-cpu_lidar.so.11.0.0~pre2",
+      "sha256": "2947b2d4007f36eb0d2dfabc36233710587ddac416460fa1a90d37935549933a",
+      "bytes": 1375024
+    },
+    "diagnostic_is_runtime_loader_proof": false,
+    "Source_to_binary_equivalence_proved": false,
+    "full_snapshot": {
+      "report": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-audit.json",
+        "sha256": "2e3fc58ea336ba1c14006f86b172158c802e16b0815fbc027318155ea29c7f0d",
+        "bytes": 456675
+      },
+      "field": "cpu_lidar_component_input"
+    },
+    "diagnostic": {
+      "actual_exit": {
+        "bytes": 1095,
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/cpu-lidar-component-input-actual-exit.json",
+        "sha256": "56049b206efc3a4af3ea17ff3e8a3e967378e63d084c94d3635c23200f957dc3"
+      },
+      "method": {
+        "bytes": 26069,
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/inspect-cpu-lidar-component.py",
+        "sha256": "05b7ee7b0b85ed72ad0c707028bc6d6c9549fc87766b59683b2f3d525f9b3677"
+      },
+      "plan": {
+        "bytes": 8331,
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-provider-input-contract-draft.json",
+        "sha256": "c300f665892778cd736f2af73e13dc62ed19c946057c6558a80c58e513254343"
+      },
+      "primary_log": {
+        "bytes": 236,
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/cpu-lidar-component-input-execution.log",
+        "sha256": "bba258e2c5c60b2ba08d96f56b1e32c053daeb557904bd48c49e8577cfc24c88"
+      },
+      "result": {
+        "bytes": 35445,
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/cpu-lidar-component-input-9trgx872/result.json",
+        "sha256": "12e3b83ec60dc7f020efcdb5603624e48df3bc664909d71b736d0ecd1d3a2ea3"
+      }
+    }
+  },
+  "supplemental_link_providers": {
+    "source": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json",
+    "source_sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce",
+    "current349_unchanged": true,
+    "separate_exact_node_count": 2,
+    "before_and_after_equal": true,
+    "full_snapshot": {
+      "report": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m54-delivery/native-audit.json",
+        "sha256": "2e3fc58ea336ba1c14006f86b172158c802e16b0815fbc027318155ea29c7f0d",
+        "bytes": 456675
+      },
+      "field": "supplemental_link_providers"
+    }
+  },
+  "limits": [
+    "All 25 actual child commands are recorded once; provider snapshots and all 51 mapped identities remain in the SHA-bound native report/result instead of duplicated lists here.",
+    "Ten configurations / 1,032 generated LOCAL rays, 30 explicit component pose/RayResult inputs and 30 actual scans contain 3,096 ranges: 1,719 finite and 1,377 positive-infinite present misses. Thirty standalone Header copies duplicate embedded Headers, not extra transport messages.",
+    "Original SensorFactory CpuLidarSensor conversion/getter/wire domain only; no System/ECM/Rapier raycast, Physics, demand/schedule, reset/removal/lifecycle, global RNG or Source-to-binary equivalence. No old scalar/noise campaign replay or provider/SDK rebuild.",
+    "M23/M24 actual-zero historical component evidence remains separately scoped, with no invented independent raw wait receipt. Accepted73e helper-only capture is distinct from locally qualified unaccepted9bf3 runtime.",
+    "Actual native capture, independent native DATA, fixture generation and independent literal DATA each returned Root zero. Observed consumers are Source-reviewed only; no M54 formatter, Rust/Python test, fullnormal, coverage, local qualification, hosted/official or acceptance result is claimed."
+  ]
+}

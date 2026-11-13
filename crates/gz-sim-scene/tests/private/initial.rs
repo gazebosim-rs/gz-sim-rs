@@ -91,6 +91,106 @@ fn id(sim: &Simulation, name: &str) -> u64 {
 }
 
 #[test]
+fn initial_lidar_identity_query_distinguishes_missing_and_empty_blueprints() {
+    let bare = Simulation::new(Duration::from_millis(1)).unwrap();
+    assert!(matches!(
+        initial_lidar_publications_with_identity(&bare),
+        Err(SceneResetError::MissingInitialState)
+    ));
+    let sim = load();
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(initial_lidar_publications(&sim).unwrap().count(), 0);
+    assert_eq!(
+        initial_lidar_publications_with_identity(&sim)
+            .unwrap()
+            .count(),
+        0
+    );
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+}
+
+#[test]
+fn initial_lidar_identities_borrow_both_originals_through_removal_and_reset() {
+    let source = include_str!("../fixtures/planar_lidar.sdf");
+    let start = source.find("<sensor name=\"laser\"").unwrap();
+    let end = start + source[start..].find("</sensor>").unwrap() + "</sensor>".len();
+    let peer = source[start..end]
+        .replace("name=\"laser\"", "name=\"peer\"")
+        .replace("<topic>/scan</topic>", "<topic>/peer_scan</topic>")
+        .replace("laser_frame", "peer_frame");
+    let xml = format!("{}{}{}", &source[..end], peer, &source[end..])
+        .replace("world name=\"default\"", "world name=\"warehouse_floor\"");
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "lidar-identities.sdf",
+        "warehouse_floor",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let collect = |sim: &Simulation| {
+        initial_lidar_publications_with_identity(sim)
+            .unwrap()
+            .map(|(identity, kind, name, metadata)| {
+                (identity, kind, name.to_owned(), metadata.clone())
+            })
+            .collect::<Vec<_>>()
+    };
+    let snapshots = collect(&sim);
+    assert_eq!(snapshots.len(), 2);
+    assert_ne!(snapshots[0].0, snapshots[1].0);
+    let old_entities = [
+        named(&sim, "warehouse_floor::scanner::body::laser"),
+        named(&sim, "warehouse_floor::scanner::body::peer"),
+    ];
+    for ((identity, kind, name, metadata), old_metadata) in
+        initial_lidar_publications_with_identity(&sim)
+            .unwrap()
+            .zip(initial_lidar_publications(&sim).unwrap())
+    {
+        assert_eq!(identity, id(&sim, name));
+        assert_eq!(kind, EntityKind::Sensor);
+        assert_eq!(
+            name.strip_prefix("warehouse_floor::"),
+            Some(metadata.entity_name.as_str())
+        );
+        assert!(std::ptr::eq(metadata, old_metadata));
+    }
+    sim.step_exact(3).unwrap();
+    let scanner = id(&sim, "warehouse_floor::scanner");
+    remove_model(&mut sim, scanner).unwrap();
+    for snapshot in &snapshots {
+        assert!(entity_by_id(sim.world(), snapshot.0).is_none());
+    }
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(collect(&sim), snapshots);
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    for (snapshot, old_entity) in snapshots.iter().zip(old_entities) {
+        let restored = entity_by_id(sim.world(), snapshot.0).unwrap();
+        assert_ne!(restored, old_entity);
+        assert_eq!(
+            sim.world().get::<EntityKind>(restored),
+            Some(&EntityKind::Sensor)
+        );
+        assert_eq!(sim.world().get::<Name>(restored).unwrap().0, snapshot.2);
+        assert_eq!(
+            sim.world().get::<LidarPublication>(restored),
+            Some(&snapshot.3)
+        );
+    }
+    assert_eq!(collect(&sim), snapshots);
+    assert_eq!(sim.elapsed(), Duration::ZERO);
+    assert_eq!(sim.epoch(), 1);
+}
+
+#[test]
 fn initial_altimeter_identity_query_distinguishes_missing_and_empty_blueprints() {
     let bare = Simulation::new(Duration::from_millis(1)).unwrap();
     assert!(matches!(

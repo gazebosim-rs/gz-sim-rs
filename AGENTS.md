@@ -1,19 +1,28 @@
-## Current M53 fixture correction after the first full normal run
+## Current M54: batched corrections after the first full normal run
 
-The first complete normal hook failed after 1676.557 seconds in five new cases
-across four headless targets. Independent review traced all five to two fixture
-premises: three XML WORLD names contain parser-reserved `::`, and two Server
-cases share static links without their required collision. The failed tree,
-logs, partial evidence and actual exit one remain retained and unqualified.
+M54's first full normal run returned 1 after 1,680.7 seconds. Exactly two headless
+cases failed: the new immutable Lidar-identity fixture changed an XML closing tag
+while replacing its topic; the robot-sensor regression detected changed legacy
+collision-error precedence. The original tree, logs, partial staged packet and
+unqualified preservation ref remain intact. No M54 local qualification is claimed.
 
-Scene and Server corrected four test files in parallel. Valid nondefault WORLD
-positives retain all identity, reset, geometry and transport assertions; former
-invalid XML inputs now require the exact typed parser refusal. Both static links
-have one supported centered box collision and no visuals. Production and parser
-code, numerical bounds, test IDs, deadlines and native/literal inputs are unchanged.
-Independent Source review precedes one consolidated format and full normal retry.
-M52 remains the latest locally qualified parent; release acceptance is still held
-by required hosted qualification. Historical checkpoints below remain separate.
+The XML correction targets only the complete topic element. The Server correction
+preserves legacy constructor/reset typed errors while retaining full Lidar
+identity, original/prepared binding and endpoint validation before publisher IO.
+Finish the complete correction, regression Source and documentation with
+independent review before one affected formatter and full normal/strict retry.
+No test assertion, tolerance, reserved family or mandatory gate may be weakened.
+
+Native component capture and independent native and fixed-literal DATA remain
+valid and are not repeated: ten configurations, thirty captured scans and 3,096
+present ranges. See [the reference](planning/reference/m54-multiple-lidars.json)
+and [delivery contract](docs/M54_DELIVERY.md). M55 Source work remains in separate
+checkouts; its integration waits for actual M54 normal and retained DATA success,
+all repairs and overlap review. Root alone releases serial heavy work.
+M1–M42, 175 accepted slices and M40 Latest remain unchanged. Hosted qualification,
+official audit, accepted predecessors and Main/readbacks still precede acceptance.
+
+Earlier checkpoints below describe retained historical work.
 
 ## Current M53 captured component and fixed-literal evidence
 

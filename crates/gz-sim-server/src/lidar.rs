@@ -3,11 +3,14 @@
 //! Canonical planar scans and CPU publication handoff; never casts physics rays.
 use super::*;
 use gz_sim_proto::msgs::{Header, LaserScan, Pose, header::Map};
-use gz_sim_scene::{EntityKind, LidarPublication, LidarSample, PendingResetRemoval};
+use gz_sim_scene::{
+    EntityKind, LidarPublication, LidarSample, Name as SceneName, PendingResetRemoval,
+};
 
 pub(super) struct Stream {
     entity: Entity,
     identity: u64,
+    scoped_name: String,
     pub(super) metadata: LidarPublication,
     pub(super) endpoint: String,
     pub(super) publisher: Arc<world_io::LidarOutput>,
@@ -109,19 +112,104 @@ fn packet(metadata: &LidarPublication, sample: &LidarSample, sequence: u64) -> O
     })
 }
 
-type Prepared = BTreeMap<String, (LidarPublication, Arc<world_io::LidarOutput>)>;
+// Keep the metadata/output prefix used by existing reset controls.
+type Prepared = BTreeMap<String, (LidarPublication, Arc<world_io::LidarOutput>, u64, String)>;
+const MAX_LIDARS: usize = 8;
+type Original = (u64, String, LidarPublication, String);
+
+fn world_name(simulation: &Simulation) -> Result<&str, Error> {
+    let mut worlds = simulation
+        .world()
+        .iter_entities()
+        .filter(|e| e.get::<EntityKind>() == Some(&EntityKind::World));
+    let owner = worlds.next().ok_or(Error::LidarIdentity)?;
+    if worlds.next().is_some() {
+        return Err(Error::LidarIdentity);
+    }
+    owner
+        .get::<SceneName>()
+        .map(|name| name.0.as_str())
+        .filter(|name| !name.is_empty())
+        .ok_or(Error::LidarIdentity)
+}
+
+fn valid_owner(
+    world: &str,
+    id: u64,
+    kind: EntityKind,
+    name: &str,
+    metadata: &LidarPublication,
+) -> bool {
+    id != 0
+        && kind == EntityKind::Sensor
+        && valid_metadata(metadata)
+        && name
+            .strip_prefix(world)
+            .and_then(|tail| tail.strip_prefix("::"))
+            == Some(metadata.entity_name.as_str())
+}
+
+// Validate even removed originals: a currently vacant endpoint is restored by reset.
+fn originals(
+    simulation: &Simulation,
+    options: &ServerOptions,
+    occupied: &BTreeSet<String>,
+) -> Result<Vec<Original>, Error> {
+    let rows: Vec<_> = gz_sim_scene::initial_lidar_publications_with_identity(simulation)?
+        .map(|(id, kind, name, metadata)| (id, kind, name.to_owned(), metadata.clone()))
+        .collect();
+    if rows.len() > MAX_LIDARS {
+        return Err(Error::LidarIdentity);
+    }
+    if rows.is_empty() {
+        return Ok(Vec::new());
+    }
+    let world = world_name(simulation)?;
+    let mut ids = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut keys = occupied.clone();
+    let mut result = Vec::new();
+    for (id, kind, name, metadata) in rows {
+        if !valid_owner(world, id, kind, &name, &metadata)
+            || !ids.insert(id)
+            || !names.insert(name.clone())
+        {
+            return Err(Error::LidarIdentity);
+        }
+        let endpoint = options.topic_key(&options::as_valid_topic(&metadata.topic))?;
+        if !keys.insert(endpoint.clone()) {
+            return Err(Error::LidarIdentity);
+        }
+        result.push((id, name, metadata, endpoint));
+    }
+    Ok(result)
+}
+
+// Descriptor validation is pure: do not clone or look up a publisher until the
+// constructor/reset boundary has checked every own and peer endpoint.
+fn reset_plan(server: &Server, occupied: &BTreeSet<String>) -> Result<Vec<Original>, Error> {
+    let selected = originals(&server.simulation, &server.network_config, occupied)?;
+    for (id, name, metadata, endpoint) in &selected {
+        if let Some(stream) = server
+            .lidars
+            .iter()
+            .find(|stream| &stream.endpoint == endpoint)
+            && (stream.identity != *id
+                || &stream.scoped_name != name
+                || &stream.metadata != metadata)
+        {
+            return Err(Error::ResetLidars);
+        }
+    }
+    Ok(selected)
+}
 
 pub(super) fn prepare_reset(server: &Server) -> Result<Prepared, Error> {
+    let occupied =
+        lidar_reserved_keys(&server.simulation, &server.world_io, &server.network_config)?;
+    let selected = reset_plan(server, &occupied)?;
     let mut prepared = BTreeMap::new();
-    for metadata in gz_sim_scene::initial_lidar_publications(&server.simulation)? {
-        if !prepared.is_empty() || !valid_metadata(metadata) {
-            return Err(Error::LidarIdentity);
-        }
-        let topic = options::as_valid_topic(&metadata.topic);
-        let key = server.network_config.topic_key(&topic)?;
-        if server.imus.iter().any(|stream| stream.endpoint == key) {
-            return Err(Error::LidarIdentity);
-        }
+    for (id, name, metadata, key) in selected {
         let publisher = match server.lidars.iter().find(|stream| stream.endpoint == key) {
             Some(stream) => Arc::clone(&stream.publisher),
             None => server
@@ -129,9 +217,135 @@ pub(super) fn prepare_reset(server: &Server) -> Result<Prepared, Error> {
                 .lidar_output(key.clone())
                 .map_err(|error| Error::WorldNetwork(error.to_string()))?,
         };
-        prepared.insert(key, (metadata.clone(), publisher));
+        prepared.insert(key, (metadata, publisher, id, name));
     }
     Ok(prepared)
+}
+
+type Selection = (Entity, u64, String, LidarPublication, String);
+
+fn admission_plan(
+    simulation: &Simulation,
+    options: &ServerOptions,
+    reserved: impl FnOnce() -> Result<BTreeSet<String>, Error>,
+    prepared: Option<&Prepared>,
+) -> Result<Vec<Selection>, Error> {
+    let candidates: Vec<_> = simulation
+        .world()
+        .iter_entities()
+        .filter(|e| !e.contains::<PendingResetRemoval>() && e.contains::<LidarPublication>())
+        .map(|e| e.id())
+        .collect();
+    if candidates.len() > MAX_LIDARS {
+        return Err(Error::LidarIdentity);
+    }
+    if candidates.is_empty() {
+        return if prepared.is_some_and(|p| !p.is_empty()) {
+            Err(Error::ResetLidars)
+        } else {
+            Ok(Vec::new())
+        };
+    }
+    // Reject malformed public ownership before requiring a loaded blueprint.
+    for &entity in &candidates {
+        let node = simulation.world().entity(entity);
+        let id = node.get::<EntityId>().ok_or(Error::LidarIdentity)?.get();
+        if node.get::<EntityKind>() != Some(&EntityKind::Sensor)
+            || entity_by_id(simulation.world(), id) != Some(entity)
+            || !valid_metadata(node.get::<LidarPublication>().expect("selected metadata"))
+        {
+            return Err(Error::LidarIdentity);
+        }
+    }
+    let occupied = reserved()?;
+    let original = originals(simulation, options, &occupied)?;
+    let world = world_name(simulation)?;
+    let mut ids = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut keys = occupied;
+    let mut selected = Vec::new();
+    for entity in candidates {
+        let node = simulation.world().entity(entity);
+        let metadata = node.get::<LidarPublication>().expect("selected metadata");
+        let id = node.get::<EntityId>().expect("validated ID").get();
+        let name = node.get::<SceneName>().ok_or(Error::LidarIdentity)?;
+        if !valid_owner(world, id, EntityKind::Sensor, &name.0, metadata)
+            || !ids.insert(id)
+            || !names.insert(name.0.clone())
+        {
+            return Err(Error::LidarIdentity);
+        }
+        // Empty/invalid topics retain their existing typed Setup error layer.
+        let endpoint = options.topic_key(&options::as_valid_topic(&metadata.topic))?;
+        if !keys.insert(endpoint.clone()) {
+            return Err(Error::LidarIdentity);
+        }
+        let initial = original
+            .iter()
+            .find(|(initial_id, initial_name, _, _)| *initial_id == id && initial_name == &name.0)
+            .ok_or(Error::LidarIdentity)?;
+        if &initial.2 != metadata {
+            return Err(if prepared.is_some() {
+                Error::ResetLidars
+            } else {
+                Error::LidarIdentity
+            });
+        }
+        if let Some(prepared) = prepared {
+            let (initial_metadata, _, initial_id, initial_name) =
+                prepared.get(&endpoint).ok_or(Error::ResetLidars)?;
+            if initial_metadata != metadata || *initial_id != id || initial_name != &name.0 {
+                return Err(Error::ResetLidars);
+            }
+        }
+        selected.push((entity, id, name.0.clone(), metadata.clone(), endpoint));
+    }
+    if prepared.is_some_and(|p| p.len() != selected.len()) {
+        return Err(Error::ResetLidars);
+    }
+    Ok(selected)
+}
+
+// Own-family malformed identities, duplicate keys, IMU/service aliases and reset
+// descriptors take their original Lidar/setup errors before legacy peer errors.
+// Returning only strings keeps the boundary independent of Arc/output lookup.
+pub(super) fn boundary_keys(
+    simulation: &Simulation,
+    options: &ServerOptions,
+    io: &world_io::WorldIo,
+    reset: Option<&Server>,
+    own_priority: bool,
+) -> Result<BTreeSet<String>, Error> {
+    let reserved = || {
+        if own_priority {
+            lidar_priority_reserved_keys(simulation, io, options)
+        } else {
+            lidar_reserved_keys(simulation, io, options)
+        }
+    };
+    if let Some(server) = reset {
+        let occupied = reserved()?;
+        return Ok(reset_plan(server, &occupied)?
+            .into_iter()
+            .map(|row| row.3)
+            .collect());
+    }
+    let current = admission_plan(simulation, options, reserved, None)?;
+    let mut keys: BTreeSet<_> = current.into_iter().map(|row| row.4).collect();
+    // Empty manually constructed families keep their existing no-blueprint path.
+    match gz_sim_scene::initial_lidar_publications(simulation) {
+        Ok(_) => {
+            let occupied = reserved()?;
+            keys.extend(
+                originals(simulation, options, &occupied)?
+                    .into_iter()
+                    .map(|row| row.3),
+            );
+        }
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) if keys.is_empty() => {}
+        Err(error) => return Err(error.into()),
+    }
+    Ok(keys)
 }
 
 pub(super) fn streams(
@@ -141,49 +355,34 @@ pub(super) fn streams(
     imus: &[ImuStream],
     prepared: Option<&Prepared>,
 ) -> Result<Vec<Stream>, Error> {
+    let selected = admission_plan(
+        simulation,
+        options,
+        || {
+            let mut occupied = lidar_reserved_keys(simulation, io, options)?;
+            occupied.extend(imus.iter().map(|stream| stream.endpoint.clone()));
+            Ok(occupied)
+        },
+        prepared,
+    )?;
     let mut result = Vec::new();
-    for entity in simulation.world().iter_entities() {
-        if entity.contains::<PendingResetRemoval>() {
-            continue;
-        }
-        let Some(metadata) = entity.get::<LidarPublication>() else {
-            continue;
-        };
-        let id = entity.get::<EntityId>().ok_or(Error::LidarIdentity)?.get();
-        if !result.is_empty()
-            || !valid_metadata(metadata)
-            || entity.get::<EntityKind>() != Some(&EntityKind::Sensor)
-            || entity_by_id(simulation.world(), id) != Some(entity.id())
-        {
-            return Err(Error::LidarIdentity);
-        }
-        let topic = crate::options::as_valid_topic(&metadata.topic);
-        let endpoint = options.topic_key(&topic)?;
-        if imus.iter().any(|stream| stream.endpoint == endpoint) {
-            return Err(Error::LidarIdentity);
-        }
-        let publisher = if let Some(prepared) = prepared {
-            let (original, publisher) = prepared.get(&endpoint).ok_or(Error::ResetLidars)?;
-            if original != metadata {
-                return Err(Error::ResetLidars);
-            }
-            Arc::clone(publisher)
-        } else {
-            io.lidar_output(endpoint.clone())
-                .map_err(|error| Error::WorldNetwork(error.to_string()))?
+    for (entity, identity, scoped_name, metadata, endpoint) in selected {
+        let publisher = match prepared {
+            Some(p) => Arc::clone(&p.get(&endpoint).expect("entire prepared set validated").1),
+            None => io
+                .lidar_output(endpoint.clone())
+                .map_err(|error| Error::WorldNetwork(error.to_string()))?,
         };
         result.push(Stream {
-            entity: entity.id(),
-            identity: id,
-            metadata: metadata.clone(),
+            entity,
+            identity,
+            scoped_name,
+            metadata,
             endpoint,
             publisher,
             sequence: 0,
             last_sample: None,
         });
-    }
-    if prepared.is_some_and(|prepared| prepared.len() != result.len()) {
-        return Err(Error::ResetLidars);
     }
     Ok(result)
 }
@@ -277,6 +476,9 @@ impl Server {
     }
 }
 
+#[cfg(test)]
+#[path = "../tests/private/multiple_lidars_native.rs"]
+mod multiple_lidars_native;
 #[cfg(test)]
 #[path = "../tests/private/lidar.rs"]
 mod tests;

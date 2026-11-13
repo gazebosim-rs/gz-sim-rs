@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-13T12:15:13.632525+00:00",
+  "as_of": "2026-11-13T15:52:35.215055+00:00",
   "execution_state": "active",
   "current_phase": "M43",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
@@ -1007,7 +1007,7 @@
       "depends_on": [
         "M52"
       ],
-      "scope": "Zero through eight independent loaded logical cameras within the existing flat 128-model-origin Rapier domain. Preserve exact frustum math, full relative poses, paired canonical streams and independent demand, cadence, reset and removal. The first full normal failed five fixture cases; four test files now correct those premises without changing production behavior. Complete independent review and one full retry with all strict gates.",
+      "scope": "Zero through eight independent loaded logical cameras in the existing flat 128-model-origin Rapier domain. Corrected full normal verification and independent retained DATA passed locally. Exact frustum math, full relative poses, paired canonical streams and independent demand, cadence, reset and removal remain preserved.",
       "acceptance": "Complete bounded Source, meaningful regressions, guides and independent whole review. Current exact component inputs and a separately reviewed fresh pair/eight component capture, independent native and fixed-literal DATA precede observed numeric and exact-wire consumers. Strong actual Rust physical-motion/demand/cadence/reset/removal and whole identity/2N endpoint controls remain mandatory. Full normal, strict workspace/per-crate/actual-parent coverage and independent retained DATA. Actually accepted M52 predecessor, exact hosted success, independent official DATA and ordinary Main/readbacks before publication or acceptance.",
       "excluded": "New System/provider/SDK builds, searches or runtime fallbacks; original native System/ECM/demand/schedule/reset/removal parity; altered plane math/visibility epsilon, noise, AABB/occlusion/rendering or new backend domains; new frameworks/plugins/solver/teleport; viewer/package/launcher/Fuel edits; CI workaround or transferred acceptance.",
       "evidence": "docs/M53_DELIVERY.md",
@@ -1075,10 +1075,96 @@
         "first_normal_actual_exit_code": 1,
         "first_normal_failed_cases": 5,
         "first_normal_failed_targets": 4,
-        "first_normal_failure_receipt_sha256": "02a74f916e8649ca17c329f9af6a2c9a23b0f28bac6dc58b8494d1f53d575889"
+        "first_normal_failure_receipt_sha256": "02a74f916e8649ca17c329f9af6a2c9a23b0f28bac6dc58b8494d1f53d575889",
+        "full_normal_retry_invoked": true,
+        "full_normal_retry_state": "actual_root_zero_independent_local_DATA_passed",
+        "retry_source_tree": "8ed03e6809e50a7af6972a30f3ceffaf4a81d0e8",
+        "full_normal_retry_actual_exit_code": 0,
+        "full_normal_retry_commit": "9bf3ada4675022b45e39d5f089e1bb3aaeaa2c04",
+        "full_normal_retry_elapsed_seconds": 2132.700039264979
       },
       "selection_contract_sha256": "47203cd1497b4eaa054891367f08025e2ccf2bbf9a977a6d08752ebaf0507fed",
-      "qualification_state": "first_full_normal_failed_fixture_correction_pending_consolidated_retry"
+      "qualification_state": "full_normal_and_independent_local_DATA_passed_unaccepted",
+      "local_DATA_method1_actual_exit_code": 1,
+      "local_DATA_method1_failure_receipt_sha256": "ea22db1b103678650eccb9a57630e81dfbcd03bc41cb2aad9471b8406bd09f28",
+      "local_DATA_method2_actual_exit_code": 0,
+      "local_DATA_method2_report_sha256": "c47a68786603da3ef28f75dee16247c87efe8c5dab25ea721b08523f9d8b20d5",
+      "local_qualified_commit": "9bf3ada4675022b45e39d5f089e1bb3aaeaa2c04"
+    },
+    {
+      "id": "M54",
+      "title": "Independent loaded planar CPU lidars",
+      "max_working_days": 5,
+      "depends_on": [
+        "M53"
+      ],
+      "scope": "Zero through eight independent planar CPU lidars with 2\u2013128 beams each, at most 1,024 rays per due tick. Preserve ray math, noise, global terminal faults and exact canonical scans; add per-owner identity, demand, cadence, reset, removal and endpoint-conflict controls. Scene and Server source development runs in parallel.",
+      "acceptance": "Complete implementation, meaningful regressions and guides with independent Source review. Final integration follows successful M53 normal and independent DATA, retaining its fixes. Reviewed current component inputs, fresh component scan capture, independent native and literal DATA precede observed consumers. Full normal, unchanged strict coverage, independent local DATA, accepted predecessor, hosted success, official audit and Main readbacks precede release.",
+      "excluded": "GPU/multilayer/interpolated scans, intensity or point-cloud expansion; native System/ECM/physics/demand/scheduling/RNG equivalence; new solver, backend, framework, SDK/provider build, CI workaround or transferred acceptance.",
+      "evidence": "docs/M54_DELIVERY.md",
+      "source_preparation_only": false,
+      "provisional_local_only": true,
+      "source_preparation_basis_commit": "1ed59a7348a3dee94cdae8b7a4bbd847cbd9911b",
+      "source_preparation_basis_accepted": false,
+      "integrated_parent": "9bf3ada4675022b45e39d5f089e1bb3aaeaa2c04",
+      "source_preparation_started_at": "2026-11-13T12:54:06.578509+00:00",
+      "contract_sha256": "ac177982ace9411e01a6d33c3fd280c294e51e19891a846db8520a6e721bc788",
+      "checks_run": true,
+      "source_authorship_released": true,
+      "operations_released": true,
+      "runtime_Source_batches_complete": true,
+      "runtime_Source_independent_review_clear": true,
+      "integration_source_overlap_review_pending": false,
+      "integration_source_overlap_review_clear": true,
+      "preparation_contract_sha256": "bde4c749f7209a7196dce6541295d54a74c0e2eafa35fa1ced4c9587a64adbe1",
+      "component_input_diagnostic": {
+        "actual_root_exit_code": 0,
+        "result_sha256": "12e3b83ec60dc7f020efcdb5603624e48df3bc664909d71b736d0ecd1d3a2ea3",
+        "component_bytes": 1375024,
+        "component_sha256": "2947b2d4007f36eb0d2dfabc36233710587ddac416460fa1a90d37935549933a",
+        "direct_dependency_names": 11,
+        "reachable_saved_metadata_nodes": 35,
+        "native_capture_performed": false,
+        "provider_or_SDK_rebuilt": false
+      },
+      "current_stage": "Batched correction after actual first full normal failure",
+      "native_component_capture_passed": true,
+      "independent_native_DATA_passed": true,
+      "independent_literal_DATA_passed": true,
+      "observed_consumers_Source_review_clear": true,
+      "new_Source_declarations_headless": 17,
+      "new_Source_declarations_renderer": 10,
+      "operation_status": {
+        "native_component_capture": "actual0,25childstages",
+        "independent_native_DATA": "actual0",
+        "fixture_generation": "actual0",
+        "independent_literal_DATA": "actual0",
+        "formatter": "actual0; independently reviewed",
+        "Rust_Python_tests_and_lint": "executed within failed normal; two headless cases failed",
+        "full_normal_and_strict_coverage": "actual1; qualification incomplete",
+        "hosted_CI": "held",
+        "publication_and_acceptance": "held"
+      },
+      "native_reference": "planning/reference/m54-multiple-lidars.json",
+      "native_evidence": {
+        "capture_result_sha256": "f983520536276bb13f41471ad321c1763ed010daac8486ce63c57b1ec0f30d6e",
+        "native_DATA_report_sha256": "2e3fc58ea336ba1c14006f86b172158c802e16b0815fbc027318155ea29c7f0d",
+        "literal_DATA_report_sha256": "3a6bab986daf2f8150c892499cc07a8efd03dffa7adb6256e885c8c1081dccb6",
+        "input_domain": "DIRECT_SENSOR_FACTORY_POSE_AND_RAY_RESULTS",
+        "original_System_or_Physics_equivalence": false
+      },
+      "actual_normal_attempt1": {
+        "actual_root_exit_code": 1,
+        "controller_elapsed_seconds": 1680.6945322959218,
+        "failed_cases": 2,
+        "failed_targets": 2,
+        "failure_receipt_sha256": "297aa1a302e6999211bf66f9fb37d93d7da0abade0420f7bb8a0956a2fe772a1",
+        "qualified": false
+      },
+      "correction_batch": [
+        "Exact XML topic element replacement without changing closing scan tags",
+        "Pure shared constructor/reset legacy peer collision-error precedence with full pre-I/O Lidar validation"
+      ]
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -1135,7 +1221,8 @@
     "M50": "in_progress",
     "M51": "in_progress",
     "M52": "in_progress",
-    "M53": "in_progress"
+    "M53": "in_progress",
+    "M54": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-10",
@@ -1150,9 +1237,10 @@
     "M50",
     "M51",
     "M52",
-    "M53"
+    "M53",
+    "M54"
   ],
-  "execution_policy": "D30-D32: Root integrates disjoint bounded Source and alone releases serial heavy operations. Finish implementation, regression Source, guides and independent review, then batch findings before one complete unchanged normal/strict qualification. M45 uses reviewed provisional local timing over exact locally qualified a08 while accepted predecessor and all hosted/official/publication gates remain mandatory for release. Retained M43/M44 proofs remain scoped to their actual identities: original 9a payload and repaired a08 qualifier under the reviewed one-package lineage amendment. No source, package, graph or binary identity is relabelled; no CI retry/probe is released. M46 rotated odometry Source development uses immutable locally qualified e66; complete independent review precedes one consolidated local qualification. All release dependencies remain mandatory. M47 contract/Source preparation over exact locally qualified M46 cca6 is selected; every complete-batch review and execution gate remains mandatory. M47 complete Source and format integration are independently clear; one fresh reference uses a reviewed current349 manifest after a recorded single transitive MySQL package upgrade. Full local/hosted gates remain unchanged. M48 Source preparation over exact locally qualified M47 f27a37fd is selected. Contract and whole-batch review precede provisional local checks; all release dependencies and hosted/official/Main gates remain unchanged. M48 implementation and actual native/literal DATA are integrated. Final complete Source/tree/procedure review precedes one consolidated provisional local normal qualification; no Rust/coverage/full-normal result is yet claimed. M48 actual a204d94b full normal and independent local DATA passed; M49 contract/Source preparation over that exact unaccepted local parent is selected. Independent complete contract review precedes leaf authorship, and all execution/release gates remain mandatory. M49 first native attempt failed at a strict mapped-library inventory check; full retained map review identified exactly two explicit link-only provider inputs. No automatic retry or 349-check relaxation; a separately reviewed exact supplemental input/correction batch precedes a new Root release. M49 corrected original-system capture completed actualRoot0; all independent native/literal DATA and complete Rust/fullnormal/coverage/hosted/official/Main gates still precede qualification/publication/acceptance. M49 actual4ccd fullnormal and independentlocalDATA passed; M50 bounded contract/Source preparation uses that exact unaccepted local parent. Independent contract review precedes disjoint leaf authorship and all execution/release gates remain mandatory. M50 contract04374 is independently clear and disjoint Source authorship is released; native/cargo/test/qualification execution remains held. Pressure component outside current349 requires its own exact bounded input diagnostic and reviewed closure. Reviewed M51 Source preparation on qualified4ccd may overlap frozen M50 normal. Final integrated parent stays unselected until actual M50 normal/DATA and repair/overlap review. No M51 checks or acceptance transfer released.",
+  "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
     {
       "phases": [
@@ -1379,33 +1467,41 @@
       ],
       "integration": "M52 complete local normal and independent retained DATA passed before M53 selection. M53 Source uses exact qualified but unaccepted 1ed59a73 in three disjoint checkouts: Scene, Server/reference and Root integration; SDF independently reviews completed batches. Root alone releases serial heavy work. Component-only reference scope is distinct from the failed fixed System diagnostic; no previous qualification or acceptance transfers.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M53",
+        "M54"
+      ],
+      "integration": "M53 corrected full normal verification overlaps M54 Scene and Server source preparation on qualified unaccepted M52. Final integration waits for actual M53 normal and independent DATA and preserves its repairs. Independent Source review precedes all new operations; Root serializes heavy work.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M43/M44 original 9a runtime/release/package/install/feedback/browser/visual proofs are retained. Their repaira08 passed full normal/strict coverage and independent local DATA, but current hosted run 43024343885 failed snapshot TLS/select setup before product checks; earlier9a run 42845720294 ended cancelled. Exact hosted/official and normal Main/tag/seven-assets/body/Latest readbacks still govern atomic acceptance. M45 native/literal DATA passed independently over accepted 73e; reviewed timing amendment 5d823a75 permits provisional full LOCAL qualification over exact locally qualified a08 only after complete Source/integration/tree/runner review and serial Root release. Actual accepted M43/M44 and exact M45 hosted/official/Main remain mandatory before M45 hosted publication or acceptance. No acceptance or CI success transfers. M45 full provisional local normal and independent DATA have now passed at e66. M46 Source is integrated and scoped native/literal DATA have passed for 30 modes and 858 triples. Rust, full normal/strict local, exact hosted/official and acceptance gates remain pending; no runtime or phase acceptance is transferred. Later actual outcome: M46 full local normal and independent DATA passed at cca6/treeebcf (1735H/1034R overlapping,402Python,20finite). It remains unaccepted. M47 is selected for contract/Source preparation only, with no checks run or inherited acceptance. M47 full Source and formatting are complete; fresh original-component reference and independent native DATA passed, while Rust/full normal checks remain pending at this source checkpoint. One current-provider baseline update retains all349 identities and the original historical manifest; no SDK rebuild, weakened guard or old qualification transfer. The first M47 full normal failed Clippy compilation before tests/coverage. One missing explicit default-noise field in the retained M46 replay consumer is corrected after complete constructor review; all original assertions and failure evidence remain. No native/formatter replay or Rust pass is claimed; a new complete normal outcome is required. Later actual outcome: M47 full local normal and independent retained DATA passed at f27a/tree67a (1757 headless and 1047 renderer profile passes with overlap, 403 aggregate Python tests, 21 finite examples and all strict gates). It remains unaccepted. M48 is selected for Source preparation over that exact local parent; no M48 result or acceptance is inherited. Actual accepted predecessor, exact hosted/official qualification and ordinary Main/readbacks remain mandatory. M48 first full normal remains failed at required Clippy E0502 before tests/coverage; ownership correction and new complete qualification are required. No native/literal result is repeated or accepted by this failure record. M48 second complete normal remains FAILED at two new test premises; all first/second originals and partial profiles stay retained. Corrected acquisition-time and parser/loader-layer assertions require a new whole normal outcome; no production change or acceptance waiver is selected. M48 third actual normal remains FAILED at format check; formatting of the complete reviewed correction batch is now applied, with all mandatory gates unchanged. M48 a204d94b is now locally qualified with independent DATA, but unaccepted. M49 Source preparation transfers no predecessor/hosted/official/Main acceptance. Actual M49 local4ccd full normal and independent method2 DATA passed with original failures preserved. M50 is contract-only preparation over that exact unaccepted locally qualified parent; independent complete contract review precedes disjoint Source authorship and all execution, accepted-predecessor, hosted/official/Main/publication/acceptance holds remain unchanged. M50 independent native and literal DATA passed with immutable fixture integrated; observed consumers and complete local Rust qualification remain pending. No release gate is waived. M50 first normal attempt is failed at an unchanged existing wrench-admission test. No phase, profile or acceptance qualification follows; the reviewed test-only correction and fresh whole normal outcome are required. M50 corrected full normal retry is running, not passed. M51 Source-only preparation from qualified4ccd is selected with future integrated parent unselected; every execution and release gate remains mandatory. M50 full normal has completed exit zero at local623faca6, but retained DATA is pending after two method-only assertion failures before raw comparisons. No product or native replay is selected for the reader corrections, no acceptance or release gate is transferred. M50 623faca6 is now locally qualified with actual independent DATA; every accepted-predecessor/hosted/official/Main/publication gate remains. M51 Source integration adopts exact623, preserves all M50 repairs and preparation worktrees, and still requires complete overlap/input/procedure review and fresh serial qualification. M51 full local normal and independent DATA now passed at ea921f58, with all three earlier failures preserved; no hosted/publication/acceptance gate transfers. M52 source preparation remains provisional and separate. M52 first full normal failed in four new test API initializers/references before tests/coverage. Complete test-only corrections require their own affected normal and independent DATA; native/literal proof stays scoped and is not repeated. No acceptance transfer.",
+  "acceptance_boundary": "M1\u2013M42 are accepted; M40 remains installed Latest. M43\u2013M53 passed local qualification but remain unaccepted. M54 implementation batches are independently Source-reviewed; integration over qualified M53 follows overlap review. Hosted snapshot recovery is unconfirmed; all release gates remain mandatory.",
   "current_delivery_group": [
     "M43",
     "M44"
   ],
-  "current_development_phase": "M53",
+  "current_development_phase": "M54",
   "board": {
-    "updated_at": "2026-11-13T12:15:13.632525+00:00",
+    "updated_at": "2026-11-13T15:52:35.215055+00:00",
     "current": {
-      "title": "M53 \u00b7 Independent logical cameras",
+      "title": "M54 \u00b7 Batched regression corrections",
       "items": [
-        "Development resumed with three parallel agents.",
-        "Five test failures were traced to invalid fixtures; the four-file correction has passed source review.",
-        "Preparing one consolidated full verification retry."
+        "First full normal verification failed in two headless cases.",
+        "Both fixture and error-precedence corrections are being reviewed as one batch.",
+        "Native component and fixture audits remain valid and are reused."
       ]
     },
     "done": [
       "MVP and M1\u2013M42 accepted and published.",
       "M40 is the latest installable preview.",
-      "M43\u2013M52 passed their local checks. They are not released; hosted qualification is still required."
+      "M43\u2013M53 passed local checks and independent results audits. Hosted qualification is still required before release."
     ],
     "next": [
-      "Run the corrected M53 full checks, then independently audit the results.",
-      "Restore hosted qualification and close out the queued releases in dependency order.",
-      "Continue the next bounded capability; broader physics, sensors and world work remains in the backlog."
+      "Finish Source review and run one corrected full normal/strict verification.",
+      "Audit retained results only after actual normal success.",
+      "Complete hosted qualification and dependency-ordered release gates."
     ],
     "blocker": {
       "text": "Release is blocked by Ubuntu snapshot setup failures in hosted CI. Recovery has not been confirmed.",
