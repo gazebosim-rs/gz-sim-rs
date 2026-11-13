@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One loaded Rapier altimeter with optional seeded channel noise; no transport ownership.
+//! Up to eight loaded Rapier altimeters with independent state; no transport ownership.
 use super::*;
 use gz_sensors::altimeter::{AltimeterInput, AltimeterReading, InvalidAltimeterInput};
 use gz_sensors::{GaussianNoise, GaussianParameters, InvalidNoise, NoiseStream};
@@ -198,9 +198,11 @@ pub(super) fn spawn(
         "Rapier ideal altimeter",
     )?;
     require(
-        !sim.world()
+        sim.world()
             .iter_entities()
-            .any(|entity| entity.contains::<Altimeter>()),
+            .filter(|entity| entity.contains::<Altimeter>())
+            .count()
+            < 8,
         &name,
         "multiple altimeters",
     )?;
@@ -398,3 +400,7 @@ fn reset(mut sensors: Query<(Entity, &mut Altimeter)>, mut commands: Commands) {
 #[cfg(test)]
 #[path = "../tests/private/altimeter.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_altimeters_native.rs"]
+mod multiple_altimeters_native_tests;

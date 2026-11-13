@@ -1,3 +1,79 @@
+## Current M49 named-type fixture correction (2026-11-12)
+
+The corrected fixture export and independent literal DATA both returned actual
+Root zero. The exact named `NativeCase` alias replaces only the long `CASES`
+type declaration; all five structs and the entire constant value body are
+unchanged. All 441 inputs, 42 observed packets and 399 inputs without matching
+packets remain bound to the same passed native DATA. No native capture, native
+DATA audit, numerical assertion, packet byte, lint allowance or threshold changed.
+
+The corrected fixture/provenance are integrated, with both old and new readers,
+outputs and actual receipts retained. The first normal run remains failed at
+Clippy; no M49 Rust test or coverage pass is claimed. Independent correction
+review and the affected full normal retry remain required. Runtime consumers
+and all formatted production Rust stay unchanged, so no formatter rerun is
+selected. Earlier checkpoints below are historical records.
+
+## Current M49 qualification failure and bounded correction (2026-11-12)
+
+The first complete normal attempt stopped at Clippy after 182.222 seconds.
+The generated reference fixture's five-part `CASES` tuple declaration triggered
+`type_complexity`; product tests and coverage were not reached. Preserve failed
+tree `b023aaa1`, its qualification ref, original method, logs, packet and actual
+exit-one receipt. No native or literal DATA result is relabelled.
+
+The available failure batch contains this one declaration issue. A reviewed
+successor generator will give the same tuple a named `NativeCase` alias, and
+the fixed-literal reader will admit exactly that declaration. All five record
+structs, 441 inputs, 42 output values and canonical bytes remain unchanged.
+This uses no lint allowance or threshold change. New export and literal DATA
+outputs and actual exits are required before fixture replacement and one
+affected full normal retry. No new native capture or native DATA audit is needed.
+
+Earlier checkpoints below are retained historical records.
+
+## Current original-system reference outcome (2026-11-12)
+
+The corrected fresh capture returned actual Root zero in 24.204 seconds with
+all 34 child stages successful. It recorded three modes, twelve configurations,
+441 input rows and 42 received canonical packets, with 104 System calls attested
+by the helper summary and pinned method. All 349 SDK identities and the two
+separately pinned link providers stayed guarded. Independent retained native
+DATA and fixed-literal DATA then passed with actual Root zero. The checked-in
+fixture preserves all 441 inputs, 42 observed packets and 399 inputs without a
+matching packet. The latter do not expose internal update, noise-draw or deadline
+state. Scene numeric and Server exact-wire observed consumers are being completed
+before one consolidated normal/strict coverage pass; no M49 Rust result is claimed.
+See `planning/reference/m49-multiple-altimeters.json` for the pinned original
+capture, generator, independent readers and actual Root receipts. Preserve
+both earlier failed controllers and every original packet; none is relabelled
+successful or merged into the fresh capture. The lifecycle correction retains
+the removal marker through original System updates, then physically removes the
+entity, with the unchanged five-second actual publisher-retirement assertion.
+
+The earlier selection and failure checkpoints below are historical records.
+
+# Current development: M49 independent loaded altimeters
+
+Read [M49_DELIVERY.md](docs/M49_DELIVERY.md) for the bounded scope and exact leases.
+This checkout starts at clean local M48 a204d94b, whose full normal hook and
+independent retained DATA passed: 1773 headless and 1057 renderer profile passes
+with overlap, 403 aggregate Python tests and 22 finite examples. All strict
+coverage gates passed; changed Scene lines are 57/58, not 100 percent.
+M49 implementation, helper and peer Source passed independent review; no Rust,
+full-normal or coverage result is claimed. Its first original-system reference
+controller failed after a successful helper compile and pair child at a strict
+mapped-library inventory check. All339 saved library paths were inspected: two
+explicit link-recipe providers, libdw and libelf, were outside the existing349
+SDK node set. The original failure is retained; exact supplemental inputs and
+procedural review are required before a separately released retry.
+M1–M42 remain accepted, M40 remains Latest, and M43–M48 stay unaccepted.
+Actual accepted predecessor, hosted/official and normal Main/readbacks still
+precede publication/acceptance. No CI retry/probe/workaround or eviction.
+Preserve every frozen tree and original failed attempt.
+
+The earlier delivery checkpoints below are historical records.
+
 # Current work: M48 IMU world-heading references
 
 Read docs/M48_DELIVERY.md. This isolated checkout starts at exact locally

@@ -270,19 +270,74 @@ fn admission_refuses_invalid_noise_metadata_second_sensor_and_other_engines() {
         "</sensor>",
         "</sensor><sensor name='second' type='altimeter'><altimeter/></sensor>",
     );
-    assert!(matches!(
-        load_world_with_sdf_step(
-            &twice,
-            "two-altimeters",
-            "default",
-            &NoResources,
-            PhysicsEngine::Rapier
-        ),
-        Err(LoadError::Unsupported {
-            feature: "multiple altimeters",
-            ..
-        })
-    ));
+    // Preserve the exact former second-sensor input as a motion/reset positive.
+    let mut pair = load(&twice);
+    let names = [
+        "default::rig::body::altimeter",
+        "default::rig::body::second",
+    ];
+    let identities = names.map(|name| named(&pair, name).1);
+    let references = names.map(|name| {
+        pair.world()
+            .get::<AltimeterPublication>(named(&pair, name).0)
+            .unwrap()
+            .vertical_reference
+    });
+    assert_eq!(references, [3.5, 3.0]);
+    let body = named(&pair, "default::rig::body").1;
+    queue_link_world_wrench(&mut pair, body, [8.0, -4.0, 2.0], [2.0, -3.0, 4.0]).unwrap();
+    pair.step_exact(20).unwrap();
+    let first = names.map(|name| {
+        let sample = pair
+            .world()
+            .get::<AltimeterSample>(named(&pair, name).0)
+            .unwrap();
+        let value = *sample.reading.as_ref().unwrap();
+        assert!(value.vertical_velocity.abs() > 0.0);
+        assert!(value.vertical_position.abs() > 0.0);
+        (sample.time, value)
+    });
+    for (index, name) in names.into_iter().enumerate() {
+        let entity = named(&pair, name).0;
+        let owner = pair.world().get::<Altimeter>(entity).unwrap();
+        let link = entity_by_id(pair.world(), owner.link).unwrap();
+        let pose = pair.world().get::<WorldPose>(entity).unwrap();
+        let link_pose = pair.world().get::<WorldPose>(link).unwrap();
+        let velocity = pair.world().get::<Velocity>(link).unwrap();
+        let arm = DQuat::from_array(link_pose.rotation) * owner.offset;
+        let vz = velocity.linear[2] + velocity.angular[0] * arm.y - velocity.angular[1] * arm.x;
+        assert!(
+            (first[index].1.vertical_position - (pose.translation[2] - references[index])).abs()
+                < 1e-12
+        );
+        assert!((first[index].1.vertical_velocity - vz).abs() < 1e-12);
+    }
+    initial::reset_loaded_world(&mut pair, |_| ()).unwrap();
+    for (index, name) in names.into_iter().enumerate() {
+        let entity = named(&pair, name).0;
+        assert_eq!(entity_by_id(pair.world(), identities[index]), Some(entity));
+        assert!(pair.world().get::<AltimeterSample>(entity).is_none());
+        assert_eq!(
+            pair.world()
+                .get::<AltimeterPublication>(entity)
+                .unwrap()
+                .vertical_reference,
+            references[index]
+        );
+    }
+    queue_link_world_wrench(&mut pair, body, [8.0, -4.0, 2.0], [2.0, -3.0, 4.0]).unwrap();
+    pair.step_exact(20).unwrap();
+    for (index, name) in names.into_iter().enumerate() {
+        let sample = pair
+            .world()
+            .get::<AltimeterSample>(named(&pair, name).0)
+            .unwrap();
+        assert_eq!(
+            (sample.time, *sample.reading.as_ref().unwrap()),
+            first[index]
+        );
+        assert_eq!(sample.epoch, 1);
+    }
     assert!(matches!(
         load_world_with_sdf_step(
             XML,

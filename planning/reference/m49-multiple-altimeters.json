@@ -1,0 +1,1300 @@
+{
+  "schema_version": 1,
+  "state": "ACTUAL_M49_SCOPED_ORIGINAL_SYSTEM_AND_LITERAL_PROVENANCE",
+  "source_program": {
+    "path": "crates/gz-sim-server/tests/native_multiple_altimeters.cc",
+    "sha256": "31e5a7fcf80a92fc2bc1e8967bfc1b13ee4478fbde8da1f3c0ffe666fdd749ff"
+  },
+  "capture": {
+    "tree": "1a4c7658f2cee9a843dc249a5bd29833fe886332",
+    "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+    "runtime_parent": "a204d94bc377caa8fedb4d89a1114c3795de1b05",
+    "runtime_parent_accepted": false,
+    "actual_exit_code": 0,
+    "elapsed_seconds": 24.203525297809392,
+    "mode_count": 3,
+    "configuration_count": 12,
+    "system_calls": 104,
+    "input_rows": 441,
+    "canonical_packets": 42,
+    "native_family_demand_policy": true,
+    "native_physics_executed": false,
+    "old_native_modes_replayed": false,
+    "original_DSO_rebuilt": false
+  },
+  "commands": [
+    {
+      "name": "head-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/head-before.stdout",
+        "bytes": 41,
+        "sha256": "a6b29c43d4da204f48a26afdd7c12656cf011ddcdf310d5aa4e97892b4d981c4"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/head-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10672465106472373
+    },
+    {
+      "name": "index-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--cached",
+        "1a4c7658f2cee9a843dc249a5bd29833fe886332",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/index-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/index-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10723860398866236
+    },
+    {
+      "name": "worktree-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/worktree-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/worktree-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10478217294439673
+    },
+    {
+      "name": "untracked-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/untracked-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/untracked-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10638764011673629
+    },
+    {
+      "name": "compiler",
+      "argv": [
+        "/usr/bin/clang++",
+        "--version"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/compiler.stdout",
+        "bytes": 110,
+        "sha256": "3635b8631d4ebcd8ed7586f4e01e7a6b44407de9d38db6e01daca9c242ed7a53"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/compiler.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10640063416212797
+    },
+    {
+      "name": "original-head",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-head.stdout",
+        "bytes": 41,
+        "sha256": "fe2ff9496387c2e9e70b2edfa8f779598aaf0ef8ec26cae206397e5f053afd51"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-head.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10730675095692277
+    },
+    {
+      "name": "original-source-0",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/systems/altimeter/Altimeter.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-0.stdout",
+        "bytes": 9589,
+        "sha256": "669bc53b665209587e8518e4f34799e467ab55da58ae86e4e6f1a202674fcd6d"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-0.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10722776409238577
+    },
+    {
+      "name": "original-source-1",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/systems/altimeter/Altimeter.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-1.stdout",
+        "bytes": 1785,
+        "sha256": "22c682a60019d2fc3a6a81df2b587ce88585a12309fdb0c723569cf669eea79e"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10788435279391706
+    },
+    {
+      "name": "original-source-2",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/System.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-2.stdout",
+        "bytes": 9304,
+        "sha256": "3e8879eff438b8fc69e7550b9fc9af7b9e2909f67b7dd689d7ebdf72861d2b9a"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10674395691603422
+    },
+    {
+      "name": "original-source-3",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/SystemLoader.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-3.stdout",
+        "bytes": 2417,
+        "sha256": "2c66d508d93d8a520af2d3d733f79283dfb8b06c55d3ef6271be89c5b052a612"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-3.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10754978703334928
+    },
+    {
+      "name": "original-source-4",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/EntityComponentManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-4.stdout",
+        "bytes": 47284,
+        "sha256": "baec922ba18c4554c1b7290808cc95e4141e8a2751958df8072d2ff93d1df107"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-4.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10802084906026721
+    },
+    {
+      "name": "original-source-5",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/EventManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-5.stdout",
+        "bytes": 6186,
+        "sha256": "158ce2a91ac25a4857631b7c3283ae13eab69a9d85bc18821a64d01a3c6a1c37"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-5.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10666590114124119
+    },
+    {
+      "name": "original-source-6",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/Util.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-6.stdout",
+        "bytes": 19419,
+        "sha256": "283175552768d01176100f12dc5fd0b83af8c8fed0800dc43ac901ce3844664a"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-6.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10672687506303191
+    },
+    {
+      "name": "original-source-7",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/Util.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-7.stdout",
+        "bytes": 33072,
+        "sha256": "6e35af3fa7c0a13d420a6cabae954177c16938d27d543d3e9f432fd980ade270"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-7.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10674817487597466
+    },
+    {
+      "name": "original-source-8",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Altimeter.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-8.stdout",
+        "bytes": 1314,
+        "sha256": "7e4a3bee470ad9d8e21a59b4426367bbc49061073e1689a60bea7727eab729a9"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-8.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10728995013050735
+    },
+    {
+      "name": "original-source-9",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/LinearVelocity.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-9.stdout",
+        "bytes": 1613,
+        "sha256": "14d5c28e1d33fc38602f22c00fc9fe8e6b6846a8e3ec67d5a81692224e71d1fa"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-9.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10725151817314327
+    },
+    {
+      "name": "original-source-10",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Name.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-10.stdout",
+        "bytes": 1314,
+        "sha256": "786063562ed4567b70cd082d63ad67ce99dba68be92a9c180ca2fc9a76b5d99c"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-10.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10937249101698399
+    },
+    {
+      "name": "original-source-11",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/ParentEntity.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-11.stdout",
+        "bytes": 1601,
+        "sha256": "0c702ccf0655f2afb4007a48d01dd433105e149a4bd254ae1137d94b444c1a19"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-11.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1069754920899868
+    },
+    {
+      "name": "original-source-12",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Pose.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-12.stdout",
+        "bytes": 1722,
+        "sha256": "28fe8a59494b821b4c765e626154bc234fd1f17f5b4dc66f535b317328f697f8"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-12.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10685567581094801
+    },
+    {
+      "name": "original-source-13",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Sensor.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-13.stdout",
+        "bytes": 1617,
+        "sha256": "20541297c39c8ae485df71f54b8db53c0a2eb6b8453d0da77a2a8c188047fe92"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-13.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.107874735025689
+    },
+    {
+      "name": "original-source-14",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/World.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-14.stdout",
+        "bytes": 2192,
+        "sha256": "fbd6f297e2eb1a937bd6f302f2f8e87e427bdffe36c8b03b877b196787a4802c"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-14.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10845760814845562
+    },
+    {
+      "name": "original-source-15",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Model.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-15.stdout",
+        "bytes": 4000,
+        "sha256": "22b96ddd28383fe11a278da6ad8687ed058f3b3f370f89d34bf1ebf4474a6990"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-15.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10689566191285849
+    },
+    {
+      "name": "original-source-16",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Link.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-16.stdout",
+        "bytes": 1138,
+        "sha256": "27eab5791f2b3906453eeac6e96c067e2b2adcacb74a3316451b5d16efec858b"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-16.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10716345300897956
+    },
+    {
+      "name": "original-source-17",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/EntityComponentManager.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-17.stdout",
+        "bytes": 68945,
+        "sha256": "5191369a9778247b7fec6dc5520e29e6b5acf8a4593e70701aedbdb53370d8c3"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-17.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10731288301758468
+    },
+    {
+      "name": "original-source-18",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/detail/EntityComponentManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-18.stdout",
+        "bytes": 13702,
+        "sha256": "711430d754004dd0bc559c4c94bf7f6f0c6c01c073b0e195353c3ecc8b8a94a3"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-18.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10853715683333576
+    },
+    {
+      "name": "original-source-19",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/SimulationRunner.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-19.stdout",
+        "bytes": 59165,
+        "sha256": "117271ad24dbe2e326bf860658c110e44859e3bc6509a56b9d43dea1b619bf06"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/original-source-19.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10789395100437105
+    },
+    {
+      "name": "helper-compile",
+      "argv": [
+        "/usr/bin/clang++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/test",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/core/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/src",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/gz_msgs_gen",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/vendor/backward-cpp",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/math10",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/utils5",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/plugin5",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/common8",
+        "-isystem",
+        "/usr/include/uuid",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/fuel_tools12",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/msgs13",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/physics10",
+        "-isystem",
+        "/usr/include/eigen3",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/rendering11",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/transport16",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/sdformat17",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/gui11",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtCore",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6",
+        "-isystem",
+        "/usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQml",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQmlIntegration",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtNetwork",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQuick",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtGui",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQmlModels",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtOpenGL",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQuickControls2",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtWidgets",
+        "-isystem",
+        "/home/nkoenig/work/gazebo/rust/gz-sim/test/gtest_vendor/include",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3/crates/gz-sim-server/tests/native_multiple_altimeters.cc",
+        "-o",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/native-multiple-altimeters",
+        "-Wl,-rpath,/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib",
+        "-lstdc++fs",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib/libgz-sim.so.11.0.0~pre3",
+        "-lpthread",
+        "/home/nkoenig/local/lib/libgz-fuel_tools.so.12.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-physics.so.10.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-rendering.so.11.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-profiler.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-av.so.8.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libswscale.so",
+        "/usr/lib/x86_64-linux-gnu/libswscale.so",
+        "/usr/lib/x86_64-linux-gnu/libavdevice.so",
+        "/usr/lib/x86_64-linux-gnu/libavdevice.so",
+        "/usr/lib/x86_64-linux-gnu/libavformat.so",
+        "/usr/lib/x86_64-linux-gnu/libavformat.so",
+        "/usr/lib/x86_64-linux-gnu/libavcodec.so",
+        "/usr/lib/x86_64-linux-gnu/libavcodec.so",
+        "/usr/lib/x86_64-linux-gnu/libavutil.so",
+        "/usr/lib/x86_64-linux-gnu/libavutil.so",
+        "/home/nkoenig/local/lib/libgz-common-io.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-geospatial.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-graphics.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-transport-parameters.so.16.0.0~pre2",
+        "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-gui.so.11.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libprotobuf.so",
+        "/home/nkoenig/local/lib/libgz-common-events.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-plugin-loader.so.5.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-plugin.so.5.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libQt6QuickControls2.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Quick.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6QmlModels.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Qml.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Network.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6OpenGL.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Widgets.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Gui.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Core.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libGLX.so",
+        "/usr/lib/x86_64-linux-gnu/libOpenGL.so",
+        "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
+        "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
+        "/usr/lib/x86_64-linux-gnu/libdw.so",
+        "/usr/lib/x86_64-linux-gnu/libelf.so",
+        "/usr/lib/x86_64-linux-gnu/libpthread.a",
+        "/usr/lib/x86_64-linux-gnu/libz.so",
+        "/usr/lib/x86_64-linux-gnu/libbz2.so",
+        "/usr/lib/x86_64-linux-gnu/liblzma.so",
+        "/usr/lib/x86_64-linux-gnu/libzstd.so",
+        "/home/nkoenig/local/lib/libgz-common-testing.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2",
+        "-lpthread",
+        "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0",
+        "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0",
+        "/usr/lib/x86_64-linux-gnu/libuuid.so",
+        "/usr/lib/x86_64-linux-gnu/libuuid.so",
+        "-Wl,-rpath-link,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib",
+        "-Wl,-rpath,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/helper-compile.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/helper-compile.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 10.686574429972097
+    },
+    {
+      "name": "multiple-altimeters-pair",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/native-multiple-altimeters",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m13-m14-delivery/native-altimeter-z_rt7yzt/libgz-sim-altimeter-system.so.11.0.0~pre3",
+        "pair",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-pair.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-pair.stdout",
+        "bytes": 29612,
+        "sha256": "1f3d39d6aa85098729f6db1fbdaa7070e292531676193501de61d88b3edab3c2"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-pair.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 2.2230024358723313
+    },
+    {
+      "name": "multiple-altimeters-eight",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/native-multiple-altimeters",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m13-m14-delivery/native-altimeter-z_rt7yzt/libgz-sim-altimeter-system.so.11.0.0~pre3",
+        "eight",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-eight.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-eight.stdout",
+        "bytes": 116089,
+        "sha256": "dd9137075d87c0242ea544e1d56c55538adb06b0d7cc3426294376734956eed1"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-eight.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 2.2255811949726194
+    },
+    {
+      "name": "multiple-altimeters-remove",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/native-multiple-altimeters",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m13-m14-delivery/native-altimeter-z_rt7yzt/libgz-sim-altimeter-system.so.11.0.0~pre3",
+        "remove",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-remove.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-remove.stdout",
+        "bytes": 17186,
+        "sha256": "c3b5a054f4557a65fce8ac9bf0397896eb3b6bc449f1e48a9dfae054365b9709"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-remove.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 2.2257093659136444
+    },
+    {
+      "name": "head-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/head-after.stdout",
+        "bytes": 41,
+        "sha256": "a6b29c43d4da204f48a26afdd7c12656cf011ddcdf310d5aa4e97892b4d981c4"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/head-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10859882109798491
+    },
+    {
+      "name": "index-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--cached",
+        "1a4c7658f2cee9a843dc249a5bd29833fe886332",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/index-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/index-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10784198390319943
+    },
+    {
+      "name": "worktree-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/worktree-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/worktree-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10793843492865562
+    },
+    {
+      "name": "untracked-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m49-native-reference-attempt3",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/untracked-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/untracked-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10820099618285894
+    }
+  ],
+  "original_provider": {
+    "original_plugin_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m13-m14-delivery/native-altimeter-z_rt7yzt/libgz-sim-altimeter-system.so.11.0.0~pre3",
+    "original_plugin_sha256": "5a47dfdb557f5d2d600baec9b0c6a5cb411a0708447ef308a04af63b01584989",
+    "reused_aliases": {
+      "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m13-m14-delivery/native-altimeter-z_rt7yzt/libgz-sim-altimeter-system.so": "libgz-sim-altimeter-system.so.11.0.0~pre3",
+      "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m13-m14-delivery/native-altimeter-z_rt7yzt/libgz-sim-altimeter-system.so.11": "libgz-sim-altimeter-system.so.11.0.0~pre3"
+    },
+    "reused_object_sha256": "1b785c31b4c17d88b6fc49d41c137724d324aecf728a8a445d49574c8d12eabc"
+  },
+  "sdk": {
+    "sdk_runtime_closure_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m47-delivery/native-sdk-current-dependency-closure.json",
+    "sdk_runtime_closure_sha256": "511ead617c78a01e772249ddbbfa1d995296a08469bedd1742d5453a2b6e9a44",
+    "historical_sdk_closure_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m13-m14-delivery/native-altimeter-current-dependency-closure.json",
+    "historical_sdk_closure_sha256": "370f49a779cbcb32bda7a46698ef2b82b6a13764c898287e0178524e66d7a4fb",
+    "sdk_drift_inventory_sha256": "a484797d83640f13bf17d162b916e4e38636a7cca273fb551bb12f5b5e3ce8eb",
+    "sdk_package_provenance_sha256": "bf5cf8486028b4315f7b7cfa5c387b6d8bcf6137d39f7bc6947a1dcecda656b3",
+    "sdk_closure_nodes": 349,
+    "sdk_baseline_scope": "All349 current identities, explicit historical349 and one installed MySQL .4 to .5 transition; initiator UNKNOWN. No old hash is relabelled current, no SDK rebuild or old proof transfer."
+  },
+  "evidence": {
+    "capture-source-state-attempt3.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/capture-source-state-attempt3.json",
+      "bytes": 1154,
+      "sha256": "6599d63986632e35d30e392d6bedb0add3063b61307a6e45dcf39c5955efbf57"
+    },
+    "native-reference-attempt3-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-reference-attempt3-bound.py",
+      "bytes": 46742,
+      "sha256": "8b1e9c5819e85ed5840210452a4ed34f55322f2035c664faa97f91e305a36a33"
+    },
+    "native-multiple-altimeters-attempt3-ob1oh0nd/result.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/result.json",
+      "bytes": 260351,
+      "sha256": "a503c9c1cbd3099abc580acf50e8479a4fc0955454af3be5d20dfed23d1eaff6"
+    },
+    "native-reference-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-reference-actual-exit.json",
+      "bytes": 1451,
+      "sha256": "b15c7533e9dc5cd7da79d747b3f2c8d518e7653012228936b1c526ba4f16479e"
+    },
+    "native-provider-input-contract.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-provider-input-contract.json",
+      "bytes": 17134,
+      "sha256": "21194542a9065b8c1d2193c99fcd98fb69451c43caf82c2313a90b621758259e"
+    },
+    "native-link-provider-supplement.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json",
+      "bytes": 9664,
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce"
+    },
+    "native-removal-lifecycle-amendment.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-removal-lifecycle-amendment.json",
+      "bytes": 5118,
+      "sha256": "101bfa7d09806e5793bb06e07216692424a215b094a07c964410a47274c159d2"
+    },
+    "native-audit-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-audit-bound.py",
+      "bytes": 49269,
+      "sha256": "b6ba11531bdfa6f40245f2cff0b81012265073e666892935ccdbaa20cc20ec13"
+    },
+    "native-audit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-audit.json",
+      "bytes": 213186,
+      "sha256": "58a839de6e59343ff3f02f5df18af9c093b117b9848e05508bca6a3bd1c5dd9a"
+    },
+    "native-audit-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-audit-actual-exit.json",
+      "bytes": 1124,
+      "sha256": "fbfa50a4a2e800d3688d499fb566f366b046d10107d07eb077ec9a10fab0f504"
+    },
+    "generate-native-multiple-altimeters-fixture-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/generate-native-multiple-altimeters-fixture-bound.py",
+      "bytes": 25971,
+      "sha256": "5a5c0f9cfe479f560d45f09cedfe944bf0d5a37753fe9015c83d2f4e584cacc7"
+    },
+    "native-fixture-generation-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-fixture-generation-actual-exit.json",
+      "bytes": 1164,
+      "sha256": "5dc8dabcc497f55e82cae56908e6a9a3521b53319c5debea419ffca7887dead6"
+    },
+    "native-borrowed-fixture-audit-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-borrowed-fixture-audit-bound.py",
+      "bytes": 33645,
+      "sha256": "154a352f981d23915f73131e6083b635e4c61f1f6ab0961f353c7a82a2da3404"
+    },
+    "native-borrowed-fixture-audit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-borrowed-fixture-audit.json",
+      "bytes": 9333,
+      "sha256": "608717fc21c3e1137a448c5087d04590237a4c83a230c90378865c1ae4c09920"
+    },
+    "native-borrowed-fixture-audit-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-borrowed-fixture-audit-actual-exit.json",
+      "bytes": 1055,
+      "sha256": "59a25d6424d5a8b71c356a34c613345f6bf0b6539484e25d3b28b28c85d51dbe"
+    },
+    "native-reference-attempt1-failure.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-reference-attempt1-failure.json",
+      "bytes": 3065,
+      "sha256": "a29f21b768e48254591d49a33e72951e223c1c42f8cbb264b66257783c6f07b1"
+    },
+    "native-reference-attempt2-failure.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-reference-attempt2-failure.json",
+      "bytes": 3461,
+      "sha256": "4b1cf5ef057d80afe18e9f6da4683e0d4b4c9e8b96550ace142095e7f216f96a"
+    },
+    "provisional-local-normal-attempt1-failure.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/provisional-local-normal-attempt1-failure.json",
+      "bytes": 2056,
+      "sha256": "c420495ffab8b8ed9a8902762744ae2f2a1f5627e0db1ef2c6b84792b001d859"
+    },
+    "generate-native-multiple-altimeters-fixture-attempt2.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/generate-native-multiple-altimeters-fixture-attempt2.py",
+      "bytes": 26052,
+      "sha256": "f793afe6d16c1799bfd9d361424116c88b2c0270a49868a655f677323a32290f"
+    },
+    "native-fixture-generation-attempt2-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-fixture-generation-attempt2-actual-exit.json",
+      "bytes": 1454,
+      "sha256": "20c79a9fe241631b24655436d92ee0b1556dec166246adb652d2f669be86785e"
+    },
+    "native-borrowed-fixture-audit-attempt2-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-borrowed-fixture-audit-attempt2-bound.py",
+      "bytes": 33586,
+      "sha256": "a5e57757efdcd19bf6492de9d16bbc6a82fcb73abc7e09ddb32c4720984fd9e9"
+    },
+    "native-borrowed-fixture-audit-attempt2.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-borrowed-fixture-audit-attempt2.json",
+      "bytes": 9384,
+      "sha256": "35d8b6feedc12e0c7793fb0553cb465ec17cca09b23ab8aad5104054275b9beb"
+    },
+    "native-borrowed-fixture-audit-attempt2-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-borrowed-fixture-audit-attempt2-actual-exit.json",
+      "bytes": 1373,
+      "sha256": "ed8ccc5d30b49637262d4ba1bfb2319384ad07aa4934b25c8c5cc5310a3365f3"
+    }
+  },
+  "native_DATA_state": "INDEPENDENT_M49_MULTIPLE_ALTIMETERS_NATIVE_DATA_CLEAR",
+  "literal_DATA_state": "INDEPENDENT_M49_NATIVE_LITERAL_FIXTURE_DATA_CLEAR",
+  "counts": {
+    "canonical_packets": 42,
+    "configuration_count": 12,
+    "input_rows": 441,
+    "observed_packets": 42,
+    "removal_events": 1,
+    "system_calls": 104,
+    "without_observed_packet": 399
+  },
+  "fixture": {
+    "path": "crates/gz-sim-scene/tests/fixtures/m49_native_multiple_altimeters.rs",
+    "bytes": 181869,
+    "sha256": "76987d66ec555fb9f7ade47d60cb027e137edd2f6a7e2cf37b36f20b93b6edec"
+  },
+  "fixture_provenance": {
+    "path": "crates/gz-sim-scene/tests/fixtures/m49_native_multiple_altimeters.provenance.json",
+    "sha256": "8531690d4337aaf238a25ce0c93609d022ba0d9fb02b84d58ddfe4ed88901dec"
+  },
+  "input_bindings": {
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/generate-native-multiple-altimeters-fixture-attempt2.py": {
+      "bytes": 26052,
+      "mode": "0o664",
+      "sha256": "f793afe6d16c1799bfd9d361424116c88b2c0270a49868a655f677323a32290f"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-audit-actual-exit.json": {
+      "bytes": 1124,
+      "mode": "0o664",
+      "sha256": "fbfa50a4a2e800d3688d499fb566f366b046d10107d07eb077ec9a10fab0f504"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-audit-bound.py": {
+      "bytes": 49269,
+      "mode": "0o664",
+      "sha256": "b6ba11531bdfa6f40245f2cff0b81012265073e666892935ccdbaa20cc20ec13"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-audit-execution.log": {
+      "bytes": 247,
+      "mode": "0o664",
+      "sha256": "c088da16a448796a610d05ad876f8caee52286ade09d12bf7091ebeec78c0faf"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-audit.json": {
+      "bytes": 213186,
+      "mode": "0o664",
+      "sha256": "58a839de6e59343ff3f02f5df18af9c093b117b9848e05508bca6a3bd1c5dd9a"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json": {
+      "bytes": 9664,
+      "mode": "0o664",
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-eight.stdout": {
+      "bytes": 116089,
+      "mode": "0o664",
+      "sha256": "dd9137075d87c0242ea544e1d56c55538adb06b0d7cc3426294376734956eed1"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-pair.stdout": {
+      "bytes": 29612,
+      "mode": "0o664",
+      "sha256": "1f3d39d6aa85098729f6db1fbdaa7070e292531676193501de61d88b3edab3c2"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/multiple-altimeters-remove.stdout": {
+      "bytes": 17186,
+      "mode": "0o664",
+      "sha256": "c3b5a054f4557a65fce8ac9bf0397896eb3b6bc449f1e48a9dfae054365b9709"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-multiple-altimeters-attempt3-ob1oh0nd/result.json": {
+      "bytes": 260351,
+      "mode": "0o664",
+      "sha256": "a503c9c1cbd3099abc580acf50e8479a4fc0955454af3be5d20dfed23d1eaff6"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-reference-actual-exit.json": {
+      "bytes": 1451,
+      "mode": "0o664",
+      "sha256": "b15c7533e9dc5cd7da79d747b3f2c8d518e7653012228936b1c526ba4f16479e"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-reference-attempt3-execution.log": {
+      "bytes": 146,
+      "mode": "0o664",
+      "sha256": "f134bdbf125152ad8c173a826012d00e19f7797c84e9bd83a28c98b2d62cb273"
+    }
+  },
+  "input_domain": "DIRECT_ECM_SENSOR_WORLD_POSE_AND_WORLD_POINT_VELOCITY",
+  "limits": [
+    "Actual independently audited original Altimeter System multiplicity records copied literally. All441 input rows retain sensor WORLD pose and WORLD point velocity; no WORLD-link input or Physics trajectory is reconstructed. The42 borrowed output records preserve actual scalar IEEEbits and complete header/message bytes. An observed=None input means only no matching captured packet; it proves no internal Sensor::Update return, no-noise draw or per-sensor deadline state. Native family-wide demand/removal differs from Rust individual ownership. Aggregate104 System calls remain summary metadata; no unrecorded paused-call rows are invented. No native/Rust RNG, individual-disconnect/all-disconnected-removal or numerical-wire equivalence is supplied. Existing349 checks and exact2 link-provider supplement stay distinct. Actual generator0, independent fixed-literal DATA, Source consumers/fullnormal/hosted and acceptance remain separately required.",
+    "104 System calls are captured helper-summary/pinned-method attestation, not individual raw records.",
+    "Rust observed-value consumers and full normal qualification remain pending at this provenance checkpoint.",
+    "No hosted CI, publication, installation, browser, release or phase acceptance is supplied."
+  ],
+  "preserved_first_literal_fixture": {
+    "sha256": "d00517f9f5490c6ae54315b8cc8df96dd64c5d4329f48e201083d581257a60b9",
+    "bytes": 181811,
+    "literal_DATA_report_sha256": "608717fc21c3e1137a448c5087d04590237a4c83a230c90378865c1ae4c09920",
+    "failed_normal_source_tree": "b023aaa16308460f5e2269905c0ea3c13f98b7d3",
+    "qualified_as_normal": false
+  },
+  "named_type_correction": {
+    "failure": "Generated CASES tuple declaration triggered Clippy type_complexity.",
+    "change": "Add NativeCase alias; CASES type uses alias. Five record structs and entire CASES value body unchanged.",
+    "CASES_value_body_sha256": "ddc095239cf616ae26bb9d760bd2cda13bff41be8e636b18954de897b3d1c848",
+    "old_value_body_identical": true,
+    "lint_allowance_added": false,
+    "native_capture_or_native_DATA_repeated": false,
+    "corrected_literal_DATA_actual_root_exit_code": 0,
+    "corrected_literal_DATA_report_sha256": "35d8b6feedc12e0c7793fb0553cb465ec17cca09b23ab8aad5104054275b9beb",
+    "full_normal_retry_pending": true
+  }
+}

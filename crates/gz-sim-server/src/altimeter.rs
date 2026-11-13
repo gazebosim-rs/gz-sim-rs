@@ -1,14 +1,15 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Canonical ideal altimeter stream; physics and acquisition remain in Scene.
+//! Independent canonical altimeter streams; physics and acquisition remain in Scene.
 use super::*;
 use gz_sim_proto::msgs::{Altimeter, Header, header::Map};
-use gz_sim_scene::{AltimeterPublication, AltimeterSample, EntityKind, PendingResetRemoval};
+use gz_sim_scene::{AltimeterPublication, AltimeterSample, EntityKind, Name, PendingResetRemoval};
 use std::collections::BTreeSet;
 
 pub(super) struct Stream {
     entity: Entity,
     identity: u64,
+    scoped_name: String,
     pub(super) metadata: AltimeterPublication,
     pub(super) endpoint: String,
     pub(super) publisher: Arc<world_io::AltimeterOutput>,
@@ -61,40 +62,106 @@ fn packet(
     })
 }
 
-pub(super) type Prepared = BTreeMap<String, (AltimeterPublication, Arc<world_io::AltimeterOutput>)>;
+// Reset metadata retains the immutable loaded identity, not only its endpoint.
+pub(super) type Prepared = BTreeMap<
+    String,
+    (
+        u64,
+        String,
+        AltimeterPublication,
+        Arc<world_io::AltimeterOutput>,
+    ),
+>;
+const MAX_ALTIMETERS: usize = 8;
 
-/// `occupied` contains every non-altimeter reserved/publication/input/service key,
-/// already resolved using these ServerOptions. Check all metadata before any IO.
+fn world_name(simulation: &Simulation) -> Result<&str, Error> {
+    let mut owners = simulation
+        .world()
+        .iter_entities()
+        .filter(|e| e.get::<EntityKind>() == Some(&EntityKind::World));
+    let owner = owners.next().ok_or(Error::AltimeterIdentity)?;
+    if owners.next().is_some() {
+        return Err(Error::AltimeterIdentity);
+    }
+    owner
+        .get::<Name>()
+        .map(|name| name.0.as_str())
+        .filter(|name| !name.is_empty())
+        .ok_or(Error::AltimeterIdentity)
+}
+
+fn valid_owner(
+    world: &str,
+    id: u64,
+    kind: EntityKind,
+    name: &str,
+    metadata: &AltimeterPublication,
+) -> bool {
+    id != 0
+        && kind == EntityKind::Sensor
+        && valid_metadata(metadata)
+        && name
+            .strip_prefix(world)
+            .and_then(|tail| tail.strip_prefix("::"))
+            == Some(metadata.entity_name.as_str())
+}
+
+/// Validate the entire immutable reset set before even looking up a CPU lease.
 pub(super) fn prepare_reset(
     server: &Server,
     occupied: &BTreeSet<String>,
 ) -> Result<Prepared, Error> {
-    let metadata: Vec<_> = gz_sim_scene::initial_altimeter_publications(&server.simulation)?
-        .cloned()
-        .collect();
-    if metadata.len() > 1 || metadata.iter().any(|m| !valid_metadata(m)) {
+    let originals: Vec<_> =
+        gz_sim_scene::initial_altimeter_publications_with_identity(&server.simulation)?
+            .map(|(id, kind, name, metadata)| (id, kind, name.to_owned(), metadata.clone()))
+            .collect();
+    if originals.len() > MAX_ALTIMETERS {
         return Err(Error::AltimeterIdentity);
     }
-    let mut prepared = BTreeMap::new();
-    for metadata in metadata {
-        let key = server
-            .network_config
-            .topic_key(&options::as_valid_topic(&metadata.topic))?;
-        if occupied.contains(&key) {
+    if originals.is_empty() {
+        return Ok(BTreeMap::new());
+    }
+    let world = world_name(&server.simulation)?;
+    let mut ids = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut keys = occupied.clone();
+    let mut selected = Vec::new();
+    for (id, kind, name, metadata) in originals {
+        if !valid_owner(world, id, kind, &name, &metadata)
+            || !ids.insert(id)
+            || !names.insert(name.clone())
+        {
             return Err(Error::AltimeterIdentity);
         }
-        let publisher = match server
-            .altimeters
-            .iter()
-            .find(|stream| stream.endpoint == key)
+        let endpoint = server
+            .network_config
+            .topic_key(&options::as_valid_topic(&metadata.topic))?;
+        if !keys.insert(endpoint.clone()) {
+            return Err(Error::AltimeterIdentity);
+        }
+        selected.push((id, name, metadata, endpoint));
+    }
+    // Check every reusable binding before the first possible declaration. A
+    // later bad reset entry cannot follow an earlier publisher side effect.
+    for (id, name, metadata, endpoint) in &selected {
+        if let Some(stream) = server.altimeters.iter().find(|s| &s.endpoint == endpoint)
+            && (stream.identity != *id
+                || &stream.scoped_name != name
+                || &stream.metadata != metadata)
         {
+            return Err(Error::ResetAltimeters);
+        }
+    }
+    let mut prepared = BTreeMap::new();
+    for (id, name, metadata, endpoint) in selected {
+        let publisher = match server.altimeters.iter().find(|s| s.endpoint == endpoint) {
             Some(stream) => Arc::clone(&stream.publisher),
             None => server
                 .world_io
-                .altimeter_output(key.clone())
+                .altimeter_output(endpoint.clone())
                 .map_err(|error| Error::WorldNetwork(error.to_string()))?,
         };
-        prepared.insert(key, (metadata, publisher));
+        prepared.insert(endpoint, (id, name, metadata, publisher));
     }
     Ok(prepared)
 }
@@ -109,61 +176,78 @@ pub(super) fn streams(
     let candidates: Vec<_> = simulation
         .world()
         .iter_entities()
-        .filter(|entity| !entity.contains::<PendingResetRemoval>())
-        .filter(|entity| entity.contains::<AltimeterPublication>())
-        .map(|entity| entity.id())
+        .filter(|e| !e.contains::<PendingResetRemoval>() && e.contains::<AltimeterPublication>())
+        .map(|e| e.id())
         .collect();
-    if candidates.len() > 1 {
+    if candidates.len() > MAX_ALTIMETERS {
         return Err(Error::AltimeterIdentity);
     }
-    // No declaration before count, ownership, metadata and reset-binding validation.
+    if candidates.is_empty() {
+        return if prepared.is_some_and(|p| !p.is_empty()) {
+            Err(Error::ResetAltimeters)
+        } else {
+            Ok(Vec::new())
+        };
+    }
+    let world = world_name(simulation)?;
+    let originals: Vec<_> = gz_sim_scene::initial_altimeter_publications_with_identity(simulation)?
+        .map(|(id, kind, name, _)| (id, kind, name.to_owned()))
+        .collect();
+    let mut ids = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut keys = occupied.clone();
     let mut selected = Vec::new();
     for entity in candidates {
-        let entity = simulation.world().entity(entity);
-        let metadata = entity
+        let owner = simulation.world().entity(entity);
+        let metadata = owner
             .get::<AltimeterPublication>()
-            .expect("candidate owns metadata");
-        let id = entity
+            .expect("selected metadata");
+        let id = owner
             .get::<EntityId>()
             .ok_or(Error::AltimeterIdentity)?
             .get();
-        if !valid_metadata(metadata)
-            || entity.get::<EntityKind>() != Some(&EntityKind::Sensor)
-            || entity_by_id(simulation.world(), id) != Some(entity.id())
+        let name = owner.get::<Name>().ok_or(Error::AltimeterIdentity)?;
+        let kind = owner.get::<EntityKind>().ok_or(Error::AltimeterIdentity)?;
+        if !valid_owner(world, id, *kind, &name.0, metadata)
+            || entity_by_id(simulation.world(), id) != Some(entity)
+            || !originals
+                .iter()
+                .any(|(initial_id, initial_kind, initial_name)| {
+                    *initial_id == id && initial_kind == kind && initial_name == &name.0
+                })
+            || !ids.insert(id)
+            || !names.insert(name.0.clone())
         {
             return Err(Error::AltimeterIdentity);
         }
-        let endpoint = options.topic_key(&crate::options::as_valid_topic(&metadata.topic))?;
-        if occupied.contains(&endpoint) {
+        let endpoint = options.topic_key(&options::as_valid_topic(&metadata.topic))?;
+        if !keys.insert(endpoint.clone()) {
             return Err(Error::AltimeterIdentity);
         }
         if let Some(prepared) = prepared {
-            let (original, _) = prepared.get(&endpoint).ok_or(Error::ResetAltimeters)?;
-            if original != metadata {
+            let (initial_id, initial_name, original, _) =
+                prepared.get(&endpoint).ok_or(Error::ResetAltimeters)?;
+            if *initial_id != id || initial_name != &name.0 || original != metadata {
                 return Err(Error::ResetAltimeters);
             }
         }
-        selected.push((entity.id(), id, metadata.clone(), endpoint));
+        selected.push((entity, id, name.0.clone(), metadata.clone(), endpoint));
     }
-    if prepared.is_some_and(|prepared| prepared.len() != selected.len()) {
+    if prepared.is_some_and(|p| p.len() != selected.len()) {
         return Err(Error::ResetAltimeters);
     }
     let mut result = Vec::new();
-    for (entity, identity, metadata, endpoint) in selected {
+    for (entity, identity, scoped_name, metadata, endpoint) in selected {
         let publisher = match prepared {
-            Some(prepared) => Arc::clone(
-                &prepared
-                    .get(&endpoint)
-                    .expect("prepared endpoint validated before IO")
-                    .1,
-            ),
+            Some(p) => Arc::clone(&p.get(&endpoint).expect("entire prepared set validated").3),
             None => io
                 .altimeter_output(endpoint.clone())
-                .map_err(|error| Error::WorldNetwork(error.to_string()))?,
+                .map_err(|e| Error::WorldNetwork(e.to_string()))?,
         };
         result.push(Stream {
             entity,
             identity,
+            scoped_name,
             metadata,
             endpoint,
             publisher,
@@ -178,6 +262,9 @@ impl Stream {
     fn live(&self, simulation: &Simulation) -> bool {
         let world = simulation.world();
         world.get::<EntityKind>(self.entity) == Some(&EntityKind::Sensor)
+            && world
+                .get::<Name>(self.entity)
+                .is_some_and(|name| name.0 == self.scoped_name)
             && world.get::<AltimeterPublication>(self.entity) == Some(&self.metadata)
             && world.get::<EntityId>(self.entity).map(EntityId::get) == Some(self.identity)
             && entity_by_id(world, self.identity) == Some(self.entity)
@@ -260,3 +347,7 @@ impl Server {
 #[cfg(test)]
 #[path = "../tests/private/altimeter.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_altimeters_native.rs"]
+mod multiple_altimeters_native;

@@ -1,0 +1,26 @@
+<?xml version='1.0'?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version='1.12'><world name='default'>
+  <gravity>0 0 0</gravity>
+  <physics name='step' type='ode'><max_step_size>0.001</max_step_size></physics>
+  <model name='rig'><pose>0 0 3 0 0 0</pose><link name='body'>
+    <inertial><mass>2</mass>
+      <inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia></inertial>
+    <collision name='shape'><geometry><box><size>1 1 1</size></box></geometry></collision>
+    <sensor name='front_altimeter' type='altimeter'>
+      <pose>1 0 0.5 0 0 0</pose>
+      <always_on>true</always_on><update_rate>100</update_rate>
+      <topic>/m49/front_altimeter</topic><frame_id>rig/body/front_altimeter</frame_id>
+      <altimeter/>
+    </sensor>
+    <sensor name='rear_altimeter' type='altimeter'>
+      <pose>-1 0 -0.5 0 0 0</pose>
+      <always_on>true</always_on><update_rate>50</update_rate>
+      <topic>/m49/rear_altimeter</topic><frame_id>rig/body/rear_altimeter</frame_id>
+      <altimeter><vertical_position><noise type='gaussian'>
+        <mean>0.05</mean><stddev>0</stddev>
+      </noise></vertical_position></altimeter>
+    </sensor>
+  </link></model>
+</world></sdf>

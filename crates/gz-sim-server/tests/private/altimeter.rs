@@ -1141,3 +1141,324 @@ fn actual_noisy_wire_channels_preserve_reference_headers_reconnect_and_seeded_lo
     );
     server.shutdown();
 }
+
+fn multiple_xml(count: usize) -> String {
+    let start = XML.find("    <sensor ").unwrap();
+    let end = start + XML[start..].find("</sensor>").unwrap() + "</sensor>".len();
+    let sensor = &XML[start..end];
+    let mut replacement = String::new();
+    for index in 0..count {
+        replacement.push_str(&if index == 0 {
+            sensor.to_owned()
+        } else {
+            sensor
+                .replace("name='altimeter'", &format!("name='altimeter{index}'"))
+                .replace("/m13/altimeter", &format!("/m49/altimeter{index}"))
+                .replace("rig/body/altimeter", &format!("rig/body/altimeter{index}"))
+        });
+    }
+    format!("{}{}{}", &XML[..start], replacement, &XML[end..])
+}
+
+#[test]
+fn whole_set_late_identity_metadata_alias_and_limit_fail_before_any_io() {
+    for case in 0..10 {
+        let (mut server, _, _) = server(&multiple_xml(8));
+        assert_eq!(server.altimeters.len(), 8);
+        let first = server.altimeters[0].entity;
+        let last = server.altimeters[7].entity;
+        let first_name = server
+            .simulation
+            .world()
+            .get::<SceneName>(first)
+            .unwrap()
+            .0
+            .clone();
+        let mut occupied = BTreeSet::new();
+        match case {
+            0 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<AltimeterPublication>(last)
+                    .unwrap()
+                    .vertical_reference = f64::NAN
+            }
+            1 => server
+                .simulation
+                .world_mut()
+                .get_mut::<AltimeterPublication>(last)
+                .unwrap()
+                .frame_id
+                .clear(),
+            2 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .remove::<EntityId>();
+            }
+            3 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .insert(EntityKind::Link);
+            }
+            4 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .insert(SceneName("default::foreign::altimeter".into()));
+            }
+            5 => {
+                let transferred = server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(first)
+                    .take::<EntityId>()
+                    .unwrap();
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .insert(transferred);
+            }
+            6 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .insert(SceneName(first_name));
+            }
+            7 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<AltimeterPublication>(last)
+                    .unwrap()
+                    .topic = "/m13/alti@meter".into()
+            }
+            8 => {
+                let endpoint = server.altimeters[7].endpoint.clone();
+                occupied.insert(endpoint);
+            }
+            _ => {
+                server.simulation.world_mut().spawn(metadata());
+            }
+        }
+        let before = refusal_boundary_snapshot(&server);
+        // Any premature declaration would report a network failure instead of
+        // the required whole-set identity refusal.
+        server.world_io.session.close().wait().unwrap();
+        assert!(
+            matches!(
+                streams(
+                    &server.simulation,
+                    &server.world_io,
+                    &server.network_config,
+                    &occupied,
+                    None
+                ),
+                Err(Error::AltimeterIdentity)
+            ),
+            "late case {case}"
+        );
+        assert_eq!(
+            refusal_boundary_snapshot(&server),
+            before,
+            "late case {case}"
+        );
+        server.shutdown();
+    }
+}
+
+#[test]
+fn resolved_remaps_and_every_prepared_binding_are_atomic_for_eight_owners() {
+    for case in 0..7 {
+        let (mut server, _, _) = server(&multiple_xml(8));
+        let mut prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
+        let first = server.altimeters[0].endpoint.clone();
+        let last = server.altimeters[7].endpoint.clone();
+        let mut options = server.network_config.clone();
+        match case {
+            0 => options
+                .add_topic_remap(
+                    &server.altimeters[7].metadata.topic,
+                    &server.altimeters[0].metadata.topic,
+                )
+                .unwrap(),
+            1 => {
+                prepared.get_mut(&last).unwrap().0 = server.altimeters[0].identity;
+            }
+            2 => {
+                let name = prepared[&first].1.clone();
+                prepared.get_mut(&last).unwrap().1 = name;
+            }
+            3 => {
+                prepared.get_mut(&last).unwrap().2.frame_id = "changed/reset/frame".into();
+            }
+            4 => {
+                prepared.remove(&last);
+            }
+            5 => {
+                let value = prepared[&last].clone();
+                prepared.insert("extra/prepared/key".into(), value);
+            }
+            _ => {
+                server.altimeters[7].scoped_name = "default::wrong::altimeter".into();
+            }
+        }
+        let before = refusal_boundary_snapshot(&server);
+        server.world_io.session.close().wait().unwrap();
+        if case == 6 {
+            assert!(matches!(
+                prepare_reset(&server, &BTreeSet::new()),
+                Err(Error::ResetAltimeters)
+            ));
+        } else {
+            let result = streams(
+                &server.simulation,
+                &server.world_io,
+                &options,
+                &BTreeSet::new(),
+                Some(&prepared),
+            );
+            if case == 0 {
+                assert!(matches!(result, Err(Error::AltimeterIdentity)));
+            } else {
+                assert!(
+                    matches!(result, Err(Error::ResetAltimeters)),
+                    "prepared case {case}"
+                );
+            }
+        }
+        assert_eq!(refusal_boundary_snapshot(&server), before);
+        server.shutdown();
+    }
+}
+
+#[test]
+fn prepared_eight_identity_leases_restore_removed_owners_and_preserve_absence() {
+    let (mut server, _, _) = server(&multiple_xml(8));
+    let identities: Vec<_> = server
+        .altimeters
+        .iter()
+        .map(|s| (s.identity, s.scoped_name.clone(), Arc::as_ptr(&s.publisher)))
+        .collect();
+    let prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
+    assert_eq!(prepared.len(), 8);
+    let reconstructed = streams(
+        &server.simulation,
+        &server.world_io,
+        &server.network_config,
+        &BTreeSet::new(),
+        Some(&prepared),
+    )
+    .unwrap();
+    for stream in &reconstructed {
+        assert!(
+            identities
+                .iter()
+                .any(|(id, name, pointer)| *id == stream.identity
+                    && name == &stream.scoped_name
+                    && *pointer == Arc::as_ptr(&stream.publisher))
+        );
+    }
+    drop(reconstructed);
+    drop(prepared);
+    let owner = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|e| e.get::<SceneName>().is_some_and(|n| n.0 == "default::rig"))
+        .unwrap()
+        .get::<EntityId>()
+        .unwrap()
+        .get();
+    remove_model(&mut server.simulation, owner).unwrap();
+    server.retire_altimeters();
+    assert!(server.altimeters.is_empty() && server.altimeters.capacity() == 0);
+    let restoring = prepare_reset(&server, &BTreeSet::new()).unwrap();
+    assert_eq!(restoring.len(), 8);
+    assert!(
+        streams(
+            &server.simulation,
+            &server.world_io,
+            &server.network_config,
+            &BTreeSet::new(),
+            None
+        )
+        .unwrap()
+        .is_empty()
+    );
+    assert!(matches!(
+        streams(
+            &server.simulation,
+            &server.world_io,
+            &server.network_config,
+            &BTreeSet::new(),
+            Some(&restoring)
+        ),
+        Err(Error::ResetAltimeters)
+    ));
+    drop(restoring);
+    server.reset_scene().unwrap();
+    assert_eq!(server.altimeters.len(), 8);
+    for stream in &server.altimeters {
+        assert!(
+            identities
+                .iter()
+                .any(|(id, name, _)| *id == stream.identity && name == &stream.scoped_name)
+        );
+    }
+    server.shutdown();
+    let (mut absent, _, _) = self::server(&multiple_xml(0));
+    assert!(
+        absent.altimeters.is_empty()
+            && prepare_reset(&absent, &BTreeSet::new()).unwrap().is_empty()
+    );
+    absent.update().unwrap();
+    absent.shutdown();
+}
+
+#[test]
+fn immutable_world_prefix_is_not_assumed_to_be_one_scope_segment() {
+    let value = metadata();
+    assert!(valid_owner(
+        "outer::default",
+        1,
+        EntityKind::Sensor,
+        "outer::default::rig::body::altimeter",
+        &value
+    ));
+    assert!(!valid_owner(
+        "outer",
+        1,
+        EntityKind::Sensor,
+        "outer::default::rig::body::altimeter",
+        &value
+    ));
+    assert!(!valid_owner(
+        "default",
+        1,
+        EntityKind::Sensor,
+        "foreign::rig::body::altimeter",
+        &value
+    ));
+    assert!(!valid_owner(
+        "default",
+        0,
+        EntityKind::Sensor,
+        "default::rig::body::altimeter",
+        &value
+    ));
+    assert!(!valid_owner(
+        "default",
+        1,
+        EntityKind::Link,
+        "default::rig::body::altimeter",
+        &value
+    ));
+}
