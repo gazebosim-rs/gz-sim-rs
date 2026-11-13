@@ -1,0 +1,1238 @@
+{
+  "schema_version": 1,
+  "state": "ACTUAL_M50_SCOPED_ORIGINAL_SYSTEM_AND_LITERAL_PROVENANCE",
+  "source_program": {
+    "path": "crates/gz-sim-server/tests/native_multiple_air_pressures.cc",
+    "sha256": "976188138eb20d15b37b50e60e703f757f9534912f265428bf67989c0af0f814"
+  },
+  "capture": {
+    "tree": "168decc901f50e06dc790c28b4a69ab3adfa445f",
+    "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+    "runtime_parent": "4ccd4f067ecf3438cd9a3cc445cd45d682f6075d",
+    "runtime_parent_accepted": false,
+    "actual_exit_code": 0,
+    "elapsed_seconds": 23.920369773870334,
+    "mode_count": 3,
+    "configuration_count": 12,
+    "system_calls": 104,
+    "input_rows": 441,
+    "canonical_packets": 42,
+    "native_family_demand_policy": true,
+    "native_physics_executed": false,
+    "old_native_modes_replayed": false,
+    "original_DSO_rebuilt": false
+  },
+  "commands": [
+    {
+      "name": "head-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/head-before.stdout",
+        "bytes": 41,
+        "sha256": "a6b29c43d4da204f48a26afdd7c12656cf011ddcdf310d5aa4e97892b4d981c4"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/head-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10759192588739097
+    },
+    {
+      "name": "index-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--cached",
+        "168decc901f50e06dc790c28b4a69ab3adfa445f",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/index-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/index-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10798348882235587
+    },
+    {
+      "name": "worktree-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/worktree-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/worktree-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1071779711637646
+    },
+    {
+      "name": "untracked-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/untracked-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/untracked-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1071379859931767
+    },
+    {
+      "name": "compiler",
+      "argv": [
+        "/usr/bin/clang++",
+        "--version"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/compiler.stdout",
+        "bytes": 110,
+        "sha256": "3635b8631d4ebcd8ed7586f4e01e7a6b44407de9d38db6e01daca9c242ed7a53"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/compiler.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10730463801883161
+    },
+    {
+      "name": "original-head",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-head.stdout",
+        "bytes": 41,
+        "sha256": "fe2ff9496387c2e9e70b2edfa8f779598aaf0ef8ec26cae206397e5f053afd51"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-head.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10770197189413011
+    },
+    {
+      "name": "original-source-0",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/systems/air_pressure/AirPressure.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-0.stdout",
+        "bytes": 9445,
+        "sha256": "20a242d4ebede6dbce358de2689cf29030281a5158b8513377d1ab39611fbb23"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-0.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10757958306930959
+    },
+    {
+      "name": "original-source-1",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/systems/air_pressure/AirPressure.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-1.stdout",
+        "bytes": 1808,
+        "sha256": "db0310c95acfec06ac0c023699a5721cf646915237217e5a1cf47e128f282379"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10747017804533243
+    },
+    {
+      "name": "original-source-2",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/System.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-2.stdout",
+        "bytes": 9304,
+        "sha256": "3e8879eff438b8fc69e7550b9fc9af7b9e2909f67b7dd689d7ebdf72861d2b9a"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10737809492275119
+    },
+    {
+      "name": "original-source-3",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/SystemLoader.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-3.stdout",
+        "bytes": 2417,
+        "sha256": "2c66d508d93d8a520af2d3d733f79283dfb8b06c55d3ef6271be89c5b052a612"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-3.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1075485551264137
+    },
+    {
+      "name": "original-source-4",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/EntityComponentManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-4.stdout",
+        "bytes": 47284,
+        "sha256": "baec922ba18c4554c1b7290808cc95e4141e8a2751958df8072d2ff93d1df107"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-4.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10767059307545424
+    },
+    {
+      "name": "original-source-5",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/EventManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-5.stdout",
+        "bytes": 6186,
+        "sha256": "158ce2a91ac25a4857631b7c3283ae13eab69a9d85bc18821a64d01a3c6a1c37"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-5.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10760942799970508
+    },
+    {
+      "name": "original-source-6",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/Util.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-6.stdout",
+        "bytes": 19419,
+        "sha256": "283175552768d01176100f12dc5fd0b83af8c8fed0800dc43ac901ce3844664a"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-6.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10739546781405807
+    },
+    {
+      "name": "original-source-7",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/Util.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-7.stdout",
+        "bytes": 33072,
+        "sha256": "6e35af3fa7c0a13d420a6cabae954177c16938d27d543d3e9f432fd980ade270"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-7.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10774821788072586
+    },
+    {
+      "name": "original-source-8",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/AirPressureSensor.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-8.stdout",
+        "bytes": 1361,
+        "sha256": "01459baadb882c0e5ed9cde3bd4aba15bdc44bffb9b0c86425b7553167cdc976"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-8.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10774723603390157
+    },
+    {
+      "name": "original-source-9",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Name.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-9.stdout",
+        "bytes": 1314,
+        "sha256": "786063562ed4567b70cd082d63ad67ce99dba68be92a9c180ca2fc9a76b5d99c"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-9.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10743072396144271
+    },
+    {
+      "name": "original-source-10",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/ParentEntity.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-10.stdout",
+        "bytes": 1601,
+        "sha256": "0c702ccf0655f2afb4007a48d01dd433105e149a4bd254ae1137d94b444c1a19"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-10.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.107404945185408
+    },
+    {
+      "name": "original-source-11",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Pose.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-11.stdout",
+        "bytes": 1722,
+        "sha256": "28fe8a59494b821b4c765e626154bc234fd1f17f5b4dc66f535b317328f697f8"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-11.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1075180268380791
+    },
+    {
+      "name": "original-source-12",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Sensor.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-12.stdout",
+        "bytes": 1617,
+        "sha256": "20541297c39c8ae485df71f54b8db53c0a2eb6b8453d0da77a2a8c188047fe92"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-12.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10766504216007888
+    },
+    {
+      "name": "original-source-13",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/World.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-13.stdout",
+        "bytes": 2192,
+        "sha256": "fbd6f297e2eb1a937bd6f302f2f8e87e427bdffe36c8b03b877b196787a4802c"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-13.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10777524998411536
+    },
+    {
+      "name": "original-source-14",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Model.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-14.stdout",
+        "bytes": 4000,
+        "sha256": "22b96ddd28383fe11a278da6ad8687ed058f3b3f370f89d34bf1ebf4474a6990"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-14.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10769633203744888
+    },
+    {
+      "name": "original-source-15",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Link.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-15.stdout",
+        "bytes": 1138,
+        "sha256": "27eab5791f2b3906453eeac6e96c067e2b2adcacb74a3316451b5d16efec858b"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-15.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10768961906433105
+    },
+    {
+      "name": "original-source-16",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/EntityComponentManager.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-16.stdout",
+        "bytes": 68945,
+        "sha256": "5191369a9778247b7fec6dc5520e29e6b5acf8a4593e70701aedbdb53370d8c3"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-16.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10800421796739101
+    },
+    {
+      "name": "original-source-17",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/detail/EntityComponentManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-17.stdout",
+        "bytes": 13702,
+        "sha256": "711430d754004dd0bc559c4c94bf7f6f0c6c01c073b0e195353c3ecc8b8a94a3"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-17.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10801252303645015
+    },
+    {
+      "name": "original-source-18",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/SimulationRunner.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-18.stdout",
+        "bytes": 59165,
+        "sha256": "117271ad24dbe2e326bf860658c110e44859e3bc6509a56b9d43dea1b619bf06"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/original-source-18.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10794937494210899
+    },
+    {
+      "name": "helper-compile",
+      "argv": [
+        "/usr/bin/clang++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/test",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/core/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/src",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/gz_msgs_gen",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/vendor/backward-cpp",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/math10",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/utils5",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/plugin5",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/common8",
+        "-isystem",
+        "/usr/include/uuid",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/fuel_tools12",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/msgs13",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/physics10",
+        "-isystem",
+        "/usr/include/eigen3",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/rendering11",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/transport16",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/sdformat17",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/gui11",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtCore",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6",
+        "-isystem",
+        "/usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQml",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQmlIntegration",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtNetwork",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQuick",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtGui",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQmlModels",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtOpenGL",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQuickControls2",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtWidgets",
+        "-isystem",
+        "/home/nkoenig/work/gazebo/rust/gz-sim/test/gtest_vendor/include",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference/crates/gz-sim-server/tests/native_multiple_air_pressures.cc",
+        "-o",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/native-multiple-air-pressures",
+        "-Wl,-rpath,/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib",
+        "-lstdc++fs",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib/libgz-sim.so.11.0.0~pre3",
+        "-lpthread",
+        "/home/nkoenig/local/lib/libgz-fuel_tools.so.12.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-physics.so.10.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-rendering.so.11.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-profiler.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-av.so.8.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libswscale.so",
+        "/usr/lib/x86_64-linux-gnu/libswscale.so",
+        "/usr/lib/x86_64-linux-gnu/libavdevice.so",
+        "/usr/lib/x86_64-linux-gnu/libavdevice.so",
+        "/usr/lib/x86_64-linux-gnu/libavformat.so",
+        "/usr/lib/x86_64-linux-gnu/libavformat.so",
+        "/usr/lib/x86_64-linux-gnu/libavcodec.so",
+        "/usr/lib/x86_64-linux-gnu/libavcodec.so",
+        "/usr/lib/x86_64-linux-gnu/libavutil.so",
+        "/usr/lib/x86_64-linux-gnu/libavutil.so",
+        "/home/nkoenig/local/lib/libgz-common-io.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-geospatial.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-graphics.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-transport-parameters.so.16.0.0~pre2",
+        "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-gui.so.11.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libprotobuf.so",
+        "/home/nkoenig/local/lib/libgz-common-events.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-plugin-loader.so.5.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-plugin.so.5.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libQt6QuickControls2.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Quick.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6QmlModels.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Qml.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Network.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6OpenGL.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Widgets.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Gui.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Core.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libGLX.so",
+        "/usr/lib/x86_64-linux-gnu/libOpenGL.so",
+        "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
+        "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
+        "/usr/lib/x86_64-linux-gnu/libdw.so",
+        "/usr/lib/x86_64-linux-gnu/libelf.so",
+        "/usr/lib/x86_64-linux-gnu/libpthread.a",
+        "/usr/lib/x86_64-linux-gnu/libz.so",
+        "/usr/lib/x86_64-linux-gnu/libbz2.so",
+        "/usr/lib/x86_64-linux-gnu/liblzma.so",
+        "/usr/lib/x86_64-linux-gnu/libzstd.so",
+        "/home/nkoenig/local/lib/libgz-common-testing.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2",
+        "-lpthread",
+        "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0",
+        "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0",
+        "/usr/lib/x86_64-linux-gnu/libuuid.so",
+        "/usr/lib/x86_64-linux-gnu/libuuid.so",
+        "-Wl,-rpath-link,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib",
+        "-Wl,-rpath,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/helper-compile.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/helper-compile.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 10.58217596099712
+    },
+    {
+      "name": "multiple-air-pressures-pair",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/native-multiple-air-pressures",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m15-m16-delivery/native-pressure-nzjy3tza/libgz-sim-air-pressure-system.so.11.0.0~pre3",
+        "pair",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-pair.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-pair.stdout",
+        "bytes": 22000,
+        "sha256": "4d6146d449846d6d4be76442dedd8f23d2ad56a62cca4933332208a72f503cad"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-pair.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 2.2235078590456396
+    },
+    {
+      "name": "multiple-air-pressures-eight",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/native-multiple-air-pressures",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m15-m16-delivery/native-pressure-nzjy3tza/libgz-sim-air-pressure-system.so.11.0.0~pre3",
+        "eight",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-eight.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-eight.stdout",
+        "bytes": 86037,
+        "sha256": "19a24ebbe2218017599dbbf3b784541957b8c26e70309a9458e53abdc531c220"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-eight.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 2.223659141920507
+    },
+    {
+      "name": "multiple-air-pressures-remove",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/native-multiple-air-pressures",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m15-m16-delivery/native-pressure-nzjy3tza/libgz-sim-air-pressure-system.so.11.0.0~pre3",
+        "remove",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-remove.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-remove.stdout",
+        "bytes": 13165,
+        "sha256": "f84f29f5ce8c9d1810b367094cb1938b6ea95b2c2c84bcfaa81bea423d87d9e0"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-remove.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 2.224586370168254
+    },
+    {
+      "name": "head-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/head-after.stdout",
+        "bytes": 41,
+        "sha256": "a6b29c43d4da204f48a26afdd7c12656cf011ddcdf310d5aa4e97892b4d981c4"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/head-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10788129805587232
+    },
+    {
+      "name": "index-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--cached",
+        "168decc901f50e06dc790c28b4a69ab3adfa445f",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/index-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/index-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1076353769749403
+    },
+    {
+      "name": "worktree-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/worktree-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/worktree-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10572621203027666
+    },
+    {
+      "name": "untracked-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m50-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/untracked-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/untracked-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10815448896028101
+    }
+  ],
+  "original_provider": {
+    "original_plugin_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m15-m16-delivery/native-pressure-nzjy3tza/libgz-sim-air-pressure-system.so.11.0.0~pre3",
+    "original_plugin_sha256": "768181fdfda1bbef114d54f1f4a6b5183d7ae4bcfd033006ff2b0a14b880c6c2",
+    "reused_aliases": {
+      "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m15-m16-delivery/native-pressure-nzjy3tza/libgz-sim-air-pressure-system.so": "libgz-sim-air-pressure-system.so.11.0.0~pre3",
+      "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m15-m16-delivery/native-pressure-nzjy3tza/libgz-sim-air-pressure-system.so.11": "libgz-sim-air-pressure-system.so.11.0.0~pre3"
+    },
+    "reused_object_sha256": "8247791369c1b3d5479545e985ab5b82289305a8289fdc77f432022d06a04748"
+  },
+  "sdk": {
+    "sdk_runtime_closure_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m47-delivery/native-sdk-current-dependency-closure.json",
+    "sdk_runtime_closure_sha256": "511ead617c78a01e772249ddbbfa1d995296a08469bedd1742d5453a2b6e9a44",
+    "historical_sdk_closure_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m13-m14-delivery/native-altimeter-current-dependency-closure.json",
+    "historical_sdk_closure_sha256": "370f49a779cbcb32bda7a46698ef2b82b6a13764c898287e0178524e66d7a4fb",
+    "sdk_drift_inventory_sha256": "a484797d83640f13bf17d162b916e4e38636a7cca273fb551bb12f5b5e3ce8eb",
+    "sdk_package_provenance_sha256": "bf5cf8486028b4315f7b7cfa5c387b6d8bcf6137d39f7bc6947a1dcecda656b3",
+    "sdk_closure_nodes": 349,
+    "sdk_baseline_scope": "All349 current identities, explicit historical349 and one installed MySQL .4 to .5 transition; initiator UNKNOWN. No old hash is relabelled current, no SDK rebuild or old proof transfer."
+  },
+  "evidence": {
+    "capture-source-state.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/capture-source-state.json",
+      "sha256": "d02c279900a49a05df7dab8004ff8d31419c9134e02152710c1cca5031fb8ed1",
+      "bytes": 1209
+    },
+    "native-reference.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-reference.py",
+      "sha256": "08ebb3a8682e635bbd10abbd56340eb23d2ef6f3d008ba35ae0e75f42f0da73e",
+      "bytes": 47288
+    },
+    "native-multiple-air-pressures-46x6_g6j/result.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/result.json",
+      "sha256": "1701bb05fd8ac8eaa0395cff58b33d16a1bd9e0e3155ca664d5e22d41709ac28",
+      "bytes": 299449
+    },
+    "native-reference-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-reference-actual-exit.json",
+      "sha256": "a32de38851179bfca5f09bed191166bff41ef6ca580611b813a98edb5e2bccba",
+      "bytes": 1496
+    },
+    "native-provider-input-contract.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-provider-input-contract.json",
+      "sha256": "423cda5d42c9d6393640790aa7458ee84a984c46a6867572443509022b06443a",
+      "bytes": 4237
+    },
+    "native-link-provider-supplement.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json",
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce",
+      "bytes": 9664
+    },
+    "pressure-component-input-supplement.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/pressure-component-input-supplement.json",
+      "sha256": "574a30343b58f47210cf5f6b9a058df65d3cb1bd1907b126707c36d785c27352",
+      "bytes": 23037
+    },
+    "inspect-pressure-provider.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/inspect-pressure-provider.py",
+      "sha256": "8ddad6434a65d9667778a389a2cd2218744eba1843407d5b3417ded12ce730f9",
+      "bytes": 15784
+    },
+    "inspect-pressure-provider-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/inspect-pressure-provider-actual-exit.json",
+      "sha256": "10730cea2f2e267254f2cf9e355557e34dfa59048c9571f88b0218d514e8111a",
+      "bytes": 1357
+    },
+    "native-audit-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-audit-bound.py",
+      "sha256": "185c55a642051d76d240cc08ec960756867f2847c93f31e6cb87427efaa4fa41",
+      "bytes": 50590
+    },
+    "native-audit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-audit.json",
+      "sha256": "5a1db2d7099ea23a8adf77e7904871f94a31e2004c7725c4af46d1a8507fcd80",
+      "bytes": 257766
+    },
+    "native-audit-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-audit-actual-exit.json",
+      "sha256": "7354d2e429d6f0cfb5cb74eaf0228136baa76742548d04d2eac90c2568b53c2a",
+      "bytes": 1186
+    },
+    "generate-native-multiple-air-pressures-fixture-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/generate-native-multiple-air-pressures-fixture-bound.py",
+      "sha256": "d2e27fdbcfb273ef9e5fa655844ad98660a059ef36cbfe56ab781a2a30936058",
+      "bytes": 27680
+    },
+    "native-fixture-generation-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-fixture-generation-actual-exit.json",
+      "sha256": "9c576d4424b16f3f3f519e6ef5417bc80cf60b699435ee6833a7dee746f89aa3",
+      "bytes": 1165
+    },
+    "native-borrowed-fixture-audit-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-borrowed-fixture-audit-bound.py",
+      "sha256": "8e15421b772f14622561aa2912bbe2ed6a3f39b6e8efe6c8f472a6dbf40cf486",
+      "bytes": 35479
+    },
+    "native-borrowed-fixture-audit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-borrowed-fixture-audit.json",
+      "sha256": "2a800b9d08230a3e0aab98ac01e07af3ef44fe24b182011bc21326cb3516e52c",
+      "bytes": 56341
+    },
+    "native-borrowed-fixture-audit-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-borrowed-fixture-audit-actual-exit.json",
+      "sha256": "62fa445ea0a9f361499cbeab2312e51015d11010ef19cc37f5c84ae8a9879da6",
+      "bytes": 1093
+    }
+  },
+  "native_DATA_state": "INDEPENDENT_M50_MULTIPLE_AIR_PRESSURES_NATIVE_DATA_CLEAR",
+  "literal_DATA_state": "INDEPENDENT_M50_NATIVE_LITERAL_FIXTURE_DATA_CLEAR",
+  "counts": {
+    "canonical_packets": 42,
+    "configuration_count": 12,
+    "input_rows": 441,
+    "observed_packets": 42,
+    "removal_events": 1,
+    "system_calls": 104,
+    "without_observed_packet": 399
+  },
+  "fixture": {
+    "path": "crates/gz-sim-scene/tests/fixtures/m50_native_multiple_air_pressures.rs",
+    "bytes": 140487,
+    "sha256": "2b43f1f5f197892fa846c4e7331589a2520556bc7372d339d36c622c40330ed1"
+  },
+  "fixture_provenance": {
+    "path": "crates/gz-sim-scene/tests/fixtures/m50_native_multiple_air_pressures.provenance.json",
+    "sha256": "d5586e4986d13f6eaca74986cbd0c455d9e67ed33f8d51afb293cb2da2b754b8"
+  },
+  "input_bindings": {
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json": {
+      "bytes": 9664,
+      "mode": "0o664",
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/generate-native-multiple-air-pressures-fixture-bound.py": {
+      "bytes": 27680,
+      "mode": "0o664",
+      "sha256": "d2e27fdbcfb273ef9e5fa655844ad98660a059ef36cbfe56ab781a2a30936058"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-audit-actual-exit.json": {
+      "bytes": 1186,
+      "mode": "0o664",
+      "sha256": "7354d2e429d6f0cfb5cb74eaf0228136baa76742548d04d2eac90c2568b53c2a"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-audit-bound.py": {
+      "bytes": 50590,
+      "mode": "0o664",
+      "sha256": "185c55a642051d76d240cc08ec960756867f2847c93f31e6cb87427efaa4fa41"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-audit-execution.log": {
+      "bytes": 250,
+      "mode": "0o664",
+      "sha256": "c3e52f05d9fa172c689c981f02cfeb5e37802260021385aa17ff636de8a6b0d6"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-audit.json": {
+      "bytes": 257766,
+      "mode": "0o664",
+      "sha256": "5a1db2d7099ea23a8adf77e7904871f94a31e2004c7725c4af46d1a8507fcd80"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-eight.stdout": {
+      "bytes": 86037,
+      "mode": "0o664",
+      "sha256": "19a24ebbe2218017599dbbf3b784541957b8c26e70309a9458e53abdc531c220"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-pair.stdout": {
+      "bytes": 22000,
+      "mode": "0o664",
+      "sha256": "4d6146d449846d6d4be76442dedd8f23d2ad56a62cca4933332208a72f503cad"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/multiple-air-pressures-remove.stdout": {
+      "bytes": 13165,
+      "mode": "0o664",
+      "sha256": "f84f29f5ce8c9d1810b367094cb1938b6ea95b2c2c84bcfaa81bea423d87d9e0"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-multiple-air-pressures-46x6_g6j/result.json": {
+      "bytes": 299449,
+      "mode": "0o664",
+      "sha256": "1701bb05fd8ac8eaa0395cff58b33d16a1bd9e0e3155ca664d5e22d41709ac28"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-reference-actual-exit.json": {
+      "bytes": 1496,
+      "mode": "0o664",
+      "sha256": "a32de38851179bfca5f09bed191166bff41ef6ca580611b813a98edb5e2bccba"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/native-reference-execution.log": {
+      "bytes": 140,
+      "mode": "0o664",
+      "sha256": "b6ddc4a2bfa79dd2d01cd1f8a3ff74002d69ab112c78d2ae0f30284de997a024"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/pressure-component-input-supplement.json": {
+      "bytes": 23037,
+      "mode": "0o664",
+      "sha256": "574a30343b58f47210cf5f6b9a058df65d3cb1bd1907b126707c36d785c27352"
+    }
+  },
+  "input_domain": "DIRECT_ECM_SENSOR_WORLD_POSE_REFERENCE_ALTITUDE_ZERO",
+  "pressure_component_input": {
+    "source": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m50-delivery/pressure-component-input-supplement.json",
+    "source_sha256": "574a30343b58f47210cf5f6b9a058df65d3cb1bd1907b126707c36d785c27352",
+    "separate_exact_node_count": 1,
+    "before_and_after_equal": true,
+    "diagnostic_is_runtime_loader_proof": false
+  },
+  "limits": [
+    "Actual independently audited original AirPressure System multiplicity records copied literally. All441 input rows retain sensor WORLD pose with reference altitude zero; no WORLD-link input or Physics trajectory is reconstructed. The42 borrowed output records preserve actual scalar IEEEbits and complete header/message bytes. An observed=None input means only no matching captured packet; it proves no internal Sensor::Update return, no-noise draw or per-sensor deadline state. Native family-wide demand/removal differs from Rust individual ownership. Aggregate104 System calls remain summary metadata; no unrecorded paused-call rows are invented. No native/Rust RNG, individual-disconnect/all-disconnected-removal or numerical-wire equivalence is supplied. Existing349 checks, exact2 link-provider supplement and exact1 pressure-component input stay distinct; dependency diagnostic metadata is not runtime loader qualification. Actual generator0, independent fixed-literal DATA, Source consumers/fullnormal/hosted and acceptance remain separately required.",
+    "104 System calls are captured helper-summary/pinned-method attestation, not individual raw records.",
+    "Rust observed-value consumers and full normal qualification remain pending at this provenance checkpoint.",
+    "No hosted CI, publication, installation, browser, release or phase acceptance is supplied."
+  ]
+}

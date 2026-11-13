@@ -1359,3 +1359,329 @@ fn pressure_and_altimeter_live_and_removed_initial_keys_refuse_aliases_in_both_d
         server.shutdown();
     }
 }
+
+fn multiple_xml(count: usize) -> String {
+    let start = XML.find("    <sensor ").unwrap();
+    let end = start + XML[start..].find("</sensor>").unwrap() + "</sensor>".len();
+    let sensor = &XML[start..end];
+    let mut replacement = String::new();
+    for index in 0..count {
+        replacement.push_str(&if index == 0 {
+            sensor.to_owned()
+        } else {
+            sensor
+                .replace(
+                    "name='air_pressure'",
+                    &format!("name='air_pressure{index}'"),
+                )
+                .replace("/m15/air_pressure", &format!("/m50/air_pressure{index}"))
+                .replace(
+                    "rig/body/air_pressure",
+                    &format!("rig/body/air_pressure{index}"),
+                )
+        });
+    }
+    format!("{}{}{}", &XML[..start], replacement, &XML[end..])
+}
+
+#[test]
+fn whole_set_late_identity_metadata_alias_and_limit_fail_before_any_io() {
+    for case in 0..10 {
+        let (mut server, _, _) = server(&multiple_xml(8));
+        assert_eq!(server.air_pressures.len(), 8);
+        let first = server.air_pressures[0].entity;
+        let last = server.air_pressures[7].entity;
+        let first_name = server
+            .simulation
+            .world()
+            .get::<SceneName>(first)
+            .unwrap()
+            .0
+            .clone();
+        let mut occupied = BTreeSet::new();
+        match case {
+            0 => server
+                .simulation
+                .world_mut()
+                .get_mut::<AirPressurePublication>(last)
+                .unwrap()
+                .topic
+                .clear(),
+            1 => server
+                .simulation
+                .world_mut()
+                .get_mut::<AirPressurePublication>(last)
+                .unwrap()
+                .frame_id
+                .clear(),
+            2 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .remove::<EntityId>();
+            }
+            3 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .insert(EntityKind::Link);
+            }
+            4 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .insert(SceneName("default::foreign::air_pressure".into()));
+            }
+            5 => {
+                let transferred = server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(first)
+                    .take::<EntityId>()
+                    .unwrap();
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .insert(transferred);
+            }
+            6 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .entity_mut(last)
+                    .insert(SceneName(first_name));
+            }
+            7 => {
+                server
+                    .simulation
+                    .world_mut()
+                    .get_mut::<AirPressurePublication>(last)
+                    .unwrap()
+                    .topic = "/m15/air_p@ressure".into()
+            }
+            8 => {
+                let endpoint = server.air_pressures[7].endpoint.clone();
+                occupied.insert(endpoint);
+            }
+            _ => {
+                server.simulation.world_mut().spawn(metadata());
+            }
+        }
+        let before = refusal_boundary_snapshot(&server);
+        // Any premature declaration would report a network failure instead of
+        // the required whole-set identity refusal.
+        server.world_io.session.close().wait().unwrap();
+        assert!(
+            matches!(
+                streams(
+                    &server.simulation,
+                    &server.world_io,
+                    &server.network_config,
+                    &occupied,
+                    None
+                ),
+                Err(Error::AirPressureIdentity)
+            ),
+            "late case {case}"
+        );
+        assert_eq!(
+            refusal_boundary_snapshot(&server),
+            before,
+            "late case {case}"
+        );
+        server.shutdown();
+    }
+}
+
+#[test]
+fn resolved_remaps_and_every_prepared_binding_are_atomic_for_eight_owners() {
+    for case in 0..7 {
+        let (mut server, _, _) = server(&multiple_xml(8));
+        let mut prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
+        let first = server.air_pressures[0].endpoint.clone();
+        let last = server.air_pressures[7].endpoint.clone();
+        let mut options = server.network_config.clone();
+        match case {
+            0 => options
+                .add_topic_remap(
+                    &server.air_pressures[7].metadata.topic,
+                    &server.air_pressures[0].metadata.topic,
+                )
+                .unwrap(),
+            1 => {
+                prepared.get_mut(&last).unwrap().2 = server.air_pressures[0].identity;
+            }
+            2 => {
+                let name = prepared[&first].3.clone();
+                prepared.get_mut(&last).unwrap().3 = name;
+            }
+            3 => {
+                prepared.get_mut(&last).unwrap().0.frame_id = "changed/reset/frame".into();
+            }
+            4 => {
+                prepared.remove(&last);
+            }
+            5 => {
+                let value = prepared[&last].clone();
+                prepared.insert("extra/prepared/key".into(), value);
+            }
+            _ => {
+                server.air_pressures[7].scoped_name = "default::wrong::air_pressure".into();
+            }
+        }
+        let before = refusal_boundary_snapshot(&server);
+        server.world_io.session.close().wait().unwrap();
+        if case == 6 {
+            assert!(matches!(
+                prepare_reset(&server, &BTreeSet::new()),
+                Err(Error::ResetAirPressures)
+            ));
+        } else {
+            let result = streams(
+                &server.simulation,
+                &server.world_io,
+                &options,
+                &BTreeSet::new(),
+                Some(&prepared),
+            );
+            if case == 0 {
+                assert!(matches!(result, Err(Error::AirPressureIdentity)));
+            } else {
+                assert!(
+                    matches!(result, Err(Error::ResetAirPressures)),
+                    "prepared case {case}"
+                );
+            }
+        }
+        assert_eq!(refusal_boundary_snapshot(&server), before);
+        server.shutdown();
+    }
+}
+
+#[test]
+fn prepared_eight_identity_leases_restore_removed_owners_and_preserve_absence() {
+    let (mut server, _, _) = server(&multiple_xml(8));
+    let identities: Vec<_> = server
+        .air_pressures
+        .iter()
+        .map(|s| (s.identity, s.scoped_name.clone(), Arc::as_ptr(&s.publisher)))
+        .collect();
+    let prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
+    assert_eq!(prepared.len(), 8);
+    let reconstructed = streams(
+        &server.simulation,
+        &server.world_io,
+        &server.network_config,
+        &BTreeSet::new(),
+        Some(&prepared),
+    )
+    .unwrap();
+    for stream in &reconstructed {
+        assert!(
+            identities
+                .iter()
+                .any(|(id, name, pointer)| *id == stream.identity
+                    && name == &stream.scoped_name
+                    && *pointer == Arc::as_ptr(&stream.publisher))
+        );
+    }
+    drop(reconstructed);
+    drop(prepared);
+    let owner = server
+        .simulation
+        .world()
+        .iter_entities()
+        .find(|e| e.get::<SceneName>().is_some_and(|n| n.0 == "default::rig"))
+        .unwrap()
+        .get::<EntityId>()
+        .unwrap()
+        .get();
+    remove_model(&mut server.simulation, owner).unwrap();
+    server.retire_air_pressures();
+    assert!(server.air_pressures.is_empty() && server.air_pressures.capacity() == 0);
+    let restoring = prepare_reset(&server, &BTreeSet::new()).unwrap();
+    assert_eq!(restoring.len(), 8);
+    assert!(
+        streams(
+            &server.simulation,
+            &server.world_io,
+            &server.network_config,
+            &BTreeSet::new(),
+            None
+        )
+        .unwrap()
+        .is_empty()
+    );
+    assert!(matches!(
+        streams(
+            &server.simulation,
+            &server.world_io,
+            &server.network_config,
+            &BTreeSet::new(),
+            Some(&restoring)
+        ),
+        Err(Error::ResetAirPressures)
+    ));
+    drop(restoring);
+    server.reset_scene().unwrap();
+    assert_eq!(server.air_pressures.len(), 8);
+    for stream in &server.air_pressures {
+        assert!(
+            identities
+                .iter()
+                .any(|(id, name, _)| *id == stream.identity && name == &stream.scoped_name)
+        );
+    }
+    server.shutdown();
+    let (mut absent, _, _) = self::server(&multiple_xml(0));
+    assert!(
+        absent.air_pressures.is_empty()
+            && prepare_reset(&absent, &BTreeSet::new()).unwrap().is_empty()
+    );
+    absent.update().unwrap();
+    absent.shutdown();
+}
+
+#[test]
+fn immutable_world_prefix_is_not_assumed_to_be_one_scope_segment() {
+    let value = metadata();
+    assert!(valid_owner(
+        "outer::default",
+        1,
+        EntityKind::Sensor,
+        "outer::default::rig::body::air_pressure",
+        &value
+    ));
+    assert!(!valid_owner(
+        "outer",
+        1,
+        EntityKind::Sensor,
+        "outer::default::rig::body::air_pressure",
+        &value
+    ));
+    assert!(!valid_owner(
+        "default",
+        1,
+        EntityKind::Sensor,
+        "foreign::rig::body::air_pressure",
+        &value
+    ));
+    assert!(!valid_owner(
+        "default",
+        0,
+        EntityKind::Sensor,
+        "default::rig::body::air_pressure",
+        &value
+    ));
+    assert!(!valid_owner(
+        "default",
+        1,
+        EntityKind::Link,
+        "default::rig::body::air_pressure",
+        &value
+    ));
+}

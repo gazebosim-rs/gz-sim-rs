@@ -329,19 +329,94 @@ fn admission_refuses_nondefault_noise_metadata_second_sensor_and_other_engines()
         "</sensor>",
         "</sensor><sensor name='second' type='air_pressure'><air_pressure/></sensor>",
     );
-    assert!(matches!(
-        load_world_with_sdf_step(
-            &twice,
-            "two-air_pressures",
-            "default",
-            &NoResources,
-            PhysicsEngine::Rapier
-        ),
-        Err(LoadError::Unsupported {
-            feature: "multiple air_pressures",
-            ..
-        })
-    ));
+    // Preserve this exact old second-sensor XML and strengthen its former refusal.
+    // This existing test is a separate Cargo/log obligation in both profiles.
+    let mut pair = load(&twice);
+    let names = [
+        "default::rig::body::air_pressure",
+        "default::rig::body::second",
+    ];
+    let identities = names.map(|name| named(&pair, name).1);
+    let initial_heights = names.map(|name| {
+        pair.world()
+            .get::<WorldPose>(named(&pair, name).0)
+            .unwrap()
+            .translation[2]
+    });
+    assert_eq!(initial_heights, [3.5, 3.0]);
+    let metadata = names.map(|name| {
+        pair.world()
+            .get::<AirPressurePublication>(named(&pair, name).0)
+            .unwrap()
+            .clone()
+    });
+    let body = named(&pair, "default::rig::body").1;
+    let initial_rotation = pair
+        .world()
+        .get::<WorldPose>(named(&pair, "default::rig::body").0)
+        .unwrap()
+        .rotation;
+    queue_link_world_wrench(&mut pair, body, [8.0, -4.0, 2.0], [2.0, -3.0, 4.0]).unwrap();
+    pair.step_exact(20).unwrap();
+    assert_ne!(
+        pair.world()
+            .get::<WorldPose>(named(&pair, "default::rig::body").0)
+            .unwrap()
+            .rotation,
+        initial_rotation
+    );
+    let first = names.map(|name| {
+        let entity = named(&pair, name).0;
+        let sample = pair.world().get::<AirPressureSample>(entity).unwrap();
+        let value = *sample.reading.as_ref().unwrap();
+        assert_eq!(sample.time, Duration::from_millis(20));
+        let z = pair.world().get::<WorldPose>(entity).unwrap().translation[2];
+        assert!(
+            (value.pressure
+                - gz_sensors::air_pressure::air_pressure(AirPressureInput { world_z: z })
+                    .unwrap()
+                    .pressure)
+                .abs()
+                < 1e-9
+        );
+        assert_eq!(value.variance, 0.0);
+        (sample.time, value)
+    });
+    for (index, height) in initial_heights.into_iter().enumerate() {
+        assert_ne!(
+            first[index].1.pressure,
+            gz_sensors::air_pressure::air_pressure(AirPressureInput { world_z: height })
+                .unwrap()
+                .pressure
+        );
+    }
+    initial::reset_loaded_world(&mut pair, |_| ()).unwrap();
+    for (index, name) in names.into_iter().enumerate() {
+        let entity = named(&pair, name).0;
+        assert_eq!(entity_by_id(pair.world(), identities[index]), Some(entity));
+        assert!(pair.world().get::<AirPressureSample>(entity).is_none());
+        assert_eq!(
+            pair.world().get::<WorldPose>(entity).unwrap().translation[2],
+            initial_heights[index]
+        );
+        assert_eq!(
+            pair.world().get::<AirPressurePublication>(entity),
+            Some(&metadata[index])
+        );
+    }
+    queue_link_world_wrench(&mut pair, body, [8.0, -4.0, 2.0], [2.0, -3.0, 4.0]).unwrap();
+    pair.step_exact(20).unwrap();
+    for (index, name) in names.into_iter().enumerate() {
+        let sample = pair
+            .world()
+            .get::<AirPressureSample>(named(&pair, name).0)
+            .unwrap();
+        assert_eq!(
+            (sample.time, *sample.reading.as_ref().unwrap()),
+            first[index]
+        );
+        assert_eq!(sample.epoch, 1);
+    }
     assert!(matches!(
         load_world_with_sdf_step(
             XML,

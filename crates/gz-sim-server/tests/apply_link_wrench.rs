@@ -77,14 +77,26 @@ fn wrench(id: u64, force: f64, torque: f64) -> EntityWrench {
         ..Default::default()
     }
 }
-fn wait(server: &mut Server, mut ready: impl FnMut(&Server) -> bool) {
+fn wait(server: &mut Server, phase: &'static str, mut ready: impl FnMut(&Server) -> bool) {
     let deadline = Instant::now() + Duration::from_secs(5);
     while !ready(server) {
         assert!(
             Instant::now() < deadline,
-            "canonical wrench admission deadline"
+            "{phase}: canonical wrench admission deadline; counters={:?}; ingress={:?}; elapsed={:?}; epoch={}",
+            server.counters(),
+            server.ingress_statistics(),
+            server.simulation().elapsed(),
+            server.simulation().epoch()
         );
-        server.update().unwrap();
+        if let Err(error) = server.update() {
+            panic!(
+                "{phase}: canonical wrench update failed: {error}; counters={:?}; ingress={:?}; elapsed={:?}; epoch={}",
+                server.counters(),
+                server.ingress_statistics(),
+                server.simulation().elapsed(),
+                server.simulation().epoch()
+            );
+        }
         std::thread::yield_now();
     }
 }
@@ -195,7 +207,7 @@ fn real_canonical_inputs_preserve_pause_add_clear_validation_reset_and_shutdown(
         .unwrap();
     let mut server = network.server(sim, options).unwrap();
     assert!(server.prepare_run(Duration::from_secs(5)).unwrap());
-    wait(&mut server, |_| {
+    wait(&mut server, "rust initial all-three input matching", |_| {
         once.matching_status().wait().unwrap().matching()
             && persistent.matching_status().wait().unwrap().matching()
             && clear.matching_status().wait().unwrap().matching()
@@ -204,7 +216,9 @@ fn real_canonical_inputs_preserve_pause_add_clear_validation_reset_and_shutdown(
         .attachment(EntityWrench::full_name())
         .wait()
         .unwrap();
-    wait(&mut server, |s| s.counters().link_wrenches_queued == 1);
+    wait(&mut server, "rust once admission queued=1", |s| {
+        s.counters().link_wrenches_queued == 1
+    });
     assert_eq!(motion(server.simulation()), ([0.0; 3], [0.0; 3]));
     assert_eq!(server.simulation().elapsed(), Duration::ZERO);
     step(&mut server, 1);
@@ -217,7 +231,9 @@ fn real_canonical_inputs_preserve_pause_add_clear_validation_reset_and_shutdown(
             .wait()
             .unwrap();
     }
-    wait(&mut server, |s| s.counters().link_wrenches_queued == 3);
+    wait(&mut server, "rust persistent admission queued=3", |s| {
+        s.counters().link_wrenches_queued == 3
+    });
     step(&mut server, 2);
     close(motion(server.simulation()).0[0], 0.006);
     close(motion(server.simulation()).1[2], 0.014);
@@ -226,7 +242,9 @@ fn real_canonical_inputs_preserve_pause_add_clear_validation_reset_and_shutdown(
         .attachment(Entity::full_name())
         .wait()
         .unwrap();
-    wait(&mut server, |s| s.counters().link_wrench_clears_queued == 1);
+    wait(&mut server, "rust clear admission clears=1", |s| {
+        s.counters().link_wrench_clears_queued == 1
+    });
     server.update().unwrap();
     step(&mut server, 2);
     close(motion(server.simulation()).0[0], 0.006);
@@ -268,7 +286,7 @@ fn real_canonical_inputs_preserve_pause_add_clear_validation_reset_and_shutdown(
         .attachment(EntityWrench::full_name())
         .wait()
         .unwrap();
-    wait(&mut server, |s| {
+    wait(&mut server, "rust invalid batch received=baseline+8", |s| {
         s.counters().wrench_messages_received == received + 8
     });
     assert_eq!(server.counters().wrench_messages_rejected, rejected + 8);
@@ -287,13 +305,20 @@ fn real_canonical_inputs_preserve_pause_add_clear_validation_reset_and_shutdown(
         .attachment(EntityWrench::full_name())
         .wait()
         .unwrap();
-    wait(&mut server, |s| s.counters().link_wrenches_queued == 5);
+    wait(&mut server, "rust ID/name admission queued=5", |s| {
+        s.counters().link_wrenches_queued == 5
+    });
     reset(&mut server);
     assert_eq!(server.simulation().epoch(), 1);
     step(&mut server, 1);
     assert_eq!(motion(server.simulation()), ([0.0; 3], [0.0; 3]));
-    wait(&mut server, |_| {
+    // Reset replaces all three callback generations. Require matching for
+    // each publisher before sending into the fresh owners. This strengthens
+    // readiness coverage; it does not identify the earlier failed wait's cause.
+    wait(&mut server, "rust reset all-three input matching", |_| {
         once.matching_status().wait().unwrap().matching()
+            && persistent.matching_status().wait().unwrap().matching()
+            && clear.matching_status().wait().unwrap().matching()
     });
     once.put(
         EntityWrench {
@@ -306,13 +331,21 @@ fn real_canonical_inputs_preserve_pause_add_clear_validation_reset_and_shutdown(
     .attachment(EntityWrench::full_name())
     .wait()
     .unwrap();
-    wait(&mut server, |s| s.counters().link_wrenches_queued == 6);
+    wait(
+        &mut server,
+        "rust post-reset once admission queued=6",
+        |s| s.counters().link_wrenches_queued == 6,
+    );
     persistent
         .put(wrench(body, 100.0, 3.0).encode_to_vec())
         .attachment(EntityWrench::full_name())
         .wait()
         .unwrap();
-    wait(&mut server, |s| s.counters().link_wrenches_queued == 7);
+    wait(
+        &mut server,
+        "rust post-reset persistent admission queued=7",
+        |s| s.counters().link_wrenches_queued == 7,
+    );
     let before = motion(server.simulation());
     let mut sim = server.into_simulation();
     sim.step_exact(1).unwrap();
@@ -634,19 +667,25 @@ fn actual_cpp_entity_wrench_and_clear_messages_drive_the_rust_world() {
     assert_eq!(peer.line(&mut server), "READY wrench inputs");
     peer.next();
     assert_eq!(peer.line(&mut server), "SENT once");
-    wait(&mut server, |s| s.counters().link_wrenches_queued == 1);
+    wait(&mut server, "cpp once admission queued=1", |s| {
+        s.counters().link_wrenches_queued == 1
+    });
     step(&mut server, 1);
     close(motion(server.simulation()).0[0], 0.002);
     close(motion(server.simulation()).1[2], 0.002);
     peer.next();
     assert_eq!(peer.line(&mut server), "SENT persistent");
-    wait(&mut server, |s| s.counters().link_wrenches_queued == 3);
+    wait(&mut server, "cpp persistent admission queued=3", |s| {
+        s.counters().link_wrenches_queued == 3
+    });
     step(&mut server, 2);
     close(motion(server.simulation()).0[0], 0.006);
     close(motion(server.simulation()).1[2], 0.014);
     peer.next();
     assert_eq!(peer.line(&mut server), "SENT clear");
-    wait(&mut server, |s| s.counters().link_wrench_clears_queued == 1);
+    wait(&mut server, "cpp clear admission clears=1", |s| {
+        s.counters().link_wrench_clears_queued == 1
+    });
     server.update().unwrap();
     step(&mut server, 2);
     close(motion(server.simulation()).0[0], 0.006);

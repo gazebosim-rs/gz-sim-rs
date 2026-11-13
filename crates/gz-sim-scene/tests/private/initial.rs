@@ -180,6 +180,95 @@ fn initial_altimeter_identities_borrow_original_metadata_through_removal_and_res
 }
 
 #[test]
+fn initial_air_pressure_identity_query_distinguishes_missing_and_empty_blueprints() {
+    let bare = Simulation::new(Duration::from_millis(1)).unwrap();
+    assert!(matches!(
+        initial_air_pressure_publications_with_identity(&bare),
+        Err(SceneResetError::MissingInitialState)
+    ));
+    let sim = load();
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(initial_air_pressure_publications(&sim).unwrap().count(), 0);
+    assert_eq!(
+        initial_air_pressure_publications_with_identity(&sim)
+            .unwrap()
+            .count(),
+        0
+    );
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+}
+
+#[test]
+fn initial_air_pressure_identities_borrow_original_metadata_through_removal_and_reset() {
+    let mut sim = load_world_with_sdf_step(
+        include_str!("../fixtures/m15_air_pressure.sdf"),
+        "identity-air-pressure.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let sensor_name = "default::rig::body::air_pressure";
+    let sensor_id = id(&sim, sensor_name);
+    let old_entity = named(&sim, sensor_name);
+    let snapshot = {
+        let mut identities = initial_air_pressure_publications_with_identity(&sim).unwrap();
+        let (identity, kind, name, metadata) = identities.next().unwrap();
+        assert!(identities.next().is_none());
+        assert_eq!(identity, sensor_id);
+        assert_eq!(kind, EntityKind::Sensor);
+        assert_eq!(name, sensor_name);
+        assert_eq!(metadata.entity_name, "rig::body::air_pressure");
+        assert_eq!(
+            name.strip_prefix("default::"),
+            Some(metadata.entity_name.as_str())
+        );
+        let old_metadata = initial_air_pressure_publications(&sim)
+            .unwrap()
+            .next()
+            .unwrap();
+        assert!(std::ptr::eq(metadata, old_metadata));
+        (identity, kind, name.to_owned(), metadata.clone())
+    };
+    let collect = |sim: &Simulation| {
+        initial_air_pressure_publications_with_identity(sim)
+            .unwrap()
+            .map(|(identity, kind, name, metadata)| {
+                (identity, kind, name.to_owned(), metadata.clone())
+            })
+            .collect::<Vec<_>>()
+    };
+    sim.step_exact(3).unwrap();
+    let model_id = id(&sim, "default::rig");
+    remove_model(&mut sim, model_id).unwrap();
+    assert!(entity_by_id(sim.world(), sensor_id).is_none());
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(collect(&sim), vec![snapshot.clone()]);
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    let restored = entity_by_id(sim.world(), sensor_id).unwrap();
+    assert_ne!(restored, old_entity);
+    assert_eq!(sim.world().get::<Name>(restored).unwrap().0, sensor_name);
+    assert_eq!(
+        sim.world().get::<EntityKind>(restored),
+        Some(&EntityKind::Sensor)
+    );
+    assert_eq!(
+        sim.world().get::<AirPressurePublication>(restored),
+        Some(&snapshot.3)
+    );
+    assert_eq!(collect(&sim), vec![snapshot]);
+    assert_eq!(sim.elapsed(), Duration::ZERO);
+    assert_eq!(sim.epoch(), 1);
+}
+
+#[test]
 fn removed_initial_models_restore_ids_physics_and_sensors_without_running_normal_systems() {
     #[derive(Resource, Default)]
     struct Counts {

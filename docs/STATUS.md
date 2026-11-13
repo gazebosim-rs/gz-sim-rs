@@ -1,3 +1,92 @@
+## Current M50 normal failure and test-only correction
+
+The first complete normal hook failed after 1622.437 seconds at an existing
+Server wrench-admission test's five-second wait. Its generic diagnostic cannot
+identify which of nine waits failed; the actual cause remains unknown. Both
+lint stages and all 403 aggregate Python tests passed earlier. The native-free
+and RGB reports, 24 finite examples and new headless pressure numeric/wire
+controls are retained partial evidence, not full qualification. Headless coverage
+finalization, renderer qualification and independent local DATA were not reached.
+
+The reviewed test-only batch labels every wrench wait and prints existing
+counters, ingress statistics, elapsed time and epoch on failure. The existing
+post-reset readiness barrier now witnesses all three publishers before they are
+used, under the same five-second limit. This strengthens readiness coverage; it
+does not establish the earlier failure's cause. Production code, payloads,
+numerical assertions, deadlines, test-thread settings and native/literal fixtures
+are unchanged. Preserve failed tree `ff22f5c4` and every original result/log.
+One complete affected normal retry requires final Source/tree/procedure review;
+no separate target trial, native replay or accepted result is supplied.
+Earlier checkpoints below are historical.
+
+## Current M50 retained native and literal evidence
+
+The fresh original AirPressure System capture and both independent retained
+native and fixed-literal audits returned actual Root zero. The checked-in fixture
+retains all 441 sensor WORLD-pose inputs, 42 received pressure/variance packets
+and 399 inputs without a matching packet, across twelve configurations and
+three modes. The 104 System calls are summary and pinned-method attestations;
+missing packets do not expose internal update, noise-draw or deadline state.
+Reference altitude remains zero; initial sensor height is not subtracted.
+
+See `planning/reference/m50-multiple-air-pressures.json` for the exact program,
+commands, provider inputs and provenance. No SDK/provider was rebuilt or capture
+repeated. Scene numeric and Server canonical-wire consumers are being completed
+before final independent Source review and one consolidated normal/strict coverage
+pass. No M50 Rust, coverage, hosted or release result is claimed. M1–M42 remain
+accepted, M40 remains installed Latest, and all release gates remain mandatory.
+Earlier checkpoints below are historical.
+
+## Current M50 original-System reference outcome
+
+One reviewed fresh AirPressure System campaign returned actual Root zero in
+23.920 seconds, with all 33 child stages successful. It retained three modes,
+twelve configurations, 441 actual sensor WORLD-pose input rows and 42 received
+canonical pressure packets. The 104 System calls are helper-summary and pinned
+method attestations, not 104 fabricated individual raw observations. All current
+349 inventory guards, the two link-provider inputs, exact pressure component and
+retained original System provider remained bound. No SDK/provider was rebuilt.
+
+Independent native and fixed-literal DATA, observed consumers and the full M50
+Rust/normal/coverage checks remain pending. This is controlled original-System
+input evidence, not native Physics, RNG/demand equivalence or release acceptance.
+Every prior Source checkpoint below is retained as history.
+
+## M50 current Source integration checkpoint
+
+The reviewed contract is clear. Scene admission/lifecycle regression Source,
+Server identity/reset/canonical regression Source, the original-reference helper
+and live C++ peer, and Root's borrowed identity query are integrated after whole
+independent Source review. Runtime model/noise/packet/publisher bodies and old
+controls remain preserved within the exact approved change scope. The finite
+24th-example and peer/verifier integration Source is authored for final review.
+No M50 test, formatter, native capture or qualification has run.
+
+Reference preparation found the pressure Sensor library outside M49's existing
+349-node inventory. A separately reviewed bounded component identity/alias/static
+dependency diagnostic must establish that additional exact input before any
+reference release; all existing 349 and separate link-provider guards remain.
+Actual native/literal DATA and later observed consumers remain held. M49 stays
+frozen locally qualified, with release acceptance still requiring hosted/official
+and Main evidence. Earlier Source-selection text below is historical.
+
+# Current development: M50 independent loaded air-pressure sensors
+
+M49 is locally qualified at `4ccd4f06` with full normal and independent retained
+DATA passed: 1791 headless and 1066 renderer tests with overlap, 403 aggregate
+Python tests, 23 finite examples and every strict coverage gate. Its original
+failures remain preserved. M1–M42 remain accepted; M40 remains installed Latest.
+
+M50 selects zero through eight independent air-pressure sensors in the existing
+loaded Rapier domain. Read [M50_DELIVERY.md](M50_DELIVERY.md) for closed behavior,
+exact dependencies, disjoint leases and acceptance criteria. Contract review
+precedes authorship. No M50 implementation or execution is claimed. Root owns
+shared seams and serial heavy work; Scene and Server/reference Source may proceed
+in parallel after the contract is clear. Accepted-predecessor and all hosted,
+official and Main gates remain mandatory; no CI retry/probe is released.
+
+The earlier checkpoints below are retained historical records.
+
 ## Current M49 named-type fixture correction (2026-11-12)
 
 The corrected fixture export and independent literal DATA both returned actual

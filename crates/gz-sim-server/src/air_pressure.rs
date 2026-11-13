@@ -3,12 +3,15 @@
 //! Canonical air-pressure stream; physics and acquisition remain in Scene.
 use super::*;
 use gz_sim_proto::msgs::{FluidPressure, Header, header::Map};
-use gz_sim_scene::{AirPressurePublication, AirPressureSample, EntityKind, PendingResetRemoval};
+use gz_sim_scene::{
+    AirPressurePublication, AirPressureSample, EntityKind, Name, PendingResetRemoval,
+};
 use std::collections::BTreeSet;
 
 pub(super) struct Stream {
     entity: Entity,
     identity: u64,
+    scoped_name: String,
     pub(super) metadata: AirPressurePublication,
     pub(super) endpoint: String,
     pub(super) publisher: Arc<world_io::AirPressureOutput>,
@@ -54,41 +57,110 @@ fn packet(
     })
 }
 
-pub(super) type Prepared =
-    BTreeMap<String, (AirPressurePublication, Arc<world_io::AirPressureOutput>)>;
+// Reset metadata retains the immutable loaded identity, not only its endpoint.
+// Keep the legacy metadata/lease tuple prefix for existing private controls.
+pub(super) type Prepared = BTreeMap<
+    String,
+    (
+        AirPressurePublication,
+        Arc<world_io::AirPressureOutput>,
+        u64,
+        String,
+    ),
+>;
+const MAX_AIR_PRESSURES: usize = 8;
 
-/// `occupied` contains every non-pressure reserved/publication/input/service key,
-/// already resolved using these ServerOptions. Check all metadata before any IO.
+fn world_name(simulation: &Simulation) -> Result<&str, Error> {
+    let mut owners = simulation
+        .world()
+        .iter_entities()
+        .filter(|e| e.get::<EntityKind>() == Some(&EntityKind::World));
+    let owner = owners.next().ok_or(Error::AirPressureIdentity)?;
+    if owners.next().is_some() {
+        return Err(Error::AirPressureIdentity);
+    }
+    owner
+        .get::<Name>()
+        .map(|name| name.0.as_str())
+        .filter(|name| !name.is_empty())
+        .ok_or(Error::AirPressureIdentity)
+}
+
+fn valid_owner(
+    world: &str,
+    id: u64,
+    kind: EntityKind,
+    name: &str,
+    metadata: &AirPressurePublication,
+) -> bool {
+    id != 0
+        && kind == EntityKind::Sensor
+        && valid_metadata(metadata)
+        && name
+            .strip_prefix(world)
+            .and_then(|tail| tail.strip_prefix("::"))
+            == Some(metadata.entity_name.as_str())
+}
+
+/// Validate the entire immutable reset set before even looking up a CPU lease.
 pub(super) fn prepare_reset(
     server: &Server,
     occupied: &BTreeSet<String>,
 ) -> Result<Prepared, Error> {
-    let metadata: Vec<_> = gz_sim_scene::initial_air_pressure_publications(&server.simulation)?
-        .cloned()
-        .collect();
-    if metadata.len() > 1 || metadata.iter().any(|m| !valid_metadata(m)) {
+    let originals: Vec<_> =
+        gz_sim_scene::initial_air_pressure_publications_with_identity(&server.simulation)?
+            .map(|(id, kind, name, metadata)| (id, kind, name.to_owned(), metadata.clone()))
+            .collect();
+    if originals.len() > MAX_AIR_PRESSURES {
         return Err(Error::AirPressureIdentity);
     }
-    let mut prepared = BTreeMap::new();
-    for metadata in metadata {
-        let key = server
-            .network_config
-            .topic_key(&options::as_valid_topic(&metadata.topic))?;
-        if occupied.contains(&key) {
+    if originals.is_empty() {
+        return Ok(BTreeMap::new());
+    }
+    let world = world_name(&server.simulation)?;
+    let mut ids = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut keys = occupied.clone();
+    let mut selected = Vec::new();
+    for (id, kind, name, metadata) in originals {
+        if !valid_owner(world, id, kind, &name, &metadata)
+            || !ids.insert(id)
+            || !names.insert(name.clone())
+        {
             return Err(Error::AirPressureIdentity);
         }
-        let publisher = match server
+        let endpoint = server
+            .network_config
+            .topic_key(&options::as_valid_topic(&metadata.topic))?;
+        if !keys.insert(endpoint.clone()) {
+            return Err(Error::AirPressureIdentity);
+        }
+        selected.push((id, name, metadata, endpoint));
+    }
+    // Check every reusable binding before the first possible declaration. A
+    // later bad reset entry cannot follow an earlier publisher side effect.
+    for (id, name, metadata, endpoint) in &selected {
+        if let Some(stream) = server
             .air_pressures
             .iter()
-            .find(|stream| stream.endpoint == key)
+            .find(|s| &s.endpoint == endpoint)
+            && (stream.identity != *id
+                || &stream.scoped_name != name
+                || &stream.metadata != metadata)
         {
+            return Err(Error::ResetAirPressures);
+        }
+    }
+    let mut prepared = BTreeMap::new();
+    for (id, name, metadata, endpoint) in selected {
+        let publisher = match server.air_pressures.iter().find(|s| s.endpoint == endpoint) {
             Some(stream) => Arc::clone(&stream.publisher),
             None => server
                 .world_io
-                .air_pressure_output(key.clone())
+                .air_pressure_output(endpoint.clone())
                 .map_err(|error| Error::WorldNetwork(error.to_string()))?,
         };
-        prepared.insert(key, (metadata, publisher));
+        prepared.insert(endpoint, (metadata, publisher, id, name));
     }
     Ok(prepared)
 }
@@ -103,61 +175,81 @@ pub(super) fn streams(
     let candidates: Vec<_> = simulation
         .world()
         .iter_entities()
-        .filter(|entity| !entity.contains::<PendingResetRemoval>())
-        .filter(|entity| entity.contains::<AirPressurePublication>())
-        .map(|entity| entity.id())
+        .filter(|e| !e.contains::<PendingResetRemoval>() && e.contains::<AirPressurePublication>())
+        .map(|e| e.id())
         .collect();
-    if candidates.len() > 1 {
+    if candidates.len() > MAX_AIR_PRESSURES {
         return Err(Error::AirPressureIdentity);
     }
-    // No declaration before count, ownership, metadata and reset-binding validation.
+    if candidates.is_empty() {
+        return if prepared.is_some_and(|p| !p.is_empty()) {
+            Err(Error::ResetAirPressures)
+        } else {
+            Ok(Vec::new())
+        };
+    }
+    let world = world_name(simulation)?;
+    let originals: Vec<_> =
+        gz_sim_scene::initial_air_pressure_publications_with_identity(simulation)?
+            .map(|(id, kind, name, _)| (id, kind, name.to_owned()))
+            .collect();
+    let mut ids = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut keys = occupied.clone();
     let mut selected = Vec::new();
     for entity in candidates {
-        let entity = simulation.world().entity(entity);
-        let metadata = entity
+        let owner = simulation.world().entity(entity);
+        let metadata = owner
             .get::<AirPressurePublication>()
-            .expect("candidate owns metadata");
-        let id = entity
+            .expect("selected metadata");
+        let id = owner
             .get::<EntityId>()
             .ok_or(Error::AirPressureIdentity)?
             .get();
-        if !valid_metadata(metadata)
-            || entity.get::<EntityKind>() != Some(&EntityKind::Sensor)
-            || entity_by_id(simulation.world(), id) != Some(entity.id())
+        let name = owner.get::<Name>().ok_or(Error::AirPressureIdentity)?;
+        let kind = owner
+            .get::<EntityKind>()
+            .ok_or(Error::AirPressureIdentity)?;
+        if !valid_owner(world, id, *kind, &name.0, metadata)
+            || entity_by_id(simulation.world(), id) != Some(entity)
+            || !originals
+                .iter()
+                .any(|(initial_id, initial_kind, initial_name)| {
+                    *initial_id == id && initial_kind == kind && initial_name == &name.0
+                })
+            || !ids.insert(id)
+            || !names.insert(name.0.clone())
         {
             return Err(Error::AirPressureIdentity);
         }
-        let endpoint = options.topic_key(&crate::options::as_valid_topic(&metadata.topic))?;
-        if occupied.contains(&endpoint) {
+        let endpoint = options.topic_key(&options::as_valid_topic(&metadata.topic))?;
+        if !keys.insert(endpoint.clone()) {
             return Err(Error::AirPressureIdentity);
         }
         if let Some(prepared) = prepared {
-            let (original, _) = prepared.get(&endpoint).ok_or(Error::ResetAirPressures)?;
-            if original != metadata {
+            let (original, _, initial_id, initial_name) =
+                prepared.get(&endpoint).ok_or(Error::ResetAirPressures)?;
+            if *initial_id != id || initial_name != &name.0 || original != metadata {
                 return Err(Error::ResetAirPressures);
             }
         }
-        selected.push((entity.id(), id, metadata.clone(), endpoint));
+        selected.push((entity, id, name.0.clone(), metadata.clone(), endpoint));
     }
-    if prepared.is_some_and(|prepared| prepared.len() != selected.len()) {
+    if prepared.is_some_and(|p| p.len() != selected.len()) {
         return Err(Error::ResetAirPressures);
     }
     let mut result = Vec::new();
-    for (entity, identity, metadata, endpoint) in selected {
+    for (entity, identity, scoped_name, metadata, endpoint) in selected {
         let publisher = match prepared {
-            Some(prepared) => Arc::clone(
-                &prepared
-                    .get(&endpoint)
-                    .expect("prepared endpoint validated before IO")
-                    .1,
-            ),
+            Some(p) => Arc::clone(&p.get(&endpoint).expect("entire prepared set validated").1),
             None => io
                 .air_pressure_output(endpoint.clone())
-                .map_err(|error| Error::WorldNetwork(error.to_string()))?,
+                .map_err(|e| Error::WorldNetwork(e.to_string()))?,
         };
         result.push(Stream {
             entity,
             identity,
+            scoped_name,
             metadata,
             endpoint,
             publisher,
@@ -172,6 +264,9 @@ impl Stream {
     fn live(&self, simulation: &Simulation) -> bool {
         let world = simulation.world();
         world.get::<EntityKind>(self.entity) == Some(&EntityKind::Sensor)
+            && world
+                .get::<Name>(self.entity)
+                .is_some_and(|name| name.0 == self.scoped_name)
             && world.get::<AirPressurePublication>(self.entity) == Some(&self.metadata)
             && world.get::<EntityId>(self.entity).map(EntityId::get) == Some(self.identity)
             && entity_by_id(world, self.identity) == Some(self.entity)
@@ -254,3 +349,7 @@ impl Server {
 #[cfg(test)]
 #[path = "../tests/private/air_pressure.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_air_pressures_native.rs"]
+mod multiple_air_pressures_native;

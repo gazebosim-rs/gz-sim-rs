@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One loaded Rapier air_pressure with optional native scalar Gaussian noise.
+//! Up to eight independent loaded Rapier air_pressure sensors with native scalar noise.
 use super::*;
 use gz_sensors::air_pressure::{AirPressureInput, AirPressureReading, InvalidAirPressureInput};
 use gz_sensors::{GaussianNoise, GaussianParameters, InvalidNoise, NoiseStream};
@@ -190,9 +190,11 @@ pub(super) fn spawn(
         "Rapier ideal air_pressure",
     )?;
     require(
-        !sim.world()
+        sim.world()
             .iter_entities()
-            .any(|entity| entity.contains::<AirPressure>()),
+            .filter(|entity| entity.contains::<AirPressure>())
+            .count()
+            < 8,
         &name,
         "multiple air_pressures",
     )?;
@@ -379,3 +381,7 @@ fn reset(mut sensors: Query<(Entity, &mut AirPressure)>, mut commands: Commands)
 #[cfg(test)]
 #[path = "../tests/private/air_pressure.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_air_pressures_native.rs"]
+mod multiple_air_pressures_native_tests;
