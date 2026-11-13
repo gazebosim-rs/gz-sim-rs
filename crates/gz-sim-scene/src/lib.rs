@@ -101,13 +101,13 @@ mod joint_lifecycle;
 pub use initial::{
     PendingResetRemoval, SceneResetError, SceneResetInfo, initial_air_pressure_publications,
     initial_air_pressure_publications_with_identity, initial_air_speed_publications,
-    initial_altimeter_publications, initial_altimeter_publications_with_identity,
-    initial_apply_link_wrench_configuration, initial_diff_drive_configurations,
-    initial_ground_truth_odometry_publications, initial_imu_publications,
-    initial_joint_controller_configurations, initial_joint_force_configurations,
-    initial_joint_state_publications, initial_lidar_publications,
-    initial_logical_camera_publications, initial_magnetometer_publications,
-    initial_pose_publications, reset_loaded_world,
+    initial_air_speed_publications_with_identity, initial_altimeter_publications,
+    initial_altimeter_publications_with_identity, initial_apply_link_wrench_configuration,
+    initial_diff_drive_configurations, initial_ground_truth_odometry_publications,
+    initial_imu_publications, initial_joint_controller_configurations,
+    initial_joint_force_configurations, initial_joint_state_publications,
+    initial_lidar_publications, initial_logical_camera_publications,
+    initial_magnetometer_publications, initial_pose_publications, reset_loaded_world,
 };
 
 use bevy_ecs::prelude::*;

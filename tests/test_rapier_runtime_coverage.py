@@ -132,7 +132,7 @@ class DisabledBackendProof(unittest.TestCase):
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 24)
+            self.assertEqual(run.call_count, 25)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -313,7 +313,8 @@ class DisabledBackendProof(unittest.TestCase):
         self.assertEqual(MODULE.NOISY_EXAMPLES[20:21], ("examples/m47_odometry_noise.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[21:22], ("examples/m48_imu_world_heading.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[22:23], ("examples/m49_multiple_altimeters.sdf",))
-        self.assertEqual(MODULE.NOISY_EXAMPLES[23:], ("examples/m50_multiple_air_pressures.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[23:24], ("examples/m50_multiple_air_pressures.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[24:], ("examples/m51_multiple_air_speeds.sdf",))
         self.assertEqual(MODULE.NOISY_ASSETS, ("examples/meshes/m16-asymmetric.obj",))
 
     def test_new_static_example_outputs_are_complete_sorted_finite_and_exact(self):
@@ -443,6 +444,7 @@ class DisabledBackendProof(unittest.TestCase):
             ("examples/m48_imu_world_heading.sdf", "default::rig::body 2 -1 3\n"),
             ("examples/m49_multiple_altimeters.sdf", "default::rig::body 0 0 3\n"),
             ("examples/m50_multiple_air_pressures.sdf", "default::rig::body 0 0 3\n"),
+            ("examples/m51_multiple_air_speeds.sdf", "default::rig::body 0 0 3\n"),
         ):
             self.assertTrue(MODULE.noisy_output_matches(source, headline + body))
             wrong = [headline, headline + body + body,

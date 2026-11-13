@@ -32,6 +32,7 @@ CLIENTS = {
     'imu_world_heading': 'crates/gz-sim-server/tests/native_imu_world_heading_peer.cc',
     'multiple_altimeters': 'crates/gz-sim-server/tests/native_multiple_altimeters_peer.cc',
     'multiple_air_pressures': 'crates/gz-sim-server/tests/native_multiple_air_pressures_peer.cc',
+    'multiple_air_speeds': 'crates/gz-sim-server/tests/native_multiple_air_speeds_peer.cc',
 }
 spec = importlib.util.spec_from_file_location('zenoh_bootstrap', ROOT / 'scripts/bootstrap-zenoh-native.py')
 bootstrap = importlib.util.module_from_spec(spec)

@@ -396,10 +396,6 @@ fn strict_noise_metadata_domain_nested_duplicate_and_backend_admission_are_atomi
         ),
         XML.replace("<pose>0 0 3 0 0 0</pose>", "<pose>0 0 50000 0 0 0</pose>"),
         XML.replace(
-            "</sensor>",
-            "</sensor><sensor name='second' type='air_speed'><air_speed/></sensor>",
-        ),
-        XML.replace(
             "<model name='rig'>",
             "<model name='outer'><model name='rig'>",
         )
@@ -423,6 +419,97 @@ fn strict_noise_metadata_domain_nested_duplicate_and_backend_admission_are_atomi
             )
             .is_err()
         );
+    }
+    // This exact old M26 second-sensor input is now an existing strengthened
+    // control, required separately in both Cargo/log profiles (not a new ID).
+    let twice = XML.replace(
+        "</sensor>",
+        "</sensor><sensor name='second' type='air_speed'><air_speed/></sensor>",
+    );
+    let mut pair = load(&twice);
+    let names = [
+        "default::rig::body::air_speed",
+        "default::rig::body::second",
+    ];
+    let identities = names.map(|name| named(&pair, name).1);
+    let metadata = names.map(|name| {
+        pair.world()
+            .get::<AirSpeedPublication>(named(&pair, name).0)
+            .unwrap()
+            .clone()
+    });
+    let body = named(&pair, "default::rig::body").1;
+    let initial_pose = *pair
+        .world()
+        .get::<WorldPose>(named(&pair, "default::rig::body").0)
+        .unwrap();
+    queue_link_world_wrench(&mut pair, body, [8.0, -4.0, 2.0], [2.0, -3.0, 4.0]).unwrap();
+    pair.step_exact(20).unwrap();
+    let moved = pair
+        .world()
+        .get::<WorldPose>(named(&pair, "default::rig::body").0)
+        .unwrap();
+    assert_ne!(moved.translation, initial_pose.translation);
+    assert_ne!(moved.rotation, initial_pose.rotation);
+    let first = names.map(|name| {
+        let entity = named(&pair, name).0;
+        let sample = pair.world().get::<AirSpeedSample>(entity).unwrap();
+        let value = *sample.reading.as_ref().unwrap();
+        assert_eq!(sample.time, Duration::from_millis(20));
+        let pose = pair.world().get::<WorldPose>(entity).unwrap();
+        let link = pair
+            .world()
+            .get::<WorldPose>(named(&pair, "default::rig::body").0)
+            .unwrap();
+        let velocity = pair
+            .world()
+            .get::<Velocity>(named(&pair, "default::rig::body").0)
+            .unwrap();
+        let offset = if name.ends_with("::second") {
+            DVec3::ZERO
+        } else {
+            DVec3::new(0.0, 0.5, 0.5)
+        };
+        let point = DVec3::from_array(velocity.linear)
+            + DVec3::from_array(velocity.angular).cross(DQuat::from_array(link.rotation) * offset);
+        let expected = gz_sensors::air_speed::air_speed(AirSpeedInput {
+            world_z: pose.translation[2],
+            velocity_sensor: (DQuat::from_array(pose.rotation).inverse() * point).to_array(),
+        })
+        .unwrap();
+        assert!((value.diff_pressure - expected.diff_pressure).abs() < 1e-6);
+        assert_eq!(value.temperature, expected.temperature);
+        assert_ne!(value.diff_pressure, 0.0);
+        (sample.time, value)
+    });
+    initial::reset_loaded_world(&mut pair, |_| ()).unwrap();
+    let restored = pair
+        .world()
+        .get::<WorldPose>(named(&pair, "default::rig::body").0)
+        .unwrap();
+    assert_eq!(restored.translation, initial_pose.translation);
+    assert_eq!(restored.rotation, initial_pose.rotation);
+    for (index, name) in names.into_iter().enumerate() {
+        let entity = named(&pair, name).0;
+        assert_eq!(entity_by_id(pair.world(), identities[index]), Some(entity));
+        assert!(pair.world().get::<AirSpeedSample>(entity).is_none());
+        assert_eq!(
+            pair.world().get::<AirSpeedPublication>(entity),
+            Some(&metadata[index])
+        );
+    }
+    queue_link_world_wrench(&mut pair, body, [8.0, -4.0, 2.0], [2.0, -3.0, 4.0]).unwrap();
+    pair.step_exact(20).unwrap();
+    for (index, name) in names.into_iter().enumerate() {
+        let sample = pair
+            .world()
+            .get::<AirSpeedSample>(named(&pair, name).0)
+            .unwrap();
+        assert_eq!(
+            (sample.time, *sample.reading.as_ref().unwrap()),
+            first[index]
+        );
+        assert_eq!(sample.epoch, 1);
     }
     assert!(matches!(
         load_world_with_sdf_step(XML, "backend", "default", &NoResources, PhysicsEngine::Tpe),

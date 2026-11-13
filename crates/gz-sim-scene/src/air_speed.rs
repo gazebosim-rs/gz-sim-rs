@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One loaded Rapier air-speed sensor with optional pre-publication pressure noise.
+//! Up to eight independent loaded Rapier AirSpeed sensors with pressure noise.
 use super::*;
 use gz_sensors::air_speed::{
     AirSpeedInput, AirSpeedReading, InvalidAirSpeedInput, air_speed_unscaled, scale_air_speed,
@@ -283,7 +283,7 @@ pub(super) fn preflight(
                     continue;
                 }
                 *count += 1;
-                require(*count == 1, &world.name, "multiple air_speeds")?;
+                require(*count <= 8, &world.name, "multiple air_speeds")?;
                 require(top, &model.scoped_name, "air_speed top-level model")?;
                 require(
                     world
@@ -324,7 +324,7 @@ pub(super) fn preflight(
     for model in &world.models {
         visit(sdf, world, model, engine, true, &mut count)?;
     }
-    Ok(count == 1)
+    Ok(count > 0)
 }
 
 pub(super) fn spawn(
@@ -338,9 +338,11 @@ pub(super) fn spawn(
 ) -> Result<(), LoadError> {
     let name = format!("{}::{}", parent.link.scoped_name, sensor.name);
     require(
-        !sim.world()
+        sim.world()
             .iter_entities()
-            .any(|entity| entity.contains::<AirSpeed>()),
+            .filter(|entity| entity.contains::<AirSpeed>())
+            .count()
+            < 8,
         &name,
         "multiple air_speeds",
     )?;
@@ -640,3 +642,7 @@ mod wind_tests {
 #[cfg(test)]
 #[path = "../tests/private/air_speed_wind_native.rs"]
 mod wind_native_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_air_speeds_native.rs"]
+mod multiple_air_speeds_native_tests;

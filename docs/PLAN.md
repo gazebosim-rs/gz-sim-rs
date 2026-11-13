@@ -1,3 +1,48 @@
+## Current M51 retained native evidence
+
+One fresh original AirSpeed System pair/eight/active-peer-removal capture returned
+actual Root zero, followed by independent retained native and fixed-literal DATA.
+The immutable fixture preserves twelve configurations, all 331 explicit sensor
+WORLD-pose, POINT-WORLD velocity and WORLD-wind inputs, 55 actual canonical
+AirSpeed packets and 276 inputs without a matching packet. The 79 System calls
+are summary and pinned-method attestations; missing packets reveal no internal
+update, noise-draw or deadline state. Signed differential pressure is valid.
+
+See `planning/reference/m51-multiple-air-speeds.json` for the actual procedures,
+commands and provenance. No SDK/provider was rebuilt or capture repeated. The
+new Scene exact-scalar/independent-geometry and Server exact-wire consumers are
+being reviewed before one consolidated formatter and full normal/strict coverage
+pass. No M51 Rust, Python, coverage, hosted or release qualification is claimed.
+M1–M42 remain accepted; M40 remains installed Latest. All accepted-predecessor,
+hosted, official and Main gates remain mandatory. Earlier checkpoints below are
+historical records.
+
+## Current M51 complete core Source checkpoint
+
+M51 core Scene, Server/reference and Root identity/query/shared-registration/
+example/guide Source passed independent whole review. Scene admission extends
+zero through eight validated consumers while preserving the existing scalar,
+wind, noise and lifecycle bodies. Server ownership/reset validation compares the
+whole immutable blueprint and metadata before publisher IO. No M51 formatter,
+test, lint, Cargo metadata, provider or native campaign has run.
+
+This checkout uses exact locally qualified, unaccepted M50 623faca6/tree9f617.
+Its full normal and independent local DATA passed: 1809 headless and 1075 renderer
+profile passes with overlap, 403 aggregate Python tests and 24 finite examples,
+with all strict gates. The first normal and two reader failures remain retained;
+the original wrench deadline cause is unknown. Source preparation on M49 4ccd
+is retained separately; the integrated candidate preserves all M50 changes.
+
+Current original AirSpeed System/component inputs require a separately reviewed
+bounded contract before execution. Historical successful M26 provider metadata
+and M41 component91 evidence retain their distinct scopes. New original-System
+multiplicity capture, independent native/literal DATA and observed consumers
+remain pending. Complete the bounded Source/regression/docs review before one
+consolidated qualification; Root alone releases heavy work. Accepted-predecessor,
+exact hosted/official/Main/publication gates and the CI hold remain unchanged.
+M1–M42 remain accepted and M40 remains installed Latest.
+Earlier checkpoints below are historical.
+
 ## Current M50 normal failure and test-only correction
 
 The first complete normal hook failed after 1622.437 seconds at an existing

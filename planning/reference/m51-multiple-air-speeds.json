@@ -1,0 +1,1342 @@
+{
+  "schema_version": 1,
+  "state": "ACTUAL_M51_SCOPED_ORIGINAL_SYSTEM_AND_LITERAL_PROVENANCE",
+  "source_program": {
+    "path": "crates/gz-sim-server/tests/native_multiple_air_speeds.cc",
+    "sha256": "ec70b852b0a90e779ed02705bffd0eb91ebe4383d309bc3aafbcbf67498eea8d"
+  },
+  "capture": {
+    "tree": "3b7d02fe54e17e0fa54b452e9938aa8261712151",
+    "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+    "runtime_parent": "623faca668151a283f3a6057a13e29d57fe3d9ff",
+    "runtime_parent_accepted": false,
+    "actual_exit_code": 0,
+    "elapsed_seconds": 25.09046927210875,
+    "mode_count": 3,
+    "configuration_count": 12,
+    "system_calls": 79,
+    "input_rows": 331,
+    "canonical_packets": 55,
+    "native_family_demand_policy": true,
+    "native_physics_executed": false,
+    "old_native_modes_replayed": false,
+    "original_DSO_rebuilt": false
+  },
+  "commands": [
+    {
+      "name": "head-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/head-before.stdout",
+        "bytes": 41,
+        "sha256": "a6b29c43d4da204f48a26afdd7c12656cf011ddcdf310d5aa4e97892b4d981c4"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/head-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.11013569496572018
+    },
+    {
+      "name": "index-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--cached",
+        "3b7d02fe54e17e0fa54b452e9938aa8261712151",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/index-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/index-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10726550896652043
+    },
+    {
+      "name": "worktree-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/worktree-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/worktree-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.20749190519563854
+    },
+    {
+      "name": "untracked-before",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/untracked-before.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/untracked-before.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10746247903443873
+    },
+    {
+      "name": "compiler",
+      "argv": [
+        "/usr/bin/clang++",
+        "--version"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/compiler.stdout",
+        "bytes": 110,
+        "sha256": "3635b8631d4ebcd8ed7586f4e01e7a6b44407de9d38db6e01daca9c242ed7a53"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/compiler.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10720556695014238
+    },
+    {
+      "name": "original-head",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-head.stdout",
+        "bytes": 41,
+        "sha256": "fe2ff9496387c2e9e70b2edfa8f779598aaf0ef8ec26cae206397e5f053afd51"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-head.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10741150309331715
+    },
+    {
+      "name": "original-source-0",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/systems/air_speed/AirSpeed.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-0.stdout",
+        "bytes": 10547,
+        "sha256": "d4ea187d1f455cb254b91469679706a6a92bfb62022f8592198545fcb2d489b2"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-0.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10780513007193804
+    },
+    {
+      "name": "original-source-1",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/systems/air_speed/AirSpeed.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-1.stdout",
+        "bytes": 2078,
+        "sha256": "820dfcac4c1eec44fe635f9f745f9b4ecb78fb61fd67341f0a5673e5347f2629"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10738373105414212
+    },
+    {
+      "name": "original-source-2",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/System.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-2.stdout",
+        "bytes": 9304,
+        "sha256": "3e8879eff438b8fc69e7550b9fc9af7b9e2909f67b7dd689d7ebdf72861d2b9a"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10769144701771438
+    },
+    {
+      "name": "original-source-3",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/SystemLoader.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-3.stdout",
+        "bytes": 2417,
+        "sha256": "2c66d508d93d8a520af2d3d733f79283dfb8b06c55d3ef6271be89c5b052a612"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-3.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1081052019726485
+    },
+    {
+      "name": "original-source-4",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/EntityComponentManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-4.stdout",
+        "bytes": 47284,
+        "sha256": "baec922ba18c4554c1b7290808cc95e4141e8a2751958df8072d2ff93d1df107"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-4.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10741245513781905
+    },
+    {
+      "name": "original-source-5",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/EventManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-5.stdout",
+        "bytes": 6186,
+        "sha256": "158ce2a91ac25a4857631b7c3283ae13eab69a9d85bc18821a64d01a3c6a1c37"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-5.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10731692588888109
+    },
+    {
+      "name": "original-source-6",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/Util.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-6.stdout",
+        "bytes": 19419,
+        "sha256": "283175552768d01176100f12dc5fd0b83af8c8fed0800dc43ac901ce3844664a"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-6.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1070218631066382
+    },
+    {
+      "name": "original-source-7",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/Util.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-7.stdout",
+        "bytes": 33072,
+        "sha256": "6e35af3fa7c0a13d420a6cabae954177c16938d27d543d3e9f432fd980ade270"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-7.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10907117114402354
+    },
+    {
+      "name": "original-source-8",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/AirSpeedSensor.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-8.stdout",
+        "bytes": 1337,
+        "sha256": "bd90ba4570d5d7d73f53c218ff09289e60bfc7ef0d5a79052a11d4d7521f1b1e"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-8.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10758900502696633
+    },
+    {
+      "name": "original-source-9",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Name.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-9.stdout",
+        "bytes": 1314,
+        "sha256": "786063562ed4567b70cd082d63ad67ce99dba68be92a9c180ca2fc9a76b5d99c"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-9.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10753133799880743
+    },
+    {
+      "name": "original-source-10",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/ParentEntity.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-10.stdout",
+        "bytes": 1601,
+        "sha256": "0c702ccf0655f2afb4007a48d01dd433105e149a4bd254ae1137d94b444c1a19"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-10.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10823814081959426
+    },
+    {
+      "name": "original-source-11",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Pose.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-11.stdout",
+        "bytes": 1722,
+        "sha256": "28fe8a59494b821b4c765e626154bc234fd1f17f5b4dc66f535b317328f697f8"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-11.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1078405559528619
+    },
+    {
+      "name": "original-source-12",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Sensor.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-12.stdout",
+        "bytes": 1617,
+        "sha256": "20541297c39c8ae485df71f54b8db53c0a2eb6b8453d0da77a2a8c188047fe92"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-12.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10847845184616745
+    },
+    {
+      "name": "original-source-13",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/World.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-13.stdout",
+        "bytes": 2192,
+        "sha256": "fbd6f297e2eb1a937bd6f302f2f8e87e427bdffe36c8b03b877b196787a4802c"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-13.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10771906888112426
+    },
+    {
+      "name": "original-source-14",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Model.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-14.stdout",
+        "bytes": 4000,
+        "sha256": "22b96ddd28383fe11a278da6ad8687ed058f3b3f370f89d34bf1ebf4474a6990"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-14.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10770643595606089
+    },
+    {
+      "name": "original-source-15",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Link.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-15.stdout",
+        "bytes": 1138,
+        "sha256": "27eab5791f2b3906453eeac6e96c067e2b2adcacb74a3316451b5d16efec858b"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-15.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10792370303533971
+    },
+    {
+      "name": "original-source-16",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/EntityComponentManager.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-16.stdout",
+        "bytes": 68945,
+        "sha256": "5191369a9778247b7fec6dc5520e29e6b5acf8a4593e70701aedbdb53370d8c3"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-16.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10760695883072913
+    },
+    {
+      "name": "original-source-17",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/detail/EntityComponentManager.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-17.stdout",
+        "bytes": 13702,
+        "sha256": "711430d754004dd0bc559c4c94bf7f6f0c6c01c073b0e195353c3ecc8b8a94a3"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-17.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1082237339578569
+    },
+    {
+      "name": "original-source-18",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:src/SimulationRunner.cc"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-18.stdout",
+        "bytes": 59165,
+        "sha256": "117271ad24dbe2e326bf860658c110e44859e3bc6509a56b9d43dea1b619bf06"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-18.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10801898106001318
+    },
+    {
+      "name": "original-source-19",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/Wind.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-19.stdout",
+        "bytes": 1139,
+        "sha256": "3def03923fed8768868194c25619c415766a7d2b5441365ea63893d8ad71ba1f"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-19.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1078367989975959
+    },
+    {
+      "name": "original-source-20",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/LinearVelocity.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-20.stdout",
+        "bytes": 1613,
+        "sha256": "14d5c28e1d33fc38602f22c00fc9fe8e6b6846a8e3ec67d5a81692224e71d1fa"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-20.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.1086773129645735
+    },
+    {
+      "name": "original-source-21",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim",
+        "show",
+        "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3:include/gz/sim/components/LinearVelocitySeed.hh"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-21.stdout",
+        "bytes": 1980,
+        "sha256": "25636615baa12f8c95b932c6fbde3c7ffeb439c2ec4fc8935ac97be133ef628b"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/original-source-21.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10876764287240803
+    },
+    {
+      "name": "helper-compile",
+      "argv": [
+        "/usr/bin/clang++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/test",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/core/include",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/src",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/gz_msgs_gen",
+        "-I/home/nkoenig/work/gazebo/rust/gz-sim/vendor/backward-cpp",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/math10",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/utils5",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/plugin5",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/common8",
+        "-isystem",
+        "/usr/include/uuid",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/fuel_tools12",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/msgs13",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/physics10",
+        "-isystem",
+        "/usr/include/eigen3",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/rendering11",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/transport16",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/sdformat17",
+        "-isystem",
+        "/home/nkoenig/local/include/gz/gui11",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtCore",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6",
+        "-isystem",
+        "/usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQml",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQmlIntegration",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtNetwork",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQuick",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtGui",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQmlModels",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtOpenGL",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtQuickControls2",
+        "-isystem",
+        "/usr/include/x86_64-linux-gnu/qt6/QtWidgets",
+        "-isystem",
+        "/home/nkoenig/work/gazebo/rust/gz-sim/test/gtest_vendor/include",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference/crates/gz-sim-server/tests/native_multiple_air_speeds.cc",
+        "-o",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/native-multiple-air-speeds",
+        "-Wl,-rpath,/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib",
+        "-lstdc++fs",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/reference/gz-sim-clang/lib/libgz-sim.so.11.0.0~pre3",
+        "-lpthread",
+        "/home/nkoenig/local/lib/libgz-fuel_tools.so.12.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-physics.so.10.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-rendering.so.11.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-profiler.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-av.so.8.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libswscale.so",
+        "/usr/lib/x86_64-linux-gnu/libswscale.so",
+        "/usr/lib/x86_64-linux-gnu/libavdevice.so",
+        "/usr/lib/x86_64-linux-gnu/libavdevice.so",
+        "/usr/lib/x86_64-linux-gnu/libavformat.so",
+        "/usr/lib/x86_64-linux-gnu/libavformat.so",
+        "/usr/lib/x86_64-linux-gnu/libavcodec.so",
+        "/usr/lib/x86_64-linux-gnu/libavcodec.so",
+        "/usr/lib/x86_64-linux-gnu/libavutil.so",
+        "/usr/lib/x86_64-linux-gnu/libavutil.so",
+        "/home/nkoenig/local/lib/libgz-common-io.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-geospatial.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common-graphics.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-transport-parameters.so.16.0.0~pre2",
+        "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-gui.so.11.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libprotobuf.so",
+        "/home/nkoenig/local/lib/libgz-common-events.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-plugin-loader.so.5.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-plugin.so.5.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libQt6QuickControls2.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Quick.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6QmlModels.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Qml.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Network.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6OpenGL.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Widgets.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Gui.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libQt6Core.so.6.4.2",
+        "/usr/lib/x86_64-linux-gnu/libGLX.so",
+        "/usr/lib/x86_64-linux-gnu/libOpenGL.so",
+        "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
+        "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
+        "/usr/lib/x86_64-linux-gnu/libdw.so",
+        "/usr/lib/x86_64-linux-gnu/libelf.so",
+        "/usr/lib/x86_64-linux-gnu/libpthread.a",
+        "/usr/lib/x86_64-linux-gnu/libz.so",
+        "/usr/lib/x86_64-linux-gnu/libbz2.so",
+        "/usr/lib/x86_64-linux-gnu/liblzma.so",
+        "/usr/lib/x86_64-linux-gnu/libzstd.so",
+        "/home/nkoenig/local/lib/libgz-common-testing.so.8.0.0~pre2",
+        "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2",
+        "-lpthread",
+        "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2",
+        "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0",
+        "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0",
+        "/usr/lib/x86_64-linux-gnu/libuuid.so",
+        "/usr/lib/x86_64-linux-gnu/libuuid.so",
+        "-Wl,-rpath-link,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib",
+        "-Wl,-rpath,/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/helper-compile.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/helper-compile.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 10.994833473814651
+    },
+    {
+      "name": "multiple-air-speeds-pair",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/native-multiple-air-speeds",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m26-m27-delivery/native-air-speed-pose-publisher-lzbme0dy/libgz-sim-air-speed-system.so.11.0.0~pre3",
+        "pair",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-pair.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-pair.stdout",
+        "bytes": 35577,
+        "sha256": "a33ae515e577b02047cbb54b846a5af293a938c2686250c69688ad2085fcd5bf"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-pair.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 2.2247854759916663
+    },
+    {
+      "name": "multiple-air-speeds-eight",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/native-multiple-air-speeds",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m26-m27-delivery/native-air-speed-pose-publisher-lzbme0dy/libgz-sim-air-speed-system.so.11.0.0~pre3",
+        "eight",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-eight.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-eight.stdout",
+        "bytes": 138968,
+        "sha256": "9a43c4147da16ae73c01188072a8ef849298e96da34fd21871a8a6e339ec1dda"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-eight.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 2.2265890438575298
+    },
+    {
+      "name": "multiple-air-speeds-remove",
+      "argv": [
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/native-multiple-air-speeds",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m26-m27-delivery/native-air-speed-pose-publisher-lzbme0dy/libgz-sim-air-speed-system.so.11.0.0~pre3",
+        "remove",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-remove.maps"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-remove.stdout",
+        "bytes": 20386,
+        "sha256": "e6f2f6b5aaafd3b5cb68db75e0e25b74aacc281583f1570513c50c5a0d76524d"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-remove.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 2.22577414708212
+    },
+    {
+      "name": "head-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/head-after.stdout",
+        "bytes": 41,
+        "sha256": "a6b29c43d4da204f48a26afdd7c12656cf011ddcdf310d5aa4e97892b4d981c4"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/head-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10845011798664927
+    },
+    {
+      "name": "index-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--cached",
+        "3b7d02fe54e17e0fa54b452e9938aa8261712151",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/index-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/index-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10813576984219253
+    },
+    {
+      "name": "worktree-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+        "diff",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--exit-code",
+        "--"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/worktree-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/worktree-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10827236599288881
+    },
+    {
+      "name": "untracked-after",
+      "argv": [
+        "/usr/bin/git",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.untrackedCache=false",
+        "-C",
+        "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+      ],
+      "cwd": "/home/nkoenig/work/gazebo/rust/gz-sim-m51-native-reference",
+      "actual_exit_code": 0,
+      "reaped": true,
+      "stdout": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/untracked-after.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/untracked-after.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsed_seconds": 0.10819133301265538
+    }
+  ],
+  "original_provider": {
+    "original_plugin_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m26-m27-delivery/native-air-speed-pose-publisher-lzbme0dy/libgz-sim-air-speed-system.so.11.0.0~pre3",
+    "original_plugin_sha256": "f5be1e7e5efaedf049bad7d9d41526337214c9d81aae1c8a0dcb74d4a2d4bf9d",
+    "reused_aliases": {
+      "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m26-m27-delivery/native-air-speed-pose-publisher-lzbme0dy/libgz-sim-air-speed-system.so": "libgz-sim-air-speed-system.so.11.0.0~pre3",
+      "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m26-m27-delivery/native-air-speed-pose-publisher-lzbme0dy/libgz-sim-air-speed-system.so.11": "libgz-sim-air-speed-system.so.11.0.0~pre3"
+    },
+    "reused_object_sha256": "b5342cbb81e6ec8723c3fe8476e089d3a3f9194735857098f134b2a42fd6a309"
+  },
+  "retained_M26_actual_zero_provider": {
+    "method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m26-m27-delivery/native-reference-attempt2.py",
+      "sha256": "7588409baa6b3eaa8b44219d43e89c337bbe0b38fd07c603e51d5fa811f68d1f",
+      "bytes": 22062
+    },
+    "result": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m26-m27-delivery/native-air-speed-pose-publisher-lzbme0dy/result.json",
+      "sha256": "0a2e91e6bc7d842d7aca34291f7d52bf2e53f2ed4d7e55ae679ced1d561cf26d",
+      "bytes": 822918
+    },
+    "independent_retained_audit": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m26-m27-delivery/native-reference-audit.json",
+      "sha256": "6b149a1331a6cdf5ab7d3327a2fdb945c7f5adfea3ed2ea032cfd6df43b1a2f3",
+      "bytes": 9323
+    },
+    "actual_root_exit_code": 0,
+    "independent_raw_wait_receipt_available": false,
+    "actual_root_exit_basis": "Root supplied actual zero plus exact retained stdout/result/source and no sidecar; no independent wait receipt is invented.",
+    "old_observations_not_reused": true
+  },
+  "sdk": {
+    "sdk_runtime_closure_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m47-delivery/native-sdk-current-dependency-closure.json",
+    "sdk_runtime_closure_sha256": "511ead617c78a01e772249ddbbfa1d995296a08469bedd1742d5453a2b6e9a44",
+    "historical_sdk_closure_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m13-m14-delivery/native-altimeter-current-dependency-closure.json",
+    "historical_sdk_closure_sha256": "370f49a779cbcb32bda7a46698ef2b82b6a13764c898287e0178524e66d7a4fb",
+    "sdk_drift_inventory_sha256": "a484797d83640f13bf17d162b916e4e38636a7cca273fb551bb12f5b5e3ce8eb",
+    "sdk_package_provenance_sha256": "bf5cf8486028b4315f7b7cfa5c387b6d8bcf6137d39f7bc6947a1dcecda656b3",
+    "sdk_closure_nodes": 349,
+    "sdk_baseline_scope": "All349 current identities, explicit historical349 and one installed MySQL .4 to .5 transition; initiator UNKNOWN. No old hash is relabelled current, no SDK rebuild or old proof transfer."
+  },
+  "evidence": {
+    "capture-source-state.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/capture-source-state.json",
+      "sha256": "84abd8e4f1d113f907f0d67799a808c9abbb1d6be563242e5558103c702ef95a",
+      "bytes": 856
+    },
+    "native-reference-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-reference-bound.py",
+      "sha256": "079f3f464df1e2fc2bb959cbe790ac66e203089f92a34ed57d62179668d157e9",
+      "bytes": 50385
+    },
+    "native-reference-plan.md": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-reference-plan.md",
+      "sha256": "0fff5ec6da04dd190ad6b6a246132eeac6fdd2e0c44cbd713d395d2509873d7e",
+      "bytes": 8658
+    },
+    "native-multiple-air-speeds-tr6b2cwv/result.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/result.json",
+      "sha256": "37b15a4df7f0b2e604951165d9a3faef07c1915984c73a4c51f48d0d6ba27c60",
+      "bytes": 312676
+    },
+    "native-reference-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-reference-actual-exit.json",
+      "sha256": "f629fa4400fe64530de0d761539be614cb72214a6dbf98bce17efd758bd8797e",
+      "bytes": 1535
+    },
+    "native-provider-input-contract-reviewed.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-provider-input-contract-reviewed.json",
+      "sha256": "3c7d55e0e69c0c832c83ecc4b69a6e7e0ba8909f845f131414c89151091d2a60",
+      "bytes": 16709
+    },
+    "air-speed-component-input-supplement.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/air-speed-component-input-supplement.json",
+      "sha256": "6e35d86f83ccf386fd678f0cdbd91e6cf37faec1f9773c55ba5f3210dc166efd",
+      "bytes": 23336
+    },
+    "inspect-air-speed-provider.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/inspect-air-speed-provider.py",
+      "sha256": "1f28f60045bda82c8b7514aa8f8d8961b5cf83d9732faae88d24cef0195d6d6a",
+      "bytes": 15981
+    },
+    "inspect-air-speed-provider-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/inspect-air-speed-provider-actual-exit.json",
+      "sha256": "04fb8db0ab9fde1e0b82702eecb12ec4403cdf1d80ef08989dfb982945b3bb45",
+      "bytes": 1077
+    },
+    "native-audit-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-audit-bound.py",
+      "sha256": "b4ae8e5b0e5d9941c634e55f20f4f2197f178ad0c6135c433fb03d5cf3522d9d",
+      "bytes": 53053
+    },
+    "native-audit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-audit.json",
+      "sha256": "856d7fd5583c169e8317231288ff873e59a980341fb210e3b500c79215064955",
+      "bytes": 270373
+    },
+    "native-audit-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-audit-actual-exit.json",
+      "sha256": "6d3516f2022089e3fec66085952b0d3f72ef9f2d6b7ccb5225593c5858c7c5da",
+      "bytes": 1185
+    },
+    "generate-native-multiple-air-speeds-fixture-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/generate-native-multiple-air-speeds-fixture-bound.py",
+      "sha256": "e3a10f8f72fb72b99bf1040366d132b0c7ed4b92363452d1726a94568d503c51",
+      "bytes": 28772
+    },
+    "native-fixture-generation-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-fixture-generation-actual-exit.json",
+      "sha256": "b196cac4d2bb8b6e9e8d5eaf1f28e289d5114486b6e3b27bfdcb6895f0dd666b",
+      "bytes": 1159
+    },
+    "native-borrowed-fixture-audit-bound.py": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-borrowed-fixture-audit-bound.py",
+      "sha256": "44c08894076b9b41558280188813f236eb8156f6282cb8ec9250edec24f2ab8b",
+      "bytes": 36558
+    },
+    "native-borrowed-fixture-audit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-borrowed-fixture-audit.json",
+      "sha256": "a8161da79d16e8d060f19ec87e38cf427c9ecf0a2ded5ca1a2dae8ed3164b57b",
+      "bytes": 56896
+    },
+    "native-borrowed-fixture-audit-actual-exit.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-borrowed-fixture-audit-actual-exit.json",
+      "sha256": "e567221b98a29de63ed326fa3699d7d4b59d1c7383aa4aa11297a2ddb5c3baed",
+      "bytes": 1092
+    },
+    "native-link-provider-supplement.json": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json",
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce",
+      "bytes": 9664
+    }
+  },
+  "native_DATA_state": "INDEPENDENT_M51_MULTIPLE_AIR_SPEEDS_NATIVE_DATA_CLEAR",
+  "literal_DATA_state": "INDEPENDENT_M51_NATIVE_LITERAL_FIXTURE_DATA_CLEAR",
+  "counts": {
+    "canonical_packets": 55,
+    "configuration_count": 12,
+    "input_rows": 331,
+    "observed_packets": 55,
+    "removal_events": 1,
+    "system_calls": 79,
+    "without_observed_packet": 276
+  },
+  "fixture": {
+    "path": "crates/gz-sim-scene/tests/fixtures/m51_native_multiple_air_speeds.rs",
+    "bytes": 213606,
+    "sha256": "2db6d8d3310b0ad3df33daf30af519650e8d8c42aff55acc28c487b056ef30e4"
+  },
+  "fixture_provenance": {
+    "path": "crates/gz-sim-scene/tests/fixtures/m51_native_multiple_air_speeds.provenance.json",
+    "sha256": "1db553df5569414a4eedd9aedede23cd4b25c14497a8bdede94f98ca072015f5"
+  },
+  "input_bindings": {
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json": {
+      "bytes": 9664,
+      "mode": "0o664",
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/air-speed-component-input-supplement.json": {
+      "bytes": 23336,
+      "mode": "0o664",
+      "sha256": "6e35d86f83ccf386fd678f0cdbd91e6cf37faec1f9773c55ba5f3210dc166efd"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/generate-native-multiple-air-speeds-fixture-bound.py": {
+      "bytes": 28772,
+      "mode": "0o664",
+      "sha256": "e3a10f8f72fb72b99bf1040366d132b0c7ed4b92363452d1726a94568d503c51"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-audit-actual-exit.json": {
+      "bytes": 1185,
+      "mode": "0o664",
+      "sha256": "6d3516f2022089e3fec66085952b0d3f72ef9f2d6b7ccb5225593c5858c7c5da"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-audit-bound.py": {
+      "bytes": 53053,
+      "mode": "0o664",
+      "sha256": "b4ae8e5b0e5d9941c634e55f20f4f2197f178ad0c6135c433fb03d5cf3522d9d"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-audit-execution.log": {
+      "bytes": 247,
+      "mode": "0o664",
+      "sha256": "14e647d2c772a80aa472fe10b4819f450c0b499019b89b5510a82ca0535a0f14"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-audit.json": {
+      "bytes": 270373,
+      "mode": "0o664",
+      "sha256": "856d7fd5583c169e8317231288ff873e59a980341fb210e3b500c79215064955"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-eight.stdout": {
+      "bytes": 138968,
+      "mode": "0o664",
+      "sha256": "9a43c4147da16ae73c01188072a8ef849298e96da34fd21871a8a6e339ec1dda"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-pair.stdout": {
+      "bytes": 35577,
+      "mode": "0o664",
+      "sha256": "a33ae515e577b02047cbb54b846a5af293a938c2686250c69688ad2085fcd5bf"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/multiple-air-speeds-remove.stdout": {
+      "bytes": 20386,
+      "mode": "0o664",
+      "sha256": "e6f2f6b5aaafd3b5cb68db75e0e25b74aacc281583f1570513c50c5a0d76524d"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-multiple-air-speeds-tr6b2cwv/result.json": {
+      "bytes": 312676,
+      "mode": "0o664",
+      "sha256": "37b15a4df7f0b2e604951165d9a3faef07c1915984c73a4c51f48d0d6ba27c60"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-reference-actual-exit.json": {
+      "bytes": 1535,
+      "mode": "0o664",
+      "sha256": "f629fa4400fe64530de0d761539be614cb72214a6dbf98bce17efd758bd8797e"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/native-reference-execution.log": {
+      "bytes": 137,
+      "mode": "0o664",
+      "sha256": "8c2aaf166c8a81a01ca34a0fbd714377b57cf091067181fba002f0dbaf4f1fb6"
+    }
+  },
+  "input_domain": "DIRECT_ECM_SENSOR_WORLD_POSE_POINT_WORLD_VELOCITY_AND_CONSTANT_WORLD_WIND",
+  "air_speed_component_input": {
+    "source": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m51-delivery/air-speed-component-input-supplement.json",
+    "source_sha256": "6e35d86f83ccf386fd678f0cdbd91e6cf37faec1f9773c55ba5f3210dc166efd",
+    "separate_exact_node_count": 1,
+    "before_and_after_equal": true,
+    "diagnostic_is_runtime_loader_proof": false
+  },
+  "limits": [
+    "Actual independently audited original AirSpeed System multiplicity records copied literally. All331 input rows retain sensor WORLD pose, POINT WORLD velocity, WORLD wind and the public native relative-velocity handoff witness; no link-center velocity or Physics trajectory is reconstructed. The55 borrowed output records preserve actual scalar IEEEbits and complete header/message bytes. An observed=None input means only no matching captured packet; it proves no internal Sensor::Update return, no-noise draw or per-sensor deadline state. Native family-wide demand/removal differs from Rust individual ownership. Aggregate79 System calls remain summary metadata; no unrecorded paused-call rows are invented. No native/Rust RNG or individual-disconnect/all-disconnected-removal equivalence is supplied. Existing direct same-API scalar and handoff comparisons retain exact bits; independent live geometry keeps its established 1e-6 bound. Canonical wire identity is a separate encoder obligation, never inferred from a numerical tolerance. Existing349 checks, exact2 link-provider supplement and exact1 air-speed-component input stay distinct; dependency diagnostic metadata is not runtime loader qualification. Actual generator0, independent fixed-literal DATA, Source consumers/fullnormal/hosted and acceptance remain separately required.",
+    "79 System calls are captured helper-summary and pinned-method attestation, not individual raw records.",
+    "Rust observed-value consumers and full normal qualification remain pending at this provenance checkpoint.",
+    "No hosted CI, source publication, installation, browser, release or phase acceptance is supplied."
+  ]
+}
