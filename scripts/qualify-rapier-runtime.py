@@ -53,6 +53,7 @@ NOISY_EXAMPLES = (
     "examples/m50_multiple_air_pressures.sdf",
     "examples/m51_multiple_air_speeds.sdf",
     "examples/m52_multiple_magnetometers.sdf",
+    "examples/m53_multiple_logical_cameras.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -102,6 +103,7 @@ NOISY_LINKS = {
     "examples/m50_multiple_air_pressures.sdf": {"default::rig::body": (0, 0, 3)},
     "examples/m51_multiple_air_speeds.sdf": {"default::rig::body": (0, 0, 3)},
     "examples/m52_multiple_magnetometers.sdf": {"default::rig::body": (0, 0, 3)},
+    "examples/m53_multiple_logical_cameras.sdf": {"default::rig::body": (0, 0, 3)},
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
 TARGETS = {

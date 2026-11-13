@@ -402,6 +402,24 @@ pub fn initial_logical_camera_publications(
         .filter_map(|node| node.logical_camera_publication.as_ref()))
 }
 
+/// Initial logical-camera identities and metadata, including removed sensors.
+/// Names retain the complete WORLD scope; metadata entity names omit that prefix.
+/// This borrows the immutable loader blueprint without IO or mutation.
+pub fn initial_logical_camera_identities(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = (u64, EntityKind, &str, &LogicalCameraPublication)>, SceneResetError>
+{
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.0.nodes.iter().filter_map(|node| {
+        node.logical_camera_publication
+            .as_ref()
+            .map(|metadata| (node.id.get(), node.kind, node.name.as_str(), metadata))
+    }))
+}
+
 /// Initial pose configurations paired with stable loaded model identities.
 pub fn initial_pose_publications(
     sim: &Simulation,

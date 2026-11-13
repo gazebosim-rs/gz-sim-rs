@@ -259,7 +259,7 @@ pub(super) fn preflight(
     if cameras == 0 {
         return Ok(());
     }
-    require(cameras == 1, &world.name, "one loaded logical_camera")?;
+    require(cameras <= 8, &world.name, "one loaded logical_camera")?;
     require(
         world.models.len() <= 128,
         &world.name,
@@ -321,9 +321,11 @@ pub(super) fn spawn(
 ) -> Result<(), LoadError> {
     let name = format!("{}::{}", parent.link.scoped_name, sensor.name);
     require(
-        !sim.world()
+        sim.world()
             .iter_entities()
-            .any(|e| e.contains::<LogicalCamera>()),
+            .filter(|e| e.contains::<LogicalCamera>())
+            .count()
+            < 8,
         &name,
         "one loaded logical_camera",
     )?;
@@ -547,3 +549,7 @@ fn reset(mut cameras: Query<(Entity, &mut LogicalCamera)>, mut commands: Command
 #[cfg(test)]
 #[path = "../tests/private/logical_camera.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_logical_cameras_native.rs"]
+mod multiple_logical_cameras_native_tests;

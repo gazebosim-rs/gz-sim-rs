@@ -7,12 +7,13 @@ use gz_sim_proto::msgs::{
     Header, LogicalCameraImage, LogicalCameraSensor, Pose, header::Map, logical_camera_image,
 };
 use gz_sim_scene::{
-    EntityKind, LogicalCameraPublication, LogicalCameraSample, PendingResetRemoval,
+    EntityKind, LogicalCameraPublication, LogicalCameraSample, Name, PendingResetRemoval,
 };
 use std::collections::BTreeSet;
 pub(super) struct Stream {
     entity: Entity,
     identity: u64,
+    scoped_name: String,
     pub(super) metadata: LogicalCameraPublication,
     pub(super) image_endpoint: String,
     pub(super) frustum_endpoint: String,
@@ -122,7 +123,40 @@ type Outputs = (
     Arc<world_io::LogicalCameraOutput>,
     Arc<world_io::LogicalCameraOutput>,
 );
-pub(super) type Prepared = BTreeMap<String, (LogicalCameraPublication, String, Outputs)>;
+// Preserve the original metadata/frustum-key/paired-lease prefix.
+pub(super) type Prepared =
+    BTreeMap<String, (LogicalCameraPublication, String, Outputs, u64, String)>;
+const MAX_LOGICAL_CAMERAS: usize = 8;
+fn world_name(simulation: &Simulation) -> Result<&str, Error> {
+    let mut owners = simulation
+        .world()
+        .iter_entities()
+        .filter(|e| e.get::<EntityKind>() == Some(&EntityKind::World));
+    let owner = owners.next().ok_or(Error::LogicalCameraIdentity)?;
+    if owners.next().is_some() {
+        return Err(Error::LogicalCameraIdentity);
+    }
+    owner
+        .get::<Name>()
+        .map(|name| name.0.as_str())
+        .filter(|name| !name.is_empty())
+        .ok_or(Error::LogicalCameraIdentity)
+}
+fn valid_owner(
+    world: &str,
+    id: u64,
+    kind: EntityKind,
+    name: &str,
+    m: &LogicalCameraPublication,
+) -> bool {
+    id != 0
+        && kind == EntityKind::Sensor
+        && valid_metadata(m)
+        && name
+            .strip_prefix(world)
+            .and_then(|tail| tail.strip_prefix("::"))
+            == Some(m.entity_name.as_str())
+}
 fn endpoints(
     m: &LogicalCameraPublication,
     options: &ServerOptions,
@@ -142,19 +176,54 @@ pub(super) fn prepare_reset(
     server: &Server,
     occupied: &BTreeSet<String>,
 ) -> Result<Prepared, Error> {
-    let metadata: Vec<_> = gz_sim_scene::initial_logical_camera_publications(&server.simulation)?
-        .cloned()
+    let originals: Vec<_> = gz_sim_scene::initial_logical_camera_identities(&server.simulation)?
+        .map(|(id, kind, name, m)| (id, kind, name.to_owned(), m.clone()))
         .collect();
-    if metadata.len() > 1 {
+    if originals.len() > MAX_LOGICAL_CAMERAS {
         return Err(Error::LogicalCameraIdentity);
     }
-    // All metadata and both remaps precede either declaration.
-    let selected: Vec<_> = metadata
-        .into_iter()
-        .map(|m| endpoints(&m, &server.network_config, occupied).map(|(a, b)| (m, a, b)))
-        .collect::<Result<_, _>>()?;
+    if originals.is_empty() {
+        return Ok(BTreeMap::new());
+    }
+    let world = world_name(&server.simulation)?;
+    let mut ids = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut keys = occupied.clone();
+    let mut selected = Vec::new();
+    for (id, kind, name, m) in originals {
+        if !valid_owner(world, id, kind, &name, &m)
+            || !ids.insert(id)
+            || !names.insert(name.clone())
+        {
+            return Err(Error::LogicalCameraIdentity);
+        }
+        let (a, b) = endpoints(&m, &server.network_config, occupied)?;
+        if !keys.insert(a.clone()) || !keys.insert(b.clone()) {
+            return Err(Error::LogicalCameraIdentity);
+        }
+        selected.push((id, name, m, a, b));
+    }
+    // Validate all reused owners and both endpoint bindings before any lookup
+    // in WorldIo can allocate a lease for an earlier valid owner.
+    for (id, name, m, a, b) in &selected {
+        for stream in server.logical_cameras.iter().filter(|s| {
+            &s.image_endpoint == a
+                || &s.frustum_endpoint == a
+                || &s.image_endpoint == b
+                || &s.frustum_endpoint == b
+        }) {
+            if stream.identity != *id
+                || &stream.scoped_name != name
+                || &stream.metadata != m
+                || &stream.image_endpoint != a
+                || &stream.frustum_endpoint != b
+            {
+                return Err(Error::ResetLogicalCameras);
+            }
+        }
+    }
     let mut result = BTreeMap::new();
-    for (m, a, b) in selected {
+    for (id, name, m, a, b) in selected {
         let outputs = match server
             .logical_cameras
             .iter()
@@ -172,7 +241,7 @@ pub(super) fn prepare_reset(
                     .map_err(|e| Error::WorldNetwork(e.to_string()))?,
             ),
         };
-        result.insert(a, (m, b, outputs));
+        result.insert(a, (m, b, outputs, id, name));
     }
     Ok(result)
 }
@@ -189,12 +258,28 @@ pub(super) fn streams(
         .filter(|e| {
             !e.contains::<PendingResetRemoval>() && e.contains::<LogicalCameraPublication>()
         })
+        .map(|e| e.id())
         .collect();
-    if candidates.len() > 1 {
+    if candidates.len() > MAX_LOGICAL_CAMERAS {
         return Err(Error::LogicalCameraIdentity);
     }
+    if candidates.is_empty() {
+        return if prepared.is_some_and(|p| !p.is_empty()) {
+            Err(Error::ResetLogicalCameras)
+        } else {
+            Ok(Vec::new())
+        };
+    }
+    let world = world_name(simulation)?;
+    let originals: Vec<_> = gz_sim_scene::initial_logical_camera_identities(simulation)?
+        .map(|(id, kind, name, m)| (id, kind, name.to_owned(), m.clone()))
+        .collect();
+    let mut ids = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut keys = occupied.clone();
     let mut selected = Vec::new();
-    for e in candidates {
+    for entity in candidates {
+        let e = simulation.world().entity(entity);
         let m = e
             .get::<LogicalCameraPublication>()
             .expect("candidate metadata");
@@ -202,28 +287,46 @@ pub(super) fn streams(
             .get::<EntityId>()
             .ok_or(Error::LogicalCameraIdentity)?
             .get();
-        if e.get::<EntityKind>() != Some(&EntityKind::Sensor)
-            || entity_by_id(simulation.world(), id) != Some(e.id())
+        let name = e.get::<Name>().ok_or(Error::LogicalCameraIdentity)?;
+        let kind = e.get::<EntityKind>().ok_or(Error::LogicalCameraIdentity)?;
+        let original = originals
+            .iter()
+            .find(|(oid, okind, oname, _)| *oid == id && okind == kind && oname == &name.0);
+        if !valid_owner(world, id, *kind, &name.0, m)
+            || entity_by_id(simulation.world(), id) != Some(entity)
+            || original.is_none()
+            || !ids.insert(id)
+            || !names.insert(name.0.clone())
         {
             return Err(Error::LogicalCameraIdentity);
         }
+        if &original.expect("validated original owner").3 != m {
+            return Err(if prepared.is_some() {
+                Error::ResetLogicalCameras
+            } else {
+                Error::LogicalCameraIdentity
+            });
+        }
         let (a, b) = endpoints(m, options, occupied)?;
+        if !keys.insert(a.clone()) || !keys.insert(b.clone()) {
+            return Err(Error::LogicalCameraIdentity);
+        }
         if let Some(p) = prepared {
-            let (old, old_b, _) = p.get(&a).ok_or(Error::ResetLogicalCameras)?;
-            if old != m || old_b != &b {
+            let (old, old_b, _, old_id, old_name) = p.get(&a).ok_or(Error::ResetLogicalCameras)?;
+            if old != m || old_b != &b || *old_id != id || old_name != &name.0 {
                 return Err(Error::ResetLogicalCameras);
             }
         }
-        selected.push((e.id(), id, m.clone(), a, b));
+        selected.push((entity, id, name.0.clone(), m.clone(), a, b));
     }
     if prepared.is_some_and(|p| p.len() != selected.len()) {
         return Err(Error::ResetLogicalCameras);
     }
     let mut result = Vec::new();
-    for (entity, identity, metadata, image_endpoint, frustum_endpoint) in selected {
+    for (entity, identity, scoped_name, metadata, image_endpoint, frustum_endpoint) in selected {
         let (image, frustum) = match prepared {
             Some(p) => {
-                let (_, _, (a, b)) = p.get(&image_endpoint).expect("prevalidated pair");
+                let (_, _, (a, b), _, _) = p.get(&image_endpoint).expect("prevalidated pair");
                 (Arc::clone(a), Arc::clone(b))
             }
             None => (
@@ -236,6 +339,7 @@ pub(super) fn streams(
         result.push(Stream {
             entity,
             identity,
+            scoped_name,
             metadata,
             image_endpoint,
             frustum_endpoint,
@@ -336,3 +440,7 @@ impl Server {
 #[cfg(test)]
 #[path = "../tests/private/logical_camera.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_logical_cameras_native.rs"]
+mod multiple_logical_cameras_native;

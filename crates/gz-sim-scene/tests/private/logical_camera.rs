@@ -351,3 +351,133 @@ fn rates_continuous_and_very_fast_preserve_one_sample_per_tick_and_removed_targe
         ["rig"]
     );
 }
+
+fn distinct_pair_xml() -> String {
+    let start = XML.find("    <sensor ").unwrap();
+    let end = start + XML[start..].find("</sensor>").unwrap() + 9;
+    let second = XML[start..end]
+        .replace("name='logical_camera'", "name='second_camera'")
+        .replace("/m30/logical_camera", "/m53/second_camera")
+        .replace("rig/body/logical_camera", "rig/body/second_camera");
+    format!("{}{}{}", &XML[..end], second, &XML[end..])
+}
+
+#[test]
+fn multiple_camera_owner_identity_parent_and_kind_faults_do_not_corrupt_peer() {
+    for field in 0..4 {
+        let mut sim = load(&distinct_pair_xml());
+        let first = sensor(&sim);
+        let second = named(&sim, "default::rig::body::second_camera").0;
+        sim.step_exact(1).unwrap();
+        let original = sim.world().get::<LogicalCamera>(first).unwrap().clone();
+        match field {
+            0 => {
+                sim.world_mut()
+                    .get_mut::<LogicalCamera>(first)
+                    .unwrap()
+                    .owner = u64::MAX
+            }
+            1 => {
+                sim.world_mut()
+                    .get_mut::<LogicalCamera>(first)
+                    .unwrap()
+                    .link = u64::MAX
+            }
+            2 => {
+                sim.world_mut().entity_mut(first).insert(EntityKind::Link);
+            }
+            _ => {
+                let other_parent = named(&sim, "default::target::body").0;
+                sim.world_mut()
+                    .entity_mut(first)
+                    .insert(ChildOf(other_parent));
+            }
+        }
+        assert_eq!(
+            reading(
+                sim.world(),
+                first,
+                sim.world().get::<LogicalCamera>(first).unwrap()
+            ),
+            Err(InvalidLogicalCameraInput)
+        );
+        assert!(
+            reading(
+                sim.world(),
+                second,
+                sim.world().get::<LogicalCamera>(second).unwrap()
+            )
+            .is_ok()
+        );
+        // Due invalid input replaces the old successful frame; no partial pair.
+        sim.step_exact(9).unwrap();
+        assert!(
+            sim.world()
+                .get::<LogicalCameraSample>(first)
+                .unwrap()
+                .reading
+                .is_err()
+        );
+        assert!(
+            sim.world()
+                .get::<LogicalCameraSample>(second)
+                .unwrap()
+                .reading
+                .is_ok()
+        );
+        assert_eq!(
+            sim.world().get::<LogicalCamera>(second).unwrap().owner,
+            sim.world().get::<EntityId>(second).unwrap().get()
+        );
+        assert_ne!(
+            original.owner,
+            sim.world().get::<LogicalCamera>(second).unwrap().owner
+        );
+    }
+}
+
+#[test]
+fn multiple_camera_frames_keep_the_shared_128_model_limit_and_whole_frame_validation() {
+    let mut sim = load(&distinct_pair_xml());
+    let first = sensor(&sim);
+    let second = named(&sim, "default::rig::body::second_camera").0;
+    let world = named(&sim, "default").0;
+    let base = sdformat::Transform {
+        translation: [2.0, 0.0, 3.0],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+    };
+    // The original fixture has exactly three models. Camera multiplicity never
+    // multiplies this existing model cap or excludes a visible owner origin.
+    for i in 0..125 {
+        spawn_node(
+            &mut sim,
+            Some(world),
+            &format!("default::extra{i}"),
+            EntityKind::Model,
+            base,
+            base,
+        )
+        .unwrap();
+    }
+    for e in [first, second] {
+        let value = reading(sim.world(), e, sim.world().get::<LogicalCamera>(e).unwrap()).unwrap();
+        assert_eq!(value.models.len(), 127);
+        assert!(value.models.iter().any(|m| m.name == "rig"));
+        assert!(value.models.windows(2).all(|w| w[0].name < w[1].name));
+    }
+    spawn_node(
+        &mut sim,
+        Some(world),
+        "default::overflow",
+        EntityKind::Model,
+        base,
+        base,
+    )
+    .unwrap();
+    for e in [first, second] {
+        assert_eq!(
+            reading(sim.world(), e, sim.world().get::<LogicalCamera>(e).unwrap()),
+            Err(InvalidLogicalCameraInput)
+        );
+    }
+}

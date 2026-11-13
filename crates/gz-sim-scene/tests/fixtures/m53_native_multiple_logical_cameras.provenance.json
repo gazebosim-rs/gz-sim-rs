@@ -1,0 +1,2181 @@
+{
+  "actual_DATA_exit_receipt_sha256": "e4cbfbdf4dfe1c569b44bca368200e5dc055340f883bce0d9e3359fe8c0e520c",
+  "actual_generator_exit_zero_required": true,
+  "actual_native_exit_receipt_sha256": "c878257cf1db591c291eb2396425f2a20c64f6ca00ceb955595ff447dc4a616e",
+  "capture_tree": "b73d4a494da35bca33daef3e91c89cb7debe1cec",
+  "counts": {
+    "canonical_packets": 80,
+    "configuration_count": 10,
+    "direct_update_calls": 40,
+    "input_rows": 40,
+    "observed_pairs": 40
+  },
+  "fixture_bytes": 156156,
+  "fixture_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-replay-generated/m53_native_multiple_logical_cameras.rs",
+  "fixture_sha256": "1be6617f4fc52d03b38327aa84aa7156769a51b348e278447ed6e6c246aa33bd",
+  "helper_source_sha256": "fd823d4f2677010c0d02f8d7c0d8609bb2d19218a1ebf8cf04832167bc2611ca",
+  "historical_sdk_closure_sha256": "370f49a779cbcb32bda7a46698ef2b82b6a13764c898287e0178524e66d7a4fb",
+  "independent_fixture_source_data_review_required": true,
+  "input_bindings": {
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json": {
+      "bytes": 9664,
+      "mode": "0o664",
+      "sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/generate-native-multiple-logical-cameras-fixture-bound.py": {
+      "bytes": 31619,
+      "mode": "0o664",
+      "sha256": "8263b0ae816332acf66b9aba34d64f93844d05fe6a600b075d0d9330f7695f92"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/logical-camera-component-input-supplement-reviewed.json": {
+      "bytes": 31240,
+      "mode": "0o664",
+      "sha256": "c58f8ccf8d76a889bb313af04ddbae5746c142f2033598ecb26e6f4307106812"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-audit-actual-exit.json": {
+      "bytes": 1475,
+      "mode": "0o664",
+      "sha256": "e4cbfbdf4dfe1c569b44bca368200e5dc055340f883bce0d9e3359fe8c0e520c"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-audit-attempt2-bound.py": {
+      "bytes": 63155,
+      "mode": "0o664",
+      "sha256": "bc03c10089adcbe18e907c2f66fe91820f0a08cf19d2b7ff23483f3fbba0615f"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-audit-execution.log": {
+      "bytes": 252,
+      "mode": "0o664",
+      "sha256": "33d97e45ae1b3d49af27161259933a8c8957c903576b60206fccbc07fd692090"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-audit.json": {
+      "bytes": 136070,
+      "mode": "0o664",
+      "sha256": "d99bad3188beb56bc2ab6e479d104e54e5ec02850492c87ade3a42da5e999e5e"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-multiple-logical-cameras-attempt2-5vppb2k4/multiple-logical-cameras-eight.stdout": {
+      "bytes": 95388,
+      "mode": "0o664",
+      "sha256": "0c738f16e29a88dba2a2d5caabf82234d384778212bd661320ee81558ca54223"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-multiple-logical-cameras-attempt2-5vppb2k4/multiple-logical-cameras-pair.stdout": {
+      "bytes": 18603,
+      "mode": "0o664",
+      "sha256": "9141c1f320d25204ba4fab80f4eb39d24d7b83bd184f6a5997d873a1e92c66fe"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-multiple-logical-cameras-attempt2-5vppb2k4/result.json": {
+      "bytes": 170962,
+      "mode": "0o664",
+      "sha256": "62ccca4403b00ad2f3e395fb84a02bd74963c88e8e65f4a8cba18dfb71f257e2"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-reference-attempt2-actual-exit.json": {
+      "bytes": 2030,
+      "mode": "0o664",
+      "sha256": "c878257cf1db591c291eb2396425f2a20c64f6ca00ceb955595ff447dc4a616e"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-reference-attempt2-bound.py": {
+      "bytes": 64080,
+      "mode": "0o664",
+      "sha256": "8f0efa4860f21e80a68e07173e4e6c62caba3324382342947e7a7f2e6927434d"
+    },
+    "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-reference-attempt2-execution.log": {
+      "bytes": 151,
+      "mode": "0o664",
+      "sha256": "fa2dc404407fd9e607fc851d32ab540c76432e060b025da06ba50acffac39454"
+    }
+  },
+  "input_domain": "DIRECT_SENSOR_FACTORY_POSE_AND_MODEL_MAP",
+  "limits": "Actual independently audited direct SensorFactory component data copied literally: all10 configurations/getters/SDF XML,40 explicit camera WORLD pose plus complete model-map inputs,40 borrowed paired outputs and all80 actual canonical messages with both Headers. Input NativeModel poses are WORLD; output NativeModel poses are observed camera-relative. The empty row2 model map is a component API input, not a loaded ECM/topology claim. No output estimator, inverse/quaternion/frustum computation, hidden model, missing-row or getter observation is manufactured. No System/ECM/demand/rate/schedule/reset/removal/Physics/native-Rust equivalence or old campaign replay is claimed. Original1e-12 numeric comparisons and exact full-wire obligations remain separate future proofs. Current349+old2+component and M30 historical success/two failures/failedSystem diagnostic/firstM53 failedcontroller retain their scopes. Actual generator0, independent fixed-literal DATA, Source consumers/fullnormal/hosted and acceptance remain separately required.",
+  "logical_camera_component_input": {
+    "after": {
+      "Source_header_pkgconfig_inputs": {
+        "/home/nkoenig/local/include/gz/sensors11/gz/sensors/LogicalCameraSensor.hh": {
+          "bytes": 4214,
+          "fingerprint": [
+            66307,
+            45888197,
+            33188,
+            4214,
+            1792844816000000000,
+            1792846569009042759
+          ],
+          "path": "/home/nkoenig/local/include/gz/sensors11/gz/sensors/LogicalCameraSensor.hh",
+          "retained_M30_input_sha256": "d73b48d4585bea6f424ce2c0164dea439dc06d96c0e7c8aee1d7cca35d88e795",
+          "sha256": "d73b48d4585bea6f424ce2c0164dea439dc06d96c0e7c8aee1d7cca35d88e795"
+        },
+        "/home/nkoenig/local/include/gz/sensors11/gz/sensors/SensorFactory.hh": {
+          "bytes": 4904,
+          "fingerprint": [
+            66307,
+            45888207,
+            33188,
+            4904,
+            1792844816000000000,
+            1792846569009042759
+          ],
+          "path": "/home/nkoenig/local/include/gz/sensors11/gz/sensors/SensorFactory.hh",
+          "retained_M30_input_sha256": "624e5a4e296bef7d7c8b7558e99dd54b2f3ee3968855b6e4a2f8619ef851af8b",
+          "sha256": "624e5a4e296bef7d7c8b7558e99dd54b2f3ee3968855b6e4a2f8619ef851af8b"
+        },
+        "/home/nkoenig/local/lib/pkgconfig/gz-sensors-logical_camera.pc": {
+          "bytes": 355,
+          "fingerprint": [
+            66307,
+            45654839,
+            33188,
+            355,
+            1792844819000000000,
+            1792846568977360171
+          ],
+          "path": "/home/nkoenig/local/lib/pkgconfig/gz-sensors-logical_camera.pc",
+          "retained_M30_input_sha256": "e5ec3c55028cc66946a3f6b503d1dbc039b14a113408754379655bb097d0cfae",
+          "sha256": "e5ec3c55028cc66946a3f6b503d1dbc039b14a113408754379655bb097d0cfae"
+        },
+        "/home/nkoenig/work/gazebo/rust/gz-sensors/include/gz/sensors/LogicalCameraSensor.hh": {
+          "bytes": 4214,
+          "fingerprint": [
+            66307,
+            45886332,
+            33204,
+            4214,
+            1792844816522629500,
+            1792844816522629500
+          ],
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sensors/include/gz/sensors/LogicalCameraSensor.hh",
+          "retained_M30_input_sha256": "d73b48d4585bea6f424ce2c0164dea439dc06d96c0e7c8aee1d7cca35d88e795",
+          "sha256": "d73b48d4585bea6f424ce2c0164dea439dc06d96c0e7c8aee1d7cca35d88e795"
+        },
+        "/home/nkoenig/work/gazebo/rust/gz-sensors/include/gz/sensors/SensorFactory.hh": {
+          "bytes": 4904,
+          "fingerprint": [
+            66307,
+            45886342,
+            33204,
+            4904,
+            1792844816523508644,
+            1792844816523508644
+          ],
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sensors/include/gz/sensors/SensorFactory.hh",
+          "retained_M30_input_sha256": "624e5a4e296bef7d7c8b7558e99dd54b2f3ee3968855b6e4a2f8619ef851af8b",
+          "sha256": "624e5a4e296bef7d7c8b7558e99dd54b2f3ee3968855b6e4a2f8619ef851af8b"
+        },
+        "/home/nkoenig/work/gazebo/rust/gz-sensors/src/LogicalCameraSensor.cc": {
+          "bytes": 7665,
+          "fingerprint": [
+            66307,
+            45886377,
+            33204,
+            7665,
+            1792844816527508636,
+            1792844816527508636
+          ],
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sensors/src/LogicalCameraSensor.cc",
+          "retained_M30_input_sha256": "1ca85b3f431061d45de4fc102060e206ba017af027ad0033c56c73ea7a216ee4",
+          "sha256": "1ca85b3f431061d45de4fc102060e206ba017af027ad0033c56c73ea7a216ee4"
+        }
+      },
+      "Source_to_binary_equivalence_proved": false,
+      "aliases": {
+        "/home/nkoenig/local/lib/libgz-sensors-logical_camera.so": "libgz-sensors-logical_camera.so.11",
+        "/home/nkoenig/local/lib/libgz-sensors-logical_camera.so.11": "libgz-sensors-logical_camera.so.11.0.0~pre2"
+      },
+      "bytes": 1401768,
+      "diagnostic": {
+        "actual_exit": {
+          "bytes": 1653,
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/logical-camera-component-input-actual-exit.json",
+          "sha256": "a58ddc588f3fdf958dc459ff83afc79328674f34e3b96cce3aa169b964416e7a"
+        },
+        "method": {
+          "bytes": 25504,
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/inspect-logical-camera-component-selected.py",
+          "sha256": "a938cd34e938daa28c0d8772c13cbeeace60001a321d4740769bb7720a39f2ed"
+        },
+        "plan": {
+          "bytes": 15584,
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/inspect-logical-camera-component-plan.json",
+          "sha256": "ad1108649dbccc222d2478dbd334d5a53db372f7f961c58a1ad13b647b176e9c"
+        },
+        "primary_log": {
+          "bytes": 244,
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/logical-camera-component-input-execution.log",
+          "sha256": "2c3ec786e84b48b6966ad680db154e1b705f35847e03b9f467dc5c9af66bdea8"
+        },
+        "result": {
+          "bytes": 37363,
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/logical-camera-component-input-0c7hz6it/result.json",
+          "sha256": "640093c33e2e45497dc4c82d95162fafb87f4fa855293aeb90e2a5e952feb2b4"
+        }
+      },
+      "diagnostic_is_runtime_loader_proof": false,
+      "dynamic_metadata": {
+        "RPATH": null,
+        "RUNPATH": null,
+        "needed": [
+          "libgz-sensors.so.11",
+          "libgz-transport.so.16",
+          "libgz-msgs.so.13",
+          "libprotobuf.so.32",
+          "libgz-common.so.8",
+          "libsdformat.so.17",
+          "libgz-math.so.10",
+          "libstdc++.so.6",
+          "libgcc_s.so.1",
+          "libc.so.6"
+        ],
+        "soname": "libgz-sensors-logical_camera.so.11"
+      },
+      "path": "/home/nkoenig/local/lib/libgz-sensors-logical_camera.so.11.0.0~pre2",
+      "saved_dependency_closure": {
+        "direct_needed_inventory_candidates": {
+          "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+          "libgz-common.so.8": "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2",
+          "libgz-math.so.10": "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+          "libgz-msgs.so.13": "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+          "libgz-sensors.so.11": "/home/nkoenig/local/lib/libgz-sensors.so.11.0.0~pre2",
+          "libgz-transport.so.16": "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2",
+          "libprotobuf.so.32": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+          "libsdformat.so.17": "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2",
+          "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+        },
+        "provider_bodies_rehashed": false,
+        "reachable_count": 35,
+        "reachable_inventory_nodes": {
+          "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2": {
+            "bytes": 6563792,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgz-utils-log.so.5": "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2",
+              "libspdlog.so.1.12": "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+              "libuuid.so.1": "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0"
+            },
+            "scope": "current349",
+            "sha256": "93d9c64716d8b5efdb5862630cc33e62da97785d55e401ed19e4571c9b03df8d"
+          },
+          "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2": {
+            "bytes": 24473072,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "288c6f52fac45359f5de67d97e0069b7f37420f5f78888e61406b8f565656c4f"
+          },
+          "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2": {
+            "bytes": 69054672,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgz-utils.so.5": "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2",
+              "libprotobuf.so.32": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "0504be34705191623dce9654e7b659663d87cdb92a3b99c83db13a7f60f13659"
+          },
+          "/home/nkoenig/local/lib/libgz-sensors.so.11.0.0~pre2": {
+            "bytes": 4736064,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgz-common.so.8": "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2",
+              "libgz-math.so.10": "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+              "libgz-msgs.so.13": "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+              "libgz-transport.so.16": "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libprotobuf.so.32": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+              "libsdformat.so.17": "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "3d12bbc482784363616d903290a2b958cf28904a97871b49da0b6c6e663d09ad"
+          },
+          "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2": {
+            "bytes": 15886048,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgz-msgs.so.13": "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libprotobuf.so.32": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+              "libuuid.so.1": "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0",
+              "libzenohc.so": "/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib/libzenohc.so",
+              "libzmq.so.5": "/usr/lib/x86_64-linux-gnu/libzmq.so.5.2.5"
+            },
+            "scope": "current349",
+            "sha256": "bc9b06e4337e638b4f15d2397c974d34dd99a33957a7756e2fc424f78f08309a"
+          },
+          "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2": {
+            "bytes": 891704,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libspdlog.so.1.12": "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "9de1010066534024cb88512faf663bc6cf4362f08ed2865c9399e02aab8e51d4"
+          },
+          "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2": {
+            "bytes": 595976,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "2e91419fd59b6995ee8fada80e106dac5644d3d44cd2e8bc6655547433e51ae6"
+          },
+          "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2": {
+            "bytes": 64248736,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgz-math.so.10": "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+              "libgz-utils.so.5": "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+              "libtinyxml2.so.10": "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0",
+              "liburdfdom_model.so.4.0": "/usr/lib/x86_64-linux-gnu/liburdfdom_model.so.4.0"
+            },
+            "scope": "current349",
+            "sha256": "bcc864bcee56b49c13081e29722051e26c036260e3dd037e7736aa2b8620358f"
+          },
+          "/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib/libzenohc.so": {
+            "bytes": 14499376,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6"
+            },
+            "scope": "current349",
+            "sha256": "de63c0072f4186cf55d325773962ea6621d391629c8b33edf276bb09062b68f5"
+          },
+          "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2": {
+            "bytes": 236616,
+            "resolved_needed": {},
+            "scope": "current349",
+            "sha256": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da"
+          },
+          "/usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1": {
+            "bytes": 80888,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libmd.so.0": "/usr/lib/x86_64-linux-gnu/libmd.so.0.1.0"
+            },
+            "scope": "current349",
+            "sha256": "e86cd4f0019f42c2ba5e60602e0edc8694d2948377d98c3654d0f6bddb5254bb"
+          },
+          "/usr/lib/x86_64-linux-gnu/libc.so.6": {
+            "bytes": 2129424,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2"
+            },
+            "scope": "current349",
+            "sha256": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf"
+          },
+          "/usr/lib/x86_64-linux-gnu/libcom_err.so.2.1": {
+            "bytes": 18504,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "022943b3b11c860b049bce41342f1c2594941b7b401d95dfdf235521099fee08"
+          },
+          "/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0": {
+            "bytes": 18600,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "bb9ced68ce1209c48b55ddcebe913542197dc745c71febd65205ff0a4d833651"
+          },
+          "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0": {
+            "bytes": 129688,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "da008b908b32e428eaa1c09e36d6894c8f88362e254b503c7c2c6112b4ec9ed0"
+          },
+          "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": {
+            "bytes": 183024,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb"
+          },
+          "/usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2.2": {
+            "bytes": 338696,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libcom_err.so.2": "/usr/lib/x86_64-linux-gnu/libcom_err.so.2.1",
+              "libk5crypto.so.3": "/usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1",
+              "libkrb5.so.3": "/usr/lib/x86_64-linux-gnu/libkrb5.so.3.3",
+              "libkrb5support.so.0": "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1"
+            },
+            "scope": "current349",
+            "sha256": "c7aa00cf51646f7c32f196d329a562bc873ff32906c9caf6554ca489dd657507"
+          },
+          "/usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1": {
+            "bytes": 178648,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libkrb5support.so.0": "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1"
+            },
+            "scope": "current349",
+            "sha256": "b37407fb2930939bf78b47267019cd201a8af1f4b6a3852249c849cf3a985798"
+          },
+          "/usr/lib/x86_64-linux-gnu/libkeyutils.so.1.10": {
+            "bytes": 22600,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "f48214417757f18793ed6e180cc14ee1d6f04252a518fc7270e8ca1d0b4260fe"
+          },
+          "/usr/lib/x86_64-linux-gnu/libkrb5.so.3.3": {
+            "bytes": 823488,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libcom_err.so.2": "/usr/lib/x86_64-linux-gnu/libcom_err.so.2.1",
+              "libk5crypto.so.3": "/usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1",
+              "libkeyutils.so.1": "/usr/lib/x86_64-linux-gnu/libkeyutils.so.1.10",
+              "libkrb5support.so.0": "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1",
+              "libresolv.so.2": "/usr/lib/x86_64-linux-gnu/libresolv.so.2"
+            },
+            "scope": "current349",
+            "sha256": "fad617a72b5839d30143e7db03281279089def6f18788cbb0b7f86385301bf04"
+          },
+          "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1": {
+            "bytes": 47904,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "936bae947a838bd47676a419dfcfb036d0163249215b58ec706ec7d46b7497aa"
+          },
+          "/usr/lib/x86_64-linux-gnu/libm.so.6": {
+            "bytes": 952616,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0"
+          },
+          "/usr/lib/x86_64-linux-gnu/libmd.so.0.1.0": {
+            "bytes": 55536,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "423e18586b6ea740f4465afd64f7a9a4cb7264ed979c8e7256f9085af5345fef"
+          },
+          "/usr/lib/x86_64-linux-gnu/libnorm.so.1": {
+            "bytes": 366760,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "2543db995aa530bda8d145126b25c08d54cfe3348993e11eb75c30d6b43f5e72"
+          },
+          "/usr/lib/x86_64-linux-gnu/libpgm-5.3.so.0.0.128": {
+            "bytes": 285568,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6"
+            },
+            "scope": "current349",
+            "sha256": "46e1d5126ff73b9ba0c340b2cf0245d77620f85524c6fc967d533be6d19bdada"
+          },
+          "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12": {
+            "bytes": 3056272,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+              "libz.so.1": "/usr/lib/x86_64-linux-gnu/libz.so.1.3"
+            },
+            "scope": "current349",
+            "sha256": "53a2a625a30418d6ea84438b04c9196214dec51a30476596ee9be45ccadb0404"
+          },
+          "/usr/lib/x86_64-linux-gnu/libresolv.so.2": {
+            "bytes": 64008,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "1d730ea434da5a5595bc6a961d7a9ace83e03703205df9644044b3dca79c362f"
+          },
+          "/usr/lib/x86_64-linux-gnu/libsodium.so.23.3.0": {
+            "bytes": 355040,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5"
+          },
+          "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0": {
+            "bytes": 551288,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libfmt.so.9": "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "62bb2fbc92edc05b35888e624882b78f5b38c0aca6a3df7ab7db32bb9c2629b6"
+          },
+          "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": {
+            "bytes": 2592224,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6"
+            },
+            "scope": "current349",
+            "sha256": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11"
+          },
+          "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0": {
+            "bytes": 88712,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "f9e01d87fb78af744a426af8c992e94abf8cd3810a256e117bcc94cd84d2be6d"
+          },
+          "/usr/lib/x86_64-linux-gnu/liburdfdom_model.so.4.0": {
+            "bytes": 112824,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libconsole_bridge.so.1.0": "/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+              "libtinyxml2.so.10": "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0"
+            },
+            "scope": "current349",
+            "sha256": "ac27f211accb66a3f461d8d0b09b9ff123e306e68a0bac0f7c502203d7cbb34e"
+          },
+          "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0": {
+            "bytes": 35032,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "78d7f4d6f27b7dffc1c84dfe2f83e84aefa6f6ceeffc6ac4bc41f9fbc61cb84e"
+          },
+          "/usr/lib/x86_64-linux-gnu/libz.so.1.3": {
+            "bytes": 113000,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242"
+          },
+          "/usr/lib/x86_64-linux-gnu/libzmq.so.5.2.5": {
+            "bytes": 663584,
+            "resolved_needed": {
+              "libbsd.so.0": "/usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgssapi_krb5.so.2": "/usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2.2",
+              "libnorm.so.1": "/usr/lib/x86_64-linux-gnu/libnorm.so.1",
+              "libpgm-5.3.so.0": "/usr/lib/x86_64-linux-gnu/libpgm-5.3.so.0.0.128",
+              "libsodium.so.23": "/usr/lib/x86_64-linux-gnu/libsodium.so.23.3.0",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "c56acd8baaec3d869f7e23a194870302acef6d86384f1f0fe946fb81c7015a42"
+          }
+        },
+        "runtime_loader_path_claim": false,
+        "unresolved_or_ambiguous": {}
+      },
+      "sha256": "5da77b29c3aa2cc7b2bedcc8a51d5d72697f3192a90082cbe2d8d1f2bb882925"
+    },
+    "before": {
+      "Source_header_pkgconfig_inputs": {
+        "/home/nkoenig/local/include/gz/sensors11/gz/sensors/LogicalCameraSensor.hh": {
+          "bytes": 4214,
+          "fingerprint": [
+            66307,
+            45888197,
+            33188,
+            4214,
+            1792844816000000000,
+            1792846569009042759
+          ],
+          "path": "/home/nkoenig/local/include/gz/sensors11/gz/sensors/LogicalCameraSensor.hh",
+          "retained_M30_input_sha256": "d73b48d4585bea6f424ce2c0164dea439dc06d96c0e7c8aee1d7cca35d88e795",
+          "sha256": "d73b48d4585bea6f424ce2c0164dea439dc06d96c0e7c8aee1d7cca35d88e795"
+        },
+        "/home/nkoenig/local/include/gz/sensors11/gz/sensors/SensorFactory.hh": {
+          "bytes": 4904,
+          "fingerprint": [
+            66307,
+            45888207,
+            33188,
+            4904,
+            1792844816000000000,
+            1792846569009042759
+          ],
+          "path": "/home/nkoenig/local/include/gz/sensors11/gz/sensors/SensorFactory.hh",
+          "retained_M30_input_sha256": "624e5a4e296bef7d7c8b7558e99dd54b2f3ee3968855b6e4a2f8619ef851af8b",
+          "sha256": "624e5a4e296bef7d7c8b7558e99dd54b2f3ee3968855b6e4a2f8619ef851af8b"
+        },
+        "/home/nkoenig/local/lib/pkgconfig/gz-sensors-logical_camera.pc": {
+          "bytes": 355,
+          "fingerprint": [
+            66307,
+            45654839,
+            33188,
+            355,
+            1792844819000000000,
+            1792846568977360171
+          ],
+          "path": "/home/nkoenig/local/lib/pkgconfig/gz-sensors-logical_camera.pc",
+          "retained_M30_input_sha256": "e5ec3c55028cc66946a3f6b503d1dbc039b14a113408754379655bb097d0cfae",
+          "sha256": "e5ec3c55028cc66946a3f6b503d1dbc039b14a113408754379655bb097d0cfae"
+        },
+        "/home/nkoenig/work/gazebo/rust/gz-sensors/include/gz/sensors/LogicalCameraSensor.hh": {
+          "bytes": 4214,
+          "fingerprint": [
+            66307,
+            45886332,
+            33204,
+            4214,
+            1792844816522629500,
+            1792844816522629500
+          ],
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sensors/include/gz/sensors/LogicalCameraSensor.hh",
+          "retained_M30_input_sha256": "d73b48d4585bea6f424ce2c0164dea439dc06d96c0e7c8aee1d7cca35d88e795",
+          "sha256": "d73b48d4585bea6f424ce2c0164dea439dc06d96c0e7c8aee1d7cca35d88e795"
+        },
+        "/home/nkoenig/work/gazebo/rust/gz-sensors/include/gz/sensors/SensorFactory.hh": {
+          "bytes": 4904,
+          "fingerprint": [
+            66307,
+            45886342,
+            33204,
+            4904,
+            1792844816523508644,
+            1792844816523508644
+          ],
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sensors/include/gz/sensors/SensorFactory.hh",
+          "retained_M30_input_sha256": "624e5a4e296bef7d7c8b7558e99dd54b2f3ee3968855b6e4a2f8619ef851af8b",
+          "sha256": "624e5a4e296bef7d7c8b7558e99dd54b2f3ee3968855b6e4a2f8619ef851af8b"
+        },
+        "/home/nkoenig/work/gazebo/rust/gz-sensors/src/LogicalCameraSensor.cc": {
+          "bytes": 7665,
+          "fingerprint": [
+            66307,
+            45886377,
+            33204,
+            7665,
+            1792844816527508636,
+            1792844816527508636
+          ],
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sensors/src/LogicalCameraSensor.cc",
+          "retained_M30_input_sha256": "1ca85b3f431061d45de4fc102060e206ba017af027ad0033c56c73ea7a216ee4",
+          "sha256": "1ca85b3f431061d45de4fc102060e206ba017af027ad0033c56c73ea7a216ee4"
+        }
+      },
+      "Source_to_binary_equivalence_proved": false,
+      "aliases": {
+        "/home/nkoenig/local/lib/libgz-sensors-logical_camera.so": "libgz-sensors-logical_camera.so.11",
+        "/home/nkoenig/local/lib/libgz-sensors-logical_camera.so.11": "libgz-sensors-logical_camera.so.11.0.0~pre2"
+      },
+      "bytes": 1401768,
+      "diagnostic": {
+        "actual_exit": {
+          "bytes": 1653,
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/logical-camera-component-input-actual-exit.json",
+          "sha256": "a58ddc588f3fdf958dc459ff83afc79328674f34e3b96cce3aa169b964416e7a"
+        },
+        "method": {
+          "bytes": 25504,
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/inspect-logical-camera-component-selected.py",
+          "sha256": "a938cd34e938daa28c0d8772c13cbeeace60001a321d4740769bb7720a39f2ed"
+        },
+        "plan": {
+          "bytes": 15584,
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/inspect-logical-camera-component-plan.json",
+          "sha256": "ad1108649dbccc222d2478dbd334d5a53db372f7f961c58a1ad13b647b176e9c"
+        },
+        "primary_log": {
+          "bytes": 244,
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/logical-camera-component-input-execution.log",
+          "sha256": "2c3ec786e84b48b6966ad680db154e1b705f35847e03b9f467dc5c9af66bdea8"
+        },
+        "result": {
+          "bytes": 37363,
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/logical-camera-component-input-0c7hz6it/result.json",
+          "sha256": "640093c33e2e45497dc4c82d95162fafb87f4fa855293aeb90e2a5e952feb2b4"
+        }
+      },
+      "diagnostic_is_runtime_loader_proof": false,
+      "dynamic_metadata": {
+        "RPATH": null,
+        "RUNPATH": null,
+        "needed": [
+          "libgz-sensors.so.11",
+          "libgz-transport.so.16",
+          "libgz-msgs.so.13",
+          "libprotobuf.so.32",
+          "libgz-common.so.8",
+          "libsdformat.so.17",
+          "libgz-math.so.10",
+          "libstdc++.so.6",
+          "libgcc_s.so.1",
+          "libc.so.6"
+        ],
+        "soname": "libgz-sensors-logical_camera.so.11"
+      },
+      "path": "/home/nkoenig/local/lib/libgz-sensors-logical_camera.so.11.0.0~pre2",
+      "saved_dependency_closure": {
+        "direct_needed_inventory_candidates": {
+          "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+          "libgz-common.so.8": "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2",
+          "libgz-math.so.10": "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+          "libgz-msgs.so.13": "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+          "libgz-sensors.so.11": "/home/nkoenig/local/lib/libgz-sensors.so.11.0.0~pre2",
+          "libgz-transport.so.16": "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2",
+          "libprotobuf.so.32": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+          "libsdformat.so.17": "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2",
+          "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+        },
+        "provider_bodies_rehashed": false,
+        "reachable_count": 35,
+        "reachable_inventory_nodes": {
+          "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2": {
+            "bytes": 6563792,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgz-utils-log.so.5": "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2",
+              "libspdlog.so.1.12": "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+              "libuuid.so.1": "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0"
+            },
+            "scope": "current349",
+            "sha256": "93d9c64716d8b5efdb5862630cc33e62da97785d55e401ed19e4571c9b03df8d"
+          },
+          "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2": {
+            "bytes": 24473072,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "288c6f52fac45359f5de67d97e0069b7f37420f5f78888e61406b8f565656c4f"
+          },
+          "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2": {
+            "bytes": 69054672,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgz-utils.so.5": "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2",
+              "libprotobuf.so.32": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "0504be34705191623dce9654e7b659663d87cdb92a3b99c83db13a7f60f13659"
+          },
+          "/home/nkoenig/local/lib/libgz-sensors.so.11.0.0~pre2": {
+            "bytes": 4736064,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgz-common.so.8": "/home/nkoenig/local/lib/libgz-common.so.8.0.0~pre2",
+              "libgz-math.so.10": "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+              "libgz-msgs.so.13": "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+              "libgz-transport.so.16": "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libprotobuf.so.32": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+              "libsdformat.so.17": "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "3d12bbc482784363616d903290a2b958cf28904a97871b49da0b6c6e663d09ad"
+          },
+          "/home/nkoenig/local/lib/libgz-transport.so.16.0.0~pre2": {
+            "bytes": 15886048,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgz-msgs.so.13": "/home/nkoenig/local/lib/libgz-msgs.so.13.0.0~pre2",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libprotobuf.so.32": "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+              "libuuid.so.1": "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0",
+              "libzenohc.so": "/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib/libzenohc.so",
+              "libzmq.so.5": "/usr/lib/x86_64-linux-gnu/libzmq.so.5.2.5"
+            },
+            "scope": "current349",
+            "sha256": "bc9b06e4337e638b4f15d2397c974d34dd99a33957a7756e2fc424f78f08309a"
+          },
+          "/home/nkoenig/local/lib/libgz-utils-log.so.5.0.0~pre2": {
+            "bytes": 891704,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libspdlog.so.1.12": "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "9de1010066534024cb88512faf663bc6cf4362f08ed2865c9399e02aab8e51d4"
+          },
+          "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2": {
+            "bytes": 595976,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "2e91419fd59b6995ee8fada80e106dac5644d3d44cd2e8bc6655547433e51ae6"
+          },
+          "/home/nkoenig/local/lib/libsdformat.so.17.0.0~pre2": {
+            "bytes": 64248736,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgz-math.so.10": "/home/nkoenig/local/lib/libgz-math.so.10.0.0~pre2",
+              "libgz-utils.so.5": "/home/nkoenig/local/lib/libgz-utils.so.5.0.0~pre2",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+              "libtinyxml2.so.10": "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0",
+              "liburdfdom_model.so.4.0": "/usr/lib/x86_64-linux-gnu/liburdfdom_model.so.4.0"
+            },
+            "scope": "current349",
+            "sha256": "bcc864bcee56b49c13081e29722051e26c036260e3dd037e7736aa2b8620358f"
+          },
+          "/opt/ros/jazzy/opt/zenoh_cpp_vendor/lib/libzenohc.so": {
+            "bytes": 14499376,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6"
+            },
+            "scope": "current349",
+            "sha256": "de63c0072f4186cf55d325773962ea6621d391629c8b33edf276bb09062b68f5"
+          },
+          "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2": {
+            "bytes": 236616,
+            "resolved_needed": {},
+            "scope": "current349",
+            "sha256": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da"
+          },
+          "/usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1": {
+            "bytes": 80888,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libmd.so.0": "/usr/lib/x86_64-linux-gnu/libmd.so.0.1.0"
+            },
+            "scope": "current349",
+            "sha256": "e86cd4f0019f42c2ba5e60602e0edc8694d2948377d98c3654d0f6bddb5254bb"
+          },
+          "/usr/lib/x86_64-linux-gnu/libc.so.6": {
+            "bytes": 2129424,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2"
+            },
+            "scope": "current349",
+            "sha256": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf"
+          },
+          "/usr/lib/x86_64-linux-gnu/libcom_err.so.2.1": {
+            "bytes": 18504,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "022943b3b11c860b049bce41342f1c2594941b7b401d95dfdf235521099fee08"
+          },
+          "/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0": {
+            "bytes": 18600,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "bb9ced68ce1209c48b55ddcebe913542197dc745c71febd65205ff0a4d833651"
+          },
+          "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0": {
+            "bytes": 129688,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "da008b908b32e428eaa1c09e36d6894c8f88362e254b503c7c2c6112b4ec9ed0"
+          },
+          "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": {
+            "bytes": 183024,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb"
+          },
+          "/usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2.2": {
+            "bytes": 338696,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libcom_err.so.2": "/usr/lib/x86_64-linux-gnu/libcom_err.so.2.1",
+              "libk5crypto.so.3": "/usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1",
+              "libkrb5.so.3": "/usr/lib/x86_64-linux-gnu/libkrb5.so.3.3",
+              "libkrb5support.so.0": "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1"
+            },
+            "scope": "current349",
+            "sha256": "c7aa00cf51646f7c32f196d329a562bc873ff32906c9caf6554ca489dd657507"
+          },
+          "/usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1": {
+            "bytes": 178648,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libkrb5support.so.0": "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1"
+            },
+            "scope": "current349",
+            "sha256": "b37407fb2930939bf78b47267019cd201a8af1f4b6a3852249c849cf3a985798"
+          },
+          "/usr/lib/x86_64-linux-gnu/libkeyutils.so.1.10": {
+            "bytes": 22600,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "f48214417757f18793ed6e180cc14ee1d6f04252a518fc7270e8ca1d0b4260fe"
+          },
+          "/usr/lib/x86_64-linux-gnu/libkrb5.so.3.3": {
+            "bytes": 823488,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libcom_err.so.2": "/usr/lib/x86_64-linux-gnu/libcom_err.so.2.1",
+              "libk5crypto.so.3": "/usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1",
+              "libkeyutils.so.1": "/usr/lib/x86_64-linux-gnu/libkeyutils.so.1.10",
+              "libkrb5support.so.0": "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1",
+              "libresolv.so.2": "/usr/lib/x86_64-linux-gnu/libresolv.so.2"
+            },
+            "scope": "current349",
+            "sha256": "fad617a72b5839d30143e7db03281279089def6f18788cbb0b7f86385301bf04"
+          },
+          "/usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1": {
+            "bytes": 47904,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "936bae947a838bd47676a419dfcfb036d0163249215b58ec706ec7d46b7497aa"
+          },
+          "/usr/lib/x86_64-linux-gnu/libm.so.6": {
+            "bytes": 952616,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0"
+          },
+          "/usr/lib/x86_64-linux-gnu/libmd.so.0.1.0": {
+            "bytes": 55536,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "423e18586b6ea740f4465afd64f7a9a4cb7264ed979c8e7256f9085af5345fef"
+          },
+          "/usr/lib/x86_64-linux-gnu/libnorm.so.1": {
+            "bytes": 366760,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "2543db995aa530bda8d145126b25c08d54cfe3348993e11eb75c30d6b43f5e72"
+          },
+          "/usr/lib/x86_64-linux-gnu/libpgm-5.3.so.0.0.128": {
+            "bytes": 285568,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6"
+            },
+            "scope": "current349",
+            "sha256": "46e1d5126ff73b9ba0c340b2cf0245d77620f85524c6fc967d533be6d19bdada"
+          },
+          "/usr/lib/x86_64-linux-gnu/libprotobuf.so.32.0.12": {
+            "bytes": 3056272,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+              "libz.so.1": "/usr/lib/x86_64-linux-gnu/libz.so.1.3"
+            },
+            "scope": "current349",
+            "sha256": "53a2a625a30418d6ea84438b04c9196214dec51a30476596ee9be45ccadb0404"
+          },
+          "/usr/lib/x86_64-linux-gnu/libresolv.so.2": {
+            "bytes": 64008,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "1d730ea434da5a5595bc6a961d7a9ace83e03703205df9644044b3dca79c362f"
+          },
+          "/usr/lib/x86_64-linux-gnu/libsodium.so.23.3.0": {
+            "bytes": 355040,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5"
+          },
+          "/usr/lib/x86_64-linux-gnu/libspdlog.so.1.12.0": {
+            "bytes": 551288,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libfmt.so.9": "/usr/lib/x86_64-linux-gnu/libfmt.so.9.1.0",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "62bb2fbc92edc05b35888e624882b78f5b38c0aca6a3df7ab7db32bb9c2629b6"
+          },
+          "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": {
+            "bytes": 2592224,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6"
+            },
+            "scope": "current349",
+            "sha256": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11"
+          },
+          "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0": {
+            "bytes": 88712,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "f9e01d87fb78af744a426af8c992e94abf8cd3810a256e117bcc94cd84d2be6d"
+          },
+          "/usr/lib/x86_64-linux-gnu/liburdfdom_model.so.4.0": {
+            "bytes": 112824,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libconsole_bridge.so.1.0": "/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libm.so.6": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+              "libtinyxml2.so.10": "/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0"
+            },
+            "scope": "current349",
+            "sha256": "ac27f211accb66a3f461d8d0b09b9ff123e306e68a0bac0f7c502203d7cbb34e"
+          },
+          "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0": {
+            "bytes": 35032,
+            "resolved_needed": {
+              "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "78d7f4d6f27b7dffc1c84dfe2f83e84aefa6f6ceeffc6ac4bc41f9fbc61cb84e"
+          },
+          "/usr/lib/x86_64-linux-gnu/libz.so.1.3": {
+            "bytes": 113000,
+            "resolved_needed": {
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6"
+            },
+            "scope": "current349",
+            "sha256": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242"
+          },
+          "/usr/lib/x86_64-linux-gnu/libzmq.so.5.2.5": {
+            "bytes": 663584,
+            "resolved_needed": {
+              "libbsd.so.0": "/usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1",
+              "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "libgcc_s.so.1": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "libgssapi_krb5.so.2": "/usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2.2",
+              "libnorm.so.1": "/usr/lib/x86_64-linux-gnu/libnorm.so.1",
+              "libpgm-5.3.so.0": "/usr/lib/x86_64-linux-gnu/libpgm-5.3.so.0.0.128",
+              "libsodium.so.23": "/usr/lib/x86_64-linux-gnu/libsodium.so.23.3.0",
+              "libstdc++.so.6": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33"
+            },
+            "scope": "current349",
+            "sha256": "c56acd8baaec3d869f7e23a194870302acef6d86384f1f0fe946fb81c7015a42"
+          }
+        },
+        "runtime_loader_path_claim": false,
+        "unresolved_or_ambiguous": {}
+      },
+      "sha256": "5da77b29c3aa2cc7b2bedcc8a51d5d72697f3192a90082cbe2d8d1f2bb882925"
+    },
+    "separate_exact_node_count": 1,
+    "source": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/logical-camera-component-input-supplement-reviewed.json",
+    "source_sha256": "c58f8ccf8d76a889bb313af04ddbae5746c142f2033598ecb26e6f4307106812"
+  },
+  "method_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/generate-native-multiple-logical-cameras-fixture-bound.py",
+  "method_sha256": "8263b0ae816332acf66b9aba34d64f93844d05fe6a600b075d0d9330f7695f92",
+  "modes": {
+    "eight": {
+      "canonical_packets": 64,
+      "configurations": [
+        {
+          "config_bits": [
+            "3fe0000000000000",
+            "4020000000000000",
+            "3ff3333333333333",
+            "3ff0000000000000"
+          ],
+          "console_verbosity": 2,
+          "frame_id": "m53/native/camera0",
+          "frustum_topic": "/m53/native/eight/camera0/frustum",
+          "kind": "configuration",
+          "mode": "eight",
+          "name": "camera0",
+          "native_id": 1,
+          "rate_bits": "4059000000000000",
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d2763616d657261302720747970653d276c6f676963616c5f63616d657261273e3c706f73653e2d31203020302030203020303c2f706f73653e3c7570646174655f726174653e3130303c2f7570646174655f726174653e3c746f7069633e2f6d35332f6e61746976652f65696768742f63616d657261303c2f746f7069633e3c6672616d655f69643e6d35332f6e61746976652f63616d657261303c2f6672616d655f69643e3c6c6f676963616c5f63616d6572613e3c6e6561723e302e353c2f6e6561723e3c6661723e383c2f6661723e3c686f72697a6f6e74616c5f666f763e312e323c2f686f72697a6f6e74616c5f666f763e3c6173706563745f726174696f3e313c2f6173706563745f726174696f3e3c2f6c6f676963616c5f63616d6572613e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor": 0,
+          "sensor_local_pose_bits": [
+            "bff0000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ],
+          "topic": "/m53/native/eight/camera0"
+        },
+        {
+          "config_bits": [
+            "3fe199999999999a",
+            "4022000000000000",
+            "3ff3851eb851eb85",
+            "3ff199999999999a"
+          ],
+          "console_verbosity": 2,
+          "frame_id": "m53/native/camera1",
+          "frustum_topic": "/m53/native/eight/camera1/frustum",
+          "kind": "configuration",
+          "mode": "eight",
+          "name": "camera1",
+          "native_id": 2,
+          "rate_bits": "4049000000000000",
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d2763616d657261312720747970653d276c6f676963616c5f63616d657261273e3c706f73653e2d31203020302030203020302e32393939393939393939393939393939393c2f706f73653e3c7570646174655f726174653e35303c2f7570646174655f726174653e3c746f7069633e2f6d35332f6e61746976652f65696768742f63616d657261313c2f746f7069633e3c6672616d655f69643e6d35332f6e61746976652f63616d657261313c2f6672616d655f69643e3c6c6f676963616c5f63616d6572613e3c6e6561723e302e35353030303030303030303030303030343c2f6e6561723e3c6661723e393c2f6661723e3c686f72697a6f6e74616c5f666f763e312e32323c2f686f72697a6f6e74616c5f666f763e3c6173706563745f726174696f3e312e313030303030303030303030303030313c2f6173706563745f726174696f3e3c2f6c6f676963616c5f63616d6572613e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor": 1,
+          "sensor_local_pose_bits": [
+            "bff0000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3fc320c9e9dfed23",
+            "3fefa4033e5ee938"
+          ],
+          "topic": "/m53/native/eight/camera1"
+        },
+        {
+          "config_bits": [
+            "3fe3333333333333",
+            "4024000000000000",
+            "3ff3d70a3d70a3d7",
+            "3ff3333333333333"
+          ],
+          "console_verbosity": 2,
+          "frame_id": "m53/native/camera2",
+          "frustum_topic": "/m53/native/eight/camera2/frustum",
+          "kind": "configuration",
+          "mode": "eight",
+          "name": "camera2",
+          "native_id": 3,
+          "rate_bits": "4059000000000000",
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d2763616d657261322720747970653d276c6f676963616c5f63616d657261273e3c706f73653e2d31203020302030203020303c2f706f73653e3c7570646174655f726174653e3130303c2f7570646174655f726174653e3c746f7069633e2f6d35332f6e61746976652f65696768742f63616d657261323c2f746f7069633e3c6672616d655f69643e6d35332f6e61746976652f63616d657261323c2f6672616d655f69643e3c6c6f676963616c5f63616d6572613e3c6e6561723e302e35393939393939393939393939393939383c2f6e6561723e3c6661723e31303c2f6661723e3c686f72697a6f6e74616c5f666f763e312e32343c2f686f72697a6f6e74616c5f666f763e3c6173706563745f726174696f3e312e323c2f6173706563745f726174696f3e3c2f6c6f676963616c5f63616d6572613e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor": 2,
+          "sensor_local_pose_bits": [
+            "bff0000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ],
+          "topic": "/m53/native/eight/camera2"
+        },
+        {
+          "config_bits": [
+            "3fe4cccccccccccd",
+            "4026000000000000",
+            "3ff428f5c28f5c29",
+            "3ff4cccccccccccd"
+          ],
+          "console_verbosity": 2,
+          "frame_id": "m53/native/camera3",
+          "frustum_topic": "/m53/native/eight/camera3/frustum",
+          "kind": "configuration",
+          "mode": "eight",
+          "name": "camera3",
+          "native_id": 4,
+          "rate_bits": "4049000000000000",
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d2763616d657261332720747970653d276c6f676963616c5f63616d657261273e3c706f73653e2d31203020302030203020302e32393939393939393939393939393939393c2f706f73653e3c7570646174655f726174653e35303c2f7570646174655f726174653e3c746f7069633e2f6d35332f6e61746976652f65696768742f63616d657261333c2f746f7069633e3c6672616d655f69643e6d35332f6e61746976652f63616d657261333c2f6672616d655f69643e3c6c6f676963616c5f63616d6572613e3c6e6561723e302e36353030303030303030303030303030323c2f6e6561723e3c6661723e31313c2f6661723e3c686f72697a6f6e74616c5f666f763e312e32363c2f686f72697a6f6e74616c5f666f763e3c6173706563745f726174696f3e312e333c2f6173706563745f726174696f3e3c2f6c6f676963616c5f63616d6572613e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor": 3,
+          "sensor_local_pose_bits": [
+            "bff0000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3fc320c9e9dfed23",
+            "3fefa4033e5ee938"
+          ],
+          "topic": "/m53/native/eight/camera3"
+        },
+        {
+          "config_bits": [
+            "3fe6666666666666",
+            "4028000000000000",
+            "3ff47ae147ae147b",
+            "3ff6666666666666"
+          ],
+          "console_verbosity": 2,
+          "frame_id": "m53/native/camera4",
+          "frustum_topic": "/m53/native/eight/camera4/frustum",
+          "kind": "configuration",
+          "mode": "eight",
+          "name": "camera4",
+          "native_id": 5,
+          "rate_bits": "4059000000000000",
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d2763616d657261342720747970653d276c6f676963616c5f63616d657261273e3c706f73653e2d31203020302030203020303c2f706f73653e3c7570646174655f726174653e3130303c2f7570646174655f726174653e3c746f7069633e2f6d35332f6e61746976652f65696768742f63616d657261343c2f746f7069633e3c6672616d655f69643e6d35332f6e61746976652f63616d657261343c2f6672616d655f69643e3c6c6f676963616c5f63616d6572613e3c6e6561723e302e36393939393939393939393939393939363c2f6e6561723e3c6661723e31323c2f6661723e3c686f72697a6f6e74616c5f666f763e312e32383c2f686f72697a6f6e74616c5f666f763e3c6173706563745f726174696f3e312e333939393939393939393939393939393c2f6173706563745f726174696f3e3c2f6c6f676963616c5f63616d6572613e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor": 4,
+          "sensor_local_pose_bits": [
+            "bff0000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ],
+          "topic": "/m53/native/eight/camera4"
+        },
+        {
+          "config_bits": [
+            "3fe8000000000000",
+            "402a000000000000",
+            "3ff4cccccccccccd",
+            "3ff8000000000000"
+          ],
+          "console_verbosity": 2,
+          "frame_id": "m53/native/camera5",
+          "frustum_topic": "/m53/native/eight/camera5/frustum",
+          "kind": "configuration",
+          "mode": "eight",
+          "name": "camera5",
+          "native_id": 6,
+          "rate_bits": "4049000000000000",
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d2763616d657261352720747970653d276c6f676963616c5f63616d657261273e3c706f73653e2d31203020302030203020302e32393939393939393939393939393939393c2f706f73653e3c7570646174655f726174653e35303c2f7570646174655f726174653e3c746f7069633e2f6d35332f6e61746976652f65696768742f63616d657261353c2f746f7069633e3c6672616d655f69643e6d35332f6e61746976652f63616d657261353c2f6672616d655f69643e3c6c6f676963616c5f63616d6572613e3c6e6561723e302e37353c2f6e6561723e3c6661723e31333c2f6661723e3c686f72697a6f6e74616c5f666f763e312e333c2f686f72697a6f6e74616c5f666f763e3c6173706563745f726174696f3e312e353c2f6173706563745f726174696f3e3c2f6c6f676963616c5f63616d6572613e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor": 5,
+          "sensor_local_pose_bits": [
+            "bff0000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3fc320c9e9dfed23",
+            "3fefa4033e5ee938"
+          ],
+          "topic": "/m53/native/eight/camera5"
+        },
+        {
+          "config_bits": [
+            "3fe999999999999a",
+            "402c000000000000",
+            "3ff51eb851eb851e",
+            "3ff999999999999a"
+          ],
+          "console_verbosity": 2,
+          "frame_id": "m53/native/camera6",
+          "frustum_topic": "/m53/native/eight/camera6/frustum",
+          "kind": "configuration",
+          "mode": "eight",
+          "name": "camera6",
+          "native_id": 7,
+          "rate_bits": "4059000000000000",
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d2763616d657261362720747970653d276c6f676963616c5f63616d657261273e3c706f73653e2d31203020302030203020303c2f706f73653e3c7570646174655f726174653e3130303c2f7570646174655f726174653e3c746f7069633e2f6d35332f6e61746976652f65696768742f63616d657261363c2f746f7069633e3c6672616d655f69643e6d35332f6e61746976652f63616d657261363c2f6672616d655f69643e3c6c6f676963616c5f63616d6572613e3c6e6561723e302e38303030303030303030303030303030343c2f6e6561723e3c6661723e31343c2f6661723e3c686f72697a6f6e74616c5f666f763e312e333139393939393939393939393939383c2f686f72697a6f6e74616c5f666f763e3c6173706563745f726174696f3e312e363030303030303030303030303030313c2f6173706563745f726174696f3e3c2f6c6f676963616c5f63616d6572613e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor": 6,
+          "sensor_local_pose_bits": [
+            "bff0000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ],
+          "topic": "/m53/native/eight/camera6"
+        },
+        {
+          "config_bits": [
+            "3feb333333333334",
+            "402e000000000000",
+            "3ff570a3d70a3d70",
+            "3ffb333333333334"
+          ],
+          "console_verbosity": 2,
+          "frame_id": "m53/native/camera7",
+          "frustum_topic": "/m53/native/eight/camera7/frustum",
+          "kind": "configuration",
+          "mode": "eight",
+          "name": "camera7",
+          "native_id": 8,
+          "rate_bits": "4049000000000000",
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d2763616d657261372720747970653d276c6f676963616c5f63616d657261273e3c706f73653e2d31203020302030203020302e32393939393939393939393939393939393c2f706f73653e3c7570646174655f726174653e35303c2f7570646174655f726174653e3c746f7069633e2f6d35332f6e61746976652f65696768742f63616d657261373c2f746f7069633e3c6672616d655f69643e6d35332f6e61746976652f63616d657261373c2f6672616d655f69643e3c6c6f676963616c5f63616d6572613e3c6e6561723e302e38353030303030303030303030303030393c2f6e6561723e3c6661723e31353c2f6661723e3c686f72697a6f6e74616c5f666f763e312e333339393939393939393939393939393c2f686f72697a6f6e74616c5f666f763e3c6173706563745f726174696f3e312e373030303030303030303030303030323c2f6173706563745f726174696f3e3c2f6c6f676963616c5f63616d6572613e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor": 7,
+          "sensor_local_pose_bits": [
+            "bff0000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3fc320c9e9dfed23",
+            "3fefa4033e5ee938"
+          ],
+          "topic": "/m53/native/eight/camera7"
+        }
+      ],
+      "console": {
+        "bytes": 1072,
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-multiple-logical-cameras-attempt2-5vppb2k4/multiple-logical-cameras-eight.maps.console.log",
+        "sha256": "90d1dc4ff129f200f6f08f9bca51f20c033215eaef2ee8070443321c1be024c7"
+      },
+      "input_rows": 32,
+      "model_pose_domains": {
+        "input_models": "complete supplied WORLD model poses",
+        "output_models": "actual selected camera-relative model poses"
+      },
+      "observed_pairs": 32,
+      "stderr_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-multiple-logical-cameras-attempt2-5vppb2k4/multiple-logical-cameras-eight.stderr",
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-multiple-logical-cameras-attempt2-5vppb2k4/multiple-logical-cameras-eight.stdout",
+      "stdout_sha256": "0c738f16e29a88dba2a2d5caabf82234d384778212bd661320ee81558ca54223",
+      "summary": {
+        "canonical_packets": 64,
+        "configuration_count": 8,
+        "direct_update_calls": 32,
+        "input_rows": 32,
+        "kind": "summary",
+        "mode": "eight",
+        "native_lifecycle_equivalence_claimed": false,
+        "native_physics_executed": false,
+        "observed_pairs": 32,
+        "old_native_modes_replayed": false,
+        "original_system_executed": false
+      },
+      "wire_hashes": [
+        {
+          "frustum_header_sha256": "9b9b3726e46eb7cc57763d1168d3fec14ab13ceb10c26f3c1cc1e1bea372e3ec",
+          "frustum_wire_sha256": "b7154e41665a483a261afbc8de477c0c7f63765dbd43cb66bcebfb483ec3955a",
+          "image_header_sha256": "72d48b5da539f6820be439d68ed8d47338f471312747db8c88f0f03665901e36",
+          "image_wire_sha256": "d7a88f0519a753e4be2e5f416f68b0623c027eb0f4bf969ccb0942649522cf39",
+          "row": 0,
+          "sensor": 0,
+          "sequence": 0,
+          "time_ns": 1000000
+        },
+        {
+          "frustum_header_sha256": "72392d12857942ddbb8144b3e66d3f75efa0d2c5b29941ddeb884b18ec4a4c9c",
+          "frustum_wire_sha256": "4bb46422076af063aed3dd769fa0999e53f2ee025815defaca859f59fb63a94f",
+          "image_header_sha256": "0933a619cc299f24e9a905bce5543eaf5153680f8b735b230574baff7b19cf1e",
+          "image_wire_sha256": "cdffdae791958749afb828bf5e417a3a4f90b7e7d6cd4b5deecc5532dc3d4e59",
+          "row": 0,
+          "sensor": 1,
+          "sequence": 0,
+          "time_ns": 1000000
+        },
+        {
+          "frustum_header_sha256": "5424d74bfd0a38a9f371340037038a1852f42892d475132e494f53549f1f6352",
+          "frustum_wire_sha256": "ec023d0cd9051e4a476928a2be13189d848014869a99e234687545ab40930955",
+          "image_header_sha256": "12f45c11ba1e3f9f677d6bc37f96a00fe634a4d96ba428533ce01254b2109346",
+          "image_wire_sha256": "7cdffa3b4f4e2ddbeacc3fbfae6104340bddec88bda597c3060cee6b84817c6e",
+          "row": 0,
+          "sensor": 2,
+          "sequence": 0,
+          "time_ns": 1000000
+        },
+        {
+          "frustum_header_sha256": "e003c0d1c97d954fabb465525086e196a8bd9de3565543da64e7daa6f52a9e20",
+          "frustum_wire_sha256": "227eeb56743bf64a32c8cc071d2f7a072c51d38b55eac36ea5870922809fa189",
+          "image_header_sha256": "545bf85ac8a0cdcb600ea05f89777427d3dd9c1830cc580f6101d949f480a497",
+          "image_wire_sha256": "fe85d1ebff779f97b0755bb0ee243c88d13754bad80fd800a9386ea286331e90",
+          "row": 0,
+          "sensor": 3,
+          "sequence": 0,
+          "time_ns": 1000000
+        },
+        {
+          "frustum_header_sha256": "1e9e8164d6efb7770c7883b18f581e22fe7d5c5258b8cbec5279b84d0172782f",
+          "frustum_wire_sha256": "93d347c598a682a585f3b45f738775cdf6b718ce5ec6c40ec3caf4a1604d216f",
+          "image_header_sha256": "e9ea64ca127b14c3548970d5cbcca56ff4bc0a8c46c085b5d09a15afc956d871",
+          "image_wire_sha256": "b60ea3f29acf951162c76840b4ed88902014d683ed9fd130c45e8406143cac46",
+          "row": 0,
+          "sensor": 4,
+          "sequence": 0,
+          "time_ns": 1000000
+        },
+        {
+          "frustum_header_sha256": "a49caa81991154c692cbdc90e3d00f96c3f97a855d5a9f91a21ac54aa3cc55f2",
+          "frustum_wire_sha256": "9d5c02315a291900e01cde3281bf801a5a77d83eb554e18d1ac1a2c5ea727d65",
+          "image_header_sha256": "1f6c0ca2ac89279d5535ea0ca934574305631ea73cb103cbb642fe31be1c48c4",
+          "image_wire_sha256": "3fcd43ee880ba307f32352220884d75323c0c911546f563126d5ea480c25585e",
+          "row": 0,
+          "sensor": 5,
+          "sequence": 0,
+          "time_ns": 1000000
+        },
+        {
+          "frustum_header_sha256": "e9a328fecd0289d89755751fff19b29a8ddd57786975c0c6e241de89de91d845",
+          "frustum_wire_sha256": "3bba08c6dd717ecaa01d186af03b5f3968abb29fd98f21081ae273148a4cf3ea",
+          "image_header_sha256": "1db38f4342a978151fffe4a7577fa48aec9b15e46875a59933d6a0b3b9e8df6b",
+          "image_wire_sha256": "8c300a13a824650dae8b683226f178f91894fe70985b92a93ea8ce4b93bc39f9",
+          "row": 0,
+          "sensor": 6,
+          "sequence": 0,
+          "time_ns": 1000000
+        },
+        {
+          "frustum_header_sha256": "53cb3f8912af8bb1a06ecc066ad3d845534c9bcd6220a9c626bef6ebe58037c3",
+          "frustum_wire_sha256": "feb0bca49c227f189b94c18ac1c126696e467e53b5d8ff9e7256a02cac1513c1",
+          "image_header_sha256": "5022878ce361f04dca1ae3be010189abf06f78e38810852ebd75b2c2bada9a8c",
+          "image_wire_sha256": "b3d1956aa3d202aa49dafc6bf82624fd6717039653b067f04a671d0d85c2122b",
+          "row": 0,
+          "sensor": 7,
+          "sequence": 0,
+          "time_ns": 1000000
+        },
+        {
+          "frustum_header_sha256": "964d602fcd2ca00d6c10e57f44d95919c5e5fceaab1bdabda875081eeecab9c2",
+          "frustum_wire_sha256": "1997418cac7e42de97a2b2d7974c4d44f49bd79f6077f4142f9a59becc120ddc",
+          "image_header_sha256": "93a4d07ef40941bb3801b350ecc8889d0ff78981f79b3181dd4a75142f8e7375",
+          "image_wire_sha256": "d0ff8c7cfbca1c814b26d1a1e8a116c7596dc50506291f83e48595e257835223",
+          "row": 1,
+          "sensor": 0,
+          "sequence": 1,
+          "time_ns": 11000000
+        },
+        {
+          "frustum_header_sha256": "501f6e6cc961459970ce47244a52a33552c5cbd11cf4aea07fcabb700ddcbc2c",
+          "frustum_wire_sha256": "9547f32a4eb82b42e6cd3c093cd926662d8c4a0454c1cb460f7caa4de3bd2ca7",
+          "image_header_sha256": "c18a067dda811eb218581947b5b33f6e70bf6f1ca11dff9d4d569f2ddb76caa5",
+          "image_wire_sha256": "119803c4ae364129f61f4b66f7bf886bdb9b001274eef15eb3cb3e4fb2ef8b5e",
+          "row": 1,
+          "sensor": 1,
+          "sequence": 1,
+          "time_ns": 11000000
+        },
+        {
+          "frustum_header_sha256": "f2f0f1972b244bc8ceb8f33abbac2b7606bef0f6ff088516cfd8b19cb6cc9d2b",
+          "frustum_wire_sha256": "9819761f780cbca07b56a14ea71c75c6f93164219a1bc117a0bdffb10f21fe3a",
+          "image_header_sha256": "b3497feba523dc8d657c9f4e410c4d58f0d5239e9f269671060ac18772c8b80c",
+          "image_wire_sha256": "4cb355ef673a2b2c908236b97009ff1324c78713a2d6f0d8daf26472bca9da23",
+          "row": 1,
+          "sensor": 2,
+          "sequence": 1,
+          "time_ns": 11000000
+        },
+        {
+          "frustum_header_sha256": "784fc7894085cb8493c41aeb390028842fae6124b723f4588fcd3c09963a11af",
+          "frustum_wire_sha256": "f0ba527b930769e5960de2db438b8b76a7f9f4e072f71e05773238c622169523",
+          "image_header_sha256": "d53f56d5c7f89394f31efd25ce648cb3bc75af00aacc0bed259f887a9ff22e9e",
+          "image_wire_sha256": "975b335c101d9ba41f0d196ad075e5639a0a7b2eb73b743c1787f69030360d3b",
+          "row": 1,
+          "sensor": 3,
+          "sequence": 1,
+          "time_ns": 11000000
+        },
+        {
+          "frustum_header_sha256": "6aec3c7d860c581b851e4c245a6b1b6cd9f6da4ba89e254486d5500cb9e80ac5",
+          "frustum_wire_sha256": "8230f464b9d4e18e35b2c287627f14909da7f956c07593027374a1191eb43b16",
+          "image_header_sha256": "8388e20a6b76272f5edf1d8aa3ec74a3eb5372882731ca1baece0fcd785023b3",
+          "image_wire_sha256": "7f4ab04d9a47b35b92e136262d8d721b63da484c554267a919e2e37d41e22666",
+          "row": 1,
+          "sensor": 4,
+          "sequence": 1,
+          "time_ns": 11000000
+        },
+        {
+          "frustum_header_sha256": "a99a926f6bb8f9ccc519e6e3fcda73d9b72253abc236e70b4ee02f89cffc6f67",
+          "frustum_wire_sha256": "2bcd9ffa7516c836cb90332e6f2fae450bd881e4c39899478d29aba2541fb13f",
+          "image_header_sha256": "71d5afc14a37b8ef1d370e2e61f319388fd9740229c6fa82664b0b2b2eaa2f4d",
+          "image_wire_sha256": "15bff17da1e61c5bf9acec9ebc2066fd26cf84978d648070e09f3cbfcf7850d3",
+          "row": 1,
+          "sensor": 5,
+          "sequence": 1,
+          "time_ns": 11000000
+        },
+        {
+          "frustum_header_sha256": "bef6388b191c6cbd6c176c59b44e32ddae469375d96e65728b20717ac246fd40",
+          "frustum_wire_sha256": "457cee6e5d2aeedc5ac000e72c205ee815a087c6ae37670c279d127c8e95318f",
+          "image_header_sha256": "18625cc737665cfff8479926d643c328bfd536bd46af201b1b5cf32eae487d8d",
+          "image_wire_sha256": "c208b04e034e3c26e411f71b7ab7cc40b9947eff27b3dd6c26785b07b8498759",
+          "row": 1,
+          "sensor": 6,
+          "sequence": 1,
+          "time_ns": 11000000
+        },
+        {
+          "frustum_header_sha256": "a61fb522a7c40c94c20121e8cf864f1d1aebe95265d4d94321c73066c5c1f975",
+          "frustum_wire_sha256": "d9bacc005773ab2f14e44e2051f97428a03f8c90e349291a4cf88c54f8985303",
+          "image_header_sha256": "daf84e12ba723aa98dfea0c344c95bdd9dc4d6c102bd21d038a922cb43b89018",
+          "image_wire_sha256": "5c8165c682a71116e3842166ea086323ae20a208cbad733c205e43f267c3cfc0",
+          "row": 1,
+          "sensor": 7,
+          "sequence": 1,
+          "time_ns": 11000000
+        },
+        {
+          "frustum_header_sha256": "1a21cc3d658ce5e95af23fea5b9bb254578074b805d5b0d95c7d210b7a533c32",
+          "frustum_wire_sha256": "26c1740080d2052a90caf2a69d5d3e76cda1503e5e293a0d75fa4bd51a64a23d",
+          "image_header_sha256": "79f8cc71f3575bc6679fbe1f3fd28d78f4572302089c4afc2bda936a94ea73a8",
+          "image_wire_sha256": "567490b8d882ee2876c380c8f1b3a51b5ae0317ed5a30ba4fa3464d38c638ed0",
+          "row": 2,
+          "sensor": 0,
+          "sequence": 2,
+          "time_ns": 21000000
+        },
+        {
+          "frustum_header_sha256": "e4e9ab2e866b521924075cec6bcc8cd45cd1483f1bfb50b0e4542246f1c681b8",
+          "frustum_wire_sha256": "fdd6cda8dcb440c8cc96e7353455069f82135ded081f509724881aae0d02b26d",
+          "image_header_sha256": "12bace7c5596488f8f68495dc72f07a8111d9f96ce938905b1c02c2ef692f0ec",
+          "image_wire_sha256": "ca90d14bc88e76b5d97ceadd38ec974aed545e7f229052c34a8730740d950461",
+          "row": 2,
+          "sensor": 1,
+          "sequence": 2,
+          "time_ns": 21000000
+        },
+        {
+          "frustum_header_sha256": "04ec8eab9b447db842945a9ed2ca3f046e51bf1e5f125d16fc8c3b06ccd22503",
+          "frustum_wire_sha256": "87d0c93adcb1c4c4679aeb3e2013bdad7501f653a327b33b8edeff1626f31f10",
+          "image_header_sha256": "cb352fa51b66aecba5e6283f6c893b147fd9968ff57016cec40655341941a2a1",
+          "image_wire_sha256": "ba4ba135a616a8bd2031e6e687e80a4c5d7c692abb8b55c24204535df000b350",
+          "row": 2,
+          "sensor": 2,
+          "sequence": 2,
+          "time_ns": 21000000
+        },
+        {
+          "frustum_header_sha256": "f75410fb95000f760e3a890e9b3a337f5289bfe9330db746d4cfd29449a70b0c",
+          "frustum_wire_sha256": "97e7692b0246fdfa30a1fb8e4a2193a2a19809fabc5f38d2748518bdb68801f6",
+          "image_header_sha256": "546a66f791bb85582086f9a28dbc126d4e977fa001e46731732d50bebe751118",
+          "image_wire_sha256": "bd6ca54dd102c81493754cdc00a3f611befc507068f3e8485f29d8f257336864",
+          "row": 2,
+          "sensor": 3,
+          "sequence": 2,
+          "time_ns": 21000000
+        },
+        {
+          "frustum_header_sha256": "b212ea76b6cf0cdd0c9f30e5664a81ba4a4adafcb64d368ef6ad31d8e71f050b",
+          "frustum_wire_sha256": "31cf530e9750aa61b526193d18dcac060ed5feb593b10cf6d7b325a57d8a0251",
+          "image_header_sha256": "5994acb0ad6af7fa269fe7072eae34aac7ece364f884da995435cb58b19bf63f",
+          "image_wire_sha256": "be453afed2d32ccfb8b40523fd0517e2259c980122b065e1dca943d788a093e5",
+          "row": 2,
+          "sensor": 4,
+          "sequence": 2,
+          "time_ns": 21000000
+        },
+        {
+          "frustum_header_sha256": "98a23737e1bf33c43050505632942a892dd1f6b5b3a0ef2e01d83136c8430004",
+          "frustum_wire_sha256": "c77c9d71b086c06d6c4d74cef2ec087f4377a3963ed6e57c32b0d30cc44166db",
+          "image_header_sha256": "9ee74e73c09ea0519da3217abc5350786bef9236c79c1be74fe84ff649018b39",
+          "image_wire_sha256": "0a5a11e1d31ee35bd667296bb363f6ba3c2a0fdf66a6f995a706b2e2c7f05617",
+          "row": 2,
+          "sensor": 5,
+          "sequence": 2,
+          "time_ns": 21000000
+        },
+        {
+          "frustum_header_sha256": "9a4cdcee72478bd5be705d30a9f7377f8e7f81e624595a67361a11757b449b3e",
+          "frustum_wire_sha256": "b8cc4e3ba7909f793234d529b7634b56a5ae0e8f659469a614ae3ed93a26331f",
+          "image_header_sha256": "b94a0dafc0e13cfb0487e2cdb0e01cb427204b6d3a869f5d72badff8a3d1a06f",
+          "image_wire_sha256": "a0988c8ca6502a4c1ad91d7bf19dd489b503e34148ab245da0366bb9f595cfb2",
+          "row": 2,
+          "sensor": 6,
+          "sequence": 2,
+          "time_ns": 21000000
+        },
+        {
+          "frustum_header_sha256": "71f4fb59df6f881868229aee433d37f90d3ed1c5fffae5290b6c036164113e0a",
+          "frustum_wire_sha256": "c37654b5a5f4bd41a96e25c70fe9e82f263dd1df59c52114ed7170e10e3ac5cf",
+          "image_header_sha256": "0a933539002c4263ae6346d2d688ae356941460ede47f9e07ede03d83e6781d4",
+          "image_wire_sha256": "bd69059a949492b48061dcbaf6a0ee5004ab4caf0ad76e737ba404b78e7eebfe",
+          "row": 2,
+          "sensor": 7,
+          "sequence": 2,
+          "time_ns": 21000000
+        },
+        {
+          "frustum_header_sha256": "88cc4e4a978b4099728ecab159c3c7d7695734c8af8456238c096ce9a3ce8dfd",
+          "frustum_wire_sha256": "6cdd4d7ad12839a2e80a1f4afa0d737527b29cb6248a470bedc8fb8da7337a6e",
+          "image_header_sha256": "155fd1bb58fa1292362dc7c77b0b947442c31102802e4bc7d8a9ce0e04217a59",
+          "image_wire_sha256": "189f28616a89fb8452abd555670f80981881277f98103d574c4d09938c9d0be9",
+          "row": 3,
+          "sensor": 0,
+          "sequence": 3,
+          "time_ns": 31000000
+        },
+        {
+          "frustum_header_sha256": "5afee9d61c780345c3c628f177dcff7491207aa2e4a9e7914ba134d4d9850db7",
+          "frustum_wire_sha256": "8c255afff95ca25992fe6990f793c22155f000cf9f2c22a47281fdf5233b39af",
+          "image_header_sha256": "8680175602770a00528d34c4742c4100b530138d4bf3eb1c4342a8cbbdd73ad2",
+          "image_wire_sha256": "77319dc84966cfc1323821f8471c22d799851a6d813321cde845a8050878724b",
+          "row": 3,
+          "sensor": 1,
+          "sequence": 3,
+          "time_ns": 31000000
+        },
+        {
+          "frustum_header_sha256": "0e388d59877a87112ac217cc2490019f4d8b149390507bf81e8aee3c733cfbdd",
+          "frustum_wire_sha256": "6eb3b2d921bea85785546f525662b5ba31a50c7965c190bc7965efd98c6461e3",
+          "image_header_sha256": "c52e7d4e70ca16b15b94dce24291692efc32b0a565c2d82e0a4b3e5127828810",
+          "image_wire_sha256": "0981b617dcab5866328cb29144786296d20a7602bac8dea250df66ff42bdc8f8",
+          "row": 3,
+          "sensor": 2,
+          "sequence": 3,
+          "time_ns": 31000000
+        },
+        {
+          "frustum_header_sha256": "aaaa740a4ff48a983a915592edcb56e471de6b9f450fcd1dae66998f04a2bb16",
+          "frustum_wire_sha256": "d05ca2f533ae0b261bff3ada07eb154abacafb4adf2d99e68247887dceddb3d6",
+          "image_header_sha256": "c45e715064636a8695f108f6540dbc207e8e6304ebb299327f6db5fce71330f7",
+          "image_wire_sha256": "929769e951e18986b842f8a4dbe985a67354ef2c1e4d782f70970feea730cb70",
+          "row": 3,
+          "sensor": 3,
+          "sequence": 3,
+          "time_ns": 31000000
+        },
+        {
+          "frustum_header_sha256": "e1567bc0d783534ebc92526c39ae6cc591bfeef3402a6f110bb2bbf082edeaef",
+          "frustum_wire_sha256": "a9d2db69916d326e678c4d66ae8444eeac94834d3c1d204a46e93a4e039f4ea5",
+          "image_header_sha256": "ba84ded5091c223dde7c308b6473cc1b87e3d2113209a3971c5c70b0decc90d7",
+          "image_wire_sha256": "affd90be91b6d2a1dd0b645497ecf75334b1637fbd02874ed33be5d7b5d267d9",
+          "row": 3,
+          "sensor": 4,
+          "sequence": 3,
+          "time_ns": 31000000
+        },
+        {
+          "frustum_header_sha256": "43f3fe24472ebf2c86419d131b6bf37129773c0d2ef25566c88340ff8beb3615",
+          "frustum_wire_sha256": "3f59ae3107dec7a950b98d0af2868d375335352f01cfc8e3175de32a56079038",
+          "image_header_sha256": "605b3a96fbfb36dd20833e8f058aac4b19b82fd376d41fe8b2d3ac7e9fe9de51",
+          "image_wire_sha256": "e31ab930e28edf7b0a4d792927aa107d1c35327b681f9ac7b8cb4245b003cc79",
+          "row": 3,
+          "sensor": 5,
+          "sequence": 3,
+          "time_ns": 31000000
+        },
+        {
+          "frustum_header_sha256": "6227977b5e179917c1f948bd48f8cb15a7eed0ab765d5d72a76242c68247c051",
+          "frustum_wire_sha256": "61e4e2c14470ee04410968f45a9e0edfdccdbe6a530e08d235afcd59c6632d4b",
+          "image_header_sha256": "a6213f91c4e9ce6be18b0bb3bc3d0677b7956078602a42a0c9f5ba49663e6c40",
+          "image_wire_sha256": "31f6be83181ece8d37b8988bb5f076d6913940b66b810b3e97a2d649899a99b9",
+          "row": 3,
+          "sensor": 6,
+          "sequence": 3,
+          "time_ns": 31000000
+        },
+        {
+          "frustum_header_sha256": "3781c1cecdd561e5afd734a296ccf4f7555dcd1e157b231ad82034cf66fd5d81",
+          "frustum_wire_sha256": "52d11079167335355e810f60c03ed8594a0e9bfa8f24cb057b95414293f637b7",
+          "image_header_sha256": "f4019a6f1215cb7882b4951a84c6fbe510e50b6bdc3187967cae1692dfa931ca",
+          "image_wire_sha256": "ed0734cdbf265819e6a192af5cad0afd1ee0d6b6c480346c9fcb85dd3eb128e6",
+          "row": 3,
+          "sensor": 7,
+          "sequence": 3,
+          "time_ns": 31000000
+        }
+      ]
+    },
+    "pair": {
+      "canonical_packets": 16,
+      "configurations": [
+        {
+          "config_bits": [
+            "3fe0000000000000",
+            "4020000000000000",
+            "3ff3333333333333",
+            "3ff0000000000000"
+          ],
+          "console_verbosity": 2,
+          "frame_id": "m53/native/camera0",
+          "frustum_topic": "/m53/native/pair/camera0/frustum",
+          "kind": "configuration",
+          "mode": "pair",
+          "name": "camera0",
+          "native_id": 1,
+          "rate_bits": "4059000000000000",
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d2763616d657261302720747970653d276c6f676963616c5f63616d657261273e3c706f73653e2d31203020302030203020303c2f706f73653e3c7570646174655f726174653e3130303c2f7570646174655f726174653e3c746f7069633e2f6d35332f6e61746976652f706169722f63616d657261303c2f746f7069633e3c6672616d655f69643e6d35332f6e61746976652f63616d657261303c2f6672616d655f69643e3c6c6f676963616c5f63616d6572613e3c6e6561723e302e353c2f6e6561723e3c6661723e383c2f6661723e3c686f72697a6f6e74616c5f666f763e312e323c2f686f72697a6f6e74616c5f666f763e3c6173706563745f726174696f3e313c2f6173706563745f726174696f3e3c2f6c6f676963616c5f63616d6572613e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor": 0,
+          "sensor_local_pose_bits": [
+            "bff0000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3ff0000000000000"
+          ],
+          "topic": "/m53/native/pair/camera0"
+        },
+        {
+          "config_bits": [
+            "3fe199999999999a",
+            "4022000000000000",
+            "3ff3851eb851eb85",
+            "3ff199999999999a"
+          ],
+          "console_verbosity": 2,
+          "frame_id": "m53/native/camera1",
+          "frustum_topic": "/m53/native/pair/camera1/frustum",
+          "kind": "configuration",
+          "mode": "pair",
+          "name": "camera1",
+          "native_id": 2,
+          "rate_bits": "4049000000000000",
+          "sdf_xml_hex": "3c7364662076657273696f6e3d27312e3132273e3c6d6f64656c206e616d653d27726967273e3c6c696e6b206e616d653d27626f6479273e3c73656e736f72206e616d653d2763616d657261312720747970653d276c6f676963616c5f63616d657261273e3c706f73653e2d31203020302030203020302e32393939393939393939393939393939393c2f706f73653e3c7570646174655f726174653e35303c2f7570646174655f726174653e3c746f7069633e2f6d35332f6e61746976652f706169722f63616d657261313c2f746f7069633e3c6672616d655f69643e6d35332f6e61746976652f63616d657261313c2f6672616d655f69643e3c6c6f676963616c5f63616d6572613e3c6e6561723e302e35353030303030303030303030303030343c2f6e6561723e3c6661723e393c2f6661723e3c686f72697a6f6e74616c5f666f763e312e32323c2f686f72697a6f6e74616c5f666f763e3c6173706563745f726174696f3e312e313030303030303030303030303030313c2f6173706563745f726174696f3e3c2f6c6f676963616c5f63616d6572613e3c2f73656e736f723e3c2f6c696e6b3e3c2f6d6f64656c3e3c2f7364663e",
+          "sensor": 1,
+          "sensor_local_pose_bits": [
+            "bff0000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "0000000000000000",
+            "3fc320c9e9dfed23",
+            "3fefa4033e5ee938"
+          ],
+          "topic": "/m53/native/pair/camera1"
+        }
+      ],
+      "console": {
+        "bytes": 266,
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-multiple-logical-cameras-attempt2-5vppb2k4/multiple-logical-cameras-pair.maps.console.log",
+        "sha256": "1f5c7f09278fd2f0fe964639e987559feedd1a36444dc60531472f7ec3dbe390"
+      },
+      "input_rows": 8,
+      "model_pose_domains": {
+        "input_models": "complete supplied WORLD model poses",
+        "output_models": "actual selected camera-relative model poses"
+      },
+      "observed_pairs": 8,
+      "stderr_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-multiple-logical-cameras-attempt2-5vppb2k4/multiple-logical-cameras-pair.stderr",
+      "stdout_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-multiple-logical-cameras-attempt2-5vppb2k4/multiple-logical-cameras-pair.stdout",
+      "stdout_sha256": "9141c1f320d25204ba4fab80f4eb39d24d7b83bd184f6a5997d873a1e92c66fe",
+      "summary": {
+        "canonical_packets": 16,
+        "configuration_count": 2,
+        "direct_update_calls": 8,
+        "input_rows": 8,
+        "kind": "summary",
+        "mode": "pair",
+        "native_lifecycle_equivalence_claimed": false,
+        "native_physics_executed": false,
+        "observed_pairs": 8,
+        "old_native_modes_replayed": false,
+        "original_system_executed": false
+      },
+      "wire_hashes": [
+        {
+          "frustum_header_sha256": "9b9b3726e46eb7cc57763d1168d3fec14ab13ceb10c26f3c1cc1e1bea372e3ec",
+          "frustum_wire_sha256": "b7154e41665a483a261afbc8de477c0c7f63765dbd43cb66bcebfb483ec3955a",
+          "image_header_sha256": "72d48b5da539f6820be439d68ed8d47338f471312747db8c88f0f03665901e36",
+          "image_wire_sha256": "d7a88f0519a753e4be2e5f416f68b0623c027eb0f4bf969ccb0942649522cf39",
+          "row": 0,
+          "sensor": 0,
+          "sequence": 0,
+          "time_ns": 1000000
+        },
+        {
+          "frustum_header_sha256": "72392d12857942ddbb8144b3e66d3f75efa0d2c5b29941ddeb884b18ec4a4c9c",
+          "frustum_wire_sha256": "4bb46422076af063aed3dd769fa0999e53f2ee025815defaca859f59fb63a94f",
+          "image_header_sha256": "0933a619cc299f24e9a905bce5543eaf5153680f8b735b230574baff7b19cf1e",
+          "image_wire_sha256": "cdffdae791958749afb828bf5e417a3a4f90b7e7d6cd4b5deecc5532dc3d4e59",
+          "row": 0,
+          "sensor": 1,
+          "sequence": 0,
+          "time_ns": 1000000
+        },
+        {
+          "frustum_header_sha256": "964d602fcd2ca00d6c10e57f44d95919c5e5fceaab1bdabda875081eeecab9c2",
+          "frustum_wire_sha256": "1997418cac7e42de97a2b2d7974c4d44f49bd79f6077f4142f9a59becc120ddc",
+          "image_header_sha256": "93a4d07ef40941bb3801b350ecc8889d0ff78981f79b3181dd4a75142f8e7375",
+          "image_wire_sha256": "d0ff8c7cfbca1c814b26d1a1e8a116c7596dc50506291f83e48595e257835223",
+          "row": 1,
+          "sensor": 0,
+          "sequence": 1,
+          "time_ns": 11000000
+        },
+        {
+          "frustum_header_sha256": "501f6e6cc961459970ce47244a52a33552c5cbd11cf4aea07fcabb700ddcbc2c",
+          "frustum_wire_sha256": "9547f32a4eb82b42e6cd3c093cd926662d8c4a0454c1cb460f7caa4de3bd2ca7",
+          "image_header_sha256": "c18a067dda811eb218581947b5b33f6e70bf6f1ca11dff9d4d569f2ddb76caa5",
+          "image_wire_sha256": "119803c4ae364129f61f4b66f7bf886bdb9b001274eef15eb3cb3e4fb2ef8b5e",
+          "row": 1,
+          "sensor": 1,
+          "sequence": 1,
+          "time_ns": 11000000
+        },
+        {
+          "frustum_header_sha256": "1a21cc3d658ce5e95af23fea5b9bb254578074b805d5b0d95c7d210b7a533c32",
+          "frustum_wire_sha256": "26c1740080d2052a90caf2a69d5d3e76cda1503e5e293a0d75fa4bd51a64a23d",
+          "image_header_sha256": "79f8cc71f3575bc6679fbe1f3fd28d78f4572302089c4afc2bda936a94ea73a8",
+          "image_wire_sha256": "567490b8d882ee2876c380c8f1b3a51b5ae0317ed5a30ba4fa3464d38c638ed0",
+          "row": 2,
+          "sensor": 0,
+          "sequence": 2,
+          "time_ns": 21000000
+        },
+        {
+          "frustum_header_sha256": "e4e9ab2e866b521924075cec6bcc8cd45cd1483f1bfb50b0e4542246f1c681b8",
+          "frustum_wire_sha256": "fdd6cda8dcb440c8cc96e7353455069f82135ded081f509724881aae0d02b26d",
+          "image_header_sha256": "12bace7c5596488f8f68495dc72f07a8111d9f96ce938905b1c02c2ef692f0ec",
+          "image_wire_sha256": "ca90d14bc88e76b5d97ceadd38ec974aed545e7f229052c34a8730740d950461",
+          "row": 2,
+          "sensor": 1,
+          "sequence": 2,
+          "time_ns": 21000000
+        },
+        {
+          "frustum_header_sha256": "88cc4e4a978b4099728ecab159c3c7d7695734c8af8456238c096ce9a3ce8dfd",
+          "frustum_wire_sha256": "6cdd4d7ad12839a2e80a1f4afa0d737527b29cb6248a470bedc8fb8da7337a6e",
+          "image_header_sha256": "155fd1bb58fa1292362dc7c77b0b947442c31102802e4bc7d8a9ce0e04217a59",
+          "image_wire_sha256": "189f28616a89fb8452abd555670f80981881277f98103d574c4d09938c9d0be9",
+          "row": 3,
+          "sensor": 0,
+          "sequence": 3,
+          "time_ns": 31000000
+        },
+        {
+          "frustum_header_sha256": "5afee9d61c780345c3c628f177dcff7491207aa2e4a9e7914ba134d4d9850db7",
+          "frustum_wire_sha256": "8c255afff95ca25992fe6990f793c22155f000cf9f2c22a47281fdf5233b39af",
+          "image_header_sha256": "8680175602770a00528d34c4742c4100b530138d4bf3eb1c4342a8cbbdd73ad2",
+          "image_wire_sha256": "77319dc84966cfc1323821f8471c22d799851a6d813321cde845a8050878724b",
+          "row": 3,
+          "sensor": 1,
+          "sequence": 3,
+          "time_ns": 31000000
+        }
+      ]
+    }
+  },
+  "native_DATA_execution_log_sha256": "33d97e45ae1b3d49af27161259933a8c8957c903576b60206fccbc07fd692090",
+  "native_DATA_method_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-audit-attempt2-bound.py",
+  "native_DATA_method_sha256": "bc03c10089adcbe18e907c2f66fe91820f0a08cf19d2b7ff23483f3fbba0615f",
+  "native_DATA_path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-audit.json",
+  "native_DATA_sha256": "d99bad3188beb56bc2ab6e479d104e54e5ec02850492c87ade3a42da5e999e5e",
+  "native_execution_log_sha256": "fa2dc404407fd9e607fc851d32ab540c76432e060b025da06ba50acffac39454",
+  "native_procedure_sha256": "8f0efa4860f21e80a68e07173e4e6c62caba3324382342947e7a7f2e6927434d",
+  "native_result_sha256": "62ccca4403b00ad2f3e395fb84a02bd74963c88e8e65f4a8cba18dfb71f257e2",
+  "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+  "preserved_System_input_failure": {
+    "actual_child_stages": 0,
+    "actual_exit": {
+      "bytes": 1475,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/logical-camera-provider-input-actual-exit.json",
+      "sha256": "db568d0435d4035b253827ee4b59bcd29e694d474bb9aaa8b31e8abd3aab65f2"
+    },
+    "actual_root_exit_basis": {
+      "actual_exit_code": 1,
+      "completion_chunk": "bafcc1"
+    },
+    "actual_root_exit_code": 1,
+    "fixed_System_DSO_and_object_absent": true,
+    "global_System_provider_absence_claimed": false,
+    "limits": "The exact System/object candidates remain unavailable. This original failure and its strict Source plan remain immutable; a new component-only plan cannot relabel it or imply that original-System provenance closed.",
+    "method": {
+      "bytes": 25307,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/inspect-logical-camera-provider.py",
+      "sha256": "fcc7c073e371fbe9a9643a25b451bee93d3e9dcef75eb6d219db7e6f77d23322"
+    },
+    "primary_log": {
+      "bytes": 226,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/logical-camera-provider-input-execution.log",
+      "sha256": "c0ead0b7b04ef9ee0bf9306e87ebf4f568b655daf5d28b800fc9cacf4d277e77"
+    },
+    "provider_bodies_hashed": false,
+    "readelf_or_build_or_load_performed": false,
+    "result": {
+      "bytes": 10011,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/logical-camera-provider-input-acumem4a/result.json",
+      "sha256": "6edbfc080f1e7d11253b23db5a362cab0dbc710ea0eb47bc87551033d11a6538"
+    },
+    "source_plan": {
+      "bytes": 15622,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-feasibility/inspect-logical-camera-provider-plan-reviewed.json",
+      "sha256": "1c25b0c46a4d5bb4470c6521fdeb1a443d404e8dabe0dc4417a0a378b14a62dc"
+    },
+    "still_eligible_as_success_or_System_provider_proof": false
+  },
+  "product_or_native_commands_executed": false,
+  "repository_source_modified": false,
+  "resource_minima_snapshot_before_outputs": {
+    "/dev/shm": 9857716224,
+    "/home/nkoenig/work/gazebo/rust": 201460527104,
+    "/run/user/1000": 1257918464,
+    "MemAvailable": 31458648064
+  },
+  "retained_M30_actual_zero_component": {
+    "actual_root_exit_basis": "Root supplied actual zero plus exact retained stdout/result/Source and no sidecar; no independent wait receipt is invented.",
+    "actual_root_exit_code": 0,
+    "audit_Source": {
+      "bytes": 24904,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-logical-camera-audit.py",
+      "sha256": "0a83211deec1f155d1dc16381728375497b587dad6590036010765cb7f93c194"
+    },
+    "independent_raw_wait_receipt_available": false,
+    "native_DATA": {
+      "bytes": 10701,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-logical-camera-audit.json",
+      "sha256": "7c2589f9ea91a0df596770f23c1b856ffcb6b510e2f9a63e8d659b954b9adc2d"
+    },
+    "old_observations_not_reused": true,
+    "primary_execution_log": {
+      "bytes": 136,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-logical-camera-attempt3-execution.log",
+      "sha256": "fde0486cc7bde4ff74b2fec17996092362b1f0a6f701fc4f574c562d61b4a396"
+    },
+    "producer_Source": {
+      "bytes": 28432,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-logical-camera-reference-attempt3.py",
+      "sha256": "1e2ada665441fb48e097b29831d53718d0c8d12f3eb8e06db504e902505164fe"
+    },
+    "reference_kind": "SensorFactory component only; not a loaded original Sim System",
+    "result": {
+      "bytes": 188290,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-logical-camera-k5hmxsgd/result.json",
+      "sha256": "cc0a9b30944a2116cdcf9ad92ee6cc297f9eb8a0450b50f834a25b432f68588e"
+    }
+  },
+  "retained_M30_failed_attempts": [
+    {
+      "eligible_component_provider_or_success_proof": false,
+      "recorded_controller_exit_code": 1,
+      "recorded_error": "AssertionError: ('compile-logical-camera', 1)",
+      "recorded_stage_count": 22,
+      "result": {
+        "bytes": 38760,
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-logical-camera-m14mcic0/result.json",
+        "sha256": "6268671e2eda7f3850b07eef7be11d8dc677d4352ba9262d9476ace5906179c5"
+      }
+    },
+    {
+      "eligible_component_provider_or_success_proof": false,
+      "recorded_controller_exit_code": 1,
+      "recorded_error": "AssertionError: ('logical-camera-planes', 1)",
+      "recorded_stage_count": 23,
+      "result": {
+        "bytes": 40282,
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m30-m31-delivery/native-logical-camera-u8kxd7y8/result.json",
+        "sha256": "962014761825267f17c5e73f0645054bfbad22425af3e24cf773ab6cdad99b03"
+      }
+    }
+  ],
+  "retained_M53_native_attempt1": {
+    "actual_root_exit_code": 1,
+    "actual_stage_count": 20,
+    "helper_compiled": false,
+    "native_modes_executed": false,
+    "old_attempt_not_reused_as_success": true,
+    "pkg_config_stdout": {
+      "bytes": 999,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-multiple-logical-cameras-sdastp4i/pkg-config.stdout",
+      "sha256": "2673bb346dc5332a382f3a3ccc92c3b22eb8eebfb06c877bfcb30f4ebebb6ea1"
+    },
+    "primary_log": {
+      "bytes": 142,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-reference-execution.log",
+      "sha256": "e2c98d08ed19e238f78d459e9d691aca208dd800e64af1d7dc380d5fe99f9550"
+    },
+    "record": {
+      "bytes": 1824,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-reference-attempt1-failure.json",
+      "sha256": "2dc7ee9545fda812275d127d93543f4eaefca6677ea060fc69f5c2eca5319f63"
+    },
+    "result": {
+      "bytes": 72120,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-multiple-logical-cameras-sdastp4i/result.json",
+      "sha256": "e0a5782d6a7a7de8f3ad01aa6947924ac436031120cd7f1859ec3ddd1ff8ac28"
+    },
+    "source": {
+      "bytes": 58405,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-reference-bound.py",
+      "sha256": "e455f668eaa1b3f690ebd15d8a78dd44965a712e13fc3b09685102f06296747d"
+    },
+    "source_plan": {
+      "bytes": 12966,
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m53-delivery/native-reference-plan.md",
+      "sha256": "4197259f728858d957b07576ff52db144e3b69512fe477b0774fa3e09f9324a9"
+    },
+    "tool_exit_basis": {
+      "actual_exit_code": 1,
+      "completion_chunk": "b7fffa",
+      "session": 55701
+    }
+  },
+  "runtime_source_parent": "1ed59a7348a3dee94cdae8b7a4bbd847cbd9911b",
+  "runtime_source_parent_accepted": false,
+  "sdk_drift_inventory_sha256": "a484797d83640f13bf17d162b916e4e38636a7cca273fb551bb12f5b5e3ce8eb",
+  "sdk_package_provenance_sha256": "bf5cf8486028b4315f7b7cfa5c387b6d8bcf6137d39f7bc6947a1dcecda656b3",
+  "sdk_runtime_closure_sha256": "511ead617c78a01e772249ddbbfa1d995296a08469bedd1742d5453a2b6e9a44",
+  "source_state_sha256": "27b223c3379d7a6d41e232ab7dade0516a454063f2a261b7bc05372295dab7d5",
+  "state": "M53_NATIVE_MULTIPLE_LOGICAL_CAMERAS_FIXTURE_GENERATED_PENDING_SOURCE_DATA_REVIEW",
+  "supplemental_link_providers": {
+    "after": {
+      "/usr/lib/x86_64-linux-gnu/libdw-0.190.so": {
+        "aliases": {
+          "/usr/lib/x86_64-linux-gnu/libdw.so": {
+            "owner": "libdw-dev:amd64",
+            "target": "libdw.so.1"
+          },
+          "/usr/lib/x86_64-linux-gnu/libdw.so.1": {
+            "owner": "libdw1t64:amd64",
+            "target": "libdw-0.190.so"
+          }
+        },
+        "bytes": 737696,
+        "owner": "libdw1t64:amd64",
+        "resolved_needed": {
+          "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "libbz2.so.1.0": "/usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4",
+          "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "libelf.so.1": "/usr/lib/x86_64-linux-gnu/libelf-0.190.so",
+          "liblzma.so.5": "/usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5",
+          "libz.so.1": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "libzstd.so.1": "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5"
+        },
+        "sha256": "989dc9873f358a5af7d18d6100cf5fd66531d7990dc47d69068b3c6c96588867",
+        "soname": "libdw.so.1",
+        "version": "0.190-1.1ubuntu0.1"
+      },
+      "/usr/lib/x86_64-linux-gnu/libelf-0.190.so": {
+        "aliases": {
+          "/usr/lib/x86_64-linux-gnu/libelf.so": {
+            "owner": "libelf-dev:amd64",
+            "target": "libelf.so.1"
+          },
+          "/usr/lib/x86_64-linux-gnu/libelf.so.1": {
+            "owner": "libelf1t64:amd64",
+            "target": "libelf-0.190.so"
+          }
+        },
+        "bytes": 121560,
+        "owner": "libelf1t64:amd64",
+        "resolved_needed": {
+          "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "libz.so.1": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "libzstd.so.1": "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5"
+        },
+        "sha256": "248c989360783cdc52f3659921de852c2efcc2097253ce58e34443f856412814",
+        "soname": "libelf.so.1",
+        "version": "0.190-1.1ubuntu0.1"
+      }
+    },
+    "before": {
+      "/usr/lib/x86_64-linux-gnu/libdw-0.190.so": {
+        "aliases": {
+          "/usr/lib/x86_64-linux-gnu/libdw.so": {
+            "owner": "libdw-dev:amd64",
+            "target": "libdw.so.1"
+          },
+          "/usr/lib/x86_64-linux-gnu/libdw.so.1": {
+            "owner": "libdw1t64:amd64",
+            "target": "libdw-0.190.so"
+          }
+        },
+        "bytes": 737696,
+        "owner": "libdw1t64:amd64",
+        "resolved_needed": {
+          "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "libbz2.so.1.0": "/usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4",
+          "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "libelf.so.1": "/usr/lib/x86_64-linux-gnu/libelf-0.190.so",
+          "liblzma.so.5": "/usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5",
+          "libz.so.1": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "libzstd.so.1": "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5"
+        },
+        "sha256": "989dc9873f358a5af7d18d6100cf5fd66531d7990dc47d69068b3c6c96588867",
+        "soname": "libdw.so.1",
+        "version": "0.190-1.1ubuntu0.1"
+      },
+      "/usr/lib/x86_64-linux-gnu/libelf-0.190.so": {
+        "aliases": {
+          "/usr/lib/x86_64-linux-gnu/libelf.so": {
+            "owner": "libelf-dev:amd64",
+            "target": "libelf.so.1"
+          },
+          "/usr/lib/x86_64-linux-gnu/libelf.so.1": {
+            "owner": "libelf1t64:amd64",
+            "target": "libelf-0.190.so"
+          }
+        },
+        "bytes": 121560,
+        "owner": "libelf1t64:amd64",
+        "resolved_needed": {
+          "ld-linux-x86-64.so.2": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "libc.so.6": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "libz.so.1": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "libzstd.so.1": "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5"
+        },
+        "sha256": "248c989360783cdc52f3659921de852c2efcc2097253ce58e34443f856412814",
+        "soname": "libelf.so.1",
+        "version": "0.190-1.1ubuntu0.1"
+      }
+    },
+    "current349_unchanged": true,
+    "mapping_scope": "Bound exact inputs; direct component recipe need not map these. Any mapped occurrence must match.",
+    "separate_exact_node_count": 2,
+    "source": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m49-delivery/native-link-provider-supplement.json",
+    "source_sha256": "31f88722d94fcb0170c2855906299f21b965c4d01c6c85fc99012bccef4076ce"
+  }
+}

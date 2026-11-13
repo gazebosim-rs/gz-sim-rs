@@ -991,3 +991,138 @@ fn orphaned_runtime_com_metadata_refuses_reset_before_mutation() {
     reset_loaded_world(&mut sim, |_| ()).unwrap();
     assert_eq!(sim.elapsed(), Duration::ZERO);
 }
+
+#[test]
+fn initial_logical_camera_identity_query_distinguishes_missing_and_empty_blueprints() {
+    let bare = Simulation::new(Duration::from_millis(1)).unwrap();
+    assert!(matches!(
+        initial_logical_camera_identities(&bare),
+        Err(SceneResetError::MissingInitialState)
+    ));
+    let sim = load();
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(
+        initial_logical_camera_publications(&sim).unwrap().count(),
+        0
+    );
+    assert_eq!(initial_logical_camera_identities(&sim).unwrap().count(), 0);
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+}
+
+#[test]
+fn initial_logical_camera_identities_borrow_both_originals_through_removal_and_reset() {
+    let world_name = "warehouse_floor";
+    let source = include_str!("../fixtures/m30_logical_camera.sdf")
+        .replace("<world name='default'>", "<world name='warehouse_floor'>");
+    let start = source.find("<sensor name='logical_camera'").unwrap();
+    let end = start + source[start..].find("</sensor>").unwrap() + "</sensor>".len();
+    let second = source[start..end]
+        .replace("name='logical_camera'", "name='second'")
+        .replace("/m30/logical_camera", "/m53/identity/second")
+        .replace("rig/body/logical_camera", "rig/body/second");
+    let xml = format!("{}{}{}", &source[..end], second, &source[end..]);
+    // A scoped runtime owner prefix does not grant XML WORLD-name admission.
+    // Retain the former raw XML input as the exact typed parser refusal.
+    let invalid = xml.replace(
+        "world name='warehouse_floor'",
+        "world name='warehouse::floor'",
+    );
+    match load_world_with_sdf_step(
+        &invalid,
+        "logical-camera-identities.sdf",
+        "warehouse::floor",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    ) {
+        Err(LoadError::Sdf(diagnostic)) => {
+            assert_eq!(diagnostic.code, sdformat::ErrorCode::InvalidValue);
+            assert_eq!(diagnostic.message, "reserved or invalid name");
+            assert_eq!(diagnostic.source.uri, "logical-camera-identities.sdf");
+        }
+        Err(error) => panic!("expected scoped WORLD-name parser refusal, got {error}"),
+        Ok(_) => panic!("scoped XML WORLD name must remain refused"),
+    }
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "logical-camera-identities.sdf",
+        world_name,
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let collect = |sim: &Simulation| {
+        initial_logical_camera_identities(sim)
+            .unwrap()
+            .map(|(identity, kind, name, metadata)| {
+                (identity, kind, name.to_owned(), metadata.clone())
+            })
+            .collect::<Vec<_>>()
+    };
+    let snapshot = collect(&sim);
+    assert_eq!(snapshot.len(), 2);
+    assert_eq!(
+        initial_logical_camera_publications(&sim).unwrap().count(),
+        2
+    );
+    assert_ne!(snapshot[0].0, snapshot[1].0);
+    assert_eq!(
+        snapshot
+            .iter()
+            .map(|row| row.2.as_str())
+            .collect::<Vec<_>>(),
+        [
+            "warehouse_floor::rig::body::logical_camera",
+            "warehouse_floor::rig::body::second",
+        ]
+    );
+    let original_handles = snapshot
+        .iter()
+        .map(|row| entity_by_id(sim.world(), row.0).unwrap())
+        .collect::<Vec<_>>();
+    let prefix = format!("{world_name}::");
+    for ((identity, kind, name, metadata), legacy) in initial_logical_camera_identities(&sim)
+        .unwrap()
+        .zip(initial_logical_camera_publications(&sim).unwrap())
+    {
+        assert_eq!(identity, id(&sim, name));
+        assert_eq!(kind, EntityKind::Sensor);
+        assert_eq!(
+            name.strip_prefix(prefix.as_str()),
+            Some(metadata.entity_name.as_str())
+        );
+        assert!(std::ptr::eq(metadata, legacy));
+    }
+    sim.step_exact(3).unwrap();
+    let model_id = id(&sim, "warehouse_floor::rig");
+    remove_model(&mut sim, model_id).unwrap();
+    for row in &snapshot {
+        assert!(entity_by_id(sim.world(), row.0).is_none());
+    }
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(collect(&sim), snapshot);
+    assert_eq!(
+        initial_logical_camera_publications(&sim).unwrap().count(),
+        2
+    );
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    for ((identity, kind, name, metadata), old_entity) in snapshot.iter().zip(original_handles) {
+        let restored = entity_by_id(sim.world(), *identity).unwrap();
+        assert_ne!(restored, old_entity);
+        assert_eq!(sim.world().get::<Name>(restored).unwrap().0, *name);
+        assert_eq!(sim.world().get::<EntityKind>(restored), Some(kind));
+        assert_eq!(
+            sim.world().get::<LogicalCameraPublication>(restored),
+            Some(metadata)
+        );
+    }
+    assert_eq!(collect(&sim), snapshot);
+    assert_eq!(sim.elapsed(), Duration::ZERO);
+    assert_eq!(sim.epoch(), 1);
+}

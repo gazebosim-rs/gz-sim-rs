@@ -132,7 +132,7 @@ class DisabledBackendProof(unittest.TestCase):
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 26)
+            self.assertEqual(run.call_count, 27)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -315,7 +315,8 @@ class DisabledBackendProof(unittest.TestCase):
         self.assertEqual(MODULE.NOISY_EXAMPLES[22:23], ("examples/m49_multiple_altimeters.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[23:24], ("examples/m50_multiple_air_pressures.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[24:25], ("examples/m51_multiple_air_speeds.sdf",))
-        self.assertEqual(MODULE.NOISY_EXAMPLES[25:], ("examples/m52_multiple_magnetometers.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[25:26], ("examples/m52_multiple_magnetometers.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[26:], ("examples/m53_multiple_logical_cameras.sdf",))
         self.assertEqual(MODULE.NOISY_ASSETS, ("examples/meshes/m16-asymmetric.obj",))
 
     def test_new_static_example_outputs_are_complete_sorted_finite_and_exact(self):
@@ -447,6 +448,7 @@ class DisabledBackendProof(unittest.TestCase):
             ("examples/m50_multiple_air_pressures.sdf", "default::rig::body 0 0 3\n"),
             ("examples/m51_multiple_air_speeds.sdf", "default::rig::body 0 0 3\n"),
             ("examples/m52_multiple_magnetometers.sdf", "default::rig::body 0 0 3\n"),
+            ("examples/m53_multiple_logical_cameras.sdf", "default::rig::body 0 0 3\n"),
         ):
             self.assertTrue(MODULE.noisy_output_matches(source, headline + body))
             wrong = [headline, headline + body + body,

@@ -592,3 +592,282 @@ fn absent_camera_has_no_stream_capacity_sequence_or_acquisition() {
     );
     assert!(prepare_reset(&s, &BTreeSet::new()).unwrap().is_empty());
 }
+
+// Multiplicity controls append to the unchanged original single-camera suite.
+fn multiple_xml(count: usize) -> String {
+    let start = XML.find("    <sensor ").unwrap();
+    let end = start + XML[start..].find("</sensor>").unwrap() + 9;
+    let original = &XML[start..end];
+    let sensors = (0..count)
+        .map(|index| {
+            original
+                .replace("name='logical_camera'", &format!("name='camera{index}'"))
+                .replace("/m30/logical_camera", &format!("/m53/camera{index}"))
+                .replace(
+                    "rig/body/logical_camera",
+                    &format!("rig/body/camera{index}"),
+                )
+        })
+        .collect::<String>();
+    format!("{}{}{}", &XML[..start], sensors, &XML[end..])
+}
+#[test]
+fn all_sixteen_endpoint_keys_and_original_prepared_owner_bindings_are_checked_before_io() {
+    let (mut s, _) = server_with_xml(&multiple_xml(8));
+    assert_eq!(s.logical_cameras.len(), 8);
+    let prepared = prepare_reset(&s, &BTreeSet::new()).unwrap();
+    assert_eq!(prepared.len(), 8);
+    let keys: BTreeSet<_> = s
+        .logical_cameras
+        .iter()
+        .flat_map(|v| [v.image_endpoint.clone(), v.frustum_endpoint.clone()])
+        .collect();
+    assert_eq!(keys.len(), 16);
+    for key in keys {
+        assert!(matches!(
+            streams(
+                &s.simulation,
+                &s.world_io,
+                &s.network_config,
+                &BTreeSet::from([key]),
+                None
+            ),
+            Err(Error::LogicalCameraIdentity)
+        ));
+    }
+    for stream in &s.logical_cameras {
+        let value = &prepared[&stream.image_endpoint];
+        assert_eq!(
+            (&value.0, &value.1, value.3, &value.4),
+            (
+                &stream.metadata,
+                &stream.frustum_endpoint,
+                stream.identity,
+                &stream.scoped_name
+            )
+        );
+        assert!(Arc::ptr_eq(&value.2.0, &stream.image) && Arc::ptr_eq(&value.2.1, &stream.frustum));
+    }
+    let replay = streams(
+        &s.simulation,
+        &s.world_io,
+        &s.network_config,
+        &BTreeSet::new(),
+        Some(&prepared),
+    )
+    .unwrap();
+    for stream in &replay {
+        let value = &prepared[&stream.image_endpoint];
+        assert!(Arc::ptr_eq(&value.2.0, &stream.image) && Arc::ptr_eq(&value.2.1, &stream.frustum));
+    }
+    // A cross-channel collision is just as invalid as two image endpoints.
+    for (from, to) in [
+        ("/m53/camera7", "/m53/camera0/frustum"),
+        ("/m53/camera7/frustum", "/m53/camera0"),
+        ("/m53/camera7", "/m53/camera0"),
+    ] {
+        let mut options = s.network_config.clone();
+        options.add_topic_remap(from, to).unwrap();
+        assert!(matches!(
+            streams(&s.simulation, &s.world_io, &options, &BTreeSet::new(), None),
+            Err(Error::LogicalCameraIdentity)
+        ));
+        let old_options = std::mem::replace(&mut s.network_config, options);
+        assert!(matches!(
+            prepare_reset(&s, &BTreeSet::new()),
+            Err(Error::LogicalCameraIdentity)
+        ));
+        s.network_config = old_options;
+    }
+}
+#[test]
+fn late_invalid_owner_and_prepared_drift_refuse_even_with_closed_session_without_lease_changes() {
+    for field in 0..12 {
+        let (mut s, _) = server_with_xml(&multiple_xml(8));
+        let mut prepared = prepare_reset(&s, &BTreeSet::new()).unwrap();
+        let entity = s.logical_cameras[7].entity;
+        let first_image = Arc::clone(&s.logical_cameras[0].image);
+        let first_frustum = Arc::clone(&s.logical_cameras[0].frustum);
+        let key = s.logical_cameras[7].image_endpoint.clone();
+        let use_prepared = field >= 8;
+        match field {
+            0 => {
+                s.simulation
+                    .world_mut()
+                    .entity_mut(entity)
+                    .remove::<EntityId>();
+            }
+            1 => {
+                s.simulation
+                    .world_mut()
+                    .entity_mut(entity)
+                    .remove::<EntityId>();
+                gz_sim_core::assign_id(s.simulation.world_mut(), entity).unwrap();
+            }
+            2 => {
+                s.simulation
+                    .world_mut()
+                    .entity_mut(entity)
+                    .insert(EntityKind::Visual);
+            }
+            3 => {
+                s.simulation
+                    .world_mut()
+                    .entity_mut(entity)
+                    .insert(SceneName("default::rig::body::invented".into()));
+            }
+            4 => s
+                .simulation
+                .world_mut()
+                .get_mut::<LogicalCameraPublication>(entity)
+                .unwrap()
+                .frame_id
+                .clear(),
+            5 => {
+                s.simulation
+                    .world_mut()
+                    .get_mut::<LogicalCameraPublication>(entity)
+                    .unwrap()
+                    .frame_id = "nonempty/drift".into()
+            }
+            6 => {
+                let mut m = s
+                    .simulation
+                    .world_mut()
+                    .get_mut::<LogicalCameraPublication>(entity)
+                    .unwrap();
+                m.topic = "/distinct/valid".into();
+                m.frustum_topic = "/distinct/valid/frustum".into();
+            }
+            7 => {
+                s.simulation.world_mut().spawn(metadata());
+            }
+            8 => prepared.get_mut(&key).unwrap().3 = s.logical_cameras[0].identity,
+            9 => prepared.get_mut(&key).unwrap().4.push_str("::drift"),
+            10 => prepared.get_mut(&key).unwrap().1.push_str("/drift"),
+            _ => {
+                prepared.remove(&key);
+            }
+        }
+        s.world_io.session.close().wait().unwrap();
+        let result = streams(
+            &s.simulation,
+            &s.world_io,
+            &s.network_config,
+            &BTreeSet::new(),
+            use_prepared.then_some(&prepared),
+        );
+        if use_prepared {
+            assert!(
+                matches!(result, Err(Error::ResetLogicalCameras)),
+                "field {field}"
+            );
+        } else {
+            assert!(
+                matches!(result, Err(Error::LogicalCameraIdentity)),
+                "field {field}"
+            );
+        }
+        assert!(Arc::ptr_eq(&first_image, &s.logical_cameras[0].image));
+        assert!(Arc::ptr_eq(&first_frustum, &s.logical_cameras[0].frustum));
+        assert_eq!(
+            (
+                s.counters.logical_camera_images_queued,
+                s.counters.logical_camera_frustums_queued
+            ),
+            (0, 0)
+        );
+    }
+}
+#[test]
+fn empty_reset_and_entire_world_prefix_preserve_original_name_domain() {
+    let (s, _) = server_with_xml(&multiple_xml(0));
+    assert!(prepare_reset(&s, &BTreeSet::new()).unwrap().is_empty());
+    assert!(
+        streams(
+            &s.simulation,
+            &s.world_io,
+            &s.network_config,
+            &BTreeSet::new(),
+            Some(&BTreeMap::new())
+        )
+        .unwrap()
+        .is_empty()
+    );
+    assert!(valid_owner(
+        "site::world",
+        1,
+        EntityKind::Sensor,
+        "site::world::rig::body::logical_camera",
+        &metadata()
+    ));
+    assert!(!valid_owner(
+        "site",
+        1,
+        EntityKind::Sensor,
+        "site::world::rig::body::logical_camera",
+        &metadata()
+    ));
+    let invalid_xml = multiple_xml(2).replace("world name='default'", "world name='site::world'");
+    let diagnostic = match load_world_with_sdf_step(
+        &invalid_xml,
+        "m53-world-scope",
+        "site::world",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    ) {
+        Err(gz_sim_scene::LoadError::Sdf(diagnostic)) => diagnostic,
+        Err(error) => panic!("expected the WORLD-name parser refusal, got {error}"),
+        Ok(_) => panic!("reserved WORLD-name separator was accepted"),
+    };
+    assert_eq!(
+        diagnostic,
+        sdformat::Diagnostic {
+            code: sdformat::ErrorCode::InvalidValue,
+            source: sdformat::Source {
+                uri: "m53-world-scope".into(),
+                line: 4,
+                column: 21,
+            },
+            message: "reserved or invalid name".into(),
+        }
+    );
+    let xml = multiple_xml(2).replace("world name='default'", "world name='site_world'");
+    let observer = zenoh::open(config(None)).wait().unwrap();
+    let endpoints: Vec<_> = observer
+        .info()
+        .locators()
+        .wait()
+        .into_iter()
+        .map(|v| v.to_string())
+        .collect();
+    assert_eq!(endpoints.len(), 1);
+    let simulation = load_world_with_sdf_step(
+        &xml,
+        "m53-world-scope",
+        "site_world",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let server = Server::with_zenoh_config(
+        simulation,
+        "site_world",
+        ServerOptions {
+            partition: format!("m53-{}", uuid::Uuid::new_v4()),
+            ..Default::default()
+        },
+        config(Some(&endpoints[0])),
+        NonZeroUsize::new(4).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(server.logical_cameras.len(), 2);
+    assert_eq!(world_name(&server.simulation).unwrap(), "site_world");
+    assert!(
+        server
+            .logical_cameras
+            .iter()
+            .all(|s| s.scoped_name.starts_with("site_world::rig::body::"))
+    );
+    assert_eq!(prepare_reset(&server, &BTreeSet::new()).unwrap().len(), 2);
+}

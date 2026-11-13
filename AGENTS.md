@@ -1,3 +1,69 @@
+## Current M53 fixture correction after the first full normal run
+
+The first complete normal hook failed after 1676.557 seconds in five new cases
+across four headless targets. Independent review traced all five to two fixture
+premises: three XML WORLD names contain parser-reserved `::`, and two Server
+cases share static links without their required collision. The failed tree,
+logs, partial evidence and actual exit one remain retained and unqualified.
+
+Scene and Server corrected four test files in parallel. Valid nondefault WORLD
+positives retain all identity, reset, geometry and transport assertions; former
+invalid XML inputs now require the exact typed parser refusal. Both static links
+have one supported centered box collision and no visuals. Production and parser
+code, numerical bounds, test IDs, deadlines and native/literal inputs are unchanged.
+Independent Source review precedes one consolidated format and full normal retry.
+M52 remains the latest locally qualified parent; release acceptance is still held
+by required hosted qualification. Historical checkpoints below remain separate.
+
+## Current M53 captured component and fixed-literal evidence
+
+The fresh original SensorFactory component campaign and independent retained
+native DATA passed. All 29 child stages completed successfully. Two modes retain
+ten configurations, forty explicit camera WORLD-pose/full-model-map inputs,
+forty received image/frustum pairs and eighty canonical messages across 51 mapped
+libraries. The immutable fixture generation and independent fixed-literal DATA
+also passed. See [the reference provenance](planning/reference/m53-multiple-logical-cameras.json)
+for the helper, exact commands, provider identities and original evidence.
+
+The reference bypasses base scheduling and establishes no original Sim System,
+ECM gathering, native demand, lifecycle or Physics equivalence. The empty map is
+a direct component input, not a loaded ownerless world. Preserve the failed
+fixed System diagnostic, the first precompile controller failure and all M30
+original evidence. No SDK/provider was rebuilt or old campaign replayed.
+
+The numeric and exact-wire Rust consumers are authored alongside the loaded-world
+physical, independent-demand/cadence, reset/removal and endpoint controls. These
+seventeen Source declarations are not measured passes. Complete independent
+integration review and one consolidated formatter before the full normal hook,
+strict coverage and independent retained local DATA. No M53 Rust/Python/coverage
+or release result is claimed. M52 remains the latest locally qualified parent;
+M1–M42 acceptance, all 175 accepted slices and M40 Latest remain unchanged.
+Earlier checkpoints below retain their original historical scope.
+
+## Current M53 Source preparation
+
+M52 full normal and independent retained local DATA passed at locally qualified,
+unaccepted `1ed59a73`/tree `8b2073e0`. Preserve that frozen checkout and every
+original normal/reader failure. Read `docs/M53_DELIVERY.md` and Root's exact
+`artifacts/m53-delivery/selection.json` for closed scope, parent and disjoint
+Source leases. M53 adds zero through eight independent loaded logical cameras
+without changing existing math, model-domain, wire, lifecycle or quality gates.
+The fresh native proposal uses the original SensorFactory component directly,
+as M30 did; it claims no original Sim System/ECM/demand/lifecycle equivalence.
+The fixed System diagnostic remains failed because its exact candidates are
+absent. The separately reviewed fixed component identity/alias/static-metadata diagnostic
+passed actual Root zero, with exact historical component bytes and closed saved
+dependency metadata. This grants no runtime-loader, native sample or product
+qualification; capture, native/literal DATA and all Rust checks remain held. No SDK/provider rebuild, fallback or search.
+
+Root owns shared integration and serial heavy releases. Scene and Server agents
+work only their explicit paths in separate checkouts. No formatter/test/lint,
+Cargo/metadata/build, native helper or provider operation is released. Complete
+bounded Source, regressions, guides and independent whole review before one
+consolidated required verification. Exact accepted predecessor, hosted/official
+and ordinary Main/readbacks remain mandatory before publication or acceptance.
+Earlier phase checkpoints below are retained history.
+
 ## Current M52 native and fixed-literal evidence
 
 The new original Magnetometer System campaign returned actual Root zero in
