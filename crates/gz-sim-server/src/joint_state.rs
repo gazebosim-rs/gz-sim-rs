@@ -3,7 +3,9 @@
 //! Canonical loaded joint-state publication; acquisition and cadence belong to Scene.
 use super::*;
 use gz_sim_proto::msgs::{Axis, Header, Joint, Model, Pose};
-use gz_sim_scene::{EntityKind, JointStatePublication, JointStateSample, PendingResetRemoval};
+use gz_sim_scene::{
+    EntityKind, JointStatePublication, JointStateSample, Name, PendingResetRemoval,
+};
 use std::collections::BTreeSet;
 
 pub(super) struct Stream {
@@ -107,46 +109,287 @@ fn packet(
     })
 }
 
-pub(super) type Prepared =
-    BTreeMap<String, (u64, JointStatePublication, Arc<world_io::JointStateOutput>)>;
+// Preserve the original identity/metadata/output prefix used by reset controls.
+pub(super) type Prepared = BTreeMap<
+    String,
+    (
+        u64,
+        JointStatePublication,
+        Arc<world_io::JointStateOutput>,
+        String,
+    ),
+>;
+const MAX_JOINT_STATE_PUBLISHERS: usize = 8;
+struct Original {
+    identity: u64,
+    name: String,
+    metadata: JointStatePublication,
+    endpoint: String,
+}
+struct Candidate {
+    entity: Entity,
+    identity: u64,
+    name: String,
+    metadata: JointStatePublication,
+    joints: Vec<(u64, Entity)>,
+    endpoint: String,
+}
+fn original_owners(
+    sim: &Simulation,
+    options: &ServerOptions,
+    occupied: &BTreeSet<String>,
+) -> Result<Option<Vec<Original>>, Error> {
+    let rows = match gz_sim_scene::initial_joint_state_publications_with_identity(sim) {
+        Ok(rows) => rows
+            .map(|(id, kind, name, metadata)| (id, kind, name.to_owned(), metadata.clone()))
+            .collect::<Vec<_>>(),
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) => return Ok(None),
+        Err(error) => return Err(error.into()),
+    };
+    if rows.len() > MAX_JOINT_STATE_PUBLISHERS {
+        return Err(Error::JointStateIdentity);
+    }
+    let mut keys = occupied.clone();
+    let mut identities = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut selected_ids = BTreeSet::new();
+    let mut result = Vec::new();
+    for (identity, kind, name, metadata) in rows {
+        let mut worlds = sim
+            .world()
+            .iter_entities()
+            .filter(|node| node.get::<EntityKind>() == Some(&EntityKind::World));
+        let world = worlds.next().and_then(|node| node.get::<Name>());
+        if kind != EntityKind::Model
+            || wire_id(identity).is_none()
+            || !valid_metadata(&metadata)
+            || worlds.next().is_some()
+            || !world.is_some_and(|world| {
+                !world.0.is_empty() && name == format!("{}::{}", world.0, metadata.model_name)
+            })
+            || !identities.insert(identity)
+            || !names.insert(name.clone())
+        {
+            return Err(Error::JointStateIdentity);
+        }
+        for joint in &metadata.joints {
+            if joint.id == identity || !selected_ids.insert(joint.id) {
+                return Err(Error::JointStateIdentity);
+            }
+        }
+        let endpoint = options.topic_key(&options::as_valid_topic(&metadata.topic))?;
+        if !keys.insert(endpoint.clone()) {
+            return Err(Error::JointStateIdentity);
+        }
+        result.push(Original {
+            identity,
+            name,
+            metadata,
+            endpoint,
+        });
+    }
+    if identities.iter().any(|id| selected_ids.contains(id)) {
+        return Err(Error::JointStateIdentity);
+    }
+    Ok(Some(result))
+}
+fn candidate_owners(
+    sim: &Simulation,
+    options: &ServerOptions,
+    occupied: &BTreeSet<String>,
+    original: Option<&[Original]>,
+    restoring: bool,
+    prepared: bool,
+) -> Result<Vec<Candidate>, Error> {
+    let nodes = sim
+        .world()
+        .iter_entities()
+        .filter(|node| {
+            !node.contains::<PendingResetRemoval>() && node.contains::<JointStatePublication>()
+        })
+        .map(|node| node.id())
+        .collect::<Vec<_>>();
+    if nodes.len() > MAX_JOINT_STATE_PUBLISHERS || original.is_none() && nodes.len() > 1 {
+        return Err(Error::JointStateIdentity);
+    }
+    let mut identities = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut joint_ids = BTreeSet::new();
+    let mut keys = occupied.clone();
+    let mut result = Vec::new();
+    for entity in nodes {
+        let node = sim.world().entity(entity);
+        let identity = node
+            .get::<EntityId>()
+            .ok_or(Error::JointStateIdentity)?
+            .get();
+        let metadata = node
+            .get::<JointStatePublication>()
+            .expect("selected metadata");
+        if wire_id(identity).is_none()
+            || !valid_metadata(metadata)
+            || node.get::<EntityKind>() != Some(&EntityKind::Model)
+            || entity_by_id(sim.world(), identity) != Some(entity)
+            || !identities.insert(identity)
+        {
+            return Err(Error::JointStateIdentity);
+        }
+        let name = node
+            .get::<Name>()
+            .map(|name| name.0.clone())
+            .unwrap_or_default();
+        if let Some(original) = original {
+            let owner = original
+                .iter()
+                .find(|owner| owner.identity == identity && owner.name == name)
+                .ok_or(Error::JointStateIdentity)?;
+            if &owner.metadata != metadata {
+                return Err(if prepared || restoring {
+                    Error::ResetJointStates
+                } else {
+                    Error::JointStateIdentity
+                });
+            }
+            if !names.insert(name.clone()) {
+                return Err(Error::JointStateIdentity);
+            }
+        }
+        let mut joints = Vec::with_capacity(metadata.joints.len());
+        for joint in &metadata.joints {
+            if joint.id == identity || !joint_ids.insert(joint.id) {
+                return Err(Error::JointStateIdentity);
+            }
+            if !restoring {
+                let id = entity_by_id(sim.world(), joint.id).ok_or(Error::JointStateIdentity)?;
+                let child = sim.world().entity(id);
+                if child.get::<EntityKind>() != Some(&EntityKind::Joint)
+                    || child
+                        .get::<bevy_ecs::prelude::ChildOf>()
+                        .map(bevy_ecs::prelude::ChildOf::parent)
+                        != Some(entity)
+                {
+                    return Err(Error::JointStateIdentity);
+                }
+                joints.push((joint.id, id));
+            }
+        }
+        let endpoint = options.topic_key(&options::as_valid_topic(&metadata.topic))?;
+        if !keys.insert(endpoint.clone())
+            || original.is_some_and(|rows| {
+                rows.iter()
+                    .any(|owner| owner.identity != identity && owner.endpoint == endpoint)
+            })
+        {
+            return Err(Error::JointStateIdentity);
+        }
+        result.push(Candidate {
+            entity,
+            identity,
+            name,
+            metadata: metadata.clone(),
+            joints,
+            endpoint,
+        });
+    }
+    if identities.iter().any(|id| joint_ids.contains(id)) {
+        return Err(Error::JointStateIdentity);
+    }
+    Ok(result)
+}
 pub(super) fn prepare_reset(
     server: &Server,
     occupied: &BTreeSet<String>,
 ) -> Result<Prepared, Error> {
-    let metadata: Vec<_> = gz_sim_scene::initial_joint_state_publications(&server.simulation)?
-        .map(|(identity, metadata)| (identity, metadata.clone()))
-        .collect();
-    if metadata.len() > 1
-        || metadata
+    let mut keys =
+        joint_state_reserved_keys(&server.simulation, &server.world_io, &server.network_config)?;
+    keys.extend(occupied.iter().cloned());
+    let original = original_owners(&server.simulation, &server.network_config, &keys)?
+        .ok_or(gz_sim_scene::SceneResetError::MissingInitialState)?;
+    candidate_owners(
+        &server.simulation,
+        &server.network_config,
+        &keys,
+        Some(&original),
+        true,
+        false,
+    )?;
+    let mut retained_keys = BTreeSet::new();
+    let mut retained_ids = BTreeSet::new();
+    for (index, stream) in server.joint_states.iter().enumerate() {
+        let owner = original
             .iter()
-            .any(|(identity, metadata)| wire_id(*identity).is_none() || !valid_metadata(metadata))
-    {
-        return Err(Error::JointStateIdentity);
-    }
-    let mut prepared = BTreeMap::new();
-    for (identity, metadata) in metadata {
-        let key = server
-            .network_config
-            .topic_key(&options::as_valid_topic(&metadata.topic))?;
-        if occupied.contains(&key) {
-            return Err(Error::JointStateIdentity);
+            .find(|owner| owner.identity == stream.identity)
+            .ok_or(Error::ResetJointStates)?;
+        let owner_binding = match entity_by_id(server.simulation.world(), stream.identity) {
+            Some(entity) => {
+                entity == stream.entity
+                    && server.simulation.world().get::<EntityKind>(entity)
+                        == Some(&EntityKind::Model)
+                    && server
+                        .simulation
+                        .world()
+                        .get::<Name>(entity)
+                        .map(|name| name.0.as_str())
+                        == Some(owner.name.as_str())
+            }
+            None => server.simulation.world().get_entity(stream.entity).is_err(),
+        };
+        // Removed selected joints are restored from the initial snapshot, not
+        // required to exist during reset preparation. Their immutable IDs bind.
+        if !owner_binding
+            || stream.metadata != owner.metadata
+            || stream.joints.iter().map(|(id, _)| *id).ne(owner
+                .metadata
+                .joints
+                .iter()
+                .map(|joint| joint.id))
+            || stream.joints.iter().any(|(id, old_entity)| {
+                match entity_by_id(server.simulation.world(), *id) {
+                    Some(entity) => {
+                        entity != *old_entity
+                            || server.simulation.world().get::<EntityKind>(entity)
+                                != Some(&EntityKind::Joint)
+                            || server
+                                .simulation
+                                .world()
+                                .get::<bevy_ecs::prelude::ChildOf>(entity)
+                                .map(bevy_ecs::prelude::ChildOf::parent)
+                                != Some(stream.entity)
+                    }
+                    None => server.simulation.world().get_entity(*old_entity).is_ok(),
+                }
+            })
+            || !stream.publisher.matches_endpoint(&stream.endpoint)
+            || !retained_keys.insert(stream.endpoint.as_str())
+            || !retained_ids.insert(stream.identity)
+            || server.joint_states[..index]
+                .iter()
+                .any(|prior| Arc::ptr_eq(&prior.publisher, &stream.publisher))
+        {
+            return Err(Error::ResetJointStates);
         }
+    }
+    // All current, original and retained bindings precede lookup/Arc reuse/IO.
+    let mut prepared = BTreeMap::new();
+    for owner in original {
         let publisher = match server
             .joint_states
             .iter()
-            .find(|stream| stream.endpoint == key)
+            .find(|stream| stream.endpoint == owner.endpoint)
         {
             Some(stream) => Arc::clone(&stream.publisher),
             None => server
                 .world_io
-                .joint_state_output(key.clone())
+                .joint_state_output(owner.endpoint.clone())
                 .map_err(|error| Error::WorldNetwork(error.to_string()))?,
         };
-        prepared.insert(key, (identity, metadata, publisher));
+        prepared.insert(
+            owner.endpoint,
+            (owner.identity, owner.metadata, publisher, owner.name),
+        );
     }
     Ok(prepared)
 }
-
 pub(super) fn streams(
     simulation: &Simulation,
     io: &world_io::WorldIo,
@@ -154,78 +397,85 @@ pub(super) fn streams(
     occupied: &BTreeSet<String>,
     prepared: Option<&Prepared>,
 ) -> Result<Vec<Stream>, Error> {
-    let candidates: Vec<_> = simulation
+    // Keep malformed manual identity/metadata errors before any initial lookup.
+    let nodes = simulation
         .world()
         .iter_entities()
-        .filter(|entity| {
-            !entity.contains::<PendingResetRemoval>() && entity.contains::<JointStatePublication>()
+        .filter(|node| {
+            !node.contains::<PendingResetRemoval>() && node.contains::<JointStatePublication>()
         })
-        .map(|entity| entity.id())
-        .collect();
-    if candidates.len() > 1 {
+        .collect::<Vec<_>>();
+    if nodes.len() > MAX_JOINT_STATE_PUBLISHERS
+        || nodes.iter().any(|node| {
+            let Some(id) = node.get::<EntityId>() else {
+                return true;
+            };
+            wire_id(id.get()).is_none()
+                || node.get::<EntityKind>() != Some(&EntityKind::Model)
+                || entity_by_id(simulation.world(), id.get()) != Some(node.id())
+                || !valid_metadata(
+                    node.get::<JointStatePublication>()
+                        .expect("selected metadata"),
+                )
+        })
+    {
         return Err(Error::JointStateIdentity);
     }
-    let mut selected = Vec::new();
-    for entity in candidates {
-        let node = simulation.world().entity(entity);
-        let metadata = node
-            .get::<JointStatePublication>()
-            .expect("candidate owns metadata");
-        let identity = node
-            .get::<EntityId>()
-            .ok_or(Error::JointStateIdentity)?
-            .get();
-        if wire_id(identity).is_none()
-            || !valid_metadata(metadata)
-            || node.get::<EntityKind>() != Some(&EntityKind::Model)
-            || entity_by_id(simulation.world(), identity) != Some(entity)
-        {
-            return Err(Error::JointStateIdentity);
+    let mut keys = joint_state_reserved_keys(simulation, io, options)?;
+    keys.extend(occupied.iter().cloned());
+    let original = original_owners(simulation, options, &keys)?;
+    let selected = candidate_owners(
+        simulation,
+        options,
+        &keys,
+        original.as_deref(),
+        false,
+        prepared.is_some(),
+    )?;
+    if let Some(entries) = prepared {
+        if entries.len() != selected.len() {
+            return Err(Error::ResetJointStates);
         }
-        let mut joints = Vec::with_capacity(metadata.joints.len());
-        for joint in &metadata.joints {
-            let id = entity_by_id(simulation.world(), joint.id).ok_or(Error::JointStateIdentity)?;
-            let child = simulation.world().entity(id);
-            if child.get::<EntityKind>() != Some(&EntityKind::Joint)
-                || child
-                    .get::<bevy_ecs::prelude::ChildOf>()
-                    .map(bevy_ecs::prelude::ChildOf::parent)
-                    != Some(entity)
+        for owner in &selected {
+            let (identity, metadata, output, name) = entries
+                .get(&owner.endpoint)
+                .ok_or(Error::ResetJointStates)?;
+            if *identity != owner.identity
+                || metadata != &owner.metadata
+                || name != &owner.name
+                || !output.matches_endpoint(&owner.endpoint)
             {
-                return Err(Error::JointStateIdentity);
-            }
-            joints.push((joint.id, id));
-        }
-        let endpoint = options.topic_key(&options::as_valid_topic(&metadata.topic))?;
-        if occupied.contains(&endpoint) {
-            return Err(Error::JointStateIdentity);
-        }
-        if let Some(prepared) = prepared {
-            let (original_identity, original_metadata, _) =
-                prepared.get(&endpoint).ok_or(Error::ResetJointStates)?;
-            if *original_identity != identity || original_metadata != metadata {
                 return Err(Error::ResetJointStates);
             }
         }
-        selected.push((entity, identity, joints, metadata.clone(), endpoint));
-    }
-    if prepared.is_some_and(|prepared| prepared.len() != selected.len()) {
-        return Err(Error::ResetJointStates);
+        let rows = entries.values().collect::<Vec<_>>();
+        if rows.iter().enumerate().any(|(index, row)| {
+            rows[..index]
+                .iter()
+                .any(|prior| Arc::ptr_eq(&prior.2, &row.2))
+        }) {
+            return Err(Error::ResetJointStates);
+        }
     }
     let mut result = Vec::new();
-    for (entity, identity, joints, metadata, endpoint) in selected {
+    for owner in selected {
         let publisher = match prepared {
-            Some(prepared) => Arc::clone(&prepared.get(&endpoint).expect("validated before IO").2),
+            Some(entries) => Arc::clone(
+                &entries
+                    .get(&owner.endpoint)
+                    .expect("all entries preflighted")
+                    .2,
+            ),
             None => io
-                .joint_state_output(endpoint.clone())
+                .joint_state_output(owner.endpoint.clone())
                 .map_err(|error| Error::WorldNetwork(error.to_string()))?,
         };
         result.push(Stream {
-            entity,
-            identity,
-            joints,
-            metadata,
-            endpoint,
+            entity: owner.entity,
+            identity: owner.identity,
+            joints: owner.joints,
+            metadata: owner.metadata,
+            endpoint: owner.endpoint,
             publisher,
             last_sample: None,
         });
@@ -298,3 +548,11 @@ impl Server {
 #[cfg(test)]
 #[path = "../tests/private/joint_state.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_joint_states.rs"]
+mod multiple_joint_states;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_joint_states_native.rs"]
+mod multiple_joint_states_native;

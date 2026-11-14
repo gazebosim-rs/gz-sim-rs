@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-13T22:22:41.751086+00:00",
+  "as_of": "2026-11-14T07:06:46.506351+00:00",
   "execution_state": "active",
   "current_phase": "M43",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
@@ -847,7 +847,7 @@
       "depends_on": [
         "M49"
       ],
-      "scope": "M50 complete provisional normal and independent retained local DATA passed at clean local commit 623faca6 over unaccepted M49. The normal hook took 2096.578 seconds. Actual profile passes are 1809 headless and 1075 renderer with overlap, not a distinct summed test count. All 403 aggregate Python tests, 24 finite examples and every strict workspace, per-crate and actual-parent coverage gate passed. Sixteen new headless and nine new renderer controls, 245/144 retained controls, 121 cleanup obligations, the separately strengthened existing pressure control in both profiles and two headless wrench controls were bound. Changed Scene lines are 16/16 in both profiles; Server is 110/112 headless, not 100 percent. Four fresh final raw comparisons ran once and matched byte for byte: 1813/392/38/33 profiles. The original wrench normal failure remains failed with its cause unknown; both reader-method failures are preserved, and no product/native workload was rerun for their correction. This is local qualification only. Actual accepted predecessor, exact hosted success, independent official DATA and ordinary Main/readbacks still govern publication and acceptance.  Earlier checkpoint: M50 corrected full normal completed with actual Root exit zero in 2096.578 seconds at clean local revision 623faca6, over unaccepted qualified M49. Independent retained local DATA is still pending. Its first two readers stopped before raw comparisons at historical-control binding and cross-harness test-name assertions; these are reader-method failures, not new product-test failures. The reviewed correction must preserve one actual pass per exact Cargo harness, all global test/coverage obligations and raw-last ordering. No simulator or native workload is repeated for reader corrections. The original normal failure remains failed with its timeout cause unknown. Numerical quality remains prior qualified M49 until the new DATA audit passes.  Earlier checkpoint: M50 test-only wrench diagnostic/readiness correction is reviewed and its full normal retry is running. Five-second deadlines, payloads, assertions, thread settings, production code and native/literal fixtures remain unchanged. First failed originals are retained; the precise failed wait and cause remain unknown. No M50 full-profile, strict coverage or local DATA pass is claimed before the actual result and audit.  Earlier failed checkpoint: M50 first complete normal attempt failed after 1622.437 seconds at one existing Server wrench-admission test: a generic five-second wait deadline. The precise wait and underlying cause remain unknown; no M50 causal link is established. Both lint stages, 403 aggregate Python tests and separate native-free/RGB/24-finite-example reports completed earlier; new pressure numeric42 and wire42 controls emitted ok in headless, but the full headless profile, renderer, final strict coverage and local DATA are not qualified. The failed tree and original logs are retained. The available Source batch found missing phase/counter diagnostics and incomplete post-reset three-publisher readiness coverage. A bounded test-only correction is under review; deadlines, assertions, production code, native/literal evidence and all mandatory gates remain unchanged. No automatic or separate target retry is released. Quality metrics remain actual locally qualified M49; M1–M42 accepted and M40 Latest are unchanged. Earlier checkpoint: M50 original-System capture and independent native/literal DATA passed actual Root zero: 12 configurations, 441 actual sensor WORLD-pose inputs, 42 received pressure/variance packets and 399 inputs without a matching packet. The 104 calls are summary/method attestations, not individual raw call records. Reference altitude stays zero; no initial-height subtraction, native Physics or RNG/demand equivalence is supplied. The immutable fixture/provenance are integrated; observed numeric/full-wire consumers and final complete Source/Rust/full-normal/strict coverage/local DATA remain pending. M1–M42 accepted, M40 Latest; no acceptance or hosted evidence is transferred. Earlier capture checkpoint: One fresh reviewed originalAirPressureSystem capture actuallyRoot0 in23.920s/all33childstages0,3modes12configs441WORLDposeinputs42receivedpackets/104helper-summarymethod-attestedSystemcalls. Existing349+separate2+exactpressureSensor+retainedSystemprovider guards held; no SDK/provider rebuild. Independentnative/literalDATA, observedconsumers and allRust/normal/coverage/hosted/official/Main gates pending. EarlierSourcecheckpoint follows: Complete Scene and Server/reference five/three-leaf implementation/regression/helper/peer Source plus Rootborrowedidentityquery are integrated with independentwholeSourceCLEAR. Rootfinite24/registry/bothverifierset/PythonSourceauthoredpendingfinalSourceintegrationreview; no M50 checks/execution. PressureSensor-specificDSOoutsidecurrent349requiresseparateexactidentity/alias/dependencydiagnosticreview beforecapture; no SDK/provider rebuild, inventory relaxation or native data placeholder. Earlierselection follows: Zero through eight otherwise-supported loaded Rapier pressure sensors, distinct fully resolved endpoints, independent schedules/noise/demand/lifetimes, whole-set identity/metadata/endpoint/prepared reset validation before IO. Preserve reference_altitude0 and existing M22 pressure/variance conventions. Contract/Source preparation over exact locally qualified unaccepted4ccd; no M50 execution or result.",
+      "scope": "M50 complete provisional normal and independent retained local DATA passed at clean local commit 623faca6 over unaccepted M49. The normal hook took 2096.578 seconds. Actual profile passes are 1809 headless and 1075 renderer with overlap, not a distinct summed test count. All 403 aggregate Python tests, 24 finite examples and every strict workspace, per-crate and actual-parent coverage gate passed. Sixteen new headless and nine new renderer controls, 245/144 retained controls, 121 cleanup obligations, the separately strengthened existing pressure control in both profiles and two headless wrench controls were bound. Changed Scene lines are 16/16 in both profiles; Server is 110/112 headless, not 100 percent. Four fresh final raw comparisons ran once and matched byte for byte: 1813/392/38/33 profiles. The original wrench normal failure remains failed with its cause unknown; both reader-method failures are preserved, and no product/native workload was rerun for their correction. This is local qualification only. Actual accepted predecessor, exact hosted success, independent official DATA and ordinary Main/readbacks still govern publication and acceptance.  Earlier checkpoint: M50 corrected full normal completed with actual Root exit zero in 2096.578 seconds at clean local revision 623faca6, over unaccepted qualified M49. Independent retained local DATA is still pending. Its first two readers stopped before raw comparisons at historical-control binding and cross-harness test-name assertions; these are reader-method failures, not new product-test failures. The reviewed correction must preserve one actual pass per exact Cargo harness, all global test/coverage obligations and raw-last ordering. No simulator or native workload is repeated for reader corrections. The original normal failure remains failed with its timeout cause unknown. Numerical quality remains prior qualified M49 until the new DATA audit passes.  Earlier checkpoint: M50 test-only wrench diagnostic/readiness correction is reviewed and its full normal retry is running. Five-second deadlines, payloads, assertions, thread settings, production code and native/literal fixtures remain unchanged. First failed originals are retained; the precise failed wait and cause remain unknown. No M50 full-profile, strict coverage or local DATA pass is claimed before the actual result and audit.  Earlier failed checkpoint: M50 first complete normal attempt failed after 1622.437 seconds at one existing Server wrench-admission test: a generic five-second wait deadline. The precise wait and underlying cause remain unknown; no M50 causal link is established. Both lint stages, 403 aggregate Python tests and separate native-free/RGB/24-finite-example reports completed earlier; new pressure numeric42 and wire42 controls emitted ok in headless, but the full headless profile, renderer, final strict coverage and local DATA are not qualified. The failed tree and original logs are retained. The available Source batch found missing phase/counter diagnostics and incomplete post-reset three-publisher readiness coverage. A bounded test-only correction is under review; deadlines, assertions, production code, native/literal evidence and all mandatory gates remain unchanged. No automatic or separate target retry is released. Quality metrics remain actual locally qualified M49; M1\u2013M42 accepted and M40 Latest are unchanged. Earlier checkpoint: M50 original-System capture and independent native/literal DATA passed actual Root zero: 12 configurations, 441 actual sensor WORLD-pose inputs, 42 received pressure/variance packets and 399 inputs without a matching packet. The 104 calls are summary/method attestations, not individual raw call records. Reference altitude stays zero; no initial-height subtraction, native Physics or RNG/demand equivalence is supplied. The immutable fixture/provenance are integrated; observed numeric/full-wire consumers and final complete Source/Rust/full-normal/strict coverage/local DATA remain pending. M1\u2013M42 accepted, M40 Latest; no acceptance or hosted evidence is transferred. Earlier capture checkpoint: One fresh reviewed originalAirPressureSystem capture actuallyRoot0 in23.920s/all33childstages0,3modes12configs441WORLDposeinputs42receivedpackets/104helper-summarymethod-attestedSystemcalls. Existing349+separate2+exactpressureSensor+retainedSystemprovider guards held; no SDK/provider rebuild. Independentnative/literalDATA, observedconsumers and allRust/normal/coverage/hosted/official/Main gates pending. EarlierSourcecheckpoint follows: Complete Scene and Server/reference five/three-leaf implementation/regression/helper/peer Source plus Rootborrowedidentityquery are integrated with independentwholeSourceCLEAR. Rootfinite24/registry/bothverifierset/PythonSourceauthoredpendingfinalSourceintegrationreview; no M50 checks/execution. PressureSensor-specificDSOoutsidecurrent349requiresseparateexactidentity/alias/dependencydiagnosticreview beforecapture; no SDK/provider rebuild, inventory relaxation or native data placeholder. Earlierselection follows: Zero through eight otherwise-supported loaded Rapier pressure sensors, distinct fully resolved endpoints, independent schedules/noise/demand/lifetimes, whole-set identity/metadata/endpoint/prepared reset validation before IO. Preserve reference_altitude0 and existing M22 pressure/variance conventions. Contract/Source preparation over exact locally qualified unaccepted4ccd; no M50 execution or result.",
       "acceptance": "Independently reviewed contract and complete implementation/regression/guides; one fresh original-System multiplicity reference plus actual independent native/literal DATA and observed numeric/fullwire consumers; live canonical pair/eight/motion/noise/demand/reset/removal/refusal controls;24th finite example; full unchanged normal/strict actual-parent coverage and independent local DATA. Accepted predecessor/exact hosted/official/Main before publication or acceptance.",
       "excluded": "Shared endpoints, new pressure/reference/atmosphere/geodesy/noise domains, runtime setters, new framework/dependencies/schema/backend/physics/renderer/package/browser/Fuel changes, native RNG parity, SDK/provider rebuild, CI workaround and acceptance transfer.",
       "evidence": "docs/M50_DELIVERY.md",
@@ -864,7 +864,7 @@
       "depends_on": [
         "M50"
       ],
-      "scope": "M51 full provisional normal and independent retained local DATA passed at clean local commit ea921f58 over qualified but unaccepted M50 623faca6. The normal hook took 2100.564 seconds. Actual profile passes are 1828 headless and 1085 renderer with overlap, not a summed distinct count; 403 aggregate Python tests and 25 finite examples passed. All strict workspace, per-crate and actual-parent coverage gates passed. Seventeen new headless and ten new renderer controls, 261/153 retained controls, 121 cleanup obligations, the separately strengthened existing AirSpeed control and prior pressure/altimeter controls in both profiles, and two headless wrench controls were bound. Changed Scene coverage is 18/18 in both profiles; Server is 112/114 headless, not 100 percent. Four final raw comparisons ran once and matched byte for byte: 1815/393/39/33 profiles. Three failed normal attempts remain failed and retained. No native or product workload was repeated for this audit. M52 independent magnetometer source development is running in disjoint lanes; its future integration parent still requires explicit overlap review. M1–M42 acceptance, all 175 accepted slices and M40 Latest remain unchanged. Actual accepted predecessor, exact hosted/official qualification and ordinary Main/readbacks remain mandatory; no CI retry or probe is released. Earlier scope: M51 complete normal hook passed at clean local commit ea921f58 over qualified but unaccepted M50 623faca6 in 2100.564 seconds. Independent retained local DATA is pending, so numerical quality remains the audited M50 checkpoint. All three earlier lint and format failures remain retained. M52 independent loaded magnetometers is selected for disjoint Scene and Server source preparation under its independently reviewed contract; it preserves the existing Tesla, rotation and noise model, bounds and refusals. Preparation uses qualified but unaccepted M50; the future integration parent awaits M51 independent DATA and overlap review. No M52 checks or qualification are supplied. There are 52 selected phases, 42 accepted phases and 175 accepted slices; M40 remains Latest. Hosted CI remains externally blocked with no retry or probe released. All predecessor, exact hosted, independent official and ordinary Main gates remain mandatory. Earlier scope: M51 fourth complete normal attempt is running at staged tree 4a29e5df over qualified but unaccepted M50 623faca6. Formatting has passed and lint compilation is underway; no complete lint, test, coverage or local-audit success is claimed. Three earlier attempts remain failed and retained: quarter-pi lint, indexed-loop lint, then a four-second format-only stop. The reviewed fixes preserve the exact yaw, the same offsets/order/assertions, and the formatter’s exact whitespace-only output. Both original Clippy invocations now collect as much independent target work as possible with --keep-going, while any error still stops the normal hook. All mandatory selections, -D warnings, dependency locks, two jobs and resource/coverage/release gates remain unchanged. Native and fixed-literal DATA passed and were not replayed. The retained normal-data reader is independently Source-reviewed with outcome bindings held. Quality remains actual M50; 42 phases are accepted out of 51 selected and M40 remains Latest. Earlier first-failure scope: The first M51 full normal hook stopped after 174.279 seconds at Clippy: one new Server test used a decimal approximation of the standard quarter-pi constant. Product tests and coverage were not reached. The failed tree, logs, result and qualification-history ref are retained. The independently reviewed one-expression correction uses the standard constant with the identical binary64 value; all SDF inputs, assertions, tolerances, production code and native/literal evidence are unchanged. A complete affected normal retry is being prepared under the same mandatory gates; no separate target trial or extra formatter ran. M51 native and fixed-literal DATA remain passed, but no Rust/full-normal/coverage/local-DATA qualification is supplied. Quality remains actual qualified M50; acceptance, M40 Latest and all predecessor/hosted/official/Main gates remain unchanged. Earlier running scope, now retired: M51 fresh original-System capture, independent retained native DATA and independent fixed-literal DATA passed. All 331 explicit sensor inputs and 55 captured packets are preserved; 276 inputs have no matching packet, without internal-update or draw inference. The complete implementation, 17 new Source-declared controls, numeric/full-wire consumers and guides passed independent Source review. One consolidated formatter returned zero. The exact staged tree a6dca486 over locally qualified but unaccepted M50 623faca6 is now running its single full normal hook, strict coverage and required checks with a fresh target and two jobs. No M51 normal, Rust, Python, coverage or independent local audit pass is claimed before actual outcomes. Numerical quality remains qualified M50; M1–M42 acceptance, M40 Latest and all predecessor/hosted/official/Main gates are unchanged. Earlier capture scope: M51 core implementation, regression Source, shared integration and guides passed independent Source review on locally qualified but unaccepted M50 623faca6. The bounded AirSpeed component input check passed without a rebuild. One fresh original-System capture then returned actual Root zero in 25.090 seconds, with all 36 child stages successful. It retained 12 configurations, 331 explicit sensor WORLD-pose, point-velocity and wind inputs, and 55 actual canonical AirSpeed packets. The 79 System calls are helper-summary and Source attestations, not individually captured internal updates. Negative differential pressure is valid. No SDK/provider was rebuilt, old campaign replayed or Physics/RNG/demand equivalence claimed. Independent native DATA, literal export and DATA, observed consumers and the complete M51 normal/strict coverage/local audit remain pending; no M51 Rust or Python pass is claimed. Quality metrics remain actual locally qualified M50. M1–M42 remain accepted, M40 Latest, with all predecessor/hosted/official/Main gates unchanged. Earlier Source scope: M51 reviewed Scene and Server/reference leaves plus Root identity-query Source are integrated in a new checkout on exact locally qualified, unaccepted M50 623faca6. Preparation worktrees on qualified M49 4ccd remain preserved. M50 pressure identities/controls and wrench diagnostic/readiness repairs stay intact, with additive shared-seam overlap review required. Native current provider-input closure, complete shared example/registry/guides, full Source review and all serial checks remain pending; no M51 execution or qualification is claimed.  Earlier Source preparation: M51 reviewed Source preparation covers zero through eight independent otherwise-supported loaded Rapier AirSpeed sensors, distinct resolved endpoints and complete identity/name/metadata/prepared-owner validation before publisher I/O. Preserve exact point velocity, separate WORLD-wind rotation, signed differential pressure, f32/noise/temperature arithmetic and existing bounds. Extend all three Scene count/consumer seams while preserving zero-consumer nonzero-wind refusal. Add meaningful owner motion, wind, demand/noise, reset/removal/refusal controls, a finite 25th example and fresh original-System multiplicity evidence after reviewed current input closure. Successful retained M26 System provider provenance exists; current bytes/aliases and the separate air-speed component input remain unverified. M41 component evidence is not System multiplicity proof. Source preparation uses qualified but unaccepted M49 4ccd4f06 while M50 normal retry runs. Final integrated parent remains unselected until actual M50 normal and local DATA outcomes, preserving all repairs with overlap review. No M51 execution, qualification or acceptance is claimed.",
+      "scope": "M51 full provisional normal and independent retained local DATA passed at clean local commit ea921f58 over qualified but unaccepted M50 623faca6. The normal hook took 2100.564 seconds. Actual profile passes are 1828 headless and 1085 renderer with overlap, not a summed distinct count; 403 aggregate Python tests and 25 finite examples passed. All strict workspace, per-crate and actual-parent coverage gates passed. Seventeen new headless and ten new renderer controls, 261/153 retained controls, 121 cleanup obligations, the separately strengthened existing AirSpeed control and prior pressure/altimeter controls in both profiles, and two headless wrench controls were bound. Changed Scene coverage is 18/18 in both profiles; Server is 112/114 headless, not 100 percent. Four final raw comparisons ran once and matched byte for byte: 1815/393/39/33 profiles. Three failed normal attempts remain failed and retained. No native or product workload was repeated for this audit. M52 independent magnetometer source development is running in disjoint lanes; its future integration parent still requires explicit overlap review. M1\u2013M42 acceptance, all 175 accepted slices and M40 Latest remain unchanged. Actual accepted predecessor, exact hosted/official qualification and ordinary Main/readbacks remain mandatory; no CI retry or probe is released. Earlier scope: M51 complete normal hook passed at clean local commit ea921f58 over qualified but unaccepted M50 623faca6 in 2100.564 seconds. Independent retained local DATA is pending, so numerical quality remains the audited M50 checkpoint. All three earlier lint and format failures remain retained. M52 independent loaded magnetometers is selected for disjoint Scene and Server source preparation under its independently reviewed contract; it preserves the existing Tesla, rotation and noise model, bounds and refusals. Preparation uses qualified but unaccepted M50; the future integration parent awaits M51 independent DATA and overlap review. No M52 checks or qualification are supplied. There are 52 selected phases, 42 accepted phases and 175 accepted slices; M40 remains Latest. Hosted CI remains externally blocked with no retry or probe released. All predecessor, exact hosted, independent official and ordinary Main gates remain mandatory. Earlier scope: M51 fourth complete normal attempt is running at staged tree 4a29e5df over qualified but unaccepted M50 623faca6. Formatting has passed and lint compilation is underway; no complete lint, test, coverage or local-audit success is claimed. Three earlier attempts remain failed and retained: quarter-pi lint, indexed-loop lint, then a four-second format-only stop. The reviewed fixes preserve the exact yaw, the same offsets/order/assertions, and the formatter\u2019s exact whitespace-only output. Both original Clippy invocations now collect as much independent target work as possible with --keep-going, while any error still stops the normal hook. All mandatory selections, -D warnings, dependency locks, two jobs and resource/coverage/release gates remain unchanged. Native and fixed-literal DATA passed and were not replayed. The retained normal-data reader is independently Source-reviewed with outcome bindings held. Quality remains actual M50; 42 phases are accepted out of 51 selected and M40 remains Latest. Earlier first-failure scope: The first M51 full normal hook stopped after 174.279 seconds at Clippy: one new Server test used a decimal approximation of the standard quarter-pi constant. Product tests and coverage were not reached. The failed tree, logs, result and qualification-history ref are retained. The independently reviewed one-expression correction uses the standard constant with the identical binary64 value; all SDF inputs, assertions, tolerances, production code and native/literal evidence are unchanged. A complete affected normal retry is being prepared under the same mandatory gates; no separate target trial or extra formatter ran. M51 native and fixed-literal DATA remain passed, but no Rust/full-normal/coverage/local-DATA qualification is supplied. Quality remains actual qualified M50; acceptance, M40 Latest and all predecessor/hosted/official/Main gates remain unchanged. Earlier running scope, now retired: M51 fresh original-System capture, independent retained native DATA and independent fixed-literal DATA passed. All 331 explicit sensor inputs and 55 captured packets are preserved; 276 inputs have no matching packet, without internal-update or draw inference. The complete implementation, 17 new Source-declared controls, numeric/full-wire consumers and guides passed independent Source review. One consolidated formatter returned zero. The exact staged tree a6dca486 over locally qualified but unaccepted M50 623faca6 is now running its single full normal hook, strict coverage and required checks with a fresh target and two jobs. No M51 normal, Rust, Python, coverage or independent local audit pass is claimed before actual outcomes. Numerical quality remains qualified M50; M1\u2013M42 acceptance, M40 Latest and all predecessor/hosted/official/Main gates are unchanged. Earlier capture scope: M51 core implementation, regression Source, shared integration and guides passed independent Source review on locally qualified but unaccepted M50 623faca6. The bounded AirSpeed component input check passed without a rebuild. One fresh original-System capture then returned actual Root zero in 25.090 seconds, with all 36 child stages successful. It retained 12 configurations, 331 explicit sensor WORLD-pose, point-velocity and wind inputs, and 55 actual canonical AirSpeed packets. The 79 System calls are helper-summary and Source attestations, not individually captured internal updates. Negative differential pressure is valid. No SDK/provider was rebuilt, old campaign replayed or Physics/RNG/demand equivalence claimed. Independent native DATA, literal export and DATA, observed consumers and the complete M51 normal/strict coverage/local audit remain pending; no M51 Rust or Python pass is claimed. Quality metrics remain actual locally qualified M50. M1\u2013M42 remain accepted, M40 Latest, with all predecessor/hosted/official/Main gates unchanged. Earlier Source scope: M51 reviewed Scene and Server/reference leaves plus Root identity-query Source are integrated in a new checkout on exact locally qualified, unaccepted M50 623faca6. Preparation worktrees on qualified M49 4ccd remain preserved. M50 pressure identities/controls and wrench diagnostic/readiness repairs stay intact, with additive shared-seam overlap review required. Native current provider-input closure, complete shared example/registry/guides, full Source review and all serial checks remain pending; no M51 execution or qualification is claimed.  Earlier Source preparation: M51 reviewed Source preparation covers zero through eight independent otherwise-supported loaded Rapier AirSpeed sensors, distinct resolved endpoints and complete identity/name/metadata/prepared-owner validation before publisher I/O. Preserve exact point velocity, separate WORLD-wind rotation, signed differential pressure, f32/noise/temperature arithmetic and existing bounds. Extend all three Scene count/consumer seams while preserving zero-consumer nonzero-wind refusal. Add meaningful owner motion, wind, demand/noise, reset/removal/refusal controls, a finite 25th example and fresh original-System multiplicity evidence after reviewed current input closure. Successful retained M26 System provider provenance exists; current bytes/aliases and the separate air-speed component input remain unverified. M41 component evidence is not System multiplicity proof. Source preparation uses qualified but unaccepted M49 4ccd4f06 while M50 normal retry runs. Final integrated parent remains unselected until actual M50 normal and local DATA outcomes, preserving all repairs with overlap review. No M51 execution, qualification or acceptance is claimed.",
       "acceptance": "Complete independent contract/Source/regression/guide review; new original-System multiplicity capture and independent native/literal DATA before observed consumers; real canonical pair/eight/motion/wind/demand/noise/reset/removal/refusal and finite25th example; unchanged full normal/strict actual-parent coverage and independent local DATA. Actual accepted predecessor, exact hosted/official and ordinary Main/readbacks before publication or acceptance.",
       "excluded": "New scalar/noise/wind/atmosphere/kinematic/backend domains, shared resolved endpoints, sensor editing, native RNG/individual-demand equivalence, SDK/provider rebuild, new framework/plugins/solver/teleport, renderer/Fuel/Cargo/schema/package/browser change, CI workaround or automatic acceptance transfer.",
       "evidence": "docs/M51_DELIVERY.md",
@@ -937,7 +937,7 @@
       "depends_on": [
         "M51"
       ],
-      "scope": "M52 complete provisional normal and independent retained local DATA passed at clean local commit 1ed59a73 over locally qualified but unaccepted M51 ea921f58. The normal hook took 2046.562 seconds. Actual profile passes are 1848 headless and 1096 renderer with overlap, not a distinct summed count; 403 aggregate Python tests and 26 finite examples passed. All strict workspace, per-crate and actual-parent coverage gates passed. Eighteen new headless and eleven new renderer controls, 278/163 retained controls, 121 cleanup obligations, the separately strengthened existing magnetometer control plus three inherited controls in both profiles, and two headless wrench controls were bound. Changed Scene coverage is 18/18 in both profiles; Server is 116/118 headless, not 100 percent. Four final raw comparisons ran once and matched byte for byte: 1817/394/40/33 profiles. The first normal compile failure and the first retained-reader path-binding failure remain failed and preserved; the complete typed-path reader correction passed without any product or native rerun. No heavy job is active. M53 independent logical-camera feasibility is read-only and unselected: the old M30 proof covers the SensorFactory component, not an original System provider. A fixed-input diagnostic plan is Source reviewed; diagnostic execution is not yet released. This is provisional local qualification only. M1–M42 acceptance, 175 accepted slices and M40 Latest remain unchanged. Actual accepted predecessor, exact hosted success, independent official DATA and ordinary Main/readbacks remain mandatory; no CI retry or probe is released. Earlier running checkpoint: M52 second complete normal attempt is running after the complete four-error test API correction passed independent Source and formatting review. The first attempt remains failed and preserved at Clippy compilation; no M52 test, coverage or local-audit pass is claimed. Only the two reviewed public test files changed. The original native and fixed-literal audits remain passed and were not replayed. All mandatory gates and hosted release holds remain unchanged. Earlier failed scope: M52 first complete normal attempt failed after 194.317 seconds in Clippy test compilation. Four errors were collected across both new public test files: a missing optional Vector3d header, comparison of EntityId wrappers instead of their public values, and two incorrect error-variant names. Product tests and coverage were not reached. The failed tree, logs, result and history ref remain retained. The complete test-only correction uses the actual generated-message and existing identity/fault/reset APIs, preserves every assertion and numerical bound, and has passed independent source review and one consolidated corrective formatter. Final retry procedure review is pending; no retry or Rust qualification is claimed. M52 original-System native and fixed-literal audits passed with 12 configurations, 501 explicit inputs, 42 captured packets and 58 genuine warning records, without rebuilding the SDK or replaying those proofs. Numerical quality remains audited M51. There are 52 selected phases, 42 accepted phases and 175 accepted slices; M40 remains Latest. Hosted CI remains externally blocked; every predecessor, exact hosted/official and ordinary Main/readback gate remains mandatory. Earlier scope: Zero through eight otherwise-supported loaded Rapier magnetometers with original constant WORLD field, inverse WORLD rotation, Tesla units and XYZ noise model. Independent identity/name/metadata validation before IO, resolved endpoints, demand, sampled caches, reset/removal and atomic refusal. Source preparation may overlap M51 retained audit; integration and acceptance dependencies remain explicit.",
+      "scope": "M52 complete provisional normal and independent retained local DATA passed at clean local commit 1ed59a73 over locally qualified but unaccepted M51 ea921f58. The normal hook took 2046.562 seconds. Actual profile passes are 1848 headless and 1096 renderer with overlap, not a distinct summed count; 403 aggregate Python tests and 26 finite examples passed. All strict workspace, per-crate and actual-parent coverage gates passed. Eighteen new headless and eleven new renderer controls, 278/163 retained controls, 121 cleanup obligations, the separately strengthened existing magnetometer control plus three inherited controls in both profiles, and two headless wrench controls were bound. Changed Scene coverage is 18/18 in both profiles; Server is 116/118 headless, not 100 percent. Four final raw comparisons ran once and matched byte for byte: 1817/394/40/33 profiles. The first normal compile failure and the first retained-reader path-binding failure remain failed and preserved; the complete typed-path reader correction passed without any product or native rerun. No heavy job is active. M53 independent logical-camera feasibility is read-only and unselected: the old M30 proof covers the SensorFactory component, not an original System provider. A fixed-input diagnostic plan is Source reviewed; diagnostic execution is not yet released. This is provisional local qualification only. M1\u2013M42 acceptance, 175 accepted slices and M40 Latest remain unchanged. Actual accepted predecessor, exact hosted success, independent official DATA and ordinary Main/readbacks remain mandatory; no CI retry or probe is released. Earlier running checkpoint: M52 second complete normal attempt is running after the complete four-error test API correction passed independent Source and formatting review. The first attempt remains failed and preserved at Clippy compilation; no M52 test, coverage or local-audit pass is claimed. Only the two reviewed public test files changed. The original native and fixed-literal audits remain passed and were not replayed. All mandatory gates and hosted release holds remain unchanged. Earlier failed scope: M52 first complete normal attempt failed after 194.317 seconds in Clippy test compilation. Four errors were collected across both new public test files: a missing optional Vector3d header, comparison of EntityId wrappers instead of their public values, and two incorrect error-variant names. Product tests and coverage were not reached. The failed tree, logs, result and history ref remain retained. The complete test-only correction uses the actual generated-message and existing identity/fault/reset APIs, preserves every assertion and numerical bound, and has passed independent source review and one consolidated corrective formatter. Final retry procedure review is pending; no retry or Rust qualification is claimed. M52 original-System native and fixed-literal audits passed with 12 configurations, 501 explicit inputs, 42 captured packets and 58 genuine warning records, without rebuilding the SDK or replaying those proofs. Numerical quality remains audited M51. There are 52 selected phases, 42 accepted phases and 175 accepted slices; M40 remains Latest. Hosted CI remains externally blocked; every predecessor, exact hosted/official and ordinary Main/readback gate remains mandatory. Earlier scope: Zero through eight otherwise-supported loaded Rapier magnetometers with original constant WORLD field, inverse WORLD rotation, Tesla units and XYZ noise model. Independent identity/name/metadata validation before IO, resolved endpoints, demand, sampled caches, reset/removal and atomic refusal. Source preparation may overlap M51 retained audit; integration and acceptance dependencies remain explicit.",
       "acceptance": "Complete independent source/regression/guide review; scoped original-System native and fixed-literal DATA before observed consumers; canonical numeric/full-wire, lifecycle/refusal and finite26th example. Full normal, strict workspace/per-crate/actual-parent coverage and independent retained DATA. Actually accepted M51 predecessor, exact hosted success, independent official DATA and ordinary Main/readbacks before publication or acceptance.",
       "excluded": "New field/geodesy/NED/Gauss/noise/backend domains, changed numerical bounds, RNG or native demand equivalence, SDK/provider rebuild, new frameworks/plugins/solver/teleport, viewer/package/launcher/Fuel changes, CI workaround or transferred acceptance.",
       "evidence": "docs/M52_DELIVERY.md",
@@ -1098,7 +1098,7 @@
       "depends_on": [
         "M53"
       ],
-      "scope": "Zero through eight independent planar CPU lidars with 2–128 beams each, at most 1,024 rays per due tick. Preserve ray math, noise, global terminal faults and exact canonical scans; add per-owner identity, demand, cadence, reset, removal and endpoint-conflict controls. Scene and Server source development runs in parallel.",
+      "scope": "Zero through eight independent planar CPU lidars with 2\u2013128 beams each, at most 1,024 rays per due tick. Preserve ray math, noise, global terminal faults and exact canonical scans; add per-owner identity, demand, cadence, reset, removal and endpoint-conflict controls. Scene and Server source development runs in parallel.",
       "acceptance": "Complete implementation, meaningful regressions and guides with independent Source review. Final integration follows successful M53 normal and independent DATA, retaining its fixes. Reviewed current component inputs, fresh component scan capture, independent native and literal DATA precede observed consumers. Full normal, unchanged strict coverage, independent local DATA, accepted predecessor, hosted success, official audit and Main readbacks precede release.",
       "excluded": "GPU/multilayer/interpolated scans, intensity or point-cloud expansion; native System/ECM/physics/demand/scheduling/RNG equivalence; new solver, backend, framework, SDK/provider build, CI workaround or transferred acceptance.",
       "evidence": "docs/M54_DELIVERY.md",
@@ -1400,8 +1400,8 @@
       "source_authorship_released": true,
       "operations_released": true,
       "checks_run": true,
-      "current_stage": "First full normal failed strict Clippy before tests/coverage; exact two-test-source correction batch under review before one full retry",
-      "current_native_provider_availability": "One fresh reviewed direct-object capture completed with genuine Root0 and30 actual child exits0/reaped. Its independent native audit passed without repeating native execution. Original rejected DSO and both failed captures remain preserved; full runtime qualification is pending.",
+      "current_stage": "Provisionally locally qualified: full normal and independent retained DATA passed; hosted/official/Main gates remain held",
+      "current_native_provider_availability": "One fresh reviewed direct-object capture completed with genuine Root0 and30 actual child exits0/reaped. Its independent native audit passed without repeating native execution. Original rejected DSO and both failed captures remain preserved. Full normal attempt2 and independent retained local DATA attempt3 passed; hosted and release acceptance remain held.",
       "selection_sha256": "2bb7cc58db737142009c7df3ee21633e682018a7135693c3013c47bb42005066",
       "authorship_release_sha256": "671be22718c9b298a2cc456c5f1c3c51635307d67cff53af68eb566adbc37e6e",
       "runtime_Source_batches_complete": true,
@@ -1501,7 +1501,7 @@
           "native_DATA_report_sha256": "5af078247cc8355739eadc7a779e1546be714c5f3fdd012886f13cbe73446380"
         }
       ],
-      "receipt_representation_Source_fix": "Reviewed compact records retain all raw fields/wires and complete saved metadata edges through full-field references. Fresh capture, independent native audit, typed export and literal validation passed within unchanged caps. Observed consumers are source-reviewed; Rust/full normal/strict coverage/local results qualification remain pending.",
+      "receipt_representation_Source_fix": "Reviewed compact records retain all raw fields/wires and complete saved metadata edges through full-field references. Fresh capture, independent native audit, typed export, literal validation, observed Rust consumers, full normal strict coverage and independent retained local DATA passed within unchanged caps. Hosted qualification and release acceptance remain held.",
       "independent_native_DATA": {
         "actual_root_exit_code": 0,
         "receipt_sha256": "bd40d584b7675be68a005a56140090f045e81c915b685df188d8076d3bc9baf7",
@@ -1522,11 +1522,12 @@
         "independent_literal_DATA_actual_root_exit_code": 0,
         "independent_literal_DATA_report_sha256": "be68d424f0e2df1886fa3f7a32d0938ef1f317720afe25c014d21e439eb1e687",
         "independent_literal_DATA_receipt_sha256": "cc55e3c85636c66f0b6909536144d757a64e0e16a2403860d7ec6fc59335631a",
-        "observed_consumers_verified": false,
-        "runtime_qualified_or_accepted": false
+        "observed_consumers_verified": true,
+        "runtime_provisionally_locally_qualified": true,
+        "accepted": false
       },
       "product_checks_run": true,
-      "full_normal_passed": false,
+      "full_normal_passed": true,
       "normal_attempts": [
         {
           "attempt": 1,
@@ -1538,8 +1539,571 @@
           "stage": "Clippy --keep-going: two test-source diagnostics",
           "Rust_tests_or_coverage_reached": false,
           "qualified": false
+        },
+        {
+          "attempt": 2,
+          "actual_Root_exit_code": 0,
+          "commit": "d635b119ca8d9e3f338fb0cf8af7df88b71a7f34",
+          "tree": "09d855cb9479033c3394ee5003c2dbfddb59f12b",
+          "parent": "fcfa717630d74f8e0f3b283083c48f0ff408e08e",
+          "controller_elapsed_seconds": 2115.091742492048,
+          "actual_receipt": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/provisional-local-normal-attempt2-actual-exit.json",
+            "sha256": "a9d4931d36c12fcca7b299edfda5efc38f6f989420c54ba73413c762e5cb7d19",
+            "bytes": 3354
+          },
+          "independent_DATA_actual_receipt": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/local-audit-provisional-attempt3-actual-exit.json",
+            "sha256": "74a0ef778966964fcfc77083ef7726d1af9eb907bcee16f488db70e9bbae0ac7",
+            "bytes": 3992
+          },
+          "phase_accepted": false
         }
-      ]
+      ],
+      "independent_local_DATA_passed": true,
+      "locally_qualified_commit": "d635b119ca8d9e3f338fb0cf8af7df88b71a7f34",
+      "locally_qualified_tree": "09d855cb9479033c3394ee5003c2dbfddb59f12b",
+      "provisional_local_qualification": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/provisional-local-qualification.json",
+        "sha256": "4b7e6995bf892fcc95fb136f962050e40141f19158f353b4447ad971cfdfdbfc",
+        "bytes": 5655
+      },
+      "normal_actual_receipt": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/provisional-local-normal-attempt2-actual-exit.json",
+        "sha256": "a9d4931d36c12fcca7b299edfda5efc38f6f989420c54ba73413c762e5cb7d19",
+        "bytes": 3354
+      },
+      "independent_local_DATA_actual_receipt": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/local-audit-provisional-attempt3-actual-exit.json",
+        "sha256": "74a0ef778966964fcfc77083ef7726d1af9eb907bcee16f488db70e9bbae0ac7",
+        "bytes": 3992
+      },
+      "independent_local_DATA_report": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/local-audit-provisional.json",
+        "sha256": "3745d61718907521abf830251e465ba58630c5890707b99287b5092592d5b6c0",
+        "bytes": 989731
+      },
+      "retained_reader_failures": [
+        {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/local-audit-provisional-attempt1-failure.json",
+          "sha256": "bf3a8328468b013bb315a8bc2d558bb04cbfbfe85da39eb5c6d243c2947debf0",
+          "bytes": 3519
+        },
+        {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/local-audit-provisional-attempt2-failure.json",
+          "sha256": "30b3a27d5bef80aed11fbfc0fa63695fe4e0b0f055ee1c1c14065d59c6bb6253",
+          "bytes": 3733
+        }
+      ],
+      "actual_local_profile_tests": {
+        "headless": 1927,
+        "renderer": 1138
+      },
+      "renderer_overlaps_headless": true,
+      "actual_quiet_Python_tests": 403,
+      "actual_finite_example_runs": 30,
+      "actual_strict_changed_production_lines": {
+        "headless": {
+          "gz-assets": [
+            0,
+            0
+          ],
+          "gz-physics": [
+            0,
+            0
+          ],
+          "gz-physics-dart": [
+            0,
+            0
+          ],
+          "gz-physics-mujoco": [
+            0,
+            0
+          ],
+          "gz-physics-rapier": [
+            0,
+            0
+          ],
+          "gz-physics-tpe": [
+            0,
+            0
+          ],
+          "gz-sensors": [
+            0,
+            0
+          ],
+          "gz-sim-cli": [
+            0,
+            0
+          ],
+          "gz-sim-core": [
+            0,
+            0
+          ],
+          "gz-sim-proto": [
+            0,
+            0
+          ],
+          "gz-sim-scene": [
+            19,
+            19
+          ],
+          "gz-sim-server": [
+            223,
+            231
+          ]
+        },
+        "renderer": {
+          "gz-camera-output": [
+            0,
+            0
+          ],
+          "gz-render-client": [
+            0,
+            0
+          ],
+          "gz-render-frame": [
+            0,
+            0
+          ],
+          "gz-render-protocol": [
+            0,
+            0
+          ],
+          "gz-render-scene": [
+            0,
+            0
+          ],
+          "gz-render-worker": [
+            0,
+            0
+          ],
+          "gz-renderer": [
+            0,
+            0
+          ],
+          "gz-sim-cli": [
+            0,
+            0
+          ],
+          "gz-sim-core": [
+            0,
+            0
+          ],
+          "gz-sim-proto": [
+            0,
+            0
+          ],
+          "gz-sim-scene": [
+            19,
+            19
+          ]
+        }
+      },
+      "accepted": false
+    },
+    {
+      "id": "M57",
+      "title": "Independent loaded JointStatePublishers",
+      "max_working_days": 5,
+      "depends_on": [
+        "M56"
+      ],
+      "scope": "Zero through eight loaded top-level dynamic Rapier model owners, each retaining its existing single-axis revolute graph, independently selected joints/rate and one canonical Model endpoint; \u2264128 selected joints/owner and\u22641024 aggregate slots without expanding prior graph limits.",
+      "acceptance": "Complete bounded Source/regression/docs and independent review; original fixed-input Configure/PostUpdate capture plus native/literal DATA and observed controlled-component/canonical-wire regressions; unchanged full normal, strict workspace/percrate/actual-parent coverage and independent local DATA. Accepted predecessor, exact hosted/official qualification and Main/readbacks precede acceptance/publication.",
+      "excluded": "New joint/backend/axis2/force-measurement/effort/velocity-limit/controller-chain domains, per-owner global-fault isolation, body teleport, renderer/package/browser replay, dynamic plugins or new runtime/transport framework.",
+      "evidence": "docs/M57_DELIVERY.md",
+      "provisional_local_only": true,
+      "source_preparation_basis_commit": "d635b119ca8d9e3f338fb0cf8af7df88b71a7f34",
+      "source_preparation_basis_accepted": false,
+      "integrated_parent": "d635b119ca8d9e3f338fb0cf8af7df88b71a7f34",
+      "source_preparation_started_at": "2026-11-14T02:33:46.832928+00:00",
+      "contract_sha256": "96142d874d29ae60f0da64f76ab02308adb05c71593b0c9d6bd2c7e7a9a3b7cd",
+      "source_scope_contract": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/phase-source-contract.json",
+        "sha256": "d7183cfc5415f24aa4d8b7f4530b21dc3808fbcf42a80f6b80101c34a047077c",
+        "bytes": 13721
+      },
+      "source_authorship_release": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/source-authorship-release.json",
+        "sha256": "9f7ad5c6534f9876b9d7158116ef241d585ca1ab148c3a2c8425a7322f88cc26",
+        "bytes": 2748
+      },
+      "source_authorship_released": true,
+      "product_checks_run": true,
+      "full_normal_passed": false,
+      "accepted": false,
+      "current_stage": "Second full normal actual1 after1650.1202665108722s: two runtime-test premises failed (Scene unsupported limits/damping; Server immediate fault after entity disappearance). Strict Clippy,403 aggregate Python and maintained native-free/RGB stage passed; full normal/strict coverage/local DATA incomplete. Production-preserving correction batch awaits independent Source review, affected formatter and full retry.",
+      "runtime_Source_batches_complete": {
+        "Scene_core": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/scene-source-state.json",
+          "sha256": "bd0aedd8457fa287ba697ee2902d7b403459497baaeaaf2b3d89b1ae150fb11f",
+          "bytes": 11286
+        },
+        "Server_core": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/server-source-state.json",
+          "sha256": "3917e24dd28815ed626af9102132605eacb5ad368b264195ed8188ec5b87d839",
+          "bytes": 10924
+        },
+        "Server_Reading_equality_correction": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/server-reading-equality-source-correction.json",
+          "sha256": "74ffe58d98d40243f0052e55f190c5893b001002c31191059293a730f1649d9e",
+          "bytes": 2681
+        },
+        "Root_shared_identity": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/shared-identity-source-state.json",
+          "sha256": "2201c956ffd0d804eebb651b693119034cad10b973c0975871a154bedd5faa1d",
+          "bytes": 3780
+        }
+      },
+      "fixture_schema_Source_agreement": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-fixture-and-procedure-api-agreement.json",
+        "sha256": "a9c9cf6a916328a469942858d11509d9032ba6874a18ab10a82edbd76c5ac6fb",
+        "bytes": 1878
+      },
+      "reference_helper_Source": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-helper-source-state.json",
+        "sha256": "7994fba150d6ab41b87a0f6f313703adec2bb6837b191822d7c7b7a983123045",
+        "bytes": 6986
+      },
+      "current_native_provider_availability": "Original DSO remains rejected for an empty RUNPATH entry and was never loaded or repaired. The separately approved unchanged ET_REL object (SHA 2097353f, 170920 bytes) linked once into the new helper; actual capture0 with 41 children0 plus independent native DATA0 validate the owned helper ELF/maps and exact guarded providers. Source-to-binary, Physics/solver/gathering/lifecycle and release equivalence remain unclaimed.",
+      "reference_capture_or_golden_data_available": true,
+      "independent_local_DATA_passed": false,
+      "runtime_provisionally_locally_qualified": false,
+      "operation_scope": "Four native evidence stages and both completed formatters returned actual0. First full normal failed compilation actual1; second full normal ran runtime tests and returned actual1 with two test-premise failures. Partial Clippy,403 aggregate Python and maintained native-free/RGB passes do not qualify full normal/strict coverage. New correction formatting, full retry and retained success DATA each require separate Root release; hosted/CI remains held.",
+      "reference_pipeline": {
+        "scope": "One original unchanged-object Configure/PostUpdate controlled-component pair/eight campaign; independent DATA/export/literal stages, not Rust runtime qualification or acceptance.",
+        "input_domain": "DIRECT_ORIGINAL_OBJECT_SYSTEM_MODEL_LOCAL_AND_SINGLE_AXIS_COMPONENT_INPUTS",
+        "runtime_parent": "d635b119ca8d9e3f338fb0cf8af7df88b71a7f34",
+        "runtime_parent_accepted": false,
+        "capture": {
+          "actual_root_exit_code": 0,
+          "actual_receipt": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-reference-actual-exit.json",
+            "sha256": "861c9338ff320a5a5d2be91eebfdc1ce6b0aa710f78cbd6b3d5ab02818a26a43",
+            "bytes": 2609
+          },
+          "result": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-multiple-joint-state-publishers-0eomnt5u/result.json",
+            "sha256": "02137542be308a1613fa13424e6d25254ded889b9e08c18bee9a0f35538cc3bf",
+            "bytes": 520941
+          },
+          "execution_ledger": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-multiple-joint-state-publishers-0eomnt5u/execution-ledger.json",
+            "sha256": "7461e3db7fba0793fffa48b261863c344b3c97a2fba013fc57a9324c0078b536",
+            "bytes": 145003
+          },
+          "method_sha256": "dcfa5ecff7cd757189c349b4b94840bcc5077c52e89dfc17c4169555aa9fde4f",
+          "execution_log_sha256": "855544b34987acefcbf74dcd50d7f9d9ab3f00833a93d846ed74b294a381b541",
+          "actual_child_stages0_reaped": 41,
+          "elapsed_seconds": 23.57837867178023,
+          "native_Server_or_Loader_or_Physics_executed": false
+        },
+        "independent_native_DATA": {
+          "actual_root_exit_code": 0,
+          "actual_receipt": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-audit-actual-exit.json",
+            "sha256": "ba35551a84e082b1fbac2a49e7043f234ac417244a33318ddd39035ec172bf8c",
+            "bytes": 1528
+          },
+          "report": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-audit.json",
+            "sha256": "e6953be08eaa8f7dc8d8f38a9cf8c8050bc69f0f0da2adf7b1d1c4a368235be6",
+            "bytes": 413125
+          },
+          "method_sha256": "b87e4cb565f6622abed6d3faea0fbbcae33f8302753cecf98d14e47a09662c95",
+          "execution_log_sha256": "a6b95b3a4bb2ea3b8a62874aea78dd19791677f9b3df93926c2142a9dcb95f21",
+          "elapsed_seconds": "UNKNOWN_NOT_SERIALIZED_BY_RETAINED_READER",
+          "native_or_product_campaign_repeated": false
+        },
+        "immutable_generation": {
+          "actual_root_exit_code": 0,
+          "actual_receipt": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-fixture-generation-actual-exit.json",
+            "sha256": "4d408203ec2c45a75a8b746222132a86ae6ed4bb8eba08de41f4059a32c682c8",
+            "bytes": 2189
+          },
+          "method_sha256": "84cc8d585e3f35ff7c7578e4c2f409b81f5d41f5f1652bd4be5c668d99fc55bc",
+          "execution_log_sha256": "27fa22ba3550812c0a4dc713f47f2a1e9eb005efcea137034feef42470ecfd2b",
+          "fixture": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-replay-generated/m57_native_multiple_joint_state_publishers.rs",
+            "sha256": "c0dc5db79526e3489b753ebde9601c693fc9c5f0a83495ab551d95797511f6bf",
+            "bytes": 480049
+          },
+          "provenance": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-replay-generated/provenance.json",
+            "sha256": "2b4a98c38f9ae909dd5519b973f6f563bb01c658297a38f8f507b6f7fc39dff3",
+            "bytes": 374652
+          },
+          "native_or_product_campaign_repeated": false
+        },
+        "independent_literal_DATA": {
+          "actual_root_exit_code": 0,
+          "actual_receipt": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-borrowed-fixture-audit-actual-exit.json",
+            "sha256": "a936754787c9e8e33cb06b0ec654241b82de65498bc759fa71f059863ab74492",
+            "bytes": 1963
+          },
+          "report": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-borrowed-fixture-audit.json",
+            "sha256": "d2d15c618ff6e5fee093f916f11225e923b5e4a22e0373072eed7e77cba775bc",
+            "bytes": 370346
+          },
+          "method_sha256": "583635f70808608f1c0088dbcd90c0734c39a381f3a81f89b099c870ce2b8072",
+          "execution_log_sha256": "83b241e90b6df8b69d13ffa387477d086136053b591ca402c81bdb078f282a8f",
+          "fixture_generated_again": false,
+          "native_or_product_campaign_repeated": false
+        },
+        "actual_aggregate_mode_counts": {
+          "owners": 10,
+          "configurations": 10,
+          "global_call_groups": 20,
+          "input_rows": 100,
+          "direct_post_update_calls": 100,
+          "fence_rows": 100,
+          "observed_models": 66,
+          "observed_joints": 108,
+          "raw_rows": 278
+        },
+        "owner_count_scope": "owners10 is2+8 separate mode instances; simultaneous owner bound remains8.",
+        "actual_fixture_or_provenance_values_duplicated_in_this_plan": false,
+        "M57_qualified_or_accepted": false
+      },
+      "retained_fixed_input_diagnostic_failures": [
+        {
+          "actual_receipt": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-input-diagnostic-actual-exit.json",
+            "sha256": "33b0777f2978c961d4ce6af6b5ac35a2c43e38774e8286e9c51e2fcc5459dde6",
+            "bytes": 2599
+          },
+          "actual_root_exit_code": 1,
+          "scope": "First method phase-type guard before provider/tool/ELF reads or children; failure preserved."
+        },
+        {
+          "actual_receipt": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-input-diagnostic-attempt2-actual-exit.json",
+            "sha256": "d9c913fb197affd1f634b92a19b65087f6fc5c18db1b56f08ef17502f5ff1e2a",
+            "bytes": 4838
+          },
+          "actual_root_exit_code": 1,
+          "scope": "Strict original DSO empty RUNPATH rejection after2readelf children0/reaped; no full DSO metadata closure/admission or load. Limited ET_REL subrecord was separately reviewed only for the new helper."
+        }
+      ],
+      "observed_consumer_Source": {
+        "independent_Source_review_clear": true,
+        "Scene_scope": "Genuine loaded graph and all fixed construction getters; all public JointSample inputs before one unchanged sampler/globalgroup; no pose/backend write or solver/gathering evidence.",
+        "Server_scope": "Isolated captured-value canonical numeric/metadata encoder proof, original native root/nested wire/order custody and separate live Rust-assigned-ID canonical peer. No whole native/Rust wire equivalence promised.",
+        "runtime_hook_reachability_or_fixture_copy_final_inventory": "Original integration/census before normal1 and corrected Name-import tree281/census before normal2 are preserved. Two runtime test targets failed in normal2. New corrected Source/census/formatter binding and complete runtime/strict coverage still require their own proof.",
+        "Rust_test_passes_claimed": false,
+        "actual_Source_integration": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/observed-native-source-integration.json",
+          "sha256": "0d5e847552930cd7c2c8183c12782bda7f428ca379bfd98891499ccb2e1ce287",
+          "bytes": 3118
+        },
+        "runtime_correction_scope": "Supported genuine loaded unbounded/zero-damping graph and explicit unsupported limits/dynamics refusals, exact captured metadata custody separate; live-binding fault versus full-entity retirement/cadence controls. Production/native/fixture unchanged; verification pending."
+      },
+      "authored_control_obligations": {
+        "basis": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/source-controls-and-retained-adapter-preparation.json",
+          "sha256": "e0c5e64a12179313c423a605b1642b187f32886dae24974e931d325e80804f6e",
+          "bytes": 32323
+        },
+        "authored_headless": 22,
+        "authored_renderer_overlapping": 11,
+        "counts_are_authored_core_plus_held_Source_only": false,
+        "final_reachable_harness_census": null,
+        "passes_claimed": false,
+        "counts_are_authored_Source_only_not_final_harness_census_or_passes": true,
+        "failed_attempt1_reachable_census": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/source-control-declarations-after-format.json",
+          "sha256": "475227dbd9136d2cacf02884be68aae15716fcff36d0ec304ae0553fc76b2f92",
+          "bytes": 43383
+        }
+      },
+      "initial_source_preparation_checkpoint": {
+        "scope": "Historical initial Source preparation before the two diagnostics and four evidence stages; these flags do not describe the current verification state.",
+        "source_preparation_only": true,
+        "operations_released": false,
+        "checks_run": false
+      },
+      "completed_native_evidence": true,
+      "release_scope": "Historical releases cover completed diagnostics, four native evidence stages, two formatters and both retired failed full normal attempts. No correction verification retry, retained success DATA, hosted/official publication or acceptance is released by this status.",
+      "normal_attempts": [
+        {
+          "attempt": 1,
+          "actual_root_exit_code": 1,
+          "actual_failure_receipt": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/provisional-local-normal-attempt1-failure.json",
+            "sha256": "af5566b776af93b32013081025228a4aa68d72168a4777d25be0e8d84939e816",
+            "bytes": 3105
+          },
+          "method": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/run-provisional-local-normal-gate-bound.py",
+            "sha256": "b40c2530a698565b49f80332acb511c3b857b9d9a76cb63db70f4669a45df400",
+            "bytes": 2082952
+          },
+          "result": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-m57-provisional-local-gate-m787nsr8/runner/result.json",
+            "sha256": "897ab2cc3cf18bd49b65ba54c369be53c7ec61576991276152b32db4c54a31a4",
+            "bytes": 67491
+          },
+          "primary_log": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/provisional-local-normal-execution.log",
+            "sha256": "8c728bcb4b1415df4a00d244879b75b079dff16f88b2a3fabbd98fcff3eb968c",
+            "bytes": 335
+          },
+          "normal_hook_log": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-m57-provisional-local-gate-m787nsr8/runner/normal-hook-m57.log",
+            "sha256": "53ccffad621c922bd59faeade7550fec2f4d574a078600d620a74ff5bb550fe7",
+            "bytes": 24954
+          },
+          "tool_exit_basis": {
+            "session": 65534,
+            "initial_chunk": "f32eac",
+            "completion_chunk": "6937d3",
+            "actual_exit_code": 1
+          },
+          "elapsed_seconds": 185.73234095191583,
+          "parent": "d635b119ca8d9e3f338fb0cf8af7df88b71a7f34",
+          "tree": "ad809bd7bd5de74c268fbc47ad6090b6ac31d309",
+          "preservation_ref": "refs/qualification/m57-normal-attempt1",
+          "preservation_ref_object_type": "tree",
+          "preservation_scope": "Exact failed staged Source tree only; no archival success commit, Main promotion, gate bypass or qualification.",
+          "unique_diagnostics": 8,
+          "unique_E0425_sites": {
+            "production": 3,
+            "private_tests": 5
+          },
+          "cause": "One missing gz_sim_scene::Name import in the production parent scope; five private uses inherit that scope.",
+          "keep_going_available_diagnostic_batch_complete": true,
+          "Rust_product_tests_reached": false,
+          "coverage_reached": false,
+          "qualification_or_acceptance_claimed": false
+        },
+        {
+          "attempt": 2,
+          "actual_root_exit_code": 1,
+          "actual_failure_receipt": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/provisional-local-normal-attempt2-failure.json",
+            "sha256": "52f5a371cafa36db3bd22e524cb964e7e5a59f85437319b6af4ff0dd443c5274",
+            "bytes": 6827
+          },
+          "method": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/run-provisional-local-normal-gate-attempt2-bound.py",
+            "sha256": "e3c55c7c0450ee3e4908f2322b36b0a6493e541c60d6822af707ae5ec7233a82",
+            "bytes": 2059371
+          },
+          "result": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-m57-provisional-local-gate-attempt2-szbreld_/runner/result.json",
+            "sha256": "9a58780786118a4634a7101c1f08cf3fd83d4a15d0832c4eaf6b2223ce310573",
+            "bytes": 72060
+          },
+          "execution_log": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/provisional-local-normal-attempt2-execution.log",
+            "sha256": "3e5f0c886f5f6afecf94f1ca1272d9a999572faf52336b5016004e6f1c565c31",
+            "bytes": 362
+          },
+          "normal_hook_log": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-m57-provisional-local-gate-attempt2-szbreld_/runner/normal-hook-m57.log",
+            "sha256": "ecbb4954e75c332e55d25c97a57e071a34ab5aa8824ea21e57104ea9ae2ae0fd",
+            "bytes": 1122249
+          },
+          "tool_exit_basis": {
+            "session": 41981,
+            "initial_chunk": "ee1ede",
+            "completion_chunk": "d9bc75",
+            "actual_exit_code": 1
+          },
+          "elapsed_seconds": 1650.1202665108722,
+          "parent": "d635b119ca8d9e3f338fb0cf8af7df88b71a7f34",
+          "tree": "281b6af98ca97083ff4b05875c65a8d9ff1f5e9a",
+          "preservation_ref": "refs/qualification/m57-normal-attempt2",
+          "preservation_ref_object_type": "tree",
+          "runtime_failures": [
+            {
+              "target": "gz-sim-scene --lib",
+              "test": "joint_state_publisher::multiple_joint_state_publishers_native_tests::captured_pair_and_eight_joint_inputs_match_loaded_owner_samples_and_all_native_models",
+              "actual_panic": "Unsupported joint limits at load unwrap, line329",
+              "target_passed": 276,
+              "target_failed": 1
+            },
+            {
+              "target": "gz-sim-server --lib",
+              "test": "joint_state::multiple_joint_states::selected_and_unselected_joint_retirement_preserve_global_terminal_cache_and_lease_boundaries",
+              "actual_panic": "unwrap_err received Ok(()) at line591",
+              "target_passed": 443,
+              "target_failed": 1
+            }
+          ],
+          "qualification_or_acceptance_claimed": false
+        }
+      ],
+      "normal_gate": {
+        "state": "FAILED_NOT_QUALIFIED",
+        "actual_root_exit_code": 1,
+        "failure_receipt": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/provisional-local-normal-attempt2-failure.json",
+          "sha256": "52f5a371cafa36db3bd22e524cb964e7e5a59f85437319b6af4ff0dd443c5274",
+          "bytes": 6827
+        },
+        "tree": "281b6af98ca97083ff4b05875c65a8d9ff1f5e9a",
+        "parent": "d635b119ca8d9e3f338fb0cf8af7df88b71a7f34",
+        "elapsed_seconds": 1650.1202665108722,
+        "Rust_product_tests_reached": true,
+        "full_strict_coverage_completed": false,
+        "retry_outcome": null
+      },
+      "first_normal_import_correction": {
+        "Source_reviewed": true,
+        "proposal": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/server-name-import-source-correction-proposal.json",
+          "sha256": "90ebb23abd44a672069fe4b79f5ca003e7d95a924f66a1aac044e34b30ac745e",
+          "bytes": 2451
+        },
+        "exact_edit": "Add Name, to the existing gz_sim_scene grouped import; private use super::* inherits it.",
+        "behavior_assertions_IDs_math_fixtures_native_inputs_changed": false,
+        "actual_correction_formatter_outcome": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/normal-attempt2-source-format-observation.json",
+          "sha256": "7d3681ae5158e825885116ca6d6d6ae9652552f58728764d3295e06245f317c3",
+          "bytes": 16024
+        },
+        "actual_retry_outcome": {
+          "attempt": 2,
+          "actual_root_exit_code": 1,
+          "failure_receipt": {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/provisional-local-normal-attempt2-failure.json",
+            "sha256": "52f5a371cafa36db3bd22e524cb964e7e5a59f85437319b6af4ff0dd443c5274",
+            "bytes": 6827
+          },
+          "import_compilation_passed": true
+        }
+      },
+      "original_consolidated_formatter_checkpoint": {
+        "actual_observation": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/consolidated-source-format-observation.json",
+          "sha256": "fad2b723b82277841fa0dfac20112cd47775a9741b701b58a4f6cac4ef55a876",
+          "bytes": 17380
+        },
+        "actual_root_exit_code": 0,
+        "scope": "Original reviewed Source before failed normal1; this does not prove formatting of the later import correction."
+      },
+      "failed_attempt1_Source_census": {
+        "card": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/source-control-declarations-after-format.json",
+          "sha256": "475227dbd9136d2cacf02884be68aae15716fcff36d0ec304ae0553fc76b2f92",
+          "bytes": 43383
+        },
+        "Source_counts": {
+          "headless": 22,
+          "renderer_overlapping": 11
+        },
+        "source_only": true,
+        "current_passes_claimed": false,
+        "scope": "Reviewed Source declarations for the failed ad809 attempt1 tree. Corrected Source SHA/census bindings require their later separate proof."
+      },
+      "Rust_product_tests_reached": true,
+      "coverage_reached": true,
+      "coverage_scope": "Maintained native-free/RGB stage passed; full normal and strict workspace/percrate/actual-parent coverage incomplete."
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -1599,7 +2163,8 @@
     "M53": "in_progress",
     "M54": "in_progress",
     "M55": "in_progress",
-    "M56": "in_progress"
+    "M56": "in_progress",
+    "M57": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-10",
@@ -1617,9 +2182,10 @@
     "M53",
     "M54",
     "M55",
-    "M56"
+    "M56",
+    "M57"
   ],
-  "execution_policy": "D30–D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
+  "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
     {
       "phases": [
@@ -1781,7 +2347,7 @@
         "M46",
         "M47"
       ],
-      "integration": "Frozen M43–M46 qualification and evidence remain unchanged while M47 contract and disjoint Source leaves are prepared over exact locally qualified M46 cca6. Root owns shared seams and serial heavy operations; complete independent contract and Source review precedes new local qualification. All accepted-predecessor/hosted/official/Main release gates remain mandatory.",
+      "integration": "Frozen M43\u2013M46 qualification and evidence remain unchanged while M47 contract and disjoint Source leaves are prepared over exact locally qualified M46 cca6. Root owns shared seams and serial heavy operations; complete independent contract and Source review precedes new local qualification. All accepted-predecessor/hosted/official/Main release gates remain mandatory.",
       "max_working_days": 5
     },
     {
@@ -1793,7 +2359,7 @@
         "M47",
         "M48"
       ],
-      "integration": "Frozen M43–M47 candidates and original evidence remain unchanged while bounded M48 heading-reference Source is prepared over locally qualified M47 f27a. Disjoint Scene and Server/reference leaves share one integrator; Root alone releases serial heavy checks after complete independent review. Actual accepted predecessors and all hosted/official/Main gates remain mandatory for publication and acceptance.",
+      "integration": "Frozen M43\u2013M47 candidates and original evidence remain unchanged while bounded M48 heading-reference Source is prepared over locally qualified M47 f27a. Disjoint Scene and Server/reference leaves share one integrator; Root alone releases serial heavy checks after complete independent review. Actual accepted predecessors and all hosted/official/Main gates remain mandatory for publication and acceptance.",
       "max_working_days": 5
     },
     {
@@ -1806,7 +2372,7 @@
         "M48",
         "M49"
       ],
-      "integration": "Frozen M43–M48 and original evidence remain unchanged. M49 uses the exact locally qualified a204 parent for disjoint Scene and Server/native Source lanes, one Root integrator and serial reviewed heavy execution. Hosted closeout and all accepted-predecessor/publication/acceptance gates remain separate and mandatory.",
+      "integration": "Frozen M43\u2013M48 and original evidence remain unchanged. M49 uses the exact locally qualified a204 parent for disjoint Scene and Server/native Source lanes, one Root integrator and serial reviewed heavy execution. Hosted closeout and all accepted-predecessor/publication/acceptance gates remain separate and mandatory.",
       "max_working_days": 5
     },
     {
@@ -1820,7 +2386,7 @@
         "M49",
         "M50"
       ],
-      "integration": "Freeze M43–M49 and original evidence. Prepare M50 disjoint Scene and Server/reference Source over exact locally qualified4ccd with one integrator and serial reviewed heavy operations. Hosted closeout and every accepted-predecessor/publication/acceptance gate stay mandatory.",
+      "integration": "Freeze M43\u2013M49 and original evidence. Prepare M50 disjoint Scene and Server/reference Source over exact locally qualified4ccd with one integrator and serial reviewed heavy operations. Hosted closeout and every accepted-predecessor/publication/acceptance gate stay mandatory.",
       "max_working_days": 5
     },
     {
@@ -1864,30 +2430,29 @@
       "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1–M42 remain accepted; M40 is installed Latest. M43–M55 are locally qualified and unaccepted. M56 reference capture, native audit, export and literal validation passed. Its first full normal failed strict Clippy before tests/coverage. Batched source corrections, full verification, independent local audit and dependency-ordered hosted/official/Main qualification remain required.",
+  "acceptance_boundary": "M1\u2013M42 remain accepted and M40 is installed Latest. M43\u2013M56 are locally qualified and unaccepted. M57 Source development is active on exact d635; all native/reference, own normal/strict coverage, independent DATA and dependency-ordered hosted/official/Main gates remain required. No release acceptance transfers.",
   "current_delivery_group": [
     "M43",
     "M44"
   ],
-  "current_development_phase": "M56",
+  "current_development_phase": "M57",
   "board": {
-    "updated_at": "2026-11-14T00:43:23.936558+00:00",
+    "updated_at": "2026-11-14T07:06:46.506351+00:00",
     "current": {
-      "title": "M56 · Batched Clippy corrections before verification retry",
+      "title": "M57 \u00b7 Independent joint-state publishers",
       "items": [
-        "Reference capture, native audit, typed export and literal validation passed; observed regression Source is complete.",
-        "The first full normal stopped at two test-code Clippy findings. Both corrections preserve behavior; one reviewed full retry remains."
+        "Second full verification failed in two runtime tests: unsupported Scene limits/damping and a Server immediate-fault premise after joint disappearance.",
+        "Production-preserving test corrections are in Source review. Four native evidence stages remain passed; full normal/coverage and results audit remain incomplete."
       ]
     },
     "done": [
-      "MVP and M1–M42 accepted and published.",
+      "MVP and M1\u2013M42 accepted and published.",
       "M40 is the latest installable preview.",
-      "M43–M55 passed local verification and independent results audits; release qualification remains pending."
+      "M43\u2013M56 passed local verification and independent results audits; release qualification remains pending."
     ],
     "next": [
-      "Finish the correction review and affected formatter, then run the full mandatory verification retry.",
-      "Audit the new results independently after actual normal success.",
-      "Complete dependency-ordered hosted qualification before release acceptance."
+      "Review the complete two-failure correction batch, then run one affected formatter.",
+      "Run the complete mandatory verification retry, then the independent retained results audit."
     ],
     "blocker": {
       "text": "Release is blocked by Ubuntu snapshot setup failures in hosted CI. Recovery has not been confirmed.",

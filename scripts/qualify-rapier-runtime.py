@@ -57,6 +57,7 @@ NOISY_EXAMPLES = (
     "examples/m54_multiple_lidars.sdf",
     "examples/m55_multiple_pose_publishers.sdf",
     "examples/m56_multiple_odometry_publishers.sdf",
+    "examples/m57_multiple_joint_state_publishers.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -121,6 +122,13 @@ NOISY_LINKS = {
     "examples/m56_multiple_odometry_publishers.sdf": {
         "default::planar::body": (2, -1, 3),
         "default::spatial::body": (2, 8, 3),
+    },
+    "examples/m57_multiple_joint_state_publishers.sdf": {
+        # Passive gravity-driven joints earn finite load/step credit only.
+        "default::arm0::base": None,
+        "default::arm0::tip": None,
+        "default::arm1::base": None,
+        "default::arm1::tip": None,
     },
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
@@ -299,7 +307,7 @@ def noisy_output_matches(source, stdout):
         except ValueError:
             return False
         if position is None:
-            # Only the three explicitly listed M33 dynamic links use this policy.
+            # Only the explicitly listed M33 dynamic and M57 articulated links use this policy.
             # This is finite stepping, not a trajectory expectation or tolerance.
             if not all(math.isfinite(value) for value in actual):
                 return False

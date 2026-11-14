@@ -1,3 +1,32 @@
+## Current M57: two runtime-test premises under correction
+
+The second complete normal retired with actual Root exit 1 after
+1650.1202665108722 seconds. Strict Clippy, 403 aggregate Python tests and the
+maintained native-free/RGB stage passed. Keep-going runtime execution found two
+failed targets: Scene 276 passed/1 failed and Server 443 passed/1 failed. Full
+normal/strict coverage and independent local DATA have not passed for M57.
+
+The correction batch keeps production unchanged. Scene loads the supported
+unbounded, zero-damping graph, checks captured finite metadata separately and
+explicitly refuses unsupported limits/dynamics. Server distinguishes a live
+binding fault from full entity disappearance and respects publication cadence;
+terminal/cache/reset and selected/unselected endpoint retirement controls remain.
+Complete independent Source review before one affected formatter and full retry.
+The original failed trees, logs and partial passes retain their exact scope.
+
+The earlier missing Name import is corrected and its affected formatter passed.
+All four scoped native evidence stages remain actual Root 0; no capture, fixture
+or old RAW replay is authorized. M56 remains locally qualified and unaccepted.
+M1–M42/175 accepted slices and M40 Latest are unchanged. Hosted snapshot recovery,
+accepted predecessors, official audits and ordinary Main/readbacks still gate
+publication and acceptance. No new CI retry or workaround is released.
+
+Read [the M57 contract](M57_DELIVERY.md) and retained evidence under
+`artifacts/m57-delivery`.
+
+Earlier checkpoints below retain their historical scope.
+
+
 ## Current M56: two test-source corrections before full verification
 
 M56 implementation and observed-data consumers are source-reviewed on locally

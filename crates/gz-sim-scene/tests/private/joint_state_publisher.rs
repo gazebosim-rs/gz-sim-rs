@@ -347,13 +347,22 @@ fn plan_domain_and_configuration_resource_bounds_are_explicit() {
             .is_err()
     );
     let existing = load(XML);
-    assert!(matches!(
-        plan.validate(&original, &existing, Some("rapier"), (true, false)),
-        Err(LoadError::Unsupported {
-            feature: "multiple joint-state models",
-            ..
-        })
-    ));
+    let peer_xml = XML.replace("name=\"arm\"", "name=\"peer\"").replace(
+        "<topic>/m18/joint_state</topic>",
+        "<topic>/m57/peer/joint_state</topic>",
+    );
+    let peer = sdformat::load_str(&peer_xml, "m57-peer.sdf", &NoResources)
+        .unwrap()
+        .worlds
+        .remove(0)
+        .models
+        .remove(0);
+    assert_ne!(peer.scoped_name, original.scoped_name);
+    parse(&peer)
+        .unwrap()
+        .unwrap()
+        .validate(&peer, &existing, Some("rapier"), (true, false))
+        .expect("a distinct second loaded owner is admitted");
     let mut namespace = configured("");
     namespace.plugins[0].xml = namespace.plugins[0]
         .xml

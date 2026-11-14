@@ -133,7 +133,7 @@ class DisabledBackendProof(unittest.TestCase):
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 30)
+            self.assertEqual(run.call_count, 31)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -320,7 +320,8 @@ class DisabledBackendProof(unittest.TestCase):
         self.assertEqual(MODULE.NOISY_EXAMPLES[26:27], ("examples/m53_multiple_logical_cameras.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[27:28], ("examples/m54_multiple_lidars.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[28:29], ("examples/m55_multiple_pose_publishers.sdf",))
-        self.assertEqual(MODULE.NOISY_EXAMPLES[29:], ("examples/m56_multiple_odometry_publishers.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[29:30], ("examples/m56_multiple_odometry_publishers.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[30:], ("examples/m57_multiple_joint_state_publishers.sdf",))
         self.assertEqual(MODULE.NOISY_ASSETS, ("examples/meshes/m16-asymmetric.obj",))
 
     def test_new_static_example_outputs_are_complete_sorted_finite_and_exact(self):
@@ -394,6 +395,33 @@ class DisabledBackendProof(unittest.TestCase):
                     invalid.append(headline + "\n".join(changed) + "\n")
         for wrong in invalid:
             with self.subTest(stdout=wrong):
+                self.assertFalse(MODULE.noisy_output_matches(source, wrong))
+
+        # M57 passive gravity-driven joints retain exact link identity/order and
+        # finite stepping, without a new analytical solver trajectory oracle.
+        source = "examples/m57_multiple_joint_state_publishers.sdf"
+        names = ["default::arm0::base", "default::arm0::tip",
+                 "default::arm1::base", "default::arm1::tip"]
+        self.assertEqual(MODULE.NOISY_LINKS[source], dict.fromkeys(names))
+        poses = ["default::arm0::base -1.4 0 1", "default::arm0::tip -0.6 0 1",
+                 "default::arm1::base 1.4 0 1", "default::arm1::tip 2.2 0 1"]
+        valid = headline + "\n".join(poses) + "\n"
+        self.assertTrue(MODULE.noisy_output_matches(source, valid))
+        self.assertTrue(MODULE.noisy_output_matches(source, valid.replace("-1.4 0 1", "-1e100 2e100 -0")))
+        invalid = [headline, valid.rstrip("\n"), valid + "\n", valid + "default::extra::body 0 0 0\n",
+                   headline + "\n".join(reversed(poses)) + "\n", headline + "\n".join(poses[:-1]) + "\n",
+                   valid.replace("iterations=2", "iterations=1"), valid.replace("2000000", "1000000"),
+                   valid.replace("default::arm0::base", "default::wrong::base")]
+        for index, row in enumerate(poses):
+            for coordinate in range(1, 4):
+                for value in ["nan", "inf", "-inf", "1e999", "bad"]:
+                    fields = row.split()
+                    fields[coordinate] = value
+                    changed = poses.copy()
+                    changed[index] = " ".join(fields)
+                    invalid.append(headline + "\n".join(changed) + "\n")
+        for wrong in invalid:
+            with self.subTest(source=source, stdout=wrong):
                 self.assertFalse(MODULE.noisy_output_matches(source, wrong))
 
     def test_relative_obj_source_refusal_precedes_execution_and_post_run_tamper_is_retained(self):

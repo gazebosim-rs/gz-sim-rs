@@ -205,9 +205,11 @@ impl Plan {
             "joint-state requires a top-level dynamic Rapier model",
         )?;
         require(
-            !sim.world()
+            sim.world()
                 .iter_entities()
-                .any(|e| e.contains::<Publisher>()),
+                .filter(|e| e.contains::<Publisher>())
+                .count()
+                < 8,
             &model.scoped_name,
             "multiple joint-state models",
         )?;
@@ -435,3 +437,11 @@ fn reset(mut commands: Commands, publishers: Query<Entity, With<Publisher>>) {
 #[cfg(test)]
 #[path = "../tests/private/joint_state_publisher.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_joint_state_publishers.rs"]
+mod multiple_joint_state_publishers;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_joint_state_publishers_native.rs"]
+mod multiple_joint_state_publishers_native_tests;

@@ -597,6 +597,24 @@ pub fn initial_joint_state_publications(
     }))
 }
 
+/// Initial joint-state identities and metadata, including removed original models.
+/// Names retain their world scope. This borrows the immutable loader blueprint
+/// without consulting live components or acquiring publication resources.
+pub fn initial_joint_state_publications_with_identity(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = (u64, EntityKind, &str, &JointStatePublication)>, SceneResetError>
+{
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.0.nodes.iter().filter_map(|node| {
+        node.joint_state_publication
+            .as_ref()
+            .map(|metadata| (node.id.get(), node.kind, node.name.as_str(), metadata))
+    }))
+}
+
 /// Restores the loaded scene in the same Bevy World, then invokes reset handlers.
 /// The immutable observer runs before runtime additions retire, matching native
 /// reset-time removal observation. Its result is returned after cleanup.

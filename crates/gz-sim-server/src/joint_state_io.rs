@@ -18,8 +18,14 @@ pub(super) struct JointStateId(uuid::Uuid);
 /// Contains no Session, publisher, listener or liveliness declaration.
 pub(super) struct JointStateOutput {
     id: JointStateId,
+    endpoint: String,
     retired: mpsc::SyncSender<JointStateId>,
     dirty: Arc<AtomicBool>,
+}
+impl JointStateOutput {
+    pub(super) fn matches_endpoint(&self, endpoint: &str) -> bool {
+        self.endpoint == endpoint
+    }
 }
 impl Drop for JointStateOutput {
     fn drop(&mut self) {
@@ -102,6 +108,7 @@ impl JointStateDeclarations {
             .get_or_insert_with(|| Arc::new(AtomicBool::new(false)));
         let output = Arc::new(JointStateOutput {
             id: JointStateId(uuid::Uuid::new_v4()),
+            endpoint: key.clone(),
             retired,
             dirty: Arc::clone(dirty),
         });

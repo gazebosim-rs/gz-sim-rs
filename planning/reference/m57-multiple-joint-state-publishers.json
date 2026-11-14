@@ -1,0 +1,188 @@
+{
+  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
+  "SPDX-License-Identifier": "Apache-2.0",
+  "schema_version": 1,
+  "state": "ACTUAL_M57_DIRECT_ORIGINAL_OBJECT_JOINT_COMPONENT_INPUT_NATIVE_AND_LITERAL_PROVENANCE",
+  "input_domain": "DIRECT_ORIGINAL_OBJECT_SYSTEM_MODEL_LOCAL_AND_SINGLE_AXIS_COMPONENT_INPUTS",
+  "source_program": {
+    "path": "crates/gz-sim-scene/tests/native_multiple_joint_state_publishers.cc",
+    "sha256": "ed17cb02b67d6f595add0e2f6d6d63049c7681e6682de4e12e62bfa069997c2c",
+    "bytes": 27063
+  },
+  "capture": {
+    "tree": "2e831e6ce997655be72d76b4d032bb5b3e44d738",
+    "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+    "runtime_parent": "d635b119ca8d9e3f338fb0cf8af7df88b71a7f34",
+    "runtime_parent_accepted": false,
+    "actual_Root_exit_code": 0,
+    "actual_receipt": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-reference-actual-exit.json",
+      "sha256": "861c9338ff320a5a5d2be91eebfdc1ce6b0aa710f78cbd6b3d5ab02818a26a43",
+      "bytes": 2609
+    },
+    "result": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-multiple-joint-state-publishers-0eomnt5u/result.json",
+      "sha256": "02137542be308a1613fa13424e6d25254ded889b9e08c18bee9a0f35538cc3bf",
+      "bytes": 520941
+    },
+    "execution_ledger": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-multiple-joint-state-publishers-0eomnt5u/execution-ledger.json",
+      "sha256": "7461e3db7fba0793fffa48b261863c344b3c97a2fba013fc57a9324c0078b536",
+      "bytes": 145003
+    },
+    "method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-reference-bound.py",
+      "sha256": "dcfa5ecff7cd757189c349b4b94840bcc5077c52e89dfc17c4169555aa9fde4f",
+      "bytes": 107851
+    },
+    "primary_log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-reference-execution.log",
+      "sha256": "855544b34987acefcbf74dcd50d7f9d9ab3f00833a93d846ed74b294a381b541",
+      "bytes": 149
+    },
+    "controller_elapsed_seconds": 23.57837867178023,
+    "actual_child_stages": 41,
+    "all_child_exits_zero_and_reaped": true,
+    "counts": {
+      "owners": 10,
+      "configurations": 10,
+      "global_call_groups": 20,
+      "input_rows": 100,
+      "direct_post_update_calls": 100,
+      "fence_rows": 100,
+      "observed_models": 66,
+      "observed_joints": 108,
+      "raw_rows": 278
+    },
+    "owner_count_scope": "The total of 10 owners is 2+8 separate mode instances, with at most 8 simultaneous owners."
+  },
+  "native_DATA": {
+    "actual_Root_exit_code": 0,
+    "actual_receipt": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-audit-actual-exit.json",
+      "sha256": "ba35551a84e082b1fbac2a49e7043f234ac417244a33318ddd39035ec172bf8c",
+      "bytes": 1528
+    },
+    "report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-audit.json",
+      "sha256": "e6953be08eaa8f7dc8d8f38a9cf8c8050bc69f0f0da2adf7b1d1c4a368235be6",
+      "bytes": 413125
+    },
+    "method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-audit-bound.py",
+      "sha256": "b87e4cb565f6622abed6d3faea0fbbcae33f8302753cecf98d14e47a09662c95",
+      "bytes": 113473
+    },
+    "primary_log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-audit-execution.log",
+      "sha256": "a6b95b3a4bb2ea3b8a62874aea78dd19791677f9b3df93926c2142a9dcb95f21",
+      "bytes": 259
+    },
+    "full_raw_IEEE_protobuf_optional_fields_native_order_and_saved_dependency_edges_checked": true,
+    "campaign_repeated": false
+  },
+  "fixture_generation": {
+    "actual_Root_exit_code": 0,
+    "actual_receipt": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-fixture-generation-actual-exit.json",
+      "sha256": "4d408203ec2c45a75a8b746222132a86ae6ed4bb8eba08de41f4059a32c682c8",
+      "bytes": 2189
+    },
+    "method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/generate-native-multiple-joint-state-publishers-fixture-bound.py",
+      "sha256": "84cc8d585e3f35ff7c7578e4c2f409b81f5d41f5f1652bd4be5c668d99fc55bc",
+      "bytes": 43818
+    },
+    "primary_log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-fixture-generation-execution.log",
+      "sha256": "27fa22ba3550812c0a4dc713f47f2a1e9eb005efcea137034feef42470ecfd2b",
+      "bytes": 735
+    },
+    "fixture": {
+      "path": "crates/gz-sim-scene/tests/fixtures/m57_native_multiple_joint_state_publishers.rs",
+      "sha256": "c0dc5db79526e3489b753ebde9601c693fc9c5f0a83495ab551d95797511f6bf",
+      "bytes": 480049
+    },
+    "provenance": {
+      "path": "crates/gz-sim-scene/tests/fixtures/m57_native_multiple_joint_state_publishers.provenance.json",
+      "sha256": "2b4a98c38f9ae909dd5519b973f6f563bb01c658297a38f8f507b6f7fc39dff3",
+      "bytes": 374652
+    },
+    "campaign_repeated": false
+  },
+  "fixed_literal_DATA": {
+    "actual_Root_exit_code": 0,
+    "actual_receipt": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-borrowed-fixture-audit-actual-exit.json",
+      "sha256": "a936754787c9e8e33cb06b0ec654241b82de65498bc759fa71f059863ab74492",
+      "bytes": 1963
+    },
+    "report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-borrowed-fixture-audit.json",
+      "sha256": "d2d15c618ff6e5fee093f916f11225e923b5e4a22e0373072eed7e77cba775bc",
+      "bytes": 370346
+    },
+    "method": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-borrowed-fixture-audit-bound.py",
+      "sha256": "583635f70808608f1c0088dbcd90c0734c39a381f3a81f89b099c870ce2b8072",
+      "bytes": 46293
+    },
+    "primary_log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-borrowed-fixture-audit-execution.log",
+      "sha256": "83b241e90b6df8b69d13ffa387477d086136053b591ca402c81bdb078f282a8f",
+      "bytes": 465
+    },
+    "every_typed_field_bit_byte_presence_and_raw_row_locator_checked": true,
+    "fixture_generated_again": false,
+    "campaign_repeated": false
+  },
+  "retained_failed_input_diagnostics": [
+    {
+      "attempt": 1,
+      "actual_Root_exit_code": 1,
+      "actual_receipt": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-input-diagnostic-actual-exit.json",
+        "sha256": "33b0777f2978c961d4ce6af6b5ac35a2c43e38774e8286e9c51e2fcc5459dde6",
+        "bytes": 2599
+      },
+      "scope": "Method phase-type preflight failed before provider/tool/ELF reads or children; this is not a DSO availability result."
+    },
+    {
+      "attempt": 2,
+      "actual_Root_exit_code": 1,
+      "actual_receipt": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/native-input-diagnostic-attempt2-actual-exit.json",
+        "sha256": "d9c913fb197affd1f634b92a19b65087f6fc5c18db1b56f08ef17502f5ff1e2a",
+        "bytes": 4838
+      },
+      "scope": "Original DSO empty RUNPATH entry was actually rejected after two readelf children0/reaped. Pre/post object, DSO and aliases unchanged. Full DSO closure/admission and load were not reached; only the exact ET_REL subrecord was separately approved for one new helper link."
+    }
+  ],
+  "original_object_sha256": "2097353f46b892478af5f005043438e077b5fd1b638f4040c9465169f7277aaf",
+  "original_object_bytes": 170920,
+  "original_object_link_input_role": "One unchanged original JointStatePublisher ET_REL object plus one new helper TU; original object has no mapped-library role.",
+  "rejected_original_DSO_sha256": "398c68f52d823ceec2b5192958e97e7b2b17a62bf99222d139bc2584b494f512",
+  "rejected_original_DSO_diagnostic_actual_exit_code": 1,
+  "rejected_original_DSO_loaded": false,
+  "original_provider_or_SDK_rebuilt": false,
+  "native_Server_or_plugin_loader_or_Physics_executed": false,
+  "native_PreUpdate_invoked": false,
+  "controlled_reference_scope": "The original System uses public Configure, then PostUpdate only. Fixed model/joint construction poses and controlled finite joint q/v with empty force components are read back from the public ECM before each PostUpdate group. Complete original Model/Joint/Axis/Pose fields, signed limit infinities, optional headers, nonzero native IDs, native ordering and root/nested wire bytes remain intact.",
+  "observed_Source_integration": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m57-delivery/observed-native-source-integration.json",
+    "sha256": "0d5e847552930cd7c2c8183c12782bda7f428ca379bfd98891499ccb2e1ce287",
+    "bytes": 3118
+  },
+  "separate_consumer_scopes": {
+    "Scene": "Reviewed Source checks a genuine loaded graph, handles, selected and unselected definitions and fixed construction getters. All public JointSample q/v/time/epoch inputs precede one unchanged sampler call per global group. No pose or backend write; no solver or production-gathering parity.",
+    "Server": "Reviewed isolated captured-value encoder checks canonical numeric/metadata semantics using captured native IDs widened losslessly. Untouched native full/nested wire and order custody is separate. No unconditional whole Rust/native byte equality.",
+    "live_Rust_peer": "Reviewed canonical peer Source uses actual Rust-assigned IDs and complete Rust wire. Its runtime pass remains pending with the mandatory gate.",
+    "physical_controls": "Separate reviewed real motor/backend-wrench BOTH regressions remain mandatory; controlled ECM evidence does not establish native physical trajectories."
+  },
+  "demand_reset_removal_schedule_or_global_RNG_equivalence_claimed": false,
+  "source_to_binary_equivalence_proved": false,
+  "Rust_tests_coverage_normal_or_phase_acceptance_proved": false,
+  "M57_runtime_provisionally_locally_qualified": false,
+  "M57_accepted": false,
+  "remaining_obligations": "Final reachable Source census, consolidated formatter, full mandatory Rust/Python normal verification, strict workspace/per-crate/actual-parent coverage and independent retained local DATA. Hosted/official qualification, accepted predecessor and ordinary Main/readbacks remain separate acceptance gates."
+}

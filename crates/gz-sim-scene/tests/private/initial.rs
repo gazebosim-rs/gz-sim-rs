@@ -21,6 +21,134 @@ use super::*;
 use gz_sim_core::assign_id;
 
 #[test]
+fn initial_joint_state_identity_query_distinguishes_missing_and_empty_blueprints() {
+    let bare = Simulation::new(Duration::from_millis(1)).unwrap();
+    assert!(matches!(
+        initial_joint_state_publications_with_identity(&bare),
+        Err(SceneResetError::MissingInitialState)
+    ));
+    assert!(matches!(
+        initial_joint_state_publications(&bare),
+        Err(SceneResetError::MissingInitialState)
+    ));
+    let sim = load();
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(initial_joint_state_publications(&sim).unwrap().count(), 0);
+    assert_eq!(
+        initial_joint_state_publications_with_identity(&sim)
+            .unwrap()
+            .count(),
+        0
+    );
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+}
+
+#[test]
+fn initial_joint_state_identities_borrow_full_originals_through_removal_and_reset() {
+    let xml = include_str!("../../../../examples/m57_multiple_joint_state_publishers.sdf").replace(
+        "<world name=\"default\">",
+        "<world name=\"warehouse_floor\">",
+    );
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "joint-state-identities.sdf",
+        "warehouse_floor",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let collect = |sim: &Simulation| {
+        initial_joint_state_publications_with_identity(sim)
+            .unwrap()
+            .map(|(identity, kind, name, metadata)| {
+                (identity, kind, name.to_owned(), metadata.clone())
+            })
+            .collect::<Vec<_>>()
+    };
+    let snapshot = collect(&sim);
+    assert_eq!(snapshot.len(), 2);
+    assert_ne!(snapshot[0].0, snapshot[1].0);
+    assert_eq!(
+        snapshot
+            .iter()
+            .map(|row| row.2.as_str())
+            .collect::<Vec<_>>(),
+        ["warehouse_floor::arm0", "warehouse_floor::arm1"]
+    );
+    assert_eq!(
+        snapshot
+            .iter()
+            .map(|row| row.3.joints.len())
+            .collect::<Vec<_>>(),
+        [2, 1]
+    );
+    let original_handles = snapshot
+        .iter()
+        .map(|row| entity_by_id(sim.world(), row.0).unwrap())
+        .collect::<Vec<_>>();
+    for ((identity, kind, name, metadata), (legacy_id, legacy)) in
+        initial_joint_state_publications_with_identity(&sim)
+            .unwrap()
+            .zip(initial_joint_state_publications(&sim).unwrap())
+    {
+        assert_eq!(identity, legacy_id);
+        assert_eq!(identity, id(&sim, name));
+        assert_eq!(kind, EntityKind::Model);
+        assert_eq!(
+            name.strip_prefix("warehouse_floor::"),
+            Some(metadata.model_name.as_str())
+        );
+        assert!(std::ptr::eq(metadata, legacy));
+    }
+
+    let first = original_handles[0];
+    sim.world_mut()
+        .entity_mut(first)
+        .insert((Name("changed-live-name".to_owned()), EntityKind::Link));
+    sim.world_mut()
+        .get_mut::<JointStatePublication>(first)
+        .unwrap()
+        .topic = "/changed-live-topic".to_owned();
+    assert_eq!(collect(&sim), snapshot);
+    sim.world_mut().entity_mut(first).insert((
+        Name(snapshot[0].2.clone()),
+        snapshot[0].1,
+        snapshot[0].3.clone(),
+    ));
+
+    sim.step_exact(3).unwrap();
+    for row in &snapshot {
+        remove_model(&mut sim, row.0).unwrap();
+        assert!(entity_by_id(sim.world(), row.0).is_none());
+        assert_eq!(collect(&sim), snapshot);
+    }
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(initial_joint_state_publications(&sim).unwrap().count(), 2);
+    assert_eq!(collect(&sim), snapshot);
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    for ((identity, kind, name, metadata), original) in snapshot.iter().zip(original_handles) {
+        let restored = entity_by_id(sim.world(), *identity).unwrap();
+        assert_ne!(restored, original);
+        assert_eq!(sim.world().get::<Name>(restored).unwrap().0, *name);
+        assert_eq!(sim.world().get::<EntityKind>(restored), Some(kind));
+        assert_eq!(
+            sim.world().get::<JointStatePublication>(restored),
+            Some(metadata)
+        );
+    }
+    assert_eq!(collect(&sim), snapshot);
+    assert_eq!(sim.elapsed(), Duration::ZERO);
+    assert_eq!(sim.epoch(), 1);
+}
+
+#[test]
 fn initial_odometry_identity_query_distinguishes_missing_and_empty_blueprints() {
     let bare = Simulation::new(Duration::from_millis(1)).unwrap();
     assert!(matches!(
