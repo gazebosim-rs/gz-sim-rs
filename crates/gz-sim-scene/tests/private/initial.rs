@@ -21,6 +21,182 @@ use super::*;
 use gz_sim_core::assign_id;
 
 #[test]
+fn initial_joint_controller_identity_query_distinguishes_missing_and_empty_blueprints() {
+    let bare = Simulation::new(Duration::from_millis(1)).unwrap();
+    assert!(matches!(
+        initial_joint_controller_configurations_with_identity(&bare),
+        Err(SceneResetError::MissingInitialState)
+    ));
+    assert!(matches!(
+        initial_joint_controller_configurations(&bare),
+        Err(SceneResetError::MissingInitialState)
+    ));
+    let sim = load();
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(
+        initial_joint_controller_configurations(&sim)
+            .unwrap()
+            .count(),
+        0
+    );
+    assert_eq!(
+        initial_joint_controller_configurations_with_identity(&sim)
+            .unwrap()
+            .count(),
+        0
+    );
+    assert_eq!(
+        sim.world()
+            .resource::<InitialScene>()
+            .joint_controller_identities()
+            .count(),
+        0
+    );
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+}
+
+#[test]
+fn initial_joint_controller_identities_keep_original_parents_through_removal_and_reset() {
+    let xml = include_str!("../../../../examples/m58_multiple_joint_controllers.sdf").replace(
+        "<world name=\"default\">",
+        "<world name=\"warehouse_floor\">",
+    );
+    let mut sim = load_world_with_sdf_step(
+        &xml,
+        "multiple-controller-identities.sdf",
+        "warehouse_floor",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let collect = |sim: &Simulation| {
+        initial_joint_controller_configurations_with_identity(sim)
+            .unwrap()
+            .map(|row| {
+                (
+                    row.id,
+                    row.kind,
+                    row.name.to_owned(),
+                    row.parent,
+                    row.configuration.clone(),
+                )
+            })
+            .collect::<Vec<_>>()
+    };
+    let snapshot = collect(&sim);
+    assert_eq!(snapshot.len(), 4);
+    assert_eq!(
+        snapshot
+            .iter()
+            .map(|row| row.0)
+            .collect::<BTreeSet<_>>()
+            .len(),
+        4
+    );
+    let models = [
+        id(&sim, "warehouse_floor::arm_left"),
+        id(&sim, "warehouse_floor::arm_right"),
+    ];
+    assert_ne!(models[0], models[1]);
+    assert_eq!(
+        snapshot
+            .iter()
+            .filter_map(|row| row.3)
+            .collect::<BTreeSet<_>>(),
+        BTreeSet::from(models)
+    );
+    for ((row, (legacy_id, legacy)), internal) in
+        initial_joint_controller_configurations_with_identity(&sim)
+            .unwrap()
+            .zip(initial_joint_controller_configurations(&sim).unwrap())
+            .zip(
+                sim.world()
+                    .resource::<InitialScene>()
+                    .joint_controller_identities(),
+            )
+    {
+        assert_eq!(row.id, legacy_id);
+        assert_eq!(row.kind, EntityKind::Joint);
+        assert_eq!(row.id, id(&sim, row.name));
+        assert_eq!(
+            row.name,
+            format!(
+                "warehouse_floor::{}::{}",
+                row.configuration.model_name, row.configuration.joint_name
+            )
+        );
+        assert_eq!(
+            row.parent,
+            Some(id(
+                &sim,
+                &format!("warehouse_floor::{}", row.configuration.model_name)
+            ))
+        );
+        assert!(std::ptr::eq(row.configuration, legacy));
+        assert!(std::ptr::eq(row.configuration, internal.configuration));
+        assert!(std::ptr::eq(row.name, internal.name));
+    }
+    let first = entity_by_id(sim.world(), snapshot[0].0).unwrap();
+    let parent = entity_by_id(sim.world(), snapshot[0].3.unwrap()).unwrap();
+    let world = entity_by_id(sim.world(), id(&sim, "warehouse_floor")).unwrap();
+    let mut changed = snapshot[0].4.clone();
+    changed.topic = "/changed-live-controller".to_owned();
+    sim.world_mut().entity_mut(first).insert((
+        Name("changed-live-controller-name".to_owned()),
+        EntityKind::Link,
+        ChildOf(world),
+        changed,
+    ));
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(collect(&sim), snapshot);
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+    sim.world_mut().entity_mut(first).insert((
+        Name(snapshot[0].2.clone()),
+        snapshot[0].1,
+        ChildOf(parent),
+        snapshot[0].4.clone(),
+    ));
+    sim.step_exact(3).unwrap();
+    for model in models {
+        remove_model(&mut sim, model).unwrap();
+        assert!(entity_by_id(sim.world(), model).is_none());
+        assert_eq!(collect(&sim), snapshot);
+    }
+    assert_eq!(
+        initial_joint_controller_configurations(&sim)
+            .unwrap()
+            .count(),
+        4
+    );
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert_eq!(collect(&sim), snapshot);
+    for row in snapshot {
+        let entity = entity_by_id(sim.world(), row.0).unwrap();
+        let restored_parent = sim.world().get::<ChildOf>(entity).unwrap().parent();
+        assert_eq!(
+            sim.world()
+                .get::<EntityId>(restored_parent)
+                .map(EntityId::get),
+            row.3
+        );
+        assert_eq!(sim.world().get::<Name>(entity).unwrap().0, row.2);
+        assert_eq!(sim.world().get::<EntityKind>(entity), Some(&row.1));
+        assert_eq!(
+            sim.world().get::<JointControllerConfiguration>(entity),
+            Some(&row.4)
+        );
+    }
+    assert_eq!(sim.elapsed(), Duration::ZERO);
+    assert_eq!(sim.epoch(), 1);
+}
+
+#[test]
 fn initial_joint_state_identity_query_distinguishes_missing_and_empty_blueprints() {
     let bare = Simulation::new(Duration::from_millis(1)).unwrap();
     assert!(matches!(

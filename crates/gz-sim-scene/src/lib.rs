@@ -14,6 +14,7 @@ pub use apply_link_wrench::{
 };
 pub use joint_controller::{
     JointControllerCommandError, JointControllerConfiguration, JointControllerMode,
+    joint_controller_binding_matches, joint_controller_binding_matches_configuration,
     set_joint_controller_command,
 };
 pub use joint_state_publisher::{
@@ -99,18 +100,20 @@ mod initial;
 mod joint_force_lifecycle;
 mod joint_lifecycle;
 pub use initial::{
-    PendingResetRemoval, SceneResetError, SceneResetInfo, initial_air_pressure_publications,
-    initial_air_pressure_publications_with_identity, initial_air_speed_publications,
-    initial_air_speed_publications_with_identity, initial_altimeter_publications,
-    initial_altimeter_publications_with_identity, initial_apply_link_wrench_configuration,
-    initial_diff_drive_configurations, initial_ground_truth_odometry_publications,
+    InitialJointControllerIdentity, PendingResetRemoval, SceneResetError, SceneResetInfo,
+    initial_air_pressure_publications, initial_air_pressure_publications_with_identity,
+    initial_air_speed_publications, initial_air_speed_publications_with_identity,
+    initial_altimeter_publications, initial_altimeter_publications_with_identity,
+    initial_apply_link_wrench_configuration, initial_diff_drive_configurations,
+    initial_ground_truth_odometry_publications,
     initial_ground_truth_odometry_publications_with_identity, initial_imu_publications,
-    initial_joint_controller_configurations, initial_joint_force_configurations,
-    initial_joint_state_publications, initial_joint_state_publications_with_identity,
-    initial_lidar_publications, initial_lidar_publications_with_identity,
-    initial_logical_camera_identities, initial_logical_camera_publications,
-    initial_magnetometer_publications, initial_magnetometer_publications_with_identity,
-    initial_pose_publications, initial_pose_publications_with_identity, reset_loaded_world,
+    initial_joint_controller_configurations, initial_joint_controller_configurations_with_identity,
+    initial_joint_force_configurations, initial_joint_state_publications,
+    initial_joint_state_publications_with_identity, initial_lidar_publications,
+    initial_lidar_publications_with_identity, initial_logical_camera_identities,
+    initial_logical_camera_publications, initial_magnetometer_publications,
+    initial_magnetometer_publications_with_identity, initial_pose_publications,
+    initial_pose_publications_with_identity, reset_loaded_world,
 };
 
 use bevy_ecs::prelude::*;

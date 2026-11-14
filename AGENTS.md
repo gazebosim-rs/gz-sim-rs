@@ -1,3 +1,31 @@
+## Current M58: runtime passes, strict coverage correction
+
+M57 is provisionally locally qualified at `9dfde487`; M1–M42 and 175 slices
+remain accepted, and M40 remains the latest installable preview. Hosted and
+official release qualification is held; local results are not acceptance.
+
+The seventh normal passed both strict lint profiles, 448 aggregate Python
+checks, doc checks, native-free/RGB qualification and all 1,980 headless Rust
+passes. The DART replay, retained reset-error assertion and both corrective
+controls passed. It then failed Server changed executable lines at 581/612,
+below the unchanged strict >95% gate. Whole headless line/region coverage and
+Scene changed lines pass; renderer was not reached. No heavy job is active.
+
+The bounded corrective batch adds meaningful coverage of retired original
+legacy-channel reservations, complete prepared lease handoff, and legacy-only
+reset-collision error priority with unchanged state. It keeps all production
+code, assertions, tolerances and gates intact; defensive unreachable branches
+are not fabricated or excluded. Complete regression Source, guides and whole
+independent review before one affected formatter and one full normal retry.
+All seven failures, reference evidence and the unchanged probe proof remain
+preserved. No separate capture, probe, semantic native audit or extra RAW comparison is replayed.
+
+M59's isolated Scene and Server/IO Source, guide and canonical peer protocol are
+reviewed. Shared integration and execution wait for genuine M58 full normal and
+independent retained DATA success. Read [the bounded contract](docs/M58_DELIVERY.md) and
+`artifacts/m58-delivery` for exact evidence. Earlier checkpoints below retain
+their historical scope.
+
 ## Current M57: two runtime-test premises under correction
 
 The second complete normal retired with actual Root exit 1 after

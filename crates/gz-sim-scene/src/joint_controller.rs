@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Demand-activated position/velocity targets on the maintained Rapier motors.
 use super::*;
+use std::collections::{BTreeMap, BTreeSet};
 mod config;
 mod model;
 
@@ -122,10 +123,27 @@ impl Plan {
             &model.scoped_name,
             "joint controllers require a top-level dynamic Rapier model",
         )?;
+        let mut owners = BTreeMap::new();
+        let mut slots = 0;
+        for entity in sim
+            .world()
+            .iter_entities()
+            .filter(|entity| entity.contains::<Controller>())
+            .take(5)
+        {
+            let parent = entity
+                .get::<ChildOf>()
+                .ok_or_else(|| LoadError::Unsupported {
+                    entity: model.scoped_name.clone(),
+                    feature: "joint controller ownership",
+                })?;
+            *owners.entry(parent.parent()).or_insert(0usize) += 1;
+            slots += 1;
+        }
         require(
-            !sim.world()
-                .iter_entities()
-                .any(|entity| entity.contains::<Controller>()),
+            owners.len() < 2
+                && owners.values().all(|count| *count <= 2)
+                && slots + self.0.len() <= 4,
             &model.scoped_name,
             "multiple joint-controller chains",
         )
@@ -237,6 +255,7 @@ pub fn set_joint_controller_command(
     {
         return Err(JointControllerCommandError::InvalidPhysics);
     }
+    validate_loaded_controllers(world).map_err(|_| JointControllerCommandError::InvalidPhysics)?;
     let backend = world.resource::<PhysicsBackend>();
     let coordinate = backend
         .joint_state(controller.joint)
@@ -261,6 +280,45 @@ pub fn set_joint_controller_command(
         .expect("preflighted controller")
         .target = desired;
     Ok(())
+}
+
+/// Read-only witness for a loaded controller's private owner and native binding.
+/// Callers also validate public identity, parent/child and the complete input set.
+/// Missing private storage, foreign physics ownership or binding drift returns false.
+pub fn joint_controller_binding_matches(sim: &Simulation, id: u64) -> bool {
+    let Some(entity) = gz_sim_core::entity_by_id(sim.world(), id) else {
+        return false;
+    };
+    let Some(configuration) = sim.world().get::<JointControllerConfiguration>(entity) else {
+        return false;
+    };
+    joint_controller_binding_matches_configuration(sim, id, configuration)
+}
+
+/// Check the private/native binding against a trusted saved configuration.
+/// This deliberately does not compare the current public configuration: reset
+/// reconstruction classifies a well-formed metadata drift separately. Callers
+/// must still require the full public witness before installing any input.
+pub fn joint_controller_binding_matches_configuration(
+    sim: &Simulation,
+    id: u64,
+    configuration: &JointControllerConfiguration,
+) -> bool {
+    let world = sim.world();
+    if !initial::matches_physics_owner(world) {
+        return false;
+    }
+    let Some(entity) = gz_sim_core::entity_by_id(world, id) else {
+        return false;
+    };
+    let Some(controller) = world.get::<Controller>(entity) else {
+        return false;
+    };
+    controller.owner == id
+        && world
+            .get::<JointHandle>(entity)
+            .is_some_and(|handle| handle.id() == controller.joint)
+        && &controller.publication == configuration
 }
 
 #[derive(Resource)]
@@ -302,14 +360,117 @@ struct ControllerFault {
     entity: Entity,
     message: String,
 }
+// The immutable blueprint reserves removed originals; live rows alone cannot
+// authorize a new owner or a replacement joint with otherwise plausible fields.
+fn admitted_slots(world: &World) -> Option<usize> {
+    let initial = world.get_resource::<initial::InitialScene>()?;
+    let mut ids = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut owners = BTreeMap::new();
+    for original in initial.joint_controller_identities() {
+        let parent = original.parent?;
+        if original.id == 0
+            || parent == 0
+            || original.kind != EntityKind::Joint
+            || !ids.insert(original.id)
+            || !names.insert(original.name)
+        {
+            return None;
+        }
+        *owners.entry(parent).or_insert(0usize) += 1;
+        if ids.len() > 4 || owners.len() > 2 || owners.values().any(|count| *count > 2) {
+            return None;
+        }
+    }
+    Some(ids.len())
+}
+
+fn validate_loaded_controllers(world: &World) -> Result<(), ControllerFault> {
+    let controllers: Vec<_> = world
+        .iter_entities()
+        .filter(|entity| entity.contains::<Controller>())
+        .take(5)
+        .collect();
+    let Some(first) = controllers.first() else {
+        return Ok(());
+    };
+    let invalid = |entity| ControllerFault {
+        entity,
+        message: "invalid controller ownership".into(),
+    };
+    let slots = admitted_slots(world).ok_or_else(|| invalid(first.id()))?;
+    if controllers.len() > slots
+        || !initial::matches_physics_owner(world)
+        || !joints::bindings_valid(world)
+    {
+        return Err(invalid(first.id()));
+    }
+    let initial = world.resource::<initial::InitialScene>();
+    let originals: Vec<_> = initial.joint_controller_identities().collect();
+    let mut ids = BTreeSet::new();
+    let mut handles = BTreeSet::new();
+    let mut children = BTreeSet::new();
+    for entity in controllers {
+        let controller = entity.get::<Controller>().expect("selected controller");
+        let original = originals
+            .iter()
+            .find(|row| row.id == controller.owner)
+            .ok_or_else(|| invalid(entity.id()))?;
+        let parent_id = original.parent.ok_or_else(|| invalid(entity.id()))?;
+        let parent =
+            gz_sim_core::entity_by_id(world, parent_id).ok_or_else(|| invalid(entity.id()))?;
+        let parent_name = world
+            .get::<Name>(parent)
+            .ok_or_else(|| invalid(entity.id()))?;
+        let root = world
+            .get::<ChildOf>(parent)
+            .map(ChildOf::parent)
+            .ok_or_else(|| invalid(entity.id()))?;
+        let root_name = world
+            .get::<Name>(root)
+            .ok_or_else(|| invalid(entity.id()))?;
+        let handle = entity
+            .get::<JointHandle>()
+            .ok_or_else(|| invalid(entity.id()))?;
+        if entity.get::<EntityId>().map(EntityId::get) != Some(original.id)
+            || gz_sim_core::entity_by_id(world, original.id) != Some(entity.id())
+            || entity.get::<EntityKind>() != Some(&original.kind)
+            || entity.get::<Name>().map(|name| name.0.as_str()) != Some(original.name)
+            || entity.get::<ChildOf>().map(ChildOf::parent) != Some(parent)
+            || world.get::<EntityKind>(parent) != Some(&EntityKind::Model)
+            || world.get::<EntityKind>(root) != Some(&EntityKind::World)
+            || parent_name.0.rsplit_once("::")
+                != Some((
+                    root_name.0.as_str(),
+                    original.configuration.model_name.as_str(),
+                ))
+            || original.name.rsplit_once("::")
+                != Some((
+                    parent_name.0.as_str(),
+                    original.configuration.joint_name.as_str(),
+                ))
+            || entity.get::<JointControllerConfiguration>() != Some(original.configuration)
+            || controller.publication != *original.configuration
+            || handle.id() != controller.joint
+            || !ids.insert(original.id)
+            || !handles.insert(handle.id())
+            || !children.insert(handle.child())
+        {
+            return Err(invalid(entity.id()));
+        }
+    }
+    Ok(())
+}
+
 fn apply(world: &mut World) {
     let time = *world.resource::<UpdateInfo>();
     if time.dt.is_zero() || world.resource::<StepFault>().error().is_some() {
         return;
     }
     let result = (|| -> Result<(), ControllerFault> {
+        validate_loaded_controllers(world)?;
         let prepared = {
-            let mut entries = [None; 2];
+            let mut entries = [None; 4];
             for (index, entity) in world
                 .iter_entities()
                 .filter(|entity| entity.contains::<Controller>())
@@ -376,46 +537,68 @@ fn apply(world: &mut World) {
         world.resource::<StepFault>().report(error);
     }
 }
-fn reset(
-    mut controllers: Query<(Entity, &mut Controller)>,
-    mut backend: ResMut<PhysicsBackend>,
-    fault: Res<StepFault>,
-) {
+fn reset(world: &mut World) {
     let result = (|| -> Result<(), ControllerFault> {
-        let mut entries = [None; 2];
-        for (index, (entity, controller)) in controllers.iter().enumerate() {
-            if index >= entries.len() {
+        // Preserve the original query order and overflow owner while keeping
+        // every native clear and target restore after the complete preflight.
+        let current: Vec<_> = {
+            let mut query = world.query::<(Entity, &mut Controller)>();
+            query
+                .iter_mut(world)
+                .take(5)
+                .map(|(entity, controller)| (entity, controller.joint))
+                .collect()
+        };
+        if current.is_empty() {
+            return Ok(());
+        }
+        let slots = admitted_slots(world).unwrap_or_default();
+        // Retain each earlier row's native failure before reaching a later
+        // overflow, exactly as the original query-order preflight did.
+        for (index, (entity, joint)) in current.iter().enumerate() {
+            if index >= slots {
                 return Err(ControllerFault {
-                    entity,
+                    entity: *entity,
                     message: "too many loaded controllers".into(),
                 });
             }
-            backend
-                .validate_joint_position_servo(controller.joint, None, Duration::ZERO)
+            world
+                .resource::<PhysicsBackend>()
+                .validate_joint_position_servo(*joint, None, Duration::ZERO)
                 .map_err(|error| ControllerFault {
-                    entity,
+                    entity: *entity,
                     message: error.to_string(),
                 })?;
-            entries[index] = Some((entity, controller.joint));
         }
-        for (entity, joint) in entries.into_iter().flatten() {
-            backend
+        validate_loaded_controllers(world)?;
+        for (entity, joint) in current {
+            world
+                .resource_mut::<PhysicsBackend>()
                 .set_joint_position_servo(joint, None, Duration::ZERO)
                 .map_err(|error| ControllerFault {
                     entity,
                     message: error.to_string(),
                 })?;
         }
-        for (_, mut controller) in &mut controllers {
+        let mut query = world.query::<&mut Controller>();
+        for mut controller in query.iter_mut(world) {
             controller.target = controller.initial_target;
         }
         Ok(())
     })();
     if let Err(error) = result {
-        fault.report(error);
+        world.resource::<StepFault>().report(error);
     }
 }
 
 #[cfg(test)]
 #[path = "../tests/private/joint_controllers.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_joint_controllers.rs"]
+mod multiple_joint_controllers_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_joint_controllers_native.rs"]
+mod multiple_joint_controllers_native_tests;

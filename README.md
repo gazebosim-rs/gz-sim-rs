@@ -1,3 +1,34 @@
+## Current M58: two independent joint-controller chains
+
+M57 is provisionally locally qualified at `9dfde487`; M1–M42 and 175 slices
+remain accepted, and M40 remains the latest installable preview. Hosted and
+official release qualification is still held; local evidence is not acceptance.
+
+M58 implementation, shared integration and regressions are source-reviewed.
+Fresh isolated original-object captures and independent raw DATA passed against
+the reconciled dependency snapshot. Borrowed fixture generation and independent
+literal DATA also passed, preserving all 137 raw records and native wire copies.
+The two observed-input regressions are integrated as Source, with no backend,
+solver, motor arithmetic or protocol change. These component observations do not
+claim original Server, Physics, trajectory or cross-family scheduling parity.
+
+The original retrieval/static/compile failures, earlier capture and failed audit
+remain intact. Four installed libc6 files changed during development; retained
+package evidence records the upgrade and the new capture uses all current hashes.
+The fourth full normal passed strict lint, 404 Python checks, both doc-test
+stages and native-free/RGB qualification. Coverage setup then rejected the cached
+Zenoh probe dependency table after the recorded libc update. Verification-only
+tooling has now captured one fresh run of the unchanged original probe with
+actual external exit 0. Independent retained review confirmed all five stages,
+the complete current 24-library map and exact ready output. The new selection
+keeps this proof separate from the intact original SDK, environment and probe.
+The full normal retry, runtime profiles, strict coverage and results audit remain
+required; this probe evidence does not qualify M58 by itself.
+All four failures and prior reference evidence remain preserved; Rust is unchanged. Read
+[the bounded contract](docs/M58_DELIVERY.md) and `artifacts/m58-delivery` for exact evidence.
+
+The complete earlier checkpoints below retain their historical scope.
+
 ## Current M57: two runtime-test premises under correction
 
 The second complete normal retired with actual Root exit 1 after

@@ -114,6 +114,22 @@ impl InitialScene {
     pub(super) fn owns_backend(&self, backend: &PhysicsBackend) -> bool {
         matches!(&self.0.physics, InitialPhysics::Dynamic(initial) if backend.owns_initial_state(initial))
     }
+
+    pub(super) fn joint_controller_identities(
+        &self,
+    ) -> impl Iterator<Item = InitialJointControllerIdentity<'_>> {
+        self.0.nodes.iter().filter_map(|node| {
+            node.controller_configuration.as_ref().map(|configuration| {
+                InitialJointControllerIdentity {
+                    id: node.id.get(),
+                    kind: node.kind,
+                    name: node.name.as_str(),
+                    parent: node.parent,
+                    configuration,
+                }
+            })
+        })
+    }
 }
 
 pub(super) fn matches_physics_owner(world: &World) -> bool {
@@ -290,6 +306,30 @@ pub fn initial_joint_controller_configurations(
             .as_ref()
             .map(|configuration| (node.id.get(), configuration))
     }))
+}
+
+/// Borrowed original controller identity, including its saved parent model ID.
+/// The name retains its world scope and does not consult live components.
+#[derive(Clone, Copy, Debug)]
+pub struct InitialJointControllerIdentity<'a> {
+    pub id: u64,
+    pub kind: EntityKind,
+    pub name: &'a str,
+    pub parent: Option<u64>,
+    pub configuration: &'a JointControllerConfiguration,
+}
+
+/// Original configured joint identities, including removed loaded controllers.
+/// Missing loader state differs from a loaded scene with no configured inputs.
+/// This borrows the immutable blueprint without IO or runtime mutation.
+pub fn initial_joint_controller_configurations_with_identity(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = InitialJointControllerIdentity<'_>>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.joint_controller_identities())
 }
 
 /// Initial stream configuration, including sensors whose runtime entities were removed.

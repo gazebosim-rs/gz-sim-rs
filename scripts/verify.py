@@ -387,9 +387,11 @@ def native_peer_inputs():
 def check_native_peer_evidence(directory, expected, binding=None):
     """Require the actual C++ source, executable and selected-reference binding."""
     if binding is None:
-        reference, _ = selected_native_reference()
+        reference, selection = selected_native_reference()
         binding = {"reference_sha256": hashlib.sha256((reference / "environment.json").read_bytes()).hexdigest(),
                    "helper_sha256": hashlib.sha256((ROOT / "scripts/zenoh_peer.py").read_bytes()).hexdigest(),
+                   "runtime_probe": selection["runtime_probe"],
+                   "runtime_probe_helper_sha256": selection["helper_source"]["sha256"],
                    "fixtures": {name: hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
                                 for name, path in zenoh_peer.CLIENTS.items()}}
     found, records = set(), []
@@ -401,7 +403,9 @@ def check_native_peer_evidence(directory, expected, binding=None):
         if (data.get("profile") != zenoh_peer.PROFILE or client not in zenoh_peer.CLIENTS
                 or data.get("reference_sha256") != binding["reference_sha256"]
                 or data.get("source") != zenoh_peer.CLIENTS[client]
-                or data.get("helper_sha256") != binding["helper_sha256"]):
+                or data.get("helper_sha256") != binding["helper_sha256"]
+                or data.get("runtime_probe") != binding.get("runtime_probe")
+                or data.get("runtime_probe_helper_sha256") != binding.get("runtime_probe_helper_sha256")):
             raise ValueError("native peer reference or fixture binding differs")
         source = path.parent / "source.cc"
         binary = path.parent / (client + "-client")
@@ -527,7 +531,7 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                                   renderer_executables(result.stdout, env["CARGO_TARGET_DIR"]))
     contract_path = ROOT / "planning/coverage-profiles.json"
     if contract_path.is_file() and json.loads(contract_path.read_text()).get("version") == 2:
-        expected = {"camera"} if name == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "odometry_rotation_offsets", "odometry_noise", "air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states"}
+        expected = {"camera"} if name == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "odometry_rotation_offsets", "odometry_noise", "air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states", "multiple_joint_controllers"}
         peers = check_native_peer_evidence(directory / "native-peers", expected)
         (directory / "native-peers.json").write_text(json.dumps(peers, indent=2) + "\n")
     objects = []
@@ -684,12 +688,48 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
 def selected_native_reference():
     reference = Path(os.environ.get("GZ_ZENOH_REFERENCE_ROOT",
                                    ROOT / "artifacts/zenoh-native-reference")).absolute()
-    return reference, zenoh_peer.bootstrap.validate_reference(reference)
+    return reference, zenoh_peer.runtime_probe.validate_selection(reference)
+
+
+def capture_runtime_probe(selection, directory):
+    """Retain the selected proof once, separately from the original SDK record."""
+    proofs = zenoh_peer.runtime_probe.proof_files(selection)
+    if selection["runtime_probe"] is None:
+        if proofs:
+            raise ValueError("unexpected runtime probe files without a selection")
+        return {}
+    if (set(proofs) != set(zenoh_peer.runtime_probe.PROOF_ROLES)
+            or proofs.get("selection.json") != selection["runtime_probe"]):
+        raise ValueError("incomplete runtime probe proof bundle")
+    captured, total = {}, 0
+    output = directory / "zenoh-runtime-probe"
+    output.mkdir()
+    for role, card in sorted(proofs.items()):
+        if (not re.fullmatch(r"[a-z][a-z0-9_.-]{0,63}", role) or ".." in role
+                or set(card) != {"path", "bytes", "sha256"}):
+            raise ValueError("invalid runtime probe proof role")
+        source = Path(card["path"])
+        if (not source.is_absolute() or ".." in source.parts or source.is_symlink()
+                or not source.is_file() or source.stat().st_size > 16 * 1024**2):
+            raise ValueError("unsafe runtime probe proof file")
+        blob = zenoh_peer.runtime_probe.read_file(source, 16 * 1024**2)
+        total += len(blob)
+        if (len(blob) != card["bytes"] or hashlib.sha256(blob).hexdigest() != card["sha256"]
+                or total > 16 * 1024**2):
+            raise ValueError("runtime probe proof changed during retention")
+        target = output / role
+        target.write_bytes(blob)
+        captured[role] = {"source": card, "file": str(target.relative_to(directory))}
+    return captured
 
 
 def coverage(changed_file=None):
-    native_root, native_metadata = selected_native_reference()
+    native_root, native_selection = selected_native_reference()
     native_bytes = (native_root / "environment.json").read_bytes()
+    if native_selection["base_environment"] != {
+            "path": str(native_root / "environment.json"), "bytes": len(native_bytes),
+            "sha256": hashlib.sha256(native_bytes).hexdigest()}:
+        raise ValueError("selected base Zenoh environment binding differs")
     out = ROOT / "artifacts/coverage"
     out.mkdir(parents=True, exist_ok=True)
     load_profile_contract()
@@ -718,6 +758,7 @@ def coverage(changed_file=None):
     inputs = list(dict.fromkeys([ROOT / "Cargo.toml", ROOT / "Cargo.lock", ROOT / "rust-toolchain.toml",
                                  ROOT / ".cargo/config.toml",
                                  ROOT / "scripts/zenoh_peer.py", ROOT / "scripts/native-peer.py",
+                                 ROOT / "scripts/zenoh_runtime_probe.py",
                                  ROOT / "tests/support/zenoh_peer.rs",
                                  *[ROOT / name for name in zenoh_peer.bootstrap.INPUTS],
                                  *native_peer_inputs(),
@@ -736,10 +777,16 @@ def coverage(changed_file=None):
     host = next(line.split(": ", 1)[1] for line in version.splitlines() if line.startswith("host: "))
     llvm = sysroot / "lib/rustlib" / host / "bin"
     run_dir = Path(tempfile.mkdtemp(prefix="profiles-", dir=out))
+    runtime_files = capture_runtime_probe(native_selection, run_dir)
+    if native_selection["helper_source"]["sha256"] != input_hashes["scripts/zenoh_runtime_probe.py"]:
+        raise ValueError("runtime probe selector source differs")
     index = {"run": run_dir.name, "profiles": sorted(plan), "rustc": version,
              "sources": hashes, "inputs": input_hashes,
              "zenoh_reference": {"root": str(native_root),
-                                  "environment_sha256": hashlib.sha256(native_bytes).hexdigest()}}
+                                  "environment_sha256": hashlib.sha256(native_bytes).hexdigest(),
+                                  "runtime_probe": native_selection["runtime_probe"],
+                                  "runtime_probe_helper_sha256": native_selection["helper_source"]["sha256"],
+                                  "runtime_probe_files": runtime_files}}
     (out / "profile-index.json").write_text(json.dumps(index, indent=2) + "\n")
     (run_dir / "zenoh-native-reference.json").write_bytes(native_bytes)
     reports, zero_sources = {}, {}
@@ -749,9 +796,22 @@ def coverage(changed_file=None):
         if proof:
             zero_sources[name] = proof
     summaries = check_profile_reports(plan, reports, zero_sources)
-    if (selected_native_reference() != (native_root, native_metadata)
+    if (selected_native_reference() != (native_root, native_selection)
             or (native_root / "environment.json").read_bytes() != native_bytes):
         raise ValueError("selected Zenoh reference changed between profiles")
+    if zenoh_peer.runtime_probe.proof_files(native_selection) != {
+            role: value["source"] for role, value in runtime_files.items()}:
+        raise ValueError("runtime probe proof changed between profiles")
+    for value in runtime_files.values():
+        captured = run_dir / value["file"]
+        if (captured.is_symlink() or not captured.is_file()
+                or not captured.resolve().is_relative_to(run_dir.resolve())
+                or captured.stat().st_size != value["source"]["bytes"]):
+            raise ValueError("retained runtime probe proof changed between profiles")
+        blob = zenoh_peer.runtime_probe.read_file(captured, 16 * 1024**2)
+        if (len(blob) != value["source"]["bytes"]
+                or hashlib.sha256(blob).hexdigest() != value["source"]["sha256"]):
+            raise ValueError("retained runtime probe proof changed between profiles")
     final_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                     for paths in sources.values() for path in paths}
     final_inputs = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
@@ -807,6 +867,57 @@ def export_snapshot(tree, candidate):
     validate_snapshot(tree, candidate)
 
 
+def retain_runtime_probe_evidence(candidate, coverage, run_name, output, data, hashes, missing):
+    """Keep the independently selected runtime proof distinct from the SDK."""
+    reference = data["zenoh_reference"]
+    helper_name = "scripts/zenoh_runtime_probe.py"
+    helper = candidate / helper_name
+    if helper_name in data.get("inputs", {}) or os.path.lexists(helper) or reference.get("runtime_probe") is not None:
+        if (helper.is_symlink() or not helper.is_file()
+                or not helper.resolve().is_relative_to(candidate.resolve())):
+            missing.append("runtime probe selector source input")
+        else:
+            digest = hashlib.sha256(helper.read_bytes()).hexdigest()
+            if (data.get("inputs", {}).get(helper_name) != digest
+                    or reference.get("runtime_probe_helper_sha256") != digest):
+                missing.append("runtime probe selector input binding")
+    selected = reference.get("runtime_probe")
+    proofs = reference.get("runtime_probe_files", {})
+    if selected is None:
+        if proofs:
+            raise ValueError("staged runtime proof files without a selection")
+        return
+    if (not isinstance(proofs, dict) or set(proofs) != set(zenoh_peer.runtime_probe.PROOF_ROLES)
+            or not isinstance(proofs.get("selection.json"), dict)
+            or proofs["selection.json"].get("source") != selected):
+        missing.append("runtime probe selection bundle")
+        return
+    total = 0
+    for role, value in sorted(proofs.items()):
+        if (not re.fullmatch(r"[a-z][a-z0-9_.-]{0,63}", role) or ".." in role
+                or set(value) != {"source", "file"}
+                or value["file"] != f"zenoh-runtime-probe/{role}"
+                or set(value["source"]) != {"path", "bytes", "sha256"}):
+            raise ValueError("unsafe staged runtime probe proof role")
+        relative = value["file"]
+        source = coverage / run_name / relative
+        if (source.is_symlink() or not source.is_file()
+                or not source.resolve().is_relative_to(candidate.resolve())
+                or source.stat().st_size > 16 * 1024**2):
+            missing.append(relative)
+            continue
+        blob = zenoh_peer.runtime_probe.read_file(source, 16 * 1024**2)
+        total += len(blob)
+        if (len(blob) != value["source"]["bytes"]
+                or hashlib.sha256(blob).hexdigest() != value["source"]["sha256"]
+                or total > 16 * 1024**2):
+            raise ValueError("staged runtime probe proof changed: " + relative)
+        target = output / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(blob)
+        hashes[relative] = hashlib.sha256(blob).hexdigest()
+
+
 def retain_profile_evidence(candidate, output, hashes, missing):
     """Copy separate raw evidence, rejecting symlinks and incomplete profiles."""
     coverage = candidate / "artifacts/coverage"
@@ -852,6 +963,7 @@ def retain_profile_evidence(candidate, output, hashes, missing):
                 raise ValueError("staged selected Zenoh reference metadata differs")
             (output / name).write_bytes(blob)
             hashes[name] = digest
+        retain_runtime_probe_evidence(candidate, coverage, run_name, output, data, hashes, missing)
     for profile in data["profiles"]:
         base = coverage / run_name / profile
         required = ["test-output.log", "coverage.json", "coverage.lcov", "summary.json",
@@ -874,11 +986,13 @@ def retain_profile_evidence(candidate, output, hashes, missing):
             else:
                 peer_index = base / "native-peers.json"
                 if peer_index.is_file() and not peer_index.is_symlink():
-                    expected = {"camera"} if profile == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "odometry_rotation_offsets", "odometry_noise", "air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states"}
+                    expected = {"camera"} if profile == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "odometry_rotation_offsets", "odometry_noise", "air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states", "multiple_joint_controllers"}
                     try:
                         actual = check_native_peer_evidence(peers, expected, {
                             "reference_sha256": data["zenoh_reference"]["environment_sha256"],
                             "helper_sha256": data["inputs"]["scripts/zenoh_peer.py"],
+                            "runtime_probe": data["zenoh_reference"].get("runtime_probe"),
+                            "runtime_probe_helper_sha256": data["zenoh_reference"].get("runtime_probe_helper_sha256"),
                             "fixtures": {client: data["inputs"][path]
                                          for client, path in zenoh_peer.CLIENTS.items()},
                         })

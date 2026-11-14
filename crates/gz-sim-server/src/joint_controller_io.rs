@@ -29,6 +29,12 @@ pub(super) struct Setup {
 }
 pub(super) struct Lease {
     active: Arc<AtomicBool>,
+    endpoint: String,
+}
+impl Lease {
+    pub(super) fn matches_endpoint(&self, key: &str) -> bool {
+        self.endpoint == key
+    }
 }
 impl Drop for Lease {
     fn drop(&mut self) {
@@ -96,7 +102,7 @@ impl Declarations {
             || setup.max_bytes == 0
             || setup.max_bytes > i64::MAX as usize
             || setup.endpoints.is_empty()
-            || setup.endpoints.len() > 2
+            || setup.endpoints.len() > 4
         {
             return Err("invalid joint controller setup or closed world session".into());
         }
@@ -115,6 +121,7 @@ impl Declarations {
         for endpoint in setup.endpoints {
             let lease = Arc::new(Lease {
                 active: Arc::new(AtomicBool::new(true)),
+                endpoint: endpoint.key.clone(),
             });
             let state = Arc::new(Callback {
                 input: endpoint.input,

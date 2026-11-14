@@ -39,16 +39,20 @@ CLIENTS = {
     'multiple_pose_publishers': 'crates/gz-sim-server/tests/native_multiple_pose_publishers_peer.cc',
     'multiple_odometry_publishers': 'crates/gz-sim-server/tests/native_multiple_odometry_publishers_peer.cc',
     'multiple_joint_states': 'crates/gz-sim-server/tests/native_multiple_joint_states_peer.cc',
+    'multiple_joint_controllers': 'crates/gz-sim-server/tests/native_multiple_joint_controllers_peer.cc',
 }
-spec = importlib.util.spec_from_file_location('zenoh_bootstrap', ROOT / 'scripts/bootstrap-zenoh-native.py')
-bootstrap = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(bootstrap)
+spec = importlib.util.spec_from_file_location('zenoh_runtime_probe', ROOT / 'scripts/zenoh_runtime_probe.py')
+runtime_probe = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(runtime_probe)
+# Keep the maintained bootstrap/patch surface shared with the central selector.
+bootstrap = runtime_probe.bootstrap
 
 
 def compile_client(client, reference):
     if client not in CLIENTS:
         raise ValueError('unknown conformance client')
-    metadata = bootstrap.validate_reference(reference)
+    selection = runtime_probe.validate_selection(reference)
+    metadata = selection['metadata']
     prefix = reference / 'install'
     vendor = reference / 'vendor' / metadata['lock']['vendor']['prefix']
     env = bootstrap.build_environment(prefix, vendor)
@@ -57,6 +61,10 @@ def compile_client(client, reference):
         raise ValueError('client source escapes workspace')
     source_bytes = source.read_bytes()
     metadata_bytes = (reference / 'environment.json').read_bytes()
+    if (selection['base_environment']['path'] != str(reference / 'environment.json')
+            or selection['base_environment']['bytes'] != len(metadata_bytes)
+            or selection['base_environment']['sha256'] != hashlib.sha256(metadata_bytes).hexdigest()):
+        raise ValueError('native base environment binding differs')
     helper_bytes = Path(__file__).read_bytes()
     pkg = metadata['tools']['pkg-config']['path']
     selected = subprocess.check_output([pkg, '--variable=prefix', 'gz-transport'], env=env, text=True).strip()
@@ -83,12 +91,14 @@ def compile_client(client, reference):
     if (source.read_bytes() != source_bytes or captured.read_bytes() != source_bytes
             or (reference / 'environment.json').read_bytes() != metadata_bytes
             or Path(__file__).read_bytes() != helper_bytes
-            or bootstrap.validate_reference(reference) != metadata):
+            or runtime_probe.validate_selection(reference) != selection):
         raise ValueError('native client input changed during compilation')
     provenance = output / 'provenance.json'
     provenance.write_text(json.dumps({
         'profile': PROFILE, 'reference_root': str(reference), 'client': client,
         'reference_sha256': hashlib.sha256(metadata_bytes).hexdigest(),
+        'runtime_probe': selection['runtime_probe'],
+        'runtime_probe_helper_sha256': selection['helper_source']['sha256'],
         'helper_sha256': hashlib.sha256(helper_bytes).hexdigest(),
         'source': CLIENTS[client], 'source_sha256': hashlib.sha256(source_bytes).hexdigest(),
         'binary_sha256': bootstrap.digest(binary), 'command': command,

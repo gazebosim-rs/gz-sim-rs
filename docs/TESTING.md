@@ -75,6 +75,66 @@ specification. A new tolerance or corrected fixture needs an explanation and
 regression test, not a blanket waiver. A flaky test needs repair or a documented
 blocking issue; automatic retries do not convert it into reliable acceptance.
 
+### Cached Zenoh runtime probe after the recorded libc update
+
+The normal path still validates the selected native reference strictly. A stale
+probe dependency table is a failure; never edit its original `environment.json`,
+probe, SDK installation, vendor files or build caches to make it pass.
+
+For the explicitly recorded M58 libc transition, the unshipped verification
+helper can capture one fresh run of the **same** original probe executable:
+
+```sh
+python3 scripts/zenoh_runtime_probe.py --reference ORIGINAL_REFERENCE \
+  --output NEW_EXCLUSIVE_DIRECTORY --transition REVIEWED_DEPENDENCY_SNAPSHOT
+```
+
+Complete implementation, regression Source, documentation and independent review
+before Root releases that operation. It performs no download, compiler or SDK
+build. Its bounded process must exit 0, be reaped, emit the exact ready line and
+pass all old SDK guards, the complete current 24-library map, transport dynamic
+identity and separate loader identity. Only the three reviewed libc-family SHA
+leaves may differ in an in-memory validation copy; reversing them must recover
+the entire unchanged original metadata. That copy alone is never passing proof.
+The CLI reaps its owned child on interruption and checks resource floors after
+child exit and final persistence. A stopped marker makes the result ineligible,
+including when it is a dangling symlink; the original reference stays untouched.
+
+The CLI result is not eligible for selection. After genuine external tool exit 0
+and independent retained review, Root records the actual exit separately and
+writes a selection manifest joining both immutable cards. The explicit
+`GZ_ZENOH_RUNTIME_PROBE_MANIFEST` points to that selection. An empty, invalid,
+changed or mismatched override fails; it never falls back to the old record.
+The default unset path retains the old strict bootstrap behavior. This attests
+current execution of one retained probe, not a rebuilt SDK or general ABI parity.
+
+Profile evidence retains the original environment and the fixed 17-file runtime
+proof bundle once per run. Client provenance binds the original environment SHA,
+the separate runtime selection and selector Source SHA before and after
+compilation. The existing full normal hook, coverage, independent DATA, hosted
+CI and release acceptance gates remain required. A probe result qualifies none
+of those gates by itself.
+
+### Historical DART replay after the recorded libc update
+
+The historical fixture remains immutable. The default unset dependency selection
+keeps its strict eighteen-library map. For the reviewed M58 transition only,
+`GZ_NATIVE_DEPENDENCY_SNAPSHOT` selects the exact current snapshot plus retained
+whole inventory and actual Root completion. Empty, unrecognized, changed or
+inconsistent metadata fails with no fallback. Hash and parse the same bounded,
+stable ordinary-file bytes; retain the selected metadata cards before and after.
+
+The in-memory table changes only the known libc, libm and loader SHA leaves;
+reversing them must recover the entire historical table. All other fifteen
+entries, the compiler/system closure, three C++ inputs, historical header, seven
+native modes, numeric records and conditions stay unchanged. Check every one of
+the eighteen actual libraries before and after execution; report all mismatches
+together with path, expected/observed hashes and observed size or read error.
+Mapped libraries must satisfy the same effective table. Keep the separate
+`dependency_environment` provenance in `native-result.json`. No fixture rewrite,
+SDK rebuild, old failure relabeling or standalone replay is implied: the next
+reviewed complete normal performs the actual required native execution.
+
 ## Test migration routes
 
 1. **Unchanged upstream harness:** compile the original test against a thin

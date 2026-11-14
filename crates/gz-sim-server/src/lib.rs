@@ -375,6 +375,7 @@ enum PublicationFamily {
     LogicalCamera,
     Magnetometer,
     JointState,
+    JointController,
 }
 // Current and loaded-original roles are both reserved. Identical restored/live
 // roles may repeat, but another owner/channel/raw topic may not alias their key.
@@ -666,6 +667,31 @@ fn typed_reserved_keys(
 ) -> Result<BTreeSet<String>, Error> {
     let mut keys = if own == PublicationFamily::Lidar {
         sensor_reserved_keys_with_lidars(simulation, io, config, false)?
+    } else if own == PublicationFamily::JointController {
+        // Exclude this input family without dropping the other legacy inputs.
+        let mut keys = sensor_reserved_keys_with_peer_inputs(simulation, io, config, true, false)?;
+        let mut drive = |metadata: &gz_sim_scene::DiffDriveConfiguration| -> Result<(), Error> {
+            keys.insert(config.topic_key(&metadata.topic)?);
+            keys.insert(config.topic_key(&metadata.odom_topic)?);
+            Ok(())
+        };
+        for entity in simulation.world().iter_entities() {
+            if !entity.contains::<gz_sim_scene::PendingResetRemoval>()
+                && let Some(metadata) = entity.get::<gz_sim_scene::DiffDriveConfiguration>()
+            {
+                drive(metadata)?;
+            }
+        }
+        match gz_sim_scene::initial_diff_drive_configurations(simulation) {
+            Ok(values) => {
+                for metadata in values {
+                    drive(metadata)?;
+                }
+            }
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+            Err(error) => return Err(error.into()),
+        }
+        keys
     } else {
         sensor_reserved_keys(simulation, io, config)?
     };
@@ -857,6 +883,110 @@ fn joint_state_reserved_keys(
     config: &ServerOptions,
 ) -> Result<BTreeSet<String>, Error> {
     typed_reserved_keys(simulation, io, config, PublicationFamily::JointState)
+}
+
+fn joint_controller_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    typed_reserved_keys(simulation, io, config, PublicationFamily::JointController)
+}
+
+// Expand controller reservations without changing the family that reported an
+// existing alias. This is pure and precedes output lookup or generation changes.
+fn validate_joint_controller_peer_topics(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+    reset: Option<&Server>,
+) -> Result<(), Error> {
+    let keys = joint_controllers::boundary_keys(simulation, config, reset)?;
+    if keys.is_empty() {
+        return Ok(());
+    }
+    let legacy = joint_controllers::legacy_occupied(simulation, config, reset.is_some())?;
+    if reset.is_none() && !keys.is_disjoint(&legacy) {
+        return Err(Error::JointControllerIdentity);
+    }
+    // These families were prepared after controller inputs at construction, but
+    // their own reservations reported aliases the old controller subset omitted.
+    // At reset, their original channels were prepared before controller inputs.
+    // Earlier global validators retain the other typed-family collision winners.
+    macro_rules! peer {
+        ($metadata:ty, $getter:ident, $pattern:pat, $value:ident, $error:ident) => {{
+            let active = simulation.world().iter_entities().any(|entity| {
+                !entity.contains::<gz_sim_scene::PendingResetRemoval>()
+                    && entity.contains::<$metadata>()
+            });
+            let originals: Vec<_> = match gz_sim_scene::$getter(simulation) {
+                Ok(values) => values.collect(),
+                Err(gz_sim_scene::SceneResetError::MissingInitialState) => Vec::new(),
+                Err(error) => return Err(error.into()),
+            };
+            let eligible = if reset.is_some() {
+                !originals.is_empty()
+            } else {
+                active
+            };
+            if eligible {
+                let mut occupied = BTreeSet::new();
+                let mut add = |raw: &str| -> Result<(), Error> {
+                    let key = config
+                        .topic_key(&options::as_valid_topic(raw))
+                        .map_err(|_| Error::$error)?;
+                    occupied.insert(key);
+                    Ok(())
+                };
+                for entity in simulation.world().iter_entities() {
+                    if !entity.contains::<gz_sim_scene::PendingResetRemoval>()
+                        && let Some(metadata) = entity.get::<$metadata>()
+                    {
+                        add(&metadata.topic)?;
+                    }
+                }
+                for $pattern in originals {
+                    add(&$value.topic)?;
+                }
+                if !keys.is_disjoint(&occupied) {
+                    return Err(Error::$error);
+                }
+            }
+        }};
+    }
+    peer!(
+        gz_sim_scene::AltimeterPublication,
+        initial_altimeter_publications,
+        metadata,
+        metadata,
+        AltimeterIdentity
+    );
+    peer!(
+        gz_sim_scene::AirPressurePublication,
+        initial_air_pressure_publications,
+        metadata,
+        metadata,
+        AirPressureIdentity
+    );
+    peer!(
+        gz_sim_scene::MagnetometerPublication,
+        initial_magnetometer_publications,
+        metadata,
+        metadata,
+        MagnetometerIdentity
+    );
+    peer!(
+        gz_sim_scene::JointStatePublication,
+        initial_joint_state_publications,
+        (_, metadata),
+        metadata,
+        JointStateIdentity
+    );
+    if reset.is_some() && !keys.is_disjoint(&legacy) {
+        return Err(Error::JointControllerIdentity);
+    }
+    let _ = io; // The complete peer-set validation follows this priority selection.
+    Ok(())
 }
 
 /// Reserve restored as well as current new-family topics before any reset IO.
@@ -1238,6 +1368,8 @@ impl Server {
         validate_air_speed_and_pose_topics(&simulation, &world_io, &config)?;
         validate_new_system_topics(&simulation, &world_io, &config)?;
         validate_lidar_peer_topics(&simulation, &world_io, &config, None)?;
+        validate_joint_controller_peer_topics(&simulation, &world_io, &config, None)?;
+        let controller_metadata = joint_controllers::preflight(&simulation, &world_io, &config)?;
         let mut imus = Vec::new();
         let mut imu_publishers: BTreeMap<String, Weak<world_io::ImuOutput>> = BTreeMap::new();
         for entity in simulation.world().iter_entities() {
@@ -1295,7 +1427,6 @@ impl Server {
         world_io.install_forces(force_setup)?;
         let forces = forces.into_active();
         let diff_drive = diff_drive::stream(&simulation, &world_io, &config, &imus, &lidars, None)?;
-        let controller_metadata = joint_controllers::initial(&simulation)?;
         let joint_controllers =
             joint_controllers::prepare(&simulation, &world_io, &config, &controller_metadata)?;
         let altimeters = if simulation
@@ -2170,3 +2301,7 @@ mod imu_custom_world_native;
 #[cfg(test)]
 #[path = "../tests/private/imu_world_heading_native.rs"]
 mod imu_world_heading_native;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_joint_controller_boundaries.rs"]
+mod multiple_joint_controller_boundaries;

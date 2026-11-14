@@ -1,0 +1,179 @@
+{
+  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
+  "SPDX-License-Identifier": "Apache-2.0",
+  "schema_version": 1,
+  "state": "M58_REFERENCE_PIPELINE_PASSED_PRODUCT_VERIFICATION_PENDING",
+  "runtime_parent": "9dfde487e7e377432573ebbcfd1e7a58901bc492",
+  "runtime_parent_accepted": false,
+  "scope": {
+    "loaded_owners": [
+      0,
+      1,
+      2
+    ],
+    "configured_joints_per_owner": [
+      1,
+      2
+    ],
+    "maximum_streams": 4,
+    "existing_graph": "M9 two links, world-rooted +Z single-axis, identity rotations, zero child-local anchors",
+    "motor_math_changed": false,
+    "transport": "Unmodified upstream Zenoh, canonical gz.msgs.Double"
+  },
+  "runtime_fixture": {
+    "path": "examples/m58_multiple_joint_controllers.sdf",
+    "sha256": "f57c6678b7c0875901ac91f5c095f78fbec122429d792c9ae5bb2ecfefc1d2bb",
+    "bytes": 4470
+  },
+  "canonical_sender": {
+    "path": "crates/gz-sim-server/tests/native_multiple_joint_controllers_peer.cc",
+    "sha256": "1a1f2857d722f45d881d4e4c6a46ce94f594c579786b6e7a27bc3fd2bc5a72ad",
+    "bytes": 5422
+  },
+  "peer_contract": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/server-native-peer-source-contract.json",
+    "sha256": "f1d0651d39f376333fd73236e1f1ac6207b41faffaf14422441a79aedb5755aa",
+    "bytes": 1780
+  },
+  "input_retrieval": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/controller-reference-inputs-retrieval-attempt2-observed-result.json",
+    "sha256": "ff9972a5171fb3c5a6caf355e67521c2202729581e509fb87af1a345e23517dd",
+    "bytes": 2963
+  },
+  "input_boundary": {
+    "four_original_files_recovered_with_pinned_hashes": true,
+    "retained_runner_result_exit_code": 0,
+    "external_tool_exit_code": null,
+    "independent_retained_DATA": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/retained-controller-reference-input-data-actual-exit.json",
+      "sha256": "8c0915a2075dd38d9271b3047fa82115e6ab0c020234fda0ce4f702d43635b5d",
+      "bytes": 1403
+    },
+    "static_ELF_admission": {
+      "original_DSOs_admitted": false,
+      "one_unchanged_REL_operand_per_isolated_helper_admitted": true,
+      "Source_to_binary_equivalence": "UNKNOWN"
+    },
+    "source_to_binary_equivalence": "UNKNOWN",
+    "original_DSO_load_allowed": false,
+    "provider_rebuild_allowed": false,
+    "static_observation_diagnostic1": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/controller-reference-static-query-actual-exit.json",
+      "sha256": "df363f957a5dc18143215076fecaa3c670a35fd72acd66154b80b191c277cc97",
+      "bytes": 1731
+    }
+  },
+  "reference_design": {
+    "input_domain": "Direct unchanged original object System over explicitly controlled public ECM components; not original simulator or solver execution",
+    "velocity_api": [
+      "Configure",
+      "PreUpdate"
+    ],
+    "position_api": [
+      "Configure",
+      "ConfigureParameters with genuine public ParametersRegistry",
+      "PreUpdate"
+    ],
+    "ownership": "Immediate unique_ptr<System> virtual-base ownership; checked borrowed public interfaces",
+    "routing": "Fresh canonical Double command wire/callback fences for each owner-distinct configured input; no private command/cache injection",
+    "getbacks": "Actual public native JointVelocityCmd, input position/velocity components and Info/model/joint identities; absence under suppression recorded explicitly",
+    "differences": [
+      "Original raw velocity component output is distinct from Rust clamping outside common admitted range.",
+      "Original ABS position-to-velocity lowering is distinct from the Rust damped continuous Rapier servo."
+    ],
+    "original_server_physics_lifecycle_trajectory_parity_claimed": false,
+    "isolated_helpers": 2,
+    "original_objects_per_helper": 1,
+    "same_family_instances_per_helper": 2,
+    "isolation_source_decision": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/reference-two-helper-isolation-source-decision.json",
+      "sha256": "dbf18b24cef560c5a8d6ef5c621bf5aa569460417a4bb133fbeaa14d6c4afe26",
+      "bytes": 3346
+    },
+    "simultaneous_cross_family_original_execution_claimed": false
+  },
+  "capture": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/isolated-controller-native-capture-attempt3-actual-exit.json",
+    "sha256": "ceac1e07862259ae1f334ac09a373f9f498c87fd3cc09a82e38de9679680f226",
+    "bytes": 4335
+  },
+  "independent_native_DATA": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/native-isolated-controller-data-current-sdk-actual-exit.json",
+    "sha256": "41c94397e6f677555a5c3e0526e281486c537a06ef5b3f8e9b96074eb4e58c78",
+    "bytes": 2844
+  },
+  "fixed_fixture": {
+    "source_path": "crates/gz-sim-scene/tests/fixtures/m58_native_isolated_joint_controllers.rs",
+    "sha256": "8e367a0dbb55d08c2ff77a756d52751a50f83dcdd9da43a1e86ee250db8b8da3",
+    "bytes": 112616,
+    "provenance_source_path": "crates/gz-sim-scene/tests/fixtures/m58_native_isolated_joint_controllers.provenance.json",
+    "provenance_sha256": "ec3943fcc6fe3ac394a26823d0a858886e7c6947fa8d3f372fa3a085cb96e289",
+    "generation_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/native-isolated-controller-fixture-current-sdk-generation-actual-exit.json",
+      "sha256": "e132ec723b5feda1b0c8c3c0a85b7e7d48397dea9dfa71c797693f1533414874",
+      "bytes": 2433
+    }
+  },
+  "independent_literal_DATA": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/native-isolated-controller-fixed-literal-current-sdk-actual-exit.json",
+    "sha256": "14a554082d93f8fa9260c361bdcb7b9a6df45648094e2b761e6b6f1956410433",
+    "bytes": 2721
+  },
+  "verification": {
+    "Source_controls_are_not_passes": true,
+    "parent_retained_control_pool": {
+      "headless": 389,
+      "overlapping_renderer": 227,
+      "cleanup_headless": 121,
+      "separate_strengthened_both": 7,
+      "separate_wrench_headless": 2
+    },
+    "required": [
+      "Whole bounded Source/regression/docs review and batched corrections",
+      "Reviewed current original input/ABI/link closure and bounded capture evidence",
+      "One consolidated affected verification, full normal hook and unchanged strict workspace/percrate/actual-parent coverage",
+      "Independent retained local DATA",
+      "Accepted predecessor, exact hosted success, official durable original audit and ordinary Main/readbacks before release acceptance"
+    ],
+    "product_checks_run": false,
+    "qualified": false,
+    "accepted": false
+  },
+  "current_dependency_manifests": {
+    "current349": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/native-sdk-current-dependency-closure.json",
+      "sha256": "37ec87f58c22d033aa1addff2c3f256635aa34858f400ed2c9f745b2b1dfbd94",
+      "bytes": 830235
+    },
+    "separate_old_two": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/native-link-provider-supplement.json",
+      "sha256": "2443815c4ab27af0b922b3838089408c7b4238e46fc2d5a90f8362219501483a",
+      "bytes": 12245
+    },
+    "diagnostic_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/sdk-dependency-drift-inventory-actual-exit.json",
+      "sha256": "82b30aeb444875ebdf1aa9f8cbf4387f742f506162a06b952920b2e5b7fa25da",
+      "bytes": 1852
+    }
+  },
+  "preserved_prior_capture": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/isolated-controller-native-capture-attempt2-actual-exit.json",
+    "sha256": "6656f2820792931095756733e101128a46708c73f9bdbfb5697938328d6142a1",
+    "bytes": 3240
+  },
+  "preserved_prior_failed_DATA": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/native-isolated-controller-data-actual-exit.json",
+    "sha256": "15d517260b45eefff16e1a0bc0054424a65c94efefd8cfb821f17f94b6738999",
+    "bytes": 2652
+  },
+  "native_Source_snapshot": {
+    "ref": "refs/source-snapshots/m58-native-components-current-sdk",
+    "tree": "cb3cc5c0f4ac77542a03aa06360e5d229d342c39",
+    "qualified_product_Source": false
+  },
+  "authored_control_census": {
+    "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/m58-authored-control-census-source.json",
+    "sha256": "b9760fe3e7552e31be5d566bc826714ba029a6c744b7f0edf7ef0eaf87fc3dd8",
+    "bytes": 35063
+  }
+}

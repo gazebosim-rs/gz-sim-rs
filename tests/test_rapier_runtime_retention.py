@@ -649,7 +649,8 @@ class AuxiliaryRetention(unittest.TestCase):
                        "examples/m54_multiple_lidars.sdf",
                        "examples/m55_multiple_pose_publishers.sdf",
                        "examples/m56_multiple_odometry_publishers.sdf",
-                       "examples/m57_multiple_joint_state_publishers.sdf"):
+                       "examples/m57_multiple_joint_state_publishers.sdf",
+                       "examples/m58_multiple_joint_controllers.sdf"):
             index = QUALIFIER.NOISY_EXAMPLES.index(source)
             valid = json.loads(baseline)["runs"][index]["stdout"]
             for field, altered in (
@@ -659,6 +660,8 @@ class AuxiliaryRetention(unittest.TestCase):
                 ("source", QUALIFIER.NOISY_EXAMPLES[12]),
                 ("stdout", valid.replace("default::arm0::base", "default::wrong::base")
                  if source == "examples/m57_multiple_joint_state_publishers.sdf" else
+                 valid.replace("default::arm_left::base", "default::wrong::base")
+                 if source == "examples/m58_multiple_joint_controllers.sdf" else
                  valid.replace(" 0 0 ", " 0.1 0 ").replace(" 2 -1 3", " 2.1 -1 3")
                  .replace("default::left_scanner::body 0 2 0", "default::left_scanner::body 0.1 2 0")
                  .replace("default::peer::base 1 8 3", "default::peer::base 1.1 8 3")),
