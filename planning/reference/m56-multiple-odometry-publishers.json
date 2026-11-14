@@ -1,0 +1,128 @@
+{
+  "copyright": "Copyright (C) 2026 Open Source Robotics Foundation",
+  "SPDX-License-Identifier": "Apache-2.0",
+  "schema_version": 1,
+  "state": "ACTUAL_M56_DIRECT_ORIGINAL_OBJECT_LOCAL_WORLD_INPUT_NATIVE_AND_LITERAL_PROVENANCE",
+  "input_domain": "DIRECT_ORIGINAL_OBJECT_SYSTEM_MODEL_LOCAL_WITH_WORLD_GETBACK",
+  "source_program": {
+    "path": "crates/gz-sim-scene/tests/native_multiple_odometry_publishers.cc",
+    "sha256": "3cb697651e08aa7e7b3f7931c095c11849151bc473b8b788c1c27267459fbe69"
+  },
+  "capture": {
+    "tree": "9d79f7f610a6c04c8fbaec08370c0342bee75209",
+    "parent": "73e03b9f741689b1538898bde96bf975a49f068e",
+    "runtime_parent": "fcfa717630d74f8e0f3b283083c48f0ff408e08e",
+    "runtime_parent_accepted": false,
+    "actual_Root_exit_code": 0,
+    "actual_receipt": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/native-reference-attempt3-actual-exit.json",
+      "sha256": "b06ee634dabbd2e9dd12e03e3befa4e8060c484b76d3b57bc42aac64c1587eef",
+      "bytes": 2831
+    },
+    "result": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/native-multiple-odometry-publishers-jm7nla2p/result.json",
+      "sha256": "3d67b3af679407c9ec838c99a3ac196f051adc9d832f3c978ed5d735a1db5251",
+      "bytes": 642453
+    },
+    "execution_ledger": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/native-multiple-odometry-publishers-jm7nla2p/execution-ledger.json",
+      "sha256": "029b8a366fefe85d7ef2372063a36e3704bdb807ed536f6099ed49d82fb7921f",
+      "bytes": 136689
+    },
+    "controller_elapsed_seconds": 22.40394141105935,
+    "actual_child_stages": 30,
+    "all_child_exits_zero_and_reaped": true,
+    "counts": {
+      "canonical_packets": 270,
+      "captured_pose_bodies": 270,
+      "configuration_count": 10,
+      "covariance_f32_words": 6480,
+      "direct_post_update_calls": 130,
+      "direct_pre_update_calls": 130,
+      "fence_rows": 130,
+      "global_call_groups": 26,
+      "input_rows": 130,
+      "observed_channel_triples": 90,
+      "pose_vector_records": 90,
+      "public_interface_invocations": 260,
+      "raw_rows": 542
+    }
+  },
+  "native_DATA": {
+    "actual_Root_exit_code": 0,
+    "actual_receipt": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/native-audit-actual-exit.json",
+      "sha256": "bd40d584b7675be68a005a56140090f045e81c915b685df188d8076d3bc9baf7",
+      "bytes": 2192
+    },
+    "report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/native-audit.json",
+      "sha256": "5af078247cc8355739eadc7a779e1546be714c5f3fdd012886f13cbe73446380",
+      "bytes": 542753
+    },
+    "full_raw_IEEE_protobuf_wires_optional_fields_order_and_saved_dependency_edges_checked": true
+  },
+  "fixture_generation": {
+    "actual_Root_exit_code": 0,
+    "actual_receipt": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/native-fixture-generation-actual-exit.json",
+      "sha256": "39bf38be42c62cc2d66ed0cd9194496532e59e89473c7385ece03cd74465c8b6",
+      "bytes": 3348
+    },
+    "fixture": {
+      "path": "crates/gz-sim-scene/tests/fixtures/m56_native_multiple_odometry_publishers.rs",
+      "sha256": "4f910e7cac2bab347536a00f462df65edebe918a48adde1b8da7cb039ba773e7",
+      "bytes": 1426336
+    },
+    "provenance": {
+      "path": "crates/gz-sim-scene/tests/fixtures/m56_native_multiple_odometry_publishers.provenance.json",
+      "sha256": "ecabb7c9ed6a2360238e375174e8a95d59b5be0780005027942f2412c7139644",
+      "bytes": 504828
+    }
+  },
+  "fixed_literal_DATA": {
+    "actual_Root_exit_code": 0,
+    "actual_receipt": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/native-borrowed-fixture-audit-actual-exit.json",
+      "sha256": "cc55e3c85636c66f0b6909536144d757a64e0e16a2403860d7ec6fc59335631a",
+      "bytes": 3107
+    },
+    "report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/native-borrowed-fixture-audit.json",
+      "sha256": "be68d424f0e2df1886fa3f7a32d0938ef1f317720afe25c014d21e439eb1e687",
+      "bytes": 500768
+    },
+    "every_typed_field_word_byte_and_raw_row_locator_checked": true
+  },
+  "retained_failed_captures": [
+    {
+      "attempt": 1,
+      "actual_Root_exit_code": 1,
+      "receipt": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/native-reference-attempt1-method-failure.json",
+        "sha256": "b60679fc17c67a4d19dd107471a11779fb04c08a667b126eeba65a2a716124b5",
+        "bytes": 1821
+      },
+      "scope": "Binding error before packet or native children."
+    },
+    {
+      "attempt": 2,
+      "actual_Root_exit_code": 1,
+      "receipt": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m56-delivery/native-reference-attempt2-failure.json",
+        "sha256": "184b067bc1539f1821ccf24d72d6d3a60d316cde2b90f0daa14a15bdc84eaf45",
+        "bytes": 27905
+      },
+      "scope": "Result persistence failed; original body, waits and resource minima were not serialized and remain unknown."
+    }
+  ],
+  "original_object_sha256": "16654e5f27a45199eeee39b8620100c056645bf30045c7b740f29c071fac0d0c",
+  "rejected_original_DSO_diagnostic_actual_exit_code": 1,
+  "rejected_original_DSO_loaded": false,
+  "original_provider_or_SDK_rebuilt": false,
+  "native_Server_or_plugin_loader_or_Physics_executed": false,
+  "demand_reset_removal_schedule_or_global_RNG_equivalence_claimed": false,
+  "source_to_binary_equivalence_proved": false,
+  "Rust_tests_coverage_normal_or_phase_acceptance_proved": false,
+  "limits": "Controlled finite LOCAL inputs and actual WORLD getbacks through unchanged original public System methods. Three canonical channels preserve complete original fields and wires. This is reference and literal custody; real physical motion, Rust numeric sampling, Server packet mapping, lifecycle controls and full qualification remain separate."
+}

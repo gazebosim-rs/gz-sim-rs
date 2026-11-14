@@ -56,6 +56,7 @@ NOISY_EXAMPLES = (
     "examples/m53_multiple_logical_cameras.sdf",
     "examples/m54_multiple_lidars.sdf",
     "examples/m55_multiple_pose_publishers.sdf",
+    "examples/m56_multiple_odometry_publishers.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -116,6 +117,10 @@ NOISY_LINKS = {
         "default::rig::tip": (1 + 0.8 * math.cos(0.6), 2 + 0.8 * math.sin(0.6), 3),
         "default::peer::base": (1, 8, 3),
         "default::peer::tip": (1 + 0.8 * math.cos(0.6), 8 + 0.8 * math.sin(0.6), 3),
+    },
+    "examples/m56_multiple_odometry_publishers.sdf": {
+        "default::planar::body": (2, -1, 3),
+        "default::spatial::body": (2, 8, 3),
     },
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"

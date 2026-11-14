@@ -430,9 +430,11 @@ impl Plan {
             "ground-truth odometry requires a top-level flat Rapier model",
         )?;
         require(
-            !sim.world()
+            sim.world()
                 .iter_entities()
-                .any(|e| e.contains::<Publisher>()),
+                .filter(|e| e.contains::<Publisher>())
+                .count()
+                < 8,
             &model.scoped_name,
             "multiple ground-truth odometry models",
         )
@@ -2602,3 +2604,11 @@ mod rotation_native_tests;
 #[cfg(test)]
 #[path = "../tests/private/odometry_noise.rs"]
 mod noise_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_odometry_publishers.rs"]
+mod multiple_odometry_publishers_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_odometry_publishers_native.rs"]
+mod multiple_odometry_publishers_native_tests;

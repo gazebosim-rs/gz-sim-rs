@@ -483,6 +483,24 @@ pub fn initial_ground_truth_odometry_publications(
     }))
 }
 
+/// Original odometry owners and metadata, including models removed since load.
+pub fn initial_ground_truth_odometry_publications_with_identity(
+    sim: &Simulation,
+) -> Result<
+    impl Iterator<Item = (u64, EntityKind, &str, &GroundTruthOdometryPublication)>,
+    SceneResetError,
+> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.0.nodes.iter().filter_map(|node| {
+        node.ground_truth_odometry_publication
+            .as_ref()
+            .map(|metadata| (node.id.get(), node.kind, node.name.as_str(), metadata))
+    }))
+}
+
 /// The configured world input metadata survives removal of the last eligible link.
 pub fn initial_apply_link_wrench_configuration(
     sim: &Simulation,

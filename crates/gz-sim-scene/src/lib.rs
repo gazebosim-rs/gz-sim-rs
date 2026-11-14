@@ -104,12 +104,13 @@ pub use initial::{
     initial_air_speed_publications_with_identity, initial_altimeter_publications,
     initial_altimeter_publications_with_identity, initial_apply_link_wrench_configuration,
     initial_diff_drive_configurations, initial_ground_truth_odometry_publications,
-    initial_imu_publications, initial_joint_controller_configurations,
-    initial_joint_force_configurations, initial_joint_state_publications,
-    initial_lidar_publications, initial_lidar_publications_with_identity,
-    initial_logical_camera_identities, initial_logical_camera_publications,
-    initial_magnetometer_publications, initial_magnetometer_publications_with_identity,
-    initial_pose_publications, initial_pose_publications_with_identity, reset_loaded_world,
+    initial_ground_truth_odometry_publications_with_identity, initial_imu_publications,
+    initial_joint_controller_configurations, initial_joint_force_configurations,
+    initial_joint_state_publications, initial_lidar_publications,
+    initial_lidar_publications_with_identity, initial_logical_camera_identities,
+    initial_logical_camera_publications, initial_magnetometer_publications,
+    initial_magnetometer_publications_with_identity, initial_pose_publications,
+    initial_pose_publications_with_identity, reset_loaded_world,
 };
 
 use bevy_ecs::prelude::*;

@@ -34,8 +34,15 @@ pub(super) struct GroundTruthOdometryId(uuid::Uuid);
 pub(super) struct GroundTruthOdometryOutput {
     id: GroundTruthOdometryId,
     pub(super) channel: GroundTruthOdometryChannel,
+    endpoint: String,
     retired: mpsc::SyncSender<GroundTruthOdometryId>,
     dirty: Arc<AtomicBool>,
+}
+impl GroundTruthOdometryOutput {
+    /// Pure setup identity; this does not look up a declaration or touch IO.
+    pub(super) fn matches(&self, channel: GroundTruthOdometryChannel, key: &str) -> bool {
+        self.channel == channel && self.endpoint == key
+    }
 }
 impl Drop for GroundTruthOdometryOutput {
     fn drop(&mut self) {
@@ -117,6 +124,7 @@ impl GroundTruthOdometryDeclarations {
         let output = Arc::new(GroundTruthOdometryOutput {
             id: GroundTruthOdometryId(uuid::Uuid::new_v4()),
             channel,
+            endpoint: key.clone(),
             retired,
             dirty: Arc::clone(dirty),
         });

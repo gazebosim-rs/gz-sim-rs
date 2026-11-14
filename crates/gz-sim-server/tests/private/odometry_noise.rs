@@ -82,7 +82,7 @@ fn sigma_bits_bind_prepared_identity_and_stale_streams_never_publish() {
         );
         // Never step with tampered metadata; Prepared witnesses bind sigma too.
         let mut prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
-        for (_, config, _, _) in prepared.values_mut() {
+        for (_, config, _, _, _) in prepared.values_mut() {
             config.gaussian_noise = a;
         }
         server

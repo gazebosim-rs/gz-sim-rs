@@ -144,43 +144,225 @@ fn packets(
     };
     Some((odometry, cov, tf))
 }
-pub(super) type Prepared = BTreeMap<String, (u64, Metadata, Channel, Arc<Output>)>;
+// Preserve the owner/metadata/channel/output prefix; append original full name.
+pub(super) type Prepared = BTreeMap<String, (u64, Metadata, Channel, Arc<Output>, String)>;
+const MAX_ODOMETRY_PUBLISHERS: usize = 8;
+struct Original {
+    identity: u64,
+    name: String,
+    metadata: Metadata,
+    endpoints: [(Channel, String); 3],
+}
+struct Candidate {
+    entity: Entity,
+    identity: u64,
+    name: String,
+    metadata: Metadata,
+}
+fn original_owners(
+    sim: &Simulation,
+    options: &ServerOptions,
+    occupied: &BTreeSet<String>,
+) -> Result<Option<Vec<Original>>, Error> {
+    let rows = match gz_sim_scene::initial_ground_truth_odometry_publications_with_identity(sim) {
+        Ok(rows) => rows
+            .map(|(id, kind, name, metadata)| (id, kind, name.to_owned(), metadata.clone()))
+            .collect::<Vec<_>>(),
+        Err(gz_sim_scene::SceneResetError::MissingInitialState) => return Ok(None),
+        Err(error) => return Err(error.into()),
+    };
+    if rows.len() > MAX_ODOMETRY_PUBLISHERS {
+        return Err(Error::GroundTruthOdometryIdentity);
+    }
+    let mut identities = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut raw = BTreeSet::new();
+    let mut keys = occupied.clone();
+    let mut result = Vec::new();
+    for (identity, kind, name, metadata) in rows {
+        let mut worlds = sim
+            .world()
+            .iter_entities()
+            .filter(|node| node.get::<EntityKind>() == Some(&EntityKind::World));
+        let world = worlds.next().and_then(|node| node.get::<Name>());
+        if kind != EntityKind::Model
+            || !valid(&metadata, identity)
+            || worlds.next().is_some()
+            || !world.is_some_and(|world| name == format!("{}::{}", world.0, metadata.model_name))
+            || !identities.insert(identity)
+            || !names.insert(name.clone())
+        {
+            return Err(Error::GroundTruthOdometryIdentity);
+        }
+        let mut endpoints = Vec::new();
+        for (channel, topic) in channels(&metadata) {
+            let key = options.topic_key(topic)?;
+            if !raw.insert(topic.to_owned()) || !keys.insert(key.clone()) {
+                return Err(Error::GroundTruthOdometryIdentity);
+            }
+            endpoints.push((channel, key));
+        }
+        result.push(Original {
+            identity,
+            name,
+            metadata,
+            endpoints: endpoints.try_into().expect("exactly three channels"),
+        });
+    }
+    Ok(Some(result))
+}
+fn candidate_owners(
+    sim: &Simulation,
+    options: &ServerOptions,
+    occupied: &BTreeSet<String>,
+    original: Option<&[Original]>,
+    restoring: bool,
+) -> Result<Vec<Candidate>, Error> {
+    let nodes = sim
+        .world()
+        .iter_entities()
+        .filter(|node| !node.contains::<PendingResetRemoval>() && node.contains::<Metadata>())
+        .map(|node| node.id())
+        .collect::<Vec<_>>();
+    if nodes.len() > MAX_ODOMETRY_PUBLISHERS || original.is_none() && nodes.len() > 1 {
+        return Err(Error::GroundTruthOdometryIdentity);
+    }
+    let mut identities = BTreeSet::new();
+    let mut names = BTreeSet::new();
+    let mut raw = BTreeSet::new();
+    let mut keys = occupied.clone();
+    let mut result = Vec::new();
+    for entity in nodes {
+        let node = sim.world().entity(entity);
+        let identity = node
+            .get::<EntityId>()
+            .ok_or(Error::GroundTruthOdometryIdentity)?
+            .get();
+        let metadata = node.get::<Metadata>().expect("selected metadata");
+        let name = &node
+            .get::<Name>()
+            .ok_or(Error::GroundTruthOdometryIdentity)?
+            .0;
+        if !binding(sim, entity, identity, metadata)
+            || !identities.insert(identity)
+            || !names.insert(name.clone())
+        {
+            return Err(Error::GroundTruthOdometryIdentity);
+        }
+        if let Some(original) = original {
+            let owner = original
+                .iter()
+                .find(|owner| owner.identity == identity && &owner.name == name)
+                .ok_or(Error::GroundTruthOdometryIdentity)?;
+            // Loaded reset restores the immutable configuration. Preserve old
+            // sigma/offset drift controls which prepare an ORIGINAL witness.
+            if !restoring && &owner.metadata != metadata {
+                return Err(Error::GroundTruthOdometryIdentity);
+            }
+        }
+        for (_, topic) in channels(metadata) {
+            let key = options.topic_key(topic)?;
+            if !raw.insert(topic.to_owned())
+                || !keys.insert(key.clone())
+                || original.is_some_and(|owners| {
+                    owners.iter().any(|owner| {
+                        owner.identity != identity
+                            && owner.endpoints.iter().any(|(_, reserved)| reserved == &key)
+                    })
+                })
+            {
+                return Err(Error::GroundTruthOdometryIdentity);
+            }
+        }
+        result.push(Candidate {
+            entity,
+            identity,
+            name: name.clone(),
+            metadata: metadata.clone(),
+        });
+    }
+    Ok(result)
+}
 pub(super) fn prepare_reset(
     server: &Server,
     occupied: &BTreeSet<String>,
 ) -> Result<Prepared, Error> {
-    let metadata: Vec<_> =
-        gz_sim_scene::initial_ground_truth_odometry_publications(&server.simulation)?
-            .map(|(id, m)| (id, m.clone()))
-            .collect();
-    if metadata.len() > 1 || metadata.iter().any(|(id, m)| !valid(m, *id)) {
-        return Err(Error::GroundTruthOdometryIdentity);
-    }
-    let mut selected = Vec::new();
-    let mut keys = occupied.clone();
-    for (id, metadata) in metadata {
-        for (channel, topic) in channels(&metadata) {
-            let key = server.network_config.topic_key(topic)?;
-            if !keys.insert(key.clone()) {
-                return Err(Error::GroundTruthOdometryIdentity);
+    let mut keys = new_system_reserved_keys(
+        &server.simulation,
+        &server.world_io,
+        &server.network_config,
+        PublicationFamily::GroundTruthOdometry,
+    )?;
+    keys.extend(occupied.iter().cloned());
+    let original = original_owners(&server.simulation, &server.network_config, &keys)?
+        .ok_or(gz_sim_scene::SceneResetError::MissingInitialState)?;
+    candidate_owners(
+        &server.simulation,
+        &server.network_config,
+        &keys,
+        Some(&original),
+        true,
+    )?;
+    let mut old_keys = BTreeSet::new();
+    let mut old_channels = BTreeSet::new();
+    for (index, stream) in server.ground_truth_odometries.iter().enumerate() {
+        let owner = original
+            .iter()
+            .find(|owner| owner.identity == stream.identity)
+            .ok_or(Error::GroundTruthOdometryIdentity)?;
+        let owner_binding = match entity_by_id(server.simulation.world(), stream.identity) {
+            Some(entity) => {
+                entity == stream.entity
+                    && server.simulation.world().get::<EntityKind>(entity)
+                        == Some(&EntityKind::Model)
+                    && server
+                        .simulation
+                        .world()
+                        .get::<Name>(entity)
+                        .map(|name| name.0.as_str())
+                        == Some(owner.name.as_str())
             }
-            selected.push((id, metadata.clone(), channel, key));
+            None => server.simulation.world().get_entity(stream.entity).is_err(),
+        };
+        if !owner_binding
+            || stream.metadata != owner.metadata
+            || !stream.publisher.matches(stream.channel, &stream.endpoint)
+            || !old_keys.insert(stream.endpoint.as_str())
+            || !old_channels.insert((stream.identity, stream.channel))
+            || server.ground_truth_odometries[..index]
+                .iter()
+                .any(|prior| Arc::ptr_eq(&prior.publisher, &stream.publisher))
+        {
+            return Err(Error::GroundTruthOdometryIdentity);
         }
     }
+    // Every current/original/retained lease is now checked; lookup and Arc
+    // reuse begin only after this complete pure preflight.
     let mut result = BTreeMap::new();
-    for (id, metadata, channel, key) in selected {
-        let publisher = match server
-            .ground_truth_odometries
-            .iter()
-            .find(|s| s.endpoint == key && s.channel == channel)
-        {
-            Some(s) => Arc::clone(&s.publisher),
-            None => server
-                .world_io
-                .ground_truth_odometry_output(key.clone(), channel)
-                .map_err(|e| Error::WorldNetwork(e.to_string()))?,
-        };
-        result.insert(key, (id, metadata, channel, publisher));
+    for owner in original {
+        for (channel, key) in owner.endpoints {
+            let publisher = match server
+                .ground_truth_odometries
+                .iter()
+                .find(|stream| stream.endpoint == key && stream.channel == channel)
+            {
+                Some(stream) => Arc::clone(&stream.publisher),
+                None => server
+                    .world_io
+                    .ground_truth_odometry_output(key.clone(), channel)
+                    .map_err(|error| Error::WorldNetwork(error.to_string()))?,
+            };
+            result.insert(
+                key,
+                (
+                    owner.identity,
+                    owner.metadata.clone(),
+                    channel,
+                    publisher,
+                    owner.name.clone(),
+                ),
+            );
+        }
     }
     Ok(result)
 }
@@ -203,56 +385,84 @@ pub(super) fn streams(
     occupied: &BTreeSet<String>,
     prepared: Option<&Prepared>,
 ) -> Result<Vec<Stream>, Error> {
-    let candidates: Vec<_> = sim
+    // Keep malformed manual-owner identity errors before any initial lookup.
+    let count = sim
         .world()
         .iter_entities()
-        .filter(|e| !e.contains::<PendingResetRemoval>() && e.contains::<Metadata>())
-        .map(|e| e.id())
-        .collect();
-    if candidates.len() > 1 {
+        .filter(|node| !node.contains::<PendingResetRemoval>() && node.contains::<Metadata>())
+        .count();
+    if count > MAX_ODOMETRY_PUBLISHERS {
         return Err(Error::GroundTruthOdometryIdentity);
     }
-    let mut keys = occupied.clone();
-    let mut selected = Vec::new();
-    for entity in candidates {
-        let metadata = sim
-            .world()
-            .get::<Metadata>(entity)
-            .expect("selected metadata");
-        let id = sim
-            .world()
-            .get::<EntityId>(entity)
+    for node in sim
+        .world()
+        .iter_entities()
+        .filter(|node| !node.contains::<PendingResetRemoval>() && node.contains::<Metadata>())
+    {
+        let id = node
+            .get::<EntityId>()
             .ok_or(Error::GroundTruthOdometryIdentity)?
             .get();
-        if !binding(sim, entity, id, metadata) {
+        if !binding(
+            sim,
+            node.id(),
+            id,
+            node.get::<Metadata>().expect("selected metadata"),
+        ) {
             return Err(Error::GroundTruthOdometryIdentity);
         }
-        for (channel, topic) in channels(metadata) {
+    }
+    let mut keys =
+        new_system_reserved_keys(sim, io, options, PublicationFamily::GroundTruthOdometry)?;
+    keys.extend(occupied.iter().cloned());
+    let original = original_owners(sim, options, &keys)?;
+    let owners = candidate_owners(sim, options, &keys, original.as_deref(), false)?;
+    let mut selected = Vec::new();
+    for owner in owners {
+        for (channel, topic) in channels(&owner.metadata) {
             let key = options.topic_key(topic)?;
-            if !keys.insert(key.clone()) {
-                return Err(Error::GroundTruthOdometryIdentity);
-            }
-            if let Some(p) = prepared {
-                let Some((original, config, kind, _)) = p.get(&key) else {
+            if let Some(entries) = prepared {
+                let Some((identity, metadata, kind, output, name)) = entries.get(&key) else {
                     return Err(Error::GroundTruthOdometryIdentity);
                 };
-                if *original != id || config != metadata || *kind != channel {
+                if *identity != owner.identity
+                    || metadata != &owner.metadata
+                    || *kind != channel
+                    || !output.matches(channel, &key)
+                    || name != &owner.name
+                {
                     return Err(Error::GroundTruthOdometryIdentity);
                 }
             }
-            selected.push((entity, id, metadata.clone(), channel, key));
+            selected.push((
+                owner.entity,
+                owner.identity,
+                owner.metadata.clone(),
+                channel,
+                key,
+            ));
         }
     }
-    if prepared.is_some_and(|p| p.len() != selected.len()) {
+    if prepared.is_some_and(|entries| entries.len() != selected.len()) {
         return Err(Error::GroundTruthOdometryIdentity);
+    }
+    if let Some(entries) = prepared {
+        let rows = entries.values().collect::<Vec<_>>();
+        if rows.iter().enumerate().any(|(index, row)| {
+            rows[..index]
+                .iter()
+                .any(|prior| Arc::ptr_eq(&prior.3, &row.3))
+        }) {
+            return Err(Error::GroundTruthOdometryIdentity);
+        }
     }
     let mut result = Vec::new();
     for (entity, identity, metadata, channel, endpoint) in selected {
         let publisher = match prepared {
-            Some(p) => Arc::clone(&p.get(&endpoint).expect("all keys preflighted").3),
+            Some(entries) => Arc::clone(&entries.get(&endpoint).expect("all keys preflighted").3),
             None => io
                 .ground_truth_odometry_output(endpoint.clone(), channel)
-                .map_err(|e| Error::WorldNetwork(e.to_string()))?,
+                .map_err(|error| Error::WorldNetwork(error.to_string()))?,
         };
         result.push(Stream {
             entity,
@@ -1109,7 +1319,7 @@ mod tests {
                 ..original.clone()
             });
         let mut prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
-        for (_, config, _, _) in prepared.values_mut() {
+        for (_, config, _, _, _) in prepared.values_mut() {
             config.offsets = local;
         }
         server
@@ -1271,3 +1481,11 @@ mod rotation_native_tests;
 #[cfg(test)]
 #[path = "../tests/private/odometry_noise.rs"]
 mod noise_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_odometry_publishers.rs"]
+mod multiple_odometry_publishers;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_odometry_publishers_native.rs"]
+mod multiple_odometry_publishers_native;

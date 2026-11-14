@@ -121,7 +121,7 @@ fn each_rotation_vector_bits_bind_prepared_and_live_stream_identity() {
                 ..original.clone()
             });
         let mut prepared = prepare_reset(&server, &BTreeSet::new()).unwrap();
-        for (_, config, _, _) in prepared.values_mut() {
+        for (_, config, _, _, _) in prepared.values_mut() {
             config.offsets = a;
         }
         server
