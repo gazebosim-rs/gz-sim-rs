@@ -438,8 +438,17 @@ fn loaded_driver_admission_requires_a_unique_planar_world_owned_rapier_model() {
     let robot = &XML[begin..end];
     let second = robot.replace("name=\"robot\"", "name=\"other\"");
     let duplicate = XML.replace("</world>", &format!("{second}</world>"));
+    let admitted = load_xml(&duplicate).unwrap();
+    assert_eq!(
+        initial_diff_drive_configurations(&admitted)
+            .unwrap()
+            .count(),
+        2
+    );
+    let third = robot.replace("name=\"robot\"", "name=\"third\"");
+    let overflow = duplicate.replace("</world>", &format!("{third}</world>"));
     assert!(matches!(
-        load_xml(&duplicate),
+        load_xml(&overflow),
         Err(LoadError::Unsupported {
             feature: "multiple differential-drive systems",
             ..

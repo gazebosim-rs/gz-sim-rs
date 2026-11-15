@@ -1759,3 +1759,138 @@ fn initial_pose_identities_borrow_all_originals_through_owner_removal_and_loaded
     assert_eq!(sim.elapsed(), Duration::ZERO);
     assert_eq!(sim.epoch(), 1);
 }
+
+#[test]
+fn initial_diff_drive_identity_query_distinguishes_missing_and_empty_blueprints() {
+    let bare = Simulation::new(Duration::from_millis(1)).unwrap();
+    assert!(matches!(
+        initial_diff_drive_configurations_with_identity(&bare),
+        Err(SceneResetError::MissingInitialState)
+    ));
+    assert!(matches!(
+        initial_diff_drive_configurations(&bare),
+        Err(SceneResetError::MissingInitialState)
+    ));
+    let sim = load();
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    assert_eq!(
+        initial_diff_drive_configurations_with_identity(&sim)
+            .unwrap()
+            .count(),
+        0
+    );
+    let initial = sim.world().resource::<InitialScene>();
+    assert_eq!(initial.diff_drive_identities().count(), 0);
+    assert!(initial.diff_drive_blueprint(0).is_none());
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+}
+
+#[test]
+fn initial_diff_drive_identities_and_wheels_keep_original_model_scope_after_removal() {
+    let xml = include_str!("../../../../examples/m59_multiple_diff_drives.sdf");
+    let mut sim = load_world_with_sdf_step(
+        xml,
+        "m59-original-identities.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let collect = |sim: &Simulation| {
+        initial_diff_drive_configurations_with_identity(sim)
+            .unwrap()
+            .map(|row| {
+                (
+                    row.id,
+                    row.kind,
+                    row.name.to_owned(),
+                    row.parent,
+                    row.configuration.clone(),
+                )
+            })
+            .collect::<Vec<_>>()
+    };
+    let saved = collect(&sim);
+    assert_eq!(saved.len(), 2);
+    let left = id(&sim, "default::robot_left");
+    let right = id(&sim, "default::robot_right");
+    assert_ne!(left, right);
+    assert_eq!(
+        saved.iter().map(|row| row.0).collect::<BTreeSet<_>>(),
+        BTreeSet::from([left, right])
+    );
+    let before = (sim.elapsed(), sim.epoch(), sim.world().entities().len());
+    let wheels: Vec<_> = {
+        let initial = sim.world().resource::<InitialScene>();
+        let mut wheels = Vec::new();
+        for row in &saved {
+            assert_eq!(row.1, EntityKind::Model);
+            assert_eq!(row.2, format!("default::{}", row.4.model_name));
+            let owner = entity_by_id(sim.world(), row.0).unwrap();
+            let world = sim.world().get::<ChildOf>(owner).unwrap().parent();
+            assert_eq!(row.3, sim.world().get::<EntityId>(world).map(EntityId::get));
+            assert_eq!(
+                sim.world().get::<EntityKind>(world),
+                Some(&EntityKind::World)
+            );
+            assert!(initial.diff_drive_blueprint(row.0).is_some());
+            assert!(diff_drive_binding_matches(&sim, row.0));
+            for node in sim
+                .world()
+                .iter_entities()
+                .filter(|node| node.get::<ChildOf>().map(ChildOf::parent) == Some(owner))
+            {
+                let Some(handle) = node.get::<JointHandle>() else {
+                    continue;
+                };
+                let original = initial
+                    .diff_drive_wheel_identity(row.0, handle.id())
+                    .unwrap();
+                assert_eq!(original.id, node.get::<EntityId>().unwrap().get());
+                assert_eq!(original.kind, EntityKind::Joint);
+                assert_eq!(original.name, node.get::<Name>().unwrap().0);
+                assert_eq!(original.parent, Some(row.0));
+                assert_eq!(original.handle.id(), handle.id());
+                assert_eq!(original.handle.child(), handle.child());
+                assert_eq!(
+                    original.definition.0.name,
+                    node.get::<JointDefinition>().unwrap().0.name
+                );
+                let peer = if row.0 == left { right } else { left };
+                assert!(
+                    initial
+                        .diff_drive_wheel_identity(peer, handle.id())
+                        .is_none()
+                );
+                wheels.push((row.0, handle.id(), original.id));
+            }
+        }
+        wheels
+    };
+    assert_eq!(wheels.len(), 4);
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.world().entities().len()),
+        before
+    );
+    for owner in [left, right] {
+        remove_model(&mut sim, owner).unwrap();
+        assert!(entity_by_id(sim.world(), owner).is_none());
+        assert_eq!(collect(&sim), saved);
+        let initial = sim.world().resource::<InitialScene>();
+        assert!(initial.diff_drive_blueprint(owner).is_some());
+        for &(model, joint, id) in &wheels {
+            assert_eq!(
+                initial.diff_drive_wheel_identity(model, joint).unwrap().id,
+                id
+            );
+        }
+    }
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert_eq!(collect(&sim), saved);
+    for owner in [left, right] {
+        assert!(diff_drive_binding_matches(&sim, owner));
+    }
+}

@@ -1714,9 +1714,12 @@ fn drive_epoch_jobs_retirement_and_endpoint_guards_use_the_existing_bounded_owne
     let cmd = "@/drive@/cmd".to_owned();
     let odom = "@/drive@/odom".to_owned();
     let setup = |command_key: String, odometry_key: String, input| crate::diff_drive_io::Setup {
-        command_key,
-        odometry_key,
-        input,
+        endpoints: vec![crate::diff_drive_io::Endpoint {
+            owner: 1,
+            command_key,
+            odometry_key,
+            input,
+        }],
         max_bytes: 1024,
         drops: Arc::clone(&io.ingress_drops),
         epoch: Arc::clone(&io.epoch),
@@ -1728,18 +1731,21 @@ fn drive_epoch_jobs_retirement_and_endpoint_guards_use_the_existing_bounded_owne
     ] {
         let (input, _) = mpsc::sync_channel(1);
         assert!(matches!(
-            io.diff_drive_output(setup(key.into(), odom.clone(), input)),
+            io.diff_drive_outputs(setup(key.into(), odom.clone(), input)),
             Err(crate::Error::DiffDriveIdentity)
         ));
         let (input, _) = mpsc::sync_channel(1);
         assert!(matches!(
-            io.diff_drive_output(setup(cmd.clone(), key.into(), input)),
+            io.diff_drive_outputs(setup(cmd.clone(), key.into(), input)),
             Err(crate::Error::DiffDriveIdentity)
         ));
     }
     let (input, receiver) = mpsc::sync_channel(1);
     let output = io
-        .diff_drive_output(setup(cmd.clone(), odom.clone(), input))
+        .diff_drive_outputs(setup(cmd.clone(), odom.clone(), input))
+        .unwrap()
+        .outputs
+        .remove(&1)
         .unwrap();
     let observer = io.session.declare_subscriber(odom.clone()).wait().unwrap();
     let frame = gz_sim_proto::msgs::Odometry::default().encode_to_vec();
@@ -1770,7 +1776,10 @@ fn drive_epoch_jobs_retirement_and_endpoint_guards_use_the_existing_bounded_owne
     assert!(weak.upgrade().is_none());
     let (input, _) = mpsc::sync_channel(1);
     let replacement = io
-        .diff_drive_output(setup(cmd.clone(), odom.clone(), input))
+        .diff_drive_outputs(setup(cmd.clone(), odom.clone(), input))
+        .unwrap()
+        .outputs
+        .remove(&1)
         .unwrap();
     io.incoming.send(WorldWork::Odometry(1, stale)).unwrap();
     let second_fence = io.lidar_output("@/drive@/fence2".into()).unwrap();
@@ -1786,7 +1795,7 @@ fn drive_epoch_jobs_retirement_and_endpoint_guards_use_the_existing_bounded_owne
     assert!(io.publish_odometry(&replacement, vec![]).is_err());
     let (input, _) = mpsc::sync_channel(1);
     assert!(matches!(
-        io.diff_drive_output(setup(cmd, odom, input)),
+        io.diff_drive_outputs(setup(cmd, odom, input)),
         Err(crate::Error::WorldClosed)
     ));
     io.shutdown();

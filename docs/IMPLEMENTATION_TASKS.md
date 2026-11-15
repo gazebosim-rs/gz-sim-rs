@@ -1,17 +1,51 @@
-## Current M55: endpoint-bound output restoration
+## Current M59: two independent differential-drive robots
 
-The complete four-case correction batch was Source-reviewed and formatted once.
-Before normal3 was invoked, review found a separate concrete prepared-output swap
-gap: distinct output handles could retain valid tuple identity while pointing to
-each other's topics. The bounded correction stores the immutable setup endpoint
-on the CPU output and checks it before reuse/IO, with distinct-swap and duplicate
-refusals under the existing control ID. IO threading, Weak lifetime, queues,
-packets and sampling remain unchanged. Five corrective Rust paths now include
-this narrow IO metadata leaf. Review the complete Source and updated documents,
-then one affected formatting pass/full normal; prior format/failures remain intact.
-No heavy job or normal3 is active. M56 isolated Source preparation continues.
+M58 is provisionally locally qualified at `173b31d2`: its full normal passed
+1,981 headless and 1,161 overlapping renderer tests, 448 aggregate Python checks,
+strict coverage and 32 finite examples. Independent retained DATA passed with all
+four byte-exact RAW comparisons. Seven normal failures and both failed readers
+remain retained. This is local qualification, not hosted or release acceptance.
 
-Earlier checkpoints below retain their original historical scope.
+The sixth M59 full normal retired with actual exit 1 after 1,798.811 seconds.
+It completed 449 aggregate Python checks and native-free/RGB qualification,
+including 33 finite examples. Headless execution passed 2,011 tests with zero
+failures and five existing ignored controls. Both corrected removal paths and
+the three-second motion/wire observations passed. Renderer was not reached.
+
+The strict changed-line gate stopped at Scene's 363 covered lines out of 391;
+it requires strictly greater than 95 percent. All twelve headless crate-wide
+coverage gates passed. Server's 700/721 changed-line result is derived only from
+retained coverage, not an executed later gate or qualification. Full coverage,
+normal success and independent retained DATA have not passed for M59.
+
+All six failed originals remain retained. Attempts 1–3 stopped at lint/compile;
+attempt 4 failed the one-second motion observations; attempt 5 passed the
+three-second observations but used the unsupported local removal API. Attempt 6
+passed the supported blocking-removal RPC and all headless runtime assertions.
+None of these partial results is a full M59 pass or hosted acceptance.
+
+Two additional Scene regression cases for the coverage gap are Source-complete
+and independently reviewed.
+Their current Source obligation is 30 feature headless/15 overlapping renderer
+controls plus two separate headless support controls: 32/15 combined. These are
+Source declarations, not new measured passes; run 6 used the earlier 30/13 set.
+Complete final batch review and one affected formatter before another full
+unchanged normal and independent retained DATA audit.
+No gate is active. Existing resource floors, assertions and limits are unchanged;
+no deletion, eviction, focused trial or native campaign replay is authorized.
+
+M60's package, launcher, regression and guide Source is independently ready.
+Its proof-only procedures remain held for genuine qualified inputs and results;
+final integration waits for actual M59 normal and independent DATA success.
+
+Complete Source, meaningful regressions and guides; batch review findings before
+one affected formatter and the full unchanged normal/coverage gates, then an
+independent retained DATA audit. See [M59_DELIVERY.md](M59_DELIVERY.md).
+M1–M42/175 accepted slices and M40 Latest remain unchanged. Hosted Ubuntu snapshot
+recovery, accepted predecessors, official audits and Main/readbacks still gate
+acceptance/publication. No CI retry or workaround is authorized.
+
+Earlier checkpoints below retain their historical scope.
 
 ## Current M55: complete correction batch after the second normal run
 

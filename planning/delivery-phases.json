@@ -2179,11 +2179,11 @@
       },
       "source_authorship_released": true,
       "product_checks_run": true,
-      "full_normal_passed": false,
-      "independent_local_DATA_passed": false,
-      "runtime_provisionally_locally_qualified": false,
+      "full_normal_passed": true,
+      "independent_local_DATA_passed": true,
+      "runtime_provisionally_locally_qualified": true,
       "accepted": false,
-      "current_stage": "Normal7 passed lint,448 Python,docs,native-free/RGB and1980headlessRust, then failed strictServerchangedlines581/612 (>95%required). Wholeheadless line/region andScenechanged183/188 pass;rendererunreached. Meaningfulretired-role/lease-handoff/legacy-reset coverage Source batch is underway; nojobactive, no fullnormal/DATA.",
+      "current_stage": "The full normal and independent retained DATA passed on173b31d, including strict coverage and all four byte-exact RAW comparisons. Qualification remains provisional; seven normal failures and two reader failures are retained. Hosted/official/accepted-parent/Main gates remain held.",
       "parent_provisional_local_qualification": {
         "sha256": "8b8696d52c1298a5a35c1167f213e3ad3aa8557e6002da5634bc1f6a9dcd4c21",
         "bytes": 22980
@@ -2286,7 +2286,7 @@
         "sha256": "f7bdc61630f0f21f2bdcd7667d1d25c4777277c36af7a28a4435934f6d56be39",
         "bytes": 878
       },
-      "product_tests_and_coverage_reached": false,
+      "product_tests_and_coverage_reached": true,
       "full_normal_attempt1_actual_failure": {
         "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/m58-normal-attempt1-actual-failure.json",
         "sha256": "7c109e3f723388d29500cece8dd1713eab30becbfddcb70e27835b08ea423651",
@@ -2308,7 +2308,7 @@
         "bytes": 783
       },
       "python_checks_run": true,
-      "rust_runtime_tests_and_coverage_reached": false,
+      "rust_runtime_tests_and_coverage_reached": true,
       "full_normal_attempt3_actual_failure": {
         "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m58-delivery/m58-normal-attempt3-actual-failure.json",
         "sha256": "8bb0d72fbad0d9ac012525e8647dbecc16bfb92c80e4ef833922e51fc3d58834",
@@ -2355,6 +2355,77 @@
         "covered": 581,
         "count": 612,
         "qualification_claimed": false
+      },
+      "full_normal_actual0": {
+        "sha256": "4cf24dc4c00febb77b9364d417c22f9f811eef12497f3886db6fb8c8a3f44833",
+        "bytes": 4911
+      },
+      "local_DATA_actual0": {
+        "sha256": "bf7c48ebd4d08b5c23cebf772b4ddbb9c2b29da6c4b52bf96423fb16880c058d",
+        "bytes": 1212
+      },
+      "provisional_local_qualification": {
+        "sha256": "fff92a1f7398614f4fdb4fde2cfc013596044da17e81a2e8765a1209442f8b4a",
+        "bytes": 407300
+      }
+    },
+    {
+      "id": "M59",
+      "title": "Two independent loaded differential-drive robots",
+      "max_working_days": 5,
+      "depends_on": [
+        "M58"
+      ],
+      "scope": "Zero through two genuine loaded top-level dynamic Rapier M8 robots with independent canonical Twist inputs and encoder Odometry outputs, at most four admitted wheel joints and unchanged motor/encoder mathematics.",
+      "acceptance": "Complete implementation, meaningful regression Source, documentation and independent whole review; actual two-owner native wheel/body response, canonical C++ Twist/Odometry interoperability, demand/reset/removal/lease controls and finite copied-CLI execution. One full mandatory normal hook, strict workspace/per-crate/actual-parent coverage and independent retained DATA. Accepted predecessor, exact hosted CI, official audit and Main/readbacks still precede acceptance/publication.",
+      "excluded": "New geometry or joint topology, native trajectory/ABS parity, solver or motor changes, custom transport, dynamic plugins, rendering/package/browser replay, unrelated sensors or compatibility inventory.",
+      "evidence": "docs/M59_DELIVERY.md",
+      "provisional_local_only": true,
+      "integrated_parent": "173b31d2d13889f851c58dfff1ea81a34680ede8",
+      "source_preparation_basis_commit": "9dfde487e7e377432573ebbcfd1e7a58901bc492",
+      "source_preparation_basis_accepted": false,
+      "source_authorship_released": true,
+      "product_checks_run": true,
+      "full_normal_passed": false,
+      "independent_local_DATA_passed": false,
+      "runtime_provisionally_locally_qualified": false,
+      "accepted": false,
+      "current_stage": "The sixth full normal returned exit 1 after 1,798.811 seconds: 2,011 headless passes, zero failures and five existing ignored controls; 449 Python checks and native-free/RGB qualification with 33 finite examples completed. Scene changed-line coverage of 363/391 failed the strict >95% gate; Server 700/721 is derived only. Renderer, full normal and DATA remain pending. Two Scene cases are complete, independently reviewed Source (32 H/15 R combined, not new passes). All six failures remain retained.",
+      "parent_provisional_local_qualification": {
+        "sha256": "fff92a1f7398614f4fdb4fde2cfc013596044da17e81a2e8765a1209442f8b4a",
+        "bytes": 407300
+      },
+      "parent_normal_actual0": {
+        "sha256": "4cf24dc4c00febb77b9364d417c22f9f811eef12497f3886db6fb8c8a3f44833",
+        "bytes": 4911
+      },
+      "parent_DATA_actual0": {
+        "sha256": "bf7c48ebd4d08b5c23cebf772b4ddbb9c2b29da6c4b52bf96423fb16880c058d",
+        "bytes": 1212
+      },
+      "retained_normal_attempt1_failure": {
+        "sha256": "11a8de56565a037ef195a73c56f61b781d5c20fc3506b75c2ea68cd7ceb029c4",
+        "bytes": 1810
+      },
+      "retained_normal_attempt2_failure": {
+        "sha256": "f3968f9aea6fa522ea610aa86ac3e3ce76faf2f491bfe265331099e069192972",
+        "bytes": 1756
+      },
+      "retained_normal_attempt3_failure": {
+        "sha256": "a6782352936122b5b042ae790e729ba9820b7468d1e3774adbefe496656f425a",
+        "bytes": 1850
+      },
+      "retained_normal_attempt4_failure": {
+        "sha256": "0782b61a044b3f716c62cb7a63d491cc6e865afc828a51cc447a65eca4f8afe9",
+        "bytes": 2206
+      },
+      "retained_normal_attempt5_failure": {
+        "sha256": "5a8edfff8e8dcb6ac33e03717f8efd02217c0f0cb77a23be74d1af0c31958f85",
+        "bytes": 2236
+      },
+      "retained_normal_attempt6_failure": {
+        "sha256": "54f69c7ff288dd5eb46525aecc924a89cfa64d7ffdd6beb1e0b812b8c8faab42",
+        "bytes": 2809
       }
     }
   ],
@@ -2417,10 +2488,11 @@
     "M55": "in_progress",
     "M56": "in_progress",
     "M57": "in_progress",
-    "M58": "in_progress"
+    "M58": "in_progress",
+    "M59": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-14T10:59:54.096508+00:00",
+  "phase_started_at": "2026-11-14T23:14:15.465049+00:00",
   "active_phases": [
     "M43",
     "M44",
@@ -2437,7 +2509,8 @@
     "M55",
     "M56",
     "M57",
-    "M58"
+    "M58",
+    "M59"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -2692,29 +2765,29 @@
       "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M42 and175 slices remain accepted; M40 is installed Latest. M43\u2013M57 are locally qualified but unaccepted. M57 full normal/strict coverage and independent retained DATA passed at9dfde487 with all original failures preserved. M58 Source work is active on that exact provisional parent; no M58 product/native qualification or release acceptance is claimed. Accepted predecessors, exact hosted CI, official audits and Main/readbacks remain mandatory; Ubuntu snapshot recovery is unconfirmed.",
+  "acceptance_boundary": "M1\u2013M42 and175 slices remain accepted; M40 is installed Latest. M43\u2013M58 are provisionally locally qualified but unaccepted. M58 full normal/strict coverage and independent retained DATA passed at173b31d with all original failures preserved. M59 Source integration is active on that exact provisional parent. Accepted predecessors, exact hosted CI, official audits and Main/readbacks remain mandatory; Ubuntu snapshot recovery is unconfirmed.",
   "current_delivery_group": [
     "M43",
     "M44"
   ],
-  "current_development_phase": "M58",
+  "current_development_phase": "M59",
   "board": {
-    "updated_at": "2026-11-14T21:47:38.061233+00:00",
+    "updated_at": "2026-11-15T06:28:23.864125+00:00",
     "current": {
-      "title": "M58 coverage and M59 preparation",
+      "title": "M59 verification \u00b7 M60 preparation",
       "items": [
-        "All 1,980 M58 headless tests passed. Server changed-line coverage is 581/612, below the strict threshold; missing behavioral coverage is being added as one batch. No verification job is active.",
-        "M59 prepares two differential-drive robots in a separate Source-only tree. Integration and execution wait for M58\u2019s complete result and independent audit."
+        "M59\u2019s sixth verification passed all headless tests, then failed strict Scene changed-line coverage. Two regression cases are Source-reviewed; the full retry is pending.",
+        "M60 package and launcher Source is independently ready. Integration and proof operations remain held for M59 verification and its independent results audit."
       ]
     },
     "done": [
       "MVP and M1\u2013M42 accepted and published.",
       "M40 is the latest installable preview.",
-      "M43\u2013M57 passed local verification and independent results audits; release qualification remains pending."
+      "M43\u2013M58 passed local verification and independent results audits; release qualification remains pending."
     ],
     "next": [
-      "Complete M58 coverage, full verification and its independent audit, then integrate M59.",
-      "Complete hosted and official release qualification before acceptance or publication."
+      "Complete the Scene regression batch and M59 verification/audit, then integrate M60 and prove the installed two-robot preview.",
+      "Complete accepted predecessors, hosted CI, official audits and Main readbacks before publication or acceptance."
     ],
     "blocker": {
       "text": "Release is blocked by Ubuntu snapshot setup failures in hosted CI. Recovery has not been confirmed.",

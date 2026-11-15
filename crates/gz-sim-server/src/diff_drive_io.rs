@@ -1,10 +1,11 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One built-in drive's canonical declarations on the existing world IO owner.
+//! Two bounded canonical drive pairs on the existing world IO owner.
 use gz_sim_proto::{
     msgs::{Odometry, Twist},
     prost::{Message, Name},
 };
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{
     Arc, Weak,
     atomic::{AtomicBool, AtomicU64, Ordering},
@@ -20,12 +21,22 @@ use zenoh::{
 };
 
 pub(super) type Command = (u64, Option<[f64; 2]>);
-pub(super) type Receipt = mpsc::SyncSender<Result<Arc<Output>, String>>;
+pub(super) type Receipt = mpsc::SyncSender<Result<Installed, String>>;
 
-pub(super) struct Setup {
+pub(super) struct Endpoint {
+    pub(super) owner: u64,
     pub(super) command_key: String,
     pub(super) odometry_key: String,
     pub(super) input: mpsc::SyncSender<Command>,
+}
+
+pub(super) struct Installed {
+    pub(super) outputs: BTreeMap<u64, Arc<Output>>,
+    pub(super) lease_ids: BTreeMap<u64, uuid::Uuid>,
+}
+
+pub(super) struct Setup {
+    pub(super) endpoints: Vec<Endpoint>,
     pub(super) max_bytes: usize,
     pub(super) drops: Arc<AtomicU64>,
     pub(super) epoch: Arc<AtomicU64>,
@@ -35,8 +46,26 @@ pub(super) struct Output {
     id: uuid::Uuid,
     active: Arc<AtomicBool>,
     matching: Arc<AtomicBool>,
+    command_key: String,
+    odometry_key: String,
 }
 impl Output {
+    pub(super) fn matches_identity(
+        &self,
+        expected: uuid::Uuid,
+        command: &str,
+        odometry: &str,
+    ) -> bool {
+        self.id == expected && self.command_key == command && self.odometry_key == odometry
+    }
+    pub(super) fn matches_lease(
+        &self,
+        expected: uuid::Uuid,
+        command: &str,
+        odometry: &str,
+    ) -> bool {
+        self.matches_identity(expected, command, odometry) && self.active.load(Ordering::Acquire)
+    }
     pub(super) fn matching(&self) -> Result<bool, &'static str> {
         if !self.active.load(Ordering::Acquire) {
             return Err("drive declaration is unavailable");
@@ -115,7 +144,7 @@ impl Callback {
     }
 }
 
-pub(super) struct Declarations {
+struct Declaration {
     lease: Weak<Output>,
     state: Arc<Callback>,
     publisher: Option<Publisher<'static>>,
@@ -123,17 +152,20 @@ pub(super) struct Declarations {
     listener: Option<MatchingListener<()>>,
     presence: Vec<LivelinessToken>,
 }
-impl Declarations {
+impl Declaration {
     pub(super) fn new(
         session: &zenoh::Session,
-        setup: Setup,
+        endpoint: Endpoint,
+        max_bytes: usize,
+        drops: Arc<AtomicU64>,
+        epoch: Arc<AtomicU64>,
         process: &str,
         node: &str,
     ) -> zenoh::Result<(Self, Arc<Output>)> {
         if session.is_closed()
-            || setup.max_bytes == 0
-            || setup.max_bytes > i64::MAX as usize
-            || setup.command_key == setup.odometry_key
+            || max_bytes == 0
+            || max_bytes > i64::MAX as usize
+            || endpoint.command_key == endpoint.odometry_key
         {
             return Err("invalid drive setup or closed world session".into());
         }
@@ -141,13 +173,15 @@ impl Declarations {
             id: uuid::Uuid::new_v4(),
             active: Arc::new(AtomicBool::new(true)),
             matching: Arc::new(AtomicBool::new(false)),
+            command_key: endpoint.command_key.clone(),
+            odometry_key: endpoint.odometry_key.clone(),
         });
         let state = Arc::new(Callback {
             active: Arc::clone(&output.active),
-            input: setup.input,
-            drops: setup.drops,
-            epoch: setup.epoch,
-            max_bytes: setup.max_bytes,
+            input: endpoint.input,
+            drops,
+            epoch,
+            max_bytes,
             message_type: Twist::full_name(),
         });
         let mut result = Self {
@@ -159,14 +193,14 @@ impl Declarations {
             presence: Vec::new(),
         };
         let input_token = crate::world_io::presence(
-            &setup.command_key,
+            &endpoint.command_key,
             process,
             node,
             "MS",
             &Twist::full_name(),
         )?;
         let output_token = crate::world_io::presence(
-            &setup.odometry_key,
+            &endpoint.odometry_key,
             process,
             node,
             "MP",
@@ -175,12 +209,12 @@ impl Declarations {
         let callback = Arc::clone(&result.state);
         result.subscriber = Some(
             session
-                .declare_subscriber(setup.command_key)
+                .declare_subscriber(endpoint.command_key)
                 .callback(move |sample| callback.receive(sample))
                 .wait()?,
         );
         let publisher = session
-            .declare_publisher(setup.odometry_key)
+            .declare_publisher(endpoint.odometry_key)
             .congestion_control(CongestionControl::Drop)
             .wait()?;
         let matching = Arc::clone(&output.matching);
@@ -246,9 +280,99 @@ impl Declarations {
         Ok(true)
     }
 }
-impl Drop for Declarations {
+impl Drop for Declaration {
     fn drop(&mut self) {
         self.begin_shutdown();
+    }
+}
+
+/// One atomic installation on the existing IO worker, with per-owner weak leases.
+pub(super) struct Declarations {
+    entries: BTreeMap<u64, Declaration>,
+}
+impl Declarations {
+    pub(super) fn new(
+        session: &zenoh::Session,
+        setup: Setup,
+        process: &str,
+        node: &str,
+    ) -> zenoh::Result<(Self, Installed)> {
+        if session.is_closed()
+            || setup.max_bytes == 0
+            || setup.max_bytes > i64::MAX as usize
+            || setup.endpoints.is_empty()
+            || setup.endpoints.len() > 2
+        {
+            return Err("invalid drive set or closed world session".into());
+        }
+        let mut owners = BTreeSet::new();
+        let mut keys = BTreeSet::new();
+        for endpoint in &setup.endpoints {
+            if endpoint.owner == 0
+                || !owners.insert(endpoint.owner)
+                || endpoint.command_key.is_empty()
+                || endpoint.odometry_key.is_empty()
+                || !keys.insert(endpoint.command_key.as_str())
+                || !keys.insert(endpoint.odometry_key.as_str())
+            {
+                return Err("duplicate drive owner or endpoint".into());
+            }
+            for (key, kind, message_type) in [
+                (&endpoint.command_key, "MS", Twist::full_name()),
+                (&endpoint.odometry_key, "MP", Odometry::full_name()),
+            ] {
+                let expression = zenoh::key_expr::OwnedKeyExpr::try_from(key.as_str())?;
+                let token = crate::world_io::presence(key, process, node, kind, &message_type)?;
+                let token = zenoh::key_expr::OwnedKeyExpr::try_from(token)?;
+                if expression.is_wild() || token.is_wild() {
+                    return Err("drive declarations require concrete keys".into());
+                }
+            }
+        }
+        let mut result = Self {
+            entries: BTreeMap::new(),
+        };
+        let mut installed = Installed {
+            outputs: BTreeMap::new(),
+            lease_ids: BTreeMap::new(),
+        };
+        for endpoint in setup.endpoints {
+            let owner = endpoint.owner;
+            let (declaration, output) = Declaration::new(
+                session,
+                endpoint,
+                setup.max_bytes,
+                Arc::clone(&setup.drops),
+                Arc::clone(&setup.epoch),
+                process,
+                node,
+            )?;
+            // Capture the actual declaration UUID before exposing replaceable Arcs.
+            installed.lease_ids.insert(owner, output.id);
+            installed.outputs.insert(owner, output);
+            result.entries.insert(owner, declaration);
+        }
+        Ok((result, installed))
+    }
+    pub(super) fn begin_shutdown(&self) {
+        for declaration in self.entries.values() {
+            declaration.begin_shutdown();
+        }
+    }
+    pub(super) fn reconcile(&mut self, closed: bool) -> bool {
+        self.entries
+            .retain(|_, declaration| !declaration.reconcile(closed));
+        self.entries.is_empty()
+    }
+    pub(super) fn publish(&self, job: Job) -> zenoh::Result<bool> {
+        match self
+            .entries
+            .values()
+            .find(|declaration| Weak::ptr_eq(&declaration.lease, &job.lease))
+        {
+            Some(declaration) => declaration.publish(job),
+            None => Ok(false),
+        }
     }
 }
 

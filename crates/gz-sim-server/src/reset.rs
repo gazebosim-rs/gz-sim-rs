@@ -34,6 +34,13 @@ impl Server {
             Some(self),
         )?;
         let controller_metadata = joint_controllers::prepare_reset(self)?;
+        validate_diff_drive_peer_topics(
+            &self.simulation,
+            &self.world_io,
+            &self.network_config,
+            Some(self),
+        )?;
+        let drive_metadata = diff_drive::prepare_reset(self)?;
         // Reserve missing endpoints before changing the scene. Live shared leases survive.
         let existing: BTreeMap<_, _> = self
             .imus
@@ -61,7 +68,6 @@ impl Server {
             }
         }
         let lidar_publishers = lidar::prepare_reset(self)?;
-        let drive_metadata = diff_drive::initial(&self.simulation)?;
         let altimeter_publishers =
             if gz_sim_scene::initial_altimeter_publications(&self.simulation)?
                 .next()
@@ -225,13 +231,11 @@ impl Server {
             )?;
             // Old command receivers and weak odometry jobs cannot enter the next epoch.
             *drive = None;
-            *drive = diff_drive::stream(
+            *drive = diff_drive::prepare_restored(
                 sim,
                 &self.world_io,
                 &self.network_config,
-                &streams,
-                &lidars,
-                Some(&drive_metadata),
+                &drive_metadata,
             )?;
             // Retire every old callback/receiver before installing fresh input generations.
             *controllers = None;

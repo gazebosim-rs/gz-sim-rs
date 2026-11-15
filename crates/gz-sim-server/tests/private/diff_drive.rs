@@ -189,6 +189,10 @@ fn actual_twist_and_encoder_odometry_preserve_frames_cadence_pause_reset_and_rem
                 .diff_drive
                 .as_ref()
                 .unwrap()
+                .streams
+                .values()
+                .next()
+                .unwrap()
                 .output
                 .matching()
                 .unwrap()
@@ -213,9 +217,33 @@ fn actual_twist_and_encoder_odometry_preserve_frames_cadence_pause_reset_and_rem
             .unwrap()
             .unwrap();
     }
-    let identity = server.diff_drive.as_ref().unwrap().identity;
-    let entity = server.diff_drive.as_ref().unwrap().entity;
-    let sequence = server.diff_drive.as_ref().unwrap().sequence;
+    let identity = server
+        .diff_drive
+        .as_ref()
+        .unwrap()
+        .streams
+        .values()
+        .next()
+        .unwrap()
+        .identity;
+    let entity = server
+        .diff_drive
+        .as_ref()
+        .unwrap()
+        .streams
+        .values()
+        .next()
+        .unwrap()
+        .entity;
+    let sequence = server
+        .diff_drive
+        .as_ref()
+        .unwrap()
+        .streams
+        .values()
+        .next()
+        .unwrap()
+        .sequence;
     let mut expected = Vec::new();
     let mut previous = None;
     server.set_paused(false);
@@ -308,7 +336,17 @@ fn actual_twist_and_encoder_odometry_preserve_frames_cadence_pause_reset_and_rem
     }
     assert_eq!(server.counters().diff_drive_messages_rejected, 3);
     assert_eq!(server.counters().diff_drive_commands_applied, 1);
-    let weak = Arc::downgrade(&server.diff_drive.as_ref().unwrap().output);
+    let weak = Arc::downgrade(
+        &server
+            .diff_drive
+            .as_ref()
+            .unwrap()
+            .streams
+            .values()
+            .next()
+            .unwrap()
+            .output,
+    );
     assert!(server.apply_local_control(WorldControl {
         pause: true,
         reset: Some(WorldReset {
@@ -320,7 +358,18 @@ fn actual_twist_and_encoder_odometry_preserve_frames_cadence_pause_reset_and_rem
     let reset = server.update().unwrap();
     assert_eq!((reset.epoch, reset.sim_time), (1, Duration::ZERO));
     assert!(weak.upgrade().is_none());
-    assert_eq!(server.diff_drive.as_ref().unwrap().identity, identity);
+    assert_eq!(
+        server
+            .diff_drive
+            .as_ref()
+            .unwrap()
+            .streams
+            .values()
+            .next()
+            .unwrap()
+            .identity,
+        identity
+    );
     // First real post-reset frame, whether the zero snapshot or first due sample, is seq0.
     let queued = server.counters().odometries_queued;
     if queued == baseline + 50 {
@@ -371,7 +420,15 @@ fn output_interest_never_gates_actuation_and_runtime_owner_mutation_retires_the_
         server.update().unwrap();
         server.counters().diff_drive_commands_applied == 1
     });
-    let entity = server.diff_drive.as_ref().unwrap().entity;
+    let entity = server
+        .diff_drive
+        .as_ref()
+        .unwrap()
+        .streams
+        .values()
+        .next()
+        .unwrap()
+        .entity;
     server.set_paused(false);
     for _ in 0..200 {
         server.update().unwrap();
@@ -389,7 +446,17 @@ fn output_interest_never_gates_actuation_and_runtime_owner_mutation_retires_the_
         pose: s.pose,
         twist: s.twist,
     };
-    let weak = Arc::downgrade(&server.diff_drive.as_ref().unwrap().output);
+    let weak = Arc::downgrade(
+        &server
+            .diff_drive
+            .as_ref()
+            .unwrap()
+            .streams
+            .values()
+            .next()
+            .unwrap()
+            .output,
+    );
     // A fresh valid public sample cannot bypass the immutable model-owner guard.
     server
         .simulation
@@ -407,23 +474,22 @@ fn output_interest_never_gates_actuation_and_runtime_owner_mutation_retires_the_
 #[test]
 fn setup_and_reset_require_exact_unique_model_metadata_and_absent_system_has_no_stream() {
     let (mut server, _observer, _, _) = build_server(XML);
-    let entity = server.diff_drive.as_ref().unwrap().entity;
+    let entity = server
+        .diff_drive
+        .as_ref()
+        .unwrap()
+        .streams
+        .values()
+        .next()
+        .unwrap()
+        .entity;
     let original = server
         .simulation
         .world()
         .get::<DiffDriveConfiguration>(entity)
         .unwrap()
         .clone();
-    let check = |sim: &Simulation| {
-        stream(
-            sim,
-            &server.world_io,
-            &server.network_config,
-            &server.imus,
-            &server.lidars,
-            None,
-        )
-    };
+    let check = |sim: &Simulation| preflight(sim, &server.world_io, &server.network_config);
     let mut changed = original.clone();
     changed.topic = "/bad topic".into();
     server
@@ -488,26 +554,19 @@ fn setup_and_reset_require_exact_unique_model_metadata_and_absent_system_has_no_
         .world_mut()
         .entity_mut(entity)
         .remove::<DiffDriveConfiguration>();
-    assert!(
-        stream(
-            &server.simulation,
-            &server.world_io,
-            &server.network_config,
-            &server.imus,
-            &server.lidars,
-            None
-        )
-        .unwrap()
-        .is_none()
-    );
+    assert!(declared(&server.simulation, None).unwrap().is_none());
     assert!(matches!(
-        stream(
+        declared(
             &server.simulation,
-            &server.world_io,
-            &server.network_config,
-            &server.imus,
-            &server.lidars,
-            Some(&vec![original.clone()])
+            Some(&BTreeMap::from([(
+                server
+                    .simulation
+                    .world()
+                    .get::<EntityId>(entity)
+                    .unwrap()
+                    .get(),
+                original.clone(),
+            )]))
         ),
         Err(Error::ResetDiffDrive)
     ));
@@ -560,7 +619,15 @@ fn setup_and_reset_require_exact_unique_model_metadata_and_absent_system_has_no_
 #[test]
 fn invalid_acquisitions_deduplicate_and_actual_message_bound_failures_advance_sequence() {
     let (mut server, _observer, _, _) = build_server(XML);
-    let entity = server.diff_drive.as_ref().unwrap().entity;
+    let entity = server
+        .diff_drive
+        .as_ref()
+        .unwrap()
+        .streams
+        .values()
+        .next()
+        .unwrap()
+        .entity;
     server.set_interest_policy(InterestPolicy::Always);
     server
         .simulation
@@ -591,25 +658,82 @@ fn invalid_acquisitions_deduplicate_and_actual_message_bound_failures_advance_se
     insert(&mut server, 0, Duration::ZERO, [f64::NAN, 0.0, 0.0]);
     server.publish_odometry();
     assert_eq!(server.counters().invalid_odometry_samples, 3);
-    assert_eq!(server.diff_drive.as_ref().unwrap().sequence, 0);
+    assert_eq!(
+        server
+            .diff_drive
+            .as_ref()
+            .unwrap()
+            .streams
+            .values()
+            .next()
+            .unwrap()
+            .sequence,
+        0
+    );
     insert(&mut server, 0, Duration::ZERO, [0.0; 3]);
     server.publish_odometry();
     assert_eq!(server.counters().odometries_queued, 0);
     // A new admitted attempt is bounded by the actual shared WorldIo byte limit.
-    server.diff_drive.as_mut().unwrap().last_sample = None;
-    server.diff_drive.as_mut().unwrap().sequence = u64::MAX;
+    server
+        .diff_drive
+        .as_mut()
+        .unwrap()
+        .streams
+        .values_mut()
+        .next()
+        .unwrap()
+        .last_sample = None;
+    server
+        .diff_drive
+        .as_mut()
+        .unwrap()
+        .streams
+        .values_mut()
+        .next()
+        .unwrap()
+        .sequence = u64::MAX;
     let bound = server.world_io.max_message_bytes;
     server.world_io.max_message_bytes = 1;
     server.publish_odometry();
     assert_eq!(server.counters().odometry_failures, 1);
-    assert_eq!(server.diff_drive.as_ref().unwrap().sequence, 0);
+    assert_eq!(
+        server
+            .diff_drive
+            .as_ref()
+            .unwrap()
+            .streams
+            .values()
+            .next()
+            .unwrap()
+            .sequence,
+        0
+    );
     server.world_io.max_message_bytes = bound;
     server.publish_odometry();
     assert_eq!(server.counters().odometries_queued, 0);
-    server.diff_drive.as_mut().unwrap().last_sample = None;
+    server
+        .diff_drive
+        .as_mut()
+        .unwrap()
+        .streams
+        .values_mut()
+        .next()
+        .unwrap()
+        .last_sample = None;
     server.publish_odometry();
     assert_eq!(server.counters().odometries_queued, 1);
-    assert_eq!(server.diff_drive.as_ref().unwrap().sequence, 1);
+    assert_eq!(
+        server
+            .diff_drive
+            .as_ref()
+            .unwrap()
+            .streams
+            .values()
+            .next()
+            .unwrap()
+            .sequence,
+        1
+    );
     server.set_interest_policy(InterestPolicy::Subscribers);
     server.world_io.session.close().wait().unwrap();
     wait(|| {
@@ -617,11 +741,23 @@ fn invalid_acquisitions_deduplicate_and_actual_message_bound_failures_advance_se
             .diff_drive
             .as_ref()
             .unwrap()
+            .streams
+            .values()
+            .next()
+            .unwrap()
             .output
             .matching()
             .is_err()
     });
-    server.diff_drive.as_mut().unwrap().last_sample = None;
+    server
+        .diff_drive
+        .as_mut()
+        .unwrap()
+        .streams
+        .values_mut()
+        .next()
+        .unwrap()
+        .last_sample = None;
     server.publish_odometry();
     assert_eq!(server.counters().interest_failures, 1);
 }

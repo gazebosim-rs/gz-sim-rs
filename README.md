@@ -1,33 +1,52 @@
-## Current M58: two independent joint-controller chains
+## Current M59: two independent differential-drive robots
 
-M57 is provisionally locally qualified at `9dfde487`; M1–M42 and 175 slices
-remain accepted, and M40 remains the latest installable preview. Hosted and
-official release qualification is still held; local evidence is not acceptance.
+M58 is provisionally locally qualified at `173b31d2`: its full normal passed
+1,981 headless and 1,161 overlapping renderer tests, 448 aggregate Python checks,
+strict coverage and 32 finite examples. Independent retained DATA passed with all
+four byte-exact RAW comparisons. Seven normal failures and both failed readers
+remain retained. This is local qualification, not hosted or release acceptance.
 
-M58 implementation, shared integration and regressions are source-reviewed.
-Fresh isolated original-object captures and independent raw DATA passed against
-the reconciled dependency snapshot. Borrowed fixture generation and independent
-literal DATA also passed, preserving all 137 raw records and native wire copies.
-The two observed-input regressions are integrated as Source, with no backend,
-solver, motor arithmetic or protocol change. These component observations do not
-claim original Server, Physics, trajectory or cross-family scheduling parity.
+The sixth M59 full normal retired with actual exit 1 after 1,798.811 seconds.
+It completed 449 aggregate Python checks and native-free/RGB qualification,
+including 33 finite examples. Headless execution passed 2,011 tests with zero
+failures and five existing ignored controls. Both corrected removal paths and
+the three-second motion/wire observations passed. Renderer was not reached.
 
-The original retrieval/static/compile failures, earlier capture and failed audit
-remain intact. Four installed libc6 files changed during development; retained
-package evidence records the upgrade and the new capture uses all current hashes.
-The fourth full normal passed strict lint, 404 Python checks, both doc-test
-stages and native-free/RGB qualification. Coverage setup then rejected the cached
-Zenoh probe dependency table after the recorded libc update. Verification-only
-tooling has now captured one fresh run of the unchanged original probe with
-actual external exit 0. Independent retained review confirmed all five stages,
-the complete current 24-library map and exact ready output. The new selection
-keeps this proof separate from the intact original SDK, environment and probe.
-The full normal retry, runtime profiles, strict coverage and results audit remain
-required; this probe evidence does not qualify M58 by itself.
-All four failures and prior reference evidence remain preserved; Rust is unchanged. Read
-[the bounded contract](docs/M58_DELIVERY.md) and `artifacts/m58-delivery` for exact evidence.
+The strict changed-line gate stopped at Scene's 363 covered lines out of 391;
+it requires strictly greater than 95 percent. All twelve headless crate-wide
+coverage gates passed. Server's 700/721 changed-line result is derived only from
+retained coverage, not an executed later gate or qualification. Full coverage,
+normal success and independent retained DATA have not passed for M59.
 
-The complete earlier checkpoints below retain their historical scope.
+All six failed originals remain retained. Attempts 1–3 stopped at lint/compile;
+attempt 4 failed the one-second motion observations; attempt 5 passed the
+three-second observations but used the unsupported local removal API. Attempt 6
+passed the supported blocking-removal RPC and all headless runtime assertions.
+None of these partial results is a full M59 pass or hosted acceptance.
+
+Two additional Scene regression cases for the coverage gap are Source-complete
+and independently reviewed.
+Their current Source obligation is 30 feature headless/15 overlapping renderer
+controls plus two separate headless support controls: 32/15 combined. These are
+Source declarations, not new measured passes; run 6 used the earlier 30/13 set.
+Complete final batch review and one affected formatter before another full
+unchanged normal and independent retained DATA audit.
+No gate is active. Existing resource floors, assertions and limits are unchanged;
+no deletion, eviction, focused trial or native campaign replay is authorized.
+
+M60's package, launcher, regression and guide Source is independently ready.
+Its proof-only procedures remain held for genuine qualified inputs and results;
+final integration waits for actual M59 normal and independent DATA success.
+
+Complete Source, meaningful regressions and guides; batch review findings before
+one affected formatter and the full unchanged normal/coverage gates, then an
+independent retained DATA audit. See [M59_DELIVERY.md](docs/M59_DELIVERY.md).
+M1–M42/175 accepted slices and M40 Latest remain unchanged. Hosted Ubuntu snapshot
+recovery, accepted predecessors, official audits and Main/readbacks still gate
+acceptance/publication. No CI retry or workaround is authorized.
+
+Earlier checkpoints below retain their historical scope.
+
 
 ## Current M57: two runtime-test premises under correction
 

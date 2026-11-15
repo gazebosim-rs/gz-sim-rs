@@ -1447,13 +1447,18 @@ impl WorldIo {
             .map_err(Into::into)
     }
 
-    /// Actual world publication/query keys, including removal services once installed.
-    pub(super) fn reserved_keys(&self) -> std::collections::BTreeSet<String> {
-        let mut keys = std::collections::BTreeSet::from([
+    /// The three original world keys used by legacy setup error precedence.
+    pub(super) fn fixed_keys(&self) -> std::collections::BTreeSet<String> {
+        std::collections::BTreeSet::from([
             self.clock.key_expr().as_str().to_owned(),
             self.poses.key_expr().as_str().to_owned(),
             self.control_key.clone(),
-        ]);
+        ])
+    }
+
+    /// Actual world publication/query keys, including removal services once installed.
+    pub(super) fn reserved_keys(&self) -> std::collections::BTreeSet<String> {
+        let mut keys = self.fixed_keys();
         if let Some(removals) = self.removal_keys.get() {
             keys.extend(removals.iter().cloned());
         }
@@ -1650,18 +1655,14 @@ impl WorldIo {
     }
 
     // Initial construction can wait here. Reset needs a separate readiness phase.
-    pub(super) fn diff_drive_output(
+    pub(super) fn diff_drive_outputs(
         &self,
         setup: crate::diff_drive_io::Setup,
-    ) -> std::result::Result<Arc<crate::diff_drive_io::Output>, crate::Error> {
-        if [&setup.command_key, &setup.odometry_key]
-            .into_iter()
-            .any(|key| {
-                key == self.clock.key_expr().as_str()
-                    || key == self.poses.key_expr().as_str()
-                    || key == &self.control_key
-            })
-        {
+    ) -> std::result::Result<crate::diff_drive_io::Installed, crate::Error> {
+        let reserved = self.reserved_keys();
+        if setup.endpoints.iter().any(|endpoint| {
+            reserved.contains(&endpoint.command_key) || reserved.contains(&endpoint.odometry_key)
+        }) {
             return Err(crate::Error::DiffDriveIdentity);
         }
         if self.session.is_closed() {

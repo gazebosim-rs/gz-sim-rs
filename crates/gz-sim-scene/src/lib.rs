@@ -31,7 +31,8 @@ pub use pose_publisher::{
 };
 mod diff_drive;
 pub use diff_drive::{
-    DiffDriveCommandError, DiffDriveConfiguration, DiffDriveSample, set_diff_drive_command,
+    DiffDriveCommandError, DiffDriveConfiguration, DiffDriveSample, diff_drive_binding_matches,
+    diff_drive_binding_matches_configuration, set_diff_drive_command,
 };
 mod joint_forces;
 mod producer_guard;
@@ -100,11 +101,12 @@ mod initial;
 mod joint_force_lifecycle;
 mod joint_lifecycle;
 pub use initial::{
-    InitialJointControllerIdentity, PendingResetRemoval, SceneResetError, SceneResetInfo,
-    initial_air_pressure_publications, initial_air_pressure_publications_with_identity,
-    initial_air_speed_publications, initial_air_speed_publications_with_identity,
-    initial_altimeter_publications, initial_altimeter_publications_with_identity,
-    initial_apply_link_wrench_configuration, initial_diff_drive_configurations,
+    InitialDiffDriveIdentity, InitialJointControllerIdentity, PendingResetRemoval, SceneResetError,
+    SceneResetInfo, initial_air_pressure_publications,
+    initial_air_pressure_publications_with_identity, initial_air_speed_publications,
+    initial_air_speed_publications_with_identity, initial_altimeter_publications,
+    initial_altimeter_publications_with_identity, initial_apply_link_wrench_configuration,
+    initial_diff_drive_configurations, initial_diff_drive_configurations_with_identity,
     initial_ground_truth_odometry_publications,
     initial_ground_truth_odometry_publications_with_identity, initial_imu_publications,
     initial_joint_controller_configurations, initial_joint_controller_configurations_with_identity,

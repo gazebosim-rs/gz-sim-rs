@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One configured differential wheel pair; native motors own the physical response.
+//! At most two original loaded wheel pairs; native motors own the physical response.
 use super::*;
 use gz_physics::{JointId, JointVelocityMotor};
 mod config;
@@ -65,9 +65,12 @@ impl Plan {
             "DiffDrive requires a top-level dynamic Rapier model",
         )?;
         require(
-            !sim.world()
+            sim.world()
                 .iter_entities()
-                .any(|entity| entity.contains::<Drive>()),
+                .filter(|entity| entity.contains::<Drive>())
+                .take(3)
+                .count()
+                < 2,
             &model.scoped_name,
             "multiple differential-drive systems",
         )?;
@@ -239,6 +242,9 @@ pub fn set_diff_drive_command(
             }),
         )?;
     }
+    if !binding_matches(world, model) {
+        return Err(DiffDriveCommandError::MissingDrive(model));
+    }
     sim.world_mut()
         .get_mut::<Drive>(entity)
         .expect("preflighted loaded drive")
@@ -289,6 +295,261 @@ struct DriveFault {
     message: String,
 }
 
+fn axis_matches(left: &Option<sdformat::Axis>, right: &Option<sdformat::Axis>) -> bool {
+    match (left, right) {
+        (None, None) => true,
+        (Some(left), Some(right)) => {
+            left.xyz.map(f64::to_bits) == right.xyz.map(f64::to_bits)
+                && left.expressed_in == right.expressed_in
+                && [
+                    left.lower,
+                    left.upper,
+                    left.effort,
+                    left.velocity,
+                    left.stiffness,
+                    left.dissipation,
+                ]
+                .map(f64::to_bits)
+                    == [
+                        right.lower,
+                        right.upper,
+                        right.effort,
+                        right.velocity,
+                        right.stiffness,
+                        right.dissipation,
+                    ]
+                    .map(f64::to_bits)
+                && left.dynamics == right.dynamics
+                && left.mimic == right.mimic
+        }
+        _ => false,
+    }
+}
+
+fn definition_matches(left: &JointDefinition, right: &JointDefinition) -> bool {
+    let left = &left.0;
+    let right = &right.0;
+    left.name == right.name
+        && left.kind == right.kind
+        && left.parent == right.parent
+        && left.child == right.child
+        && left.pose == right.pose
+        && axis_matches(&left.axis, &right.axis)
+        && axis_matches(&left.axis2, &right.axis2)
+        && left.screw_thread_pitch.to_bits() == right.screw_thread_pitch.to_bits()
+        && left.physics_xml == right.physics_xml
+        && left.source == right.source
+        && left.sensors.is_empty()
+        && right.sensors.is_empty()
+}
+
+/// Check only this active original owner. No mutation, IO or unrelated-joint scan.
+pub fn diff_drive_binding_matches(sim: &Simulation, id: u64) -> bool {
+    binding_matches(sim.world(), id)
+}
+
+/// Restoration-only structural witness against immutable original metadata.
+/// Does not admit changed public metadata for commands, steps or live streams.
+pub fn diff_drive_binding_matches_configuration(
+    sim: &Simulation,
+    id: u64,
+    trusted: &DiffDriveConfiguration,
+) -> bool {
+    binding_matches_configuration(sim.world(), id, trusted)
+}
+
+fn binding_matches(world: &World, id: u64) -> bool {
+    let Some(entity) = gz_sim_core::entity_by_id(world, id) else {
+        return false;
+    };
+    let Some(configuration) = world.get::<DiffDriveConfiguration>(entity) else {
+        return false;
+    };
+    binding_matches_configuration(world, id, configuration)
+}
+
+fn binding_matches_configuration(world: &World, id: u64, trusted: &DiffDriveConfiguration) -> bool {
+    if !initial::matches_physics_owner(world) {
+        return false;
+    }
+    let Some(initial) = world.get_resource::<initial::InitialScene>() else {
+        return false;
+    };
+    let Some(original) = initial.diff_drive_identities().find(|row| row.id == id) else {
+        return false;
+    };
+    let Some(blueprint) = initial.diff_drive_blueprint(id) else {
+        return false;
+    };
+    let Some(entity) = gz_sim_core::entity_by_id(world, id) else {
+        return false;
+    };
+    let Some(drive) = world.get::<Drive>(entity) else {
+        return false;
+    };
+    let Some(parent_id) = original.parent else {
+        return false;
+    };
+    let Some(parent) = gz_sim_core::entity_by_id(world, parent_id) else {
+        return false;
+    };
+    let Some(backend) = world.get_resource::<PhysicsBackend>() else {
+        return false;
+    };
+    if id == 0
+        || parent_id == 0
+        || original.kind != EntityKind::Model
+        || world.get::<EntityId>(entity).map(EntityId::get) != Some(id)
+        || world.get::<EntityKind>(entity) != Some(&original.kind)
+        || !world
+            .get::<Name>(entity)
+            .is_some_and(|name| name.0 == original.name)
+        || world.get::<ChildOf>(entity).map(ChildOf::parent) != Some(parent)
+        || world.get::<EntityKind>(parent) != Some(&EntityKind::World)
+        || !world.get::<Name>(parent).is_some_and(|name| {
+            original.name == format!("{}::{}", name.0, original.configuration.model_name)
+        })
+        || trusted != original.configuration
+        || drive.owner != id
+        || blueprint.owner != id
+        || drive.publication != *original.configuration
+        || drive.publication != blueprint.publication
+        || drive.joints != blueprint.joints
+        || drive.joints[0] == drive.joints[1]
+        || drive.force != blueprint.force
+        || drive.speed != blueprint.speed
+        || drive.linear != blueprint.linear
+        || drive.angular != blueprint.angular
+        || drive.geometry != blueprint.geometry
+    {
+        return false;
+    }
+    let mut children = std::collections::BTreeSet::new();
+    for joint in drive.joints {
+        let Some(original_joint) = initial.diff_drive_wheel_identity(id, joint) else {
+            return false;
+        };
+        let Some(node) = gz_sim_core::entity_by_id(world, original_joint.id) else {
+            return false;
+        };
+        let Some(handle) = world.get::<JointHandle>(node) else {
+            return false;
+        };
+        let Some(definition) = world.get::<JointDefinition>(node) else {
+            return false;
+        };
+        let Some(child) = gz_sim_core::entity_by_id(world, handle.child()) else {
+            return false;
+        };
+        let Some(parent_link) = world.iter_entities().find(|link| {
+            link.get::<ChildOf>().map(ChildOf::parent) == Some(entity)
+                && link.get::<Name>().is_some_and(|name| {
+                    name.0 == format!("{}::{}", original.name, definition.0.parent)
+                })
+        }) else {
+            return false;
+        };
+        if original_joint.id == 0
+            || original_joint.kind != EntityKind::Joint
+            || original_joint.parent != Some(id)
+            || world.get::<EntityId>(node).map(EntityId::get) != Some(original_joint.id)
+            || world.get::<EntityKind>(node) != Some(&original_joint.kind)
+            || !world.get::<Name>(node).is_some_and(|name| {
+                name.0 == original_joint.name
+                    && name.0 == format!("{}::{}", original.name, definition.0.name)
+            })
+            || world.get::<ChildOf>(node).map(ChildOf::parent) != Some(entity)
+            || !world.entity(node).contains::<joints::JointNode>()
+            || world.get::<JointSample>(node).is_none()
+            || handle.id() != original_joint.handle.id()
+            || handle.child() != original_joint.handle.child()
+            || joints::input_binding(world, node) != Some(joint)
+            || !definition_matches(definition, original_joint.definition)
+            || !children.insert(handle.child())
+            || world.get::<EntityKind>(child) != Some(&EntityKind::Link)
+            || world.get::<ChildOf>(child).map(ChildOf::parent) != Some(entity)
+            || !world
+                .get::<Name>(child)
+                .is_some_and(|name| name.0 == format!("{}::{}", original.name, definition.0.child))
+            || !world
+                .get::<BodyHandle>(child)
+                .is_some_and(|body| backend.joint_child(joint) == Some(body.id()))
+            || parent_link.get::<EntityKind>() != Some(&EntityKind::Link)
+            || parent_link.get::<BodyHandle>().is_none()
+            || backend.joint_state(joint).is_none()
+        {
+            return false;
+        }
+    }
+    true
+}
+
+fn ownership_fault(entity: Entity) -> DriveFault {
+    DriveFault {
+        entity,
+        message: "invalid loaded drive ownership".into(),
+    }
+}
+
+fn active_drives(world: &World) -> Result<Vec<Entity>, DriveFault> {
+    let rows: Vec<_> = world
+        .iter_entities()
+        .filter(|row| row.contains::<Drive>() || row.contains::<DiffDriveConfiguration>())
+        .take(3)
+        .map(|row| row.id())
+        .collect();
+    let Some(initial) = world.get_resource::<initial::InitialScene>() else {
+        return if let Some(first) = rows.first() {
+            Err(ownership_fault(*first))
+        } else {
+            Ok(Vec::new())
+        };
+    };
+    let originals: Vec<_> = initial.diff_drive_identities().take(3).collect();
+    let mut expected = std::collections::BTreeSet::new();
+    // An original entity still alive without BOTH components is corruption;
+    // a truly removed model has no current entity and is a retired owner.
+    for original in &originals {
+        if let Some(entity) = gz_sim_core::entity_by_id(world, original.id) {
+            if !binding_matches(world, original.id) {
+                return Err(ownership_fault(entity));
+            }
+            expected.insert(entity);
+        }
+    }
+    if let Some(first) = rows.first()
+        && (originals.len() > 2
+            || rows.len() > 2
+            || !initial::matches_physics_owner(world)
+            || !joints::bindings_valid(world))
+    {
+        return Err(ownership_fault(*first));
+    }
+    let mut ids = std::collections::BTreeSet::new();
+    let mut joints = std::collections::BTreeSet::new();
+    for entity in &rows {
+        let Some(drive) = world.get::<Drive>(*entity) else {
+            return Err(ownership_fault(*entity));
+        };
+        if !expected.remove(entity)
+            || !ids.insert(drive.owner)
+            || !drive.joints.into_iter().all(|joint| joints.insert(joint))
+        {
+            return Err(ownership_fault(*entity));
+        }
+    }
+    if let Some(entity) = expected.first() {
+        return Err(ownership_fault(*entity));
+    }
+    Ok(rows)
+}
+
+struct MotorPlan {
+    entity: Entity,
+    joints: [JointId; 2],
+    motors: [JointVelocityMotor; 2],
+}
+
 fn apply(world: &mut World) {
     if world.resource::<UpdateInfo>().dt.is_zero()
         || world.resource::<StepFault>().error().is_some()
@@ -296,40 +557,18 @@ fn apply(world: &mut World) {
         return;
     }
     let result = (|| -> Result<(), DriveFault> {
-        let (id, joints, motors) = {
-            let mut drivers = world
-                .iter_entities()
-                .filter(|entity| entity.contains::<Drive>());
-            let Some(entity) = drivers.next() else {
-                return Ok(());
-            };
-            let id = entity.id();
-            let invalid = || DriveFault {
-                entity: id,
-                message: "invalid loaded drive ownership".into(),
-            };
-            if drivers.next().is_some()
-                || !initial::matches_physics_owner(world)
-                || !joints::bindings_valid(world)
-            {
-                return Err(invalid());
-            }
-            let drive = entity.get::<Drive>().expect("selected configured drive");
-            if entity.get::<EntityId>().map(EntityId::get) != Some(drive.owner)
-                || gz_sim_core::entity_by_id(world, drive.owner) != Some(id)
-                || entity.get::<EntityKind>() != Some(&EntityKind::Model)
-                || entity.get::<DiffDriveConfiguration>() != Some(&drive.publication)
-            {
-                return Err(invalid());
-            }
+        let mut planned = Vec::new();
+        for entity in active_drives(world)? {
+            let drive = world
+                .get::<Drive>(entity)
+                .expect("preflighted original drive");
             let targets = drive
                 .geometry
                 .bounded_targets(drive.desired[0], drive.desired[1], drive.speed)
                 .map_err(|error| DriveFault {
-                    entity: id,
+                    entity,
                     message: error.to_string(),
                 })?;
-            let joints = drive.joints;
             let motors = [
                 JointVelocityMotor {
                     target_velocity: targets[0],
@@ -340,24 +579,31 @@ fn apply(world: &mut World) {
                     max_force: drive.force[1],
                 },
             ];
-            (id, joints, motors)
-        };
-        let mut backend = world.resource_mut::<PhysicsBackend>();
-        for (joint, motor) in joints.into_iter().zip(motors) {
-            backend
-                .validate_joint_velocity_motor(joint, Some(motor))
-                .map_err(|error| DriveFault {
-                    entity: id,
-                    message: error.to_string(),
-                })?;
+            for (joint, motor) in drive.joints.into_iter().zip(motors) {
+                world
+                    .resource::<PhysicsBackend>()
+                    .validate_joint_velocity_motor(joint, Some(motor))
+                    .map_err(|error| DriveFault {
+                        entity,
+                        message: error.to_string(),
+                    })?;
+            }
+            planned.push(MotorPlan {
+                entity,
+                joints: drive.joints,
+                motors,
+            });
         }
-        for (joint, motor) in joints.into_iter().zip(motors) {
-            backend
-                .set_joint_velocity_motor(joint, Some(motor))
-                .map_err(|error| DriveFault {
-                    entity: id,
-                    message: error.to_string(),
-                })?;
+        let mut backend = world.resource_mut::<PhysicsBackend>();
+        for plan in planned {
+            for (joint, motor) in plan.joints.into_iter().zip(plan.motors) {
+                backend
+                    .set_joint_velocity_motor(joint, Some(motor))
+                    .map_err(|error| DriveFault {
+                        entity: plan.entity,
+                        message: error.to_string(),
+                    })?;
+            }
         }
         Ok(())
     })();
@@ -366,105 +612,146 @@ fn apply(world: &mut World) {
     }
 }
 
-fn observe(
-    time: Res<UpdateInfo>,
-    backend: Res<PhysicsBackend>,
-    fault: Res<StepFault>,
-    mut drivers: Query<(Entity, &mut Drive)>,
-    mut commands: Commands,
-) {
-    if time.dt.is_zero() {
+fn observe(world: &mut World) {
+    let time = *world.resource::<UpdateInfo>();
+    if time.dt.is_zero() || world.resource::<StepFault>().error().is_some() {
         return;
     }
-    for (entity, mut drive) in &mut drivers {
-        let result = (|| -> Result<Option<model::Reading>, String> {
-            let mut angles = [0.0; 2];
-            for (angle, joint) in angles.iter_mut().zip(drive.joints) {
-                *angle = backend
-                    .joint_state(joint)
-                    .ok_or("missing drive wheel state")?
-                    .position;
-            }
-            let Some(odometry) = &mut drive.odometry else {
-                return Err("missing initial encoder reference".into());
-            };
-            let reading = odometry
-                .observe(angles, time.sim_time)
-                .map_err(|error| error.to_string())?;
-            if !drive
-                .schedule
-                .take_sample(time.sim_time, false)
-                .map_err(|error| error.to_string())?
-            {
-                return Ok(None);
-            }
-            Ok(Some(reading))
-        })();
-        match result {
-            Ok(Some(reading)) => {
-                commands.entity(entity).insert(DiffDriveSample {
+    let result = (|| -> Result<(), DriveFault> {
+        let mut prepared = Vec::new();
+        for row in world
+            .iter_entities()
+            .filter(|row| row.contains::<Drive>())
+            .take(3)
+        {
+            let entity = row.id();
+            let mut drive = row.get::<Drive>().expect("selected drive").clone();
+            let prepare = (|| -> Result<Option<model::Reading>, String> {
+                let mut angles = [0.0; 2];
+                for (angle, joint) in angles.iter_mut().zip(drive.joints) {
+                    *angle = world
+                        .resource::<PhysicsBackend>()
+                        .joint_state(joint)
+                        .ok_or("missing drive wheel state")?
+                        .position;
+                }
+                let Some(odometry) = &mut drive.odometry else {
+                    return Err("missing initial encoder reference".into());
+                };
+                let reading = odometry
+                    .observe(angles, time.sim_time)
+                    .map_err(|error| error.to_string())?;
+                if !drive
+                    .schedule
+                    .take_sample(time.sim_time, false)
+                    .map_err(|error| error.to_string())?
+                {
+                    return Ok(None);
+                }
+                Ok(Some(reading))
+            })();
+            let reading = prepare.map_err(|message| DriveFault { entity, message })?;
+            prepared.push((entity, drive, reading));
+        }
+        active_drives(world)?;
+        for (entity, drive, reading) in prepared {
+            *world
+                .get_mut::<Drive>(entity)
+                .expect("preflighted original drive") = drive;
+            if let Some(reading) = reading {
+                world.entity_mut(entity).insert(DiffDriveSample {
                     time: time.sim_time,
                     epoch: time.epoch,
                     pose: reading.pose,
                     twist: reading.twist,
                 });
             }
-            Ok(None) => {}
-            Err(message) => {
-                fault.report(DriveFault { entity, message });
-                return;
-            }
         }
+        Ok(())
+    })();
+    if let Err(error) = result {
+        world.resource::<StepFault>().report(error);
     }
 }
 
-fn reset(
-    mut drivers: Query<(Entity, &mut Drive)>,
-    mut backend: ResMut<PhysicsBackend>,
-    fault: Res<StepFault>,
-    mut commands: Commands,
-) {
-    for (entity, mut drive) in &mut drivers {
-        drive.desired = [0.0; 2];
-        drive.schedule.reset();
-        let result = (|| -> Result<(), String> {
-            drive
-                .schedule
-                .take_sample(Duration::ZERO, false)
-                .map_err(|error| error.to_string())?;
-            let mut angles = [0.0; 2];
-            for (angle, joint) in angles.iter_mut().zip(drive.joints) {
-                *angle = backend
-                    .joint_state(joint)
-                    .ok_or("missing reset wheel state")?
-                    .position;
-            }
-            drive
-                .odometry
-                .as_mut()
-                .ok_or("missing initial encoder reference")?
-                .reset(angles, Duration::ZERO)
-                .map_err(|error| error.to_string())?;
-            for id in drive.joints {
-                backend
-                    .validate_joint_velocity_motor(id, None)
-                    .map_err(|error| error.to_string())?;
-            }
-            for id in drive.joints {
-                backend
-                    .set_joint_velocity_motor(id, None)
-                    .map_err(|error| error.to_string())?;
-            }
-            Ok(())
-        })();
-        commands.entity(entity).remove::<DiffDriveSample>();
-        if let Err(message) = result {
-            fault.report(DriveFault { entity, message });
-            return;
+fn reset(world: &mut World) {
+    let rows: Vec<_> = world
+        .iter_entities()
+        .filter(|row| row.contains::<Drive>())
+        .take(3)
+        .map(|row| row.id())
+        .collect();
+    // Preserve the M8 failure cleanup even if later validation refuses reset.
+    for entity in &rows {
+        {
+            let mut drive = world.get_mut::<Drive>(*entity).expect("selected drive");
+            drive.desired = [0.0; 2];
+            drive.schedule.reset();
         }
+        world.entity_mut(*entity).remove::<DiffDriveSample>();
+    }
+    let result = (|| -> Result<(), DriveFault> {
+        let mut prepared = Vec::new();
+        for entity in rows {
+            let mut drive = world.get::<Drive>(entity).expect("selected drive").clone();
+            let prepare = (|| -> Result<(), String> {
+                drive
+                    .schedule
+                    .take_sample(Duration::ZERO, false)
+                    .map_err(|error| error.to_string())?;
+                let mut angles = [0.0; 2];
+                for (angle, joint) in angles.iter_mut().zip(drive.joints) {
+                    *angle = world
+                        .resource::<PhysicsBackend>()
+                        .joint_state(joint)
+                        .ok_or("missing reset wheel state")?
+                        .position;
+                }
+                drive
+                    .odometry
+                    .as_mut()
+                    .ok_or("missing initial encoder reference")?
+                    .reset(angles, Duration::ZERO)
+                    .map_err(|error| error.to_string())?;
+                for joint in drive.joints {
+                    world
+                        .resource::<PhysicsBackend>()
+                        .validate_joint_velocity_motor(joint, None)
+                        .map_err(|error| error.to_string())?;
+                }
+                Ok(())
+            })();
+            prepare.map_err(|message| DriveFault { entity, message })?;
+            prepared.push((entity, drive));
+        }
+        active_drives(world)?;
+        {
+            let mut backend = world.resource_mut::<PhysicsBackend>();
+            for (entity, drive) in &prepared {
+                for joint in drive.joints {
+                    backend
+                        .set_joint_velocity_motor(joint, None)
+                        .map_err(|error| DriveFault {
+                            entity: *entity,
+                            message: error.to_string(),
+                        })?;
+                }
+            }
+        }
+        for (entity, drive) in prepared {
+            *world.get_mut::<Drive>(entity).expect("preflighted drive") = drive;
+        }
+        Ok(())
+    })();
+    if let Err(error) = result {
+        world.resource::<StepFault>().report(error);
     }
 }
 
 #[cfg(test)]
 #[path = "../tests/private/diff_drive.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/multiple_diff_drives.rs"]
+mod multiple_diff_drives_tests;

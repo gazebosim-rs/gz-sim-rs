@@ -22,13 +22,31 @@ fn keys() -> (String, String) {
 }
 fn setup(command_key: String, odometry_key: String, input: mpsc::SyncSender<Command>) -> Setup {
     Setup {
-        command_key,
-        odometry_key,
-        input,
+        endpoints: vec![Endpoint {
+            owner: 1,
+            command_key,
+            odometry_key,
+            input,
+        }],
         max_bytes: 512,
         drops: Arc::new(AtomicU64::new(0)),
         epoch: Arc::new(AtomicU64::new(7)),
     }
+}
+fn single(
+    session: &zenoh::Session,
+    setup: Setup,
+    process: &str,
+    node: &str,
+) -> zenoh::Result<(Declarations, Arc<Output>)> {
+    let (declarations, mut installed) = Declarations::new(session, setup, process, node)?;
+    Ok((
+        declarations,
+        installed
+            .outputs
+            .remove(&1)
+            .expect("one prepared test owner"),
+    ))
 }
 fn twist(linear: f64, angular: f64) -> Twist {
     Twist {
@@ -88,7 +106,7 @@ fn actual_canonical_input_bounds_output_and_retired_callback_capture_share_no_cp
     let setup = setup(cmd, odom, input);
     let drops = Arc::clone(&setup.drops);
     let epoch = Arc::clone(&setup.epoch);
-    let (mut registry, output) = Declarations::new(&session, setup, "process", "node").unwrap();
+    let (mut registry, output) = single(&session, setup, "process", "node").unwrap();
     wait(|| output.matching().unwrap());
     let bytes = twist(2.0, -0.5).encode_to_vec();
     publisher
@@ -147,7 +165,7 @@ fn actual_canonical_input_bounds_output_and_retired_callback_capture_share_no_cp
     );
     drop(observer);
     wait(|| !output.matching().unwrap());
-    let held = Arc::clone(&registry.state);
+    let held = Arc::clone(&registry.entries.get(&1).unwrap().state);
     let weak = Arc::downgrade(&output);
     let job = Job::new(&output, frame);
     drop(output);
@@ -155,9 +173,9 @@ fn actual_canonical_input_bounds_output_and_retired_callback_capture_share_no_cp
     assert!(!registry.publish(job).unwrap());
     assert!(!registry.reconcile(false));
     assert!(
-        registry.publisher.is_none()
-            && registry.subscriber.is_none()
-            && registry.presence.is_empty()
+        registry.entries.get(&1).unwrap().publisher.is_none()
+            && registry.entries.get(&1).unwrap().subscriber.is_none()
+            && registry.entries.get(&1).unwrap().presence.is_empty()
     );
     held.receive(captured_sample);
     assert!(receiver.try_recv().is_err());
@@ -174,11 +192,11 @@ fn failed_setup_closed_transport_and_mismatched_jobs_cannot_publish_or_retain_en
         let (input, _) = mpsc::sync_channel(1);
         let mut setup = setup(cmd.clone(), odom.clone(), input);
         setup.max_bytes = max;
-        assert!(Declarations::new(&session, setup, "process", "node").is_err());
+        assert!(single(&session, setup, "process", "node").is_err());
     }
     let (input, _) = mpsc::sync_channel(1);
     assert!(
-        Declarations::new(
+        single(
             &session,
             setup(cmd.clone(), cmd.clone(), input),
             "process",
@@ -187,7 +205,7 @@ fn failed_setup_closed_transport_and_mismatched_jobs_cannot_publish_or_retain_en
         .is_err()
     );
     let (input, _) = mpsc::sync_channel(1);
-    let (mut registry, output) = Declarations::new(
+    let (mut registry, output) = single(
         &session,
         setup(cmd.clone(), odom.clone(), input),
         "process",
@@ -196,7 +214,7 @@ fn failed_setup_closed_transport_and_mismatched_jobs_cannot_publish_or_retain_en
     .unwrap();
     let (input, _) = mpsc::sync_channel(1);
     let (second_cmd, second_odom) = keys();
-    let (_other, other) = Declarations::new(
+    let (_other, other) = single(
         &session,
         setup(second_cmd, second_odom, input),
         "process",
@@ -212,5 +230,5 @@ fn failed_setup_closed_transport_and_mismatched_jobs_cannot_publish_or_retain_en
     wait(|| registry.reconcile(true));
     assert!(output.matching().is_err());
     let (input, _) = mpsc::sync_channel(1);
-    assert!(Declarations::new(&session, setup(cmd, odom, input), "process", "node").is_err());
+    assert!(single(&session, setup(cmd, odom, input), "process", "node").is_err());
 }

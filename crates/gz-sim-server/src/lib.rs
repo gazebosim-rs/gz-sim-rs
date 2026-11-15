@@ -376,6 +376,7 @@ enum PublicationFamily {
     Magnetometer,
     JointState,
     JointController,
+    DiffDrive,
 }
 // Current and loaded-original roles are both reserved. Identical restored/live
 // roles may repeat, but another owner/channel/raw topic may not alias their key.
@@ -692,6 +693,26 @@ fn typed_reserved_keys(
             Err(error) => return Err(error.into()),
         }
         keys
+    } else if own == PublicationFamily::DiffDrive {
+        // Exclude only drive channels; current and original controllers still reserve theirs.
+        let mut keys = sensor_reserved_keys_with_peer_inputs(simulation, io, config, true, false)?;
+        for entity in simulation.world().iter_entities() {
+            if !entity.contains::<gz_sim_scene::PendingResetRemoval>()
+                && let Some(metadata) = entity.get::<gz_sim_scene::JointControllerConfiguration>()
+            {
+                keys.insert(config.topic_key(&metadata.topic)?);
+            }
+        }
+        match gz_sim_scene::initial_joint_controller_configurations(simulation) {
+            Ok(values) => {
+                for (_, metadata) in values {
+                    keys.insert(config.topic_key(&metadata.topic)?);
+                }
+            }
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+            Err(error) => return Err(error.into()),
+        }
+        keys
     } else {
         sensor_reserved_keys(simulation, io, config)?
     };
@@ -909,6 +930,21 @@ fn validate_joint_controller_peer_topics(
     if reset.is_none() && !keys.is_disjoint(&legacy) {
         return Err(Error::JointControllerIdentity);
     }
+    validate_input_peer_families(simulation, config, &keys, reset.is_some())?;
+    if reset.is_some() && !keys.is_disjoint(&legacy) {
+        return Err(Error::JointControllerIdentity);
+    }
+    let _ = io; // The complete peer-set validation follows this priority selection.
+    Ok(())
+}
+
+// Preserve the old typed-family error winner independently of full reservation coverage.
+fn validate_input_peer_families(
+    simulation: &Simulation,
+    config: &ServerOptions,
+    keys: &BTreeSet<String>,
+    restoring: bool,
+) -> Result<(), Error> {
     // These families were prepared after controller inputs at construction, but
     // their own reservations reported aliases the old controller subset omitted.
     // At reset, their original channels were prepared before controller inputs.
@@ -924,7 +960,7 @@ fn validate_joint_controller_peer_topics(
                 Err(gz_sim_scene::SceneResetError::MissingInitialState) => Vec::new(),
                 Err(error) => return Err(error.into()),
             };
-            let eligible = if reset.is_some() {
+            let eligible = if restoring {
                 !originals.is_empty()
             } else {
                 active
@@ -982,10 +1018,79 @@ fn validate_joint_controller_peer_topics(
         metadata,
         JointStateIdentity
     );
-    if reset.is_some() && !keys.is_disjoint(&legacy) {
-        return Err(Error::JointControllerIdentity);
+    Ok(())
+}
+
+fn diff_drive_reserved_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+) -> Result<BTreeSet<String>, Error> {
+    typed_reserved_keys(simulation, io, config, PublicationFamily::DiffDrive)
+}
+
+// Reproduce only the endpoint subset checked by the parent M8 stream. Full
+// reservations include additional peers, but cannot move their legacy error winner.
+fn diff_drive_legacy_keys(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+    restoring: bool,
+) -> Result<BTreeSet<String>, Error> {
+    let mut keys = io.fixed_keys();
+    keys.insert(config.topic_key("/clock")?);
+    let mut add = |raw: &str| -> Result<(), Error> {
+        keys.insert(config.topic_key(&options::as_valid_topic(raw))?);
+        Ok(())
+    };
+    if restoring {
+        match gz_sim_scene::initial_imu_publications(simulation) {
+            Ok(values) => {
+                for metadata in values {
+                    add(&metadata.topic)?;
+                }
+                for metadata in gz_sim_scene::initial_lidar_publications(simulation)? {
+                    add(&metadata.topic)?;
+                }
+            }
+            Err(gz_sim_scene::SceneResetError::MissingInitialState) => {}
+            Err(error) => return Err(error.into()),
+        }
+    } else {
+        for entity in simulation.world().iter_entities() {
+            if let Some(metadata) = entity.get::<ImuPublication>() {
+                add(&metadata.topic)?;
+            }
+            if !entity.contains::<gz_sim_scene::PendingResetRemoval>()
+                && let Some(metadata) = entity.get::<gz_sim_scene::LidarPublication>()
+            {
+                add(&metadata.topic)?;
+            }
+        }
     }
-    let _ = io; // The complete peer-set validation follows this priority selection.
+    Ok(keys)
+}
+
+fn validate_diff_drive_peer_topics(
+    simulation: &Simulation,
+    io: &world_io::WorldIo,
+    config: &ServerOptions,
+    reset: Option<&Server>,
+) -> Result<(), Error> {
+    let keys = diff_drive::boundary_keys(simulation, config, reset)?;
+    if keys.is_empty() {
+        return Ok(());
+    }
+    // These legacy roles were prepared before drive inputs. The controller
+    // selector has already preserved its own earlier error precedence.
+    let legacy = diff_drive_legacy_keys(simulation, io, config, reset.is_some())?;
+    if reset.is_none() && !keys.is_disjoint(&legacy) {
+        return Err(Error::DiffDriveIdentity);
+    }
+    validate_input_peer_families(simulation, config, &keys, reset.is_some())?;
+    if reset.is_some() && !keys.is_disjoint(&legacy) {
+        return Err(Error::DiffDriveIdentity);
+    }
     Ok(())
 }
 
@@ -1217,7 +1322,7 @@ pub struct Server {
     removals: removals::Removals,
     rates: Option<rates::Rates>,
     forces: Option<forces::Forces>,
-    diff_drive: Option<diff_drive::Stream>,
+    diff_drive: Option<diff_drive::Drives>,
     joint_controllers: Option<joint_controllers::Controllers>,
     command_budget: NonZeroUsize,
     pending_steps: u64,
@@ -1370,6 +1475,8 @@ impl Server {
         validate_lidar_peer_topics(&simulation, &world_io, &config, None)?;
         validate_joint_controller_peer_topics(&simulation, &world_io, &config, None)?;
         let controller_metadata = joint_controllers::preflight(&simulation, &world_io, &config)?;
+        validate_diff_drive_peer_topics(&simulation, &world_io, &config, None)?;
+        let drive_metadata = diff_drive::preflight(&simulation, &world_io, &config)?;
         let mut imus = Vec::new();
         let mut imu_publishers: BTreeMap<String, Weak<world_io::ImuOutput>> = BTreeMap::new();
         for entity in simulation.world().iter_entities() {
@@ -1426,7 +1533,7 @@ impl Server {
         forces.bind(&simulation)?;
         world_io.install_forces(force_setup)?;
         let forces = forces.into_active();
-        let diff_drive = diff_drive::stream(&simulation, &world_io, &config, &imus, &lidars, None)?;
+        let diff_drive = diff_drive::prepare(&simulation, &world_io, &config, &drive_metadata)?;
         let joint_controllers =
             joint_controllers::prepare(&simulation, &world_io, &config, &controller_metadata)?;
         let altimeters = if simulation
@@ -1850,6 +1957,7 @@ impl Server {
             return Err(Error::IoPreparationRequired);
         }
         self.reconcile_joint_controllers()?;
+        self.reconcile_diff_drive()?;
         self.simulation.validate_steps(0)?;
         if self.prepared_reset.is_none() {
             self.validate_steps(u64::from(!self.simulation.is_paused()))?;

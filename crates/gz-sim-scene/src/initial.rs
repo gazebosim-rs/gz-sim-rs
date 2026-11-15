@@ -115,6 +115,52 @@ impl InitialScene {
         matches!(&self.0.physics, InitialPhysics::Dynamic(initial) if backend.owns_initial_state(initial))
     }
 
+    pub(super) fn diff_drive_identities(
+        &self,
+    ) -> impl Iterator<Item = InitialDiffDriveIdentity<'_>> {
+        self.0.nodes.iter().filter_map(|node| {
+            node.drive_configuration
+                .as_ref()
+                .map(|configuration| InitialDiffDriveIdentity {
+                    id: node.id.get(),
+                    kind: node.kind,
+                    name: node.name.as_str(),
+                    parent: node.parent,
+                    configuration,
+                })
+        })
+    }
+
+    pub(super) fn diff_drive_blueprint(&self, id: u64) -> Option<&crate::diff_drive::Drive> {
+        self.0
+            .nodes
+            .iter()
+            .find(|node| node.id.get() == id)?
+            .drive
+            .as_ref()
+    }
+
+    pub(super) fn diff_drive_wheel_identity(
+        &self,
+        model: u64,
+        joint: gz_physics::JointId,
+    ) -> Option<InitialDiffDriveWheelIdentity<'_>> {
+        self.0.nodes.iter().find_map(|node| {
+            let handle = node.joint?;
+            if node.parent != Some(model) || handle.id() != joint {
+                return None;
+            }
+            Some(InitialDiffDriveWheelIdentity {
+                id: node.id.get(),
+                kind: node.kind,
+                name: node.name.as_str(),
+                parent: node.parent,
+                handle,
+                definition: node.joint_definition.as_ref()?,
+            })
+        })
+    }
+
     pub(super) fn joint_controller_identities(
         &self,
     ) -> impl Iterator<Item = InitialJointControllerIdentity<'_>> {
@@ -276,6 +322,38 @@ pub fn initial_joint_force_configurations(
             .as_ref()
             .map(|configuration| (node.id.get(), configuration))
     }))
+}
+
+/// Original loaded drive identity, borrowed from the immutable reset blueprint.
+/// Removed models remain represented; names retain their world scope.
+#[derive(Clone, Copy, Debug)]
+pub struct InitialDiffDriveIdentity<'a> {
+    pub id: u64,
+    pub kind: EntityKind,
+    pub name: &'a str,
+    pub parent: Option<u64>,
+    pub configuration: &'a DiffDriveConfiguration,
+}
+
+pub(super) struct InitialDiffDriveWheelIdentity<'a> {
+    pub(super) id: u64,
+    pub(super) kind: EntityKind,
+    pub(super) name: &'a str,
+    pub(super) parent: Option<u64>,
+    pub(super) handle: JointHandle,
+    pub(super) definition: &'a JointDefinition,
+}
+
+/// Original drive identities, including removed loaded owners, without IO or mutation.
+/// Missing loader state differs from a loaded scene with no configured drives.
+pub fn initial_diff_drive_configurations_with_identity(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = InitialDiffDriveIdentity<'_>>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.diff_drive_identities())
 }
 
 /// Original configured drive streams, including removed loaded models.

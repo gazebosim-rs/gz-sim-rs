@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Additional native-off execution proof; never replaces the full coverage profiles.
 
-Thirty-two copied example SDFs run once each through the retained actual CLI. These
+Thirty-three copied example SDFs run once each through the retained actual CLI. These
 finite load/step controls are separate from Rust test counts and canonical wire
 or statistical/native-model evidence; clean installed runs remain separate.
 """
@@ -59,6 +59,7 @@ NOISY_EXAMPLES = (
     "examples/m56_multiple_odometry_publishers.sdf",
     "examples/m57_multiple_joint_state_publishers.sdf",
     "examples/m58_multiple_joint_controllers.sdf",
+    "examples/m59_multiple_diff_drives.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -136,6 +137,16 @@ NOISY_LINKS = {
         "default::arm_left::tip": None,
         "default::arm_right::base": None,
         "default::arm_right::tip": None,
+        "default::ground::body": (0, 0, -0.1),
+    },
+    "examples/m59_multiple_diff_drives.sdf": {
+        # Native wheel/body dynamics earn finite load/step credit, not a trajectory claim.
+        "default::robot_left::base_link": None,
+        "default::robot_left::left_wheel": None,
+        "default::robot_left::right_wheel": None,
+        "default::robot_right::base_link": None,
+        "default::robot_right::left_wheel": None,
+        "default::robot_right::right_wheel": None,
         "default::ground::body": (0, 0, -0.1),
     },
 }
@@ -315,7 +326,7 @@ def noisy_output_matches(source, stdout):
         except ValueError:
             return False
         if position is None:
-            # Only explicitly listed M33 dynamic and M57/M58 articulated links use this policy.
+            # Only explicitly listed M33 dynamic and M57/M58/M59 articulated links use this policy.
             # This is finite stepping, not a trajectory expectation or tolerance.
             if not all(math.isfinite(value) for value in actual):
                 return False
@@ -356,7 +367,7 @@ def noisy_asset_bindings(root, directory):
 
 
 def validate_noisy_examples(root, directory, record, observed_root, objects):
-    """Require thirteen actual copied-binary controls, not Rust test-count credit."""
+    """Require every declared copied-binary control, not Rust test-count credit."""
     if not isinstance(record, dict) or record.get("schema_version") != 1:
         raise ValueError("missing copied noisy-example executions")
     if json.loads((directory / "noisy-examples.json").read_text()) != record:
