@@ -103,6 +103,17 @@ def verify_prefix(prefix):
     return manifest
 
 
+def example_path(prefix, manifest, basename):
+    """Select only a direct copied SDF whose complete installation was verified."""
+    relative = relative_file(basename)
+    if relative.parts != (basename,) or not basename.endswith('.sdf'):
+        raise ValueError('example must be a direct SDF basename')
+    name = 'share/examples/' + basename
+    if name not in manifest['files']:
+        raise ValueError('example is not listed in the installed manifest')
+    return prefix / name
+
+
 def environment(prefix, partition):
     result = dict(os.environ)
     result['GZ_PARTITION'] = partition
@@ -134,7 +145,10 @@ def stop_child(child):
         child.wait(timeout=5)
 
 
-def serve(prefix, http_port, ws_port, partition, *, lifecycle=False):
+def serve(prefix, http_port, ws_port, partition, *, lifecycle=False, example=None):
+    world = prefix / 'share/robot.sdf'
+    if example is not None:
+        world = example_path(prefix, verify_prefix(prefix), example)
     if http_port == ws_port or ws_port == 7449:
         raise ValueError('HTTP, WebSocket and Zenoh ports must be distinct')
     check_port(ws_port)
@@ -152,7 +166,7 @@ def serve(prefix, http_port, ws_port, partition, *, lifecycle=False):
     try:
         for signum in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
             previous[signum] = signal.signal(signum, interrupt)
-        command = [str(prefix / 'bin/gz-sim-rs'), str(prefix / 'share/robot.sdf'),
+        command = [str(prefix / 'bin/gz-sim-rs'), str(world),
                    '--server', '--web-viewer', str(ws_port)]
         if lifecycle:
             command.append('--web-lifecycle')
@@ -190,7 +204,11 @@ def main(argv=None, prefix=None):
     run.add_argument('--ws-port', type=int, default=9014)
     run.add_argument('--lifecycle', action='store_true',
                      help='enable existing local lifecycle controls and publication credit')
+    run.add_argument('--example', metavar='BASENAME',
+                     help='select a manifest-listed copied share/examples/*.sdf basename')
     drive = commands.add_parser('drive', help='send a finite canonical drive command, then brake')
+    drive.add_argument('--topic', metavar='KEY',
+                       help='explicit concrete command topic; default is the M8 robot topic')
     drive.add_argument('linear_m_per_s')
     drive.add_argument('yaw_rad_per_s')
     drive.add_argument('duration_seconds')
@@ -198,7 +216,7 @@ def main(argv=None, prefix=None):
     args = parser.parse_args(argv)
     root = Path(prefix) if prefix is not None else Path(__file__).resolve().parent.parent
     try:
-        verify_prefix(root)
+        manifest = verify_prefix(root)
         if not args.partition or any(character.isspace() for character in args.partition):
             raise ValueError('a nonempty partition without whitespace is required')
         if args.command == 'verify':
@@ -207,14 +225,20 @@ def main(argv=None, prefix=None):
         if args.command == 'drive':
             # Replace the wrapper so a signal cannot orphan a still-driving helper.
             helper = str(root / 'bin/gz-drive-command')
-            return os.execve(helper, [helper, 'tcp/127.0.0.1:7449', args.linear_m_per_s,
-                                     args.yaw_rad_per_s, args.duration_seconds],
-                             environment(root, args.partition))
+            command = [helper, 'tcp/127.0.0.1:7449', args.linear_m_per_s,
+                       args.yaw_rad_per_s, args.duration_seconds]
+            if args.topic is not None:
+                command.extend(['--topic', args.topic])
+            return os.execve(helper, command, environment(root, args.partition))
         if not 1024 <= args.ws_port <= 65535:
             raise ValueError('WebSocket port must be in 1024..=65535')
+        options = {}
         if args.lifecycle:
-            return serve(root, args.http_port, args.ws_port, args.partition, lifecycle=True)
-        return serve(root, args.http_port, args.ws_port, args.partition)
+            options['lifecycle'] = True
+        if args.example is not None:
+            example_path(root, manifest, args.example)
+            options['example'] = args.example
+        return serve(root, args.http_port, args.ws_port, args.partition, **options)
     except (OSError, ValueError, KeyError, TypeError) as error:
         print('Preview failed: ' + str(error), file=sys.stderr)
         return 1

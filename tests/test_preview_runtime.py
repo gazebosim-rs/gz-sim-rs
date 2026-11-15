@@ -383,5 +383,121 @@ class InstalledPreview(unittest.TestCase):
         self.assertEqual(preview.verify_prefix(self.prefix)['files'], self.files)
 
 
+    def install_example(self, name='m59_multiple_diff_drives.sdf'):
+        relative = 'share/examples/' + name
+        target = self.prefix / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        content = b"<sdf version='1.12'><world name='default'/></sdf>\n"
+        target.write_bytes(content)
+        target.chmod(0o644)
+        self.files[relative] = {'bytes': len(content), 'sha256': hashlib.sha256(content).hexdigest(),
+                                'mode': 0o644}
+        self.save_manifest()
+        return target
+
+    def test_manifest_bound_example_selects_the_relocated_world_and_preserves_lifecycle(self):
+        self.install_example()
+        moved = self.directory / 'relocated examples prefix'
+        shutil.move(self.prefix, moved)
+        basename = 'm59_multiple_diff_drives.sdf'
+        with patch.object(preview, 'serve', return_value=0) as serve:
+            self.assertEqual(preview.main(['--partition', 'two-robots', 'run', '--example', basename,
+                                           '--lifecycle', '--http-port', '8082'], moved), 0)
+            serve.assert_called_once_with(moved, 8082, 9014, 'two-robots',
+                                          lifecycle=True, example=basename)
+        child = Mock(pid=123, returncode=0)
+        child.poll.return_value = 0
+        http = Mock()
+        thread = Mock()
+        with patch.object(preview, 'check_port') as ports, \
+                patch.object(preview.http.server, 'ThreadingHTTPServer', return_value=http), \
+                patch.object(preview.threading, 'Thread', return_value=thread), \
+                patch.object(preview.subprocess, 'Popen', return_value=child) as spawn, \
+                patch.object(preview.os, 'killpg') as kill, patch('builtins.print'):
+            self.assertEqual(preview.serve(moved, 8082, 9014, 'two-robots',
+                                           lifecycle=True, example=basename), 0)
+        self.assertEqual(spawn.call_args.args[0], [str(moved / 'bin/gz-sim-rs'),
+                          str(moved / 'share/examples' / basename),
+                          '--server', '--web-viewer', '9014', '--web-lifecycle'])
+        self.assertEqual(spawn.call_args.kwargs['cwd'], moved)
+        self.assertTrue(spawn.call_args.kwargs['start_new_session'])
+        self.assertEqual(spawn.call_args.kwargs['env']['GZ_PARTITION'], 'two-robots')
+        self.assertEqual(spawn.call_args.kwargs['env']['ZENOH_CONFIG'], str(moved / 'share/zenoh.json5'))
+        self.assertEqual([call.args for call in ports.call_args_list], [(9014,), (7449,)])
+        kill.assert_not_called()
+        http.shutdown.assert_called_once_with()
+        http.server_close.assert_called_once_with()
+
+    def test_example_paths_and_unlisted_or_nested_targets_launch_nothing(self):
+        self.install_example()
+        for name in ('', '.', '..', '../robot.sdf', '/tmp/outside.sdf',
+                     './m59_multiple_diff_drives.sdf', 'nested/m59_multiple_diff_drives.sdf',
+                     'nested\\world.sdf', 'C:world.sdf', 'world.sdf\n',
+                     'robot.txt', 'missing.sdf'):
+            with self.subTest(name=name), patch.object(preview, 'serve') as serve, \
+                    patch.object(preview.subprocess, 'Popen') as spawn:
+                self.assertEqual(preview.main(['run', '--example', name], self.prefix), 1)
+                serve.assert_not_called()
+                spawn.assert_not_called()
+
+    def test_selected_example_content_mode_link_and_inventory_changes_fail_before_listeners(self):
+        target = self.install_example()
+        original = target.read_bytes()
+        for fault in ('content', 'mode', 'link', 'missing', 'unlisted'):
+            with self.subTest(fault=fault):
+                if fault == 'content':
+                    target.write_bytes(b'changed')
+                elif fault == 'mode':
+                    target.chmod(0o600)
+                elif fault == 'link':
+                    target.unlink()
+                    outside = self.directory / 'external world.sdf'
+                    outside.write_bytes(original)
+                    target.symlink_to(outside)
+                elif fault == 'missing':
+                    target.unlink()
+                else:
+                    self.files.pop('share/examples/m59_multiple_diff_drives.sdf')
+                    self.save_manifest()
+                with patch.object(preview, 'check_port') as port, \
+                        patch.object(preview.subprocess, 'Popen') as spawn:
+                    with self.assertRaises(ValueError):
+                        preview.serve(self.prefix, 8081, 9014, 'demo',
+                                      example='m59_multiple_diff_drives.sdf')
+                    port.assert_not_called()
+                    spawn.assert_not_called()
+                if target.is_symlink():
+                    target.unlink()
+                self.install_example()
+
+    def test_explicit_command_topic_is_forwarded_as_one_argument_without_changing_default_argv(self):
+        for topic in ('/m59/left/cmd_vel', '/m59/right/cmd_vel'):
+            with self.subTest(topic=topic), patch.object(preview.os, 'execve', return_value=0) as send:
+                self.assertEqual(preview.main(['--partition', 'two-robots', 'drive', '--topic', topic,
+                                               '0.4', '-0.5', '3'], self.prefix), 0)
+                helper = str(self.prefix / 'bin/gz-drive-command')
+                self.assertEqual(send.call_args.args[0], helper)
+                self.assertEqual(send.call_args.args[1], [helper, 'tcp/127.0.0.1:7449',
+                                                         '0.4', '-0.5', '3', '--topic', topic])
+                self.assertEqual(send.call_args.args[2]['GZ_PARTITION'], 'two-robots')
+                self.assertEqual(send.call_args.args[2]['ZENOH_CONFIG'], str(self.prefix / 'share/zenoh.json5'))
+        # A packet topic is validated by the Rust helper; the wrapper uses no shell.
+        with patch.object(preview.os, 'execve', return_value=0) as send:
+            self.assertEqual(preview.main(['drive', '0', '0', '0', '--topic', '/x;echo unsafe'], self.prefix), 0)
+            self.assertEqual(send.call_args.args[1][-1], '/x;echo unsafe')
+
+    def test_new_selectors_reject_missing_values_and_other_command_modes_before_dispatch(self):
+        for argv in (['run', '--example'], ['drive', '0', '0', '1', '--topic'],
+                     ['verify', '--example', 'world.sdf'], ['verify', '--topic', '/a'],
+                     ['drive', '0', '0', '1', '--example', 'world.sdf'], ['run', '--topic', '/a']):
+            with self.subTest(argv=argv), patch.object(preview, 'serve') as serve, \
+                    patch.object(preview.os, 'execve') as drive:
+                with self.assertRaises(SystemExit) as stopped:
+                    preview.main(argv, self.prefix)
+                self.assertEqual(stopped.exception.code, 2)
+                serve.assert_not_called()
+                drive.assert_not_called()
+
+
 if __name__ == '__main__':
     unittest.main()

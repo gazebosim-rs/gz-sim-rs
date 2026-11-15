@@ -1,3 +1,48 @@
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+## Current M60: current installed two-robot preview
+
+M60 is integrated on provisionally locally qualified, unaccepted M59
+`7f849bd3e6b1d9842bdde415d9f2923e09ef0b0e`. M59 passed the full normal
+(2,013 headless and 1,176 overlapping renderer tests, 449 Python checks and strict
+coverage) and independent retained DATA, including four byte-exact RAW comparisons
+and 33 finite examples. All six earlier failed normal runs remain preserved.
+M60’s eight package, launcher, sender, regression and guide leaves have independent
+Source review and are adopted without replacing a changed parent leaf. No M60
+check, build, package, installation or browser result is claimed.
+
+The package retains the default M19 robot and accepted viewer bytes, and copies
+all 33 maintained finite examples with their existing relative assets. The
+installed launcher gains a verified example selector; the finite drive helper
+gains an optional concrete topic while preserving its existing defaults and
+braking behavior. Physics, configuration math, dependencies and viewer rendering
+are unchanged.
+
+The exact M59 fixture and every parent repair are retained. Complete whole
+integration Source review before one consolidated formatter and the unchanged
+mandatory normal, strict coverage and independent retained audit. Do not run
+checks between edits.
+
+Then complete source-bound builds, notices and actual ELF dependency collection,
+assembly and relocation audits, one supported clean Ubuntu installation, and a
+fresh live browser demonstration. The installed M58 and M59 finite examples must
+run; both M59 robots must receive independent installed-helper commands, produce
+actual motion and canonical encoder odometry, and demonstrate Play/Pause/Reset
+and owned shutdown. Proof-only host SDK tools are not installed dependencies.
+
+Accepted predecessors, exact hosted CI, official audits and ordinary Main and
+release readbacks remain required before acceptance or publication. M1–M42 and
+175 slices remain accepted; M40 remains Latest. The required hosted snapshot
+recovery is unconfirmed, and no CI retry or workaround is released.
+
+The owner requested November 15 closeout. This is a calendar target, separate
+from the five-working-day phase budget and retained quality gates. Root owns
+integration and serial operations; independent Source preparation and review
+continue in parallel. See [M60_DELIVERY.md](M60_DELIVERY.md).
+
+Earlier checkpoints below retain their historical scope.
+
+
 ## Current M59: two independent differential-drive robots
 
 M58 is provisionally locally qualified at `173b31d2`: its full normal passed

@@ -2,6 +2,20 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # M59: two independent loaded differential-drive robots
 
+Provisional local qualification is complete at M59 `7f849bd3`, tree `0184e824`,
+over M58 `173b31d2`. The full normal passed in 2,455.201 seconds with 2,013
+headless tests, 1,176 overlapping renderer tests, 449 Python checks, strict
+coverage and 33 finite examples. Independent retained DATA passed, including
+all four byte-exact RAW comparisons (1,831/401/47/33 original profiles) and
+573 headless/262 renderer named-control joins. All six failed normal originals
+remain preserved. Hosted CI, accepted predecessors, official audits and Main
+readbacks still gate acceptance and publication; M59 remains unaccepted.
+
+Retained originals and exact receipts are under `artifacts/m59-delivery`;
+`provisional-local-qualification.json` binds the commit, full normal and DATA.
+
+## Historical Source and failed-run checkpoints (before qualification)
+
 M59 is selected under D30–D32 on provisionally locally qualified M58
 `173b31d2d13889f851c58dfff1ea81a34680ede8`. Its full normal and independent
 retained DATA passed; hosted/official qualification, accepted predecessors and

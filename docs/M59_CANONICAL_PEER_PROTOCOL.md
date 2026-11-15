@@ -1,6 +1,6 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# M59 canonical peer protocol — selected proof and retained partial execution
+# M59 canonical peer protocol — locally verified, release gates pending
 
 Build on `native_multiple_joint_controllers_peer.cc`'s bounded interactive
 publisher/discovery protocol, `native_robot_sensors.cc`'s real upstream
@@ -130,9 +130,9 @@ partition and loopback-only case-owned configuration. Use public
    articulated M8 robot as `UnsupportedModel`, preserving the whole state. Then
    remove one genuine model through the existing `/world/default/remove/blocking`
    RPC using canonical `EntityRequest`/`Boolean`; require the actual true response,
-   removal-counter deltas and original ID absence. Both positive RPC branches passed in the sixth headless run, which later
-   failed strict Scene changed-line coverage. Full normal and independent DATA
-   remain pending; the fifth API-premise failures stay retained. Assert
+   removal-counter deltas and original ID absence. Both positive RPC branches passed the seventh full normal and independent
+   retained DATA; all earlier failures remain preserved. This is local
+   qualification, with hosted and release gates pending. Assert
    its actual endpoint retirement via `retired`. Healthy peer connections,
    canonical commands, measured motion and Odometry continue. Loaded reset
    restores both originals with new stream sequences/leases. Drop Server, require

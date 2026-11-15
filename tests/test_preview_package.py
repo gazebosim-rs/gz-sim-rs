@@ -46,6 +46,7 @@ class PreviewPackage(unittest.TestCase):
                      'docs/M37_INSTALL.md', 'docs/M37_CAPABILITIES.md', 'docs/M37_PREVIEW.md',
                      'docs/M40_INSTALL.md', 'docs/M40_CAPABILITIES.md', 'docs/M40_PREVIEW.md',
                      'docs/M44_INSTALL.md', 'docs/M44_CAPABILITIES.md', 'docs/M44_PREVIEW.md',
+                     'docs/M60_INSTALL.md', 'docs/M60_CAPABILITIES.md', 'docs/M60_PREVIEW.md',
                      *['examples/' + name for name in package.NOISY_EXAMPLES], 'LICENSE', 'NOTICE']:
             path = self.source / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -57,6 +58,8 @@ class PreviewPackage(unittest.TestCase):
             '<visual name="cargo"><geometry><mesh><uri>meshes/m16-asymmetric.obj</uri>'
             '</mesh></geometry></visual></link></model></world></sdf>')
         shutil.copyfile(ROOT / 'scripts/preview_runtime.py', self.source / 'scripts/preview_runtime.py')
+        # Final integration must include Root's exact reviewed M59 fixture.
+        # Missing inputs remain hard failures; never fabricate or skip a copy.
         for name in package.NOISY_EXAMPLES:
             shutil.copyfile(ROOT / 'examples' / name, self.source / 'examples' / name)
         self.viewer = self.directory / 'viewer'
@@ -639,12 +642,12 @@ class PreviewPackage(unittest.TestCase):
         self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
 
     def test_m44_guides_preserve_fifteen_examples_and_add_three_finite_commands(self):
-        self.assertEqual(len(package.NOISY_EXAMPLES), 18)
-        self.assertEqual(package.NOISY_EXAMPLES[15:],
+        self.assertEqual(len(package.NOISY_EXAMPLES[:18]), 18)
+        self.assertEqual(package.NOISY_EXAMPLES[15:18],
                          ('m41_air_speed_wind.sdf', 'm42_joint_force_feedback.sdf',
                           'm43_imu_reference_frames.sdf'))
         preview = (ROOT / 'docs/M44_PREVIEW.md').read_text()
-        for name in package.NOISY_EXAMPLES:
+        for name in package.NOISY_EXAMPLES[:18]:
             self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name + '"', preview)
         self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 18)
         for topic in ('/m42/joint_state', '/m43/imu'):
@@ -656,6 +659,123 @@ class PreviewPackage(unittest.TestCase):
         self.assertIn('matching alone does not prove', install)
         for name in ('M40_INSTALL.md', 'M40_CAPABILITIES.md', 'M40_PREVIEW.md'):
             self.assertTrue((ROOT / 'docs' / name).is_file())
+
+
+    def test_m60_registry_appends_exact_fifteen_without_replacing_the_eighteen_prefix(self):
+        prefix = ('m21_altimeter_noise.sdf', 'm22_air_pressure_noise.sdf',
+                  'm23_magnetometer_noise.sdf', 'm24_cpu_lidar_noise.sdf',
+                  'm26_air_speed.sdf', 'm27_pose_publisher.sdf', 'm28_air_speed_noise.sdf',
+                  'm30_logical_camera.sdf', 'm31_pose_static_publisher.sdf',
+                  'm33_robot_sensors.sdf', 'm34_odometry_publisher.sdf',
+                  'm35_apply_link_wrench.sdf', 'm36_wrench_odometry.sdf',
+                  'm38_odometry_3d.sdf', 'm39_odometry_translation_offsets.sdf',
+                  'm41_air_speed_wind.sdf', 'm42_joint_force_feedback.sdf',
+                  'm43_imu_reference_frames.sdf')
+        suffix = ('m45_imu_custom_world.sdf', 'm46_odometry_rotation_offsets.sdf', 'm47_odometry_noise.sdf', 'm48_imu_world_heading.sdf', 'm49_multiple_altimeters.sdf', 'm50_multiple_air_pressures.sdf', 'm51_multiple_air_speeds.sdf', 'm52_multiple_magnetometers.sdf', 'm53_multiple_logical_cameras.sdf', 'm54_multiple_lidars.sdf', 'm55_multiple_pose_publishers.sdf', 'm56_multiple_odometry_publishers.sdf', 'm57_multiple_joint_state_publishers.sdf', 'm58_multiple_joint_controllers.sdf', 'm59_multiple_diff_drives.sdf')
+        self.assertEqual(package.NOISY_EXAMPLES, prefix + suffix)
+        self.assertEqual(len(package.NOISY_EXAMPLES), 33)
+        self.assertEqual(len(set(package.NOISY_EXAMPLES)), 33)
+        self.assertTrue(all(Path(name).name == name and name.endswith('.sdf')
+                            for name in package.NOISY_EXAMPLES))
+
+    def test_m60_explicit_guides_bind_archive_relocation_and_keep_default_robot_and_meshes(self):
+        self.spec['guide_generation'] = 'M60'
+        for name in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+            shutil.copyfile(ROOT / ('docs/M60_' + name + '.md'),
+                            self.source / ('docs/M60_' + name + '.md'))
+        output = self.directory / 'gz-preview-m60-linux-x86_64'
+        archive = self.directory / (output.name + '.tar.gz')
+        manifest = package.assemble(self.spec, output, archive)
+        self.assertEqual(manifest['guide_generation'], 'M60')
+        self.assertEqual((output / 'share/robot.sdf').read_bytes(),
+                         (self.source / 'examples/m19_robot.sdf').read_bytes())
+        self.assertEqual((output / 'share/meshes/m16-asymmetric.obj').read_bytes(),
+                         (output / 'share/examples/meshes/m16-asymmetric.obj').read_bytes())
+        for name in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+            self.assertEqual((output / (name + '.md')).read_bytes(),
+                             (ROOT / ('docs/M60_' + name + '.md')).read_bytes())
+            self.assertNotEqual((output / (name + '.md')).read_bytes(),
+                                (self.source / ('docs/M44_' + name + '.md')).read_bytes())
+        with tarfile.open(archive, 'r:gz') as packed:
+            for name in package.NOISY_EXAMPLES:
+                path = 'share/examples/' + name
+                self.assertEqual(packed.extractfile(output.name + '/' + path).read(),
+                                 (self.source / 'examples' / name).read_bytes())
+                self.assertEqual(manifest['files'][path]['mode'], 0o644)
+            self.assertEqual(packed.extractfile(output.name + '/INSTALL.md').read(),
+                             (ROOT / 'docs/M60_INSTALL.md').read_bytes())
+        moved = self.directory / 'relocated M60 prefix'
+        shutil.move(output, moved)
+        self.assertEqual(runtime.verify_prefix(moved)['files'], manifest['files'])
+        for name in package.NOISY_EXAMPLES:
+            self.assertEqual((moved / 'share/examples' / name).read_bytes(),
+                             (self.source / 'examples' / name).read_bytes())
+        self.assertIn('gz-preview-m60-linux-x86_64.tar.gz', (moved / 'INSTALL.md').read_text())
+        self.assertEqual(len(manifest['viewer_gzip_bytes']), 2)
+        self.assertTrue(all(value <= 14_000_000 for value in manifest['viewer_gzip_bytes'].values()))
+
+    def test_m60_guide_selection_never_falls_back_and_bad_inputs_publish_nothing(self):
+        self.spec['guide_generation'] = 'M60'
+        for name in ('M60_INSTALL.md', 'M60_CAPABILITIES.md', 'M60_PREVIEW.md'):
+            path = self.source / 'docs' / name
+            original = path.read_bytes()
+            for fault in ('missing', 'linked', 'oversized'):
+                with self.subTest(guide=name, fault=fault):
+                    path.unlink()
+                    outside = self.directory / 'outside-guide'
+                    if fault == 'linked':
+                        outside.write_bytes(original)
+                        path.symlink_to(outside)
+                    elif fault == 'oversized':
+                        path.write_bytes(b'x' * (package.MAX_EXAMPLE + 1))
+                    self.assertTrue((self.source / 'docs/M44_INSTALL.md').is_file())
+                    self.refuse('regular|bound')
+                    self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+                    if path.exists() or path.is_symlink():
+                        path.unlink()
+                    if outside.exists():
+                        self.assertEqual(outside.read_bytes(), original)
+                        outside.unlink()
+                    path.write_bytes(original)
+        docs = self.source / 'docs'
+        saved = self.source / 'real-docs'
+        docs.rename(saved)
+        docs.symlink_to(saved, target_is_directory=True)
+        try:
+            self.refuse('linked directories')
+            self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+        finally:
+            docs.unlink()
+            saved.rename(docs)
+
+    def test_guide_generation_is_closed_and_legacy_default_equals_explicit_m44(self):
+        for generation in (None, '', 'M59', 'm60', '../M60', '/tmp/M60', False, 60, [], {}):
+            with self.subTest(generation=generation):
+                self.spec['guide_generation'] = generation
+                self.refuse('guide_generation')
+        self.spec.pop('guide_generation')
+        default = package.assemble(self.spec, self.output)
+        self.spec['guide_generation'] = 'M44'
+        explicit = package.assemble(self.spec, self.directory / 'explicit-m44')
+        self.assertEqual(default, explicit)
+        self.assertEqual(default['guide_generation'], 'M44')
+        self.assertEqual((self.output / 'INSTALL.md').read_bytes(),
+                         (self.source / 'docs/M44_INSTALL.md').read_bytes())
+
+    def test_m60_guides_document_all_thirty_three_and_explicit_commands_without_pass_claims(self):
+        preview = (ROOT / 'docs/M60_PREVIEW.md').read_text()
+        for name in package.NOISY_EXAMPLES:
+            self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name + '"', preview)
+        self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 33)
+        install = (ROOT / 'docs/M60_INSTALL.md').read_text()
+        self.assertIn('run --example m59_multiple_diff_drives.sdf', install)
+        self.assertIn('drive --topic /m59/left/cmd_vel', install)
+        self.assertIn('drive --topic /m59/right/cmd_vel', install)
+        self.assertIn('M40 remains Latest', install)
+        self.assertIn('No M60 installed or browser result is claimed', install)
+        for phase in ('M40', 'M44'):
+            for kind in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+                self.assertTrue((ROOT / ('docs/' + phase + '_' + kind + '.md')).is_file())
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Assemble an explicitly source-bound M44 Linux preview, without building inputs."""
+"""Assemble a source-bound Linux preview; M44 defaults and explicit M60 guides."""
 import argparse
 import gzip
 import hashlib
@@ -34,7 +34,23 @@ NOISY_EXAMPLES = (
     'm35_apply_link_wrench.sdf', 'm36_wrench_odometry.sdf',
     'm38_odometry_3d.sdf', 'm39_odometry_translation_offsets.sdf',
     'm41_air_speed_wind.sdf', 'm42_joint_force_feedback.sdf',
-    'm43_imu_reference_frames.sdf')
+    'm43_imu_reference_frames.sdf',
+    'm45_imu_custom_world.sdf',
+    'm46_odometry_rotation_offsets.sdf',
+    'm47_odometry_noise.sdf',
+    'm48_imu_world_heading.sdf',
+    'm49_multiple_altimeters.sdf',
+    'm50_multiple_air_pressures.sdf',
+    'm51_multiple_air_speeds.sdf',
+    'm52_multiple_magnetometers.sdf',
+    'm53_multiple_logical_cameras.sdf',
+    'm54_multiple_lidars.sdf',
+    'm55_multiple_pose_publishers.sdf',
+    'm56_multiple_odometry_publishers.sdf',
+    'm57_multiple_joint_state_publishers.sdf',
+    'm58_multiple_joint_controllers.sdf',
+    'm59_multiple_diff_drives.sdf',
+)
 
 
 def regular(path, maximum=MAX_FILE):
@@ -151,6 +167,12 @@ def assemble(spec, output, archive=None):
         raise ValueError('the archive must be outside the installed prefix')
     if spec.get('schema_version') != 1 or spec.get('target') != 'ubuntu-24.04-x86_64':
         raise ValueError('only the admitted Ubuntu 24.04 x86_64 package is supported')
+    generation = spec.get('guide_generation', 'M44')
+    if type(generation) is not str or generation not in ('M44', 'M60'):
+        raise ValueError('guide_generation must be M44 or M60')
+    guide_sources = (('M44_INSTALL.md', 'M44_CAPABILITIES.md', 'M44_PREVIEW.md')
+                     if generation == 'M44' else
+                     ('M60_INSTALL.md', 'M60_CAPABILITIES.md', 'M60_PREVIEW.md'))
     repositories = spec['repositories']
     if set(repositories) != {'gz-sim-rs', 'gzweb-rs'} or not all(
             isinstance(value, str) and COMMIT.fullmatch(value) for value in repositories.values()):
@@ -250,10 +272,12 @@ def assemble(spec, output, archive=None):
                                       'scouting': {'multicast': {'enabled': False}}}, indent=2) + '\n')
         for name, path in viewer.items():
             copy_file(path, prefix / 'web' / name, expected=spec['viewer_files'][name])
-        for source_name, installed_name in (('M44_INSTALL.md', 'INSTALL.md'),
-                                            ('M44_CAPABILITIES.md', 'CAPABILITIES.md'),
-                                            ('M44_PREVIEW.md', 'PREVIEW.md')):
-            copy_file(regular(ROOT / 'docs' / source_name), prefix / installed_name)
+        for source_name, installed_name in zip(guide_sources, ('INSTALL.md', 'CAPABILITIES.md', 'PREVIEW.md')):
+            maximum = MAX_EXAMPLE if generation == 'M60' else MAX_FILE
+            source = regular(ROOT / 'docs' / source_name, maximum)
+            if generation == 'M60' and source.resolve() != ROOT.resolve() / 'docs' / source_name:
+                raise ValueError('M60 guide source may not traverse linked directories')
+            copy_file(source, prefix / installed_name)
         copy_file(regular(ROOT / 'LICENSE'), prefix / 'LICENSE')
         copy_file(regular(ROOT / 'NOTICE'), prefix / 'NOTICE')
         notices = collect_notices(documents, extras, prefix / 'notices')
@@ -274,6 +298,7 @@ def assemble(spec, output, archive=None):
                     'bytes': path.stat().st_size, 'sha256': digest(path),
                     'mode': stat.S_IMODE(path.stat().st_mode)}
         manifest = {'schema_version': 1, 'target': spec['target'], 'repositories': repositories,
+                    'guide_generation': generation,
                     'profile': 'release; no-default-features; no rgb-camera',
                     'viewer_gzip_bytes': budgets, 'files': files}
         with (prefix / 'manifest.json').open('x') as stream:

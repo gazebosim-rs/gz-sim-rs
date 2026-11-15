@@ -2386,11 +2386,11 @@
       "source_preparation_basis_accepted": false,
       "source_authorship_released": true,
       "product_checks_run": true,
-      "full_normal_passed": false,
-      "independent_local_DATA_passed": false,
-      "runtime_provisionally_locally_qualified": false,
+      "full_normal_passed": true,
+      "independent_local_DATA_passed": true,
+      "runtime_provisionally_locally_qualified": true,
       "accepted": false,
-      "current_stage": "The sixth full normal returned exit 1 after 1,798.811 seconds: 2,011 headless passes, zero failures and five existing ignored controls; 449 Python checks and native-free/RGB qualification with 33 finite examples completed. Scene changed-line coverage of 363/391 failed the strict >95% gate; Server 700/721 is derived only. Renderer, full normal and DATA remain pending. Two Scene cases are complete, independently reviewed Source (32 H/15 R combined, not new passes). All six failures remain retained.",
+      "current_stage": "Provisionally locally qualified at exact7f849bd3/tree0184 after normal7 actual0/2455.201s (2013H/1176R/449Python/33finite, strictcoverage) and independent retained DATA actual0 with RAW4 byte-exact once1831/401/47/33 and573H/262R named joins. All6 earlier failures retained. Hosted/official/accepted-parent/Main gates remain held.",
       "parent_provisional_local_qualification": {
         "sha256": "fff92a1f7398614f4fdb4fde2cfc013596044da17e81a2e8765a1209442f8b4a",
         "bytes": 407300
@@ -2402,6 +2402,14 @@
       "parent_DATA_actual0": {
         "sha256": "bf7c48ebd4d08b5c23cebf772b4ddbb9c2b29da6c4b52bf96423fb16880c058d",
         "bytes": 1212
+      },
+      "retained_normal_attempt4_failure": {
+        "sha256": "0782b61a044b3f716c62cb7a63d491cc6e865afc828a51cc447a65eca4f8afe9",
+        "bytes": 2206
+      },
+      "retained_normal_attempt6_failure": {
+        "sha256": "54f69c7ff288dd5eb46525aecc924a89cfa64d7ffdd6beb1e0b812b8c8faab42",
+        "bytes": 2809
       },
       "retained_normal_attempt1_failure": {
         "sha256": "11a8de56565a037ef195a73c56f61b781d5c20fc3506b75c2ea68cd7ceb029c4",
@@ -2415,17 +2423,56 @@
         "sha256": "a6782352936122b5b042ae790e729ba9820b7468d1e3774adbefe496656f425a",
         "bytes": 1850
       },
-      "retained_normal_attempt4_failure": {
-        "sha256": "0782b61a044b3f716c62cb7a63d491cc6e865afc828a51cc447a65eca4f8afe9",
-        "bytes": 2206
-      },
       "retained_normal_attempt5_failure": {
         "sha256": "5a8edfff8e8dcb6ac33e03717f8efd02217c0f0cb77a23be74d1af0c31958f85",
         "bytes": 2236
       },
-      "retained_normal_attempt6_failure": {
-        "sha256": "54f69c7ff288dd5eb46525aecc924a89cfa64d7ffdd6beb1e0b812b8c8faab42",
-        "bytes": 2809
+      "provisional_local_qualification": {
+        "path": "artifacts/m59-delivery/provisional-local-qualification.json",
+        "sha256": "686fa74389f619d17e294f38d8c7f739fac84c237f8dc7fba6b0a43ef00b4bd1"
+      },
+      "normal_actual0": {
+        "path": "artifacts/m59-delivery/m59-normal-attempt7-actual-success.json",
+        "sha256": "8ad15c8704c20644dc472b8a7e6da7402edcf466476783ea730bdcce823fcf9b"
+      },
+      "DATA_actual0": {
+        "path": "artifacts/m59-delivery/independent-retained-normal-audit-actual-exit.json",
+        "sha256": "89e69a5e9a78709b113474422ba4b9bca39459b17fd3c060dad271fa5bfa6020"
+      }
+    },
+    {
+      "id": "M60",
+      "title": "Current native-free installed Ubuntu preview",
+      "max_working_days": 5,
+      "depends_on": [
+        "M59"
+      ],
+      "scope": "Package all33 copied finite examples with preserved relative assets and viewer files; add manifest-bound example selection and optional concrete drive topics while preserving legacy defaults.",
+      "acceptance": "Actual M59 normal and retained DATA before integration. Complete Source, meaningful regressions, guides and independent review before consolidated mandatory normal/strict coverage and retained DATA. Source-bound build/notices/ELF/package/relocation and clean supported installation must exercise M58/M59 finite fixtures, both installed M59 command topics, actual motion/canonical odometry, fresh browser Play/Pause/Reset and owned shutdown. Accepted predecessors, exact hosted success, official audits and Main/release readbacks remain mandatory.",
+      "excluded": "Physics, solver, transport/runtime/packaging frameworks, new dependencies, SDK bundling/provider rebuild, viewer features or renderer rebuild, broad compatibility and CI workarounds.",
+      "evidence": "docs/M60_DELIVERY.md",
+      "provisional_local_only": true,
+      "source_preparation_basis_commit": "173b31d2d13889f851c58dfff1ea81a34680ede8",
+      "source_preparation_basis_accepted": false,
+      "source_authorship_released": true,
+      "product_checks_run": false,
+      "full_normal_passed": false,
+      "independent_local_DATA_passed": false,
+      "runtime_provisionally_locally_qualified": false,
+      "accepted": false,
+      "current_stage": "Eight independently reviewed package, launcher/sender, regression and guide leaves are adopted onto exact locally qualified M59 with all parent repairs and fixture preserved. Final shared Source/doc integration review precedes one formatter and full mandatory normal/coverage/DATA. No M60 checks/build/package/install/browser proof has run.",
+      "integrated_parent": "7f849bd3e6b1d9842bdde415d9f2923e09ef0b0e",
+      "parent_provisional_local_qualification": {
+        "path": "artifacts/m59-delivery/provisional-local-qualification.json",
+        "sha256": "686fa74389f619d17e294f38d8c7f739fac84c237f8dc7fba6b0a43ef00b4bd1"
+      },
+      "parent_normal_actual0": {
+        "path": "artifacts/m59-delivery/m59-normal-attempt7-actual-success.json",
+        "sha256": "8ad15c8704c20644dc472b8a7e6da7402edcf466476783ea730bdcce823fcf9b"
+      },
+      "parent_DATA_actual0": {
+        "path": "artifacts/m59-delivery/independent-retained-normal-audit-actual-exit.json",
+        "sha256": "89e69a5e9a78709b113474422ba4b9bca39459b17fd3c060dad271fa5bfa6020"
       }
     }
   ],
@@ -2489,10 +2536,11 @@
     "M56": "in_progress",
     "M57": "in_progress",
     "M58": "in_progress",
-    "M59": "in_progress"
+    "M59": "in_progress",
+    "M60": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-14T23:14:15.465049+00:00",
+  "phase_started_at": "2026-11-15T07:37:14.885903+00:00",
   "active_phases": [
     "M43",
     "M44",
@@ -2510,7 +2558,8 @@
     "M56",
     "M57",
     "M58",
-    "M59"
+    "M59",
+    "M60"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -2763,30 +2812,38 @@
       ],
       "integration": "Frozen genuinely locally qualified M57 waits for hosted release recovery while disjoint M58 Scene, Server and shared Source preparation proceeds on exact9df. Native inputs/procedures remain separately reviewed, heavy operations serial, all child feature/verification and finally accepted-parent/hosted/official/Main gates mandatory.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M59",
+        "M60"
+      ],
+      "integration": "M59 final verification overlaps isolated M60 package and launcher Source preparation on locally qualified M58. Integration waits for actual M59 full normal and independent retained DATA, preserving every repair. Root alone releases serial heavy jobs; complete Source, regression code, guides and independent review precede final consolidated checks.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M42 and175 slices remain accepted; M40 is installed Latest. M43\u2013M58 are provisionally locally qualified but unaccepted. M58 full normal/strict coverage and independent retained DATA passed at173b31d with all original failures preserved. M59 Source integration is active on that exact provisional parent. Accepted predecessors, exact hosted CI, official audits and Main/readbacks remain mandatory; Ubuntu snapshot recovery is unconfirmed.",
+  "acceptance_boundary": "M1\u2013M42 and 175 slices remain accepted; M40 remains Latest. M43\u2013M59 are provisionally locally qualified. M59 exact7f849 passed full normal and independent retained DATA, with all six failures preserved. M60 reviewed Source is integrated on that parent; no M60 check/build/package/install/browser pass is claimed. Accepted predecessors, exact hosted success, official audits and Main/release readbacks remain mandatory before acceptance or publication.",
   "current_delivery_group": [
     "M43",
     "M44"
   ],
-  "current_development_phase": "M59",
+  "current_development_phase": "M60",
   "board": {
-    "updated_at": "2026-11-15T06:28:23.864125+00:00",
+    "updated_at": "2026-11-15T07:37:14.885903+00:00",
     "current": {
-      "title": "M59 verification \u00b7 M60 preparation",
+      "title": "M60 \u00b7 Current installed preview",
       "items": [
-        "M59\u2019s sixth verification passed all headless tests, then failed strict Scene changed-line coverage. Two regression cases are Source-reviewed; the full retry is pending.",
-        "M60 package and launcher Source is independently ready. Integration and proof operations remain held for M59 verification and its independent results audit."
+        "M59 passed full local verification and its independent results audit. Six failed originals are preserved; release gates remain pending.",
+        "M60\u2019s reviewed package and launcher work is integrated. Final source review precedes one verification pass, then fresh build, package, installation and browser proof."
       ]
     },
     "done": [
       "MVP and M1\u2013M42 accepted and published.",
       "M40 is the latest installable preview.",
-      "M43\u2013M58 passed local verification and independent results audits; release qualification remains pending."
+      "M43\u2013M59 passed local verification and independent results audits; release qualification remains pending."
     ],
     "next": [
-      "Complete the Scene regression batch and M59 verification/audit, then integrate M60 and prove the installed two-robot preview.",
+      "Complete M60 verification, source-bound packaging, clean Ubuntu installation and the live two-robot demonstration.",
       "Complete accepted predecessors, hosted CI, official audits and Main readbacks before publication or acceptance."
     ],
     "blocker": {
@@ -2794,5 +2851,6 @@
       "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/43024343885"
     },
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
-  }
+  },
+  "parallel_source_phases": []
 }
