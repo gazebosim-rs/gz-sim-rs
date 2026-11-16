@@ -51,7 +51,8 @@ struct Peer {
   std::vector<gz::transport::Node::Publisher> publishers;
   explicit Peer(std::size_t owners) {
     for (std::size_t owner = 0; owner < owners; ++owner) {
-      const std::string model = owner == 0 ? "arm_left" : "arm_right";
+      const std::string model = owners > 2 ? "arm_" + std::to_string(owner)
+          : owner == 0 ? "arm_left" : "arm_right";
       topics.push_back("/model/" + model + "/joint/base_hinge/0/cmd_pos");
       topics.push_back("/model/" + model + "/joint/tip_hinge/cmd_vel");
     }
@@ -86,8 +87,9 @@ struct Peer {
 int main(int argc, char **argv) {
   try {
     require(argc == 2, "one owner-count argument");
-    require(std::string(argv[1]) == "1" || std::string(argv[1]) == "2", "one or two owners");
-    const auto owners = natural(argv[1], 2);
+    require(std::string(argv[1]).size() == 1 && argv[1][0] >= '1'
+        && argv[1][0] <= '8', "one through eight owners");
+    const auto owners = natural(argv[1], 8);
     Peer peer(owners);
     for (std::size_t owner = 0; owner < owners; ++owner) peer.matched(owner, true);
     std::cout << "READY multiple-joint-controllers " << owners << std::endl;

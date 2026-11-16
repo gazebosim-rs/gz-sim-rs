@@ -1784,3 +1784,180 @@ fn real_inflight_replacement_retires_the_old_kind_and_then_captures_the_new_kind
         worker.finish();
     }
 }
+
+fn cylinder_snapshot(request_id: u64, stamp: Stamp) -> Request {
+    use gz_render_protocol::{Geometry, ShapeVisual};
+    Request::CalibratedShapeSnapshot {
+        request_id,
+        stamp,
+        origin: [1e12, 0.0, 0.0],
+        camera: Box::new(gz_render_protocol::Camera {
+            width: 64,
+            height: 64,
+            fx: 32.0,
+            fy: 32.0,
+            cx: 32.0,
+            cy: 32.0,
+            skew: 0.0,
+            tx: 0.0,
+            ty: 0.0,
+            near: 0.1,
+            far: 10.0,
+            translation: [1e12, 0.0, 0.0],
+            rotation: [0.0, 0.0, 0.0, 1.0],
+        }),
+        visuals: vec![
+            ShapeVisual {
+                id: 1,
+                translation: [1e12 + 4.0, 0.0, 0.0],
+                rotation: [
+                    0.0,
+                    std::f64::consts::FRAC_1_SQRT_2,
+                    0.0,
+                    std::f64::consts::FRAC_1_SQRT_2,
+                ],
+                geometry: Geometry::Cylinder {
+                    radius: 1.0,
+                    length: 2.0,
+                },
+                color: [1.0, 0.0, 0.0],
+            },
+            ShapeVisual {
+                id: 2,
+                translation: [1e12 + 7.0, 0.0, 0.0],
+                rotation: [0.0, 0.0, 0.0, 1.0],
+                geometry: Geometry::Box {
+                    size: [0.2, 6.0, 6.0],
+                },
+                color: [0.0, 0.0, 1.0],
+            },
+        ],
+    }
+}
+#[test]
+fn worker_cylinder_snapshots_keep_shared_stamps_atomic_refusal_and_epoch_ordering() {
+    let mut worker = Worker::start();
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
+    let stamp = Stamp {
+        epoch: 8,
+        seconds: 6,
+        nanoseconds: 9,
+    };
+    worker.send(cylinder_snapshot(1, stamp));
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 1 }
+    ));
+    worker.send(Request::Capture { request_id: 1 });
+    let first = match worker.next() {
+        Reply::Frame {
+            request_id: 1,
+            stamp: actual,
+            rgba,
+        } => {
+            assert_eq!(actual, stamp);
+            rgba
+        }
+        other => panic!("actual cylinder worker reply: {other:?}"),
+    };
+    let pixel = |image: &[u8], x: usize, y: usize| {
+        let offset = (y * 64 + x) * 4;
+        [
+            image[offset],
+            image[offset + 1],
+            image[offset + 2],
+            image[offset + 3],
+        ]
+    };
+    assert_eq!(first.len(), 64 * 64 * 4);
+    assert_eq!(pixel(&first, 32, 32), [255, 0, 0, 255]);
+    assert_eq!(
+        pixel(&first, 40, 40),
+        [0, 0, 255, 255],
+        "endcap AABB corner is not a red proxy box"
+    );
+    for fault in ["duplicate", "negative-radius", "underflow"] {
+        let request_id = match fault {
+            "duplicate" => 2,
+            "negative-radius" => 3,
+            _ => 4,
+        };
+        let mut request = cylinder_snapshot(request_id, stamp);
+        if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+            match fault {
+                "duplicate" => visuals[1].id = visuals[0].id,
+                "negative-radius" => {
+                    visuals[0].geometry = gz_render_protocol::Geometry::Cylinder {
+                        radius: -1.0,
+                        length: 2.0,
+                    }
+                }
+                _ => {
+                    visuals[0].geometry = gz_render_protocol::Geometry::Cylinder {
+                        radius: 1e-100,
+                        length: 2.0,
+                    }
+                }
+            }
+        }
+        // Finite wire values reach the renderer's atomic semantic preflight.
+        worker.send(request);
+        assert!(
+            matches!(worker.next(), Reply::Error { kind: FailureKind::InvalidSnapshot, request_id: Some(id), .. } if id == request_id)
+        );
+        worker.send(Request::Capture { request_id });
+        match worker.next() {
+            Reply::Frame {
+                request_id: id,
+                stamp: actual,
+                rgba,
+            } => {
+                assert_eq!((id, actual), (request_id, stamp));
+                assert_eq!(rgba, first);
+            }
+            other => panic!("rejected shape changed the committed frame: {other:?}"),
+        }
+    }
+    worker.send(cylinder_snapshot(5, Stamp { epoch: 7, ..stamp }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Error {
+            kind: FailureKind::StaleRequest,
+            request_id: Some(5),
+            ..
+        }
+    ));
+    let successor = Stamp {
+        epoch: 9,
+        seconds: 0,
+        nanoseconds: 0,
+    };
+    let mut empty = cylinder_snapshot(6, successor);
+    if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut empty {
+        visuals.clear();
+    }
+    worker.send(empty);
+    assert!(matches!(
+        worker.next(),
+        Reply::SnapshotAccepted { request_id: 6 }
+    ));
+    worker.send(Request::Capture { request_id: 5 });
+    match worker.next() {
+        Reply::Frame {
+            request_id: 5,
+            stamp: actual,
+            rgba,
+        } => {
+            assert_eq!(actual, successor);
+            assert_eq!(rgba.len(), first.len());
+            assert!(rgba.chunks_exact(4).all(|pixel| pixel == [43, 44, 47, 255]));
+        }
+        other => panic!("empty successor shape scene: {other:?}"),
+    }
+    worker.finish();
+}

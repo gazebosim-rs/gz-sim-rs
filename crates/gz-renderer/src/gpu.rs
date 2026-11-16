@@ -5,6 +5,7 @@ use bevy::{
     camera::{CameraProjection, RenderTarget, SubCameraView},
     core_pipeline::tonemapping::Tonemapping,
     image::Image,
+    mesh::primitives::{CylinderAnchor, CylinderMeshBuilder},
     pbr::{PreparedMaterial, RenderMaterialInstances},
     prelude::*,
     render::{
@@ -59,6 +60,33 @@ pub struct BoxVisual {
     pub pose: WorldPose,
     pub size: DVec3,
     pub color: [f32; 3],
+}
+
+/// A centered Gazebo-local Z-axis cylinder, with radius and full length in metres.
+#[derive(Debug, Clone)]
+pub struct CylinderVisual {
+    pub id: u64,
+    pub pose: WorldPose,
+    pub radius: f64,
+    pub length: f64,
+    pub color: [f32; 3],
+}
+#[derive(Debug, Clone)]
+pub enum PrimitiveVisual {
+    Box(BoxVisual),
+    Cylinder(CylinderVisual),
+}
+#[derive(Debug, Clone)]
+pub struct PrimitiveSnapshot {
+    pub epoch: u64,
+    pub time: Duration,
+    pub origin: DVec3,
+    pub visuals: Vec<PrimitiveVisual>,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum MeshKind {
+    Box,
+    Cylinder,
 }
 
 /// One explicit directional light, independent of SDF's relative intensity scale.
@@ -261,6 +289,7 @@ fn permanent_shader_error(error: &ShaderCacheError) -> Option<String> {
 struct VisualEntity {
     entity: Entity,
     material: Handle<StandardMaterial>,
+    mesh: Handle<Mesh>,
 }
 struct Pending {
     epoch: u64,
@@ -286,6 +315,7 @@ pub struct Renderer {
     camera: Entity,
     target: Handle<Image>,
     mesh: Handle<Mesh>,
+    cylinder_mesh: Option<Handle<Mesh>>,
     visuals: BTreeMap<u64, VisualEntity>,
     light: Option<(u64, Entity)>,
     stamp: Option<(u64, Duration)>,
@@ -387,6 +417,7 @@ impl Renderer {
             camera,
             target,
             mesh,
+            cylinder_mesh: None,
             visuals: BTreeMap::new(),
             light: None,
             stamp: None,
@@ -427,6 +458,27 @@ impl Renderer {
         snapshot: &Snapshot,
         light: Option<&DirectionalWorldLight>,
     ) -> Result<(), RenderError> {
+        let primitives = PrimitiveSnapshot {
+            epoch: snapshot.epoch,
+            time: snapshot.time,
+            origin: snapshot.origin,
+            // Keep the legacy oversized-input refusal bounded before cloning.
+            visuals: snapshot
+                .visuals
+                .iter()
+                .take(MAX_OBJECTS + 1)
+                .cloned()
+                .map(PrimitiveVisual::Box)
+                .collect(),
+        };
+        self.set_primitive_snapshot_with_light(&primitives, light)
+    }
+
+    fn set_primitive_snapshot_with_light(
+        &mut self,
+        snapshot: &PrimitiveSnapshot,
+        light: Option<&DirectionalWorldLight>,
+    ) -> Result<(), RenderError> {
         self.check_device()?;
         let derived_light = light.map(derive_light).transpose()?;
         if snapshot.visuals.len() > MAX_OBJECTS {
@@ -435,26 +487,50 @@ impl Renderer {
         let mut ids = BTreeSet::new();
         let mut converted = Vec::with_capacity(snapshot.visuals.len());
         for visual in &snapshot.visuals {
-            if visual.id == 0 || !ids.insert(visual.id) {
+            let (id, pose, dimensions, color, kind) = match visual {
+                PrimitiveVisual::Box(visual) => (
+                    visual.id,
+                    visual.pose,
+                    visual.size,
+                    visual.color,
+                    MeshKind::Box,
+                ),
+                PrimitiveVisual::Cylinder(visual) => {
+                    let radius = visual.radius as f32;
+                    if !visual.radius.is_finite() || !radius.is_finite() || radius <= 0.0 {
+                        return Err(RenderError::InvalidVisual);
+                    }
+                    (
+                        visual.id,
+                        visual.pose,
+                        DVec3::new(2.0 * visual.radius, 2.0 * visual.radius, visual.length),
+                        visual.color,
+                        MeshKind::Cylinder,
+                    )
+                }
+            };
+            if id == 0 || !ids.insert(id) {
                 return Err(RenderError::InvalidIds);
             }
-            let size = visual.size.as_vec3();
-            if !visual.size.is_finite()
+            let size = dimensions.as_vec3();
+            if !dimensions.is_finite()
                 || !size.is_finite()
                 || size.min_element() <= 0.0
-                || visual
-                    .color
+                || color
                     .iter()
                     .any(|c| !c.is_finite() || !(0.0..=1.0).contains(c))
             {
                 return Err(RenderError::InvalidVisual);
             }
-            let pose = to_render_pose(visual.pose, snapshot.origin)?;
+            let pose = to_render_pose(pose, snapshot.origin)?;
             converted.push((
-                visual,
+                id,
+                color,
+                kind,
                 Transform {
                     translation: pose.translation,
                     rotation: pose.rotation,
+                    // Gazebo Z already maps to Bevy Y; no additional axis rotation.
                     scale: Vec3::new(size.x, size.z, size.y),
                 },
             ));
@@ -464,6 +540,24 @@ impl Renderer {
         }
         if self.snapshot_dirty {
             return Err(RenderError::SnapshotBusy);
+        }
+        if self.cylinder_mesh.is_none()
+            && converted
+                .iter()
+                .any(|(_, _, kind, _)| *kind == MeshKind::Cylinder)
+        {
+            let builder = CylinderMeshBuilder {
+                caps: true,
+                ..CylinderMeshBuilder::new(0.5, 1.0, 32)
+                    .segments(1)
+                    .anchor(CylinderAnchor::MidPoint)
+            };
+            self.cylinder_mesh = Some(
+                self.app
+                    .world_mut()
+                    .resource_mut::<Assets<Mesh>>()
+                    .add(builder.build()),
+            );
         }
         if self.depth_calibration.take().is_some() {
             self.app
@@ -518,9 +612,24 @@ impl Renderer {
                 .resource_mut::<Assets<StandardMaterial>>()
                 .remove(old.material.id());
         }
-        for (visual, transform) in converted {
-            let color = Color::srgb(visual.color[0], visual.color[1], visual.color[2]);
-            if let Some(existing) = self.visuals.get(&visual.id) {
+        for (id, color, kind, transform) in converted {
+            let mesh = match kind {
+                MeshKind::Box => self.mesh.clone(),
+                MeshKind::Cylinder => self
+                    .cylinder_mesh
+                    .as_ref()
+                    .expect("validated cylinder mesh")
+                    .clone(),
+            };
+            let color = Color::srgb(color[0], color[1], color[2]);
+            if let Some(existing) = self.visuals.get_mut(&id) {
+                if existing.mesh.id() != mesh.id() {
+                    self.app
+                        .world_mut()
+                        .entity_mut(existing.entity)
+                        .insert(Mesh3d(mesh.clone()));
+                    existing.mesh = mesh.clone();
+                }
                 self.app
                     .world_mut()
                     .entity_mut(existing.entity)
@@ -566,13 +675,19 @@ impl Renderer {
                     .app
                     .world_mut()
                     .spawn((
-                        Mesh3d(self.mesh.clone()),
+                        Mesh3d(mesh.clone()),
                         MeshMaterial3d(material.clone()),
                         transform,
                     ))
                     .id();
-                self.visuals
-                    .insert(visual.id, VisualEntity { entity, material });
+                self.visuals.insert(
+                    id,
+                    VisualEntity {
+                        entity,
+                        material,
+                        mesh,
+                    },
+                );
             }
         }
         self.stamp = Some((snapshot.epoch, snapshot.time));
@@ -622,6 +737,28 @@ impl Renderer {
         }
         let camera = to_render_camera_pose(pose, snapshot.origin)?;
         self.set_snapshot_with_light(snapshot, light)?;
+        self.app.world_mut().entity_mut(self.camera).insert((
+            Transform::from_translation(camera.translation).with_rotation(camera.rotation),
+            Projection::custom(CalibratedProjection(calibration)),
+        ));
+        Ok(())
+    }
+
+    /// Calibrated unlit RGB snapshot with the same bounded lifecycle as boxes.
+    /// This path does not enable metric-depth output.
+    pub fn set_calibrated_primitive_snapshot(
+        &mut self,
+        snapshot: &PrimitiveSnapshot,
+        calibration: Calibration,
+        pose: WorldPose,
+    ) -> Result<(), RenderError> {
+        self.check_device()?;
+        let config = calibration.config();
+        if config.width != WIDTH || config.height != HEIGHT {
+            return Err(RenderError::InvalidCameraDimensions);
+        }
+        let camera = to_render_camera_pose(pose, snapshot.origin)?;
+        self.set_primitive_snapshot_with_light(snapshot, None)?;
         self.app.world_mut().entity_mut(self.camera).insert((
             Transform::from_translation(camera.translation).with_rotation(camera.rotation),
             Projection::custom(CalibratedProjection(calibration)),
@@ -850,7 +987,7 @@ impl Renderer {
                     return false;
                 };
                 !visibility.get()
-                    || (meshes.get(self.mesh.id()).is_some()
+                    || (meshes.get(visual.mesh.id()).is_some()
                         && materials.get(visual.material.id()).is_some()
                         && instances.instances.contains_key(
                             &bevy::render::sync_world::MainEntity::from(visual.entity),

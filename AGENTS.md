@@ -1,46 +1,51 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-## Current M60: current installed two-robot preview
+## Current work: camera regressions for integrated M61–M64 qualification
 
-M60 is integrated on provisionally locally qualified, unaccepted M59
-`7f849bd3e6b1d9842bdde415d9f2923e09ef0b0e`. M59 passed the full normal
-(2,013 headless and 1,176 overlapping renderer tests, 449 Python checks and strict
-coverage) and independent retained DATA, including four byte-exact RAW comparisons
-and 33 finite examples. All six earlier failed normal runs remain preserved.
-M60’s eight package, launcher, sender, regression and guide leaves have independent
-Source review and are adopted without replacing a changed parent leaf. No M60
-check, build, package, installation or browser result is claimed.
+M1–M60 remain accepted: 193 slices, M60 Latest and 33 installed examples.
+Eight differential-drive robots, eight joint-controller chains, two automatic
+RGB cameras and cylinder visuals share one candidate directly on accepted M60
+`a1a01192661281fc4691fe5c048a65e1986aefa4`. Every own control and mandatory gate
+remains required. See [the atomic qualification plan](docs/M61_M64_INTEGRATION.md).
 
-The package retains the default M19 robot and accepted viewer bytes, and copies
-all 33 maintained finite examples with their existing relative assets. The
-installed launcher gains a verified example selector; the finite drive helper
-gains an optional concrete topic while preserving its existing defaults and
-braking behavior. Physics, configuration math, dependencies and viewer rendering
-are unchanged.
+The fourth full normal, tree c1b52797, returned actual controller/Git waits 1,
+reaped, after 2637.225 seconds. All functional cases passed: 2042 headless and
+1216 overlapping renderer passes, including all 53 required unique controls.
+Both strict lint profiles, 466 aggregate Python checks, ten RGB CLI cases and
+37 finite examples completed. This is still a failed normal, not qualification.
+The executed coverage failure is camera-output regions1876/2010; the threshold
+is strictly greater than95%. Retained actual-parent data also shows changed
+lines354/387, which would fail its later gate; that gate was not executed.
+All other available numeric vectors meet their thresholds or are explicit0/0.
 
-The exact M59 fixture and every parent repair are retained. Complete whole
-integration Source review before one consolidated formatter and the unchanged
-mandatory normal, strict coverage and independent retained audit. Do not run
-checks between edits.
+The complete coverage correction appends meaningful camera application API,
+ownership, canonical publication, scheduling and lifecycle boundary regressions.
+Keep every existing test body, production byte, exact predicate, deadline,
+coverage source and threshold. Do not invent unreachable states or claim private
+fault injection proves renderer output. Complete the whole implementation,
+regression/guide batch and independent Source review before one affected formatter
+and one full consolidated normal retry. The local runner may use four compile
+jobs under the same operating floors, fourteen-GiB initial SSD reservation,
+deadlines and serial heavy execution. Test threads and native SDK/hosted job caps
+remain unchanged; four jobs is no measured speed or capacity guarantee.
 
-Then complete source-bound builds, notices and actual ELF dependency collection,
-assembly and relocation audits, one supported clean Ubuntu installation, and a
-fresh live browser demonstration. The installed M58 and M59 finite examples must
-run; both M59 robots must receive independent installed-helper commands, produce
-actual motion and canonical encoder odometry, and demonstrate Play/Pause/Reset
-and owned shutdown. Proof-only host SDK tools are not installed dependencies.
+Require strict workspace, per-crate and accepted-M60-parent coverage, independent
+local DATA, exact final-head hosted CI, independent official DATA and ordinary
+Main/readbacks before accepting all four phases. Never bind a success reader to
+failed c1b or pool earlier partial results. Use a new nonforced review ref.
 
-Accepted predecessors, exact hosted CI, official audits and ordinary Main and
-release readbacks remain required before acceptance or publication. M1–M42 and
-175 slices remain accepted; M40 remains Latest. The required hosted snapshot
-recovery is unconfirmed, and no CI retry or workaround is released.
-
-The owner requested November 15 closeout. This is a calendar target, separate
-from the five-working-day phase budget and retained quality gates. Root owns
-integration and serial operations; independent Source preparation and review
-continue in parallel. See [M60_DELIVERY.md](docs/M60_DELIVERY.md).
+All four current failed normal packets and retained earlier failure records
+remain preserved. The byte-identical build-input locator repair is still the
+only workflow change; package version/hash, signed Ubuntu inputs, fresh SDK
+builds and functional gates are unchanged. Preserve owner-pushed deab's local
+success and real hosted43893089609 vendor404 failure without unchanged CI retry.
+Reboot losses remain explicitly recorded; never reconstruct originals by replay.
+All cleanup authorizations are consumed. Preserve Fuel work, accepted viewer
+bytes/budgets, M60 releases and frozen candidates. No package or accepted manual
+demonstration is rebuilt or replayed for this source increment.
 
 Earlier checkpoints below retain their historical scope.
+
 
 
 ## Current M59: two independent differential-drive robots

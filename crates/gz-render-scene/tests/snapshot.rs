@@ -394,3 +394,36 @@ fn pbr_material_metadata_is_explicitly_unsupported_by_box_renderer() {
         Err(SnapshotError::UnsupportedMaterial(id))
     );
 }
+
+#[test]
+fn generic_box_snapshot_keeps_explicit_cylinder_refusal_and_unchanged_box_wire() {
+    let mut sim = scene();
+    let visual = named(&sim, "default::robot::link::view");
+    let id = sim.world().get::<EntityId>(visual).unwrap().get();
+    let request = extract(&sim, 7, [1_000_000_000.0, 0.0, 0.0]).unwrap();
+    let mut before = Vec::new();
+    gz_render_protocol::write_request(&mut before, &request).unwrap();
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Cylinder {
+            radius: 0.5,
+            length: 3.0,
+        });
+    assert_eq!(
+        extract(&sim, 8, [1_000_000_000.0, 0.0, 0.0]),
+        Err(SnapshotError::UnsupportedGeometry(id))
+    );
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Box {
+            size: [1.0, 2.0, 3.0],
+        });
+    let restored = extract(&sim, 7, [1_000_000_000.0, 0.0, 0.0]).unwrap();
+    let mut after = Vec::new();
+    gz_render_protocol::write_request(&mut after, &restored).unwrap();
+    assert_eq!(
+        before, after,
+        "legacy Box request fields and serialized bytes survive geometry changes"
+    );
+    let text = std::str::from_utf8(&after[4..]).unwrap();
+    assert!(!text.contains("geometry"));
+    assert!(text.contains("\"size\":[1.0,2.0,3.0]"));
+}

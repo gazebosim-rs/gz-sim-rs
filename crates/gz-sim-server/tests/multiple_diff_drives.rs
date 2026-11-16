@@ -1478,3 +1478,591 @@ fn canonical_cpp_twist_and_odometry_keep_two_real_motor_owners_demand_and_reset_
     assert!(stderr.is_empty(), "{stderr}");
     observer.close().wait().unwrap();
 }
+
+// M61 extends the supported owner count, not the drive equations or wire shape.
+fn fleet_xml(count: usize) -> String {
+    assert!(count <= 9);
+    let start = XML.find("<model name=\"robot\"").unwrap();
+    let end = start + XML[start..].find("</model>").unwrap() + "</model>".len();
+    let robot = &XML[start..end];
+    let world = XML[..start].to_owned() + &XML[end..];
+    let models: Vec<_> = (0..count)
+        .map(|owner| {
+            let x = if owner.is_multiple_of(2) { -1.25 } else { 1.25 };
+            let y = -2.25 + 1.5 * (owner / 2) as f64;
+            robot
+                .replace("name=\"robot\"", &format!("name=\"robot_{owner}\""))
+                .replace(
+                    "<pose>0 0 0.2 0 0 0</pose>",
+                    &format!("<pose>{x} {y} 0.2 0 0 0</pose>"),
+                )
+                .replace(
+                    "/model/robot/cmd_vel",
+                    &format!("/m61/robot_{owner}/cmd_vel"),
+                )
+                .replace("/model/robot/odometry", &format!("/m61/robot_{owner}/odom"))
+                .replace("robot/odom", &format!("m61_robot_{owner}_odom"))
+                .replace("robot/base_link", &format!("m61_robot_{owner}_base"))
+        })
+        .collect();
+    world.replace("</world>", &(models.join("\n") + "\n</world>"))
+}
+
+#[test]
+fn genuine_fleet_counts_and_ninth_owner_refusal_preserve_public_admission() {
+    assert_eq!(
+        fleet_xml(8),
+        include_str!("../../../examples/m61_eight_diff_drives.sdf")
+    );
+    let observer = zenoh::open(config(&[])).wait().unwrap();
+    let endpoints: Vec<_> = observer
+        .info()
+        .locators()
+        .wait()
+        .into_iter()
+        .map(|v| v.to_string())
+        .collect();
+    assert_eq!(endpoints.len(), 1);
+    for count in [0, 1, 2, 3, 7, 8] {
+        let options = ServerOptions {
+            partition: format!("m61-admission-{}", uuid::Uuid::new_v4()),
+            ..Default::default()
+        };
+        let publishers: Vec<_> = (0..9)
+            .map(|owner| {
+                observer
+                    .declare_publisher(
+                        options
+                            .topic_key(&format!("/m61/robot_{owner}/cmd_vel"))
+                            .unwrap(),
+                    )
+                    .wait()
+                    .unwrap()
+            })
+            .collect();
+        assert!(
+            publishers
+                .iter()
+                .all(|p| !p.matching_status().wait().unwrap().matching())
+        );
+        let sim = load_world_with_sdf_step(
+            &fleet_xml(count),
+            "m61-public-admission.sdf",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::Rapier,
+        )
+        .unwrap();
+        let admitted = Server::with_zenoh_config(
+            sim,
+            "default",
+            options,
+            config(&endpoints),
+            NonZeroUsize::new(2).unwrap(),
+        );
+        {
+            let mut server = admitted.unwrap();
+            wait(|| {
+                publishers
+                    .iter()
+                    .take(count)
+                    .all(|p| p.matching_status().wait().unwrap().matching())
+            });
+            assert!(
+                publishers.iter().skip(count).all(|p| !p
+                    .matching_status()
+                    .wait()
+                    .unwrap()
+                    .matching())
+            );
+            let before = native_paused(&server);
+            assert!(server.update().unwrap().dt.is_zero());
+            assert_eq!(native_paused(&server), before);
+            assert_eq!(server.counters().diff_drive_messages_received, 0);
+            assert_eq!(server.counters().odometries_queued, 0);
+            drop(server);
+            wait(|| {
+                publishers
+                    .iter()
+                    .all(|p| !p.matching_status().wait().unwrap().matching())
+            });
+        }
+    }
+    assert!(matches!(
+        load_world_with_sdf_step(
+            &fleet_xml(9),
+            "m61-ninth-refused.sdf",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::Rapier
+        ),
+        Err(gz_sim_scene::LoadError::Unsupported {
+            feature: "multiple differential-drive systems",
+            ..
+        })
+    ));
+    observer.close().wait().unwrap();
+}
+
+fn fleet_entities(server: &Server) -> [Option<bevy_ecs::entity::Entity>; 8] {
+    std::array::from_fn(|owner| {
+        let name = format!("default::robot_{owner}");
+        server
+            .simulation()
+            .world()
+            .iter_entities()
+            .find(|row| row.get::<Name>().is_some_and(|value| value.0 == name))
+            .map(|row| row.id())
+    })
+}
+
+fn fleet_step(
+    server: &mut Server,
+    owners: &[Option<bevy_ecs::entity::Entity>; 8],
+    rows: &mut [Vec<Expected>; 8],
+    last: &mut [Option<Duration>; 8],
+) {
+    let info = server.update().unwrap();
+    assert!(!info.dt.is_zero());
+    for (owner, entity) in owners.iter().copied().enumerate() {
+        if let Some(entity) = entity
+            && let Some(value) = server.simulation().world().get::<DiffDriveSample>(entity)
+            && value.time == info.sim_time
+            && last[owner] != Some(value.time)
+        {
+            assert_eq!(value.epoch, server.simulation().epoch());
+            last[owner] = Some(value.time);
+            rows[owner].push(Expected {
+                time: value.time,
+                pose: value.pose,
+                twist: value.twist,
+            });
+        }
+    }
+}
+
+fn fleet_packet(line: &str, owner: usize, expected: &Expected, sequence: &mut NativeSequence) {
+    let words: Vec<_> = line.split(' ').collect();
+    assert_eq!(words.len(), 3, "{line}");
+    assert_eq!(words[..2], ["ODOM", &owner.to_string()]);
+    let wire = decode_hex(words[2]);
+    assert!(wire.len() <= 512);
+    let message = Odometry::decode(wire.as_slice()).unwrap();
+    assert_eq!(message.encode_to_vec(), wire);
+    let header = message.header.as_ref().unwrap();
+    assert_eq!(header.data.len(), 3);
+    assert_eq!(header.data[0].key, "frame_id");
+    assert_eq!(header.data[0].value, [format!("m61_robot_{owner}_odom")]);
+    assert_eq!(header.data[1].key, "child_frame_id");
+    assert_eq!(header.data[1].value, [format!("m61_robot_{owner}_base")]);
+    assert_eq!(header.data[2].key, "seq");
+    assert_eq!(header.data[2].value.len(), 1);
+    let next = header.data[2].value[0].parse::<u64>().unwrap();
+    assert_eq!(header.data[2].value[0], next.to_string());
+    let stamp = header.stamp.as_ref().unwrap();
+    assert!(stamp.sec >= 0 && stamp.nsec >= 0 && stamp.nsec < 1_000_000_000);
+    let time = Duration::new(stamp.sec as u64, stamp.nsec as u32);
+    assert_eq!(time, expected.time);
+    if let Some((previous, value)) = sequence.previous {
+        assert!(time > previous);
+        assert_eq!(next, value.wrapping_add(1));
+    } else {
+        assert_eq!(next, 0, "only fresh/reset Server streams establish seq0");
+    }
+    sequence.previous = Some((time, next));
+    let pose = message.pose.as_ref().unwrap();
+    assert!(
+        pose.header.is_none()
+            && pose.position.as_ref().unwrap().header.is_none()
+            && pose.orientation.as_ref().unwrap().header.is_none()
+    );
+    let twist = message.twist.as_ref().unwrap();
+    assert!(
+        twist.header.is_none()
+            && twist.linear.as_ref().unwrap().header.is_none()
+            && twist.angular.as_ref().unwrap().header.is_none()
+    );
+    complete(message, expected);
+}
+
+fn fleet_take(peer: &mut Peer, owner: usize, rows: &[Expected], sequence: &mut NativeSequence) {
+    if rows.is_empty() {
+        return;
+    }
+    assert!(rows.len() <= 128);
+    peer.command(&format!("take {owner} {}", rows.len()));
+    for row in rows {
+        fleet_packet(&peer.line(), owner, row, sequence);
+    }
+    assert_eq!(peer.line(), format!("TAKEN {owner} {}", rows.len()));
+}
+
+fn fleet_fence(
+    server: &mut Server,
+    peer: &mut Peer,
+    owner: usize,
+    watched: &mut [bool; 8],
+    sequences: &mut [NativeSequence; 8],
+) {
+    assert!(!watched[owner]);
+    peer.command(&format!("watch {owner}"));
+    assert_eq!(peer.line(), format!("WATCHING {owner}"));
+    let owners = fleet_entities(server);
+    let before = server.counters().odometries_queued;
+    let mut rows: [Vec<Expected>; 8] = std::array::from_fn(|_| Vec::new());
+    let mut last = [None; 8];
+    let until = Instant::now() + Duration::from_secs(5);
+    peer.command(&format!("take {owner} 1"));
+    pause(server, false);
+    let line = loop {
+        assert!(Instant::now() < until, "actual owner{owner} output fence");
+        assert!(rows.iter().all(|values| values.len() < 50));
+        fleet_step(server, &owners, &mut rows, &mut last);
+        match peer.lines.try_recv() {
+            Ok(line) => break line,
+            Err(mpsc::TryRecvError::Empty) => {}
+            Err(error) => peer.fail(format!("fleet output fence: {error}")),
+        }
+        std::thread::sleep(Duration::from_millis(1));
+    };
+    assert!(Instant::now() < until);
+    pause(server, true);
+    let words: Vec<_> = line.split(' ').collect();
+    assert_eq!(words.len(), 3);
+    let decoded = Odometry::decode(decode_hex(words[2]).as_slice()).unwrap();
+    let stamp = decoded.header.as_ref().unwrap().stamp.as_ref().unwrap();
+    assert!(stamp.sec >= 0 && stamp.nsec >= 0 && stamp.nsec < 1_000_000_000);
+    let first_time = Duration::new(stamp.sec as u64, stamp.nsec as u32);
+    let first = rows[owner]
+        .iter()
+        .position(|value| value.time == first_time)
+        .unwrap();
+    fleet_packet(&line, owner, &rows[owner][first], &mut sequences[owner]);
+    assert_eq!(peer.line(), format!("TAKEN {owner} 1"));
+    let mut count = 0;
+    for (index, values) in rows.iter().enumerate() {
+        if index == owner {
+            count += values.len() - first;
+            fleet_take(peer, index, &values[first + 1..], &mut sequences[index]);
+        } else if watched[index] {
+            count += values.len();
+            fleet_take(peer, index, values, &mut sequences[index]);
+        }
+    }
+    assert_eq!(server.counters().odometries_queued - before, count as u64);
+    watched[owner] = true;
+}
+
+fn fleet_window(
+    server: &mut Server,
+    peer: &mut Peer,
+    steps: usize,
+    watched: [bool; 8],
+    sequences: &mut [NativeSequence; 8],
+) {
+    assert!(steps <= 1000 && steps.is_multiple_of(20));
+    let owners = fleet_entities(server);
+    let mut rows: [Vec<Expected>; 8] = std::array::from_fn(|_| Vec::new());
+    let mut last = [None; 8];
+    let before = server.counters().odometries_queued;
+    pause(server, false);
+    for _ in 0..steps {
+        fleet_step(server, &owners, &mut rows, &mut last);
+    }
+    pause(server, true);
+    let mut count = 0;
+    for (owner, values) in rows.iter().enumerate() {
+        assert_eq!(
+            values.len(),
+            if owners[owner].is_some() {
+                steps / 20
+            } else {
+                0
+            }
+        );
+        if watched[owner] {
+            count += values.len();
+            fleet_take(peer, owner, values, &mut sequences[owner]);
+        }
+    }
+    assert_eq!(server.counters().odometries_queued - before, count as u64);
+    let held = native_paused(server);
+    let queued = server.counters().odometries_queued;
+    for _ in 0..16 {
+        assert!(server.update().unwrap().dt.is_zero());
+    }
+    assert_eq!(native_paused(server), held);
+    assert_eq!(server.counters().odometries_queued, queued);
+}
+
+fn fleet_commands(server: &mut Server, peer: &mut Peer, commands: &[(usize, f64, f64)]) {
+    let held = native_paused(server);
+    let before = server.counters();
+    for &(owner, linear, angular) in commands {
+        let a = format!("{:016x}", linear.to_bits());
+        let b = format!("{:016x}", angular.to_bits());
+        peer.command(&format!("send {owner} {a} {b}"));
+        let line = peer.line();
+        let words: Vec<_> = line.split(' ').collect();
+        assert_eq!(words.len(), 5);
+        assert_eq!(words[..4], ["SENT", &owner.to_string(), &a, &b]);
+        let wire = decode_hex(words[4]);
+        assert_eq!(
+            Twist::decode(wire.as_slice()).unwrap(),
+            twist(linear, angular)
+        );
+        assert_eq!(twist(linear, angular).encode_to_vec(), wire);
+    }
+    wait(|| {
+        let previous = server.counters().diff_drive_messages_received;
+        assert!(server.update().unwrap().dt.is_zero());
+        let after = server.counters().diff_drive_messages_received;
+        assert!(
+            after - previous <= 2,
+            "one aggregate two-message budget for all eight routes"
+        );
+        assert!(after <= before.diff_drive_messages_received + commands.len() as u64);
+        after == before.diff_drive_messages_received + commands.len() as u64
+    });
+    let after = server.counters();
+    assert_eq!(
+        after.diff_drive_commands_applied - before.diff_drive_commands_applied,
+        commands.len() as u64
+    );
+    assert_eq!(
+        after.diff_drive_messages_rejected,
+        before.diff_drive_messages_rejected
+    );
+    assert_eq!(native_paused(server), held);
+}
+
+fn fleet_unwatch_all(peer: &mut Peer, watched: &mut [bool; 8]) {
+    for (owner, watching) in watched.iter_mut().enumerate() {
+        if *watching {
+            peer.command(&format!("unwatch {owner}"));
+            assert_eq!(peer.line(), format!("UNWATCHED {owner}"));
+            *watching = false;
+        }
+    }
+}
+
+fn fleet_reset(server: &mut Server, initial: &NativePaused, ids: [u64; 8]) {
+    let epoch = server.simulation().epoch();
+    assert!(server.apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    server.prepare_io().unwrap();
+    let info = server.tick().unwrap();
+    assert!(info.sim_time.is_zero() && info.dt.is_zero());
+    assert_eq!(server.simulation().epoch(), epoch + 1);
+    let reset_ids: [u64; 8] =
+        std::array::from_fn(|owner| model(server.simulation(), &owner.to_string()).1);
+    assert_eq!(reset_ids, ids);
+    let reset = native_paused(server);
+    assert_eq!(reset.joints, initial.joints);
+    assert_eq!(reset.bodies, initial.bodies);
+    assert_eq!(reset.poses, initial.poses);
+    assert!(reset.samples.is_empty());
+}
+
+#[test]
+fn canonical_cpp_eight_motor_owners_keep_aggregate_budget_wire_demand_reset_and_retirement() {
+    let observer = zenoh::open(config(&[])).wait().unwrap();
+    let endpoints: Vec<_> = observer
+        .info()
+        .locators()
+        .wait()
+        .into_iter()
+        .map(|v| v.to_string())
+        .collect();
+    assert_eq!(endpoints.len(), 1);
+    let dir = tempfile::tempdir().unwrap();
+    let client_config = dir.path().join("client.json");
+    std::fs::write(&client_config, serde_json::json!({"mode":"client","listen":{"endpoints":[]},"connect":{"endpoints":endpoints,"timeout_ms":2000},"scouting":{"multicast":{"enabled":false},"gossip":{"enabled":false}},"transport":{"shared_memory":{"enabled":false}}}).to_string()).unwrap();
+    let options = ServerOptions {
+        partition: format!("m61-native-{}", uuid::Uuid::new_v4()),
+        capacity: 4096,
+        max_message_bytes: 512,
+        ..Default::default()
+    };
+    let sim = load_world_with_sdf_step(
+        include_str!("../../../examples/m61_eight_diff_drives.sdf"),
+        "m61-canonical-peer.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let mut server = Server::with_zenoh_config(
+        sim,
+        "default",
+        options.clone(),
+        config(&endpoints),
+        NonZeroUsize::new(2).unwrap(),
+    )
+    .unwrap();
+    let ids: [u64; 8] =
+        std::array::from_fn(|owner| model(server.simulation(), &owner.to_string()).1);
+    assert!(ids.iter().all(|id| *id != 0));
+    assert_eq!(
+        ids.into_iter()
+            .collect::<std::collections::BTreeSet<_>>()
+            .len(),
+        8
+    );
+    let initial = native_paused(&server);
+    assert!(initial.samples.is_empty());
+    assert_eq!(initial.joints.len(), 16);
+    let mut peer = start_peer(&client_config, &options, 8);
+    assert_eq!(peer.line(), "READY multiple-diff-drives 8");
+    let mut watched = [false; 8];
+    let mut sequences: [NativeSequence; 8] = std::array::from_fn(|_| NativeSequence::default());
+    fleet_fence(&mut server, &mut peer, 0, &mut watched, &mut sequences);
+    assert_eq!(
+        watched,
+        [true, false, false, false, false, false, false, false]
+    );
+    let start = server.simulation().elapsed();
+    let x0: [f64; 8] =
+        std::array::from_fn(|owner| chassis_x(server.simulation(), &owner.to_string()));
+    let commands: Vec<_> = (0usize..8)
+        .map(|owner| {
+            (
+                owner,
+                if owner.is_multiple_of(2) { 0.25 } else { -0.25 },
+                if owner == 3 { 0.5 } else { 0.0 },
+            )
+        })
+        .collect();
+    fleet_commands(&mut server, &mut peer, &commands);
+    let before = server.counters().odometries_queued;
+    for _ in 0..3 {
+        fleet_window(&mut server, &mut peer, 1000, watched, &mut sequences);
+    }
+    assert_eq!(
+        server.simulation().elapsed() - start,
+        Duration::from_secs(3)
+    );
+    assert_eq!(server.counters().odometries_queued - before, 150);
+    for (owner, &x) in x0.iter().enumerate() {
+        let side = owner.to_string();
+        let actual = chassis_x(server.simulation(), &side) - x;
+        let sample = server
+            .simulation()
+            .world()
+            .get::<DiffDriveSample>(model(server.simulation(), &side).0)
+            .unwrap();
+        assert!(
+            if owner.is_multiple_of(2) {
+                actual > 0.05
+            } else {
+                actual < -0.05
+            },
+            "owner{owner} actual_chassis_dx={actual:?} sample={sample:?} native={:?}",
+            native(server.simulation())
+        );
+        assert!(sample.twist[0].abs() > 0.01);
+        let backend = server
+            .simulation()
+            .world()
+            .resource::<gz_physics::PhysicsBackend>();
+        let joints: Vec<_> = server
+            .simulation()
+            .world()
+            .iter_entities()
+            .filter(|node| {
+                node.get::<Name>()
+                    .is_some_and(|name| name.0.starts_with(&format!("default::robot_{owner}::")))
+            })
+            .filter_map(|node| node.get::<JointHandle>())
+            .map(|handle| backend.joint_state(handle.id()).unwrap())
+            .collect();
+        assert_eq!(joints.len(), 2);
+        assert!(
+            joints
+                .iter()
+                .all(|state| state.position.is_finite() && state.velocity.abs() > 0.01)
+        );
+    }
+    assert!(
+        server
+            .simulation()
+            .world()
+            .get::<DiffDriveSample>(model(server.simulation(), "3").0)
+            .unwrap()
+            .pose[2]
+            .abs()
+            > 0.01
+    );
+    for owner in 1..8 {
+        fleet_fence(&mut server, &mut peer, owner, &mut watched, &mut sequences);
+    }
+    fleet_window(&mut server, &mut peer, 200, watched, &mut sequences);
+    fleet_unwatch_all(&mut peer, &mut watched);
+    fleet_reset(&mut server, &initial, ids);
+    sequences = std::array::from_fn(|_| NativeSequence::default());
+    for owner in 0..8 {
+        peer.command(&format!("matched {owner}"));
+        assert_eq!(peer.line(), format!("MATCHED {owner}"));
+        fleet_fence(&mut server, &mut peer, owner, &mut watched, &mut sequences);
+    }
+    fleet_commands(&mut server, &mut peer, &commands);
+    fleet_window(&mut server, &mut peer, 200, watched, &mut sequences);
+    remove_loaded_model(&mut server, &observer, &options, ids[3]);
+    server.prepare_io().unwrap();
+    assert!(server.tick().unwrap().dt.is_zero());
+    peer.command("retired 3");
+    assert_eq!(peer.line(), "RETIRED 3");
+    peer.command("unwatch 3");
+    assert_eq!(peer.line(), "UNWATCHED 3");
+    watched[3] = false;
+    let survivors: Vec<_> = commands.iter().copied().filter(|row| row.0 != 3).collect();
+    fleet_commands(&mut server, &mut peer, &survivors);
+    fleet_window(&mut server, &mut peer, 200, watched, &mut sequences);
+    for (owner, id) in ids
+        .iter()
+        .copied()
+        .enumerate()
+        .filter(|(owner, _)| *owner != 3)
+    {
+        remove_loaded_model(&mut server, &observer, &options, id);
+        server.prepare_io().unwrap();
+        assert!(server.tick().unwrap().dt.is_zero());
+        peer.command(&format!("retired {owner}"));
+        assert_eq!(peer.line(), format!("RETIRED {owner}"));
+        peer.command(&format!("unwatch {owner}"));
+        assert_eq!(peer.line(), format!("UNWATCHED {owner}"));
+        watched[owner] = false;
+    }
+    assert!(
+        fleet_entities(&server)
+            .into_iter()
+            .all(|entity| entity.is_none())
+    );
+    fleet_window(&mut server, &mut peer, 40, watched, &mut sequences);
+    fleet_reset(&mut server, &initial, ids);
+    sequences = std::array::from_fn(|_| NativeSequence::default());
+    for owner in 0..8 {
+        peer.command(&format!("matched {owner}"));
+        assert_eq!(peer.line(), format!("MATCHED {owner}"));
+        fleet_fence(&mut server, &mut peer, owner, &mut watched, &mut sequences);
+    }
+    fleet_window(&mut server, &mut peer, 40, watched, &mut sequences);
+    drop(server);
+    for owner in 0..8 {
+        peer.command(&format!("retired {owner}"));
+        assert_eq!(peer.line(), format!("RETIRED {owner}"));
+    }
+    fleet_unwatch_all(&mut peer, &mut watched);
+    peer.command("finish");
+    assert_eq!(peer.line(), "PASS canonical multiple diff drives");
+    let (status, stderr) = peer.finish();
+    assert!(status.success(), "{status:?}: {stderr}");
+    assert!(stderr.is_empty(), "{stderr}");
+    observer.close().wait().unwrap();
+}

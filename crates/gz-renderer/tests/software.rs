@@ -795,3 +795,206 @@ fn software_metric_depth_uses_actual_geometry_and_preserves_readback_lifecycle()
         Err(RenderError::NoDepthSnapshot)
     ));
 }
+
+#[test]
+fn software_cylinder_side_endcap_rotation_and_box_occlusion_are_real_pixels() {
+    use gz_render_frame::camera::Calibration;
+    use gz_renderer::{CylinderVisual, PrimitiveSnapshot, PrimitiveVisual};
+    let mut renderer = Renderer::new().unwrap();
+    if std::env::var_os("GZ_RENDER_REQUIRE_LLVMPIPE").is_some() {
+        assert_eq!(renderer.adapter_info().device_type, wgpu::DeviceType::Cpu);
+        assert!(
+            renderer
+                .adapter_info()
+                .name
+                .to_ascii_lowercase()
+                .contains("llvmpipe")
+        );
+    }
+    let origin = DVec3::splat(1e12);
+    let camera = WorldPose {
+        translation: origin,
+        rotation: DQuat::IDENTITY,
+    };
+    let calibration =
+        Calibration::from_horizontal_fov(64, 64, std::f64::consts::FRAC_PI_2, 0.1, 20.0).unwrap();
+    let cube = BoxVisual {
+        id: 1,
+        pose: WorldPose {
+            translation: origin + DVec3::new(4.0, 0.0, 0.0),
+            rotation: DQuat::IDENTITY,
+        },
+        size: DVec3::splat(2.0),
+        color: [1.0, 0.0, 0.0],
+    };
+    let legacy = Snapshot {
+        epoch: 4,
+        time: Duration::from_millis(1),
+        origin,
+        visuals: vec![cube.clone()],
+    };
+    renderer
+        .set_calibrated_snapshot(&legacy, calibration, camera)
+        .unwrap();
+    let original_box = image(&mut renderer);
+    let mut snapshot = PrimitiveSnapshot {
+        epoch: 4,
+        time: Duration::from_millis(2),
+        origin,
+        visuals: vec![PrimitiveVisual::Box(cube.clone())],
+    };
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert_eq!(image(&mut renderer).rgba, original_box.rgba);
+    let cylinder = CylinderVisual {
+        id: 1,
+        pose: cube.pose,
+        radius: 1.0,
+        length: 2.0,
+        color: [1.0, 0.0, 0.0],
+    };
+    // Cancel a real in-flight old-box readback before installing cylinder geometry.
+    renderer.request_readback().unwrap();
+    snapshot.visuals[0] = PrimitiveVisual::Cylinder(cylinder.clone());
+    snapshot.time = Duration::from_millis(3);
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    retire_cancelled(&mut renderer);
+    let side = image(&mut renderer);
+    assert_eq!((side.epoch, side.time), (snapshot.epoch, snapshot.time));
+    let (width, height) = red_extent(&side);
+    assert!(
+        height > width + 2,
+        "upright Z cylinder extent {width}x{height}"
+    );
+    let rolled = CylinderVisual {
+        pose: WorldPose {
+            rotation: DQuat::from_rotation_x(std::f64::consts::FRAC_PI_2),
+            ..cylinder.pose
+        },
+        ..cylinder.clone()
+    };
+    snapshot.visuals[0] = PrimitiveVisual::Cylinder(rolled);
+    snapshot.time = Duration::from_millis(4);
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    let rolled = image(&mut renderer);
+    let (width, height) = red_extent(&rolled);
+    assert!(
+        width > height + 2,
+        "rolled cylinder extent {width}x{height}"
+    );
+    let endcap = CylinderVisual {
+        pose: WorldPose {
+            rotation: DQuat::from_rotation_y(std::f64::consts::FRAC_PI_2),
+            ..cylinder.pose
+        },
+        ..cylinder.clone()
+    };
+    snapshot.visuals[0] = PrimitiveVisual::Cylinder(endcap.clone());
+    snapshot.time = Duration::from_millis(5);
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    let cap = image(&mut renderer);
+    let pixel = |frame: &gz_renderer::Frame, x: usize, y: usize| {
+        let offset = (y * 64 + x) * 4;
+        <[u8; 4]>::try_from(&frame.rgba[offset..offset + 4]).unwrap()
+    };
+    // Strictly interior samples distinguish the fixed32-facet cap from an AABB.
+    assert_eq!(pixel(&cap, 32, 32), [255, 0, 0, 255]);
+    assert_eq!(pixel(&cap, 32, 24), [255, 0, 0, 255]);
+    assert_eq!(pixel(&cap, 40, 32), [255, 0, 0, 255]);
+    assert_eq!(pixel(&cap, 23, 23), [43, 44, 47, 255]);
+    assert_eq!(pixel(&cap, 40, 40), [43, 44, 47, 255]);
+    // Invalid geometry must not cancel an actual pending capture or alter its stamp/pixels.
+    renderer.request_readback().unwrap();
+    let mut invalid = snapshot.clone();
+    invalid.visuals[0] = PrimitiveVisual::Cylinder(CylinderVisual {
+        length: 0.0,
+        ..endcap.clone()
+    });
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&invalid, calibration, camera),
+        Err(RenderError::InvalidVisual)
+    ));
+    let mut unchanged = None;
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        if let Some(frame) = renderer.take_frame().unwrap() {
+            unchanged = Some(frame);
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let unchanged = unchanged.expect("pending cap capture did not complete");
+    assert_eq!(
+        (unchanged.epoch, unchanged.time),
+        (snapshot.epoch, snapshot.time)
+    );
+    assert_eq!(unchanged.rgba, cap.rgba);
+    let near_box = BoxVisual {
+        id: 2,
+        pose: WorldPose {
+            translation: origin + DVec3::new(2.0, 0.0, 0.0),
+            rotation: DQuat::IDENTITY,
+        },
+        size: DVec3::splat(0.4),
+        color: [0.0, 1.0, 0.0],
+    };
+    snapshot.visuals = vec![
+        PrimitiveVisual::Cylinder(endcap.clone()),
+        PrimitiveVisual::Box(near_box.clone()),
+    ];
+    snapshot.time = Duration::from_millis(6);
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    let occluded = image(&mut renderer);
+    assert_eq!(pixel(&occluded, 32, 32), [0, 255, 0, 255]);
+    assert_eq!(pixel(&occluded, 32, 24), [255, 0, 0, 255]);
+    snapshot.visuals.reverse();
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert_eq!(image(&mut renderer).rgba, occluded.rgba);
+    let far_box = BoxVisual {
+        pose: WorldPose {
+            translation: origin + DVec3::new(6.0, 0.0, 0.0),
+            ..near_box.pose
+        },
+        ..near_box
+    };
+    snapshot.visuals = vec![
+        PrimitiveVisual::Box(far_box),
+        PrimitiveVisual::Cylinder(endcap),
+    ];
+    snapshot.time = Duration::from_millis(7);
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert_eq!(pixel(&image(&mut renderer), 32, 32), [255, 0, 0, 255]);
+    snapshot.visuals = vec![PrimitiveVisual::Box(cube)];
+    snapshot.epoch += 1;
+    snapshot.time = Duration::ZERO;
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    let restored = image(&mut renderer);
+    assert_eq!(
+        (restored.epoch, restored.time),
+        (snapshot.epoch, snapshot.time)
+    );
+    assert_eq!(
+        restored.rgba, original_box.rgba,
+        "same-ID cylinder-to-box must restore every original box pixel"
+    );
+    snapshot.visuals.clear();
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert_eq!(pixel(&image(&mut renderer), 32, 32), [43, 44, 47, 255]);
+}

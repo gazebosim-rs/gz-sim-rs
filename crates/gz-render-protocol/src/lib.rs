@@ -3,17 +3,34 @@
 use serde::{Deserialize, Serialize};
 use std::io::{self, Read, Write};
 
-pub const PROTOCOL_VERSION: u16 = 3;
+pub const PROTOCOL_VERSION: u16 = 4;
 const MAX_MESSAGE: usize = 131_072;
 const MAX_VISUALS: usize = 128;
 const PIXELS: usize = 64 * 64 * 4;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Visual {
     pub id: u64,
     pub translation: [f64; 3],
     pub rotation: [f64; 4],
     pub size: [f64; 3],
+    pub color: [f32; 3],
+}
+/// Required geometry in the version-four calibrated RGB shape path.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub enum Geometry {
+    Box { size: [f64; 3] },
+    Cylinder { radius: f64, length: f64 },
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ShapeVisual {
+    pub id: u64,
+    pub translation: [f64; 3],
+    pub rotation: [f64; 4],
+    pub geometry: Geometry,
     pub color: [f32; 3],
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -44,6 +61,7 @@ pub struct Camera {
     pub rotation: [f64; 4],
 }
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Request {
     Snapshot {
         request_id: u64,
@@ -56,6 +74,13 @@ pub enum Request {
         stamp: Stamp,
         origin: [f64; 3],
         visuals: Vec<Visual>,
+        camera: Box<Camera>,
+    },
+    CalibratedShapeSnapshot {
+        request_id: u64,
+        stamp: Stamp,
+        origin: [f64; 3],
+        visuals: Vec<ShapeVisual>,
         camera: Box<Camera>,
     },
     CalibratedDepthSnapshot {
@@ -144,6 +169,48 @@ fn valid_snapshot(request_id: u64, stamp: &Stamp, origin: &[f64; 3], visuals: &[
                 && v.color.iter().all(|x| x.is_finite())
         })
 }
+fn valid_shape_snapshot(
+    request_id: u64,
+    stamp: &Stamp,
+    origin: &[f64; 3],
+    visuals: &[ShapeVisual],
+) -> bool {
+    request_id != 0
+        && valid_stamp(stamp)
+        && origin.iter().all(|v| v.is_finite())
+        && visuals.len() <= MAX_VISUALS
+        && visuals.iter().all(|v| {
+            v.id != 0
+                && v.translation
+                    .iter()
+                    .chain(&v.rotation)
+                    .all(|x| x.is_finite())
+                && v.color.iter().all(|x| x.is_finite())
+                && match &v.geometry {
+                    Geometry::Box { size } => size.iter().all(|x| x.is_finite()),
+                    Geometry::Cylinder { radius, length } => {
+                        radius.is_finite() && length.is_finite()
+                    }
+                }
+        })
+}
+fn valid_camera(camera: &Camera) -> bool {
+    [
+        camera.fx,
+        camera.fy,
+        camera.cx,
+        camera.cy,
+        camera.skew,
+        camera.tx,
+        camera.ty,
+        camera.near,
+        camera.far,
+    ]
+    .iter()
+    .chain(&camera.translation)
+    .chain(&camera.rotation)
+    .all(|x| x.is_finite())
+}
 impl Request {
     /// Checks wire bounds and finite values; the renderer validates scene semantics separately.
     pub fn wire_valid(&self) -> bool {
@@ -167,24 +234,14 @@ impl Request {
                 origin,
                 visuals,
                 camera,
-            } => {
-                valid_snapshot(*request_id, stamp, origin, visuals)
-                    && [
-                        camera.fx,
-                        camera.fy,
-                        camera.cx,
-                        camera.cy,
-                        camera.skew,
-                        camera.tx,
-                        camera.ty,
-                        camera.near,
-                        camera.far,
-                    ]
-                    .iter()
-                    .chain(&camera.translation)
-                    .chain(&camera.rotation)
-                    .all(|x| x.is_finite())
-            }
+            } => valid_snapshot(*request_id, stamp, origin, visuals) && valid_camera(camera),
+            Self::CalibratedShapeSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera,
+            } => valid_shape_snapshot(*request_id, stamp, origin, visuals) && valid_camera(camera),
             Self::Capture { request_id } | Self::Cancel { request_id } => *request_id != 0,
             Self::Shutdown => true,
         }

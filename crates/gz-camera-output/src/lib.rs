@@ -8,7 +8,10 @@
 //! also belong outside the critical step: process teardown can wait.
 
 mod application;
-pub use application::{CameraServer, CameraServerError, CameraServerOptions, CameraStep};
+pub use application::{
+    CameraCapture, CameraFrameProgress, CameraServer, CameraServerError, CameraServerOptions,
+    CameraStep,
+};
 
 pub mod camera_messages;
 mod scheduled;
@@ -36,6 +39,10 @@ use zenoh::{Session, Wait, liveliness::LivelinessToken, pubsub::Publisher};
 pub enum CameraOutputError {
     #[error("scheduled output supports exactly one loaded camera")]
     MultipleCameras,
+    #[error("pair output requires exactly two loaded RGB cameras")]
+    PairCameraCount,
+    #[error("pair output requires a per-camera API")]
+    PairMode,
     #[error("camera cadence: {0}")]
     Schedule(#[from] gz_sim_scene::SensorScheduleError),
     #[error("camera snapshot: {0}")]
@@ -227,6 +234,16 @@ fn publisher_token(
     node: &str,
     message: &str,
 ) -> Result<String, CameraOutputError> {
+    publication_token(key, &session.zid().to_string(), node, message)
+}
+
+// Pure token/key validation shared by whole-set preflight and actual declarations.
+fn publication_token(
+    key: &str,
+    process: &str,
+    node: &str,
+    message: &str,
+) -> Result<String, CameraOutputError> {
     let Some((partition, topic)) = key.strip_prefix('@').and_then(|rest| rest.split_once('@'))
     else {
         return Err(CameraOutputError::InvalidPublicationKey);
@@ -257,7 +274,7 @@ fn publisher_token(
     let token = format!(
         "@gz/{}/{}/{node}/{node}/MP/%/%/%/{}/{message}/%/%",
         partition.replace('/', "%"),
-        session.zid(),
+        process,
         topic.replace('/', "%")
     );
     zenoh::key_expr::KeyExpr::try_from(token.as_str())
@@ -436,7 +453,8 @@ impl CameraOutput {
             .ok_or(CameraOutputError::IdExhausted)?;
         let request = extract_camera(sim, self.sensor_id, snapshot_id, self.origin)?;
         let (stamp, camera, depth) = match &request {
-            Request::CalibratedSnapshot { stamp, camera, .. } => (*stamp, camera, false),
+            Request::CalibratedSnapshot { stamp, camera, .. }
+            | Request::CalibratedShapeSnapshot { stamp, camera, .. } => (*stamp, camera, false),
             Request::CalibratedDepthSnapshot { stamp, camera, .. } => (*stamp, camera, true),
             _ => unreachable!(),
         };
@@ -505,7 +523,9 @@ impl CameraOutput {
         let snapshot_phase = matches!(
             &acquisition.phase,
             Phase::Submit(
-                Request::CalibratedSnapshot { .. } | Request::CalibratedDepthSnapshot { .. }
+                Request::CalibratedSnapshot { .. }
+                    | Request::CalibratedShapeSnapshot { .. }
+                    | Request::CalibratedDepthSnapshot { .. }
             ) | Phase::SnapshotReply
         );
         match acquisition.phase {

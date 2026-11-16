@@ -58,7 +58,7 @@ fn prepare(client: &Client) {
 fn contended_or_poisoned_state_returns_the_original_request() {
     let (client, _rx) = client();
     let guard = client.snapshots.lock().unwrap();
-    for make_request in [snapshot as fn() -> Request, capture, cancel] {
+    for make_request in [snapshot as fn() -> Request, capture, cancel, shape_snapshot] {
         match client.try_send(make_request()) {
             Err(SubmitError::Busy(returned)) => assert_eq!(returned, make_request()),
             other => panic!("unexpected submission: {other:?}"),
@@ -74,7 +74,7 @@ fn contended_or_poisoned_state_returns_the_original_request() {
         .join()
         .is_err()
     );
-    for make_request in [snapshot as fn() -> Request, capture, cancel] {
+    for make_request in [snapshot as fn() -> Request, capture, cancel, shape_snapshot] {
         match client.try_send(make_request()) {
             Err(SubmitError::Closed(returned)) => assert_eq!(returned, make_request()),
             other => panic!("unexpected submission: {other:?}"),
@@ -623,7 +623,7 @@ fn depth_submission_retains_mode_and_same_snapshot_backpressure() {
 #[cfg(unix)]
 #[test]
 fn live_peer_cannot_reply_with_the_other_capture_kind() {
-    for request in [snapshot(), depth_snapshot()] {
+    for request in [snapshot(), depth_snapshot(), shape_snapshot()] {
         let path = fixture_peer("wrong-kind-peer.py");
         let mut client = Client::start(TrustedWorker::from_operator_config(path).unwrap()).unwrap();
         let deadline = Instant::now() + Duration::from_secs(5);
@@ -661,6 +661,90 @@ fn live_peer_cannot_reply_with_the_other_capture_kind() {
 #[test]
 fn former_version_two_peer_is_refused_at_startup() {
     let path = fixture_peer("legacy-version-peer.sh");
+    let mut client = Client::start(TrustedWorker::from_operator_config(path).unwrap()).unwrap();
+    wait_error(&client, |error| {
+        matches!(error, ClientError::ProtocolVersion)
+    });
+    client.shutdown(Duration::from_secs(5)).unwrap();
+}
+
+fn shape_snapshot() -> Request {
+    let Request::CalibratedDepthSnapshot {
+        request_id,
+        stamp,
+        origin,
+        camera,
+        ..
+    } = depth_snapshot()
+    else {
+        unreachable!()
+    };
+    Request::CalibratedShapeSnapshot {
+        request_id,
+        stamp,
+        origin,
+        camera,
+        visuals: vec![gz_render_protocol::ShapeVisual {
+            id: 1,
+            translation: [4.0, 0.0, 0.0],
+            rotation: [0.0, 0.0, 0.0, 1.0],
+            geometry: gz_render_protocol::Geometry::Cylinder {
+                radius: 1.0,
+                length: 2.0,
+            },
+            color: [1.0, 0.0, 0.0],
+        }],
+    }
+}
+#[test]
+fn calibrated_shapes_use_existing_rgb_snapshot_and_capture_correlation() {
+    let (client, rx) = client();
+    client.try_send(shape_snapshot()).unwrap();
+    assert!(matches!(
+        rx.recv().unwrap(),
+        Request::CalibratedShapeSnapshot { request_id: 1, .. }
+    ));
+    let expected = Stamp {
+        epoch: 1,
+        seconds: 0,
+        nanoseconds: 0,
+    };
+    {
+        let state = client.snapshots.lock().unwrap();
+        assert_eq!(state.pending_id, Some(1));
+        assert_eq!(state.pending_stamp, Some(expected));
+        assert_eq!(state.pending_depth, Some(false));
+        assert!(state.committed_stamp.is_none());
+    }
+    assert!(matches!(
+        client.try_send(snapshot()),
+        Err(SubmitError::Stale(_))
+    ));
+    assert!(matches!(
+        client.try_send(capture()),
+        Err(SubmitError::Busy(_))
+    ));
+    {
+        let mut state = client.snapshots.lock().unwrap();
+        state.pending_id = None;
+        state.pending_stamp = None;
+        state.pending_depth = None;
+        state.committed_stamp = Some(expected);
+        state.committed_depth = false;
+    }
+    client.try_send(capture()).unwrap();
+    assert!(matches!(
+        rx.recv().unwrap(),
+        Request::Capture { request_id: 1 }
+    ));
+    let state = client.snapshots.lock().unwrap();
+    assert_eq!(state.pending_capture, Some((1, expected, false)));
+    assert!(!state.pending_capture_depth);
+}
+#[cfg(unix)]
+#[test]
+fn former_version_three_worker_is_refused_at_startup() {
+    let path = fixture_peer("version-three-peer.sh");
     let mut client = Client::start(TrustedWorker::from_operator_config(path).unwrap()).unwrap();
     wait_error(&client, |error| {
         matches!(error, ClientError::ProtocolVersion)

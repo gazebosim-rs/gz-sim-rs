@@ -559,7 +559,8 @@ fn reject_depth_reply(reply: &Reply) {
 
 #[test]
 fn calibrated_depth_snapshot_preserves_all_wire_fields_and_version_three() {
-    assert_eq!(PROTOCOL_VERSION, 3);
+    // Historical test ID is retained; its depth payload is unchanged in version4.
+    assert_eq!(PROTOCOL_VERSION, 4);
     let request = depth_snapshot();
     let mut wire = Vec::new();
     write_request(&mut wire, &request).unwrap();
@@ -762,4 +763,196 @@ fn depth_and_rgb_keep_distinct_reply_tags_in_the_same_bounded_stream() {
     assert_eq!(read_reply(&mut input).unwrap(), Some(rgb));
     assert_eq!(read_reply(&mut input).unwrap(), Some(depth));
     assert_eq!(read_reply(&mut input).unwrap(), None);
+}
+
+fn shape_snapshot() -> Request {
+    let Request::CalibratedDepthSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        camera,
+    } = depth_snapshot()
+    else {
+        unreachable!()
+    };
+    let mut visuals: Vec<_> = visuals
+        .into_iter()
+        .map(|v| ShapeVisual {
+            id: v.id,
+            translation: v.translation,
+            rotation: v.rotation,
+            geometry: Geometry::Box { size: v.size },
+            color: v.color,
+        })
+        .collect();
+    visuals.push(ShapeVisual {
+        id: 42,
+        translation: [1e12 + 4.0, -1e12, 0.5],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+        geometry: Geometry::Cylinder {
+            radius: 1.0,
+            length: 2.0,
+        },
+        color: [1.0, 0.0, 0.0],
+    });
+    Request::CalibratedShapeSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        camera,
+    }
+}
+#[test]
+fn version_four_shapes_preserve_explicit_geometry_and_all_f64_fields() {
+    assert_eq!(PROTOCOL_VERSION, 4);
+    let request = shape_snapshot();
+    let mut wire = Vec::new();
+    write_request(&mut wire, &request).unwrap();
+    assert_eq!(
+        read_request(&mut wire.as_slice()).unwrap().as_ref(),
+        Some(&request)
+    );
+    let value: serde_json::Value = serde_json::from_slice(&wire[4..]).unwrap();
+    let shapes = &value["CalibratedShapeSnapshot"]["visuals"];
+    assert_eq!(
+        shapes[0]["geometry"]["Box"]["size"],
+        serde_json::json!([1.0, 1.0, 1.0])
+    );
+    assert_eq!(
+        shapes[1]["geometry"],
+        serde_json::json!({"Cylinder":{"radius":1.0,"length":2.0}})
+    );
+    let old = depth_snapshot();
+    wire.clear();
+    write_request(&mut wire, &old).unwrap();
+    let old: serde_json::Value = serde_json::from_slice(&wire[4..]).unwrap();
+    assert!(
+        old["CalibratedDepthSnapshot"]["visuals"][0]
+            .get("geometry")
+            .is_none()
+    );
+    assert_eq!(
+        old["CalibratedDepthSnapshot"]["visuals"][0]["size"],
+        serde_json::json!([1.0, 1.0, 1.0])
+    );
+}
+fn reject_shape_json(value: serde_json::Value) {
+    let data = serde_json::to_vec(&value).unwrap();
+    let mut frame = (data.len() as u32).to_le_bytes().to_vec();
+    frame.extend(data);
+    assert_eq!(
+        read_request(&mut frame.as_slice()).unwrap_err().kind(),
+        io::ErrorKind::InvalidData
+    );
+}
+#[test]
+fn shape_tags_and_version_four_legacy_records_reject_unknown_or_missing_fields() {
+    let base = serde_json::to_value(shape_snapshot()).unwrap();
+    for fault in 0..6 {
+        let mut value = base.clone();
+        let shape = &mut value["CalibratedShapeSnapshot"]["visuals"][1];
+        match fault {
+            0 => {
+                shape.as_object_mut().unwrap().remove("geometry");
+            }
+            1 => {
+                shape["geometry"] = serde_json::json!({"Sphere":{"radius":1.0}});
+            }
+            2 => {
+                shape["geometry"]["Cylinder"]["unexpected"] = serde_json::json!(true);
+            }
+            3 => {
+                shape["geometry"]["Cylinder"]
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("length");
+            }
+            4 => {
+                shape["size"] = serde_json::json!([2.0, 2.0, 2.0]);
+            }
+            _ => {
+                value["CalibratedShapeSnapshot"]["depth"] = serde_json::json!(true);
+            }
+        }
+        reject_shape_json(value);
+    }
+    let mut legacy = serde_json::to_value(depth_snapshot()).unwrap();
+    legacy["CalibratedDepthSnapshot"]["visuals"][0]["geometry"] =
+        serde_json::json!({"Cylinder":{"radius":1.0,"length":2.0}});
+    reject_shape_json(legacy);
+    let mut legacy = serde_json::to_value(depth_snapshot()).unwrap();
+    legacy["CalibratedDepthSnapshot"]["shape_visuals"] = serde_json::json!([]);
+    reject_shape_json(legacy);
+    let data = serde_json::to_string(&base).unwrap();
+    assert!(data.contains("\"radius\":1.0"));
+    let data = data.replace("\"radius\":1.0", "\"radius\":1.0,\"radius\":2.0");
+    let mut frame = (data.len() as u32).to_le_bytes().to_vec();
+    frame.extend(data.bytes());
+    assert!(
+        read_request(&mut frame.as_slice()).is_err(),
+        "duplicate geometry fields are not a fallback"
+    );
+}
+#[test]
+fn mixed_shape_wire_keeps_visual_count_and_all_finite_value_guards() {
+    for fault in 0..10 {
+        let mut request = shape_snapshot();
+        let Request::CalibratedShapeSnapshot {
+            request_id,
+            stamp,
+            origin,
+            visuals,
+            camera,
+        } = &mut request
+        else {
+            unreachable!()
+        };
+        match fault {
+            0 => *request_id = 0,
+            1 => stamp.nanoseconds = 1_000_000_000,
+            2 => origin[1] = f64::INFINITY,
+            3 => visuals[1].id = 0,
+            4 => visuals[1].translation[0] = f64::NAN,
+            5 => visuals[1].rotation[2] = f64::INFINITY,
+            6 => visuals[1].color[1] = f32::NAN,
+            7 => {
+                visuals[1].geometry = Geometry::Cylinder {
+                    radius: f64::INFINITY,
+                    length: 2.0,
+                }
+            }
+            8 => {
+                visuals[0].geometry = Geometry::Box {
+                    size: [f64::NAN; 3],
+                }
+            }
+            _ => camera.fx = f64::NAN,
+        }
+        assert!(!request.wire_valid());
+        let mut out = Vec::new();
+        assert!(write_request(&mut out, &request).is_err());
+        assert!(out.is_empty());
+    }
+    let mut request = shape_snapshot();
+    let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request else {
+        unreachable!()
+    };
+    let template = visuals[1].clone();
+    *visuals = (1..=128)
+        .map(|id| ShapeVisual {
+            id,
+            ..template.clone()
+        })
+        .collect();
+    assert!(request.wire_valid());
+    let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request else {
+        unreachable!()
+    };
+    visuals.push(ShapeVisual {
+        id: 129,
+        ..template
+    });
+    assert!(!request.wire_valid());
 }

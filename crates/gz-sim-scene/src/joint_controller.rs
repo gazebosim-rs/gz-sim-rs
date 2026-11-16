@@ -6,6 +6,9 @@ use std::collections::{BTreeMap, BTreeSet};
 mod config;
 mod model;
 
+const MAX_CONTROLLER_OWNERS: usize = 8;
+const MAX_CONTROLLER_INPUTS: usize = MAX_CONTROLLER_OWNERS * 2;
+
 /// Position uses a bounded, damped native reduced-coordinate servo.
 /// SDF command identities are reused; native ABS/PID command-order parity is not claimed.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -129,7 +132,7 @@ impl Plan {
             .world()
             .iter_entities()
             .filter(|entity| entity.contains::<Controller>())
-            .take(5)
+            .take(MAX_CONTROLLER_INPUTS + 1)
         {
             let parent = entity
                 .get::<ChildOf>()
@@ -141,9 +144,9 @@ impl Plan {
             slots += 1;
         }
         require(
-            owners.len() < 2
+            owners.len() < MAX_CONTROLLER_OWNERS
                 && owners.values().all(|count| *count <= 2)
-                && slots + self.0.len() <= 4,
+                && slots + self.0.len() <= MAX_CONTROLLER_INPUTS,
             &model.scoped_name,
             "multiple joint-controller chains",
         )
@@ -378,7 +381,10 @@ fn admitted_slots(world: &World) -> Option<usize> {
             return None;
         }
         *owners.entry(parent).or_insert(0usize) += 1;
-        if ids.len() > 4 || owners.len() > 2 || owners.values().any(|count| *count > 2) {
+        if ids.len() > MAX_CONTROLLER_INPUTS
+            || owners.len() > MAX_CONTROLLER_OWNERS
+            || owners.values().any(|count| *count > 2)
+        {
             return None;
         }
     }
@@ -389,7 +395,7 @@ fn validate_loaded_controllers(world: &World) -> Result<(), ControllerFault> {
     let controllers: Vec<_> = world
         .iter_entities()
         .filter(|entity| entity.contains::<Controller>())
-        .take(5)
+        .take(MAX_CONTROLLER_INPUTS + 1)
         .collect();
     let Some(first) = controllers.first() else {
         return Ok(());
@@ -470,7 +476,7 @@ fn apply(world: &mut World) {
     let result = (|| -> Result<(), ControllerFault> {
         validate_loaded_controllers(world)?;
         let prepared = {
-            let mut entries = [None; 4];
+            let mut entries = [None; MAX_CONTROLLER_INPUTS];
             for (index, entity) in world
                 .iter_entities()
                 .filter(|entity| entity.contains::<Controller>())
@@ -545,7 +551,7 @@ fn reset(world: &mut World) {
             let mut query = world.query::<(Entity, &mut Controller)>();
             query
                 .iter_mut(world)
-                .take(5)
+                .take(MAX_CONTROLLER_INPUTS + 1)
                 .map(|(entity, controller)| (entity, controller.joint))
                 .collect()
         };

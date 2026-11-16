@@ -519,6 +519,9 @@ impl Client {
         }
         | Request::CalibratedDepthSnapshot {
             request_id, stamp, ..
+        }
+        | Request::CalibratedShapeSnapshot {
+            request_id, stamp, ..
         } = &request
         {
             let id = *request_id;

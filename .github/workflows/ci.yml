@@ -57,9 +57,9 @@ jobs:
           filename = vendor['url'].rsplit('/', 1)[1]
           archive = Path('artifacts/zenoh-ci-downloads') / filename
           archive.parent.mkdir(parents=True, exist_ok=True)
-          # The canonical ROS URL currently has a TLS hostname mismatch.
-          mirror = 'https://repo.ros2.org/ubuntu/main/pool/main/r/ros-jazzy-zenoh-cpp-vendor/' + filename
-          subprocess.run(['curl', '--fail', '--location', mirror, '--output', str(archive)], check=True)
+          # Preserve the exact locked vendor bytes independently of rolling ROS retention.
+          archive_url = 'https://github.com/gazebosim-rs/gz-sim-rs/releases/download/native-build-inputs-v1/' + filename
+          subprocess.run(['curl', '--fail', '--location', archive_url, '--output', str(archive)], check=True)
           if hashlib.sha256(archive.read_bytes()).hexdigest() != vendor['sha256']:
               raise ValueError('Zenoh vendor archive differs from the locked bytes')
           subprocess.run(['python3', 'scripts/bootstrap-zenoh-native.py', '--jobs', '2', '--vendor-archive', str(archive.resolve())], check=True)

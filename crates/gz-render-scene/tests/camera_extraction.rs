@@ -229,3 +229,276 @@ fn loaded_depth_extracts_a_typed_snapshot_without_scheduling_or_relabeling_rgb()
     ));
     assert_eq!(sim.scheduled_system_counts(), counts);
 }
+
+const CYLINDER_SCENE: &str = include_str!("../../../examples/m64_rgb_cylinder.sdf");
+fn cylinder_scene() -> (gz_sim_core::Simulation, u64) {
+    cylinder_source(CYLINDER_SCENE)
+}
+fn cylinder_source(source: &str) -> (gz_sim_core::Simulation, u64) {
+    let sim = load_world_with_sdf_step(
+        source,
+        "m64-cylinder.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let id = sim
+        .world()
+        .iter_entities()
+        .find_map(|entity| {
+            entity
+                .contains::<CameraSensor>()
+                .then(|| entity.get::<gz_sim_core::EntityId>().unwrap().get())
+        })
+        .unwrap();
+    (sim, id)
+}
+fn cylinder_visual(sim: &gz_sim_core::Simulation) -> bevy_ecs::entity::Entity {
+    sim.world()
+        .iter_entities()
+        .find(|entity| {
+            entity
+                .get::<gz_sim_scene::Name>()
+                .is_some_and(|name| name.0 == "default::cylinder::body::red_cap")
+        })
+        .unwrap()
+        .id()
+}
+
+#[test]
+fn loaded_rgb_cylinder_geometry_preserves_boxes_material_and_origin_contract() {
+    use gz_render_protocol::Geometry;
+    use gz_sim_core::EntityId;
+    use gz_sim_scene::{Name, VisualGeometry};
+    let (mut sim, id) = cylinder_scene();
+    let systems = sim.scheduled_system_counts();
+    let visual = cylinder_visual(&sim);
+    let visual_id = sim.world().get::<EntityId>(visual).unwrap().get();
+    let before: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter_map(|row| {
+            let pose = row.get::<WorldPose>()?;
+            Some((
+                row.get::<EntityId>()?.get(),
+                pose.translation,
+                pose.rotation,
+            ))
+        })
+        .collect();
+    let Request::CalibratedShapeSnapshot {
+        request_id,
+        stamp,
+        origin,
+        camera,
+        visuals,
+    } = extract_camera(&sim, id, 9, [0.0; 3]).unwrap()
+    else {
+        panic!("required RGB shape snapshot");
+    };
+    assert_eq!(request_id, 9);
+    assert_eq!((stamp.epoch, stamp.seconds, stamp.nanoseconds), (0, 0, 0));
+    assert_eq!(origin, [0.0; 3]);
+    assert_eq!((camera.width, camera.height), (64, 64));
+    assert_eq!(visuals.len(), 3);
+    assert!(visuals.windows(2).all(|pair| pair[0].id < pair[1].id));
+    let shape = visuals.iter().find(|row| row.id == visual_id).unwrap();
+    assert_eq!(
+        shape.geometry,
+        Geometry::Cylinder {
+            radius: 1.0,
+            length: 2.0
+        }
+    );
+    assert_eq!(shape.translation, [4.0, 0.0, 0.0]);
+    assert_eq!(shape.color, [1.0, 0.0, 0.0]);
+    let half = 0.5_f64.sqrt();
+    assert!((shape.rotation[1] - half).abs() < 1e-12 && (shape.rotation[3] - half).abs() < 1e-12);
+    assert_eq!(shape.rotation[0], 0.0);
+    assert_eq!(shape.rotation[2], 0.0);
+    let names: std::collections::BTreeMap<_, _> = sim
+        .world()
+        .iter_entities()
+        .filter_map(|row| Some((row.get::<EntityId>()?.get(), row.get::<Name>()?.0.clone())))
+        .collect();
+    for row in visuals.iter().filter(|row| row.id != visual_id) {
+        let expected = if names[&row.id] == "default::backdrop::body::blue" {
+            [0.2, 6.0, 6.0]
+        } else {
+            assert_eq!(names[&row.id], "default::occluder::body::green");
+            [0.4; 3]
+        };
+        assert_eq!(row.geometry, Geometry::Box { size: expected });
+    }
+    assert_eq!(
+        before,
+        sim.world()
+            .iter_entities()
+            .filter_map(|row| {
+                let pose = row.get::<WorldPose>()?;
+                Some((
+                    row.get::<EntityId>()?.get(),
+                    pose.translation,
+                    pose.rotation,
+                ))
+            })
+            .collect::<Vec<_>>()
+    );
+    assert_eq!(sim.scheduled_system_counts(), systems);
+    // Full world poses remain f64; only the derivative renderer subtracts origin.
+    let source = CYLINDER_SCENE
+        .replace(
+            "<pose>0 0 0 0 0 0</pose>",
+            "<pose>1000000000 0 0 0 0 0</pose>",
+        )
+        .replace(
+            "<pose>4 0 0 0 0 0</pose>",
+            "<pose>1000000004 0 0 0 0 0</pose>",
+        )
+        .replace(
+            "<pose>7 0 0 0 0 0</pose>",
+            "<pose>1000000007 0 0 0 0 0</pose>",
+        )
+        .replace(
+            "<pose>2 0 0 0 0 0</pose>",
+            "<pose>1000000002 0 0 0 0 0</pose>",
+        );
+    let (shifted, shifted_id) = cylinder_source(&source);
+    let Request::CalibratedShapeSnapshot {
+        camera,
+        origin,
+        visuals,
+        ..
+    } = extract_camera(&shifted, shifted_id, 10, [1_000_000_000.0, 0.0, 0.0]).unwrap()
+    else {
+        panic!("shape");
+    };
+    assert_eq!(origin, [1_000_000_000.0, 0.0, 0.0]);
+    assert_eq!(camera.translation[0], 1_000_000_000.0);
+    let shifted_visual_id = shifted
+        .world()
+        .get::<EntityId>(cylinder_visual(&shifted))
+        .unwrap()
+        .get();
+    assert_eq!(
+        visuals
+            .iter()
+            .find(|row| row.id == shifted_visual_id)
+            .unwrap()
+            .translation,
+        [1_000_000_004.0, 0.0, 0.0]
+    );
+    // An all-box world returns the exact pre-extension request form and fields.
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Box { size: [2.0; 3] });
+    let Request::CalibratedSnapshot { visuals, .. } =
+        extract_camera(&sim, id, 11, [1_000_000_000.0, 0.0, 0.0]).unwrap()
+    else {
+        panic!("legacy box form");
+    };
+    assert_eq!(
+        visuals.iter().find(|row| row.id == visual_id).unwrap().size,
+        [2.0; 3]
+    );
+}
+
+#[test]
+fn cylinder_rgb_refuses_invalid_dimensions_unsupported_geometry_and_material_without_mutation() {
+    use gz_sim_scene::{VisualGeometry, VisualMaterial};
+    let (mut sim, id) = cylinder_scene();
+    let visual = cylinder_visual(&sim);
+    let visual_id = sim
+        .world()
+        .get::<gz_sim_core::EntityId>(visual)
+        .unwrap()
+        .get();
+    let counts = sim.scheduled_system_counts();
+    let pose = *sim.world().get::<WorldPose>(visual).unwrap();
+    for (radius, length) in [
+        (0.0, 2.0),
+        (-1.0, 2.0),
+        (1.0, 0.0),
+        (1.0, -1.0),
+        (f64::NAN, 2.0),
+        (1.0, f64::INFINITY),
+        (f64::MAX, 2.0),
+        (f64::MIN_POSITIVE, 2.0),
+        (1.0, f64::MIN_POSITIVE),
+        (f64::from(f32::MAX), 2.0),
+    ] {
+        sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+            Arc::new(sdformat::Geometry::Cylinder { radius, length });
+        assert_eq!(
+            extract_camera(&sim, id, 1, [0.0; 3]),
+            Err(SnapshotError::InvalidVisual(visual_id))
+        );
+        assert_eq!(
+            sim.world().get::<WorldPose>(visual).unwrap().translation,
+            pose.translation
+        );
+        assert_eq!(
+            sim.world().get::<WorldPose>(visual).unwrap().rotation,
+            pose.rotation
+        );
+        assert_eq!(sim.scheduled_system_counts(), counts);
+    }
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Sphere { radius: 1.0 });
+    assert_eq!(
+        extract_camera(&sim, id, 1, [0.0; 3]),
+        Err(SnapshotError::UnsupportedGeometry(visual_id))
+    );
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Cylinder {
+            radius: 1.0,
+            length: 2.0,
+        });
+    sim.world_mut()
+        .get_mut::<VisualMaterial>(visual)
+        .unwrap()
+        .0
+        .diffuse[3] = 0.5;
+    assert_eq!(
+        extract_camera(&sim, id, 1, [0.0; 3]),
+        Err(SnapshotError::UnsupportedMaterial(visual_id))
+    );
+    assert_eq!(
+        sim.world().get::<WorldPose>(visual).unwrap().translation,
+        pose.translation
+    );
+    assert_eq!(
+        sim.world().get::<WorldPose>(visual).unwrap().rotation,
+        pose.rotation
+    );
+    assert_eq!(sim.scheduled_system_counts(), counts);
+}
+
+#[test]
+fn cylinder_geometry_stays_refused_by_generic_and_depth_box_only_boundaries() {
+    let (mut sim, id) = cylinder_scene();
+    let visual = cylinder_visual(&sim);
+    let visual_id = sim
+        .world()
+        .get::<gz_sim_core::EntityId>(visual)
+        .unwrap()
+        .get();
+    assert_eq!(
+        gz_render_scene::extract(&sim, 1, [0.0; 3]),
+        Err(SnapshotError::UnsupportedGeometry(visual_id))
+    );
+    let entity = sim
+        .world()
+        .iter_entities()
+        .find(|row| row.contains::<CameraSensor>())
+        .unwrap()
+        .id();
+    Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(entity).unwrap().0).kind =
+        "depth_camera".into();
+    assert_eq!(
+        extract_camera(&sim, id, 1, [0.0; 3]),
+        Err(SnapshotError::UnsupportedGeometry(visual_id))
+    );
+    assert!(sim.elapsed().is_zero());
+    assert_eq!(sim.epoch(), 0);
+}

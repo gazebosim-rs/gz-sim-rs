@@ -109,14 +109,35 @@ impl Runtime {
                 origin: [0.0; 3],
                 zenoh: camera_config,
             };
-            let application = gz_camera_output::CameraServer::new(
-                simulation,
-                world,
-                options,
-                config,
-                budget,
-                &camera_options,
-            )?;
+            let paired = simulation.world().iter_entities().any(|entity| {
+                entity.get::<gz_sim_scene::EntityKind>() == Some(&gz_sim_scene::EntityKind::World)
+                    && entity.contains::<gz_sim_scene::RenderingSensorsConfiguration>()
+            }) && simulation
+                .world()
+                .iter_entities()
+                .filter(|entity| entity.contains::<gz_sim_scene::CameraSensor>())
+                .take(3)
+                .count()
+                == 2;
+            let application = if paired {
+                gz_camera_output::CameraServer::new_pair(
+                    simulation,
+                    world,
+                    options,
+                    config,
+                    budget,
+                    &camera_options,
+                )?
+            } else {
+                gz_camera_output::CameraServer::new(
+                    simulation,
+                    world,
+                    options,
+                    config,
+                    budget,
+                    &camera_options,
+                )?
+            };
             return Ok(if application.has_camera_output() {
                 Self::Camera {
                     application: Box::new(application),
@@ -171,22 +192,32 @@ impl Runtime {
                     .map_err(|error| super::with_fault(application.server().simulation(), error))?;
                 // Physics is already committed. Busy affects output only: never
                 // retry tick or request the same acquisition in this iteration.
-                match application.capture() {
-                    Ok(_) => *backpressured = false,
-                    Err(gz_camera_output::CameraServerError::Camera(
-                        gz_camera_output::CameraOutputError::Busy,
-                    )) => {
-                        if !*backpressured {
-                            eprintln!(
-                                "camera output backpressure: bounded worker busy; simulation continues"
-                            );
+                let captures = application
+                    .capture_all()
+                    .map_err(|error| super::with_fault(application.server().simulation(), error))?;
+                let mut busy = false;
+                let mut failure = None;
+                // All owners were visited before these results are interpreted.
+                for capture in captures {
+                    match capture.result {
+                        Ok(_) => {}
+                        Err(gz_camera_output::CameraServerError::Camera(
+                            gz_camera_output::CameraOutputError::Busy,
+                        )) => busy = true,
+                        Err(error) => {
+                            failure.get_or_insert(error);
                         }
-                        *backpressured = true;
-                    }
-                    Err(error) => {
-                        return Err(super::with_fault(application.server().simulation(), error));
                     }
                 }
+                if let Some(error) = failure {
+                    return Err(super::with_fault(application.server().simulation(), error));
+                }
+                if busy && !*backpressured {
+                    eprintln!(
+                        "camera output backpressure: bounded worker busy; simulation continues"
+                    );
+                }
+                *backpressured = busy;
                 Ok(info)
             }
         }

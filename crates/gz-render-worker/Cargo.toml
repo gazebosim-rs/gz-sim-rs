@@ -13,6 +13,8 @@ glam.workspace = true
 rustix = { version = "=1.1.5", features = ["process"] }
 
 [dev-dependencies]
+# Existing ECS World API for the admitted sensor-removal test system.
+bevy_ecs.workspace = true
 gz-sim-server = { path = "../gz-sim-server" }
 serde_json = "=1.0.149"
 # Match the accepted server tests' introspection of the live owned listener.

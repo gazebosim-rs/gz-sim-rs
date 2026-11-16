@@ -996,3 +996,360 @@ fn depth_rejects_finite_unprojection_that_is_not_forward() {
         Err(RenderError::Pose(_))
     ));
 }
+
+fn primitive_calibration() -> Calibration {
+    Calibration::from_horizontal_fov(64, 64, std::f64::consts::FRAC_PI_2, 0.1, 100.0).unwrap()
+}
+fn primitive_cylinder() -> CylinderVisual {
+    CylinderVisual {
+        id: 1,
+        pose: WorldPose {
+            translation: DVec3::new(4.0, 0.0, 0.0),
+            rotation: glam::DQuat::IDENTITY,
+        },
+        radius: 1.0,
+        length: 2.0,
+        color: [1.0, 0.0, 0.0],
+    }
+}
+
+#[test]
+fn cylinder_dimensions_and_mixed_ids_preflight_before_scene_mutation() {
+    let mut renderer = Renderer::new().unwrap();
+    let calibration = primitive_calibration();
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    let baseline = Snapshot {
+        epoch: 7,
+        time: Duration::from_millis(1),
+        origin: DVec3::ZERO,
+        visuals: vec![BoxVisual {
+            id: 2,
+            pose: primitive_cylinder().pose,
+            size: DVec3::ONE,
+            color: [0.0, 1.0, 0.0],
+        }],
+    };
+    renderer
+        .set_calibrated_snapshot(&baseline, calibration, camera)
+        .unwrap();
+    // Private lifecycle-state fixture; this is not an image or GPU completion receipt.
+    renderer.snapshot_dirty = false;
+    renderer.pending = Some(Pending {
+        epoch: 7,
+        time: baseline.time,
+        valid: true,
+        pixels: Arc::new(Mutex::new(None)),
+    });
+    let before_meshes = renderer.app.world().resource::<Assets<Mesh>>().len();
+    let before_materials = renderer
+        .app
+        .world()
+        .resource::<Assets<StandardMaterial>>()
+        .len();
+    let before_camera = *renderer
+        .app
+        .world()
+        .get::<Transform>(renderer.camera)
+        .unwrap();
+    let before_entity = renderer.visuals[&2].entity;
+    let before_mesh = renderer.visuals[&2].mesh.id();
+    let valid = PrimitiveSnapshot {
+        epoch: 8,
+        time: Duration::from_millis(2),
+        origin: DVec3::ZERO,
+        visuals: vec![PrimitiveVisual::Cylinder(primitive_cylinder())],
+    };
+    let assert_unchanged = |renderer: &Renderer| {
+        assert!(renderer.cylinder_mesh.is_none());
+        assert_eq!(
+            renderer.app.world().resource::<Assets<Mesh>>().len(),
+            before_meshes
+        );
+        assert_eq!(
+            renderer
+                .app
+                .world()
+                .resource::<Assets<StandardMaterial>>()
+                .len(),
+            before_materials
+        );
+        assert_eq!(renderer.stamp, Some((baseline.epoch, baseline.time)));
+        assert_eq!(
+            *renderer
+                .app
+                .world()
+                .get::<Transform>(renderer.camera)
+                .unwrap(),
+            before_camera
+        );
+        assert_eq!(renderer.visuals[&2].entity, before_entity);
+        assert_eq!(renderer.visuals[&2].mesh.id(), before_mesh);
+        assert_eq!(renderer.visuals.len(), 1);
+        assert!(renderer.pending.as_ref().unwrap().valid);
+        assert!(!renderer.snapshot_dirty);
+    };
+    for value in [
+        0.0,
+        -1.0,
+        f64::NAN,
+        f64::INFINITY,
+        f64::NEG_INFINITY,
+        f64::MAX,
+        1e-300,
+    ] {
+        for radius in [true, false] {
+            let mut cylinder = primitive_cylinder();
+            if radius {
+                cylinder.radius = value;
+            } else {
+                cylinder.length = value;
+            }
+            let mut invalid = valid.clone();
+            invalid.visuals[0] = PrimitiveVisual::Cylinder(cylinder);
+            assert!(matches!(
+                renderer.set_calibrated_primitive_snapshot(&invalid, calibration, camera),
+                Err(RenderError::InvalidVisual)
+            ));
+            assert_unchanged(&renderer);
+        }
+    }
+    let mut diameter_overflow = valid.clone();
+    diameter_overflow.visuals[0] = PrimitiveVisual::Cylinder(CylinderVisual {
+        radius: 2e38,
+        ..primitive_cylinder()
+    });
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&diameter_overflow, calibration, camera),
+        Err(RenderError::InvalidVisual)
+    ));
+    assert_unchanged(&renderer);
+    for fault in 0..5 {
+        let mut invalid = valid.clone();
+        if fault == 1 {
+            invalid.visuals.push(PrimitiveVisual::Box(BoxVisual {
+                id: 1,
+                pose: camera,
+                size: DVec3::ONE,
+                color: [0.0; 3],
+            }));
+        } else {
+            let PrimitiveVisual::Cylinder(c) = &mut invalid.visuals[0] else {
+                unreachable!()
+            };
+            match fault {
+                0 => c.id = 0,
+                2 => c.color[0] = f32::NAN,
+                3 => c.pose.rotation = glam::DQuat::from_xyzw(0.0, 0.0, 0.0, 0.0),
+                _ => c.pose.translation.x = f64::NAN,
+            }
+        }
+        assert!(
+            renderer
+                .set_calibrated_primitive_snapshot(&invalid, calibration, camera)
+                .is_err()
+        );
+        assert_unchanged(&renderer);
+    }
+    let wrong =
+        Calibration::from_horizontal_fov(32, 64, std::f64::consts::FRAC_PI_2, 0.1, 100.0).unwrap();
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&valid, wrong, camera),
+        Err(RenderError::InvalidCameraDimensions)
+    ));
+    assert_unchanged(&renderer);
+    let mut full = valid.clone();
+    full.visuals = (1_u64..=129)
+        .map(|id| {
+            if id.is_multiple_of(2) {
+                PrimitiveVisual::Box(BoxVisual {
+                    id,
+                    pose: camera,
+                    size: DVec3::ONE,
+                    color: [0.0; 3],
+                })
+            } else {
+                PrimitiveVisual::Cylinder(CylinderVisual {
+                    id,
+                    ..primitive_cylinder()
+                })
+            }
+        })
+        .collect();
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&full, calibration, camera),
+        Err(RenderError::InvalidIds)
+    ));
+    assert_unchanged(&renderer);
+    full.visuals.pop();
+    renderer
+        .set_calibrated_primitive_snapshot(&full, calibration, camera)
+        .unwrap();
+    assert_eq!(renderer.visuals.len(), 128);
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        before_meshes + 1
+    );
+    assert!(!renderer.pending.as_ref().unwrap().valid);
+}
+
+#[test]
+fn unit_cylinder_axis_caps_and_shape_replacement_reuse_bounded_meshes() {
+    let mut renderer = Renderer::new().unwrap();
+    let original_mesh_count = renderer.app.world().resource::<Assets<Mesh>>().len();
+    assert!(renderer.cylinder_mesh.is_none());
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    let old_depth = Snapshot {
+        epoch: 0,
+        time: Duration::ZERO,
+        origin: DVec3::ZERO,
+        visuals: vec![BoxVisual {
+            id: 1,
+            pose: primitive_cylinder().pose,
+            size: DVec3::ONE,
+            color: [0.0, 1.0, 0.0],
+        }],
+    };
+    renderer
+        .set_calibrated_depth_snapshot(&old_depth, primitive_calibration(), camera)
+        .unwrap();
+    assert!(renderer.depth_calibration.is_some());
+    renderer.snapshot_dirty = false;
+    let mut cylinder = primitive_cylinder();
+    cylinder.length = 4.0;
+    cylinder.pose.rotation = glam::DQuat::from_rotation_x(std::f64::consts::FRAC_PI_2);
+    let mut snapshot = PrimitiveSnapshot {
+        epoch: 1,
+        time: Duration::ZERO,
+        origin: DVec3::ZERO,
+        visuals: vec![PrimitiveVisual::Cylinder(cylinder)],
+    };
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, primitive_calibration(), camera)
+        .unwrap();
+    let mesh = renderer.cylinder_mesh.as_ref().unwrap().clone();
+    assert_ne!(mesh.id(), renderer.mesh.id());
+    assert_eq!(renderer.visuals[&1].mesh.id(), mesh.id());
+    let transform = renderer
+        .app
+        .world()
+        .get::<Transform>(renderer.visuals[&1].entity)
+        .unwrap();
+    assert_eq!(transform.scale, Vec3::new(2.0, 4.0, 2.0));
+    assert!((transform.rotation * Vec3::Y - Vec3::Z).length() < 1e-6);
+    let assets = renderer.app.world().resource::<Assets<Mesh>>();
+    let cylinder_mesh = assets.get(&mesh).unwrap();
+    let Some(bevy::mesh::VertexAttributeValues::Float32x3(positions)) =
+        cylinder_mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+    else {
+        panic!("missing cylinder positions");
+    };
+    assert_eq!(positions.len(), 130);
+    assert_eq!(cylinder_mesh.indices().unwrap().len(), 372);
+    assert!(
+        positions
+            .iter()
+            .all(|p| (p[0] * p[0] + p[2] * p[2] - 0.25).abs() < 1e-6 && p[1].abs() == 0.5)
+    );
+    let Some(bevy::mesh::VertexAttributeValues::Float32x3(normals)) =
+        cylinder_mesh.attribute(Mesh::ATTRIBUTE_NORMAL)
+    else {
+        panic!("missing cylinder normals");
+    };
+    assert_eq!(
+        normals.iter().filter(|n| **n == [0.0, 1.0, 0.0]).count(),
+        32
+    );
+    assert_eq!(
+        normals.iter().filter(|n| **n == [0.0, -1.0, 0.0]).count(),
+        32
+    );
+    for index in 0_usize..4 {
+        renderer.snapshot_dirty = false;
+        snapshot.visuals[0] = if index.is_multiple_of(2) {
+            PrimitiveVisual::Box(BoxVisual {
+                id: 1,
+                pose: primitive_cylinder().pose,
+                size: DVec3::ONE,
+                color: [0.0, 1.0, 0.0],
+            })
+        } else {
+            PrimitiveVisual::Cylinder(primitive_cylinder())
+        };
+        renderer
+            .set_calibrated_primitive_snapshot(&snapshot, primitive_calibration(), camera)
+            .unwrap();
+        let expected = if index.is_multiple_of(2) {
+            renderer.mesh.id()
+        } else {
+            mesh.id()
+        };
+        assert_eq!(renderer.visuals[&1].mesh.id(), expected);
+        assert_eq!(
+            renderer
+                .app
+                .world()
+                .get::<Mesh3d>(renderer.visuals[&1].entity)
+                .unwrap()
+                .0
+                .id(),
+            expected
+        );
+        assert_eq!(
+            renderer.app.world().resource::<Assets<Mesh>>().len(),
+            original_mesh_count + 1
+        );
+    }
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NoDepthSnapshot)
+    ));
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        if renderer.ready {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    assert!(renderer.ready && renderer.scene_assets_ready());
+    let box_id = renderer.mesh.id();
+    let cylinder_id = mesh.id();
+    let old_box = renderer
+        .app
+        .get_sub_app_mut(RenderApp)
+        .unwrap()
+        .world_mut()
+        .resource_mut::<RenderAssets<RenderMesh>>()
+        .remove(box_id);
+    assert!(
+        renderer.scene_assets_ready(),
+        "unselected cuboid cannot gate cylinder readiness"
+    );
+    let old_cylinder = renderer
+        .app
+        .get_sub_app_mut(RenderApp)
+        .unwrap()
+        .world_mut()
+        .resource_mut::<RenderAssets<RenderMesh>>()
+        .remove(cylinder_id)
+        .unwrap();
+    assert!(
+        !renderer.scene_assets_ready(),
+        "selected cylinder is required for readiness"
+    );
+    let mut assets = renderer
+        .app
+        .get_sub_app_mut(RenderApp)
+        .unwrap()
+        .world_mut()
+        .resource_mut::<RenderAssets<RenderMesh>>();
+    if let Some(old_box) = old_box {
+        assets.insert(box_id, old_box);
+    }
+    assets.insert(cylinder_id, old_cylinder);
+}

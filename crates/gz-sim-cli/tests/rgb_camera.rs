@@ -775,3 +775,68 @@ fn admitted_depth_camera_without_image_interest_keeps_its_worker_lazy() {
     assert!(result.stderr.is_empty(), "{result:?}");
     assert!(!worker.exists());
 }
+
+#[cfg(feature = "rgb-camera")]
+#[test]
+fn cli_two_camera_path_preserves_single_and_headless_refusal() {
+    if isolation::child(
+        "cli_two_camera_path_preserves_single_and_headless_refusal",
+        45,
+    ) {
+        return;
+    }
+    let source = include_str!("../../../examples/m63_two_rgb_cameras.sdf");
+    let directory = tempfile::tempdir().unwrap();
+    let worker = directory.path().join("absent-pair-worker");
+    let args = [
+        "--physics-engine",
+        "rapier",
+        "--server",
+        "--run",
+        "--iterations",
+        "3",
+    ];
+    let output = command(source, Some(&worker), &args);
+    assert!(output.status.success(), "{output:?}");
+    assert!(
+        String::from_utf8_lossy(&output.stdout).starts_with("simulation_ns=3000000 iterations=3\n")
+    );
+    assert!(output.stderr.is_empty(), "{output:?}");
+    assert!(!worker.exists(), "no image demand starts no renderer");
+    let missing_owner = command(source, None, &args);
+    assert_eq!(missing_owner.status.code(), Some(1), "{missing_owner:?}");
+    assert!(missing_owner.stdout.is_empty());
+    assert!(String::from_utf8_lossy(&missing_owner.stderr).contains("camera application owner"));
+    let metadata_only = source.replace(SENSORS, "");
+    assert_ne!(
+        source, metadata_only,
+        "fixture keeps canonical world Sensors intent"
+    );
+    let without = command(&metadata_only, None, &args);
+    let with = command(&metadata_only, Some(&worker), &args);
+    assert!(
+        without.status.success() && with.status.success(),
+        "{without:?} {with:?}"
+    );
+    assert_eq!(with.stdout, without.stdout);
+    assert!(with.stderr.is_empty());
+    assert!(!worker.exists());
+    let start = source.find("<model name=\"rig_b\">").unwrap();
+    let end = start + source[start..].find("</model>").unwrap() + "</model>".len();
+    let third = source.replace(
+        "</world>",
+        &(source[start..end]
+            .replace("rig_b", "rig_c")
+            .replace("/m63/b/", "/m63/c/")
+            + "</world>"),
+    );
+    let refused = command(&third, Some(&worker), &args);
+    assert_eq!(refused.status.code(), Some(1), "{refused:?}");
+    assert!(refused.stdout.is_empty());
+    assert!(!worker.exists());
+    let depth = source.replacen("type=\"camera\"", "type=\"depth_camera\"", 1);
+    let refused = command(&depth, Some(&worker), &args);
+    assert_eq!(refused.status.code(), Some(1), "{refused:?}");
+    assert!(refused.stdout.is_empty());
+    assert!(!worker.exists());
+}

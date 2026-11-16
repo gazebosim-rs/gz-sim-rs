@@ -9,9 +9,13 @@ use gz_render_frame::{
     camera::{Calibration, CameraConfig},
 };
 use gz_render_protocol::{
-    Camera, FailureKind, PROTOCOL_VERSION, Reply, Request, Stamp, Visual, read_request, write_reply,
+    Camera, FailureKind, Geometry, PROTOCOL_VERSION, Reply, Request, ShapeVisual, Stamp, Visual,
+    read_request, write_reply,
 };
-use gz_renderer::{BoxVisual, DepthFrame, Frame, RenderError, Renderer, Snapshot, UpdateStatus};
+use gz_renderer::{
+    BoxVisual, CylinderVisual, DepthFrame, Frame, PrimitiveSnapshot, PrimitiveVisual, RenderError,
+    Renderer, Snapshot, UpdateStatus,
+};
 use rustix::process::{Signal, getpid, getppid, set_parent_process_death_signal};
 use std::{
     io::{self, BufReader, BufWriter, Write},
@@ -19,13 +23,18 @@ use std::{
     time::Duration,
 };
 
+// One snapshot ordering/capture state machine covers both wire representations.
+enum WorkerVisuals {
+    Boxes(Vec<Visual>),
+    Shapes(Vec<ShapeVisual>),
+}
 // All wire snapshot variants use the same ordering and lifecycle boundary.
 enum WorkerRequest {
     Snapshot {
         request_id: u64,
         stamp: Stamp,
         origin: [f64; 3],
-        visuals: Vec<Visual>,
+        visuals: WorkerVisuals,
         camera: Option<Box<Camera>>,
         depth: bool,
     },
@@ -49,7 +58,7 @@ impl From<Request> for WorkerRequest {
                 request_id,
                 stamp,
                 origin,
-                visuals,
+                visuals: WorkerVisuals::Boxes(visuals),
                 camera: None,
                 depth: false,
             },
@@ -63,7 +72,7 @@ impl From<Request> for WorkerRequest {
                 request_id,
                 stamp,
                 origin,
-                visuals,
+                visuals: WorkerVisuals::Boxes(visuals),
                 camera: Some(camera),
                 depth: false,
             },
@@ -77,9 +86,23 @@ impl From<Request> for WorkerRequest {
                 request_id,
                 stamp,
                 origin,
-                visuals,
+                visuals: WorkerVisuals::Boxes(visuals),
                 camera: Some(camera),
                 depth: true,
+            },
+            Request::CalibratedShapeSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera,
+            } => Self::Snapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals: WorkerVisuals::Shapes(visuals),
+                camera: Some(camera),
+                depth: false,
             },
             Request::Capture { request_id } => Self::Capture { request_id },
             Request::Cancel { request_id } => Self::Cancel { request_id },
@@ -423,22 +446,63 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 true,
                             );
                         }
-                        let snapshot = Snapshot {
-                            epoch: stamp.epoch,
-                            time: Duration::new(stamp.seconds, stamp.nanoseconds),
-                            origin: DVec3::from_array(origin),
-                            visuals: visuals
-                                .into_iter()
-                                .map(|v| BoxVisual {
-                                    id: v.id,
-                                    pose: WorldPose {
-                                        translation: DVec3::from_array(v.translation),
-                                        rotation: DQuat::from_array(v.rotation),
-                                    },
-                                    size: DVec3::from_array(v.size),
-                                    color: v.color,
-                                })
-                                .collect(),
+                        let (snapshot, primitive_snapshot) = match visuals {
+                            WorkerVisuals::Boxes(visuals) => (
+                                Some(Snapshot {
+                                    epoch: stamp.epoch,
+                                    time: Duration::new(stamp.seconds, stamp.nanoseconds),
+                                    origin: DVec3::from_array(origin),
+                                    visuals: visuals
+                                        .into_iter()
+                                        .map(|v| BoxVisual {
+                                            id: v.id,
+                                            pose: WorldPose {
+                                                translation: DVec3::from_array(v.translation),
+                                                rotation: DQuat::from_array(v.rotation),
+                                            },
+                                            size: DVec3::from_array(v.size),
+                                            color: v.color,
+                                        })
+                                        .collect(),
+                                }),
+                                None,
+                            ),
+                            WorkerVisuals::Shapes(visuals) => (
+                                None,
+                                Some(PrimitiveSnapshot {
+                                    epoch: stamp.epoch,
+                                    time: Duration::new(stamp.seconds, stamp.nanoseconds),
+                                    origin: DVec3::from_array(origin),
+                                    visuals: visuals
+                                        .into_iter()
+                                        .map(|v| {
+                                            let pose = WorldPose {
+                                                translation: DVec3::from_array(v.translation),
+                                                rotation: DQuat::from_array(v.rotation),
+                                            };
+                                            match v.geometry {
+                                                Geometry::Box { size } => {
+                                                    PrimitiveVisual::Box(BoxVisual {
+                                                        id: v.id,
+                                                        pose,
+                                                        size: DVec3::from_array(size),
+                                                        color: v.color,
+                                                    })
+                                                }
+                                                Geometry::Cylinder { radius, length } => {
+                                                    PrimitiveVisual::Cylinder(CylinderVisual {
+                                                        id: v.id,
+                                                        pose,
+                                                        radius,
+                                                        length,
+                                                        color: v.color,
+                                                    })
+                                                }
+                                            }
+                                        })
+                                        .collect(),
+                                }),
+                            ),
                         };
                         let result = if let Some(camera) = camera {
                             let config = CameraConfig {
@@ -462,13 +526,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     };
                                     if depth {
                                         renderer.set_calibrated_depth_snapshot(
-                                            &snapshot,
+                                            snapshot
+                                                .as_ref()
+                                                .expect("depth wire variants contain boxes"),
+                                            calibration,
+                                            pose,
+                                        )
+                                    } else if let Some(snapshot) = &primitive_snapshot {
+                                        renderer.set_calibrated_primitive_snapshot(
+                                            snapshot,
                                             calibration,
                                             pose,
                                         )
                                     } else {
                                         renderer.set_calibrated_snapshot(
-                                            &snapshot,
+                                            snapshot
+                                                .as_ref()
+                                                .expect("legacy RGB wire variants contain boxes"),
                                             calibration,
                                             pose,
                                         )
@@ -479,7 +553,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
                         } else {
                             renderer
-                                .set_snapshot(&snapshot)
+                                .set_snapshot(
+                                    snapshot
+                                        .as_ref()
+                                        .expect("uncalibrated wire variant contains boxes"),
+                                )
                                 .map_err(SnapshotFailure::from)
                         };
                         if result.is_ok() {

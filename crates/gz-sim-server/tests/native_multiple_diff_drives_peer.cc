@@ -70,12 +70,14 @@ double scalar(const std::string &word) {
   require(std::isfinite(value), "finite canonical command");
   return value;
 }
-std::string side(std::size_t owner) { return owner == 0 ? "left" : "right"; }
-std::string command_topic(std::size_t owner) {
-  return "/m59/" + side(owner) + "/cmd_vel";
+std::string side(std::size_t owner, bool fleet = false) {
+  return fleet ? "robot_" + std::to_string(owner) : owner == 0 ? "left" : "right";
 }
-std::string odometry_topic(std::size_t owner) {
-  return "/m59/" + side(owner) + "/odom";
+std::string command_topic(std::size_t owner, bool fleet = false) {
+  return (fleet ? "/m61/" : "/m59/") + side(owner, fleet) + "/cmd_vel";
+}
+std::string odometry_topic(std::size_t owner, bool fleet = false) {
+  return (fleet ? "/m61/" : "/m59/") + side(owner, fleet) + "/odom";
 }
 using Stamp = std::pair<std::int64_t, std::int32_t>;
 struct Observation {
@@ -86,7 +88,7 @@ bool finite_vector(const gz::msgs::Vector3d &value) {
   return !value.has_header() && std::isfinite(value.x()) && std::isfinite(value.y())
       && std::isfinite(value.z());
 }
-Observation checked(const gz::msgs::Odometry &message, std::size_t owner) {
+Observation checked(const gz::msgs::Odometry &message, std::size_t owner, bool fleet = false) {
   require(message.has_header() && message.has_pose() && message.has_twist(),
       "complete canonical Odometry");
   const auto &header = message.header();
@@ -96,9 +98,9 @@ Observation checked(const gz::msgs::Odometry &message, std::size_t owner) {
   require(time.sec() >= 0 && time.nsec() >= 0 && time.nsec() < 1000000000,
       "normalized nonnegative acquisition stamp");
   require(header.data(0).key() == "frame_id" && header.data(0).value_size() == 1
-      && header.data(0).value(0) == "m59_" + side(owner) + "_odom"
+      && header.data(0).value(0) == (fleet ? "m61_" : "m59_") + side(owner, fleet) + "_odom"
       && header.data(1).key() == "child_frame_id" && header.data(1).value_size() == 1
-      && header.data(1).value(0) == "m59_" + side(owner) + "_base"
+      && header.data(1).value(0) == (fleet ? "m61_" : "m59_") + side(owner, fleet) + "_base"
       && header.data(2).key() == "seq" && header.data(2).value_size() == 1,
       "exact owner frame pair and sequence order");
   const auto sequence = m59::decimal(header.data(2).value(0),
@@ -136,14 +138,15 @@ struct Peer {
   gz::transport::Node node;
   std::vector<gz::transport::Node::Publisher> publishers;
   std::vector<std::shared_ptr<Watch>> watches;
+  const bool fleet;
   std::shared_ptr<std::atomic<bool>> callback_failed =
       std::make_shared<std::atomic<bool>>(false);
   std::mutex output_mutex;
   std::size_t output_bytes = 0;
 
-  explicit Peer(std::size_t owners) : watches(owners) {
+  explicit Peer(std::size_t owners) : watches(owners), fleet(owners > 2) {
     for (std::size_t owner = 0; owner < owners; ++owner) {
-      auto publisher = node.Advertise<gz::msgs::Twist>(m59::command_topic(owner));
+      auto publisher = node.Advertise<gz::msgs::Twist>(m59::command_topic(owner, fleet));
       require(static_cast<bool>(publisher), "actual canonical Twist advertisement");
       publishers.push_back(publisher);
     }
@@ -167,7 +170,7 @@ struct Peer {
     for (;;) {
       healthy();
       std::vector<gz::transport::MessagePublisher> pubs, subs;
-      require(node.TopicInfo(m59::command_topic(owner), pubs, subs),
+      require(node.TopicInfo(m59::command_topic(owner, fleet), pubs, subs),
           "actual command TopicInfo");
       const bool own_publisher = pubs.size() == 1
           && pubs[0].MsgTypeName() == "gz.msgs.Twist";
@@ -178,7 +181,7 @@ struct Peer {
       } else {
         complete = complete && !publishers[owner].HasConnections() && subs.empty();
         std::vector<gz::transport::MessagePublisher> odom_pubs, odom_subs;
-        const bool found = node.TopicInfo(m59::odometry_topic(owner), odom_pubs, odom_subs);
+        const bool found = node.TopicInfo(m59::odometry_topic(owner, fleet), odom_pubs, odom_subs);
         // An entirely absent topic is allowed only when this peer has no watch.
         complete = complete && odom_pubs.empty()
             && ((!watches[owner] && odom_subs.empty())
@@ -211,8 +214,9 @@ struct Peer {
     auto state = std::make_shared<Watch>();
     watches[owner] = state;
     const auto failed = callback_failed;
+    const bool fleet = this->fleet;
     std::function<void(const gz::msgs::Odometry &)> callback =
-        [state, failed, owner](const gz::msgs::Odometry &message) noexcept {
+        [state, failed, owner, fleet](const gz::msgs::Odometry &message) noexcept {
       try {
         require(message.ByteSizeLong() <= kWireCap, "received wire cap before serialization");
         const auto wire = message.SerializeAsString();
@@ -222,7 +226,7 @@ struct Peer {
             && state->rows.size() < kQueueCap, "actual bounded Odometry FIFO");
         // Retain the actual bounded row before validating it; any fault is terminal.
         state->rows.push_back(wire);
-        const auto row = m59::checked(message, owner);
+        const auto row = m59::checked(message, owner, fleet);
         require(!state->have_previous || (row.stamp > state->previous.stamp
             && row.sequence == state->previous.sequence + std::uint64_t{1}),
             "strict segment stamp order and wrapping contiguous sequence");
@@ -233,7 +237,7 @@ struct Peer {
       }
       state->changed.notify_all();
     };
-    require(node.Subscribe(m59::odometry_topic(owner), callback), "actual Odometry Subscribe");
+    require(node.Subscribe(m59::odometry_topic(owner, fleet), callback), "actual Odometry Subscribe");
     m59::before(deadline, "subscription five-second deadline after work");
     healthy();
   }
@@ -270,7 +274,7 @@ struct Peer {
       require(state->rows.empty(), "drain every actual row before unsubscribe");
       state->retiring = true;
     }
-    require(node.Unsubscribe(m59::odometry_topic(owner)), "actual public Unsubscribe");
+    require(node.Unsubscribe(m59::odometry_topic(owner, fleet)), "actual public Unsubscribe");
     // Only the owner's slot and this local reference may remain. Any dispatched
     // callback owns a separate reference and must finish before the fresh segment.
     while (state.use_count() != 2) {
@@ -296,9 +300,10 @@ struct Peer {
 
 int main(int argc, char **argv) {
   try {
-    m59::require(argc == 2 && (std::string(argv[1]) == "1" || std::string(argv[1]) == "2"),
-        "one exact owner-count argument: 1 or 2");
-    const auto owners = static_cast<std::size_t>(m59::decimal(argv[1], 2));
+    m59::require(argc == 2 && std::string(argv[1]).size() == 1
+        && argv[1][0] >= '1' && argv[1][0] <= '8',
+        "one exact owner-count argument: 1 through 8");
+    const auto owners = static_cast<std::size_t>(m59::decimal(argv[1], 8));
     const auto startup_deadline = m59::Clock::now() + 5s;
     m59::Peer peer(owners);
     for (std::size_t owner = 0; owner < owners; ++owner) {

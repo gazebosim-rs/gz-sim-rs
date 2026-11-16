@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Two bounded canonical drive pairs on the existing world IO owner.
+//! Up to eight bounded canonical drive pairs on the existing world IO owner.
 use gz_sim_proto::{
     msgs::{Odometry, Twist},
     prost::{Message, Name},
@@ -301,7 +301,7 @@ impl Declarations {
             || setup.max_bytes == 0
             || setup.max_bytes > i64::MAX as usize
             || setup.endpoints.is_empty()
-            || setup.endpoints.len() > 2
+            || setup.endpoints.len() > crate::diff_drive::MAX_OWNERS
         {
             return Err("invalid drive set or closed world session".into());
         }

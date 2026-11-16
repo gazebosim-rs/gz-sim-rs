@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Additional native-off execution proof; never replaces the full coverage profiles.
 
-Thirty-three copied example SDFs run once each through the retained actual CLI. These
+Thirty-seven copied example SDFs run once each through the retained actual CLI. These
 finite load/step controls are separate from Rust test counts and canonical wire
 or statistical/native-model evidence; clean installed runs remain separate.
 """
@@ -60,6 +60,10 @@ NOISY_EXAMPLES = (
     "examples/m57_multiple_joint_state_publishers.sdf",
     "examples/m58_multiple_joint_controllers.sdf",
     "examples/m59_multiple_diff_drives.sdf",
+    "examples/m61_eight_diff_drives.sdf",
+    "examples/m62_eight_joint_controllers.sdf",
+    "examples/m63_two_rgb_cameras.sdf",
+    "examples/m64_rgb_cylinder.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -149,6 +153,28 @@ NOISY_LINKS = {
         "default::robot_right::right_wheel": None,
         "default::ground::body": (0, 0, -0.1),
     },
+    "examples/m61_eight_diff_drives.sdf": {
+        **{f"default::robot_{index}::{link}": None
+           for index in range(8) for link in ("base_link", "left_wheel", "right_wheel")},
+        "default::ground::body": (0, 0, -0.1),
+    },
+    "examples/m62_eight_joint_controllers.sdf": {
+        **{f"default::arm_{index}::{link}": None
+           for index in range(8) for link in ("base", "tip")},
+        "default::ground::body": (0, 0, -0.1),
+    },
+    "examples/m63_two_rgb_cameras.sdf": {
+        "default::rig_a::body": (0, -2, 1),
+        "default::rig_b::body": (0, 2, 1),
+        "default::target_a::body": (4, -2, 1),
+        "default::target_b::body": (4, 2, 1),
+    },
+    "examples/m64_rgb_cylinder.sdf": {
+        "default::rig::body": (0, 0, 0),
+        "default::cylinder::body": (4, 0, 0),
+        "default::backdrop::body": (7, 0, 0),
+        "default::occluder::body": (2, 0, 0),
+    },
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
 TARGETS = {
@@ -185,6 +211,7 @@ RGB_TESTS = [
     "configured_camera_without_zenoh_config_uses_the_default_network_lazily",
     "actual_image_interest_bounds_silent_worker_backpressure_and_propagates_spawn_failure",
     "admitted_depth_camera_without_image_interest_keeps_its_worker_lazy",
+    "cli_two_camera_path_preserves_single_and_headless_refusal",
 ]
 # The retained directory and feature names stay RGB for compatibility. This
 # CPU-only proof also covers loaded depth admission without demand or GPU images.
@@ -326,7 +353,7 @@ def noisy_output_matches(source, stdout):
         except ValueError:
             return False
         if position is None:
-            # Only explicitly listed M33 dynamic and M57/M58/M59 articulated links use this policy.
+            # Only explicitly listed M33 dynamic and M57/M58/M59/M61/M62 articulated links use this policy.
             # This is finite stepping, not a trajectory expectation or tolerance.
             if not all(math.isfinite(value) for value in actual):
                 return False

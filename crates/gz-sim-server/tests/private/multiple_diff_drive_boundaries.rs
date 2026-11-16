@@ -616,3 +616,75 @@ fn tick_detects_live_original_corruption_without_cached_drive_streams_before_any
     assert!(!server.reset_failed && server.diff_drive.is_none());
     assert_eq!(server.simulation.elapsed(), time);
 }
+
+#[test]
+fn all_sixteen_fleet_channels_keep_peer_reservations_and_last_owner_error_priority() {
+    let network = Network::new();
+    let fleet = super::multiple_diff_drives::fleet_xml(8);
+    let server = network.server(load(&fleet), network.options()).unwrap();
+    let before = snapshot(&server);
+    let metadata = preflight(&server.simulation, &server.world_io, &server.network_config).unwrap();
+    assert_eq!(metadata.len(), 8);
+    let own = boundary_keys(&server.simulation, &server.network_config, None).unwrap();
+    assert_eq!(own.len(), 16);
+    let reserved = keys(&server.simulation, &server);
+    assert!(own.is_disjoint(&reserved));
+    for topic in [
+        "/clock",
+        "/world/default/clock",
+        "/world/default/control",
+        "/world/default/pose/info",
+        "/world/default/remove",
+        "/world/default/remove/blocking",
+    ] {
+        assert!(reserved.contains(&server.network_config.topic_key(topic).unwrap()));
+        for cfg in metadata.values() {
+            for channel in [&cfg.topic, &cfg.odom_topic] {
+                let mut remapped = server.network_config.clone();
+                remapped.add_topic_remap(channel, topic).unwrap();
+                assert!(matches!(
+                    preflight(&server.simulation, &server.world_io, &remapped),
+                    Err(Error::DiffDriveIdentity)
+                ));
+                assert_eq!(snapshot(&server), before);
+            }
+        }
+    }
+    // Keep real typed fixtures while replacing only the original two drive models
+    // and ground/world prefix with the genuine eight-owner version.
+    let typed = typed_xml();
+    let old_prefix = &DRIVES[..DRIVES.find("</world>").unwrap()];
+    let fleet_prefix = &fleet[..fleet.find("</world>").unwrap()];
+    let typed_fleet = fleet_prefix.to_owned() + typed.strip_prefix(old_prefix).unwrap();
+    for (family, peer) in PEERS.iter().copied().enumerate() {
+        let mut options = network.options();
+        options
+            .add_topic_remap("/m61/robot_7/cmd_vel", "/clock")
+            .unwrap();
+        options.add_topic_remap(peer, "/clock").unwrap();
+        let error = match network.server(load(&typed_fleet), options) {
+            Err(error) => error,
+            Ok(_) => panic!("last-owner clock collision admitted"),
+        };
+        assert!(matches!(error, Error::DiffDriveIdentity));
+        let mut server = network
+            .server(load(&typed_fleet), network.options())
+            .unwrap();
+        server
+            .network_config
+            .add_topic_remap("/m61/robot_7/cmd_vel", "/clock")
+            .unwrap();
+        server
+            .network_config
+            .add_topic_remap(peer, "/clock")
+            .unwrap();
+        let before = snapshot(&server);
+        assert!(matches!(
+            preflight(&server.simulation, &server.world_io, &server.network_config),
+            Err(Error::DiffDriveIdentity)
+        ));
+        assert_eq!(snapshot(&server), before);
+        typed_error(server.reset_scene().unwrap_err(), family);
+        assert_eq!(snapshot(&server), before);
+    }
+}

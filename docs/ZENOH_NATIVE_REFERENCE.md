@@ -19,6 +19,14 @@ kernel, including its unstable-API and shared-memory build features; the
 functional probe disables shared memory. Those C++ package features do not
 enable unstable features or unsafe application code in Rust.
 
+CI retrieves the same locked archive from the project's `native-build-inputs-v1`
+non-Latest build-input prerelease. This preserves the exact bytes after the ROS
+mirror returned 404 and the canonical HTTPS endpoint failed hostname validation.
+The canonical publisher URL remains in the unchanged lock and provenance. The
+existing SHA-256 and Debian control-field checks are unchanged, and every hosted
+run still builds and validates its own fresh SDK. An archived input is not a
+cached SDK, feature acceptance or permission to bypass signatures or TLS.
+
 The script extracts that verified archive privately and uses its relocatable
 CMake targets. It does not install packages, modify vendor code, require ROS to
 be installed, or use machine-specific expected ELF hashes. It requires the

@@ -756,3 +756,542 @@ fn removing_one_loaded_chain_retires_only_its_typed_inputs_and_reset_restores_bo
     assert_eq!(server.counters().joint_controller_commands_applied, 2);
     finish(peer);
 }
+
+// M62 changes loaded multiplicity, not the admitted M9 graph or motor equations.
+const M9_XML: &str = include_str!("../../../examples/m9_joint_controllers.sdf");
+fn controller_fleet_xml(count: usize, one_controller: u16) -> String {
+    assert!(count <= 9 && (one_controller >> count) == 0);
+    let start = M9_XML.find("<model name=\"arm\"").unwrap();
+    let end = start + M9_XML[start..].find("</model>").unwrap() + "</model>".len();
+    let original = &M9_XML[start..end];
+    let world = M9_XML[..start].to_owned() + &M9_XML[end..];
+    let mut models = Vec::new();
+    for owner in 0..count {
+        let x = if owner.is_multiple_of(2) { -1.5 } else { 1.5 };
+        let y = -4.5 + 3.0 * (owner / 2) as f64;
+        let mut model = original
+            .replace("name=\"arm\"", &format!("name=\"arm_{owner}\""))
+            .replace(
+                "<pose>0 0 1 0 0 0</pose>",
+                &format!("<pose>{x} {y} 1 0 0 0</pose>"),
+            );
+        if one_controller & (1 << owner) != 0 {
+            let plugin = model
+                .find("    <plugin filename=\"gz-sim-joint-controller-system\"")
+                .unwrap();
+            let end = plugin + model[plugin..].find("</plugin>").unwrap() + "</plugin>".len();
+            model.replace_range(plugin..end, "");
+            // The unconfigured joint keeps the old infinite-bound domain.
+            let joint = model.find("<joint name=\"tip_hinge\"").unwrap();
+            let end = joint + model[joint..].find("</joint>").unwrap() + "</joint>".len();
+            let unconfigured = model[joint..end].replace(
+                "<limit><effort>3</effort><velocity>4</velocity></limit>",
+                "",
+            );
+            model.replace_range(joint..end, &unconfigured);
+        }
+        models.push(model);
+    }
+    world.replace("</world>", &(models.join("\n") + "\n</world>"))
+}
+fn fleet_topic(owner: usize, velocity: bool) -> String {
+    if velocity {
+        format!("/model/arm_{owner}/joint/tip_hinge/cmd_vel")
+    } else {
+        format!("/model/arm_{owner}/joint/base_hinge/0/cmd_pos")
+    }
+}
+fn fleet_server(network: &Network, xml: &str, options: ServerOptions) -> Server {
+    let sim = load_world_with_sdf_step(
+        xml,
+        "m62-controller-fleet.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    Server::with_zenoh_config(
+        sim,
+        "default",
+        options,
+        network.clients.clone(),
+        NonZeroUsize::new(2).unwrap(),
+    )
+    .unwrap()
+}
+fn fleet_wait(mut condition: impl FnMut() -> bool) {
+    let until = Instant::now() + Duration::from_secs(5);
+    while !condition() {
+        assert!(Instant::now() < until);
+        std::thread::yield_now();
+    }
+}
+#[derive(Debug, PartialEq, Eq)]
+struct FleetPaused {
+    time: Duration,
+    epoch: u64,
+    samples: BTreeMap<String, Reading>,
+    native: BTreeMap<(u64, &'static str), Vec<u64>>,
+    poses: BTreeMap<u64, Vec<u64>>,
+}
+fn fleet_paused(server: &Server) -> FleetPaused {
+    let sim = server.simulation();
+    let backend = sim.world().resource::<gz_physics::PhysicsBackend>();
+    let mut native = BTreeMap::new();
+    let mut poses = BTreeMap::new();
+    for node in sim.world().iter_entities() {
+        let Some(id) = node.get::<EntityId>().map(EntityId::get) else {
+            continue;
+        };
+        if let Some(handle) = node.get::<JointHandle>() {
+            let state = backend.joint_state(handle.id()).unwrap();
+            native.insert(
+                (id, "joint"),
+                vec![state.position.to_bits(), state.velocity.to_bits()],
+            );
+        }
+        if let Some(handle) = node.get::<gz_sim_scene::BodyHandle>() {
+            let state = backend.state(handle.id()).unwrap();
+            native.insert(
+                (id, "body"),
+                state
+                    .position
+                    .into_iter()
+                    .chain(state.orientation)
+                    .chain(state.velocity)
+                    .chain(state.angular_velocity)
+                    .map(f64::to_bits)
+                    .collect(),
+            );
+        }
+        if let Some(pose) = node.get::<WorldPose>() {
+            poses.insert(
+                id,
+                pose.translation
+                    .into_iter()
+                    .chain(pose.rotation)
+                    .map(f64::to_bits)
+                    .collect(),
+            );
+        }
+    }
+    FleetPaused {
+        time: sim.elapsed(),
+        epoch: sim.epoch(),
+        samples: readings(server),
+        native,
+        poses,
+    }
+}
+
+#[test]
+fn genuine_loaded_controller_fleet_counts_mixed_slots_and_ninth_refusal() {
+    assert_eq!(
+        controller_fleet_xml(8, 0),
+        include_str!("../../../examples/m62_eight_joint_controllers.sdf")
+    );
+    let network = Network::new();
+    for count in [0usize, 1, 2, 3, 7, 8] {
+        let all = (1u16 << count) - 1;
+        for one in [0, all, all & 0x55] {
+            let options = network.options();
+            let publishers: Vec<_> = (0..16)
+                .map(|slot| {
+                    network
+                        .observer
+                        .declare_publisher(
+                            options
+                                .topic_key(&fleet_topic(slot / 2, slot % 2 == 1))
+                                .unwrap(),
+                        )
+                        .wait()
+                        .unwrap()
+                })
+                .collect();
+            assert!(
+                publishers.iter().all(|publisher| !publisher
+                    .matching_status()
+                    .wait()
+                    .unwrap()
+                    .matching())
+            );
+            let mut server = fleet_server(&network, &controller_fleet_xml(count, one), options);
+            let expected: Vec<_> = (0..16)
+                .map(|slot| {
+                    slot / 2 < count && (slot.is_multiple_of(2) || one & (1 << (slot / 2)) == 0)
+                })
+                .collect();
+            fleet_wait(|| {
+                publishers
+                    .iter()
+                    .zip(&expected)
+                    .all(|(publisher, expected)| {
+                        publisher.matching_status().wait().unwrap().matching() == *expected
+                    })
+            });
+            assert_eq!(
+                readings(&server).len(),
+                2 * count - one.count_ones() as usize
+            );
+            let held = fleet_paused(&server);
+            for _ in 0..3 {
+                assert!(server.update().unwrap().dt.is_zero());
+            }
+            assert_eq!(fleet_paused(&server), held);
+            assert_eq!(server.counters().joint_controller_messages_received, 0);
+            assert_eq!(server.counters().joint_controller_commands_applied, 0);
+            assert_eq!(
+                (
+                    server.counters().odometries_queued,
+                    server.counters().imus_queued,
+                    server.counters().lidars_queued
+                ),
+                (0, 0, 0)
+            );
+            drop(server);
+            fleet_wait(|| {
+                publishers
+                    .iter()
+                    .all(|publisher| !publisher.matching_status().wait().unwrap().matching())
+            });
+        }
+    }
+    // Nine inputs are below sixteen: this independently exercises owner admission.
+    assert!(matches!(
+        load_world_with_sdf_step(
+            &controller_fleet_xml(9, (1 << 9) - 1),
+            "m62-ninth-one-controller.sdf",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::Rapier
+        ),
+        Err(gz_sim_scene::LoadError::Unsupported {
+            feature: "multiple joint-controller chains",
+            ..
+        })
+    ));
+    network.observer.close().wait().unwrap();
+}
+
+fn fleet_send(peer: &mut Peer, slot: usize, value: f64) {
+    assert!(slot < 16 && value.is_finite());
+    let word = format!("{:016x}", value.to_bits());
+    peer.command(&format!("send {slot} {word}"));
+    let line = peer.line();
+    let fields: Vec<_> = line.split_whitespace().collect();
+    assert_eq!(fields.len(), 4, "{line}");
+    assert_eq!(fields[..3], ["SENT", &slot.to_string(), &word]);
+    let wire = if fields[3] == "-" {
+        Vec::new()
+    } else {
+        decode_hex(fields[3])
+    };
+    assert!(wire.len() <= 32);
+    let expected = Double {
+        data: value,
+        ..Default::default()
+    };
+    assert_eq!(wire, expected.encode_to_vec());
+    let decoded = Double::decode(wire.as_slice()).unwrap();
+    assert!(decoded.header.is_none());
+    assert_eq!(decoded.data.to_bits(), value.to_bits());
+}
+fn fleet_commands(
+    server: &mut Server,
+    peer: &mut Peer,
+    targets: &[[f64; 2]; 8],
+    active: &[bool; 8],
+) {
+    let held = fleet_paused(server);
+    let old = server.counters();
+    let count = 6 * active.iter().filter(|active| **active).count() as u64;
+    // Three records per stream exercise the unchanged two-record per-stream visit.
+    for scale in [0.5, 0.75, 1.0] {
+        for (owner, (&active, targets)) in active.iter().zip(targets).enumerate() {
+            if active {
+                for (channel, target) in targets.iter().copied().enumerate() {
+                    fleet_send(peer, 2 * owner + channel, scale * target);
+                }
+            }
+        }
+    }
+    let until = Instant::now() + Duration::from_secs(5);
+    loop {
+        assert!(Instant::now() < until, "actual fleet command application");
+        let before = server.counters().joint_controller_messages_received;
+        assert!(server.update().unwrap().dt.is_zero());
+        let after = server.counters();
+        assert!(
+            after.joint_controller_messages_received - before <= 32,
+            "sixteen streams, unchanged budget2 each"
+        );
+        assert!(
+            after.joint_controller_messages_received
+                <= old.joint_controller_messages_received + count
+        );
+        if after.joint_controller_commands_applied == old.joint_controller_commands_applied + count
+        {
+            break;
+        }
+        std::thread::yield_now();
+    }
+    let after = server.counters();
+    assert_eq!(
+        after.joint_controller_messages_received - old.joint_controller_messages_received,
+        count
+    );
+    assert_eq!(
+        after.joint_controller_commands_applied - old.joint_controller_commands_applied,
+        count
+    );
+    assert_eq!(
+        after.joint_controller_messages_rejected,
+        old.joint_controller_messages_rejected
+    );
+    assert_eq!(
+        fleet_paused(server),
+        held,
+        "command admission cannot move any chain"
+    );
+}
+fn fleet_advance(server: &mut Server, steps: u64, expected_slots: usize) {
+    let start = server.simulation().elapsed();
+    let epoch = server.simulation().epoch();
+    assert!(server.apply_local_control(WorldControl {
+        pause: false,
+        ..Default::default()
+    }));
+    for tick in 1..=steps {
+        let info = server.update().unwrap();
+        assert_eq!(info.dt, Duration::from_millis(1));
+        assert_eq!(info.sim_time, start + Duration::from_millis(tick));
+        assert_eq!(server.simulation().epoch(), epoch);
+        let rows = readings(server);
+        assert_eq!(rows.len(), expected_slots);
+        let backend = server
+            .simulation()
+            .world()
+            .resource::<gz_physics::PhysicsBackend>();
+        for row in rows.values() {
+            let entity = entity_by_id(server.simulation().world(), row.identity).unwrap();
+            let handle = server
+                .simulation()
+                .world()
+                .get::<JointHandle>(entity)
+                .unwrap();
+            let state = backend.joint_state(handle.id()).unwrap();
+            assert_eq!(
+                (row.q, row.v),
+                (state.position.to_bits(), state.velocity.to_bits())
+            );
+            assert_eq!((row.time, row.epoch), (info.sim_time, epoch));
+        }
+    }
+    assert!(server.apply_local_control(WorldControl {
+        pause: true,
+        ..Default::default()
+    }));
+    let held = fleet_paused(server);
+    for _ in 0..16 {
+        assert!(server.update().unwrap().dt.is_zero());
+    }
+    assert_eq!(fleet_paused(server), held);
+}
+fn fleet_motion(server: &Server, targets: &[[f64; 2]; 8], active: &[bool; 8]) {
+    let rows = readings(server);
+    assert_eq!(
+        rows.len(),
+        2 * active.iter().filter(|active| **active).count()
+    );
+    for (owner, (&active, targets)) in active.iter().zip(targets).enumerate() {
+        if !active {
+            continue;
+        }
+        let position = &rows[&fleet_topic(owner, false)];
+        let velocity = &rows[&fleet_topic(owner, true)];
+        assert_eq!(position.configuration.model_name, format!("arm_{owner}"));
+        assert_eq!(velocity.configuration.model_name, format!("arm_{owner}"));
+        let q = f64::from_bits(position.q);
+        let tip_q = f64::from_bits(velocity.q);
+        let tip_v = f64::from_bits(velocity.v);
+        assert!(q.is_finite() && tip_q.is_finite() && tip_v.is_finite());
+        assert!(
+            (q - targets[0]).abs() < 0.1,
+            "owner{owner}: q={q} target={} reading={position:?}",
+            targets[0]
+        );
+        assert!(
+            tip_q * targets[1] > 0.03 && tip_v * targets[1] > 0.03,
+            "owner{owner}: q={tip_q} v={tip_v} target={} reading={velocity:?}",
+            targets[1]
+        );
+        // Body orientations are independent actual poses, compared to measured joints.
+        for (reading, angle) in [(position, q), (velocity, q + tip_q)] {
+            let [x, y, z, w] = [
+                reading.child_pose[3],
+                reading.child_pose[4],
+                reading.child_pose[5],
+                reading.child_pose[6],
+            ]
+            .map(f64::from_bits);
+            let forward = [1.0 - 2.0 * (y * y + z * z), 2.0 * (x * y + z * w)];
+            assert!(
+                (forward[0] - angle.cos()).abs() < 0.02 && (forward[1] - angle.sin()).abs() < 0.02,
+                "owner{owner}: actual body orientation must follow its measured joint state"
+            );
+        }
+    }
+}
+fn fleet_ids(server: &Server) -> [u64; 8] {
+    std::array::from_fn(|owner| {
+        server
+            .simulation()
+            .world()
+            .iter_entities()
+            .find(|node| {
+                node.get::<EntityKind>() == Some(&EntityKind::Model)
+                    && node
+                        .get::<Name>()
+                        .is_some_and(|name| name.0 == format!("default::arm_{owner}"))
+            })
+            .unwrap()
+            .get::<EntityId>()
+            .unwrap()
+            .get()
+    })
+}
+fn fleet_restored(
+    server: &Server,
+    initial: &FleetPaused,
+    original: &BTreeMap<String, (u64, JointControllerConfiguration)>,
+    ids: [u64; 8],
+    epoch: u64,
+) {
+    assert!(server.simulation().elapsed().is_zero());
+    assert_eq!(server.simulation().epoch(), epoch);
+    assert_eq!(identities(server), *original);
+    assert_eq!(fleet_ids(server), ids);
+    let restored = fleet_paused(server);
+    assert_eq!(restored.native, initial.native);
+    assert_eq!(restored.poses, initial.poses);
+    for row in restored.samples.values() {
+        assert_eq!((f64::from_bits(row.q), f64::from_bits(row.v)), (0.0, 0.0));
+    }
+}
+fn fleet_zero(server: &Server) {
+    for row in readings(server).values() {
+        assert!(f64::from_bits(row.q).abs() < 1e-12 && f64::from_bits(row.v).abs() < 1e-12);
+    }
+}
+
+#[test]
+fn sixteen_canonical_doubles_drive_eight_independent_chains_and_reconstruct_after_retirement() {
+    let network = Network::new();
+    let options = network.options();
+    let mut server = fleet_server(
+        &network,
+        include_str!("../../../examples/m62_eight_joint_controllers.sdf"),
+        options.clone(),
+    );
+    let initial = fleet_paused(&server);
+    let original = identities(&server);
+    assert_eq!(original.len(), 16);
+    let ids = fleet_ids(&server);
+    assert_eq!(
+        ids.into_iter()
+            .collect::<std::collections::BTreeSet<_>>()
+            .len(),
+        8
+    );
+    let mut peer = start_peer(&network, &options, 8);
+    assert_eq!(peer.line(), "READY multiple-joint-controllers 8");
+    let targets: [[f64; 2]; 8] = std::array::from_fn(|owner| {
+        let sign = if owner.is_multiple_of(2) { 1.0 } else { -1.0 };
+        [
+            sign * (0.35 + 0.05 * owner as f64),
+            sign * (0.4 + 0.05 * owner as f64),
+        ]
+    });
+    let mut active = [true; 8];
+    fleet_commands(&mut server, &mut peer, &targets, &active);
+    fleet_advance(&mut server, 1000, 16);
+    fleet_motion(&server, &targets, &active);
+    assert_eq!(server.counters().joint_controller_commands_applied, 48);
+    reset(&mut server);
+    fleet_restored(&server, &initial, &original, ids, 1);
+    for owner in 0..8 {
+        matched(&mut peer, owner);
+    }
+    fleet_advance(&mut server, 100, 16);
+    fleet_zero(&server);
+    assert_eq!(
+        server.counters().joint_controller_commands_applied,
+        48,
+        "old targets cannot replay across reconstruction"
+    );
+    let reversed = targets.map(|pair| pair.map(|value| -value));
+    fleet_commands(&mut server, &mut peer, &reversed, &active);
+    fleet_advance(&mut server, 1000, 16);
+    fleet_motion(&server, &reversed, &active);
+    remove(&mut server, &network, &options, ids[3]);
+    server.prepare_io().unwrap();
+    assert!(server.tick().unwrap().dt.is_zero());
+    peer.command("retired 3");
+    assert_eq!(peer.line(), "RETIRED 3");
+    active[3] = false;
+    for (owner, active) in active.iter().copied().enumerate() {
+        if active {
+            matched(&mut peer, owner);
+        }
+    }
+    fleet_commands(&mut server, &mut peer, &reversed, &active);
+    fleet_advance(&mut server, 1000, 14);
+    fleet_motion(&server, &reversed, &active);
+    for (owner, &id) in ids.iter().enumerate().filter(|(owner, _)| *owner != 3) {
+        remove(&mut server, &network, &options, id);
+        server.prepare_io().unwrap();
+        assert!(server.tick().unwrap().dt.is_zero());
+        peer.command(&format!("retired {owner}"));
+        assert_eq!(peer.line(), format!("RETIRED {owner}"));
+        active[owner] = false;
+    }
+    assert_eq!(active, [false; 8]);
+    assert!(
+        ids.iter()
+            .all(|id| entity_by_id(server.simulation().world(), *id).is_none())
+    );
+    assert!(readings(&server).is_empty());
+    let applied = server.counters().joint_controller_commands_applied;
+    fleet_advance(&mut server, 40, 0);
+    assert_eq!(server.counters().joint_controller_commands_applied, applied);
+    reset(&mut server);
+    fleet_restored(&server, &initial, &original, ids, 2);
+    for owner in 0..8 {
+        matched(&mut peer, owner);
+    }
+    fleet_advance(&mut server, 100, 16);
+    fleet_zero(&server);
+    assert_eq!(server.counters().joint_controller_commands_applied, applied);
+    active = [true; 8];
+    fleet_commands(&mut server, &mut peer, &targets, &active);
+    fleet_advance(&mut server, 1000, 16);
+    fleet_motion(&server, &targets, &active);
+    assert_eq!(server.counters().joint_controller_messages_rejected, 0);
+    assert_eq!(server.counters().joint_controller_messages_received, 186);
+    assert_eq!(server.counters().joint_controller_commands_applied, 186);
+    assert_eq!(
+        (
+            server.counters().odometries_queued,
+            server.counters().imus_queued,
+            server.counters().lidars_queued
+        ),
+        (0, 0, 0)
+    );
+    drop(server);
+    for owner in 0..8 {
+        peer.command(&format!("retired {owner}"));
+        assert_eq!(peer.line(), format!("RETIRED {owner}"));
+    }
+    finish(peer);
+    network.observer.close().wait().unwrap();
+}

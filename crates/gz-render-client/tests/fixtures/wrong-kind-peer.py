@@ -11,7 +11,7 @@ def send(value):
     sys.stdout.buffer.write(struct.pack("<I", len(raw)) + raw)
     sys.stdout.buffer.flush()
 
-send({"Ready": {"version": 3}})
+send({"Ready": {"version": 4}})
 stamp = None
 depth = False
 while True:
@@ -28,7 +28,7 @@ while True:
     if request == "Shutdown":
         break
     kind, fields = next(iter(request.items()))
-    if kind in ("Snapshot", "CalibratedSnapshot", "CalibratedDepthSnapshot"):
+    if kind in ("Snapshot", "CalibratedSnapshot", "CalibratedDepthSnapshot", "CalibratedShapeSnapshot"):
         stamp = fields["stamp"]
         depth = kind == "CalibratedDepthSnapshot"
         send({"SnapshotAccepted": {"request_id": fields["request_id"]}})

@@ -1127,3 +1127,482 @@ fn noncanonical_camera_keys_fail_before_reservation_or_liveliness() {
 
 #[path = "loaded_frame.rs"]
 mod loaded_frame;
+
+#[test]
+fn cylinder_rgb_info_and_pending_snapshot_keep_lazy_worker_and_rgb_capture_kind() {
+    let sim = load_world_with_sdf_step(
+        include_str!("../../../../examples/m64_rgb_cylinder.sdf"),
+        "m64-output.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let id = sim
+        .world()
+        .iter_entities()
+        .find_map(|row| {
+            row.contains::<gz_sim_scene::CameraSensor>()
+                .then(|| row.get::<EntityId>().unwrap().get())
+        })
+        .unwrap();
+    let (session, scope, limit) = session();
+    let mut output = CameraOutput::new(
+        &sim,
+        &session,
+        &scope,
+        id,
+        CameraOutputConfig {
+            origin: [0.0; 3],
+            frame_id: "rig/body/camera".into(),
+            image_key: "@/m64@/image".into(),
+            info_key: "@/m64@/info".into(),
+            worker_path: "/bin/cat".into(),
+            max_message_bytes: limit,
+        },
+    )
+    .unwrap();
+    assert_eq!(output.request(&sim).unwrap(), Progress::NoDemand);
+    assert!(output.client.is_none());
+    let info = session.declare_subscriber("@/m64@/info").wait().unwrap();
+    assert_eq!(output.request(&sim).unwrap(), Progress::InfoPublished);
+    assert!(output.client.is_none());
+    let wire = info.recv_timeout(Duration::from_secs(5)).unwrap().unwrap();
+    let value = gz_sim_proto::msgs::CameraInfo::decode(wire.payload().to_bytes().as_ref()).unwrap();
+    assert_eq!((value.width, value.height), (64, 64));
+    assert_eq!(value.header.unwrap().data[0].value, ["rig/body/camera"]);
+    let image = session.declare_subscriber("@/m64@/image").wait().unwrap();
+    assert_eq!(output.request(&sim).unwrap(), Progress::Pending);
+    assert!(info.recv_timeout(Duration::from_secs(5)).unwrap().is_some());
+    let acquisition = output.acquisition.as_ref().unwrap();
+    assert!(!acquisition.depth);
+    assert_eq!(acquisition.stamp.epoch, 0);
+    assert!(
+        matches!(&acquisition.phase,Phase::Submit(Request::CalibratedShapeSnapshot { visuals,.. }) if visuals.len()==3)
+    );
+    // cat is deliberately not a renderer: no Ready means no request may enter
+    // the pipe or manufacture an image. The new snapshot stays pending RGB work.
+    for _ in 0..2 {
+        assert_eq!(output.pump(&sim).unwrap(), Progress::Backpressure);
+        assert!(matches!(
+            &output.acquisition.as_ref().unwrap().phase,
+            Phase::Submit(Request::CalibratedShapeSnapshot { .. })
+        ));
+    }
+    assert!(image.try_recv().unwrap().is_none());
+    assert!(info.try_recv().unwrap().is_none());
+    assert_eq!(output.sequence, 0);
+    output.retire();
+    assert!(output.client.is_none() && output.acquisition.is_none());
+}
+
+#[test]
+fn cylinder_invalid_and_depth_geometry_fail_before_publication_admission() {
+    use gz_sim_scene::{CameraSensor, VisualGeometry};
+    let mut sim = load_world_with_sdf_step(
+        include_str!("../../../../examples/m64_rgb_cylinder.sdf"),
+        "m64-invalid-output.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let camera = sim
+        .world()
+        .iter_entities()
+        .find(|row| row.contains::<CameraSensor>())
+        .unwrap()
+        .id();
+    let id = sim.world().get::<EntityId>(camera).unwrap().get();
+    let visual = sim
+        .world()
+        .iter_entities()
+        .find(|row| {
+            row.get::<Name>()
+                .is_some_and(|name| name.0 == "default::cylinder::body::red_cap")
+        })
+        .unwrap()
+        .id();
+    let (session, scope, limit) = session();
+    let config = || CameraOutputConfig {
+        origin: [0.0; 3],
+        frame_id: "frame".into(),
+        image_key: "@/m64@/image".into(),
+        info_key: "@/m64@/info".into(),
+        worker_path: "/nonexistent/worker".into(),
+        max_message_bytes: limit,
+    };
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Cylinder {
+            radius: 0.0,
+            length: 2.0,
+        });
+    assert!(matches!(
+        CameraOutput::new(&sim, &session, &scope, id, config()),
+        Err(CameraOutputError::Snapshot(SnapshotError::InvalidVisual(_)))
+    ));
+    assert!(scope.entries.lock().unwrap().is_empty());
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Cylinder {
+            radius: 1.0,
+            length: 2.0,
+        });
+    Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(camera).unwrap().0).kind =
+        "depth_camera".into();
+    assert!(matches!(
+        CameraOutput::new(&sim, &session, &scope, id, config()),
+        Err(CameraOutputError::Snapshot(
+            SnapshotError::UnsupportedGeometry(_)
+        ))
+    ));
+    assert!(scope.entries.lock().unwrap().is_empty());
+}
+
+#[test]
+fn shared_writer_scope_recovers_poison_without_releasing_peer_ownership() {
+    let sim = load_world_with_sdf_step(
+        include_str!("../../../../examples/m63_two_rgb_cameras.sdf"),
+        "shared-camera-scope.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let ids = [
+        "default::rig_a::body::camera",
+        "default::rig_b::body::camera",
+    ]
+    .map(|name| {
+        sim.world()
+            .iter_entities()
+            .find_map(|row| {
+                (row.get::<Name>()?.0 == name).then(|| row.get::<EntityId>().unwrap().get())
+            })
+            .unwrap()
+    });
+    assert_ne!(ids[0], ids[1]);
+    let systems = sim.scheduled_system_counts();
+    let (session, _, limit) = session();
+    let scope = CameraWriterScope::new(NonZeroUsize::new(2).unwrap());
+    let shared = scope.clone();
+    let tokens = session
+        .liveliness()
+        .declare_subscriber("@gz/**")
+        .wait()
+        .unwrap();
+    let infos = session
+        .declare_subscriber("@/shared@/b/info")
+        .wait()
+        .unwrap();
+    let make = |index: usize, suffix: &str| {
+        CameraOutput::new(
+            &sim,
+            &session,
+            &shared,
+            ids[index],
+            CameraOutputConfig {
+                origin: [0.0; 3],
+                frame_id: format!("owner/{suffix}"),
+                image_key: format!("@/shared@/{suffix}/image"),
+                info_key: format!("@/shared@/{suffix}/info"),
+                worker_path: "/bin/cat".into(),
+                max_message_bytes: limit,
+            },
+        )
+    };
+    let mut a = make(0, "a").unwrap();
+    // A caught fixture fault poisons only the reservation lock. The production
+    // recovery paths must conserve the already-held real owner's two keys.
+    assert!(
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _held = scope.entries.lock().unwrap();
+            panic!("intentional shared-writer reservation poison");
+        }))
+        .is_err()
+    );
+    assert!(scope.entries.is_poisoned());
+    let mut b = make(1, "b").unwrap();
+    let held = || {
+        scope
+            .entries
+            .lock()
+            .unwrap_or_else(|error| error.into_inner())
+            .clone()
+    };
+    assert_eq!(held().len(), 4);
+    assert!(matches!(
+        make(0, "a"),
+        Err(CameraOutputError::AlreadyPublishing)
+    ));
+    assert!(matches!(
+        make(0, "third"),
+        Err(CameraOutputError::WriterLimit)
+    ));
+    let mut declared = BTreeSet::new();
+    for _ in 0..4 {
+        let sample = tokens
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap();
+        assert_eq!(sample.kind(), zenoh::sample::SampleKind::Put);
+        let fields: Vec<_> = sample.key_expr().as_str().split('/').collect();
+        assert_eq!(&fields[..3], ["@gz", "%shared", &session.zid().to_string()]);
+        assert!(matches!(
+            fields[9],
+            "%a%image" | "%a%info" | "%b%image" | "%b%info"
+        ));
+        declared.insert(sample.key_expr().to_string());
+    }
+    assert_eq!(declared.len(), 4);
+    a.retire();
+    assert_eq!(held().len(), 4);
+    assert!(tokens.try_recv().unwrap().is_none());
+    assert!(matches!(
+        make(0, "a"),
+        Err(CameraOutputError::AlreadyPublishing)
+    ));
+    drop(a);
+    assert!(!session.is_closed());
+    assert_eq!(held().len(), 2);
+    for _ in 0..2 {
+        let sample = tokens
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap();
+        assert_eq!(sample.kind(), zenoh::sample::SampleKind::Delete);
+        assert!(
+            sample
+                .key_expr()
+                .as_str()
+                .split('/')
+                .nth(9)
+                .unwrap()
+                .starts_with("%a%")
+        );
+        assert!(declared.remove(sample.key_expr().as_str()));
+    }
+    assert_eq!(declared.len(), 2);
+    assert!(tokens.try_recv().unwrap().is_none());
+    assert_eq!(b.request(&sim).unwrap(), Progress::InfoPublished);
+    let sample = infos.recv_timeout(Duration::from_secs(5)).unwrap().unwrap();
+    assert_eq!(sample.key_expr().as_str(), "@/shared@/b/info");
+    assert_eq!(sample.encoding().to_string(), "zenoh/bytes");
+    assert_eq!(
+        sample.attachment().unwrap().to_bytes().as_ref(),
+        b"gz.msgs.CameraInfo"
+    );
+    let info =
+        gz_sim_proto::msgs::CameraInfo::decode(sample.payload().to_bytes().as_ref()).unwrap();
+    assert_eq!((info.width, info.height), (64, 64));
+    let header = info.header.unwrap();
+    assert_eq!(
+        header.stamp.unwrap(),
+        gz_sim_proto::msgs::Time { sec: 0, nsec: 0 }
+    );
+    assert_eq!(header.data[0].value, ["owner/b"]);
+    assert!(b.client.is_none() && b.acquisition.is_none());
+    assert!(infos.try_recv().unwrap().is_none());
+    drop(b);
+    assert!(!session.is_closed());
+    assert!(held().is_empty());
+    for _ in 0..2 {
+        let sample = tokens
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap();
+        assert_eq!(sample.kind(), zenoh::sample::SampleKind::Delete);
+        assert!(
+            sample
+                .key_expr()
+                .as_str()
+                .split('/')
+                .nth(9)
+                .unwrap()
+                .starts_with("%b%")
+        );
+        assert!(declared.remove(sample.key_expr().as_str()));
+    }
+    assert!(declared.is_empty());
+    assert_eq!((sim.elapsed(), sim.epoch()), (Duration::ZERO, 0));
+    assert_eq!(sim.scheduled_system_counts(), systems);
+}
+
+#[test]
+fn buffered_rgb_and_depth_failures_preserve_canonical_publication_state() {
+    for depth in [false, true] {
+        let (mut sim, id) = fixture();
+        if depth {
+            let entity = entity_by_id(sim.world(), id).unwrap();
+            Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(entity).unwrap().0).kind =
+                "depth_camera".into();
+        }
+        let (session, scope, limit) = session();
+        let incoming = session
+            .declare_subscriber("@/buffered@/image")
+            .allowed_origin(zenoh::sample::Locality::SessionLocal)
+            .wait()
+            .unwrap();
+        let mut output = CameraOutput::new(
+            &sim,
+            &session,
+            &scope,
+            id,
+            CameraOutputConfig {
+                origin: [1_000_000_000.0, 0.0, 0.0],
+                frame_id: "buffered/frame".into(),
+                image_key: "@/buffered@/image".into(),
+                info_key: "@/buffered@/info".into(),
+                worker_path: "/bin/cat".into(),
+                max_message_bytes: limit,
+            },
+        )
+        .unwrap();
+        assert_eq!(output.request(&sim).unwrap(), Progress::Pending);
+        let lifetime = output.client.as_ref().unwrap().diagnostic_lifetime();
+        let stamp = Stamp {
+            epoch: sim.epoch(),
+            seconds: 0,
+            nanoseconds: 0,
+        };
+        // Inject at the private completed-frame boundary, not through a fake
+        // renderer reply. These negatives test publication guards; cat never
+        // supplied Ready or a frame, and no worker-rendering claim is made.
+        let buffered = |stamp: Stamp, data: Vec<u8>| Acquisition {
+            stamp,
+            capture_id: 2,
+            depth,
+            phase: if depth {
+                Phase::PublishDepthFrame {
+                    stamp,
+                    metres_le: data,
+                }
+            } else {
+                Phase::PublishFrame { stamp, rgba: data }
+            },
+        };
+        output.acquisition = Some(buffered(stamp, vec![0]));
+        let expected_error = if depth {
+            CameraMessageError::InvalidDepthFrame
+        } else {
+            CameraMessageError::InvalidFrame
+        };
+        assert!(
+            matches!(output.pump(&sim), Err(CameraOutputError::Message(error)) if error == expected_error)
+        );
+        assert_eq!(output.sequence, 0);
+        assert!(output.acquisition.is_none() && !output.retiring);
+        assert!(incoming.try_recv().unwrap().is_none());
+        let data = if depth {
+            let mut bytes = 1.25_f32.to_le_bytes().repeat(64 * 64);
+            bytes[..4].copy_from_slice(&f32::INFINITY.to_le_bytes());
+            bytes
+        } else {
+            [12_u8, 34, 56, 255].repeat(64 * 64)
+        };
+        if depth {
+            let mut invalid = data.clone();
+            invalid[4..8].copy_from_slice(&f32::NAN.to_le_bytes());
+            output.acquisition = Some(buffered(stamp, invalid));
+            assert!(matches!(
+                output.pump(&sim),
+                Err(CameraOutputError::Message(
+                    CameraMessageError::InvalidDepthFrame
+                ))
+            ));
+            assert_eq!(output.sequence, 0);
+            assert!(output.acquisition.is_none());
+            assert!(incoming.try_recv().unwrap().is_none());
+        }
+        let out_of_range = Stamp {
+            seconds: i64::MAX as u64 + 1,
+            ..stamp
+        };
+        output.acquisition = Some(buffered(out_of_range, data.clone()));
+        assert!(matches!(
+            output.pump(&sim),
+            Err(CameraOutputError::Message(CameraMessageError::TimeRange))
+        ));
+        assert_eq!(output.sequence, 0);
+        assert!(output.acquisition.is_none());
+        assert!(incoming.try_recv().unwrap().is_none());
+        let message = |sequence| {
+            if depth {
+                depth_image_packet(&data, Duration::ZERO, "buffered/frame", sequence).unwrap()
+            } else {
+                image_packet(&data, Duration::ZERO, "buffered/frame", sequence).unwrap()
+            }
+        };
+        let size = message(0).encoded_len();
+        output.max_message_bytes = NonZeroUsize::new(size - 1).unwrap();
+        output.acquisition = Some(buffered(stamp, data.clone()));
+        assert!(
+            matches!(output.pump(&sim), Err(CameraOutputError::PublicationTooLarge { size: actual, limit }) if actual == size && limit + 1 == size)
+        );
+        // The existing sequence advances before publish; a failed publication
+        // consumes that sequence and cannot silently retry the buffered frame.
+        assert_eq!(output.sequence, 1);
+        assert!(output.acquisition.is_none() && !output.retiring);
+        assert!(incoming.try_recv().unwrap().is_none());
+        for sequence in [1, u64::MAX] {
+            output.sequence = sequence;
+            let expected = message(sequence).encode_to_vec();
+            output.max_message_bytes = NonZeroUsize::new(expected.len()).unwrap();
+            output.acquisition = Some(buffered(stamp, data.clone()));
+            assert_eq!(output.pump(&sim).unwrap(), Progress::ImagePublished);
+            assert_eq!(output.sequence, sequence.wrapping_add(1));
+            assert!(output.acquisition.is_none());
+            let sample = incoming
+                .recv_timeout(Duration::from_secs(5))
+                .unwrap()
+                .unwrap();
+            assert_eq!(sample.key_expr().as_str(), "@/buffered@/image");
+            assert_eq!(sample.encoding().to_string(), "zenoh/bytes");
+            assert_eq!(
+                sample.attachment().unwrap().to_bytes().as_ref(),
+                b"gz.msgs.Image"
+            );
+            assert_eq!(sample.payload().to_bytes().as_ref(), expected);
+            let image =
+                gz_sim_proto::msgs::Image::decode(sample.payload().to_bytes().as_ref()).unwrap();
+            assert_eq!((image.width, image.height), (64, 64));
+            if depth {
+                assert_eq!(image.step, 256);
+                assert_eq!(
+                    image.pixel_format_type,
+                    gz_sim_proto::msgs::PixelFormatType::RFloat32 as i32
+                );
+                assert_eq!(image.data, data);
+            } else {
+                assert_eq!(image.step, 192);
+                assert_eq!(
+                    image.pixel_format_type,
+                    gz_sim_proto::msgs::PixelFormatType::RgbInt8 as i32
+                );
+                assert_eq!(image.data, [12_u8, 34, 56].repeat(64 * 64));
+            }
+            let header = image.header.unwrap();
+            assert_eq!(
+                header.stamp.unwrap(),
+                gz_sim_proto::msgs::Time { sec: 0, nsec: 0 }
+            );
+            assert_eq!(header.data.len(), 2);
+            assert_eq!(
+                (header.data[0].key.as_str(), header.data[0].value.as_slice()),
+                ("frame_id", ["buffered/frame".to_owned()].as_slice())
+            );
+            assert_eq!(
+                (header.data[1].key.as_str(), header.data[1].value.as_slice()),
+                ("seq", [sequence.to_string()].as_slice())
+            );
+            assert_eq!(output.pump(&sim).unwrap(), Progress::NoDemand);
+            assert!(incoming.try_recv().unwrap().is_none());
+        }
+        output.retire();
+        assert!(lifetime.is_retired());
+        assert!(output.client.is_none() && output.acquisition.is_none());
+        assert!(!session.is_closed());
+        drop(output);
+        assert!(scope.entries.lock().unwrap().is_empty());
+        assert_eq!((sim.elapsed(), sim.epoch()), (Duration::ZERO, 0));
+    }
+}

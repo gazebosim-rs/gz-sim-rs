@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! On-demand extraction of a bounded box scene for the optional renderer.
+//! On-demand bounded box snapshots and calibrated RGB box/cylinder snapshots.
 //!
 //! This is a derived snapshot, not an SDF material or sensor implementation.
 //! Supported materials supply an opaque diffuse RGB color; other shading and
@@ -9,7 +9,7 @@
 use glam::{DQuat, DVec3};
 use gz_render_frame::camera::Calibration;
 use gz_render_frame::{WorldPose as RenderWorldPose, to_render_pose};
-use gz_render_protocol::{Request, Stamp, Visual};
+use gz_render_protocol::{Geometry, Request, ShapeVisual, Stamp, Visual};
 use gz_sim_core::{EntityId, Simulation, entity_by_id};
 use gz_sim_scene::{
     CameraSensor, EntityKind, VisualGeometry, VisualMaterial, VisualProperties, WorldLight,
@@ -52,8 +52,13 @@ pub fn extract_camera(
     request_id: u64,
     origin: [f64; 3],
 ) -> Result<Request, SnapshotError> {
-    let request = extract(sim, request_id, origin)?;
     let world = sim.world();
+    // Depth and generic snapshots keep their original box-only domain. A missing
+    // camera still follows the existing visual-validation error ordering.
+    let rgb = entity_by_id(world, sensor_id)
+        .and_then(|entity| world.get::<CameraSensor>(entity))
+        .is_some_and(|sensor| sensor.0.effective_type() == Some(sdformat::SensorType::Camera));
+    let (stamp, visuals) = extract_visuals(sim, request_id, origin, rgb)?;
     let entity = entity_by_id(world, sensor_id).ok_or(SnapshotError::MissingCamera(sensor_id))?;
     let entity = world.entity(entity);
     if entity.get::<EntityKind>() != Some(&EntityKind::Sensor) {
@@ -90,15 +95,6 @@ pub fn extract_camera(
         DVec3::from_array(origin),
     )
     .map_err(|_| invalid())?;
-    let Request::Snapshot {
-        request_id,
-        stamp,
-        origin,
-        visuals,
-    } = request
-    else {
-        unreachable!()
-    };
     let camera = Box::new(gz_render_protocol::Camera {
         width: config.width,
         height: config.height,
@@ -114,25 +110,36 @@ pub fn extract_camera(
         translation: pose.translation,
         rotation: pose.rotation,
     });
-    Ok(
-        if sensor.0.effective_type() == Some(sdformat::SensorType::DepthCamera) {
-            Request::CalibratedDepthSnapshot {
-                request_id,
-                stamp,
-                origin,
-                visuals,
-                camera,
-            }
-        } else {
-            Request::CalibratedSnapshot {
-                request_id,
-                stamp,
-                origin,
-                visuals,
-                camera,
-            }
-        },
-    )
+    let request = if sensor.0.effective_type() == Some(sdformat::SensorType::DepthCamera) {
+        Request::CalibratedDepthSnapshot {
+            request_id,
+            stamp,
+            origin,
+            visuals: box_visuals(visuals),
+            camera,
+        }
+    } else if visuals
+        .iter()
+        .any(|visual| matches!(&visual.geometry, Geometry::Cylinder { .. }))
+    {
+        Request::CalibratedShapeSnapshot {
+            request_id,
+            stamp,
+            origin,
+            visuals,
+            camera,
+        }
+    } else {
+        Request::CalibratedSnapshot {
+            request_id,
+            stamp,
+            origin,
+            visuals: box_visuals(visuals),
+            camera,
+        }
+    };
+    debug_assert!(request.wire_valid());
+    Ok(request)
 }
 
 /// Build one immutable request from committed simulation state. This function
@@ -142,6 +149,41 @@ pub fn extract(
     request_id: u64,
     origin: [f64; 3],
 ) -> Result<Request, SnapshotError> {
+    let (stamp, visuals) = extract_visuals(sim, request_id, origin, false)?;
+    let request = Request::Snapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals: box_visuals(visuals),
+    };
+    debug_assert!(request.wire_valid());
+    Ok(request)
+}
+
+fn box_visuals(visuals: Vec<ShapeVisual>) -> Vec<Visual> {
+    visuals
+        .into_iter()
+        .map(|visual| {
+            let Geometry::Box { size } = visual.geometry else {
+                unreachable!("box-only collector")
+            };
+            Visual {
+                id: visual.id,
+                translation: visual.translation,
+                rotation: visual.rotation,
+                size,
+                color: visual.color,
+            }
+        })
+        .collect()
+}
+
+fn extract_visuals(
+    sim: &Simulation,
+    request_id: u64,
+    origin: [f64; 3],
+    cylinders: bool,
+) -> Result<(Stamp, Vec<ShapeVisual>), SnapshotError> {
     if sim.is_faulted() {
         return Err(SnapshotError::Faulted);
     }
@@ -179,8 +221,24 @@ pub fn extract(
         let material = entity
             .get::<VisualMaterial>()
             .ok_or(SnapshotError::MissingVisualData(id))?;
-        let sdformat::Geometry::Box { size } = geometry.0.as_ref() else {
-            return Err(SnapshotError::UnsupportedGeometry(id));
+        let (geometry, dimensions) = match geometry.0.as_ref() {
+            sdformat::Geometry::Box { size } => (Geometry::Box { size: *size }, *size),
+            sdformat::Geometry::Cylinder { radius, length } if cylinders => {
+                let diameter = 2.0 * radius;
+                if [*radius, *length, diameter].iter().any(|value| {
+                    !value.is_finite() || !(*value as f32).is_finite() || *value as f32 <= 0.0
+                }) {
+                    return Err(SnapshotError::InvalidVisual(id));
+                }
+                (
+                    Geometry::Cylinder {
+                        radius: *radius,
+                        length: *length,
+                    },
+                    [diameter, *length, diameter],
+                )
+            }
+            _ => return Err(SnapshotError::UnsupportedGeometry(id)),
         };
         let material = &material.0;
         let black = [0.0, 0.0, 0.0, 1.0];
@@ -205,7 +263,7 @@ pub fn extract(
         {
             return Err(SnapshotError::UnsupportedMaterial(id));
         }
-        if size
+        if dimensions
             .iter()
             .any(|value| !value.is_finite() || !(*value as f32).is_finite() || *value as f32 <= 0.0)
             || to_render_pose(
@@ -222,11 +280,11 @@ pub fn extract(
         if visuals.len() == MAX_VISUALS {
             return Err(SnapshotError::TooManyVisuals);
         }
-        visuals.push(Visual {
+        visuals.push(ShapeVisual {
             id,
             translation: pose.translation,
             rotation: pose.rotation,
-            size: *size,
+            geometry,
             color: [
                 material.diffuse[0],
                 material.diffuse[1],
@@ -236,16 +294,12 @@ pub fn extract(
     }
     visuals.sort_unstable_by_key(|visual| visual.id);
     let elapsed = sim.elapsed();
-    let request = Request::Snapshot {
-        request_id,
-        stamp: Stamp {
+    Ok((
+        Stamp {
             epoch: sim.epoch(),
             seconds: elapsed.as_secs(),
             nanoseconds: elapsed.subsec_nanos(),
         },
-        origin,
         visuals,
-    };
-    debug_assert!(request.wire_valid());
-    Ok(request)
+    ))
 }

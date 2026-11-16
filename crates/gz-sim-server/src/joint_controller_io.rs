@@ -102,7 +102,7 @@ impl Declarations {
             || setup.max_bytes == 0
             || setup.max_bytes > i64::MAX as usize
             || setup.endpoints.is_empty()
-            || setup.endpoints.len() > 4
+            || setup.endpoints.len() > crate::joint_controllers::MAX_INPUTS
         {
             return Err("invalid joint controller setup or closed world session".into());
         }
@@ -113,6 +113,22 @@ impl Declarations {
             .any(|endpoint| !keys.insert(endpoint.key.as_str()))
         {
             return Err("duplicate joint controller endpoint".into());
+        }
+        // Validate the complete set before acquiring any subscription or lease.
+        // Duplicate detection above keeps its existing error precedence.
+        for endpoint in &setup.endpoints {
+            let key = zenoh::key_expr::OwnedKeyExpr::try_from(endpoint.key.as_str())?;
+            let token = crate::world_io::presence(
+                &endpoint.key,
+                process,
+                node,
+                "MS",
+                &Double::full_name(),
+            )?;
+            let token = zenoh::key_expr::OwnedKeyExpr::try_from(token)?;
+            if key.is_wild() || token.is_wild() {
+                return Err("joint controller declarations require concrete keys".into());
+            }
         }
         let mut result = Self {
             endpoints: Vec::new(),

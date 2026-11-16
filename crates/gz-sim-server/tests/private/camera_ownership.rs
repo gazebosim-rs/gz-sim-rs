@@ -173,3 +173,169 @@ fn preparation_observation_tracks_only_unprepared_reset_not_terminal_admission()
     assert!(!server.io_preparation_required());
     assert!(matches!(server.prepare_io(), Err(Error::WorldClosed)));
 }
+
+fn rgb_pair_simulation(count: usize, configured: bool) -> Simulation {
+    let source = include_str!("../../../gz-camera-output/tests/fixtures/m5-rgb.sdf");
+    let begin = source.find("<model name=\"rig\">").unwrap();
+    let end = begin + source[begin..].find("</model>").unwrap() + "</model>".len();
+    let mut rigs = String::new();
+    for index in 0..count {
+        rigs.push_str(
+            &source[begin..end]
+                .replace("name=\"rig\"", &format!("name=\"rig_{index}\""))
+                .replace("/m5/rgb/", &format!("/pair/{index}/"))
+                .replace("rig/body/camera", &format!("rig_{index}/body/camera")),
+        );
+    }
+    let mut source = source[..begin].to_owned() + &rigs + &source[end..];
+    if !configured {
+        source = source.replace(
+            "<plugin name=\"gz::sim::systems::Sensors\" filename=\"gz-sim-sensors-system\"/>",
+            "",
+        );
+    }
+    gz_sim_scene::load_world_with_sdf_step(
+        &source,
+        "external-rgb-pair",
+        "default",
+        &sdformat::NoResources,
+        gz_sim_scene::PhysicsEngine::Tpe,
+    )
+    .unwrap()
+}
+
+#[test]
+fn external_camera_pair_matches_the_complete_rgb_set_before_network() {
+    for reversed in [false, true] {
+        let sim = rgb_pair_simulation(2, true);
+        let mut ids: Vec<_> = sim
+            .world()
+            .iter_entities()
+            .filter(|node| node.contains::<gz_sim_scene::CameraSensor>())
+            .map(|node| node.get::<EntityId>().unwrap().get())
+            .collect();
+        ids.sort_unstable();
+        if reversed {
+            ids.reverse();
+        }
+        let mut server = Server::with_external_camera_outputs(
+            sim,
+            "default",
+            options(),
+            config("tcp/127.0.0.1:0"),
+            NonZeroUsize::new(1).unwrap(),
+            [ids[0], ids[1]],
+        )
+        .unwrap();
+        assert!(!server.is_shutdown());
+        assert_eq!(server.simulation().elapsed(), Duration::ZERO);
+        server.shutdown();
+    }
+    // An occupied listener distinguishes pure admission errors from network setup.
+    let occupied = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = format!("tcp/{}", occupied.local_addr().unwrap());
+    for fault in [
+        "no-intent",
+        "empty",
+        "one",
+        "third",
+        "duplicate-claim",
+        "zero",
+        "foreign",
+        "wrong-kind",
+        "missing-identity",
+        "bad-width",
+        "depth",
+    ] {
+        let count = match fault {
+            "empty" => 0,
+            "one" => 1,
+            "third" => 3,
+            _ => 2,
+        };
+        let mut sim = rgb_pair_simulation(count, fault != "no-intent");
+        let cameras: Vec<_> = sim
+            .world()
+            .iter_entities()
+            .filter(|node| node.contains::<gz_sim_scene::CameraSensor>())
+            .map(|node| (node.id(), node.get::<EntityId>().unwrap().get()))
+            .collect();
+        let mut ids = [
+            cameras.first().map_or(1, |row| row.1),
+            cameras.get(1).map_or(2, |row| row.1),
+        ];
+        match fault {
+            "duplicate-claim" => ids[1] = ids[0],
+            "zero" => ids[0] = 0,
+            "foreign" => ids[1] = u64::MAX,
+            "wrong-kind" => {
+                sim.world_mut()
+                    .entity_mut(cameras[1].0)
+                    .insert(gz_sim_scene::EntityKind::Link);
+            }
+            "missing-identity" => {
+                sim.world_mut()
+                    .entity_mut(cameras[1].0)
+                    .remove::<EntityId>();
+            }
+            "bad-width" | "depth" => {
+                let mut sensor = sim
+                    .world()
+                    .get::<gz_sim_scene::CameraSensor>(cameras[1].0)
+                    .unwrap()
+                    .0
+                    .as_ref()
+                    .clone();
+                if fault == "depth" {
+                    sensor.kind = "depth_camera".into();
+                } else if let sdformat::SensorConfig::Camera(camera) = &mut sensor.config {
+                    camera.image_width = 32;
+                } else {
+                    panic!("loaded RGB configuration");
+                }
+                sim.world_mut()
+                    .entity_mut(cameras[1].0)
+                    .insert(gz_sim_scene::CameraSensor(std::sync::Arc::new(sensor)));
+            }
+            _ => {}
+        }
+        let result = Server::with_external_camera_outputs(
+            sim,
+            "default",
+            options(),
+            config(&address),
+            NonZeroUsize::new(1).unwrap(),
+            ids,
+        );
+        assert!(
+            matches!(result, Err(Error::CameraIdentity)),
+            "fault={fault}"
+        );
+    }
+    let sim = rgb_pair_simulation(2, true);
+    let id = camera_id(&sim);
+    assert!(
+        matches!(
+            Server::with_external_camera_output(
+                sim,
+                "default",
+                options(),
+                config(&address),
+                NonZeroUsize::new(1).unwrap(),
+                id,
+            ),
+            Err(Error::CameraIdentity)
+        ),
+        "the legacy scalar API still refuses two cameras"
+    );
+    assert!(matches!(
+        Server::with_zenoh_config(
+            rgb_pair_simulation(2, true),
+            "default",
+            options(),
+            config(&address),
+            NonZeroUsize::new(1).unwrap(),
+        ),
+        Err(Error::CameraOutputRequired)
+    ));
+}

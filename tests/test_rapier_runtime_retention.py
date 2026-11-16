@@ -651,7 +651,8 @@ class AuxiliaryRetention(unittest.TestCase):
                        "examples/m56_multiple_odometry_publishers.sdf",
                        "examples/m57_multiple_joint_state_publishers.sdf",
                        "examples/m58_multiple_joint_controllers.sdf",
-                       "examples/m59_multiple_diff_drives.sdf"):
+                       "examples/m59_multiple_diff_drives.sdf", "examples/m61_eight_diff_drives.sdf",
+                       "examples/m62_eight_joint_controllers.sdf", "examples/m63_two_rgb_cameras.sdf"):
             index = QUALIFIER.NOISY_EXAMPLES.index(source)
             valid = json.loads(baseline)["runs"][index]["stdout"]
             for field, altered in (
@@ -665,6 +666,12 @@ class AuxiliaryRetention(unittest.TestCase):
                  if source == "examples/m58_multiple_joint_controllers.sdf" else
                  valid.replace("default::robot_left::base_link", "default::wrong::base_link")
                  if source == "examples/m59_multiple_diff_drives.sdf" else
+                 valid.replace("default::robot_7::right_wheel", "default::wrong::right_wheel")
+                 if source == "examples/m61_eight_diff_drives.sdf" else
+                 valid.replace("default::arm_7::tip", "default::wrong::tip")
+                 if source == "examples/m62_eight_joint_controllers.sdf" else
+                 valid.replace("default::target_b::body", "default::wrong::body")
+                 if source == "examples/m63_two_rgb_cameras.sdf" else
                  valid.replace(" 0 0 ", " 0.1 0 ").replace(" 2 -1 3", " 2.1 -1 3")
                  .replace("default::left_scanner::body 0 2 0", "default::left_scanner::body 0.1 2 0")
                  .replace("default::peer::base 1 8 3", "default::peer::base 1.1 8 3")),
@@ -689,3 +696,169 @@ class AuxiliaryRetention(unittest.TestCase):
         self.report["noisy_examples"] = json.loads(baseline)
         self.write_json("noisy-examples.json", self.report["noisy_examples"])
         self.finish_manifest()
+
+    def test_m62_rehashed_retained_output_keeps_all_sixteen_owner_links_and_static_ground(self):
+        baseline = json.dumps(self.report["noisy_examples"])
+        source = "examples/m62_eight_joint_controllers.sdf"
+        index = QUALIFIER.NOISY_EXAMPLES.index(source)
+        valid = json.loads(baseline)["runs"][index]["stdout"]
+        lines = valid.splitlines()
+        headline, rows = lines[0] + "\n", lines[1:]
+        changed = [headline + "\n".join(rows[:-1]) + "\n",
+                   headline + "\n".join(row for row in rows if not row.startswith("default::arm_7::tip ")) + "\n",
+                   headline + "\n".join(reversed(rows)) + "\n",
+                   valid.replace("default::arm_7::tip", "default::arm_6::tip"),
+                   valid.replace("default::arm_7::tip", "default::extra::tip"),
+                   valid.replace("ground::body 0 0 -0.1", "ground::body 0 0 -0.100000000001"),
+                   valid.replace("iterations=2", "iterations=1"),
+                   valid + "default::unlisted::body 0 0 0\n"]
+        late = next(i for i, row in enumerate(rows) if row.startswith("default::arm_7::tip "))
+        for coordinate in range(1, 4):
+            for value in ["nan", "inf", "-inf", "1e999", "bad"]:
+                altered = rows.copy()
+                fields = altered[late].split()
+                fields[coordinate] = value
+                altered[late] = " ".join(fields)
+                changed.append(headline + "\n".join(altered) + "\n")
+        for wrong in changed:
+            with self.subTest(stdout=wrong):
+                record = json.loads(baseline)
+                record["runs"][index]["stdout"] = wrong
+                self.report["noisy_examples"] = record
+                self.write_json("noisy-examples.json", record)
+                self.finish_manifest()
+                with self.assertRaisesRegex(ValueError, "noisy-example execution"):
+                    QUALIFIER.validate_evidence(self.root, self.directory)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()
+
+
+    def test_m64_rehashed_success_requires_its_own_complete_copied_execution(self):
+        source = "examples/m64_rgb_cylinder.sdf"
+        baseline = json.dumps(self.report["noisy_examples"])
+        index = QUALIFIER.NOISY_EXAMPLES.index(source)
+        valid = json.loads(baseline)["runs"][index]
+        for field, altered in (
+            ("actual_exit_code", 1),
+            ("stderr", "cylinder fixture failed\n"),
+            ("argv", json.loads(baseline)["runs"][0]["argv"]),
+            ("source", QUALIFIER.NOISY_EXAMPLES[0]),
+            ("retained_fixture", "examples/m59_multiple_diff_drives.sdf"),
+            ("stdout", QUALIFIER.NOISY_OUTPUT),
+            ("stdout", valid["stdout"].replace("cylinder::body 4 0 0", "cylinder::body 4.000000000002 0 0")),
+            ("fixture_sha256", "0" * 64),
+            ("fixture_mode", 0o600),
+        ):
+            with self.subTest(field=field, altered=altered):
+                record = json.loads(baseline)
+                record["runs"][index][field] = altered
+                self.report["noisy_examples"] = record
+                self.write_json("noisy-examples.json", record)
+                self.finish_manifest()
+                with self.assertRaisesRegex(ValueError, "noisy-example"):
+                    QUALIFIER.validate_evidence(self.root, self.directory)
+        for fault in ("missing", "duplicate"):
+            with self.subTest(fault=fault):
+                record = json.loads(baseline)
+                if fault == "missing":
+                    record["runs"].pop(index)
+                else:
+                    record["runs"].append(record["runs"][index].copy())
+                self.report["noisy_examples"] = record
+                self.write_json("noisy-examples.json", record)
+                self.finish_manifest()
+                with self.assertRaisesRegex(ValueError, "noisy-example executions"):
+                    QUALIFIER.validate_evidence(self.root, self.directory)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()
+        QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_m64_retained_copy_identity_survives_relocation_but_not_rehashing(self):
+        source = "examples/m64_rgb_cylinder.sdf"
+        output = Path(self.temporary.name) / "m64-retained"
+        output.mkdir()
+        hashes, missing = {}, []
+        VERIFY.retain_rapier_evidence(self.root, output, hashes, missing)
+        self.assertEqual(missing, [])
+        saved = "examples/m64_rgb_cylinder.sdf"
+        relocated = output / "rapier-runtime" / saved
+        self.assertEqual(relocated.read_bytes(), (self.root / source).read_bytes())
+        self.assertEqual(hashes["rapier-runtime/" + saved], QUALIFIER.digest(relocated))
+        self.assertEqual(relocated.stat().st_mode & 0o777, (self.root / source).stat().st_mode & 0o777)
+        copied = self.directory / saved
+        original = copied.read_bytes()
+        original_mode = copied.stat().st_mode & 0o777
+        baseline = json.dumps(self.report["noisy_examples"])
+        index = QUALIFIER.NOISY_EXAMPLES.index(source)
+        for fault in ("rehashed-bytes", "rehashed-mode", "symlink", "missing"):
+            with self.subTest(fault=fault):
+                record = json.loads(baseline)
+                if fault == "rehashed-bytes":
+                    copied.write_bytes(b"different cylinder scene, not the declared source\n")
+                    record["runs"][index]["fixture_sha256"] = QUALIFIER.digest(copied)
+                elif fault == "rehashed-mode":
+                    copied.chmod(0o600)
+                    record["runs"][index]["fixture_mode"] = 0o600
+                else:
+                    copied.unlink()
+                    if fault == "symlink":
+                        copied.symlink_to(self.root / source)
+                self.report["noisy_examples"] = record
+                self.write_json("noisy-examples.json", record)
+                self.finish_manifest()
+                expected_error = ("unsafe native-off evidence path" if fault == "symlink"
+                                  else "noisy-example fixture identity")
+                with self.assertRaisesRegex(ValueError, expected_error):
+                    QUALIFIER.validate_evidence(self.root, self.directory)
+                if copied.is_symlink():
+                    copied.unlink()
+                copied.write_bytes(original)
+                copied.chmod(original_mode)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()
+        QUALIFIER.validate_evidence(self.root, self.directory)
+
+
+class CylinderFiniteOutput(unittest.TestCase):
+    def test_m64_requires_exact_sorted_four_static_poses_and_two_step_headline(self):
+        source = "examples/m64_rgb_cylinder.sdf"
+        self.assertEqual(len(QUALIFIER.NOISY_EXAMPLES), 37)
+        self.assertEqual(QUALIFIER.NOISY_EXAMPLES[32:], (
+            "examples/m59_multiple_diff_drives.sdf", "examples/m61_eight_diff_drives.sdf",
+            "examples/m62_eight_joint_controllers.sdf", "examples/m63_two_rgb_cameras.sdf", source))
+        self.assertEqual(QUALIFIER.NOISY_LINKS[source], {
+            "default::backdrop::body": (7, 0, 0),
+            "default::cylinder::body": (4, 0, 0),
+            "default::occluder::body": (2, 0, 0),
+            "default::rig::body": (0, 0, 0),
+        })
+        headline = "simulation_ns=2000000 iterations=2\n"
+        poses = ["default::backdrop::body 7 0 0", "default::cylinder::body 4 0 0",
+                 "default::occluder::body 2 0 0", "default::rig::body 0 0 0"]
+        valid = headline + "\n".join(poses) + "\n"
+        self.assertTrue(QUALIFIER.noisy_output_matches(source, valid))
+        corrupt = ["", headline, valid.rstrip("\n"), valid + "\n",
+                   valid.replace("simulation_ns=2000000", "simulation_ns=1000000"),
+                   valid.replace("iterations=2", "iterations=1"),
+                   headline + "\n".join(reversed(poses)) + "\n",
+                   headline + "\n".join(poses[:-1]) + "\n",
+                   valid + poses[0] + "\n", valid.replace(poses[1], poses[0])]
+        for index, pose in enumerate(poses):
+            fields = pose.split()
+            for axis in range(1, 4):
+                for wrong in ("NaN", "inf", "-inf", "1e309", "not-a-number",
+                              str(float(fields[axis]) + 2e-12)):
+                    changed = fields.copy()
+                    changed[axis] = wrong
+                    rows = poses.copy()
+                    rows[index] = " ".join(changed)
+                    corrupt.append(headline + "\n".join(rows) + "\n")
+            corrupt.extend((valid.replace(pose, pose + " 0"),
+                            valid.replace(pose, pose.replace(" ", "  ", 1)),
+                            valid.replace(pose, pose.replace("::body", "::unknown"))))
+        for stdout in corrupt:
+            with self.subTest(stdout=stdout):
+                self.assertFalse(QUALIFIER.noisy_output_matches(source, stdout))

@@ -47,20 +47,40 @@ impl ScheduledCameraOutput {
             .get::<EntityId>()
             .ok_or(SnapshotError::MissingCamera(0))?
             .get();
-        let schedule = SensorSchedule::new(
+        // Preserve legacy rate-error precedence before owned-ID extraction.
+        let _ = SensorSchedule::new(
             camera
                 .get::<CameraSensor>()
-                .expect("camera query includes this component")
+                .expect("selected camera")
                 .0
                 .update_rate,
         )?;
-        Ok(Some(Self {
+        Self::prepare_selected(sim, session, scope, id, config).map(Some)
+    }
+
+    /// A selected owner for the bounded application composition; legacy prepare
+    /// still enforces its original zero/single contract before reaching here.
+    pub(crate) fn prepare_selected(
+        sim: &Simulation,
+        session: &Session,
+        scope: &CameraWriterScope,
+        id: u64,
+        config: CameraOutputConfig,
+    ) -> Result<Self, CameraOutputError> {
+        let entity =
+            gz_sim_core::entity_by_id(sim.world(), id).ok_or(SnapshotError::MissingCamera(id))?;
+        let camera = sim
+            .world()
+            .get::<CameraSensor>(entity)
+            .ok_or(SnapshotError::MissingCamera(id))?;
+        let schedule = SensorSchedule::new(camera.0.update_rate)?;
+        Ok(Self {
             output: CameraOutput::new(sim, session, scope, id, config)?,
             schedule,
             epoch: sim.epoch(),
             last_attempt: None,
             active: true,
-        }))
+        })
     }
 
     /// Local application admission gate, initially true. This does not implement
@@ -78,6 +98,15 @@ impl ScheduledCameraOutput {
             self.output.acquisition = None;
             self.output.retiring |= self.output.client.is_some();
         }
+    }
+
+    pub(crate) fn client_diagnostics(
+        &self,
+    ) -> Option<(Option<u32>, gz_render_client::ClientLifetime)> {
+        self.output
+            .client
+            .as_ref()
+            .map(|client| (client.worker_pid(), client.diagnostic_lifetime()))
     }
 
     pub(crate) fn demand(&self) -> Result<(bool, bool), CameraOutputError> {

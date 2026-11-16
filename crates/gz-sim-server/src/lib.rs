@@ -57,7 +57,7 @@ use zenoh::Wait;
 pub enum Error {
     #[error("configured camera Sensors execution requires a camera application owner")]
     CameraOutputRequired,
-    #[error("external camera ownership must match exactly one configured loaded camera")]
+    #[error("external camera ownership must match the complete configured loaded camera set")]
     CameraIdentity,
     #[error("camera-owned world editing requires a later renderer admission phase")]
     CameraWorldEdit,
@@ -1348,6 +1348,12 @@ pub struct Server {
     lidar_viewer_interest: bool,
 }
 
+// An external application owns all renderer resources; Server validates IDs only.
+enum ExternalCamera {
+    Single(u64),
+    Pair([u64; 2]),
+}
+
 impl Server {
     pub fn new(
         simulation: Simulation,
@@ -1393,7 +1399,28 @@ impl Server {
             config,
             Some(zenoh_config),
             command_budget,
-            Some(camera_id),
+            Some(ExternalCamera::Single(camera_id)),
+        )
+    }
+
+    /// Construct after an external application has prepared exactly these two
+    /// loaded RGB camera outputs. IDs form a set; order does not select a camera.
+    /// The caller owns both outputs and must preserve their lifetime outside tick.
+    pub fn with_external_camera_outputs(
+        simulation: Simulation,
+        world_name: &str,
+        config: ServerOptions,
+        zenoh_config: zenoh::Config,
+        command_budget: NonZeroUsize,
+        camera_ids: [u64; 2],
+    ) -> Result<Self, Error> {
+        Self::build(
+            simulation,
+            world_name,
+            config,
+            Some(zenoh_config),
+            command_budget,
+            Some(ExternalCamera::Pair(camera_ids)),
         )
     }
 
@@ -1403,7 +1430,7 @@ impl Server {
         config: ServerOptions,
         zenoh_config: Option<zenoh::Config>,
         command_budget: NonZeroUsize,
-        external_camera: Option<u64>,
+        external_camera: Option<ExternalCamera>,
     ) -> Result<Self, Error> {
         time(simulation.elapsed().as_nanos() as i128)?;
         poses::packet(simulation.world(), simulation.elapsed())?;
@@ -1425,7 +1452,7 @@ impl Server {
             .filter(|entity| entity.contains::<gz_sim_scene::CameraSensor>());
         match (configured, cameras.next(), external_camera) {
             (true, Some(_), None) => return Err(Error::CameraOutputRequired),
-            (true, Some(camera), Some(id))
+            (true, Some(camera), Some(ExternalCamera::Single(id)))
                 if cameras.next().is_none()
                     && camera.get::<gz_sim_scene::EntityKind>()
                         == Some(&gz_sim_scene::EntityKind::Sensor)
@@ -1434,6 +1461,37 @@ impl Server {
                     && camera
                         .get::<gz_sim_scene::CameraSensor>()
                         .is_some_and(|sensor| gz_sim_scene::supports_camera_sensor(&sensor.0)) => {}
+            (true, Some(first), Some(ExternalCamera::Pair(ids))) => {
+                let Some(second) = cameras.next() else {
+                    return Err(Error::CameraIdentity);
+                };
+                if cameras.next().is_some() || ids[0] == ids[1] || ids.contains(&0) {
+                    return Err(Error::CameraIdentity);
+                }
+                let mut actual = BTreeSet::new();
+                for camera in [first, second] {
+                    let Some(id) = camera.get::<EntityId>().map(EntityId::get) else {
+                        return Err(Error::CameraIdentity);
+                    };
+                    if !ids.contains(&id)
+                        || !actual.insert(id)
+                        || camera.get::<gz_sim_scene::EntityKind>()
+                            != Some(&gz_sim_scene::EntityKind::Sensor)
+                        || entity_by_id(simulation.world(), id) != Some(camera.id())
+                        || !camera
+                            .get::<gz_sim_scene::CameraSensor>()
+                            .is_some_and(|sensor| {
+                                gz_sim_scene::supports_camera_sensor(&sensor.0)
+                                    && sensor
+                                        .0
+                                        .effective_type()
+                                        .is_some_and(|kind| kind.as_str() == "camera")
+                            })
+                    {
+                        return Err(Error::CameraIdentity);
+                    }
+                }
+            }
             (_, _, Some(_)) => return Err(Error::CameraIdentity),
             _ => {}
         }
