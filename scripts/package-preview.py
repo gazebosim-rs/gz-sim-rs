@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Assemble a source-bound Linux preview; M44 defaults and explicit M60 guides."""
+"""Assemble a source-bound Linux preview; M44 defaults and explicit M60/M65 guides."""
 import argparse
 import gzip
 import hashlib
@@ -51,6 +51,7 @@ NOISY_EXAMPLES = (
     'm58_multiple_joint_controllers.sdf',
     'm59_multiple_diff_drives.sdf',
 )
+M65_FLEET_EXAMPLES = ('m61_eight_diff_drives.sdf', 'm62_eight_joint_controllers.sdf')
 
 
 def regular(path, maximum=MAX_FILE):
@@ -168,11 +169,14 @@ def assemble(spec, output, archive=None):
     if spec.get('schema_version') != 1 or spec.get('target') != 'ubuntu-24.04-x86_64':
         raise ValueError('only the admitted Ubuntu 24.04 x86_64 package is supported')
     generation = spec.get('guide_generation', 'M44')
-    if type(generation) is not str or generation not in ('M44', 'M60'):
-        raise ValueError('guide_generation must be M44 or M60')
-    guide_sources = (('M44_INSTALL.md', 'M44_CAPABILITIES.md', 'M44_PREVIEW.md')
-                     if generation == 'M44' else
-                     ('M60_INSTALL.md', 'M60_CAPABILITIES.md', 'M60_PREVIEW.md'))
+    if type(generation) is not str or generation not in ('M44', 'M60', 'M65'):
+        raise ValueError('guide_generation must be M44, M60 or M65')
+    guide_sources = {
+        'M44': ('M44_INSTALL.md', 'M44_CAPABILITIES.md', 'M44_PREVIEW.md'),
+        'M60': ('M60_INSTALL.md', 'M60_CAPABILITIES.md', 'M60_PREVIEW.md'),
+        'M65': ('M65_INSTALL.md', 'M65_CAPABILITIES.md', 'M65_PREVIEW.md'),
+    }[generation]
+    selected_examples = NOISY_EXAMPLES + M65_FLEET_EXAMPLES if generation == 'M65' else NOISY_EXAMPLES
     repositories = spec['repositories']
     if set(repositories) != {'gz-sim-rs', 'gzweb-rs'} or not all(
             isinstance(value, str) and COMMIT.fullmatch(value) for value in repositories.values()):
@@ -246,7 +250,7 @@ def assemble(spec, output, archive=None):
     if mesh.resolve() != ROOT.resolve() / mesh_name:
         raise ValueError('the fixed mesh source may not traverse linked directories')
     examples = {}
-    for name in NOISY_EXAMPLES:
+    for name in selected_examples:
         relative = Path('examples') / name
         source = regular(ROOT / relative, MAX_EXAMPLE)
         if source.resolve() != ROOT.resolve() / relative:
@@ -273,10 +277,10 @@ def assemble(spec, output, archive=None):
         for name, path in viewer.items():
             copy_file(path, prefix / 'web' / name, expected=spec['viewer_files'][name])
         for source_name, installed_name in zip(guide_sources, ('INSTALL.md', 'CAPABILITIES.md', 'PREVIEW.md')):
-            maximum = MAX_EXAMPLE if generation == 'M60' else MAX_FILE
+            maximum = MAX_EXAMPLE if generation in ('M60', 'M65') else MAX_FILE
             source = regular(ROOT / 'docs' / source_name, maximum)
-            if generation == 'M60' and source.resolve() != ROOT.resolve() / 'docs' / source_name:
-                raise ValueError('M60 guide source may not traverse linked directories')
+            if generation in ('M60', 'M65') and source.resolve() != ROOT.resolve() / 'docs' / source_name:
+                raise ValueError(generation + ' guide source may not traverse linked directories')
             copy_file(source, prefix / installed_name)
         copy_file(regular(ROOT / 'LICENSE'), prefix / 'LICENSE')
         copy_file(regular(ROOT / 'NOTICE'), prefix / 'NOTICE')

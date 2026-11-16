@@ -2,25 +2,11 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # M64: cylinder visuals in RGB camera snapshots
 
-Current integrated checkpoint: M61–M64 remain unaccepted on accepted M60.
-Normal4 passed every functional case, including all 53 required unique controls,
-then failed strict camera-output region coverage1876/2010. Retained changed
-lines354/387 would also fail the later, unexecuted gate. The complete correction
-adds meaningful public camera API, ownership, scheduling, canonical publication
-and lifecycle boundary regressions, preserving all old tests and production.
-Complete Source/guide review, one affected formatter and one consolidated normal,
-then strict coverage/local DATA/exact hosted/official/Main before acceptance.
-Installed M60 remains Latest with33 examples; source finite obligations remain37.
-See [the atomic plan](M61_M64_INTEGRATION.md). Earlier feature preparation below
-retains its historical scope.
-
-M64 is an independent bounded increment on accepted M60 `a1a0119`, budgeted at
-most five working days including review and mandatory gates. M61/M62 staged
-`17285b8` and M63 staged `33ec6cd` remain frozen, untested and unaccepted while
-verification awaits SSD capacity. Use no unverified predecessor API or outcome.
-Implementation, regression Source, guides and integration are complete and
-independently source-reviewed. One consolidated formatter exited zero. Product
-verification is unrun; no cleanup or product execution is released.
+Current acceptance: M61–M64 passed local and exact hosted qualification,
+independent local/official DATA and ordinary Main/readbacks at192ede. M1–M64/197
+are accepted; M60 remains Latest/install33. See
+[the actual acceptance record](M61_M64_ACCEPTANCE.md). The feature contract and
+retained qualification checkpoints below describe their historical scope.
 
 ## Runnable scope and preserved domain
 

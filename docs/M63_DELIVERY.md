@@ -2,24 +2,11 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # M63: two automatic RGB cameras
 
-Current integrated checkpoint: M61–M64 remain unaccepted on accepted M60.
-Normal4 passed every functional case, including all 53 required unique controls,
-then failed strict camera-output region coverage1876/2010. Retained changed
-lines354/387 would also fail the later, unexecuted gate. The complete correction
-adds meaningful public camera API, ownership, scheduling, canonical publication
-and lifecycle boundary regressions, preserving all old tests and production.
-Complete Source/guide review, one affected formatter and one consolidated normal,
-then strict coverage/local DATA/exact hosted/official/Main before acceptance.
-Installed M60 remains Latest with33 examples; source finite obligations remain37.
-See [the atomic plan](M61_M64_INTEGRATION.md). Earlier feature preparation below
-retains its historical scope.
-
-M63 is an independent bounded increment on accepted M60 `a1a0119`. M61/M62's
-reviewed, formatted, staged candidate `17285b8` remains frozen, untested and
-unaccepted while full verification awaits SSD capacity. No M61/M62 API or result
-is a dependency. The budget is at most five working days including review and
-mandatory gates. Source preparation is authorized; no capacity, cleanup or test
-release follows from selecting this phase.
+Current acceptance: M61–M64 passed local and exact hosted qualification,
+independent local/official DATA and ordinary Main/readbacks at192ede. M1–M64/197
+are accepted; M60 remains Latest/install33. See
+[the actual acceptance record](M61_M64_ACCEPTANCE.md). The feature contract and
+retained qualification checkpoints below describe their historical scope.
 
 ## Runnable scope
 

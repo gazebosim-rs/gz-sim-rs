@@ -2,31 +2,11 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # M61: eight independent differential-drive robots
 
-Current integrated checkpoint: M61–M64 remain unaccepted on accepted M60.
-Normal4 passed every functional case, including all 53 required unique controls,
-then failed strict camera-output region coverage1876/2010. Retained changed
-lines354/387 would also fail the later, unexecuted gate. The complete correction
-adds meaningful public camera API, ownership, scheduling, canonical publication
-and lifecycle boundary regressions, preserving all old tests and production.
-Complete Source/guide review, one affected formatter and one consolidated normal,
-then strict coverage/local DATA/exact hosted/official/Main before acceptance.
-Installed M60 remains Latest with33 examples; source finite obligations remain37.
-See [the atomic plan](M61_M64_INTEGRATION.md). Earlier feature preparation below
-retains its historical scope.
-
-M60 is accepted at `a1a01192661281fc4691fe5c048a65e1986aefa4`. Its installed
-Ubuntu 24.04 preview is public as [m60-preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m60-preview).
-M43–M60 each passed their exact hosted CI and independent official audit before
-ordinary Main promotion and dependency-ordered acceptance. The retained final
-index is `artifacts/m60-delivery/ordered-acceptance-records/m43-m60-index.json`.
-M44 and M40 releases remain intact. Automatic Main/tag workflows are separate.
-
-This phase extends genuine loaded M8-style drives from two to eight. Preserve
-wheel math, limits, encoder odometry, upstream Zenoh, independent canonical
-Twist/Odometry topics and frames, the aggregate ingress budget and manual singleton
-eligibility. Add one finite eight-robot source example. M60 remains the immutable
-installed 33-example distribution; this phase adds no viewer or package refresh.
-The budget is at most five working days including review and required gates.
+Current acceptance: M61–M64 passed local and exact hosted qualification,
+independent local/official DATA and ordinary Main/readbacks at192ede. M1–M64/197
+are accepted; M60 remains Latest/install33. See
+[the actual acceptance record](M61_M64_ACCEPTANCE.md). The feature contract and
+retained qualification checkpoints below describe their historical scope.
 
 ## Ownership and dependencies
 

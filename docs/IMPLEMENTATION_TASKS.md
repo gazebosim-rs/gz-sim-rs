@@ -1,5 +1,29 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
+## Current bounded task: M65-INSTALLED-FLEETS
+
+[M61–M64 acceptance](M61_M64_ACCEPTANCE.md) makes exact192ede the real accepted
+predecessor. M1–M64/197 are accepted; M60 remains Latest/install33. The
+[M65 contract](M65_DELIVERY.md) selects installed35 via an M65-only generation,
+preserving legacy33/M44/M60, and optional concrete joint-command topic selection.
+The whole implementation/regression/guide Source and batched corrections passed
+independent review. Four Rust/six Python declarations are not measured passes.
+
+Light owns package-preview.py, test_preview_package.py and the M65 guide trio.
+Messages owns joint_command.rs and its private controls. Root owns current shared
+guidance/planning and all operations; SDF reviews completed batches. Accepted-parent metadata and whole Source passed review. The one affected
+formatter passed; final token/census/staged-tree bindings precede the complete
+normal, strict actual-parent coverage and local DATA. No M65 tests have run.
+
+Same-head Source-reviewed provisional local distribution proofs may overlap its
+own hosted CI after local qualification. Require fresh three-ELF/notices/package/
+relocation/clean non-root install,35 finite loads, real eight-drive/sixteen-joint
+application/isolation, separate numeric/browser intervals and owned shutdown,
+independent DATA, every hosted/official/Main gate and actual publication readbacks
+before acceptance or Latest. No RGB-worker/SDK/new viewer/framework distribution.
+
+## Historical M60 Source contract
+
 ## Current M60: current installed two-robot preview
 
 M60 is integrated on provisionally locally qualified, unaccepted M59

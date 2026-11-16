@@ -777,6 +777,214 @@ class PreviewPackage(unittest.TestCase):
             for kind in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
                 self.assertTrue((ROOT / ('docs/' + phase + '_' + kind + '.md')).is_file())
 
+    def m65_inputs(self):
+        self.spec['guide_generation'] = 'M65'
+        for kind in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+            shutil.copyfile(ROOT / ('docs/M65_' + kind + '.md'),
+                            self.source / ('docs/M65_' + kind + '.md'))
+        for name in package.M65_FLEET_EXAMPLES:
+            shutil.copyfile(ROOT / 'examples' / name, self.source / 'examples' / name)
+        return package.NOISY_EXAMPLES + package.M65_FLEET_EXAMPLES
+
+    def test_m65_generation_alone_selects_the_exact_thirty_five_example_prefix(self):
+        self.assertEqual(package.M65_FLEET_EXAMPLES,
+                         ('m61_eight_diff_drives.sdf', 'm62_eight_joint_controllers.sdf'))
+        self.assertEqual(len(package.NOISY_EXAMPLES), 33)
+        selected = package.NOISY_EXAMPLES + package.M65_FLEET_EXAMPLES
+        self.assertEqual(len(selected), len(set(selected)))
+        self.assertEqual(len(selected), 35)
+        for generation in ('M44', 'M60'):
+            self.spec['guide_generation'] = generation
+            output = self.directory / ('legacy-' + generation)
+            manifest = package.assemble(self.spec, output)
+            sdf = {name for name in manifest['files']
+                   if name.startswith('share/examples/') and name.endswith('.sdf')}
+            self.assertEqual(sdf, {'share/examples/' + name for name in package.NOISY_EXAMPLES})
+            for name in package.M65_FLEET_EXAMPLES:
+                self.assertFalse((output / 'share/examples' / name).exists())
+        # Old inputs and guides cannot stand in for the explicit fleet generation.
+        self.spec['guide_generation'] = 'M65'
+        self.refuse('regular')
+        self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+
+    def test_m65_real_fleet_copies_guides_archive_and_relocation_are_byte_bound(self):
+        selected = self.m65_inputs()
+        archive = self.directory / 'm65.tar.gz'
+        originals = {name: (ROOT / 'examples' / name).read_bytes() for name in selected}
+        manifest = package.assemble(self.spec, self.output, archive)
+        self.assertEqual(manifest['guide_generation'], 'M65')
+        expected = {'share/examples/' + name for name in selected}
+        self.assertEqual({name for name in manifest['files']
+                          if name.startswith('share/examples/') and name.endswith('.sdf')}, expected)
+        moved = self.directory / 'relocated fleet prefix'
+        shutil.move(self.output, moved)
+        self.assertEqual(runtime.verify_prefix(moved), manifest)
+        with tarfile.open(archive, 'r:gz') as stream:
+            for name, original in originals.items():
+                relative = 'share/examples/' + name
+                self.assertEqual((moved / relative).read_bytes(), original)
+                self.assertEqual(manifest['files'][relative],
+                                 {'bytes': len(original), 'sha256': hashlib.sha256(original).hexdigest(),
+                                  'mode': 0o644})
+                member = stream.getmember(self.output.name + '/' + relative)
+                self.assertTrue(member.isfile())
+                self.assertEqual(member.mode, 0o644)
+                self.assertEqual(stream.extractfile(member).read(), original)
+            for kind in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+                self.assertEqual((moved / (kind + '.md')).read_bytes(),
+                                 (ROOT / ('docs/M65_' + kind + '.md')).read_bytes())
+            for name in ('share/meshes/m16-asymmetric.obj',
+                         'share/examples/meshes/m16-asymmetric.obj'):
+                self.assertEqual((moved / name).read_bytes(),
+                                 (self.source / 'examples/meshes/m16-asymmetric.obj').read_bytes())
+        self.assertEqual((moved / 'share/robot.sdf').read_bytes(),
+                         (self.source / 'examples/m19_robot.sdf').read_bytes())
+        for name in package.M65_FLEET_EXAMPLES:
+            with patch.object(runtime, 'serve', return_value=0) as serve:
+                self.assertEqual(runtime.main(['run', '--example', name], moved), 0)
+                self.assertEqual(serve.call_args.kwargs['example'], name)
+
+    def test_m65_fleet_sources_are_required_ordinary_and_bounded_before_publication(self):
+        self.m65_inputs()
+        archive = self.directory / 'invalid-fleet.tar.gz'
+        for name in package.M65_FLEET_EXAMPLES:
+            source = self.source / 'examples' / name
+            original = source.read_bytes()
+            for fault in ('missing', 'linked', 'oversized'):
+                with self.subTest(example=name, fault=fault):
+                    outside = self.directory / 'outside-fleet.sdf'
+                    source.unlink()
+                    if fault == 'linked':
+                        outside.write_bytes(original)
+                        source.symlink_to(outside)
+                    elif fault == 'oversized':
+                        source.write_bytes(b'x' * (package.MAX_EXAMPLE + 1))
+                    try:
+                        with self.assertRaisesRegex(ValueError, 'regular|file bound'):
+                            package.assemble(self.spec, self.output, archive)
+                        self.assertFalse(self.output.exists())
+                        self.assertFalse(archive.exists())
+                        self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+                    finally:
+                        if source.exists() or source.is_symlink():
+                            source.unlink()
+                        source.write_bytes(original)
+                        if outside.exists():
+                            self.assertEqual(outside.read_bytes(), original)
+                            outside.unlink()
+        examples = self.source / 'examples'
+        saved = self.source / 'real-examples'
+        examples.rename(saved)
+        examples.symlink_to(saved, target_is_directory=True)
+        try:
+            self.refuse('linked directories')
+        finally:
+            examples.unlink()
+            saved.rename(examples)
+
+    def test_m65_installed_fleet_tampering_never_reaches_the_launcher(self):
+        self.m65_inputs()
+        manifest = package.assemble(self.spec, self.output)
+        moved = self.directory / 'fleet relocated'
+        shutil.move(self.output, moved)
+        for name in package.M65_FLEET_EXAMPLES:
+            path = moved / 'share/examples' / name
+            original = path.read_bytes()
+            for fault in ('missing', 'edited', 'mode', 'linked'):
+                with self.subTest(example=name, fault=fault):
+                    path.unlink()
+                    outside = self.directory / 'external-installed-fleet.sdf'
+                    if fault == 'linked':
+                        outside.write_bytes(original)
+                        path.symlink_to(outside)
+                    elif fault != 'missing':
+                        path.write_bytes(original + (b'<!-- changed -->' if fault == 'edited' else b''))
+                        path.chmod(0o600 if fault == 'mode' else 0o644)
+                    try:
+                        with self.assertRaises(ValueError):
+                            runtime.verify_prefix(moved)
+                        with patch.object(runtime, 'serve', return_value=0) as serve:
+                            self.assertEqual(runtime.main(['run', '--example', name], moved), 1)
+                            serve.assert_not_called()
+                    finally:
+                        if path.exists() or path.is_symlink():
+                            path.unlink()
+                        path.write_bytes(original)
+                        path.chmod(0o644)
+                        if outside.exists():
+                            self.assertEqual(outside.read_bytes(), original)
+                            outside.unlink()
+            self.assertEqual(runtime.verify_prefix(moved), manifest)
+        with patch.object(runtime, 'serve', return_value=0) as serve:
+            self.assertEqual(runtime.main(['run', '--example', '../m61_eight_diff_drives.sdf'], moved), 1)
+            self.assertEqual(runtime.main(['run', '--example', 'm63_two_rgb_cameras.sdf'], moved), 1)
+            serve.assert_not_called()
+
+    def test_m65_guides_are_closed_required_bounded_and_never_fall_back(self):
+        self.m65_inputs()
+        for kind in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+            path = self.source / ('docs/M65_' + kind + '.md')
+            original = path.read_bytes()
+            for fault in ('missing', 'linked', 'oversized'):
+                with self.subTest(guide=kind, fault=fault):
+                    path.unlink()
+                    outside = self.directory / 'external-guide.md'
+                    if fault == 'linked':
+                        outside.write_bytes(original)
+                        path.symlink_to(outside)
+                    elif fault == 'oversized':
+                        path.write_bytes(b'x' * (package.MAX_EXAMPLE + 1))
+                    try:
+                        self.refuse('regular|bound')
+                        self.assertTrue((self.source / ('docs/M60_' + kind + '.md')).is_file())
+                        self.assertTrue((self.source / ('docs/M44_' + kind + '.md')).is_file())
+                        self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+                    finally:
+                        if path.exists() or path.is_symlink():
+                            path.unlink()
+                        path.write_bytes(original)
+                        if outside.exists():
+                            self.assertEqual(outside.read_bytes(), original)
+                            outside.unlink()
+        docs = self.source / 'docs'
+        saved = self.source / 'real-docs'
+        docs.rename(saved)
+        docs.symlink_to(saved, target_is_directory=True)
+        try:
+            self.refuse('linked directories')
+        finally:
+            docs.unlink()
+            saved.rename(docs)
+        for value in ('m65', '../M65', '/tmp/M65', 'M65_INSTALL.md'):
+            with self.subTest(generation=value):
+                self.spec['guide_generation'] = value
+                self.refuse('guide_generation')
+
+    def test_m65_guides_separate_finite_loads_direct_helper_and_unexecuted_release(self):
+        preview = (ROOT / 'docs/M65_PREVIEW.md').read_text()
+        selected = package.NOISY_EXAMPLES + package.M65_FLEET_EXAMPLES
+        for name in selected:
+            self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name + '"', preview)
+        self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 35)
+        install = (ROOT / 'docs/M65_INSTALL.md').read_text()
+        for text in ('No M65 installed or', 'browser result is claimed',
+                     'export GZ_PARTITION=gz-preview-fleet', '--partition "$GZ_PARTITION"',
+                     'tcp/127.0.0.1:7449 position 0.4 0.2 --topic',
+                     'tcp/127.0.0.1:7449 velocity 0.3 0.2 --topic',
+                     '/model/arm_${owner}/joint/base_hinge/0/cmd_pos',
+                     '/model/arm_${owner}/joint/tip_hinge/cmd_vel'):
+            self.assertIn(text, install)
+        for name in ('m61_eight_diff_drives.sdf', 'm62_eight_joint_controllers.sdf'):
+            self.assertIn(
+                '"$preview_prefix/bin/gz-preview" --partition "$GZ_PARTITION" run --example '
+                + name + ' --http-port 8082 --ws-port 9014 --lifecycle', install)
+        capabilities = (ROOT / 'docs/M65_CAPABILITIES.md').read_text()
+        self.assertIn('M44/M60 package generations keep their original guide selection', capabilities)
+        self.assertIn('There is no RGB/depth worker', capabilities)
+        self.assertIn('35 installed', capabilities)
+        self.assertIn('37 examples', capabilities)
+
+
 
 if __name__ == '__main__':
     unittest.main()

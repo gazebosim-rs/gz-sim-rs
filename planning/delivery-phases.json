@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-16T18:29:30.993924+00:00",
-  "execution_state": "M61_M64_CAMERA_COVERAGE_REGRESSION_SOURCE_IN_DEVELOPMENT",
-  "current_phase": "M61",
+  "as_of": "2026-11-16T20:33:58.121386+00:00",
+  "execution_state": "active",
+  "current_phase": "M65",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -2759,19 +2759,23 @@
       "selected_at": "2026-11-15T17:09:42.171032+00:00",
       "accepted_parent_commit": "a1a01192661281fc4691fe5c048a65e1986aefa4",
       "implementation_started": true,
-      "current_stage": "The complete registry correction and current guides passed independent Source review. All old nine CLI RGB cases plus the actual tenth are required, with stronger existing parser negatives and unchanged predicates. Rust/production are unchanged and no formatter is needed. One full normal3 and every later gate remain pending.",
+      "current_stage": "Accepted atomically at exactMain192ede after full normal/strict local DATA, exactreviewCI43940700422attempt1, durableoriginalcollection, independentofficialDATA and ordinaryMain/readbacks. M60Latest/install33unchanged.",
       "source_preparation_started_at": "2026-11-15T17:09:42.171032+00:00",
       "implementation_complete": true,
       "independent_source_review_complete": true,
-      "checks_run": false,
-      "accepted": false,
+      "checks_run": true,
+      "accepted": true,
       "formatter_actual_exit": 0,
       "qualification_capacity_restored_at": "2026-11-15T23:24:15.474569+00:00",
-      "qualification_state": "atomic_rgb_registry_correction_reviewed_full_normal3_pending",
+      "qualification_state": "accepted_exact_main",
       "corrective_formatter_actual_exit": 0,
       "atomic_parent_commit": "a1a01192661281fc4691fe5c048a65e1986aefa4",
       "atomic_integration_evidence": "docs/M61_M64_INTEGRATION.md",
-      "prior_local_qualified_commit": "deab0f4d01174bc782caf2d65acf90a0a3a20b87"
+      "prior_local_qualified_commit": "deab0f4d01174bc782caf2d65acf90a0a3a20b87",
+      "accepted_commit": "192ede6369ab6d83ecf88230944d2061f74b5e94",
+      "accepted_tree": "a860d081da2ccfcd72de173d5fa3e5fab3b8e8c1",
+      "accepted_at": "2026-11-16T20:33:58.121386+00:00",
+      "acceptance_record": "artifacts/m61-m64-delivery/acceptance-main-promotion.json"
     },
     {
       "id": "M62",
@@ -2787,19 +2791,23 @@
       "source_preparation_basis_commit": "a1a01192661281fc4691fe5c048a65e1986aefa4",
       "source_preparation_basis_accepted": true,
       "source_preparation_started_at": "2026-11-15T18:54:42.288412+00:00",
-      "accepted": false,
-      "checks_run": false,
-      "current_stage": "The complete registry correction and current guides passed independent Source review. All old nine CLI RGB cases plus the actual tenth are required, with stronger existing parser negatives and unchanged predicates. Rust/production are unchanged and no formatter is needed. One full normal3 and every later gate remain pending.",
+      "accepted": true,
+      "checks_run": true,
+      "current_stage": "Accepted atomically at exactMain192ede after full normal/strict local DATA, exactreviewCI43940700422attempt1, durableoriginalcollection, independentofficialDATA and ordinaryMain/readbacks. M60Latest/install33unchanged.",
       "implementation_started": true,
       "implementation_complete": true,
       "independent_source_review_complete": true,
       "formatter_actual_exit": 0,
       "qualification_capacity_restored_at": "2026-11-15T23:24:15.474569+00:00",
-      "qualification_state": "atomic_rgb_registry_correction_reviewed_full_normal3_pending",
+      "qualification_state": "accepted_exact_main",
       "corrective_formatter_actual_exit": 0,
       "atomic_parent_commit": "a1a01192661281fc4691fe5c048a65e1986aefa4",
       "atomic_integration_evidence": "docs/M61_M64_INTEGRATION.md",
-      "prior_local_qualified_commit": "deab0f4d01174bc782caf2d65acf90a0a3a20b87"
+      "prior_local_qualified_commit": "deab0f4d01174bc782caf2d65acf90a0a3a20b87",
+      "accepted_commit": "192ede6369ab6d83ecf88230944d2061f74b5e94",
+      "accepted_tree": "a860d081da2ccfcd72de173d5fa3e5fab3b8e8c1",
+      "accepted_at": "2026-11-16T20:33:58.121386+00:00",
+      "acceptance_record": "artifacts/m61-m64-delivery/acceptance-main-promotion.json"
     },
     {
       "id": "M63",
@@ -2816,18 +2824,22 @@
       "source_preparation_basis_accepted": true,
       "source_preparation_started_at": "2026-11-15T21:23:52.389450+00:00",
       "implementation_started": true,
-      "accepted": false,
-      "checks_run": false,
-      "current_stage": "The complete registry correction and current guides passed independent Source review. All old nine CLI RGB cases plus the actual tenth are required, with stronger existing parser negatives and unchanged predicates. Rust/production are unchanged and no formatter is needed. One full normal3 and every later gate remain pending.",
+      "accepted": true,
+      "checks_run": true,
+      "current_stage": "Accepted atomically at exactMain192ede after full normal/strict local DATA, exactreviewCI43940700422attempt1, durableoriginalcollection, independentofficialDATA and ordinaryMain/readbacks. M60Latest/install33unchanged.",
       "implementation_complete": true,
       "independent_source_review_complete": true,
       "formatter_actual_exit": 0,
       "qualification_capacity_restored_at": "2026-11-15T23:24:15.474569+00:00",
       "integration_parent_accepted": true,
-      "qualification_state": "atomic_rgb_registry_correction_reviewed_full_normal3_pending",
+      "qualification_state": "accepted_exact_main",
       "atomic_parent_commit": "a1a01192661281fc4691fe5c048a65e1986aefa4",
       "atomic_integration_evidence": "docs/M61_M64_INTEGRATION.md",
-      "prior_integration_parent_commit": "deab0f4d01174bc782caf2d65acf90a0a3a20b87"
+      "prior_integration_parent_commit": "deab0f4d01174bc782caf2d65acf90a0a3a20b87",
+      "accepted_commit": "192ede6369ab6d83ecf88230944d2061f74b5e94",
+      "accepted_tree": "a860d081da2ccfcd72de173d5fa3e5fab3b8e8c1",
+      "accepted_at": "2026-11-16T20:33:58.121386+00:00",
+      "acceptance_record": "artifacts/m61-m64-delivery/acceptance-main-promotion.json"
     },
     {
       "id": "M64",
@@ -2844,18 +2856,58 @@
       "source_preparation_basis_accepted": true,
       "source_preparation_started_at": "2026-11-15T22:44:51.063806+00:00",
       "implementation_started": true,
-      "accepted": false,
-      "checks_run": false,
-      "current_stage": "The complete registry correction and current guides passed independent Source review. All old nine CLI RGB cases plus the actual tenth are required, with stronger existing parser negatives and unchanged predicates. Rust/production are unchanged and no formatter is needed. One full normal3 and every later gate remain pending.",
+      "accepted": true,
+      "checks_run": true,
+      "current_stage": "Accepted atomically at exactMain192ede after full normal/strict local DATA, exactreviewCI43940700422attempt1, durableoriginalcollection, independentofficialDATA and ordinaryMain/readbacks. M60Latest/install33unchanged.",
       "implementation_complete": true,
       "independent_source_review_complete": true,
       "formatter_actual_exit": 0,
       "qualification_capacity_restored_at": "2026-11-15T23:24:15.474569+00:00",
       "integration_parent_accepted": true,
-      "qualification_state": "atomic_rgb_registry_correction_reviewed_full_normal3_pending",
+      "qualification_state": "accepted_exact_main",
       "atomic_parent_commit": "a1a01192661281fc4691fe5c048a65e1986aefa4",
       "atomic_integration_evidence": "docs/M61_M64_INTEGRATION.md",
-      "prior_integration_parent_commit": "deab0f4d01174bc782caf2d65acf90a0a3a20b87"
+      "prior_integration_parent_commit": "deab0f4d01174bc782caf2d65acf90a0a3a20b87",
+      "accepted_commit": "192ede6369ab6d83ecf88230944d2061f74b5e94",
+      "accepted_tree": "a860d081da2ccfcd72de173d5fa3e5fab3b8e8c1",
+      "accepted_at": "2026-11-16T20:33:58.121386+00:00",
+      "acceptance_record": "artifacts/m61-m64-delivery/acceptance-main-promotion.json"
+    },
+    {
+      "id": "M65",
+      "title": "Installed eight-owner fleet preview",
+      "max_working_days": 5,
+      "depends_on": [
+        "M61",
+        "M62",
+        "M63",
+        "M64"
+      ],
+      "scope": "Native-free Ubuntu24.04x86_64 installed preview with existing three release binaries and unchanged viewer; explicit M65-only35-example registry preserves old33/M44/M60. Add concrete optional joint-command topic without changing omitted defaults or canonical/finite/stop semantics.",
+      "acceptance": "Complete Source/regressions/guides/independent review before consolidated full normal and strict actual accepted-parent coverage, local DATA, exact hosted/official/Main. Fresh actual three-ELF/notices/package/relocation/clean nonroot install DATA,35 finite loads, actual eight-drive/sixteen-controller-input application and isolation, browser Play/Pause/Reset/owned shutdown, independent DATA and release/readbacks precede acceptance/Latest.",
+      "excluded": "RGB/depth-worker/GPU distribution or camera runtime claim; new viewer/protocol/SDK/provider/framework, simulationmath/CRUD/trajectory/nativeSystem parity and performance claims.",
+      "evidence": "docs/M65_DELIVERY.md",
+      "source_preparation_basis_commit": "192ede6369ab6d83ecf88230944d2061f74b5e94",
+      "source_preparation_basis_accepted": true,
+      "source_preparation_started_at": "2026-11-16T19:51:47.184543+00:00",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": true,
+      "scope_independent_source_review_complete": true,
+      "accepted": false,
+      "checks_run": false,
+      "current_stage": "Complete implementation/regression/guides and accepted-parent metadata passed independent review; the single affected formatter actually passed. Four Rust/six Python declarations are not observed passes. Final token/census/staged-tree bindings precede full normal. No M65 test/build/install/browser/release has run.",
+      "source_finite_example_obligations": 37,
+      "target_installed_examples": 35,
+      "installed_accepted_examples": 33,
+      "source_control_declarations": {
+        "Rust_joint_helper": 4,
+        "Python_package": 6
+      },
+      "formatter_run": true,
+      "provisional_distribution_timing": "After actual accepted predecessor and M65 complete Source/review/formatter/full local normal plus independent local DATA0, separately reviewed same-head LOCAL PROVISIONAL release builds/notices/package/install/demo may overlap its own remote hosted/official closeout. Root serializes local heavy jobs; changed inputs require fresh applicable proofs. Exact hosted/official/durable/Main remain mandatory before acceptance/public release/Latest; no prior approval scope is reused.",
+      "accepted_predecessor_record": "artifacts/m61-m64-delivery/acceptance-main-promotion.json",
+      "formatter_actual_exit": 0
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -2920,18 +2972,16 @@
     "M58": "complete",
     "M59": "complete",
     "M60": "complete",
-    "M61": "in_review",
-    "M62": "in_review",
-    "M63": "in_review",
-    "M64": "in_review"
+    "M61": "complete",
+    "M62": "complete",
+    "M63": "complete",
+    "M64": "complete",
+    "M65": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-15T17:09:42.171032+00:00",
   "active_phases": [
-    "M61",
-    "M62",
-    "M63",
-    "M64"
+    "M65"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -3247,38 +3297,48 @@
       ],
       "integration": "Atomic qualification amendment: combine exact c872 feature composition directly on accepted M60 a1a with only byte-identical vendor download-locator repair and current guides. Complete independent Source review, then one full fresh local/strict accepted-parent/DATA and exact hosted/official/Main chain; preserve every own feature control and prior failure, no result pooling. Root serializes local heavy jobs; use a new nonforced review ref.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M61",
+        "M62",
+        "M63",
+        "M64",
+        "M65"
+      ],
+      "integration": "M61\u2013M64 exact192ede local normal/DATA passed; hosted/official/Main closeout stays separate while disjoint M65 package/helper Source preparation proceeds over192ede. Actual predecessor acceptance and complete independent Source review precede any M65 checks. Every feature/distribution proof remains mandatory; Root alone releases serial heavy operations, no result transfer.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M60/193 accepted; M60 Latest/install33. M61\u2013M64 form one fresh atomic candidate directly on accepted a1a. Prior deab local success and hosted vendor404 failure remain historical. All own controls, full normal/strict M60-parent coverage/local DATA/exact hosted/official/Main gates precede atomic acceptance.",
+  "acceptance_boundary": "M1\u2013M64/197 accepted at realMain192ede; allnormal/strict local DATA/exacthosted4394attempt1/officialdurable/Main gates passed for61\u201364. M60Latest/install33 unchanged. M65 ownSource is reviewed but formatting/checks and freshdistribution proofs are unrun; everyown gate remains required before acceptance/publicrelease/Latest.",
   "current_delivery_group": [
-    "M61",
-    "M62",
-    "M63",
-    "M64"
+    "M65"
   ],
-  "current_development_phase": "M64",
+  "current_development_phase": "M65",
   "board": {
-    "updated_at": "2026-11-16T18:29:30.993924+00:00",
+    "updated_at": "2026-11-16T20:33:58.121386+00:00",
     "current": {
-      "title": "Completing camera regressions for eight-robot fleets and paired RGB",
+      "title": "Preparing the installed eight-owner fleet preview",
       "items": [
-        "All functional cases passed in the fourth integrated run; strict camera-output coverage still failed. No phase is accepted.",
-        "Append meaningful public camera API, ownership, scheduling and lifecycle regressions. All old tests, production, exact assertions and thresholds remain intact."
+        "M61\u2013M64 are accepted on Main: eight drive robots, eight controller chains, paired RGB cameras and cylinder visuals. All 197 accepted slices are preserved.",
+        "M65 implementation, meaningful regressions and guides passed review; its one affected formatter passed. Final staged bindings precede full checks. No M65 test or release result is claimed.",
+        "The new package targets 35 installed examples and selectable joint topics. M60 remains Latest with 33 examples; RGB-worker distribution stays outside this refresh."
       ]
     },
     "done": [
-      "MVP and M1\u2013M42 accepted and published: the original 175 accepted slices are preserved.",
-      "M43\u2013M60 passed all 17 exact hosted runs and independent official audits, including 68 byte-exact RAW comparisons.",
-      "M44 and M60 were published with seven verified assets each. Prior releases, tags and historical failures remain preserved.",
-      "Nine specifically approved compiler caches were removed and audited before reboot. Persistent releases survive; missing RAM originals are recorded without a recovery claim."
+      "M1\u2013M64 and 197 reviewed slices are accepted; detailed original evidence and failures remain preserved.",
+      "Main now supports eight-robot fleets, paired software RGB cameras and cylinder visuals after all local, hosted and independent audit gates.",
+      "M60 remains the installed Latest with 33 examples and unchanged accepted viewer bytes and budgets.",
+      "The exact native build input remains available as a verified non-Latest prerelease; pinned versions and native build gates are unchanged."
     ],
     "next": [
-      "Complete all regression code, guides and independent Source review before one affected formatter and consolidated full normal.",
-      "Require strict accepted-parent coverage, independent local DATA, exact hosted/official checks and ordinary Main/readbacks before acceptance."
+      "Finalize the reviewed M65 token, census and staged Source bindings, then run the complete normal, strict accepted-parent coverage and independent local DATA.",
+      "After local qualification, overlap same-head provisional package/install proofs with hosted CI while keeping local heavy work serial.",
+      "Require fresh 35-example installation, actual fleet/browser/shutdown DATA and every hosted/official/Main/release readback before accepting M65."
     ],
     "blocker": {
-      "text": "Camera-output regions1876/2010 fail strict greater-than95%; retained changed lines354/387 would also fail the later, unexecuted gate. The complete meaningful-regression batch is in development.",
-      "url": "https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/native-build-inputs-v1"
+      "text": "",
+      "url": ""
     },
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
@@ -3294,12 +3354,12 @@
     "source_complete": true,
     "formatter_run": true,
     "product_checks_run": false,
-    "accepted": false,
+    "accepted": true,
     "source_finite_example_obligations": 37,
     "installed_accepted_examples": 33,
     "independent_source_review_complete": true,
     "formatter_actual_exit_code": 0,
-    "staged_tree": null,
+    "staged_tree": "a860d081da2ccfcd72de173d5fa3e5fab3b8e8c1",
     "standalone_staged_tree": "9def7588f3a1c90827e7892f9b7ba82d80dcc768",
     "adoption_parent_accepted": true,
     "adoption_source_complete": true,
@@ -3314,8 +3374,8 @@
     "adoption_formatter_actual_exit_code": 0,
     "prior_adoption_parent_commit": "deab0f4d01174bc782caf2d65acf90a0a3a20b87",
     "adoption_parent_commit": "a1a01192661281fc4691fe5c048a65e1986aefa4",
-    "atomic_source_review_complete": false,
-    "atomic_product_checks_run": false,
+    "atomic_source_review_complete": true,
+    "atomic_product_checks_run": true,
     "prior_atomic_normal_failure": {
       "tree": "f314b2ca8b4ad9406f83ea64f4d09aa0e62377df",
       "actual_exit": 1,
@@ -3323,7 +3383,7 @@
       "phase": "strict Clippy compile",
       "runtime_and_coverage_reached": false
     },
-    "atomic_corrective_formatter_actual_exit": null,
+    "atomic_corrective_formatter_actual_exit": 0,
     "prior_atomic_rgb_registration_failure": {
       "tree": "7a2b64f48afbb26e68b0db44e6139e0de6b1e94f",
       "actual_exit": 1,
@@ -3376,6 +3436,34 @@
     "prior_atomic_test_fixture_correction": "Four Rust test leaves only: six exact accepted background expectations and two native consumer client-mode literals; all old controls, predicates, deadlines and production unchanged.",
     "atomic_regression_correction": "Append-only meaningful camera application, core/shared writer and selected scheduling boundary controls; all previous test bodies, production and gate policies unchanged.",
     "next_local_compile_jobs": 4,
-    "native_hosted_jobs_and_test_threads_unchanged": true
+    "native_hosted_jobs_and_test_threads_unchanged": true,
+    "historical_source_flags_scope": "product_checks_run and adoption_product_checks_run describe the earlier standalone/adoption candidates only; atomic_product_checks_run and atomic_local_qualification describe the completed current candidate.",
+    "atomic_local_qualification": {
+      "commit": "192ede6369ab6d83ecf88230944d2061f74b5e94",
+      "tree": "a860d081da2ccfcd72de173d5fa3e5fab3b8e8c1",
+      "parent": "a1a01192661281fc4691fe5c048a65e1986aefa4",
+      "full_normal_passed": true,
+      "independent_local_DATA_passed": true,
+      "RAW_comparisons_once_LAST": 4,
+      "headless_passed": 2042,
+      "renderer_overlapping_passed": 1226,
+      "unique_required_Rust_controls": 63,
+      "Python_aggregate": 466,
+      "camera_regions": [
+        1930,
+        2010
+      ],
+      "camera_changed_lines": [
+        380,
+        387
+      ],
+      "hosted_run": 43940700422,
+      "hosted_attempt": 1,
+      "hosted_success": true,
+      "official_DATA": true,
+      "accepted": true,
+      "Main_commit": "192ede6369ab6d83ecf88230944d2061f74b5e94",
+      "acceptance_record": "artifacts/m61-m64-delivery/acceptance-main-promotion.json"
+    }
   }
 }
