@@ -125,7 +125,7 @@ fn zero_one_two_loaded_owners_reserve_only_the_original_four_slots() {
     }
     for single in [false, true] {
         assert!(matches!(
-            try_load(&source(3, single)),
+            try_load(&source(9, single)),
             Err(LoadError::Unsupported {
                 feature: "multiple joint-controller chains",
                 ..
@@ -654,5 +654,141 @@ fn trusted_configuration_witness_separates_public_drift_from_private_binding() {
             before
         );
         assert_eq!(sim.elapsed(), Duration::ZERO);
+    }
+}
+
+#[test]
+fn all_sixteen_controllers_preflight_before_any_motor_write() {
+    for invalid in 0..16 {
+        let mut sim = load(8, false);
+        let values = rows(&sim);
+        assert_eq!(values.len(), 16);
+        for (_, id) in &values {
+            set_joint_controller_command(&mut sim, *id, 0.4).unwrap();
+        }
+        sim.step_exact(20).unwrap();
+        let pending = targets(&sim, &values);
+        let before = native(&sim, &values);
+        let samples: Vec<_> = values
+            .iter()
+            .map(|(entity, _)| {
+                let sample = sim.world().get::<JointSample>(*entity).unwrap();
+                (
+                    sample.time,
+                    sample.epoch,
+                    sample.state.position.to_bits(),
+                    sample.state.velocity.to_bits(),
+                )
+            })
+            .collect();
+        let entity = values[invalid].0;
+        let mut metadata = sim
+            .world()
+            .get::<JointControllerConfiguration>(entity)
+            .unwrap()
+            .clone();
+        metadata.topic.push_str("/drift");
+        sim.world_mut().entity_mut(entity).insert(metadata);
+        let peer = values[(invalid + 1) % values.len()].1;
+        assert!(matches!(
+            set_joint_controller_command(&mut sim, peer, 0.8),
+            Err(JointControllerCommandError::InvalidPhysics)
+        ));
+        assert_eq!(targets(&sim, &values), pending);
+        sim.world_mut().resource_mut::<UpdateInfo>().dt = Duration::from_millis(1);
+        apply(sim.world_mut());
+        let fault = sim
+            .fault()
+            .unwrap()
+            .downcast_ref::<ControllerFault>()
+            .unwrap();
+        assert_eq!(fault.entity, entity);
+        assert!(fault.message.contains("invalid controller ownership"));
+        assert_eq!(native(&sim, &values), before);
+        assert_eq!(targets(&sim, &values), pending);
+        let after: Vec<_> = values
+            .iter()
+            .map(|(entity, _)| {
+                let sample = sim.world().get::<JointSample>(*entity).unwrap();
+                (
+                    sample.time,
+                    sample.epoch,
+                    sample.state.position.to_bits(),
+                    sample.state.velocity.to_bits(),
+                )
+            })
+            .collect();
+        assert_eq!(after, samples);
+        assert_eq!(sim.elapsed(), Duration::from_millis(20));
+    }
+}
+
+#[test]
+fn controller_fleet_failure_preserves_ordered_reset_validation() {
+    for count in [3, 7, 8] {
+        for missing_native in [false, true] {
+            let mut sim = load(count, false);
+            let values = rows(&sim);
+            for (_, id) in &values {
+                set_joint_controller_command(&mut sim, *id, 0.7).unwrap();
+            }
+            let pending = targets(&sim, &values);
+            let duplicate = sim.world().get::<Controller>(values[0].0).unwrap().clone();
+            sim.world_mut().spawn(duplicate);
+            let ordered: Vec<_> = {
+                let world = sim.world_mut();
+                let mut query = world.query::<(Entity, &mut Controller)>();
+                query
+                    .iter_mut(world)
+                    .map(|(entity, controller)| (entity, controller.joint))
+                    .collect()
+            };
+            assert_eq!(ordered.len(), count * 2 + 1);
+            if missing_native {
+                assert!(
+                    sim.world_mut()
+                        .resource_mut::<PhysicsBackend>()
+                        .remove_joint(ordered[0].1)
+                );
+            }
+            let native_ids: Vec<_> = values
+                .iter()
+                .map(|(entity, _)| sim.world().get::<Controller>(*entity).unwrap().joint)
+                .collect();
+            let before: Vec<_> = native_ids
+                .iter()
+                .map(|joint| sim.world().resource::<PhysicsBackend>().joint_state(*joint))
+                .collect();
+            reset(sim.world_mut());
+            let fault = sim
+                .fault()
+                .unwrap()
+                .downcast_ref::<ControllerFault>()
+                .unwrap();
+            assert_eq!(
+                fault.entity,
+                if missing_native {
+                    ordered[0].0
+                } else {
+                    ordered[count * 2].0
+                }
+            );
+            assert!(fault.message.contains(if missing_native {
+                "joint identifier"
+            } else {
+                "too many loaded controllers"
+            }));
+            assert_eq!(
+                targets(&sim, &values),
+                pending,
+                "a rejected reset must not clear valid pending targets"
+            );
+            let after: Vec<_> = native_ids
+                .iter()
+                .map(|joint| sim.world().resource::<PhysicsBackend>().joint_state(*joint))
+                .collect();
+            assert_eq!(after, before);
+            assert_eq!(sim.elapsed(), Duration::ZERO);
+        }
     }
 }

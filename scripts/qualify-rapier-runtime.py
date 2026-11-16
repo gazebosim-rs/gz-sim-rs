@@ -60,6 +60,8 @@ NOISY_EXAMPLES = (
     "examples/m57_multiple_joint_state_publishers.sdf",
     "examples/m58_multiple_joint_controllers.sdf",
     "examples/m59_multiple_diff_drives.sdf",
+    "examples/m61_eight_diff_drives.sdf",
+    "examples/m62_eight_joint_controllers.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -147,6 +149,16 @@ NOISY_LINKS = {
         "default::robot_right::base_link": None,
         "default::robot_right::left_wheel": None,
         "default::robot_right::right_wheel": None,
+        "default::ground::body": (0, 0, -0.1),
+    },
+    "examples/m61_eight_diff_drives.sdf": {
+        **{f"default::robot_{index}::{link}": None
+           for index in range(8) for link in ("base_link", "left_wheel", "right_wheel")},
+        "default::ground::body": (0, 0, -0.1),
+    },
+    "examples/m62_eight_joint_controllers.sdf": {
+        **{f"default::arm_{index}::{link}": None
+           for index in range(8) for link in ("base", "tip")},
         "default::ground::body": (0, 0, -0.1),
     },
 }
@@ -326,7 +338,7 @@ def noisy_output_matches(source, stdout):
         except ValueError:
             return False
         if position is None:
-            # Only explicitly listed M33 dynamic and M57/M58/M59 articulated links use this policy.
+            # Only explicitly listed M33 dynamic and M57/M58/M59/M61/M62 articulated links use this policy.
             # This is finite stepping, not a trajectory expectation or tolerance.
             if not all(math.isfinite(value) for value in actual):
                 return False

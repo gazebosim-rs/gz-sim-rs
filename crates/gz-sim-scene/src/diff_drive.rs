@@ -1,10 +1,12 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! At most two original loaded wheel pairs; native motors own the physical response.
+//! At most eight original loaded wheel pairs; native motors own the physical response.
 use super::*;
 use gz_physics::{JointId, JointVelocityMotor};
 mod config;
 mod model;
+
+const MAX_LOADED_DRIVES: usize = 8;
 
 #[derive(Component, Clone, Debug, PartialEq, Eq)]
 #[component(immutable)]
@@ -68,9 +70,9 @@ impl Plan {
             sim.world()
                 .iter_entities()
                 .filter(|entity| entity.contains::<Drive>())
-                .take(3)
+                .take(MAX_LOADED_DRIVES + 1)
                 .count()
-                < 2,
+                < MAX_LOADED_DRIVES,
             &model.scoped_name,
             "multiple differential-drive systems",
         )?;
@@ -495,7 +497,7 @@ fn active_drives(world: &World) -> Result<Vec<Entity>, DriveFault> {
     let rows: Vec<_> = world
         .iter_entities()
         .filter(|row| row.contains::<Drive>() || row.contains::<DiffDriveConfiguration>())
-        .take(3)
+        .take(MAX_LOADED_DRIVES + 1)
         .map(|row| row.id())
         .collect();
     let Some(initial) = world.get_resource::<initial::InitialScene>() else {
@@ -505,7 +507,10 @@ fn active_drives(world: &World) -> Result<Vec<Entity>, DriveFault> {
             Ok(Vec::new())
         };
     };
-    let originals: Vec<_> = initial.diff_drive_identities().take(3).collect();
+    let originals: Vec<_> = initial
+        .diff_drive_identities()
+        .take(MAX_LOADED_DRIVES + 1)
+        .collect();
     let mut expected = std::collections::BTreeSet::new();
     // An original entity still alive without BOTH components is corruption;
     // a truly removed model has no current entity and is a retired owner.
@@ -518,8 +523,8 @@ fn active_drives(world: &World) -> Result<Vec<Entity>, DriveFault> {
         }
     }
     if let Some(first) = rows.first()
-        && (originals.len() > 2
-            || rows.len() > 2
+        && (originals.len() > MAX_LOADED_DRIVES
+            || rows.len() > MAX_LOADED_DRIVES
             || !initial::matches_physics_owner(world)
             || !joints::bindings_valid(world))
     {
@@ -622,7 +627,7 @@ fn observe(world: &mut World) {
         for row in world
             .iter_entities()
             .filter(|row| row.contains::<Drive>())
-            .take(3)
+            .take(MAX_LOADED_DRIVES + 1)
         {
             let entity = row.id();
             let mut drive = row.get::<Drive>().expect("selected drive").clone();
@@ -678,7 +683,7 @@ fn reset(world: &mut World) {
     let rows: Vec<_> = world
         .iter_entities()
         .filter(|row| row.contains::<Drive>())
-        .take(3)
+        .take(MAX_LOADED_DRIVES + 1)
         .map(|row| row.id())
         .collect();
     // Preserve the M8 failure cleanup even if later validation refuses reset.

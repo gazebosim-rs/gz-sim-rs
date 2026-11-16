@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Two original model owners; canonical command and encoder packet arithmetic is unchanged.
+//! Up to eight original model owners; canonical command and encoder packet arithmetic is unchanged.
 use super::*;
 use crate::diff_drive_io::{Endpoint, Installed, Output, Setup};
 use bevy_ecs::prelude::ChildOf;
@@ -11,7 +11,7 @@ use gz_sim_scene::{
 use std::{collections::BTreeSet, sync::mpsc};
 
 pub(super) type Metadata = BTreeMap<u64, DiffDriveConfiguration>;
-const MAX_OWNERS: usize = 2;
+pub(super) const MAX_OWNERS: usize = 8;
 
 fn valid(metadata: &DiffDriveConfiguration) -> bool {
     !metadata.model_name.is_empty()

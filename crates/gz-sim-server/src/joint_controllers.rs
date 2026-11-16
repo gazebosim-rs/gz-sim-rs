@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Four bounded Double inputs on at most two admitted loaded controller chains.
+//! Sixteen bounded Double inputs on at most eight admitted loaded controller chains.
 use super::*;
 use crate::joint_controller_io::{Endpoint, Lease, Setup};
 use bevy_ecs::prelude::ChildOf;
@@ -11,8 +11,8 @@ use gz_sim_scene::{
 use std::{collections::BTreeSet, sync::mpsc};
 
 type Metadata = BTreeMap<u64, JointControllerConfiguration>;
-const MAX_OWNERS: usize = 2;
-const MAX_INPUTS: usize = 4;
+const MAX_OWNERS: usize = 8;
+pub(super) const MAX_INPUTS: usize = 16;
 
 fn valid(metadata: &JointControllerConfiguration) -> bool {
     !metadata.model_name.is_empty()

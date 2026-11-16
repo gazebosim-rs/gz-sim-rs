@@ -133,7 +133,7 @@ class DisabledBackendProof(unittest.TestCase):
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 33)
+            self.assertEqual(run.call_count, 35)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -323,7 +323,9 @@ class DisabledBackendProof(unittest.TestCase):
         self.assertEqual(MODULE.NOISY_EXAMPLES[29:30], ("examples/m56_multiple_odometry_publishers.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[30:31], ("examples/m57_multiple_joint_state_publishers.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[31:32], ("examples/m58_multiple_joint_controllers.sdf",))
-        self.assertEqual(MODULE.NOISY_EXAMPLES[32:], ("examples/m59_multiple_diff_drives.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[32:33], ("examples/m59_multiple_diff_drives.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[33:34], ("examples/m61_eight_diff_drives.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[34:], ("examples/m62_eight_joint_controllers.sdf",))
         self.assertEqual(MODULE.NOISY_ASSETS, ("examples/meshes/m16-asymmetric.obj",))
 
     def test_new_static_example_outputs_are_complete_sorted_finite_and_exact(self):
@@ -466,6 +468,67 @@ class DisabledBackendProof(unittest.TestCase):
         self.assertEqual(MODULE.NOISY_LINKS[source], {
             **dict.fromkeys(names), "default::ground::body": (0, 0, -0.1)})
         rows = ["default::ground::body 0 0 -0.1"] + [name + " 1e100 -2e100 -0" for name in names]
+        valid = headline + "\n".join(rows) + "\n"
+        self.assertTrue(MODULE.noisy_output_matches(source, valid))
+        invalid = [headline, valid.rstrip("\n"), valid + "\n",
+                   headline + "\n".join(reversed(rows)) + "\n",
+                   headline + "\n".join(rows[:-1]) + "\n",
+                   valid + "default::extra::body 0 0 0\n",
+                   valid.replace("iterations=2", "iterations=1"),
+                   valid.replace("2000000", "1000000"),
+                   valid.replace(names[0], names[1]),
+                   valid.replace("ground::body 0 0 -0.1", "ground::body 0 0 -0.100000000001")]
+        for index, row in enumerate(rows):
+            for coordinate in range(1, 4):
+                for value in ["nan", "inf", "-inf", "1e999", "bad"]:
+                    changed = rows.copy()
+                    fields = row.split()
+                    fields[coordinate] = value
+                    changed[index] = " ".join(fields)
+                    invalid.append(headline + "\n".join(changed) + "\n")
+        for wrong in invalid:
+            with self.subTest(stdout=wrong):
+                self.assertFalse(MODULE.noisy_output_matches(source, wrong))
+
+    def test_m61_eight_robots_bind_all_twenty_four_dynamic_links_and_exact_ground(self):
+        source = "examples/m61_eight_diff_drives.sdf"
+        headline = "simulation_ns=2000000 iterations=2\n"
+        names = [f"default::robot_{index}::{link}" for index in range(8)
+                 for link in ("base_link", "left_wheel", "right_wheel")]
+        self.assertEqual(MODULE.NOISY_LINKS[source], {
+            **dict.fromkeys(names), "default::ground::body": (0, 0, -0.1)})
+        rows = ["default::ground::body 0 0 -0.1"] + [name + " 1e100 -2e100 -0" for name in names]
+        valid = headline + "\n".join(rows) + "\n"
+        self.assertTrue(MODULE.noisy_output_matches(source, valid))
+        invalid = [headline, valid.rstrip("\n"), valid + "\n",
+                   headline + "\n".join(reversed(rows)) + "\n",
+                   headline + "\n".join(rows[:-1]) + "\n",
+                   valid + "default::extra::body 0 0 0\n",
+                   valid.replace("iterations=2", "iterations=1"),
+                   valid.replace("2000000", "1000000"),
+                   valid.replace(names[0], names[1]),
+                   valid.replace("ground::body 0 0 -0.1", "ground::body 0 0 -0.100000000001")]
+        for index, row in enumerate(rows):
+            for coordinate in range(1, 4):
+                for value in ["nan", "inf", "-inf", "1e999", "bad"]:
+                    changed = rows.copy()
+                    fields = row.split()
+                    fields[coordinate] = value
+                    changed[index] = " ".join(fields)
+                    invalid.append(headline + "\n".join(changed) + "\n")
+        for wrong in invalid:
+            with self.subTest(stdout=wrong):
+                self.assertFalse(MODULE.noisy_output_matches(source, wrong))
+
+    def test_m62_eight_chains_bind_all_sixteen_dynamic_links_and_exact_ground(self):
+        source = "examples/m62_eight_joint_controllers.sdf"
+        headline = "simulation_ns=2000000 iterations=2\n"
+        names = [f"default::arm_{index}::{link}" for index in range(8)
+                 for link in ("base", "tip")]
+        self.assertEqual(MODULE.NOISY_LINKS[source], {
+            **dict.fromkeys(names), "default::ground::body": (0, 0, -0.1)})
+        rows = [name + (" 0 0 -0.1" if name == "default::ground::body" else " 1e100 -2e100 -0")
+                for name in sorted([*names, "default::ground::body"])]
         valid = headline + "\n".join(rows) + "\n"
         self.assertTrue(MODULE.noisy_output_matches(source, valid))
         invalid = [headline, valid.rstrip("\n"), valid + "\n",

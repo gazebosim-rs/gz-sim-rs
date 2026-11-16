@@ -651,7 +651,8 @@ class AuxiliaryRetention(unittest.TestCase):
                        "examples/m56_multiple_odometry_publishers.sdf",
                        "examples/m57_multiple_joint_state_publishers.sdf",
                        "examples/m58_multiple_joint_controllers.sdf",
-                       "examples/m59_multiple_diff_drives.sdf"):
+                       "examples/m59_multiple_diff_drives.sdf", "examples/m61_eight_diff_drives.sdf",
+                       "examples/m62_eight_joint_controllers.sdf"):
             index = QUALIFIER.NOISY_EXAMPLES.index(source)
             valid = json.loads(baseline)["runs"][index]["stdout"]
             for field, altered in (
@@ -665,6 +666,10 @@ class AuxiliaryRetention(unittest.TestCase):
                  if source == "examples/m58_multiple_joint_controllers.sdf" else
                  valid.replace("default::robot_left::base_link", "default::wrong::base_link")
                  if source == "examples/m59_multiple_diff_drives.sdf" else
+                 valid.replace("default::robot_7::right_wheel", "default::wrong::right_wheel")
+                 if source == "examples/m61_eight_diff_drives.sdf" else
+                 valid.replace("default::arm_7::tip", "default::wrong::tip")
+                 if source == "examples/m62_eight_joint_controllers.sdf" else
                  valid.replace(" 0 0 ", " 0.1 0 ").replace(" 2 -1 3", " 2.1 -1 3")
                  .replace("default::left_scanner::body 0 2 0", "default::left_scanner::body 0.1 2 0")
                  .replace("default::peer::base 1 8 3", "default::peer::base 1.1 8 3")),
@@ -686,6 +691,42 @@ class AuxiliaryRetention(unittest.TestCase):
             self.finish_manifest()
             with self.assertRaisesRegex(ValueError, "noisy-example"):
                 QUALIFIER.validate_evidence(self.root, self.directory)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()
+
+    def test_m62_rehashed_retained_output_keeps_all_sixteen_owner_links_and_static_ground(self):
+        baseline = json.dumps(self.report["noisy_examples"])
+        source = "examples/m62_eight_joint_controllers.sdf"
+        index = QUALIFIER.NOISY_EXAMPLES.index(source)
+        valid = json.loads(baseline)["runs"][index]["stdout"]
+        lines = valid.splitlines()
+        headline, rows = lines[0] + "\n", lines[1:]
+        changed = [headline + "\n".join(rows[:-1]) + "\n",
+                   headline + "\n".join(row for row in rows if not row.startswith("default::arm_7::tip ")) + "\n",
+                   headline + "\n".join(reversed(rows)) + "\n",
+                   valid.replace("default::arm_7::tip", "default::arm_6::tip"),
+                   valid.replace("default::arm_7::tip", "default::extra::tip"),
+                   valid.replace("ground::body 0 0 -0.1", "ground::body 0 0 -0.100000000001"),
+                   valid.replace("iterations=2", "iterations=1"),
+                   valid + "default::unlisted::body 0 0 0\n"]
+        late = next(i for i, row in enumerate(rows) if row.startswith("default::arm_7::tip "))
+        for coordinate in range(1, 4):
+            for value in ["nan", "inf", "-inf", "1e999", "bad"]:
+                altered = rows.copy()
+                fields = altered[late].split()
+                fields[coordinate] = value
+                altered[late] = " ".join(fields)
+                changed.append(headline + "\n".join(altered) + "\n")
+        for wrong in changed:
+            with self.subTest(stdout=wrong):
+                record = json.loads(baseline)
+                record["runs"][index]["stdout"] = wrong
+                self.report["noisy_examples"] = record
+                self.write_json("noisy-examples.json", record)
+                self.finish_manifest()
+                with self.assertRaisesRegex(ValueError, "noisy-example execution"):
+                    QUALIFIER.validate_evidence(self.root, self.directory)
         self.report["noisy_examples"] = json.loads(baseline)
         self.write_json("noisy-examples.json", self.report["noisy_examples"])
         self.finish_manifest()

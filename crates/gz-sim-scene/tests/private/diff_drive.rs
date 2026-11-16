@@ -445,8 +445,33 @@ fn loaded_driver_admission_requires_a_unique_planar_world_owned_rapier_model() {
             .count(),
         2
     );
-    let third = robot.replace("name=\"robot\"", "name=\"third\"");
-    let overflow = duplicate.replace("</world>", &format!("{third}</world>"));
+    let mut eight = duplicate;
+    for index in 2..8 {
+        let next = robot.replace("name=\"robot\"", &format!("name=\"robot_{index}\""));
+        eight = eight.replace("</world>", &format!("{next}</world>"));
+    }
+    let admitted = load_xml(&eight).unwrap();
+    assert_eq!(
+        initial_diff_drive_configurations(&admitted)
+            .unwrap()
+            .count(),
+        8
+    );
+    let mut names: Vec<_> = admitted
+        .world()
+        .iter_entities()
+        .filter_map(|row| row.get::<Drive>())
+        .map(|drive| drive.publication.model_name.as_str())
+        .collect();
+    names.sort_unstable();
+    assert_eq!(
+        names,
+        [
+            "other", "robot", "robot_2", "robot_3", "robot_4", "robot_5", "robot_6", "robot_7"
+        ]
+    );
+    let ninth = robot.replace("name=\"robot\"", "name=\"ninth\"");
+    let overflow = eight.replace("</world>", &format!("{ninth}</world>"));
     assert!(matches!(
         load_xml(&overflow),
         Err(LoadError::Unsupported {

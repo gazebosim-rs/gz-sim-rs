@@ -5,6 +5,30 @@ use bevy_ecs::system::RunSystemOnce;
 use std::collections::BTreeMap;
 const XML: &str = include_str!("../../../../examples/m8_diff_drive.sdf");
 
+fn fleet_xml(count: usize) -> String {
+    let begin = XML.find("<model name=\"robot\"").unwrap();
+    let end = begin + XML[begin..].find("</model>").unwrap() + "</model>".len();
+    let robot = &XML[begin..end];
+    let models = (0..count)
+        .map(|index| {
+            let x = if index.is_multiple_of(2) { -1.25 } else { 1.25 };
+            let y = -2.25 + (index / 2) as f64 * 1.5;
+            robot
+                .replace("name=\"robot\"", &format!("name=\"fleet_{index}\""))
+                .replace(
+                    "<pose>0 0 0.2 0 0 0</pose>",
+                    &format!("<pose>{x} {y} 0.2 0 0 0</pose>"),
+                )
+                .replace("/model/robot/cmd_vel", &format!("/fleet/{index}/cmd_vel"))
+                .replace("/model/robot/odometry", &format!("/fleet/{index}/odom"))
+                .replace("robot/odom", &format!("fleet_{index}_odom"))
+                .replace("robot/base_link", &format!("fleet_{index}_base"))
+        })
+        .collect::<Vec<_>>()
+        .join("");
+    XML.replacen(robot, &models, 1)
+}
+
 fn pair_xml() -> String {
     let begin = XML.find("<model name=\"robot\"").unwrap();
     let end = begin + XML[begin..].find("</model>").unwrap() + "</model>".len();
@@ -425,10 +449,11 @@ fn zero_singleton_two_and_third_owner_domains_keep_the_original_numeric_leafs() 
     let end = begin + two[begin..].find("</model>").unwrap() + "</model>".len();
     let third = two[begin..end].replace("robot_right", "robot_third");
     let three = two.replace("</world>", &(third + "</world>"));
+    assert_eq!(owners(&load_xml(&three)).len(), 3);
     assert!(matches!(
         load_world_with_sdf_step(
-            &three,
-            "m59-third.sdf",
+            &fleet_xml(9),
+            "m61-ninth.sdf",
             "default",
             &sdformat::NoResources,
             PhysicsEngine::Rapier
@@ -669,4 +694,78 @@ fn absent_original_snapshot_and_configuration_only_counterfeits_fail_closed() {
     assert_eq!(fault.message, "invalid loaded drive ownership");
     assert!(native(&absent).is_empty());
     assert_eq!(absent.elapsed(), Duration::ZERO);
+}
+
+#[test]
+fn all_eight_bindings_are_preflighted_before_cache_updates() {
+    for callback in [apply as fn(&mut World), observe] {
+        for invalid in 0..8 {
+            let mut sim = load_xml(&fleet_xml(8));
+            let values = owners(&sim);
+            for (_, id) in values.values() {
+                set_diff_drive_command(&mut sim, *id, 0.4, 0.0).unwrap();
+            }
+            sim.step_exact(20).unwrap();
+            let entity = values[&format!("fleet_{invalid}")].0;
+            let mut configuration = sim
+                .world()
+                .get::<DiffDriveConfiguration>(entity)
+                .unwrap()
+                .clone();
+            configuration.frame_id.push_str("_corrupt");
+            sim.world_mut().entity_mut(entity).insert(configuration);
+            let held: Vec<_> = values
+                .values()
+                .map(|(entity, _)| cache(&sim, *entity))
+                .collect();
+            let before = native(&sim);
+            advancing(&mut sim, Duration::from_millis(40));
+            callback(sim.world_mut());
+            assert!(sim.fault().is_some());
+            assert_eq!(native(&sim), before);
+            let after: Vec<_> = values
+                .values()
+                .map(|(entity, _)| cache(&sim, *entity))
+                .collect();
+            assert_eq!(after, held, "invalid owner {invalid}");
+        }
+    }
+}
+
+#[test]
+fn ninth_counterfeit_reset_clears_every_bounded_command_and_sample_before_refusal() {
+    let mut sim = load_xml(&fleet_xml(8));
+    let values = owners(&sim);
+    for (_, id) in values.values() {
+        set_diff_drive_command(&mut sim, *id, 0.4, 0.0).unwrap();
+    }
+    sim.step_exact(20).unwrap();
+    let original = values["fleet_7"].0;
+    let duplicate = sim.world().get::<Drive>(original).unwrap().clone();
+    let source = sim.world().get::<DiffDriveSample>(original).unwrap();
+    let sample = DiffDriveSample {
+        time: source.time,
+        epoch: source.epoch,
+        pose: source.pose,
+        twist: source.twist,
+    };
+    let counterfeit = sim.world_mut().spawn((duplicate, sample)).id();
+    for entity in values.values().map(|value| value.0).chain([counterfeit]) {
+        assert_eq!(
+            sim.world().get::<Drive>(entity).unwrap().desired,
+            [0.4, 0.0]
+        );
+        assert!(sim.world().get::<DiffDriveSample>(entity).is_some());
+    }
+    let before = native(&sim);
+    reset(sim.world_mut());
+    assert!(sim.fault().is_some());
+    assert_eq!(native(&sim), before);
+    for entity in values.values().map(|value| value.0).chain([counterfeit]) {
+        assert_eq!(
+            sim.world().get::<Drive>(entity).unwrap().desired,
+            [0.0, 0.0]
+        );
+        assert!(sim.world().get::<DiffDriveSample>(entity).is_none());
+    }
 }

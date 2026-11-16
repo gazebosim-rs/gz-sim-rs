@@ -642,3 +642,100 @@ fn pending_and_removed_genuine_typed_peers_are_constructor_inactive_but_reset_or
         assert_eq!(snapshot(&server), before);
     }
 }
+
+#[test]
+fn last_controller_owner_preserves_full_peer_reservations_and_typed_error_priority() {
+    let start = CONTROLLERS.find("<model name=\"arm_left\"").unwrap();
+    let end = start + CONTROLLERS[start..].find("</model>").unwrap() + "</model>".len();
+    let right = CONTROLLERS.find("<model name=\"arm_right\"").unwrap();
+    let right_end = right + CONTROLLERS[right..].find("</model>").unwrap() + "</model>".len();
+    let model = &CONTROLLERS[start..end];
+    let mut models = String::new();
+    for index in 0..8 {
+        models.push_str(&model.replace("arm_left", &format!("arm_{index}")).replace(
+            "<pose>0 -1.5 1 0 0 0</pose>",
+            &format!("<pose>0 {} 1 0 0 0</pose>", index as f64 * 3.0),
+        ));
+    }
+    let fleet =
+        (CONTROLLERS[..start].to_owned() + &CONTROLLERS[end..right] + &CONTROLLERS[right_end..])
+            .replace("</world>", &(models + "</world>"));
+    let network = Network::new();
+    let server = network.server(load(&fleet), network.options()).unwrap();
+    let before = snapshot(&server);
+    let metadata = joint_controllers::initial(&server.simulation).unwrap();
+    assert_eq!(metadata.len(), 16);
+    let own =
+        joint_controllers::boundary_keys(&server.simulation, &server.network_config, None).unwrap();
+    assert_eq!(own.len(), 16);
+    let reserved = joint_controller_reserved_keys(
+        &server.simulation,
+        &server.world_io,
+        &server.network_config,
+    )
+    .unwrap();
+    assert!(own.is_disjoint(&reserved));
+    for topic in [
+        "/clock",
+        "/world/default/clock",
+        "/world/default/control",
+        "/world/default/pose/info",
+        "/world/default/remove",
+        "/world/default/remove/blocking",
+    ] {
+        assert!(reserved.contains(&server.network_config.topic_key(topic).unwrap()));
+        for cfg in metadata.values() {
+            let mut options = server.network_config.clone();
+            options.add_topic_remap(&cfg.topic, topic).unwrap();
+            assert!(matches!(
+                joint_controllers::preflight(&server.simulation, &server.world_io, &options),
+                Err(Error::JointControllerIdentity)
+            ));
+            assert_eq!(snapshot(&server), before);
+        }
+    }
+    let typed = with_typed_peers();
+    let prefix = &CONTROLLERS[..CONTROLLERS.find("</world>").unwrap()];
+    let fleet_prefix = &fleet[..fleet.find("</world>").unwrap()];
+    let typed_fleet = fleet_prefix.to_owned() + typed.strip_prefix(prefix).unwrap();
+    for (family, peer) in PEER_TOPICS.iter().copied().enumerate() {
+        let mut options = network.options();
+        options
+            .add_topic_remap(
+                "/model/arm_7/joint/base_hinge/0/cmd_pos",
+                "/m62/typed_alias",
+            )
+            .unwrap();
+        options.add_topic_remap(peer, "/m62/typed_alias").unwrap();
+        assert_typed(
+            constructor_error(&network, load(&typed_fleet), options),
+            family,
+        );
+        let mut server = network
+            .server(load(&typed_fleet), network.options())
+            .unwrap();
+        server
+            .network_config
+            .add_topic_remap(
+                "/model/arm_7/joint/base_hinge/0/cmd_pos",
+                "/m62/typed_alias",
+            )
+            .unwrap();
+        server
+            .network_config
+            .add_topic_remap(peer, "/m62/typed_alias")
+            .unwrap();
+        let before = snapshot(&server);
+        assert!(matches!(
+            joint_controllers::preflight(
+                &server.simulation,
+                &server.world_io,
+                &server.network_config
+            ),
+            Err(Error::JointControllerIdentity)
+        ));
+        assert_eq!(snapshot(&server), before);
+        assert_typed(server.reset_scene().unwrap_err(), family);
+        assert_eq!(snapshot(&server), before);
+    }
+}

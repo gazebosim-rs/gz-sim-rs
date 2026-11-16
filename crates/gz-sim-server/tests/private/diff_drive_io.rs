@@ -232,3 +232,153 @@ fn failed_setup_closed_transport_and_mismatched_jobs_cannot_publish_or_retain_en
     let (input, _) = mpsc::sync_channel(1);
     assert!(single(&session, setup(cmd, odom, input), "process", "node").is_err());
 }
+
+#[test]
+fn eight_endpoint_installation_validates_the_last_owner_before_declaration() {
+    let session = session();
+    let (prefix, _) = keys();
+    let command_keys: Vec<_> = (1..=8).map(|id| format!("{prefix}/{id}/cmd")).collect();
+    let odometry_keys: Vec<_> = (1..=8).map(|id| format!("{prefix}/{id}/odom")).collect();
+    let publishers: Vec<_> = command_keys
+        .iter()
+        .map(|key| session.declare_publisher(key.clone()).wait().unwrap())
+        .collect();
+    let drops = Arc::new(AtomicU64::new(0));
+    let epoch = Arc::new(AtomicU64::new(7));
+    for fault in 0..4 {
+        let mut endpoints: Vec<_> = command_keys
+            .iter()
+            .zip(&odometry_keys)
+            .enumerate()
+            .map(|(index, (command, odometry))| {
+                let (input, _) = mpsc::sync_channel(1);
+                Endpoint {
+                    owner: index as u64 + 1,
+                    command_key: command.clone(),
+                    odometry_key: odometry.clone(),
+                    input,
+                }
+            })
+            .collect();
+        match fault {
+            0 => endpoints[7].owner = endpoints[0].owner,
+            1 => endpoints[7].odometry_key = endpoints[0].command_key.clone(),
+            2 => endpoints[7].command_key = format!("{prefix}/*"),
+            _ => {
+                let (input, _) = mpsc::sync_channel(1);
+                endpoints.push(Endpoint {
+                    owner: 9,
+                    command_key: format!("{prefix}/9/cmd"),
+                    odometry_key: format!("{prefix}/9/odom"),
+                    input,
+                });
+            }
+        }
+        assert!(
+            Declarations::new(
+                &session,
+                Setup {
+                    endpoints,
+                    max_bytes: 512,
+                    drops: Arc::clone(&drops),
+                    epoch: Arc::clone(&epoch),
+                },
+                "m61",
+                "invalid-fleet"
+            )
+            .is_err()
+        );
+        assert!(
+            publishers
+                .iter()
+                .all(|p| !p.matching_status().wait().unwrap().matching())
+        );
+    }
+    let mut receivers = Vec::new();
+    let endpoints = command_keys
+        .iter()
+        .zip(&odometry_keys)
+        .enumerate()
+        .map(|(index, (command, odometry))| {
+            let (input, receiver) = mpsc::sync_channel(1);
+            receivers.push(receiver);
+            Endpoint {
+                owner: index as u64 + 1,
+                command_key: command.clone(),
+                odometry_key: odometry.clone(),
+                input,
+            }
+        })
+        .collect();
+    let (mut registry, mut installed) = Declarations::new(
+        &session,
+        Setup {
+            endpoints,
+            max_bytes: 512,
+            drops: Arc::clone(&drops),
+            epoch: Arc::clone(&epoch),
+        },
+        "m61",
+        "fleet",
+    )
+    .unwrap();
+    assert_eq!(installed.outputs.len(), 8);
+    assert_eq!(
+        installed
+            .lease_ids
+            .values()
+            .copied()
+            .collect::<BTreeSet<_>>()
+            .len(),
+        8
+    );
+    wait(|| {
+        publishers
+            .iter()
+            .all(|p| p.matching_status().wait().unwrap().matching())
+    });
+    // Every bounded callback queue fills independently; overflow does not displace its first command.
+    for (index, publisher) in publishers.iter().enumerate() {
+        for _ in 0..2 {
+            publisher
+                .put(twist(index as f64 / 10.0, 0.0).encode_to_vec())
+                .attachment(Twist::full_name())
+                .wait()
+                .unwrap();
+        }
+    }
+    wait(|| drops.load(Ordering::Relaxed) == 8);
+    for (index, receiver) in receivers.iter().enumerate() {
+        assert_eq!(
+            receiver.recv_timeout(Duration::from_secs(3)).unwrap(),
+            (7, Some([index as f64 / 10.0, 0.0]))
+        );
+        assert!(receiver.try_recv().is_err());
+    }
+    let retired = installed.outputs.remove(&8).unwrap();
+    let weak = Arc::downgrade(&retired);
+    let retired_job = Job::new(&retired, Odometry::default().encode_to_vec());
+    drop(retired);
+    assert!(weak.upgrade().is_none());
+    assert!(!registry.publish(retired_job).unwrap());
+    assert!(!registry.reconcile(false));
+    wait(|| !publishers[7].matching_status().wait().unwrap().matching());
+    assert!(
+        publishers[..7]
+            .iter()
+            .all(|p| p.matching_status().wait().unwrap().matching())
+    );
+    epoch.store(8, Ordering::Release);
+    publishers[0]
+        .put(twist(0.5, 0.0).encode_to_vec())
+        .attachment(Twist::full_name())
+        .wait()
+        .unwrap();
+    assert_eq!(
+        receivers[0].recv_timeout(Duration::from_secs(3)).unwrap(),
+        (8, Some([0.5, 0.0]))
+    );
+    drop(installed);
+    wait(|| registry.reconcile(false));
+    session.close().wait().unwrap();
+}
