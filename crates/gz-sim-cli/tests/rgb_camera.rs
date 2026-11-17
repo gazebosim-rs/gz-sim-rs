@@ -1008,3 +1008,63 @@ fn cli_primitive_depth_keeps_all_static_poses_and_worker_lazy_without_demand() {
     }
     assert!(!worker.exists());
 }
+
+#[cfg(feature = "rgb-camera")]
+#[test]
+fn cli_two_depth_cameras_keep_workers_lazy_and_refuse_mixed_or_unowned_worlds() {
+    if isolation::child(
+        "cli_two_depth_cameras_keep_workers_lazy_and_refuse_mixed_or_unowned_worlds",
+        45,
+    ) {
+        return;
+    }
+    let source = include_str!("../../../examples/m69_two_depth_cameras.sdf");
+    let directory = tempfile::tempdir().unwrap();
+    let worker = directory.path().join("absent-two-depth-workers");
+    let args = [
+        "--physics-engine",
+        "rapier",
+        "--server",
+        "--run",
+        "--iterations",
+        "3",
+    ];
+    let output = command(source, Some(&worker), &args);
+    assert!(output.status.success(), "{output:?}");
+    assert!(
+        String::from_utf8_lossy(&output.stdout).starts_with("simulation_ns=3000000 iterations=3\n")
+    );
+    assert!(output.stderr.is_empty(), "{output:?}");
+    assert!(!worker.exists(), "neither depth owner has image demand");
+
+    let missing_owner = command(source, None, &args);
+    assert_eq!(missing_owner.status.code(), Some(1), "{missing_owner:?}");
+    assert!(missing_owner.stdout.is_empty());
+    assert!(String::from_utf8_lossy(&missing_owner.stderr).contains("camera application owner"));
+    let mixed = source.replacen("type=\"depth_camera\"", "type=\"camera\"", 1);
+    assert_ne!(mixed, source);
+    let start = source.find("<model name=\"rig_b\">").unwrap();
+    let end = start + source[start..].find("</model>").unwrap() + "</model>".len();
+    let third = source.replace(
+        "</world>",
+        &(source[start..end]
+            .replace("rig_b", "rig_c")
+            .replace("/m69/b/", "/m69/c/")
+            + "</world>"),
+    );
+    for refused in [&mixed, &third] {
+        let result = command(refused, Some(&worker), &args);
+        assert_eq!(result.status.code(), Some(1), "{result:?}");
+        assert!(result.stdout.is_empty());
+        assert!(!worker.exists());
+    }
+    let metadata = source.replace(SENSORS, "");
+    assert_ne!(metadata, source);
+    for configured in [None, Some(worker.as_path())] {
+        let result = command(&metadata, configured, &args);
+        assert!(result.status.success(), "{result:?}");
+        assert_eq!(result.stdout, output.stdout);
+        assert!(result.stderr.is_empty(), "{result:?}");
+    }
+    assert!(!worker.exists());
+}

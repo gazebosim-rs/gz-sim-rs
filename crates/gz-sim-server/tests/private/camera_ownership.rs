@@ -339,3 +339,186 @@ fn external_camera_pair_matches_the_complete_rgb_set_before_network() {
         Err(Error::CameraOutputRequired)
     ));
 }
+
+fn depth_pair_simulation(count: usize, configured: bool) -> Simulation {
+    let mut sim = rgb_pair_simulation(count, configured);
+    let cameras: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter(|node| node.contains::<gz_sim_scene::CameraSensor>())
+        .map(|node| node.id())
+        .collect();
+    for entity in cameras {
+        let mut sensor = sim
+            .world()
+            .get::<gz_sim_scene::CameraSensor>(entity)
+            .unwrap()
+            .0
+            .as_ref()
+            .clone();
+        sensor.kind = "depth_camera".into();
+        sim.world_mut()
+            .entity_mut(entity)
+            .insert(gz_sim_scene::CameraSensor(std::sync::Arc::new(sensor)));
+    }
+    sim
+}
+
+#[test]
+fn external_depth_pair_requires_its_own_complete_homogeneous_family() {
+    for reversed in [false, true] {
+        let sim = depth_pair_simulation(2, true);
+        let mut ids: Vec<_> = sim
+            .world()
+            .iter_entities()
+            .filter(|node| node.contains::<gz_sim_scene::CameraSensor>())
+            .map(|node| node.get::<EntityId>().unwrap().get())
+            .collect();
+        ids.sort_unstable();
+        if reversed {
+            ids.reverse();
+        }
+        let mut server = Server::with_external_depth_camera_outputs(
+            sim,
+            "default",
+            options(),
+            config("tcp/127.0.0.1:0"),
+            NonZeroUsize::new(1).unwrap(),
+            [ids[0], ids[1]],
+        )
+        .unwrap();
+        assert_eq!(server.simulation().elapsed(), Duration::ZERO);
+        assert!(!server.is_shutdown());
+        server.shutdown();
+        assert!(server.is_shutdown());
+    }
+    let occupied = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = format!("tcp/{}", occupied.local_addr().unwrap());
+    for scalar in [false, true] {
+        let sim = depth_pair_simulation(2, true);
+        let mut ids: Vec<_> = sim
+            .world()
+            .iter_entities()
+            .filter(|node| node.contains::<gz_sim_scene::CameraSensor>())
+            .map(|node| node.get::<EntityId>().unwrap().get())
+            .collect();
+        ids.sort_unstable();
+        let result = if scalar {
+            Server::with_external_camera_output(
+                sim,
+                "default",
+                options(),
+                config(&address),
+                NonZeroUsize::new(1).unwrap(),
+                ids[0],
+            )
+        } else {
+            Server::with_external_camera_outputs(
+                sim,
+                "default",
+                options(),
+                config(&address),
+                NonZeroUsize::new(1).unwrap(),
+                [ids[0], ids[1]],
+            )
+        };
+        assert!(
+            matches!(result, Err(Error::CameraIdentity)),
+            "legacy scalar and RGB pair APIs must refuse depth pairs before network setup"
+        );
+    }
+}
+
+#[test]
+fn external_depth_pair_rejects_cardinality_identity_and_rgb_before_network() {
+    let occupied = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = format!("tcp/{}", occupied.local_addr().unwrap());
+    for fault in [
+        "empty",
+        "one",
+        "third",
+        "no-intent",
+        "duplicate-claim",
+        "zero",
+        "foreign",
+        "wrong-kind",
+        "missing-identity",
+        "rgb-pair",
+        "mixed",
+        "bad-width",
+    ] {
+        let count = match fault {
+            "empty" => 0,
+            "one" => 1,
+            "third" => 3,
+            _ => 2,
+        };
+        let mut sim = depth_pair_simulation(count, fault != "no-intent");
+        let cameras: Vec<_> = sim
+            .world()
+            .iter_entities()
+            .filter(|node| node.contains::<gz_sim_scene::CameraSensor>())
+            .map(|node| (node.id(), node.get::<EntityId>().unwrap().get()))
+            .collect();
+        let mut ids = [
+            cameras.first().map_or(1, |row| row.1),
+            cameras.get(1).map_or(2, |row| row.1),
+        ];
+        match fault {
+            "duplicate-claim" => ids[1] = ids[0],
+            "zero" => ids[0] = 0,
+            "foreign" => ids[1] = u64::MAX,
+            "wrong-kind" => {
+                sim.world_mut()
+                    .entity_mut(cameras[1].0)
+                    .insert(gz_sim_scene::EntityKind::Link);
+            }
+            "missing-identity" => {
+                sim.world_mut()
+                    .entity_mut(cameras[1].0)
+                    .remove::<EntityId>();
+            }
+            "rgb-pair" | "mixed" | "bad-width" => {
+                for (index, (entity, _)) in cameras.iter().enumerate() {
+                    if fault != "rgb-pair" && index != 1 {
+                        continue;
+                    }
+                    let mut sensor = sim
+                        .world()
+                        .get::<gz_sim_scene::CameraSensor>(*entity)
+                        .unwrap()
+                        .0
+                        .as_ref()
+                        .clone();
+                    if fault == "bad-width" {
+                        if let sdformat::SensorConfig::Camera(camera) = &mut sensor.config {
+                            camera.image_width = 32;
+                        } else {
+                            panic!("loaded camera configuration");
+                        }
+                    } else {
+                        sensor.kind = "camera".into();
+                    }
+                    sim.world_mut()
+                        .entity_mut(*entity)
+                        .insert(gz_sim_scene::CameraSensor(std::sync::Arc::new(sensor)));
+                }
+            }
+            _ => {}
+        }
+        assert!(
+            matches!(
+                Server::with_external_depth_camera_outputs(
+                    sim,
+                    "default",
+                    options(),
+                    config(&address),
+                    NonZeroUsize::new(1).unwrap(),
+                    ids,
+                ),
+                Err(Error::CameraIdentity)
+            ),
+            "fault={fault}"
+        );
+    }
+}

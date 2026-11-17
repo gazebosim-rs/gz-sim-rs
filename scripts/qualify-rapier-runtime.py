@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Additional native-off execution proof; never replaces the full coverage profiles.
 
-Thirty-nine copied example SDFs run once each through the retained actual CLI. These
+Forty-one copied example SDFs run once each through the retained actual CLI. These
 finite load/step controls are separate from Rust test counts and canonical wire
 or statistical/native-model evidence; clean installed runs remain separate.
 """
@@ -67,6 +67,7 @@ NOISY_EXAMPLES = (
     "examples/m66_rgb_sphere.sdf",
     "examples/m67_rgb_ellipsoid.sdf",
     "examples/m68_depth_primitives.sdf",
+    "examples/m69_two_depth_cameras.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -198,6 +199,13 @@ NOISY_LINKS = {
         "default::rig::body": (0, 0, 0),
         "default::sphere::body": (4, 0, 0),
     },
+    "examples/m69_two_depth_cameras.sdf": {
+        "default::rig_a::body": (0, -2, 1),
+        "default::rig_b::body": (0, 2, 1),
+        "default::backdrop::body": (6, 0, 1),
+        "default::occluder_a::body": (2, -2, 1),
+        "default::occluder_b::body": (3, 2, 1),
+    },
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
 TARGETS = {
@@ -238,6 +246,7 @@ RGB_TESTS = [
     "cli_sphere_rgb_keeps_worker_lazy_and_depth_and_owner_refusals",
     "cli_ellipsoid_rgb_keeps_worker_lazy_and_depth_and_owner_refusals",
     "cli_primitive_depth_keeps_all_static_poses_and_worker_lazy_without_demand",
+    "cli_two_depth_cameras_keep_workers_lazy_and_refuse_mixed_or_unowned_worlds",
 ]
 # The retained directory and feature names stay RGB for compatibility. This
 # CPU-only proof also covers loaded depth admission without demand or GPU images.

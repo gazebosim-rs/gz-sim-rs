@@ -1,34 +1,53 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-## Current development: M68 signed-input delivery repair
+## Current development: M69 two calibrated depth cameras
 
-M1–M67 and 200 reviewed slices are accepted at Main
-`cba09f1c088b5b8b328516c8f31aaf554229f1db`. The original M68 primitive-depth
-runtime at `103fd927` passed full local verification, strict coverage and
-independent DATA. Both exact hosted attempts stopped before product checks on
-an Ubuntu snapshot package-index HTTP 503. Their original logs and failure DATA
-remain retained; the exact failed suite/component and provider cause are unknown.
+M1–M68 and 201 reviewed slices are accepted at Main
+`24ea62519d0a671f789e6b3fc98bd2b72de18ae2`. M68 passed its full normal,
+strict coverage, independent local DATA, [exact hosted CI](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44077798140)
+attempt 1, durable-original collection, official DATA and Main readback.
+The [acceptance record](docs/M68_ACCEPTANCE.md) keeps the repaired signed-input
+lineage and historical failures distinct. Its nine-body metadata archive is
+published; the fixed stager precedes unchanged signature, hash, size and package
+record verification. M65 remains public Latest with 35 installed examples and
+the unchanged viewer bytes and budgets.
 
-This isolated [repair](docs/M68_SIGNED_INPUTS.md) preserves every original Rust,
-Cargo, fixture, protocol and native SDK input byte. A narrow CI stager delivers
-nine exact signed metadata bodies from a fixed hash-pinned archive; the existing
-bootstrap still runs all signature, hash, size and package-record checks. One
-reviewed data assembly produced 22,428,672 archive bytes, independently checked
-against all nine original bodies. The new source candidate is not qualified yet.
+[M69](docs/M69_DELIVERY.md) adds exactly two independently demanded calibrated
+depth cameras, with separate image/info demand and 10/20 Hz Source controls.
+Existing scalar and RGB-pair APIs stay strict. The implementation, meaningful
+regression Source and provisional lane reviews are complete in this successor
+over the actual accepted M68 parent. The first normal on `733835b6` failed
+at a stale registry count (40 versus 41); its strict correction remains.
+The second normal on `b04a0c3b` failed after 2054.903 seconds at one new depth
+Busy control: 498 Python and 2052 headless checks passed; renderer checks had
+1304 passes and one failure. This is partial evidence, not qualification.
+The test expected Busy after pumping a deliberately invalid worker, although
+an asynchronous worker error can arrive first. The actual returned variant
+was not printed and remains unknown. This isolated successor checks typed
+Busy at admission before pumping, then requires the errored owner to leave
+its peer's exact clock and publication intact, matching the retained RGB
+control. Production code, fixtures, tolerances and accepted tests stay exact.
+Preserve both failed trees and originals. No corrected check has run here.
 
-Finish the manifest/workflow/guidance integration review and all Source findings,
-then run one unchanged full normal/strict actual-parent/local DATA cycle. All
-hosted, durable-original, official-audit and Main gates remain mandatory. Source
-input publication has a separate reviewed no-clobber action; it is not released
-by this text. Reuse exact unchanged Rust formatting evidence; the full normal
-still checks formatting. No per-edit tests or lint.
+The Source census carries 37 inherited Python declarations and two new M69
+Python declarations. M69 authors 12 Rust controls (three headless, ten renderer,
+one overlap), plus two separate renderer support instances. Its finite registry
+has 41 Source entries and its auxiliary camera registry has 14; none of these
+Source counts is an executed pass count or an installed-example count.
 
-M69's two-depth-camera implementation, regression Source and independent reviews
-are complete in its separate frozen checkout. Adopt and review the finally
-accepted M68 repair parent before any M69 formatting or checks. M70 is a read-only
-installed-worker proposal, not selected. M65 stays public Latest with 35 installed
-examples and the unchanged accepted viewer bytes and budgets. Preserve Fuel,
-originals, caches, pending trees and every failure. Root serializes heavy work.
+The complete correction has independent Source review. Its one selected Rust
+leaf formatter passed with every source byte and mode unchanged. Close final
+snapshot, census and procedure bindings, then run one consolidated full normal
+and strict coverage retry. Reuse all formatting evidence; no per-edit checks.
+Independent local DATA, exact hosted success, durable originals, official DATA
+and Main promotion remain mandatory before M69 acceptance. Do not stage, commit
+or publish an unreviewed candidate; no per-edit verification rounds. No mixed
+RGB/depth pair, RGBD, noise, point cloud, physics, dependency, SDK, framework or
+worker-distribution expansion is selected.
+
+Preserve all frozen trees, historical evidence, current signed-input guards,
+Fuel work and other owners' pending work. Root serializes heavy work. M70 remains
+an unselected read-only installed-worker proposal.
 
 Earlier checkpoints below retain their historical scope.
 

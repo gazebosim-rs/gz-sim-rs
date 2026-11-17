@@ -111,6 +111,12 @@ struct PairOutput {
     binding: CameraBinding,
     output: ScheduledCameraOutput,
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PairKind {
+    Rgb,
+    Depth,
+}
+
 struct CameraPair {
     outputs: BTreeMap<u64, PairOutput>,
     session: Session,
@@ -140,6 +146,8 @@ pub struct CameraServer {
     runtime: Option<CameraRuntime>,
     pair: Option<CameraPair>,
     pair_ids: Option<[u64; 2]>,
+    // Intent outlives the live subset; reset must rebuild the same family.
+    pair_kind: PairKind,
     server: Server,
     prepared_epoch: u64,
 }
@@ -175,6 +183,7 @@ impl CameraServer {
             runtime,
             pair: None,
             pair_ids: None,
+            pair_kind: PairKind::Rgb,
             server,
             prepared_epoch: epoch,
         })
@@ -206,6 +215,40 @@ impl CameraServer {
             runtime: None,
             pair: Some(pair),
             pair_ids: Some(ids),
+            pair_kind: PairKind::Rgb,
+            server,
+            prepared_epoch: epoch,
+        })
+    }
+
+    /// Exactly two homogeneous depth owners. The existing RGB-pair and scalar
+    /// constructors retain their own strict admission and error boundaries.
+    pub fn new_depth_pair(
+        simulation: Simulation,
+        world: &str,
+        options: ServerOptions,
+        server_zenoh: zenoh::Config,
+        command_budget: NonZeroUsize,
+        camera_options: &CameraServerOptions,
+    ) -> Result<Self, CameraServerError> {
+        options.validate()?;
+        let prepared = prepare_depth_pair(&simulation, &options, camera_options)?;
+        let ids = [prepared[0].binding.id, prepared[1].binding.id];
+        let epoch = simulation.epoch();
+        let pair = install_pair(&simulation, prepared, camera_options)?;
+        let server = Server::with_external_depth_camera_outputs(
+            simulation,
+            world,
+            options,
+            server_zenoh,
+            command_budget,
+            ids,
+        )?;
+        Ok(Self {
+            runtime: None,
+            pair: Some(pair),
+            pair_ids: Some(ids),
+            pair_kind: PairKind::Depth,
             server,
             prepared_epoch: epoch,
         })
@@ -449,8 +492,16 @@ impl CameraServer {
             // Do not advance the epoch cache until preparation really succeeds.
             // The returned error is never converted into a repeated update here.
             if self.pair_ids.is_some() {
-                let prepared =
-                    prepare_pair(self.server.simulation(), self.server.options(), options)?;
+                let prepared = match self.pair_kind {
+                    PairKind::Rgb => {
+                        prepare_pair(self.server.simulation(), self.server.options(), options)?
+                    }
+                    PairKind::Depth => prepare_depth_pair(
+                        self.server.simulation(),
+                        self.server.options(),
+                        options,
+                    )?,
+                };
                 if Some([prepared[0].binding.id, prepared[1].binding.id]) != self.pair_ids {
                     return Err(CameraOutputError::OwnerInvalid.into());
                 }
@@ -794,6 +845,23 @@ fn prepare_pair(
     options: &ServerOptions,
     settings: &CameraServerOptions,
 ) -> Result<Vec<PreparedCamera>, CameraServerError> {
+    prepare_pair_kind(sim, options, settings, PairKind::Rgb)
+}
+
+fn prepare_depth_pair(
+    sim: &Simulation,
+    options: &ServerOptions,
+    settings: &CameraServerOptions,
+) -> Result<Vec<PreparedCamera>, CameraServerError> {
+    prepare_pair_kind(sim, options, settings, PairKind::Depth)
+}
+
+fn prepare_pair_kind(
+    sim: &Simulation,
+    options: &ServerOptions,
+    settings: &CameraServerOptions,
+    kind: PairKind,
+) -> Result<Vec<PreparedCamera>, CameraServerError> {
     let world = sim.world();
     let roots: Vec<_> = world
         .iter_entities()
@@ -830,11 +898,21 @@ fn prepare_pair(
         if !ids.insert(id) {
             return Err(CameraOutputError::OwnerInvalid.into());
         }
-        if !matches!(
-            extract_camera(sim, id, 1, settings.origin).map_err(CameraOutputError::Snapshot)?,
-            gz_render_protocol::Request::CalibratedSnapshot { .. }
-                | gz_render_protocol::Request::CalibratedShapeSnapshot { .. }
-        ) {
+        let request =
+            extract_camera(sim, id, 1, settings.origin).map_err(CameraOutputError::Snapshot)?;
+        let admitted = match kind {
+            PairKind::Rgb => matches!(
+                request,
+                gz_render_protocol::Request::CalibratedSnapshot { .. }
+                    | gz_render_protocol::Request::CalibratedShapeSnapshot { .. }
+            ),
+            PairKind::Depth => matches!(
+                request,
+                gz_render_protocol::Request::CalibratedDepthSnapshot { .. }
+                    | gz_render_protocol::Request::CalibratedDepthShapeSnapshot { .. }
+            ),
+        };
+        if !admitted {
             return Err(CameraOutputError::Snapshot(SnapshotError::InvalidCamera(id)).into());
         }
         for (key, message) in [

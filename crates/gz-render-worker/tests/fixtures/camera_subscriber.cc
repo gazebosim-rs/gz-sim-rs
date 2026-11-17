@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <cstdint>
 #include <memory>
+#include <limits>
 #include <mutex>
 #include <string>
 #include <chrono>
@@ -25,8 +26,10 @@ int cylinder_mode(int argc, char **argv);
 int sphere_mode(int argc, char **argv);
 int ellipsoid_mode(int argc, char **argv);
 int depth_primitives_mode(int argc, char **argv);
+int depth_pair_mode(int argc, char **argv);
 
 int main(int argc, char **argv) {
+  if (argc==3 && std::string(argv[1])=="depth-pair") return depth_pair_mode(argc, argv);
   if (argc != 1) {
     if (argc == 2 && std::string(argv[1]) == "depth-primitives") return depth_primitives_mode(argc, argv);
     if (argc == 2 && std::string(argv[1]) == "ellipsoid") return ellipsoid_mode(argc, argv);
@@ -484,4 +487,101 @@ int depth_primitives_mode(int argc, char **argv) {
     if (!std::cout || std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("depth-primitives completion failed");
     return 0;
   } catch (const std::exception &error) { std::cerr<<error.what()<<std::endl;return 1; }
+}
+
+
+namespace {
+struct DepthPairReceived {
+  std::mutex mutex;
+  std::condition_variable changed;
+  std::optional<gz::msgs::Image> image;
+  std::optional<gz::msgs::CameraInfo> info;
+  bool accepting=true, failed=false;
+};
+void depth_pair_image(const gz::msgs::Image &image, unsigned owner) {
+  pair_require(image.has_header(), "depth-pair image header");
+  pair_header(image.header(), owner, true);
+  pair_require(image.width()==64 && image.height()==64 && image.step()==256 &&
+      image.pixel_format_type()==gz::msgs::PixelFormatType::R_FLOAT32 &&
+      image.data().size()==16384, "depth-pair type/dimensions/stride");
+  static_assert(sizeof(float)==4 && std::numeric_limits<float>::is_iec559,
+      "canonical depth uses IEEE binary32");
+  // Independently declared planar fixture. Camera-forward X=1 makes this
+  // optical-axis depth, not Euclidean range. No received value derives its
+  // own oracle: the two box-front distances and projection are literals.
+  const double front=owner==0 ? 1.8 : 2.8;
+  for (int y=0;y<64;++y) for (int x=0;x<64;++x) {
+    const auto offset=(y*64+x)*4;
+    const auto byte=[&](int n) {
+      return static_cast<std::uint32_t>(static_cast<unsigned char>(image.data()[offset+n]));
+    };
+    const std::uint32_t bits=byte(0)|(byte(1)<<8)|(byte(2)<<16)|(byte(3)<<24);
+    float actual; std::memcpy(&actual,&bits,sizeof(actual));
+    const bool occluded=std::abs((32.0-(x+0.5))/32.0*front)<=0.2 &&
+        std::abs((32.0-(y+0.5))/32.0*front)<=0.2;
+    const double expected=occluded ? front : 5.9;
+    pair_require(std::isfinite(actual) && actual>0 && std::abs(actual-expected)<1e-4,
+        "every canonical LE depth word needs its independent fixture value");
+  }
+}
+}
+int depth_pair_mode(int argc, char **argv) {
+  try {
+    pair_require(argc==3 && std::string(argv[1])=="depth-pair" &&
+        (std::string(argv[2])=="0" || std::string(argv[2])=="1"),
+        "expected closed depth-pair owner0 or owner1");
+    const unsigned owner=std::string(argv[2])=="0" ? 0u : 1u;
+    const std::string prefix=owner==0 ? "/m69/a/" : "/m69/b/";
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(20);
+    std::string image_wire,info_wire;
+    {
+      auto state=std::make_shared<DepthPairReceived>();
+      gz::transport::Node node;
+      const auto image=[state](const gz::msgs::Image &value) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if (!state->accepting || state->failed || state->image) return;
+        try {
+          pair_require(value.ByteSizeLong()<=32768,"depth-pair image cap32768");
+          state->image=value;
+        } catch (...) { state->failed=true; }
+        state->changed.notify_all();
+      };
+      const auto info=[state](const gz::msgs::CameraInfo &value) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if (!state->accepting || state->failed || state->info) return;
+        try {
+          pair_require(value.ByteSizeLong()<=16384,"depth-pair info cap16384");
+          state->info=value;
+        } catch (...) { state->failed=true; }
+        state->changed.notify_all();
+      };
+      pair_require(node.Subscribe(prefix+"image",std::function<void(const gz::msgs::Image &)>(image)) &&
+          node.Subscribe(prefix+"camera_info",std::function<void(const gz::msgs::CameraInfo &)>(info)),
+          "actual depth-pair typed subscriptions");
+      std::cout<<"ready depth pair "<<owner<<std::endl;
+      pair_require(std::cout.good(),"depth-pair readiness write");
+      {
+        std::unique_lock<std::mutex> lock(state->mutex);
+        pair_require(state->changed.wait_until(lock,deadline,[&]{return state->failed || (state->image && state->info);}),
+            "depth-pair actual receive deadline");
+        pair_require(!state->failed,"depth-pair callback failure");
+        state->accepting=false;
+        depth_pair_image(*state->image,owner);
+        pair_info(*state->info,owner);
+        pair_require(static_cast<int>(state->info->distortion().model())==0,"canonical PLUMB_BOB distortion model");
+        pair_require(state->image->SerializeToString(&image_wire) && state->info->SerializeToString(&info_wire),
+            "full canonical depth-pair serialization");
+      }
+      pair_require(node.Unsubscribe(prefix+"image") && node.Unsubscribe(prefix+"camera_info"),
+          "both owned depth subscriptions retired");
+    }
+    const std::string ready="ready depth pair "+std::to_string(owner)+"\n";
+    const std::string output="IMAGE "+pair_hex(image_wire)+"\nINFO "+pair_hex(info_wire)+
+        "\nPASS canonical depth pair "+std::to_string(owner)+"\n";
+    pair_require(ready.size()+output.size()<=65536,"per-consumer full stdout64KiB cap");
+    std::cout<<output<<std::flush;
+    pair_require(std::cout.good() && std::chrono::steady_clock::now()<deadline,
+        "canonical depth-pair completion and owned cleanup deadline");
+    return 0;
+  } catch (const std::exception &error) { std::cerr<<error.what()<<std::endl; return 1; }
 }

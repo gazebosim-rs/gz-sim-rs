@@ -2027,3 +2027,635 @@ fn pair_real_image_demand_loss_retires_only_that_worker_and_keeps_peer_cadence()
     app.shutdown();
     assert!(session.is_closed());
 }
+
+fn depth_pair_xml() -> String {
+    pair_xml()
+        .replace("type=\"camera\"", "type=\"depth_camera\"")
+        .replace("/m63/", "/m69/")
+}
+fn depth_pair_application(sim: Simulation, settings: &CameraServerOptions) -> CameraServer {
+    CameraServer::new_depth_pair(
+        sim,
+        "default",
+        options(),
+        config(),
+        NonZeroUsize::new(1).unwrap(),
+        settings,
+    )
+    .unwrap()
+}
+
+#[test]
+fn homogeneous_depth_pair_preflights_counts_types_bindings_rates_and_all_four_keys() {
+    let source = depth_pair_xml();
+    let settings = settings();
+    let opts = options();
+    let sim = load(&source);
+    let prepared = prepare_depth_pair(&sim, &opts, &settings).unwrap();
+    assert_eq!(prepared.len(), 2);
+    assert!(prepared[0].binding.id < prepared[1].binding.id);
+    assert_eq!(
+        prepared
+            .iter()
+            .flat_map(|p| [&p.config.image_key, &p.config.info_key])
+            .collect::<BTreeSet<_>>()
+            .len(),
+        4
+    );
+    for p in &prepared {
+        assert!(p.binding.current(&sim));
+    }
+    for (from, to) in [
+        ("/m69/a/image", "/m69/b/image"),
+        ("/m69/a/camera_info", "/m69/b/camera_info"),
+        ("/m69/a/image", "/m69/b/camera_info"),
+        ("/m69/a/camera_info", "/m69/b/image"),
+    ] {
+        let mut remapped = options();
+        remapped.add_topic_remap(from, to).unwrap();
+        assert!(matches!(
+            prepare_depth_pair(&load(&source), &remapped, &settings),
+            Err(CameraServerError::Camera(
+                CameraOutputError::DuplicateTopics
+            ))
+        ));
+    }
+    let empty = format!("<sdf version='1.12'><world name='default'>{SENSORS}</world></sdf>");
+    let one = xml(true).replace("type=\"camera\"", "type=\"depth_camera\"");
+    let start = source.find("<model name=\"robot_a\"").unwrap();
+    let end = start + source[start..].find("</model>").unwrap() + "</model>".len();
+    let third = source[start..end]
+        .replace("robot_a", "robot_c")
+        .replace("/m69/a/", "/m69/c/");
+    let three = source.replacen("</world>", &(third + "</world>"), 1);
+    for candidate in [empty, one, three, source.replace(SENSORS, "")] {
+        assert!(matches!(
+            prepare_depth_pair(&load(&candidate), &opts, &settings),
+            Err(CameraServerError::Camera(
+                CameraOutputError::PairCameraCount
+            ))
+        ));
+    }
+    for candidate in [
+        pair_xml(),
+        source.replacen("type=\"depth_camera\"", "type=\"camera\"", 1),
+    ] {
+        assert!(matches!(
+            prepare_depth_pair(&load(&candidate), &opts, &settings),
+            Err(CameraServerError::Camera(CameraOutputError::Snapshot(
+                SnapshotError::InvalidCamera(_)
+            )))
+        ));
+    }
+    // Strict old RGB admission must not be widened by the new factory.
+    assert!(matches!(
+        prepare_pair(&load(&source), &opts, &settings),
+        Err(CameraServerError::Camera(CameraOutputError::Snapshot(
+            SnapshotError::InvalidCamera(_)
+        )))
+    ));
+    for fault in 0..3 {
+        let mut sim = load(&source);
+        let camera = sim
+            .world()
+            .iter_entities()
+            .find(|r| {
+                r.get::<Name>()
+                    .is_some_and(|n| n.0.ends_with("robot_b::body::camera"))
+            })
+            .unwrap()
+            .id();
+        let id = sim.world().get::<EntityId>(camera).unwrap().get();
+        match fault {
+            0 => {
+                sim.world_mut().entity_mut(camera).remove::<EntityId>();
+            }
+            1 => {
+                sim.world_mut()
+                    .entity_mut(camera)
+                    .insert(Name("default::invalid".into()));
+            }
+            _ => {
+                std::sync::Arc::make_mut(
+                    &mut sim.world_mut().get_mut::<CameraSensor>(camera).unwrap().0,
+                )
+                .update_rate = f64::NAN;
+            }
+        }
+        match fault {
+            0 => assert!(matches!(
+                prepare_depth_pair(&sim, &opts, &settings),
+                Err(CameraServerError::Camera(CameraOutputError::Snapshot(
+                    SnapshotError::MissingCamera(0)
+                )))
+            )),
+            1 => assert!(
+                matches!(prepare_depth_pair(&sim, &opts, &settings), Err(CameraServerError::Camera(CameraOutputError::Snapshot(SnapshotError::MissingCamera(v)))) if v == id)
+            ),
+            _ => assert!(prepare_depth_pair(&sim, &opts, &settings).is_err()),
+        }
+        assert_eq!((sim.elapsed(), sim.epoch()), (Duration::ZERO, 0));
+    }
+}
+
+#[test]
+fn depth_pair_info_clocks_and_scalar_refusals_preserve_lazy_independent_owners() {
+    if isolation::child(
+        "application::tests::depth_pair_info_clocks_and_scalar_refusals_preserve_lazy_independent_owners",
+        30,
+    ) {
+        return;
+    }
+    let settings = settings();
+    let mut sim = load(&depth_pair_xml());
+    sim.set_paused(false);
+    let mut app = depth_pair_application(sim, &settings);
+    let ids = app.pair_ids.unwrap();
+    let session = app.pair.as_ref().unwrap().session.clone();
+    assert_eq!(app.pair_kind, PairKind::Depth);
+    let subscribers: Vec<_> = ["/m69/a/camera_info", "/m69/b/camera_info"]
+        .into_iter()
+        .map(|topic| {
+            session
+                .declare_subscriber(app.server().options().topic_key(topic).unwrap())
+                .wait()
+                .unwrap()
+        })
+        .collect();
+    let before = (
+        app.server().simulation().elapsed(),
+        app.server().simulation().epoch(),
+    );
+    for error in [
+        app.capture().map(|_| ()),
+        app.update(&settings).map(|_| ()),
+        app.pump().map(|_| ()),
+        app.camera_demand().map(|_| ()),
+    ] {
+        assert!(matches!(
+            error,
+            Err(CameraServerError::Camera(CameraOutputError::PairMode))
+        ));
+    }
+    assert_eq!(
+        (
+            app.server().simulation().elapsed(),
+            app.server().simulation().epoch()
+        ),
+        before
+    );
+    assert!(
+        matches!(app.pump_camera(u64::MAX), Err(CameraServerError::Camera(CameraOutputError::Snapshot(SnapshotError::MissingCamera(v)))) if v == u64::MAX)
+    );
+    assert!(
+        matches!(app.camera_demand_for(u64::MAX), Err(CameraServerError::Camera(CameraOutputError::Snapshot(SnapshotError::MissingCamera(v)))) if v == u64::MAX)
+    );
+    let mut stamps = [Vec::new(), Vec::new()];
+    for step in 1..=100 {
+        let update = app.tick(&settings).unwrap();
+        assert_eq!(update.sim_time, Duration::from_millis(step));
+        let rows = app.capture_all().unwrap();
+        assert_eq!(rows.len(), 2);
+        for (index, row) in rows.into_iter().enumerate() {
+            assert_eq!(row.sensor_id, ids[index]);
+            let progress = row.result.unwrap();
+            let due =
+                step == 1 || (index == 0 && step == 100) || (index == 1 && step.is_multiple_of(50));
+            if due {
+                assert_eq!(progress.requested, Some(Progress::InfoPublished));
+                let sample = subscribers[index]
+                    .recv_timeout(Duration::from_secs(2))
+                    .unwrap()
+                    .unwrap();
+                let info = CameraInfo::decode(sample.payload().to_bytes().as_ref()).unwrap();
+                assert_eq!((info.width, info.height), (64, 64));
+                let header = info.header.unwrap();
+                let stamp = header.stamp.unwrap();
+                assert_eq!(stamp.nsec, i32::try_from(step * 1_000_000).unwrap());
+                assert_eq!(
+                    header
+                        .data
+                        .iter()
+                        .find(|x| x.key == "frame_id")
+                        .unwrap()
+                        .value,
+                    [format!(
+                        "robot_{}::body::camera",
+                        if index == 0 { "a" } else { "b" }
+                    )]
+                );
+                stamps[index].push(step);
+            } else {
+                assert_eq!(progress.requested, None);
+            }
+            assert!(subscribers[index].try_recv().unwrap().is_none());
+            assert!(app.camera_worker_diagnostics(ids[index]).is_none());
+        }
+    }
+    assert_eq!(stamps, [vec![1, 100], vec![1, 50, 100]]);
+    assert!(app.server_mut().apply_local_control(WorldControl {
+        pause: true,
+        ..Default::default()
+    }));
+    for _ in 0..2 {
+        let update = app.tick(&settings).unwrap();
+        assert!(update.paused && update.dt.is_zero());
+        for row in app.capture_all().unwrap() {
+            assert_eq!(row.result.unwrap().requested, None);
+        }
+    }
+    assert_eq!(
+        app.server().simulation().elapsed(),
+        Duration::from_millis(100)
+    );
+    app.shutdown();
+    assert!(session.is_closed());
+}
+
+#[test]
+fn depth_pair_busy_acquisition_keeps_peer_clock_and_never_repeats_a_tick() {
+    if isolation::child(
+        "application::tests::depth_pair_busy_acquisition_keeps_peer_clock_and_never_repeats_a_tick",
+        30,
+    ) {
+        return;
+    }
+    let mut settings = settings();
+    settings.worker_path = "/bin/cat".into();
+    let mut sim = load(&depth_pair_xml());
+    sim.set_paused(false);
+    let mut app = depth_pair_application(sim, &settings);
+    let ids = app.pair_ids.unwrap();
+    let session = app.pair.as_ref().unwrap().session.clone();
+    let image = session
+        .declare_subscriber(app.server().options().topic_key("/m69/a/image").unwrap())
+        .wait()
+        .unwrap();
+    let info = session
+        .declare_subscriber(
+            app.server()
+                .options()
+                .topic_key("/m69/b/camera_info")
+                .unwrap(),
+        )
+        .wait()
+        .unwrap();
+    app.tick(&settings).unwrap();
+    let rows = app.capture_all().unwrap();
+    assert_eq!(
+        rows[0].result.as_ref().unwrap().requested,
+        Some(Progress::Pending)
+    );
+    assert_eq!(
+        rows[1].result.as_ref().unwrap().requested,
+        Some(Progress::InfoPublished)
+    );
+    let first = CameraInfo::decode(
+        info.recv_timeout(Duration::from_secs(2))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(first.header.unwrap().stamp.unwrap().nsec, 1_000_000);
+    let (_, lifetime) = app.camera_worker_diagnostics(ids[0]).unwrap();
+    assert!(!lifetime.is_retired());
+    for _ in 1..100 {
+        app.tick(&settings).unwrap();
+    }
+    let before = app.server().simulation().elapsed();
+    assert_eq!(before, Duration::from_millis(100));
+    // Prove typed Busy at admission before pumping the asynchronous worker.
+    let pending = &mut app
+        .pair
+        .as_mut()
+        .unwrap()
+        .outputs
+        .get_mut(&ids[0])
+        .unwrap()
+        .output;
+    assert!(matches!(
+        pending.request_due(app.server.simulation()),
+        Err(CameraOutputError::Busy)
+    ));
+    // Pumping can observe the real non-Ready worker's failure before Busy;
+    // either owner error must still leave the peer's clock progressing.
+    let rows = app.capture_all().unwrap();
+    assert_eq!(rows.len(), 2);
+    assert!(rows[0].result.is_err());
+    assert_eq!(
+        rows[1].result.as_ref().unwrap().requested,
+        Some(Progress::InfoPublished)
+    );
+    let second = CameraInfo::decode(
+        info.recv_timeout(Duration::from_secs(2))
+            .unwrap()
+            .unwrap()
+            .payload()
+            .to_bytes()
+            .as_ref(),
+    )
+    .unwrap();
+    assert_eq!(second.header.unwrap().stamp.unwrap().nsec, 100_000_000);
+    assert_eq!(app.server().simulation().elapsed(), before);
+    assert!(image.try_recv().unwrap().is_none());
+    assert_eq!(app.camera_demand_for(ids[0]).unwrap(), Some((true, false)));
+    drop(image);
+    assert_eq!(app.camera_demand_for(ids[0]).unwrap(), Some((false, false)));
+    let rows = app.capture_all().unwrap();
+    assert_eq!(
+        rows[0].result.as_ref().unwrap().pumped,
+        Some(Progress::RetireRequired)
+    );
+    assert!(lifetime.is_retired() && app.camera_worker_diagnostics(ids[0]).is_none());
+    assert!(!session.is_closed());
+    app.shutdown();
+    assert!(session.is_closed());
+}
+
+#[test]
+fn depth_pair_subset_retirement_and_loaded_reset_keep_exact_original_depth_intent() {
+    if isolation::child(
+        "application::tests::depth_pair_subset_retirement_and_loaded_reset_keep_exact_original_depth_intent",
+        30,
+    ) {
+        return;
+    }
+    use std::sync::{
+        Arc,
+        atomic::{AtomicU64, Ordering},
+    };
+    let mut sim = load(&depth_pair_xml());
+    sim.set_paused(true);
+    let remove = Arc::new(AtomicU64::new(0));
+    let trigger = Arc::clone(&remove);
+    sim.add_systems(
+        gz_sim_core::Phase::Finalize,
+        move |world: &mut bevy_ecs::world::World| {
+            let id = trigger.swap(0, Ordering::AcqRel);
+            if id != 0 {
+                let entity = entity_by_id(world, id).unwrap();
+                assert!(world.despawn(entity));
+            }
+        },
+    );
+    let settings = settings();
+    let mut app = depth_pair_application(sim, &settings);
+    let ids = app.pair_ids.unwrap();
+    let session = app.pair.as_ref().unwrap().session.clone();
+    remove.store(ids[0], Ordering::Release);
+    app.tick(&settings).unwrap();
+    let rows = app.capture_all().unwrap();
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].sensor_id, ids[1]);
+    assert!(!session.is_closed());
+    assert_eq!(app.pair_kind, PairKind::Depth);
+    assert_eq!(app.pump_camera(ids[0]).unwrap(), None);
+    assert_eq!(app.camera_demand_for(ids[0]).unwrap(), None);
+    assert!(matches!(
+        app.capture(),
+        Err(CameraServerError::Camera(CameraOutputError::PairMode))
+    ));
+    remove.store(ids[1], Ordering::Release);
+    app.tick(&settings).unwrap();
+    assert!(app.capture_all().unwrap().is_empty() && !app.has_camera_output());
+    assert!(session.is_closed());
+    assert_eq!(app.pair_ids, Some(ids));
+    assert_eq!(app.pair_kind, PairKind::Depth);
+    assert!(matches!(
+        app.update(&settings),
+        Err(CameraServerError::Camera(CameraOutputError::PairMode))
+    ));
+    assert!(app.server_mut().apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    assert!(matches!(
+        app.capture_all(),
+        Err(CameraServerError::Server(
+            gz_sim_server::Error::IoPreparationRequired
+        ))
+    ));
+    app.prepare_io(&settings).unwrap();
+    assert_eq!(
+        (
+            app.server().simulation().epoch(),
+            app.server().simulation().elapsed()
+        ),
+        (1, Duration::ZERO)
+    );
+    assert_eq!(app.pair_ids, Some(ids));
+    assert_eq!(app.pair_kind, PairKind::Depth);
+    let pair = app.pair.as_ref().unwrap();
+    assert_eq!(
+        pair.outputs.keys().copied().collect::<Vec<_>>(),
+        ids.to_vec()
+    );
+    assert!(!pair.session.is_closed());
+    for id in ids {
+        let entity = entity_by_id(app.server().simulation().world(), id).unwrap();
+        assert_eq!(
+            app.server()
+                .simulation()
+                .world()
+                .get::<CameraSensor>(entity)
+                .unwrap()
+                .0
+                .effective_type(),
+            Some(sdformat::SensorType::DepthCamera)
+        );
+        assert!(
+            pair.outputs[&id]
+                .output
+                .binding_valid(app.server().simulation())
+        );
+        assert!(app.camera_worker_diagnostics(id).is_none());
+    }
+    app.shutdown();
+}
+
+#[test]
+fn depth_pair_constructor_bind_unwind_releases_its_one_family_listener() {
+    if isolation::child(
+        "application::tests::depth_pair_constructor_bind_unwind_releases_its_one_family_listener",
+        30,
+    ) {
+        return;
+    }
+    let reserved = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = reserved.local_addr().unwrap();
+    let endpoints = format!("[\"tcp/{address}\"]");
+    let mut settings = settings();
+    settings
+        .zenoh
+        .insert_json5("listen/endpoints", &endpoints)
+        .unwrap();
+    let mut server = config();
+    server.insert_json5("listen/endpoints", &endpoints).unwrap();
+    drop(reserved);
+    let result = CameraServer::new_depth_pair(
+        load(&depth_pair_xml()),
+        "default",
+        options(),
+        server,
+        NonZeroUsize::new(1).unwrap(),
+        &settings,
+    );
+    assert!(matches!(
+        result,
+        Err(CameraServerError::Server(
+            gz_sim_server::Error::WorldNetwork(_)
+        ))
+    ));
+    // The camera family binds first; Server's actual conflicting bind fails.
+    // This rebind witnesses unwind releasing the family-owned Session.
+    let rebound = TcpListener::bind(address).unwrap();
+    assert_eq!(rebound.local_addr().unwrap(), address);
+}
+
+#[test]
+fn depth_pair_global_faults_and_failed_reset_cannot_enroll_or_change_family() {
+    if isolation::child(
+        "application::tests::depth_pair_global_faults_and_failed_reset_cannot_enroll_or_change_family",
+        40,
+    ) {
+        return;
+    }
+    let settings = settings();
+    for fault in 0..3 {
+        let mut sim = load(&depth_pair_xml());
+        sim.set_paused(false);
+        let camera = sim
+            .world()
+            .iter_entities()
+            .find(|r| r.contains::<CameraSensor>())
+            .unwrap()
+            .id();
+        let template = sim.world().get::<CameraSensor>(camera).unwrap().clone();
+        if fault != 2 {
+            sim.add_systems(
+                gz_sim_core::Phase::Finalize,
+                move |world: &mut bevy_ecs::world::World| {
+                    if fault == 0 {
+                        // A live sensor-kind drift is not legitimate disappearance.
+                        std::sync::Arc::make_mut(
+                            &mut world.get_mut::<CameraSensor>(camera).unwrap().0,
+                        )
+                        .kind = "camera".into();
+                    } else {
+                        let extra = world.spawn(template.clone()).id();
+                        gz_sim_core::assign_id(world, extra).unwrap();
+                    }
+                },
+            );
+        }
+        let mut app = depth_pair_application(sim, &settings);
+        let ids = app.pair_ids.unwrap();
+        let session = app.pair.as_ref().unwrap().session.clone();
+        let info = session
+            .declare_subscriber(
+                app.server()
+                    .options()
+                    .topic_key("/m69/b/camera_info")
+                    .unwrap(),
+            )
+            .wait()
+            .unwrap();
+        if fault == 2 {
+            session.close().wait().unwrap();
+        } else {
+            app.tick(&settings).unwrap();
+        }
+        let before = (
+            app.server().simulation().elapsed(),
+            app.server().simulation().epoch(),
+        );
+        let result = app.capture_all();
+        if fault == 2 {
+            assert!(matches!(
+                result,
+                Err(CameraServerError::Camera(CameraOutputError::SessionClosed))
+            ));
+        } else {
+            assert!(matches!(
+                result,
+                Err(CameraServerError::Camera(CameraOutputError::OwnerInvalid))
+            ));
+        }
+        assert!(app.pair.is_none() && session.is_closed());
+        assert_eq!(app.pair_ids, Some(ids));
+        assert_eq!(app.pair_kind, PairKind::Depth);
+        assert_eq!(
+            (
+                app.server().simulation().elapsed(),
+                app.server().simulation().epoch()
+            ),
+            before
+        );
+        // Session closure may disconnect the local subscriber; neither case is
+        // an actual Image/Info packet or permission to enroll the extra owner.
+        assert!(!matches!(info.try_recv(), Ok(Some(_))));
+        app.shutdown();
+    }
+    let mut app = depth_pair_application(load(&depth_pair_xml()), &settings);
+    let ids = app.pair_ids.unwrap();
+    let old_session = app.pair.as_ref().unwrap().session.clone();
+    assert!(app.server_mut().apply_local_control(WorldControl {
+        pause: true,
+        reset: Some(WorldReset {
+            all: true,
+            ..Default::default()
+        }),
+        ..Default::default()
+    }));
+    assert!(matches!(
+        app.pump_camera(ids[0]),
+        Err(CameraServerError::Server(
+            gz_sim_server::Error::IoPreparationRequired
+        ))
+    ));
+    assert!(old_session.is_closed());
+    let invalid = CameraServerOptions {
+        worker_path: settings.worker_path.clone(),
+        origin: [f64::NAN; 3],
+        zenoh: settings.zenoh.clone(),
+    };
+    assert!(matches!(
+        app.prepare_io(&invalid),
+        Err(CameraServerError::Camera(CameraOutputError::Snapshot(_)))
+    ));
+    assert!(app.pair.is_none());
+    assert_eq!(app.pair_kind, PairKind::Depth);
+    assert_eq!(app.pair_ids, Some(ids));
+    assert_eq!(
+        (
+            app.server().simulation().epoch(),
+            app.server().simulation().elapsed()
+        ),
+        (1, Duration::ZERO)
+    );
+    app.prepare_io(&settings).unwrap();
+    assert_eq!(app.pair_kind, PairKind::Depth);
+    assert_eq!(app.pair_ids, Some(ids));
+    assert_eq!(
+        app.pair
+            .as_ref()
+            .unwrap()
+            .outputs
+            .keys()
+            .copied()
+            .collect::<Vec<_>>(),
+        ids.to_vec()
+    );
+    assert!(
+        ids.into_iter()
+            .all(|id| app.camera_worker_diagnostics(id).is_none())
+    );
+    app.shutdown();
+}

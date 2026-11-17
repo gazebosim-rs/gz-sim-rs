@@ -119,7 +119,27 @@ impl Runtime {
                 .take(3)
                 .count()
                 == 2;
-            let application = if paired {
+            let depth_pair = paired
+                && simulation
+                    .world()
+                    .iter_entities()
+                    .filter_map(|entity| entity.get::<gz_sim_scene::CameraSensor>())
+                    .all(|sensor| {
+                        sensor
+                            .0
+                            .effective_type()
+                            .is_some_and(|kind| kind.as_str() == "depth_camera")
+                    });
+            let application = if depth_pair {
+                gz_camera_output::CameraServer::new_depth_pair(
+                    simulation,
+                    world,
+                    options,
+                    config,
+                    budget,
+                    &camera_options,
+                )?
+            } else if paired {
                 gz_camera_output::CameraServer::new_pair(
                     simulation,
                     world,
