@@ -203,3 +203,33 @@ This is opaque calibrated64×64 RGB using the existing finite UV approximation.
 It does not add depth ellipsoids, lighting, physics, native Ogre/analytic geometry
 or performance parity, new dependencies, or installed-worker distribution.
 M65's public Latest and 35 installed examples remain unchanged.
+
+
+### Calibrated primitive metric depth (M68 Source preparation)
+
+`Renderer::set_calibrated_primitive_depth_snapshot` installs the actual existing
+Box, capped Cylinder, Sphere and Ellipsoid meshes for the same 64×64 unlit
+calibrated metric-depth path. The cache remains one unit box, one fixed
+32-facet capped cylinder and one UV32×18 sphere shared by ellipsoids. The legacy
+Box depth API and RGB APIs retain their behavior. This is Source preparation;
+verification and M68 qualification remain pending.
+
+Admission first checks the existing conservative oriented-box near policy,
+using local dimensions `(2r,2r,length)`, `(2r,2r,2r)` or twice the ellipsoid radii.
+Every corner must be forward of the near plane. This restriction can refuse a
+curved surface that would otherwise have a safe visible patch; it does not add
+native near-range −INF semantics. The complete dimension/f32/ID/color/pose/
+calibration/count/busy preflight precedes scene mutation or capture cancellation.
+The successful primitive install then restores single-sample depth COPY_SRC
+mode. RGB transitions restore the old RGB camera mode, and both kinds share the
+same bounded capture slot until actual pending callbacks retire.
+
+Depth is optical-forward axial metres from the actual stored finite-mesh depth
+attachment, with clear and far clipping represented by positive infinity.
+Curved depth is not an ideal analytic sphere/cylinder/ellipsoid or a native
+renderer parity claim. The new software regression uses a few interior rays and
+independently constructed locked CPU meshes, explicit WorldPose/axis/scale and
+narrowed calibration, preserving the existing 1e−4 metre bound. Its oracle does
+not read installed transforms, GPU assets or output to derive expectations.
+Canonical wire, scheduling, installation and native-consumer evidence belong to
+their separate gates; this renderer API does not add packaging or depth pairs.

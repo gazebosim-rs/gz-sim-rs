@@ -46,6 +46,7 @@ jobs:
       - name: Build and validate the selected Zenoh client reference
         shell: bash
         run: |
+          python3 scripts/stage-zenoh-package-metadata.py
           python3 scripts/bootstrap-zenoh-native.py --verify-packages-only
           python3 - <<'PYCODE'
           import hashlib

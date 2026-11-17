@@ -1249,13 +1249,15 @@ fn cylinder_invalid_and_depth_geometry_fail_before_publication_admission() {
         });
     Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(camera).unwrap().0).kind =
         "depth_camera".into();
-    assert!(matches!(
-        CameraOutput::new(&sim, &session, &scope, id, config()),
-        Err(CameraOutputError::Snapshot(
-            SnapshotError::UnsupportedGeometry(_)
-        ))
-    ));
+    let mut admitted = CameraOutput::new(&sim, &session, &scope, id, config()).unwrap();
+    assert_eq!(scope.entries.lock().unwrap().len(), 2);
+    assert!(admitted.client.is_none() && admitted.acquisition.is_none());
+    assert_eq!(admitted.request(&sim).unwrap(), Progress::NoDemand);
+    assert!(admitted.client.is_none());
+    admitted.retire();
+    drop(admitted);
     assert!(scope.entries.lock().unwrap().is_empty());
+    assert!(!session.is_closed());
 }
 
 #[test]
@@ -1722,13 +1724,15 @@ fn sphere_invalid_and_depth_geometry_fail_before_publication_admission() {
         Arc::new(sdformat::Geometry::Sphere { radius: 1.0 });
     Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(camera).unwrap().0).kind =
         "depth_camera".into();
-    assert!(matches!(
-        CameraOutput::new(&sim, &session, &scope, id, config()),
-        Err(CameraOutputError::Snapshot(
-            SnapshotError::UnsupportedGeometry(_)
-        ))
-    ));
+    let mut admitted = CameraOutput::new(&sim, &session, &scope, id, config()).unwrap();
+    assert_eq!(scope.entries.lock().unwrap().len(), 2);
+    assert!(admitted.client.is_none() && admitted.acquisition.is_none());
+    assert_eq!(admitted.request(&sim).unwrap(), Progress::NoDemand);
+    assert!(admitted.client.is_none());
+    admitted.retire();
+    drop(admitted);
     assert!(scope.entries.lock().unwrap().is_empty());
+    assert!(!session.is_closed());
 }
 
 #[test]
@@ -1850,11 +1854,145 @@ fn ellipsoid_invalid_and_depth_geometry_fail_before_publication_admission() {
         });
     Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(camera).unwrap().0).kind =
         "depth_camera".into();
+    let mut admitted = CameraOutput::new(&sim, &session, &scope, id, config()).unwrap();
+    assert_eq!(scope.entries.lock().unwrap().len(), 2);
+    assert!(admitted.client.is_none() && admitted.acquisition.is_none());
+    assert_eq!(admitted.request(&sim).unwrap(), Progress::NoDemand);
+    assert!(admitted.client.is_none());
+    admitted.retire();
+    drop(admitted);
+    assert!(scope.entries.lock().unwrap().is_empty());
+    assert!(!session.is_closed());
+}
+
+#[test]
+fn depth_shape_info_and_pending_capture_keep_depth_kind_lazy_worker_and_owned_scope() {
+    let (sim, id) = {
+        let sim = load_world_with_sdf_step(
+            include_str!("../../../../examples/m68_depth_primitives.sdf"),
+            "m68-output.sdf",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::Tpe,
+        )
+        .unwrap();
+        let id = sim
+            .world()
+            .iter_entities()
+            .find_map(|row| {
+                row.contains::<gz_sim_scene::CameraSensor>()
+                    .then(|| row.get::<EntityId>().unwrap().get())
+            })
+            .unwrap();
+        (sim, id)
+    };
+    let (session, scope, limit) = session();
+    let mut output = CameraOutput::new(
+        &sim,
+        &session,
+        &scope,
+        id,
+        CameraOutputConfig {
+            origin: [0.0; 3],
+            frame_id: "rig/body/camera".into(),
+            image_key: "@/m68@/image".into(),
+            info_key: "@/m68@/info".into(),
+            worker_path: "/bin/cat".into(),
+            max_message_bytes: limit,
+        },
+    )
+    .unwrap();
+    assert_eq!(scope.entries.lock().unwrap().len(), 2);
+    assert_eq!(output.request(&sim).unwrap(), Progress::NoDemand);
+    assert!(output.client.is_none());
+    let info = session.declare_subscriber("@/m68@/info").wait().unwrap();
+    assert_eq!(output.request(&sim).unwrap(), Progress::InfoPublished);
+    assert!(output.client.is_none());
+    let packet = info.recv_timeout(Duration::from_secs(5)).unwrap().unwrap();
+    let value =
+        gz_sim_proto::msgs::CameraInfo::decode(packet.payload().to_bytes().as_ref()).unwrap();
+    assert_eq!((value.width, value.height), (64, 64));
+    assert_eq!(value.header.unwrap().data[0].value, ["rig/body/camera"]);
+    let images = session.declare_subscriber("@/m68@/image").wait().unwrap();
+    assert_eq!(output.request(&sim).unwrap(), Progress::Pending);
+    assert!(info.recv_timeout(Duration::from_secs(5)).unwrap().is_some());
+    let acquisition = output.acquisition.as_ref().unwrap();
+    assert!(acquisition.depth);
+    assert_eq!(acquisition.stamp.epoch, 0);
+    assert!(
+        matches!(&acquisition.phase, Phase::Submit(Request::CalibratedDepthShapeSnapshot { visuals, .. }) if visuals.len() == 5)
+    );
+    // cat has not supplied Ready; no depth or RGB request can be submitted.
+    for _ in 0..2 {
+        assert_eq!(output.pump(&sim).unwrap(), Progress::Backpressure);
+        assert!(matches!(
+            &output.acquisition.as_ref().unwrap().phase,
+            Phase::Submit(Request::CalibratedDepthShapeSnapshot { .. })
+        ));
+    }
+    assert_eq!(output.sequence, 0);
+    assert!(images.try_recv().unwrap().is_none());
+    output.retire();
+    assert!(output.client.is_none() && output.acquisition.is_none());
+    drop(output);
+    assert!(scope.entries.lock().unwrap().is_empty());
+    assert!(!session.is_closed());
+    assert_eq!((sim.elapsed(), sim.epoch()), (Duration::ZERO, 0));
+}
+
+#[test]
+fn depth_shape_unsupported_geometry_fails_before_transport_and_owner_reservation() {
+    use gz_sim_scene::VisualGeometry;
+    let mut sim = load_world_with_sdf_step(
+        include_str!("../../../../examples/m68_depth_primitives.sdf"),
+        "m68-unsupported.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let camera = sim
+        .world()
+        .iter_entities()
+        .find(|row| row.contains::<gz_sim_scene::CameraSensor>())
+        .unwrap()
+        .id();
+    let id = sim.world().get::<EntityId>(camera).unwrap().get();
+    let target = sim
+        .world()
+        .iter_entities()
+        .find(|row| {
+            row.get::<Name>()
+                .is_some_and(|name| name.0 == "default::ellipsoid::body::red_ellipsoid")
+        })
+        .unwrap()
+        .id();
+    sim.world_mut().get_mut::<VisualGeometry>(target).unwrap().0 =
+        Arc::new(sdformat::Geometry::Capsule {
+            radius: 0.5,
+            length: 1.0,
+        });
+    let (session, scope, limit) = session();
+    let result = CameraOutput::new(
+        &sim,
+        &session,
+        &scope,
+        id,
+        CameraOutputConfig {
+            origin: [0.0; 3],
+            frame_id: "rig/body/camera".into(),
+            image_key: "@/m68@/image".into(),
+            info_key: "@/m68@/info".into(),
+            worker_path: "/nonexistent/worker".into(),
+            max_message_bytes: limit,
+        },
+    );
     assert!(matches!(
-        CameraOutput::new(&sim, &session, &scope, id, config()),
+        result,
         Err(CameraOutputError::Snapshot(
             SnapshotError::UnsupportedGeometry(_)
         ))
     ));
     assert!(scope.entries.lock().unwrap().is_empty());
+    assert_eq!((sim.elapsed(), sim.epoch()), (Duration::ZERO, 0));
 }

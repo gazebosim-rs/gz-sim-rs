@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-17T04:22:13.840777+00:00",
+  "as_of": "2026-11-17T10:37:27.786889+00:00",
   "execution_state": "active",
-  "current_phase": "M67",
+  "current_phase": "M68",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -3093,9 +3093,9 @@
       "implementation_started": true,
       "implementation_complete": true,
       "independent_source_review_complete": true,
-      "accepted": false,
-      "checks_run": false,
-      "current_stage": "Complete implementation, meaningful regressions, guides and all independent Source reviews are clear. The single affected formatter passed; final Source bindings precede unchanged normal/strict qualification. No product check or build yet.",
+      "accepted": true,
+      "checks_run": true,
+      "current_stage": "All normal/strict/local/exact hosted/official/durable/Main gates passed. Exact accepted Maincba09; M65 remains Latest/install35.",
       "installed_accepted_examples": 35,
       "source_finite_example_obligations": 39,
       "auxiliary_RGB_obligations": 12,
@@ -3109,7 +3109,185 @@
         "overlap": 1,
         "Python": 4,
         "separate_borrowed_renderer_support": 2
+      },
+      "qualification_state": "accepted_published_Main",
+      "accepted_predecessor_commit": "1b0c3be1af7c751987df53b4b96269236f7ae9c5",
+      "locally_qualified_commit": "cba09f1c088b5b8b328516c8f31aaf554229f1db",
+      "locally_qualified_tree": "d03ef2094795c732f12a9183d912547e602c693a",
+      "local_qualification": {
+        "commit": "cba09f1c088b5b8b328516c8f31aaf554229f1db",
+        "tree": "d03ef2094795c732f12a9183d912547e602c693a",
+        "parent": "1b0c3be1af7c751987df53b4b96269236f7ae9c5",
+        "full_normal_passed": true,
+        "independent_local_DATA_passed": true,
+        "headless_passed": 2048,
+        "renderer_overlapping_passed": 1270,
+        "Python_aggregate": 480,
+        "finite_examples": 39,
+        "RGB_CLI_cases": 12,
+        "actual_new_Rust_controls": {
+          "headless": 1,
+          "renderer": 21
+        },
+        "actual_new_shared_support_controls": {
+          "headless": 0,
+          "renderer": 2
+        },
+        "raw_comparisons_once_LAST": 4,
+        "hosted_run": 44024955758,
+        "hosted_attempt": 1,
+        "hosted_success": true,
+        "official_DATA_success": true,
+        "accepted": true
+      },
+      "accepted_commit": "cba09f1c088b5b8b328516c8f31aaf554229f1db",
+      "acceptance_evidence": "docs/M67_ACCEPTANCE.md"
+    },
+    {
+      "id": "M68",
+      "title": "Curved primitives in calibrated metric-depth snapshots",
+      "max_working_days": 5,
+      "depends_on": [
+        "M67"
+      ],
+      "scope": "One calibrated64x64 depth camera using current Box/Cylinder/Sphere/Ellipsoid meshes, explicit protocol7 depth-shape request and existing R_FLOAT32 Image output.",
+      "acceptance": "Complete implementation, meaningful regressions, guides and independent Source review; actual accepted M67 parent before one consolidated normal/strict/local DATA cycle, real finite-mesh depth and canonical consumer, exact hosted/official/durable/Main gates.",
+      "excluded": "Depth noise, pointcloud/RGBD/multiplicity, lighting/material/physics changes, packages/worker distribution, new dependencies/SDK/framework or analytic/native/performance parity.",
+      "evidence": "docs/M68_DELIVERY.md",
+      "source_preparation_basis_commit": "cba09f1c088b5b8b328516c8f31aaf554229f1db",
+      "source_preparation_basis_accepted": true,
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_started_at": "2026-11-17T05:42:11.759764+00:00",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": false,
+      "accepted": false,
+      "checks_run": false,
+      "current_stage": "Prepare exact signed-metadata input delivery after two pre-product hosted HTTP503 failures. Original runtime is locally qualified; the changed repair source still needs independent integration review and all full normal/strict/local/hosted/official/Main gates.",
+      "installed_accepted_examples": 35,
+      "predecessor_acceptance_required_before_checks": true,
+      "scope_independent_source_review_complete": true,
+      "accepted_predecessor_commit": "cba09f1c088b5b8b328516c8f31aaf554229f1db",
+      "source_control_declarations": {
+        "Rust_unique": 21,
+        "headless": 1,
+        "renderer": 21,
+        "overlap": 1,
+        "Python": 16,
+        "separate_borrowed_renderer_support": 2,
+        "Python_runtime_feature": 4,
+        "Python_CI_input_delivery": 12
+      },
+      "source_finite_example_obligations": 40,
+      "auxiliary_RGB_obligations": 13,
+      "formatter_run": true,
+      "formatter_actual_exit": 0,
+      "qualification_state": "signed_metadata_delivery_repair_source_integration_pending",
+      "prior_normal_failure": {
+        "tree": "3f00c975c54cb0e9ef9f4aa28d0016b908cd5a50",
+        "actual_Git_controller_wait_exit": 1,
+        "both_reaped": true,
+        "seconds": 290.1780048260043,
+        "Python_run": 484,
+        "Python_failures": 1,
+        "case": "DisabledBackendProof.test_rgb_requires_every_named_case_without_failure_or_skip",
+        "full_H_R_aux_coverage_reached": false
+      },
+      "prior_normal_attempt2_failure": {
+        "tree": "d44608c5ee3f28c0ea4d8b18bbc645967ef18430",
+        "actual_Git_controller_wait_exit": 1,
+        "both_reaped": true,
+        "seconds": 2050.9084753309944,
+        "headless_passed": 2049,
+        "renderer_passed": 1292,
+        "renderer_failed": 1,
+        "Python_aggregate": 484,
+        "finite_examples": 40,
+        "RGB_CLI": 13,
+        "case": "tests::depth_shape_wire_rejects_malformed_and_nonfinite_inputs_before_writing",
+        "renderer_coverage_produced": false
+      },
+      "original_runtime_local_qualification": {
+        "commit": "103fd9275637a1a18f416320c08893dcb2ecff75",
+        "tree": "6fe3032b3475383415cf0b6cb35699fa9b7e2b61",
+        "full_normal_actual_exit": 0,
+        "independent_local_DATA": true,
+        "headless": 2049,
+        "renderer_overlapping": 1293,
+        "Python_aggregate": 484,
+        "finite_examples": 40,
+        "RGB_cases": 13,
+        "raw_counts_once_LAST": [
+          1855,
+          504,
+          54,
+          57
+        ]
+      },
+      "normal_passed": false,
+      "local_DATA_passed": false,
+      "locally_verified_commit": null,
+      "hosted_failures": [
+        {
+          "run": 44049236320,
+          "attempt": 1,
+          "head": "103fd9275637a1a18f416320c08893dcb2ecff75",
+          "actual_watch_exit": 1,
+          "step5_APT": "success",
+          "failed_step6": "Signed Packages.xz HTTP503 before vendor/build/product",
+          "product_checks": "skipped",
+          "provider_cause": "UNKNOWN"
+        },
+        {
+          "run": 44049236320,
+          "attempt": 2,
+          "head": "103fd9275637a1a18f416320c08893dcb2ecff75",
+          "actual_watch_exit": 1,
+          "step5_APT": "success",
+          "failed_step6": "Signed Packages.xz HTTP503 before vendor/build/product",
+          "product_checks": "skipped",
+          "provider_cause": "UNKNOWN"
+        }
+      ],
+      "input_delivery_repair": {
+        "archive_SHA256": "2eed96d6cb8c6b4d6cc5f61e35c81713254fd1906182354d0123d79ba17046e6",
+        "archive_bytes": 22428672,
+        "original_body_bytes": 22421298,
+        "members": 9,
+        "producer_actual_exit": 0,
+        "independent_archive_DATA": true,
+        "upload_performed": false,
+        "runtime_and_8SDK_inputs_unchanged": true,
+        "normal_run": false,
+        "accepted": false
       }
+    },
+    {
+      "id": "M69",
+      "title": "Two independently demanded calibrated depth cameras",
+      "max_working_days": 5,
+      "depends_on": [
+        "M68"
+      ],
+      "scope": "Exactly two homogeneous calibrated 64 by 64 depth cameras with independent demand, rates, workers and canonical metric-depth outputs through a separate depth-pair API.",
+      "acceptance": "Complete implementation, meaningful regressions, guide and independent Source review; actual M68 acceptance before any checks. Then require a fresh full normal, strict actual-parent coverage, independent local DATA, exact hosted CI, durable originals, official audit and Main promotion.",
+      "excluded": "RGBD registration, point clouds, noise, dynamic registration, renderer or physics changes, new dependencies or SDK/framework, package refresh, analytic/native Ogre/performance parity.",
+      "evidence": "docs/M68_SIGNED_INPUTS.md",
+      "source_preparation_basis_commit": "103fd9275637a1a18f416320c08893dcb2ecff75",
+      "source_preparation_basis_accepted": false,
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_started_at": "2026-11-17T08:45:47.683966+00:00",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": true,
+      "scope_independent_source_review_complete": true,
+      "accepted": false,
+      "checks_run": false,
+      "current_stage": "All source lanes, cross-seam review and initial control census are independently reviewed. Frozen until finally accepted M68 repair parent adoption and final Source bindings; no checks ran.",
+      "installed_accepted_examples": 35,
+      "predecessor_acceptance_required_before_checks": true,
+      "qualification_state": "source_in_progress_checks_held_for_M68_acceptance",
+      "preformat_census_final_bindings": false
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -3180,12 +3358,15 @@
     "M64": "complete",
     "M65": "complete",
     "M66": "complete",
-    "M67": "in_progress"
+    "M67": "complete",
+    "M68": "in_progress",
+    "M69": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-17T04:22:13.840777+00:00",
   "active_phases": [
-    "M67"
+    "M68",
+    "M69"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -3512,41 +3693,48 @@
       ],
       "integration": "M61\u2013M64 exact192ede local normal/DATA passed; hosted/official/Main closeout stays separate while disjoint M65 package/helper Source preparation proceeds over192ede. Actual predecessor acceptance and complete independent Source review precede any M65 checks. Every feature/distribution proof remains mandatory; Root alone releases serial heavy operations, no result transfer.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M67",
+        "M68"
+      ],
+      "integration": "M67 exact cba09 local normal/DATA passed and hosted/official/Main closeout continues. Isolated M68 Source preparation may proceed over locally qualified cba09; no formatter/tests/build/native or qualification before actual M67 acceptance and complete independent Source review. Any predecessor correction requires affected adoption/review; no result transfer.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M66/199 accepted at exact Main1b0c. M65 public Latest/install35 unchanged. M67 is new unqualified Source work; all own gates mandatory.",
+  "acceptance_boundary": "M1\u2013M67 and 200 reviewed slices accepted. Original M68 runtime103fd passed full local normal/DATA, but two hosted attempts failed HTTP503 before product. New isolated signed-input delivery repair is Source complete pending integration review/full qualification. M69 reviewed Source is frozen until finally accepted repair parent adoption. M65 remains Latest/install35.",
   "current_delivery_group": [
-    "M67"
+    "M68"
   ],
-  "current_development_phase": "M67",
+  "current_development_phase": "M68",
   "board": {
-    "updated_at": "2026-11-17T04:22:13.840777+00:00",
+    "updated_at": "2026-11-17T10:37:27.786889+00:00",
     "current": {
-      "title": "Adding ellipsoid visuals to RGB cameras",
+      "title": "Signed-input delivery repair and reviewed depth pairs",
       "items": [
-        "M66 sphere visuals are accepted after full normal, strict coverage, exact hosted CI and independent audits.",
-        "M67 adds opaque ellipsoid visuals using the existing sphere mesh. Renderer, scene and protocol work use disjoint lanes with independent review.",
-        "Parallel implementation is underway after contract review. Tests run after the complete feature; the installed release stays unchanged."
+        "Primitive depth is locally verified. Two hosted attempts stopped on snapshot HTTP 503s; a signed-input delivery fix is under review.",
+        "Two-depth-camera implementation and regression source are reviewed; execution waits for M68 acceptance.",
+        "M1\u2013M67 and 200 reviewed slices remain accepted; M65 stays Latest with 35 installed examples."
       ]
     },
     "done": [
-      "M1\u2013M66 and 199 reviewed slices are accepted.",
-      "M66 software-rendered spheres and canonical Image/CameraInfo checks passed all gates.",
+      "M1\u2013M67 and 200 reviewed slices are accepted.",
+      "M67 RGB ellipsoid pixels and canonical consumer passed every required gate.",
       "M65 remains the public Latest preview with 35 installed examples."
     ],
     "next": [
-      "Finish ellipsoid implementation, meaningful regressions and guides; batch independent review findings.",
-      "Run one consolidated normal and strict coverage cycle after the complete feature.",
-      "Retain exact hosted, official audit and Main gates before accepting M67."
+      "Finish the exact signed-input delivery repair and every required verification gate, then complete primitive-depth acceptance.",
+      "Adopt accepted M68 in the reviewed depth-pair source, then run its consolidated checks and remaining acceptance gates."
     ],
     "blocker": {
-      "text": "",
-      "url": "https://github.com/gazebosim-rs/gz-sim-rs/commit/1b0c3be1af7c751987df53b4b96269236f7ae9c5"
+      "text": "Two hosted attempts failed on snapshot HTTP 503s; the exact signed-input delivery repair still needs qualification.",
+      "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44049236320/attempts/2"
     },
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M67"
+    "M69"
   ],
   "camera_integration": {
     "scope": "Atomic M61\u2013M64 qualification on accepted M60; no new phase",

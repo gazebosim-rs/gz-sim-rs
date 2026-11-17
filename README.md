@@ -1,20 +1,34 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-## Current delivery
+## Current development: M68 signed-input delivery repair
 
-[M66 is accepted](docs/M66_ACCEPTANCE.md). The
-[Ubuntu preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m65-preview)
-is public and Latest with 35 installed examples, including eight drive robots
-and eight controller chains. M1–M66 contain 199 accepted slices.
+M1–M67 and 200 reviewed slices are accepted at Main
+`cba09f1c088b5b8b328516c8f31aaf554229f1db`. The original M68 primitive-depth
+runtime at `103fd927` passed full local verification, strict coverage and
+independent DATA. Both exact hosted attempts stopped before product checks on
+an Ubuntu snapshot package-index HTTP 503. Their original logs and failure DATA
+remain retained; the exact failed suite/component and provider cause are unknown.
 
-Current development is [M67: RGB ellipsoid visuals](docs/M67_DELIVERY.md), through
-the existing calibrated camera path. Renderer and scene/canonical consumer work
-have separate owners and independent Source review. The installed release and
-accepted viewer remain unchanged; RGB/depth-worker distribution is excluded.
-Complete implementation, meaningful regressions, documentation and independent
-review precede the consolidated normal, strict coverage and hosted/audit gates.
-No M67 test or qualification result is claimed yet. See the
-[current board](https://gazebosim-rs.github.io/rewrite-progress/).
+This isolated [repair](docs/M68_SIGNED_INPUTS.md) preserves every original Rust,
+Cargo, fixture, protocol and native SDK input byte. A narrow CI stager delivers
+nine exact signed metadata bodies from a fixed hash-pinned archive; the existing
+bootstrap still runs all signature, hash, size and package-record checks. One
+reviewed data assembly produced 22,428,672 archive bytes, independently checked
+against all nine original bodies. The new source candidate is not qualified yet.
+
+Finish the manifest/workflow/guidance integration review and all Source findings,
+then run one unchanged full normal/strict actual-parent/local DATA cycle. All
+hosted, durable-original, official-audit and Main gates remain mandatory. Source
+input publication has a separate reviewed no-clobber action; it is not released
+by this text. Reuse exact unchanged Rust formatting evidence; the full normal
+still checks formatting. No per-edit tests or lint.
+
+M69's two-depth-camera implementation, regression Source and independent reviews
+are complete in its separate frozen checkout. Adopt and review the finally
+accepted M68 repair parent before any M69 formatting or checks. M70 is a read-only
+installed-worker proposal, not selected. M65 stays public Latest with 35 installed
+examples and the unchanged accepted viewer bytes and budgets. Preserve Fuel,
+originals, caches, pending trees and every failure. Root serializes heavy work.
 
 Earlier checkpoints below retain their historical scope.
 

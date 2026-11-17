@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "profile": "ubuntu-zenoh-native-package-metadata-archive-v1",
+  "snapshot": "20261024T000000Z",
+  "url": "https://github.com/gazebosim-rs/gz-sim-rs/releases/download/native-build-inputs-v1/ubuntu-20261024T000000Z-zenoh-package-metadata.tar",
+  "sha256": "2eed96d6cb8c6b4d6cc5f61e35c81713254fd1906182354d0123d79ba17046e6",
+  "size": 22428672
+}

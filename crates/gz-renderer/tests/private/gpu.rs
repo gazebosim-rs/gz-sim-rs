@@ -2226,3 +2226,300 @@ fn ellipsoid_busy_depth_and_buffered_retirement_preserve_single_capture_ownershi
         meshes
     );
 }
+
+#[test]
+fn primitive_depth_refusals_preserve_pending_mode_assets_and_conservative_near_policy() {
+    let mut renderer = Renderer::new().unwrap();
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    let calibration = primitive_calibration();
+    let mut scene = PrimitiveSnapshot {
+        epoch: 401,
+        time: Duration::from_millis(3),
+        origin: DVec3::ZERO,
+        visuals: vec![PrimitiveVisual::Sphere(primitive_sphere())],
+    };
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    renderer.snapshot_dirty = false;
+    // Buffered RGB callback fixture proves ownership, not rendered pixels.
+    let pixels = Arc::new(Mutex::new(Some(Some(vec![
+        0;
+        (WIDTH * HEIGHT * 4) as usize
+    ]))));
+    renderer.pending = Some(Pending {
+        epoch: 401,
+        time: scene.time,
+        valid: true,
+        pixels: pixels.clone(),
+    });
+    let entity = renderer.visuals[&1].entity;
+    let meshes = renderer.app.world().resource::<Assets<Mesh>>().len();
+    let materials = renderer
+        .app
+        .world()
+        .resource::<Assets<StandardMaterial>>()
+        .len();
+    let original = scene.clone();
+    let mut invalid = Vec::new();
+    for radius in [
+        0.0,
+        -1.0,
+        f64::NAN,
+        f64::INFINITY,
+        f64::MAX,
+        f64::MIN_POSITIVE,
+    ] {
+        let mut v = primitive_sphere();
+        v.radius = radius;
+        invalid.push(PrimitiveVisual::Sphere(v));
+    }
+    let mut cylinder = primitive_cylinder();
+    cylinder.length = 0.0;
+    invalid.push(PrimitiveVisual::Cylinder(cylinder));
+    for axis in 0..3 {
+        let mut v = primitive_ellipsoid();
+        v.radii[axis] = f64::MAX;
+        invalid.push(PrimitiveVisual::Ellipsoid(v));
+    }
+    let mut bad_color = primitive_sphere();
+    bad_color.color[1] = f32::NAN;
+    invalid.push(PrimitiveVisual::Sphere(bad_color));
+    let mut bad_id = primitive_sphere();
+    bad_id.id = 0;
+    invalid.push(PrimitiveVisual::Sphere(bad_id));
+    let mut bad_pose = primitive_sphere();
+    bad_pose.pose.rotation = glam::DQuat::from_xyzw(0., 0., 0., 0.);
+    invalid.push(PrimitiveVisual::Sphere(bad_pose));
+    for visual in invalid {
+        scene.visuals = vec![visual];
+        assert!(
+            renderer
+                .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+                .is_err()
+        );
+        assert_eq!(renderer.stamp, Some((original.epoch, original.time)));
+        assert!(renderer.pending.as_ref().unwrap().valid);
+        assert!(Arc::ptr_eq(
+            &renderer.pending.as_ref().unwrap().pixels,
+            &pixels
+        ));
+        assert_eq!(renderer.visuals[&1].entity, entity);
+        assert_eq!(
+            renderer.app.world().resource::<Assets<Mesh>>().len(),
+            meshes
+        );
+        assert_eq!(
+            renderer
+                .app
+                .world()
+                .resource::<Assets<StandardMaterial>>()
+                .len(),
+            materials
+        );
+        assert!(renderer.cylinder_mesh.is_none() && renderer.depth_calibration.is_some());
+        assert_eq!(
+            *renderer.app.world().get::<Msaa>(renderer.camera).unwrap(),
+            Msaa::Off
+        );
+    }
+    scene = original.clone();
+    scene.visuals.push(scene.visuals[0].clone());
+    assert!(matches!(
+        renderer.set_calibrated_primitive_depth_snapshot(&scene, calibration, camera),
+        Err(RenderError::InvalidIds)
+    ));
+    scene.visuals = (1..=129)
+        .map(|id| {
+            let mut v = primitive_sphere();
+            v.id = id;
+            PrimitiveVisual::Sphere(v)
+        })
+        .collect();
+    assert!(matches!(
+        renderer.set_calibrated_primitive_depth_snapshot(&scene, calibration, camera),
+        Err(RenderError::InvalidIds)
+    ));
+    let wrong_size = Calibration::from_horizontal_fov(32, 64, 1.0, 0.1, 100.).unwrap();
+    assert!(matches!(
+        renderer.set_calibrated_primitive_depth_snapshot(&original, wrong_size, camera),
+        Err(RenderError::InvalidCameraDimensions)
+    ));
+    let invalid_camera = WorldPose {
+        translation: DVec3::splat(f64::NAN),
+        ..camera
+    };
+    assert!(
+        renderer
+            .set_calibrated_primitive_depth_snapshot(&original, calibration, invalid_camera)
+            .is_err()
+    );
+    // An enclosing OBB can intersect the near plane even when a curved primitive's
+    // visible curved patch would be safe: retain the old conservative policy.
+    let mut near = primitive_ellipsoid();
+    near.pose.translation = DVec3::new(0.5, 0., 0.);
+    near.radii = DVec3::new(0.1, 1.0, 0.1);
+    near.pose.rotation = glam::DQuat::from_rotation_z(std::f64::consts::FRAC_PI_4);
+    scene.visuals = vec![PrimitiveVisual::Ellipsoid(near)];
+    assert!(matches!(
+        renderer.set_calibrated_primitive_depth_snapshot(&scene, calibration, camera),
+        Err(RenderError::DepthNearClip)
+    ));
+    assert!(renderer.pending.as_ref().unwrap().valid && renderer.depth_calibration.is_some());
+    assert_eq!(renderer.stamp, Some((original.epoch, original.time)));
+    renderer.snapshot_dirty = true;
+    assert!(matches!(
+        renderer.set_calibrated_primitive_depth_snapshot(&original, calibration, camera),
+        Err(RenderError::SnapshotBusy)
+    ));
+    assert!(renderer.pending.as_ref().unwrap().valid);
+    renderer.snapshot_dirty = false;
+    scene.visuals = (1..=128)
+        .map(|id| {
+            let mut v = primitive_sphere();
+            v.id = id;
+            PrimitiveVisual::Sphere(v)
+        })
+        .collect();
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    assert_eq!(renderer.visuals.len(), 128);
+    assert!(!renderer.pending.as_ref().unwrap().valid);
+    assert!(renderer.take_frame().unwrap().is_none());
+    assert!(!renderer.readback_in_flight());
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        meshes
+    );
+}
+
+#[test]
+fn primitive_depth_selected_meshes_and_rgb_transitions_keep_three_asset_ownership() {
+    let mut renderer = Renderer::new().unwrap();
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    let calibration = primitive_calibration();
+    let initial_meshes = renderer.app.world().resource::<Assets<Mesh>>().len();
+    let mut scene = PrimitiveSnapshot {
+        epoch: 410,
+        time: Duration::ZERO,
+        origin: DVec3::ZERO,
+        visuals: vec![],
+    };
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    assert!(renderer.cylinder_mesh.is_none() && renderer.sphere_mesh.is_none());
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        initial_meshes
+    );
+    let depth_usage = renderer
+        .app
+        .world()
+        .get::<Camera3d>(renderer.camera)
+        .unwrap()
+        .depth_texture_usages
+        .0;
+    assert_eq!(
+        depth_usage,
+        (wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC).bits()
+    );
+    let mut cylinder = primitive_cylinder();
+    cylinder.id = 2;
+    let mut ellipsoid = primitive_ellipsoid();
+    ellipsoid.id = 3;
+    scene.visuals = vec![
+        PrimitiveVisual::Sphere(primitive_sphere()),
+        PrimitiveVisual::Cylinder(cylinder),
+        PrimitiveVisual::Ellipsoid(ellipsoid),
+    ];
+    renderer.snapshot_dirty = false;
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        initial_meshes + 2
+    );
+    let sphere = renderer.sphere_mesh.as_ref().unwrap().clone();
+    let cylinder = renderer.cylinder_mesh.as_ref().unwrap().clone();
+    for (id, mesh) in [(1, &sphere), (2, &cylinder), (3, &sphere)] {
+        assert_eq!(
+            &renderer
+                .app
+                .world()
+                .get::<Mesh3d>(renderer.visuals[&id].entity)
+                .unwrap()
+                .0,
+            mesh
+        );
+    }
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        if renderer.ready {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    assert!(renderer.ready);
+    let render_world = renderer.app.get_sub_app_mut(RenderApp).unwrap().world_mut();
+    let selected = render_world
+        .resource_mut::<RenderAssets<RenderMesh>>()
+        .remove(sphere.id())
+        .unwrap();
+    assert!(!renderer.scene_assets_ready());
+    renderer
+        .app
+        .get_sub_app_mut(RenderApp)
+        .unwrap()
+        .world_mut()
+        .resource_mut::<RenderAssets<RenderMesh>>()
+        .insert(sphere.id(), selected);
+    assert!(renderer.scene_assets_ready());
+    renderer
+        .set_calibrated_primitive_snapshot(&scene, calibration, camera)
+        .unwrap();
+    assert!(renderer.depth_calibration.is_none());
+    assert_eq!(
+        *renderer.app.world().get::<Msaa>(renderer.camera).unwrap(),
+        Msaa::default()
+    );
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NoDepthSnapshot)
+    ));
+    renderer.snapshot_dirty = false;
+    scene.epoch += 1;
+    scene.visuals.clear();
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    assert!(renderer.visuals.is_empty());
+    assert!(renderer.depth_calibration.is_some());
+    assert_eq!(
+        *renderer.app.world().get::<Msaa>(renderer.camera).unwrap(),
+        Msaa::Off
+    );
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        initial_meshes + 2
+    );
+    renderer.app.world_mut().resource_mut::<DeviceFailure>().0 =
+        Some(StoppedReason::Device("primitive depth lost device".into()));
+    assert!(matches!(
+        renderer.set_calibrated_primitive_depth_snapshot(&scene, calibration, camera),
+        Err(RenderError::RenderStopped(_))
+    ));
+    assert!(renderer.visuals.is_empty() && renderer.depth_calibration.is_some());
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        initial_meshes + 2
+    );
+}

@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::io::{self, Read, Write};
 
-pub const PROTOCOL_VERSION: u16 = 6;
+pub const PROTOCOL_VERSION: u16 = 7;
 const MAX_MESSAGE: usize = 131_072;
 const MAX_VISUALS: usize = 128;
 const PIXELS: usize = 64 * 64 * 4;
@@ -17,7 +17,7 @@ pub struct Visual {
     pub size: [f64; 3],
     pub color: [f32; 3],
 }
-/// Required geometry in the version-six calibrated RGB shape path.
+/// Required geometry in the version-seven calibrated RGB shape path.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub enum Geometry {
@@ -90,6 +90,13 @@ pub enum Request {
         stamp: Stamp,
         origin: [f64; 3],
         visuals: Vec<Visual>,
+        camera: Box<Camera>,
+    },
+    CalibratedDepthShapeSnapshot {
+        request_id: u64,
+        stamp: Stamp,
+        origin: [f64; 3],
+        visuals: Vec<ShapeVisual>,
         camera: Box<Camera>,
     },
     Capture {
@@ -240,6 +247,13 @@ impl Request {
                 camera,
             } => valid_snapshot(*request_id, stamp, origin, visuals) && valid_camera(camera),
             Self::CalibratedShapeSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera,
+            }
+            | Self::CalibratedDepthShapeSnapshot {
                 request_id,
                 stamp,
                 origin,

@@ -560,7 +560,7 @@ fn reject_depth_reply(reply: &Reply) {
 #[test]
 fn calibrated_depth_snapshot_preserves_all_wire_fields_and_version_three() {
     // Historical test ID is retained; its depth payload is unchanged in version5.
-    assert_eq!(PROTOCOL_VERSION, 6);
+    assert_eq!(PROTOCOL_VERSION, 7);
     let request = depth_snapshot();
     let mut wire = Vec::new();
     write_request(&mut wire, &request).unwrap();
@@ -806,7 +806,7 @@ fn shape_snapshot() -> Request {
 }
 #[test]
 fn version_four_shapes_preserve_explicit_geometry_and_all_f64_fields() {
-    assert_eq!(PROTOCOL_VERSION, 6);
+    assert_eq!(PROTOCOL_VERSION, 7);
     let request = shape_snapshot();
     let mut wire = Vec::new();
     write_request(&mut wire, &request).unwrap();
@@ -973,7 +973,7 @@ fn sphere_shape_snapshot() -> Request {
 
 #[test]
 fn version_five_sphere_wire_preserves_mixed_shapes_and_exact_old_payloads() {
-    assert_eq!(PROTOCOL_VERSION, 6);
+    assert_eq!(PROTOCOL_VERSION, 7);
     let request = sphere_shape_snapshot();
     let mut wire = Vec::new();
     write_request(&mut wire, &request).unwrap();
@@ -1114,7 +1114,7 @@ fn ellipsoid_shape_snapshot() -> Request {
 
 #[test]
 fn version_six_ellipsoid_wire_preserves_semiaxes_and_every_old_shape_payload() {
-    assert_eq!(PROTOCOL_VERSION, 6);
+    assert_eq!(PROTOCOL_VERSION, 7);
     let request = ellipsoid_shape_snapshot();
     let mut wire = Vec::new();
     write_request(&mut wire, &request).unwrap();
@@ -1214,6 +1214,172 @@ fn ellipsoid_wire_keeps_shared_total_cap_and_finite_only_admission_boundary() {
                 visuals[3].geometry = Geometry::Ellipsoid { radii };
             }
             assert!(request.wire_valid());
+        }
+    }
+}
+
+fn depth_shape_snapshot() -> Request {
+    let Request::CalibratedShapeSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        camera,
+    } = ellipsoid_shape_snapshot()
+    else {
+        unreachable!()
+    };
+    Request::CalibratedDepthShapeSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        camera,
+    }
+}
+
+#[test]
+fn version_seven_depth_shapes_preserve_all_geometries_and_legacy_depth_bytes() {
+    assert_eq!(PROTOCOL_VERSION, 7);
+    let request = depth_shape_snapshot();
+    let mut wire = Vec::new();
+    write_request(&mut wire, &request).unwrap();
+    assert_eq!(read_request(&mut wire.as_slice()).unwrap(), Some(request));
+    let value: serde_json::Value = serde_json::from_slice(&wire[4..]).unwrap();
+    let rgb = serde_json::to_value(ellipsoid_shape_snapshot()).unwrap();
+    assert_eq!(
+        value["CalibratedDepthShapeSnapshot"],
+        rgb["CalibratedShapeSnapshot"]
+    );
+    let legacy = depth_snapshot();
+    wire.clear();
+    write_request(&mut wire, &legacy).unwrap();
+    assert_eq!(&wire[4..], serde_json::to_vec(&legacy).unwrap());
+    assert!(
+        !std::str::from_utf8(&wire[4..])
+            .unwrap()
+            .contains("geometry")
+    );
+    let mut reply = Vec::new();
+    let depth = Reply::DepthFrame {
+        request_id: 1,
+        stamp: Stamp {
+            epoch: 2,
+            seconds: 3,
+            nanoseconds: 4,
+        },
+        metres_le: [1.25_f32.to_le_bytes(), f32::INFINITY.to_le_bytes()]
+            .into_iter()
+            .cycle()
+            .take(64 * 64)
+            .flatten()
+            .collect(),
+    };
+    write_reply(&mut reply, &depth).unwrap();
+    assert_eq!(read_reply(&mut reply.as_slice()).unwrap(), Some(depth));
+}
+
+#[test]
+fn depth_shape_wire_rejects_malformed_and_nonfinite_inputs_before_writing() {
+    let base = serde_json::to_value(depth_shape_snapshot()).unwrap();
+    for fault in 0..7 {
+        let mut value = base.clone();
+        let body = value["CalibratedDepthShapeSnapshot"]
+            .as_object_mut()
+            .unwrap();
+        match fault {
+            0 => {
+                body.remove("camera");
+            }
+            1 => {
+                body.insert("unexpected".into(), serde_json::json!(true));
+            }
+            2 => {
+                body.get_mut("visuals").unwrap()[3]["geometry"] =
+                    serde_json::json!({"Ellipsoid":{"radii":[0.5,0.6]}})
+            }
+            3 => {
+                body.get_mut("visuals").unwrap()[3]["geometry"] =
+                    serde_json::json!({"Ellipsoid":{"radii":[0.5,0.6,null]}})
+            }
+            4 => {
+                body.get_mut("visuals").unwrap()[1]["geometry"] =
+                    serde_json::json!({"Cylinder":{"radius":0.5}})
+            }
+            5 => {
+                body.get_mut("visuals").unwrap()[2]["geometry"] =
+                    serde_json::json!({"Sphere":{"radius":0.5,"extra":0}})
+            }
+            _ => {
+                body.remove("origin");
+            }
+        }
+        reject_shape_json(value);
+    }
+    let json = serde_json::to_string(&base).unwrap();
+    let request_id = base["CalibratedDepthShapeSnapshot"]["request_id"]
+        .as_u64()
+        .unwrap();
+    let member = format!("\"request_id\":{request_id}");
+    assert_eq!(json.matches(&member).count(), 1);
+    let duplicate = json.replacen(&member, &format!("{member},{member}"), 1);
+    assert_ne!(duplicate, json);
+    let mut frame = (duplicate.len() as u32).to_le_bytes().to_vec();
+    frame.extend(duplicate.bytes());
+    assert!(read_request(&mut frame.as_slice()).is_err());
+    for axis in 0..3 {
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            let mut request = depth_shape_snapshot();
+            if let Request::CalibratedDepthShapeSnapshot { visuals, .. } = &mut request {
+                let mut radii = [0.5, 0.6, 0.35];
+                radii[axis] = value;
+                visuals[3].geometry = Geometry::Ellipsoid { radii };
+            }
+            let mut bytes = Vec::new();
+            assert!(!request.wire_valid());
+            assert!(write_request(&mut bytes, &request).is_err());
+            assert!(bytes.is_empty());
+        }
+    }
+}
+
+#[test]
+fn depth_shapes_share_visual_cap_and_keep_finite_only_wire_admission() {
+    let mut request = depth_shape_snapshot();
+    if let Request::CalibratedDepthShapeSnapshot { visuals, .. } = &mut request {
+        let kinds = visuals.clone();
+        *visuals = (1..=128)
+            .map(|id| ShapeVisual {
+                id,
+                ..kinds[(id as usize - 1) % 4].clone()
+            })
+            .collect();
+    }
+    let mut wire = Vec::new();
+    write_request(&mut wire, &request).unwrap();
+    assert_eq!(
+        read_request(&mut wire.as_slice()).unwrap().as_ref(),
+        Some(&request)
+    );
+    if let Request::CalibratedDepthShapeSnapshot { visuals, .. } = &mut request {
+        let extra = visuals[3].clone();
+        visuals.push(ShapeVisual { id: 129, ..extra });
+    }
+    wire.clear();
+    assert!(write_request(&mut wire, &request).is_err());
+    assert!(wire.is_empty());
+    for axis in 0..3 {
+        for value in [0.0, -1.0, 1e-100, f64::MAX] {
+            let mut request = depth_shape_snapshot();
+            if let Request::CalibratedDepthShapeSnapshot { visuals, .. } = &mut request {
+                let mut radii = [0.5, 0.6, 0.35];
+                radii[axis] = value;
+                visuals[3].geometry = Geometry::Ellipsoid { radii };
+            }
+            assert!(
+                request.wire_valid(),
+                "renderer owns finite semantic dimension refusal"
+            );
         }
     }
 }

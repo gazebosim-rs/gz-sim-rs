@@ -903,3 +903,117 @@ fn ellipsoid_snapshot_retains_rgb_correlation_and_atomic_invalid_submission() {
         Some((1, false))
     );
 }
+
+fn depth_shape_snapshot() -> Request {
+    let Request::CalibratedShapeSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        camera,
+    } = shape_snapshot()
+    else {
+        unreachable!()
+    };
+    Request::CalibratedDepthShapeSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        camera,
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn former_version_six_worker_is_refused_without_depth_shape_fallback() {
+    let path = fixture_peer("version-six-peer.sh");
+    let mut client = Client::start(TrustedWorker::from_operator_config(path).unwrap()).unwrap();
+    wait_error(&client, |error| {
+        matches!(error, ClientError::ProtocolVersion)
+    });
+    assert!(!client.ready.load(Ordering::Acquire));
+    client.shutdown(Duration::from_secs(5)).unwrap();
+}
+
+#[test]
+fn depth_shape_submission_preserves_atomic_depth_correlation_and_slot_ownership() {
+    let (client, rx) = client();
+    let mut invalid = depth_shape_snapshot();
+    if let Request::CalibratedDepthShapeSnapshot { visuals, .. } = &mut invalid {
+        visuals[0].translation[1] = f64::NAN;
+    }
+    assert!(matches!(
+        client.try_send(invalid),
+        Err(SubmitError::Invalid(_))
+    ));
+    assert!(rx.try_recv().is_err());
+    assert_eq!(client.snapshots.lock().unwrap().last_id, 0);
+    client.try_send(depth_shape_snapshot()).unwrap();
+    assert!(matches!(
+        rx.recv().unwrap(),
+        Request::CalibratedDepthShapeSnapshot { request_id: 1, .. }
+    ));
+    let stamp = {
+        let state = client.snapshots.lock().unwrap();
+        assert_eq!(state.pending_depth, Some(true));
+        assert!(!state.committed_depth);
+        assert!(state.committed_stamp.is_none());
+        state.pending_stamp.unwrap()
+    };
+    assert!(matches!(
+        client.try_send(capture()),
+        Err(SubmitError::Busy(_))
+    ));
+    {
+        let mut state = client.snapshots.lock().unwrap();
+        state.pending_id = None;
+        state.pending_stamp = None;
+        state.pending_depth = None;
+        state.committed_stamp = Some(stamp);
+        state.committed_depth = true;
+    }
+    client.try_send(capture()).unwrap();
+    assert_eq!(rx.recv().unwrap(), capture());
+    assert!(client.snapshots.lock().unwrap().pending_capture_depth);
+    assert_eq!(
+        client.snapshots.lock().unwrap().pending_capture,
+        Some((1, stamp, false))
+    );
+    client.try_send(cancel()).unwrap();
+    assert_eq!(rx.recv().unwrap(), cancel());
+    assert_eq!(
+        client.snapshots.lock().unwrap().pending_cancel,
+        Some((1, false))
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn live_depth_shape_peer_cannot_substitute_an_rgb_capture() {
+    let path = fixture_peer("wrong-depth-shape-kind-peer.py");
+    let mut client = Client::start(TrustedWorker::from_operator_config(path).unwrap()).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    loop {
+        match client.try_reply() {
+            Ok(Some(Reply::Ready {
+                version: PROTOCOL_VERSION,
+            })) => break,
+            Ok(None) if Instant::now() < deadline => thread::sleep(Duration::from_millis(5)),
+            other => panic!("unexpected startup reply: {other:?}"),
+        }
+    }
+    client.try_send(depth_shape_snapshot()).unwrap();
+    loop {
+        match client.try_reply() {
+            Ok(Some(Reply::SnapshotAccepted { request_id: 1 })) => break,
+            Ok(None) if Instant::now() < deadline => thread::sleep(Duration::from_millis(5)),
+            other => panic!("unexpected depth shape acceptance: {other:?}"),
+        }
+    }
+    client.try_send(Request::Capture { request_id: 2 }).unwrap();
+    wait_error(&client, |error| {
+        matches!(error, ClientError::ProtocolCorrelation)
+    });
+    client.shutdown(Duration::from_secs(5)).unwrap();
+}

@@ -510,7 +510,10 @@ impl Client {
         if !self.ready.load(Ordering::Acquire) {
             return Err(SubmitError::NotReady(request));
         }
-        let depth_snapshot = matches!(&request, Request::CalibratedDepthSnapshot { .. });
+        let depth_snapshot = matches!(
+            &request,
+            Request::CalibratedDepthSnapshot { .. } | Request::CalibratedDepthShapeSnapshot { .. }
+        );
         if let Request::Snapshot {
             request_id, stamp, ..
         }
@@ -521,6 +524,9 @@ impl Client {
             request_id, stamp, ..
         }
         | Request::CalibratedShapeSnapshot {
+            request_id, stamp, ..
+        }
+        | Request::CalibratedDepthShapeSnapshot {
             request_id, stamp, ..
         } = &request
         {

@@ -862,6 +862,71 @@ impl Renderer {
         Ok(())
     }
 
+    /// Install actual primitive meshes for calibrated axial metric depth.
+    /// Admission conservatively checks every enclosing oriented-box corner;
+    /// curved surfaces do not relax the existing near-plane restriction.
+    pub fn set_calibrated_primitive_depth_snapshot(
+        &mut self,
+        snapshot: &PrimitiveSnapshot,
+        calibration: Calibration,
+        pose: WorldPose,
+    ) -> Result<(), RenderError> {
+        self.check_device()?;
+        if calibration.config().width != WIDTH || calibration.config().height != HEIGHT {
+            return Err(RenderError::InvalidCameraDimensions);
+        }
+        if snapshot.visuals.len() > MAX_OBJECTS {
+            return Err(RenderError::InvalidIds);
+        }
+        let bounds = Snapshot {
+            epoch: snapshot.epoch,
+            time: snapshot.time,
+            origin: snapshot.origin,
+            visuals: snapshot
+                .visuals
+                .iter()
+                .map(|visual| {
+                    let (id, pose, size, color) = match visual {
+                        PrimitiveVisual::Box(v) => (v.id, v.pose, v.size, v.color),
+                        PrimitiveVisual::Cylinder(v) => (
+                            v.id,
+                            v.pose,
+                            DVec3::new(2.0 * v.radius, 2.0 * v.radius, v.length),
+                            v.color,
+                        ),
+                        PrimitiveVisual::Sphere(v) => {
+                            (v.id, v.pose, DVec3::splat(2.0 * v.radius), v.color)
+                        }
+                        PrimitiveVisual::Ellipsoid(v) => (v.id, v.pose, 2.0 * v.radii, v.color),
+                    };
+                    BoxVisual {
+                        id,
+                        pose,
+                        size,
+                        color,
+                    }
+                })
+                .collect(),
+        };
+        depth::validate_near(&bounds, calibration, pose)?;
+        // This installer completes its own ID/color/pose/dimension/f32/busy
+        // preflight before committing any assets, entities or cancellation.
+        self.set_calibrated_primitive_snapshot(snapshot, calibration, pose)?;
+        // RGB installation clears depth mode. Restore it only after success;
+        // these component updates cannot introduce another admission failure.
+        self.app.world_mut().entity_mut(self.camera).insert((
+            Msaa::Off,
+            Camera3d {
+                depth_texture_usages: (wgpu::TextureUsages::RENDER_ATTACHMENT
+                    | wgpu::TextureUsages::COPY_SRC)
+                    .into(),
+                ..default()
+            },
+        ));
+        self.depth_calibration = Some(calibration);
+        Ok(())
+    }
+
     /// Copy the actual stored Bevy depth attachment. Shares the single bounded
     /// readback slot with RGB; it does not run a render or block for the device.
     pub fn request_depth_readback(&mut self) -> Result<(), RenderError> {
