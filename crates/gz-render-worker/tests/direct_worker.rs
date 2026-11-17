@@ -1961,3 +1961,124 @@ fn worker_cylinder_snapshots_keep_shared_stamps_atomic_refusal_and_epoch_orderin
     }
     worker.finish();
 }
+
+#[test]
+fn worker_sphere_snapshot_keeps_mixed_geometry_atomic_refusal_and_epoch_reset() {
+    use gz_render_protocol::Geometry;
+    let mut worker = Worker::start();
+    assert!(matches!(
+        worker.next(),
+        Reply::Ready {
+            version: gz_render_protocol::PROTOCOL_VERSION
+        }
+    ));
+    let stamp = Stamp {
+        epoch: 8,
+        seconds: 6,
+        nanoseconds: 9,
+    };
+    let sphere_request = |request_id, stamp| {
+        let mut request = cylinder_snapshot(request_id, stamp);
+        if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+            visuals[0].geometry = Geometry::Sphere { radius: 1.0 };
+            visuals[0].rotation = [0.0, 0.0, 0.0, 1.0];
+            let mut cylinder = visuals[0].clone();
+            cylinder.id = 3;
+            cylinder.translation[1] = 2.0;
+            cylinder.geometry = Geometry::Cylinder {
+                radius: 0.25,
+                length: 1.0,
+            };
+            cylinder.color = [0.0, 1.0, 0.0];
+            visuals.push(cylinder);
+        }
+        request
+    };
+    worker.send(sphere_request(1, stamp));
+    assert_eq!(worker.next(), Reply::SnapshotAccepted { request_id: 1 });
+    worker.send(Request::Capture { request_id: 1 });
+    let first = match worker.next() {
+        Reply::Frame {
+            request_id: 1,
+            stamp: actual,
+            rgba,
+        } => {
+            assert_eq!(actual, stamp);
+            assert_eq!(rgba.len(), 64 * 64 * 4);
+            rgba
+        }
+        other => panic!("sphere RGB result: {other:?}"),
+    };
+    let pixel = |x: usize, y: usize| &first[(y * 64 + x) * 4..(y * 64 + x) * 4 + 4];
+    assert_eq!(pixel(32, 32), [255, 0, 0, 255]);
+    assert_eq!(
+        pixel(40, 40),
+        [0, 0, 255, 255],
+        "sphere silhouette is not an AABB proxy"
+    );
+    for (index, radius) in [0.0, -1.0, 1e-100, f64::MAX, f64::from(f32::MAX)]
+        .into_iter()
+        .enumerate()
+    {
+        let id = index as u64 + 2;
+        let mut request = sphere_request(id, stamp);
+        if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+            visuals[0].geometry = Geometry::Sphere { radius };
+        }
+        assert!(
+            request.wire_valid(),
+            "finite semantic faults must reach scene preflight"
+        );
+        worker.send(request);
+        assert!(
+            matches!(worker.next(), Reply::Error { kind: FailureKind::InvalidSnapshot, request_id:Some(actual), .. } if actual==id)
+        );
+        worker.send(Request::Capture { request_id: id });
+        match worker.next() {
+            Reply::Frame {
+                request_id: actual_id,
+                stamp: actual_stamp,
+                rgba,
+            } => {
+                assert_eq!((actual_id, actual_stamp), (id, stamp));
+                assert_eq!(rgba, first, "invalid radius changed committed frame");
+            }
+            other => panic!("atomic sphere refusal: {other:?}"),
+        }
+    }
+    let old_id = 7;
+    worker.send(sphere_request(old_id, Stamp { epoch: 7, ..stamp }));
+    assert!(matches!(
+        worker.next(),
+        Reply::Error {
+            kind: FailureKind::StaleRequest,
+            request_id: Some(7),
+            ..
+        }
+    ));
+    let successor = Stamp {
+        epoch: 9,
+        seconds: 0,
+        nanoseconds: 0,
+    };
+    let mut empty = sphere_request(8, successor);
+    if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut empty {
+        visuals.clear();
+    }
+    worker.send(empty);
+    assert_eq!(worker.next(), Reply::SnapshotAccepted { request_id: 8 });
+    worker.send(Request::Capture { request_id: 7 });
+    match worker.next() {
+        Reply::Frame {
+            request_id: 7,
+            stamp: actual,
+            rgba,
+        } => {
+            assert_eq!(actual, successor);
+            assert_eq!(rgba.len(), first.len());
+            assert!(rgba.chunks_exact(4).all(|p| p == [43, 44, 47, 255]));
+        }
+        other => panic!("new epoch did not retire sphere scene: {other:?}"),
+    }
+    worker.finish();
+}

@@ -71,10 +71,19 @@ pub struct CylinderVisual {
     pub length: f64,
     pub color: [f32; 3],
 }
+/// A centered sphere, with radius in metres and a fixed 32-sector/18-stack mesh.
+#[derive(Debug, Clone)]
+pub struct SphereVisual {
+    pub id: u64,
+    pub pose: WorldPose,
+    pub radius: f64,
+    pub color: [f32; 3],
+}
 #[derive(Debug, Clone)]
 pub enum PrimitiveVisual {
     Box(BoxVisual),
     Cylinder(CylinderVisual),
+    Sphere(SphereVisual),
 }
 #[derive(Debug, Clone)]
 pub struct PrimitiveSnapshot {
@@ -87,6 +96,7 @@ pub struct PrimitiveSnapshot {
 enum MeshKind {
     Box,
     Cylinder,
+    Sphere,
 }
 
 /// One explicit directional light, independent of SDF's relative intensity scale.
@@ -308,14 +318,15 @@ pub enum UpdateStatus {
 /// Owns all renderer state. Drive it outside simulation stepping.
 ///
 /// The target is fixed at 64×64. The default camera looks from (0,0,5) toward
-/// the render origin; calibrated snapshots supply an explicit pose. Only boxes
-/// are supported, with optional explicit directional illumination. This is not a sensor API.
+/// the render origin; calibrated RGB snapshots also support cylinders and spheres.
+/// Legacy snapshots support boxes with optional directional illumination. This is not a sensor API.
 pub struct Renderer {
     app: App,
     camera: Entity,
     target: Handle<Image>,
     mesh: Handle<Mesh>,
     cylinder_mesh: Option<Handle<Mesh>>,
+    sphere_mesh: Option<Handle<Mesh>>,
     visuals: BTreeMap<u64, VisualEntity>,
     light: Option<(u64, Entity)>,
     stamp: Option<(u64, Duration)>,
@@ -418,6 +429,7 @@ impl Renderer {
             target,
             mesh,
             cylinder_mesh: None,
+            sphere_mesh: None,
             visuals: BTreeMap::new(),
             light: None,
             stamp: None,
@@ -508,6 +520,19 @@ impl Renderer {
                         MeshKind::Cylinder,
                     )
                 }
+                PrimitiveVisual::Sphere(visual) => {
+                    let radius = visual.radius as f32;
+                    if !visual.radius.is_finite() || !radius.is_finite() || radius <= 0.0 {
+                        return Err(RenderError::InvalidVisual);
+                    }
+                    (
+                        visual.id,
+                        visual.pose,
+                        DVec3::splat(2.0 * visual.radius),
+                        visual.color,
+                        MeshKind::Sphere,
+                    )
+                }
             };
             if id == 0 || !ids.insert(id) {
                 return Err(RenderError::InvalidIds);
@@ -557,6 +582,18 @@ impl Renderer {
                     .world_mut()
                     .resource_mut::<Assets<Mesh>>()
                     .add(builder.build()),
+            );
+        }
+        if self.sphere_mesh.is_none()
+            && converted
+                .iter()
+                .any(|(_, _, kind, _)| *kind == MeshKind::Sphere)
+        {
+            self.sphere_mesh = Some(
+                self.app
+                    .world_mut()
+                    .resource_mut::<Assets<Mesh>>()
+                    .add(Sphere::new(0.5).mesh().uv(32, 18)),
             );
         }
         if self.depth_calibration.take().is_some() {
@@ -619,6 +656,11 @@ impl Renderer {
                     .cylinder_mesh
                     .as_ref()
                     .expect("validated cylinder mesh")
+                    .clone(),
+                MeshKind::Sphere => self
+                    .sphere_mesh
+                    .as_ref()
+                    .expect("validated sphere mesh")
                     .clone(),
             };
             let color = Color::srgb(color[0], color[1], color[2]);

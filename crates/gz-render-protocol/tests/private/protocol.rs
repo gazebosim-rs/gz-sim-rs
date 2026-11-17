@@ -559,8 +559,8 @@ fn reject_depth_reply(reply: &Reply) {
 
 #[test]
 fn calibrated_depth_snapshot_preserves_all_wire_fields_and_version_three() {
-    // Historical test ID is retained; its depth payload is unchanged in version4.
-    assert_eq!(PROTOCOL_VERSION, 4);
+    // Historical test ID is retained; its depth payload is unchanged in version5.
+    assert_eq!(PROTOCOL_VERSION, 5);
     let request = depth_snapshot();
     let mut wire = Vec::new();
     write_request(&mut wire, &request).unwrap();
@@ -806,7 +806,7 @@ fn shape_snapshot() -> Request {
 }
 #[test]
 fn version_four_shapes_preserve_explicit_geometry_and_all_f64_fields() {
-    assert_eq!(PROTOCOL_VERSION, 4);
+    assert_eq!(PROTOCOL_VERSION, 5);
     let request = shape_snapshot();
     let mut wire = Vec::new();
     write_request(&mut wire, &request).unwrap();
@@ -858,7 +858,7 @@ fn shape_tags_and_version_four_legacy_records_reject_unknown_or_missing_fields()
                 shape.as_object_mut().unwrap().remove("geometry");
             }
             1 => {
-                shape["geometry"] = serde_json::json!({"Sphere":{"radius":1.0}});
+                shape["geometry"] = serde_json::json!({"Capsule":{"radius":1.0,"length":2.0}});
             }
             2 => {
                 shape["geometry"]["Cylinder"]["unexpected"] = serde_json::json!(true);
@@ -955,4 +955,143 @@ fn mixed_shape_wire_keeps_visual_count_and_all_finite_value_guards() {
         ..template
     });
     assert!(!request.wire_valid());
+}
+
+fn sphere_shape_snapshot() -> Request {
+    let mut request = shape_snapshot();
+    if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+        visuals.push(ShapeVisual {
+            id: 3,
+            translation: [1e12 + 1.25, -1e12 + 0.5, 2.0],
+            rotation: [0.0, 0.0, 0.0, 1.0],
+            geometry: Geometry::Sphere { radius: 1.25 },
+            color: [0.0, 1.0, 0.0],
+        });
+    }
+    request
+}
+
+#[test]
+fn version_five_sphere_wire_preserves_mixed_shapes_and_exact_old_payloads() {
+    assert_eq!(PROTOCOL_VERSION, 5);
+    let request = sphere_shape_snapshot();
+    let mut wire = Vec::new();
+    write_request(&mut wire, &request).unwrap();
+    assert_eq!(read_request(&mut wire.as_slice()).unwrap(), Some(request));
+    let mixed: serde_json::Value = serde_json::from_slice(&wire[4..]).unwrap();
+    let old = serde_json::to_value(shape_snapshot()).unwrap();
+    assert_eq!(
+        mixed["CalibratedShapeSnapshot"]["visuals"][0],
+        old["CalibratedShapeSnapshot"]["visuals"][0]
+    );
+    assert_eq!(
+        mixed["CalibratedShapeSnapshot"]["visuals"][1],
+        old["CalibratedShapeSnapshot"]["visuals"][1]
+    );
+    assert_eq!(
+        mixed["CalibratedShapeSnapshot"]["visuals"][2]["geometry"],
+        serde_json::json!({"Sphere":{"radius":1.25}})
+    );
+    assert_eq!(
+        mixed["CalibratedShapeSnapshot"]["visuals"][2]["translation"],
+        serde_json::json!([1e12 + 1.25, -1e12 + 0.5, 2.0])
+    );
+    let Request::CalibratedDepthSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        ..
+    } = depth_snapshot()
+    else {
+        unreachable!()
+    };
+    let legacy_box = Request::Snapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+    };
+    for legacy in [legacy_box, depth_snapshot()] {
+        let mut encoded = Vec::new();
+        write_request(&mut encoded, &legacy).unwrap();
+        assert_eq!(&encoded[4..], serde_json::to_vec(&legacy).unwrap());
+        assert!(
+            !std::str::from_utf8(&encoded[4..])
+                .unwrap()
+                .contains("geometry")
+        );
+    }
+}
+
+#[test]
+fn sphere_wire_rejects_unknown_missing_duplicate_and_nonfinite_geometry() {
+    let base = serde_json::to_value(sphere_shape_snapshot()).unwrap();
+    for geometry in [
+        serde_json::json!({"Sphere":{}}),
+        serde_json::json!({"Sphere":{"radius":1.25,"length":2.0}}),
+        serde_json::json!({"Sphere":{"radius":null}}),
+        serde_json::json!({"Sphere":{"radius":"1.25"}}),
+        serde_json::json!({"Capsule":{"radius":1.25}}),
+        serde_json::json!({"Sphere":{"radius":1.25},"Box":{"size":[1.0,1.0,1.0]}}),
+    ] {
+        let mut value = base.clone();
+        value["CalibratedShapeSnapshot"]["visuals"][2]["geometry"] = geometry;
+        reject_shape_json(value);
+    }
+    let raw = serde_json::to_string(&base)
+        .unwrap()
+        .replace("\"radius\":1.25", "\"radius\":1.25,\"radius\":2.0");
+    let mut frame = (raw.len() as u32).to_le_bytes().to_vec();
+    frame.extend(raw.bytes());
+    assert_eq!(
+        read_request(&mut frame.as_slice()).unwrap_err().kind(),
+        io::ErrorKind::InvalidData
+    );
+    for radius in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        let mut request = sphere_shape_snapshot();
+        if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+            visuals[2].geometry = Geometry::Sphere { radius };
+        }
+        let mut bytes = Vec::new();
+        assert!(!request.wire_valid());
+        assert!(write_request(&mut bytes, &request).is_err());
+        assert!(bytes.is_empty());
+    }
+}
+
+#[test]
+fn sphere_wire_shares_total_visual_cap_and_preserves_semantic_preflight_boundary() {
+    let mut request = sphere_shape_snapshot();
+    if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+        let kinds = visuals.clone();
+        *visuals = (1..=128)
+            .map(|id| ShapeVisual {
+                id,
+                ..kinds[(id as usize - 1) % 3].clone()
+            })
+            .collect();
+    }
+    let mut wire = Vec::new();
+    write_request(&mut wire, &request).unwrap();
+    assert_eq!(
+        read_request(&mut wire.as_slice()).unwrap().as_ref(),
+        Some(&request)
+    );
+    if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+        let extra = visuals[2].clone();
+        visuals.push(ShapeVisual { id: 129, ..extra });
+    }
+    wire.clear();
+    assert!(write_request(&mut wire, &request).is_err());
+    assert!(wire.is_empty());
+    // The wire checks finite numbers. Renderer preflight owns positive dimensions,
+    // representable scaling, unique IDs and scene-state purity as before M66.
+    for radius in [0.0, -1.0, 1e-100, f64::MAX] {
+        let mut request = sphere_shape_snapshot();
+        if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+            visuals[2].geometry = Geometry::Sphere { radius };
+        }
+        assert!(request.wire_valid());
+    }
 }

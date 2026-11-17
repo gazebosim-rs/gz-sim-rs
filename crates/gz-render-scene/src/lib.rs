@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! On-demand bounded box snapshots and calibrated RGB box/cylinder snapshots.
+//! On-demand bounded box snapshots and calibrated RGB box/cylinder/sphere snapshots.
 //!
 //! This is a derived snapshot, not an SDF material or sensor implementation.
 //! Supported materials supply an opaque diffuse RGB color; other shading and
@@ -118,10 +118,12 @@ pub fn extract_camera(
             visuals: box_visuals(visuals),
             camera,
         }
-    } else if visuals
-        .iter()
-        .any(|visual| matches!(&visual.geometry, Geometry::Cylinder { .. }))
-    {
+    } else if visuals.iter().any(|visual| {
+        matches!(
+            &visual.geometry,
+            Geometry::Cylinder { .. } | Geometry::Sphere { .. }
+        )
+    }) {
         Request::CalibratedShapeSnapshot {
             request_id,
             stamp,
@@ -182,7 +184,7 @@ fn extract_visuals(
     sim: &Simulation,
     request_id: u64,
     origin: [f64; 3],
-    cylinders: bool,
+    rgb_shapes: bool,
 ) -> Result<(Stamp, Vec<ShapeVisual>), SnapshotError> {
     if sim.is_faulted() {
         return Err(SnapshotError::Faulted);
@@ -223,7 +225,7 @@ fn extract_visuals(
             .ok_or(SnapshotError::MissingVisualData(id))?;
         let (geometry, dimensions) = match geometry.0.as_ref() {
             sdformat::Geometry::Box { size } => (Geometry::Box { size: *size }, *size),
-            sdformat::Geometry::Cylinder { radius, length } if cylinders => {
+            sdformat::Geometry::Cylinder { radius, length } if rgb_shapes => {
                 let diameter = 2.0 * radius;
                 if [*radius, *length, diameter].iter().any(|value| {
                     !value.is_finite() || !(*value as f32).is_finite() || *value as f32 <= 0.0
@@ -237,6 +239,15 @@ fn extract_visuals(
                     },
                     [diameter, *length, diameter],
                 )
+            }
+            sdformat::Geometry::Sphere { radius } if rgb_shapes => {
+                let diameter = 2.0 * radius;
+                if [*radius, diameter].iter().any(|value| {
+                    !value.is_finite() || !(*value as f32).is_finite() || *value as f32 <= 0.0
+                }) {
+                    return Err(SnapshotError::InvalidVisual(id));
+                }
+                (Geometry::Sphere { radius: *radius }, [diameter; 3])
             }
             _ => return Err(SnapshotError::UnsupportedGeometry(id)),
         };

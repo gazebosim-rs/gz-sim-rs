@@ -998,3 +998,233 @@ fn software_cylinder_side_endcap_rotation_and_box_occlusion_are_real_pixels() {
         .unwrap();
     assert_eq!(pixel(&image(&mut renderer), 32, 32), [43, 44, 47, 255]);
 }
+
+#[test]
+fn software_spheres_preserve_silhouette_occlusion_origin_and_shape_round_trip() {
+    use gz_render_frame::camera::Calibration;
+    use gz_renderer::{CylinderVisual, PrimitiveSnapshot, PrimitiveVisual, SphereVisual};
+    let mut renderer = Renderer::new().unwrap();
+    if std::env::var_os("GZ_RENDER_REQUIRE_LLVMPIPE").is_some() {
+        assert_eq!(renderer.adapter_info().device_type, wgpu::DeviceType::Cpu);
+        assert!(
+            renderer
+                .adapter_info()
+                .name
+                .to_ascii_lowercase()
+                .contains("llvmpipe")
+        );
+    }
+    let origin = DVec3::splat(1e12);
+    let camera = WorldPose {
+        translation: origin,
+        rotation: DQuat::IDENTITY,
+    };
+    let calibration =
+        Calibration::from_horizontal_fov(64, 64, std::f64::consts::FRAC_PI_2, 0.1, 20.0).unwrap();
+    let cube = BoxVisual {
+        id: 1,
+        pose: WorldPose {
+            translation: origin + DVec3::new(4.0, 0.0, 0.0),
+            rotation: DQuat::IDENTITY,
+        },
+        size: DVec3::splat(2.0),
+        color: [1.0, 0.0, 0.0],
+    };
+    let backdrop = BoxVisual {
+        id: 2,
+        pose: WorldPose {
+            translation: origin + DVec3::new(7.0, 0.0, 0.0),
+            rotation: DQuat::IDENTITY,
+        },
+        size: DVec3::new(0.2, 6.0, 6.0),
+        color: [0.0, 0.0, 1.0],
+    };
+    let near_box = BoxVisual {
+        id: 3,
+        pose: WorldPose {
+            translation: origin + DVec3::new(2.0, 0.0, 0.0),
+            rotation: DQuat::IDENTITY,
+        },
+        size: DVec3::splat(0.4),
+        color: [0.0, 1.0, 0.0],
+    };
+    let mut legacy = Snapshot {
+        epoch: 96,
+        time: Duration::from_millis(1),
+        origin,
+        visuals: vec![cube.clone(), backdrop.clone(), near_box.clone()],
+    };
+    renderer
+        .set_calibrated_snapshot(&legacy, calibration, camera)
+        .unwrap();
+    let original = image(&mut renderer);
+    let pixel = |frame: &gz_renderer::Frame, x: usize, y: usize| {
+        let offset = (y * 64 + x) * 4;
+        <[u8; 4]>::try_from(&frame.rgba[offset..offset + 4]).unwrap()
+    };
+    assert_eq!(pixel(&original, 24, 24), [255, 0, 0, 255]);
+    assert_eq!(pixel(&original, 39, 39), [255, 0, 0, 255]);
+    let sphere = SphereVisual {
+        id: 1,
+        pose: cube.pose,
+        radius: 1.0,
+        color: cube.color,
+    };
+    let mut snapshot = PrimitiveSnapshot {
+        epoch: 96,
+        time: Duration::from_millis(2),
+        origin,
+        visuals: vec![
+            PrimitiveVisual::Sphere(sphere.clone()),
+            PrimitiveVisual::Box(backdrop.clone()),
+            PrimitiveVisual::Box(near_box.clone()),
+        ],
+    };
+    // A rejected sphere must preserve an actual asynchronous box frame and stamp.
+    renderer.request_readback().unwrap();
+    let mut invalid = snapshot.clone();
+    invalid.visuals[0] = PrimitiveVisual::Sphere(SphereVisual {
+        radius: 0.0,
+        ..sphere.clone()
+    });
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&invalid, calibration, camera),
+        Err(RenderError::InvalidVisual)
+    ));
+    let mut old = None;
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        if let Some(frame) = renderer.take_frame().unwrap() {
+            old = Some(frame);
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let old = old.expect("valid old box capture was cancelled by invalid sphere");
+    assert_eq!((old.epoch, old.time), (legacy.epoch, legacy.time));
+    assert_eq!(old.rgba, original.rgba);
+    renderer.request_readback().unwrap();
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    retire_cancelled(&mut renderer);
+    let frame = image(&mut renderer);
+    assert_eq!((frame.epoch, frame.time), (snapshot.epoch, snapshot.time));
+    // Interiors/corners are away from MSAA edges. The fixed UV approximation is
+    // a sphere silhouette, not a cuboid proxy or analytic/native render oracle.
+    assert_eq!(pixel(&frame, 32, 32), [0, 255, 0, 255]);
+    assert_eq!(pixel(&frame, 32, 26), [255, 0, 0, 255]);
+    assert_eq!(pixel(&frame, 38, 32), [255, 0, 0, 255]);
+    assert_eq!(pixel(&frame, 24, 24), [0, 0, 255, 255]);
+    assert_eq!(pixel(&frame, 39, 39), [0, 0, 255, 255]);
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NoDepthSnapshot)
+    ));
+    snapshot.visuals.reverse();
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert_eq!(
+        image(&mut renderer).rgba,
+        frame.rgba,
+        "input order cannot change opaque occlusion"
+    );
+    let mut local = snapshot.clone();
+    local.origin = DVec3::ZERO;
+    for visual in &mut local.visuals {
+        match visual {
+            PrimitiveVisual::Box(v) => v.pose.translation -= origin,
+            PrimitiveVisual::Sphere(v) => v.pose.translation -= origin,
+            PrimitiveVisual::Cylinder(_) => unreachable!(),
+        }
+    }
+    let local_camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: DQuat::IDENTITY,
+    };
+    renderer
+        .set_calibrated_primitive_snapshot(&local, calibration, local_camera)
+        .unwrap();
+    assert_eq!(
+        image(&mut renderer).rgba,
+        frame.rgba,
+        "large origin must preserve the complete calibrated image"
+    );
+    let spin = DQuat::from_rotation_z(std::f64::consts::FRAC_PI_2);
+    for visual in &mut local.visuals {
+        let pose = match visual {
+            PrimitiveVisual::Box(v) => &mut v.pose,
+            PrimitiveVisual::Sphere(v) => &mut v.pose,
+            PrimitiveVisual::Cylinder(_) => unreachable!(),
+        };
+        pose.translation = spin * pose.translation;
+        pose.rotation = spin * pose.rotation;
+    }
+    renderer
+        .set_calibrated_primitive_snapshot(
+            &local,
+            calibration,
+            WorldPose {
+                rotation: spin,
+                ..local_camera
+            },
+        )
+        .unwrap();
+    assert_eq!(
+        image(&mut renderer).rgba,
+        frame.rgba,
+        "rotating camera and every visual together must preserve the view"
+    );
+    snapshot.visuals = vec![
+        PrimitiveVisual::Cylinder(CylinderVisual {
+            id: 1,
+            pose: WorldPose {
+                rotation: DQuat::from_rotation_y(std::f64::consts::FRAC_PI_2),
+                ..cube.pose
+            },
+            radius: 1.0,
+            length: 2.0,
+            color: cube.color,
+        }),
+        PrimitiveVisual::Box(backdrop),
+        PrimitiveVisual::Box(near_box),
+    ];
+    snapshot.time = Duration::from_millis(3);
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    let cylinder = image(&mut renderer);
+    assert_eq!(pixel(&cylinder, 32, 32), [0, 255, 0, 255]);
+    assert_eq!(pixel(&cylinder, 32, 26), [255, 0, 0, 255]);
+    legacy.epoch += 1;
+    legacy.time = Duration::ZERO;
+    renderer
+        .set_calibrated_snapshot(&legacy, calibration, camera)
+        .unwrap();
+    let restored = image(&mut renderer);
+    assert_eq!((restored.epoch, restored.time), (legacy.epoch, legacy.time));
+    assert_eq!(
+        restored.rgba, original.rgba,
+        "same-ID Box/Sphere/Cylinder/Box must restore every old box pixel"
+    );
+    renderer.request_readback().unwrap();
+    snapshot.epoch = legacy.epoch + 1;
+    snapshot.time = Duration::ZERO;
+    snapshot.visuals.clear();
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    retire_cancelled(&mut renderer);
+    let empty = image(&mut renderer);
+    assert_eq!((empty.epoch, empty.time), (snapshot.epoch, Duration::ZERO));
+    assert!(empty.rgba.chunks_exact(4).all(|p| p == [43, 44, 47, 255]));
+}

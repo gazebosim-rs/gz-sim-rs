@@ -751,3 +751,77 @@ fn former_version_three_worker_is_refused_at_startup() {
     });
     client.shutdown(Duration::from_secs(5)).unwrap();
 }
+
+#[cfg(unix)]
+#[test]
+fn former_version_four_worker_is_refused_without_sphere_fallback() {
+    let path = fixture_peer("version-four-peer.sh");
+    let mut client = Client::start(TrustedWorker::from_operator_config(path).unwrap()).unwrap();
+    wait_error(&client, |error| {
+        matches!(error, ClientError::ProtocolVersion)
+    });
+    assert!(!client.ready.load(Ordering::Acquire));
+    client.shutdown(Duration::from_secs(5)).unwrap();
+}
+
+#[test]
+fn sphere_snapshot_retains_rgb_correlation_and_atomic_invalid_submission() {
+    let (client, rx) = client();
+    let mut sphere = shape_snapshot();
+    if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut sphere {
+        visuals[0].geometry = gz_render_protocol::Geometry::Sphere { radius: 1.25 };
+    }
+    let mut invalid = shape_snapshot();
+    if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut invalid {
+        visuals[0].geometry = gz_render_protocol::Geometry::Sphere {
+            radius: f64::INFINITY,
+        };
+    }
+    assert!(matches!(
+        client.try_send(invalid),
+        Err(SubmitError::Invalid(_))
+    ));
+    assert!(rx.try_recv().is_err());
+    {
+        let state = client.snapshots.lock().unwrap();
+        assert_eq!(state.last_id, 0);
+        assert!(state.pending_id.is_none());
+        assert!(state.committed_stamp.is_none());
+    }
+    client.try_send(sphere).unwrap();
+    let sent = rx.recv().unwrap();
+    let Request::CalibratedShapeSnapshot { visuals, stamp, .. } = sent else {
+        panic!("sphere must retain the calibrated RGB request")
+    };
+    assert_eq!(
+        visuals[0].geometry,
+        gz_render_protocol::Geometry::Sphere { radius: 1.25 }
+    );
+    assert!(matches!(
+        client.try_send(capture()),
+        Err(SubmitError::Busy(_))
+    ));
+    {
+        let mut state = client.snapshots.lock().unwrap();
+        assert_eq!(state.pending_depth, Some(false));
+        assert_eq!(state.pending_stamp, Some(stamp));
+        state.pending_id = None;
+        state.pending_stamp = None;
+        state.pending_depth = None;
+        state.committed_stamp = Some(stamp);
+        state.committed_depth = false;
+    }
+    client.try_send(capture()).unwrap();
+    assert_eq!(rx.recv().unwrap(), capture());
+    {
+        let state = client.snapshots.lock().unwrap();
+        assert_eq!(state.pending_capture, Some((1, stamp, false)));
+        assert!(!state.pending_capture_depth);
+    }
+    client.try_send(cancel()).unwrap();
+    assert_eq!(rx.recv().unwrap(), cancel());
+    assert_eq!(
+        client.snapshots.lock().unwrap().pending_cancel,
+        Some((1, false))
+    );
+}

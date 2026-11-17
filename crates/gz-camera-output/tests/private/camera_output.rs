@@ -1606,3 +1606,127 @@ fn buffered_rgb_and_depth_failures_preserve_canonical_publication_state() {
         assert_eq!((sim.elapsed(), sim.epoch()), (Duration::ZERO, 0));
     }
 }
+
+#[test]
+fn sphere_rgb_info_and_pending_snapshot_keep_lazy_worker_and_rgb_capture_kind() {
+    let sim = load_world_with_sdf_step(
+        include_str!("../../../../examples/m66_rgb_sphere.sdf"),
+        "m66-output.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let id = sim
+        .world()
+        .iter_entities()
+        .find_map(|row| {
+            row.contains::<gz_sim_scene::CameraSensor>()
+                .then(|| row.get::<EntityId>().unwrap().get())
+        })
+        .unwrap();
+    let (session, scope, limit) = session();
+    let mut output = CameraOutput::new(
+        &sim,
+        &session,
+        &scope,
+        id,
+        CameraOutputConfig {
+            origin: [0.0; 3],
+            frame_id: "rig/body/camera".into(),
+            image_key: "@/m66@/image".into(),
+            info_key: "@/m66@/info".into(),
+            worker_path: "/bin/cat".into(),
+            max_message_bytes: limit,
+        },
+    )
+    .unwrap();
+    assert_eq!(output.request(&sim).unwrap(), Progress::NoDemand);
+    assert!(output.client.is_none());
+    let info = session.declare_subscriber("@/m66@/info").wait().unwrap();
+    assert_eq!(output.request(&sim).unwrap(), Progress::InfoPublished);
+    assert!(output.client.is_none());
+    let wire = info.recv_timeout(Duration::from_secs(5)).unwrap().unwrap();
+    let value = gz_sim_proto::msgs::CameraInfo::decode(wire.payload().to_bytes().as_ref()).unwrap();
+    assert_eq!((value.width, value.height), (64, 64));
+    assert_eq!(value.header.unwrap().data[0].value, ["rig/body/camera"]);
+    let image = session.declare_subscriber("@/m66@/image").wait().unwrap();
+    assert_eq!(output.request(&sim).unwrap(), Progress::Pending);
+    assert!(info.recv_timeout(Duration::from_secs(5)).unwrap().is_some());
+    let acquisition = output.acquisition.as_ref().unwrap();
+    assert!(!acquisition.depth);
+    assert_eq!(acquisition.stamp.epoch, 0);
+    assert!(
+        matches!(&acquisition.phase,Phase::Submit(Request::CalibratedShapeSnapshot { visuals,.. }) if visuals.len()==3)
+    );
+    // cat is deliberately not a renderer: no Ready means no request may enter
+    // the pipe or manufacture an image. The new snapshot stays pending RGB work.
+    for _ in 0..2 {
+        assert_eq!(output.pump(&sim).unwrap(), Progress::Backpressure);
+        assert!(matches!(
+            &output.acquisition.as_ref().unwrap().phase,
+            Phase::Submit(Request::CalibratedShapeSnapshot { .. })
+        ));
+    }
+    assert!(image.try_recv().unwrap().is_none());
+    assert!(info.try_recv().unwrap().is_none());
+    assert_eq!(output.sequence, 0);
+    output.retire();
+    assert!(output.client.is_none() && output.acquisition.is_none());
+}
+
+#[test]
+fn sphere_invalid_and_depth_geometry_fail_before_publication_admission() {
+    use gz_sim_scene::{CameraSensor, VisualGeometry};
+    let mut sim = load_world_with_sdf_step(
+        include_str!("../../../../examples/m66_rgb_sphere.sdf"),
+        "m66-invalid-output.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let camera = sim
+        .world()
+        .iter_entities()
+        .find(|row| row.contains::<CameraSensor>())
+        .unwrap()
+        .id();
+    let id = sim.world().get::<EntityId>(camera).unwrap().get();
+    let visual = sim
+        .world()
+        .iter_entities()
+        .find(|row| {
+            row.get::<Name>()
+                .is_some_and(|name| name.0 == "default::sphere::body::red_ball")
+        })
+        .unwrap()
+        .id();
+    let (session, scope, limit) = session();
+    let config = || CameraOutputConfig {
+        origin: [0.0; 3],
+        frame_id: "frame".into(),
+        image_key: "@/m66@/image".into(),
+        info_key: "@/m66@/info".into(),
+        worker_path: "/nonexistent/worker".into(),
+        max_message_bytes: limit,
+    };
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Sphere { radius: 0.0 });
+    assert!(matches!(
+        CameraOutput::new(&sim, &session, &scope, id, config()),
+        Err(CameraOutputError::Snapshot(SnapshotError::InvalidVisual(_)))
+    ));
+    assert!(scope.entries.lock().unwrap().is_empty());
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Sphere { radius: 1.0 });
+    Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(camera).unwrap().0).kind =
+        "depth_camera".into();
+    assert!(matches!(
+        CameraOutput::new(&sim, &session, &scope, id, config()),
+        Err(CameraOutputError::Snapshot(
+            SnapshotError::UnsupportedGeometry(_)
+        ))
+    ));
+    assert!(scope.entries.lock().unwrap().is_empty());
+}

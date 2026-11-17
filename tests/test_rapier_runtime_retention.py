@@ -822,11 +822,84 @@ class AuxiliaryRetention(unittest.TestCase):
         QUALIFIER.validate_evidence(self.root, self.directory)
 
 
+    def test_m66_retained_sphere_execution_rejects_forged_success_and_identity(self):
+        source = "examples/m66_rgb_sphere.sdf"
+        baseline = json.dumps(self.report["noisy_examples"])
+        index = QUALIFIER.NOISY_EXAMPLES.index(source)
+        valid = json.loads(baseline)["runs"][index]
+        for field, altered in (
+            ("actual_exit_code", 1), ("stderr", "sphere execution failed\n"),
+            ("argv", json.loads(baseline)["runs"][0]["argv"]),
+            ("source", "examples/m64_rgb_cylinder.sdf"),
+            ("retained_fixture", "examples/m64_rgb_cylinder.sdf"),
+            ("stdout", valid["stdout"].replace("sphere::body 4 0 0", "sphere::body 4.000000000002 0 0")),
+            ("fixture_sha256", "0" * 64), ("fixture_mode", 0o600),
+        ):
+            with self.subTest(field=field):
+                record = json.loads(baseline)
+                record["runs"][index][field] = altered
+                self.report["noisy_examples"] = record
+                self.write_json("noisy-examples.json", record)
+                self.finish_manifest()
+                with self.assertRaisesRegex(ValueError, "noisy-example"):
+                    QUALIFIER.validate_evidence(self.root, self.directory)
+        for fault in ("missing", "duplicate"):
+            with self.subTest(fault=fault):
+                record = json.loads(baseline)
+                if fault == "missing":
+                    record["runs"].pop(index)
+                else:
+                    record["runs"].append(record["runs"][index].copy())
+                self.report["noisy_examples"] = record
+                self.write_json("noisy-examples.json", record)
+                self.finish_manifest()
+                with self.assertRaisesRegex(ValueError, "noisy-example executions"):
+                    QUALIFIER.validate_evidence(self.root, self.directory)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()
+        QUALIFIER.validate_evidence(self.root, self.directory)
+
+    def test_m66_rehashed_sphere_copy_bytes_or_mode_cannot_replace_source_identity(self):
+        source = "examples/m66_rgb_sphere.sdf"
+        copied = self.directory / source
+        original, mode = copied.read_bytes(), copied.stat().st_mode & 0o777
+        baseline = json.dumps(self.report["noisy_examples"])
+        index = QUALIFIER.NOISY_EXAMPLES.index(source)
+        for fault in ("bytes", "mode", "symlink", "missing"):
+            with self.subTest(fault=fault):
+                record = json.loads(baseline)
+                if fault == "bytes":
+                    copied.write_bytes(b"a different sphere world\n")
+                    record["runs"][index]["fixture_sha256"] = QUALIFIER.digest(copied)
+                elif fault == "mode":
+                    copied.chmod(0o600)
+                    record["runs"][index]["fixture_mode"] = 0o600
+                else:
+                    copied.unlink()
+                    if fault == "symlink":
+                        copied.symlink_to(self.root / source)
+                self.report["noisy_examples"] = record
+                self.write_json("noisy-examples.json", record)
+                self.finish_manifest()
+                error = "unsafe native-off evidence path" if fault == "symlink" else "noisy-example fixture identity"
+                with self.assertRaisesRegex(ValueError, error):
+                    QUALIFIER.validate_evidence(self.root, self.directory)
+                if copied.is_symlink():
+                    copied.unlink()
+                copied.write_bytes(original)
+                copied.chmod(mode)
+        self.report["noisy_examples"] = json.loads(baseline)
+        self.write_json("noisy-examples.json", self.report["noisy_examples"])
+        self.finish_manifest()
+        QUALIFIER.validate_evidence(self.root, self.directory)
+
+
 class CylinderFiniteOutput(unittest.TestCase):
     def test_m64_requires_exact_sorted_four_static_poses_and_two_step_headline(self):
         source = "examples/m64_rgb_cylinder.sdf"
-        self.assertEqual(len(QUALIFIER.NOISY_EXAMPLES), 37)
-        self.assertEqual(QUALIFIER.NOISY_EXAMPLES[32:], (
+        self.assertEqual(len(QUALIFIER.NOISY_EXAMPLES), 38)
+        self.assertEqual(QUALIFIER.NOISY_EXAMPLES[32:37], (
             "examples/m59_multiple_diff_drives.sdf", "examples/m61_eight_diff_drives.sdf",
             "examples/m62_eight_joint_controllers.sdf", "examples/m63_two_rgb_cameras.sdf", source))
         self.assertEqual(QUALIFIER.NOISY_LINKS[source], {

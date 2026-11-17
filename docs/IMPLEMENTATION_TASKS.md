@@ -1,26 +1,18 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-## Current bounded task: M65-INSTALLED-FLEETS
+## Current bounded task: M66-RGB-SPHERES
 
-[M61–M64 acceptance](M61_M64_ACCEPTANCE.md) makes exact192ede the real accepted
-predecessor. M1–M64/197 are accepted; M60 remains Latest/install33. The
-[M65 contract](M65_DELIVERY.md) selects installed35 via an M65-only generation,
-preserving legacy33/M44/M60, and optional concrete joint-command topic selection.
-The whole implementation/regression/guide Source and batched corrections passed
-independent review. Four Rust/six Python declarations are not measured passes.
+M65 is accepted and public at exact Main `069f315`; its installed 35-example
+release is Latest. M1–M65 retain 198 accepted slices. See
+[M65 acceptance](M65_ACCEPTANCE.md) and the [M66 contract](M66_DELIVERY.md).
 
-Light owns package-preview.py, test_preview_package.py and the M65 guide trio.
-Messages owns joint_command.rs and its private controls. Root owns current shared
-guidance/planning and all operations; SDF reviews completed batches. Accepted-parent metadata and whole Source passed review. The one affected
-formatter passed; final token/census/staged-tree bindings precede the complete
-normal, strict actual-parent coverage and local DATA. No M65 tests have run.
-
-Same-head Source-reviewed provisional local distribution proofs may overlap its
-own hosted CI after local qualification. Require fresh three-ELF/notices/package/
-relocation/clean non-root install,35 finite loads, real eight-drive/sixteen-joint
-application/isolation, separate numeric/browser intervals and owned shutdown,
-independent DATA, every hosted/official/Main gate and actual publication readbacks
-before acceptance or Latest. No RGB-worker/SDK/new viewer/framework distribution.
+Add opaque sphere visuals only to existing calibrated RGB snapshots. Root owns
+protocol/client/worker seams and qualifiers; Light owns renderer leaves;
+Messages owns extraction, the fixture and canonical consumer; SDF reviews.
+No package, dependency, solver, depth or material expansion is selected.
+Implementation, meaningful regressions, guides and independent review must be
+complete before one formatter/consolidated unchanged normal and strict gates.
+No M66 tests or qualification have run. All prior controls and evidence remain.
 
 ## Historical M60 Source contract
 

@@ -1353,3 +1353,470 @@ fn unit_cylinder_axis_caps_and_shape_replacement_reuse_bounded_meshes() {
     }
     assets.insert(cylinder_id, old_cylinder);
 }
+
+fn primitive_sphere() -> SphereVisual {
+    SphereVisual {
+        id: 1,
+        pose: primitive_cylinder().pose,
+        radius: 1.0,
+        color: [1.0, 0.0, 0.0],
+    }
+}
+
+#[test]
+fn sphere_preflight_preserves_mixed_scene_and_pending_capture_before_mesh_allocation() {
+    let mut renderer = Renderer::new().unwrap();
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    let baseline = Snapshot {
+        epoch: 91,
+        time: Duration::from_millis(7),
+        origin: DVec3::ZERO,
+        visuals: vec![BoxVisual {
+            id: 2,
+            pose: primitive_sphere().pose,
+            size: DVec3::ONE,
+            color: [0.0, 1.0, 0.0],
+        }],
+    };
+    renderer
+        .set_calibrated_snapshot(&baseline, primitive_calibration(), camera)
+        .unwrap();
+    // A private lifecycle fixture, not a claim of GPU completion or image pixels.
+    renderer.snapshot_dirty = false;
+    let slot = Arc::new(Mutex::new(None));
+    renderer.pending = Some(Pending {
+        epoch: baseline.epoch,
+        time: baseline.time,
+        valid: true,
+        pixels: slot.clone(),
+    });
+    let meshes = renderer.app.world().resource::<Assets<Mesh>>().len();
+    let materials = renderer
+        .app
+        .world()
+        .resource::<Assets<StandardMaterial>>()
+        .len();
+    let entity = renderer.visuals[&2].entity;
+    let material = renderer.visuals[&2].material.id();
+    let transform = *renderer
+        .app
+        .world()
+        .get::<Transform>(renderer.camera)
+        .unwrap();
+    let valid = PrimitiveSnapshot {
+        epoch: 92,
+        time: Duration::ZERO,
+        origin: DVec3::ZERO,
+        visuals: vec![PrimitiveVisual::Sphere(primitive_sphere())],
+    };
+    let unchanged = |r: &Renderer| {
+        assert!(r.sphere_mesh.is_none() && r.cylinder_mesh.is_none());
+        assert_eq!(r.app.world().resource::<Assets<Mesh>>().len(), meshes);
+        assert_eq!(
+            r.app.world().resource::<Assets<StandardMaterial>>().len(),
+            materials
+        );
+        assert_eq!(r.visuals.len(), 1);
+        assert_eq!(r.visuals[&2].entity, entity);
+        assert_eq!(r.visuals[&2].material.id(), material);
+        assert_eq!(r.visuals[&2].mesh.id(), r.mesh.id());
+        assert_eq!(
+            *r.app.world().get::<Transform>(r.camera).unwrap(),
+            transform
+        );
+        assert_eq!(r.stamp, Some((baseline.epoch, baseline.time)));
+        assert!(!r.snapshot_dirty);
+        let pending = r.pending.as_ref().unwrap();
+        assert!(pending.valid && Arc::ptr_eq(&pending.pixels, &slot));
+    };
+    for radius in [
+        0.0,
+        -1.0,
+        f64::NAN,
+        f64::INFINITY,
+        f64::NEG_INFINITY,
+        f64::MAX,
+        1e-300,
+        2e38,
+    ] {
+        let mut invalid = valid.clone();
+        invalid.visuals[0] = PrimitiveVisual::Sphere(SphereVisual {
+            radius,
+            ..primitive_sphere()
+        });
+        assert!(matches!(
+            renderer.set_calibrated_primitive_snapshot(&invalid, primitive_calibration(), camera),
+            Err(RenderError::InvalidVisual)
+        ));
+        unchanged(&renderer);
+    }
+    for fault in 0..8 {
+        let mut invalid = valid.clone();
+        match fault {
+            0 => {
+                let PrimitiveVisual::Sphere(sphere) = &mut invalid.visuals[0] else {
+                    unreachable!()
+                };
+                sphere.id = 0;
+            }
+            1 => invalid.visuals.push(PrimitiveVisual::Box(BoxVisual {
+                id: 1,
+                pose: camera,
+                size: DVec3::ONE,
+                color: [0.0; 3],
+            })),
+            2 => invalid
+                .visuals
+                .push(PrimitiveVisual::Cylinder(primitive_cylinder())),
+            3..=6 => {
+                let PrimitiveVisual::Sphere(sphere) = &mut invalid.visuals[0] else {
+                    unreachable!()
+                };
+                match fault {
+                    3 => sphere.color[0] = f32::NAN,
+                    4 => sphere.color[1] = 1.1,
+                    5 => sphere.pose.rotation = glam::DQuat::from_xyzw(0.0, 0.0, 0.0, 0.0),
+                    _ => sphere.pose.translation.x = f64::NAN,
+                }
+            }
+            _ => invalid.origin.x = f64::INFINITY,
+        }
+        assert!(
+            renderer
+                .set_calibrated_primitive_snapshot(&invalid, primitive_calibration(), camera)
+                .is_err()
+        );
+        unchanged(&renderer);
+    }
+    let wrong =
+        Calibration::from_horizontal_fov(32, 64, std::f64::consts::FRAC_PI_2, 0.1, 20.0).unwrap();
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&valid, wrong, camera),
+        Err(RenderError::InvalidCameraDimensions)
+    ));
+    unchanged(&renderer);
+    let bad_camera = WorldPose {
+        rotation: glam::DQuat::from_xyzw(0.0, 0.0, 0.0, 0.0),
+        ..camera
+    };
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&valid, primitive_calibration(), bad_camera),
+        Err(RenderError::Pose(_))
+    ));
+    unchanged(&renderer);
+    let mut full = valid.clone();
+    full.visuals = (1_u64..=129)
+        .map(|id| match id % 3 {
+            0 => PrimitiveVisual::Box(BoxVisual {
+                id,
+                pose: camera,
+                size: DVec3::ONE,
+                color: [0.0; 3],
+            }),
+            1 => PrimitiveVisual::Sphere(SphereVisual {
+                id,
+                ..primitive_sphere()
+            }),
+            _ => PrimitiveVisual::Cylinder(CylinderVisual {
+                id,
+                ..primitive_cylinder()
+            }),
+        })
+        .collect();
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&full, primitive_calibration(), camera),
+        Err(RenderError::InvalidIds)
+    ));
+    unchanged(&renderer);
+    full.visuals.pop();
+    renderer
+        .set_calibrated_primitive_snapshot(&full, primitive_calibration(), camera)
+        .unwrap();
+    assert_eq!(renderer.visuals.len(), 128);
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        meshes + 2
+    );
+    assert!(renderer.sphere_mesh.is_some() && renderer.cylinder_mesh.is_some());
+    assert!(!renderer.pending.as_ref().unwrap().valid);
+}
+
+#[test]
+fn unit_uv_sphere_and_three_shape_replacements_keep_selected_mesh_and_asset_bounds() {
+    let mut renderer = Renderer::new().unwrap();
+    let original_meshes = renderer.app.world().resource::<Assets<Mesh>>().len();
+    let original_materials = renderer
+        .app
+        .world()
+        .resource::<Assets<StandardMaterial>>()
+        .len();
+    assert!(renderer.sphere_mesh.is_none() && renderer.cylinder_mesh.is_none());
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    let mut snapshot = PrimitiveSnapshot {
+        epoch: 93,
+        time: Duration::ZERO,
+        origin: DVec3::ZERO,
+        visuals: vec![PrimitiveVisual::Sphere(primitive_sphere())],
+    };
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, primitive_calibration(), camera)
+        .unwrap();
+    let mesh = renderer.sphere_mesh.as_ref().unwrap().clone();
+    assert!(renderer.cylinder_mesh.is_none());
+    let entity = renderer.visuals[&1].entity;
+    let material = renderer.visuals[&1].material.id();
+    assert_ne!(mesh.id(), renderer.mesh.id());
+    {
+        let assets = renderer.app.world().resource::<Assets<Mesh>>();
+        let sphere = assets.get(&mesh).unwrap();
+        let Some(bevy::mesh::VertexAttributeValues::Float32x3(positions)) =
+            sphere.attribute(Mesh::ATTRIBUTE_POSITION)
+        else {
+            panic!("missing sphere positions")
+        };
+        let Some(bevy::mesh::VertexAttributeValues::Float32x3(normals)) =
+            sphere.attribute(Mesh::ATTRIBUTE_NORMAL)
+        else {
+            panic!("missing sphere normals")
+        };
+        let Some(bevy::mesh::VertexAttributeValues::Float32x2(uvs)) =
+            sphere.attribute(Mesh::ATTRIBUTE_UV_0)
+        else {
+            panic!("missing sphere UVs")
+        };
+        assert_eq!(positions.len(), 33 * 19);
+        assert_eq!(normals.len(), positions.len());
+        assert_eq!(uvs.len(), positions.len());
+        assert_eq!(sphere.indices().unwrap().len(), 32 * 34 * 3);
+        for (position, normal) in positions.iter().zip(normals) {
+            let p = Vec3::from_array(*position);
+            let n = Vec3::from_array(*normal);
+            assert!(p.is_finite() && n.is_finite());
+            assert!((p.length_squared() - 0.25).abs() < 1e-6);
+            assert!((n.length_squared() - 1.0).abs() < 1e-6);
+            assert!((n - p * 2.0).length() < 1e-6);
+        }
+        assert!(
+            uvs.iter()
+                .flatten()
+                .all(|v| v.is_finite() && (0.0..=1.0).contains(v))
+        );
+    }
+    for (index, kind) in [0, 1, 2, 0, 2, 1, 2].into_iter().enumerate() {
+        // Private settled-state fixture: real asynchronous replacement is tested in software.rs.
+        renderer.snapshot_dirty = false;
+        snapshot.visuals[0] = match kind {
+            0 => PrimitiveVisual::Box(BoxVisual {
+                id: 1,
+                pose: primitive_sphere().pose,
+                size: DVec3::ONE,
+                color: [0.0, 1.0, 0.0],
+            }),
+            1 => PrimitiveVisual::Cylinder(primitive_cylinder()),
+            _ => PrimitiveVisual::Sphere(SphereVisual {
+                radius: 1.0 + index as f64 * 0.125,
+                ..primitive_sphere()
+            }),
+        };
+        renderer
+            .set_calibrated_primitive_snapshot(&snapshot, primitive_calibration(), camera)
+            .unwrap();
+        let expected = match kind {
+            0 => renderer.mesh.id(),
+            1 => renderer.cylinder_mesh.as_ref().unwrap().id(),
+            _ => mesh.id(),
+        };
+        assert_eq!(renderer.visuals[&1].entity, entity);
+        assert_eq!(renderer.visuals[&1].material.id(), material);
+        assert_eq!(renderer.visuals[&1].mesh.id(), expected);
+        assert_eq!(
+            renderer.app.world().get::<Mesh3d>(entity).unwrap().0.id(),
+            expected
+        );
+        assert_eq!(
+            renderer
+                .app
+                .world()
+                .resource::<Assets<StandardMaterial>>()
+                .len(),
+            original_materials + 1
+        );
+        assert!(renderer.app.world().resource::<Assets<Mesh>>().len() <= original_meshes + 2);
+        if kind == 2 {
+            let transform = renderer.app.world().get::<Transform>(entity).unwrap();
+            assert_eq!(
+                transform.scale,
+                Vec3::splat((2.0 + index as f64 * 0.25) as f32)
+            );
+            let expected = to_render_pose(primitive_sphere().pose, DVec3::ZERO).unwrap();
+            assert_eq!(transform.translation, expected.translation);
+            assert_eq!(transform.rotation, expected.rotation);
+        }
+    }
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        original_meshes + 2
+    );
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        if renderer.ready {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    assert!(renderer.ready && renderer.scene_assets_ready());
+    let box_id = renderer.mesh.id();
+    let cylinder_id = renderer.cylinder_mesh.as_ref().unwrap().id();
+    let sphere_id = mesh.id();
+    let (old_box, old_cylinder) = {
+        let mut assets = renderer
+            .app
+            .get_sub_app_mut(RenderApp)
+            .unwrap()
+            .world_mut()
+            .resource_mut::<RenderAssets<RenderMesh>>();
+        (assets.remove(box_id), assets.remove(cylinder_id))
+    };
+    assert!(
+        renderer.scene_assets_ready(),
+        "unselected box/cylinder cannot gate sphere readiness"
+    );
+    let old_sphere = renderer
+        .app
+        .get_sub_app_mut(RenderApp)
+        .unwrap()
+        .world_mut()
+        .resource_mut::<RenderAssets<RenderMesh>>()
+        .remove(sphere_id)
+        .unwrap();
+    assert!(
+        !renderer.scene_assets_ready(),
+        "selected sphere must be ready"
+    );
+    let mut assets = renderer
+        .app
+        .get_sub_app_mut(RenderApp)
+        .unwrap()
+        .world_mut()
+        .resource_mut::<RenderAssets<RenderMesh>>();
+    if let Some(mesh) = old_box {
+        assets.insert(box_id, mesh);
+    }
+    if let Some(mesh) = old_cylinder {
+        assets.insert(cylinder_id, mesh);
+    }
+    assets.insert(sphere_id, old_sphere);
+}
+
+#[test]
+fn sphere_snapshot_busy_depth_and_cancelled_slot_keep_their_original_ownership() {
+    let mut renderer = Renderer::new().unwrap();
+    let original_meshes = renderer.app.world().resource::<Assets<Mesh>>().len();
+    let original_materials = renderer
+        .app
+        .world()
+        .resource::<Assets<StandardMaterial>>()
+        .len();
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    let old = Snapshot {
+        epoch: 94,
+        time: Duration::from_millis(8),
+        origin: DVec3::ZERO,
+        visuals: vec![BoxVisual {
+            id: 1,
+            pose: primitive_sphere().pose,
+            size: DVec3::ONE,
+            color: [1.0; 3],
+        }],
+    };
+    renderer
+        .set_calibrated_depth_snapshot(&old, primitive_calibration(), camera)
+        .unwrap();
+    let mut sphere = PrimitiveSnapshot {
+        epoch: 95,
+        time: Duration::ZERO,
+        origin: DVec3::ZERO,
+        visuals: vec![PrimitiveVisual::Sphere(primitive_sphere())],
+    };
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&sphere, primitive_calibration(), camera),
+        Err(RenderError::SnapshotBusy)
+    ));
+    assert!(renderer.sphere_mesh.is_none() && renderer.depth_calibration.is_some());
+    assert_eq!(renderer.stamp, Some((old.epoch, old.time)));
+    // A buffered callback-state fixture, never a fabricated software-rendered frame.
+    renderer.snapshot_dirty = false;
+    let pixels = Arc::new(Mutex::new(Some(Some(vec![
+        0;
+        (WIDTH * HEIGHT * 4) as usize
+    ]))));
+    renderer.pending = Some(Pending {
+        epoch: old.epoch,
+        time: old.time,
+        valid: true,
+        pixels: pixels.clone(),
+    });
+    renderer
+        .set_calibrated_primitive_snapshot(&sphere, primitive_calibration(), camera)
+        .unwrap();
+    assert!(renderer.depth_calibration.is_none());
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    assert!(Arc::ptr_eq(
+        &renderer.pending.as_ref().unwrap().pixels,
+        &pixels
+    ));
+    assert!(!renderer.pending.as_ref().unwrap().valid);
+    assert!(renderer.take_frame().unwrap().is_none());
+    assert!(!renderer.readback_in_flight());
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NoDepthSnapshot)
+    ));
+    assert_eq!(renderer.stamp, Some((sphere.epoch, sphere.time)));
+    renderer.snapshot_dirty = false;
+    sphere.epoch += 1;
+    sphere.visuals.clear();
+    renderer
+        .set_calibrated_primitive_snapshot(&sphere, primitive_calibration(), camera)
+        .unwrap();
+    assert!(renderer.visuals.is_empty());
+    assert_eq!(
+        renderer
+            .app
+            .world()
+            .resource::<Assets<StandardMaterial>>()
+            .len(),
+        original_materials
+    );
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        original_meshes + 1
+    );
+    assert_eq!(renderer.stamp, Some((sphere.epoch, Duration::ZERO)));
+    renderer.app.world_mut().resource_mut::<DeviceFailure>().0 =
+        Some(StoppedReason::Device("sphere device lost".into()));
+    sphere
+        .visuals
+        .push(PrimitiveVisual::Sphere(primitive_sphere()));
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&sphere, primitive_calibration(), camera),
+        Err(RenderError::RenderStopped(_))
+    ));
+    assert!(renderer.visuals.is_empty());
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        original_meshes + 1
+    );
+}

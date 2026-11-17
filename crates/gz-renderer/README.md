@@ -139,3 +139,35 @@ camera/attachment admission, terminal-device admission, overcapacity preserving 
 pending capture, corrupt completion retirement and poisoned-slot ownership. These
 amended controls are unrun; numeric bounds, production code and old assertions
 remain unchanged pending the next consolidated required gate.
+
+
+## M66 calibrated RGB spheres (Source complete, verification pending)
+
+`SphereVisual { id, pose, radius, color }` joins Box and Cylinder in the existing
+`PrimitiveSnapshot` RGB setter. The shared 128-visual count and ID namespace,
+opaque finite RGB, f64 pose/origin/calibration and positive finite dimensions
+are validated before any asset/entity/camera/stamp mutation or readback
+cancellation. Radius and diameter must remain positive and finite after f32
+narrowing. Legacy box structs/setters, directional boxes and box-only depth
+remain unchanged; the RGB primitive setter does not enable depth output.
+
+The locked Bevy 0.20 `Sphere::new(0.5).mesh().uv(32, 18)` produces one lazy
+cached mesh (627 vertices and 1,088 triangles), scaled uniformly by diameter,
+without an additional axis rotation. Box-only and Box/Cylinder paths allocate
+no sphere. At most the three fixed shape meshes are cached; size changes or
+same-ID shape replacement do not create per-size meshes. Entity mesh handles
+and readiness follow the actual selected shape; removal releases only the
+entity/material while retaining the bounded shared mesh cache.
+
+New private controls cover invalid-input/pending-state purity, mixed shared
+IDs/counts, all three replacement kinds, UV data, selected-mesh readiness and
+bounded assets, Busy/device/depth and cancelled-buffer ownership. The software
+pixel control uses sphere interior, an AABB-only corner and a near box occluder,
+then checks origin/camera equivalence, real asynchronous cancellation/reset,
+empty output and exact full-frame old Box restoration. Existing controls and
+assertions are retained. These are unexecuted regression Sources until the
+completed batch passes independent review and the consolidated required gates.
+
+This is the fixed 32-sector/18-stack UV approximation, not an analytic sphere,
+native Ogre image comparison, physical-GPU/performance claim, depth sphere or
+installed-worker distribution. M65's installed 35-example Latest is unchanged.

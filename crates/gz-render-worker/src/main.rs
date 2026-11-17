@@ -14,7 +14,7 @@ use gz_render_protocol::{
 };
 use gz_renderer::{
     BoxVisual, CylinderVisual, DepthFrame, Frame, PrimitiveSnapshot, PrimitiveVisual, RenderError,
-    Renderer, Snapshot, UpdateStatus,
+    Renderer, Snapshot, SphereVisual, UpdateStatus,
 };
 use rustix::process::{Signal, getpid, getppid, set_parent_process_death_signal};
 use std::{
@@ -495,6 +495,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                                         pose,
                                                         radius,
                                                         length,
+                                                        color: v.color,
+                                                    })
+                                                }
+                                                Geometry::Sphere { radius } => {
+                                                    PrimitiveVisual::Sphere(SphereVisual {
+                                                        id: v.id,
+                                                        pose,
+                                                        radius,
                                                         color: v.color,
                                                     })
                                                 }

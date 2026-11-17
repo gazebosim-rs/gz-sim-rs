@@ -1,40 +1,32 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-## Current work: M65 installed eight-owner fleet preview
+## Current work: M66 RGB sphere visuals
 
-M1–M64 are accepted:197 retained slices. Exact Main192ede contains eight drive
-robots, eight controller chains, paired automatic RGB cameras and cylinder
-visuals. Full local/hosted qualification, independent local/official DATA and
-ordinary Main/readbacks passed; see [the acceptance record](docs/M61_M64_ACCEPTANCE.md).
-M60 remains Latest with33 installed examples and unchanged viewer bytes/budgets.
-Do not rerun accepted tests, audits, RAW comparisons or manual demonstrations.
+M1–M65 are accepted: 198 reviewed slices. M65 is published at exact Main
+`069f315c1466c40120d85f6944a5f478ef6e9c71`; `m65-preview` is Latest with
+35 installed examples. Its fresh package, clean Ubuntu installation, eight-drive/
+sixteen-controller application and isolation, browser and owned shutdown proofs
+passed independent review. See [M65 acceptance](docs/M65_ACCEPTANCE.md) for the immutable evidence boundary.
+Accepted viewer bytes and both 14 MB budgets remain unchanged.
 
-[M65](docs/M65_DELIVERY.md) is the next bounded delivery. Its implementation, meaningful
-regression Source and guides passed independent review. It preserves historical
-33-example/M44/M60 packages and adds an explicit M65-only35-example registry plus
-concrete topic selection in the existing joint helper. Four Rust and six Python
-control declarations are not observed passes. The single affected formatter passed; no M65 test, release build, package,
-installation, browser or release result exists yet.
+[M66](docs/M66_DELIVERY.md) selects opaque sphere visuals in the existing calibrated RGB path,
+including explicit protocol-5 geometry, one bounded cached mesh and real software
+pixels/canonical Image and CameraInfo. Generic and depth extraction remain
+box-only. The M65 package is preserved; no camera-worker distribution is selected.
 
-M65 starts directly on now-accepted192ede in its isolated checkout. The actual predecessor metadata and complete Source passed independent review.
-The single affected formatter passed; final token, census and exact staged-tree
-bindings precede the complete normal/strict accepted-parent/local DATA cycle. Light owns package/regressions/guide trio, Messages the joint helper,
-Root shared integration/planning and all serial local operations; SDF independently
-reviews completed batches. Preserve all old controls, assertions and gates.
+Root owns protocol/client/worker seams, qualifiers and integration. Light owns
+renderer leaves, Messages extraction/fixture/canonical consumer leaves, and SDF
+independently reviews the complete batches. They share only the new isolated
+M66 checkout over accepted M65 with disjoint file leases. Complete implementation,
+meaningful regression Source, guides and independent review before one affected
+formatter and consolidated unchanged normal/strict coverage/local DATA cycle.
+Exact hosted/official/durable/Main gates remain required before acceptance.
+Implementation, regression Source and whole independent review are complete; the
+single affected formatter passed. Final bindings precede full normal/strict
+checks; no M66 test, lint, build or qualification has run. Preserve every old
+failure, surviving original, Fuel work and frozen tree; no cleanup is authorized.
 
-After genuine M65 local qualification, separately reviewed same-head LOCAL
-PROVISIONAL release/package/install/demo jobs may overlap its own remote CI.
-Every hosted/official/durable/Main and fresh distribution proof remains mandatory
-before M65 acceptance, public release or Latest. Source changes require fresh
-applicable bindings and checks; no result transfers. Use existing live web output
-for sequential numeric then browser observations, never concurrent clients,
-new telemetry, invented motor ACKs or an unchanged replay-only reader.
-
-The five-working-day scope excludes RGB/depth-worker/GPU distribution, SDK
-bundles, new viewer/transport/runtime/packaging frameworks and performance claims.
-Source finite37 remains distinct from installed35. Preserve Fuel, M60 releases,
-surviving originals, all actual failures and explicit reboot losses. All cleanup
-scopes are consumed. Earlier checkpoints below retain historical scope.
+Earlier checkpoints below retain their historical scope.
 
 ## Current M59: two independent differential-drive robots
 
