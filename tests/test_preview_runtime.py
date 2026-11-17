@@ -1,6 +1,7 @@
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
 import hashlib
+from functools import wraps
 import http.client
 import importlib.util
 import json
@@ -22,6 +23,18 @@ SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/preview_runtime.py'
 spec = importlib.util.spec_from_file_location('preview_runtime', SCRIPT)
 preview = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(preview)
+
+
+def isolated_camera_environment(method):
+    """Keep hosted graphics settings outside synthetic camera admission cases."""
+    @wraps(method)
+    def isolated(self):
+        ordinary = {name: value for name, value in os.environ.items()
+                    if not name.startswith(('LD_', 'VK_', 'WGPU_', 'MESA_', 'GALLIUM_'))
+                    and name != 'DRI_PRIME'}
+        with patch.dict(os.environ, ordinary, clear=True):
+            return method(self)
+    return isolated
 
 
 class InstalledPreview(unittest.TestCase):
@@ -497,6 +510,418 @@ class InstalledPreview(unittest.TestCase):
                 self.assertEqual(stopped.exception.code, 2)
                 serve.assert_not_called()
                 drive.assert_not_called()
+
+
+    def install_m70_camera_fixture(self):
+        self.install_guides(('INSTALL.md', 'CAPABILITIES.md'))
+        for name, content, mode in (('PREVIEW.md', b'camera preview guide', 0o644),
+                                    ('bin/gz-render-worker', b'packaged worker fixture', 0o755)):
+            path = self.prefix / name
+            path.write_bytes(content)
+            path.chmod(mode)
+            self.files[name] = {'bytes': len(content), 'sha256': hashlib.sha256(content).hexdigest(),
+                                'mode': mode}
+        self.camera_manifest = {
+            'schema_version': 1, 'target': 'ubuntu-24.04-x86_64', 'guide_generation': 'M70',
+            'profile': 'release; no-default-features; simulator rgb-camera; helpers native-free; optional packaged GPU worker',
+            'binary_roles': {
+                'simulator': {'path': 'bin/gz-sim-rs', 'package': 'gz-sim-cli',
+                              'target': 'gz-sim-rs', 'features': ['rgb-camera']},
+                'drive_command': {'path': 'bin/gz-drive-command', 'package': 'gz-sim-server',
+                                  'target': 'drive_command', 'features': []},
+                'joint_command': {'path': 'bin/gz-joint-command', 'package': 'gz-sim-server',
+                                  'target': 'joint_command', 'features': []},
+                'camera_worker': {'path': 'bin/gz-render-worker', 'package': 'gz-render-worker',
+                                  'target': 'gz-render-worker', 'features': []}},
+            'files': self.files}
+        self.save_m70_camera_manifest()
+
+    def save_m70_camera_manifest(self):
+        (self.prefix / 'manifest.json').write_text(json.dumps(self.camera_manifest))
+
+    def camera_os_fixture(self):
+        icd = self.directory / 'icd'
+        libraries = self.directory / 'system libraries'
+        runtime = self.directory / 'private camera runtime'
+        icd.mkdir(exist_ok=True)
+        libraries.mkdir(exist_ok=True)
+        runtime.mkdir(mode=0o700, exist_ok=True)
+        provider = libraries / 'libvulkan_lvp.so'
+        provider.write_bytes(b'OS provider admission fixture; not an executed driver')
+        selected = icd / 'lvp_icd.x86_64.json'
+        selected.write_text(json.dumps({'file_format_version': '1.0.0',
+                                       'ICD': {'library_path': str(provider), 'api_version': '1.3.0'}}))
+        return icd, libraries, runtime, selected
+
+    @isolated_camera_environment
+    def test_m70_manifest_requires_exact_roles_executable_worker_and_new_guides(self):
+        self.install_m70_camera_fixture()
+        self.assertEqual(preview.verify_prefix(self.prefix)['guide_generation'], 'M70')
+        original = json.dumps(self.camera_manifest)
+        for fault in ('missing', 'extra', 'swapped', 'features', 'profile', 'target', 'guide', 'mode'):
+            with self.subTest(fault=fault):
+                self.camera_manifest = json.loads(original)
+                if fault == 'missing':
+                    del self.camera_manifest['binary_roles']['camera_worker']
+                elif fault == 'extra':
+                    self.camera_manifest['binary_roles']['another_worker'] = {}
+                elif fault == 'swapped':
+                    self.camera_manifest['binary_roles']['camera_worker']['path'] = 'bin/gz-sim-rs'
+                elif fault == 'features':
+                    self.camera_manifest['binary_roles']['simulator']['features'] = []
+                elif fault == 'profile':
+                    self.camera_manifest['profile'] = 'release; no-default-features; no rgb-camera'
+                elif fault == 'target':
+                    self.camera_manifest['target'] = 'other-system'
+                elif fault == 'guide':
+                    del self.camera_manifest['files']['PREVIEW.md']
+                else:
+                    # A rewritten inventory cannot admit a nonexecutable worker.
+                    self.camera_manifest['files']['bin/gz-render-worker']['mode'] = 0o644
+                    (self.prefix / 'bin/gz-render-worker').chmod(0o644)
+                self.save_m70_camera_manifest()
+                with self.assertRaises(ValueError):
+                    preview.verify_prefix(self.prefix)
+                (self.prefix / 'bin/gz-render-worker').chmod(0o755)
+        self.camera_manifest = json.loads(original)
+        self.save_m70_camera_manifest()
+        moved = self.directory / 'relocated camera prefix'
+        shutil.move(self.prefix, moved)
+        self.assertEqual(preview.verify_prefix(moved)['binary_roles'], self.camera_manifest['binary_roles'])
+
+    @isolated_camera_environment
+    def test_camera_output_flag_is_explicit_m70_only_and_conflicts_before_dispatch(self):
+        with patch.object(preview, 'serve') as serve:
+            self.assertEqual(preview.main(['run', '--camera-output'], self.prefix), 1)
+            serve.assert_not_called()
+        self.install_m70_camera_fixture()
+        with patch.object(preview, 'serve', return_value=0) as serve:
+            self.assertEqual(preview.main(['run'], self.prefix), 0)
+            self.assertNotIn('camera_output', serve.call_args.kwargs)
+        with patch.object(preview, 'serve', return_value=0) as serve:
+            self.assertEqual(preview.main(['run', '--camera-output'], self.prefix), 0)
+            self.assertEqual(serve.call_args.kwargs, {'camera_output': True})
+        with patch.object(preview, 'serve') as serve:
+            self.assertEqual(preview.main(['run', '--camera-output', '--lifecycle'], self.prefix), 1)
+            serve.assert_not_called()
+        for argv in (['verify', '--camera-output'], ['drive', '0', '0', '1', '--camera-output'],
+                     ['run', '--camera-output=/arbitrary/worker']):
+            with self.subTest(argv=argv), patch.object(preview, 'serve') as serve:
+                with self.assertRaises(SystemExit) as stopped:
+                    preview.main(argv, self.prefix)
+                self.assertEqual(stopped.exception.code, 2)
+                serve.assert_not_called()
+
+    @isolated_camera_environment
+    def test_camera_serve_derives_packaged_worker_without_changing_default_dispatch(self):
+        self.install_m70_camera_fixture()
+        with patch.object(preview, '_serve', return_value=7) as child, \
+                patch.object(preview, 'camera_environment') as environment:
+            self.assertEqual(preview.serve(self.prefix, 8082, 9014, 'plain'), 7)
+            self.assertEqual(child.call_args.kwargs, {'lifecycle': False, 'example': None})
+            environment.assert_not_called()
+        bounded = {'GZ_PARTITION': 'camera-test', 'VK_ICD_FILENAMES': '/system/icd.json'}
+        with patch.object(preview, '_serve', return_value=0) as child, \
+                patch.object(preview, 'camera_environment', return_value=bounded) as environment:
+            self.assertEqual(preview.serve(self.prefix, 8082, 9014, 'camera-test', camera_output=True), 0)
+            self.assertEqual(child.call_args.kwargs, {'example': None,
+                'worker': self.prefix / 'bin/gz-render-worker', 'child_environment': bounded,
+                'retirement': {'confirmed': True}})
+            runtime = environment.call_args.args[2]
+            self.assertFalse(runtime.exists())
+        with patch.object(preview, '_serve') as child, \
+                patch.object(preview, 'camera_environment') as environment:
+            with self.assertRaises(ValueError):
+                preview.serve(self.prefix, 8082, 9014, 'camera', lifecycle=True, camera_output=True)
+            child.assert_not_called()
+            environment.assert_not_called()
+
+    @isolated_camera_environment
+    def test_camera_payload_changes_refuse_before_driver_admission_listeners_or_spawn(self):
+        self.install_m70_camera_fixture()
+        worker = self.prefix / 'bin/gz-render-worker'
+        original = worker.read_bytes()
+        for fault in ('bytes', 'mode', 'link', 'missing'):
+            with self.subTest(fault=fault):
+                if fault == 'bytes':
+                    worker.write_bytes(b'changed')
+                elif fault == 'mode':
+                    worker.chmod(0o644)
+                elif fault == 'link':
+                    worker.unlink()
+                    external = self.directory / 'external worker'
+                    external.write_bytes(original)
+                    worker.symlink_to(external)
+                else:
+                    worker.unlink()
+                with patch.object(preview, 'camera_environment') as environment, \
+                        patch.object(preview, '_serve') as child:
+                    with self.assertRaises(ValueError):
+                        preview.serve(self.prefix, 8082, 9014, 'camera', camera_output=True)
+                    environment.assert_not_called()
+                    child.assert_not_called()
+                if worker.is_symlink():
+                    worker.unlink()
+                worker.write_bytes(original)
+                worker.chmod(0o755)
+
+    @isolated_camera_environment
+    def test_camera_environment_pins_system_icd_and_private_runtime_without_inherited_overrides(self):
+        icd, libraries, runtime, selected = self.camera_os_fixture()
+        with patch.object(preview, 'CAMERA_ICD_DIRECTORY', icd), \
+                patch.object(preview, 'CAMERA_LIBRARY_DIRECTORIES', (libraries,)), \
+                patch.dict(os.environ, {'LD_PRELOAD': '', 'VK_DRIVER_FILES': '',
+                    'HOME': '/wrong/home', 'XDG_RUNTIME_DIR': '/wrong/runtime',
+                    'GZ_PARTITION': 'wrong'}):
+            env = preview.camera_environment(self.prefix, 'camera-partition', runtime)
+        self.assertEqual(env['VK_ICD_FILENAMES'], str(selected))
+        self.assertEqual(env['XDG_RUNTIME_DIR'], str(runtime))
+        self.assertEqual(env['HOME'], str(runtime))
+        self.assertEqual(env['MESA_SHADER_CACHE_DISABLE'], 'true')
+        self.assertEqual(env['GZ_PARTITION'], 'camera-partition')
+        self.assertEqual(env['ZENOH_CONFIG'], str(self.prefix / 'share/zenoh.json5'))
+        self.assertEqual(env['PATH'], '/usr/bin:/bin')
+        self.assertTrue({'LD_PRELOAD', 'LD_LIBRARY_PATH', 'VK_DRIVER_FILES', 'WGPU_ADAPTER_NAME'}.isdisjoint(env))
+        self.assertEqual(runtime.stat().st_mode & 0o777, 0o700)
+
+    @isolated_camera_environment
+    def test_camera_environment_refuses_ambiguous_linked_invalid_or_missing_os_provider(self):
+        icd, libraries, runtime, selected = self.camera_os_fixture()
+        original = selected.read_bytes()
+        for fault in ('missing', 'multiple', 'link', 'large', 'invalid', 'bare',
+                      'foreign', 'provider', 'runtime'):
+            with self.subTest(fault=fault):
+                if fault == 'missing':
+                    selected.unlink()
+                elif fault == 'multiple':
+                    (icd / 'lvp_icd.other.json').write_bytes(original)
+                elif fault == 'link':
+                    selected.unlink()
+                    external = self.directory / 'external ICD'
+                    external.write_bytes(original)
+                    selected.symlink_to(external)
+                elif fault == 'large':
+                    selected.write_bytes(b'x' * 65537)
+                elif fault == 'invalid':
+                    selected.write_text(json.dumps({'ICD': {'library_path': '../other.so'}}))
+                elif fault == 'bare':
+                    selected.write_text(json.dumps({'ICD': {'library_path': 'libvulkan_lvp.so'}}))
+                elif fault == 'foreign':
+                    other = self.directory / 'libvulkan_lvp.so'
+                    other.write_bytes(b'foreign provider')
+                    selected.write_text(json.dumps({'ICD': {'library_path': str(other)}}))
+                elif fault == 'provider':
+                    (libraries / 'libvulkan_lvp.so').unlink()
+                else:
+                    runtime.chmod(0o755)
+                with patch.object(preview, 'CAMERA_ICD_DIRECTORY', icd), \
+                        patch.object(preview, 'CAMERA_LIBRARY_DIRECTORIES', (libraries,)):
+                    with self.assertRaises((OSError, ValueError)):
+                        preview.camera_environment(self.prefix, 'camera', runtime)
+                if selected.is_symlink():
+                    selected.unlink()
+                selected.write_bytes(original)
+                (icd / 'lvp_icd.other.json').unlink(missing_ok=True)
+                (libraries / 'libvulkan_lvp.so').write_bytes(b'OS provider admission fixture')
+                runtime.chmod(0o700)
+        with patch.object(preview, 'CAMERA_ICD_DIRECTORY', icd), \
+                patch.object(preview, 'CAMERA_LIBRARY_DIRECTORIES', (libraries,)), \
+                patch.object(preview.os, 'geteuid', return_value=-1):
+            with self.assertRaisesRegex(ValueError, 'private owned'):
+                preview.camera_environment(self.prefix, 'camera', runtime)
+
+    @isolated_camera_environment
+    def test_camera_environment_failure_retires_runtime_before_any_service_effect(self):
+        self.install_m70_camera_fixture()
+        seen = []
+        def refuse(_prefix, _partition, runtime):
+            seen.append(runtime)
+            self.assertEqual(runtime.stat().st_mode & 0o777, 0o700)
+            raise ValueError('provider refused')
+        with patch.object(preview, 'camera_environment', side_effect=refuse), \
+                patch.object(preview, '_serve') as child, patch.object(preview, 'check_port') as port:
+            with self.assertRaisesRegex(ValueError, 'provider refused'):
+                preview.serve(self.prefix, 8082, 9014, 'camera', camera_output=True)
+            child.assert_not_called()
+            port.assert_not_called()
+        self.assertEqual(len(seen), 1)
+        self.assertFalse(seen[0].exists())
+
+    @isolated_camera_environment
+    def test_camera_run_passes_fixed_worker_and_controlled_environment_to_owned_child(self):
+        self.install_m70_camera_fixture()
+        bounded = {'GZ_PARTITION': 'installed-camera', 'VK_ICD_FILENAMES': '/system/icd.json'}
+        child = Mock(pid=98765, returncode=0)
+        child.poll.return_value = 0
+        with patch.object(preview, 'camera_environment', return_value=bounded), \
+                patch.object(preview, 'check_port'), \
+                patch.object(preview.http.server, 'ThreadingHTTPServer') as http, \
+                patch.object(preview.threading, 'Thread'), \
+                patch.object(preview.subprocess, 'Popen', return_value=child) as spawn:
+            self.assertEqual(preview.serve(self.prefix, 8082, 9014, 'installed-camera', camera_output=True), 0)
+            self.assertEqual(spawn.call_args.args[0], [str(self.prefix / 'bin/gz-sim-rs'),
+                str(self.prefix / 'share/robot.sdf'), '--server', '--web-viewer', '9014',
+                '--camera-worker', str(self.prefix / 'bin/gz-render-worker')])
+            self.assertEqual(spawn.call_args.kwargs['env'], bounded)
+            self.assertTrue(spawn.call_args.kwargs['start_new_session'])
+            self.assertEqual(spawn.call_args.kwargs['cwd'], self.prefix)
+            self.assertNotIn('--web-lifecycle', spawn.call_args.args[0])
+            http.return_value.server_close.assert_called_once()
+
+    @isolated_camera_environment
+    def test_camera_overrides_refuse_before_runtime_driver_listener_or_spawn_effects(self):
+        self.install_m70_camera_fixture()
+        names = ('LD_PRELOAD', 'LD_AUDIT', 'LD_LIBRARY_PATH', 'VK_DRIVER_FILES',
+                 'VK_ADD_DRIVER_FILES', 'VK_ICD_FILENAMES', 'VK_LAYER_PATH',
+                 'VK_ADD_LAYER_PATH', 'VK_INSTANCE_LAYERS', 'WGPU_ADAPTER_NAME',
+                 'WGPU_BACKEND', 'MESA_LOADER_DRIVER_OVERRIDE', 'DRI_PRIME',
+                 'VK_LOADER_DRIVERS_SELECT', 'GALLIUM_DRIVER')
+        for name in names:
+            with self.subTest(name=name), patch.dict(os.environ, {name: 'uncontrolled'}), \
+                    patch.object(preview.tempfile, 'mkdtemp') as runtime, \
+                    patch.object(preview, 'camera_environment') as environment, \
+                    patch.object(preview, '_serve') as serve:
+                with self.assertRaisesRegex(ValueError, name):
+                    preview.serve(self.prefix, 8082, 9014, 'camera', camera_output=True)
+                runtime.assert_not_called()
+                environment.assert_not_called()
+                serve.assert_not_called()
+        for name in names:
+            with self.subTest(direct=name), patch.dict(os.environ, {name: 'uncontrolled'}):
+                with self.assertRaisesRegex(ValueError, name):
+                    preview.camera_environment(self.prefix, 'camera', self.directory / 'absent runtime')
+
+    @isolated_camera_environment
+    def test_camera_failed_retirement_retains_runtime_and_attempts_all_remaining_cleanup(self):
+        self.install_m70_camera_fixture()
+        seen = []
+        def environment(_prefix, _partition, runtime):
+            seen.append(runtime)
+            self.addCleanup(shutil.rmtree, runtime)
+            return {'HOME': str(runtime)}
+        child = Mock(pid=98765)
+        child.poll.return_value = None
+        stopping = Mock()
+        stopping.wait.return_value = True
+        stopping.is_set.return_value = True
+        failure = subprocess.TimeoutExpired(['owned simulator'], 5)
+        with patch.object(preview, 'camera_environment', side_effect=environment), \
+                patch.object(preview, 'check_port'), \
+                patch.object(preview.http.server, 'ThreadingHTTPServer') as http, \
+                patch.object(preview.threading, 'Thread') as thread, \
+                patch.object(preview.threading, 'Event', return_value=stopping), \
+                patch.object(preview.signal, 'signal', return_value='original') as signals, \
+                patch.object(preview.subprocess, 'Popen', return_value=child), \
+                patch.object(preview, 'stop_child', side_effect=failure), \
+                patch('builtins.print') as output:
+            http.return_value.shutdown.side_effect = OSError('HTTP shutdown failed')
+            with self.assertRaises(subprocess.TimeoutExpired) as raised:
+                preview.serve(self.prefix, 8082, 9014, 'camera', camera_output=True)
+        self.assertIs(raised.exception, failure)
+        self.assertEqual(len(seen), 1)
+        self.assertTrue(seen[0].is_dir())
+        http.return_value.shutdown.assert_called_once_with()
+        thread.return_value.join.assert_called_once_with(timeout=5)
+        http.return_value.server_close.assert_called_once_with()
+        self.assertEqual(signals.call_count, 6)
+        self.assertEqual([call.args for call in signals.call_args_list[-3:]],
+                         [(signum, 'original') for signum in
+                          (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)])
+        self.assertTrue(any('HTTP shutdown failed' in note for note in failure.__notes__))
+        self.assertTrue(any('runtime retained: ' + str(seen[0]) in note for note in failure.__notes__))
+        self.assertTrue(any('runtime retained: ' + str(seen[0]) in str(call.args)
+                            for call in output.call_args_list))
+
+    @isolated_camera_environment
+    def test_camera_constructor_uncertainty_retains_runtime_and_primary_failure(self):
+        self.install_m70_camera_fixture()
+        seen = []
+        def environment(_prefix, _partition, runtime):
+            seen.append(runtime)
+            self.addCleanup(shutil.rmtree, runtime)
+            return {'HOME': str(runtime)}
+        failure = OSError('spawn outcome unknown')
+        with patch.object(preview, 'camera_environment', side_effect=environment), \
+                patch.object(preview, 'check_port'), \
+                patch.object(preview.http.server, 'ThreadingHTTPServer') as http, \
+                patch.object(preview.threading, 'Thread') as thread, \
+                patch.object(preview.signal, 'signal', return_value='original') as signals, \
+                patch.object(preview.subprocess, 'Popen', side_effect=failure), \
+                patch.object(preview, 'stop_child') as stop, patch('builtins.print'):
+            http.return_value.server_close.side_effect = OSError('HTTP close failed')
+            with self.assertRaises(OSError) as raised:
+                preview.serve(self.prefix, 8082, 9014, 'camera', camera_output=True)
+        self.assertIs(raised.exception, failure)
+        self.assertEqual(len(seen), 1)
+        self.assertTrue(seen[0].is_dir())
+        self.assertTrue(any('runtime retained: ' + str(seen[0]) in note for note in failure.__notes__))
+        self.assertTrue(any('HTTP close failed' in note for note in failure.__notes__))
+        thread.assert_not_called()
+        stop.assert_not_called()
+        http.return_value.shutdown.assert_not_called()
+        http.return_value.server_close.assert_called_once_with()
+        self.assertEqual(signals.call_count, 6)
+
+    @isolated_camera_environment
+    def test_camera_pre_spawn_listener_failure_removes_owned_runtime(self):
+        self.install_m70_camera_fixture()
+        seen = []
+        def environment(_prefix, _partition, runtime):
+            seen.append(runtime)
+            return {'HOME': str(runtime)}
+        with patch.object(preview, 'camera_environment', side_effect=environment), \
+                patch.object(preview, 'check_port', side_effect=OSError('occupied')), \
+                patch.object(preview.subprocess, 'Popen') as spawn:
+            with self.assertRaisesRegex(OSError, 'occupied'):
+                preview.serve(self.prefix, 8082, 9014, 'camera', camera_output=True)
+        spawn.assert_not_called()
+        self.assertEqual(len(seen), 1)
+        self.assertFalse(seen[0].exists())
+
+    @isolated_camera_environment
+    def test_camera_runtime_identity_replacement_is_retained_and_refused(self):
+        self.install_m70_camera_fixture()
+        seen = []
+        def environment(_prefix, _partition, runtime):
+            seen.append(runtime)
+            return {'HOME': str(runtime)}
+        def replace(_prefix, _http, _ws, _partition, **_options):
+            runtime = seen[0]
+            displaced = runtime.with_name(runtime.name + '-original')
+            runtime.rename(displaced)
+            self.addCleanup(shutil.rmtree, displaced)
+            runtime.mkdir(mode=0o700)
+            self.addCleanup(shutil.rmtree, runtime)
+            return 0
+        with patch.object(preview, 'camera_environment', side_effect=environment), \
+                patch.object(preview, '_serve', side_effect=replace):
+            with self.assertRaisesRegex(ValueError, 'identity changed; retained:'):
+                preview.serve(self.prefix, 8082, 9014, 'camera', camera_output=True)
+        self.assertTrue(seen[0].is_dir())
+
+    @isolated_camera_environment
+    def test_camera_confirmed_wait_precedes_runtime_removal(self):
+        self.install_m70_camera_fixture()
+        seen = []
+        def environment(_prefix, _partition, runtime):
+            seen.append(runtime)
+            return {'HOME': str(runtime)}
+        child = Mock(pid=98765, returncode=0)
+        child.poll.return_value = 0
+        def stop(selected):
+            self.assertIs(selected, child)
+            self.assertTrue(seen[0].is_dir())
+            selected.wait(timeout=10)
+        with patch.object(preview, 'camera_environment', side_effect=environment), \
+                patch.object(preview, 'check_port'), \
+                patch.object(preview.http.server, 'ThreadingHTTPServer'), \
+                patch.object(preview.threading, 'Thread'), \
+                patch.object(preview.subprocess, 'Popen', return_value=child), \
+                patch.object(preview, 'stop_child', side_effect=stop):
+            self.assertEqual(preview.serve(self.prefix, 8082, 9014, 'camera', camera_output=True), 0)
+        child.wait.assert_called_once_with(timeout=10)
+        self.assertFalse(seen[0].exists())
+
 
 
 if __name__ == '__main__':

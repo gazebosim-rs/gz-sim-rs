@@ -1,5 +1,41 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
+## Current development: M70 installed camera preview
+
+M1–M69 and 202 reviewed slices are accepted at Main
+`d19d5a69b94ed959bf1348665783996a531a3c36`. M69 passed its full normal,
+strict coverage, independent local DATA, [exact hosted CI](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44109413456)
+attempt 1, durable-original collection, official DATA and Main readback.
+Its [acceptance record](M69_ACCEPTANCE.md) preserves both failed normal attempts.
+M65 remains public Latest with 35 installed examples.
+
+[M70](M70_DELIVERY.md) is the selected installed Ubuntu 24.04 x86_64 camera preview.
+It packages the existing renderer worker as a fourth verified ELF, retains the
+native-free helpers and default robot path, and copies all 41 maintained finite
+examples. Camera output is explicit through `gz-preview run --camera-output`;
+the launcher uses the manifest-bound worker and an ordinary OS lavapipe provider.
+It refuses conflicting loader/graphics overrides and lifecycle editing in that
+mode. Six accepted viewer files and both 14 MB gzip budgets stay unchanged.
+
+Package, launcher, meaningful regression Source and guides are complete. The
+three source-review finding classes have one batched correction: override
+refusal, absolute provider admission, and independent cleanup with runtime
+retention when retirement is uncertain. Complete joined independent Source
+review and the final adoption/procedure bindings before one consolidated full
+normal, strict coverage and independent local DATA cycle. No M70 check, build,
+package, installation, frame or browser result is claimed.
+
+Then require exact hosted success, durable originals and official DATA, followed
+by source-bound four-role release inputs, notices/ELF closure, assembly/relocation
+and independent package DATA. A clean supported installation must verify all 41
+finite loads separately from the actual paired-depth, RGB smoke and default robot
+browser proofs. Those demonstrations require ordinary installed provider/resource
+observations, real controls and owned shutdown; 41 finite loads do not prove
+camera frames. M70 acceptance and public release remain held until every required
+gate passes. Preserve old generations, accepted Source, all failures and Fuel.
+
+Earlier checkpoints below retain their historical scope.
+
 ## Current development: M69 two calibrated depth cameras
 
 M1–M68 and 201 reviewed slices are accepted at Main
