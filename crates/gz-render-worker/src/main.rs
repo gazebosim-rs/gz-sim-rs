@@ -13,8 +13,8 @@ use gz_render_protocol::{
     read_request, write_reply,
 };
 use gz_renderer::{
-    BoxVisual, CylinderVisual, DepthFrame, Frame, PrimitiveSnapshot, PrimitiveVisual, RenderError,
-    Renderer, Snapshot, SphereVisual, UpdateStatus,
+    BoxVisual, CylinderVisual, DepthFrame, EllipsoidVisual, Frame, PrimitiveSnapshot,
+    PrimitiveVisual, RenderError, Renderer, Snapshot, SphereVisual, UpdateStatus,
 };
 use rustix::process::{Signal, getpid, getppid, set_parent_process_death_signal};
 use std::{
@@ -503,6 +503,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                                         id: v.id,
                                                         pose,
                                                         radius,
+                                                        color: v.color,
+                                                    })
+                                                }
+                                                Geometry::Ellipsoid { radii } => {
+                                                    PrimitiveVisual::Ellipsoid(EllipsoidVisual {
+                                                        id: v.id,
+                                                        pose,
+                                                        radii: DVec3::from_array(radii),
                                                         color: v.color,
                                                     })
                                                 }

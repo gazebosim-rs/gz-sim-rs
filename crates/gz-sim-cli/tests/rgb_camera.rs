@@ -901,3 +901,64 @@ fn cli_sphere_rgb_keeps_worker_lazy_and_depth_and_owner_refusals() {
         "unsupported depth geometry must fail before worker IO"
     );
 }
+
+#[cfg(feature = "rgb-camera")]
+#[test]
+fn cli_ellipsoid_rgb_keeps_worker_lazy_and_depth_and_owner_refusals() {
+    if isolation::child(
+        "cli_ellipsoid_rgb_keeps_worker_lazy_and_depth_and_owner_refusals",
+        45,
+    ) {
+        return;
+    }
+    let source = include_str!("../../../examples/m67_rgb_ellipsoid.sdf");
+    let directory = tempfile::tempdir().unwrap();
+    let worker = directory.path().join("absent-ellipsoid-worker");
+    let args = [
+        "--physics-engine",
+        "rapier",
+        "--server",
+        "--run",
+        "--iterations",
+        "3",
+    ];
+    let output = command(source, Some(&worker), &args);
+    assert!(output.status.success(), "{output:?}");
+    assert_eq!(
+        String::from_utf8_lossy(&output.stdout),
+        "simulation_ns=3000000 iterations=3\ndefault::backdrop::body 7 0 0\ndefault::ellipsoid::body 4 0 0\ndefault::occluder::body 2 0 0\ndefault::rig::body 0 0 0\n"
+    );
+    assert!(output.stderr.is_empty(), "{output:?}");
+    assert!(
+        !worker.exists(),
+        "no image interest must not spawn the renderer"
+    );
+
+    let missing_owner = command(source, None, &args);
+    assert_eq!(missing_owner.status.code(), Some(1), "{missing_owner:?}");
+    assert!(missing_owner.stdout.is_empty());
+    assert!(String::from_utf8_lossy(&missing_owner.stderr).contains("camera application owner"));
+
+    let metadata_only = source.replace(SENSORS, "");
+    assert_ne!(metadata_only, source, "fixture must declare Sensors intent");
+    let without = command(&metadata_only, None, &args);
+    let with = command(&metadata_only, Some(&worker), &args);
+    assert!(
+        without.status.success() && with.status.success(),
+        "{without:?} {with:?}"
+    );
+    assert_eq!(without.stdout, output.stdout);
+    assert_eq!(with.stdout, output.stdout);
+    assert!(without.stderr.is_empty() && with.stderr.is_empty());
+
+    let depth = source.replacen("type=\"camera\"", "type=\"depth_camera\"", 1);
+    assert_ne!(depth, source);
+    let refused = command(&depth, Some(&worker), &args);
+    assert_eq!(refused.status.code(), Some(1), "{refused:?}");
+    assert!(refused.stdout.is_empty());
+    assert!(!refused.stderr.is_empty());
+    assert!(
+        !worker.exists(),
+        "unsupported depth geometry must fail before worker IO"
+    );
+}

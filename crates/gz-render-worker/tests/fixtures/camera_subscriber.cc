@@ -22,9 +22,11 @@
 int pair_mode(int argc, char **argv);
 int cylinder_mode(int argc, char **argv);
 int sphere_mode(int argc, char **argv);
+int ellipsoid_mode(int argc, char **argv);
 
 int main(int argc, char **argv) {
   if (argc != 1) {
+    if (argc == 2 && std::string(argv[1]) == "ellipsoid") return ellipsoid_mode(argc, argv);
     if (argc == 2 && std::string(argv[1]) == "sphere") return sphere_mode(argc, argv);
     if (argc == 2 && std::string(argv[1]) == "cylinder") return cylinder_mode(argc, argv);
     return pair_mode(argc, argv);
@@ -328,6 +330,74 @@ int sphere_mode(int argc, char **argv) {
     }
     std::cout<<"IMAGE "<<sphere_hex_bytes(frame_wire)<<'\n'<<"INFO "<<sphere_hex_bytes(info_wire)<<"\nPASS\n"<<std::flush;
     if (!std::cout || std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("sphere completion failed");
+    return 0;
+  } catch (const std::exception &error) { std::cerr<<error.what()<<std::endl;return 1; }
+}
+
+
+namespace {
+struct EllipsoidMessages {
+  std::mutex mutex;
+  std::optional<gz::msgs::Image> image;
+  std::optional<gz::msgs::CameraInfo> info;
+  bool failed{false};
+};
+std::string ellipsoid_hex_bytes(const std::string &value) {
+  static constexpr char digits[]="0123456789abcdef";
+  std::string result; result.reserve(value.size()*2);
+  for (unsigned char byte:value) { result+=digits[byte>>4]; result+=digits[byte&15]; }
+  return result;
+}
+void ellipsoid_header(const gz::msgs::Header &header, bool sequence) {
+  if (!header.has_stamp() || header.stamp().sec()!=0 || header.stamp().nsec()!=1000000 ||
+      header.data_size()!=(sequence?2:1) || header.data(0).key()!="frame_id" ||
+      header.data(0).value_size()!=1 || header.data(0).value(0)!="rig/body/camera" ||
+      (sequence && (header.data(1).key()!="seq" || header.data(1).value_size()!=1 || header.data(1).value(0)!="0")))
+    throw std::runtime_error("ellipsoid header mismatch");
+}
+}
+
+int ellipsoid_mode(int argc, char **argv) {
+  try {
+    if (argc!=2 || std::string(argv[1])!="ellipsoid") throw std::runtime_error("expected ellipsoid mode");
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(20);
+    std::string frame_wire, info_wire;
+    {
+      auto messages=std::make_shared<EllipsoidMessages>();
+      {
+        gz::transport::Node node;
+        if (!node.Subscribe("/m67/rgb/image",std::function<void(const gz::msgs::Image &)>([messages](const gz::msgs::Image &value) noexcept {
+          try { std::lock_guard<std::mutex> lock(messages->mutex); if (value.ByteSizeLong()>16384) messages->failed=true; else if (!messages->image) messages->image=value; }
+          catch (...) { std::lock_guard<std::mutex> lock(messages->mutex); messages->failed=true; }
+        })) || !node.Subscribe("/m67/rgb/camera_info",std::function<void(const gz::msgs::CameraInfo &)>([messages](const gz::msgs::CameraInfo &value) noexcept {
+          try { std::lock_guard<std::mutex> lock(messages->mutex); if (value.ByteSizeLong()>16384) messages->failed=true; else if (!messages->info) messages->info=value; }
+          catch (...) { std::lock_guard<std::mutex> lock(messages->mutex); messages->failed=true; }
+        }))) throw std::runtime_error("ellipsoid subscribe failed");
+        std::cout<<"ready"<<std::endl;if (!std::cout) throw std::runtime_error("ready write failed");
+        for (;;) {
+          if (std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("ellipsoid receive timeout");
+          {
+            std::lock_guard<std::mutex> lock(messages->mutex);
+            if (messages->failed) throw std::runtime_error("ellipsoid callback failure");
+            if (messages->image && messages->info) {
+              const auto &frame=*messages->image;const auto &info=*messages->info;
+              if (!frame.has_header() || !info.has_header() || frame.width()!=64 || frame.height()!=64 || frame.step()!=192 ||
+                  frame.data().size()!=12288 || frame.pixel_format_type()!=gz::msgs::PixelFormatType::RGB_INT8 || info.width()!=64 || info.height()!=64)
+                throw std::runtime_error("ellipsoid dimensions mismatch");
+              ellipsoid_header(frame.header(),true);ellipsoid_header(info.header(),false);
+              const auto pixel=[&frame](int x,int y,int r,int g,int b) { const auto offset=(y*64+x)*3;return static_cast<unsigned char>(frame.data()[offset])==r && static_cast<unsigned char>(frame.data()[offset+1])==g && static_cast<unsigned char>(frame.data()[offset+2])==b; };
+              if (!pixel(32,32,0,255,0) || !pixel(42,32,255,0,0) || !pixel(32,27,255,0,0) || !pixel(43,37,0,0,255) || !pixel(32,41,0,0,255))
+                throw std::runtime_error("ellipsoid silhouette/occlusion mismatch");
+              if (!frame.SerializeToString(&frame_wire) || !info.SerializeToString(&info_wire)) throw std::runtime_error("ellipsoid serialization failed");
+              break;
+            }
+          }
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+      } // Subscription ownership is gone before accepting success.
+    }
+    std::cout<<"IMAGE "<<ellipsoid_hex_bytes(frame_wire)<<'\n'<<"INFO "<<ellipsoid_hex_bytes(info_wire)<<"\nPASS\n"<<std::flush;
+    if (!std::cout || std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("ellipsoid completion failed");
     return 0;
   } catch (const std::exception &error) { std::cerr<<error.what()<<std::endl;return 1; }
 }

@@ -79,11 +79,20 @@ pub struct SphereVisual {
     pub radius: f64,
     pub color: [f32; 3],
 }
+/// A centered ellipsoid with local Gazebo X/Y/Z semiaxes, in metres.
+#[derive(Debug, Clone)]
+pub struct EllipsoidVisual {
+    pub id: u64,
+    pub pose: WorldPose,
+    pub radii: DVec3,
+    pub color: [f32; 3],
+}
 #[derive(Debug, Clone)]
 pub enum PrimitiveVisual {
     Box(BoxVisual),
     Cylinder(CylinderVisual),
     Sphere(SphereVisual),
+    Ellipsoid(EllipsoidVisual),
 }
 #[derive(Debug, Clone)]
 pub struct PrimitiveSnapshot {
@@ -318,7 +327,7 @@ pub enum UpdateStatus {
 /// Owns all renderer state. Drive it outside simulation stepping.
 ///
 /// The target is fixed at 64×64. The default camera looks from (0,0,5) toward
-/// the render origin; calibrated RGB snapshots also support cylinders and spheres.
+/// the render origin; calibrated RGB snapshots also support cylinders, spheres and ellipsoids.
 /// Legacy snapshots support boxes with optional directional illumination. This is not a sensor API.
 pub struct Renderer {
     app: App,
@@ -529,6 +538,20 @@ impl Renderer {
                         visual.id,
                         visual.pose,
                         DVec3::splat(2.0 * visual.radius),
+                        visual.color,
+                        MeshKind::Sphere,
+                    )
+                }
+                PrimitiveVisual::Ellipsoid(visual) => {
+                    let radii = visual.radii.as_vec3();
+                    if !visual.radii.is_finite() || !radii.is_finite() || radii.min_element() <= 0.0
+                    {
+                        return Err(RenderError::InvalidVisual);
+                    }
+                    (
+                        visual.id,
+                        visual.pose,
+                        2.0 * visual.radii,
                         visual.color,
                         MeshKind::Sphere,
                     )

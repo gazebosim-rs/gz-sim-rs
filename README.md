@@ -2,18 +2,18 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 ## Current delivery
 
-[M65 is accepted](docs/M65_ACCEPTANCE.md). The
+[M66 is accepted](docs/M66_ACCEPTANCE.md). The
 [Ubuntu preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m65-preview)
 is public and Latest with 35 installed examples, including eight drive robots
-and eight controller chains. M1–M65 contain 198 accepted slices.
+and eight controller chains. M1–M66 contain 199 accepted slices.
 
-Current development is [M66: RGB sphere visuals](docs/M66_DELIVERY.md), through
+Current development is [M67: RGB ellipsoid visuals](docs/M67_DELIVERY.md), through
 the existing calibrated camera path. Renderer and scene/canonical consumer work
 have separate owners and independent Source review. The installed release and
 accepted viewer remain unchanged; RGB/depth-worker distribution is excluded.
 Complete implementation, meaningful regressions, documentation and independent
 review precede the consolidated normal, strict coverage and hosted/audit gates.
-No M66 test or qualification result is claimed yet. See the
+No M67 test or qualification result is claimed yet. See the
 [current board](https://gazebosim-rs.github.io/rewrite-progress/).
 
 Earlier checkpoints below retain their historical scope.

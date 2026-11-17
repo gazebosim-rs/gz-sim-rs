@@ -171,3 +171,35 @@ completed batch passes independent review and the consolidated required gates.
 This is the fixed 32-sector/18-stack UV approximation, not an analytic sphere,
 native Ogre image comparison, physical-GPU/performance claim, depth sphere or
 installed-worker distribution. M65's installed 35-example Latest is unchanged.
+
+## M67 calibrated RGB ellipsoids (Source complete, verification pending)
+
+`EllipsoidVisual { id, pose, radii: DVec3, color }` joins the existing primitive
+snapshot RGB path. Radii are local Gazebo X/Y/Z semiaxes. Every radius and its
+diameter must be positive finite in f64 and after f32 narrowing, before any
+asset/entity/camera/stamp mutation or pending readback cancellation. Shared IDs,
+128 visuals, material, pose and calibration admission are unchanged. This API
+validates canonical values; the consumed SDF parser's whole-unit-triple fallback
+for any nonpositive XML radius remains outside renderer policy.
+
+An ellipsoid reuses the exact existing radius-0.5 UV32×18 sphere mesh and its
+readiness handle, including ellipsoid-first allocation. Local diameters map to
+Bevy scale `(2rx, 2rz, 2ry)` through the unchanged frame conversion, without an
+extra rotation. At most the same three Box/Cylinder/Sphere meshes are cached;
+there is no fourth mesh, per-size cache or new tessellation/material/shader.
+Equal radii preserve the Sphere path's full RGBA. Same-ID replacement preserves
+entity/material ownership while updating the mesh and axis scale.
+
+New regression Sources cover each-axis invalid/pending purity and mixed128/129,
+ellipsoid-first cache/actual selected-mesh readiness, four-shape replacement,
+Busy/depth/device/buffered retirement, asymmetric and rolled silhouettes,
+near-box occlusion, actual asynchronous cancellation/reset, large-origin/common
+camera-pose equivalence and exact old Sphere/Box full-frame restoration. Existing
+controls are retained; two old exhaustive-match unreachable patterns only add
+the new enum variant, preserving their inputs and assertions. No new controls
+have run until independent Source review and consolidated mandatory gates.
+
+This is opaque calibrated64×64 RGB using the existing finite UV approximation.
+It does not add depth ellipsoids, lighting, physics, native Ogre/analytic geometry
+or performance parity, new dependencies, or installed-worker distribution.
+M65's public Latest and 35 installed examples remain unchanged.

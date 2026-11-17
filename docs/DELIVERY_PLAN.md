@@ -1,30 +1,25 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-## Current work: M66 RGB sphere visuals
+## Current work: M67 RGB ellipsoid visuals
 
-M1–M65 are accepted: 198 reviewed slices. M65 is published at exact Main
-`069f315c1466c40120d85f6944a5f478ef6e9c71`; `m65-preview` is Latest with
-35 installed examples. Its fresh package, clean Ubuntu installation, eight-drive/
-sixteen-controller application and isolation, browser and owned shutdown proofs
-passed independent review. See [M65 acceptance](M65_ACCEPTANCE.md) for the immutable evidence boundary.
-Accepted viewer bytes and both 14 MB budgets remain unchanged.
+M1–M66 are accepted: 199 reviewed slices. M66 sphere visuals are published at
+exact Main `1b0c3be1af7c751987df53b4b96269236f7ae9c5` after full normal/strict
+coverage, independent local DATA, exact hosted CI, durable originals, independent
+official DATA and Main readbacks. See [M66 acceptance](M66_ACCEPTANCE.md).
+M65 remains public Latest with35 installed examples; no package refresh is selected.
 
-[M66](M66_DELIVERY.md) selects opaque sphere visuals in the existing calibrated RGB path,
-including explicit protocol-5 geometry, one bounded cached mesh and real software
-pixels/canonical Image and CameraInfo. Generic and depth extraction remain
-box-only. The M65 package is preserved; no camera-worker distribution is selected.
-
-Root owns protocol/client/worker seams, qualifiers and integration. Light owns
-renderer leaves, Messages extraction/fixture/canonical consumer leaves, and SDF
-independently reviews the complete batches. They share only the new isolated
-M66 checkout over accepted M65 with disjoint file leases. Complete implementation,
-meaningful regression Source, guides and independent review before one affected
-formatter and consolidated unchanged normal/strict coverage/local DATA cycle.
-Exact hosted/official/durable/Main gates remain required before acceptance.
-Implementation, regression Source and whole independent review are complete; the
-single affected formatter passed. Final bindings precede full normal/strict
-checks; no M66 test, lint, build or qualification has run. Preserve every old
-failure, surviving original, Fuel work and frozen tree; no cleanup is authorized.
+[M67](M67_DELIVERY.md) adds opaque canonical ellipsoid visuals to the existing
+calibrated RGB path, protocol6 and the shared sphere mesh. Generic/depth remain
+box-only. Root owns protocol/client/worker integration and qualifiers, Light the
+renderer, Messages extraction/fixture/canonical consumer, SDF independent review.
+Use only the new isolated M67 checkout with disjoint file leases.
+Complete implementation, meaningful regression Source and guides, then batch
+independent review findings before one affected formatter and consolidated full
+normal/strict cycle. Exact hosted/official/durable/Main gates remain mandatory.
+Implementation, meaningful regressions, guides and all independent Source reviews
+are complete. The single affected formatter passed. Final staged bindings precede
+the unchanged full normal/strict qualification; no M67 product check has run. Preserve all accepted evidence,
+Fuel work, frozen trees and old failures. No cleanup is authorized.
 
 Earlier checkpoints below retain their historical scope.
 

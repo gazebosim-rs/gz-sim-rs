@@ -1820,3 +1820,409 @@ fn sphere_snapshot_busy_depth_and_cancelled_slot_keep_their_original_ownership()
         original_meshes + 1
     );
 }
+
+fn primitive_ellipsoid() -> EllipsoidVisual {
+    EllipsoidVisual {
+        id: 1,
+        pose: primitive_sphere().pose,
+        radii: DVec3::new(0.5, 1.5, 0.75),
+        color: [1.0, 0.0, 0.0],
+    }
+}
+
+#[test]
+fn ellipsoid_each_axis_preflight_preserves_pending_scene_and_shared_bound() {
+    let mut renderer = Renderer::new().unwrap();
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    let old = Snapshot {
+        epoch: 101,
+        time: Duration::from_millis(8),
+        origin: DVec3::ZERO,
+        visuals: vec![BoxVisual {
+            id: 2,
+            pose: primitive_sphere().pose,
+            size: DVec3::ONE,
+            color: [0.0, 1.0, 0.0],
+        }],
+    };
+    renderer
+        .set_calibrated_snapshot(&old, primitive_calibration(), camera)
+        .unwrap();
+    // Lifecycle-state fixture only; the software test requires real GPU completion.
+    renderer.snapshot_dirty = false;
+    let pixels = Arc::new(Mutex::new(None));
+    renderer.pending = Some(Pending {
+        epoch: old.epoch,
+        time: old.time,
+        valid: true,
+        pixels: pixels.clone(),
+    });
+    let entity = renderer.visuals[&2].entity;
+    let material = renderer.visuals[&2].material.id();
+    let meshes = renderer.app.world().resource::<Assets<Mesh>>().len();
+    let materials = renderer
+        .app
+        .world()
+        .resource::<Assets<StandardMaterial>>()
+        .len();
+    let camera_transform = *renderer
+        .app
+        .world()
+        .get::<Transform>(renderer.camera)
+        .unwrap();
+    let unchanged = |r: &Renderer| {
+        assert!(r.sphere_mesh.is_none() && r.cylinder_mesh.is_none());
+        assert_eq!(r.app.world().resource::<Assets<Mesh>>().len(), meshes);
+        assert_eq!(
+            r.app.world().resource::<Assets<StandardMaterial>>().len(),
+            materials
+        );
+        assert_eq!(r.visuals.len(), 1);
+        assert_eq!(r.visuals[&2].entity, entity);
+        assert_eq!(r.visuals[&2].material.id(), material);
+        assert_eq!(r.visuals[&2].mesh.id(), r.mesh.id());
+        assert_eq!(
+            *r.app.world().get::<Transform>(r.camera).unwrap(),
+            camera_transform
+        );
+        assert_eq!(r.stamp, Some((old.epoch, old.time)));
+        assert!(!r.snapshot_dirty);
+        let pending = r.pending.as_ref().unwrap();
+        assert!(pending.valid && Arc::ptr_eq(&pending.pixels, &pixels));
+    };
+    let valid = PrimitiveSnapshot {
+        epoch: 102,
+        time: Duration::ZERO,
+        origin: DVec3::ZERO,
+        visuals: vec![PrimitiveVisual::Ellipsoid(primitive_ellipsoid())],
+    };
+    for axis in 0..3 {
+        for radius in [
+            0.0,
+            -1.0,
+            f64::NAN,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::MAX,
+            1e-300,
+            2e38,
+        ] {
+            let mut ellipsoid = primitive_ellipsoid();
+            ellipsoid.radii[axis] = radius;
+            let invalid = PrimitiveSnapshot {
+                visuals: vec![PrimitiveVisual::Ellipsoid(ellipsoid)],
+                ..valid.clone()
+            };
+            assert!(matches!(
+                renderer.set_calibrated_primitive_snapshot(
+                    &invalid,
+                    primitive_calibration(),
+                    camera
+                ),
+                Err(RenderError::InvalidVisual)
+            ));
+            unchanged(&renderer);
+        }
+    }
+    for fault in 0..8 {
+        let mut ellipsoid = primitive_ellipsoid();
+        let mut invalid = valid.clone();
+        let mut selected_camera = camera;
+        let mut calibration = primitive_calibration();
+        match fault {
+            0 => ellipsoid.id = 0,
+            1 => invalid
+                .visuals
+                .push(PrimitiveVisual::Sphere(primitive_sphere())),
+            2 => ellipsoid.color[0] = f32::NAN,
+            3 => ellipsoid.color[1] = 1.01,
+            4 => ellipsoid.pose.rotation = glam::DQuat::from_xyzw(0.0, 0.0, 0.0, 0.0),
+            5 => ellipsoid.pose.translation.x = f64::NAN,
+            6 => selected_camera.rotation = glam::DQuat::from_xyzw(0.0, 0.0, 0.0, 0.0),
+            _ => {
+                calibration = gz_render_frame::camera::Calibration::from_horizontal_fov(
+                    32,
+                    64,
+                    std::f64::consts::FRAC_PI_2,
+                    0.1,
+                    20.0,
+                )
+                .unwrap()
+            }
+        }
+        invalid.visuals[0] = PrimitiveVisual::Ellipsoid(ellipsoid);
+        assert!(
+            renderer
+                .set_calibrated_primitive_snapshot(&invalid, calibration, selected_camera)
+                .is_err()
+        );
+        unchanged(&renderer);
+    }
+    let mut mixed = valid.clone();
+    mixed.visuals = (1..=129)
+        .map(|id| match id % 4 {
+            0 => PrimitiveVisual::Box(BoxVisual {
+                id,
+                pose: primitive_sphere().pose,
+                size: DVec3::ONE,
+                color: [0.0; 3],
+            }),
+            1 => PrimitiveVisual::Sphere(SphereVisual {
+                id,
+                ..primitive_sphere()
+            }),
+            2 => PrimitiveVisual::Cylinder(CylinderVisual {
+                id,
+                ..primitive_cylinder()
+            }),
+            _ => PrimitiveVisual::Ellipsoid(EllipsoidVisual {
+                id,
+                ..primitive_ellipsoid()
+            }),
+        })
+        .collect();
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&mixed, primitive_calibration(), camera),
+        Err(RenderError::InvalidIds)
+    ));
+    unchanged(&renderer);
+    mixed.visuals.pop();
+    renderer
+        .set_calibrated_primitive_snapshot(&mixed, primitive_calibration(), camera)
+        .unwrap();
+    assert_eq!(renderer.visuals.len(), 128);
+    assert!(!renderer.pending.as_ref().unwrap().valid);
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        meshes + 2
+    );
+}
+
+#[test]
+fn ellipsoid_first_reuses_sphere_mesh_and_axis_scale_through_all_replacements() {
+    let mut renderer = Renderer::new().unwrap();
+    let initial_meshes = renderer.app.world().resource::<Assets<Mesh>>().len();
+    let initial_materials = renderer
+        .app
+        .world()
+        .resource::<Assets<StandardMaterial>>()
+        .len();
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    let mut snapshot = PrimitiveSnapshot {
+        epoch: 103,
+        time: Duration::ZERO,
+        origin: DVec3::ZERO,
+        visuals: vec![PrimitiveVisual::Ellipsoid(primitive_ellipsoid())],
+    };
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, primitive_calibration(), camera)
+        .unwrap();
+    let sphere = renderer.sphere_mesh.as_ref().unwrap().clone();
+    assert!(renderer.cylinder_mesh.is_none());
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        initial_meshes + 1
+    );
+    let entity = renderer.visuals[&1].entity;
+    let material = renderer.visuals[&1].material.id();
+    for (index, kind) in [0, 1, 2, 3, 0, 1, 0].into_iter().enumerate() {
+        renderer.snapshot_dirty = false; // Settled-state fixture, not GPU completion.
+        snapshot.time = Duration::from_millis(index as u64 + 1);
+        let mut ellipsoid = primitive_ellipsoid();
+        ellipsoid.pose.rotation = glam::DQuat::from_rotation_x(std::f64::consts::FRAC_PI_2);
+        ellipsoid.radii += DVec3::splat(index as f64 * 0.125);
+        snapshot.visuals[0] = match kind {
+            0 => PrimitiveVisual::Ellipsoid(ellipsoid.clone()),
+            1 => PrimitiveVisual::Sphere(primitive_sphere()),
+            2 => PrimitiveVisual::Box(BoxVisual {
+                id: 1,
+                pose: ellipsoid.pose,
+                size: DVec3::ONE,
+                color: ellipsoid.color,
+            }),
+            _ => PrimitiveVisual::Cylinder(primitive_cylinder()),
+        };
+        renderer
+            .set_calibrated_primitive_snapshot(&snapshot, primitive_calibration(), camera)
+            .unwrap();
+        let expected_mesh = match kind {
+            0 | 1 => sphere.id(),
+            2 => renderer.mesh.id(),
+            _ => renderer.cylinder_mesh.as_ref().unwrap().id(),
+        };
+        assert_eq!(renderer.visuals[&1].entity, entity);
+        assert_eq!(renderer.visuals[&1].material.id(), material);
+        assert_eq!(renderer.visuals[&1].mesh.id(), expected_mesh);
+        assert_eq!(
+            renderer.app.world().get::<Mesh3d>(entity).unwrap().0.id(),
+            expected_mesh
+        );
+        assert_eq!(renderer.sphere_mesh.as_ref().unwrap().id(), sphere.id());
+        assert_eq!(
+            renderer
+                .app
+                .world()
+                .resource::<Assets<StandardMaterial>>()
+                .len(),
+            initial_materials + 1
+        );
+        assert!(renderer.app.world().resource::<Assets<Mesh>>().len() <= initial_meshes + 2);
+        if kind == 0 {
+            let transform = renderer.app.world().get::<Transform>(entity).unwrap();
+            assert_eq!(
+                transform.scale,
+                Vec3::new(
+                    (2.0 * ellipsoid.radii.x) as f32,
+                    (2.0 * ellipsoid.radii.z) as f32,
+                    (2.0 * ellipsoid.radii.y) as f32
+                )
+            );
+            let pose = to_render_pose(ellipsoid.pose, DVec3::ZERO).unwrap();
+            assert_eq!(transform.translation, pose.translation);
+            assert_eq!(transform.rotation, pose.rotation);
+        }
+    }
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        initial_meshes + 2
+    );
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        if renderer.ready {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    assert!(renderer.ready && renderer.scene_assets_ready());
+    let old_sphere = renderer
+        .app
+        .get_sub_app_mut(RenderApp)
+        .unwrap()
+        .world_mut()
+        .resource_mut::<RenderAssets<RenderMesh>>()
+        .remove(sphere.id())
+        .unwrap();
+    assert!(
+        !renderer.scene_assets_ready(),
+        "ellipsoid readiness must require the actual shared sphere mesh"
+    );
+    renderer
+        .app
+        .get_sub_app_mut(RenderApp)
+        .unwrap()
+        .world_mut()
+        .resource_mut::<RenderAssets<RenderMesh>>()
+        .insert(sphere.id(), old_sphere);
+    assert!(renderer.scene_assets_ready());
+    renderer.snapshot_dirty = false;
+    snapshot.visuals.clear();
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, primitive_calibration(), camera)
+        .unwrap();
+    assert!(renderer.visuals.is_empty());
+    assert_eq!(
+        renderer
+            .app
+            .world()
+            .resource::<Assets<StandardMaterial>>()
+            .len(),
+        initial_materials
+    );
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        initial_meshes + 2
+    );
+}
+
+#[test]
+fn ellipsoid_busy_depth_and_buffered_retirement_preserve_single_capture_ownership() {
+    let mut renderer = Renderer::new().unwrap();
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: glam::DQuat::IDENTITY,
+    };
+    let old = Snapshot {
+        epoch: 104,
+        time: Duration::from_millis(9),
+        origin: DVec3::ZERO,
+        visuals: vec![BoxVisual {
+            id: 1,
+            pose: primitive_sphere().pose,
+            size: DVec3::ONE,
+            color: [1.0; 3],
+        }],
+    };
+    renderer
+        .set_calibrated_depth_snapshot(&old, primitive_calibration(), camera)
+        .unwrap();
+    let mut snapshot = PrimitiveSnapshot {
+        epoch: 105,
+        time: Duration::ZERO,
+        origin: DVec3::ZERO,
+        visuals: vec![PrimitiveVisual::Ellipsoid(primitive_ellipsoid())],
+    };
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&snapshot, primitive_calibration(), camera),
+        Err(RenderError::SnapshotBusy)
+    ));
+    assert!(renderer.depth_calibration.is_some() && renderer.sphere_mesh.is_none());
+    renderer.snapshot_dirty = false;
+    // Buffered callback fixture only; no invented software pixels.
+    let pixels = Arc::new(Mutex::new(Some(Some(vec![
+        0;
+        (WIDTH * HEIGHT * 4) as usize
+    ]))));
+    renderer.pending = Some(Pending {
+        epoch: old.epoch,
+        time: old.time,
+        valid: true,
+        pixels: pixels.clone(),
+    });
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, primitive_calibration(), camera)
+        .unwrap();
+    assert!(renderer.depth_calibration.is_none());
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    assert!(Arc::ptr_eq(
+        &renderer.pending.as_ref().unwrap().pixels,
+        &pixels
+    ));
+    assert!(!renderer.pending.as_ref().unwrap().valid);
+    assert!(renderer.take_frame().unwrap().is_none() && !renderer.readback_in_flight());
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NoDepthSnapshot)
+    ));
+    assert_eq!(renderer.stamp, Some((snapshot.epoch, Duration::ZERO)));
+    renderer.snapshot_dirty = false;
+    snapshot.epoch += 1;
+    snapshot.visuals.clear();
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, primitive_calibration(), camera)
+        .unwrap();
+    assert!(renderer.visuals.is_empty());
+    let meshes = renderer.app.world().resource::<Assets<Mesh>>().len();
+    renderer.app.world_mut().resource_mut::<DeviceFailure>().0 =
+        Some(StoppedReason::Device("ellipsoid device lost".into()));
+    snapshot
+        .visuals
+        .push(PrimitiveVisual::Ellipsoid(primitive_ellipsoid()));
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&snapshot, primitive_calibration(), camera),
+        Err(RenderError::RenderStopped(_))
+    ));
+    assert!(renderer.visuals.is_empty());
+    assert_eq!(
+        renderer.app.world().resource::<Assets<Mesh>>().len(),
+        meshes
+    );
+}

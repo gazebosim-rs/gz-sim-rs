@@ -11,7 +11,7 @@ def send(value):
     sys.stdout.buffer.write(struct.pack("<I", len(raw)) + raw)
     sys.stdout.buffer.flush()
 
-send({"Ready": {"version": 5}})
+send({"Ready": {"version": 6}})
 stamp = None
 depth = False
 while True:

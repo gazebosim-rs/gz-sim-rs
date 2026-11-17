@@ -1,20 +1,27 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-## Current bounded task: M66-RGB-SPHERES
+## Current work: M67 RGB ellipsoid visuals
 
-M65 is accepted and public at exact Main `069f315`; its installed 35-example
-release is Latest. M1–M65 retain 198 accepted slices. See
-[M65 acceptance](M65_ACCEPTANCE.md) and the [M66 contract](M66_DELIVERY.md).
+M1–M66 are accepted: 199 reviewed slices. M66 sphere visuals are published at
+exact Main `1b0c3be1af7c751987df53b4b96269236f7ae9c5` after full normal/strict
+coverage, independent local DATA, exact hosted CI, durable originals, independent
+official DATA and Main readbacks. See [M66 acceptance](M66_ACCEPTANCE.md).
+M65 remains public Latest with35 installed examples; no package refresh is selected.
 
-Add opaque sphere visuals only to existing calibrated RGB snapshots. Root owns
-protocol/client/worker seams and qualifiers; Light owns renderer leaves;
-Messages owns extraction, the fixture and canonical consumer; SDF reviews.
-No package, dependency, solver, depth or material expansion is selected.
-Implementation, meaningful regressions, guides and independent review must be
-complete before one formatter/consolidated unchanged normal and strict gates.
-No M66 tests or qualification have run. All prior controls and evidence remain.
+[M67](M67_DELIVERY.md) adds opaque canonical ellipsoid visuals to the existing
+calibrated RGB path, protocol6 and the shared sphere mesh. Generic/depth remain
+box-only. Root owns protocol/client/worker integration and qualifiers, Light the
+renderer, Messages extraction/fixture/canonical consumer, SDF independent review.
+Use only the new isolated M67 checkout with disjoint file leases.
+Complete implementation, meaningful regression Source and guides, then batch
+independent review findings before one affected formatter and consolidated full
+normal/strict cycle. Exact hosted/official/durable/Main gates remain mandatory.
+Implementation, meaningful regressions, guides and all independent Source reviews
+are complete. The single affected formatter passed. Final staged bindings precede
+the unchanged full normal/strict qualification; no M67 product check has run. Preserve all accepted evidence,
+Fuel work, frozen trees and old failures. No cleanup is authorized.
 
-## Historical M60 Source contract
+Earlier checkpoints below retain their historical scope.
 
 ## Current M60: current installed two-robot preview
 

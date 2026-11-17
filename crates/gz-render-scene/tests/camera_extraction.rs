@@ -816,3 +816,381 @@ fn sphere_rgb_shapes_keep_shared_identity_and_visual_bound() {
         Err(SnapshotError::InvalidIdentity)
     );
 }
+
+const ELLIPSOID_SCENE: &str = include_str!("../../../examples/m67_rgb_ellipsoid.sdf");
+fn ellipsoid_source(source: &str) -> (gz_sim_core::Simulation, u64) {
+    let sim = load_world_with_sdf_step(
+        source,
+        "m67-ellipsoid.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::Tpe,
+    )
+    .unwrap();
+    let id = sim
+        .world()
+        .iter_entities()
+        .find_map(|row| {
+            row.contains::<CameraSensor>()
+                .then(|| row.get::<gz_sim_core::EntityId>().unwrap().get())
+        })
+        .unwrap();
+    (sim, id)
+}
+fn ellipsoid_visual(sim: &gz_sim_core::Simulation) -> bevy_ecs::entity::Entity {
+    sim.world()
+        .iter_entities()
+        .find(|row| {
+            row.get::<gz_sim_scene::Name>()
+                .is_some_and(|name| name.0 == "default::ellipsoid::body::red_ellipsoid")
+        })
+        .unwrap()
+        .id()
+}
+
+#[test]
+fn ellipsoid_rgb_preserves_local_semiaxes_pose_origin_and_exact_legacy_box_request() {
+    use gz_render_protocol::Geometry;
+    use gz_sim_core::EntityId;
+    use gz_sim_scene::{Name, VisualGeometry, VisualMaterial, VisualProperties};
+    let posed = ELLIPSOID_SCENE.replace(
+        "<visual name=\"red_ellipsoid\">",
+        "<visual name=\"red_ellipsoid\"><pose>0.25 0.5 -0.25 1.5707963267948966 0 0</pose>",
+    );
+    assert_ne!(posed, ELLIPSOID_SCENE);
+    let (mut sim, id) = ellipsoid_source(&posed);
+    let visual = ellipsoid_visual(&sim);
+    let visual_id = sim.world().get::<EntityId>(visual).unwrap().get();
+    let pose = *sim.world().get::<WorldPose>(visual).unwrap();
+    let material = sim.world().get::<VisualMaterial>(visual).unwrap().clone();
+    let properties = sim.world().get::<VisualProperties>(visual).unwrap().clone();
+    let occluder = sim
+        .world()
+        .iter_entities()
+        .find(|row| {
+            row.get::<Name>()
+                .is_some_and(|name| name.0 == "default::occluder::body::green")
+        })
+        .unwrap()
+        .id();
+    sim.world_mut()
+        .get_mut::<VisualGeometry>(occluder)
+        .unwrap()
+        .0 = Arc::new(sdformat::Geometry::Cylinder {
+        radius: 0.2,
+        length: 0.4,
+    });
+    let extra = sim
+        .world_mut()
+        .spawn((
+            EntityKind::Visual,
+            VisualGeometry(Arc::new(sdformat::Geometry::Sphere { radius: 0.2 })),
+            material,
+            properties,
+            pose,
+        ))
+        .id();
+    assign_id(sim.world_mut(), extra).unwrap();
+    let before = (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts());
+    let request = extract_camera(&sim, id, 7, [0.0; 3]).unwrap();
+    assert!(request.wire_valid());
+    let Request::CalibratedShapeSnapshot {
+        visuals, camera, ..
+    } = request
+    else {
+        panic!("ellipsoid RGB shape snapshot")
+    };
+    assert_eq!((camera.width, camera.height), (64, 64));
+    assert_eq!(visuals.len(), 4);
+    assert!(visuals.windows(2).all(|rows| rows[0].id < rows[1].id));
+    assert!(
+        visuals
+            .iter()
+            .any(|row| matches!(row.geometry, Geometry::Box { .. }))
+    );
+    assert!(
+        visuals
+            .iter()
+            .any(|row| matches!(row.geometry, Geometry::Cylinder { .. }))
+    );
+    assert!(
+        visuals
+            .iter()
+            .any(|row| matches!(row.geometry, Geometry::Sphere { .. }))
+    );
+    let ellipsoid = visuals.iter().find(|row| row.id == visual_id).unwrap();
+    assert_eq!(
+        ellipsoid.geometry,
+        Geometry::Ellipsoid {
+            radii: [0.5, 1.5, 0.75]
+        }
+    );
+    assert_eq!(ellipsoid.translation, [4.25, 0.5, -0.25]);
+    assert_eq!(ellipsoid.color, [1.0, 0.0, 0.0]);
+    assert!((ellipsoid.rotation[0] - 0.5_f64.sqrt()).abs() < 1e-12);
+    assert_eq!((ellipsoid.rotation[1], ellipsoid.rotation[2]), (0.0, 0.0));
+    assert!((ellipsoid.rotation[3] - 0.5_f64.sqrt()).abs() < 1e-12);
+    let after = sim.world().get::<WorldPose>(visual).unwrap();
+    assert_eq!(
+        (after.translation, after.rotation),
+        (pose.translation, pose.rotation)
+    );
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+        before
+    );
+
+    let source = ELLIPSOID_SCENE
+        .replace(
+            "<pose>0 0 0 0 0 0</pose>",
+            "<pose>1000000000 0 0 0 0 0</pose>",
+        )
+        .replace(
+            "<pose>4 0 0 0 0 0</pose>",
+            "<pose>1000000004 0 0 0 0 0</pose>",
+        )
+        .replace(
+            "<pose>7 0 0 0 0 0</pose>",
+            "<pose>1000000007 0 0 0 0 0</pose>",
+        )
+        .replace(
+            "<pose>2 0 0 0 0 0</pose>",
+            "<pose>1000000002 0 0 0 0 0</pose>",
+        );
+    let (mut shifted, shifted_id) = ellipsoid_source(&source);
+    let Request::CalibratedShapeSnapshot {
+        origin,
+        camera,
+        visuals,
+        ..
+    } = extract_camera(&shifted, shifted_id, 8, [1e9, 0.0, 0.0]).unwrap()
+    else {
+        panic!("shifted ellipsoid")
+    };
+    assert_eq!(origin, [1e9, 0.0, 0.0]);
+    assert_eq!(camera.translation, [1e9, 0.0, 0.0]);
+    assert!(visuals.iter().any(|row| row.geometry
+        == Geometry::Ellipsoid {
+            radii: [0.5, 1.5, 0.75]
+        }
+        && row.translation == [1e9 + 4.0, 0.0, 0.0]));
+    let visual = ellipsoid_visual(&shifted);
+    shifted
+        .world_mut()
+        .get_mut::<VisualGeometry>(visual)
+        .unwrap()
+        .0 = Arc::new(sdformat::Geometry::Box { size: [2.0; 3] });
+    let legacy = extract_camera(&shifted, shifted_id, 9, [1e9, 0.0, 0.0]).unwrap();
+    assert!(matches!(legacy, Request::CalibratedSnapshot { .. }));
+    shifted
+        .world_mut()
+        .get_mut::<VisualGeometry>(visual)
+        .unwrap()
+        .0 = Arc::new(sdformat::Geometry::Ellipsoid {
+        radii: [0.5, 1.5, 0.75],
+    });
+    assert!(matches!(
+        extract_camera(&shifted, shifted_id, 10, [1e9, 0.0, 0.0]).unwrap(),
+        Request::CalibratedShapeSnapshot { .. }
+    ));
+    shifted
+        .world_mut()
+        .get_mut::<VisualGeometry>(visual)
+        .unwrap()
+        .0 = Arc::new(sdformat::Geometry::Box { size: [2.0; 3] });
+    let restored = extract_camera(&shifted, shifted_id, 9, [1e9, 0.0, 0.0]).unwrap();
+    let (mut old_wire, mut new_wire) = (Vec::new(), Vec::new());
+    gz_render_protocol::write_request(&mut old_wire, &legacy).unwrap();
+    gz_render_protocol::write_request(&mut new_wire, &restored).unwrap();
+    assert_eq!(old_wire, new_wire);
+}
+
+#[test]
+fn ellipsoid_rgb_refuses_each_invalid_axis_material_and_depth_before_mutation() {
+    use gz_sim_scene::{VisualGeometry, VisualMaterial};
+    let (mut sim, id) = ellipsoid_source(ELLIPSOID_SCENE);
+    let visual = ellipsoid_visual(&sim);
+    let visual_id = sim
+        .world()
+        .get::<gz_sim_core::EntityId>(visual)
+        .unwrap()
+        .get();
+    let pose = *sim.world().get::<WorldPose>(visual).unwrap();
+    let before = (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts());
+    // These are canonical component faults; XML nonpositive triples normalize.
+    for axis in 0..3 {
+        for invalid in [
+            0.0,
+            -1.0,
+            f64::NAN,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::MAX,
+            f64::MIN_POSITIVE,
+            f64::from(f32::MAX),
+        ] {
+            let mut radii = [0.5, 1.5, 0.75];
+            radii[axis] = invalid;
+            sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+                Arc::new(sdformat::Geometry::Ellipsoid { radii });
+            assert_eq!(
+                extract_camera(&sim, id, 1, [0.0; 3]),
+                Err(SnapshotError::InvalidVisual(visual_id))
+            );
+            let after = sim.world().get::<WorldPose>(visual).unwrap();
+            assert_eq!(
+                (after.translation, after.rotation),
+                (pose.translation, pose.rotation)
+            );
+            assert_eq!(
+                (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+                before
+            );
+        }
+    }
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Ellipsoid {
+            radii: [0.5, 1.5, 0.75],
+        });
+    assert_eq!(
+        gz_render_scene::extract(&sim, 1, [0.0; 3]),
+        Err(SnapshotError::UnsupportedGeometry(visual_id))
+    );
+    let sensor = gz_sim_core::entity_by_id(sim.world(), id).unwrap();
+    Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(sensor).unwrap().0).kind =
+        "depth_camera".into();
+    assert_eq!(
+        extract_camera(&sim, id, 1, [0.0; 3]),
+        Err(SnapshotError::UnsupportedGeometry(visual_id))
+    );
+    Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(sensor).unwrap().0).kind =
+        "camera".into();
+    sim.world_mut()
+        .get_mut::<VisualMaterial>(visual)
+        .unwrap()
+        .0
+        .diffuse[3] = 0.5;
+    assert_eq!(
+        extract_camera(&sim, id, 1, [0.0; 3]),
+        Err(SnapshotError::UnsupportedMaterial(visual_id))
+    );
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+        before
+    );
+}
+
+#[test]
+fn ellipsoid_rgb_mixed_shapes_share_128_ids_and_reject_missing_identity() {
+    use gz_sim_scene::{VisualGeometry, VisualMaterial, VisualProperties};
+    let (mut sim, id) = ellipsoid_source(ELLIPSOID_SCENE);
+    let visual = ellipsoid_visual(&sim);
+    let material = sim.world().get::<VisualMaterial>(visual).unwrap().clone();
+    let properties = sim.world().get::<VisualProperties>(visual).unwrap().clone();
+    let pose = *sim.world().get::<WorldPose>(visual).unwrap();
+    for n in 0..125 {
+        let geometry = match n % 4 {
+            0 => sdformat::Geometry::Ellipsoid {
+                radii: [0.2, 0.3, 0.4],
+            },
+            1 => sdformat::Geometry::Sphere { radius: 0.2 },
+            2 => sdformat::Geometry::Cylinder {
+                radius: 0.2,
+                length: 0.4,
+            },
+            _ => sdformat::Geometry::Box { size: [0.4; 3] },
+        };
+        let entity = sim
+            .world_mut()
+            .spawn((
+                EntityKind::Visual,
+                VisualGeometry(Arc::new(geometry)),
+                material.clone(),
+                properties.clone(),
+                pose,
+            ))
+            .id();
+        assign_id(sim.world_mut(), entity).unwrap();
+    }
+    let Request::CalibratedShapeSnapshot { visuals, .. } =
+        extract_camera(&sim, id, 1, [0.0; 3]).unwrap()
+    else {
+        panic!("mixed128")
+    };
+    assert_eq!(visuals.len(), 128);
+    assert!(visuals.windows(2).all(|rows| rows[0].id < rows[1].id));
+    let extra = sim
+        .world_mut()
+        .spawn((
+            EntityKind::Visual,
+            VisualGeometry(Arc::new(sdformat::Geometry::Ellipsoid {
+                radii: [0.2, 0.3, 0.4],
+            })),
+            material,
+            properties,
+            pose,
+        ))
+        .id();
+    assign_id(sim.world_mut(), extra).unwrap();
+    assert_eq!(
+        extract_camera(&sim, id, 2, [0.0; 3]),
+        Err(SnapshotError::TooManyVisuals)
+    );
+    sim.world_mut().despawn(extra);
+    let (mut small, small_id) = ellipsoid_source(ELLIPSOID_SCENE);
+    let actual = ellipsoid_visual(&small);
+    small
+        .world_mut()
+        .entity_mut(actual)
+        .remove::<gz_sim_core::EntityId>();
+    assert_eq!(
+        extract_camera(&small, small_id, 3, [0.0; 3]),
+        Err(SnapshotError::InvalidIdentity)
+    );
+    assign_id(small.world_mut(), actual).unwrap();
+    assert!(extract_camera(&small, small_id, 4, [0.0; 3]).is_ok());
+}
+
+#[test]
+fn ellipsoid_source_parser_defaults_and_normalizes_whole_triple_before_rgb_admission() {
+    use gz_sim_scene::VisualGeometry;
+    for dimensions in [
+        "",
+        "<radii>0 1.5 0.75</radii>",
+        "<radii>0.5 -1 0.75</radii>",
+        "<radii>0.5 1.5 0</radii>",
+    ] {
+        let source = ELLIPSOID_SCENE.replace("<radii>0.5 1.5 0.75</radii>", dimensions);
+        let (sim, id) = ellipsoid_source(&source);
+        assert!(
+            matches!(sim.world().get::<VisualGeometry>(ellipsoid_visual(&sim)).unwrap().0.as_ref(), sdformat::Geometry::Ellipsoid { radii } if *radii == [1.0; 3])
+        );
+        let Request::CalibratedShapeSnapshot { visuals, .. } =
+            extract_camera(&sim, id, 1, [0.0; 3]).unwrap()
+        else {
+            panic!("canonical unit ellipsoid")
+        };
+        assert!(
+            visuals
+                .iter()
+                .any(|row| row.geometry
+                    == gz_render_protocol::Geometry::Ellipsoid { radii: [1.0; 3] })
+        );
+    }
+    for invalid in ["1 2", "1 2 3 4", "NaN 1 1", "1 inf 1", "1 1 bad", ""] {
+        let source = ELLIPSOID_SCENE.replace(
+            "<radii>0.5 1.5 0.75</radii>",
+            &format!("<radii>{invalid}</radii>"),
+        );
+        assert!(
+            load_world_with_sdf_step(
+                &source,
+                "m67-invalid-radii.sdf",
+                "default",
+                &NoResources,
+                PhysicsEngine::Tpe
+            )
+            .is_err()
+        );
+    }
+}

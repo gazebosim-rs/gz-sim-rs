@@ -560,7 +560,7 @@ fn reject_depth_reply(reply: &Reply) {
 #[test]
 fn calibrated_depth_snapshot_preserves_all_wire_fields_and_version_three() {
     // Historical test ID is retained; its depth payload is unchanged in version5.
-    assert_eq!(PROTOCOL_VERSION, 5);
+    assert_eq!(PROTOCOL_VERSION, 6);
     let request = depth_snapshot();
     let mut wire = Vec::new();
     write_request(&mut wire, &request).unwrap();
@@ -806,7 +806,7 @@ fn shape_snapshot() -> Request {
 }
 #[test]
 fn version_four_shapes_preserve_explicit_geometry_and_all_f64_fields() {
-    assert_eq!(PROTOCOL_VERSION, 5);
+    assert_eq!(PROTOCOL_VERSION, 6);
     let request = shape_snapshot();
     let mut wire = Vec::new();
     write_request(&mut wire, &request).unwrap();
@@ -973,7 +973,7 @@ fn sphere_shape_snapshot() -> Request {
 
 #[test]
 fn version_five_sphere_wire_preserves_mixed_shapes_and_exact_old_payloads() {
-    assert_eq!(PROTOCOL_VERSION, 5);
+    assert_eq!(PROTOCOL_VERSION, 6);
     let request = sphere_shape_snapshot();
     let mut wire = Vec::new();
     write_request(&mut wire, &request).unwrap();
@@ -1093,5 +1093,127 @@ fn sphere_wire_shares_total_visual_cap_and_preserves_semantic_preflight_boundary
             visuals[2].geometry = Geometry::Sphere { radius };
         }
         assert!(request.wire_valid());
+    }
+}
+
+fn ellipsoid_shape_snapshot() -> Request {
+    let mut request = sphere_shape_snapshot();
+    if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+        visuals.push(ShapeVisual {
+            id: 4,
+            translation: [1e12 + 1.25, -1e12 + 0.5, 2.0],
+            rotation: [0.0, 0.0, 0.0, 1.0],
+            geometry: Geometry::Ellipsoid {
+                radii: [0.5, 1.5, 0.75],
+            },
+            color: [1.0, 0.0, 0.0],
+        });
+    }
+    request
+}
+
+#[test]
+fn version_six_ellipsoid_wire_preserves_semiaxes_and_every_old_shape_payload() {
+    assert_eq!(PROTOCOL_VERSION, 6);
+    let request = ellipsoid_shape_snapshot();
+    let mut wire = Vec::new();
+    write_request(&mut wire, &request).unwrap();
+    assert_eq!(read_request(&mut wire.as_slice()).unwrap(), Some(request));
+    let mixed: serde_json::Value = serde_json::from_slice(&wire[4..]).unwrap();
+    let old = serde_json::to_value(sphere_shape_snapshot()).unwrap();
+    for index in 0..3 {
+        assert_eq!(
+            mixed["CalibratedShapeSnapshot"]["visuals"][index],
+            old["CalibratedShapeSnapshot"]["visuals"][index]
+        );
+    }
+    assert_eq!(
+        mixed["CalibratedShapeSnapshot"]["visuals"][3]["geometry"],
+        serde_json::json!({"Ellipsoid":{"radii":[0.5,1.5,0.75]}})
+    );
+    assert_eq!(
+        mixed["CalibratedShapeSnapshot"]["visuals"][3]["translation"],
+        serde_json::json!([1e12 + 1.25, -1e12 + 0.5, 2.0])
+    );
+}
+
+#[test]
+fn ellipsoid_wire_rejects_malformed_or_nonfinite_semiaxes_before_any_bytes() {
+    let base = serde_json::to_value(ellipsoid_shape_snapshot()).unwrap();
+    for geometry in [
+        serde_json::json!({"Ellipsoid":{}}),
+        serde_json::json!({"Ellipsoid":{"radii":[0.5,1.5]}}),
+        serde_json::json!({"Ellipsoid":{"radii":[0.5,1.5,0.75,1.0]}}),
+        serde_json::json!({"Ellipsoid":{"radii":[0.5,null,0.75]}}),
+        serde_json::json!({"Ellipsoid":{"radii":[0.5,"1.5",0.75]}}),
+        serde_json::json!({"Ellipsoid":{"radii":[0.5,1.5,0.75],"radius":1.0}}),
+        serde_json::json!({"Ellipsoid":{"radii":[0.5,1.5,0.75]},"Sphere":{"radius":1.0}}),
+    ] {
+        let mut value = base.clone();
+        value["CalibratedShapeSnapshot"]["visuals"][3]["geometry"] = geometry;
+        reject_shape_json(value);
+    }
+    let raw = serde_json::to_string(&base).unwrap().replace(
+        "\"radii\":[0.5,1.5,0.75]",
+        "\"radii\":[0.5,1.5,0.75],\"radii\":[1.0,1.0,1.0]",
+    );
+    let mut frame = (raw.len() as u32).to_le_bytes().to_vec();
+    frame.extend(raw.bytes());
+    assert_eq!(
+        read_request(&mut frame.as_slice()).unwrap_err().kind(),
+        io::ErrorKind::InvalidData
+    );
+    for axis in 0..3 {
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            let mut request = ellipsoid_shape_snapshot();
+            if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+                let mut radii = [0.5, 1.5, 0.75];
+                radii[axis] = value;
+                visuals[3].geometry = Geometry::Ellipsoid { radii };
+            }
+            let mut wire = Vec::new();
+            assert!(!request.wire_valid());
+            assert!(write_request(&mut wire, &request).is_err());
+            assert!(wire.is_empty());
+        }
+    }
+}
+
+#[test]
+fn ellipsoid_wire_keeps_shared_total_cap_and_finite_only_admission_boundary() {
+    let mut request = ellipsoid_shape_snapshot();
+    if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+        let kinds = visuals.clone();
+        *visuals = (1..=128)
+            .map(|id| ShapeVisual {
+                id,
+                ..kinds[(id as usize - 1) % 4].clone()
+            })
+            .collect();
+    }
+    let mut wire = Vec::new();
+    write_request(&mut wire, &request).unwrap();
+    assert_eq!(
+        read_request(&mut wire.as_slice()).unwrap().as_ref(),
+        Some(&request)
+    );
+    if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+        let extra = visuals[3].clone();
+        visuals.push(ShapeVisual { id: 129, ..extra });
+    }
+    wire.clear();
+    assert!(write_request(&mut wire, &request).is_err());
+    assert!(wire.is_empty());
+    // Positivity and f32 renderability are semantic renderer checks, not codec checks.
+    for axis in 0..3 {
+        for value in [0.0, -1.0, 1e-100, f64::MAX] {
+            let mut request = ellipsoid_shape_snapshot();
+            if let Request::CalibratedShapeSnapshot { visuals, .. } = &mut request {
+                let mut radii = [0.5, 1.5, 0.75];
+                radii[axis] = value;
+                visuals[3].geometry = Geometry::Ellipsoid { radii };
+            }
+            assert!(request.wire_valid());
+        }
     }
 }

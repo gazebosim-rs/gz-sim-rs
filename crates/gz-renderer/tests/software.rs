@@ -1140,7 +1140,7 @@ fn software_spheres_preserve_silhouette_occlusion_origin_and_shape_round_trip() 
         match visual {
             PrimitiveVisual::Box(v) => v.pose.translation -= origin,
             PrimitiveVisual::Sphere(v) => v.pose.translation -= origin,
-            PrimitiveVisual::Cylinder(_) => unreachable!(),
+            PrimitiveVisual::Cylinder(_) | PrimitiveVisual::Ellipsoid(_) => unreachable!(),
         }
     }
     let local_camera = WorldPose {
@@ -1160,7 +1160,7 @@ fn software_spheres_preserve_silhouette_occlusion_origin_and_shape_round_trip() 
         let pose = match visual {
             PrimitiveVisual::Box(v) => &mut v.pose,
             PrimitiveVisual::Sphere(v) => &mut v.pose,
-            PrimitiveVisual::Cylinder(_) => unreachable!(),
+            PrimitiveVisual::Cylinder(_) | PrimitiveVisual::Ellipsoid(_) => unreachable!(),
         };
         pose.translation = spin * pose.translation;
         pose.rotation = spin * pose.rotation;
@@ -1214,6 +1214,309 @@ fn software_spheres_preserve_silhouette_occlusion_origin_and_shape_round_trip() 
     );
     renderer.request_readback().unwrap();
     snapshot.epoch = legacy.epoch + 1;
+    snapshot.time = Duration::ZERO;
+    snapshot.visuals.clear();
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    retire_cancelled(&mut renderer);
+    let empty = image(&mut renderer);
+    assert_eq!((empty.epoch, empty.time), (snapshot.epoch, Duration::ZERO));
+    assert!(empty.rgba.chunks_exact(4).all(|p| p == [43, 44, 47, 255]));
+}
+
+#[test]
+fn software_ellipsoids_preserve_axis_silhouette_occlusion_and_exact_old_frames() {
+    use gz_render_frame::camera::Calibration;
+    use gz_renderer::{
+        CylinderVisual, EllipsoidVisual, PrimitiveSnapshot, PrimitiveVisual, SphereVisual,
+    };
+    let mut renderer = Renderer::new().unwrap();
+    if std::env::var_os("GZ_RENDER_REQUIRE_LLVMPIPE").is_some() {
+        assert_eq!(renderer.adapter_info().device_type, wgpu::DeviceType::Cpu);
+        assert!(
+            renderer
+                .adapter_info()
+                .name
+                .to_ascii_lowercase()
+                .contains("llvmpipe")
+        );
+    }
+    let origin = DVec3::splat(1e12);
+    let camera = WorldPose {
+        translation: origin,
+        rotation: DQuat::IDENTITY,
+    };
+    let calibration =
+        Calibration::from_horizontal_fov(64, 64, std::f64::consts::FRAC_PI_2, 0.1, 20.0).unwrap();
+    let ellipsoid = EllipsoidVisual {
+        id: 1,
+        pose: WorldPose {
+            translation: origin + DVec3::new(4.0, 0.0, 0.0),
+            rotation: DQuat::IDENTITY,
+        },
+        radii: DVec3::new(0.5, 1.5, 0.75),
+        color: [1.0, 0.0, 0.0],
+    };
+    let cube = BoxVisual {
+        id: 1,
+        pose: ellipsoid.pose,
+        size: 2.0 * ellipsoid.radii,
+        color: ellipsoid.color,
+    };
+    let backdrop = BoxVisual {
+        id: 2,
+        pose: WorldPose {
+            translation: origin + DVec3::new(7.0, 0.0, 0.0),
+            rotation: DQuat::IDENTITY,
+        },
+        size: DVec3::new(0.2, 6.0, 6.0),
+        color: [0.0, 0.0, 1.0],
+    };
+    let near_box = BoxVisual {
+        id: 3,
+        pose: WorldPose {
+            translation: origin + DVec3::new(2.0, 0.0, 0.0),
+            rotation: DQuat::IDENTITY,
+        },
+        size: DVec3::splat(0.4),
+        color: [0.0, 1.0, 0.0],
+    };
+    let mut old_box = Snapshot {
+        epoch: 106,
+        time: Duration::from_millis(1),
+        origin,
+        visuals: vec![cube.clone(), backdrop.clone(), near_box.clone()],
+    };
+    renderer
+        .set_calibrated_snapshot(&old_box, calibration, camera)
+        .unwrap();
+    let box_frame = image(&mut renderer);
+    let pixel = |frame: &gz_renderer::Frame, x: usize, y: usize| {
+        let offset = (y * 64 + x) * 4;
+        <[u8; 4]>::try_from(&frame.rgba[offset..offset + 4]).unwrap()
+    };
+    assert_eq!(
+        pixel(&box_frame, 43, 37),
+        [255, 0, 0, 255],
+        "the proxy AABB occupies this patch"
+    );
+    let mut snapshot = PrimitiveSnapshot {
+        epoch: old_box.epoch,
+        time: Duration::from_millis(2),
+        origin,
+        visuals: vec![
+            PrimitiveVisual::Sphere(SphereVisual {
+                id: 1,
+                pose: ellipsoid.pose,
+                radius: 1.5,
+                color: ellipsoid.color,
+            }),
+            PrimitiveVisual::Box(backdrop.clone()),
+            PrimitiveVisual::Box(near_box.clone()),
+        ],
+    };
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    let large_sphere = image(&mut renderer);
+    assert_eq!(
+        pixel(&large_sphere, 32, 41),
+        [255, 0, 0, 255],
+        "a largest-radius sphere is taller than the ellipsoid"
+    );
+    snapshot.visuals[0] = PrimitiveVisual::Sphere(SphereVisual {
+        id: 1,
+        pose: ellipsoid.pose,
+        radius: 1.0,
+        color: ellipsoid.color,
+    });
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    let sphere_frame = image(&mut renderer);
+    snapshot.visuals[0] = PrimitiveVisual::Ellipsoid(EllipsoidVisual {
+        radii: DVec3::ONE,
+        ..ellipsoid.clone()
+    });
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert_eq!(
+        image(&mut renderer).rgba,
+        sphere_frame.rgba,
+        "equal radii must preserve every accepted sphere pixel"
+    );
+    renderer.request_readback().unwrap();
+    let mut invalid = snapshot.clone();
+    invalid.visuals[0] = PrimitiveVisual::Ellipsoid(EllipsoidVisual {
+        radii: DVec3::new(1.0, 0.0, 1.0),
+        ..ellipsoid.clone()
+    });
+    assert!(matches!(
+        renderer.set_calibrated_primitive_snapshot(&invalid, calibration, camera),
+        Err(RenderError::InvalidVisual)
+    ));
+    let mut completed = None;
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        if let Some(frame) = renderer.take_frame().unwrap() {
+            completed = Some(frame);
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let completed =
+        completed.expect("invalid semiaxis must not cancel the actual old sphere capture");
+    assert_eq!(
+        (completed.epoch, completed.time),
+        (snapshot.epoch, snapshot.time)
+    );
+    assert_eq!(completed.rgba, sphere_frame.rgba);
+    renderer.request_readback().unwrap();
+    snapshot.visuals[0] = PrimitiveVisual::Ellipsoid(ellipsoid.clone());
+    snapshot.time = Duration::from_millis(3);
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    retire_cancelled(&mut renderer);
+    let baseline = image(&mut renderer);
+    assert_eq!(
+        (baseline.epoch, baseline.time),
+        (snapshot.epoch, snapshot.time)
+    );
+    // Interior samples: these distinguish both a spherical proxy and the AABB,
+    // while the nearer box retains actual opaque occlusion at the center.
+    for (x, y) in [(42, 32), (32, 27)] {
+        assert_eq!(pixel(&baseline, x, y), [255, 0, 0, 255]);
+    }
+    for (x, y) in [(43, 37), (32, 41)] {
+        assert_eq!(pixel(&baseline, x, y), [0, 0, 255, 255]);
+    }
+    assert_eq!(pixel(&baseline, 32, 32), [0, 255, 0, 255]);
+    let mut rolled = ellipsoid.clone();
+    rolled.pose.rotation = DQuat::from_rotation_x(std::f64::consts::FRAC_PI_2);
+    snapshot.visuals[0] = PrimitiveVisual::Ellipsoid(rolled);
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    let vertical = image(&mut renderer);
+    for (x, y) in [(32, 42), (27, 32)] {
+        assert_eq!(pixel(&vertical, x, y), [255, 0, 0, 255]);
+    }
+    for (x, y) in [(37, 43), (41, 32)] {
+        assert_eq!(pixel(&vertical, x, y), [0, 0, 255, 255]);
+    }
+    assert_eq!(pixel(&vertical, 32, 32), [0, 255, 0, 255]);
+    snapshot.visuals[0] = PrimitiveVisual::Ellipsoid(ellipsoid.clone());
+    snapshot.visuals.reverse();
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert_eq!(
+        image(&mut renderer).rgba,
+        baseline.rgba,
+        "input order cannot change opaque ellipsoid output"
+    );
+    let mut local = snapshot.clone();
+    local.origin = DVec3::ZERO;
+    for visual in &mut local.visuals {
+        match visual {
+            PrimitiveVisual::Box(v) => v.pose.translation -= origin,
+            PrimitiveVisual::Ellipsoid(v) => v.pose.translation -= origin,
+            PrimitiveVisual::Sphere(_) | PrimitiveVisual::Cylinder(_) => unreachable!(),
+        }
+    }
+    let local_camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: DQuat::IDENTITY,
+    };
+    renderer
+        .set_calibrated_primitive_snapshot(&local, calibration, local_camera)
+        .unwrap();
+    assert_eq!(
+        image(&mut renderer).rgba,
+        baseline.rgba,
+        "large origin must preserve the complete ellipsoid view"
+    );
+    let spin = DQuat::from_rotation_z(std::f64::consts::FRAC_PI_2);
+    for visual in &mut local.visuals {
+        let pose = match visual {
+            PrimitiveVisual::Box(v) => &mut v.pose,
+            PrimitiveVisual::Ellipsoid(v) => &mut v.pose,
+            PrimitiveVisual::Sphere(_) | PrimitiveVisual::Cylinder(_) => unreachable!(),
+        };
+        pose.translation = spin * pose.translation;
+        pose.rotation = spin * pose.rotation;
+    }
+    renderer
+        .set_calibrated_primitive_snapshot(
+            &local,
+            calibration,
+            WorldPose {
+                rotation: spin,
+                ..local_camera
+            },
+        )
+        .unwrap();
+    assert_eq!(
+        image(&mut renderer).rgba,
+        baseline.rgba,
+        "common camera/visual rigid rotation must preserve every pixel"
+    );
+    snapshot.visuals = vec![
+        PrimitiveVisual::Cylinder(CylinderVisual {
+            id: 1,
+            pose: ellipsoid.pose,
+            radius: 1.0,
+            length: 2.0,
+            color: ellipsoid.color,
+        }),
+        PrimitiveVisual::Box(backdrop.clone()),
+        PrimitiveVisual::Box(near_box.clone()),
+    ];
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert_eq!(pixel(&image(&mut renderer), 32, 32), [0, 255, 0, 255]);
+    snapshot.visuals[0] = PrimitiveVisual::Sphere(SphereVisual {
+        id: 1,
+        pose: ellipsoid.pose,
+        radius: 1.0,
+        color: ellipsoid.color,
+    });
+    renderer
+        .set_calibrated_primitive_snapshot(&snapshot, calibration, camera)
+        .unwrap();
+    assert_eq!(
+        image(&mut renderer).rgba,
+        sphere_frame.rgba,
+        "ellipsoid/cylinder/sphere roundtrip must restore the old sphere frame"
+    );
+    old_box.epoch += 1;
+    old_box.time = Duration::ZERO;
+    renderer
+        .set_calibrated_snapshot(&old_box, calibration, camera)
+        .unwrap();
+    let restored = image(&mut renderer);
+    assert_eq!(
+        (restored.epoch, restored.time),
+        (old_box.epoch, old_box.time)
+    );
+    assert_eq!(
+        restored.rgba, box_frame.rgba,
+        "full legacy Box image must survive every shape replacement"
+    );
+    renderer.request_readback().unwrap();
+    snapshot.epoch = old_box.epoch + 1;
     snapshot.time = Duration::ZERO;
     snapshot.visuals.clear();
     renderer

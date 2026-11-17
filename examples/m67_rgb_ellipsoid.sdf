@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Ellipsoid is a visual only: collision and camera bounds retain the M5 box domain. -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="camera_step" type="ode"><max_step_size>0.001</max_step_size></physics>
+    <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"/>
+    <model name="rig">
+      <static>true</static><pose>0 0 0 0 0 0</pose>
+      <link name="body">
+        <collision name="shape"><geometry><box><size>0.1 0.1 0.1</size></box></geometry></collision>
+        <sensor name="camera" type="camera">
+          <always_on>true</always_on><update_rate>10</update_rate>
+          <topic>/m67/rgb/image</topic><frame_id>rig/body/camera</frame_id>
+          <camera>
+            <camera_info_topic>/m67/rgb/camera_info</camera_info_topic>
+            <horizontal_fov>1.5707963267948966</horizontal_fov>
+            <image><width>64</width><height>64</height><format>R8G8B8</format><anti_aliasing>4</anti_aliasing></image>
+            <clip><near>0.1</near><far>10</far></clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
+    <model name="ellipsoid">
+      <static>true</static><pose>4 0 0 0 0 0</pose>
+      <link name="body">
+        <collision name="shape"><geometry><box><size>2 2 2</size></box></geometry></collision>
+        <visual name="red_ellipsoid">
+          <geometry><ellipsoid><radii>0.5 1.5 0.75</radii></ellipsoid></geometry>
+          <material><diffuse>1 0 0 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="backdrop">
+      <static>true</static><pose>7 0 0 0 0 0</pose>
+      <link name="body">
+        <collision name="shape"><geometry><box><size>0.2 6 6</size></box></geometry></collision>
+        <visual name="blue"><geometry><box><size>0.2 6 6</size></box></geometry><material><diffuse>0 0 1 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="occluder">
+      <static>true</static><pose>2 0 0 0 0 0</pose>
+      <link name="body">
+        <collision name="shape"><geometry><box><size>0.4 0.4 0.4</size></box></geometry></collision>
+        <visual name="green"><geometry><box><size>0.4 0.4 0.4</size></box></geometry><material><diffuse>0 1 0 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

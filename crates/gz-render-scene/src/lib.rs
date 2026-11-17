@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! On-demand bounded box snapshots and calibrated RGB box/cylinder/sphere snapshots.
+//! On-demand bounded box snapshots and calibrated RGB box/cylinder/sphere/ellipsoid snapshots.
 //!
 //! This is a derived snapshot, not an SDF material or sensor implementation.
 //! Supported materials supply an opaque diffuse RGB color; other shading and
@@ -121,7 +121,7 @@ pub fn extract_camera(
     } else if visuals.iter().any(|visual| {
         matches!(
             &visual.geometry,
-            Geometry::Cylinder { .. } | Geometry::Sphere { .. }
+            Geometry::Cylinder { .. } | Geometry::Sphere { .. } | Geometry::Ellipsoid { .. }
         )
     }) {
         Request::CalibratedShapeSnapshot {
@@ -248,6 +248,15 @@ fn extract_visuals(
                     return Err(SnapshotError::InvalidVisual(id));
                 }
                 (Geometry::Sphere { radius: *radius }, [diameter; 3])
+            }
+            sdformat::Geometry::Ellipsoid { radii } if rgb_shapes => {
+                let dimensions = radii.map(|radius| 2.0 * radius);
+                if radii.iter().chain(&dimensions).any(|value| {
+                    !value.is_finite() || !(*value as f32).is_finite() || *value as f32 <= 0.0
+                }) {
+                    return Err(SnapshotError::InvalidVisual(id));
+                }
+                (Geometry::Ellipsoid { radii: *radii }, dimensions)
             }
             _ => return Err(SnapshotError::UnsupportedGeometry(id)),
         };

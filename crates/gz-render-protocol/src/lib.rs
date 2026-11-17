@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::io::{self, Read, Write};
 
-pub const PROTOCOL_VERSION: u16 = 5;
+pub const PROTOCOL_VERSION: u16 = 6;
 const MAX_MESSAGE: usize = 131_072;
 const MAX_VISUALS: usize = 128;
 const PIXELS: usize = 64 * 64 * 4;
@@ -17,13 +17,14 @@ pub struct Visual {
     pub size: [f64; 3],
     pub color: [f32; 3],
 }
-/// Required geometry in the version-five calibrated RGB shape path.
+/// Required geometry in the version-six calibrated RGB shape path.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub enum Geometry {
     Box { size: [f64; 3] },
     Cylinder { radius: f64, length: f64 },
     Sphere { radius: f64 },
+    Ellipsoid { radii: [f64; 3] },
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -193,6 +194,7 @@ fn valid_shape_snapshot(
                         radius.is_finite() && length.is_finite()
                     }
                     Geometry::Sphere { radius } => radius.is_finite(),
+                    Geometry::Ellipsoid { radii } => radii.iter().all(|x| x.is_finite()),
                 }
         })
 }
