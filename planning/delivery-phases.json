@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-17T04:22:13.840777+00:00",
+  "as_of": "2026-11-17T06:34:45.455117+00:00",
   "execution_state": "active",
-  "current_phase": "M67",
+  "current_phase": "M68",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -3093,9 +3093,9 @@
       "implementation_started": true,
       "implementation_complete": true,
       "independent_source_review_complete": true,
-      "accepted": false,
-      "checks_run": false,
-      "current_stage": "Complete implementation, meaningful regressions, guides and all independent Source reviews are clear. The single affected formatter passed; final Source bindings precede unchanged normal/strict qualification. No product check or build yet.",
+      "accepted": true,
+      "checks_run": true,
+      "current_stage": "All normal/strict/local/exact hosted/official/durable/Main gates passed. Exact accepted Maincba09; M65 remains Latest/install35.",
       "installed_accepted_examples": 35,
       "source_finite_example_obligations": 39,
       "auxiliary_RGB_obligations": 12,
@@ -3109,6 +3109,101 @@
         "overlap": 1,
         "Python": 4,
         "separate_borrowed_renderer_support": 2
+      },
+      "qualification_state": "accepted_published_Main",
+      "accepted_predecessor_commit": "1b0c3be1af7c751987df53b4b96269236f7ae9c5",
+      "locally_qualified_commit": "cba09f1c088b5b8b328516c8f31aaf554229f1db",
+      "locally_qualified_tree": "d03ef2094795c732f12a9183d912547e602c693a",
+      "local_qualification": {
+        "commit": "cba09f1c088b5b8b328516c8f31aaf554229f1db",
+        "tree": "d03ef2094795c732f12a9183d912547e602c693a",
+        "parent": "1b0c3be1af7c751987df53b4b96269236f7ae9c5",
+        "full_normal_passed": true,
+        "independent_local_DATA_passed": true,
+        "headless_passed": 2048,
+        "renderer_overlapping_passed": 1270,
+        "Python_aggregate": 480,
+        "finite_examples": 39,
+        "RGB_CLI_cases": 12,
+        "actual_new_Rust_controls": {
+          "headless": 1,
+          "renderer": 21
+        },
+        "actual_new_shared_support_controls": {
+          "headless": 0,
+          "renderer": 2
+        },
+        "raw_comparisons_once_LAST": 4,
+        "hosted_run": 44024955758,
+        "hosted_attempt": 1,
+        "hosted_success": true,
+        "official_DATA_success": true,
+        "accepted": true
+      },
+      "accepted_commit": "cba09f1c088b5b8b328516c8f31aaf554229f1db",
+      "acceptance_evidence": "docs/M67_ACCEPTANCE.md"
+    },
+    {
+      "id": "M68",
+      "title": "Curved primitives in calibrated metric-depth snapshots",
+      "max_working_days": 5,
+      "depends_on": [
+        "M67"
+      ],
+      "scope": "One calibrated64x64 depth camera using current Box/Cylinder/Sphere/Ellipsoid meshes, explicit protocol7 depth-shape request and existing R_FLOAT32 Image output.",
+      "acceptance": "Complete implementation, meaningful regressions, guides and independent Source review; actual accepted M67 parent before one consolidated normal/strict/local DATA cycle, real finite-mesh depth and canonical consumer, exact hosted/official/durable/Main gates.",
+      "excluded": "Depth noise, pointcloud/RGBD/multiplicity, lighting/material/physics changes, packages/worker distribution, new dependencies/SDK/framework or analytic/native/performance parity.",
+      "evidence": "docs/M68_DELIVERY.md",
+      "source_preparation_basis_commit": "cba09f1c088b5b8b328516c8f31aaf554229f1db",
+      "source_preparation_basis_accepted": true,
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_started_at": "2026-11-17T05:42:11.759764+00:00",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": true,
+      "accepted": false,
+      "checks_run": true,
+      "current_stage": "Attempt2 full normal failed only the new protocol duplicate-key fixture mutation (ID1 assumed, actualID3); H2049pass/R1292pass1fail/Python484/finite40/RGB13 are partial evidence. Correct that new test only plus current metadata, then reviewed one-leaf formatter and one full normal retry.",
+      "installed_accepted_examples": 35,
+      "predecessor_acceptance_required_before_checks": true,
+      "scope_independent_source_review_complete": true,
+      "accepted_predecessor_commit": "cba09f1c088b5b8b328516c8f31aaf554229f1db",
+      "source_control_declarations": {
+        "Rust_unique": 21,
+        "headless": 1,
+        "renderer": 21,
+        "overlap": 1,
+        "Python": 4,
+        "separate_borrowed_renderer_support": 2
+      },
+      "source_finite_example_obligations": 40,
+      "auxiliary_RGB_obligations": 13,
+      "formatter_run": true,
+      "formatter_actual_exit": 0,
+      "qualification_state": "normal_attempt2_failed_duplicate_key_test_fixture_correction",
+      "prior_normal_failure": {
+        "tree": "3f00c975c54cb0e9ef9f4aa28d0016b908cd5a50",
+        "actual_Git_controller_wait_exit": 1,
+        "both_reaped": true,
+        "seconds": 290.1780048260043,
+        "Python_run": 484,
+        "Python_failures": 1,
+        "case": "DisabledBackendProof.test_rgb_requires_every_named_case_without_failure_or_skip",
+        "full_H_R_aux_coverage_reached": false
+      },
+      "prior_normal_attempt2_failure": {
+        "tree": "d44608c5ee3f28c0ea4d8b18bbc645967ef18430",
+        "actual_Git_controller_wait_exit": 1,
+        "both_reaped": true,
+        "seconds": 2050.9084753309944,
+        "headless_passed": 2049,
+        "renderer_passed": 1292,
+        "renderer_failed": 1,
+        "Python_aggregate": 484,
+        "finite_examples": 40,
+        "RGB_CLI": 13,
+        "case": "tests::depth_shape_wire_rejects_malformed_and_nonfinite_inputs_before_writing",
+        "renderer_coverage_produced": false
       }
     }
   ],
@@ -3180,12 +3275,13 @@
     "M64": "complete",
     "M65": "complete",
     "M66": "complete",
-    "M67": "in_progress"
+    "M67": "complete",
+    "M68": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-17T04:22:13.840777+00:00",
   "active_phases": [
-    "M67"
+    "M68"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -3512,42 +3608,47 @@
       ],
       "integration": "M61\u2013M64 exact192ede local normal/DATA passed; hosted/official/Main closeout stays separate while disjoint M65 package/helper Source preparation proceeds over192ede. Actual predecessor acceptance and complete independent Source review precede any M65 checks. Every feature/distribution proof remains mandatory; Root alone releases serial heavy operations, no result transfer.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M67",
+        "M68"
+      ],
+      "integration": "M67 exact cba09 local normal/DATA passed and hosted/official/Main closeout continues. Isolated M68 Source preparation may proceed over locally qualified cba09; no formatter/tests/build/native or qualification before actual M67 acceptance and complete independent Source review. Any predecessor correction requires affected adoption/review; no result transfer.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M66/199 accepted at exact Main1b0c. M65 public Latest/install35 unchanged. M67 is new unqualified Source work; all own gates mandatory.",
+  "acceptance_boundary": "M1\u2013M67/200 accepted at exact Maincba09 after every required gate. Both M68 normals failed (stale registry count, then malformed-input test mutation); partial runtime passes are not qualification. M65 Latest/install35 unchanged.",
   "current_delivery_group": [
-    "M67"
+    "M68"
   ],
-  "current_development_phase": "M67",
+  "current_development_phase": "M68",
   "board": {
-    "updated_at": "2026-11-17T04:22:13.840777+00:00",
+    "updated_at": "2026-11-17T06:34:45.455117+00:00",
     "current": {
-      "title": "Adding ellipsoid visuals to RGB cameras",
+      "title": "Correcting a protocol test fixture",
       "items": [
-        "M66 sphere visuals are accepted after full normal, strict coverage, exact hosted CI and independent audits.",
-        "M67 adds opaque ellipsoid visuals using the existing sphere mesh. Renderer, scene and protocol work use disjoint lanes with independent review.",
-        "Parallel implementation is underway after contract review. Tests run after the complete feature; the installed release stays unchanged."
+        "M68 second normal found one malformed-input test using the wrong fixture request ID.",
+        "The correction derives the real valid ID and preserves all refusal assertions. Runtime code is unchanged.",
+        "M1\u2013M67 and 200 slices are accepted. M65 stays Latest with 35 installed examples."
       ]
     },
     "done": [
-      "M1\u2013M66 and 199 reviewed slices are accepted.",
-      "M66 software-rendered spheres and canonical Image/CameraInfo checks passed all gates.",
+      "M1\u2013M67 and 200 reviewed slices are accepted.",
+      "M67 RGB ellipsoid pixels and canonical consumer passed every required gate.",
       "M65 remains the public Latest preview with 35 installed examples."
     ],
     "next": [
-      "Finish ellipsoid implementation, meaningful regressions and guides; batch independent review findings.",
-      "Run one consolidated normal and strict coverage cycle after the complete feature.",
-      "Retain exact hosted, official audit and Main gates before accepting M67."
+      "Review the bounded fixture correction, format its one Rust leaf and run one full normal retry.",
+      "Require strict coverage, local audit and exact hosted/official/Main gates before M68 acceptance."
     ],
     "blocker": {
       "text": "",
-      "url": "https://github.com/gazebosim-rs/gz-sim-rs/commit/1b0c3be1af7c751987df53b4b96269236f7ae9c5"
+      "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44024955758"
     },
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
-  "parallel_source_phases": [
-    "M67"
-  ],
+  "parallel_source_phases": [],
   "camera_integration": {
     "scope": "Atomic M61\u2013M64 qualification on accepted M60; no new phase",
     "basis_accepted_commit": "a1a01192661281fc4691fe5c048a65e1986aefa4",

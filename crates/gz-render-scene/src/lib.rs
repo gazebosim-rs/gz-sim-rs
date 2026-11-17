@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! On-demand bounded box snapshots and calibrated RGB box/cylinder/sphere/ellipsoid snapshots.
+//! On-demand bounded box snapshots and calibrated RGB/depth primitive snapshots.
 //!
 //! This is a derived snapshot, not an SDF material or sensor implementation.
 //! Supported materials supply an opaque diffuse RGB color; other shading and
@@ -53,12 +53,18 @@ pub fn extract_camera(
     origin: [f64; 3],
 ) -> Result<Request, SnapshotError> {
     let world = sim.world();
-    // Depth and generic snapshots keep their original box-only domain. A missing
-    // camera still follows the existing visual-validation error ordering.
-    let rgb = entity_by_id(world, sensor_id)
+    // Only an actual calibrated RGB/depth camera admits curved primitives.
+    // Missing cameras retain visual validation's original error ordering;
+    // generic extract() below remains box-only.
+    let calibrated_shapes = entity_by_id(world, sensor_id)
         .and_then(|entity| world.get::<CameraSensor>(entity))
-        .is_some_and(|sensor| sensor.0.effective_type() == Some(sdformat::SensorType::Camera));
-    let (stamp, visuals) = extract_visuals(sim, request_id, origin, rgb)?;
+        .is_some_and(|sensor| {
+            matches!(
+                sensor.0.effective_type(),
+                Some(sdformat::SensorType::Camera | sdformat::SensorType::DepthCamera)
+            )
+        });
+    let (stamp, visuals) = extract_visuals(sim, request_id, origin, calibrated_shapes)?;
     let entity = entity_by_id(world, sensor_id).ok_or(SnapshotError::MissingCamera(sensor_id))?;
     let entity = world.entity(entity);
     if entity.get::<EntityKind>() != Some(&EntityKind::Sensor) {
@@ -110,20 +116,28 @@ pub fn extract_camera(
         translation: pose.translation,
         rotation: pose.rotation,
     });
+    let curved = visuals
+        .iter()
+        .any(|visual| !matches!(visual.geometry, Geometry::Box { .. }));
     let request = if sensor.0.effective_type() == Some(sdformat::SensorType::DepthCamera) {
-        Request::CalibratedDepthSnapshot {
-            request_id,
-            stamp,
-            origin,
-            visuals: box_visuals(visuals),
-            camera,
+        if curved {
+            Request::CalibratedDepthShapeSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera,
+            }
+        } else {
+            Request::CalibratedDepthSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals: box_visuals(visuals),
+                camera,
+            }
         }
-    } else if visuals.iter().any(|visual| {
-        matches!(
-            &visual.geometry,
-            Geometry::Cylinder { .. } | Geometry::Sphere { .. } | Geometry::Ellipsoid { .. }
-        )
-    }) {
+    } else if curved {
         Request::CalibratedShapeSnapshot {
             request_id,
             stamp,
@@ -184,7 +198,7 @@ fn extract_visuals(
     sim: &Simulation,
     request_id: u64,
     origin: [f64; 3],
-    rgb_shapes: bool,
+    calibrated_shapes: bool,
 ) -> Result<(Stamp, Vec<ShapeVisual>), SnapshotError> {
     if sim.is_faulted() {
         return Err(SnapshotError::Faulted);
@@ -225,7 +239,7 @@ fn extract_visuals(
             .ok_or(SnapshotError::MissingVisualData(id))?;
         let (geometry, dimensions) = match geometry.0.as_ref() {
             sdformat::Geometry::Box { size } => (Geometry::Box { size: *size }, *size),
-            sdformat::Geometry::Cylinder { radius, length } if rgb_shapes => {
+            sdformat::Geometry::Cylinder { radius, length } if calibrated_shapes => {
                 let diameter = 2.0 * radius;
                 if [*radius, *length, diameter].iter().any(|value| {
                     !value.is_finite() || !(*value as f32).is_finite() || *value as f32 <= 0.0
@@ -240,7 +254,7 @@ fn extract_visuals(
                     [diameter, *length, diameter],
                 )
             }
-            sdformat::Geometry::Sphere { radius } if rgb_shapes => {
+            sdformat::Geometry::Sphere { radius } if calibrated_shapes => {
                 let diameter = 2.0 * radius;
                 if [*radius, diameter].iter().any(|value| {
                     !value.is_finite() || !(*value as f32).is_finite() || *value as f32 <= 0.0
@@ -249,7 +263,7 @@ fn extract_visuals(
                 }
                 (Geometry::Sphere { radius: *radius }, [diameter; 3])
             }
-            sdformat::Geometry::Ellipsoid { radii } if rgb_shapes => {
+            sdformat::Geometry::Ellipsoid { radii } if calibrated_shapes => {
                 let dimensions = radii.map(|radius| 2.0 * radius);
                 if radii.iter().chain(&dimensions).any(|value| {
                     !value.is_finite() || !(*value as f32).is_finite() || *value as f32 <= 0.0

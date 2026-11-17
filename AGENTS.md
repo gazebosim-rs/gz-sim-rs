@@ -1,25 +1,40 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-## Current work: M67 RGB ellipsoid visuals
+## Current development: M68 calibrated primitive depth
 
-M1–M66 are accepted: 199 reviewed slices. M66 sphere visuals are published at
-exact Main `1b0c3be1af7c751987df53b4b96269236f7ae9c5` after full normal/strict
-coverage, independent local DATA, exact hosted CI, durable originals, independent
-official DATA and Main readbacks. See [M66 acceptance](docs/M66_ACCEPTANCE.md).
-M65 remains public Latest with35 installed examples; no package refresh is selected.
+M1–M67 and200 reviewed slices are accepted. Exact Main
+`cba09f1c088b5b8b328516c8f31aaf554229f1db` passed full normal/strict coverage,
+independent local DATA, exact hosted44024955758 attempt1, durable originals,
+independent official DATA and ordinary Main/readbacks. Actual2048headless,
+1270overlappingrenderer,480aggregatePython,39finite examples/RGB12; four Python
+Source declarations are not individual observed passes. The original failed
+retained reader stays failed; successful method2 is separate. See
+[M67 acceptance](docs/M67_ACCEPTANCE.md). M65 remains Latest with35 installed examples.
 
-[M67](docs/M67_DELIVERY.md) adds opaque canonical ellipsoid visuals to the existing
-calibrated RGB path, protocol6 and the shared sphere mesh. Generic/depth remain
-box-only. Root owns protocol/client/worker integration and qualifiers, Light the
-renderer, Messages extraction/fixture/canonical consumer, SDF independent review.
-Use only the new isolated M67 checkout with disjoint file leases.
-Complete implementation, meaningful regression Source and guides, then batch
-independent review findings before one affected formatter and consolidated full
-normal/strict cycle. Exact hosted/official/durable/Main gates remain mandatory.
-Implementation, meaningful regressions, guides and all independent Source reviews
-are complete. The single affected formatter passed. Final staged bindings precede
-the unchanged full normal/strict qualification; no M67 product check has run. Preserve all accepted evidence,
-Fuel work, frozen trees and old failures. No cleanup is authorized.
+[M68](docs/M68_DELIVERY.md) implementation, meaningful regressions, guides and
+all independent whole/cross-seam/initial-census reviews are complete. Source
+obligations:21newRust(H1/R21/overlap1),4richPython declarations and2separate
+borrowed renderer support cases;40finite examples/RGB13, not new measured passes.
+One independent depth-reference coupling was corrected before any checks.
+Eight exact single-depth admission inverses preserve every unrelated old control,
+including the unchanged mixed/depth-pair refusal. Frozen M67 is unchanged.
+
+The actual accepted predecessor is adopted and the ONE affected formatter passed.
+Next is full unchanged normal/strict workspace/percrate/actual-parent coverage/local DATA.
+Exact hosted/official/durable/Main gates still precede M68 acceptance/publication.
+The first M68 normal stopped on one stale Python registry-count control after484Python tests. No package/worker distribution, physics, dependencies,
+SDK or framework expansion; preserve Fuel, originals, caches and all failures.
+Root releases/watches heavy work serially. See the
+[current tracker](https://gazebosim-rs.github.io/rewrite-progress/).
+
+The failed3f00 andd446 candidates and all originals remain frozen. Attempt2 ran
+2049headless passes and1292renderer passes with ONE failed protocol test;484Python,
+40finite and13RGB controls passed within that FAILED run. No qualification transfers.
+This separate checkout corrects only that new test's duplicate-key mutation premise:
+read the actual valid request ID, require one occurrence, duplicate that valid member,
+retain changed-bytes and decode-refusal assertions. Production and tolerances stay exact.
+Complete independent Source review, then one affected-file formatter and ONE full
+unchanged normal retry with strict coverage and all later gates preserved.
 
 Earlier checkpoints below retain their historical scope.
 

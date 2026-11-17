@@ -499,3 +499,110 @@ fn depth_readback_preserves_float_words_stamp_and_error_retirement() {
     assert_eq!(slot.active(), None);
     assert_eq!(slot.kind(), CaptureKind::Rgba);
 }
+
+#[test]
+fn primitive_depth_wire_conversion_retains_all_shapes_calibration_stamp_and_mode() {
+    let stamp = Stamp {
+        epoch: 7,
+        seconds: 3,
+        nanoseconds: 4,
+    };
+    let origin = [1e12, -1e12, 2.0];
+    let geometries = [
+        gz_render_protocol::Geometry::Box {
+            size: [1.0, 2.0, 3.0],
+        },
+        gz_render_protocol::Geometry::Cylinder {
+            radius: 0.5,
+            length: 1.5,
+        },
+        gz_render_protocol::Geometry::Sphere { radius: 0.75 },
+        gz_render_protocol::Geometry::Ellipsoid {
+            radii: [0.5, 0.6, 0.35],
+        },
+    ];
+    let visuals: Vec<_> = geometries
+        .iter()
+        .enumerate()
+        .map(|(index, geometry)| ShapeVisual {
+            id: index as u64 + 1,
+            geometry: geometry.clone(),
+            translation: [1e12 + 4.0, -1e12, 2.0],
+            rotation: [0.0, 0.0, 0.0, 1.0],
+            color: [1.0, 0.0, 0.0],
+        })
+        .collect();
+    let camera = Box::new(Camera {
+        width: 64,
+        height: 64,
+        fx: 32.0,
+        fy: 32.0,
+        cx: 32.0,
+        cy: 32.0,
+        skew: 0.0,
+        tx: 0.0,
+        ty: 0.0,
+        near: 0.1,
+        far: 10.0,
+        translation: origin,
+        rotation: [0.0, 0.0, 0.0, 1.0],
+    });
+    for depth in [false, true] {
+        let wire = if depth {
+            Request::CalibratedDepthShapeSnapshot {
+                request_id: 42,
+                stamp,
+                origin,
+                visuals: visuals.clone(),
+                camera: camera.clone(),
+            }
+        } else {
+            Request::CalibratedShapeSnapshot {
+                request_id: 42,
+                stamp,
+                origin,
+                visuals: visuals.clone(),
+                camera: camera.clone(),
+            }
+        };
+        let WorkerRequest::Snapshot {
+            request_id,
+            stamp: got_stamp,
+            origin: got_origin,
+            visuals: WorkerVisuals::Shapes(got),
+            camera: Some(got_camera),
+            depth: got_depth,
+        } = wire.into()
+        else {
+            panic!("primitive payload lost its shape or calibration kind")
+        };
+        assert_eq!(request_id, 42);
+        assert_eq!(got_stamp, stamp);
+        assert_eq!(got_origin, origin);
+        assert_eq!(got, visuals);
+        assert_eq!(got_camera, camera);
+        assert_eq!(got_depth, depth);
+    }
+    let wire = Request::CalibratedDepthSnapshot {
+        request_id: 43,
+        stamp,
+        origin,
+        visuals: vec![],
+        camera: camera.clone(),
+    };
+    let WorkerRequest::Snapshot {
+        request_id: 43,
+        stamp: got_stamp,
+        origin: got_origin,
+        visuals: WorkerVisuals::Boxes(got),
+        camera: Some(got_camera),
+        depth: true,
+    } = wire.into()
+    else {
+        panic!("legacy box depth kind changed")
+    };
+    assert_eq!(got_stamp, stamp);
+    assert_eq!(got_origin, origin);
+    assert!(got.is_empty());
+    assert_eq!(got_camera, camera);
+}

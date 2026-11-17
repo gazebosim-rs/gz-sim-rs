@@ -66,6 +66,7 @@ NOISY_EXAMPLES = (
     "examples/m64_rgb_cylinder.sdf",
     "examples/m66_rgb_sphere.sdf",
     "examples/m67_rgb_ellipsoid.sdf",
+    "examples/m68_depth_primitives.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -189,6 +190,14 @@ NOISY_LINKS = {
         "default::backdrop::body": (7, 0, 0),
         "default::occluder::body": (2, 0, 0),
     },
+    "examples/m68_depth_primitives.sdf": {
+        "default::backdrop::body": (7, 0, 0),
+        "default::cylinder::body": (4, -1.5, 0),
+        "default::ellipsoid::body": (4, 1.5, 0),
+        "default::occluder::body": (2, 0, 0),
+        "default::rig::body": (0, 0, 0),
+        "default::sphere::body": (4, 0, 0),
+    },
 }
 RETURN = "return Err(LoadError::BackendUnavailable(engine));"
 TARGETS = {
@@ -228,6 +237,7 @@ RGB_TESTS = [
     "cli_two_camera_path_preserves_single_and_headless_refusal",
     "cli_sphere_rgb_keeps_worker_lazy_and_depth_and_owner_refusals",
     "cli_ellipsoid_rgb_keeps_worker_lazy_and_depth_and_owner_refusals",
+    "cli_primitive_depth_keeps_all_static_poses_and_worker_lazy_without_demand",
 ]
 # The retained directory and feature names stay RGB for compatibility. This
 # CPU-only proof also covers loaded depth admission without demand or GPU images.

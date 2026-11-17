@@ -455,7 +455,8 @@ impl CameraOutput {
         let (stamp, camera, depth) = match &request {
             Request::CalibratedSnapshot { stamp, camera, .. }
             | Request::CalibratedShapeSnapshot { stamp, camera, .. } => (*stamp, camera, false),
-            Request::CalibratedDepthSnapshot { stamp, camera, .. } => (*stamp, camera, true),
+            Request::CalibratedDepthSnapshot { stamp, camera, .. }
+            | Request::CalibratedDepthShapeSnapshot { stamp, camera, .. } => (*stamp, camera, true),
             _ => unreachable!(),
         };
         let acquisition = Duration::new(stamp.seconds, stamp.nanoseconds);
@@ -526,6 +527,7 @@ impl CameraOutput {
                 Request::CalibratedSnapshot { .. }
                     | Request::CalibratedShapeSnapshot { .. }
                     | Request::CalibratedDepthSnapshot { .. }
+                    | Request::CalibratedDepthShapeSnapshot { .. }
             ) | Phase::SnapshotReply
         );
         match acquisition.phase {

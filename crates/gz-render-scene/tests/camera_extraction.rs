@@ -506,10 +506,18 @@ fn cylinder_geometry_stays_refused_by_generic_and_depth_box_only_boundaries() {
         .id();
     Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(entity).unwrap().0).kind =
         "depth_camera".into();
-    assert_eq!(
-        extract_camera(&sim, id, 1, [0.0; 3]),
-        Err(SnapshotError::UnsupportedGeometry(visual_id))
-    );
+    let Request::CalibratedDepthShapeSnapshot { visuals, .. } =
+        extract_camera(&sim, id, 1, [0.0; 3]).unwrap()
+    else {
+        panic!("curved depth admission")
+    };
+    assert!(visuals.iter().any(|row| row.id == visual_id
+        && row.geometry
+            == gz_render_protocol::Geometry::Cylinder {
+                radius: 1.0,
+                length: 2.0
+            }));
+
     assert!(sim.elapsed().is_zero());
     assert_eq!(sim.epoch(), 0);
 }
@@ -737,10 +745,14 @@ fn sphere_rgb_refuses_invalid_radius_material_and_depth_without_mutation() {
     let sensor = gz_sim_core::entity_by_id(sim.world(), id).unwrap();
     Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(sensor).unwrap().0).kind =
         "depth_camera".into();
-    assert_eq!(
-        extract_camera(&sim, id, 1, [0.0; 3]),
-        Err(SnapshotError::UnsupportedGeometry(visual_id))
-    );
+    let Request::CalibratedDepthShapeSnapshot { visuals, .. } =
+        extract_camera(&sim, id, 1, [0.0; 3]).unwrap()
+    else {
+        panic!("curved depth admission")
+    };
+    assert!(visuals.iter().any(|row| row.id == visual_id
+        && row.geometry == gz_render_protocol::Geometry::Sphere { radius: 1.0 }));
+
     Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(sensor).unwrap().0).kind =
         "camera".into();
     sim.world_mut()
@@ -1059,10 +1071,17 @@ fn ellipsoid_rgb_refuses_each_invalid_axis_material_and_depth_before_mutation() 
     let sensor = gz_sim_core::entity_by_id(sim.world(), id).unwrap();
     Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(sensor).unwrap().0).kind =
         "depth_camera".into();
-    assert_eq!(
-        extract_camera(&sim, id, 1, [0.0; 3]),
-        Err(SnapshotError::UnsupportedGeometry(visual_id))
-    );
+    let Request::CalibratedDepthShapeSnapshot { visuals, .. } =
+        extract_camera(&sim, id, 1, [0.0; 3]).unwrap()
+    else {
+        panic!("curved depth admission")
+    };
+    assert!(visuals.iter().any(|row| row.id == visual_id
+        && row.geometry
+            == gz_render_protocol::Geometry::Ellipsoid {
+                radii: [0.5, 1.5, 0.75]
+            }));
+
     Arc::make_mut(&mut sim.world_mut().get_mut::<CameraSensor>(sensor).unwrap().0).kind =
         "camera".into();
     sim.world_mut()
@@ -1193,4 +1212,221 @@ fn ellipsoid_source_parser_defaults_and_normalizes_whole_triple_before_rgb_admis
             .is_err()
         );
     }
+}
+
+const DEPTH_PRIMITIVES_SCENE: &str = include_str!("../../../examples/m68_depth_primitives.sdf");
+
+#[test]
+fn calibrated_depth_primitives_preserve_all_local_shapes_and_exact_box_wire_round_trip() {
+    use gz_render_protocol::Geometry;
+    use gz_sim_scene::VisualGeometry;
+    let (mut sim, id) = ellipsoid_source(DEPTH_PRIMITIVES_SCENE);
+    let before = (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts());
+    let request = extract_camera(&sim, id, 1, [0.0; 3]).unwrap();
+    assert!(request.wire_valid());
+    let Request::CalibratedDepthShapeSnapshot {
+        stamp,
+        visuals,
+        camera,
+        ..
+    } = request
+    else {
+        panic!("mixed depth request")
+    };
+    assert_eq!((stamp.epoch, stamp.seconds, stamp.nanoseconds), (0, 0, 0));
+    assert_eq!((camera.width, camera.height), (64, 64));
+    assert_eq!(visuals.len(), 5);
+    assert!(visuals.windows(2).all(|rows| rows[0].id < rows[1].id));
+    assert_eq!(
+        visuals
+            .iter()
+            .filter(|row| matches!(row.geometry, Geometry::Box { .. }))
+            .count(),
+        2
+    );
+    let cylinder = visuals
+        .iter()
+        .find(|row| {
+            row.geometry
+                == Geometry::Cylinder {
+                    radius: 0.5,
+                    length: 1.0,
+                }
+        })
+        .unwrap();
+    assert_eq!(cylinder.translation, [4.0, -1.5, 0.0]);
+    assert!((cylinder.rotation[1] - 0.5_f64.sqrt()).abs() < 1e-12);
+    assert!((cylinder.rotation[3] - 0.5_f64.sqrt()).abs() < 1e-12);
+    assert!(
+        visuals
+            .iter()
+            .any(|row| row.geometry == Geometry::Sphere { radius: 0.75 }
+                && row.translation == [4.0, 0.0, 0.0])
+    );
+    assert!(visuals.iter().any(|row| row.geometry
+        == Geometry::Ellipsoid {
+            radii: [0.5, 0.6, 0.35]
+        }
+        && row.translation == [4.0, 1.5, 0.0]));
+    // Generic extraction remains unchanged even though calibrated depth admits shapes.
+    assert!(matches!(
+        gz_render_scene::extract(&sim, 1, [0.0; 3]),
+        Err(SnapshotError::UnsupportedGeometry(_))
+    ));
+    let entities: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter(|row| row.contains::<VisualGeometry>())
+        .map(|row| row.id())
+        .collect();
+    let originals: Vec<_> = entities
+        .iter()
+        .map(|entity| sim.world().get::<VisualGeometry>(*entity).unwrap().clone())
+        .collect();
+    for entity in &entities {
+        sim.world_mut()
+            .get_mut::<VisualGeometry>(*entity)
+            .unwrap()
+            .0 = Arc::new(sdformat::Geometry::Box { size: [1.0; 3] });
+    }
+    let old = extract_camera(&sim, id, 2, [0.0; 3]).unwrap();
+    assert!(matches!(old, Request::CalibratedDepthSnapshot { .. }));
+    for (entity, original) in entities.iter().zip(&originals) {
+        sim.world_mut()
+            .get_mut::<VisualGeometry>(*entity)
+            .unwrap()
+            .0 = Arc::clone(&original.0);
+    }
+    assert!(matches!(
+        extract_camera(&sim, id, 3, [0.0; 3]).unwrap(),
+        Request::CalibratedDepthShapeSnapshot { .. }
+    ));
+    for entity in &entities {
+        sim.world_mut()
+            .get_mut::<VisualGeometry>(*entity)
+            .unwrap()
+            .0 = Arc::new(sdformat::Geometry::Box { size: [1.0; 3] });
+    }
+    let restored = extract_camera(&sim, id, 2, [0.0; 3]).unwrap();
+    let (mut old_bytes, mut restored_bytes) = (Vec::new(), Vec::new());
+    gz_render_protocol::write_request(&mut old_bytes, &old).unwrap();
+    gz_render_protocol::write_request(&mut restored_bytes, &restored).unwrap();
+    assert_eq!(old_bytes, restored_bytes);
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+        before
+    );
+}
+
+#[test]
+fn depth_primitives_keep_semantic_faults_unsupported_shapes_and_shared_128_identity_bound() {
+    use gz_sim_scene::{VisualGeometry, VisualMaterial, VisualProperties};
+    let (mut sim, id) = ellipsoid_source(DEPTH_PRIMITIVES_SCENE);
+    let visual = ellipsoid_visual(&sim);
+    let visual_id = sim
+        .world()
+        .get::<gz_sim_core::EntityId>(visual)
+        .unwrap()
+        .get();
+    let before = (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts());
+    for axis in 0..3 {
+        for value in [
+            0.0,
+            -1.0,
+            f64::NAN,
+            f64::INFINITY,
+            f64::MAX,
+            f64::MIN_POSITIVE,
+            f64::from(f32::MAX),
+        ] {
+            let mut radii = [0.5, 0.6, 0.35];
+            radii[axis] = value;
+            sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+                Arc::new(sdformat::Geometry::Ellipsoid { radii });
+            assert_eq!(
+                extract_camera(&sim, id, 1, [0.0; 3]),
+                Err(SnapshotError::InvalidVisual(visual_id))
+            );
+            assert_eq!(
+                (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+                before
+            );
+        }
+    }
+    for geometry in [
+        sdformat::Geometry::Sphere { radius: 0.0 },
+        sdformat::Geometry::Cylinder {
+            radius: 1.0,
+            length: 0.0,
+        },
+    ] {
+        sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 = Arc::new(geometry);
+        assert_eq!(
+            extract_camera(&sim, id, 1, [0.0; 3]),
+            Err(SnapshotError::InvalidVisual(visual_id))
+        );
+    }
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Capsule {
+            radius: 0.5,
+            length: 1.0,
+        });
+    assert_eq!(
+        extract_camera(&sim, id, 1, [0.0; 3]),
+        Err(SnapshotError::UnsupportedGeometry(visual_id))
+    );
+    sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
+        Arc::new(sdformat::Geometry::Ellipsoid {
+            radii: [0.5, 0.6, 0.35],
+        });
+    let material = sim.world().get::<VisualMaterial>(visual).unwrap().clone();
+    let properties = sim.world().get::<VisualProperties>(visual).unwrap().clone();
+    let pose = *sim.world().get::<WorldPose>(visual).unwrap();
+    for _ in 0..123 {
+        let entity = sim
+            .world_mut()
+            .spawn((
+                EntityKind::Visual,
+                VisualGeometry(Arc::new(sdformat::Geometry::Sphere { radius: 0.1 })),
+                material.clone(),
+                properties.clone(),
+                pose,
+            ))
+            .id();
+        assign_id(sim.world_mut(), entity).unwrap();
+    }
+    let Request::CalibratedDepthShapeSnapshot { visuals, .. } =
+        extract_camera(&sim, id, 2, [0.0; 3]).unwrap()
+    else {
+        panic!("128 depth visuals")
+    };
+    assert_eq!(visuals.len(), 128);
+    assert!(visuals.windows(2).all(|rows| rows[0].id < rows[1].id));
+    let extra = sim
+        .world_mut()
+        .spawn((
+            EntityKind::Visual,
+            VisualGeometry(Arc::new(sdformat::Geometry::Sphere { radius: 0.1 })),
+            material,
+            properties,
+            pose,
+        ))
+        .id();
+    assign_id(sim.world_mut(), extra).unwrap();
+    assert_eq!(
+        extract_camera(&sim, id, 3, [0.0; 3]),
+        Err(SnapshotError::TooManyVisuals)
+    );
+    sim.world_mut().despawn(extra);
+    sim.world_mut()
+        .entity_mut(visual)
+        .remove::<gz_sim_core::EntityId>();
+    assert_eq!(
+        extract_camera(&sim, id, 4, [0.0; 3]),
+        Err(SnapshotError::InvalidIdentity)
+    );
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+        before
+    );
 }

@@ -2,19 +2,25 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 ## Current delivery
 
-[M66 is accepted](docs/M66_ACCEPTANCE.md). The
-[Ubuntu preview](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m65-preview)
-is public and Latest with 35 installed examples, including eight drive robots
-and eight controller chains. M1–M66 contain 199 accepted slices.
+M1–M67 and200 reviewed slices are accepted at Maincba09. RGB ellipsoids passed
+normal/strict coverage, local DATA, exact hosted CI, durable originals, independent
+official DATA and Main readbacks. See [M67 acceptance](docs/M67_ACCEPTANCE.md).
+M65 remains the public Latest Ubuntu preview with35 installed examples.
 
-Current development is [M67: RGB ellipsoid visuals](docs/M67_DELIVERY.md), through
-the existing calibrated camera path. Renderer and scene/canonical consumer work
-have separate owners and independent Source review. The installed release and
-accepted viewer remain unchanged; RGB/depth-worker distribution is excluded.
-Complete implementation, meaningful regressions, documentation and independent
-review precede the consolidated normal, strict coverage and hosted/audit gates.
-No M67 test or qualification result is claimed yet. See the
-[current board](https://gazebosim-rs.github.io/rewrite-progress/).
+[M68 primitive depth](docs/M68_DELIVERY.md) implementation/regressions/guides and
+independent reviews are complete. Its accepted predecessor is now available;
+the one affected formatter passed. The full normal/strict/local cycle is next.
+The first M68 normal stopped on one stale Python registry-count control; no full pass or acceptance is claimed. Worker distribution, physics and dependencies
+remain outside this scope. See the [tracker](https://gazebosim-rs.github.io/rewrite-progress/).
+
+The failed3f00 andd446 candidates and all originals remain frozen. Attempt2 ran
+2049headless passes and1292renderer passes with ONE failed protocol test;484Python,
+40finite and13RGB controls passed within that FAILED run. No qualification transfers.
+This separate checkout corrects only that new test's duplicate-key mutation premise:
+read the actual valid request ID, require one occurrence, duplicate that valid member,
+retain changed-bytes and decode-refusal assertions. Production and tolerances stay exact.
+Complete independent Source review, then one affected-file formatter and ONE full
+unchanged normal retry with strict coverage and all later gates preserved.
 
 Earlier checkpoints below retain their historical scope.
 

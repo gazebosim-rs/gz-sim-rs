@@ -1531,3 +1531,386 @@ fn software_ellipsoids_preserve_axis_silhouette_occlusion_and_exact_old_frames()
     assert_eq!((empty.epoch, empty.time), (snapshot.epoch, Duration::ZERO));
     assert!(empty.rgba.chunks_exact(4).all(|p| p == [43, 44, 47, 255]));
 }
+
+// A bounded, test-only triangle oracle over independently constructed locked
+// Bevy meshes. It never reads the renderer's entities, meshes or depth decoder.
+// Gazebo camera rays have local X=1, so intersection t is AXIAL metres.
+fn primitive_mesh_axial_reference(
+    visuals: &[(&bevy::prelude::Mesh, WorldPose, DVec3)],
+    config: gz_render_frame::camera::CameraConfig,
+    camera: WorldPose,
+    origin: DVec3,
+    pixel: (usize, usize),
+) -> f32 {
+    use bevy::mesh::VertexAttributeValues;
+    assert!(visuals.len() <= 6 && pixel.0 < 64 && pixel.1 < 64);
+    assert_eq!((config.width, config.height), (64, 64));
+    assert_eq!((config.skew, config.tx, config.ty), (0.0, 0.0, 0.0));
+    // Derive the pinhole coefficients independently from declared intrinsics;
+    // narrow each coefficient as the GPU does, without a production projection
+    // or conversion helper concealing an incorrect camera transform.
+    let width = f64::from(config.width);
+    let height = f64::from(config.height);
+    let focal_x = f64::from((2.0 * config.fx / width) as f32);
+    let focal_y = f64::from((2.0 * config.fy / height) as f32);
+    let centre_x = f64::from((1.0 - 2.0 * config.cx / width) as f32);
+    let centre_y = f64::from((2.0 * config.cy / height - 1.0) as f32);
+    let nx = 2.0 * (pixel.0 as f64 + 0.5) / width - 1.0;
+    let ny = 1.0 - 2.0 * (pixel.1 as f64 + 0.5) / height;
+    let ray =
+        camera.rotation * DVec3::new(1.0, -(nx + centre_x) / focal_x, (ny + centre_y) / focal_y);
+    let start = camera.translation - origin;
+    let mut nearest = f64::INFINITY;
+    for &(mesh, pose, dimensions) in visuals {
+        let VertexAttributeValues::Float32x3(positions) = mesh
+            .attribute(bevy::prelude::Mesh::ATTRIBUTE_POSITION)
+            .unwrap()
+        else {
+            panic!("locked mesh positions changed")
+        };
+        let indices: Vec<_> = mesh.indices().unwrap().iter().collect();
+        assert!(indices.len().is_multiple_of(3));
+        // Independent Bevy(local X,Y,Z)->Gazebo(local X,-Z,Y) contract.
+        // Match admitted f32 scale, without consulting an installed Transform.
+        let scale = dimensions.as_vec3().as_dvec3();
+        let vertex = |index: usize| {
+            let [x, y, z] = positions[index].map(f64::from);
+            (pose.translation - origin) + pose.rotation * (DVec3::new(x, -z, y) * scale)
+        };
+        for triangle in indices.chunks_exact(3) {
+            let a = vertex(triangle[0]);
+            let e1 = vertex(triangle[1]) - a;
+            let e2 = vertex(triangle[2]) - a;
+            let cross = ray.cross(e2);
+            let det = e1.dot(cross);
+            if det.abs() <= f64::EPSILON {
+                continue;
+            }
+            let delta = start - a;
+            let u = delta.dot(cross) / det;
+            if !(0.0..=1.0).contains(&u) {
+                continue;
+            }
+            let q = delta.cross(e1);
+            let v = ray.dot(q) / det;
+            if v < 0.0 || u + v > 1.0 {
+                continue;
+            }
+            let t = e2.dot(q) / det;
+            if t > config.near && t < config.far {
+                nearest = nearest.min(t);
+            }
+        }
+    }
+    nearest as f32
+}
+
+fn retire_primitive_depth_cancelled(renderer: &mut Renderer) {
+    for _ in 0..200 {
+        renderer.update().unwrap();
+        assert!(renderer.take_frame().unwrap().is_none());
+        assert!(renderer.take_depth_frame().unwrap().is_none());
+        if !renderer.readback_in_flight() {
+            return;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    panic!("shared primitive-depth cancellation did not retire");
+}
+
+#[test]
+fn software_primitive_depth_matches_finite_meshes_and_preserves_modes_and_old_frames() {
+    use bevy::{
+        mesh::primitives::{CylinderAnchor, CylinderMeshBuilder},
+        prelude::{Cuboid, MeshBuilder, Meshable, Sphere},
+    };
+    use gz_render_frame::camera::{Calibration, CameraConfig};
+    use gz_renderer::{
+        CylinderVisual, EllipsoidVisual, PrimitiveSnapshot, PrimitiveVisual, SphereVisual,
+    };
+    let mut renderer = Renderer::new().unwrap();
+    // Independently declared 64x64, pi/2 pinhole intrinsics; the oracle reads
+    // this same input contract, never Calibration's derived projection.
+    let config = CameraConfig {
+        width: 64,
+        height: 64,
+        fx: 32.0,
+        fy: 32.0,
+        cx: 32.0,
+        cy: 32.0,
+        skew: 0.0,
+        tx: 0.0,
+        ty: 0.0,
+        near: 0.1,
+        far: 10.0,
+    };
+    let calibration = Calibration::new(config).unwrap();
+    let camera = WorldPose {
+        translation: DVec3::ZERO,
+        rotation: DQuat::IDENTITY,
+    };
+    let pose = |x, y, z| WorldPose {
+        translation: DVec3::new(x, y, z),
+        rotation: DQuat::IDENTITY,
+    };
+    let box_at = |id, x, size| BoxVisual {
+        id,
+        pose: pose(x, 0., 0.),
+        size,
+        color: [0., 0., 1.],
+    };
+    let old = Snapshot {
+        epoch: 501,
+        time: Duration::ZERO,
+        origin: DVec3::ZERO,
+        visuals: vec![box_at(1, 4., DVec3::splat(1.5))],
+    };
+    renderer
+        .set_calibrated_snapshot(&old, calibration, camera)
+        .unwrap();
+    let old_rgb = image(&mut renderer).rgba;
+    renderer
+        .set_calibrated_depth_snapshot(&old, calibration, camera)
+        .unwrap();
+    let old_depth = metric_depth(&mut renderer).metres;
+    let cylinder_pose = WorldPose {
+        rotation: DQuat::from_rotation_y(std::f64::consts::FRAC_PI_2),
+        ..pose(4., -1.5, 0.)
+    };
+    let sphere_pose = pose(4., 0., 0.);
+    let ellipsoid_pose = pose(4., 1.5, 0.);
+    let backdrop = box_at(4, 7., DVec3::new(0.2, 8., 8.));
+    let occluder = box_at(5, 2., DVec3::splat(0.4));
+    let mut scene = PrimitiveSnapshot {
+        epoch: 502,
+        time: Duration::from_millis(100),
+        origin: DVec3::ZERO,
+        visuals: vec![
+            PrimitiveVisual::Cylinder(CylinderVisual {
+                id: 1,
+                pose: cylinder_pose,
+                radius: 0.5,
+                length: 1.,
+                color: [1., 0., 0.],
+            }),
+            PrimitiveVisual::Sphere(SphereVisual {
+                id: 2,
+                pose: sphere_pose,
+                radius: 0.75,
+                color: [1., 0., 0.],
+            }),
+            PrimitiveVisual::Ellipsoid(EllipsoidVisual {
+                id: 3,
+                pose: ellipsoid_pose,
+                radii: DVec3::new(0.5, 0.6, 0.35),
+                color: [1., 0., 0.],
+            }),
+            PrimitiveVisual::Box(backdrop.clone()),
+            PrimitiveVisual::Box(occluder.clone()),
+        ],
+    };
+    // Independently create the pinned meshes, never clone installed GPU assets.
+    let cube = Cuboid::new(1., 1., 1.).mesh().build();
+    let cylinder = CylinderMeshBuilder {
+        caps: true,
+        ..CylinderMeshBuilder::new(0.5, 1., 32)
+            .segments(1)
+            .anchor(CylinderAnchor::MidPoint)
+    }
+    .build();
+    let sphere = Sphere::new(0.5).mesh().uv(32, 18);
+    let reference = [
+        (&cylinder, cylinder_pose, DVec3::ONE),
+        (&sphere, sphere_pose, DVec3::splat(1.5)),
+        (&sphere, ellipsoid_pose, DVec3::new(1., 1.2, 0.7)),
+        (&cube, backdrop.pose, backdrop.size),
+        (&cube, occluder.pose, occluder.size),
+    ];
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    let frame = metric_depth(&mut renderer);
+    assert_eq!((frame.epoch, frame.time), (scene.epoch, scene.time));
+    for pixel in [
+        (32, 32),
+        (44, 32),
+        (32, 27),
+        (29, 30),
+        (20, 32),
+        (22, 31),
+        (40, 35),
+        (16, 34),
+        (0, 0),
+    ] {
+        let expected =
+            primitive_mesh_axial_reference(&reference, config, camera, DVec3::ZERO, pixel);
+        let actual = frame.metres[pixel.1 * 64 + pixel.0];
+        if expected == f32::INFINITY {
+            assert_eq!(actual, f32::INFINITY, "background {pixel:?}");
+        } else {
+            assert!(
+                (actual - expected).abs() <= 1e-4,
+                "finite mesh {pixel:?}: {actual} != {expected}"
+            );
+        }
+    }
+    assert!((frame.metres[32 * 64 + 32] - 1.8).abs() <= 1e-4);
+    assert!((frame.metres[32 * 64 + 44] - 3.5).abs() <= 1e-4);
+    for (x, y) in [(40, 35), (16, 34)] {
+        assert!((frame.metres[y * 64 + x] - 6.9).abs() <= 1e-4);
+    }
+    assert_eq!(frame.metres[0], f32::INFINITY);
+    assert_ne!(
+        frame.metres[27 * 64 + 32].to_bits(),
+        frame.metres[30 * 64 + 29].to_bits(),
+        "curved sphere must not become a flat box proxy"
+    );
+    // Common rigid camera/world motion and large origin preserve axial samples.
+    let offset = DVec3::splat(1e9);
+    let turn = DQuat::from_rotation_z(0.37);
+    scene.origin = offset;
+    for visual in &mut scene.visuals {
+        let pose = match visual {
+            PrimitiveVisual::Box(v) => &mut v.pose,
+            PrimitiveVisual::Cylinder(v) => &mut v.pose,
+            PrimitiveVisual::Sphere(v) => &mut v.pose,
+            PrimitiveVisual::Ellipsoid(v) => &mut v.pose,
+        };
+        pose.translation = offset + turn * pose.translation;
+        pose.rotation = turn * pose.rotation;
+    }
+    let shifted_camera = WorldPose {
+        translation: offset,
+        rotation: turn,
+    };
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, shifted_camera)
+        .unwrap();
+    let shifted = metric_depth(&mut renderer);
+    for (a, b) in frame.metres.iter().zip(&shifted.metres) {
+        if a.is_infinite() {
+            assert_eq!(*b, f32::INFINITY);
+        } else {
+            assert!((a - b).abs() <= 1e-4);
+        }
+    }
+    // Same-ID, same fixed mesh and equal radii must give full bitwise depth equality.
+    scene.origin = DVec3::ZERO;
+    scene.visuals = vec![PrimitiveVisual::Sphere(SphereVisual {
+        id: 1,
+        pose: sphere_pose,
+        radius: 0.75,
+        color: [1., 0., 0.],
+    })];
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    let equal_sphere = metric_depth(&mut renderer);
+    scene.visuals = vec![PrimitiveVisual::Ellipsoid(EllipsoidVisual {
+        id: 1,
+        pose: sphere_pose,
+        radii: DVec3::splat(0.75),
+        color: [1., 0., 0.],
+    })];
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    let equal_ellipsoid = metric_depth(&mut renderer);
+    assert_eq!(
+        equal_sphere
+            .metres
+            .iter()
+            .map(|v| v.to_bits())
+            .collect::<Vec<_>>(),
+        equal_ellipsoid
+            .metres
+            .iter()
+            .map(|v| v.to_bits())
+            .collect::<Vec<_>>()
+    );
+    // Local ellipsoid orientation is part of the geometric contract, not an
+    // enclosing-box depth surface. Compare only declared interior rays.
+    let rolled_pose = WorldPose {
+        rotation: DQuat::from_rotation_x(0.4),
+        ..sphere_pose
+    };
+    scene.visuals = vec![PrimitiveVisual::Ellipsoid(EllipsoidVisual {
+        id: 1,
+        pose: rolled_pose,
+        radii: DVec3::new(0.5, 0.8, 0.6),
+        color: [1., 0., 0.],
+    })];
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    let rolled = metric_depth(&mut renderer);
+    let rolled_reference = [(&sphere, rolled_pose, DVec3::new(1., 1.6, 1.2))];
+    for pixel in [(32, 30), (30, 33), (34, 32)] {
+        let expected =
+            primitive_mesh_axial_reference(&rolled_reference, config, camera, DVec3::ZERO, pixel);
+        assert!(expected.is_finite());
+        assert!((rolled.metres[pixel.1 * 64 + pixel.0] - expected).abs() <= 1e-4);
+    }
+    // A valid mode switch cancels the pending depth frame but keeps its slot
+    // until the actual callback retires. No stale frame may escape.
+    request_metric_depth(&mut renderer);
+    renderer
+        .set_calibrated_snapshot(&old, calibration, camera)
+        .unwrap();
+    assert!(matches!(
+        renderer.request_readback(),
+        Err(RenderError::Busy)
+    ));
+    retire_primitive_depth_cancelled(&mut renderer);
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::NoDepthSnapshot)
+    ));
+    assert_eq!(image(&mut renderer).rgba, old_rgb);
+    renderer.request_readback().unwrap();
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    assert!(matches!(
+        renderer.request_depth_readback(),
+        Err(RenderError::Busy)
+    ));
+    retire_primitive_depth_cancelled(&mut renderer);
+    metric_depth(&mut renderer);
+    renderer
+        .set_calibrated_depth_snapshot(&old, calibration, camera)
+        .unwrap();
+    assert_eq!(
+        metric_depth(&mut renderer)
+            .metres
+            .iter()
+            .map(|v| v.to_bits())
+            .collect::<Vec<_>>(),
+        old_depth.iter().map(|v| v.to_bits()).collect::<Vec<_>>()
+    );
+    scene.epoch += 1;
+    scene.time = Duration::ZERO;
+    scene.visuals.clear();
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    let empty = metric_depth(&mut renderer);
+    assert_eq!((empty.epoch, empty.time), (scene.epoch, Duration::ZERO));
+    assert!(empty.metres.iter().all(|v| *v == f32::INFINITY));
+    // Far clipping remains exact +INF, independently of a primitive's mesh.
+    scene.visuals = vec![PrimitiveVisual::Sphere(SphereVisual {
+        id: 1,
+        pose: pose(20., 0., 0.),
+        radius: 0.75,
+        color: [1., 0., 0.],
+    })];
+    renderer
+        .set_calibrated_primitive_depth_snapshot(&scene, calibration, camera)
+        .unwrap();
+    assert!(
+        metric_depth(&mut renderer)
+            .metres
+            .iter()
+            .all(|v| *v == f32::INFINITY)
+    );
+}

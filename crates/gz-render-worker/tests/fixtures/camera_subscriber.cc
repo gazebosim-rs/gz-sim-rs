@@ -3,6 +3,7 @@
 #include <atomic>
 #include <array>
 #include <cmath>
+#include <cstring>
 #include <condition_variable>
 #include <cstdint>
 #include <memory>
@@ -23,9 +24,11 @@ int pair_mode(int argc, char **argv);
 int cylinder_mode(int argc, char **argv);
 int sphere_mode(int argc, char **argv);
 int ellipsoid_mode(int argc, char **argv);
+int depth_primitives_mode(int argc, char **argv);
 
 int main(int argc, char **argv) {
   if (argc != 1) {
+    if (argc == 2 && std::string(argv[1]) == "depth-primitives") return depth_primitives_mode(argc, argv);
     if (argc == 2 && std::string(argv[1]) == "ellipsoid") return ellipsoid_mode(argc, argv);
     if (argc == 2 && std::string(argv[1]) == "sphere") return sphere_mode(argc, argv);
     if (argc == 2 && std::string(argv[1]) == "cylinder") return cylinder_mode(argc, argv);
@@ -398,6 +401,87 @@ int ellipsoid_mode(int argc, char **argv) {
     }
     std::cout<<"IMAGE "<<ellipsoid_hex_bytes(frame_wire)<<'\n'<<"INFO "<<ellipsoid_hex_bytes(info_wire)<<"\nPASS\n"<<std::flush;
     if (!std::cout || std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("ellipsoid completion failed");
+    return 0;
+  } catch (const std::exception &error) { std::cerr<<error.what()<<std::endl;return 1; }
+}
+
+
+namespace {
+struct DepthPrimitiveMessages {
+  std::mutex mutex;
+  std::optional<gz::msgs::Image> image;
+  std::optional<gz::msgs::CameraInfo> info;
+  bool failed{false};
+};
+std::string depth_primitives_hex_bytes(const std::string &value) {
+  static constexpr char digits[]="0123456789abcdef";
+  std::string result; result.reserve(value.size()*2);
+  for (unsigned char byte:value) { result+=digits[byte>>4]; result+=digits[byte&15]; }
+  return result;
+}
+void depth_primitives_header(const gz::msgs::Header &header, bool sequence) {
+  if (!header.has_stamp() || header.stamp().sec()!=0 || header.stamp().nsec()!=1000000 ||
+      header.data_size()!=(sequence?2:1) || header.data(0).key()!="frame_id" ||
+      header.data(0).value_size()!=1 || header.data(0).value(0)!="rig/body/camera" ||
+      (sequence && (header.data(1).key()!="seq" || header.data(1).value_size()!=1 || header.data(1).value(0)!="0")))
+    throw std::runtime_error("depth-primitives header mismatch");
+}
+}
+
+int depth_primitives_mode(int argc, char **argv) {
+  try {
+    if (argc!=2 || std::string(argv[1])!="depth-primitives") throw std::runtime_error("expected depth-primitives mode");
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(20);
+    std::string frame_wire, info_wire;
+    {
+      auto messages=std::make_shared<DepthPrimitiveMessages>();
+      {
+        gz::transport::Node node;
+        if (!node.Subscribe("/m68/depth/image",std::function<void(const gz::msgs::Image &)>([messages](const gz::msgs::Image &value) noexcept {
+          try { std::lock_guard<std::mutex> lock(messages->mutex); if (value.ByteSizeLong()>32768) messages->failed=true; else if (!messages->image) messages->image=value; }
+          catch (...) { std::lock_guard<std::mutex> lock(messages->mutex); messages->failed=true; }
+        })) || !node.Subscribe("/m68/depth/camera_info",std::function<void(const gz::msgs::CameraInfo &)>([messages](const gz::msgs::CameraInfo &value) noexcept {
+          try { std::lock_guard<std::mutex> lock(messages->mutex); if (value.ByteSizeLong()>16384) messages->failed=true; else if (!messages->info) messages->info=value; }
+          catch (...) { std::lock_guard<std::mutex> lock(messages->mutex); messages->failed=true; }
+        }))) throw std::runtime_error("depth-primitives subscribe failed");
+        std::cout<<"ready"<<std::endl;if (!std::cout) throw std::runtime_error("ready write failed");
+        for (;;) {
+          if (std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("depth-primitives receive timeout");
+          {
+            std::lock_guard<std::mutex> lock(messages->mutex);
+            if (messages->failed) throw std::runtime_error("depth-primitives callback failure");
+            if (messages->image && messages->info) {
+              const auto &frame=*messages->image;const auto &info=*messages->info;
+              if (!frame.has_header() || !info.has_header() || frame.width()!=64 || frame.height()!=64 || frame.step()!=256 ||
+                  frame.data().size()!=16384 || frame.pixel_format_type()!=gz::msgs::PixelFormatType::R_FLOAT32 || info.width()!=64 || info.height()!=64)
+                throw std::runtime_error("depth-primitives dimensions mismatch");
+              depth_primitives_header(frame.header(),true);depth_primitives_header(info.header(),false);
+              static_assert(sizeof(float)==4, "canonical depth requires binary32");
+              const auto depth=[&frame](int x,int y) {
+                const auto offset=(y*64+x)*4;
+                const auto byte=[&](int n) { return static_cast<std::uint32_t>(static_cast<unsigned char>(frame.data()[offset+n])); };
+                const std::uint32_t bits=byte(0)|(byte(1)<<8)|(byte(2)<<16)|(byte(3)<<24);
+                float value; std::memcpy(&value,&bits,sizeof(value)); return value;
+              };
+              for (int y=0;y<64;++y) for (int x=0;x<64;++x)
+                if (!(depth(x,y)>0.0f) || std::isnan(depth(x,y))) throw std::runtime_error("invalid canonical depth word");
+              if (std::abs(depth(32,32)-1.8f)>=1e-4f || std::abs(depth(44,32)-3.5f)>=1e-4f ||
+                  std::abs(depth(40,35)-6.9f)>=1e-4f || std::abs(depth(16,34)-6.9f)>=1e-4f ||
+                  !(depth(37,32)>3.4f && depth(37,32)<3.9f) || !(depth(20,32)>3.51f && depth(20,32)<4.0f) ||
+                  !std::isinf(depth(0,0)) || !std::isinf(depth(63,0)) || !std::isinf(depth(0,63)) || !std::isinf(depth(63,63)))
+                throw std::runtime_error("depth primitive mesh/occlusion mismatch");
+              if (!frame.SerializeToString(&frame_wire) || !info.SerializeToString(&info_wire)) throw std::runtime_error("depth-primitives serialization failed");
+              break;
+            }
+          }
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+      } // Subscription ownership is gone before accepting success.
+    }
+    const std::string output="IMAGE "+depth_primitives_hex_bytes(frame_wire)+"\nINFO "+depth_primitives_hex_bytes(info_wire)+"\nPASS\n";
+    if (output.size()+std::string("ready\n").size()>65536) throw std::runtime_error("canonical stdout aggregate cap");
+    std::cout<<output<<std::flush;
+    if (!std::cout || std::chrono::steady_clock::now()>=deadline) throw std::runtime_error("depth-primitives completion failed");
     return 0;
   } catch (const std::exception &error) { std::cerr<<error.what()<<std::endl;return 1; }
 }

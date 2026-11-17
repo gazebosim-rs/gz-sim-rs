@@ -104,6 +104,20 @@ impl From<Request> for WorkerRequest {
                 camera: Some(camera),
                 depth: false,
             },
+            Request::CalibratedDepthShapeSnapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals,
+                camera,
+            } => Self::Snapshot {
+                request_id,
+                stamp,
+                origin,
+                visuals: WorkerVisuals::Shapes(visuals),
+                camera: Some(camera),
+                depth: true,
+            },
             Request::Capture { request_id } => Self::Capture { request_id },
             Request::Cancel { request_id } => Self::Cancel { request_id },
             Request::Shutdown => Self::Shutdown,
@@ -540,28 +554,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                         translation: DVec3::from_array(camera.translation),
                                         rotation: DQuat::from_array(camera.rotation),
                                     };
-                                    if depth {
-                                        renderer.set_calibrated_depth_snapshot(
+                                    match (&primitive_snapshot, depth) {
+                                        (Some(snapshot), true) => renderer
+                                            .set_calibrated_primitive_depth_snapshot(
+                                                snapshot,
+                                                calibration,
+                                                pose,
+                                            ),
+                                        (Some(snapshot), false) => renderer
+                                            .set_calibrated_primitive_snapshot(
+                                                snapshot,
+                                                calibration,
+                                                pose,
+                                            ),
+                                        (None, true) => renderer.set_calibrated_depth_snapshot(
                                             snapshot
                                                 .as_ref()
-                                                .expect("depth wire variants contain boxes"),
+                                                .expect("legacy depth wire variants contain boxes"),
                                             calibration,
                                             pose,
-                                        )
-                                    } else if let Some(snapshot) = &primitive_snapshot {
-                                        renderer.set_calibrated_primitive_snapshot(
-                                            snapshot,
-                                            calibration,
-                                            pose,
-                                        )
-                                    } else {
-                                        renderer.set_calibrated_snapshot(
+                                        ),
+                                        (None, false) => renderer.set_calibrated_snapshot(
                                             snapshot
                                                 .as_ref()
                                                 .expect("legacy RGB wire variants contain boxes"),
                                             calibration,
                                             pose,
-                                        )
+                                        ),
                                     }
                                     .map_err(SnapshotFailure::from)
                                 }

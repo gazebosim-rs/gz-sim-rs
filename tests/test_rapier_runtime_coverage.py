@@ -92,8 +92,8 @@ class DisabledBackendProof(unittest.TestCase):
         ])
         new_case = "cli_two_camera_path_preserves_single_and_headless_refusal"
         self.assertEqual(MODULE.RGB_TESTS[9:10], [new_case])
-        self.assertEqual(len(MODULE.RGB_TESTS), 12)
-        self.assertEqual(len(set(MODULE.RGB_TESTS)), 12)
+        self.assertEqual(len(MODULE.RGB_TESTS), 13)
+        self.assertEqual(len(set(MODULE.RGB_TESTS)), 13)
         lines = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS)
         summary = f"\ntest result: ok. {len(MODULE.RGB_TESTS)} passed; 0 failed; 0 ignored;"
         MODULE.require_rgb_tests(lines + summary)
@@ -158,7 +158,7 @@ class DisabledBackendProof(unittest.TestCase):
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 39)
+            self.assertEqual(run.call_count, 40)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -702,11 +702,11 @@ class DisabledBackendProof(unittest.TestCase):
             with self.subTest(stdout=stdout), self.assertRaises(ValueError):
                 MODULE.require_rgb_tests(stdout)
         full = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS) + "\n"
-        MODULE.require_rgb_tests(full + "test result: ok. 12 passed; 0 failed; 0 ignored;\n")
+        MODULE.require_rgb_tests(full + "test result: ok. 13 passed; 0 failed; 0 ignored;\n")
 
     def test_sphere_finite_registry_preserves_prior_37_and_exact_four_static_poses(self):
         source = "examples/m66_rgb_sphere.sdf"
-        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 39)
+        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 40)
         self.assertEqual(MODULE.NOISY_EXAMPLES[36:37], ("examples/m64_rgb_cylinder.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[37:38], (source,))
         poses = {"default::backdrop::body": (7, 0, 0),
@@ -736,7 +736,7 @@ class DisabledBackendProof(unittest.TestCase):
 
     def test_ellipsoid_rgb_registry_requires_its_actual_control_not_just_old_eleven(self):
         case = "cli_ellipsoid_rgb_keeps_worker_lazy_and_depth_and_owner_refusals"
-        self.assertEqual(MODULE.RGB_TESTS[11:], [case])
+        self.assertEqual(MODULE.RGB_TESTS[11:12], [case])
         old = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS[:11])
         for stdout in (old + "\ntest result: ok. 11 passed; 0 failed; 0 ignored;\n",
                        old + "\ntest " + case + " ... ignored\n"
@@ -744,13 +744,13 @@ class DisabledBackendProof(unittest.TestCase):
             with self.subTest(stdout=stdout), self.assertRaises(ValueError):
                 MODULE.require_rgb_tests(stdout)
         full = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS) + "\n"
-        MODULE.require_rgb_tests(full + "test result: ok. 12 passed; 0 failed; 0 ignored;\n")
+        MODULE.require_rgb_tests(full + "test result: ok. 13 passed; 0 failed; 0 ignored;\n")
 
     def test_ellipsoid_finite_registry_preserves_prior_38_and_exact_four_static_poses(self):
         source = "examples/m67_rgb_ellipsoid.sdf"
-        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 39)
+        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 40)
         self.assertEqual(MODULE.NOISY_EXAMPLES[37:38], ("examples/m66_rgb_sphere.sdf",))
-        self.assertEqual(MODULE.NOISY_EXAMPLES[38:], (source,))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[38:39], (source,))
         poses = {"default::backdrop::body": (7, 0, 0),
                  "default::occluder::body": (2, 0, 0),
                  "default::rig::body": (0, 0, 0), "default::ellipsoid::body": (4, 0, 0)}
@@ -771,6 +771,46 @@ class DisabledBackendProof(unittest.TestCase):
                     fields[coordinate] = value
                     altered = rows.copy()
                     altered[index] = " ".join(fields)
+                    bad.append(headline + "\n".join(altered) + "\n")
+        for stdout in bad:
+            with self.subTest(stdout=stdout):
+                self.assertFalse(MODULE.noisy_output_matches(source, stdout))
+
+
+    def test_primitive_depth_registry_requires_thirteenth_real_case(self):
+        case = "cli_primitive_depth_keeps_all_static_poses_and_worker_lazy_without_demand"
+        self.assertEqual(MODULE.RGB_TESTS[12:], [case])
+        old = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS[:12])
+        for stdout in (old + "\ntest result: ok. 12 passed; 0 failed; 0 ignored;\n",
+                       old + "\ntest " + case + " ... ignored\n"
+                       + "test result: ok. 12 passed; 0 failed; 1 ignored;\n"):
+            with self.subTest(stdout=stdout), self.assertRaises(ValueError):
+                MODULE.require_rgb_tests(stdout)
+        full = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS) + "\n"
+        MODULE.require_rgb_tests(full + "test result: ok. 13 passed; 0 failed; 0 ignored;\n")
+
+    def test_primitive_depth_finite_registry_requires_six_exact_static_body_poses(self):
+        source = "examples/m68_depth_primitives.sdf"
+        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 40)
+        self.assertEqual(MODULE.NOISY_EXAMPLES[38:39], ("examples/m67_rgb_ellipsoid.sdf",))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[39:], (source,))
+        poses = {"default::backdrop::body": (7, 0, 0), "default::cylinder::body": (4, -1.5, 0),
+                 "default::ellipsoid::body": (4, 1.5, 0), "default::occluder::body": (2, 0, 0),
+                 "default::rig::body": (0, 0, 0), "default::sphere::body": (4, 0, 0)}
+        self.assertEqual(MODULE.NOISY_LINKS[source], poses)
+        headline = "simulation_ns=2000000 iterations=2\n"
+        rows = [name + " " + " ".join(map(str, xyz)) for name, xyz in sorted(poses.items())]
+        good = headline + "\n".join(rows) + "\n"
+        self.assertTrue(MODULE.noisy_output_matches(source, good))
+        bad = [headline, good.rstrip("\n"), good + "\n", headline + "\n".join(reversed(rows)) + "\n",
+               good.replace("iterations=2", "iterations=1"), good.replace("simulation_ns=2000000", "simulation_ns=1000000")]
+        for index, row in enumerate(rows):
+            bad.append(headline + "\n".join(rows[:index] + rows[index + 1:]) + "\n")
+            bad.append(good + row + "\n")
+            for coordinate in range(1, 4):
+                for value in ("nan", "inf", "-inf", "bad", str(float(row.split()[coordinate]) + 2e-12)):
+                    fields = row.split(); fields[coordinate] = value
+                    altered = rows.copy(); altered[index] = " ".join(fields)
                     bad.append(headline + "\n".join(altered) + "\n")
         for stdout in bad:
             with self.subTest(stdout=stdout):
