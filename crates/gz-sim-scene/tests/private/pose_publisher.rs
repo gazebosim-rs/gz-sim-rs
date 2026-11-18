@@ -176,7 +176,7 @@ fn pose_plan_domain_is_flat_rapier_and_one_publisher_static_models_are_not_stati
     let p = parse(&m).unwrap().unwrap();
     p.validate(&m, &sim, Some("rapier"), (true, false)).unwrap();
     p.validate(&m, &sim, Some("rapier"), (true, true)).unwrap();
-    for engine in [None, Some("dart"), Some("tpe")] {
+    for engine in [None, Some("tpe")] {
         assert!(p.validate(&m, &sim, engine, (true, false)).is_err());
     }
     assert!(

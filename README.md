@@ -1,3 +1,12 @@
+## Current owner priority: D33 backend retirement
+
+The owner cancelled DART and MuJoCo on 2026-11-17. Retain Rapier f64 and TPE;
+see [the retirement contract](docs/BACKEND_RETIREMENT.md). The isolated removal
+is undergoing its own review and required checks; cancellation is not completion.
+M1–M69 and 202 reviewed slices are accepted. M70 remains frozen and unaccepted,
+with its separate browser-origin approval pending. No M70 package/runtime Python
+changes are included here. Earlier development checkpoints below are historical.
+
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 ## Current development: M69 two calibrated depth cameras
@@ -282,8 +291,8 @@ until all parent, package, installation, browser and publication gates pass.
 The design combines the responsibilities of `gz-sim`, `gz-sensors`, `gz-physics`,
 and the necessary parts of `gz-math` in one Cargo workspace. Bevy supplies the ECS
 and renderer. Existing Rust libraries replace general-purpose Gazebo utilities.
-The simulator retains DART, MuJoCo, and TPE and adds a Bevy-integrated Rust physics
-backend. Bullet is removed. The replacement GUI is a separate application.
+D33 retires DART and MuJoCo product backends. The simulator retains Rapier f64
+and TPE. Bullet is removed. The replacement GUI is a separate application.
 
 `sdformat-rs`, `gz-fuel-tools-rs`, and schema-only `gz-msgs-rs` remain
 independent repositories in `gazebosim-rs`. Simulator consumers use upstream

@@ -1,3 +1,13 @@
+## Owner priority: D33 backend retirement (2026-11-17)
+
+DART and MuJoCo are cancelled product backends. Their implementation, parity,
+optimization and distribution obligations are retired, not completed. Keep Rapier
+f64 and TPE, existing historical evidence and required retained-feature reference
+fixtures. See [BACKEND_RETIREMENT.md](BACKEND_RETIREMENT.md). The new removal
+candidate needs its own complete Source review and final checks; frozen M70 and
+its unanswered browser-origin approval remain unchanged. Earlier checkpoints
+below do not reactivate cancelled backend work.
+
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 ## Current development: M69 two calibrated depth cameras
@@ -843,16 +853,16 @@ is complete. QLT-01's policy must be applied in each independent repository.
 | ACT-01 | CORE-02, LOAD-01 | Built-in system demand from loaded world/models; activate/retire schedules and owned resources on structural lifecycle transitions | Absent-system zero invocation/allocation/worker/endpoint controls; last-consumer teardown; dependency/shared-consumer behavior; reactivation/reset/multiworld and equal-work CPU/memory evidence |
 | PHY-01 | CORE-01, PHY-00 | Capability API, normalized construction/command/state/query contracts | Tested unsupported-feature diagnostics; no template-framework port |
 | PHY-02 | PHY-01 | TPE behavior port using reusable geometry | Upstream TPE motion/contact/lifecycle tests and benchmark |
-| PHY-03 | PHY-01 | DART native adapter and safe ownership/threads, batched IO | Same-version upstream DART parity, FFI tests, >95% Rust and bridge evidence |
-| PHY-04 | PHY-01 | MuJoCo adapter, SDF lowering, model/state mapping and topology edits | Actual supported features verified; state preservation/rollback; native lifetime tests |
+| PHY-03 | — | Cancelled by owner D33: DART product backend | Historical evidence retained; no further implementation or parity requirement |
+| PHY-04 | — | Cancelled by owner D33: MuJoCo product backend | Historical evidence retained; no further implementation or parity requirement |
 | PHY-05 | PHY-00, PHY-01, CORE-02 | Built-in Rust engine adapter and explicit stepping/precision | Capability probes, accuracy tests, sync overhead and deterministic-profile evidence |
 | SENSOR-01 | CORE-02, PHY-01 | Sensor scheduler, streams/seeds, shared models, IMU first | Rate/pause/reset/noise/frame tests and timestamp correctness |
 | IO-01 | CORE-02, MSG-01, ZEN-01 | Clock/pose publication, commands/services and bounded transport integration | Actual C++ Zenoh client interoperability; ordering/backpressure/shutdown cases |
 | LOAD-01 | SDF-01, FUEL-01, CORE-02 | Validated semantic scene to ECS/backend construction; local/offline resources | Original world fixtures, failure atomicity, frame and ID checks |
-| SLICE-01 | LOAD-01, PHY-02, PHY-03 or PHY-05, SENSOR-01, IO-01 | First complete exact-step SDF world | P2 report with C++ comparison, >95% code coverage, performance data and remaining scope |
+| SLICE-01 | LOAD-01, PHY-02, PHY-05, SENSOR-01, IO-01 | First complete exact-step SDF world | P2 report with C++ comparison, >95% code coverage, performance data and remaining scope |
 
-PHY-03 is required for final DART parity even if PHY-05 brings up the first dynamic
-slice sooner. PHY-04 and PHY-05 are both required release backends alongside TPE.
+D33 cancels PHY-03 and PHY-04. PHY-05 (Rapier f64) and PHY-02 (TPE) remain;
+no active task depends on completing a retired adapter.
 Temporary SDF bridges require explicit removal tasks. Existing ZeroMQ/runtime
 consumer pins remain historical transition inputs until ZEN-01 replaces them.
 
@@ -875,7 +885,7 @@ B03, SDF radiometry, original-system completion or performance acceptance.
 | RENDER-01 | CORE-02, ASSET-01 | Bevy offscreen scene extraction, f64/frame/origin conversion | No-window GPU test; large-coordinate transforms; scene lifecycle and readback cancellation |
 | RENDER-02 | RENDER-01, SENSOR-01 | RGB/depth/RGBD, calibration, distortion, wide-angle | Analytic projection/range tests, image fixtures, no hidden temporal postprocessing |
 | RENDER-03 | RENDER-02 | Segmentation, bounding boxes, thermal and visual effects needed by retained features | Label/geometry/thermal checks and mapped upstream assertions |
-| SENSOR-02 | SENSOR-01, PHY-03, PHY-04 | Force/torque, pressure/speed, altimeter, magnetic, NavSat/logical/contact | Model/noise/units/frame tests and backend capability errors |
+| SENSOR-02 | SENSOR-01 | Force/torque, pressure/speed, altimeter, magnetic, NavSat/logical/contact | Model/noise/units/frame tests and backend capability errors |
 | SENSOR-03 | RENDER-01, PHY-01 | CPU/GPU lidar and collision-versus-visual query semantics | Range/intensity/clipping fixtures and per-sample acquisition timestamps |
 | SENSOR-04 | SENSOR-02, ASSET-02 | DVL, environmental and remaining sensor models | Complete sensor ledger; deterministic environmental sampling and error behavior |
 | SENSOR-05 | RENDER-03, SENSOR-03, SENSOR-04 | Multi-sensor scheduling, overload, lockstep, cancellation | Exact sample counts, bounded buffers, reset epochs, CPU/GPU coverage and soak |
@@ -940,7 +950,7 @@ Keep worktree/file ownership explicit when several contributors work at once.
 Integrate shared interfaces before dependent implementations. An agent may not
 change a producer contract solely to make its own consumer tests easier.
 
-## Private Scene continuation: free-root serial three-body DART
+## Historical cancelled continuation (D33): free-root serial three-body DART
 
 Root owns a bounded LOAD-01/PHY-03 consumer follow-up in `joints.rs` and new
 Scene tests. The accepted backend already supports a contact-free free root with
@@ -955,7 +965,7 @@ Implementation and test-code findings are batched in this candidate; final sourc
 review and consolidated qualification are pending. See
 [SCENE_FREE_THREE_BODY.md](SCENE_FREE_THREE_BODY.md).
 
-### PHY-03 / SLICE-01: bounded DART compound collisions (in progress)
+### Cancelled by D33 — PHY-03 / SLICE-01: bounded DART compound collisions (historical)
 
 Root owns Scene loading and regression controls; the physics owner owns the
 existing DART adapter and concrete shared physics contracts. Work is isolated
@@ -972,7 +982,7 @@ controls cover final-shape refusal, local bounds, native body/shape semantics,
 loaded reset/removal and unchanged other-engine refusals. B03 still needs offset
 COM and full trajectory/equal-work evidence; this task does not accept it.
 
-### PHY-03 / SLICE-01: explicit offset COM for DART compounds (source in progress)
+### Cancelled by D33 — PHY-03 / SLICE-01: explicit offset COM for DART compounds (historical)
 
 This follow-up is isolated from the qualifying centered-COM feature. The physics
 owner extends the existing explicit-inertia COM, origin-conditioning and velocity
@@ -988,7 +998,7 @@ propose exact same-input stronger-positive transitions for independent review
 before any fold. B03 loading, full native trajectories and equal-work evidence
 remain separate acceptance requirements; do not infer them from this guard.
 
-### PHY-03 / SLICE-01: atomic two-edge serial construction (source in progress)
+### Cancelled by D33 — PHY-03 / SLICE-01: atomic two-edge serial construction (historical)
 
 The offset-COM prerequisite is accepted at `e55356c8`. This next bounded feature
 adds one cold DART operation for three isolated dynamic free bodies and two
@@ -1004,7 +1014,7 @@ with independent raw/source/library audit passed. Finish all
 source and data review before one consolidated mandatory gate; performance and
 general topology/contact support remain separate.
 
-### SDF-02 / PHY-03: adopt the checked radian constructor correction
+### Historical cancelled adapter continuation (D33) — SDF-02 / PHY-03: adopt the checked radian constructor correction
 
 Root owns the isolated `work/producer-euler-adoption` consumer batch. It retains
 the independently reviewed child-frame serial construction and fresh-reference
@@ -1028,7 +1038,7 @@ ticks and `1e-12` bounds, existing native and real C++ Zenoh controls, strict
 coverage and exact hosted qualification. Neither producer acceptance nor this
 source migration completes B03 or equal-work performance acceptance.
 
-### SDF-02 / PHY-03: adopt native joint semantic-pose evaluation
+### Historical cancelled adapter continuation (D33) — SDF-02 / PHY-03: adopt native joint semantic-pose evaluation
 
 Root owns `work/producer-joint-pose-adoption`, preserving the failed constructor
 adoption source and observations. Owned additions are the minimal producer
@@ -1088,7 +1098,7 @@ and measurement summary. Required local, hosted and independent official
 qualification is complete. No additional timing or unchanged successful
 protocol/native build replay is required.
 
-### PERF-01: per-pass articulated contact factorization
+### Historical cancelled adapter optimization (D33) — PERF-01: per-pass articulated contact factorization
 
 Root owns integration in `work/contact-factorization`; the physics owner supplied
 `joint_state.hh`, `bridge.cc`, appended static-contact regression controls and

@@ -240,11 +240,8 @@ fn absent_configuration_owns_no_controller_callbacks_and_other_backends_refuse()
     let absent_count = absent.scheduled_system_counts();
     assert_eq!(present_count.0, absent_count.0 + 1);
     assert_eq!(present_count.1, absent_count.1 + 1);
-    for engine in [
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-        PhysicsEngine::Tpe,
-    ] {
+    {
+        let engine = PhysicsEngine::Tpe;
         assert!(
             load_world_with_sdf_step(XML, "m9.sdf", "default", &sdformat::NoResources, engine)
                 .is_err()

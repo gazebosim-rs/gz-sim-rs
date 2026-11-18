@@ -1,3 +1,10 @@
+## Current owner decision: D33
+
+Drop DART and MuJoCo product backends and cancel their remaining work. See
+[the retirement contract](docs/BACKEND_RETIREMENT.md). Earlier requirements to
+retain these adapters are superseded. Keep frozen qualification trees unchanged,
+retained Rapier/TPE assertions and full remaining quality gates.
+
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 ## Current development: M69 two calibrated depth cameras
@@ -757,7 +764,8 @@ project and applicable dependency/asset license notices in the distribution.
   Do not recreate EntityComponentManager or build a second general-purpose ECS.
 - Use Bevy rendering. Do not port gz-rendering, Ogre, or gz-gui. Keep the server
   usable without a GPU, window, or renderer dependency enabled.
-- Keep DART, MuJoCo, and TPE. Add the chosen Bevy-integrated Rust backend. Do not
+- D33 retires DART and MuJoCo product backends and all their pending work. Keep
+  Rapier f64 and TPE. Preserve historical reference evidence and Fuel work. Do not
   implement Bullet or Bullet Featherstone. Backend limitations must be explicit.
 - Do not introduce gz-cmake, gz-utils, gz-tools, gz-plugin, or gz-common successor
   repositories without an approved architecture decision. Preserve required

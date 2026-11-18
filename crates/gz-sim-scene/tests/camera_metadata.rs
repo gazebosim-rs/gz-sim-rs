@@ -209,19 +209,8 @@ fn ordinary_camera_retains_nondefault_wide_angle_lens_metadata() {
 #[test]
 fn loaded_camera_retains_pose_identity_and_metadata_through_reset_and_removal() {
     let source = include_str!("fixtures/camera-binding.sdf");
-    for engine in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Tpe,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
-        // DART's existing admission bound excludes the large-origin fixture.
-        let large_origin = matches!(engine, PhysicsEngine::Rapier | PhysicsEngine::Tpe);
-        let source = if large_origin {
-            source.to_owned()
-        } else {
-            source.replace("1000000000 2 0", "10 2 0")
-        };
+    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+        let source = source.to_owned();
         let start = source.find("<sensor name=\"camera\"").unwrap();
         let end = start + source[start..].find("</sensor>").unwrap() + "</sensor>".len();
         let without_sensor = format!("{}{}", &source[..start], &source[end..]);
@@ -258,7 +247,7 @@ fn loaded_camera_retains_pose_identity_and_metadata_through_reset_and_removal() 
         let entity = find(&sim, "default::robot::body::camera");
         let id = sim.world().get::<EntityId>(entity).unwrap().get();
         let pose = sim.world().get::<WorldPose>(entity).unwrap();
-        let expected_x = if large_origin { 1_000_000_000.0 } else { 10.0 };
+        let expected_x = 1_000_000_000.0;
         assert!((pose.translation[0] - expected_x).abs() < 1e-7);
         assert!((pose.translation[1] - 3.0).abs() < 1e-12);
         assert!((pose.rotation[2] - 0.5_f64.sqrt()).abs() < 1e-12);

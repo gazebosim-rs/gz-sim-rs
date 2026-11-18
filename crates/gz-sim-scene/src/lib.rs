@@ -121,13 +121,9 @@ pub use initial::{
 use bevy_ecs::prelude::*;
 use glam::{DQuat, DVec3};
 use gz_physics::{
-    BodyId, BodySpec, CollisionSpec, CompoundBodySpec, Inertia, MeshBodySpec, PhysicsBackend,
-    PhysicsError, PhysicsReset, PlaneSpec, RotationSpec, Shape,
+    BodyId, BodySpec, CollisionSpec, Inertia, MeshBodySpec, PhysicsBackend, PhysicsError,
+    PhysicsReset, PlaneSpec, RotationSpec, Shape,
 };
-#[cfg(feature = "native-backends")]
-use gz_physics_dart::DartBackend;
-#[cfg(feature = "native-backends")]
-use gz_physics_mujoco::MujocoBackend;
 use gz_physics_rapier::RapierBackend;
 use gz_sensors::{ImuInput, ImuReading, InvalidImuInput};
 use gz_sim_core::{
@@ -420,8 +416,6 @@ struct Gravity([f64; 3]);
 
 #[derive(Debug, thiserror::Error)]
 pub enum LoadError {
-    #[error("{0:?} is unavailable in this build; enable the native-backends feature")]
-    BackendUnavailable(PhysicsEngine),
     #[error("{0}")]
     Sdf(#[from] sdformat::Diagnostic),
     #[error("world {0} was not found")]
@@ -584,14 +578,6 @@ fn load_world_configured(
     });
     let mut backend = match engine {
         PhysicsEngine::Rapier => Some(RapierBackend::new(world.gravity)?.into()),
-        #[cfg(feature = "native-backends")]
-        PhysicsEngine::Dart => Some(DartBackend::new(world.gravity)?.into()),
-        #[cfg(feature = "native-backends")]
-        PhysicsEngine::Mujoco => Some(MujocoBackend::new(world.gravity)?.into()),
-        #[cfg(not(feature = "native-backends"))]
-        PhysicsEngine::Dart | PhysicsEngine::Mujoco => {
-            return Err(LoadError::BackendUnavailable(engine));
-        }
         PhysicsEngine::Tpe => None,
     };
     let mut context = SceneContext {
@@ -900,12 +886,8 @@ fn build_model(
             name,
             "visual plugins",
         )?;
-        let dart_collisions = backend
-            .as_ref()
-            .is_some_and(|backend| backend.engine() == "dart");
         require(
-            link.collisions.len() == 1
-                || (dart_collisions && (1..=3).contains(&link.collisions.len())),
+            link.collisions.len() == 1,
             name,
             "collision count (expected one)",
         )?;
@@ -915,7 +897,6 @@ fn build_model(
             "fluid added mass",
         )?;
         let mut solids = Vec::with_capacity(link.collisions.len());
-        let mut compound = link.collisions.len() > 1;
         let mut plane = None;
         let mut mesh_collision = None;
         for collision in &link.collisions {
@@ -935,12 +916,10 @@ fn build_model(
             require(
                 identity(local)
                     || (matches!(&collision.geometry, Geometry::Mesh(_))
-                        && backend.as_ref().is_some_and(|b| b.engine() == "rapier"))
-                    || (dart_collisions && !matches!(collision.geometry, Geometry::Plane { .. })),
+                        && backend.as_ref().is_some_and(|b| b.engine() == "rapier")),
                 name,
                 "offset collision pose",
             )?;
-            compound |= !identity(local);
             if let Geometry::Mesh(mesh) = &collision.geometry {
                 require(link.collisions.len() == 1, name, "compound mesh collision")?;
                 let geometry = gz_assets::mesh::load(mesh).map_err(|source| LoadError::Mesh {
@@ -964,7 +943,6 @@ fn build_model(
                     half_extents: size.map(|v| v * 0.5),
                 },
                 Geometry::Plane { normal, size } => {
-                    require(!compound, name, "compound plane collision geometry")?;
                     plane = Some((normal, size));
                     continue;
                 }
@@ -985,7 +963,7 @@ fn build_model(
         let inertial_pose =
             sdf.resolve_pose(&link.inertial.pose, &model.scoped_name, name, name)?;
         require(
-            centered(inertial_pose.translation) || (dart_collisions && plane.is_none()),
+            centered(inertial_pose.translation),
             name,
             "offset center of mass",
         )?;
@@ -1067,23 +1045,8 @@ fn build_model(
                         orientation: inertial_pose.rotation,
                         tensor: link.inertial.inertia,
                     };
-                    let id = if compound {
-                        backend.spawn_compound_link(
-                            CompoundBodySpec {
-                                collisions: &solids,
-                                position: spec.position,
-                                velocity: spec.velocity,
-                                mass: spec.mass,
-                            },
-                            rotation,
-                            inertia,
-                        )?
-                    } else {
-                        backend.spawn_link(spec, rotation, Some(inertia))?
-                    };
-                    if backend.engine() == "rapier"
-                        && (!model.joints.is_empty() || (top_level && model.links.len() > 1))
-                    {
+                    let id = backend.spawn_link(spec, rotation, Some(inertia))?;
+                    if !model.joints.is_empty() || (top_level && model.links.len() > 1) {
                         let group = sim
                             .world()
                             .get::<EntityId>(model_entity)

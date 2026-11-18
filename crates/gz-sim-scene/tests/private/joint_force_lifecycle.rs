@@ -6,12 +6,8 @@ use sdformat::NoResources;
 const SOURCE: &str = include_str!("../fixtures/pendulum.sdf");
 const CONFIGURATION: &str = "<plugin filename='gz-sim-apply-joint-force-system' name='gz::sim::systems::ApplyJointForce'><joint_name>hinge</joint_name></plugin>";
 
-fn engines() -> [PhysicsEngine; 3] {
-    [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ]
+fn engines() -> [PhysicsEngine; 1] {
+    [PhysicsEngine::Rapier]
 }
 fn load(xml: &str, engine: PhysicsEngine) -> Simulation {
     load_world_with_engine(

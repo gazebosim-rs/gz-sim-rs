@@ -894,7 +894,10 @@ class RealInstrumentation(unittest.TestCase):
             shutil.copyfile(Path(__file__).resolve().parents[1] / "scripts/rustc-coverage.py", wrapper)
             wrapper.chmod(0o700)
             environment = dict(os.environ, RUSTUP_TOOLCHAIN="1.97.1")
-            subprocess.run(["cargo", "generate-lockfile", "--offline"], cwd=root, env=environment, check=True, capture_output=True)
+            lock = subprocess.run(["cargo", "generate-lockfile", "--offline"], cwd=root,
+                                  env=environment, capture_output=True, text=True)
+            self.assertEqual(lock.returncode, 0,
+                             "offline fixture lockfile failed; stderr tail: " + lock.stderr[-16384:])
             version = subprocess.check_output(["rustc", "-vV"], env=environment, text=True)
             sysroot = Path(subprocess.check_output(["rustc", "--print", "sysroot"], env=environment, text=True).strip())
             host = next(line.split(": ", 1)[1] for line in version.splitlines() if line.startswith("host: "))
@@ -952,7 +955,10 @@ fn emits_child_profile() {
             shutil.copyfile(Path(__file__).resolve().parents[1] / "scripts/rustc-coverage.py", wrapper)
             wrapper.chmod(0o700)
             environment = dict(os.environ, RUSTUP_TOOLCHAIN="1.97.1")
-            subprocess.run(["cargo", "generate-lockfile", "--offline"], cwd=root, env=environment, check=True, capture_output=True)
+            lock = subprocess.run(["cargo", "generate-lockfile", "--offline"], cwd=root,
+                                  env=environment, capture_output=True, text=True)
+            self.assertEqual(lock.returncode, 0,
+                             "offline fixture lockfile failed; stderr tail: " + lock.stderr[-16384:])
             version = subprocess.check_output(["rustc", "-vV"], env=environment, text=True)
             sysroot = Path(subprocess.check_output(["rustc", "--print", "sysroot"], env=environment, text=True).strip())
             host = next(line.split(": ", 1)[1] for line in version.splitlines() if line.startswith("host: "))

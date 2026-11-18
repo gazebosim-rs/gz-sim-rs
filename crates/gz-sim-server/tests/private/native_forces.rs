@@ -582,14 +582,8 @@ fn real_cpp_publisher_controls_loaded_joint_force_on_all_dynamic_engines() {
         return;
     }
     let binary = native_client();
-    for (index, engine) in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ]
-    .into_iter()
-    .enumerate()
     {
+        let (index, engine) = (0_usize, PhysicsEngine::Rapier);
         let config = ServerOptions {
             partition: format!("force-cpp-{}-{index}", std::process::id()),
             ..ServerOptions::default()
@@ -837,90 +831,4 @@ fn unread_native_force_queue_is_discarded_when_subscriptions_restart() {
     assert_eq!(joint.get::<JointForceCommand>().unwrap().torque(), 0.0);
     assert_eq!(joint.get::<JointSample>().unwrap().state.velocity, 0.0);
     forces.shutdown();
-}
-
-// Copyright (C) 2019 Open Source Robotics Foundation
-// Assertion port of ApplyJointForceTestFixture.JointVelocityCommand.
-#[test]
-fn original_ground_world_accepts_cpp_joint_force_with_original_sample_bounds() {
-    if isolate("original_ground_world_accepts_cpp_joint_force_with_original_sample_bounds") {
-        return;
-    }
-    let source = include_str!("../fixtures/apply_joint_force_original.sdf");
-    let config = ServerOptions {
-        partition: format!("original-force-cpp-{}", std::process::id()),
-        ..ServerOptions::default()
-    };
-    let sim = load_world_with_sdf_step(
-        source,
-        "apply_joint_force.sdf",
-        "default",
-        &NoResources,
-        PhysicsEngine::Dart,
-    )
-    .unwrap();
-    let joint = sim
-        .world()
-        .iter_entities()
-        .find(|e| {
-            e.get::<Name>()
-                .is_some_and(|name| name.0 == "default::joint_force_test::j1")
-        })
-        .unwrap()
-        .id();
-    let mut server = Server::new(
-        sim,
-        "default",
-        config.clone(),
-        NonZeroUsize::new(2).unwrap(),
-    )
-    .unwrap();
-    // The tick-driven Rust server does not advance when constructed.
-    assert_eq!(
-        server
-            .simulation()
-            .world()
-            .resource::<gz_sim_core::UpdateInfo>()
-            .iteration,
-        0
-    );
-    assert_eq!(server.pending_steps(), 0);
-    server.set_paused(false);
-    let mut samples = Vec::new();
-    for _ in 0..10 {
-        if let Some(command) = server.simulation().world().get::<JointForceCommand>(joint) {
-            samples.push(command.torque());
-        }
-        server.update().unwrap();
-        thread::sleep(Duration::from_millis(1));
-    }
-    assert_eq!(samples.len(), 10);
-    for force in &samples {
-        assert!(force.abs() <= 1e-4);
-    }
-    samples.clear();
-    let mut peer = Peer::start(
-        native_client(),
-        &config,
-        "/model/joint_force_test/joint/j1/cmd_force",
-        &server.world_io,
-    );
-    peer.line("READY");
-    peer.send("0.001");
-    for _ in 0..1000 {
-        if let Some(command) = server.simulation().world().get::<JointForceCommand>(joint) {
-            samples.push(command.torque());
-        }
-        server.update().unwrap();
-        thread::sleep(Duration::from_millis(1));
-        if samples
-            .last()
-            .is_some_and(|force| (force - 0.001).abs() < 1e-6)
-        {
-            break;
-        }
-    }
-    let actual = *samples.last().unwrap();
-    assert!(actual.to_bits().abs_diff(0.001_f64.to_bits()) <= 4);
-    peer.finish();
 }

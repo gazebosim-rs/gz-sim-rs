@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Replay DART generalized torque through the pinned C++ Gazebo physics plugin."""
+"""Reproduce the retained Rapier torque oracle using upstream Gazebo physics."""
 import argparse
 import hashlib
 import json
@@ -11,7 +11,7 @@ import shlex
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURES = ROOT / 'crates/gz-physics-dart/tests/fixtures'
+FIXTURES = ROOT / 'crates/gz-physics-rapier/tests/fixtures'
 
 
 def digest(path):

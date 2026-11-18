@@ -13,12 +13,7 @@ use sdformat::{NoResources, NoiseKind, Resource, ResourceResolver};
 use std::time::Duration;
 
 const RESOURCE: &str = include_str!("fixtures/sdf1b_legacy_imu.sdf");
-const ENGINES: [PhysicsEngine; 4] = [
-    PhysicsEngine::Tpe,
-    PhysicsEngine::Rapier,
-    PhysicsEngine::Dart,
-    PhysicsEngine::Mujoco,
-];
+const ENGINES: [PhysicsEngine; 2] = [PhysicsEngine::Tpe, PhysicsEngine::Rapier];
 
 fn model(xml: &str) -> &str {
     &xml[xml.find("<model").unwrap()..xml.find("</model>").unwrap() + "</model>".len()]

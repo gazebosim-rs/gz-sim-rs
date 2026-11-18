@@ -96,10 +96,8 @@ fn native_six_pulses_keep_their_values_with_unconditional_equal_time_and_100hz_f
     let second = publication(&sim).unwrap();
     assert_eq!((second.time, second.revision), (Duration::ZERO, 2));
     assert_eq!(second.joints, first.joints);
-    let fixture: serde_json::Value = serde_json::from_str(include_str!(
-        "../../gz-physics-dart/tests/fixtures/joint_effort.json"
-    ))
-    .unwrap();
+    let fixture: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/reference/joint_effort.json")).unwrap();
     let rows = fixture["observations"].as_array().unwrap();
     assert_eq!(rows.len(), 6);
     let mut unthrottled = load(&XML.replace(

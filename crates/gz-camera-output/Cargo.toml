@@ -5,10 +5,6 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
-[features]
-default = ["native-backends"]
-native-backends = ["gz-sim-server/native-backends", "gz-sim-scene/native-backends", "gz-render-scene/native-backends"]
-
 [dependencies]
 gz-sim-server = { path = "../gz-sim-server", default-features = false }
 zenoh.workspace = true

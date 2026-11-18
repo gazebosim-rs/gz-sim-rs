@@ -71,17 +71,6 @@ pub struct CollisionSpec {
     pub orientation: [f64; 4],
 }
 
-/// Initial link state with explicitly positioned collision primitives.
-/// Mass and inertia belong to the link, not to the individual collisions.
-/// Position locates the body origin; velocity is the COM velocity in world axes.
-#[derive(Debug, Clone, Copy)]
-pub struct CompoundBodySpec<'a> {
-    pub collisions: &'a [CollisionSpec],
-    pub position: [f64; 3],
-    pub velocity: [f64; 3],
-    pub mass: Option<f64>,
-}
-
 /// A link's inertial frame, relative to its body frame. Tensor order is xx,yy,zz,xy,xz,yz.
 #[derive(Debug, Clone, Copy)]
 pub struct Inertia {

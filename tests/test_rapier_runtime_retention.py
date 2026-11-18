@@ -42,9 +42,8 @@ class AuxiliaryRetention(unittest.TestCase):
             (ROOT / "scripts/qualify-rapier-runtime.py").read_bytes())
         (self.root / "scripts/check-rapier-runtime.py").write_bytes(
             (ROOT / "scripts/check-rapier-runtime.py").read_bytes())
-        source = '\n#[cfg(not(feature = "native-backends"))]\nPhysicsEngine::Dart | PhysicsEngine::Mujoco => {\nreturn Err(LoadError::BackendUnavailable(engine));\n}\n'
         (self.root / QUALIFIER.SCENE).parent.mkdir(parents=True, exist_ok=True)
-        (self.root / QUALIFIER.SCENE).write_text(source)
+        (self.root / QUALIFIER.SCENE).write_text("// synthetic retained Scene source\n")
         for name in ["commands.json", "rustc-coverage.py", "closure.stdout", "closure.stderr", "merged.profdata",
                      "raw/case.profraw", *[test + "." + stream for test, _ in QUALIFIER.TARGETS.values()
                                          for stream in ["stdout", "stderr"]]]:
@@ -66,16 +65,15 @@ class AuxiliaryRetention(unittest.TestCase):
         self.write_json("cargo-events.json", events)
         self.write_json("objects.json", objects)
         report = {"data": [{"functions": [{"filenames": [str(self.root / QUALIFIER.SCENE)],
-                                            "regions": [[3, 1, 5, 2, 2, 0, 0, 0]]}]}]}
-        lcov = f"SF:{self.root / QUALIFIER.SCENE}\nDA:4,2\nend_of_record\n"
+                                            "regions": [[1, 1, 1, 20, 2, 0, 0, 0]]}]}]}
+        lcov = f"SF:{self.root / QUALIFIER.SCENE}\nDA:1,2\nend_of_record\n"
         self.write_json("coverage.json", report)
         self.write("coverage.lcov", lcov.encode())
         inputs = QUALIFIER.inputs(self.root)
         self.write_json("inputs.json", inputs)
         self.report = {"state": "passed", "private_target_removed": True,
                        "source_root": str(self.root), "target_root": str(self.root / "target/rapier-runtime-fixture"),
-                       "sources_and_inputs": inputs, "objects_bound_after_execution": objects,
-                       "disabled_backend": QUALIFIER.disabled_region(report, lcov, self.root, source)}
+                       "sources_and_inputs": inputs, "objects_bound_after_execution": objects}
         # Synthetic metadata only: these records exercise the independent RGB
         # validator, not a compiler, executable, renderer, or coverage workload.
         for name in ["stderr", "merged.profdata", "raw/rgb.profraw", "closure.stderr"]:
@@ -156,7 +154,7 @@ class AuxiliaryRetention(unittest.TestCase):
         self.assertTrue("rapier-runtime/result.json" in hashes)
         for name, digest in hashes.items():
             self.assertEqual(QUALIFIER.digest(output / name), digest)
-        self.assertEqual(len(list((output / "rapier-runtime/objects").iterdir())), 4)
+        self.assertEqual(len(list((output / "rapier-runtime/objects").iterdir())), 3)
         self.assertEqual(len(list((output / "rapier-runtime/rgb-camera/objects").iterdir())), 2)
 
     def test_original_features_off_proof_does_not_replace_the_rgb_proof(self):
@@ -238,13 +236,13 @@ class AuxiliaryRetention(unittest.TestCase):
         with self.assertRaises(ValueError):
             QUALIFIER.validate_evidence(self.root, self.directory)
 
-    def test_rehashed_report_cannot_omit_the_server_build_test_object(self):
+    def test_rehashed_report_cannot_omit_the_scene_runtime_test_object(self):
         objects = [item for item in self.report["objects_bound_after_execution"]
-                   if item["cargo_artifact"]["target"]["name"] != "no_native_build"]
+                   if item["cargo_artifact"]["target"]["name"] != "no_native_backends"]
         self.report["objects_bound_after_execution"] = objects
         self.write_json("objects.json", objects)
         self.write_json("cargo-events.json", [item["cargo_artifact"] for item in objects])
-        (self.directory / "objects/no_native_build").unlink()
+        (self.directory / "objects/no_native_backends").unlink()
         self.finish_manifest()
         with self.assertRaisesRegex(ValueError, "missing retained CLI or targeted test object"):
             QUALIFIER.validate_evidence(self.root, self.directory)

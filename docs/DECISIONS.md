@@ -9,13 +9,13 @@ Updated with the owner’s built-in system decision on 2026-10-30. `Confirmed` m
 | D01 | Amended by D28/D29 | Organization: gazebosim-rs. Independent repos: sdformat-rs, gz-fuel-tools-rs, and schema-only gz-msgs-rs. No Rust transport repository in the target architecture. |
 | D02 | Confirmed | gz-sim-rs contains simulator, sensors, physics, and residual math responsibilities. |
 | D03 | Confirmed | Use Bevy ECS and renderer; remove gz-cmake and gz-rendering; separate GUI is out of scope. |
-| D04 | Confirmed | Support DART, MuJoCo, TPE, and a Bevy-integrated physics option; remove both Bullet backends. |
+| D04 | Superseded by D33 | Support DART, MuJoCo, TPE, and a Bevy-integrated physics option; remove both Bullet backends. |
 | D05 | Confirmed | Prefer stable Rust libraries to rewriting math, common utilities, or other generic functionality. |
 | D06 | Confirmed | Preserve behavior, file formats, protocols, and existing tests; new Rust APIs are allowed. No general C++ ABI promise. |
 | D07 | Confirmed | Linux first, headless and Bevy rendering; design for later macOS/Windows. |
 | D08 | Confirmed | Require >95% coverage, pre-commit enforcement, concise human code/comments, and measured performance improvement. |
 | D09 | Proposed | Retire gz-utils; retain CLI dispatch and required common behavior as focused workspace modules. No new standalone utils/tools/plugin/common repositories. |
-| D10 | Proposed | Evaluate Avian and Rapier as requested. Recommend Rapier f64 after finding Avian 0.8's mixed-precision solver change; confirm with P0 probes. DART remains the parity reference where upstream uses DART. |
+| D10 | Amended by D22/D33 | Rapier f64 is the selected Rust backend. DART product-backend parity is cancelled; existing upstream observations may remain reference fixtures for retained behavior. |
 | D11 | Proposed | f64 canonical state; integer simulation time; Z-up physics; explicit render-frame conversion and origin rebasing. |
 | D12 | Proposed | >95% line AND region coverage per production crate and workspace; branch coverage is additional, toolchain-dependent evidence. |
 | D13 | Confirmed | Use Gazebo main branches. Pin the inspected local main SHAs in planning/baseline.json; verify and review updates in P0 before baseline execution. |
@@ -24,13 +24,13 @@ Updated with the owner’s built-in system decision on 2026-10-30. `Confirmed` m
 | D16 | Proposed | Linux x86_64 is the initial required execution target; add Linux aarch64 after backend/GPU availability review. Confirm supported distro and hardware during P0. |
 | D17 | Confirmed | Faithful Rust test ports may preserve fixtures, assertions, edge cases, and tolerances, verified against C++ reference runs. Explicitly dropped internals receive recorded dispositions. |
 | D18 | Proposed | Keep existing external Python workflows in scope through focused bindings; do not port the Python system loader unchanged. Inventory actual use before accepting a narrower release. |
-| D19 | Proposed | Native DART/MuJoCo libraries are allowed behind Rust adapters; “rewrite in Rust” does not mean rewriting those third-party engines. |
+| D19 | Superseded by D33 | Native DART/MuJoCo libraries are allowed behind Rust adapters; “rewrite in Rust” does not mean rewriting those third-party engines. |
 | D20 | Proposed | Performance budgets in PERFORMANCE.md are initial targets to ratify after baseline measurement. |
 | D21 | Confirmed | Balanced robotics is the primary performance workload: articulated robots, many entities, and camera/lidar sensors. Also benchmark batch/headless and large worlds. |
 | D22 | Confirmed | The Rust physics backend must use a full-f64 solver. Prioritize Rapier f64 and validate its capabilities, integration, accuracy, and performance with probes. |
 | D23 | Confirmed | Correct native TPE static-model motion and rotated-link world-velocity quirks. Keep static models immobile and honor world axes; preserve existing assertions and record native differences. Implementation and verification remain required. |
-| D24 | Confirmed | Native MuJoCo 3.11.0 is loaded at run time and built from upstream gz-physics' vendored commit (b85fdca5) with its CMake options by scripts/bootstrap-physics.py; parity fixtures compare to 1e-14, so prebuilt releases are not substituted. |
-| D25 | Confirmed | DART uses the packaged OSRF 6.13.2 build (assertions enabled). The adapter rejects inputs that would reach those assertions with explicit, documented admission limits rather than linking a different DART build; these limits may be stricter than Rapier and MuJoCo. |
+| D24 | Historical; superseded by D33 | Native MuJoCo 3.11.0 is loaded at run time and built from upstream gz-physics' vendored commit (b85fdca5) with its CMake options by scripts/bootstrap-physics.py; parity fixtures compare to 1e-14, so prebuilt releases are not substituted. |
+| D25 | Historical; superseded by D33 | DART uses the packaged OSRF 6.13.2 build (assertions enabled). The adapter rejects inputs that would reach those assertions with explicit, documented admission limits rather than linking a different DART build; these limits may be stricter than Rapier and MuJoCo. |
 | D26 | Confirmed | All simulation systems are built into gz-sim-rs and activated by loaded world/model requirements. No dynamically loaded system libraries, system plugin host or system C ABI. An absent system has no scheduled work or system-specific runtime allocations, workers or endpoints; teardown follows its last consumer. Native engine FFI remains allowed. |
 | D27 | Confirmed | Upgrade gz-sim-rs to Rust 1.97.1 for Bevy 0.20 rendering. Independent repository toolchains stay unchanged. Requalify the existing headless, native interoperability, coverage and hosted CI gates; preserve historical compiler-specific evidence. Default headless builds remain free of rendering/GPU dependencies. |
 
@@ -42,7 +42,12 @@ Updated with the owner’s built-in system decision on 2026-10-30. `Confirmed` m
 
 | D32 | Confirmed (2026-11-07 owner instruction) | Always continue with the next useful bounded phase while retained work remains. Do not stop because the previous schedule is complete or its successor was unselected. Record each scope/dependencies/acceptance before implementation, allow independent lanes under D31, keep the web tracker current and preserve all required review/verification gates. Stop for an explicit owner pause, completion of retained scope or a genuine blocking owner decision. The next selected wave is M15 ideal air pressure and M16 local OBJ; see M15_M16_DELIVERY.md. |
 
-D30 narrows initial release acceptance without retiring final compatibility scope.
+| D33 | Confirmed (2026-11-17 owner instruction) | Drop DART and MuJoCo entirely as product backends. Cancel PHY-03/PHY-04 and all remaining adapter implementation, parity, optimization and distribution work; remove their workspace crates, consumer dependencies/features and dedicated build/test/provisioning jobs. Keep Rapier f64 and TPE. Preserve historical results, pending worktrees, original fixtures and attribution; reference observations still required to test retained Rapier/system behavior are not product backends or new DART/MuJoCo development. Remaining-engine assertions, coverage thresholds, Source review and mandatory final checks stay intact. See BACKEND_RETIREMENT.md. |
+
+D33 supersedes D04, D19, D24, D25 and D30's DART/MuJoCo retention obligation.
+Earlier decisions and results remain historical evidence. DART-specific future
+parity in D10 is cancelled; existing upstream reference fixtures may still test
+retained behavior. Other D30 compatibility scope remains deferred, not completed.
 It supersedes the old P0–P7 execution order and the earlier whole-rewrite-first
 forecast. gzweb-rs is the MVP viewer; Bevy server-side rendering remains the
 sensor implementation for later phases. The observed viewer currently needs a

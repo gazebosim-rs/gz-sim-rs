@@ -280,8 +280,6 @@ fn actual_cpp_outputless_rate_controls_preserve_phase_and_both_reset_cadences() 
     for (engine, delayed, fail) in [
         (PhysicsEngine::Tpe, false, None),
         (PhysicsEngine::Rapier, false, None),
-        (PhysicsEngine::Dart, false, None),
-        (PhysicsEngine::Mujoco, false, None),
         (PhysicsEngine::Tpe, true, None),
         (PhysicsEngine::Tpe, false, Some("exit")),
         (PhysicsEngine::Tpe, false, Some("panic")),

@@ -23,12 +23,7 @@ fn named(sim: &Simulation, name: &str) -> bevy_ecs::entity::Entity {
 
 #[test]
 fn visual_geometry_is_owned_separately_from_collision_and_restored_after_edits_and_removal() {
-    for engine in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Tpe,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
         let source = xml("", "").replace(
             "<visual name='view'><geometry><sphere><radius>0.5</radius></sphere>",
             "<visual name='view'><geometry><box><size>1 2 3</size></box>",

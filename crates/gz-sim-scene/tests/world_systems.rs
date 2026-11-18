@@ -39,12 +39,7 @@ fn states(sim: &mut Simulation) -> Vec<(String, [f64; 3], [f64; 3])> {
 
 #[test]
 fn physics_metadata_reuses_selected_backend_and_reset_without_duplicate_systems() {
-    for engine in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Tpe,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
         let mut plain = load(WORLD, engine).unwrap();
         let mut configured = load(&configured(PHYSICS), engine).unwrap();
         assert_eq!(
@@ -117,12 +112,7 @@ fn canonical_configuration_guards_remain_strict() {
 
 #[test]
 fn explicit_backend_has_priority_over_canonical_legacy_engine_metadata() {
-    for selected in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-        PhysicsEngine::Tpe,
-    ] {
+    for selected in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
         for legacy in ["dartsim", "mujoco", "tpe"] {
             let record = PHYSICS.replace("/>", &format!("><engine><!-- configuration --><filename> \ngz-physics-{legacy}-plugin\t</filename></engine></plugin>"));
             let mut explicit = load(WORLD, selected).unwrap();

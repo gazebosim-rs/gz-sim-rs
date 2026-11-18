@@ -91,6 +91,49 @@ impl DynamicBackend for Recorder {
     ) -> Result<JointId, PhysicsError> {
         Err(PhysicsError::MissingBody)
     }
+    fn add_revolute(
+        &mut self,
+        _parent: BodyId,
+        _child: BodyId,
+        _anchor: [f64; 3],
+        _axis: [f64; 3],
+    ) -> Result<JointId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "body-to-body revolute joint",
+        })
+    }
+
+    fn add_reduced_revolute(
+        &mut self,
+        _parent: Option<BodyId>,
+        _child: BodyId,
+        _anchor: [f64; 3],
+        _axis: [f64; 3],
+    ) -> Result<JointId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "reduced-coordinate revolute joint",
+        })
+    }
+
+    fn set_self_collision_group(
+        &mut self,
+        _body: BodyId,
+        _group: Option<u64>,
+    ) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "self-collision groups",
+        })
+    }
+
+    fn add_joint_effort(&mut self, _id: JointId, _torque: f64) -> Result<(), PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "joint effort commands",
+        })
+    }
     fn joint_child(&self, _: JointId) -> Option<BodyId> {
         None
     }

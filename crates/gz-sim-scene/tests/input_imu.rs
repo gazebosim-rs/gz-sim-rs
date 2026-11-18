@@ -31,7 +31,7 @@ fn velocity_replacement_is_not_an_imu_force_and_real_wrench_acceleration_remains
     for control in controls {
         // DART is the engine that recorded the native rows; Rapier is a cross-engine check.
         let engines: &[PhysicsEngine] = match control["engine"].as_str().unwrap() {
-            "dartsim" => &[PhysicsEngine::Rapier, PhysicsEngine::Dart],
+            "dartsim" => &[PhysicsEngine::Rapier],
             "tpe" => &[PhysicsEngine::Tpe],
             other => panic!("unknown reference engine {other}"),
         };

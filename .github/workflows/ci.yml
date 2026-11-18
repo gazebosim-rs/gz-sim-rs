@@ -12,11 +12,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libssl-dev cmake curl gnupg pkg-config mesa-vulkan-drivers libvulkan1
-          # DART 6.13.2 from the same OSRF build that upstream gz-physics links.
-          sudo curl -fsSL https://packages.osrfoundation.org/gazebo.gpg -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable noble main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list
-          sudo apt-get update
-          sudo apt-get install -y libdart6.13-dev libdart6.13-collision-ode-dev
       - name: Install the locked native client packages from the signed snapshot
         shell: bash
         run: |
@@ -66,11 +61,6 @@ jobs:
           subprocess.run(['python3', 'scripts/bootstrap-zenoh-native.py', '--jobs', '2', '--vendor-archive', str(archive.resolve())], check=True)
           subprocess.run(['python3', 'scripts/bootstrap-zenoh-native.py', '--validate-only'], check=True)
           PYCODE
-      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
-        with:
-          path: artifacts/physics-reference/mujoco
-          key: mujoco-${{ hashFiles('scripts/bootstrap-physics.py') }}
-      - run: python3 scripts/bootstrap-physics.py --jobs 2
       - name: Enable isolated process-limit controls on the hosted runner
         id: userns
         shell: bash
@@ -115,7 +105,6 @@ jobs:
           CARGO_PROFILE_TEST_DEBUG: '0'
           GZ_COVERAGE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           GZ_ZENOH_REFERENCE_ROOT: ${{ github.workspace }}/artifacts/zenoh-native-reference
-          MUJOCO_PREFIX: ${{ github.workspace }}/artifacts/physics-reference/mujoco
       - name: Restore the hosted runner user-namespace policy
         if: always()
         env:

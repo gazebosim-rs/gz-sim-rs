@@ -1,10 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! The contract every dynamic engine adapter (Rapier, DART, MuJoCo) implements.
+//! The contract implemented by the Rapier dynamic engine adapter.
 
-use crate::{
-    BodySpec, BodyState, CompoundBodySpec, Inertia, MeshBodySpec, PlaneSpec, RotationSpec,
-};
+use crate::{BodySpec, BodyState, Inertia, MeshBodySpec, PlaneSpec, RotationSpec};
 use bevy_ecs::prelude::*;
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo};
 use std::{any::Any, sync::Arc, time::Duration};
@@ -183,22 +181,6 @@ pub trait DynamicBackend: Send + Sync + 'static {
         })
     }
 
-    /// Creates one link with local collision poses and explicit link inertia.
-    /// Unsupported engines refuse before mutation. DART currently admits one to
-    /// three primitives with explicit COM under its existing single-body numeric
-    /// limits; it does not derive aggregate inertia.
-    fn spawn_compound_link(
-        &mut self,
-        _spec: CompoundBodySpec<'_>,
-        _rotation: RotationSpec,
-        _inertia: Inertia,
-    ) -> Result<BodyId, PhysicsError> {
-        Err(PhysicsError::Unsupported {
-            engine: self.engine(),
-            capability: "compound link collisions",
-        })
-    }
-
     /// Construct a fixed local Z-up plane without shifting its reported link frame.
     /// Unsupported engines return an explicit error without allocating a body.
     fn spawn_static_plane(&mut self, _spec: PlaneSpec) -> Result<BodyId, PhysicsError> {
@@ -311,47 +293,7 @@ pub trait DynamicBackend: Send + Sync + 'static {
         _child: BodyId,
         _anchor: [f64; 3],
         _axis: [f64; 3],
-    ) -> Result<JointId, PhysicsError> {
-        Err(PhysicsError::Unsupported {
-            engine: self.engine(),
-            capability: "body-to-body revolute joint",
-        })
-    }
-
-    /// Atomically constructs root→middle→leaf body revolutes for exactly three
-    /// distinct isolated dynamic bodies. Anchors/axes are world-frame values;
-    /// returned IDs follow the two edges in that order. DART admits this only
-    /// before its first advancing step, under its existing final-state guards.
-    /// A rejected call preserves every body/joint, pending command and next ID.
-    /// Other engines return Unsupported before validating arguments.
-    fn add_serial_revolutes(
-        &mut self,
-        _bodies: [BodyId; 3],
-        _anchors: [[f64; 3]; 2],
-        _axes: [[f64; 3]; 2],
-    ) -> Result<[JointId; 2], PhysicsError> {
-        Err(PhysicsError::Unsupported {
-            engine: self.engine(),
-            capability: "atomic two-revolute serial assembly",
-        })
-    }
-
-    /// Atomic three-body serial assembly whose two joint frames have identity
-    /// orientation relative to their respective child bodies. Anchors and axes
-    /// are child/joint-local; finite normal-length axes are normalized at admission.
-    /// This is separate from the world-anchor API. It has the same cold, atomic
-    /// final-state and reset contract; unsupported engines refuse before validation.
-    fn add_serial_revolutes_in_child_frames(
-        &mut self,
-        _bodies: [BodyId; 3],
-        _anchors: [[f64; 3]; 2],
-        _axes: [[f64; 3]; 2],
-    ) -> Result<[JointId; 2], PhysicsError> {
-        Err(PhysicsError::Unsupported {
-            engine: self.engine(),
-            capability: "atomic child-frame two-revolute serial assembly",
-        })
-    }
+    ) -> Result<JointId, PhysicsError>;
 
     /// Constructs an unbounded reduced-coordinate revolute in an acyclic articulation.
     /// `None` parent anchors to the world; the construction pose is angle zero.
@@ -366,12 +308,7 @@ pub trait DynamicBackend: Send + Sync + 'static {
         _child: BodyId,
         _anchor: [f64; 3],
         _axis: [f64; 3],
-    ) -> Result<JointId, PhysicsError> {
-        Err(PhysicsError::Unsupported {
-            engine: self.engine(),
-            capability: "reduced-coordinate revolute joint",
-        })
-    }
+    ) -> Result<JointId, PhysicsError>;
 
     /// Excludes mutual contacts between bodies with the same assigned group.
     /// `None` restores ordinary contact filtering. Group IDs are backend-local.
@@ -380,12 +317,7 @@ pub trait DynamicBackend: Send + Sync + 'static {
         &mut self,
         _body: BodyId,
         _group: Option<u64>,
-    ) -> Result<(), PhysicsError> {
-        Err(PhysicsError::Unsupported {
-            engine: self.engine(),
-            capability: "self-collision groups",
-        })
-    }
+    ) -> Result<(), PhysicsError>;
 
     /// Checks a single generalized torque without changing pending commands.
     /// This excludes accumulation and later combined world-wrench validation.
@@ -399,12 +331,7 @@ pub trait DynamicBackend: Send + Sync + 'static {
     /// Accumulates generalized torque in Nm, positive along increasing joint angle.
     /// The next successful nonzero step consumes it. Joint retirement or either
     /// reset discards it; rejected inputs and failed steps preserve pending commands.
-    fn add_joint_effort(&mut self, _id: JointId, _torque: f64) -> Result<(), PhysicsError> {
-        Err(PhysicsError::Unsupported {
-            engine: self.engine(),
-            capability: "joint effort commands",
-        })
-    }
+    fn add_joint_effort(&mut self, _id: JointId, _torque: f64) -> Result<(), PhysicsError>;
 
     /// Validates a persistent revolute velocity motor without changing any state.
     /// `None` disables actuation; a zero target with positive force applies bounded braking.

@@ -902,7 +902,7 @@ fn canonical_force_and_complete_fifo_model_feedback_cover_pulses_coast_reset_and
     );
     assert_eq!(duplicates.joints, initial.joints);
     let fixture: serde_json::Value = serde_json::from_str(include_str!(
-        "../../gz-physics-dart/tests/fixtures/joint_effort.json"
+        "../../gz-sim-scene/tests/fixtures/reference/joint_effort.json"
     ))
     .unwrap();
     let rows = fixture["observations"].as_array().unwrap();

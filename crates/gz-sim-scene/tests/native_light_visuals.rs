@@ -39,12 +39,7 @@ fn identity(actual: WorldPose) {
 }
 #[test]
 fn native_light_children_follow_parent_and_restore_complete_identity() {
-    for engine in [
-        PhysicsEngine::Tpe,
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    for engine in [PhysicsEngine::Tpe, PhysicsEngine::Rapier] {
         let mut sim = load_world_with_sdf_step(
             XML,
             "native-light-visuals.sdf",

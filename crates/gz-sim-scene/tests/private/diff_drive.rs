@@ -165,11 +165,8 @@ fn missing_family_installs_no_drive_callbacks_or_buffers_and_other_engines_refus
             .any(|entity| entity.contains::<Drive>() || entity.contains::<DiffDriveSample>())
     );
     assert_eq!(initial_diff_drive_configurations(&sim).unwrap().count(), 0);
-    for engine in [
-        PhysicsEngine::Tpe,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    {
+        let engine = PhysicsEngine::Tpe;
         assert!(
             load_world_with_sdf_step(XML, "m8.sdf", "default", &sdformat::NoResources, engine)
                 .is_err()

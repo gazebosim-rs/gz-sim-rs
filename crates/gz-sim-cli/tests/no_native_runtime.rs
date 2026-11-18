@@ -1,13 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-#[allow(dead_code)]
-#[path = "../build.rs"]
-mod build_script;
 
-#[cfg(not(feature = "native-backends"))]
 use std::process::Command;
 
-#[cfg(not(feature = "native-backends"))]
 fn command(engine: &str) -> std::process::Output {
     Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
         .args([
@@ -24,7 +19,6 @@ fn command(engine: &str) -> std::process::Output {
 }
 
 #[test]
-#[cfg(not(feature = "native-backends"))]
 fn non_native_executable_runs_rapier_and_tpe() {
     #[cfg(not(feature = "rgb-camera"))]
     {
@@ -56,7 +50,6 @@ fn non_native_executable_runs_rapier_and_tpe() {
 }
 
 #[test]
-#[cfg(not(feature = "native-backends"))]
 fn native_short_names_and_plugin_aliases_fail_instead_of_falling_back() {
     for engine in [
         "dart",
@@ -71,27 +64,7 @@ fn native_short_names_and_plugin_aliases_fail_instead_of_falling_back() {
         );
         assert!(result.stdout.is_empty());
         let error = String::from_utf8(result.stderr).unwrap();
-        assert!(error.contains("unavailable in this build"), "{error}");
-        assert!(error.contains("native-backends"), "{error}");
+        assert_eq!(result.status.code(), Some(2));
+        assert!(error.contains("expected rapier or tpe"), "{error}");
     }
-}
-
-#[test]
-fn disabled_native_build_scripts_ignore_absent_or_ambient_native_metadata() {
-    assert_eq!(build_script::configured_link_directives(false, None), "");
-    assert_eq!(
-        build_script::configured_link_directives(false, Some("/unselected/native/sdk".into())),
-        ""
-    );
-}
-
-#[test]
-fn enabled_native_build_scripts_keep_verified_rpath_and_missing_metadata_failure() {
-    assert_eq!(
-        build_script::configured_link_directives(true, Some("/opt/dart/lib".into())),
-        "cargo:rustc-link-arg=-Wl,--disable-new-dtags\ncargo:rustc-link-arg=-Wl,-rpath,/opt/dart/lib\n"
-    );
-    assert!(
-        std::panic::catch_unwind(|| build_script::configured_link_directives(true, None)).is_err()
-    );
 }

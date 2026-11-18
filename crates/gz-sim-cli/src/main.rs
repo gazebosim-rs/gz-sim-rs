@@ -69,10 +69,8 @@ struct Args {
 fn parse_engine(value: &str) -> Result<PhysicsEngine, String> {
     match value {
         "rapier" => Ok(PhysicsEngine::Rapier),
-        "dart" | "gz-physics-dartsim-plugin" => Ok(PhysicsEngine::Dart),
-        "mujoco" | "gz-physics-mujoco-plugin" => Ok(PhysicsEngine::Mujoco),
         "tpe" | "gz-physics-tpe-plugin" => Ok(PhysicsEngine::Tpe),
-        _ => Err("expected rapier, dart, mujoco or tpe".into()),
+        _ => Err("expected rapier or tpe".into()),
     }
 }
 

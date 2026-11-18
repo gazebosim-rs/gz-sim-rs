@@ -207,30 +207,19 @@ NOISY_LINKS = {
         "default::occluder_b::body": (3, 2, 1),
     },
 }
-RETURN = "return Err(LoadError::BackendUnavailable(engine));"
 TARGETS = {
     "gz-sim-scene": ("no_native_backends", [
-        "absent_native_backends_return_the_selected_engine_without_fallback",
         "rapier_and_tpe_still_load_and_step_without_native_engines",
-        "disabled_native_build_scripts_ignore_absent_or_ambient_native_metadata",
-        "enabled_native_build_scripts_keep_verified_rpath_and_missing_metadata_failure",
-    ]),
-    "gz-sim-server": ("no_native_build", [
-        "disabled_native_build_scripts_ignore_absent_or_ambient_native_metadata",
-        "enabled_native_build_scripts_keep_verified_rpath_and_missing_metadata_failure",
     ]),
     "gz-sim-cli": ("no_native_runtime", [
         "non_native_executable_runs_rapier_and_tpe",
         "native_short_names_and_plugin_aliases_fail_instead_of_falling_back",
-        "disabled_native_build_scripts_ignore_absent_or_ambient_native_metadata",
-        "enabled_native_build_scripts_keep_verified_rpath_and_missing_metadata_failure",
     ]),
 }
 EXECUTABLE_SOURCES = {
     "gz-sim-rs": "crates/gz-sim-cli/src/main.rs",
     "no_native_backends": "crates/gz-sim-scene/tests/no_native_backends.rs",
     "no_native_runtime": "crates/gz-sim-cli/tests/no_native_runtime.rs",
-    "no_native_build": "crates/gz-sim-server/tests/no_native_build.rs",
 }
 RGB_TESTS = [
     "camera_worker_flag_requires_server_mode",
@@ -604,48 +593,8 @@ def validate_evidence(root, directory, report=None):
                     or "native-backends" in event["features"]):
                 raise ValueError("native artifact in reduced proof")
     validate_noisy_examples(root, directory, report.get("noisy_examples"), observed_root, objects)
-    source = (root / SCENE).read_text()
-    proof = disabled_region(json.loads((directory / "coverage.json").read_text()),
-                            (directory / "coverage.lcov").read_text(), observed_root, source)
-    if proof != report.get("disabled_backend"):
-        raise ValueError("disabled-backend line/region proof differs")
     validate_rgb_evidence(root, directory, report.get("rgb_camera"), observed_root, hashes)
     return report
-
-
-def disabled_region(report, lcov, root, source):
-    lines = source.splitlines()
-    returns = [i + 1 for i, line in enumerate(lines) if line.strip() == RETURN]
-    if len(returns) != 1:
-        raise ValueError("expected one exact disabled-backend return")
-    line = returns[0]
-    if (lines[line - 2].strip() != "PhysicsEngine::Dart | PhysicsEngine::Mujoco => {"
-            or lines[line - 3].strip() != '#[cfg(not(feature = "native-backends"))]'
-            or lines[line].strip() != "}"):
-        raise ValueError("disabled backend arm/source shape changed")
-    expected = (root / SCENE).resolve()
-    hits, active = [], False
-    for value in lcov.splitlines():
-        if value.startswith("SF:"):
-            active = Path(value[3:]).resolve() == expected
-        elif active and value.startswith("DA:"):
-            number, count, *_ = value[3:].split(",")
-            number, count = int(number), int(count)
-            if number == line:
-                hits.append(count)
-    if len(hits) != 1 or hits[0] <= 0:
-        raise ValueError("actual no-native return line did not execute")
-    regions = []
-    for data in report["data"]:
-        for function in data.get("functions", []):
-            for region in function.get("regions", []):
-                if (len(region) >= 8 and region[7] == 0
-                        and Path(function["filenames"][region[5]]).resolve() == expected
-                        and line - 1 <= region[0] <= line <= region[2] <= line + 1):
-                    regions.append(region)
-    if not regions or not any(region[4] > 0 for region in regions):
-        raise ValueError("disabled-backend code region is absent or cold")
-    return {"source": SCENE, "line": line, "line_hits": hits[0], "regions": regions}
 
 
 def checked_artifacts(events, target):
@@ -827,8 +776,6 @@ def main():
         subprocess.run(export, cwd=ROOT, stdout=stream, check=True)
     with (out / "coverage.lcov").open("w") as stream:
         subprocess.run([*export, "-format=lcov"], cwd=ROOT, stdout=stream, check=True)
-    proof = disabled_region(json.loads((out / "coverage.json").read_text()),
-                            (out / "coverage.lcov").read_text(), ROOT, (ROOT / SCENE).read_text())
     if inputs() != source_hashes or digest(wrapper) != source_hashes["scripts/rustc-coverage.py"]:
         raise ValueError("no-native sources/inputs changed during qualification")
     if subprocess.check_output(["rustc", "-vV"], cwd=ROOT, text=True) != version:
@@ -842,11 +789,11 @@ def main():
     # The original feature-off objects/raw/export are already preserved. A
     # separate target and raw stream prevent feature unification or overwrites.
     rgb = qualify_rgb(out, env, version, source_hashes, llvm)
-    report = {"state": "passed", "scope": "Additional native-off behavior/disabled-arm evidence only",
+    report = {"state": "passed", "scope": "Additional Rapier/TPE runtime and retired-engine refusal evidence only",
               "source_root": str(ROOT),
               "target_root": str(target),
               "rustc": version, "sources_and_inputs": source_hashes, "commands": commands,
-              "disabled_backend": proof, "objects_bound_after_execution": bindings,
+              "objects_bound_after_execution": bindings,
               "noisy_examples": noisy_examples,
               "raw_profiles": {str(p.relative_to(out)): digest(p) for p in profiles},
               "coverage_json_sha256": digest(out / "coverage.json"),

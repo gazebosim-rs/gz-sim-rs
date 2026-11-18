@@ -1,3 +1,13 @@
+## Owner priority: D33 backend retirement (2026-11-17)
+
+DART and MuJoCo are cancelled product backends. Their implementation, parity,
+optimization and distribution obligations are retired, not completed. Keep Rapier
+f64 and TPE, existing historical evidence and required retained-feature reference
+fixtures. See [BACKEND_RETIREMENT.md](BACKEND_RETIREMENT.md). The new removal
+candidate needs its own complete Source review and final checks; frozen M70 and
+its unanswered browser-origin approval remain unchanged. Earlier checkpoints
+below do not reactivate cancelled backend work.
+
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 ## Current development: M69 two calibrated depth cameras
@@ -1035,7 +1045,7 @@ one Gazebo system, one asset format, one native backend capability, or one
 packaging/performance improvement. Independent items may share a parallel source
 wave under D31; shared runtime interfaces and heavy qualification have one owner. Before starting, name its fixtures, commands,
 unsupported cases and exit evidence and budget no more than five working days.
-Split general DART/MuJoCo/TPE parity, remaining 78-system behavior, GPU lidar,
+D33 cancels DART/MuJoCo parity. Split retained TPE parity, remaining 78-system behavior, GPU lidar,
 advanced cameras, distributed worlds, historical logs and Python workflows into
 such increments. Keep the full legacy packet/test ledger for traceability.
 Accepted phase counts do **not** set a whole-rewrite completion date. Continue

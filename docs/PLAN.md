@@ -1,3 +1,13 @@
+## Owner priority: D33 backend retirement (2026-11-17)
+
+DART and MuJoCo are cancelled product backends. Their implementation, parity,
+optimization and distribution obligations are retired, not completed. Keep Rapier
+f64 and TPE, existing historical evidence and required retained-feature reference
+fixtures. See [BACKEND_RETIREMENT.md](BACKEND_RETIREMENT.md). The new removal
+candidate needs its own complete Source review and final checks; frozen M70 and
+its unanswered browser-origin approval remain unchanged. Earlier checkpoints
+below do not reactivate cancelled backend work.
+
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 ## Current M60: current installed two-robot preview
@@ -722,7 +732,7 @@ All simulation systems are integrated into gz-sim-rs. Loaded world/model needs
 select their configuration, ECS state and schedule participation. Recognized
 legacy SDF `<plugin>` records configure built-ins; they never load a system
 library. D26 supersedes the earlier external system C ABI requirement. Native
-DART/MuJoCo engine adapters remain ordinary backend integration boundaries.
+D33 cancels DART/MuJoCo adapters; Rapier f64 and TPE are the retained backend boundaries.
 
 An absent system has no scheduled callback, idle polling, system-owned heap state,
 worker, timer, subscription or publisher. Shared simulator infrastructure and
@@ -767,8 +777,8 @@ boundaries according to AGENTS.md.
   manifest pins a tested set of commits/releases. Do not rely on floating Git
   branches or developer-only path dependencies in a release.
 - Use ordinary Cargo/build.rs and narrowly scoped native bridge build support.
-  Dropping gz-cmake does not prohibit CMake used internally by DART, a reference
-  harness, or another third-party native dependency.
+  Dropping gz-cmake does not prohibit CMake used by a retained reference
+  harness or third-party native dependency. D33 removes product DART/MuJoCo builds.
 - Initially install `gz-rs` to coexist with upstream `gz`. A distribution package
   may provide the `gz` name after ownership/conflict handling is defined. Exactly
   one package owns that executable. There is no standalone Messages or transport
@@ -794,7 +804,7 @@ benchmarks, and tested versus unsupported feature combinations.
 | Risk | Early probe | Required response |
 | --- | --- | --- |
 | New ECS changes update ordering | Priority, command visibility, pause, and sensor phase tests | Explicit schedule sets and barriers; preserve externally observable order |
-| Rust backend lacks robotics fidelity | Motor limits, loops, contacts, articulation, force/torque fixtures | Capability report; retain DART/MuJoCo; choose backend on evidence |
+| Rust backend lacks robotics fidelity | Motor limits, loops, contacts, articulation, force/torque fixtures | Capability report; explicitly scope Rapier/TPE support; no silent fallback |
 | Rendering changes sensor physics | Known-depth, segmentation, distortion, thermal, and lidar scenes | Dedicated sensor pipelines and error budgets; no game-camera shortcut |
 | SDF parser is treated as XML only | Nested includes, frame graphs, schema conversion, inertia fixtures | Independent semantic parser milestone; resolve before instantiation |
 | Interop works only Rust-to-Rust | C++ discovery/service/pub-sub/log fixtures | Mixed-language matrix before P2 exit |
@@ -818,7 +828,7 @@ are not the weekly schedule and are not whole-family prerequisites for M1.
 | P0: Freeze and measure | Pin upstream main SHAs, build the C++ reference, enumerate tests and system behavior, collect baseline workloads, evaluate Avian/Rapier, define demand-driven system activation | Reproducible reference image and commands; complete test ledger; benchmark raw data; backend decision; explicit environment failures |
 | P1: Foundations and gates | Create Cargo workspace and independent repo contracts, pin versions/toolchain, implement required pre-commit/CI, time/frames/IDs, message and SDF minimums | Gate failure demonstrations; >95% coverage on initial production code; dependency graph checks; no window/GPU dependency in the core build |
 | P2: End-to-end server | Load a simple SDF world, spawn entities, step TPE and one dynamic backend, publish clock/poses and IMU through Zenoh, pause/reset/remove | Original and Rust runs agree on selected assertions; C++ peer interoperates through the selected Zenoh contract; bounded queues; first measured performance report |
-| P3: Physics and robotics | Complete capability-based DART, MuJoCo, TPE, and chosen Rust integration; controllers, joints, contacts, lifecycle | Per-backend conformance results and negative capability tests; DART same-engine parity; no silent fallback; articulation and dynamic topology probes |
+| P3: Physics and robotics | Complete capability-based Rapier f64 and TPE integration; controllers, joints, contacts, lifecycle | Per-backend conformance results and negative capability tests; retained-engine parity; no silent fallback; articulation and dynamic topology probes |
 | P4: Bevy rendering and sensors | Asset pipeline, offscreen rendering, camera family, lidar, scheduling/noise, environmental and non-rendered sensors | Full sensor inventory mapped; GPU fixture tests and analytic tolerances; deterministic timestamps; GPU/CPU overload and reset tests |
 | P5: Remaining simulator behavior | All remaining 78-system inventory entries, world services, levels/distributed behavior, recording/replay, scripting contracts | Every retained behavior has an implementation and tests; no unexplained unmapped cases; legacy client and log compatibility evidence |
 | P6: Integration and optimization | External GUI contract, mixed-version repos, packaging, profiling, bottleneck removal, lifecycle stress | Performance budgets met at equal fidelity; long-run tests; package installation and clean shutdown on supported Linux targets |

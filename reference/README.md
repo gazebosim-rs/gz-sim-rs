@@ -48,3 +48,29 @@ GUI, Ogre, DART, MuJoCo, Zenoh and Python/SWIG profiles are unqualified here; th
 absence is not test retirement. Remaining acceptance requires an independently
 reviewed clean image build, expanded native inventory, selected actual original
 and headless checks, immutable image identification and provenance review.
+
+## Retained upstream comparator tooling after adapter retirement
+
+D33 retires the Rust DART and MuJoCo adapters. Product CI does not provision
+DART headers or MuJoCo, and the adapter-only native build-script, disabled-backend
+coverage and B03 campaigns are retired. Rapier and TPE remain mandatory, with the
+full workspace and per-crate line and region thresholds strictly above 95%.
+The separate native-free closure, fourteen RGB controls, forty-one finite CLI
+examples, native Zenoh peers, sensor and system fidelity checks remain required.
+
+The upstream Gazebo reference is separate from the retired Rust adapters.
+Existing sensor, control and physics fixture producers may use the pinned
+upstream Gazebo DART plugin as a comparator. They do not enable a product backend
+or authorize another adapter campaign. Preserve the signed native-client package
+chain, TPE recipe and Zenoh reference checks. Historical fixtures and receipts
+retain their original engine and provenance labels.
+
+The retained Rapier joint-effort oracle keeps its original JSON and exact C++
+generator bytes under `crates/gz-physics-rapier/tests/fixtures`. The manual
+`probe-joint-effort.py` runner changes only its fixture location and description;
+this is a source relocation, not a new native run or new qualification.
+
+The unused Zenoh+DART application bootstrap and its Docker/build recipe are
+retired with their dedicated B03 consumer. The general TPE and native Zenoh
+recipes remain. Historical `reference/b03_*` measurements and source captures
+are preserved; they are not active adapter gates or current product evidence.

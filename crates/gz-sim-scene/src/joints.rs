@@ -60,18 +60,8 @@ pub(super) fn validate_model(
         return Ok(());
     }
     require(engine.is_some(), &model.scoped_name, "TPE joints")?;
-    let rapier = engine == Some("rapier");
-    let dart_chain = engine == Some("dart") && model.links.len() == 2 && model.joints.len() == 2;
-    let dart_free_chain =
-        engine == Some("dart") && model.links.len() == 3 && model.joints.len() == 2;
     require(
-        top_level
-            && !is_static
-            && model.models.is_empty()
-            && (rapier
-                || dart_chain
-                || dart_free_chain
-                || ((model.links.len() == 1 || model.links.len() == 2) && model.joints.len() == 1)),
+        top_level && !is_static && model.models.is_empty(),
         &model.scoped_name,
         "joint topology (expected one dynamic world-anchored link)",
     )?;
@@ -83,8 +73,6 @@ pub(super) fn validate_model(
         .collect();
     let mut graph = DiGraphMap::<usize, ()>::new();
     let mut children = BTreeSet::new();
-    let mut root_child = None;
-    let mut local_parent = None;
     for joint in &model.joints {
         let name = format!("{}::{}", model.scoped_name, joint.name);
         require(
@@ -101,14 +89,7 @@ pub(super) fn validate_model(
         };
         let child_index = links.get(child.as_str()).copied();
         require(
-            parent_index.is_some()
-                && child_index.is_some()
-                && parent != child
-                && (rapier
-                    || dart_chain
-                    || (dart_free_chain && parent != world)
-                    || ((model.links.len() == 1 && parent == world)
-                        || (model.links.len() == 2 && parent != world))),
+            parent_index.is_some() && child_index.is_some() && parent != child,
             &name,
             "joint endpoints (expected world and sole link)",
         )?;
@@ -119,26 +100,9 @@ pub(super) fn validate_model(
             "multiple parent joints",
         )?;
         let parent_index = parent_index.expect("validated parent");
-        if parent == world {
-            root_child = Some(child_index);
-        } else {
-            local_parent = Some(parent_index);
-        }
         graph.add_edge(parent_index, child_index, ());
         validate_axis(joint, &name, actuated.contains(&joint.name.as_str()))?;
     }
-    require(
-        !dart_chain || (root_child.is_some() && root_child == local_parent),
-        &model.scoped_name,
-        "DART joint topology (expected a world-rooted two-link chain)",
-    )?;
-    require(
-        !dart_free_chain
-            || (graph.node_count() == 3
-                && graph.nodes().all(|node| graph.neighbors(node).count() <= 1)),
-        &model.scoped_name,
-        "DART joint topology (expected a free-root serial three-link chain)",
-    )?;
     require(
         toposort(&graph, None).is_ok(),
         &model.scoped_name,
@@ -187,26 +151,8 @@ pub(super) fn build(
     backend: &mut PhysicsBackend,
     reduced_controller_chain: bool,
 ) -> Result<(), LoadError> {
-    struct ChildFrame {
-        anchor: [f64; 3],
-        axis: [f64; 3],
-    }
-    struct SerialInput {
-        index: usize,
-        parent: (u64, BodyId),
-        child: u64,
-        body: BodyId,
-        child_name: String,
-        parent_name: String,
-        pose: Transform,
-        axis: [f64; 3],
-        local: Option<ChildFrame>,
-    }
-    let atomic_serial =
-        backend.engine() == "dart" && model.links.len() == 3 && model.joints.len() == 2;
-    let mut serial_inputs = Vec::new();
     let mut order: Vec<_> = (0..model.joints.len()).collect();
-    if (backend.engine() == "dart" || reduced_controller_chain) && model.joints.len() == 2 {
+    if reduced_controller_chain && model.joints.len() == 2 {
         let endpoints: Vec<_> = model
             .joints
             .iter()
@@ -244,49 +190,6 @@ pub(super) fn build(
             context.world,
         )?;
         let parent_name = sdf.resolve_name(&model.scoped_name, &joint.parent)?;
-        if atomic_serial {
-            // Model validation restricts this path to a local free-root chain.
-            // Keep both intended children free until the backend can qualify
-            // the complete tree, including its final external contacts.
-            let parent_id = context.links[&parent_name];
-            let parent = entity_by_id(sim.world(), parent_id)
-                .expect("loader constructed serial joint parent");
-            let parent_body = sim
-                .world()
-                .get::<BodyHandle>(parent)
-                .expect("dynamic-engine serial parent owns body")
-                .id();
-            let child_pose = sdf.joint_pose(&name, "")?;
-            // Native DART constructs this joint frame from the live child pose.
-            // Preserve that evaluation order only when joint and child axes
-            // share a basis; other orientations keep the world-frame contract.
-            let local = if child_pose.rotation == [0.0, 0.0, 0.0, 1.0]
-                || child_pose.rotation == [0.0, 0.0, 0.0, -1.0]
-            {
-                Some(ChildFrame {
-                    anchor: child_pose.translation,
-                    axis: sdf.resolve_axis(
-                        joint.axis.as_ref().expect("validated revolute axis"),
-                        &name,
-                        &child_name,
-                    )?,
-                })
-            } else {
-                None
-            };
-            serial_inputs.push(SerialInput {
-                index,
-                parent: (parent_id, parent_body),
-                child,
-                body,
-                child_name,
-                parent_name,
-                pose,
-                axis,
-                local,
-            });
-            continue;
-        }
         let (id, parent) = if parent_name == context.world {
             (
                 if reduced_controller_chain {
@@ -314,38 +217,6 @@ pub(super) fn build(
             )
         };
         built[index] = Some((id, parent, child, child_name, parent_name, pose));
-    }
-    if !serial_inputs.is_empty() {
-        let bodies = [
-            serial_inputs[0].parent.1,
-            serial_inputs[0].body,
-            serial_inputs[1].body,
-        ];
-        let ids = match (&serial_inputs[0].local, &serial_inputs[1].local) {
-            (Some(first), Some(second)) => backend.add_serial_revolutes_in_child_frames(
-                bodies,
-                [first.anchor, second.anchor],
-                [first.axis, second.axis],
-            )?,
-            _ => backend.add_serial_revolutes(
-                bodies,
-                [
-                    serial_inputs[0].pose.translation,
-                    serial_inputs[1].pose.translation,
-                ],
-                [serial_inputs[0].axis, serial_inputs[1].axis],
-            )?,
-        };
-        for (input, id) in serial_inputs.into_iter().zip(ids) {
-            built[input.index] = Some((
-                id,
-                Some(input.parent),
-                input.child,
-                input.child_name,
-                input.parent_name,
-                input.pose,
-            ));
-        }
     }
     // Solver construction order must not change public declaration identities.
     for (index, joint) in model.joints.iter().enumerate() {

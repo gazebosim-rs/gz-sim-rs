@@ -35,11 +35,8 @@ fn close(actual: f64, expected: f64) {
 }
 #[test]
 fn loaded_entity_effort_combines_and_survives_pause_then_consumes_once() {
-    for engine in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    {
+        let engine = PhysicsEngine::Rapier;
         let mut sim = load(engine);
         let joint = named(&sim, "default::rotor::hinge");
         let id = public(&sim, joint);
@@ -59,15 +56,10 @@ fn loaded_entity_effort_combines_and_survives_pause_then_consumes_once() {
 }
 #[test]
 fn native_force_pulses_reach_loaded_joint_samples_on_every_dynamic_engine() {
-    let native: serde_json::Value = serde_json::from_str(include_str!(
-        "../../gz-physics-dart/tests/fixtures/joint_effort.json"
-    ))
-    .unwrap();
-    for engine in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    let native: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/reference/joint_effort.json")).unwrap();
+    {
+        let engine = PhysicsEngine::Rapier;
         let mut sim = load(engine);
         let id = public(&sim, named(&sim, "default::rotor::hinge"));
         for row in native["observations"].as_array().unwrap() {
@@ -79,11 +71,8 @@ fn native_force_pulses_reach_loaded_joint_samples_on_every_dynamic_engine() {
 }
 #[test]
 fn invalid_admission_preserves_an_existing_command() {
-    for engine in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    {
+        let engine = PhysicsEngine::Rapier;
         let mut sim = load(engine);
         let id = public(&sim, named(&sim, "default::rotor::hinge"));
         let link = public(&sim, named(&sim, "default::rotor::body"));
@@ -102,23 +91,15 @@ fn invalid_admission_preserves_an_existing_command() {
             queue_joint_effort(&mut sim, link, 1.0),
             Err(InputError::NotJoint(_))
         ));
-        if engine == PhysicsEngine::Dart {
-            assert!(matches!(
-                queue_joint_effort(&mut sim, id, 1e61),
-                Err(InputError::InvalidValue)
-            ));
-        }
+
         sim.step_exact(1).unwrap();
         close(rate(&sim, id), 0.125);
     }
 }
 #[test]
 fn loaded_reset_and_model_retirement_discard_queued_effort() {
-    for engine in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    {
+        let engine = PhysicsEngine::Rapier;
         let mut sim = load(engine);
         let id = public(&sim, named(&sim, "default::rotor::hinge"));
         queue_joint_effort(&mut sim, id, 2.0).unwrap();
@@ -228,18 +209,11 @@ fn unsupported_moving_parent_is_an_admission_error_not_a_run_fault() {
 }
 #[test]
 fn accumulated_numeric_overflow_can_be_rejected_and_cancelled_before_stepping() {
-    for engine in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    {
+        let engine = PhysicsEngine::Rapier;
         let mut sim = load(engine);
         let id = public(&sim, named(&sim, "default::rotor::hinge"));
-        let value = if engine == PhysicsEngine::Dart {
-            1e60
-        } else {
-            f64::MAX
-        };
+        let value = f64::MAX;
         queue_joint_effort(&mut sim, id, value).unwrap();
         assert!(matches!(
             queue_joint_effort(&mut sim, id, value),

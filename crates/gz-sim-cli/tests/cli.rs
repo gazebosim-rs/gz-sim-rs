@@ -274,7 +274,7 @@ fn tpe_selection_preserves_headless_output_and_rejects_unknown_engines() {
     assert!(
         String::from_utf8(result.stderr)
             .unwrap()
-            .contains("expected rapier, dart, mujoco or tpe")
+            .contains("expected rapier or tpe")
     );
     assert!(result.stdout.is_empty());
 }
@@ -575,34 +575,7 @@ fn server_rejects_invalid_pacing_and_transport_configuration_before_running() {
 }
 
 #[test]
-fn native_engines_and_upstream_plugin_names_select_dynamic_backends() {
-    // A 0.5 m sphere dropped from 5 m rests on the ground after 2 s on every
-    // dynamic engine; DART's soft ODE contact settles a few millimetres lower.
-    for engine in [
-        "dart",
-        "gz-physics-dartsim-plugin",
-        "mujoco",
-        "gz-physics-mujoco-plugin",
-    ] {
-        let result = command(&[
-            fixture(),
-            "--physics-engine",
-            engine,
-            "--iterations",
-            "2000",
-        ]);
-        assert!(result.status.success(), "{engine}: {result:?}");
-        let text = String::from_utf8(result.stdout).unwrap();
-        let lines = text.lines().collect::<Vec<_>>();
-        assert_eq!(lines[0], "simulation_ns=2000000000 iterations=2000");
-        let z = lines[1]
-            .strip_prefix("default::ball::body 0 0 ")
-            .unwrap()
-            .parse::<f64>()
-            .unwrap();
-        assert!((0.49..0.501).contains(&z), "{engine}: {z}");
-        assert_eq!(lines[2], "default::ground::base 0 0 -0.5");
-    }
+fn tpe_plugin_alias_and_unsupported_names_keep_explicit_selection() {
     let tpe = command(&[
         fixture(),
         "--physics-engine",
@@ -618,47 +591,6 @@ fn native_engines_and_upstream_plugin_names_select_dynamic_backends() {
                 .code(),
             Some(2)
         );
-    }
-}
-
-#[test]
-fn native_engine_faults_end_the_run_with_the_engine_diagnostic() {
-    // Gravity of 1e12 m/s^2 drives native engines past their admitted velocity
-    // within a step; the run must stop with the engine's own error, not hang.
-    let temp = tempfile::TempDir::new().unwrap();
-    let path = temp.path().join("fault.sdf");
-    let fixture = std::fs::read_to_string(fixture()).unwrap();
-    let start = fixture.find("<gravity>").unwrap();
-    let end = fixture.find("</gravity>").unwrap();
-    let world = format!("{}<gravity>0 0 -1e12{}", &fixture[..start], &fixture[end..]);
-    std::fs::write(&path, world).unwrap();
-    for (engine, diagnostic) in [("dart", "dart failed"), ("mujoco", "mujoco failed")] {
-        for server in [false, true] {
-            let mut args = vec![
-                path.to_str().unwrap(),
-                "--physics-engine",
-                engine,
-                "--iterations",
-                "200",
-            ];
-            if server {
-                args.extend(["--server", "--run"]);
-            }
-            let result = command(&args);
-            assert_eq!(
-                result.status.code(),
-                Some(1),
-                "{engine} server={server}: {result:?}"
-            );
-            assert!(
-                result.stdout.is_empty(),
-                "{engine} server={server}: {result:?}"
-            );
-            assert!(
-                String::from_utf8_lossy(&result.stderr).contains(diagnostic),
-                "{engine} server={server}: {result:?}"
-            );
-        }
     }
 }
 

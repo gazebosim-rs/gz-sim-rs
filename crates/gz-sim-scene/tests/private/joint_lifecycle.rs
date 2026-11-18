@@ -17,12 +17,8 @@ fn load(xml: &str, engine: PhysicsEngine) -> Simulation {
     .unwrap()
 }
 
-fn engines() -> [PhysicsEngine; 3] {
-    [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ]
+fn engines() -> [PhysicsEngine; 1] {
+    [PhysicsEngine::Rapier]
 }
 
 fn model_id(sim: &Simulation, name: &str) -> u64 {

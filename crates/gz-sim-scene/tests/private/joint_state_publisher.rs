@@ -328,7 +328,7 @@ fn plan_domain_and_configuration_resource_bounds_are_explicit() {
     let plan = parse(&original).unwrap().unwrap();
     plan.validate(&original, &absent, Some("rapier"), (true, false))
         .expect("admitted domain");
-    for engine in [None, Some("tpe"), Some("dart")] {
+    for engine in [None, Some("tpe")] {
         assert!(
             plan.validate(&original, &absent, engine, (true, false))
                 .is_err()

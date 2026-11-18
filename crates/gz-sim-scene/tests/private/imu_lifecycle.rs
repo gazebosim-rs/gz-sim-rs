@@ -16,13 +16,8 @@ fn load(source: &str, engine: PhysicsEngine) -> Simulation {
     )
     .unwrap()
 }
-fn engines() -> [PhysicsEngine; 4] {
-    [
-        PhysicsEngine::Tpe,
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ]
+fn engines() -> [PhysicsEngine; 2] {
+    [PhysicsEngine::Tpe, PhysicsEngine::Rapier]
 }
 fn named(sim: &Simulation, name: &str) -> (Entity, u64) {
     let entity = sim
@@ -189,11 +184,8 @@ fn schedule_observers_cannot_invalidate_final_removal_preflight() {
         body: BodyId,
         seen: Option<(bool, bool)>,
     }
-    for engine in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    {
+        let engine = PhysicsEngine::Rapier;
         for initialized in [false, true] {
             let mut sim = load(SOURCE, engine);
             if initialized {

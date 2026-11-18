@@ -396,3 +396,90 @@ fn joint_admission_rejects_missing_input_installation_and_mixed_physics_resource
         );
     }
 }
+
+#[test]
+fn rapier_small_admitted_com_keeps_link_origin_velocity_through_both_resets() {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    // A nonzero offset inside the existing frame-rounding admission tolerance
+    // still changes the physical COM velocity when the link rotates.
+    for offset in [-2_f64.powi(-42), 2_f64.powi(-42)] {
+        for loaded_reset in [false, true] {
+            let xml = format!(
+                "<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.001</max_step_size></physics><model name='robot'><link name='body'><inertial><pose>{offset:.17e} 0 0 0 0 0</pose><mass>1</mass><inertia><ixx>0.016</ixx><iyy>0.016</iyy><izz>0.016</izz></inertia></inertial><collision name='shape'><geometry><sphere><radius>0.2</radius></sphere></geometry></collision></link></model></world></sdf>"
+            );
+            let mut sim = load_world_with_sdf_step(
+                &xml,
+                "small-com.sdf",
+                "default",
+                &NoResources,
+                PhysicsEngine::Rapier,
+            )
+            .unwrap();
+            let link = sim
+                .world()
+                .iter_entities()
+                .find(|e| {
+                    e.get::<Name>()
+                        .is_some_and(|name| name.0 == "default::robot::body")
+                })
+                .unwrap()
+                .get::<EntityId>()
+                .unwrap()
+                .get();
+            let calls = Arc::new(AtomicUsize::new(0));
+            let observed = Arc::clone(&calls);
+            sim.add_systems(
+                Phase::PhysicsPrepare,
+                (move |world: &mut World| {
+                    assert!(!world.resource::<UpdateInfo>().dt.is_zero());
+                    let entity = entity_by_id(world, link).unwrap();
+                    let handle = world.get::<BodyHandle>(entity).unwrap();
+                    let state = world
+                        .resource::<PhysicsBackend>()
+                        .state(handle.id())
+                        .unwrap();
+                    // Observe the exact applied command before solver integration.
+                    assert_eq!(state.velocity, [0., offset, 0.]);
+                    assert_eq!(state.angular_velocity, [0., 0., 1.]);
+                    observed.fetch_add(1, Ordering::SeqCst);
+                })
+                .after(apply),
+            );
+            let observe = |sim: &Simulation| {
+                let entity = entity_by_id(sim.world(), link).unwrap();
+                let handle = sim.world().get::<BodyHandle>(entity).unwrap();
+                let state = sim
+                    .world()
+                    .resource::<PhysicsBackend>()
+                    .state(handle.id())
+                    .unwrap();
+                let pose = sim.world().get::<WorldPose>(entity).unwrap();
+                let arm = glam::DQuat::from_array(pose.rotation) * glam::DVec3::new(offset, 0., 0.);
+                let expected = glam::DVec3::from_array(state.velocity)
+                    - glam::DVec3::from_array(state.angular_velocity).cross(arm);
+                let actual =
+                    glam::DVec3::from_array(sim.world().get::<Velocity>(entity).unwrap().linear);
+                assert!(
+                    (actual - expected).length() < 1e-27,
+                    "{actual:?} != {expected:?}"
+                );
+            };
+            queue_link_world_velocity(&mut sim, link, [0.; 3], [0., 0., 1.]).unwrap();
+            sim.step_exact(1).unwrap();
+            assert_eq!(calls.load(Ordering::SeqCst), 1);
+            observe(&sim);
+            if loaded_reset {
+                crate::reset_loaded_world(&mut sim, |_| ()).unwrap();
+            } else {
+                sim.reset().unwrap();
+            }
+            let entity = entity_by_id(sim.world(), link).unwrap();
+            assert_eq!(sim.world().get::<Velocity>(entity).unwrap().linear, [0.; 3]);
+            queue_link_world_velocity(&mut sim, link, [0.; 3], [0., 0., 1.]).unwrap();
+            sim.step_exact(1).unwrap();
+            assert_eq!(calls.load(Ordering::SeqCst), 2);
+            observe(&sim);
+        }
+    }
+}

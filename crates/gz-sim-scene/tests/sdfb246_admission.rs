@@ -11,12 +11,7 @@ use sdformat::{ErrorCode, Inertial, NoResources, Resource, ResourceResolver};
 use std::time::Duration;
 
 const FIXTURE: &str = include_str!("fixtures/sdfb246_auto_inertia.sdf");
-const ENGINES: [PhysicsEngine; 4] = [
-    PhysicsEngine::Tpe,
-    PhysicsEngine::Rapier,
-    PhysicsEngine::Dart,
-    PhysicsEngine::Mujoco,
-];
+const ENGINES: [PhysicsEngine; 2] = [PhysicsEngine::Tpe, PhysicsEngine::Rapier];
 
 fn single_model(name: &str) -> String {
     let document = roxmltree::Document::parse(FIXTURE).unwrap();
@@ -458,17 +453,7 @@ fn parsed_small_sphere_keeps_the_existing_backend_minimum_policy() {
     assert!(value.mass > 1e-15 && value.inertia[0] > 0. && value.inertia[0] < 1e-15);
     for engine in ENGINES {
         let result = load_world_with_sdf_step(&xml, "small.sdf", "default", &NoResources, engine);
-        if matches!(engine, PhysicsEngine::Dart | PhysicsEngine::Mujoco) {
-            assert!(
-                matches!(
-                    result,
-                    Err(LoadError::Physics(gz_physics::PhysicsError::InvalidValue))
-                ),
-                "{engine:?}"
-            );
-        } else {
-            result.unwrap().step_exact(1).unwrap();
-        }
+        result.unwrap().step_exact(1).unwrap();
     }
 }
 
@@ -502,12 +487,8 @@ fn manual_density_also_preserves_other_existing_shape_and_plane_policies() {
                 ));
                 continue;
             }
-            if plane && matches!(engine, PhysicsEngine::Rapier | PhysicsEngine::Mujoco) {
-                let expected = if engine == PhysicsEngine::Rapier {
-                    "rapier"
-                } else {
-                    "mujoco"
-                };
+            if plane && engine == PhysicsEngine::Rapier {
+                let expected = "rapier";
                 assert!(
                     matches!(result, Err(LoadError::Physics(gz_physics::PhysicsError::Unsupported { engine: actual, capability: "static plane collider" })) if actual == expected)
                 );

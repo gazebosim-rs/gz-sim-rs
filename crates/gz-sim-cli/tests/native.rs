@@ -41,12 +41,7 @@ fn cpp_peer_steps_the_paused_executable_and_signals_shutdown_cleanly() {
     use gz_sim_proto::{msgs::Clock, prost::Message};
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let native = zenoh_peer::NativePeer::build(&root, "clock");
-    for (engine, signal) in [
-        ("tpe", "-INT"),
-        ("rapier", "-TERM"),
-        ("dart", "-INT"),
-        ("mujoco", "-TERM"),
-    ] {
+    for (engine, signal) in [("tpe", "-INT"), ("rapier", "-TERM")] {
         let mut network = Network::new();
         let mut command = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"));
         command
@@ -107,7 +102,7 @@ fn finite_budget_counts_advancing_steps_across_pause_and_reset() {
         msgs::{Clock, WorldControl, WorldReset},
         prost::Message,
     };
-    for engine in ["tpe", "rapier", "dart", "mujoco"] {
+    for engine in ["tpe", "rapier"] {
         let mut network = Network::new();
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let mut command = Command::new(env!("CARGO_BIN_EXE_gz-sim-rs"));

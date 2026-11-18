@@ -73,12 +73,7 @@ fn legacy_gravity_reaches_physics_imu_and_loaded_reset_on_all_backends() {
         let parsed = sdformat::load_str(&xml, "legacy-gravity.sdf", &NoResources).unwrap();
         assert_eq!(parsed.version, version);
         assert_eq!(parsed.worlds[0].gravity, [1., -2., -3.]);
-        for engine in [
-            PhysicsEngine::Tpe,
-            PhysicsEngine::Rapier,
-            PhysicsEngine::Dart,
-            PhysicsEngine::Mujoco,
-        ] {
+        for engine in [PhysicsEngine::Tpe, PhysicsEngine::Rapier] {
             let mut sim = load_world_with_sdf_step(
                 &xml,
                 "legacy-gravity.sdf",
@@ -131,12 +126,7 @@ fn legacy_nondefault_magnetic_field_reaches_existing_consumer_rejection() {
                 .magnetic_field,
             [1., 2., 3.]
         );
-        for engine in [
-            PhysicsEngine::Tpe,
-            PhysicsEngine::Rapier,
-            PhysicsEngine::Dart,
-            PhysicsEngine::Mujoco,
-        ] {
+        for engine in [PhysicsEngine::Tpe, PhysicsEngine::Rapier] {
             let result =
                 load_world_with_sdf_step(&xml, "magnetic.sdf", "default", &NoResources, engine);
             assert!(matches!(
@@ -289,7 +279,8 @@ fn explicit_sdf_projection(urdf: &str) -> String {
 fn explicit_converted_sdf_retains_existing_joint_metadata_guards() {
     // Explicit diagnostic bridge only; Scene itself still has no URDF entry point.
     let xml = explicit_sdf_projection(&articulated_urdf(""));
-    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Dart] {
+    {
+        let engine = PhysicsEngine::Rapier;
         let mut sim =
             load_world_with_sdf_step(&xml, "explicit.sdf", "default", &NoResources, engine)
                 .unwrap();
@@ -331,29 +322,14 @@ fn explicit_converted_sdf_retains_existing_joint_metadata_guards() {
             ..
         })
     ));
-    assert!(matches!(
-        load_world_with_sdf_step(
-            &xml,
-            "explicit.sdf",
-            "default",
-            &NoResources,
-            PhysicsEngine::Mujoco
-        ),
-        Err(LoadError::Physics(gz_physics::PhysicsError::Unsupported {
-            engine: "mujoco",
-            capability: "body-to-body revolute joint"
-        }))
-    ));
+
     for (extra, expected) in [
         ("<limit effort='0' velocity='0'/>", "joint limits"),
         ("<dynamics damping='0.1' friction='0.2'/>", "joint dynamics"),
     ] {
         let xml = explicit_sdf_projection(&articulated_urdf(extra));
-        for engine in [
-            PhysicsEngine::Rapier,
-            PhysicsEngine::Dart,
-            PhysicsEngine::Mujoco,
-        ] {
+        {
+            let engine = PhysicsEngine::Rapier;
             assert!(
                 matches!(load_world_with_sdf_step(&xml, "explicit.sdf", "default", &NoResources, engine), Err(LoadError::Unsupported { feature, .. }) if feature == expected)
             );

@@ -33,11 +33,8 @@ fn joint(sim: &Simulation) -> bevy_ecs::entity::Entity {
 }
 #[test]
 fn configured_controller_starts_with_zero_and_applies_programmatic_latest_force() {
-    for engine in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    {
+        let engine = PhysicsEngine::Rapier;
         let mut sim = load(PLUGIN, engine);
         let entity = joint(&sim);
         let config = sim.world().get::<JointForceConfiguration>(entity).unwrap();
@@ -76,11 +73,8 @@ fn configured_controller_starts_with_zero_and_applies_programmatic_latest_force(
 }
 #[test]
 fn loaded_reset_recreates_configuration_and_zero_command_after_retirement() {
-    for engine in [
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    {
+        let engine = PhysicsEngine::Rapier;
         let mut sim = load(PLUGIN, engine);
         let entity = joint(&sim);
         let config = sim

@@ -11,12 +11,7 @@ use serde_json::Value;
 use std::time::Duration;
 
 const NATIVE: &str = include_str!("fixtures/primitive_auto_inertia_native.json");
-const ENGINES: [PhysicsEngine; 4] = [
-    PhysicsEngine::Tpe,
-    PhysicsEngine::Rapier,
-    PhysicsEngine::Dart,
-    PhysicsEngine::Mujoco,
-];
+const ENGINES: [PhysicsEngine; 2] = [PhysicsEngine::Tpe, PhysicsEngine::Rapier];
 
 fn entity(sim: &Simulation, name: &str) -> (bevy_ecs::entity::Entity, u64) {
     let found = sim

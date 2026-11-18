@@ -85,12 +85,7 @@ pub fn assert_static_world_light(xml: &str, uri: &str) {
         assert_eq!(source.line, 1);
         assert!(source.column > 0);
     }
-    for engine in [
-        PhysicsEngine::Tpe,
-        PhysicsEngine::Rapier,
-        PhysicsEngine::Dart,
-        PhysicsEngine::Mujoco,
-    ] {
+    for engine in [PhysicsEngine::Tpe, PhysicsEngine::Rapier] {
         let mut sim = load_world_with_sdf_step(xml, uri, "default", &NoResources, engine).unwrap();
         let ids = sim
             .world()

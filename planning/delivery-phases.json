@@ -3289,22 +3289,22 @@
       "scope": "Exactly two homogeneous calibrated 64 by 64 depth cameras with independent demand, rates, workers and canonical metric-depth outputs through a separate depth-pair API.",
       "acceptance": "Complete implementation, meaningful regressions, guide and independent Source review; actual M68 acceptance before any checks. Then require a fresh full normal, strict actual-parent coverage, independent local DATA, exact hosted CI, durable originals, official audit and Main promotion.",
       "excluded": "RGBD registration, point clouds, noise, dynamic registration, renderer or physics changes, new dependencies or SDK/framework, package refresh, analytic/native Ogre/performance parity.",
-      "evidence": "docs/M69_DELIVERY.md",
+      "evidence": "docs/M69_ACCEPTANCE.md",
       "source_preparation_basis_commit": "24ea62519d0a671f789e6b3fc98bd2b72de18ae2",
       "source_preparation_basis_accepted": true,
       "source_preparation_basis_locally_qualified": true,
       "source_preparation_started_at": "2026-11-17T08:45:47.683966+00:00",
       "implementation_started": true,
       "implementation_complete": true,
-      "independent_source_review_complete": false,
+      "independent_source_review_complete": true,
       "scope_independent_source_review_complete": true,
-      "accepted": false,
-      "checks_run": false,
-      "current_stage": "Second normal on b04 genuinely failed at one new Busy-after-pump test premise: 498 Python and 2052 headless passed, renderer1304pass1fail. New isolated correction adds a strict typedBusy assertion before pump and retains peer publication/no-retick/clock/lifecycle assertions, matching accepted RGB ordering. Complete correction Source review and one-leaf formatter passed with Source unchanged; final bindings and one affected fullnormal remain. No corrected product check yet.",
+      "accepted": true,
+      "checks_run": true,
+      "current_stage": "Accepted after normal/strict/local DATA, exact hosted44109413456 attempt1, durable original ZIPs, independent official DATA and ordinary Main promotion/readback. Both failed normal attempts remain retained.",
       "installed_accepted_examples": 35,
       "predecessor_acceptance_required_before_checks": true,
-      "qualification_state": "Busy_admission_boundary_correction_Source_review_pending",
-      "preformat_census_final_bindings": false,
+      "qualification_state": "accepted_on_Main",
+      "preformat_census_final_bindings": true,
       "initial_source_preparation_basis_commit": "103fd9275637a1a18f416320c08893dcb2ecff75",
       "repair_parent_Source_preparation_started_at": "2026-11-17T12:17:48.920468+00:00",
       "prior_feature_source_review_complete": true,
@@ -3312,7 +3312,7 @@
       "actual_predecessor_acceptance": "artifacts/m68-delivery/acceptance-main-promotion.json",
       "formatter_run": true,
       "formatter_actual_exit": 0,
-      "normal_passed": false,
+      "normal_passed": true,
       "prior_normal_failure": {
         "tree": "733835b6453ab7d811ab5d1c8eb30890fe33801a",
         "actual_Git_controller_wait_exit": 1,
@@ -3340,7 +3340,21 @@
         "original_failure_receipt": "artifacts/m69-delivery/normal-attempt2-failure-outcome.json"
       },
       "correction_formatter_actual_exit": 0,
-      "correction_formatter_all_Source_unchanged": true
+      "correction_formatter_all_Source_unchanged": true,
+      "local_DATA_passed": true,
+      "locally_verified_commit": "d19d5a69b94ed959bf1348665783996a531a3c36",
+      "staged_tree": "af81c8d49b53f5bd19a4f0a518fff67e86b146ad",
+      "hosted_run": 44109413456,
+      "hosted_attempt": 1,
+      "hosted_state": "completed_success",
+      "hosted_success": true,
+      "official_DATA": true,
+      "Main_commit": "d19d5a69b94ed959bf1348665783996a531a3c36",
+      "accepted_at": "2026-11-17T15:57:33.795765+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "d19d5a69b94ed959bf1348665783996a531a3c36",
+        "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
+      }
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -3413,13 +3427,11 @@
     "M66": "complete",
     "M67": "complete",
     "M68": "complete",
-    "M69": "in_progress"
+    "M69": "complete"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-17T04:22:13.840777+00:00",
-  "active_phases": [
-    "M69"
-  ],
+  "active_phases": [],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
     {
@@ -3763,35 +3775,29 @@
       "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M68 and 201 reviewed slices are accepted at Main24ea. M69 retains both failed normals: first a stale fixture count; second one new Busy-after-pump test premise despite 498 Python/2052 headless passes. A new isolated Source correction adds the strict Busy assertion before pump and keeps peer/lifecycle assertions. The complete correction has Source review and its one-leaf formatter passed with Source unchanged. Final bindings and a full mandatory retry remain. M65 Latest/install35 unchanged.",
-  "current_delivery_group": [
-    "M69"
-  ],
+  "acceptance_boundary": "M1\u2013M69 and 202 slices are accepted at Main d19d5a69. D33 cancels DART/MuJoCo product scope; its independent accepted-parent removal candidate is unqualified until review and mandatory checks pass. Frozen M70 is separate and unaccepted, with browser-origin approval pending. M65 remains Latest with35 examples.",
+  "current_delivery_group": [],
   "current_development_phase": "M69",
   "board": {
-    "updated_at": "2026-11-17T14:10:14.684610+00:00",
+    "updated_at": "2026-11-18T04:27:56.140522+00:00",
     "current": {
-      "title": "Correcting depth-pair Busy admission coverage",
+      "title": "Retiring DART and MuJoCo",
       "items": [
-        "The second full normal failed one new Busy-control assertion; all 498 Python checks passed.",
-        "The isolated correction checks typed Busy before pumping and retains exact peer clock, publication and retirement assertions.",
-        "M1\u2013M68 and 201 slices stay accepted; M65 remains Latest with 35 installed examples."
+        "Owner D33 cancels both product backends; Rapier f64 and TPE remain.",
+        "The separate removal candidate starts from accepted Main and preserves all remaining quality gates."
       ]
     },
     "done": [
-      "M1\u2013M68 and 201 reviewed slices are accepted.",
-      "Primitive depth passed local and exact hosted verification, independent audits and Main promotion.",
-      "M65 remains the public Latest preview with 35 installed examples."
+      "M1\u2013M69 and202 reviewed slices accepted; M65 Latest35 unchanged.",
+      "DART/MuJoCo remaining scope cancelled, not completed."
     ],
     "next": [
-      "The reviewed correction passed its one-leaf formatter; finish final bindings and run one full verification retry.",
-      "Complete independent evidence review, exact hosted CI and Main promotion before M69 acceptance."
+      "Complete independent Source review and the one consolidated required verification cycle."
     ],
     "blocker": {
-      "text": "M69 needs the Busy-admission test correction reviewed and the full verification cycle passed. Both failures remain retained.",
-      "url": "https://github.com/gazebosim-rs/gz-sim-rs/commit/24ea62519d0a671f789e6b3fc98bd2b72de18ae2"
-    },
-    "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
+      "text": "M70 browser access needs explicit approval; D33 can proceed independently.",
+      "url": "https://github.com/gazebosim-rs/gz-sim-rs/tree/review/m70-system-lvp-basename"
+    }
   },
   "parallel_source_phases": [],
   "camera_integration": {
@@ -3916,5 +3922,33 @@
       "Main_commit": "192ede6369ab6d83ecf88230944d2061f74b5e94",
       "acceptance_record": "artifacts/m61-m64-delivery/acceptance-main-promotion.json"
     }
+  },
+  "backend_scope": {
+    "decision": "D33",
+    "owner_directed_at": "2026-11-17",
+    "retained_product_backends": [
+      "rapier",
+      "tpe"
+    ],
+    "cancelled_product_backends": [
+      "dart",
+      "mujoco"
+    ],
+    "cancelled_tasks": [
+      "PHY-03",
+      "PHY-04"
+    ],
+    "retirement_implementation": "in_progress",
+    "historical_evidence_preserved": true,
+    "remaining_quality_gates_unchanged": true,
+    "contract": "docs/BACKEND_RETIREMENT.md"
+  },
+  "current_development_task": "D33RETIREBACKENDS",
+  "held_work": {
+    "phase": "M70",
+    "source_commit": "fcd5a30dc0a8431b250cf96720db27ae597a6585",
+    "reason": "Explicit approval to open http://127.0.0.1:8082 remains pending after automatic approval rejection.",
+    "accepted": false,
+    "included_in_this_candidate": false
   }
 }

@@ -601,10 +601,7 @@ fn shared_sdf_native_control_precedence_removal_and_reset_observations_match() {
     assert_eq!(variants, expected);
     let cases = rows.iter().flat_map(|row| {
         let engines: &[_] = match row["engine"].as_str().unwrap() {
-            "dartsim" => &[
-                gz_sim_scene::PhysicsEngine::Rapier,
-                gz_sim_scene::PhysicsEngine::Dart,
-            ],
+            "dartsim" => &[gz_sim_scene::PhysicsEngine::Rapier],
             "tpe" => &[gz_sim_scene::PhysicsEngine::Tpe],
             other => panic!("unknown reference engine {other}"),
         };

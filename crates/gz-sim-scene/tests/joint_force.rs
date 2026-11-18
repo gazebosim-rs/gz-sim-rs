@@ -34,11 +34,7 @@ fn close(actual: f64, expected: f64) {
     assert!((actual - expected).abs() < 1e-12, "{actual} != {expected}");
 }
 
-const ENGINES: [PhysicsEngine; 3] = [
-    PhysicsEngine::Rapier,
-    PhysicsEngine::Dart,
-    PhysicsEngine::Mujoco,
-];
+const ENGINES: [PhysicsEngine; 1] = [PhysicsEngine::Rapier];
 #[test]
 fn persistent_latest_force_combines_with_one_step_inputs_and_stops_at_zero() {
     for engine in ENGINES {
@@ -85,12 +81,7 @@ fn rejected_replacement_preserves_latest_force_and_one_step_effort() {
                 Err(InputError::InvalidValue)
             ));
         }
-        if engine == PhysicsEngine::Dart {
-            assert!(matches!(
-                set_joint_force(&mut sim, id, 1e61),
-                Err(InputError::InvalidValue)
-            ));
-        }
+
         assert!(matches!(
             set_joint_force(&mut sim, u64::MAX, 2.0),
             Err(InputError::MissingEntity(_))
@@ -120,11 +111,7 @@ fn readonly_validation_does_not_change_queued_effort_or_install_a_controller() {
         queue_joint_effort(&mut sim, id, 1.5).unwrap();
         let handle = sim.world().get::<JointHandle>(joint).unwrap().id();
         let backend = sim.world().resource::<PhysicsBackend>();
-        let limit = if engine == PhysicsEngine::Dart {
-            1e60
-        } else {
-            f64::MAX
-        };
+        let limit = f64::MAX;
         for torque in [limit, -limit, 0.0] {
             backend.validate_joint_effort(handle, torque).unwrap();
         }
@@ -187,11 +174,7 @@ fn persistent_combination_failure_stops_the_run_before_native_stepping() {
         let joint = named(&sim, "default::rotor::hinge");
         let id = public(&sim, joint);
         let handle = sim.world().get::<JointHandle>(joint).unwrap().id();
-        let limit = if engine == PhysicsEngine::Dart {
-            1e60
-        } else {
-            f64::MAX
-        };
+        let limit = f64::MAX;
         queue_joint_effort(&mut sim, id, limit).unwrap();
         set_joint_force(&mut sim, id, limit).unwrap();
         assert_eq!(sim.step_exact(1), Err(StepError::Faulted));
@@ -231,10 +214,8 @@ fn a_controller_without_a_joint_handle_faults_instead_of_disappearing() {
 
 #[test]
 fn persistent_replacements_match_the_native_six_pulse_rate_fixture() {
-    let fixture: serde_json::Value = serde_json::from_str(include_str!(
-        "../../gz-physics-dart/tests/fixtures/joint_effort.json"
-    ))
-    .unwrap();
+    let fixture: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/reference/joint_effort.json")).unwrap();
     for engine in ENGINES {
         let mut sim = load(engine);
         let id = public(&sim, named(&sim, "default::rotor::hinge"));
