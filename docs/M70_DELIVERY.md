@@ -7,12 +7,26 @@ checks. Parent: Main `8f13dc7446be4fded424b1eba83df4c8253d0cef`, which includes
 accepted M69 and the completed D33 backend retirement. Rapier f64 and TPE remain;
 DART and MuJoCo adapters, dependencies and dedicated jobs stay retired.
 
-This isolated successor adopts the M70 package and launcher changes from frozen
-`fcd5a30dc0a8431b250cf96720db27ae597a6585` onto that parent. The frozen candidate
-passed its code, hosted/official, package and installation checks; those records
-remain scoped to that candidate and do not qualify this successor. No new-tree
-check, build, install or release result is claimed. Historical trees, original
-evidence and Fuel work stay unchanged.
+The frozen retained-backend candidate
+`597ac3ddccf150cc1c45a60c3c72b838f943093a` passed its local normal and strict
+coverage gates, release builds, package audit, clean installation and 41 finite
+examples. Its hosted run failed before product checks at Ubuntu snapshot HTTP
+401 responses. The first installed camera trial failed at its first packet
+barrier after canonical Clock and Scene reached 1 ms; no numeric camera success
+or complete application shutdown was established by that failed trial.
+
+This isolated correction is based on 597ac3d and retains the accepted D33 parent.
+It gives the CLI an explicit shared-world Zenoh-session path, preserving existing
+separate-session constructors and ownership. Source regressions must cover the
+listener-only packaged configuration and camera reset/removal without closing
+the world session. The harness must preserve the native 20-second deadline rather
+than cancelling after 10 seconds. Historical trees, all original evidence and
+Fuel work stay unchanged. The first normal on tree `56b8e704` failed after
+541.339 seconds: Clippy and 466 Python checks passed, and all 15 CLI camera cases
+passed. The auxiliary qualifier's closed registry still expected 14 and rejected
+the extra new regression. The complete failed packet and Source remain frozen.
+This successor corrects that registry with regression controls before independent
+review and one affected full normal/strict retry; no gate is weakened.
 
 Live browser acceptance is held for explicit approval to access
 `http://127.0.0.1:8082` and its launcher-generated URLs after the retained automatic
@@ -26,8 +40,9 @@ ELFs: simulator with its existing `rgb-camera` feature, native-free drive and jo
 helpers, and the existing GPU renderer worker. Reuse the six exact accepted c404
 viewer files and unchanged 14,000,000-byte gzip cap per Wasm. Preserve all older
 manifest/guide generations and old 33/35 fixture order; only M70 appends the six
-camera fixtures for 41 finite examples. No Cargo, renderer, protocol, SDK, transport,
-physics, dependency or solver changes are selected.
+camera fixtures for 41 finite examples. The only runtime expansion is the explicit
+CLI reuse of the existing upstream world session. No Cargo, renderer, protocol,
+SDK, physics, dependency, solver or new transport framework change is selected.
 
 `run --camera-output` is explicit and M70-only, derives its fixed verified worker
 path, and refuses lifecycle editing. The ordinary default robot path stays native
@@ -55,9 +70,8 @@ Each corrected launch prints a fresh `/__gz_preview__/<launch-token>/` directory
 URL. Relative startup, module and Wasm requests serve the same six verified
 files. Stale/escaping paths are refused and static responses use no-store rather
 than conditional 304. Qualification uses the actual URL printed by that owned
-launch. A separate artifact-only detached supervisor must preserve the actual
-controller wait/reap and bounded partial output; its own exit remains unknown
-unless observed. This does not replace any application, camera or release gate.
+launch. An artifact-only controller must preserve the actual terminal wait/reap and
+bounded partial output; its exit remains unknown unless observed. This does not replace any application, camera or release gate.
 
 ## Ordinary OS manifest correction
 
@@ -70,11 +84,10 @@ a driver or prove camera frames.
 
 The frozen fcd5 successor carried the d0ba tracked delta over accepted M69 and
 corrected basename admission with meaningful Python regressions and these guides.
-This adoption retains those changes on the D33 parent. Existing absolute-path,
-override, cleanup and resource controls remain strict. No Rust, Cargo, SDK, viewer
-or protocol change is selected. Finish the complete adoption batch and independent
-review before Root's consolidated mandatory checks. No earlier result is relabeled
-as this successor's success.
+Those changes remain on the D33 parent. The current shared-session correction
+preserves every absolute-path, override, cleanup and resource control. Complete
+implementation, regressions, guides and independent review precede one consolidated
+verification pass. No earlier result qualifies the changed candidate.
 
 ## Acceptance sequence
 

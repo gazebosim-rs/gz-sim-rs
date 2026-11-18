@@ -2,20 +2,39 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # M70 capability and evidence boundary
 
-M70 is Source adoption on Main
-`8f13dc7446be4fded424b1eba83df4c8253d0cef`, after D33 retired DART and MuJoCo.
+M70 is a Source correction over
+`597ac3ddccf150cc1c45a60c3c72b838f943093a` on retained-backend Main
+`8f13dc7446be4fded424b1eba83df4c8253d0cef`. DART and MuJoCo remain retired;
 Rapier f64 and TPE remain. M1–M69 and 202 slices are accepted; M65 remains Latest
-with 35 installed examples. No qualification, installation, frame, browser,
-resource-fit or release result is claimed for this successor.
+with 35 installed examples. No qualification, frame, browser, resource-fit or
+release result is claimed for this changed Source.
 
-Frozen `fcd5a30dc0a8431b250cf96720db27ae597a6585` passed its code,
-hosted/official, package and installation checks. Its records and earlier failed
-browser attempts remain distinct; they do not qualify the new parent or payload.
-Complete the adoption, regression Source, guides and independent review before
-consolidated checks and fresh source-bound distribution/runtime evidence.
+The parent passed its local package and clean-installation checks. Its hosted
+run failed before product checks at Ubuntu snapshot HTTP 401 responses, and its
+first installed camera trial failed after canonical Clock reached one
+millisecond without retained `PACKET` receipts before the host barrier timeout.
+The host stopped observation after 10 seconds, before the SDK's original
+20-second deadline; actual matching and callback delivery remain UNKNOWN.
+The package's listener-only configuration and disabled multicast left the CLI's
+separate camera peer with no connection. CLI camera output now shares the world's upstream Zenoh session.
+Complete family preflight still precedes the world server's effects; zero-camera,
+scalar, homogeneous RGB-pair and depth-pair admission remain distinct. Reset and
+camera retirement do not close the world-owned session. Existing direct camera
+constructors retain their explicit, independently owned session behavior.
+
+No new router, endpoint guess, user knob, transport framework or Zenoh change is
+selected. Historical parent/frozen records and failures remain separate; they do
+not qualify this correction. Complete the bounded Source/regression/guide batch
+and independent review before consolidated checks and fresh distribution proof.
 Live browser acceptance still needs explicit approval for
 `http://127.0.0.1:8082` and its launcher-generated URLs. No retry or alternative
 surface is released while that owner decision is pending.
+
+The first correction normal stopped at an auxiliary registry mismatch: all 15
+CLI camera cases passed, while the strict registry still expected 14. Clippy and
+466 Python checks passed; full headless/renderer coverage was not reached. Its
+failed tree and logs remain preserved. The bounded registry correction needs
+independent review and one consolidated full retry before fresh package proof.
 
 ## One additional package generation
 
@@ -60,7 +79,11 @@ CPUs and a 96 MiB writable layer. `run --camera-output` selects a separate
 M70-only opt-in profile, derives the verified worker and refuses `--lifecycle`
 before effects. Its initial planning ceiling is 8 GiB RAM, 512 PIDs, four CPUs
 and a 512 MiB writable layer plus 128 MiB margin. These ceilings are not measured
-fit or speed claims. Actual floors, simultaneous-worker resources, layer use,
+fit or speed claims. A later default-browser demonstration may reuse that
+camera-provisioned container, with its actual 8 GiB ceiling and installed GPU
+packages explicitly recorded. Such a run must show no worker or GPU mappings
+at its observed intervals; it does not establish enforced 1 GiB live fit or
+all-time absence. Actual floors, simultaneous-worker resources, layer use,
 provider libraries and owned retirement must fit before acceptance. A fit failure
 is retained and explicitly rescoped before another affected run; never silently
 raise a limit or replace paired proof with a singleton result.
@@ -97,9 +120,13 @@ mixed-pair refusals remain strict. The package adds no new camera implementation
 After a successful same-head full normal/strict coverage and independent local
 DATA, LOCAL PROVISIONAL distribution work may overlap that head's hosted CI.
 All actual hosted/official/Main and fresh distribution proofs still precede
-acceptance, public release or Latest. Build all four roles and invoke the
-assembler from the same exact frozen Source root with separate build targets
-and complete before/after Source/mode/commit checks. Audit current raw Cargo and
+acceptance, public release or Latest. Reuse unchanged evidence only where its
+exact bindings permit it. The changed CLI, server and camera Source require a
+new source-bound release/package, fresh ordinary Ubuntu installation and fresh
+GPU profile. The old 597 package, container and failed proof remain unchanged;
+no mount rebinding or old-payload mutation transfers their qualification.
+Build all four roles and invoke the assembler from the same exact frozen Source
+root with separate build targets and complete before/after Source/mode/commit checks. Audit current raw Cargo and
 notice units, four ELFs, archive/manifest and relocation before installation.
 All existing per-file/archive/payload/notices bounds remain unchanged; actual
 sizes and notice counts are unknown until measured, and a gap fails the batch.

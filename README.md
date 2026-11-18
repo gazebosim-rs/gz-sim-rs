@@ -1,23 +1,43 @@
-## Current development: M70 on the retained-backend Main
+## Current development: M70 camera connectivity correction
 
-D33 is complete on Main `8f13dc7446be4fded424b1eba83df4c8253d0cef`.
-DART and MuJoCo adapters, dependencies and dedicated jobs are retired; Rapier f64
-and TPE remain. Cancelled backend work is not counted as completed.
+D33 retirement is published on Main `8f13dc7446be4fded424b1eba83df4c8253d0cef`.
+Rapier f64 and TPE remain; DART and MuJoCo stay retired. M1–M69 and 202 slices
+remain accepted. M65 remains Latest with 35 examples.
 
-M70 now carries the installed camera preview into an isolated successor on that
-Main. Its four Python implementation/regression leaves are unchanged from frozen
-`fcd5a30dc0a8431b250cf96720db27ae597a6585`; the new parent keeps the full D33
-retirement. Four manifest-bound ELFs, 41 finite examples, optional camera output,
-the native-free default robot and the six accepted viewer files remain the scope.
-No Rust, dependency, renderer or protocol change is selected.
+The frozen M70 candidate `597ac3ddccf150cc1c45a60c3c72b838f943093a` passed its
+full local normal and strict coverage gates, source-bound release builds,
+package audit, clean Ubuntu installation and 41 installed finite examples.
+Its hosted run failed before product checks at three Ubuntu snapshot HTTP 401
+responses. The first installed camera trial then failed before its first camera
+packet barrier; its canonical Clock and Scene reached exactly 1 ms.
 
-Complete independent Source review before one consolidated normal/strict coverage
-cycle. Same-head hosted CI and independent audits precede source publication;
-fresh source-bound release/package/install and actual robot/camera evidence
-precede M70 acceptance. Old fcd5 results retain their historical scope and do not
-qualify this successor. Browser access to `http://127.0.0.1:8082` still needs the
-explicit owner approval required by automatic review; no browser retry is released.
-M1–M69 and 202 slices remain accepted. M65 remains Latest with 35 examples.
+Source review found that the packaged camera peer clears its listener while its
+configuration supplies no connection and disables multicast. This isolated
+successor adds an explicit CLI path sharing the world's upstream Zenoh session.
+Existing separate-session camera constructors keep their configuration semantics.
+Camera reset, removal and teardown must release their publishers and workers
+without closing the world session. No upstream Zenoh patch, transport framework,
+protocol, renderer, physics, dependency or SDK change is selected.
+
+The complete routing/lifecycle Source passed independent review. Its first normal
+run failed after 541.339 seconds: Clippy and 466 Python checks passed, and all 15
+CLI camera cases passed, but the auxiliary qualifier still registered 14 cases.
+This isolated successor corrects that closed registry and its regression controls;
+the failed tree and logs remain frozen. Batch the correction and review before one
+full affected normal/strict retry. No test assertions or gates are relaxed.
+
+The operational harness must also let the existing native 20-second deadline
+finish instead of cancelling at 10 seconds. Keep the exact first 1 ms sample,
+numerical assertions and all three depth trials plus separate RGB proof.
+Reuse unchanged evidence only where its bindings permit; preserve all original
+failures and frozen trees. Do not rerun completed installation or GPU provisioning
+without an actual changed prerequisite.
+
+Fresh source-bound package, installation and camera evidence remain required for
+this changed candidate. Browser access to `http://127.0.0.1:8082` still needs the
+explicit owner approval required by automatic review. Hosted CI, official audit
+and release publication remain mandatory before M70 acceptance. No check has run
+on this successor; preparation is not qualification.
 
 Earlier checkpoints below retain their historical scope.
 

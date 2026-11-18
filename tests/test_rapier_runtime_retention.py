@@ -177,6 +177,23 @@ class AuxiliaryRetention(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "tampered native-off artifact"):
             QUALIFIER.validate_evidence(self.root, self.directory)
 
+    def test_rehashed_camera_receipts_cannot_omit_fail_or_skip_listener_only_case(self):
+        case = "listener_only_camera_cli_delivers_info_on_the_world_peer_without_a_worker"
+        old = "\n".join("test " + name + " ... ok" for name in QUALIFIER.RGB_TESTS[:14]) + "\n"
+        for stdout in [
+            old + "test result: ok. 14 passed; 0 failed; 0 ignored;\n",
+            old + "test result: ok. 15 passed; 0 failed; 0 ignored;\n",
+            old + "test " + case + " ... FAILED\n"
+            + "test result: FAILED. 14 passed; 1 failed; 0 ignored;\n",
+            old + "test " + case + " ... ignored\n"
+            + "test result: ok. 14 passed; 0 failed; 1 ignored;\n",
+        ]:
+            with self.subTest(stdout=stdout):
+                self.write("rgb-camera/stdout", stdout.encode())
+                self.finish_manifest()
+                with self.assertRaisesRegex(ValueError, "missing/failed/skipped native-free RGB"):
+                    QUALIFIER.validate_evidence(self.root, self.directory)
+
     def test_rehashed_rgb_feature_or_gpu_closure_claim_is_not_accepted(self):
         path = self.directory / "rgb-camera/cargo-events.json"
         baseline = path.read_bytes()

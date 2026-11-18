@@ -1068,3 +1068,255 @@ fn cli_two_depth_cameras_keep_workers_lazy_and_refuse_mixed_or_unowned_worlds() 
     }
     assert!(!worker.exists());
 }
+
+#[cfg(feature = "rgb-camera")]
+#[test]
+fn listener_only_camera_cli_delivers_info_on_the_world_peer_without_a_worker() {
+    use gz_sim_proto::{
+        msgs::{Boolean, CameraInfo, Clock, WorldControl},
+        prost::Message,
+    };
+    use std::{os::unix::process::CommandExt, sync::mpsc};
+    use zenoh::Wait;
+
+    if isolation::child(
+        "listener_only_camera_cli_delivers_info_on_the_world_peer_without_a_worker",
+        75,
+    ) {
+        return;
+    }
+    let rgb_pair = include_str!("../../../examples/m63_two_rgb_cameras.sdf");
+    let depth_pair = include_str!("../../../examples/m69_two_depth_cameras.sdf");
+    for (case, (xml, topics)) in [
+        (CAMERA, vec![("/m5/rgb/camera_info", "rig/body/camera")]),
+        (
+            rgb_pair,
+            vec![
+                ("/m63/a/camera_info", "rig_a/body/camera"),
+                ("/m63/b/camera_info", "rig_b/body/camera"),
+            ],
+        ),
+        (
+            depth_pair,
+            vec![
+                ("/m69/a/camera_info", "rig_a/body/camera"),
+                ("/m69/b/camera_info", "rig_b/body/camera"),
+            ],
+        ),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        let directory = tempfile::tempdir().unwrap();
+        let source = directory.path().join("world.sdf");
+        let network = directory.path().join("zenoh.json");
+        let worker = directory.path().join("absent-info-only-worker");
+        let endpoint = format!("tcp/127.0.0.1:{}", 39211 + case);
+        let partition = format!("listener-only-{case}");
+        let key = |topic: &str| format!("@/{partition}@{topic}");
+        fs::write(&source, xml).unwrap();
+        // This is the installed network shape: one world listener, no connect
+        // endpoints and no multicast discovery. There is no external router.
+        fs::write(
+            &network,
+            serde_json::to_vec(&serde_json::json!({
+                "listen":{"endpoints":[endpoint]},
+                "scouting":{"multicast":{"enabled":false}}
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+        let stdout = directory.path().join("stdout");
+        let stderr = directory.path().join("stderr");
+        let child = Command::new("timeout")
+            .args(["--signal=KILL", "20s"])
+            .arg(env!("CARGO_BIN_EXE_gz-sim-rs"))
+            .arg(&source)
+            .args([
+                "--physics-engine",
+                "rapier",
+                "--server",
+                "--iterations",
+                "100",
+                "--camera-worker",
+            ])
+            .arg(&worker)
+            .env("ZENOH_CONFIG", &network)
+            .env("GZ_PARTITION", &partition)
+            .env_remove("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE")
+            .env_remove("GZ_RELAY")
+            .env_remove("SDF_PATH")
+            .env_remove("GZ_SIM_RESOURCE_PATH")
+            .stdin(Stdio::null())
+            .stdout(fs::File::create(&stdout).unwrap())
+            .stderr(fs::File::create(&stderr).unwrap())
+            .process_group(0)
+            .spawn()
+            .unwrap();
+        let mut process = CameraProcess {
+            child,
+            stdout,
+            stderr,
+            complete: false,
+        };
+        let observer = zenoh::open(
+            zenoh::Config::from_json5(
+                &serde_json::json!({
+                    "mode":"peer", "listen":{"endpoints":[]}, "connect":{"endpoints":[endpoint]},
+                    "scouting":{"multicast":{"enabled":false},"gossip":{"enabled":false}}
+                })
+                .to_string(),
+            )
+            .unwrap(),
+        )
+        .wait()
+        .unwrap();
+        let infos: Vec<_> = topics
+            .iter()
+            .map(|(topic, _)| {
+                observer
+                    .declare_subscriber(key(topic))
+                    .with(zenoh::handlers::FifoChannel::new(8))
+                    .wait()
+                    .unwrap()
+            })
+            .collect();
+        let (send_clock, receive_clock) = mpsc::sync_channel(1);
+        let clocks = observer
+            .declare_subscriber(key("/world/default/clock"))
+            .callback(move |sample| {
+                let _ = send_clock.try_send(sample);
+            })
+            .wait()
+            .unwrap();
+        let first = receive_clock.recv_timeout(Duration::from_secs(5)).unwrap();
+        assert_eq!(
+            first.attachment().unwrap().to_bytes().as_ref(),
+            b"gz.msgs.Clock"
+        );
+        let stamp = Clock::decode(first.payload().to_bytes().as_ref())
+            .unwrap()
+            .sim
+            .unwrap();
+        assert_eq!((stamp.sec, stamp.nsec), (0, 0));
+        // Native discovery observes the actual camera registrations through the
+        // world listener; declaration is not substituted for the data below.
+        let registrations: Vec<_> = observer
+            .liveliness()
+            .get("@gz/**")
+            .timeout(Duration::from_secs(1))
+            .wait()
+            .unwrap()
+            .into_iter()
+            .map(|reply| reply.into_result().unwrap().key_expr().to_string())
+            .collect();
+        for (topic, _) in &topics {
+            assert!(
+                registrations
+                    .iter()
+                    .any(|name| name.contains(&topic.replace('/', "%"))
+                        && name.ends_with("/gz.msgs.CameraInfo/%/%")),
+                "{registrations:?}"
+            );
+        }
+        while receive_clock.try_recv().is_ok() {}
+        let replies = observer
+            .get(key("/world/default/control"))
+            .payload(
+                WorldControl {
+                    pause: true,
+                    multi_step: 1,
+                    ..Default::default()
+                }
+                .encode_to_vec(),
+            )
+            .timeout(Duration::from_secs(5))
+            .wait()
+            .unwrap();
+        let reply = replies
+            .recv_timeout(Duration::from_secs(5))
+            .unwrap()
+            .unwrap()
+            .into_result()
+            .unwrap();
+        assert!(
+            Boolean::decode(reply.payload().to_bytes().as_ref())
+                .unwrap()
+                .data
+        );
+        for (subscription, (_, frame)) in infos.iter().zip(&topics) {
+            let sample = subscription
+                .recv_timeout(Duration::from_secs(5))
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                sample.attachment().unwrap().to_bytes().as_ref(),
+                b"gz.msgs.CameraInfo"
+            );
+            let info = CameraInfo::decode(sample.payload().to_bytes().as_ref()).unwrap();
+            assert_eq!((info.width, info.height), (64, 64));
+            let header = info.header.unwrap();
+            let stamp = header.stamp.unwrap();
+            assert_eq!((stamp.sec, stamp.nsec), (0, 1_000_000));
+            assert_eq!(header.data[0].key, "frame_id");
+            assert_eq!(header.data[0].value, [*frame]);
+            assert!(subscription.try_recv().unwrap().is_none());
+        }
+        let clock_deadline = Instant::now() + Duration::from_secs(5);
+        loop {
+            let remaining = clock_deadline.saturating_duration_since(Instant::now());
+            assert!(!remaining.is_zero(), "single-step Clock was not observed");
+            let observed = receive_clock.recv_timeout(remaining).unwrap();
+            let stamp = Clock::decode(observed.payload().to_bytes().as_ref())
+                .unwrap()
+                .sim
+                .unwrap();
+            assert!(stamp.sec == 0 && matches!(stamp.nsec, 0 | 1_000_000));
+            if stamp.nsec == 1_000_000 {
+                break;
+            }
+        }
+        // Signal the owned CLI once. Signalling timeout's whole group would
+        // also make its wrapper forward SIGINT, turning one request into two.
+        let parent = process.child.id();
+        let children =
+            fs::read_to_string(format!("/proc/{parent}/task/{parent}/children")).unwrap();
+        let children: Vec<u32> = children
+            .split_whitespace()
+            .map(|pid| pid.parse().unwrap())
+            .collect();
+        assert_eq!(children.len(), 1);
+        let cli = children[0];
+        assert_eq!(
+            fs::read_link(format!("/proc/{cli}/exe")).unwrap(),
+            Path::new(env!("CARGO_BIN_EXE_gz-sim-rs"))
+                .canonicalize()
+                .unwrap()
+        );
+        let cli = rustix::process::Pid::from_raw(i32::try_from(cli).unwrap()).unwrap();
+        rustix::process::kill_process(cli, rustix::process::Signal::INT).unwrap();
+        let until = Instant::now() + Duration::from_secs(5);
+        let status = loop {
+            if let Some(status) = process.child.try_wait().unwrap() {
+                break status;
+            }
+            assert!(Instant::now() < until, "CLI did not retire after SIGINT");
+            thread::sleep(Duration::from_millis(5));
+        };
+        assert!(
+            status.success(),
+            "{status}: {}",
+            fs::read_to_string(&process.stderr).unwrap()
+        );
+        assert!(
+            fs::read_to_string(&process.stdout)
+                .unwrap()
+                .starts_with("simulation_ns=1000000 iterations=1\n")
+        );
+        assert!(fs::read_to_string(&process.stderr).unwrap().is_empty());
+        assert!(!worker.exists());
+        process.complete = true;
+        drop((infos, clocks));
+        observer.close().wait().unwrap();
+    }
+}

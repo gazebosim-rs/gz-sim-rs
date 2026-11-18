@@ -2,25 +2,45 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # M70 optional installed-camera preview
 
-This is Source adoption, not an available M70 release. This successor starts from
-Main `8f13dc7446be4fded424b1eba83df4c8253d0cef`, with DART and MuJoCo retired
-under D33; Rapier f64 and TPE remain. M1–M69 and 202 slices are accepted.
+This is Source correction, not an available M70 release. This candidate starts
+from `597ac3ddccf150cc1c45a60c3c72b838f943093a` on the retained-backend Main
+`8f13dc7446be4fded424b1eba83df4c8253d0cef`. DART and MuJoCo remain retired;
+Rapier f64 and TPE remain. M1–M69 and 202 slices are accepted.
 M65 remains public Latest with 35 installed examples. No M70 installed,
-frame, browser or runtime-fit result is claimed for this successor; its new-tree
-qualification is also pending.
+frame, browser or runtime-fit result is claimed for this changed Source; its
+qualification is pending.
 
-Frozen `fcd5a30dc0a8431b250cf96720db27ae597a6585` passed its code,
-hosted/official, package and installation checks. Those original records and
-failed browser attempts remain separate and do not qualify this successor.
-Complete Source and independent review before consolidated checks and fresh
-source-bound distribution/runtime evidence. Publication remains held. The
-five-working-day budget includes review and mandatory gates; it is not a release
-or resource-fit guarantee.
+The parent's local package and clean-installation checks passed, while its
+hosted run failed before product checks on Ubuntu snapshot HTTP 401 responses.
+Its first installed camera trial failed after the one-millisecond world step
+without retained `PACKET` receipts before the host barrier timeout. The host
+stopped observation after 10 seconds, before the SDK's original 20-second
+deadline; actual matching and callback delivery remain UNKNOWN. The previous
+CLI isolated its camera peer under the package's listener-only,
+multicast-disabled network configuration.
+The correction uses the existing world session for CLI camera publications,
+without changing the installed endpoint, viewer, worker or camera wire format.
+No extra peer, endpoint inference or user configuration is required.
+
+Earlier parent and frozen `fcd5a30dc0a8431b250cf96720db27ae597a6585` records,
+including genuine failures, remain separate. Complete Source and independent
+review before consolidated checks and fresh source-bound distribution/runtime
+evidence. Reuse unchanged evidence only where its exact bindings permit it; this
+changed package needs a fresh ordinary Ubuntu installation and GPU profile,
+without changing the old package or provisioned container. Publication remains
+held. The five-working-day budget includes review and mandatory gates; it is not
+a release or resource-fit guarantee.
 
 Live browser acceptance is also held for explicit approval to access
 `http://127.0.0.1:8082` and its launcher-generated URLs after the retained automatic
 approval rejections. The commands below document the intended installation and
 use; they do not release a browser retry or an alternative surface.
+
+The first correction normal stopped at an auxiliary registry mismatch: all 15
+CLI camera cases passed, while the strict registry still expected 14. Clippy and
+466 Python checks passed; full headless/renderer coverage was not reached. Its
+failed tree and logs remain preserved. The bounded registry correction needs
+independent review and one consolidated full retry before fresh package proof.
 
 ## Install the matching qualified artifact when published
 
@@ -116,7 +136,9 @@ endpoint. Its SDK is not installed in the producer. Camera A is 10 Hz on
 full typed CameraInfo calibration and acquisition stamps. Actual image demand
 starts only the selected owner; Info-only demand does not start its worker.
 Discovery, a receipt or an accepted control request does not prove a frame or
-physical response.
+physical response. The CLI camera publishers share the world server session,
+so the same endpoint works when no outgoing peers or multicast discovery are
+configured. Image demand still controls each worker independently.
 
 After stopping that launcher and confirming owned retirement, the separate RGB
 ellipsoid smoke uses:

@@ -236,6 +236,7 @@ RGB_TESTS = [
     "cli_ellipsoid_rgb_keeps_worker_lazy_and_depth_and_owner_refusals",
     "cli_primitive_depth_keeps_all_static_poses_and_worker_lazy_without_demand",
     "cli_two_depth_cameras_keep_workers_lazy_and_refuse_mixed_or_unowned_worlds",
+    "listener_only_camera_cli_delivers_info_on_the_world_peer_without_a_worker",
 ]
 # The retained directory and feature names stay RGB for compatibility. This
 # CPU-only proof also covers loaded depth admission without demand or GPU images.

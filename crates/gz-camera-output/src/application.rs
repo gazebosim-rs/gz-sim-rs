@@ -97,13 +97,16 @@ struct CameraRuntime {
     binding: CameraBinding,
     output: ScheduledCameraOutput,
     session: Session,
+    owns_session: bool,
 }
 impl Drop for CameraRuntime {
     fn drop(&mut self) {
         self.output.retire();
         // Teardown may wait, including native final drops. This owner never
         // enters the Bevy schedule or Server's critical tick.
-        let _ = self.session.close().wait();
+        if self.owns_session {
+            let _ = self.session.close().wait();
+        }
     }
 }
 
@@ -120,6 +123,7 @@ enum PairKind {
 struct CameraPair {
     outputs: BTreeMap<u64, PairOutput>,
     session: Session,
+    owns_session: bool,
 }
 impl Drop for PairOutput {
     fn drop(&mut self) {
@@ -130,7 +134,9 @@ impl Drop for CameraPair {
     fn drop(&mut self) {
         // Drop/retire every output before the one family-owned Session closes.
         self.outputs.clear();
-        let _ = self.session.close().wait();
+        if self.owns_session {
+            let _ = self.session.close().wait();
+        }
     }
 }
 
@@ -150,8 +156,129 @@ pub struct CameraServer {
     pair_kind: PairKind,
     server: Server,
     prepared_epoch: u64,
+    shared_server_session: bool,
 }
 impl CameraServer {
+    /// Prepare the selected camera family on the world's existing Zenoh session.
+    ///
+    /// This is the installed application's zero/single/RGB-pair/Depth-pair path.
+    /// It validates the complete family before opening world IO, then shares
+    /// that actual peer instead of guessing a dialable listener or opening an
+    /// isolated outgoing peer. `camera_options.zenoh` remains the separate-peer
+    /// configuration of the three existing constructors and is unused here.
+    pub fn new_with_server_session(
+        simulation: Simulation,
+        world: &str,
+        options: ServerOptions,
+        server_zenoh: zenoh::Config,
+        command_budget: NonZeroUsize,
+        camera_options: &CameraServerOptions,
+    ) -> Result<Self, CameraServerError> {
+        options.validate()?;
+        let paired = simulation.world().iter_entities().any(|entity| {
+            entity.get::<EntityKind>() == Some(&EntityKind::World)
+                && entity.contains::<RenderingSensorsConfiguration>()
+        }) && simulation
+            .world()
+            .iter_entities()
+            .filter(|entity| entity.contains::<CameraSensor>())
+            .take(3)
+            .count()
+            == 2;
+        let depth_pair = paired
+            && simulation
+                .world()
+                .iter_entities()
+                .filter_map(|entity| entity.get::<CameraSensor>())
+                .all(|sensor| {
+                    sensor
+                        .0
+                        .effective_type()
+                        .is_some_and(|kind| kind.as_str() == "depth_camera")
+                });
+        let epoch = simulation.epoch();
+        if paired {
+            let (kind, prepared) = if depth_pair {
+                (
+                    PairKind::Depth,
+                    prepare_depth_pair(&simulation, &options, camera_options)?,
+                )
+            } else {
+                (
+                    PairKind::Rgb,
+                    prepare_pair(&simulation, &options, camera_options)?,
+                )
+            };
+            let ids = [prepared[0].binding.id, prepared[1].binding.id];
+            let server = match kind {
+                PairKind::Rgb => Server::with_external_camera_outputs(
+                    simulation,
+                    world,
+                    options,
+                    server_zenoh,
+                    command_budget,
+                    ids,
+                ),
+                PairKind::Depth => Server::with_external_depth_camera_outputs(
+                    simulation,
+                    world,
+                    options,
+                    server_zenoh,
+                    command_budget,
+                    ids,
+                ),
+            }?;
+            let pair = install_pair_with_session(
+                server.simulation(),
+                prepared,
+                server.zenoh_session(),
+                false,
+            )?;
+            return Ok(Self {
+                runtime: None,
+                pair: Some(pair),
+                pair_ids: Some(ids),
+                pair_kind: kind,
+                server,
+                prepared_epoch: epoch,
+                shared_server_session: true,
+            });
+        }
+        let prepared = prepare_camera(&simulation, &options, camera_options)?;
+        let server = match prepared.as_ref() {
+            Some(prepared) => Server::with_external_camera_output(
+                simulation,
+                world,
+                options,
+                server_zenoh,
+                command_budget,
+                prepared.binding.id,
+            ),
+            None => {
+                Server::with_zenoh_config(simulation, world, options, server_zenoh, command_budget)
+            }
+        }?;
+        let runtime = prepared
+            .map(|prepared| {
+                install_camera_with_session(
+                    server.simulation(),
+                    prepared,
+                    server.zenoh_session(),
+                    false,
+                )
+            })
+            .transpose()?;
+        Ok(Self {
+            runtime,
+            pair: None,
+            pair_ids: None,
+            pair_kind: PairKind::Rgb,
+            server,
+            prepared_epoch: epoch,
+            shared_server_session: true,
+        })
+    }
+
     pub fn new(
         simulation: Simulation,
         world: &str,
@@ -186,6 +313,7 @@ impl CameraServer {
             pair_kind: PairKind::Rgb,
             server,
             prepared_epoch: epoch,
+            shared_server_session: false,
         })
     }
 
@@ -218,6 +346,7 @@ impl CameraServer {
             pair_kind: PairKind::Rgb,
             server,
             prepared_epoch: epoch,
+            shared_server_session: false,
         })
     }
 
@@ -251,6 +380,7 @@ impl CameraServer {
             pair_kind: PairKind::Depth,
             server,
             prepared_epoch: epoch,
+            shared_server_session: false,
         })
     }
 
@@ -505,12 +635,32 @@ impl CameraServer {
                 if Some([prepared[0].binding.id, prepared[1].binding.id]) != self.pair_ids {
                     return Err(CameraOutputError::OwnerInvalid.into());
                 }
-                self.pair = Some(install_pair(self.server.simulation(), prepared, options)?);
+                self.pair = Some(if self.shared_server_session {
+                    install_pair_with_session(
+                        self.server.simulation(),
+                        prepared,
+                        self.server.zenoh_session(),
+                        false,
+                    )?
+                } else {
+                    install_pair(self.server.simulation(), prepared, options)?
+                });
             } else {
                 let prepared =
                     prepare_camera(self.server.simulation(), self.server.options(), options)?;
                 self.runtime = prepared
-                    .map(|p| install_camera(self.server.simulation(), p, options))
+                    .map(|prepared| {
+                        if self.shared_server_session {
+                            install_camera_with_session(
+                                self.server.simulation(),
+                                prepared,
+                                self.server.zenoh_session(),
+                                false,
+                            )
+                        } else {
+                            install_camera(self.server.simulation(), prepared, options)
+                        }
+                    })
                     .transpose()?;
             }
             self.prepared_epoch = epoch;
@@ -949,9 +1099,19 @@ fn install_pair(
     settings: &CameraServerOptions,
 ) -> Result<CameraPair, CameraOutputError> {
     let session = zenoh::open(settings.zenoh.clone()).wait()?;
+    install_pair_with_session(sim, prepared, session, true)
+}
+
+fn install_pair_with_session(
+    sim: &Simulation,
+    prepared: Vec<PreparedCamera>,
+    session: Session,
+    owns_session: bool,
+) -> Result<CameraPair, CameraOutputError> {
     let mut pair = CameraPair {
         outputs: BTreeMap::new(),
         session,
+        owns_session,
     };
     let scope = CameraWriterScope::new(NonZeroUsize::new(2).expect("two cameras"));
     for prepared in prepared {
@@ -980,6 +1140,15 @@ fn install_camera(
     settings: &CameraServerOptions,
 ) -> Result<CameraRuntime, CameraOutputError> {
     let session = zenoh::open(settings.zenoh.clone()).wait()?;
+    install_camera_with_session(sim, prepared, session, true)
+}
+
+fn install_camera_with_session(
+    sim: &Simulation,
+    prepared: PreparedCamera,
+    session: Session,
+    owns_session: bool,
+) -> Result<CameraRuntime, CameraOutputError> {
     let scope = CameraWriterScope::new(NonZeroUsize::new(1).expect("one camera"));
     let output = ScheduledCameraOutput::prepare(sim, &session, &scope, prepared.config)?
         .ok_or(CameraOutputError::OwnerInvalid)?;
@@ -987,6 +1156,7 @@ fn install_camera(
         binding: prepared.binding,
         output,
         session,
+        owns_session,
     })
 }
 

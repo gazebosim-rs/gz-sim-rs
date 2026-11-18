@@ -97,67 +97,22 @@ impl Runtime {
                 }
                 None => zenoh::Config::default(),
             };
-            // The output owns a separate outgoing peer. Retain upstream
-            // connect/scouting settings without allocating a listener that could
-            // consume the world Server's configured endpoint.
-            let mut camera_config = config.clone();
-            camera_config
-                .insert_json5("listen/endpoints", "[]")
-                .map_err(|error| -> Box<dyn Error> { error })?;
+            // Camera publications use the world's existing upstream peer. A
+            // listener-only configuration must not leave a second camera peer
+            // isolated when discovery is disabled.
             let camera_options = gz_camera_output::CameraServerOptions {
                 worker_path,
                 origin: [0.0; 3],
-                zenoh: camera_config,
+                zenoh: config.clone(),
             };
-            let paired = simulation.world().iter_entities().any(|entity| {
-                entity.get::<gz_sim_scene::EntityKind>() == Some(&gz_sim_scene::EntityKind::World)
-                    && entity.contains::<gz_sim_scene::RenderingSensorsConfiguration>()
-            }) && simulation
-                .world()
-                .iter_entities()
-                .filter(|entity| entity.contains::<gz_sim_scene::CameraSensor>())
-                .take(3)
-                .count()
-                == 2;
-            let depth_pair = paired
-                && simulation
-                    .world()
-                    .iter_entities()
-                    .filter_map(|entity| entity.get::<gz_sim_scene::CameraSensor>())
-                    .all(|sensor| {
-                        sensor
-                            .0
-                            .effective_type()
-                            .is_some_and(|kind| kind.as_str() == "depth_camera")
-                    });
-            let application = if depth_pair {
-                gz_camera_output::CameraServer::new_depth_pair(
-                    simulation,
-                    world,
-                    options,
-                    config,
-                    budget,
-                    &camera_options,
-                )?
-            } else if paired {
-                gz_camera_output::CameraServer::new_pair(
-                    simulation,
-                    world,
-                    options,
-                    config,
-                    budget,
-                    &camera_options,
-                )?
-            } else {
-                gz_camera_output::CameraServer::new(
-                    simulation,
-                    world,
-                    options,
-                    config,
-                    budget,
-                    &camera_options,
-                )?
-            };
+            let application = gz_camera_output::CameraServer::new_with_server_session(
+                simulation,
+                world,
+                options,
+                config,
+                budget,
+                &camera_options,
+            )?;
             return Ok(if application.has_camera_output() {
                 Self::Camera {
                     application: Box::new(application),

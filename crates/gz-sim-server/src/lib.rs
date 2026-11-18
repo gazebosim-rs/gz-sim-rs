@@ -1940,6 +1940,15 @@ impl Server {
         &self.network_config
     }
 
+    /// Clone the world's existing upstream Zenoh session without opening a peer.
+    ///
+    /// Declarations made through this handle share the world's routing and
+    /// shutdown boundary. Closing any clone closes that same session; consumers
+    /// must retire their declarations without closing this borrowed ownership.
+    pub fn zenoh_session(&self) -> zenoh::Session {
+        self.world_io.session.clone()
+    }
+
     /// Changes local IMU acquisition without altering registrations or its phase.
     /// A committed reset failure rejects further control of the invalid run.
     pub fn set_imu_active(&mut self, id: u64, active: bool) -> Result<(), Error> {
@@ -2492,6 +2501,10 @@ impl Server {
 #[cfg(test)]
 #[path = "../tests/private/server.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/shared_session.rs"]
+mod shared_session_tests;
 
 #[cfg(test)]
 #[path = "../tests/private/pipeline_benchmark.rs"]

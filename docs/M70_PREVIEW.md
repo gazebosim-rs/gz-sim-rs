@@ -2,24 +2,42 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # M70 finite loads and distinct installed demonstrations
 
-This is Source adoption, not an available M70 release. This successor starts from
-Main `8f13dc7446be4fded424b1eba83df4c8253d0cef`, retaining Rapier f64 and TPE
-and the D33 retirement of DART and MuJoCo. M1–M69 and 202 slices are accepted;
-M65 stays public Latest with 35 installed examples. No M70 installed,
-frame, browser or runtime-fit result is claimed for this successor; its new-tree
-qualification is also pending.
+This is Source correction, not an available M70 release. This candidate starts
+from `597ac3ddccf150cc1c45a60c3c72b838f943093a`, retaining the D33 retirement
+on Main `8f13dc7446be4fded424b1eba83df4c8253d0cef`: Rapier f64 and TPE remain;
+DART and MuJoCo do not return. M1–M69 and 202 slices are accepted. M65 stays
+public Latest with 35 installed examples. No qualification or installed frame,
+browser or resource-fit result is claimed for this changed Source.
 
-Frozen `fcd5a30dc0a8431b250cf96720db27ae597a6585` passed its code,
-hosted/official, package and installation checks. Those original records and
-failed browser attempts are retained separately; they do not qualify this
-successor. Complete Source and independent review before consolidated checks
-and fresh source-bound evidence. The new generation's 41 finite entries do not
-change old 33/35 package generations or prove 41 rendered scenes.
+The parent passed its local checks, package and clean-installation audits. Its
+hosted run failed at Ubuntu snapshot HTTP 401 responses before product checks.
+The first installed paired-camera trial then failed at the first camera barrier,
+after canonical Clock and Scene reached exactly one millisecond. The old CLI
+opened a camera peer with its listener removed; the installed configuration had
+no outgoing endpoint and multicast was disabled. This candidate shares the
+world's existing upstream Zenoh session with camera output. It adds no endpoint
+guess, router, configuration knob or transport layer. Default headless execution
+and the three existing direct camera constructors retain their contracts.
+
+All parent, frozen `fcd5a30dc0a8431b250cf96720db27ae597a6585` and failed-trial
+records remain historical evidence. They do not qualify this correction.
+Complete the bounded implementation, regressions, guides and independent review
+before one consolidated normal/coverage pass and fresh distribution/runtime
+proof. Reuse unchanged evidence only where its exact bindings permit it; the
+changed package requires a fresh ordinary Ubuntu installation and GPU profile.
+Keep the old package and provisioned container intact. The generation's 41 finite
+entries do not change the old 33/35 package generations or prove 41 rendered scenes.
 
 Live browser acceptance remains held for explicit approval to access
 `http://127.0.0.1:8082` and its launcher-generated URLs after the retained automatic
 approval rejections. No browser retry or alternative surface is released by these
 instructions; numeric camera and shutdown proofs remain separately required.
+
+The first correction normal stopped at an auxiliary registry mismatch: all 15
+CLI camera cases passed, while the strict registry still expected 14. Clippy and
+466 Python checks passed; full headless/renderer coverage was not reached. Its
+failed tree and logs remain preserved. The bounded registry correction needs
+independent review and one consolidated full retry before fresh package proof.
 
 ## Finite load/step inventory
 
@@ -89,8 +107,11 @@ Capture actual forward/turn, Play/Pause/Reset and clean owned shutdown. The six
 accepted viewer files are unchanged; the canvas/AX is not a numeric camera-depth
 witness.
 
-Stop the default launcher and verify owned listener retirement before starting
-`run --example m69_two_depth_cameras.sdf --camera-output` on supported free ports.
+The numeric camera proof can precede the browser demonstration after fresh
+package and clean-installation DATA. Stop each owned launcher and verify listener
+retirement before starting another world; the camera proof uses one ordinary
+web-control peer and cannot share that connection with a concurrent browser.
+Use `run --example m69_two_depth_cameras.sdf --camera-output` on supported free ports.
 Do not combine `--camera-output` with `--lifecycle`, supply a worker path, or
 borrow an unrelated listener. The explicit camera mode uses the manifest-derived
 worker and one ordinary OS lavapipe ICD with an allowed absolute LVP path or
