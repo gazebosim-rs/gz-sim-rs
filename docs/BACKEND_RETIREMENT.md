@@ -53,3 +53,13 @@ implementers must now supply those four methods; this source interface change is
 intentional. The existing scheduling test recorder retains its original explicit
 unsupported behavior. No coverage exclusion or threshold changes accompany this
 cleanup.
+
+
+The retirement was published to Main at
+`8f13dc7446be4fded424b1eba83df4c8253d0cef` after its complete normal hook,
+strict coverage, independent local audit, exact review CI
+[44248938975](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44248938975)
+attempt 1 and independent hosted audits with durable originals. The preceding
+candidate description records the historical separation from M70. M70 resumes in
+a new isolated successor on that Main; it must keep the retirement and qualify
+its own package/runtime changes before publication or phase acceptance.

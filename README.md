@@ -1,3 +1,26 @@
+## Current development: M70 on the retained-backend Main
+
+D33 is complete on Main `8f13dc7446be4fded424b1eba83df4c8253d0cef`.
+DART and MuJoCo adapters, dependencies and dedicated jobs are retired; Rapier f64
+and TPE remain. Cancelled backend work is not counted as completed.
+
+M70 now carries the installed camera preview into an isolated successor on that
+Main. Its four Python implementation/regression leaves are unchanged from frozen
+`fcd5a30dc0a8431b250cf96720db27ae597a6585`; the new parent keeps the full D33
+retirement. Four manifest-bound ELFs, 41 finite examples, optional camera output,
+the native-free default robot and the six accepted viewer files remain the scope.
+No Rust, dependency, renderer or protocol change is selected.
+
+Complete independent Source review before one consolidated normal/strict coverage
+cycle. Same-head hosted CI and independent audits precede source publication;
+fresh source-bound release/package/install and actual robot/camera evidence
+precede M70 acceptance. Old fcd5 results retain their historical scope and do not
+qualify this successor. Browser access to `http://127.0.0.1:8082` still needs the
+explicit owner approval required by automatic review; no browser retry is released.
+M1–M69 and 202 slices remain accepted. M65 remains Latest with 35 examples.
+
+Earlier checkpoints below retain their historical scope.
+
 ## Current owner priority: D33 backend retirement
 
 The owner cancelled DART and MuJoCo on 2026-11-17. Retain Rapier f64 and TPE;

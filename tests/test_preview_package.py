@@ -986,5 +986,347 @@ class PreviewPackage(unittest.TestCase):
 
 
 
+
+import copy
+
+
+class M70PreviewPackage(unittest.TestCase):
+    """Synthetic role/graph controls, separate from actual installation proof."""
+    binary_record = PreviewPackage.binary_record
+    refuse = PreviewPackage.refuse
+
+    def setUp(self):
+        PreviewPackage.setUp(self)
+        for generation in ('M65', 'M70'):
+            for kind in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+                name = generation + '_' + kind + '.md'
+                shutil.copyfile(ROOT / 'docs' / name, self.source / 'docs' / name)
+        for name in package.M65_FLEET_EXAMPLES + package.M70_CAMERA_EXAMPLES:
+            shutil.copyfile(ROOT / 'examples' / name, self.source / 'examples' / name)
+        self.spec['guide_generation'] = 'M70'
+        self.role_events = dict(zip(('simulator', 'drive_command', 'joint_command'),
+                                    copy.deepcopy(self.artifacts)))
+        worker = self.directory / 'gz-render-worker'
+        worker.write_bytes(self.binaries['gz-sim-rs'].read_bytes() + b'worker fixture')
+        worker.chmod(0o755)
+        self.binaries['gz-render-worker'] = worker
+        worker_root = self.source / 'crates/gz-render-worker'
+        worker_root.mkdir(parents=True)
+        (worker_root / 'Cargo.toml').write_text('fixture')
+        identity = 'path+file://' + str(worker_root) + '#0.1.0'
+        self.role_events['camera_worker'] = {
+            'reason': 'compiler-artifact', 'executable': str(worker),
+            'package_id': identity, 'target': {}, 'features': [],
+            'profile': {'test': False, 'opt_level': '3'}}
+        for role, event in self.role_events.items():
+            definition = package.M70_BINARY_ROLES[role]
+            kind, source = package.M70_ROLE_SOURCES[role]
+            path = self.source / source
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('source-bound target ' + role)
+            event['features'] = list(definition['features'])
+            event['target'] = {'name': definition['target'], 'kind': [kind],
+                               'crate_types': ['bin'], 'src_path': str(path)}
+        metadata = self.directory / 'worker-metadata.json'
+        metadata.write_text(json.dumps({'workspace_root': str(self.source), 'packages': [
+            {'id': identity, 'name': 'gz-render-worker', 'version': '0.1.0', 'source': None,
+             'license': 'Apache-2.0', 'manifest_path': str(worker_root / 'Cargo.toml')}]}))
+        self.spec['cargo_metadata'].insert(1, {
+            'path': str(metadata), 'sha256': sha(metadata), 'repository': 'gz-sim-rs',
+            'commit': 'a' * 40, 'configuration': 'worker', 'selected_package_ids': [identity]})
+        self.extra_events = {role: [] for role in self.role_events}
+        self.refresh_m70_transcripts()
+
+    def refresh_m70_transcripts(self):
+        for role, event in self.role_events.items():
+            path = self.directory / (role + '-cargo.jsonl')
+            path.write_text(''.join(json.dumps(row) + '\n' for row in
+                                    [event, *self.extra_events[role],
+                                     {'reason': 'build-finished', 'success': True}]))
+            original = self.binaries[package.M70_BINARY_ROLES[role]['target']]
+            self.spec[role] = {'path': str(original), 'sha256': sha(original),
+                               'cargo_messages': str(path), 'cargo_messages_sha256': sha(path)}
+
+    def metadata_record(self, configuration):
+        return next(r for r in self.spec['cargo_metadata'] if r['configuration'] == configuration)
+
+    def write_metadata(self, record, document):
+        path = Path(record['path'])
+        path.write_text(json.dumps(document))
+        record['sha256'] = sha(path)
+
+    def test_m70_generation_preserves_legacy_registry_and_selects_exact_41_camera_files(self):
+        self.assertEqual(len(package.NOISY_EXAMPLES), 33)
+        self.assertEqual(package.M65_FLEET_EXAMPLES,
+                         ('m61_eight_diff_drives.sdf', 'm62_eight_joint_controllers.sdf'))
+        self.assertEqual(package.M70_CAMERA_EXAMPLES,
+                         ('m63_two_rgb_cameras.sdf', 'm64_rgb_cylinder.sdf',
+                          'm66_rgb_sphere.sdf', 'm67_rgb_ellipsoid.sdf',
+                          'm68_depth_primitives.sdf', 'm69_two_depth_cameras.sdf'))
+        selected = package.NOISY_EXAMPLES + package.M65_FLEET_EXAMPLES + package.M70_CAMERA_EXAMPLES
+        self.assertEqual(len(selected), 41)
+        self.assertEqual(len(set(selected)), 41)
+        canonical = copy.deepcopy(self.spec)
+        for generation, count in (('M44', 33), ('M60', 33), ('M65', 35)):
+            self.role_events['simulator']['features'] = []
+            self.refresh_m70_transcripts()
+            self.spec['guide_generation'] = generation
+            self.spec['cargo_metadata'] = [r for r in canonical['cargo_metadata']
+                                           if r['configuration'] != 'worker']
+            prefix = self.directory / ('legacy-camera-test-' + generation)
+            manifest = package.assemble(self.spec, prefix)
+            self.assertNotIn('binary_roles', manifest)
+            self.assertEqual(manifest['profile'], 'release; no-default-features; no rgb-camera')
+            self.assertNotIn('bin/gz-render-worker', manifest['files'])
+            expected = package.NOISY_EXAMPLES + (package.M65_FLEET_EXAMPLES if count == 35 else ())
+            self.assertEqual({n for n in manifest['files'] if n.startswith('share/examples/') and n.endswith('.sdf')},
+                             {'share/examples/' + n for n in expected})
+            for kind in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+                self.assertEqual((prefix / (kind + '.md')).read_bytes(),
+                                 (self.source / 'docs' / (generation + '_' + kind + '.md')).read_bytes())
+        self.spec = canonical
+        self.role_events['simulator']['features'] = ['rgb-camera']
+        self.refresh_m70_transcripts()
+        manifest = package.assemble(self.spec, self.output)
+        self.assertEqual(manifest['binary_roles'], package.M70_BINARY_ROLES)
+        self.assertEqual(manifest['profile'], package.M70_PROFILE)
+        self.assertEqual({n for n in manifest['files'] if n.startswith('share/examples/') and n.endswith('.sdf')},
+                         {'share/examples/' + n for n in selected})
+
+    def test_m70_four_role_elf_features_source_and_terminal_build_receipts_are_closed(self):
+        originals = copy.deepcopy(self.role_events)
+        faults = [('simulator', ('features',), []),
+                  ('simulator', ('features',), ['rgb-camera', 'native-backends']),
+                  ('drive_command', ('features',), ['rgb-camera']),
+                  ('camera_worker', ('features',), ['gpu']),
+                  ('drive_command', ('target', 'kind'), ['bin']),
+                  ('camera_worker', ('target', 'kind'), ['example']),
+                  ('simulator', ('target', 'crate_types'), ['lib']),
+                  ('joint_command', ('target', 'src_path'), str(self.source / 'elsewhere.rs')),
+                  ('camera_worker', ('target', 'name'), 'gz-sim-rs'),
+                  ('simulator', ('profile', 'test'), True),
+                  ('camera_worker', ('profile', 'opt_level'), '2'),
+                  ('camera_worker', ('package_id',), 'registry+wrong#unrelated@1.0.0')]
+        for role, keys, value in faults:
+            with self.subTest(role=role, keys=keys, value=value):
+                self.role_events = copy.deepcopy(originals)
+                target = self.role_events[role]
+                for key in keys[:-1]:
+                    target = target[key]
+                target[keys[-1]] = value
+                self.refresh_m70_transcripts()
+                self.refuse('role|artifact|target')
+        self.role_events = copy.deepcopy(originals)
+        for role in self.role_events:
+            self.extra_events[role] = [copy.deepcopy(self.role_events[role])]
+            self.refresh_m70_transcripts()
+            self.refuse('exactly one Cargo artifact')
+            self.extra_events[role] = []
+        for ending in ([{'reason': 'build-finished', 'success': False}],
+                       [{'reason': 'build-finished', 'success': True}, {'reason': 'build-finished', 'success': True}],
+                       [{'reason': 'build-finished', 'success': True}, {'reason': 'compiler-message'}]):
+            self.refresh_m70_transcripts()
+            record = self.spec['camera_worker']
+            path = Path(record['cargo_messages'])
+            path.write_text(''.join(json.dumps(x) + '\n' for x in
+                                    [self.role_events['camera_worker'], *ending]))
+            record['cargo_messages_sha256'] = sha(path)
+            self.refuse('terminal successful build-finished')
+        self.refresh_m70_transcripts()
+        worker = self.binaries['gz-render-worker']
+        original = worker.read_bytes()
+        wrong = bytearray(original)
+        struct.pack_into('<H', wrong, 18, 183)
+        worker.write_bytes(wrong)
+        self.spec['camera_worker']['sha256'] = sha(worker)
+        self.refuse('ELF')
+        worker.write_bytes(original)
+        worker.chmod(0o644)
+        self.refresh_m70_transcripts()
+        self.refuse('ELF')
+        worker.chmod(0o755)
+        outside = self.directory / 'outside-worker'
+        outside.write_bytes(original)
+        outside.chmod(0o755)
+        worker.unlink()
+        worker.symlink_to(outside)
+        self.refuse('regular')
+        worker.unlink()
+        with worker.open('wb') as stream:
+            stream.truncate(package.MAX_FILE + 1)
+        self.refuse('file bound')
+        worker.write_bytes(original)
+        worker.chmod(0o755)
+        self.refresh_m70_transcripts()
+        self.spec.pop('camera_worker')
+        self.refuse('four release artifact roles')
+
+    def test_m70_native_worker_and_two_viewer_graphs_cannot_substitute_compiled_units(self):
+        original_spec = copy.deepcopy(self.spec)
+        originals = {r['path']: Path(r['path']).read_bytes() for r in self.spec['cargo_metadata']}
+        for fault in ('missing-worker', 'duplicate-worker', 'unknown-label',
+                      'native-only-in-worker', 'worker-only-in-native', 'worker-notice-gap', 'native-gpu'):
+            with self.subTest(fault=fault):
+                self.spec = copy.deepcopy(original_spec)
+                for path, body in originals.items():
+                    Path(path).write_bytes(body)
+                self.extra_events = {role: [] for role in self.role_events}
+                native = self.metadata_record('native')
+                worker = self.metadata_record('worker')
+                nd = json.loads(Path(native['path']).read_text())
+                wd = json.loads(Path(worker['path']).read_text())
+                if fault == 'missing-worker':
+                    self.spec['cargo_metadata'].remove(worker)
+                elif fault == 'duplicate-worker':
+                    self.spec['cargo_metadata'].append(copy.deepcopy(worker))
+                elif fault == 'unknown-label':
+                    worker['configuration'] = 'worker-fallback'
+                elif fault == 'native-only-in-worker':
+                    identity = native['selected_package_ids'].pop(0)
+                    worker['selected_package_ids'].append(identity)
+                    wd['packages'].append(next(p for p in nd['packages'] if p['id'] == identity))
+                    self.write_metadata(worker, wd)
+                elif fault == 'worker-only-in-native':
+                    identity = worker['selected_package_ids'].pop(0)
+                    replacement = copy.deepcopy(wd['packages'][0])
+                    replacement['id'] += '-other'
+                    wd['packages'].append(replacement)
+                    worker['selected_package_ids'].append(replacement['id'])
+                    native['selected_package_ids'].append(identity)
+                    nd['packages'].append(wd['packages'][0])
+                    self.write_metadata(worker, wd)
+                    self.write_metadata(native, nd)
+                elif fault == 'worker-notice-gap':
+                    wd['packages'][0]['license'] = 'LicenseRef-no-available-body'
+                    self.write_metadata(worker, wd)
+                else:
+                    event = copy.deepcopy(self.role_events['camera_worker'])
+                    event['executable'] = None
+                    self.extra_events['simulator'] = [event]
+                    native['selected_package_ids'].append(event['package_id'])
+                    nd['packages'].append(wd['packages'][0])
+                    self.write_metadata(native, nd)
+                self.refresh_m70_transcripts()
+                with self.assertRaises(ValueError):
+                    package.assemble(self.spec, self.output)
+                self.assertFalse(self.output.exists())
+                self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+
+    def test_m70_camera_payload_guides_archive_and_relocation_remain_byte_bound(self):
+        archive = self.directory / 'm70.tar.gz'
+        manifest = package.assemble(self.spec, self.output, archive)
+        moved = self.directory / 'relocated camera prefix'
+        shutil.move(self.output, moved)
+        self.assertEqual(runtime.verify_prefix(moved), manifest)
+        selected = package.NOISY_EXAMPLES + package.M65_FLEET_EXAMPLES + package.M70_CAMERA_EXAMPLES
+        with tarfile.open(archive, 'r:gz') as packed:
+            for name in selected:
+                relative = 'share/examples/' + name
+                expected = (self.source / 'examples' / name).read_bytes()
+                self.assertEqual((moved / relative).read_bytes(), expected)
+                self.assertEqual(packed.extractfile('preview-v1/' + relative).read(), expected)
+                self.assertEqual(manifest['files'][relative]['mode'], 0o644)
+            for role, definition in package.M70_BINARY_ROLES.items():
+                relative = definition['path']
+                self.assertEqual((moved / relative).read_bytes(), Path(self.spec[role]['path']).read_bytes())
+                self.assertEqual(manifest['files'][relative]['mode'], 0o755)
+        self.assertEqual((moved / 'share/robot.sdf').read_bytes(),
+                         (self.source / 'examples/m19_robot.sdf').read_bytes())
+        self.assertEqual((moved / 'share/meshes/m16-asymmetric.obj').read_bytes(),
+                         (moved / 'share/examples/meshes/m16-asymmetric.obj').read_bytes())
+        self.assertEqual(len(manifest['viewer_gzip_bytes']), 2)
+        self.assertTrue(all(n <= 14_000_000 for n in manifest['viewer_gzip_bytes'].values()))
+        inputs = [self.source / 'examples' / n for n in package.M70_CAMERA_EXAMPLES]
+        inputs += [self.source / 'docs' / ('M70_' + k + '.md') for k in ('INSTALL', 'CAPABILITIES', 'PREVIEW')]
+        for path in inputs:
+            original = path.read_bytes()
+            for fault in ('missing', 'linked', 'oversized'):
+                with self.subTest(path=path.name, fault=fault):
+                    path.unlink()
+                    outside = self.directory / 'outside-m70-input'
+                    if fault == 'linked':
+                        outside.write_bytes(original)
+                        path.symlink_to(outside)
+                    elif fault == 'oversized':
+                        path.write_bytes(b'x' * (package.MAX_EXAMPLE + 1))
+                    try:
+                        self.refuse('regular|bound')
+                    finally:
+                        if path.exists() or path.is_symlink():
+                            path.unlink()
+                        path.write_bytes(original)
+                        outside.unlink(missing_ok=True)
+        for value in ('m70', '../M70', 'M70_INSTALL.md'):
+            self.spec['guide_generation'] = value
+            self.refuse('guide_generation')
+        self.spec['guide_generation'] = 'M70'
+        docs = self.source / 'docs'
+        saved = self.source / 'ordinary-docs'
+        docs.rename(saved)
+        docs.symlink_to(saved, target_is_directory=True)
+        try:
+            self.refuse('linked directories')
+        finally:
+            docs.unlink()
+            saved.rename(docs)
+
+    def test_m70_manifest_worker_role_cannot_be_missing_swapped_or_rehashed_as_cli(self):
+        manifest = package.assemble(self.spec, self.output)
+        worker = self.output / 'bin/gz-render-worker'
+        body = worker.read_bytes()
+        for fault in ('missing', 'edited', 'mode'):
+            with self.subTest(fault=fault):
+                worker.unlink()
+                if fault != 'missing':
+                    worker.write_bytes(body + (b'x' if fault == 'edited' else b''))
+                    worker.chmod(0o600 if fault == 'mode' else 0o755)
+                try:
+                    with self.assertRaises(ValueError):
+                        runtime.verify_prefix(self.output)
+                finally:
+                    worker.unlink(missing_ok=True)
+                    worker.write_bytes(body)
+                    worker.chmod(0o755)
+        for field, value in (('path', 'bin/gz-sim-rs'), ('path', '../outside-worker'),
+                             ('features', ['gpu']), ('target', 'gz-sim-rs')):
+            changed = copy.deepcopy(manifest)
+            changed['binary_roles']['camera_worker'][field] = value
+            (self.output / 'manifest.json').write_text(json.dumps(changed))
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                runtime.verify_prefix(self.output)
+        (self.output / 'manifest.json').write_text(json.dumps(manifest))
+        self.assertEqual(runtime.verify_prefix(self.output), manifest)
+        changed = copy.deepcopy(manifest)
+        worker.chmod(0o644)
+        changed['files']['bin/gz-render-worker']['mode'] = 0o644
+        (self.output / 'manifest.json').write_text(json.dumps(changed))
+        with self.assertRaises(ValueError):
+            runtime.verify_prefix(self.output)
+
+    def test_m70_guides_bind_opt_in_camera_commands_scope_and_all_41_finite_loads(self):
+        install = (ROOT / 'docs/M70_INSTALL.md').read_text()
+        capabilities = (ROOT / 'docs/M70_CAPABILITIES.md').read_text()
+        preview = (ROOT / 'docs/M70_PREVIEW.md').read_text()
+        for name in package.NOISY_EXAMPLES + package.M65_FLEET_EXAMPLES + package.M70_CAMERA_EXAMPLES:
+            self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name +
+                          '" --iterations 2 --step-ns 1000000', preview)
+        self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 41)
+        for name in ('m69_two_depth_cameras.sdf', 'm67_rgb_ellipsoid.sdf'):
+            self.assertIn('run --example ' + name +
+                          ' --http-port 8082 --ws-port 9014 --camera-output', install)
+        self.assertIn('run --http-port 8082 --ws-port 9014 --lifecycle', install)
+        self.assertIn('Do not combine it with `--lifecycle`', install)
+        self.assertIn('this flag takes no worker-path argument', install)
+        self.assertIn('same `GZ_PARTITION`', install)
+        self.assertIn('tcp/127.0.0.1:7449', install)
+        self.assertIn('M65 remains public Latest with 35 installed examples', install)
+        self.assertIn('No M70 installed,', install)
+        self.assertIn('native-free behavior', capabilities)
+        self.assertIn('LOCAL PROVISIONAL', capabilities)
+        self.assertIn('8 GiB RAM, 512 PIDs, four CPUs', capabilities)
+        self.assertIn('not measured', capabilities)
+        self.assertIn('No raw package IDs', capabilities)
+        self.assertIn('no new depth browser panel', preview)
+
 if __name__ == '__main__':
     unittest.main()

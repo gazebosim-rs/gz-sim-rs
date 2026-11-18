@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-17T12:45:30.624033+00:00",
+  "as_of": "2026-11-18T15:58:49.570683+00:00",
   "execution_state": "active",
-  "current_phase": "M69",
+  "current_phase": "M70",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -3355,6 +3355,51 @@
         "gz-sim-rs": "d19d5a69b94ed959bf1348665783996a531a3c36",
         "gzweb-rs": "c40418cd85e21db2bd0271919c90eda0c1184ece"
       }
+    },
+    {
+      "id": "M70",
+      "title": "Installed camera worker preview with41 finite examples",
+      "max_working_days": 5,
+      "depends_on": [
+        "M69"
+      ],
+      "scope": "One Ubuntu24.04 x86_64 four-ELF preview generation, optional explicit packaged software camera worker and41 finite examples, preserving native-free default robot and exact accepted viewer.",
+      "acceptance": "Complete implementation/regression Source/guides and whole independent review; accepted M69 parent; one consolidated normal/strict/local DATA, exact hosted/official/durable/Main, source-bound releases/notices/assembly/package DATA, clean supported install/41 finite loads, full paired-depth/numeric/laziness/cadence/reset/retirement proof, RGB smoke/default robot browser, independent installation/runtime DATA and release readback.",
+      "excluded": "New renderer/protocol/transport/physics/dependencies/SDK framework, depth UI/RGBD/noise/point cloud, GPU hardware/native parity, old generation changes.",
+      "evidence": "docs/M70_DELIVERY.md",
+      "source_preparation_basis_commit": "8f13dc7446be4fded424b1eba83df4c8253d0cef",
+      "source_preparation_basis_accepted": true,
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_began_before_parent_acceptance": false,
+      "source_preparation_started_at": "2026-11-18T15:58:49.570683+00:00",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": false,
+      "accepted": false,
+      "checks_run": false,
+      "current_stage": "Adopting the unchanged frozen M70 package/launcher implementation and regressions onto D33 Main. Independent source review precedes one consolidated required verification; old results do not transfer.",
+      "installed_accepted_examples": 35,
+      "source_finite_example_obligations": 41,
+      "predecessor_acceptance_required_before_checks": true,
+      "accepted_predecessor_commit": "8f13dc7446be4fded424b1eba83df4c8253d0cef",
+      "actual_predecessor_acceptance": "artifacts/backend-retirement/retirement-completion.json",
+      "qualification_state": "retained_backend_successor_source_review",
+      "optional_camera_resources": "Proposed/unmeasured8GiB/512PIDs/4CPUs/512MiBlayer+128MiBmargin; actualfitunknown/failclosed",
+      "normal_passed": false,
+      "local_DATA_passed": false,
+      "hosted_success": false,
+      "accepted_parent_adoption_recorded_at": "2026-11-18T15:58:49.570683+00:00",
+      "previous_candidate": {
+        "commit": "fcd5a30dc0a8431b250cf96720db27ae597a6585",
+        "state": "FROZEN_HISTORICAL_CODE_PACKAGE_INSTALL_PROOFS_NO_TRANSFER",
+        "hosted_run": 44221877589,
+        "hosted_attempt": 1,
+        "hosted_state": "success",
+        "browser_complete_qualification": false,
+        "browser_origin_approval_pending": true,
+        "accepted_parent_adoption_recorded_at": "2026-11-17T15:59:27.413616+00:00"
+      },
+      "bounded_correction": "Carry the unchanged frozen M70 package/launcher and regression changes onto D33 Main, preserving D33 backend retirement and strict camera-provider/cache/cleanup rules and all package/install/robot/camera acceptance gates. No old qualification transfers."
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -3427,11 +3472,14 @@
     "M66": "complete",
     "M67": "complete",
     "M68": "complete",
-    "M69": "complete"
+    "M69": "complete",
+    "M70": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-17T04:22:13.840777+00:00",
-  "active_phases": [],
+  "phase_started_at": "2026-11-18T15:58:49.570683+00:00",
+  "active_phases": [
+    "M70"
+  ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
     {
@@ -3775,28 +3823,32 @@
       "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M69 and 202 slices are accepted at Main d19d5a69. D33 cancels DART/MuJoCo product scope; its independent accepted-parent removal candidate is unqualified until review and mandatory checks pass. Frozen M70 is separate and unaccepted, with browser-origin approval pending. M65 remains Latest with35 examples.",
-  "current_delivery_group": [],
-  "current_development_phase": "M69",
+  "acceptance_boundary": "M1\u2013M69 and 202 reviewed slices remain accepted; D33 retirement is published on Main 8f13dc7. This isolated M70 successor is unqualified and unaccepted. Historical fcd5 code/package/install proofs do not transfer. Browser-origin approval remains pending; M65 Latest has 35 installed examples.",
+  "current_delivery_group": [
+    "M70"
+  ],
+  "current_development_phase": "M70",
   "board": {
-    "updated_at": "2026-11-18T04:27:56.140522+00:00",
+    "updated_at": "2026-11-18T15:58:49.570683+00:00",
     "current": {
-      "title": "Retiring DART and MuJoCo",
+      "title": "Integrating the installed camera preview on the new Main",
       "items": [
-        "Owner D33 cancels both product backends; Rapier f64 and TPE remain.",
-        "The separate removal candidate starts from accepted Main and preserves all remaining quality gates."
+        "DART and MuJoCo retirement is complete; Rapier f64 and TPE remain.",
+        "M70 implementation and regressions are being reviewed on Main with those backends removed.",
+        "Old M70 results stay historical; this successor needs its own required checks."
       ]
     },
     "done": [
-      "M1\u2013M69 and202 reviewed slices accepted; M65 Latest35 unchanged.",
-      "DART/MuJoCo remaining scope cancelled, not completed."
+      "M1\u2013M69 and 202 slices are accepted; M65 remains Latest with 35 examples.",
+      "D33 passed local and exact hosted verification, independent audits and Main publication."
     ],
     "next": [
-      "Complete independent Source review and the one consolidated required verification cycle."
+      "Finish independent source review, then run the consolidated required verification.",
+      "After browser approval and fresh package/install evidence, finish robot and camera acceptance."
     ],
     "blocker": {
-      "text": "M70 browser access needs explicit approval; D33 can proceed independently.",
-      "url": "https://github.com/gazebosim-rs/gz-sim-rs/tree/review/m70-system-lvp-basename"
+      "text": "M70 live browser access to http://127.0.0.1:8082 needs explicit approval; source integration can proceed.",
+      "url": "https://github.com/gazebosim-rs/gz-sim-rs/commit/8f13dc7446be4fded424b1eba83df4c8253d0cef"
     }
   },
   "parallel_source_phases": [],
@@ -3938,16 +3990,20 @@
       "PHY-03",
       "PHY-04"
     ],
-    "retirement_implementation": "in_progress",
+    "retirement_implementation": "complete",
     "historical_evidence_preserved": true,
     "remaining_quality_gates_unchanged": true,
-    "contract": "docs/BACKEND_RETIREMENT.md"
+    "contract": "docs/BACKEND_RETIREMENT.md",
+    "Main_commit": "8f13dc7446be4fded424b1eba83df4c8253d0cef",
+    "hosted_run": 44248938975,
+    "hosted_attempt": 1,
+    "hosted_success": true
   },
-  "current_development_task": "D33RETIREBACKENDS",
+  "current_development_task": "M70_RETAINED_BACKEND_PREVIEW",
   "held_work": {
     "phase": "M70",
     "source_commit": "fcd5a30dc0a8431b250cf96720db27ae597a6585",
-    "reason": "Explicit approval to open http://127.0.0.1:8082 remains pending after automatic approval rejection.",
+    "reason": "The old fcd5 candidate remains frozen; explicit approval to open http://127.0.0.1:8082 is still pending.",
     "accepted": false,
     "included_in_this_candidate": false
   }
