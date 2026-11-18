@@ -1,5 +1,67 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
+## Current M70 correction: ordinary system lavapipe basename
+
+This isolated candidate has accepted M69 parent `d19d5a69` and carries the exact
+tracked d0ba cache/custody implementation before its own changes. Preserve the
+frozen d0ba tree, its genuine code/package/default-robot evidence, camera profile
+failure and stopped ICD diagnostic. The actual Ubuntu ICD uses the legitimate
+basename `libvulkan_lvp.so`; the previous absolute-only admission refused it.
+
+The bounded correction supports only that exact basename through the fixed
+system library directories, with unique canonical regular-provider admission
+and usrmerge deduplication. Absolute paths and all override, cleanup, resource,
+viewer, Rust, Cargo, SDK and protocol boundaries remain unchanged. Finish Source,
+meaningful regressions, guides and independent review before Root's consolidated
+required normal/coverage/hosted gates. No check or runtime result is claimed for
+this successor. External proof procedures must match the same admission rule;
+actual OS ownership, mappings, frames and resource fit remain required. Preserve
+Fuel work and all historical failures; Root serializes operations.
+
+## Prior M70 cache/custody Source checkpoint (frozen d0ba)
+
+M1–M69 and 202 reviewed slices are accepted at Main
+`d19d5a69b94ed959bf1348665783996a531a3c36`. M69 passed its full normal,
+strict coverage, independent local DATA, [exact hosted CI](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44109413456)
+attempt 1, durable-original collection, official DATA and Main readback.
+Its [acceptance record](docs/M69_ACCEPTANCE.md) preserves both failed normal attempts.
+M65 remains public Latest with 35 installed examples.
+
+[M70](docs/M70_DELIVERY.md) is the selected installed Ubuntu 24.04 x86_64 camera preview.
+It packages the existing renderer worker as a fourth verified ELF, retains the
+native-free helpers and default robot path, and copies all 41 maintained finite
+examples. Camera output is explicit through `gz-preview run --camera-output`;
+the launcher uses the manifest-bound worker and an ordinary OS lavapipe provider.
+It refuses conflicting loader/graphics overrides and lifecycle editing in that
+mode. Six accepted viewer files and both 14 MB gzip budgets stay unchanged.
+
+The preceding M70 candidate `916e8738` passed its code, package and clean
+installation audits, including all 41 finite installed loads. Its browser
+attempts remain retained separately: a cached decoder failure, an asset-evidence
+refusal, then actual forward/turn/Pause/Reset and guest shutdown followed by an
+outer controller exit 143 before the final result. The termination cause and
+Docker wait remain unknown; those observations are not complete qualification.
+
+This corrected candidate gives every launcher invocation a fresh viewer asset
+directory, while serving the same six accepted files with no-store responses
+and no conditional 304. The separate qualification supervisor must retain the
+actual controller wait even if its caller disappears. These are bounded delivery
+corrections; Rust, renderer, physics, protocol, CLI flags and the camera criteria
+stay unchanged. Complete joined Source and procedure review before one new full
+normal/strict/local DATA cycle. No result for this corrected candidate is
+claimed, and no earlier candidate's qualification transfers to it.
+
+Then require exact hosted success, durable originals and official DATA, followed
+by source-bound four-role release inputs, notices/ELF closure, assembly/relocation
+and independent package DATA. A clean supported installation must verify all 41
+finite loads separately from the actual paired-depth, RGB smoke and default robot
+browser proofs. Those demonstrations require ordinary installed provider/resource
+observations, real controls and owned shutdown; 41 finite loads do not prove
+camera frames. M70 acceptance and public release remain held until every required
+gate passes. Preserve old generations, accepted Source, all failures and Fuel.
+
+Earlier checkpoints below retain their historical scope.
+
 ## Current development: M69 two calibrated depth cameras
 
 M1–M68 and 201 reviewed slices are accepted at Main

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Open Source Robotics Foundation
 # SPDX-License-Identifier: Apache-2.0
-"""Assemble a source-bound Linux preview; M44 defaults and explicit M60/M65 guides."""
+"""Assemble a source-bound Linux preview; M44 defaults and explicit M60/M65/M70 guides."""
 import argparse
 import gzip
 import hashlib
@@ -52,6 +52,28 @@ NOISY_EXAMPLES = (
     'm59_multiple_diff_drives.sdf',
 )
 M65_FLEET_EXAMPLES = ('m61_eight_diff_drives.sdf', 'm62_eight_joint_controllers.sdf')
+M70_CAMERA_EXAMPLES = (
+    'm63_two_rgb_cameras.sdf', 'm64_rgb_cylinder.sdf', 'm66_rgb_sphere.sdf',
+    'm67_rgb_ellipsoid.sdf', 'm68_depth_primitives.sdf', 'm69_two_depth_cameras.sdf',
+)
+M70_PROFILE = ('release; no-default-features; simulator rgb-camera; helpers native-free; '
+               'optional packaged GPU worker')
+M70_BINARY_ROLES = {
+    'simulator': {'path': 'bin/gz-sim-rs', 'package': 'gz-sim-cli',
+                  'target': 'gz-sim-rs', 'features': ['rgb-camera']},
+    'drive_command': {'path': 'bin/gz-drive-command', 'package': 'gz-sim-server',
+                      'target': 'drive_command', 'features': []},
+    'joint_command': {'path': 'bin/gz-joint-command', 'package': 'gz-sim-server',
+                      'target': 'joint_command', 'features': []},
+    'camera_worker': {'path': 'bin/gz-render-worker', 'package': 'gz-render-worker',
+                      'target': 'gz-render-worker', 'features': []},
+}
+M70_ROLE_SOURCES = {
+    'simulator': ('bin', 'crates/gz-sim-cli/src/main.rs'),
+    'drive_command': ('example', 'crates/gz-sim-server/examples/drive_command.rs'),
+    'joint_command': ('example', 'crates/gz-sim-server/examples/joint_command.rs'),
+    'camera_worker': ('bin', 'crates/gz-render-worker/src/main.rs'),
+}
 
 
 def regular(path, maximum=MAX_FILE):
@@ -80,7 +102,8 @@ def json_file(path):
     return json.loads(path.read_text())
 
 
-def binary_input(record, target, package):
+def binary_input(record, target, package, *, expected_features=(), expected_kind=None,
+                 expected_source=None):
     path = bound_file(record['path'], record['sha256'])
     with path.open('rb') as stream:
         header = stream.read(64)
@@ -110,10 +133,16 @@ def binary_input(record, target, package):
         raise ValueError('the selected binary must have exactly one Cargo artifact record')
     event = matching[0]
     if (not ('#' + package + '@' in event['package_id'] or '/' + package + '#' in event['package_id'])
-            or event.get('features') != []
+            or event.get('features') != list(expected_features)
             or event.get('profile', {}).get('test') is not False
             or event.get('profile', {}).get('opt_level') != '3'):
-        raise ValueError('a native-free, GPU-free release artifact is required')
+        raise ValueError('a native-free, GPU-free release artifact is required'
+                         if expected_kind is None else 'M70 release artifact role differs')
+    if expected_kind is not None:
+        if (event.get('target', {}).get('kind') != [expected_kind]
+                or event['target'].get('crate_types') != ['bin']
+                or event['target'].get('src_path') != str(ROOT / expected_source)):
+            raise ValueError('M70 Cargo target kind or source differs from its role')
     return path, {event['package_id'] for event in artifacts}
 
 
@@ -169,23 +198,41 @@ def assemble(spec, output, archive=None):
     if spec.get('schema_version') != 1 or spec.get('target') != 'ubuntu-24.04-x86_64':
         raise ValueError('only the admitted Ubuntu 24.04 x86_64 package is supported')
     generation = spec.get('guide_generation', 'M44')
-    if type(generation) is not str or generation not in ('M44', 'M60', 'M65'):
-        raise ValueError('guide_generation must be M44, M60 or M65')
+    if type(generation) is not str or generation not in ('M44', 'M60', 'M65', 'M70'):
+        raise ValueError('guide_generation must be M44, M60, M65 or M70')
     guide_sources = {
         'M44': ('M44_INSTALL.md', 'M44_CAPABILITIES.md', 'M44_PREVIEW.md'),
         'M60': ('M60_INSTALL.md', 'M60_CAPABILITIES.md', 'M60_PREVIEW.md'),
         'M65': ('M65_INSTALL.md', 'M65_CAPABILITIES.md', 'M65_PREVIEW.md'),
+        'M70': ('M70_INSTALL.md', 'M70_CAPABILITIES.md', 'M70_PREVIEW.md'),
     }[generation]
-    selected_examples = NOISY_EXAMPLES + M65_FLEET_EXAMPLES if generation == 'M65' else NOISY_EXAMPLES
+    selected_examples = NOISY_EXAMPLES + M65_FLEET_EXAMPLES if generation in ('M65', 'M70') else NOISY_EXAMPLES
+    if generation == 'M70':
+        selected_examples += M70_CAMERA_EXAMPLES
     repositories = spec['repositories']
     if set(repositories) != {'gz-sim-rs', 'gzweb-rs'} or not all(
             isinstance(value, str) and COMMIT.fullmatch(value) for value in repositories.values()):
         raise ValueError('exact simulator and viewer commit identities are required')
-    simulator, native_ids = binary_input(spec['simulator'], 'gz-sim-rs', 'gz-sim-cli')
-    sender, helper_ids = binary_input(spec['drive_command'], 'drive_command', 'gz-sim-server')
-    if not isinstance(spec.get('joint_command'), dict):
-        raise ValueError('a joint-command release artifact record is required')
-    joint_sender, joint_ids = binary_input(spec['joint_command'], 'joint_command', 'gz-sim-server')
+    if generation == 'M70':
+        selected_roles = {}
+        for role, definition in M70_BINARY_ROLES.items():
+            if not isinstance(spec.get(role), dict):
+                raise ValueError('M70 requires all four release artifact roles')
+            kind, source = M70_ROLE_SOURCES[role]
+            selected_roles[role] = binary_input(
+                spec[role], definition['target'], definition['package'],
+                expected_features=definition['features'], expected_kind=kind,
+                expected_source=source)
+        simulator, native_ids = selected_roles['simulator']
+        sender, helper_ids = selected_roles['drive_command']
+        joint_sender, joint_ids = selected_roles['joint_command']
+        worker, worker_ids = selected_roles['camera_worker']
+    else:
+        simulator, native_ids = binary_input(spec['simulator'], 'gz-sim-rs', 'gz-sim-cli')
+        sender, helper_ids = binary_input(spec['drive_command'], 'drive_command', 'gz-sim-server')
+        if not isinstance(spec.get('joint_command'), dict):
+            raise ValueError('a joint-command release artifact record is required')
+        joint_sender, joint_ids = binary_input(spec['joint_command'], 'joint_command', 'gz-sim-server')
     viewer_root = Path(spec['viewer_root'])
     if not viewer_root.is_absolute() or not viewer_root.is_dir() or viewer_root.is_symlink():
         raise ValueError('an absolute accepted viewer bundle directory is required')
@@ -212,13 +259,18 @@ def assemble(spec, output, archive=None):
     documents = []
     admitted_ids = set()
     configurations = set()
+    worker_admitted_ids = set()
+    native_package_names = {}
+    required_configurations = {'native', 'viewer-webgpu', 'viewer-webgl2'}
+    if generation == 'M70':
+        required_configurations.add('worker')
     for record in metadata:
         document = json_file(bound_file(record['path'], record['sha256'], 64 * 1024 * 1024))
         configuration = record.get('configuration')
-        if configuration not in {'native', 'viewer-webgpu', 'viewer-webgl2'} or configuration in configurations:
+        if configuration not in required_configurations or configuration in configurations:
             raise ValueError('unique native and both viewer metadata configurations are required')
         configurations.add(configuration)
-        if (record.get('repository') == 'gz-sim-rs') != (configuration == 'native'):
+        if (record.get('repository') == 'gz-sim-rs') != (configuration in {'native', 'worker'}):
             raise ValueError('metadata configuration and repository disagree')
         if record.get('repository') not in repositories:
             raise ValueError('unknown metadata repository')
@@ -230,14 +282,26 @@ def assemble(spec, output, archive=None):
         by_id = {package['id']: package for package in document['packages']}
         if not set(selected) <= by_id.keys():
             raise ValueError('selected package is missing from Cargo metadata')
-        if record['repository'] == 'gz-sim-rs':
+        if configuration == 'native':
             admitted_ids.update(selected)
+            native_package_names.update({identity: by_id[identity]['name'] for identity in selected})
+        elif configuration == 'worker':
+            worker_admitted_ids.update(selected)
         documents.append({'label': configuration, 'workspace_root': document['workspace_root'],
                           'packages': [by_id[identity] for identity in selected]})
-    if configurations != {'native', 'viewer-webgpu', 'viewer-webgl2'}:
+    if configurations != required_configurations:
         raise ValueError('native and both accepted viewer feature graphs are required')
     if not (native_ids | helper_ids | joint_ids) <= admitted_ids:
         raise ValueError('notices omit native compiler artifact packages')
+    if generation == 'M70':
+        if not worker_ids <= worker_admitted_ids:
+            raise ValueError('notices omit worker compiler artifact packages')
+        gpu_packages = {'gz-render-worker', 'gz-renderer', 'bevy', 'bevy_internal',
+                        'bevy_render', 'bevy_core_pipeline', 'bevy_pbr',
+                        'wgpu', 'wgpu-core', 'wgpu-hal'}
+        if any(native_package_names[identity] in gpu_packages
+               for identity in native_ids | helper_ids | joint_ids):
+            raise ValueError('M70 native roles must remain GPU-free')
     extras = {name: regular(path, 1024 * 1024) for name, path in spec['extra_notices'].items()}
     if not {'licenses/Apache-2.0.txt', 'OSRF-NOTICE.txt', 'Geist-OFL.txt',
             'Rust-COPYRIGHT.html', 'Rust-LICENSE-APACHE.txt', 'Rust-LICENSE-MIT.txt',
@@ -263,6 +327,8 @@ def assemble(spec, output, archive=None):
         copy_file(simulator, prefix / 'bin/gz-sim-rs', 0o755, spec['simulator']['sha256'])
         copy_file(sender, prefix / 'bin/gz-drive-command', 0o755, spec['drive_command']['sha256'])
         copy_file(joint_sender, prefix / 'bin/gz-joint-command', 0o755, spec['joint_command']['sha256'])
+        if generation == 'M70':
+            copy_file(worker, prefix / 'bin/gz-render-worker', 0o755, spec['camera_worker']['sha256'])
         copy_file(regular(ROOT / 'scripts/preview_runtime.py'), prefix / 'bin/gz-preview', 0o755)
         copy_file(regular(ROOT / 'examples/m19_robot.sdf'), prefix / 'share/robot.sdf')
         copy_file(mesh, prefix / 'share/meshes/m16-asymmetric.obj', expected=mesh_sha)
@@ -277,9 +343,9 @@ def assemble(spec, output, archive=None):
         for name, path in viewer.items():
             copy_file(path, prefix / 'web' / name, expected=spec['viewer_files'][name])
         for source_name, installed_name in zip(guide_sources, ('INSTALL.md', 'CAPABILITIES.md', 'PREVIEW.md')):
-            maximum = MAX_EXAMPLE if generation in ('M60', 'M65') else MAX_FILE
+            maximum = MAX_EXAMPLE if generation in ('M60', 'M65', 'M70') else MAX_FILE
             source = regular(ROOT / 'docs' / source_name, maximum)
-            if generation in ('M60', 'M65') and source.resolve() != ROOT.resolve() / 'docs' / source_name:
+            if generation in ('M60', 'M65', 'M70') and source.resolve() != ROOT.resolve() / 'docs' / source_name:
                 raise ValueError(generation + ' guide source may not traverse linked directories')
             copy_file(source, prefix / installed_name)
         copy_file(regular(ROOT / 'LICENSE'), prefix / 'LICENSE')
@@ -303,8 +369,14 @@ def assemble(spec, output, archive=None):
                     'mode': stat.S_IMODE(path.stat().st_mode)}
         manifest = {'schema_version': 1, 'target': spec['target'], 'repositories': repositories,
                     'guide_generation': generation,
-                    'profile': 'release; no-default-features; no rgb-camera',
+                    'profile': (M70_PROFILE if generation == 'M70'
+                                else 'release; no-default-features; no rgb-camera'),
                     'viewer_gzip_bytes': budgets, 'files': files}
+        if generation == 'M70':
+            manifest['binary_roles'] = {
+                role: {key: (list(value) if isinstance(value, list) else value)
+                       for key, value in definition.items()}
+                for role, definition in M70_BINARY_ROLES.items()}
         with (prefix / 'manifest.json').open('x') as stream:
             stream.write(json.dumps(manifest, indent=2) + '\n')
             stream.flush()
