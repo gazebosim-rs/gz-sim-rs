@@ -30,8 +30,10 @@ int depth_primitives_mode(int argc, char **argv);
 int depth_pair_mode(int argc, char **argv);
 int mixed_pair_mode(int argc, char **argv);
 int explicit_intrinsics_mode(int argc, char **argv);
+int explicit_projection_mode(int argc, char **argv);
 
 int main(int argc, char **argv) {
+  if (argc==3 && std::string(argv[1])=="explicit-projection") return explicit_projection_mode(argc, argv);
   if (argc==3 && std::string(argv[1])=="explicit-intrinsics") return explicit_intrinsics_mode(argc, argv);
   if (argc==3 && std::string(argv[1])=="depth-pair") return depth_pair_mode(argc, argv);
   if (argc==3 && std::string(argv[1])=="mixed-pair") return mixed_pair_mode(argc, argv);
@@ -821,6 +823,87 @@ int explicit_intrinsics_mode(int argc,char **argv) {
     }
     const std::string ready="ready explicit intrinsics "+std::to_string(owner)+"\n";
     const std::string output="IMAGE "+pair_hex(image_wire)+"\nINFO "+pair_hex(info_wire)+"\nPASS canonical explicit intrinsics "+std::to_string(owner)+"\n";
+    pair_require(ready.size()+output.size()<=65536,"explicit-K stdout64KiB cap");
+    std::cout<<output<<std::flush;
+    pair_require(std::cout.good() && std::chrono::steady_clock::now()<deadline,"explicit-K completion deadline");return 0;
+  }catch(const std::exception &error){std::cerr<<error.what()<<std::endl;return 1;}
+}
+
+// M73-only K/P distinction. Existing modes and M72's complete image oracles
+// remain unchanged: this fixture intentionally uses their P for rendering.
+namespace {
+void projection_info(const gz::msgs::CameraInfo &info,unsigned owner) {
+  pair_require(info.has_header(),"projection info header");pair_header(info.header(),owner,false);
+  pair_require(info.width()==64 && info.height()==64 && info.has_intrinsics() && info.intrinsics().k_size()==9 &&
+      info.has_projection() && info.projection().p_size()==12 && info.has_distortion() &&
+      info.distortion().k_size()==5 && info.rectification_matrix_size()==9,"distinct K/P complete calibration shape");
+  const std::array<double,4> k=owner==0 ? std::array<double,4>{52,44,34,29}:std::array<double,4>{36,42,26,38};
+  const auto p=explicit_k(owner);
+  const std::array<double,9> intrinsic{k[0],0,k[2],0,k[1],k[3],0,0,1},rect{1,0,0,0,1,0,0,0,1};
+  const std::array<double,12> projection{p[0],0,p[2],0,0,p[1],p[3],0,0,0,1,0};
+  for(int i=0;i<9;++i) pair_require(info.intrinsics().k(i)==intrinsic[i] && info.rectification_matrix(i)==rect[i],"actual distinct K and identity rectification");
+  for(int i=0;i<12;++i) pair_require(info.projection().p(i)==projection[i],"actual separately selected P");
+  pair_require(info.intrinsics().k(0)!=info.projection().p(0) && info.intrinsics().k(2)!=info.projection().p(2),"fixture cannot hide K/P aliasing");
+  pair_require(static_cast<int>(info.distortion().model())==0,"projection PLUMB_BOB");
+  for(double d:info.distortion().k()) pair_require(d==0,"projection zero distortion");
+}
+void projection_image(const gz::msgs::Image &image,unsigned owner) {
+  explicit_image(image,owner); // Exact old P-ray, full footprint and4096 depth checks.
+  if(owner==0) {
+    constexpr int x=20,y=25;
+    constexpr double k_ray_y=(34.0-(x+0.5))/52.0,k_ray_z=(29.0-(y+0.5))/44.0;
+    pair_require(std::abs(k_ray_y*1.8)>0.2 || std::abs(k_ray_z*1.8)>0.2,"literal K ray misses RGB foreground");
+    const auto offset=(y*64+x)*3;
+    pair_require(static_cast<unsigned char>(image.data()[offset])==255 && image.data()[offset+1]==0 && image.data()[offset+2]==0,
+        "RGB pixel20,25 must follow P red foreground rather than K");
+  } else {
+    constexpr int x=42,y=20;
+    constexpr double k_ray_y=(26.0-(x+0.5))/36.0,k_ray_z=(38.0-(y+0.5))/42.0;
+    pair_require(std::abs(k_ray_y*2.8)>0.2 || std::abs(k_ray_z*2.8)>0.2,"literal K ray misses depth foreground");
+    const auto offset=(y*64+x)*4;
+    const auto byte=[&](int i){return static_cast<std::uint32_t>(static_cast<unsigned char>(image.data()[offset+i]));};
+    const std::uint32_t bits=byte(0)|(byte(1)<<8)|(byte(2)<<16)|(byte(3)<<24);float actual;std::memcpy(&actual,&bits,sizeof(actual));
+    pair_require(std::isfinite(actual) && std::abs(actual-2.8)<1e-4,"depth pixel42,20 must follow P2.8m rather than K");
+  }
+}
+}
+int explicit_projection_mode(int argc,char **argv) {
+  try {
+    pair_require(argc==3 && std::string(argv[1])=="explicit-projection" &&
+        (std::string(argv[2])=="0" || std::string(argv[2])=="1"),"explicit-projection RGB0/depth1");
+    const unsigned owner=std::string(argv[2])=="0" ? 0u:1u;
+    const std::string prefix=owner==0 ? "/m73/rgb/":"/m73/depth/";
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(20);
+    std::string image_wire,info_wire;
+    {
+      auto state=std::make_shared<DepthPairReceived>();gz::transport::Node node;
+      const auto image=[state,owner](const gz::msgs::Image &v) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if(!state->accepting || state->failed || state->image)return;
+        try {pair_require(v.ByteSizeLong()<=(owner==0 ? 16384u:32768u),"explicit Image cap");state->image=v;}catch(...){state->failed=true;}
+        state->changed.notify_all();
+      };
+      const auto info=[state](const gz::msgs::CameraInfo &v) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if(!state->accepting || state->failed || state->info)return;
+        try {pair_require(v.ByteSizeLong()<=16384,"explicit CameraInfo cap");state->info=v;}catch(...){state->failed=true;}
+        state->changed.notify_all();
+      };
+      pair_require(node.Subscribe(prefix+"image",std::function<void(const gz::msgs::Image &)>(image)) &&
+          node.Subscribe(prefix+"camera_info",std::function<void(const gz::msgs::CameraInfo &)>(info)),"actual explicit-K typed subscriptions");
+      std::cout<<"ready explicit projection "<<owner<<std::endl;
+      pair_require(std::cout.good(),"explicit-K ready write");
+      {
+        std::unique_lock<std::mutex> lock(state->mutex);
+        pair_require(state->changed.wait_until(lock,deadline,[&]{return state->failed || (state->image && state->info);}),"explicit-K receive deadline");
+        pair_require(!state->failed,"explicit-K callback failure");state->accepting=false;
+        projection_image(*state->image,owner);projection_info(*state->info,owner);
+        pair_require(state->image->SerializeToString(&image_wire) && state->info->SerializeToString(&info_wire),"explicit-K complete canonical bytes");
+      }
+      pair_require(node.Unsubscribe(prefix+"image") && node.Unsubscribe(prefix+"camera_info"),"explicit-K owned subscriptions retired");
+    }
+    const std::string ready="ready explicit projection "+std::to_string(owner)+"\n";
+    const std::string output="IMAGE "+pair_hex(image_wire)+"\nINFO "+pair_hex(info_wire)+"\nPASS canonical explicit projection "+std::to_string(owner)+"\n";
     pair_require(ready.size()+output.size()<=65536,"explicit-K stdout64KiB cap");
     std::cout<<output<<std::flush;
     pair_require(std::cout.good() && std::chrono::steady_clock::now()<deadline,"explicit-K completion deadline");return 0;

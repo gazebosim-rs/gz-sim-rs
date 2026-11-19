@@ -1,3 +1,20 @@
+## M73: separate intrinsic and projection matrices
+
+The admitted 64 by 64 monocular domain now accepts explicit SDF lens projection
+with finite positive p_fx/p_fy, finite p_cx/p_cy and zero tx/ty. K is selected from
+present intrinsics or the unchanged HFOV fallback. Present P overrides rendering;
+CameraInfo keeps the separately selected K and P. Absent P derives P=[K|0] and
+preserves the existing request/message bytes. Both calibrations pass the current
+representability check before IO. All existing skew/noise/distortion/pose and
+camera-count bounds remain. [M73_DELIVERY.md](M73_DELIVERY.md) defines evidence
+and acceptance. No stereo, native Ogre image parity or new protocol is claimed.
+
+Pinned native CameraSensor::UpdateLensIntrinsicsAndProjection selects K then P;
+PopulateInfo publishes them independently. DepthCameraSensor uses both methods.
+The native code ignores rendering tx/ty, so this bounded phase refuses nonzero
+translation. The old failed Ogre/Mesa helper remains failed and supplies no
+runtime precedence result. Earlier records below retain their historical scope.
+
 ## M72 explicit-intrinsics development
 
 The isolated M72 candidate selects explicit zero-skew K for supported 64 by 64

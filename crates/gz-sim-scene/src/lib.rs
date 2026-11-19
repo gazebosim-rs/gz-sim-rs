@@ -249,7 +249,16 @@ pub fn supports_camera_sensor(sensor: &sdformat::Sensor) -> bool {
                 && k.fy > 0.0
                 && k.skew == 0.0
         })
-        && !camera.lens.has_projection
+        && (!camera.lens.has_projection || {
+            let p = &camera.lens.projection;
+            [p.fx, p.fy, p.cx, p.cy, p.tx, p.ty]
+                .iter()
+                .all(|value| value.is_finite())
+                && p.fx > 0.0
+                && p.fy > 0.0
+                && p.tx == 0.0
+                && p.ty == 0.0
+        })
         && camera.horizontal_fov.is_finite()
         && (0.001..std::f64::consts::PI).contains(&camera.horizontal_fov)
         && camera.near_clip.is_finite()

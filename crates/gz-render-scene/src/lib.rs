@@ -44,6 +44,72 @@ pub enum SnapshotError {
     UnsupportedLighting,
 }
 
+/// Separately selected CameraInfo intrinsics and effective render projection.
+#[derive(Debug, Clone, Copy)]
+pub struct CameraCalibrations {
+    pub intrinsics: Calibration,
+    pub projection: Calibration,
+}
+
+/// Select and validate both matrices without IO or simulation mutation.
+/// Explicit P replaces the render matrix while leaving K unchanged. Absent
+/// fields are ignored; absent P uses the selected K with zero translation.
+pub fn camera_calibrations(
+    sensor: &sdformat::Sensor,
+    sensor_id: u64,
+) -> Result<CameraCalibrations, SnapshotError> {
+    let invalid = || SnapshotError::InvalidCamera(sensor_id);
+    if !supports_camera_sensor(sensor) {
+        return Err(invalid());
+    }
+    let camera = sensor.camera().expect("supported camera metadata");
+    let intrinsics = if camera.lens.has_intrinsics {
+        let k = &camera.lens.intrinsics;
+        Calibration::new(CameraConfig {
+            width: camera.image_width,
+            height: camera.image_height,
+            fx: k.fx,
+            fy: k.fy,
+            cx: k.cx,
+            cy: k.cy,
+            skew: k.skew,
+            tx: 0.0,
+            ty: 0.0,
+            near: camera.near_clip,
+            far: camera.far_clip,
+        })
+    } else {
+        Calibration::from_horizontal_fov(
+            camera.image_width,
+            camera.image_height,
+            camera.horizontal_fov,
+            camera.near_clip,
+            camera.far_clip,
+        )
+    }
+    .map_err(|_| invalid())?;
+    let projection = if camera.lens.has_projection {
+        let p = &camera.lens.projection;
+        Calibration::new(CameraConfig {
+            fx: p.fx,
+            fy: p.fy,
+            cx: p.cx,
+            cy: p.cy,
+            skew: 0.0,
+            tx: p.tx,
+            ty: p.ty,
+            ..intrinsics.config()
+        })
+        .map_err(|_| invalid())?
+    } else {
+        intrinsics
+    };
+    Ok(CameraCalibrations {
+        intrinsics,
+        projection,
+    })
+}
+
 /// Extract an explicit calibrated request from one canonical camera sensor.
 /// This creates no renderer and does not schedule or publish a sensor sample.
 pub fn extract_camera(
@@ -76,40 +142,12 @@ pub fn extract_camera(
     if !supports_camera_sensor(&sensor.0) {
         return Err(SnapshotError::InvalidCamera(sensor_id));
     }
-    let camera = sensor
-        .0
-        .camera()
-        .expect("supported camera sensor has camera metadata");
     let pose = entity
         .get::<WorldPose>()
         .ok_or(SnapshotError::MissingCamera(sensor_id))?;
     let invalid = || SnapshotError::InvalidCamera(sensor_id);
-    let config = if camera.lens.has_intrinsics {
-        let intrinsics = &camera.lens.intrinsics;
-        Calibration::new(CameraConfig {
-            width: camera.image_width,
-            height: camera.image_height,
-            fx: intrinsics.fx,
-            fy: intrinsics.fy,
-            cx: intrinsics.cx,
-            cy: intrinsics.cy,
-            skew: intrinsics.skew,
-            tx: 0.0,
-            ty: 0.0,
-            near: camera.near_clip,
-            far: camera.far_clip,
-        })
-    } else {
-        Calibration::from_horizontal_fov(
-            camera.image_width,
-            camera.image_height,
-            camera.horizontal_fov,
-            camera.near_clip,
-            camera.far_clip,
-        )
-    }
-    .map_err(|_| invalid())?
-    .config();
+    let calibrations = camera_calibrations(&sensor.0, sensor_id)?;
+    let config = calibrations.projection.config();
     gz_render_frame::camera::to_render_camera_pose(
         RenderWorldPose {
             translation: DVec3::from_array(pose.translation),

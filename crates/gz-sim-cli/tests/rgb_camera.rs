@@ -1447,3 +1447,60 @@ fn explicit_intrinsics_keep_workers_lazy_and_refuse_invalid_calibration() {
         }
     }
 }
+
+#[cfg(feature = "rgb-camera")]
+#[test]
+fn explicit_projection_keeps_workers_lazy_and_refuses_invalid_selected_matrices() {
+    if isolation::child(
+        "explicit_projection_keeps_workers_lazy_and_refuses_invalid_selected_matrices",
+        60,
+    ) {
+        return;
+    }
+    let source = include_str!("../../../examples/m73_camera_projection.sdf");
+    let directory = tempfile::tempdir().unwrap();
+    let worker = directory.path().join("absent-projection-worker");
+    let args = [
+        "--server",
+        "--run",
+        "--iterations",
+        "3",
+        "--camera-mixed-pair",
+    ];
+    let output = command(source, Some(&worker), &args);
+    assert!(output.status.success(), "{output:?}");
+    assert_eq!(
+        String::from_utf8_lossy(&output.stdout),
+        "simulation_ns=3000000 iterations=3\ndefault::backdrop::body 6 0 1\ndefault::occluder_a::body 2 -2 1\ndefault::occluder_b::body 3 2 1\ndefault::rig_a::body 0 -2 1\ndefault::rig_b::body 0 2 1\n"
+    );
+    assert!(output.stderr.is_empty(), "{output:?}");
+    assert!(
+        !worker.exists(),
+        "no demand must keep both renderer workers absent"
+    );
+    for owner in 0..2 {
+        for (tag, value) in [
+            ("p_fx", "0"),
+            ("p_fy", "-1"),
+            ("p_cx", "nan"),
+            ("p_cy", "inf"),
+            ("tx", "0.1"),
+            ("ty", "-0.1"),
+            ("p_fx", "1e300"),
+            ("fx", "1e300"),
+            ("s", "0.5"),
+        ] {
+            let open = format!("<{tag}>");
+            let close = format!("</{tag}>");
+            let start = source.match_indices(&open).nth(owner).unwrap().0 + open.len();
+            let end = start + source[start..].find(&close).unwrap();
+            let mut invalid = source.to_owned();
+            invalid.replace_range(start..end, value);
+            assert_ne!(invalid, source);
+            let refused = command(&invalid, Some(&worker), &args);
+            assert_eq!(refused.status.code(), Some(1), "{refused:?}");
+            assert!(refused.stdout.is_empty(), "{refused:?}");
+            assert!(!worker.exists());
+        }
+    }
+}

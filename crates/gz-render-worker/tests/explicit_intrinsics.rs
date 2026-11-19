@@ -54,6 +54,9 @@ struct Rig {
 }
 impl Rig {
     fn new(shared: bool) -> Self {
+        Self::with_xml(shared, XML, "m72-camera-intrinsics.sdf")
+    }
+    fn with_xml(shared: bool, source: &str, label: &str) -> Self {
         let observer = zenoh::open(config(None)).wait().unwrap();
         let endpoints = observer
             .info()
@@ -65,8 +68,8 @@ impl Rig {
         assert_eq!(endpoints.len(), 1);
         assert_ne!(endpoints[0], "tcp/127.0.0.1:0");
         let mut sim = load_world_with_sdf_step(
-            XML,
-            "m72-camera-intrinsics.sdf",
+            source,
+            label,
             "default",
             &sdformat::NoResources,
             PhysicsEngine::Rapier,
@@ -94,7 +97,7 @@ impl Rig {
             move |world: &mut bevy_ecs::world::World| {
                 let selected = event.swap(0, Ordering::AcqRel);
                 if selected != 0 {
-                    if selected == 3 {
+                    if selected == 3 || selected == 4 {
                         let entity = entity_by_id(world, ids[0]).unwrap();
                         let mut sensor =
                             world.get_mut::<gz_sim_scene::CameraSensor>(entity).unwrap();
@@ -103,7 +106,11 @@ impl Rig {
                         else {
                             unreachable!()
                         };
-                        camera.lens.intrinsics.cx += 1.0;
+                        if selected == 3 {
+                            camera.lens.intrinsics.cx += 1.0;
+                        } else {
+                            camera.lens.projection.cx += 1.0;
+                        }
                     } else {
                         assert!(selected <= 2);
                         assert!(
@@ -908,4 +915,337 @@ fn explicit_k_drift_retires_a_real_buffered_frame_before_any_stale_image() {
     r.app.shutdown();
     retired(&fresh);
     r.observer.close().wait().unwrap();
+}
+
+// M73 adds distinct published K/P while reusing M72's unchanged custody,
+// full-footprint RGB and all4096 depth oracles. P deliberately equals M72 K.
+mod projection {
+    use super::*;
+    const XML: &str = include_str!("../../../examples/m73_camera_projection.sdf");
+    const INTRINSICS: [[f64; 4]; 2] = [[52.0, 44.0, 34.0, 29.0], [36.0, 42.0, 26.0, 38.0]];
+    fn rig() -> Rig {
+        Rig::with_xml(true, XML, "m73-camera-projection.sdf")
+    }
+    fn sub(r: &Rig, owner: usize, image: bool) -> Subscriber {
+        let topic = format!(
+            "/m73/{}/{}",
+            if owner == 0 { "rgb" } else { "depth" },
+            if image { "image" } else { "camera_info" }
+        );
+        r.observer
+            .declare_subscriber(r.app.server().options().topic_key(&topic).unwrap())
+            .wait()
+            .unwrap()
+    }
+    fn info(wire: Vec<u8>, owner: usize, stamp: Duration) -> CameraInfo {
+        let v = CameraInfo::decode(wire.as_slice()).unwrap();
+        assert_eq!(v.encode_to_vec(), wire);
+        header(v.header.as_ref().unwrap(), owner, stamp, None);
+        assert_eq!((v.width, v.height), (64, 64));
+        let [fx, fy, cx, cy] = INTRINSICS[owner];
+        assert_eq!(
+            v.intrinsics.as_ref().unwrap().k,
+            [fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0]
+        );
+        let [pfx, pfy, pcx, pcy] = K[owner];
+        assert_eq!(
+            v.projection.as_ref().unwrap().p,
+            [pfx, 0.0, pcx, 0.0, 0.0, pfy, pcy, 0.0, 0.0, 0.0, 1.0, 0.0]
+        );
+        assert_ne!(fx, pfx);
+        assert_ne!(cx, pcx);
+        assert_eq!(
+            v.rectification_matrix,
+            [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+        );
+        let d = v.distortion.as_ref().unwrap();
+        assert_eq!(d.model, 0);
+        assert_eq!(d.k, [0.0; 5]);
+        v
+    }
+    fn image(wire: Vec<u8>, owner: usize, stamp: Duration, sequence: u64) -> Image {
+        let v = super::image(wire, owner, stamp, sequence);
+        let [fx, fy, cx, cy] = INTRINSICS[owner];
+        let (x, y, front) = if owner == 0 {
+            (20, 25, 1.8)
+        } else {
+            (42, 20, 2.8)
+        };
+        let k_ray_y = (cx - x as f64 - 0.5) / fx;
+        let k_ray_z = (cy - y as f64 - 0.5) / fy;
+        assert!(
+            (k_ray_y * front).abs() > 0.2 || (k_ray_z * front).abs() > 0.2,
+            "literal K ray must miss the selected foreground"
+        );
+        if owner == 0 {
+            assert_eq!(
+                &v.data[(y * 64 + x) * 3..(y * 64 + x) * 3 + 3],
+                [255, 0, 0],
+                "RGB P-vs-K pixel{x},{y}"
+            );
+        } else {
+            let offset = (y * 64 + x) * 4;
+            let actual = f32::from_le_bytes(v.data[offset..offset + 4].try_into().unwrap());
+            assert!(
+                (f64::from(actual) - 2.8).abs() < 1e-4,
+                "depth P-vs-K pixel{x},{y} expected2.8 actual{actual}"
+            );
+        }
+        v
+    }
+    fn publish(
+        r: &mut Rig,
+        owner: usize,
+        subscriber: &Subscriber,
+        stamp: Duration,
+        sequence: u64,
+    ) -> Image {
+        assert_eq!(
+            r.app.pump_camera(r.ids[owner]).unwrap(),
+            Some(Progress::ImagePublished)
+        );
+        image(
+            receive(subscriber, b"gz.msgs.Image"),
+            owner,
+            stamp,
+            sequence,
+        )
+    }
+    #[test]
+    fn explicit_projection_real_workers_and_canonical_consumers_follow_p_and_publish_distinct_k() {
+        if isolation::child(
+            "projection::explicit_projection_real_workers_and_canonical_consumers_follow_p_and_publish_distinct_k",
+            180,
+        ) {
+            return;
+        }
+        let mut r = rig();
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap();
+        let peer = selected_native::NativePeer::build(root, "camera");
+        let mut cpp: [native::Native; 2] = std::array::from_fn(|owner| {
+            native::Native::start_mode(
+                &r.endpoint,
+                &r.app.server().options().partition,
+                &peer,
+                owner,
+                "explicit-projection",
+            )
+        });
+        assert_ne!(cpp[0].pid(), cpp[1].pid());
+        for (owner, consumer) in cpp.iter().enumerate() {
+            assert_eq!(
+                consumer.line(),
+                format!("ready explicit projection {owner}")
+            );
+        }
+        r.matching([(true, true); 2]);
+        for id in r.ids {
+            assert!(r.app.camera_worker_diagnostics(id).is_none());
+        }
+        let images: [Subscriber; 2] = std::array::from_fn(|owner| sub(&r, owner, true));
+        let infos: [Subscriber; 2] = std::array::from_fn(|owner| sub(&r, owner, false));
+        let first = r.tick();
+        assert_eq!(first, Duration::from_millis(1));
+        let rows = r.capture();
+        for id in r.ids {
+            assert_eq!(requested(&rows, id), Some(Progress::Pending));
+        }
+        let first_infos: [CameraInfo; 2] = std::array::from_fn(|owner| {
+            info(receive(&infos[owner], b"gz.msgs.CameraInfo"), owner, first)
+        });
+        r.ready(&[0, 1]);
+        let workers = [worker(&r, 0), worker(&r, 1)];
+        assert_ne!(workers[0].pid, workers[1].pid);
+        let first_images: [Image; 2] =
+            std::array::from_fn(|owner| publish(&mut r, owner, &images[owner], first, 0));
+        let mut totals = [0; 2];
+        for owner in 0..2 {
+            for (kind, expected) in [
+                ("IMAGE", first_images[owner].encode_to_vec()),
+                ("INFO", first_infos[owner].encode_to_vec()),
+            ] {
+                let line = cpp[owner].line();
+                let (actual, raw) = line.split_once(' ').unwrap();
+                assert_eq!(actual, kind);
+                assert_eq!(
+                    hex(raw),
+                    expected,
+                    "all actual canonical distinct-K/P bytes"
+                );
+            }
+            assert_eq!(
+                cpp[owner].line(),
+                format!("PASS canonical explicit projection {owner}")
+            );
+            totals[owner] = cpp[owner].finish();
+            assert_eq!(cpp[owner].actual_exit(), Some(0));
+        }
+        let receipt=serde_json::to_vec_pretty(&serde_json::json!({"actual_consumer_exit_codes":[cpp[0].actual_exit(),cpp[1].actual_exit()],
+            "consumer_PIDs":[cpp[0].pid(),cpp[1].pid()],"actual_reaped":[true,true],"stdout_bytes":totals,
+            "per_stdout_cap":65536,"per_stderr_cap":4096,"aggregate_cap":131072,"K":INTRINSICS,"P":K,"sensor_ids":r.ids,
+            "worker_exit_codes":"UNKNOWN","scope":"Actual canonical distinct-K/P consumers and software workers; no native renderer pixel equivalence."})).unwrap();
+        assert!(totals.into_iter().sum::<usize>() + receipt.len() <= 131072);
+        let mut saved = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(
+                peer.binary
+                    .parent()
+                    .unwrap()
+                    .join("m73-two-distinct-K-P-consumers.json"),
+            )
+            .unwrap();
+        std::io::Write::write_all(&mut saved, &receipt).unwrap();
+        saved.sync_all().unwrap();
+        let mut stamps: [Vec<Duration>; 2] = std::array::from_fn(|_| vec![first]);
+        while r.app.server().simulation().elapsed() < Duration::from_millis(200) {
+            let stamp = r.tick();
+            let rows = r.capture();
+            let mut due = Vec::new();
+            for (owner, subscriber) in infos.iter().enumerate() {
+                match requested(&rows, r.ids[owner]) {
+                    Some(Progress::Pending) => {
+                        info(receive(subscriber, b"gz.msgs.CameraInfo"), owner, stamp);
+                        due.push(owner);
+                    }
+                    None => {}
+                    other => panic!("projection cadence {other:?}"),
+                }
+            }
+            r.ready(&due);
+            for owner in due {
+                publish(
+                    &mut r,
+                    owner,
+                    &images[owner],
+                    stamp,
+                    stamps[owner].len() as u64,
+                );
+                stamps[owner].push(stamp);
+            }
+        }
+        assert_eq!(stamps[0], [1, 100, 200].map(Duration::from_millis));
+        assert_eq!(stamps[1], [1, 50, 100, 150, 200].map(Duration::from_millis));
+        r.pause(true);
+        for _ in 0..8 {
+            assert_eq!(r.tick(), Duration::from_millis(200));
+            for row in r.capture() {
+                assert!(row.result.unwrap().requested.is_none());
+            }
+        }
+        for subscriber in images.iter().chain(&infos) {
+            assert!(subscriber.try_recv().unwrap().is_none());
+        }
+        r.app.shutdown();
+        for w in &workers {
+            retired(w);
+        }
+        r.observer.close().wait().unwrap();
+    }
+    #[test]
+    fn explicit_projection_lazy_demand_drift_reset_and_removal_preserve_original_calibrations() {
+        if isolation::child(
+            "projection::explicit_projection_lazy_demand_drift_reset_and_removal_preserve_original_calibrations",
+            180,
+        ) {
+            return;
+        }
+        let mut r = rig();
+        let ids = r.ids;
+        assert_eq!(r.tick(), Duration::from_millis(1));
+        for row in r.capture() {
+            assert_eq!(row.result.unwrap().requested, Some(Progress::NoDemand));
+        }
+        let infos: [Subscriber; 2] = std::array::from_fn(|owner| sub(&r, owner, false));
+        r.matching([(false, true); 2]);
+        let stamp = r.tick();
+        assert_eq!(stamp, Duration::from_millis(2));
+        for row in r.capture() {
+            assert_eq!(row.result.unwrap().requested, Some(Progress::InfoPublished));
+        }
+        for (owner, subscriber) in infos.iter().enumerate() {
+            info(receive(subscriber, b"gz.msgs.CameraInfo"), owner, stamp);
+            assert!(r.app.camera_worker_diagnostics(ids[owner]).is_none());
+        }
+        let rgb = sub(&r, 0, true);
+        r.matching([(true, true), (false, true)]);
+        r.advance(100);
+        let rows = r.capture();
+        assert_eq!(requested(&rows, ids[0]), Some(Progress::Pending));
+        assert_eq!(requested(&rows, ids[1]), Some(Progress::InfoPublished));
+        for (owner, subscriber) in infos.iter().enumerate() {
+            info(
+                receive(subscriber, b"gz.msgs.CameraInfo"),
+                owner,
+                Duration::from_millis(100),
+            );
+        }
+        r.ready(&[0]);
+        let old = worker(&r, 0);
+        assert!(r.app.camera_worker_diagnostics(ids[1]).is_none());
+        assert!(rgb.try_recv().unwrap().is_none());
+        r.pause(true);
+        r.remove.store(4, Ordering::Release);
+        assert_eq!(r.tick(), Duration::from_millis(100));
+        assert!(matches!(
+            r.app.pump_camera(ids[0]),
+            Err(CameraServerError::Camera(
+                gz_camera_output::CameraOutputError::OwnerInvalid
+            ))
+        ));
+        retired(&old);
+        assert!(!r.app.has_camera_output());
+        assert!(rgb.try_recv().unwrap().is_none());
+        assert!(!r.app.server().zenoh_session().is_closed());
+        r.reset();
+        assert_eq!(r.ids, ids);
+        r.matching([(true, true), (false, true)]);
+        r.pause(false);
+        let first = r.tick();
+        assert_eq!(first, Duration::from_millis(1));
+        let rows = r.capture();
+        assert_eq!(requested(&rows, ids[0]), Some(Progress::Pending));
+        assert_eq!(requested(&rows, ids[1]), Some(Progress::InfoPublished));
+        for (owner, subscriber) in infos.iter().enumerate() {
+            info(receive(subscriber, b"gz.msgs.CameraInfo"), owner, first);
+        }
+        r.ready(&[0]);
+        let fresh_rgb = worker(&r, 0);
+        publish(&mut r, 0, &rgb, first, 0);
+        assert!(r.app.camera_worker_diagnostics(ids[1]).is_none());
+        let depth = sub(&r, 1, true);
+        r.matching([(true, true); 2]);
+        r.advance(50);
+        let rows = r.capture();
+        assert_eq!(requested(&rows, ids[0]), None);
+        assert_eq!(requested(&rows, ids[1]), Some(Progress::Pending));
+        info(
+            receive(&infos[1], b"gz.msgs.CameraInfo"),
+            1,
+            Duration::from_millis(50),
+        );
+        r.ready(&[1]);
+        let fresh_depth = worker(&r, 1);
+        publish(&mut r, 1, &depth, Duration::from_millis(50), 0);
+        r.pause(true);
+        r.remove.store(1, Ordering::Release);
+        assert_eq!(r.tick(), Duration::from_millis(50));
+        assert_eq!(r.app.pump_camera(ids[0]).unwrap(), None);
+        retired(&fresh_rgb);
+        assert_eq!(proc_identity(fresh_depth.pid).unwrap().0, fresh_depth.start);
+        assert!(!fresh_depth.lifetime.is_retired());
+        assert!(!r.app.server().zenoh_session().is_closed());
+        r.remove.store(2, Ordering::Release);
+        assert_eq!(r.tick(), Duration::from_millis(50));
+        assert_eq!(r.app.pump_camera(ids[1]).unwrap(), None);
+        retired(&fresh_depth);
+        assert!(!r.app.has_camera_output());
+        assert!(!r.app.server().zenoh_session().is_closed());
+        r.app.shutdown();
+        r.observer.close().wait().unwrap();
+    }
 }

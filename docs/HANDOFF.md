@@ -1,3 +1,24 @@
+## Current development: M73 explicit monocular camera projection
+
+[M73](M73_DELIVERY.md) admits explicit zero-translation SDF projection for the existing
+64 by 64 RGB/depth camera domain. Select K from explicit intrinsics or the exact
+HFOV fallback; explicit P selects rendering while CameraInfo publishes separate
+K and P. Absent P preserves the M72 path. Stereo translation, skew, distortion,
+noise, larger targets and package distribution remain excluded.
+
+Development is isolated over locally qualified M72 `2f3e458f`. Its complete
+normal/strict gate and independent retained audit passed: 1748 headless and
+1309 overlapping renderer tests,473 aggregate Python checks,43 Source finite
+examples and17 CLI cases. Both earlier failures remain preserved. M70–M72 remain
+private and unaccepted while final accepted-parent reconciliation, exact hosted,
+official and Main gates are held. No CI retry or snapshot probe is released.
+
+Complete implementation, meaningful regressions, guides and whole independent
+Source review before one consolidated full local qualification cycle. Do not
+repeat completed parent proofs. Preserve Rapier/TPE, D33 retirement and Fuel work.
+
+Earlier checkpoints below retain their historical scope.
+
 ## Current development: M72 explicit pinhole camera intrinsics
 
 [M72](M72_DELIVERY.md) admits explicit finite zero-skew SDF focal lengths and principal

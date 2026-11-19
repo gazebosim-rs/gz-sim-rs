@@ -91,7 +91,12 @@ fn explicit_k_unrepresentable_projection_is_rejected_before_external_io() {
                 0 => camera.lens.intrinsics.fx = 1e-300,
                 1 => camera.lens.intrinsics.fy = 1e300,
                 2 => camera.lens.intrinsics.cx = f64::MAX,
-                3 => camera.lens.has_projection = true,
+                3 => {
+                    // Valid zero-translation P is now supported; retain this
+                    // inherited unsupported-projection preflight refusal.
+                    camera.lens.has_projection = true;
+                    camera.lens.projection.tx = 1.0;
+                }
                 _ => unreachable!(),
             }
             assert!(prepare_mixed_pair(&sim, &options(), &settings).is_err());

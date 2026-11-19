@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! M72-only adoption of the existing bounded canonical consumer custody.
+//! M72/M73 adoption of the existing bounded canonical consumer custody.
 //! Original M69 wrapper bodies/caps/deadlines remain untouched.
 use super::{proc_identity, selected_native};
 use std::{
@@ -19,6 +19,7 @@ pub struct Native {
     child: Child,
     start: Option<u64>,
     owner: usize,
+    capture_prefix: &'static str,
     lines: mpsc::Receiver<String>,
     stdout: Arc<Mutex<Captured>>,
     stderr: Arc<Mutex<Captured>>,
@@ -43,6 +44,20 @@ impl Native {
         peer: &selected_native::NativePeer,
         owner: usize,
     ) -> Self {
+        Self::start_mode(endpoint, partition, peer, owner, "explicit-intrinsics")
+    }
+    pub fn start_mode(
+        endpoint: &str,
+        partition: &str,
+        peer: &selected_native::NativePeer,
+        owner: usize,
+        mode: &'static str,
+    ) -> Self {
+        let capture_prefix = match mode {
+            "explicit-intrinsics" => "m72-intrinsics",
+            "explicit-projection" => "m73-projection",
+            _ => panic!("closed canonical camera mode"),
+        };
         assert!(owner < 2);
         let config = tempfile::tempdir().unwrap();
         let path = config.path().join("client.json");
@@ -50,7 +65,7 @@ impl Native {
         let mut command = Command::new(&peer.binary);
         peer.configure_runtime(&mut command);
         command
-            .args(["explicit-intrinsics", &owner.to_string()])
+            .args([mode, &owner.to_string()])
             .env("GZ_IP", "127.0.0.1")
             .env("GZ_PARTITION", partition)
             .env("ZENOH_CONFIG", path)
@@ -128,6 +143,7 @@ impl Native {
             child,
             start: None,
             owner,
+            capture_prefix,
             lines,
             stdout,
             stderr,
@@ -160,7 +176,7 @@ impl Native {
         let save = |suffix: &str, bytes: &[u8]| {
             let path = self
                 .capture
-                .join(format!("m72-intrinsics-{}.{suffix}", self.owner));
+                .join(format!("{}-{}.{suffix}", self.capture_prefix, self.owner));
             let mut file = std::fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
@@ -176,7 +192,7 @@ impl Native {
             "actual_wait_reaped":self.waited.is_some(),"completed_canonical_checks":completed,
             "stdout_bytes":out.bytes.len(),"stderr_bytes":err.bytes.len(),
             "stdout_error":out.error,"stderr_error":err.error,"worker_exit_code":"UNKNOWN",
-            "scope":"One actual owned upstream explicit-K camera consumer, full canonical Image/Info. Software pixels, not native rendering or Manager parity."});
+            "scope":if self.capture_prefix=="m72-intrinsics" {"One actual owned upstream explicit-K camera consumer, full canonical Image/Info. Software pixels, not native rendering or Manager parity."} else {"One actual owned upstream distinct-K/P camera consumer, full canonical Image/Info. Software pixels, not native rendering or Manager parity."}});
         save("receipt.json", &serde_json::to_vec_pretty(&record).unwrap());
         self.saved = true;
     }

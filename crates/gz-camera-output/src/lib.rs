@@ -18,11 +18,12 @@ mod scheduled;
 pub use scheduled::ScheduledCameraOutput;
 
 use crate::camera_messages::{
-    CameraMessageError, IntrinsicValues, camera_info_packet, depth_image_packet, image_packet,
+    CameraMessageError, IntrinsicValues, camera_info_packet_with_projection, depth_image_packet,
+    image_packet,
 };
 use gz_render_client::{Client, ClientError, SubmitError, TrustedWorker};
 use gz_render_protocol::{FailureKind, Reply, Request, Stamp};
-use gz_render_scene::{SnapshotError, extract_camera};
+use gz_render_scene::{SnapshotError, camera_calibrations, extract_camera};
 use gz_sim_core::{Simulation, entity_by_id};
 use gz_sim_proto::prost::{Message, Name};
 use gz_sim_scene::{CameraSensor, EntityKind, Name as SceneName};
@@ -464,9 +465,18 @@ impl CameraOutput {
             _ => unreachable!(),
         };
         let acquisition = Duration::new(stamp.seconds, stamp.nanoseconds);
-        let info = camera_info_packet(
+        let intrinsics = camera_calibrations(&self.bound_sensor.0, self.sensor_id)?
+            .intrinsics
+            .config();
+        let info = camera_info_packet_with_projection(
             acquisition,
             &self.frame_id,
+            IntrinsicValues {
+                fx: intrinsics.fx,
+                fy: intrinsics.fy,
+                cx: intrinsics.cx,
+                cy: intrinsics.cy,
+            },
             IntrinsicValues {
                 fx: camera.fx,
                 fy: camera.fy,

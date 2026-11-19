@@ -35,6 +35,8 @@ pub enum CameraMessageError {
     InvalidDepthFrame,
     #[error("camera intrinsics must be finite with positive focal lengths")]
     InvalidIntrinsics,
+    #[error("camera projection must be finite with positive focal lengths")]
+    InvalidProjection,
     #[error("acquisition timestamp exceeds protobuf seconds range")]
     TimeRange,
 }
@@ -123,9 +125,29 @@ pub fn camera_info_packet(
     frame_id: &str,
     intrinsics: IntrinsicValues,
 ) -> Result<CameraInfo, CameraMessageError> {
+    camera_info_packet_with_projection(acquisition, frame_id, intrinsics, intrinsics)
+}
+
+/// Produce canonical monocular CameraInfo with separately selected K and P.
+/// Both matrices have zero skew and P has zero translation; no topic is advertised.
+pub fn camera_info_packet_with_projection(
+    acquisition: Duration,
+    frame_id: &str,
+    intrinsics: IntrinsicValues,
+    projection: IntrinsicValues,
+) -> Result<CameraInfo, CameraMessageError> {
     let IntrinsicValues { fx, fy, cx, cy } = intrinsics;
     if ![fx, fy, cx, cy].iter().all(|value| value.is_finite()) || fx <= 0.0 || fy <= 0.0 {
         return Err(CameraMessageError::InvalidIntrinsics);
+    }
+    let IntrinsicValues {
+        fx: pfx,
+        fy: pfy,
+        cx: pcx,
+        cy: pcy,
+    } = projection;
+    if ![pfx, pfy, pcx, pcy].iter().all(|value| value.is_finite()) || pfx <= 0.0 || pfy <= 0.0 {
+        return Err(CameraMessageError::InvalidProjection);
     }
     let stamp = stamp(acquisition)?;
     Ok(CameraInfo {
@@ -140,7 +162,7 @@ pub fn camera_info_packet(
             k: vec![fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0],
         }),
         projection: Some(Projection {
-            p: vec![fx, 0.0, cx, 0.0, 0.0, fy, cy, 0.0, 0.0, 0.0, 1.0, 0.0],
+            p: vec![pfx, 0.0, pcx, 0.0, 0.0, pfy, pcy, 0.0, 0.0, 0.0, 1.0, 0.0],
         }),
         rectification_matrix: vec![1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
     })

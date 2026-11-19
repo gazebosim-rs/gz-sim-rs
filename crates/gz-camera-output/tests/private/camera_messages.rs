@@ -216,3 +216,139 @@ fn metric_depth_refuses_invalid_size_values_and_unrepresentable_time() {
         Err(CameraMessageError::TimeRange)
     );
 }
+
+#[test]
+fn distinct_projection_preserves_complete_canonical_info_and_independent_matrices() {
+    let k = IntrinsicValues {
+        fx: 30.0,
+        fy: 31.0,
+        cx: 20.0,
+        cy: 21.0,
+    };
+    let p = IntrinsicValues {
+        fx: 52.0,
+        fy: 36.0,
+        cx: 11.0,
+        cy: 45.0,
+    };
+    let mut expected =
+        CameraInfo::decode(include_bytes!("../fixtures/native_camera_info.bin").as_slice())
+            .unwrap();
+    expected.projection.as_mut().unwrap().p = vec![
+        52.0, 0.0, 11.0, 0.0, 0.0, 36.0, 45.0, 0.0, 0.0, 0.0, 1.0, 0.0,
+    ];
+    let actual = camera_info_packet_with_projection(Duration::new(4, 5), "frame", k, p).unwrap();
+    assert_eq!(actual, expected);
+    let wire = actual.encode_to_vec();
+    assert_eq!(wire, expected.encode_to_vec());
+    assert_eq!(CameraInfo::decode(wire.as_slice()).unwrap(), actual);
+    assert_eq!(
+        actual.intrinsics.unwrap().k,
+        [30.0, 0.0, 20.0, 0.0, 31.0, 21.0, 0.0, 0.0, 1.0]
+    );
+}
+
+#[test]
+fn same_projection_constructor_preserves_legacy_camera_info_bytes() {
+    for k in [
+        IntrinsicValues {
+            fx: 30.0,
+            fy: 31.0,
+            cx: 20.0,
+            cy: 21.0,
+        },
+        IntrinsicValues {
+            fx: 40.0,
+            fy: 52.0,
+            cx: -4.0,
+            cy: 96.0,
+        },
+        IntrinsicValues {
+            fx: f64::MAX,
+            fy: f64::MIN_POSITIVE,
+            cx: 0.0,
+            cy: 0.0,
+        },
+    ] {
+        for time in [Duration::ZERO, Duration::new(4, 5)] {
+            let mut expected =
+                CameraInfo::decode(include_bytes!("../fixtures/native_camera_info.bin").as_slice())
+                    .unwrap();
+            let header = expected.header.as_mut().unwrap();
+            header.stamp = Some(Time {
+                sec: time.as_secs() as i64,
+                nsec: time.subsec_nanos() as i32,
+            });
+            header.data[0].value = vec!["rig/camera".into()];
+            expected.intrinsics.as_mut().unwrap().k =
+                vec![k.fx, 0.0, k.cx, 0.0, k.fy, k.cy, 0.0, 0.0, 1.0];
+            expected.projection.as_mut().unwrap().p = vec![
+                k.fx, 0.0, k.cx, 0.0, 0.0, k.fy, k.cy, 0.0, 0.0, 0.0, 1.0, 0.0,
+            ];
+            let old = camera_info_packet(time, "rig/camera", k).unwrap();
+            let new = camera_info_packet_with_projection(time, "rig/camera", k, k).unwrap();
+            assert_eq!(old, expected);
+            assert_eq!(new.encode_to_vec(), expected.encode_to_vec());
+            assert_eq!(old, new);
+            assert_eq!(old.encode_to_vec(), new.encode_to_vec());
+        }
+    }
+}
+
+#[test]
+fn projection_packets_reject_invalid_fields_in_each_matrix_with_legacy_error_order() {
+    let good = IntrinsicValues {
+        fx: 40.0,
+        fy: 52.0,
+        cx: 20.0,
+        cy: 44.0,
+    };
+    let overflow = Duration::from_secs(i64::MAX as u64 + 1);
+    for invalid in [
+        IntrinsicValues { fx: 0.0, ..good },
+        IntrinsicValues { fy: 0.0, ..good },
+        IntrinsicValues { fx: -1.0, ..good },
+        IntrinsicValues { fy: -1.0, ..good },
+        IntrinsicValues {
+            fx: f64::NAN,
+            ..good
+        },
+        IntrinsicValues {
+            fy: f64::INFINITY,
+            ..good
+        },
+        IntrinsicValues {
+            cx: f64::NAN,
+            ..good
+        },
+        IntrinsicValues {
+            cy: f64::NEG_INFINITY,
+            ..good
+        },
+    ] {
+        assert_eq!(
+            camera_info_packet_with_projection(Duration::ZERO, "", invalid, good),
+            Err(CameraMessageError::InvalidIntrinsics)
+        );
+        assert_eq!(
+            camera_info_packet_with_projection(Duration::ZERO, "", good, invalid),
+            Err(CameraMessageError::InvalidProjection)
+        );
+        assert_eq!(
+            camera_info_packet_with_projection(overflow, "", invalid, invalid),
+            Err(CameraMessageError::InvalidIntrinsics)
+        );
+        assert_eq!(
+            camera_info_packet_with_projection(overflow, "", good, invalid),
+            Err(CameraMessageError::InvalidProjection)
+        );
+        assert_eq!(
+            camera_info_packet(overflow, "", invalid),
+            Err(CameraMessageError::InvalidIntrinsics)
+        );
+    }
+    assert_eq!(
+        camera_info_packet_with_projection(overflow, "", good, good),
+        Err(CameraMessageError::TimeRange)
+    );
+}

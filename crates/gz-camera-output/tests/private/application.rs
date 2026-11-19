@@ -2668,3 +2668,6 @@ mod mixed_pair;
 
 #[path = "explicit_intrinsics.rs"]
 mod explicit_intrinsics;
+
+#[path = "projection.rs"]
+mod projection;
