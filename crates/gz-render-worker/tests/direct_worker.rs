@@ -1170,7 +1170,9 @@ fn calibrated_snapshot_renders_shifted_pixels_and_rejects_unsupported_projection
         fy: 32.0,
         cx: 16.0,
         cy: 40.0,
-        skew: 1.0,
+        // Finite skew is supported; retain the correlated invalid-calibration
+        // refusal with a finite but unrepresentable shear coefficient.
+        skew: 1e300,
         tx: 0.0,
         ty: 0.0,
         near: 0.1,

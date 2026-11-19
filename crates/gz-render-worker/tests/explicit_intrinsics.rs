@@ -97,7 +97,7 @@ impl Rig {
             move |world: &mut bevy_ecs::world::World| {
                 let selected = event.swap(0, Ordering::AcqRel);
                 if selected != 0 {
-                    if selected == 3 || selected == 4 {
+                    if (3..=5).contains(&selected) {
                         let entity = entity_by_id(world, ids[0]).unwrap();
                         let mut sensor =
                             world.get_mut::<gz_sim_scene::CameraSensor>(entity).unwrap();
@@ -108,8 +108,10 @@ impl Rig {
                         };
                         if selected == 3 {
                             camera.lens.intrinsics.cx += 1.0;
-                        } else {
+                        } else if selected == 4 {
                             camera.lens.projection.cx += 1.0;
+                        } else {
+                            camera.lens.intrinsics.skew += 1.0;
                         }
                     } else {
                         assert!(selected <= 2);
@@ -963,7 +965,7 @@ mod projection {
         assert_eq!(d.k, [0.0; 5]);
         v
     }
-    fn image(wire: Vec<u8>, owner: usize, stamp: Duration, sequence: u64) -> Image {
+    pub(super) fn image(wire: Vec<u8>, owner: usize, stamp: Duration, sequence: u64) -> Image {
         let v = super::image(wire, owner, stamp, sequence);
         let [fx, fy, cx, cy] = INTRINSICS[owner];
         let (x, y, front) = if owner == 0 {
@@ -1243,6 +1245,655 @@ mod projection {
         assert_eq!(r.tick(), Duration::from_millis(50));
         assert_eq!(r.app.pump_camera(ids[1]).unwrap(), None);
         retired(&fresh_depth);
+        assert!(!r.app.has_camera_output());
+        assert!(!r.app.server().zenoh_session().is_closed());
+        r.app.shutdown();
+        r.observer.close().wait().unwrap();
+    }
+}
+
+// M74 shares all transport/process custody; only its independent pixel-ray
+// oracle is new. M72/M73 image validators and test bodies remain unchanged.
+mod skew {
+    use super::*;
+    const XML: &str = include_str!("../../../examples/m74_camera_skew.sdf");
+    const CALIBRATION: [[f64; 4]; 2] = [[52.0, 44.0, 34.0, 29.0], [36.0, 42.0, 26.0, 38.0]];
+    const SKEW: [f64; 2] = [36.0, -48.0];
+    const CENTERS: [[f64; 3]; 3] = [[6.0, 0.0, 1.0], [2.0, -2.0, 1.0], [3.0, 2.0, 1.0]];
+    const HALVES: [[f64; 3]; 3] = [[0.1, 8.0, 8.0], [0.2; 3], [0.2; 3]];
+    fn source(explicit_p: bool) -> String {
+        if !explicit_p {
+            return XML.into();
+        }
+        XML.replace("<s>36</s></intrinsics>","<s>36</s></intrinsics><projection><p_fx>40</p_fx><p_fy>48</p_fy><p_cx>20</p_cx><p_cy>25</p_cy><tx>0</tx><ty>0</ty></projection>")
+            .replace("<s>-48</s></intrinsics>","<s>-48</s></intrinsics><projection><p_fx>20</p_fx><p_fy>24</p_fy><p_cx>42</p_cx><p_cy>20</p_cy><tx>0</tx><ty>0</ty></projection>")
+    }
+    fn sub(r: &Rig, owner: usize, image: bool) -> Subscriber {
+        let key = format!(
+            "/m74/{}/{}",
+            if owner == 0 { "rgb" } else { "depth" },
+            if image { "image" } else { "camera_info" }
+        );
+        r.observer
+            .declare_subscriber(r.app.server().options().topic_key(&key).unwrap())
+            .wait()
+            .unwrap()
+    }
+    fn info(wire: Vec<u8>, owner: usize, stamp: Duration, explicit_p: bool) -> CameraInfo {
+        let v = CameraInfo::decode(wire.as_slice()).unwrap();
+        assert_eq!(v.encode_to_vec(), wire);
+        header(v.header.as_ref().unwrap(), owner, stamp, None);
+        assert_eq!((v.width, v.height), (64, 64));
+        let [fx, fy, cx, cy] = CALIBRATION[owner];
+        let [pfx, pfy, pcx, pcy] = if explicit_p {
+            K[owner]
+        } else {
+            CALIBRATION[owner]
+        };
+        // Pinned native PopulateInfo omits skew. This is a Source-derived
+        // compatibility limitation, not an actual nonzero-skew producer capture.
+        assert_eq!(
+            v.intrinsics.as_ref().unwrap().k,
+            [fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0]
+        );
+        assert_eq!(
+            v.projection.as_ref().unwrap().p,
+            [pfx, 0.0, pcx, 0.0, 0.0, pfy, pcy, 0.0, 0.0, 0.0, 1.0, 0.0]
+        );
+        assert_eq!(
+            v.rectification_matrix,
+            [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+        );
+        let d = v.distortion.as_ref().unwrap();
+        assert_eq!(d.model, 0);
+        assert_eq!(d.k, [0.0; 5]);
+        v
+    }
+    fn ray(k: [f64; 4], s: f64, u: f64, v: f64) -> [f64; 3] {
+        let [fx, fy, cx, cy] = k;
+        let down = (v - cy) / fy;
+        [1.0, -((u - cx) + s * down) / fx, -down]
+    }
+    fn hit(owner: usize, u: f64, v: f64, k: [f64; 4], s: f64) -> (f64, usize, bool) {
+        let origin = [0.0, if owner == 0 { -2.0 } else { 2.0 }, 1.0];
+        let direction = ray(k, s, u, v);
+        let mut best = (f64::INFINITY, 0, false);
+        for (box_id, (center, half)) in CENTERS.iter().zip(HALVES).enumerate() {
+            let mut enter = 0.1_f64;
+            let mut leave = 10.0_f64;
+            for (((c, h), o), d) in center.iter().zip(half).zip(origin).zip(direction) {
+                let lo = c - h - o;
+                let hi = c + h - o;
+                if d == 0.0 {
+                    if lo > 0.0 || hi < 0.0 {
+                        leave = -1.0;
+                    }
+                } else {
+                    let a = lo / d;
+                    let b = hi / d;
+                    enter = enter.max(a.min(b));
+                    leave = leave.min(a.max(b));
+                }
+            }
+            if enter <= leave && enter < best.0 {
+                let front = (enter - (center[0] - half[0])).abs() < 1e-10;
+                best = (
+                    enter,
+                    box_id,
+                    front
+                        && (origin[1] + enter * direction[1] - center[1]).abs() < half[1] - 0.03
+                        && (origin[2] + enter * direction[2] - center[2]).abs() < half[2] - 0.03,
+                );
+            }
+        }
+        best
+    }
+    fn bounds(owner: usize, box_id: usize) -> [f64; 4] {
+        let [fx, fy, cx, cy] = CALIBRATION[owner];
+        let s = SKEW[owner];
+        let c = CENTERS[box_id];
+        let h = HALVES[box_id];
+        let oy = if owner == 0 { -2.0 } else { 2.0 };
+        let mut b = [
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+        ];
+        for x in [c[0] - h[0], c[0] + h[0]] {
+            for y in [c[1] - h[1], c[1] + h[1]] {
+                for z in [c[2] - h[2], c[2] + h[2]] {
+                    let u = cx - fx * (y - oy) / x + s * (z - 1.0) / x;
+                    let v = cy - fy * (z - 1.0) / x;
+                    b[0] = b[0].min(u);
+                    b[1] = b[1].max(u);
+                    b[2] = b[2].min(v);
+                    b[3] = b[3].max(v);
+                }
+            }
+        }
+        b
+    }
+    fn homogeneous(owner: usize, x: usize, y: usize, box_id: usize, depth: f64) -> bool {
+        let c = CENTERS[box_id];
+        let h = HALVES[box_id];
+        let oy = if owner == 0 { -2.0 } else { 2.0 };
+        // A sheared projected face is a parallelogram. Four inverse-projected
+        // corners inside its convex physical rectangle prove the WHOLE pixel;
+        // an axis-aligned projected selected-face bbox would not prove this.
+        for u in [x as f64, x as f64 + 1.0] {
+            for v in [y as f64, y as f64 + 1.0] {
+                let d = ray(CALIBRATION[owner], SKEW[owner], u, v);
+                if (oy + depth * d[1] - c[1]).abs() >= h[1]
+                    || (1.0 + depth * d[2] - c[2]).abs() >= h[2]
+                {
+                    return false;
+                }
+            }
+        }
+        for (other, front) in [5.9, 1.8, 2.8].into_iter().enumerate() {
+            if other != box_id && front < depth {
+                let b = bounds(owner, other);
+                if x as f64 + 1.0 >= b[0]
+                    && x as f64 <= b[1]
+                    && y as f64 + 1.0 >= b[2]
+                    && y as f64 <= b[3]
+                {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+    fn image(
+        wire: Vec<u8>,
+        owner: usize,
+        stamp: Duration,
+        sequence: u64,
+        explicit_p: bool,
+    ) -> Image {
+        if explicit_p {
+            return super::projection::image(wire, owner, stamp, sequence);
+        }
+        let v = Image::decode(wire.as_slice()).unwrap();
+        assert_eq!(v.encode_to_vec(), wire);
+        header(v.header.as_ref().unwrap(), owner, stamp, Some(sequence));
+        assert_eq!((v.width, v.height), (64, 64));
+        if owner == 0 {
+            assert_eq!(
+                (v.step, v.pixel_format_type, v.data.len()),
+                (192, PixelFormatType::RgbInt8 as i32, 12288)
+            );
+        } else {
+            assert_eq!(
+                (v.step, v.pixel_format_type, v.data.len()),
+                (256, PixelFormatType::RFloat32 as i32, 16384)
+            );
+        }
+        let mut checked = 0;
+        let mut excluded = 0;
+        let mut red = 0;
+        let mut blue = 0;
+        let mut infinite = 0;
+        let mut hfov_diff = 0;
+        let mut zero_diff = 0;
+        for y in 0..64 {
+            for x in 0..64 {
+                let current = hit(
+                    owner,
+                    x as f64 + 0.5,
+                    y as f64 + 0.5,
+                    CALIBRATION[owner],
+                    SKEW[owner],
+                );
+                let zero = hit(
+                    owner,
+                    x as f64 + 0.5,
+                    y as f64 + 0.5,
+                    CALIBRATION[owner],
+                    0.0,
+                );
+                let hfov = hit(owner, x as f64 + 0.5, y as f64 + 0.5, [32.0; 4], 0.0);
+                if owner == 0 {
+                    if !current.2 || !homogeneous(owner, x, y, current.1, current.0) {
+                        excluded += 1;
+                        continue;
+                    }
+                    checked += 1;
+                    let color = match current.1 {
+                        0 => [0, 0, 255],
+                        1 => [255, 0, 0],
+                        2 => [0, 255, 0],
+                        _ => unreachable!(),
+                    };
+                    let actual = &v.data[(y * 64 + x) * 3..(y * 64 + x) * 3 + 3];
+                    assert_eq!(
+                        actual, color,
+                        "signed RGB owner{owner} pixel{x},{y} expected{color:?} actual{actual:?}"
+                    );
+                    red += usize::from(current.1 == 1);
+                    blue += usize::from(current.1 == 0);
+                    hfov_diff +=
+                        usize::from(current.1 == 1 && (!hfov.0.is_finite() || hfov.1 != 1));
+                    zero_diff += usize::from(
+                        current.1 != zero.1 || current.0.is_infinite() != zero.0.is_infinite(),
+                    );
+                } else {
+                    checked += 1;
+                    let offset = (y * 64 + x) * 4;
+                    let actual = f32::from_le_bytes(v.data[offset..offset + 4].try_into().unwrap());
+                    if current.0.is_infinite() {
+                        assert_eq!(
+                            actual,
+                            f32::INFINITY,
+                            "signed depth owner{owner} pixel{x},{y} expected+INF actual{actual}"
+                        );
+                        infinite += 1;
+                    } else {
+                        assert!(
+                            actual.is_finite()
+                                && actual > 0.0
+                                && (f64::from(actual) - current.0).abs() < 1e-4,
+                            "signed depth owner{owner} pixel{x},{y} expected{} actual{actual}",
+                            current.0
+                        );
+                    }
+                    hfov_diff += usize::from(
+                        current.0.is_infinite() != hfov.0.is_infinite()
+                            || (current.0.is_finite()
+                                && hfov.0.is_finite()
+                                && (current.0 - hfov.0).abs() > 0.1),
+                    );
+                    zero_diff += usize::from(
+                        current.0.is_infinite() != zero.0.is_infinite()
+                            || (current.0.is_finite()
+                                && zero.0.is_finite()
+                                && (current.0 - zero.0).abs() > 0.1),
+                    );
+                }
+            }
+        }
+        if owner == 0 {
+            assert_eq!(checked + excluded, 4096);
+            assert!(excluded > 0);
+            assert!(
+                red > 20 && blue > 100 && hfov_diff > 20 && zero_diff > 0,
+                "signed RGB checked{checked} excluded{excluded} red{red} blue{blue} HFOV{hfov_diff} zero{zero_diff}"
+            );
+            // At pixel40,25 all4corners lie strictly in the redfront and its
+            // center keeps0.03m margin. s0 and s-36 miss it; no MSAA pattern guess.
+            let actual = hit(0, 40.5, 25.5, CALIBRATION[0], 36.0);
+            assert!(actual.1 == 1 && actual.2 && homogeneous(0, 40, 25, actual.1, actual.0));
+            for u in [40.0, 41.0] {
+                for v in [25.0, 26.0] {
+                    let d = ray(CALIBRATION[0], 36.0, u, v);
+                    assert!(
+                        (1.8 * d[1]).abs() < 0.17 && (1.8 * d[2]).abs() < 0.17,
+                        "all4positive36 corners retain0.03m margin"
+                    );
+                    let zero = ray(CALIBRATION[0], 0.0, u, v);
+                    assert!(
+                        (1.8 * zero[1]).abs() > 0.2,
+                        "whole zero-skew footprint misses foreground"
+                    );
+                }
+            }
+            for s in [0.0, -36.0] {
+                assert_ne!(hit(0, 40.5, 25.5, CALIBRATION[0], s).1, 1);
+            }
+            assert_eq!(
+                &v.data[(25 * 64 + 40) * 3..(25 * 64 + 40) * 3 + 3],
+                [255, 0, 0],
+                "positive-skew sign discriminator40,25"
+            );
+        } else {
+            assert_eq!((checked, excluded), (4096, 0));
+            assert!(
+                infinite > 100 && hfov_diff > 100 && zero_diff > 100,
+                "signed depth +INF{infinite} HFOV{hfov_diff} zero{zero_diff}"
+            );
+            // Literal backdrop bounds guarantee80bottom-left pixels x0..9/
+            // y56..63 plus32top-right pixels x60..63/y0..7 are +INF under-48.
+            // Both zeroK and HFOV hit the backdrop there:112>100, not sampled limits.
+            for (xs, ys) in [(0..10, 56..64), (60..64, 0..8)] {
+                for y in ys {
+                    for x in xs.clone() {
+                        let offset = (y * 64 + x) * 4;
+                        assert_eq!(
+                            f32::from_le_bytes(v.data[offset..offset + 4].try_into().unwrap()),
+                            f32::INFINITY,
+                            "guaranteed background{x},{y}"
+                        );
+                    }
+                }
+            }
+            assert_eq!(
+                f32::from_le_bytes(v.data[(63 * 64) * 4..(63 * 64) * 4 + 4].try_into().unwrap()),
+                f32::INFINITY
+            );
+            assert!(
+                hit(1, 0.5, 63.5, CALIBRATION[1], 48.0).0.is_finite(),
+                "opposite sign must differ at0,63"
+            );
+        }
+        v
+    }
+    fn publish(
+        r: &mut Rig,
+        owner: usize,
+        sub: &Subscriber,
+        stamp: Duration,
+        sequence: u64,
+        p: bool,
+    ) -> Image {
+        assert_eq!(
+            r.app.pump_camera(r.ids[owner]).unwrap(),
+            Some(Progress::ImagePublished)
+        );
+        image(receive(sub, b"gz.msgs.Image"), owner, stamp, sequence, p)
+    }
+    fn original_metadata(r: &Rig, explicit_p: bool) {
+        for (owner, id) in r.ids.iter().copied().enumerate() {
+            let e = entity_by_id(r.app.server().simulation().world(), id).unwrap();
+            let s = r
+                .app
+                .server()
+                .simulation()
+                .world()
+                .get::<gz_sim_scene::CameraSensor>(e)
+                .unwrap();
+            let c = s.0.camera().unwrap();
+            assert_eq!(c.lens.intrinsics.skew, SKEW[owner]);
+            assert_eq!(c.lens.has_projection, explicit_p);
+            assert_eq!(
+                [
+                    c.lens.intrinsics.fx,
+                    c.lens.intrinsics.fy,
+                    c.lens.intrinsics.cx,
+                    c.lens.intrinsics.cy
+                ],
+                CALIBRATION[owner]
+            );
+            if explicit_p {
+                assert_eq!(
+                    [
+                        c.lens.projection.fx,
+                        c.lens.projection.fy,
+                        c.lens.projection.cx,
+                        c.lens.projection.cy
+                    ],
+                    K[owner]
+                );
+            }
+        }
+    }
+    fn canonical_first(
+        r: &mut Rig,
+        explicit_p: bool,
+    ) -> ([Subscriber; 2], [Subscriber; 2], [Worker; 2]) {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap();
+        let peer = selected_native::NativePeer::build(root, "camera");
+        let mode = if explicit_p {
+            "signed-skew-projection"
+        } else {
+            "signed-skew"
+        };
+        let mut cpp: [native::Native; 2] = std::array::from_fn(|owner| {
+            native::Native::start_mode(
+                &r.endpoint,
+                &r.app.server().options().partition,
+                &peer,
+                owner,
+                mode,
+            )
+        });
+        assert_ne!(cpp[0].pid(), cpp[1].pid());
+        for (owner, consumer) in cpp.iter().enumerate() {
+            assert_eq!(consumer.line(), format!("ready {mode} {owner}"));
+        }
+        r.matching([(true, true); 2]);
+        for id in r.ids {
+            assert!(r.app.camera_worker_diagnostics(id).is_none());
+        }
+        let images: [Subscriber; 2] = std::array::from_fn(|owner| sub(r, owner, true));
+        let infos: [Subscriber; 2] = std::array::from_fn(|owner| sub(r, owner, false));
+        let first = r.tick();
+        assert_eq!(first, Duration::from_millis(1));
+        let rows = r.capture();
+        for id in r.ids {
+            assert_eq!(requested(&rows, id), Some(Progress::Pending));
+        }
+        let calibration: [CameraInfo; 2] = std::array::from_fn(|owner| {
+            info(
+                receive(&infos[owner], b"gz.msgs.CameraInfo"),
+                owner,
+                first,
+                explicit_p,
+            )
+        });
+        r.ready(&[0, 1]);
+        let workers = [worker(r, 0), worker(r, 1)];
+        assert_ne!(workers[0].pid, workers[1].pid);
+        let frames: [Image; 2] =
+            std::array::from_fn(|owner| publish(r, owner, &images[owner], first, 0, explicit_p));
+        let mut sizes = [0; 2];
+        for owner in 0..2 {
+            for (kind, expected) in [
+                ("IMAGE", frames[owner].encode_to_vec()),
+                ("INFO", calibration[owner].encode_to_vec()),
+            ] {
+                let line = cpp[owner].line();
+                let (actual, raw) = line.split_once(' ').unwrap();
+                assert_eq!(actual, kind);
+                assert_eq!(
+                    hex(raw),
+                    expected,
+                    "actual signed-skew canonical full bytes"
+                );
+            }
+            assert_eq!(cpp[owner].line(), format!("PASS canonical {mode} {owner}"));
+            sizes[owner] = cpp[owner].finish();
+            assert_eq!(cpp[owner].actual_exit(), Some(0));
+        }
+        let receipt=serde_json::to_vec_pretty(&serde_json::json!({"actual_consumer_exit_codes":[cpp[0].actual_exit(),cpp[1].actual_exit()],"actual_reaped":[true,true],
+            "consumer_PIDs":[cpp[0].pid(),cpp[1].pid()],"stdout_bytes":sizes,"per_stdout_cap":65536,"per_stderr_cap":4096,"aggregate_cap":131072,
+            "K":CALIBRATION,"skew":SKEW,"explicit_P":explicit_p,"P_when_explicit":K,"sensor_ids":r.ids,"worker_exit_codes":"UNKNOWN",
+            "scope":"Actual canonical consumer interoperability and software images; native producer skew omission is Source-derived, not a new native capture."})).unwrap();
+        assert!(sizes.into_iter().sum::<usize>() + receipt.len() <= 131072);
+        let mut saved = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(
+                peer.binary
+                    .parent()
+                    .unwrap()
+                    .join(format!("m74-{mode}-consumers.json")),
+            )
+            .unwrap();
+        std::io::Write::write_all(&mut saved, &receipt).unwrap();
+        saved.sync_all().unwrap();
+        (images, infos, workers)
+    }
+    #[test]
+    fn signed_skew_real_workers_and_canonical_consumers_keep_sheared_rays_cadence_and_reset() {
+        if isolation::child(
+            "skew::signed_skew_real_workers_and_canonical_consumers_keep_sheared_rays_cadence_and_reset",
+            180,
+        ) {
+            return;
+        }
+        let mut r = Rig::with_xml(true, &source(false), "m74-camera-skew.sdf");
+        original_metadata(&r, false);
+        let ids = r.ids;
+        let (images, infos, old) = canonical_first(&mut r, false);
+        let first = Duration::from_millis(1);
+        let mut stamps: [Vec<Duration>; 2] = std::array::from_fn(|_| vec![first]);
+        while r.app.server().simulation().elapsed() < Duration::from_millis(200) {
+            let stamp = r.tick();
+            let rows = r.capture();
+            let mut due = Vec::new();
+            for (owner, sub) in infos.iter().enumerate() {
+                match requested(&rows, ids[owner]) {
+                    Some(Progress::Pending) => {
+                        info(receive(sub, b"gz.msgs.CameraInfo"), owner, stamp, false);
+                        due.push(owner);
+                    }
+                    None => {}
+                    other => panic!("skew cadence {other:?}"),
+                }
+            }
+            r.ready(&due);
+            for owner in due {
+                publish(
+                    &mut r,
+                    owner,
+                    &images[owner],
+                    stamp,
+                    stamps[owner].len() as u64,
+                    false,
+                );
+                stamps[owner].push(stamp);
+            }
+        }
+        assert_eq!(stamps[0], [1, 100, 200].map(Duration::from_millis));
+        assert_eq!(stamps[1], [1, 50, 100, 150, 200].map(Duration::from_millis));
+        r.pause(true);
+        for _ in 0..8 {
+            assert_eq!(r.tick(), Duration::from_millis(200));
+            for row in r.capture() {
+                assert!(row.result.unwrap().requested.is_none());
+            }
+        }
+        for sub in images.iter().chain(&infos) {
+            assert!(sub.try_recv().unwrap().is_none());
+        }
+        r.reset();
+        for w in &old {
+            retired(w);
+        }
+        assert_eq!(r.ids, ids);
+        original_metadata(&r, false);
+        r.matching([(true, true); 2]);
+        r.pause(false);
+        assert_eq!(r.tick(), first);
+        let rows = r.capture();
+        for id in ids {
+            assert_eq!(requested(&rows, id), Some(Progress::Pending));
+        }
+        for (owner, sub) in infos.iter().enumerate() {
+            info(receive(sub, b"gz.msgs.CameraInfo"), owner, first, false);
+        }
+        r.ready(&[0, 1]);
+        let fresh = [worker(&r, 0), worker(&r, 1)];
+        for (owner, sub) in images.iter().enumerate() {
+            publish(&mut r, owner, sub, first, 0, false);
+        }
+        r.app.shutdown();
+        for w in &fresh {
+            retired(w);
+        }
+        r.observer.close().wait().unwrap();
+    }
+    #[test]
+    fn signed_skew_explicit_p_override_keeps_lazy_messages_and_discards_drifted_frames() {
+        if isolation::child(
+            "skew::signed_skew_explicit_p_override_keeps_lazy_messages_and_discards_drifted_frames",
+            180,
+        ) {
+            return;
+        }
+        // Independent info-only path has no native consumer image interest.
+        let mut lazy = Rig::with_xml(true, &source(true), "m74-skew-projection-lazy.sdf");
+        assert_eq!(lazy.tick(), Duration::from_millis(1));
+        for row in lazy.capture() {
+            assert_eq!(row.result.unwrap().requested, Some(Progress::NoDemand));
+        }
+        let infos: [Subscriber; 2] = std::array::from_fn(|owner| sub(&lazy, owner, false));
+        lazy.matching([(false, true); 2]);
+        let stamp = lazy.tick();
+        assert_eq!(stamp, Duration::from_millis(2));
+        for row in lazy.capture() {
+            assert_eq!(row.result.unwrap().requested, Some(Progress::InfoPublished));
+        }
+        for (owner, sub) in infos.iter().enumerate() {
+            info(receive(sub, b"gz.msgs.CameraInfo"), owner, stamp, true);
+            assert!(
+                lazy.app
+                    .camera_worker_diagnostics(lazy.ids[owner])
+                    .is_none()
+            );
+        }
+        lazy.app.shutdown();
+        lazy.observer.close().wait().unwrap();
+        let mut r = Rig::with_xml(true, &source(true), "m74-skew-projection.sdf");
+        original_metadata(&r, true);
+        let ids = r.ids;
+        let (images, infos, old) = canonical_first(&mut r, true);
+        r.advance(100);
+        let rows = r.capture();
+        for id in ids {
+            assert_eq!(requested(&rows, id), Some(Progress::Pending));
+        }
+        for (owner, sub) in infos.iter().enumerate() {
+            info(
+                receive(sub, b"gz.msgs.CameraInfo"),
+                owner,
+                Duration::from_millis(100),
+                true,
+            );
+        }
+        r.ready(&[0, 1]);
+        r.pause(true);
+        r.remove.store(5, Ordering::Release);
+        assert_eq!(r.tick(), Duration::from_millis(100));
+        assert!(matches!(
+            r.app.pump_camera(ids[0]),
+            Err(CameraServerError::Camera(
+                gz_camera_output::CameraOutputError::OwnerInvalid
+            ))
+        ));
+        for w in &old {
+            retired(w);
+        }
+        assert!(!r.app.has_camera_output());
+        for sub in &images {
+            assert!(sub.try_recv().unwrap().is_none());
+        }
+        assert!(!r.app.server().zenoh_session().is_closed());
+        r.reset();
+        assert_eq!(r.ids, ids);
+        original_metadata(&r, true);
+        r.matching([(true, true); 2]);
+        r.pause(false);
+        let first = r.tick();
+        assert_eq!(first, Duration::from_millis(1));
+        let rows = r.capture();
+        for id in ids {
+            assert_eq!(requested(&rows, id), Some(Progress::Pending));
+        }
+        for (owner, sub) in infos.iter().enumerate() {
+            info(receive(sub, b"gz.msgs.CameraInfo"), owner, first, true);
+        }
+        r.ready(&[0, 1]);
+        let fresh = [worker(&r, 0), worker(&r, 1)];
+        for (owner, sub) in images.iter().enumerate() {
+            publish(&mut r, owner, sub, first, 0, true);
+        }
+        r.pause(true);
+        r.remove.store(1, Ordering::Release);
+        assert_eq!(r.tick(), first);
+        assert_eq!(r.app.pump_camera(ids[0]).unwrap(), None);
+        retired(&fresh[0]);
+        assert_eq!(proc_identity(fresh[1].pid).unwrap().0, fresh[1].start);
+        assert!(!fresh[1].lifetime.is_retired());
+        r.remove.store(2, Ordering::Release);
+        assert_eq!(r.tick(), first);
+        assert_eq!(r.app.pump_camera(ids[1]).unwrap(), None);
+        retired(&fresh[1]);
         assert!(!r.app.has_camera_output());
         assert!(!r.app.server().zenoh_session().is_closed());
         r.app.shutdown();

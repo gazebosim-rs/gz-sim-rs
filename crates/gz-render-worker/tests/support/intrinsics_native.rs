@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! M72/M73 adoption of the existing bounded canonical consumer custody.
+//! M72/M73/M74 adoption of the existing bounded canonical consumer custody.
 //! Original M69 wrapper bodies/caps/deadlines remain untouched.
 use super::{proc_identity, selected_native};
 use std::{
@@ -56,6 +56,8 @@ impl Native {
         let capture_prefix = match mode {
             "explicit-intrinsics" => "m72-intrinsics",
             "explicit-projection" => "m73-projection",
+            "signed-skew" => "m74-skew",
+            "signed-skew-projection" => "m74-skew-projection",
             _ => panic!("closed canonical camera mode"),
         };
         assert!(owner < 2);
@@ -192,7 +194,7 @@ impl Native {
             "actual_wait_reaped":self.waited.is_some(),"completed_canonical_checks":completed,
             "stdout_bytes":out.bytes.len(),"stderr_bytes":err.bytes.len(),
             "stdout_error":out.error,"stderr_error":err.error,"worker_exit_code":"UNKNOWN",
-            "scope":if self.capture_prefix=="m72-intrinsics" {"One actual owned upstream explicit-K camera consumer, full canonical Image/Info. Software pixels, not native rendering or Manager parity."} else {"One actual owned upstream distinct-K/P camera consumer, full canonical Image/Info. Software pixels, not native rendering or Manager parity."}});
+            "scope":if self.capture_prefix=="m72-intrinsics" {"One actual owned upstream explicit-K camera consumer, full canonical Image/Info. Software pixels, not native rendering or Manager parity."} else if self.capture_prefix=="m73-projection" {"One actual owned upstream distinct-K/P camera consumer, full canonical Image/Info. Software pixels, not native rendering or Manager parity."} else {"One actual owned upstream signed-skew camera consumer, full canonical Image/Info. Native message skew omission is Source-derived; no native producer/image parity."}});
         save("receipt.json", &serde_json::to_vec_pretty(&record).unwrap());
         self.saved = true;
     }

@@ -1,3 +1,24 @@
+## Current development: M74 signed pinhole camera skew
+
+[M74](M74_DELIVERY.md) adds finite, representable signed intrinsic skew to the existing
+64 by 64 RGB/depth paths. Projection, inverse rays and sheared frustum corners
+must agree. Explicit P retains zero-skew rendering precedence. Native CameraInfo
+keeps zero offdiagonals even when rendering uses skew; that limitation remains
+explicit. Other camera bounds and packet formats stay unchanged.
+
+Development is isolated over locally qualified M73 `03f3fc9d`. Its first full
+normal/strict gate, independent retained audit and consistency review passed:
+1,752 headless and 1,323 overlapping renderer tests, 475 aggregate Python checks,
+44 finite source examples and 18 CLI cases. M70–M73 remain private and unaccepted
+while final parent reconciliation and exact hosted/official/Main gates are held.
+No CI retry, snapshot probe, old native capture or browser replay is selected.
+
+Finish implementation, meaningful regressions, guides and whole independent
+source review before one consolidated full qualification cycle. Keep Rapier/TPE,
+D33 retirement, Fuel work, frozen parents and all older evidence intact.
+
+Earlier checkpoints below retain their historical scope.
+
 ## Current development: M73 explicit monocular camera projection
 
 [M73](M73_DELIVERY.md) admits explicit zero-translation SDF projection for the existing

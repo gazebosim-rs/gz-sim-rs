@@ -213,7 +213,7 @@ pub struct CameraSensor(pub Arc<sdformat::Sensor>);
 #[component(immutable)]
 pub struct RenderingSensorsConfiguration;
 
-/// Whether a sensor is in the explicit 64×64 RGB or depth camera domain.
+/// Whether RGB/depth metadata is in the bounded 64×64 finite-skew domain.
 /// This admits metadata only and does not schedule or publish sensor samples.
 pub fn supports_camera_sensor(sensor: &sdformat::Sensor) -> bool {
     let Some(camera) = sensor.camera() else {
@@ -247,7 +247,6 @@ pub fn supports_camera_sensor(sensor: &sdformat::Sensor) -> bool {
                 .all(|value| value.is_finite())
                 && k.fx > 0.0
                 && k.fy > 0.0
-                && k.skew == 0.0
         })
         && (!camera.lens.has_projection || {
             let p = &camera.lens.projection;

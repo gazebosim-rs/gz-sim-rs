@@ -322,6 +322,89 @@ fn calibrated_projection_subview_and_corners_match_pixels() {
     assert!((clip.y / clip.w).abs() < 1e-6);
 }
 
+#[test]
+fn signed_skew_projection_subviews_and_shared_frustum_corners_agree() {
+    use gz_render_frame::camera::CameraConfig;
+    for skew in [16.0, -16.0] {
+        let calibration = Calibration::new(CameraConfig {
+            width: 64,
+            height: 64,
+            fx: 32.0,
+            fy: 16.0,
+            cx: 32.0,
+            cy: 32.0,
+            skew,
+            tx: 0.0,
+            ty: 0.0,
+            near: 1.0,
+            far: 8.0,
+        })
+        .unwrap();
+        let projection = CalibratedProjection(calibration);
+        let corners = projection.get_frustum_corners(-2.0, -4.0);
+        let shared = calibration.frustum_corners(-2.0, -4.0);
+        let ndc = [(1.0, -1.0), (1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0)];
+        for (index, (actual, expected)) in corners.iter().zip(shared).enumerate() {
+            assert_eq!(
+                *actual,
+                bevy::math::Vec3A::new(expected.x as f32, expected.y as f32, expected.z as f32)
+            );
+            let clip =
+                projection.get_clip_from_view() * Vec4::new(actual.x, actual.y, actual.z, 1.0);
+            assert!((clip.x / clip.w - ndc[index % 4].0).abs() < 1e-6);
+            assert!((clip.y / clip.w - ndc[index % 4].1).abs() < 1e-6);
+        }
+        let sub = SubCameraView {
+            full_size: UVec2::new(64, 64),
+            offset: Vec2::new(8.0, 8.0),
+            size: UVec2::new(32, 32),
+        };
+        for (u, v) in [(8.0, 8.0), (24.0, 24.0), (40.0, 40.0)] {
+            let y = (32.0 - v) / 16.0;
+            let x = ((u - 32.0) - skew * y) / 32.0;
+            let clip = projection.get_clip_from_view_for_sub(&sub)
+                * Vec4::new(x as f32, y as f32, -1.0, 1.0);
+            assert!((clip.x / clip.w - ((u - 8.0) / 16.0 - 1.0) as f32).abs() < 1e-6);
+            assert!((clip.y / clip.w - (1.0 - (v - 8.0) / 16.0) as f32).abs() < 1e-6);
+        }
+    }
+}
+
+#[test]
+fn zero_skew_shared_corners_preserve_supplied_positive_plane_and_legacy_order() {
+    use gz_render_frame::camera::CameraConfig;
+    let projection = CalibratedProjection(
+        Calibration::new(CameraConfig {
+            width: 64,
+            height: 64,
+            fx: 32.0,
+            fy: 32.0,
+            cx: 16.0,
+            cy: 40.0,
+            skew: 0.0,
+            tx: 0.0,
+            ty: 0.0,
+            near: 0.1,
+            far: 10.0,
+        })
+        .unwrap(),
+    );
+    let corners = projection.get_frustum_corners(1.0, -2.0);
+    assert_eq!(
+        corners,
+        [
+            bevy::math::Vec3A::new(1.5, -0.75, 1.0),
+            bevy::math::Vec3A::new(1.5, 1.25, 1.0),
+            bevy::math::Vec3A::new(-0.5, 1.25, 1.0),
+            bevy::math::Vec3A::new(-0.5, -0.75, 1.0),
+            bevy::math::Vec3A::new(3.0, -1.5, -2.0),
+            bevy::math::Vec3A::new(3.0, 2.5, -2.0),
+            bevy::math::Vec3A::new(-1.0, 2.5, -2.0),
+            bevy::math::Vec3A::new(-1.0, -1.5, -2.0),
+        ]
+    );
+}
+
 fn directional_light() -> DirectionalWorldLight {
     DirectionalWorldLight {
         id: 2,

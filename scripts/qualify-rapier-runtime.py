@@ -71,6 +71,7 @@ NOISY_EXAMPLES = (
     "examples/m71_mixed_cameras.sdf",
     "examples/m72_camera_intrinsics.sdf",
     "examples/m73_camera_projection.sdf",
+    "examples/m74_camera_skew.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -230,6 +231,13 @@ NOISY_LINKS = {
         "default::occluder_a::body": (2, -2, 1),
         "default::occluder_b::body": (3, 2, 1),
     },
+    "examples/m74_camera_skew.sdf": {
+        "default::rig_a::body": (0, -2, 1),
+        "default::rig_b::body": (0, 2, 1),
+        "default::backdrop::body": (6, 0, 1),
+        "default::occluder_a::body": (2, -2, 1),
+        "default::occluder_b::body": (3, 2, 1),
+    },
 }
 TARGETS = {
     "gz-sim-scene": ("no_native_backends", [
@@ -264,6 +272,7 @@ RGB_TESTS = [
     "mixed_camera_opt_in_preserves_default_refusal_and_lazy_workers",
     "explicit_intrinsics_keep_workers_lazy_and_refuse_invalid_calibration",
     "explicit_projection_keeps_workers_lazy_and_refuses_invalid_selected_matrices",
+    "signed_skew_keeps_workers_lazy_and_preserves_projection_refusals",
 ]
 # The retained directory and feature names stay RGB for compatibility. This
 # CPU-only proof also covers loaded depth admission without demand or GPU images.

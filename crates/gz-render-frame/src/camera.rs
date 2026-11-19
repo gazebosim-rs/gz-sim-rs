@@ -34,7 +34,7 @@ pub enum CameraError {
     InvalidDimensions,
     #[error("intrinsics must be finite with positive focal lengths")]
     InvalidIntrinsics,
-    #[error("skew and projection translation are not supported")]
+    #[error("skew must be finite and projection translation is not supported")]
     UnsupportedProjection,
     #[error("clip planes must be finite, positive and ordered")]
     InvalidClip,
@@ -51,9 +51,41 @@ pub struct Calibration {
     projection: DMat4,
 }
 
+fn frustum_corners(config: CameraConfig, z_near: f64, z_far: f64) -> [DVec3; 8] {
+    let plane = |z: f64| {
+        let distance = z.abs();
+        let left = -config.cx * distance / config.fx;
+        let right = (f64::from(config.width) - config.cx) * distance / config.fx;
+        let bottom = -(f64::from(config.height) - config.cy) * distance / config.fy;
+        let top = config.cy * distance / config.fy;
+        let corners = [
+            DVec3::new(right, bottom, z),
+            DVec3::new(right, top, z),
+            DVec3::new(left, top, z),
+            DVec3::new(left, bottom, z),
+        ];
+        if config.skew == 0.0 {
+            corners
+        } else {
+            corners.map(|point| {
+                DVec3::new(
+                    point.x - (config.skew / config.fx) * point.y,
+                    point.y,
+                    point.z,
+                )
+            })
+        }
+    };
+    let near = plane(z_near);
+    let far = plane(z_far);
+    [
+        near[0], near[1], near[2], near[3], far[0], far[1], far[2], far[3],
+    ]
+}
+
 impl Calibration {
-    /// Validate before constructing a frustum. Skew and stereo translation are
-    /// rejected until the renderer supports their complete semantics.
+    /// Validate finite signed skew and the bounded frustum before narrowing.
+    /// Stereo projection translation remains unsupported.
     pub fn new(config: CameraConfig) -> Result<Self, CameraError> {
         if config.width == 0
             || config.height == 0
@@ -71,7 +103,7 @@ impl Calibration {
         {
             return Err(CameraError::InvalidIntrinsics);
         }
-        if config.skew != 0.0 || config.tx != 0.0 || config.ty != 0.0 {
+        if !config.skew.is_finite() || config.tx != 0.0 || config.ty != 0.0 {
             return Err(CameraError::UnsupportedProjection);
         }
         if !config.near.is_finite()
@@ -109,7 +141,10 @@ impl Calibration {
             DVec4::new(0.0, 0.0, -1.0, 0.0),
             DVec4::new(0.0, 0.0, 1.0, 1.0),
         );
-        let projection = reverse * forward;
+        let mut projection = reverse * forward;
+        if config.skew != 0.0 {
+            projection.y_axis.x = 2.0 * config.skew / width;
+        }
         let narrowed = projection.as_mat4();
         let far_corners =
             [left, right, bottom, top].map(|edge| (edge * (config.far / config.near)) as f32);
@@ -130,6 +165,34 @@ impl Calibration {
                 && config.far as f32 > config.near as f32)
         {
             return Err(CameraError::ProjectionOutOfRange);
+        }
+        if config.skew != 0.0 {
+            let corners = frustum_corners(config, -config.near, -config.far);
+            let narrowed_corners = frustum_corners(
+                config,
+                f64::from(-(config.near as f32)),
+                f64::from(-(config.far as f32)),
+            );
+            let determinant = narrowed.determinant();
+            let precise_determinant = projection.determinant();
+            if !narrowed.y_axis.x.is_normal()
+                || !corners
+                    .iter()
+                    .chain(&narrowed_corners)
+                    .all(|point| point.is_finite() && point.as_vec3().is_finite())
+                || !determinant.is_finite()
+                || determinant == 0.0
+                || !precise_determinant.is_finite()
+                || precise_determinant == 0.0
+            {
+                return Err(CameraError::ProjectionOutOfRange);
+            }
+            if !projection.inverse().is_finite()
+                || !narrowed.inverse().is_finite()
+                || !narrowed.as_dmat4().inverse().is_finite()
+            {
+                return Err(CameraError::ProjectionOutOfRange);
+            }
         }
         Ok(Self { config, projection })
     }
@@ -174,15 +237,24 @@ impl Calibration {
         self.projection.as_mat4()
     }
 
+    /// View-space corners in right-bottom, right-top, left-top, left-bottom
+    /// order at each supplied plane. Distance uses abs(z), preserving the z sign.
+    pub fn frustum_corners(self, z_near: f64, z_far: f64) -> [DVec3; 8] {
+        frustum_corners(self.config, z_near, z_far)
+    }
+
     /// Project an optical-frame point without clipping it to image bounds.
     pub fn project_optical(self, point: DVec3) -> Result<[f64; 2], CameraError> {
         if !point.is_finite() || point.z <= 0.0 {
             return Err(CameraError::InvalidPoint);
         }
-        let pixel = [
+        let mut pixel = [
             self.config.fx * point.x / point.z + self.config.cx,
             self.config.fy * point.y / point.z + self.config.cy,
         ];
+        if self.config.skew != 0.0 {
+            pixel[0] -= self.config.skew * point.y / point.z;
+        }
         if !pixel.iter().all(|value| value.is_finite()) {
             return Err(CameraError::ProjectionOutOfRange);
         }

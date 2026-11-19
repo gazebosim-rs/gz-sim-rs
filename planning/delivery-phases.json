@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-19T19:22:38.413200+00:00",
+  "as_of": "2026-11-19T20:13:23.611655+00:00",
   "execution_state": "active",
-  "current_phase": "M73",
+  "current_phase": "M74",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -3556,8 +3556,8 @@
       "implementation_complete": true,
       "independent_source_review_complete": true,
       "checks_run": false,
-      "normal_passed": false,
-      "local_DATA_passed": false,
+      "normal_passed": true,
+      "local_DATA_passed": true,
       "accepted": false,
       "hosted_success": false,
       "predecessor_acceptance_required_before_checks": false,
@@ -3566,7 +3566,55 @@
       "Source_Rust_controls": 14,
       "Source_Python_controls": 2,
       "source_finite_example_obligations": 44,
-      "source_CLI_case_obligations": 18
+      "source_CLI_case_obligations": 18,
+      "local_development_complete": true,
+      "locally_qualified_commit": "03f3fc9dfc594ca7ebccb9af46ba8968b83ca342",
+      "local_qualification_provisional": true,
+      "local_qualification": {
+        "normal_actual_exit": 0,
+        "independent_audit_actual_exit": 0,
+        "headless_passed": 1752,
+        "renderer_passed": 1323,
+        "profile_counts_overlap": true,
+        "ignored_each_profile": 2,
+        "Python_aggregate": 475,
+        "Source_finite_runs": 44,
+        "CLI_cases": 18,
+        "observed_new_Rust_controls": 14,
+        "normal_terminal": "artifacts/m73-delivery/normal-actual-exit.json",
+        "independent_DATA": "artifacts/m73-delivery/independent-normal-audit.json"
+      }
+    },
+    {
+      "id": "M74",
+      "title": "Signed pinhole camera skew",
+      "max_working_days": 5,
+      "depends_on": [
+        "M73"
+      ],
+      "scope": "Finite signed intrinsic skew for existing 64 by 64 RGB/depth cameras, with native-compatible projection signs and shared sheared corner validation. Absent K preserves HFOV; explicit P overrides rendering with zero skew. CameraInfo retains native zero offdiagonals.",
+      "acceptance": "Complete implementation, meaningful regressions, guides and independent whole source review before one full normal/strict local gate and independent audit. Check signed and zero-skew math against the retained native CPU capture, coupled overflow and pre-IO refusals, actual software images/depth, explicit P override, canonical packets, demand/rates/pause/drift/reset/removal and retirement. Final accepted-parent reconciliation and exact hosted/official/Main gates precede source publication or acceptance.",
+      "excluded": "Stereo translations, arbitrary projection forms, new native image or nonzero-skew native packet-capture claims, shader/schema/protocol/dependency/SDK/physics/transport/framework/viewer/package expansion, larger images/fleets, distortion/noise/RGBD/pointclouds and performance claims.",
+      "evidence": "docs/M74_DELIVERY.md",
+      "source_preparation_basis_commit": "03f3fc9dfc594ca7ebccb9af46ba8968b83ca342",
+      "source_preparation_basis_accepted": false,
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_started_at": "2026-11-19T20:13:23.611655+00:00",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": true,
+      "checks_run": false,
+      "normal_passed": false,
+      "local_DATA_passed": false,
+      "accepted": false,
+      "hosted_success": false,
+      "predecessor_acceptance_required_before_checks": false,
+      "predecessor_acceptance_required_before_acceptance": true,
+      "installed_accepted_examples": 35,
+      "Source_Rust_controls": 16,
+      "Source_Python_controls": 2,
+      "source_finite_example_obligations": 45,
+      "source_CLI_case_obligations": 19
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -3643,12 +3691,13 @@
     "M70": "in_progress",
     "M71": "in_progress",
     "M72": "in_progress",
-    "M73": "in_progress"
+    "M73": "in_progress",
+    "M74": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-19T19:22:38.413200+00:00",
+  "phase_started_at": "2026-11-19T20:13:23.611655+00:00",
   "active_phases": [
-    "M73"
+    "M74"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -4018,38 +4067,49 @@
       ],
       "integration": "Freeze locally qualified M72 and all parent evidence. M73 Scene/CLI, extraction/output and evidence source lanes share one integrator. Whole source review and one consolidated local cycle precede final accepted-parent reconciliation and exact hosted/official/Main gates. No prior result transfer or parent replay.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M70",
+        "M71",
+        "M72",
+        "M73",
+        "M74"
+      ],
+      "integration": "Freeze locally qualified M73 and all parent evidence. M74 Scene/extraction/CLI, projection/frustum and evidence lanes share one integrator. Complete whole source review and one full local cycle; final accepted-parent reconciliation and exact hosted/official/Main gates remain mandatory.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M69 and 202 slices remain accepted; M65 Latest has35 installed examples. M70 local distribution/runtime and M71\u2013M72 local normal/strict/DATA passed provisionally, all private and unaccepted. M73 inherits no qualification result. Final accepted-parent reconciliation and exact hosted/official/Main gates precede source publication or acceptance. Rapier/TPE remain; DART/MuJoCo are retired.",
+  "acceptance_boundary": "M1\u2013M69 and 202 slices remain accepted; M65 Latest has 35 installed examples. M70 local distribution/runtime and M71\u2013M73 local normal/strict qualification and audits passed provisionally, all private and unaccepted. M74 inherits no qualification. Final accepted-parent reconciliation and exact hosted/official/Main gates precede publication or acceptance. Rapier/TPE remain; DART/MuJoCo are retired.",
   "current_delivery_group": [
-    "M73"
+    "M74"
   ],
-  "current_development_phase": "M73",
+  "current_development_phase": "M74",
   "board": {
-    "updated_at": "2026-11-19T19:26:11.999751+00:00",
+    "updated_at": "2026-11-19T20:13:23.611655+00:00",
     "current": {
-      "title": "Qualifying explicit monocular camera projection",
+      "title": "Qualifying signed camera skew",
       "items": [
-        "M73 selects explicit zero-translation P for existing 64 by 64 RGB/depth cameras. Rendering uses P while CameraInfo retains separate K and P.",
-        "Implementation, meaningful regression source and guides are complete. Whole independent source review found only stale current guidance, now corrected before checks.",
-        "No M73 checks or qualification results are claimed. The unchanged consolidated local normal/strict cycle and independent audit remain pending."
+        "M74 implementation, meaningful regressions and guides passed whole independent source review. The single test-borrow finding is corrected before checks.",
+        "Signed projection and shared sheared bounds preserve explicit-P precedence, all numerical assertions and the native CameraInfo limitation.",
+        "Sixteen Rust/two Python controls and 45 source-example/19 CLI obligations await qualification; no product result is claimed."
       ]
     },
     "done": [
-      "M1\u2013M69 and 202 slices are accepted; M65 remains Latest with 35 examples.",
-      "M70 local distribution/runtime and M71\u2013M72 full local normal/strict qualification and independent audits passed provisionally. All remain private and unaccepted."
+      "M1\u2013M69 and 202 slices remain accepted; M65 Latest has 35 installed examples.",
+      "M70 local distribution/runtime and M71\u2013M73 local normal/strict qualification and independent audits passed provisionally, all private and unaccepted."
     ],
     "next": [
-      "Run one consolidated M73 full local normal/strict qualification cycle and independent retained audit after final source clearance.",
-      "Final accepted-parent reconciliation and exact hosted/official/Main gates remain mandatory before M70\u2013M73 acceptance."
+      "Run one full M74 normal/strict local cycle and one reviewed retained audit after final source finding clearance.",
+      "Final accepted-parent reconciliation and exact hosted/official/Main gates remain mandatory."
     ],
     "blocker": {
-      "text": "Hosted qualification remains held after earlier Ubuntu snapshot HTTP 401 failures. Recovery is unproven; no retry or new index probe is released.",
+      "text": "Exact hosted qualification remains held after the historical snapshot HTTP 401 failure. Recovery is unproven; no retry or probe is released.",
       "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44351185107"
     }
   },
   "parallel_source_phases": [
-    "M73"
+    "M74"
   ],
   "camera_integration": {
     "scope": "Atomic M61\u2013M64 qualification on accepted M60; no new phase",
@@ -4198,15 +4258,16 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "M73_EXPLICIT_MONOCULAR_CAMERA_PROJECTION",
+  "current_development_task": "M74_SIGNED_PINHOLE_CAMERA_SKEW",
   "held_work": {
     "phases": [
       "M70",
       "M71",
-      "M72"
+      "M72",
+      "M73"
     ],
-    "source_commit": "2f3e458f8257e72358a607b999bdd4e66a93872a",
-    "reason": "Selected local obligations passed provisionally; final parent, exact hosted, official and Main acceptance remain held after retained snapshot HTTP401 failure.",
+    "source_commit": "03f3fc9dfc594ca7ebccb9af46ba8968b83ca342",
+    "reason": "Selected local obligations passed provisionally; final parent, exact hosted/official/Main acceptance remains held after retained snapshot HTTP401 failure.",
     "accepted": false,
     "included_in_this_candidate": true
   }

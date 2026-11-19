@@ -31,8 +31,10 @@ int depth_pair_mode(int argc, char **argv);
 int mixed_pair_mode(int argc, char **argv);
 int explicit_intrinsics_mode(int argc, char **argv);
 int explicit_projection_mode(int argc, char **argv);
+int signed_skew_mode(int argc, char **argv);
 
 int main(int argc, char **argv) {
+  if (argc==3 && (std::string(argv[1])=="signed-skew" || std::string(argv[1])=="signed-skew-projection")) return signed_skew_mode(argc, argv);
   if (argc==3 && std::string(argv[1])=="explicit-projection") return explicit_projection_mode(argc, argv);
   if (argc==3 && std::string(argv[1])=="explicit-intrinsics") return explicit_intrinsics_mode(argc, argv);
   if (argc==3 && std::string(argv[1])=="depth-pair") return depth_pair_mode(argc, argv);
@@ -907,5 +909,132 @@ int explicit_projection_mode(int argc,char **argv) {
     pair_require(ready.size()+output.size()<=65536,"explicit-K stdout64KiB cap");
     std::cout<<output<<std::flush;
     pair_require(std::cout.good() && std::chrono::steady_clock::now()<deadline,"explicit-K completion deadline");return 0;
+  }catch(const std::exception &error){std::cerr<<error.what()<<std::endl;return 1;}
+}
+
+// M74-only inverse-sheared fixture oracles. No shader or native image parity.
+namespace {
+constexpr std::array<std::array<double,4>,2> skew_k{{{52,44,34,29},{36,42,26,38}}};
+constexpr std::array<double,2> signed_s{36,-48};
+constexpr std::array<std::array<double,3>,3> skew_centers{{{6,0,1},{2,-2,1},{3,2,1}}};
+constexpr std::array<std::array<double,3>,3> skew_halves{{{0.1,8,8},{0.2,0.2,0.2},{0.2,0.2,0.2}}};
+std::array<double,3> skew_ray(const std::array<double,4> &k,double s,double u,double v) {
+  const double down=(v-k[3])/k[1];return {1,-((u-k[2])+s*down)/k[0],-down};
+}
+ExplicitHit skew_hit(unsigned owner,double u,double v,const std::array<double,4> &k,double s) {
+  const std::array<double,3> o{0,owner==0 ? -2.0:2.0,1};const auto d=skew_ray(k,s,u,v);
+  ExplicitHit best{std::numeric_limits<double>::infinity(),0,false};
+  for(unsigned box=0;box<3;++box){const auto c=skew_centers[box],h=skew_halves[box];double enter=0.1,leave=10;
+    for(unsigned axis=0;axis<3;++axis){const double lo=c[axis]-h[axis]-o[axis],hi=c[axis]+h[axis]-o[axis];
+      if(d[axis]==0){if(lo>0 || hi<0)leave=-1;}else{const double a=lo/d[axis],b=hi/d[axis];enter=std::fmax(enter,std::fmin(a,b));leave=std::fmin(leave,std::fmax(a,b));}}
+    if(enter<=leave && enter<best.depth)best={enter,box,std::abs(enter-(c[0]-h[0]))<1e-10 &&
+        std::abs(o[1]+enter*d[1]-c[1])<h[1]-0.03 && std::abs(o[2]+enter*d[2]-c[2])<h[2]-0.03};
+  }return best;
+}
+std::array<double,4> skew_bounds(unsigned owner,unsigned box) {
+  const auto k=skew_k[owner];const auto c=skew_centers[box],h=skew_halves[box];const double s=signed_s[owner],oy=owner==0 ? -2.0:2.0;
+  std::array<double,4> b{std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity()};
+  for(double x:std::array<double,2>{c[0]-h[0],c[0]+h[0]})for(double y:std::array<double,2>{c[1]-h[1],c[1]+h[1]})for(double z:std::array<double,2>{c[2]-h[2],c[2]+h[2]}){
+    const double u=k[2]-k[0]*(y-oy)/x+s*(z-1)/x,v=k[3]-k[1]*(z-1)/x;
+    b[0]=std::fmin(b[0],u);b[1]=std::fmax(b[1],u);b[2]=std::fmin(b[2],v);b[3]=std::fmax(b[3],v);
+  }return b;
+}
+bool skew_homogeneous(unsigned owner,int x,int y,const ExplicitHit &hit) {
+  const auto c=skew_centers[hit.box],h=skew_halves[hit.box];const double oy=owner==0 ? -2.0:2.0;
+  // Four inverse-projected corners inside a convex physical frontrectangle
+  // prove the full pixel; the projected face is NOT an axis-aligned rectangle.
+  for(double u:std::array<double,2>{double(x),double(x+1)})for(double v:std::array<double,2>{double(y),double(y+1)}){
+    const auto d=skew_ray(skew_k[owner],signed_s[owner],u,v);
+    if(std::abs(oy+hit.depth*d[1]-c[1])>=h[1] || std::abs(1+hit.depth*d[2]-c[2])>=h[2])return false;
+  }
+  constexpr std::array<double,3> fronts{5.9,1.8,2.8};
+  for(unsigned box=0;box<3;++box)if(box!=hit.box && fronts[box]<hit.depth){const auto b=skew_bounds(owner,box);if(x+1>=b[0] && x<=b[1] && y+1>=b[2] && y<=b[3])return false;}
+  return true;
+}
+void skew_info(const gz::msgs::CameraInfo &info,unsigned owner,bool explicit_p) {
+  if(explicit_p){projection_info(info,owner);return;}
+  pair_require(info.has_header(),"skew info header");pair_header(info.header(),owner,false);
+  pair_require(info.width()==64 && info.height()==64 && info.has_intrinsics() && info.intrinsics().k_size()==9 && info.has_projection() && info.projection().p_size()==12 &&
+      info.has_distortion() && info.distortion().k_size()==5 && info.rectification_matrix_size()==9,"skew complete native-shaped info");
+  const auto k=skew_k[owner];const std::array<double,9> expected{k[0],0,k[2],0,k[1],k[3],0,0,1},rect{1,0,0,0,1,0,0,0,1};
+  const std::array<double,12> p{k[0],0,k[2],0,0,k[1],k[3],0,0,0,1,0};
+  // Pinned PopulateInfo hardcodes the zerooffdiagonals; s35 omission itself
+  // is Source-derived, not established by this consumer's interoperability.
+  for(int i=0;i<9;++i)pair_require(info.intrinsics().k(i)==expected[i] && info.rectification_matrix(i)==rect[i],"skew omitted from canonical K/rectification");
+  for(int i=0;i<12;++i)pair_require(info.projection().p(i)==p[i],"skew omitted from canonical P");
+  pair_require(static_cast<int>(info.distortion().model())==0,"skew PLUMB_BOB");for(double d:info.distortion().k())pair_require(d==0,"skew zero distortion");
+}
+void skew_image(const gz::msgs::Image &image,unsigned owner,bool explicit_p) {
+  if(explicit_p){projection_image(image,owner);return;}
+  pair_require(image.has_header(),"signed image header");pair_header(image.header(),owner,true);
+  pair_require(image.width()==64 && image.height()==64 && image.step()==(owner==0 ? 192u:256u) && image.pixel_format_type()==(owner==0 ? gz::msgs::PixelFormatType::RGB_INT8:gz::msgs::PixelFormatType::R_FLOAT32) && image.data().size()==(owner==0 ? 12288u:16384u),"signed image format/stride/length");
+  unsigned checked=0,excluded=0,red=0,blue=0,infinite=0,hfov_diff=0,zero_diff=0;
+  for(int y=0;y<64;++y)for(int x=0;x<64;++x){
+    const auto actual_hit=skew_hit(owner,x+0.5,y+0.5,skew_k[owner],signed_s[owner]);const auto zero=skew_hit(owner,x+0.5,y+0.5,skew_k[owner],0);const auto hfov=skew_hit(owner,x+0.5,y+0.5,{32,32,32,32},0);
+    if(owner==0){if(!actual_hit.interior || !skew_homogeneous(owner,x,y,actual_hit)){++excluded;continue;}++checked;
+      const std::array<unsigned char,3> expected=actual_hit.box==0 ? std::array<unsigned char,3>{0,0,255}:(actual_hit.box==1 ? std::array<unsigned char,3>{255,0,0}:std::array<unsigned char,3>{0,255,0});
+      const std::array<unsigned char,3> actual{static_cast<unsigned char>(image.data()[(y*64+x)*3]),static_cast<unsigned char>(image.data()[(y*64+x)*3+1]),static_cast<unsigned char>(image.data()[(y*64+x)*3+2])};
+      if(actual!=expected)throw std::runtime_error("signed RGB owner="+std::to_string(owner)+" x="+std::to_string(x)+" y="+std::to_string(y)+" expected="+std::to_string(expected[0])+","+std::to_string(expected[1])+","+std::to_string(expected[2])+" actual="+std::to_string(actual[0])+","+std::to_string(actual[1])+","+std::to_string(actual[2]));
+      red+=actual_hit.box==1;blue+=actual_hit.box==0;hfov_diff+=actual_hit.box==1 && (!std::isfinite(hfov.depth) || hfov.box!=1);zero_diff+=actual_hit.box!=zero.box || std::isinf(actual_hit.depth)!=std::isinf(zero.depth);
+    }else{++checked;const auto offset=(y*64+x)*4;const auto byte=[&](int i){return static_cast<std::uint32_t>(static_cast<unsigned char>(image.data()[offset+i]));};const std::uint32_t bits=byte(0)|(byte(1)<<8)|(byte(2)<<16)|(byte(3)<<24);float actual;std::memcpy(&actual,&bits,sizeof(actual));
+      const bool valid=std::isinf(actual_hit.depth) ? std::isinf(actual) && actual>0:std::isfinite(actual) && actual>0 && std::abs(actual-actual_hit.depth)<1e-4;
+      if(!valid)throw std::runtime_error("signed depth owner="+std::to_string(owner)+" x="+std::to_string(x)+" y="+std::to_string(y)+" expected="+std::to_string(actual_hit.depth)+" actual="+std::to_string(actual));
+      infinite+=std::isinf(actual_hit.depth);hfov_diff+=std::isinf(actual_hit.depth)!=std::isinf(hfov.depth) || (std::isfinite(actual_hit.depth) && std::isfinite(hfov.depth) && std::abs(actual_hit.depth-hfov.depth)>0.1);zero_diff+=std::isinf(actual_hit.depth)!=std::isinf(zero.depth) || (std::isfinite(actual_hit.depth) && std::isfinite(zero.depth) && std::abs(actual_hit.depth-zero.depth)>0.1);
+    }
+  }
+  pair_require(owner==0 ? checked+excluded==4096 && excluded>0 && red>20 && blue>100 && hfov_diff>20 && zero_diff>0:checked==4096 && excluded==0 && infinite>100 && hfov_diff>100 && zero_diff>100,"signed image checked/excluded/count/discrimination bounds");
+  if(owner==0){const auto current=skew_hit(0,40.5,25.5,skew_k[0],36);pair_require(current.box==1 && current.interior && skew_homogeneous(0,40,25,current),"positive36 discriminator full footprint/margin");for(double u:std::array<double,2>{40,41})for(double v:std::array<double,2>{25,26}){const auto d=skew_ray(skew_k[0],36,u,v),zero=skew_ray(skew_k[0],0,u,v);pair_require(std::abs(1.8*d[1])<0.17 && std::abs(1.8*d[2])<0.17 && std::abs(1.8*zero[1])>0.2,"positive36 whole footprint margin and zero-skew full miss");}
+    pair_require(skew_hit(0,40.5,25.5,skew_k[0],0).box!=1 && skew_hit(0,40.5,25.5,skew_k[0],-36).box!=1,"zero/opposite sign misses RGB40,25");
+    const auto offset=(25*64+40)*3;pair_require(static_cast<unsigned char>(image.data()[offset])==255 && image.data()[offset+1]==0 && image.data()[offset+2]==0,"positive36 actual red40,25");
+  }else{
+    // Literal bounds guarantee112+INF pixels:80bottomleft+32topright; zeroK
+    // and HFOV hit the backdrop there. The >100 thresholds are unchanged.
+    for(int y=0;y<64;++y)for(int x=0;x<64;++x)if((x<10 && y>=56) || (x>=60 && y<8)){const auto offset=(y*64+x)*4;const auto byte=[&](int i){return static_cast<std::uint32_t>(static_cast<unsigned char>(image.data()[offset+i]));};const std::uint32_t bits=byte(0)|(byte(1)<<8)|(byte(2)<<16)|(byte(3)<<24);float actual;std::memcpy(&actual,&bits,sizeof(actual));pair_require(std::isinf(actual) && actual>0,"guaranteed negative48 background rectangle");}
+    pair_require(skew_hit(1,0.5,63.5,skew_k[1],48).depth<10,"opposite depth sign differs at0,63");
+  }
+}
+}
+int signed_skew_mode(int argc,char **argv) {
+  try {
+    pair_require(argc==3 && (std::string(argv[1])=="signed-skew" || std::string(argv[1])=="signed-skew-projection") &&
+        (std::string(argv[2])=="0" || std::string(argv[2])=="1"),"signed-skew modes require RGB0/depth1");
+    const unsigned owner=std::string(argv[2])=="0" ? 0u:1u;
+    const bool explicit_p=std::string(argv[1])=="signed-skew-projection";
+    const std::string mode=argv[1];
+    const std::string prefix=owner==0 ? "/m74/rgb/":"/m74/depth/";
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(20);
+    std::string image_wire,info_wire;
+    {
+      auto state=std::make_shared<DepthPairReceived>();gz::transport::Node node;
+      const auto image=[state,owner](const gz::msgs::Image &v) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if(!state->accepting || state->failed || state->image)return;
+        try {pair_require(v.ByteSizeLong()<=(owner==0 ? 16384u:32768u),"signed Image cap");state->image=v;}catch(...){state->failed=true;}
+        state->changed.notify_all();
+      };
+      const auto info=[state](const gz::msgs::CameraInfo &v) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if(!state->accepting || state->failed || state->info)return;
+        try {pair_require(v.ByteSizeLong()<=16384,"signed CameraInfo cap");state->info=v;}catch(...){state->failed=true;}
+        state->changed.notify_all();
+      };
+      pair_require(node.Subscribe(prefix+"image",std::function<void(const gz::msgs::Image &)>(image)) &&
+          node.Subscribe(prefix+"camera_info",std::function<void(const gz::msgs::CameraInfo &)>(info)),"actual signed-skew typed subscriptions");
+      std::cout<<"ready "<<mode<<" "<<owner<<std::endl;
+      pair_require(std::cout.good(),"signed-skew ready write");
+      {
+        std::unique_lock<std::mutex> lock(state->mutex);
+        pair_require(state->changed.wait_until(lock,deadline,[&]{return state->failed || (state->image && state->info);}),"signed-skew receive deadline");
+        pair_require(!state->failed,"signed-skew callback failure");state->accepting=false;
+        skew_image(*state->image,owner,explicit_p);skew_info(*state->info,owner,explicit_p);
+        pair_require(state->image->SerializeToString(&image_wire) && state->info->SerializeToString(&info_wire),"signed-skew complete canonical bytes");
+      }
+      pair_require(node.Unsubscribe(prefix+"image") && node.Unsubscribe(prefix+"camera_info"),"signed-skew owned subscriptions retired");
+    }
+    const std::string ready="ready "+mode+" "+std::to_string(owner)+"\n";
+    const std::string output="IMAGE "+pair_hex(image_wire)+"\nINFO "+pair_hex(info_wire)+"\nPASS canonical "+mode+" "+std::to_string(owner)+"\n";
+    pair_require(ready.size()+output.size()<=65536,"signed-skew stdout64KiB cap");
+    std::cout<<output<<std::flush;
+    pair_require(std::cout.good() && std::chrono::steady_clock::now()<deadline,"signed-skew completion deadline");return 0;
   }catch(const std::exception &error){std::cerr<<error.what()<<std::endl;return 1;}
 }

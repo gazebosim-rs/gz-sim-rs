@@ -1,3 +1,22 @@
+## M74: signed intrinsic skew
+
+Finite signed K skew is admitted for the existing 64 by 64 RGB/depth camera
+domain when its projection and sheared corners are representable. The pinned
+native convention gives clip coefficient +2*s/width and optical coordinates
+u=fx*X/Z-s*Y/Z+cx, v=fy*Y/Z+cy. Absent K keeps HFOV; absent P renders with K.
+Explicit zero-translation P overrides render skew to zero. Both selected
+calibrations remain validated before IO. Stereo translations remain refused.
+
+CameraInfo retains the native publisher's zero K[1]/P[1] entries despite rendered
+skew. This omission is derived from pinned CameraSensor::PopulateInfo source;
+the old native wire capture used zero skew. Do not treat it as a new actual
+nonzero-skew native capture. The retained skew35 CPU utility matrix supports the
+projection math only. Actual software-worker/canonical-consumer controls are
+required for this change; no native Ogre image or complete sensor parity is
+claimed. [M74_DELIVERY.md](M74_DELIVERY.md) defines scope and acceptance.
+
+Earlier checkpoints below retain their original scope.
+
 ## M73: separate intrinsic and projection matrices
 
 The admitted 64 by 64 monocular domain now accepts explicit SDF lens projection

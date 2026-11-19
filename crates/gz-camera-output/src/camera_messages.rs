@@ -118,7 +118,8 @@ pub fn depth_image_packet(
 }
 
 /// Produce native-shaped monocular camera information for the admitted
-/// zero-distortion, zero-skew domain, with P derived from the selected intrinsics.
+/// zero-distortion domain, with P derived from the selected intrinsics.
+/// Pinned native CameraInfo keeps zero offdiagonals even when rendering uses skew.
 /// No topic is advertised.
 pub fn camera_info_packet(
     acquisition: Duration,
@@ -129,7 +130,8 @@ pub fn camera_info_packet(
 }
 
 /// Produce canonical monocular CameraInfo with separately selected K and P.
-/// Both matrices have zero skew and P has zero translation; no topic is advertised.
+/// Published matrices have zero offdiagonals, matching the pinned native
+/// CameraInfo omission of rendering skew. P has zero translation; no topic is advertised.
 pub fn camera_info_packet_with_projection(
     acquisition: Duration,
     frame_id: &str,

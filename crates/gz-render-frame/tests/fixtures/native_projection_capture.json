@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "capture_sha256": "cbdd8a6ef7ba857f469d3a2ac7d7ed478044ce0fccddc1ac3564a25639359f99",
+  "capture_bytes": 232,
+  "original_capture": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/render-camera-calibration-worktree/artifacts/camera-native-projection.log",
+  "original_identity_record": "camera-native-identities.sha256 in the same retained directory",
+  "native_revision": "8ddf4c17be8a434c51b51d5be7c866fb69aaa54f",
+  "utility_source": "gz-sensors/src/CameraSensorUtil.cc",
+  "utility_source_sha256": "bb5f1112909188687768f69860a9035c0c2555db8e60d041a749c26d3dd80c57",
+  "fixture_source": "native_projection.cc",
+  "fixture_source_sha256": "6c390f1df2e2116b38f9e2e510400125958248816a92e985fe0afd95578467eb",
+  "original_executable_sha256": "2dc4aa2c744225324b75786f66235f34c1454d14b966027b98b9db3308ea04a3",
+  "scope": "Unchanged retained CPU projection utility output for skew 0 and 35. No native renderer, sensor image or CameraInfo observation; no new execution."
+}

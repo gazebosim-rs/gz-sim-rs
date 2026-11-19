@@ -45,7 +45,7 @@ pub struct Stamp {
 ///
 /// Pixels start at the upper left. The pose uses Gazebo's +X forward,
 /// +Y left, +Z up camera axes. This worker currently supports 64×64 output
-/// and rejects nonzero skew or projection translation.
+/// with finite representable signed intrinsic skew; projection translation is rejected.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Camera {
     pub width: u32,

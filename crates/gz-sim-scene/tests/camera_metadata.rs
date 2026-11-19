@@ -72,7 +72,7 @@ fn explicit_intrinsics_metadata_keeps_presence_and_the_existing_camera_domain() 
             |c| c.lens.intrinsics.fy = f64::INFINITY,
             |c| c.lens.intrinsics.cx = f64::NAN,
             |c| c.lens.intrinsics.cy = f64::NEG_INFINITY,
-            |c| c.lens.intrinsics.skew = 0.25,
+            |c| c.lens.intrinsics.skew = f64::INFINITY,
             |c| c.lens.intrinsics.skew = f64::NAN,
             |c| c.horizontal_fov = 0.0,
             |c| c.near_clip = 0.0,
@@ -523,7 +523,7 @@ fn explicit_projection_metadata_checks_each_selected_scalar_and_presence() {
                 |c| c.distortion.k1 = 0.1,
                 |c| {
                     c.lens.has_intrinsics = true;
-                    c.lens.intrinsics.skew = 0.5;
+                    c.lens.intrinsics.skew = f64::INFINITY;
                 },
             ];
             for edit in edits {
@@ -655,5 +655,109 @@ fn loaded_projection_reset_restores_original_calibrations_identity_and_pose() {
         assert_eq!(current_pose.rotation, pose.rotation);
         assert_eq!(sim.scheduled_system_counts(), systems);
         assert_eq!(sim.elapsed(), std::time::Duration::ZERO);
+    }
+}
+
+#[test]
+fn signed_skew_metadata_admits_finite_values_and_ignores_absent_intrinsics() {
+    for kind in ["camera", "depth_camera"] {
+        for has_p in [false, true] {
+            for skew in [-35.0, -0.0, 0.0, 12.0, f64::MAX] {
+                let mut sensor = camera();
+                sensor.kind = kind.into();
+                let SensorConfig::Camera(config) = &mut sensor.config else {
+                    unreachable!()
+                };
+                config.lens.has_intrinsics = true;
+                config.lens.has_projection = has_p;
+                config.lens.intrinsics.skew = skew;
+                assert!(
+                    supports_camera_sensor(&sensor),
+                    "finite metadata skew{skew}"
+                );
+                for invalid in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+                    let mut rejected = sensor.clone();
+                    {
+                        let SensorConfig::Camera(config) = &mut rejected.config else {
+                            unreachable!()
+                        };
+                        config.lens.intrinsics.skew = invalid;
+                    }
+                    assert!(!supports_camera_sensor(&rejected));
+                    {
+                        let SensorConfig::Camera(config) = &mut rejected.config else {
+                            unreachable!()
+                        };
+                        config.lens.has_intrinsics = false;
+                    }
+                    assert!(supports_camera_sensor(&rejected));
+                }
+                let SensorConfig::Camera(config) = &mut sensor.config else {
+                    unreachable!()
+                };
+                config.lens.has_projection = true;
+                config.lens.projection.ty = 1.0;
+                assert!(!supports_camera_sensor(&sensor));
+            }
+        }
+    }
+}
+
+#[test]
+fn loaded_signed_skew_restores_original_metadata_and_world_pose_on_reset() {
+    for kind in ["camera", "depth_camera"] {
+        for skew in [-10.0, 12.0] {
+            let lens = format!(
+                "<lens><intrinsics><fx>52</fx><fy>44</fy><cx>34</cx><cy>29</cy><s>{skew}</s></intrinsics></lens></camera>"
+            );
+            let source = include_str!("fixtures/camera-binding.sdf")
+                .replace("</camera>", &lens)
+                .replacen("type=\"camera\"", &format!("type=\"{kind}\""), 1);
+            for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+                let mut sim = load_world_with_sdf_step(
+                    &source,
+                    "signed-skew.sdf",
+                    "default",
+                    &sdformat::NoResources,
+                    engine,
+                )
+                .unwrap();
+                let find = |sim: &gz_sim_core::Simulation| {
+                    sim.world()
+                        .iter_entities()
+                        .find(|e| e.contains::<CameraSensor>())
+                        .unwrap()
+                        .id()
+                };
+                let entity = find(&sim);
+                let id = sim.world().get::<EntityId>(entity).unwrap().get();
+                let original = sim.world().get::<CameraSensor>(entity).unwrap().0.clone();
+                assert_eq!(original.kind, kind);
+                assert_eq!(original.camera().unwrap().lens.intrinsics.skew, skew);
+                let pose = *sim.world().get::<WorldPose>(entity).unwrap();
+                let systems = sim.scheduled_system_counts();
+                {
+                    let mut sensor = sim.world_mut().get_mut::<CameraSensor>(entity).unwrap();
+                    let SensorConfig::Camera(config) = &mut Arc::make_mut(&mut sensor.0).config
+                    else {
+                        unreachable!()
+                    };
+                    config.lens.intrinsics.skew = -skew;
+                }
+                assert_eq!(original.camera().unwrap().lens.intrinsics.skew, skew);
+                reset_loaded_world(&mut sim, |_| ()).unwrap();
+                let restored = find(&sim);
+                assert_eq!(sim.world().get::<EntityId>(restored).unwrap().get(), id);
+                assert!(Arc::ptr_eq(
+                    &original,
+                    &sim.world().get::<CameraSensor>(restored).unwrap().0
+                ));
+                let current_pose = sim.world().get::<WorldPose>(restored).unwrap();
+                assert_eq!(current_pose.translation, pose.translation);
+                assert_eq!(current_pose.rotation, pose.rotation);
+                assert_eq!(sim.scheduled_system_counts(), systems);
+                assert_eq!(sim.elapsed(), std::time::Duration::ZERO);
+            }
+        }
     }
 }

@@ -1430,7 +1430,7 @@ fn explicit_intrinsics_keep_workers_lazy_and_refuse_invalid_calibration() {
             ("fy", "-1"),
             ("cx", "nan"),
             ("cy", "inf"),
-            ("s", "0.5"),
+            ("s", "nan"),
             ("fx", "1e300"),
         ] {
             let open = format!("<{tag}>");
@@ -1488,7 +1488,7 @@ fn explicit_projection_keeps_workers_lazy_and_refuses_invalid_selected_matrices(
             ("ty", "-0.1"),
             ("p_fx", "1e300"),
             ("fx", "1e300"),
-            ("s", "0.5"),
+            ("s", "nan"),
         ] {
             let open = format!("<{tag}>");
             let close = format!("</{tag}>");
@@ -1503,4 +1503,52 @@ fn explicit_projection_keeps_workers_lazy_and_refuses_invalid_selected_matrices(
             assert!(!worker.exists());
         }
     }
+}
+
+#[cfg(feature = "rgb-camera")]
+#[test]
+fn signed_skew_keeps_workers_lazy_and_preserves_projection_refusals() {
+    if isolation::child(
+        "signed_skew_keeps_workers_lazy_and_preserves_projection_refusals",
+        60,
+    ) {
+        return;
+    }
+    let source = include_str!("../../../examples/m74_camera_skew.sdf");
+    let directory = tempfile::tempdir().unwrap();
+    let worker = directory.path().join("absent-skew-worker");
+    let args = [
+        "--server",
+        "--run",
+        "--iterations",
+        "3",
+        "--camera-mixed-pair",
+    ];
+    let expected = "simulation_ns=3000000 iterations=3\ndefault::backdrop::body 6 0 1\ndefault::occluder_a::body 2 -2 1\ndefault::occluder_b::body 3 2 1\ndefault::rig_a::body 0 -2 1\ndefault::rig_b::body 0 2 1\n";
+    let projection = "<projection><p_fx>40</p_fx><p_fy>48</p_fy><p_cx>20</p_cx><p_cy>25</p_cy><tx>0</tx><ty>0</ty></projection>";
+    let with_p = source.replace("</lens>", &format!("{projection}</lens>"));
+    for xml in [source, &with_p] {
+        let output = command(xml, Some(&worker), &args);
+        assert!(output.status.success(), "{output:?}");
+        assert_eq!(String::from_utf8_lossy(&output.stdout), expected);
+        assert!(output.stderr.is_empty(), "{output:?}");
+        assert!(!worker.exists());
+        for owner in 0..2 {
+            for value in ["nan", "inf", "-inf", "1e300", "1e-300"] {
+                let start = xml.match_indices("<s>").nth(owner).unwrap().0 + 3;
+                let end = start + xml[start..].find("</s>").unwrap();
+                let mut invalid = xml.to_owned();
+                invalid.replace_range(start..end, value);
+                let refused = command(&invalid, Some(&worker), &args);
+                assert_eq!(refused.status.code(), Some(1), "{refused:?}");
+                assert!(refused.stdout.is_empty());
+                assert!(!worker.exists());
+            }
+        }
+    }
+    let invalid = with_p.replacen("<tx>0</tx>", "<tx>0.1</tx>", 1);
+    let refused = command(&invalid, Some(&worker), &args);
+    assert_eq!(refused.status.code(), Some(1), "{refused:?}");
+    assert!(refused.stdout.is_empty());
+    assert!(!worker.exists());
 }

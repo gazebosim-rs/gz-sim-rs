@@ -193,7 +193,7 @@ fn invalid_camera_inputs_are_rejected_before_matrix_or_projection() {
     }
     for bad in [
         CameraConfig {
-            skew: 1.0,
+            skew: f64::INFINITY,
             ..config()
         },
         CameraConfig {
@@ -288,4 +288,249 @@ fn invalid_camera_inputs_are_rejected_before_matrix_or_projection() {
         camera.project_optical(DVec3::new(f64::MAX, 0.0, 0.1)),
         Err(CameraError::ProjectionOutOfRange)
     );
+}
+
+#[test]
+fn retained_native_zero_and_positive_skew_matrices_match_reverse_depth_projection() {
+    let mut capture = include_str!("fixtures/native_projection_capture.txt").lines();
+    for skew in [0.0, 35.0] {
+        assert_eq!(capture.next().unwrap(), format!("skew {skew}"));
+        let native: Vec<Vec<f64>> = capture
+            .by_ref()
+            .take(4)
+            .map(|line| {
+                line.split_whitespace()
+                    .map(|value| value.parse().unwrap())
+                    .collect()
+            })
+            .collect();
+        assert_eq!(native.len(), 4);
+        assert!(native.iter().all(|row| row.len() == 4));
+        let calibration = Calibration::new(CameraConfig { skew, ..config() }).unwrap();
+        let matrix = calibration.projection().to_cols_array_2d();
+        for (row, native_row) in native.iter().enumerate() {
+            for (column, actual_column) in matrix.iter().enumerate() {
+                let expected = if row == 2 {
+                    (native[3][column] - native_row[column]) / 2.0
+                } else {
+                    native_row[column]
+                };
+                close(actual_column[row], expected);
+            }
+        }
+        close(matrix[1][0], 2.0 * skew / 640.0);
+    }
+    assert!(capture.next().is_none());
+}
+
+#[test]
+fn signed_skew_optical_pixels_and_inverse_rays_match_the_clip_matrix() {
+    for (skew, expected_u) in [(35.0, 353.5), (-35.0, 346.5)] {
+        let calibration = Calibration::new(CameraConfig { skew, ..config() }).unwrap();
+        close(calibration.projection().y_axis.x, 2.0 * skew / 640.0);
+        assert_eq!(
+            calibration
+                .project_optical(DVec3::new(0.4, -0.2, 2.0))
+                .unwrap(),
+            [expected_u, 145.0]
+        );
+        let inverse = calibration.projection().inverse();
+        for point in [DVec3::new(0.4, -0.2, 2.0), DVec3::new(-0.3, 0.5, 4.0)] {
+            let pixel = calibration.project_optical(point).unwrap();
+            let clip = calibration.projection() * DVec4::new(point.x, -point.y, -point.z, 1.0);
+            close(pixel[0], (clip.x / clip.w + 1.0) * 320.0);
+            close(pixel[1], (1.0 - clip.y / clip.w) * 240.0);
+            let ray_y = (pixel[1] - 190.0) / 450.0;
+            let ray_x = ((pixel[0] - 270.0) + skew * ray_y) / 400.0;
+            close(ray_x, point.x / point.z);
+            close(ray_y, point.y / point.z);
+            let view = inverse.project_point3(clip.truncate() / clip.w);
+            assert!((view - DVec3::new(point.x, -point.y, -point.z)).length() < 1e-12);
+        }
+        assert_eq!(
+            calibration.project_optical(DVec3::new(0.0, f64::MAX, 0.1)),
+            Err(CameraError::ProjectionOutOfRange)
+        );
+    }
+}
+
+#[test]
+fn shared_skew_corners_preserve_plane_order_and_project_to_image_edges() {
+    for skew in [16.0, -16.0] {
+        let calibration = Calibration::new(CameraConfig {
+            width: 64,
+            height: 64,
+            fx: 32.0,
+            fy: 16.0,
+            cx: 32.0,
+            cy: 32.0,
+            skew,
+            near: 1.0,
+            far: 8.0,
+            ..config()
+        })
+        .unwrap();
+        let first = if skew > 0.0 {
+            [
+                [4.0, -4.0, -2.0],
+                [0.0, 4.0, -2.0],
+                [-4.0, 4.0, -2.0],
+                [0.0, -4.0, -2.0],
+            ]
+        } else {
+            [
+                [0.0, -4.0, -2.0],
+                [4.0, 4.0, -2.0],
+                [0.0, 4.0, -2.0],
+                [-4.0, -4.0, -2.0],
+            ]
+        };
+        let corners = calibration.frustum_corners(-2.0, -4.0);
+        let image_edges = [[64.0, 64.0], [64.0, 0.0], [0.0, 0.0], [0.0, 64.0]];
+        for (index, (point, expected)) in corners[..4].iter().zip(first).enumerate() {
+            assert_eq!(*point, DVec3::from_array(expected));
+            assert_eq!(corners[index + 4], *point * 2.0);
+            assert_eq!(
+                calibration
+                    .project_optical(DVec3::new(point.x, -point.y, -point.z))
+                    .unwrap(),
+                image_edges[index]
+            );
+            let clip = calibration.projection() * point.extend(1.0);
+            close((clip.x / clip.w + 1.0) * 32.0, image_edges[index][0]);
+            close((1.0 - clip.y / clip.w) * 32.0, image_edges[index][1]);
+        }
+        let positive_plane = calibration.frustum_corners(2.0, -4.0);
+        for (positive, negative) in positive_plane[..4].iter().zip(&corners[..4]) {
+            assert_eq!(
+                (positive.x, positive.y, positive.z),
+                (negative.x, negative.y, -negative.z)
+            );
+        }
+    }
+}
+
+#[test]
+fn skew_representability_rejects_non_normal_shear_coupled_corners_and_invalid_inverse() {
+    for skew in [f64::MIN_POSITIVE, -f64::MIN_POSITIVE, f64::MAX, -f64::MAX] {
+        assert_eq!(
+            Calibration::new(CameraConfig { skew, ..config() }).unwrap_err(),
+            CameraError::ProjectionOutOfRange
+        );
+    }
+    let coupled = CameraConfig {
+        width: 64,
+        height: 64,
+        fx: 1e-6,
+        fy: 1e-6,
+        cx: 32.0,
+        cy: 32.0,
+        near: 1e30,
+        far: 2e30,
+        ..config()
+    };
+    let plain = Calibration::new(coupled).unwrap();
+    assert!(
+        plain
+            .frustum_corners(-coupled.near, -coupled.far)
+            .iter()
+            .all(|point| point.as_vec3().is_finite())
+    );
+    for skew in [1.0, -1.0] {
+        assert_eq!(
+            Calibration::new(CameraConfig { skew, ..coupled }).unwrap_err(),
+            CameraError::ProjectionOutOfRange
+        );
+    }
+    let inverse = CameraConfig {
+        fx: 1e22,
+        fy: 1e22,
+        near: 1.0,
+        far: 2.0,
+        ..config()
+    };
+    assert!(Calibration::new(inverse).is_ok());
+    assert_eq!(
+        Calibration::new(CameraConfig {
+            skew: 1.0,
+            ..inverse
+        })
+        .unwrap_err(),
+        CameraError::ProjectionOutOfRange
+    );
+    let rounded_plane = CameraConfig {
+        width: 64,
+        height: 64,
+        fx: 2.0_f64.powi(-121),
+        fy: 32.0,
+        cx: 32.0,
+        cy: 32.0,
+        near: 0.5,
+        far: 1.0 - 2.0_f64.powi(-26),
+        skew: 96.0 - 2.0_f64.powi(-18) + 2.0_f64.powi(-20),
+        ..config()
+    };
+    // The configured far corner fits, but the actual f32 plane rounds outward
+    // to 1 and its sheared right-bottom corner exceeds the f32 overflow midpoint.
+    let corner_x = |distance| (32.0 + rounded_plane.skew) * distance / rounded_plane.fx;
+    assert!(corner_x(rounded_plane.far).is_finite());
+    assert!((corner_x(rounded_plane.far) as f32).is_finite());
+    assert_eq!(rounded_plane.far as f32, 1.0);
+    assert!((corner_x(f64::from(rounded_plane.far as f32)) as f32).is_infinite());
+    assert!(
+        Calibration::new(CameraConfig {
+            skew: 0.0,
+            ..rounded_plane
+        })
+        .is_ok()
+    );
+    assert_eq!(
+        Calibration::new(rounded_plane).unwrap_err(),
+        CameraError::ProjectionOutOfRange
+    );
+}
+
+#[test]
+fn zero_skew_preserves_exact_dyadic_matrix_and_frustum_values() {
+    let expected_matrix = [
+        1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.5, 0.25, 1.0, -1.0, 0.0, 0.0, 2.0, 0.0,
+    ];
+    let expected_corners = [
+        [1.5, -0.75, -1.0],
+        [1.5, 1.25, -1.0],
+        [-0.5, 1.25, -1.0],
+        [-0.5, -0.75, -1.0],
+        [3.0, -1.5, -2.0],
+        [3.0, 2.5, -2.0],
+        [-1.0, 2.5, -2.0],
+        [-1.0, -1.5, -2.0],
+    ];
+    for skew in [0.0, -0.0] {
+        let calibration = Calibration::new(CameraConfig {
+            width: 64,
+            height: 64,
+            fx: 32.0,
+            fy: 32.0,
+            cx: 16.0,
+            cy: 40.0,
+            near: 1.0,
+            far: 2.0,
+            skew,
+            ..config()
+        })
+        .unwrap();
+        assert_eq!(calibration.projection().to_cols_array(), expected_matrix);
+        assert_eq!(
+            calibration
+                .frustum_corners(-1.0, -2.0)
+                .map(|point| point.to_array()),
+            expected_corners
+        );
+        assert_eq!(
+            calibration
+                .project_optical(DVec3::new(0.25, -0.5, 1.0))
+                .unwrap(),
+            [24.0, 24.0]
+        );
+    }
 }

@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Signed intrinsic skew; native-compatible CameraInfo omits skew. -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="camera_step" type="ode"><max_step_size>0.001</max_step_size></physics>
+    <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"/>
+    <model name="rig_a">
+      <static>true</static><pose>0 -2 1 0 0 0</pose>
+      <link name="body">
+        <collision name="shape"><geometry><box><size>0.1 0.1 0.1</size></box></geometry></collision>
+        <sensor name="camera" type="camera">
+          <always_on>true</always_on><update_rate>10</update_rate>
+          <topic>/m74/rgb/image</topic><frame_id>rig_a/body/camera</frame_id>
+          <camera>
+            <camera_info_topic>/m74/rgb/camera_info</camera_info_topic>
+            <horizontal_fov>1.5707963267948966</horizontal_fov>
+            <lens><intrinsics><fx>52</fx><fy>44</fy><cx>34</cx><cy>29</cy><s>36</s></intrinsics></lens>
+            <image><width>64</width><height>64</height><format>R8G8B8</format><anti_aliasing>4</anti_aliasing></image>
+            <clip><near>0.1</near><far>10</far></clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
+    <model name="rig_b">
+      <static>true</static><pose>0 2 1 0 0 0</pose>
+      <link name="body">
+        <collision name="shape"><geometry><box><size>0.1 0.1 0.1</size></box></geometry></collision>
+        <sensor name="camera" type="depth_camera">
+          <always_on>true</always_on><update_rate>20</update_rate>
+          <topic>/m74/depth/image</topic><frame_id>rig_b/body/camera</frame_id>
+          <camera>
+            <camera_info_topic>/m74/depth/camera_info</camera_info_topic>
+            <horizontal_fov>1.5707963267948966</horizontal_fov>
+            <lens><intrinsics><fx>36</fx><fy>42</fy><cx>26</cx><cy>38</cy><s>-48</s></intrinsics></lens>
+            <image><width>64</width><height>64</height><format>R8G8B8</format><anti_aliasing>4</anti_aliasing></image>
+            <clip><near>0.1</near><far>10</far></clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
+    <model name="backdrop">
+      <static>true</static><pose>6 0 1 0 0 0</pose>
+      <link name="body">
+        <collision name="shape"><geometry><box><size>0.2 16 16</size></box></geometry></collision>
+        <visual name="surface"><geometry><box><size>0.2 16 16</size></box></geometry><material><diffuse>0 0 1 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="occluder_a">
+      <static>true</static><pose>2 -2 1 0 0 0</pose>
+      <link name="body">
+        <collision name="shape"><geometry><box><size>0.4 0.4 0.4</size></box></geometry></collision>
+        <visual name="surface"><geometry><box><size>0.4 0.4 0.4</size></box></geometry><material><diffuse>1 0 0 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="occluder_b">
+      <static>true</static><pose>3 2 1 0 0 0</pose>
+      <link name="body">
+        <collision name="shape"><geometry><box><size>0.4 0.4 0.4</size></box></geometry></collision>
+        <visual name="surface"><geometry><box><size>0.4 0.4 0.4</size></box></geometry><material><diffuse>0 1 0 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

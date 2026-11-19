@@ -264,25 +264,9 @@ impl CameraProjection for CalibratedProjection {
     }
 
     fn get_frustum_corners(&self, z_near: f32, z_far: f32) -> [bevy::math::Vec3A; 8] {
-        let config = self.0.config();
-        let corners = |z: f32| {
-            let distance = f64::from(z.abs());
-            let left = (-config.cx * distance / config.fx) as f32;
-            let right = ((f64::from(config.width) - config.cx) * distance / config.fx) as f32;
-            let bottom = (-(f64::from(config.height) - config.cy) * distance / config.fy) as f32;
-            let top = (config.cy * distance / config.fy) as f32;
-            [
-                bevy::math::Vec3A::new(right, bottom, z),
-                bevy::math::Vec3A::new(right, top, z),
-                bevy::math::Vec3A::new(left, top, z),
-                bevy::math::Vec3A::new(left, bottom, z),
-            ]
-        };
-        let near = corners(z_near);
-        let far = corners(z_far);
-        [
-            near[0], near[1], near[2], near[3], far[0], far[1], far[2], far[3],
-        ]
+        self.0
+            .frustum_corners(f64::from(z_near), f64::from(z_far))
+            .map(|point| bevy::math::Vec3A::new(point.x as f32, point.y as f32, point.z as f32))
     }
 }
 
