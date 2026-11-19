@@ -41,6 +41,10 @@ pub enum CameraOutputError {
     MultipleCameras,
     #[error("pair output requires exactly two loaded RGB cameras")]
     PairCameraCount,
+    #[error("mixed pair requires one configured world with exactly two loaded cameras")]
+    MixedCameraCount,
+    #[error("mixed pair requires exactly one RGB and one depth camera")]
+    MixedCameraKinds,
     #[error("pair output requires a per-camera API")]
     PairMode,
     #[error("camera cadence: {0}")]

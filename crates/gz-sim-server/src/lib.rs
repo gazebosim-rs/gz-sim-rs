@@ -1353,6 +1353,7 @@ enum ExternalCamera {
     Single(u64),
     Pair([u64; 2]),
     DepthPair([u64; 2]),
+    MixedPair([u64; 2]),
 }
 
 impl Server {
@@ -1443,6 +1444,27 @@ impl Server {
             Some(zenoh_config),
             command_budget,
             Some(ExternalCamera::DepthPair(camera_ids)),
+        )
+    }
+
+    /// Construct after an external application has prepared one RGB and one
+    /// depth output. IDs are unordered; the loaded types select each output.
+    /// Both outputs and their renderer resources remain owned outside the tick.
+    pub fn with_external_mixed_camera_outputs(
+        simulation: Simulation,
+        world_name: &str,
+        config: ServerOptions,
+        zenoh_config: zenoh::Config,
+        command_budget: NonZeroUsize,
+        camera_ids: [u64; 2],
+    ) -> Result<Self, Error> {
+        Self::build(
+            simulation,
+            world_name,
+            config,
+            Some(zenoh_config),
+            command_budget,
+            Some(ExternalCamera::MixedPair(camera_ids)),
         )
     }
 
@@ -1543,6 +1565,42 @@ impl Server {
                     {
                         return Err(Error::CameraIdentity);
                     }
+                }
+            }
+            (true, Some(first), Some(ExternalCamera::MixedPair(ids))) => {
+                let Some(second) = cameras.next() else {
+                    return Err(Error::CameraIdentity);
+                };
+                if cameras.next().is_some() || ids[0] == ids[1] || ids.contains(&0) {
+                    return Err(Error::CameraIdentity);
+                }
+                let mut actual = BTreeSet::new();
+                let mut rgb = 0;
+                let mut depth = 0;
+                for camera in [first, second] {
+                    let Some(id) = camera.get::<EntityId>().map(EntityId::get) else {
+                        return Err(Error::CameraIdentity);
+                    };
+                    let sensor = camera
+                        .get::<gz_sim_scene::CameraSensor>()
+                        .expect("selected camera");
+                    match sensor.0.effective_type().map(|kind| kind.as_str()) {
+                        Some("camera") => rgb += 1,
+                        Some("depth_camera") => depth += 1,
+                        _ => return Err(Error::CameraIdentity),
+                    }
+                    if !ids.contains(&id)
+                        || !actual.insert(id)
+                        || camera.get::<gz_sim_scene::EntityKind>()
+                            != Some(&gz_sim_scene::EntityKind::Sensor)
+                        || entity_by_id(simulation.world(), id) != Some(camera.id())
+                        || !gz_sim_scene::supports_camera_sensor(&sensor.0)
+                    {
+                        return Err(Error::CameraIdentity);
+                    }
+                }
+                if rgb != 1 || depth != 1 {
+                    return Err(Error::CameraIdentity);
                 }
             }
             (_, _, Some(_)) => return Err(Error::CameraIdentity),

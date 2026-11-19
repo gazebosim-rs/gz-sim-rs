@@ -86,6 +86,7 @@ impl Runtime {
         simulation: Simulation,
         world: &str,
         worker: Option<PathBuf>,
+        mixed_pair: bool,
     ) -> Result<Self, Box<dyn Error>> {
         let options = gz_sim_server::ServerOptions::from_env()?;
         let budget = NonZeroUsize::new(64).expect("nonzero command budget");
@@ -105,14 +106,13 @@ impl Runtime {
                 origin: [0.0; 3],
                 zenoh: config.clone(),
             };
-            let application = gz_camera_output::CameraServer::new_with_server_session(
-                simulation,
-                world,
-                options,
-                config,
-                budget,
-                &camera_options,
-            )?;
+            let constructor = if mixed_pair {
+                gz_camera_output::CameraServer::new_mixed_pair_with_server_session
+            } else {
+                gz_camera_output::CameraServer::new_with_server_session
+            };
+            let application =
+                constructor(simulation, world, options, config, budget, &camera_options)?;
             return Ok(if application.has_camera_output() {
                 Self::Camera {
                     application: Box::new(application),
@@ -124,7 +124,10 @@ impl Runtime {
             });
         }
         #[cfg(not(feature = "rgb-camera"))]
-        debug_assert!(worker.is_none(), "feature checked before loading");
+        debug_assert!(
+            worker.is_none() && !mixed_pair,
+            "feature checked before loading"
+        );
         Ok(Self::Headless(Box::new(Server::new(
             simulation, world, options, budget,
         )?)))
@@ -221,12 +224,17 @@ pub(super) struct ViewerOptions {
     pub recording_path: Option<PathBuf>,
 }
 
+pub(super) struct CameraOptions {
+    pub worker: Option<PathBuf>,
+    pub mixed_pair: bool,
+}
+
 pub(super) fn run(
     mut simulation: Simulation,
     world: &str,
     running: bool,
     iterations: u64,
-    camera_worker: Option<PathBuf>,
+    camera: CameraOptions,
     viewer: ViewerOptions,
 ) -> Result<(Simulation, u64), Box<dyn Error>> {
     let ViewerOptions {
@@ -246,7 +254,7 @@ pub(super) fn run(
         .ok_or_else(|| io::Error::other("real-time update period exceeds wall-clock range"))?;
     let termination = Termination::install()?;
     simulation.set_paused(!running);
-    let mut runtime = Runtime::new(simulation, world, camera_worker)?;
+    let mut runtime = Runtime::new(simulation, world, camera.worker, camera.mixed_pair)?;
     runtime.server_mut().prepare_run(Duration::from_secs(5))?;
     let mut viewer = web_viewer
         .map(|port| match lifecycle_sdf.as_ref() {

@@ -1057,7 +1057,7 @@ class AuxiliaryRetention(unittest.TestCase):
 class CylinderFiniteOutput(unittest.TestCase):
     def test_m64_requires_exact_sorted_four_static_poses_and_two_step_headline(self):
         source = "examples/m64_rgb_cylinder.sdf"
-        self.assertEqual(len(QUALIFIER.NOISY_EXAMPLES), 41)
+        self.assertEqual(len(QUALIFIER.NOISY_EXAMPLES), 42)
         self.assertEqual(QUALIFIER.NOISY_EXAMPLES[32:37], (
             "examples/m59_multiple_diff_drives.sdf", "examples/m61_eight_diff_drives.sdf",
             "examples/m62_eight_joint_controllers.sdf", "examples/m63_two_rgb_cameras.sdf", source))

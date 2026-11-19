@@ -89,7 +89,13 @@ impl CameraBinding {
         })
     }
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum CameraKind {
+    Rgb,
+    Depth,
+}
 struct PreparedCamera {
+    kind: CameraKind,
     binding: CameraBinding,
     config: CameraOutputConfig,
 }
@@ -118,6 +124,7 @@ struct PairOutput {
 enum PairKind {
     Rgb,
     Depth,
+    Mixed,
 }
 
 struct CameraPair {
@@ -152,6 +159,7 @@ pub struct CameraServer {
     runtime: Option<CameraRuntime>,
     pair: Option<CameraPair>,
     pair_ids: Option<[u64; 2]>,
+    pair_sensor_kinds: Option<[CameraKind; 2]>,
     // Intent outlives the live subset; reset must rebuild the same family.
     pair_kind: PairKind,
     server: Server,
@@ -210,23 +218,25 @@ impl CameraServer {
                 )
             };
             let ids = [prepared[0].binding.id, prepared[1].binding.id];
-            let server = match kind {
-                PairKind::Rgb => Server::with_external_camera_outputs(
+            let kinds = [prepared[0].kind, prepared[1].kind];
+            let server = if depth_pair {
+                Server::with_external_depth_camera_outputs(
                     simulation,
                     world,
                     options,
                     server_zenoh,
                     command_budget,
                     ids,
-                ),
-                PairKind::Depth => Server::with_external_depth_camera_outputs(
+                )
+            } else {
+                Server::with_external_camera_outputs(
                     simulation,
                     world,
                     options,
                     server_zenoh,
                     command_budget,
                     ids,
-                ),
+                )
             }?;
             let pair = install_pair_with_session(
                 server.simulation(),
@@ -238,6 +248,7 @@ impl CameraServer {
                 runtime: None,
                 pair: Some(pair),
                 pair_ids: Some(ids),
+                pair_sensor_kinds: Some(kinds),
                 pair_kind: kind,
                 server,
                 prepared_epoch: epoch,
@@ -272,6 +283,7 @@ impl CameraServer {
             runtime,
             pair: None,
             pair_ids: None,
+            pair_sensor_kinds: None,
             pair_kind: PairKind::Rgb,
             server,
             prepared_epoch: epoch,
@@ -310,6 +322,7 @@ impl CameraServer {
             runtime,
             pair: None,
             pair_ids: None,
+            pair_sensor_kinds: None,
             pair_kind: PairKind::Rgb,
             server,
             prepared_epoch: epoch,
@@ -343,6 +356,7 @@ impl CameraServer {
             runtime: None,
             pair: Some(pair),
             pair_ids: Some(ids),
+            pair_sensor_kinds: Some([CameraKind::Rgb; 2]),
             pair_kind: PairKind::Rgb,
             server,
             prepared_epoch: epoch,
@@ -377,10 +391,88 @@ impl CameraServer {
             runtime: None,
             pair: Some(pair),
             pair_ids: Some(ids),
+            pair_sensor_kinds: Some([CameraKind::Depth; 2]),
             pair_kind: PairKind::Depth,
             server,
             prepared_epoch: epoch,
             shared_server_session: false,
+        })
+    }
+
+    /// Exactly one RGB and one depth camera, on a separate caller-configured
+    /// camera peer. The legacy constructors keep their homogeneous contracts.
+    pub fn new_mixed_pair(
+        simulation: Simulation,
+        world: &str,
+        options: ServerOptions,
+        server_zenoh: zenoh::Config,
+        command_budget: NonZeroUsize,
+        camera_options: &CameraServerOptions,
+    ) -> Result<Self, CameraServerError> {
+        options.validate()?;
+        let prepared = prepare_mixed_pair(&simulation, &options, camera_options)?;
+        let ids = [prepared[0].binding.id, prepared[1].binding.id];
+        let kinds = [prepared[0].kind, prepared[1].kind];
+        let epoch = simulation.epoch();
+        let pair = install_pair(&simulation, prepared, camera_options)?;
+        let server = Server::with_external_mixed_camera_outputs(
+            simulation,
+            world,
+            options,
+            server_zenoh,
+            command_budget,
+            ids,
+        )?;
+        Ok(Self {
+            runtime: None,
+            pair: Some(pair),
+            pair_ids: Some(ids),
+            pair_sensor_kinds: Some(kinds),
+            pair_kind: PairKind::Mixed,
+            server,
+            prepared_epoch: epoch,
+            shared_server_session: false,
+        })
+    }
+
+    /// Explicit mixed pair on the world's existing peer. All camera preflight
+    /// precedes world IO; retiring outputs never closes that shared session.
+    pub fn new_mixed_pair_with_server_session(
+        simulation: Simulation,
+        world: &str,
+        options: ServerOptions,
+        server_zenoh: zenoh::Config,
+        command_budget: NonZeroUsize,
+        camera_options: &CameraServerOptions,
+    ) -> Result<Self, CameraServerError> {
+        options.validate()?;
+        let prepared = prepare_mixed_pair(&simulation, &options, camera_options)?;
+        let ids = [prepared[0].binding.id, prepared[1].binding.id];
+        let kinds = [prepared[0].kind, prepared[1].kind];
+        let epoch = simulation.epoch();
+        let server = Server::with_external_mixed_camera_outputs(
+            simulation,
+            world,
+            options,
+            server_zenoh,
+            command_budget,
+            ids,
+        )?;
+        let pair = install_pair_with_session(
+            server.simulation(),
+            prepared,
+            server.zenoh_session(),
+            false,
+        )?;
+        Ok(Self {
+            runtime: None,
+            pair: Some(pair),
+            pair_ids: Some(ids),
+            pair_sensor_kinds: Some(kinds),
+            pair_kind: PairKind::Mixed,
+            server,
+            prepared_epoch: epoch,
+            shared_server_session: true,
         })
     }
 
@@ -631,8 +723,15 @@ impl CameraServer {
                         self.server.options(),
                         options,
                     )?,
+                    PairKind::Mixed => prepare_mixed_pair(
+                        self.server.simulation(),
+                        self.server.options(),
+                        options,
+                    )?,
                 };
-                if Some([prepared[0].binding.id, prepared[1].binding.id]) != self.pair_ids {
+                if Some([prepared[0].binding.id, prepared[1].binding.id]) != self.pair_ids
+                    || Some([prepared[0].kind, prepared[1].kind]) != self.pair_sensor_kinds
+                {
                     return Err(CameraOutputError::OwnerInvalid.into());
                 }
                 self.pair = Some(if self.shared_server_session {
@@ -984,7 +1083,17 @@ fn prepare_selected_camera(
     TrustedWorker::from_operator_config(config.worker_path.clone())
         .map_err(CameraOutputError::Client)?;
     extract_camera(sim, id, 1, config.origin).map_err(CameraOutputError::Snapshot)?;
+    let kind = if metadata
+        .0
+        .effective_type()
+        .is_some_and(|value| value.as_str() == "depth_camera")
+    {
+        CameraKind::Depth
+    } else {
+        CameraKind::Rgb
+    };
     Ok(PreparedCamera {
+        kind,
         binding: CameraBinding { id, nodes },
         config,
     })
@@ -1004,6 +1113,14 @@ fn prepare_depth_pair(
     settings: &CameraServerOptions,
 ) -> Result<Vec<PreparedCamera>, CameraServerError> {
     prepare_pair_kind(sim, options, settings, PairKind::Depth)
+}
+
+fn prepare_mixed_pair(
+    sim: &Simulation,
+    options: &ServerOptions,
+    settings: &CameraServerOptions,
+) -> Result<Vec<PreparedCamera>, CameraServerError> {
+    prepare_pair_kind(sim, options, settings, PairKind::Mixed)
 }
 
 fn prepare_pair_kind(
@@ -1029,7 +1146,12 @@ fn prepare_pair_kind(
         .map(|node| node.id())
         .collect();
     if roots.len() != 1 || cameras.len() != 2 {
-        return Err(CameraOutputError::PairCameraCount.into());
+        return Err(if kind == PairKind::Mixed {
+            CameraOutputError::MixedCameraCount
+        } else {
+            CameraOutputError::PairCameraCount
+        }
+        .into());
     }
     let mut keys = BTreeSet::new();
     let mut ids = BTreeSet::new();
@@ -1048,19 +1170,10 @@ fn prepare_pair_kind(
         if !ids.insert(id) {
             return Err(CameraOutputError::OwnerInvalid.into());
         }
-        let request =
-            extract_camera(sim, id, 1, settings.origin).map_err(CameraOutputError::Snapshot)?;
         let admitted = match kind {
-            PairKind::Rgb => matches!(
-                request,
-                gz_render_protocol::Request::CalibratedSnapshot { .. }
-                    | gz_render_protocol::Request::CalibratedShapeSnapshot { .. }
-            ),
-            PairKind::Depth => matches!(
-                request,
-                gz_render_protocol::Request::CalibratedDepthSnapshot { .. }
-                    | gz_render_protocol::Request::CalibratedDepthShapeSnapshot { .. }
-            ),
+            PairKind::Rgb => prepared.kind == CameraKind::Rgb,
+            PairKind::Depth => prepared.kind == CameraKind::Depth,
+            PairKind::Mixed => true,
         };
         if !admitted {
             return Err(CameraOutputError::Snapshot(SnapshotError::InvalidCamera(id)).into());
@@ -1088,6 +1201,9 @@ fn prepare_pair_kind(
             return Err(CameraOutputError::DuplicateTopics.into());
         }
         result.push(prepared);
+    }
+    if kind == PairKind::Mixed && result[0].kind == result[1].kind {
+        return Err(CameraOutputError::MixedCameraKinds.into());
     }
     result.sort_by_key(|camera| camera.binding.id);
     Ok(result)

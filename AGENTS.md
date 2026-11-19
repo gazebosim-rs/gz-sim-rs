@@ -1,3 +1,24 @@
+## Current development: M71 independent RGB and depth pair
+
+The owner requested the next development phase on 2026-11-19. M71 adds one
+explicit RGB/depth pair with independent demand, rates and lifetime using the
+existing camera and Zenoh paths. Read [M71_DELIVERY.md](docs/M71_DELIVERY.md) for the
+interfaces, ownership, fixture and acceptance criteria. Existing scalar and
+homogeneous-pair defaults remain strict. RGBD registration, point clouds, greater
+camera counts, renderer/physics changes and package distribution are excluded.
+
+Development is isolated over locally qualified M70 `7094a31`. M70's local package,
+Ubuntu installation, camera-component, RGB and actual browser proofs and their
+independent audits passed. M70 remains private and unaccepted because exact hosted
+qualification and official release evidence are pending after the retained
+snapshot HTTP 401 failure. No CI retry or index probe is released. M71 Source
+and local qualification may proceed after complete independent Source review.
+Final parent acceptance and exact hosted/official/Main gates remain mandatory
+before M71 acceptance or publication. Preserve the frozen parent,
+all historical failures, Rapier/TPE and the Fuel owner's work.
+
+Earlier checkpoints below retain their historical scope.
+
 ## Current development: M70 camera connectivity correction
 
 D33 retirement is published on Main `8f13dc7446be4fded424b1eba83df4c8253d0cef`.

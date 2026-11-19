@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <atomic>
 #include <array>
+#include <utility>
 #include <cmath>
 #include <cstring>
 #include <condition_variable>
@@ -27,9 +28,11 @@ int sphere_mode(int argc, char **argv);
 int ellipsoid_mode(int argc, char **argv);
 int depth_primitives_mode(int argc, char **argv);
 int depth_pair_mode(int argc, char **argv);
+int mixed_pair_mode(int argc, char **argv);
 
 int main(int argc, char **argv) {
   if (argc==3 && std::string(argv[1])=="depth-pair") return depth_pair_mode(argc, argv);
+  if (argc==3 && std::string(argv[1])=="mixed-pair") return mixed_pair_mode(argc, argv);
   if (argc != 1) {
     if (argc == 2 && std::string(argv[1]) == "depth-primitives") return depth_primitives_mode(argc, argv);
     if (argc == 2 && std::string(argv[1]) == "ellipsoid") return ellipsoid_mode(argc, argv);
@@ -584,4 +587,81 @@ int depth_pair_mode(int argc, char **argv) {
         "canonical depth-pair completion and owned cleanup deadline");
     return 0;
   } catch (const std::exception &error) { std::cerr<<error.what()<<std::endl; return 1; }
+}
+
+
+namespace {
+void mixed_rgb_image(const gz::msgs::Image &image) {
+  pair_require(image.has_header(),"mixed RGB header");
+  pair_header(image.header(),0,true);
+  pair_require(image.width()==64 && image.height()==64 && image.step()==192 &&
+      image.pixel_format_type()==gz::msgs::PixelFormatType::RGB_INT8 && image.data().size()==12288,
+      "mixed RGB canonical type/dimensions/stride");
+  const auto pixel=[&](int x,int y,int red,int green,int blue) {
+    const auto offset=(y*64+x)*3;
+    return static_cast<unsigned char>(image.data()[offset])==red &&
+        static_cast<unsigned char>(image.data()[offset+1])==green &&
+        static_cast<unsigned char>(image.data()[offset+2])==blue;
+  };
+  // Declared red box front1.8m, blue planar backdrop5.9m. These selected
+  // interiors avoid antialiasing boundaries; full canonical bytes follow.
+  for (int y=30;y<=33;++y) for (int x=30;x<=33;++x)
+    pair_require(pixel(x,y,255,0,0),"mixed RGB red foreground interior");
+  for (const auto &[x,y]:std::array<std::pair<int,int>,4>{{{0,0},{24,24},{40,40},{63,63}}})
+    pair_require(pixel(x,y,0,0,255),"mixed RGB blue background");
+}
+}
+int mixed_pair_mode(int argc, char **argv) {
+  try {
+    pair_require(argc==3 && std::string(argv[1])=="mixed-pair" &&
+        (std::string(argv[2])=="0" || std::string(argv[2])=="1"),
+        "expected mixed-pair RGB0 or depth1");
+    const unsigned owner=std::string(argv[2])=="0" ? 0u : 1u;
+    const std::string prefix=owner==0 ? "/m71/rgb/" : "/m71/depth/";
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(20);
+    std::string image_wire,info_wire;
+    {
+      auto state=std::make_shared<DepthPairReceived>();
+      gz::transport::Node node;
+      const auto image=[state,owner](const gz::msgs::Image &value) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if (!state->accepting || state->failed || state->image) return;
+        try { pair_require(value.ByteSizeLong()<=(owner==0 ? 16384u : 32768u),"mixed per-format Image cap");state->image=value; }
+        catch (...) { state->failed=true; }
+        state->changed.notify_all();
+      };
+      const auto info=[state](const gz::msgs::CameraInfo &value) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if (!state->accepting || state->failed || state->info) return;
+        try { pair_require(value.ByteSizeLong()<=16384,"mixed CameraInfo cap16384");state->info=value; }
+        catch (...) { state->failed=true; }
+        state->changed.notify_all();
+      };
+      pair_require(node.Subscribe(prefix+"image",std::function<void(const gz::msgs::Image &)>(image)) &&
+          node.Subscribe(prefix+"camera_info",std::function<void(const gz::msgs::CameraInfo &)>(info)),
+          "actual independent mixed typed subscriptions");
+      std::cout<<"ready mixed pair "<<owner<<std::endl;
+      pair_require(std::cout.good(),"mixed readiness write");
+      {
+        std::unique_lock<std::mutex> lock(state->mutex);
+        pair_require(state->changed.wait_until(lock,deadline,[&]{return state->failed || (state->image && state->info);}),
+            "mixed actual receive deadline");
+        pair_require(!state->failed,"mixed callback failure");state->accepting=false;
+        if (owner==0) mixed_rgb_image(*state->image);else depth_pair_image(*state->image,owner);
+        pair_info(*state->info,owner);
+        pair_require(static_cast<int>(state->info->distortion().model())==0,"canonical PLUMB_BOB distortion");
+        pair_require(state->image->SerializeToString(&image_wire) && state->info->SerializeToString(&info_wire),
+            "full canonical mixed Image/Info serialization");
+      }
+      pair_require(node.Unsubscribe(prefix+"image") && node.Unsubscribe(prefix+"camera_info"),
+          "both owned mixed subscriptions retired");
+    }
+    const std::string ready="ready mixed pair "+std::to_string(owner)+"\n";
+    const std::string output="IMAGE "+pair_hex(image_wire)+"\nINFO "+pair_hex(info_wire)+
+        "\nPASS canonical mixed pair "+std::to_string(owner)+"\n";
+    pair_require(ready.size()+output.size()<=65536,"mixed full stdout64KiB cap");
+    std::cout<<output<<std::flush;
+    pair_require(std::cout.good() && std::chrono::steady_clock::now()<deadline,"mixed completion deadline");
+    return 0;
+  } catch (const std::exception &error) { std::cerr<<error.what()<<std::endl;return 1; }
 }

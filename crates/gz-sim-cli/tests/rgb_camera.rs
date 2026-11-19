@@ -1320,3 +1320,79 @@ fn listener_only_camera_cli_delivers_info_on_the_world_peer_without_a_worker() {
         observer.close().wait().unwrap();
     }
 }
+
+#[cfg(feature = "rgb-camera")]
+#[test]
+fn mixed_camera_opt_in_preserves_default_refusal_and_lazy_workers() {
+    if isolation::child(
+        "mixed_camera_opt_in_preserves_default_refusal_and_lazy_workers",
+        60,
+    ) {
+        return;
+    }
+    let source = include_str!("../../../examples/m71_mixed_cameras.sdf");
+    let directory = tempfile::tempdir().unwrap();
+    let worker = directory.path().join("absent-mixed-worker");
+    let args = [
+        "--server",
+        "--run",
+        "--iterations",
+        "3",
+        "--camera-mixed-pair",
+    ];
+    let output = command(source, Some(&worker), &args);
+    assert!(output.status.success(), "{output:?}");
+    assert_eq!(
+        String::from_utf8_lossy(&output.stdout),
+        "simulation_ns=3000000 iterations=3\ndefault::backdrop::body 6 0 1\ndefault::occluder_a::body 2 -2 1\ndefault::occluder_b::body 3 2 1\ndefault::rig_a::body 0 -2 1\ndefault::rig_b::body 0 2 1\n"
+    );
+    assert!(output.stderr.is_empty(), "{output:?}");
+    assert!(
+        !worker.exists(),
+        "no image demand must keep both workers absent"
+    );
+
+    let default = command(
+        source,
+        Some(&worker),
+        &["--server", "--run", "--iterations", "3"],
+    );
+    assert_eq!(default.status.code(), Some(1), "{default:?}");
+    assert!(default.stdout.is_empty());
+    let missing = command(source, None, &args);
+    assert_eq!(missing.status.code(), Some(2), "{missing:?}");
+    assert!(String::from_utf8_lossy(&missing.stderr).contains("--camera-worker"));
+    let offline = command(
+        source,
+        Some(&worker),
+        &["--camera-mixed-pair", "--iterations", "0"],
+    );
+    assert_eq!(offline.status.code(), Some(2), "{offline:?}");
+    assert!(String::from_utf8_lossy(&offline.stderr).contains("--server"));
+
+    let without_intent = source.replace(SENSORS, "");
+    assert_ne!(without_intent, source);
+    let rgb = source.replace("type=\"depth_camera\"", "type=\"camera\"");
+    let depth = source.replace("type=\"camera\"", "type=\"depth_camera\"");
+    let begin = source.find("<model name=\"rig_b\">").unwrap();
+    let end = begin + source[begin..].find("</model>").unwrap() + "</model>".len();
+    let third = source.replace(
+        "</world>",
+        &(source[begin..end]
+            .replace("rig_b", "rig_c")
+            .replace("/m71/depth/", "/m71/third/")
+            + "</world>"),
+    );
+    let duplicate = source.replace("/m71/depth/image", "/m71/rgb/camera_info");
+    assert_ne!(third, source);
+    assert_ne!(
+        duplicate, source,
+        "fixture mutation must create a cross-role alias"
+    );
+    for bad in [&without_intent, &rgb, &depth, &third, &duplicate] {
+        let refused = command(bad, Some(&worker), &args);
+        assert_eq!(refused.status.code(), Some(1), "{refused:?}");
+        assert!(refused.stdout.is_empty());
+        assert!(!worker.exists());
+    }
+}

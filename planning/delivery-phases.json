@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-18T15:58:49.570683+00:00",
+  "as_of": "2026-11-19T13:23:58.854241+00:00",
   "execution_state": "active",
-  "current_phase": "M70",
+  "current_phase": "M71",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -3376,17 +3376,17 @@
       "implementation_complete": true,
       "independent_source_review_complete": true,
       "accepted": false,
-      "checks_run": false,
-      "current_stage": "The bounded Close-flush implementation, real-socket regression, guides and planning passed complete independent Source review. Prepare one consolidated full normal/strict pass. Final formatting completed separately; no normal check has run. Frozen2e8d evidence remains historical and this successor is unaccepted.",
+      "checks_run": true,
+      "current_stage": "Exact7094 passed local normal/strict/release/package/install41, independent depth/GPU components, separate RGB and actual installed robot browser demonstration/audits. Hosted401 recovery, exact hosted qualification, official audit and release remain pending; private/unaccepted.",
       "installed_accepted_examples": 35,
       "source_finite_example_obligations": 41,
       "predecessor_acceptance_required_before_checks": true,
       "accepted_predecessor_commit": "8f13dc7446be4fded424b1eba83df4c8253d0cef",
       "actual_predecessor_acceptance": "artifacts/backend-retirement/retirement-completion.json",
-      "qualification_state": "websocket_close_handshake_source_clear",
-      "optional_camera_resources": "Observed provisioning:8GiB/noextraSwap/512PIDs/4CPU;324106300B writable layer below512MiB, no OOM; numeric camera proof incomplete.",
-      "normal_passed": false,
-      "local_DATA_passed": false,
+      "qualification_state": "all_required_local_proofs_complete_hosted_held",
+      "optional_camera_resources": "Observed M70 provisioning:8GiB/noextraSwap/512PIDs/4CPU;324106304B writable layer below512MiB, noOOM. Independent depth/GPU components, separate RGB and actual default browser proofs passed; no whole-camera Root1 relabelling or universal fit claim.",
+      "normal_passed": true,
+      "local_DATA_passed": true,
       "hosted_success": false,
       "accepted_parent_adoption_recorded_at": "2026-11-18T15:58:49.570683+00:00",
       "previous_candidate": {
@@ -3444,6 +3444,43 @@
         "hosted_success": false,
         "published": false,
         "accepted": false
+      },
+      "local_completion_evidence": "artifacts/m70-websocket-close-handshake/local-demonstration-completion.json",
+      "locally_qualified_commit": "7094a31890e78bc83c65f12a056dfb3918b7401a",
+      "browser_origin_approved": true,
+      "browser_passed": true,
+      "browser_independent_DATA_passed": true
+    },
+    {
+      "id": "M71",
+      "title": "Independent RGB and depth camera pair",
+      "max_working_days": 5,
+      "depends_on": [
+        "M70"
+      ],
+      "scope": "Exactly one calibrated64RGB camera and one calibrated64depth camera with independent demand, rates, workers and canonical outputs; explicit constructors and CLI opt-in.",
+      "acceptance": "Complete implementation, meaningful regression Source, fixture/guides and independent Source review before one consolidated full local normal/strict actual-parent/local DATA cycle. Genuine software workers and bounded canonical consumers verify numeric packets/cadence/demand/reset/removal/retirement. Final parent acceptance, reconciliation of any parent correction and all exact hosted/official/durable/Main gates precede acceptance or publication.",
+      "excluded": "RGBD registration, synchronization, point clouds, noise, dynamic registration, greater camera counts, renderer/physics/dependency/SDK/framework/viewer/package changes or native Ogre/performance parity.",
+      "evidence": "docs/M71_DELIVERY.md",
+      "source_preparation_basis_commit": "7094a31890e78bc83c65f12a056dfb3918b7401a",
+      "source_preparation_basis_accepted": false,
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_started_at": "2026-11-19T13:23:58.854241+00:00",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": true,
+      "checks_run": false,
+      "accepted": false,
+      "hosted_success": false,
+      "predecessor_acceptance_required_before_checks": false,
+      "source_finite_example_obligations": 42,
+      "auxiliary_camera_case_obligations": 16,
+      "installed_accepted_examples": 35,
+      "current_stage": "Complete24-file implementation/regression/fixture/guide Source batch independently reviewed; four batched findings corrected and closed. No product check has run. Prepare one consolidated provisional local qualification pass on7094; final parent/hosted/official/Main acceptance gates remain mandatory.",
+      "predecessor_acceptance_required_before_acceptance": true,
+      "source_control_declarations": {
+        "Rust_unique": 15,
+        "Python": 2
       }
     }
   ],
@@ -3518,12 +3555,13 @@
     "M67": "complete",
     "M68": "complete",
     "M69": "complete",
-    "M70": "in_progress"
+    "M70": "in_progress",
+    "M71": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-18T15:58:49.570683+00:00",
+  "phase_started_at": "2026-11-19T13:23:58.854241+00:00",
   "active_phases": [
-    "M70"
+    "M71"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -3866,38 +3904,46 @@
       ],
       "integration": "M68 repaired24ea passed full local normal and independent DATA while exact hosted/official/Main closeout proceeds. D31 permits NEW isolated M69 Source-only adoption on that qualified unaccepted parent, preserving old frozen roots and all repairs. All M69 formatting/tests/lint/staging/commit/build/qualification/publication wait actual M68 acceptance plus complete final parent/Source review. A changed accepted parent requires affected reconciliation/review; no result transfer. Root serializes heavy work.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M70",
+        "M71"
+      ],
+      "integration": "User requested next development phase after all M70 local proofs passed. Complete isolated M71 Source/regressions/docs/independent review, then one local normal/strict/local DATA cycle on genuinely locally qualified7094 while parent hosted closeout is held. No result transfer or gate change; final parent acceptance, reconciliation of any changed parent and exact hosted/official/Main qualification remain required for M71 acceptance/publication.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M69 and 202 reviewed slices remain accepted; D33 retirement is published on Main 8f13dc7. This isolated M70 close-handshake successor is unqualified and unaccepted. Frozen 2e8d local/package/install/partialcamera proofs do not transfer. Hosted recovery and browser-origin approval remain pending; M65 Latest has 35 installed examples.",
+  "acceptance_boundary": "M1\u2013M69 and202slices accepted; M70alllocalproofs complete butprivate/unaccepted. M71Source overlapsM70hostedhold; no qualification transfers. Rapier/TPE retained, DART/MuJoCo retired; M65Latest35 unchanged.",
   "current_delivery_group": [
-    "M70"
+    "M71"
   ],
-  "current_development_phase": "M70",
+  "current_development_phase": "M71",
   "board": {
-    "updated_at": "2026-11-19T03:04:38.304968+00:00",
+    "updated_at": "2026-11-19T13:23:58.854241+00:00",
     "current": {
-      "title": "Fixing the WebSocket close handshake",
+      "title": "Developing an independent RGB and depth camera pair",
       "items": [
-        "Frozen camera candidate passed local qualification, package/install audits and all 41 installed examples.",
-        "Native camera cadence and worker retirement passed; the Scene witness then observed an abnormal close (1006).",
-        "The bounded close-reply fix, real-socket regression and documentation passed independent Source review; final qualification is pending."
+        "M71 adds one explicit RGB/depth pair using existing renderer and Zenoh paths.",
+        "Separate Source lanes cover camera ownership, real-worker evidence and Server/CLI integration; checks have not run."
       ]
     },
     "done": [
-      "M1\u2013M69 and 202 slices are accepted; M65 remains Latest with 35 examples.",
-      "DART and MuJoCo retirement is published; Rapier f64 and TPE remain."
+      "M1\u2013M69 and202slices accepted; M65 remainsLatest35.",
+      "M70 local qualification, package/install41, camera and browser proofs and independent audits passed; M70 remains unaccepted."
     ],
     "next": [
-      "Run one consolidated full normal and strict coverage pass.",
-      "Derive fresh source-bound package/install/camera proofs; complete the browser demo after explicit origin approval.",
-      "Recover exact hosted qualification and release readbacks before M70 acceptance."
+      "Finish independent review of the complete M71 Source/regression/guide batch.",
+      "Run one consolidated local qualification cycle; final parent/hosted/official release gates remain mandatory."
     ],
     "blocker": {
-      "text": "The installed Scene witness confirmed an unclean WebSocket close. The isolated close-reply correction needs qualification; hosted snapshot recovery and browser-origin approval remain separate holds.",
+      "text": "M70 release and final successor acceptance wait for exact hosted qualification. Earlier snapshot HTTP401 recovery is unproven; no retry or probe is released.",
       "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44351185107"
     }
   },
-  "parallel_source_phases": [],
+  "parallel_source_phases": [
+    "M71"
+  ],
   "camera_integration": {
     "scope": "Atomic M61\u2013M64 qualification on accepted M60; no new phase",
     "basis_accepted_commit": "a1a01192661281fc4691fe5c048a65e1986aefa4",
@@ -4045,12 +4091,12 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "M70_RETAINED_BACKEND_PREVIEW",
+  "current_development_task": "M71_MIXED_CAMERA_PAIR",
   "held_work": {
     "phase": "M70",
-    "source_commit": "fcd5a30dc0a8431b250cf96720db27ae597a6585",
-    "reason": "The old fcd5 candidate remains frozen; explicit approval to open http://127.0.0.1:8082 is still pending.",
+    "source_commit": "7094a31890e78bc83c65f12a056dfb3918b7401a",
+    "reason": "All required local proofs complete; exact hosted qualification/official release held by unresolved prior snapshotHTTP401.",
     "accepted": false,
-    "included_in_this_candidate": false
+    "included_in_this_candidate": true
   }
 }

@@ -63,6 +63,9 @@ struct Args {
     /// Trusted absolute offscreen worker executable (requires the rgb-camera build feature).
     #[arg(long, requires = "server")]
     camera_worker: Option<PathBuf>,
+    /// Explicitly run one RGB and one depth camera with independent outputs.
+    #[arg(long, requires = "camera_worker")]
+    camera_mixed_pair: bool,
 }
 
 /// Accepts short names and the upstream `gz sim --physics-engine` plugin names.
@@ -172,7 +175,10 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
             &args.world,
             args.run,
             args.iterations.unwrap_or(0),
-            args.camera_worker,
+            live::CameraOptions {
+                worker: args.camera_worker,
+                mixed_pair: args.camera_mixed_pair,
+            },
             live::ViewerOptions {
                 port: args.web_viewer,
                 lifecycle_sdf,

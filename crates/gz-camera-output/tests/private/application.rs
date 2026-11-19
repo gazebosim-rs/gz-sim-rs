@@ -2662,3 +2662,6 @@ fn depth_pair_global_faults_and_failed_reset_cannot_enroll_or_change_family() {
 
 #[path = "shared_server_session.rs"]
 mod shared_server_session;
+
+#[path = "mixed_pair.rs"]
+mod mixed_pair;

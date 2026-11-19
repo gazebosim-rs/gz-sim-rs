@@ -68,6 +68,7 @@ NOISY_EXAMPLES = (
     "examples/m67_rgb_ellipsoid.sdf",
     "examples/m68_depth_primitives.sdf",
     "examples/m69_two_depth_cameras.sdf",
+    "examples/m71_mixed_cameras.sdf",
 )
 NOISY_ASSETS = ("examples/meshes/m16-asymmetric.obj",)
 NOISY_OUTPUT = "simulation_ns=2000000 iterations=2\n"
@@ -206,6 +207,13 @@ NOISY_LINKS = {
         "default::occluder_a::body": (2, -2, 1),
         "default::occluder_b::body": (3, 2, 1),
     },
+    "examples/m71_mixed_cameras.sdf": {
+        "default::rig_a::body": (0, -2, 1),
+        "default::rig_b::body": (0, 2, 1),
+        "default::backdrop::body": (6, 0, 1),
+        "default::occluder_a::body": (2, -2, 1),
+        "default::occluder_b::body": (3, 2, 1),
+    },
 }
 TARGETS = {
     "gz-sim-scene": ("no_native_backends", [
@@ -237,6 +245,7 @@ RGB_TESTS = [
     "cli_primitive_depth_keeps_all_static_poses_and_worker_lazy_without_demand",
     "cli_two_depth_cameras_keep_workers_lazy_and_refuse_mixed_or_unowned_worlds",
     "listener_only_camera_cli_delivers_info_on_the_world_peer_without_a_worker",
+    "mixed_camera_opt_in_preserves_default_refusal_and_lazy_workers",
 ]
 # The retained directory and feature names stay RGB for compatibility. This
 # CPU-only proof also covers loaded depth admission without demand or GPU images.
@@ -256,8 +265,11 @@ def rgb_command():
 
 def require_rgb_tests(stdout):
     totals = re.findall(r"test result: ok\. (\d+) passed; (\d+) failed; (\d+) ignored;", stdout)
+    results = re.findall(r"^test (\S+) \.\.\. ([^\r\n]+)\r?$", stdout, re.M)
     if (len(totals) != 1 or tuple(map(int, totals[0])) != (len(RGB_TESTS), 0, 0)
-            or any(f"test {name} ... ok" not in stdout for name in RGB_TESTS)):
+            or len(results) != len(RGB_TESTS)
+            or {name for name, _ in results} != set(RGB_TESTS)
+            or any(result != "ok" for _, result in results)):
         raise ValueError("missing/failed/skipped native-free RGB cases")
 
 

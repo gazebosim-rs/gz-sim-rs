@@ -382,3 +382,19 @@ The source inventory is a starting list, not an executed test manifest.
 The first implementation milestone establishes reproducible C++ reference runs,
 dependency versions, test traceability, and enforced quality gates. A small
 end-to-end simulation follows before broad feature migration.
+
+### M71 development: an independent RGB/depth pair
+
+The explicit mixed-pair path is under development; it is not an accepted release.
+See [M71_DELIVERY.md](docs/M71_DELIVERY.md) for the source-only state and required
+qualification. The existing scalar and homogeneous-pair paths remain unchanged.
+The new fixture is intended for a renderer-enabled source build:
+
+```sh
+cargo build --locked -p gz-render-worker
+cargo run --locked -p gz-sim-cli --features rgb-camera -- examples/m71_mixed_cameras.sdf --server --camera-worker "$PWD/target/debug/gz-render-worker" --camera-mixed-pair
+```
+
+The server starts paused. Consumers request the separate RGB and metric-depth
+Image/CameraInfo topics; this mode provides no RGBD registration or synchronization.
+No installed launcher or published archive gains this mode in M71.
