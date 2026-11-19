@@ -425,6 +425,12 @@ impl Peer {
                 }
                 true
             }
+            Ok(Message::Close(_)) => {
+                // Reading Close only queues its reply. Drive it before Drop
+                // shuts down TCP; the existing write timeout bounds this attempt.
+                let _ = self.socket.flush();
+                false
+            }
             Ok(Message::Ping(_) | Message::Pong(_)) => self.socket.flush().is_ok(),
             Err(tungstenite::Error::Io(error))
                 if matches!(

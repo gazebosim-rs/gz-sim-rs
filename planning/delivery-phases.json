@@ -3367,23 +3367,23 @@
       "acceptance": "Complete implementation/regression Source/guides and whole independent review; accepted M69 parent; one consolidated normal/strict/local DATA, exact hosted/official/durable/Main, source-bound releases/notices/assembly/package DATA, clean supported install/41 finite loads, full paired-depth/numeric/laziness/cadence/reset/retirement proof, RGB smoke/default robot browser, independent installation/runtime DATA and release readback.",
       "excluded": "New renderer/protocol/transport/physics/dependencies/SDK framework, depth UI/RGBD/noise/point cloud, GPU hardware/native parity, old generation changes.",
       "evidence": "docs/M70_DELIVERY.md",
-      "source_preparation_basis_commit": "597ac3ddccf150cc1c45a60c3c72b838f943093a",
+      "source_preparation_basis_commit": "2e8d9dc22ae267a7a108a76716b8aaefcabbddf2",
       "source_preparation_basis_accepted": false,
       "source_preparation_basis_locally_qualified": true,
       "source_preparation_began_before_parent_acceptance": false,
-      "source_preparation_started_at": "2026-11-18T15:58:49.570683+00:00",
+      "source_preparation_started_at": "2026-11-19T03:02:09.898054+00:00",
       "implementation_started": true,
       "implementation_complete": true,
       "independent_source_review_complete": true,
       "accepted": false,
       "checks_run": false,
-      "current_stage": "Complete registry correction, three new Python regression controls and guides passed independent Source review. All prior formatted Rust bytes unchanged. Run one affected full normal/strict retry; earlier all15CLI pass/14registry failure retained separately.",
+      "current_stage": "The bounded Close-flush implementation, real-socket regression, guides and planning passed complete independent Source review. Prepare one consolidated full normal/strict pass. Final formatting completed separately; no normal check has run. Frozen2e8d evidence remains historical and this successor is unaccepted.",
       "installed_accepted_examples": 35,
       "source_finite_example_obligations": 41,
       "predecessor_acceptance_required_before_checks": true,
       "accepted_predecessor_commit": "8f13dc7446be4fded424b1eba83df4c8253d0cef",
       "actual_predecessor_acceptance": "artifacts/backend-retirement/retirement-completion.json",
-      "qualification_state": "camera_registry_correction_source_clear",
+      "qualification_state": "websocket_close_handshake_source_clear",
       "optional_camera_resources": "Observed provisioning:8GiB/noextraSwap/512PIDs/4CPU;324106300B writable layer below512MiB, no OOM; numeric camera proof incomplete.",
       "normal_passed": false,
       "local_DATA_passed": false,
@@ -3399,7 +3399,7 @@
         "browser_origin_approval_pending": true,
         "accepted_parent_adoption_recorded_at": "2026-11-17T15:59:27.413616+00:00"
       },
-      "bounded_correction": "Use an explicit CLI path sharing the world upstream Zenoh session, preserve existing separate-session constructors, and avoid closing the shared world session during camera reset/removal. Keep exact first1ms/numeric trials and original native20s deadline; preserve failed10s wrapper and all earlier package/install evidence without acceptance transfer.",
+      "bounded_correction": "Retain the shared upstream Zenoh camera session and strict case registry. Add exactly one flush attempt for a received WebSocket Close under the existing write timeout, then retire the peer; require actual echoed Close frames and unchanged CPU state/reconnect in the real-socket regression. No ignored LIVE errors, protocol/timeout/dependency change or acceptance transfer.",
       "previous_retained_backend_candidate": {
         "commit": "597ac3ddccf150cc1c45a60c3c72b838f943093a",
         "local_normal_passed": true,
@@ -3427,6 +3427,23 @@
         "auxiliary_registry_expected": 14,
         "full_headless_renderer_coverage_reached": false,
         "evidence": "artifacts/m70-camera-peer-connect/normal-attempt1-failure-actual.json"
+      },
+      "previous_camera_registry_candidate": {
+        "commit": "2e8d9dc22ae267a7a108a76716b8aaefcabbddf2",
+        "tree": "83a8e817dfb82dca2086ee53cd6f817d129a43ad",
+        "local_normal_passed": true,
+        "local_DATA_passed": true,
+        "package_and_install_audits_passed": true,
+        "installed_finite_examples_passed": 41,
+        "native_camera_cadence_passed": true,
+        "worker_retirement_observed": true,
+        "full_camera_passed": false,
+        "Scene_close_code": 1006,
+        "Scene_close_was_clean": false,
+        "diagnostic_actual_evidence": "artifacts/m70-camera-peer-connect/camera-witness-fault-actual-exit.json",
+        "hosted_success": false,
+        "published": false,
+        "accepted": false
       }
     }
   ],
@@ -3851,32 +3868,33 @@
       "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1\u2013M69 and 202 reviewed slices remain accepted; D33 retirement is published on Main 8f13dc7. This isolated M70 successor is unqualified and unaccepted. Historical fcd5 code/package/install proofs do not transfer. Browser-origin approval remains pending; M65 Latest has 35 installed examples.",
+  "acceptance_boundary": "M1\u2013M69 and 202 reviewed slices remain accepted; D33 retirement is published on Main 8f13dc7. This isolated M70 close-handshake successor is unqualified and unaccepted. Frozen 2e8d local/package/install/partialcamera proofs do not transfer. Hosted recovery and browser-origin approval remain pending; M65 Latest has 35 installed examples.",
   "current_delivery_group": [
     "M70"
   ],
   "current_development_phase": "M70",
   "board": {
-    "updated_at": "2026-11-18T15:58:49.570683+00:00",
+    "updated_at": "2026-11-19T03:04:38.304968+00:00",
     "current": {
-      "title": "Integrating the installed camera preview on the new Main",
+      "title": "Fixing the WebSocket close handshake",
       "items": [
-        "DART and MuJoCo retirement is complete; Rapier f64 and TPE remain.",
-        "M70 implementation and regressions are being reviewed on Main with those backends removed.",
-        "Old M70 results stay historical; this successor needs its own required checks."
+        "Frozen camera candidate passed local qualification, package/install audits and all 41 installed examples.",
+        "Native camera cadence and worker retirement passed; the Scene witness then observed an abnormal close (1006).",
+        "The bounded close-reply fix, real-socket regression and documentation passed independent Source review; final qualification is pending."
       ]
     },
     "done": [
       "M1\u2013M69 and 202 slices are accepted; M65 remains Latest with 35 examples.",
-      "D33 passed local and exact hosted verification, independent audits and Main publication."
+      "DART and MuJoCo retirement is published; Rapier f64 and TPE remain."
     ],
     "next": [
-      "Finish independent source review, then run the consolidated required verification.",
-      "After browser approval and fresh package/install evidence, finish robot and camera acceptance."
+      "Run one consolidated full normal and strict coverage pass.",
+      "Derive fresh source-bound package/install/camera proofs; complete the browser demo after explicit origin approval.",
+      "Recover exact hosted qualification and release readbacks before M70 acceptance."
     ],
     "blocker": {
-      "text": "M70 live browser access to http://127.0.0.1:8082 needs explicit approval; source integration can proceed.",
-      "url": "https://github.com/gazebosim-rs/gz-sim-rs/commit/8f13dc7446be4fded424b1eba83df4c8253d0cef"
+      "text": "The installed Scene witness confirmed an unclean WebSocket close. The isolated close-reply correction needs qualification; hosted snapshot recovery and browser-origin approval remain separate holds.",
+      "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44351185107"
     }
   },
   "parallel_source_phases": [],

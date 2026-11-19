@@ -15,23 +15,45 @@ examples. Its hosted run failed before product checks at Ubuntu snapshot HTTP
 barrier after canonical Clock and Scene reached 1 ms; no numeric camera success
 or complete application shutdown was established by that failed trial.
 
-This isolated correction is based on 597ac3d and retains the accepted D33 parent.
-It gives the CLI an explicit shared-world Zenoh-session path, preserving existing
-separate-session constructors and ownership. Source regressions must cover the
-listener-only packaged configuration and camera reset/removal without closing
-the world session. The harness must preserve the native 20-second deadline rather
-than cancelling after 10 seconds. Historical trees, all original evidence and
-Fuel work stay unchanged. The first normal on tree `56b8e704` failed after
+The shared-session correction over 597ac3d gave the CLI an explicit shared-world
+Zenoh-session path while preserving separate-session constructors and ownership.
+Its regressions cover the listener-only packaged configuration and camera
+reset/removal without closing the world session. The harness retains the native
+20-second deadline instead of cancelling after 10 seconds. The first normal on
+tree `56b8e704` failed after
 541.339 seconds: Clippy and 466 Python checks passed, and all 15 CLI camera cases
 passed. The auxiliary qualifier's closed registry still expected 14 and rejected
 the extra new regression. The complete failed packet and Source remain frozen.
-This successor corrects that registry with regression controls before independent
-review and one affected full normal/strict retry; no gate is weakened.
+The registry correction and its controls subsequently passed full local
+normal/strict qualification and independent audit at `2e8d9dc`.
+
+This isolated successor uses that frozen, locally qualified `2e8d9dc` parent and
+corrects the WebSocket close handshake described below. M70 remains unaccepted;
+new qualification, release and installed runtime evidence are required. Historical
+trees, all original failures and Fuel work stay unchanged. No gate is weakened.
 
 Live browser acceptance is held for explicit approval to access
 `http://127.0.0.1:8082` and its launcher-generated URLs after the retained automatic
 approval rejections. General continuation does not grant that approval. No browser
 retry or alternative surface is released by this Source adoption.
+
+## WebSocket close-handshake correction
+
+The locally qualified `2e8d9dc` candidate and its package/installation evidence
+remain frozen. A later camera trial completed both native cadence consumers and
+proved worker retirement, but its Scene witness observed an abnormal WebSocket
+close (1006) after explicit finish and confirmed clean input EOF. The pinned
+Tungstenite implementation queues a close reply when reading the peer's Close;
+the CLI previously dropped the socket before driving that reply.
+
+This isolated successor attempts one flush on peer Close under the existing
+100-millisecond write timeout, then retires the peer even if flushing fails.
+Its real-socket regression requires the actual echoed empty or normal-code/reason
+Close frame before clean transport termination, unchanged simulation state and
+a working replacement connection. It does not change wire formats, command
+admission, timeouts or numerical controls. Complete independent Source review and
+one consolidated normal/strict pass before qualification; changed release and
+installed runtime evidence remain required. No check has run on this successor.
 
 ## Bounded result
 
@@ -40,9 +62,10 @@ ELFs: simulator with its existing `rgb-camera` feature, native-free drive and jo
 helpers, and the existing GPU renderer worker. Reuse the six exact accepted c404
 viewer files and unchanged 14,000,000-byte gzip cap per Wasm. Preserve all older
 manifest/guide generations and old 33/35 fixture order; only M70 appends the six
-camera fixtures for 41 finite examples. The only runtime expansion is the explicit
-CLI reuse of the existing upstream world session. No Cargo, renderer, protocol,
-SDK, physics, dependency, solver or new transport framework change is selected.
+camera fixtures for 41 finite examples. The runtime scope includes the explicit
+CLI reuse of the existing upstream world session and completion of its automatic
+WebSocket close reply. No Cargo, renderer, protocol, SDK, physics, dependency,
+solver or new transport framework change is selected.
 
 `run --camera-output` is explicit and M70-only, derives its fixed verified worker
 path, and refuses lifecycle editing. The ordinary default robot path stays native
@@ -84,8 +107,8 @@ a driver or prove camera frames.
 
 The frozen fcd5 successor carried the d0ba tracked delta over accepted M69 and
 corrected basename admission with meaningful Python regressions and these guides.
-Those changes remain on the D33 parent. The current shared-session correction
-preserves every absolute-path, override, cleanup and resource control. Complete
+Those changes remain on the D33 parent. The shared-session correction retained
+here preserves every absolute-path, override, cleanup and resource control. Complete
 implementation, regressions, guides and independent review precede one consolidated
 verification pass. No earlier result qualifies the changed candidate.
 

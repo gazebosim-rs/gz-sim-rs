@@ -1,43 +1,37 @@
-## Current development: M70 camera connectivity correction
+## Current development: M70 WebSocket close handshake
 
-D33 retirement is published on Main `8f13dc7446be4fded424b1eba83df4c8253d0cef`.
-Rapier f64 and TPE remain; DART and MuJoCo stay retired. M1–M69 and 202 slices
-remain accepted. M65 remains Latest with 35 examples.
+M1–M69 and 202 slices remain accepted; D33 retirement is published at Main
+`8f13dc7446be4fded424b1eba83df4c8253d0cef`. Keep Rapier f64 and TPE;
+DART and MuJoCo remain retired. M65 remains Latest with 35 examples.
 
-The frozen M70 candidate `597ac3ddccf150cc1c45a60c3c72b838f943093a` passed its
-full local normal and strict coverage gates, source-bound release builds,
-package audit, clean Ubuntu installation and 41 installed finite examples.
-Its hosted run failed before product checks at three Ubuntu snapshot HTTP 401
-responses. The first installed camera trial then failed before its first camera
-packet barrier; its canonical Clock and Scene reached exactly 1 ms.
+Frozen camera-connectivity candidate `2e8d9dc22ae267a7a108a76716b8aaefcabbddf2`
+passed its full local normal/strict gates, independent audits, fresh package and
+clean Ubuntu installation with all 41 finite examples. Installed camera evidence
+passed the native cadence points and actual worker retirement, then failed the
+Scene witness's client-initiated WebSocket close: actual code 1006 and
+`wasClean=false`, after FINISH and EOF completed. These are provisional partial
+proofs; reset, demand, RGB, full shutdown and browser acceptance remain pending.
 
-Source review found that the packaged camera peer clears its listener while its
-configuration supplies no connection and disables multicast. This isolated
-successor adds an explicit CLI path sharing the world's upstream Zenoh session.
-Existing separate-session camera constructors keep their configuration semantics.
-Camera reset, removal and teardown must release their publishers and workers
-without closing the world session. No upstream Zenoh patch, transport framework,
-protocol, renderer, physics, dependency or SDK change is selected.
+This isolated successor fixes the concrete close path: the CLI currently drops
+a received Close before flushing tungstenite's queued reply. Attempt one flush
+under the existing socket write timeout, then retire the peer. Add a real-socket
+regression requiring the echoed Close frame before EOF, unchanged CPU/world state
+and a fresh reconnect. Preserve malformed-input refusals and all original tests.
+No wire-format, transport, renderer, physics, dependency or timeout change is selected.
 
-The complete routing/lifecycle Source passed independent review. Its first normal
-run failed after 541.339 seconds: Clippy and 466 Python checks passed, and all 15
-CLI camera cases passed, but the auxiliary qualifier still registered 14 cases.
-This isolated successor corrects that closed registry and its regression controls;
-the failed tree and logs remain frozen. Batch the correction and review before one
-full affected normal/strict retry. No test assertions or gates are relaxed.
+Finish implementation, regressions, guides and independent Source review before
+one consolidated full normal/strict pass. No check has run on this successor.
+Then derive fresh source-bound release/package/installation/runtime evidence using
+the maintained procedures; reuse unchanged evidence only where their bindings
+permit. Keep frozen candidates and every real failure intact.
 
-The operational harness must also let the existing native 20-second deadline
-finish instead of cancelling at 10 seconds. Keep the exact first 1 ms sample,
-numerical assertions and all three depth trials plus separate RGB proof.
-Reuse unchanged evidence only where its bindings permit; preserve all original
-failures and frozen trees. Do not rerun completed installation or GPU provisioning
-without an actual changed prerequisite.
-
-Fresh source-bound package, installation and camera evidence remain required for
-this changed candidate. Browser access to `http://127.0.0.1:8082` still needs the
-explicit owner approval required by automatic review. Hosted CI, official audit
-and release publication remain mandatory before M70 acceptance. No check has run
-on this successor; preparation is not qualification.
+Hosted qualification remains blocked: the older `597ac3dd` run failed before
+product checks on three locked Ubuntu snapshot HTTP 401 responses. Its cause and
+recovery remain unknown; current Ubuntu APT success is not snapshot recovery.
+No additional CI retry or snapshot probe is released. Live browser access to
+`http://127.0.0.1:8082` still requires the explicit owner approval requested by
+automatic review. Exact hosted/official qualification and release readbacks remain
+mandatory before M70 acceptance or publication.
 
 Earlier checkpoints below retain their historical scope.
 

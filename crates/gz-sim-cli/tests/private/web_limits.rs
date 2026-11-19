@@ -7,6 +7,66 @@ use std::net::{SocketAddr, TcpStream};
 use tungstenite::{Message, WebSocket, client::IntoClientRequest};
 
 #[test]
+fn peer_close_echoes_empty_and_normal_frames_before_transport_retirement() {
+    use tungstenite::protocol::{CloseFrame, frame::coding::CloseCode};
+
+    for close in [
+        None,
+        Some(CloseFrame {
+            code: CloseCode::Normal,
+            reason: "finished".into(),
+        }),
+    ] {
+        let sim = simulation();
+        let before = frame(&sim, 0);
+        let (mut bridge, address) = limits_bridge(&sim);
+        let mut client = limits_client(address, "/", None).unwrap();
+        limits_wait("client was not admitted", || {
+            bridge.connected.load(Ordering::Acquire) != 0
+        });
+        bridge.publish(&sim, "default", Vec::new()).unwrap();
+        limits_scene(&mut client);
+        client.close(close.clone()).unwrap();
+
+        let deadline = Instant::now() + Duration::from_secs(2);
+        let mut echoed = false;
+        loop {
+            match client.read() {
+                Ok(Message::Close(reply)) => {
+                    assert!(!echoed, "server sent more than one close reply");
+                    assert_eq!(reply, close);
+                    echoed = true;
+                }
+                Err(tungstenite::Error::ConnectionClosed) => {
+                    assert!(echoed, "transport ended before the close reply");
+                    break;
+                }
+                Err(tungstenite::Error::Io(error))
+                    if matches!(
+                        error.kind(),
+                        io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut
+                    ) =>
+                {
+                    assert!(Instant::now() < deadline, "close handshake did not finish");
+                }
+                other => panic!("expected a close reply and clean transport end, got {other:?}"),
+            }
+        }
+        limits_wait("closed client retained its connection", || {
+            bridge.connected.load(Ordering::Acquire) == 0
+        });
+        assert!(!bridge.scan_connected.load(Ordering::Acquire));
+        assert!(matches!(
+            bridge.commands.try_recv(),
+            Err(mpsc::TryRecvError::Empty)
+        ));
+        assert_eq!(sim.elapsed(), Duration::ZERO);
+        assert_eq!(frame(&sim, 0), before);
+        limits_restored(&mut bridge, &sim, address);
+    }
+}
+
+#[test]
 fn ping_and_abandoned_cpu_reply_preserve_transport_lifecycle() {
     let sim = simulation();
     let (mut bridge, address) = limits_bridge(&sim);
