@@ -240,7 +240,15 @@ pub fn supports_camera_sensor(sensor: &sdformat::Sensor) -> bool {
         && !camera.has_depth_far_clip
         && !camera.has_segmentation_type
         && !camera.has_bounding_box_type
-        && !camera.lens.has_intrinsics
+        && (!camera.lens.has_intrinsics || {
+            let k = &camera.lens.intrinsics;
+            [k.fx, k.fy, k.cx, k.cy, k.skew]
+                .iter()
+                .all(|value| value.is_finite())
+                && k.fx > 0.0
+                && k.fy > 0.0
+                && k.skew == 0.0
+        })
         && !camera.lens.has_projection
         && camera.horizontal_fov.is_finite()
         && (0.001..std::f64::consts::PI).contains(&camera.horizontal_fov)

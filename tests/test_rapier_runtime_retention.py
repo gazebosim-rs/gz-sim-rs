@@ -180,6 +180,22 @@ class AuxiliaryRetention(unittest.TestCase):
     def test_rehashed_camera_receipts_cannot_omit_fail_or_skip_listener_only_case(self):
         case = "listener_only_camera_cli_delivers_info_on_the_world_peer_without_a_worker"
         old = "\n".join("test " + name + " ... ok" for name in QUALIFIER.RGB_TESTS[:14]) + "\n"
+        complement = "\n".join("test " + name + " ... ok"
+                               for name in QUALIFIER.RGB_TESTS if name != case) + "\n"
+        summary = "test result: ok. 17 passed; 0 failed; 0 ignored;\n"
+        self.write("rgb-camera/stdout", (complement + "test " + case + " ... ok\n" + summary).encode())
+        self.finish_manifest()
+        QUALIFIER.validate_evidence(self.root, self.directory)
+        current_bad = [
+            complement + "test result: ok. 16 passed; 0 failed; 0 ignored;\n",
+            complement + summary,
+            complement + "test " + case + " ... FAILED\n"
+            + "test result: FAILED. 16 passed; 1 failed; 0 ignored;\n",
+            complement + "test " + case + " ... ignored\n"
+            + "test result: ok. 16 passed; 0 failed; 1 ignored;\n",
+            complement + "test unexpected_case ... ok\n" + summary,
+            complement + "test " + QUALIFIER.RGB_TESTS[0] + " ... ok\n" + summary,
+        ]
         for stdout in [
             old + "test result: ok. 14 passed; 0 failed; 0 ignored;\n",
             old + "test result: ok. 15 passed; 0 failed; 0 ignored;\n",
@@ -187,7 +203,7 @@ class AuxiliaryRetention(unittest.TestCase):
             + "test result: FAILED. 14 passed; 1 failed; 0 ignored;\n",
             old + "test " + case + " ... ignored\n"
             + "test result: ok. 14 passed; 0 failed; 1 ignored;\n",
-        ]:
+        ] + current_bad:
             with self.subTest(stdout=stdout):
                 self.write("rgb-camera/stdout", stdout.encode())
                 self.finish_manifest()
@@ -1057,7 +1073,7 @@ class AuxiliaryRetention(unittest.TestCase):
 class CylinderFiniteOutput(unittest.TestCase):
     def test_m64_requires_exact_sorted_four_static_poses_and_two_step_headline(self):
         source = "examples/m64_rgb_cylinder.sdf"
-        self.assertEqual(len(QUALIFIER.NOISY_EXAMPLES), 42)
+        self.assertEqual(len(QUALIFIER.NOISY_EXAMPLES), 43)
         self.assertEqual(QUALIFIER.NOISY_EXAMPLES[32:37], (
             "examples/m59_multiple_diff_drives.sdf", "examples/m61_eight_diff_drives.sdf",
             "examples/m62_eight_joint_controllers.sdf", "examples/m63_two_rgb_cameras.sdf", source))

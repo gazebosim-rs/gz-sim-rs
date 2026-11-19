@@ -1,3 +1,22 @@
+## Current development: M72 explicit pinhole camera intrinsics
+
+[M72](docs/M72_DELIVERY.md) admits explicit finite zero-skew SDF focal lengths and principal
+points for the existing 64 by 64 RGB/depth camera domain. It reuses the current
+projection, worker and canonical message paths; absent intrinsics preserve HFOV
+fallback. Explicit projection, skew, distortion and noise remain unsupported.
+
+Development is isolated over locally qualified M71 `f31d7155`. M71's complete
+normal/strict qualification and independent retained audit passed; its three
+prior failures remain preserved. M70's package/install/camera/browser proofs stay
+separate. Both phases remain private and unaccepted while exact hosted recovery
+and final parent/official/Main qualification are held. M72 local qualification may
+proceed after complete independent Source review, but inherits all final gates.
+Do not replay standalone completed M70 demo or M71 qualification jobs. The new
+M72 full gate retains all inherited regressions. Finish implementation, new
+regressions and guides, then independently review before one consolidated cycle. Preserve Rapier/TPE, D33 retirement and Fuel work.
+
+Earlier checkpoints below retain their historical scope.
+
 ## Current development: M71 independent RGB and depth pair
 
 The owner requested the next development phase on 2026-11-19. M71 adds one

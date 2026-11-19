@@ -116,7 +116,8 @@ pub fn depth_image_packet(
 }
 
 /// Produce native-shaped monocular camera information for the admitted
-/// zero-distortion, absent-explicit-K/P domain. No topic is advertised.
+/// zero-distortion, zero-skew domain, with P derived from the selected intrinsics.
+/// No topic is advertised.
 pub fn camera_info_packet(
     acquisition: Duration,
     frame_id: &str,

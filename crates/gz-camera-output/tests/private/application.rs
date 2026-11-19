@@ -2665,3 +2665,6 @@ mod shared_server_session;
 
 #[path = "mixed_pair.rs"]
 mod mixed_pair;
+
+#[path = "explicit_intrinsics.rs"]
+mod explicit_intrinsics;

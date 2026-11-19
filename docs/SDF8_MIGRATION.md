@@ -1,3 +1,18 @@
+## M72 explicit-intrinsics development
+
+The isolated M72 candidate selects explicit zero-skew K for supported 64 by 64
+RGB/depth cameras when the SDF presence flag is set. Absent K retains HFOV
+calibration; absent P is derived from selected K. Every explicit P remains
+unsupported. Existing calibration representability, demand, ownership and reset
+checks remain authoritative. See [M72_DELIVERY.md](M72_DELIVERY.md) for the bounded
+scope and required new numerical, canonical, worker and lifecycle evidence.
+
+The pinned native sources establish the chosen precedence contract. The old
+Ogre/Mesa precedence helper failed and produced no runtime result. Existing CPU
+projection and CameraInfo captures retain only their stated math/wire scope;
+no native pixel or sensor parity is claimed. The historical investigation below
+retains its original versions and evidence scope. M72 is not yet qualified.
+
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # SDFormat consumer migration boundary

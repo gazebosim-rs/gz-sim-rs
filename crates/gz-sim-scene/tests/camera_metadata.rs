@@ -24,11 +24,12 @@ fn camera() -> Sensor {
 }
 
 #[test]
-fn explicit_intrinsics_and_projection_stay_outside_loader_domain() {
+fn explicit_projection_with_or_without_intrinsics_stays_outside_loader_domain() {
     let source = include_str!("fixtures/camera-binding.sdf");
     let k = "<intrinsics><fx>40</fx><fy>41</fy><cx>20</cx><cy>21</cy><s>0</s></intrinsics>";
     let p = "<projection><p_fx>50</p_fx><p_fy>51</p_fy><p_cx>25</p_cx><p_cy>26</p_cy><tx>0</tx><ty>0</ty></projection>";
-    for lens in [k.to_owned(), p.to_owned(), format!("{k}{p}")] {
+    let matching_p = "<projection><p_fx>40</p_fx><p_fy>41</p_fy><p_cx>20</p_cx><p_cy>21</p_cy><tx>0</tx><ty>0</ty></projection>";
+    for lens in [p.to_owned(), format!("{k}{p}"), format!("{k}{matching_p}")] {
         let source = source.replace("</camera>", &format!("<lens>{lens}</lens></camera>"));
         let parsed =
             sdformat::load_str(&source, "explicit-lens.sdf", &sdformat::NoResources).unwrap();
@@ -49,6 +50,136 @@ fn explicit_intrinsics_and_projection_stay_outside_loader_domain() {
                 ..
             })
         ));
+    }
+}
+
+#[test]
+fn explicit_intrinsics_metadata_keeps_presence_and_the_existing_camera_domain() {
+    for kind in ["camera", "depth_camera"] {
+        let mut sensor = camera();
+        sensor.kind = kind.into();
+        let SensorConfig::Camera(config) = &mut sensor.config else {
+            unreachable!()
+        };
+        config.lens.has_intrinsics = true;
+        assert!(supports_camera_sensor(&sensor));
+        let edits: [fn(&mut Camera); 15] = [
+            |c| c.lens.intrinsics.fx = 0.0,
+            |c| c.lens.intrinsics.fy = 0.0,
+            |c| c.lens.intrinsics.fx = -1.0,
+            |c| c.lens.intrinsics.fy = -1.0,
+            |c| c.lens.intrinsics.fx = f64::NAN,
+            |c| c.lens.intrinsics.fy = f64::INFINITY,
+            |c| c.lens.intrinsics.cx = f64::NAN,
+            |c| c.lens.intrinsics.cy = f64::NEG_INFINITY,
+            |c| c.lens.intrinsics.skew = 0.25,
+            |c| c.lens.intrinsics.skew = f64::NAN,
+            |c| c.horizontal_fov = 0.0,
+            |c| c.near_clip = 0.0,
+            |c| c.image_width = 32,
+            |c| c.distortion.k1 = 0.1,
+            |c| c.lens.has_projection = true,
+        ];
+        for edit in edits {
+            let mut invalid = sensor.clone();
+            let SensorConfig::Camera(config) = &mut invalid.config else {
+                unreachable!()
+            };
+            edit(config);
+            assert!(!supports_camera_sensor(&invalid));
+        }
+        let SensorConfig::Camera(config) = &mut sensor.config else {
+            unreachable!()
+        };
+        config.lens.intrinsics.fx = 40.0;
+        config.lens.intrinsics.fy = 52.0;
+        config.lens.intrinsics.cx = -20.0;
+        config.lens.intrinsics.cy = 96.0;
+        assert!(supports_camera_sensor(&sensor));
+    }
+}
+
+#[test]
+fn absent_intrinsics_ignore_dormant_lens_values_without_admitting_projection() {
+    let mut sensor = camera();
+    let SensorConfig::Camera(config) = &mut sensor.config else {
+        unreachable!()
+    };
+    config.lens.intrinsics.fx = f64::NAN;
+    config.lens.intrinsics.fy = -1.0;
+    config.lens.intrinsics.cx = f64::INFINITY;
+    config.lens.intrinsics.cy = f64::NEG_INFINITY;
+    config.lens.intrinsics.skew = f64::NAN;
+    assert!(supports_camera_sensor(&sensor));
+    let SensorConfig::Camera(config) = &mut sensor.config else {
+        unreachable!()
+    };
+    config.lens.has_projection = true;
+    assert!(!supports_camera_sensor(&sensor));
+}
+
+#[test]
+fn parsed_explicit_intrinsics_restore_original_loaded_metadata_and_identity() {
+    let source = include_str!("fixtures/camera-binding.sdf").replace(
+        "</camera>",
+        "<lens><intrinsics><fx>40</fx><fy>52</fy><cx>20</cx><cy>44</cy><s>0</s></intrinsics></lens></camera>",
+    );
+    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+        for kind in ["camera", "depth_camera"] {
+            let source = source.replacen("type=\"camera\"", &format!("type=\"{kind}\""), 1);
+            let mut sim = load_world_with_sdf_step(
+                &source,
+                "explicit-intrinsics.sdf",
+                "default",
+                &sdformat::NoResources,
+                engine,
+            )
+            .unwrap();
+            let find = |sim: &gz_sim_core::Simulation| {
+                sim.world()
+                    .iter_entities()
+                    .find(|entity| entity.contains::<CameraSensor>())
+                    .unwrap()
+                    .id()
+            };
+            let entity = find(&sim);
+            let id = sim.world().get::<EntityId>(entity).unwrap().get();
+            let pose = *sim.world().get::<WorldPose>(entity).unwrap();
+            let original = sim.world().get::<CameraSensor>(entity).unwrap().0.clone();
+            let config = original.camera().unwrap();
+            assert!(config.lens.has_intrinsics && !config.lens.has_projection);
+            let k = &config.lens.intrinsics;
+            assert_eq!(
+                [k.fx, k.fy, k.cx, k.cy, k.skew],
+                [40.0, 52.0, 20.0, 44.0, 0.0]
+            );
+            assert_eq!(original.kind, kind);
+            let systems = sim.scheduled_system_counts();
+            {
+                let mut current = sim.world_mut().get_mut::<CameraSensor>(entity).unwrap();
+                let SensorConfig::Camera(config) = &mut Arc::make_mut(&mut current.0).config else {
+                    unreachable!()
+                };
+                config.lens.intrinsics.cx = 5.0;
+            }
+            assert_eq!(original.camera().unwrap().lens.intrinsics.cx, 20.0);
+            assert!(!Arc::ptr_eq(
+                &original,
+                &sim.world().get::<CameraSensor>(entity).unwrap().0
+            ));
+            reset_loaded_world(&mut sim, |_| ()).unwrap();
+            let restored = find(&sim);
+            assert_eq!(sim.world().get::<EntityId>(restored).unwrap().get(), id);
+            let restored_pose = sim.world().get::<WorldPose>(restored).unwrap();
+            assert_eq!(restored_pose.translation, pose.translation);
+            assert_eq!(restored_pose.rotation, pose.rotation);
+            assert!(Arc::ptr_eq(
+                &original,
+                &sim.world().get::<CameraSensor>(restored).unwrap().0
+            ));
+            assert_eq!(sim.scheduled_system_counts(), systems);
+            assert_eq!(sim.elapsed(), std::time::Duration::ZERO);
+        }
     }
 }
 
@@ -323,7 +454,10 @@ fn camera_domain_rejects_unimplemented_features_and_invalid_geometry() {
         |c| c.has_depth_far_clip = true,
         |c| c.has_segmentation_type = true,
         |c| c.has_bounding_box_type = true,
-        |c| c.lens.has_intrinsics = true,
+        |c| {
+            c.lens.has_intrinsics = true;
+            c.lens.intrinsics.fx = 0.0;
+        },
         |c| c.lens.has_projection = true,
         |c| c.horizontal_fov = f64::NAN,
         |c| c.near_clip = 0.0,

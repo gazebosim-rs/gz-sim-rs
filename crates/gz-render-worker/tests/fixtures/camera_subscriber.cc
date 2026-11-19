@@ -29,8 +29,10 @@ int ellipsoid_mode(int argc, char **argv);
 int depth_primitives_mode(int argc, char **argv);
 int depth_pair_mode(int argc, char **argv);
 int mixed_pair_mode(int argc, char **argv);
+int explicit_intrinsics_mode(int argc, char **argv);
 
 int main(int argc, char **argv) {
+  if (argc==3 && std::string(argv[1])=="explicit-intrinsics") return explicit_intrinsics_mode(argc, argv);
   if (argc==3 && std::string(argv[1])=="depth-pair") return depth_pair_mode(argc, argv);
   if (argc==3 && std::string(argv[1])=="mixed-pair") return mixed_pair_mode(argc, argv);
   if (argc != 1) {
@@ -664,4 +666,163 @@ int mixed_pair_mode(int argc, char **argv) {
     pair_require(std::cout.good() && std::chrono::steady_clock::now()<deadline,"mixed completion deadline");
     return 0;
   } catch (const std::exception &error) { std::cerr<<error.what()<<std::endl;return 1; }
+}
+
+// M72-only canonical consumer. All earlier modes and their assertions stay exact.
+namespace {
+std::array<double,4> explicit_k(unsigned owner) {
+  return owner==0 ? std::array<double,4>{40,48,20,25} : std::array<double,4>{20,24,42,20};
+}
+struct ExplicitHit { double depth; unsigned box; bool interior; };
+ExplicitHit explicit_hit(unsigned owner,int x,int y,bool fallback=false) {
+  const auto k=fallback ? std::array<double,4>{32,32,32,32} : explicit_k(owner);
+  const std::array<double,3> origin{0,owner==0 ? -2.0 : 2.0,1};
+  const std::array<double,3> ray{1,(k[2]-x-0.5)/k[0],(k[3]-y-0.5)/k[1]};
+  constexpr std::array<std::array<double,3>,3> centers{{{6,0,1},{2,-2,1},{3,2,1}}};
+  constexpr std::array<std::array<double,3>,3> halves{{{0.1,8,8},{0.2,0.2,0.2},{0.2,0.2,0.2}}};
+  ExplicitHit best{std::numeric_limits<double>::infinity(),0,false};
+  for(unsigned box=0;box<3;++box) {
+    double enter=0.1,leave=10;
+    for(unsigned axis=0;axis<3;++axis) {
+      const double lo=centers[box][axis]-halves[box][axis]-origin[axis];
+      const double hi=centers[box][axis]+halves[box][axis]-origin[axis];
+      if(ray[axis]==0) { if(lo>0 || hi<0) leave=-1; }
+      else { const double a=lo/ray[axis],b=hi/ray[axis];enter=std::fmax(enter,std::fmin(a,b));leave=std::fmin(leave,std::fmax(a,b)); }
+    }
+    if(enter<=leave && enter<best.depth) {
+      const double py=origin[1]+enter*ray[1],pz=origin[2]+enter*ray[2];
+      const bool front=std::abs(enter-(centers[box][0]-halves[box][0]))<1e-10;
+      best={enter,box,front && std::abs(py-centers[box][1])<halves[box][1]-0.03 &&
+          std::abs(pz-centers[box][2])<halves[box][2]-0.03};
+    }
+  }
+  return best;
+}
+// Bounds cover the complete projected box, not just a center-ray hit.
+std::array<double,4> explicit_projected_bounds(unsigned owner,unsigned box,bool front_only) {
+  const auto k=explicit_k(owner);
+  constexpr std::array<std::array<double,3>,3> centers{{{6,0,1},{2,-2,1},{3,2,1}}};
+  constexpr std::array<std::array<double,3>,3> halves{{{0.1,8,8},{0.2,0.2,0.2},{0.2,0.2,0.2}}};
+  const auto center=centers[box],half=halves[box];
+  const double front=center[0]-half[0],origin_y=owner==0 ? -2.0:2.0;
+  const std::array<double,2> xs{front,front_only ? front:center[0]+half[0]};
+  std::array<double,4> bounds{std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity(),
+      std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity()};
+  for(double px:xs) for(double py:std::array<double,2>{center[1]-half[1],center[1]+half[1]})
+    for(double pz:std::array<double,2>{center[2]-half[2],center[2]+half[2]}) {
+      const double u=k[2]-k[0]*(py-origin_y)/px,v=k[3]-k[1]*(pz-1)/px;
+      bounds[0]=std::fmin(bounds[0],u);bounds[1]=std::fmax(bounds[1],u);
+      bounds[2]=std::fmin(bounds[2],v);bounds[3]=std::fmax(bounds[3],v);
+    }
+  return bounds;
+}
+bool explicit_homogeneous_footprint(unsigned owner,int x,int y,const ExplicitHit &hit) {
+  const double x0=x,y0=y,x1=x+1,y1=y+1;
+  const auto selected=explicit_projected_bounds(owner,hit.box,true);
+  if(!(x0>selected[0] && x1<selected[1] && y0>selected[2] && y1<selected[3]))return false;
+  constexpr std::array<double,3> fronts{5.9,1.8,2.8};
+  for(unsigned other=0;other<3;++other) if(other!=hit.box && fronts[other]<hit.depth) {
+    // Conservatively exclude the whole footprint even if it only touches a
+    // nearer eight-corner silhouette bound; no sample-pattern assumption.
+    const auto bounds=explicit_projected_bounds(owner,other,false);
+    if(x1>=bounds[0] && x0<=bounds[1] && y1>=bounds[2] && y0<=bounds[3])return false;
+  }
+  return true;
+}
+void explicit_info(const gz::msgs::CameraInfo &info,unsigned owner) {
+  pair_require(info.has_header(),"explicit-K info header");pair_header(info.header(),owner,false);
+  pair_require(info.width()==64 && info.height()==64 && info.has_intrinsics() && info.intrinsics().k_size()==9 &&
+      info.has_projection() && info.projection().p_size()==12 && info.has_distortion() &&
+      info.distortion().k_size()==5 && info.rectification_matrix_size()==9,"explicit-K complete calibration shape");
+  const auto v=explicit_k(owner);
+  const std::array<double,9> k{v[0],0,v[2],0,v[1],v[3],0,0,1},rect{1,0,0,0,1,0,0,0,1};
+  const std::array<double,12> p{v[0],0,v[2],0,0,v[1],v[3],0,0,0,1,0};
+  for(int i=0;i<9;++i) pair_require(info.intrinsics().k(i)==k[i] && info.rectification_matrix(i)==rect[i],"explicit-K/identity rectification");
+  for(int i=0;i<12;++i) pair_require(info.projection().p(i)==p[i],"explicit P is selected K|0");
+  pair_require(static_cast<int>(info.distortion().model())==0,"explicit-K PLUMB_BOB");
+  for(double d:info.distortion().k()) pair_require(d==0,"explicit-K zero distortion");
+}
+void explicit_image(const gz::msgs::Image &image,unsigned owner) {
+  pair_require(image.has_header(),"explicit-K image header");pair_header(image.header(),owner,true);
+  pair_require(image.width()==64 && image.height()==64 && image.step()==(owner==0 ? 192u:256u) &&
+      image.pixel_format_type()==(owner==0 ? gz::msgs::PixelFormatType::RGB_INT8:gz::msgs::PixelFormatType::R_FLOAT32) &&
+      image.data().size()==(owner==0 ? 12288u:16384u),"explicit-K image type/stride/length");
+  unsigned red=0,blue=0,infinite=0,fallback_disagreements=0,checked=0,excluded=0;
+  for(int y=0;y<64;++y) for(int x=0;x<64;++x) {
+    const auto hit=explicit_hit(owner,x,y),fallback=explicit_hit(owner,x,y,true);
+    if(owner==0) {
+      if(!hit.interior || !explicit_homogeneous_footprint(owner,x,y,hit)){++excluded;continue;}
+      ++checked;
+      const std::array<unsigned char,3> expected=hit.box==0 ? std::array<unsigned char,3>{0,0,255}:
+          (hit.box==1 ? std::array<unsigned char,3>{255,0,0}:std::array<unsigned char,3>{0,255,0});
+      const std::array<unsigned char,3> actual{static_cast<unsigned char>(image.data()[(y*64+x)*3]),
+          static_cast<unsigned char>(image.data()[(y*64+x)*3+1]),static_cast<unsigned char>(image.data()[(y*64+x)*3+2])};
+      if(actual!=expected) throw std::runtime_error("RGB owner="+std::to_string(owner)+" x="+std::to_string(x)+" y="+std::to_string(y)+
+          " expected=["+std::to_string(expected[0])+","+std::to_string(expected[1])+","+std::to_string(expected[2])+"] actual=["+
+          std::to_string(actual[0])+","+std::to_string(actual[1])+","+std::to_string(actual[2])+"]; homogeneous footprint");
+      red+=hit.box==1;blue+=hit.box==0;
+      fallback_disagreements+=hit.box==1 && (!std::isfinite(fallback.depth) || fallback.box!=1);
+    } else if(owner==1) {
+      ++checked;
+      const auto offset=(y*64+x)*4;
+      const auto byte=[&](int i){return static_cast<std::uint32_t>(static_cast<unsigned char>(image.data()[offset+i]));};
+      const std::uint32_t bits=byte(0)|(byte(1)<<8)|(byte(2)<<16)|(byte(3)<<24);
+      float actual;std::memcpy(&actual,&bits,sizeof(actual));
+      const bool valid=std::isinf(hit.depth) ? std::isinf(actual) && actual>0:
+          std::isfinite(actual) && actual>0 && std::abs(actual-hit.depth)<1e-4;
+      if(!valid) throw std::runtime_error("depth owner="+std::to_string(owner)+" x="+std::to_string(x)+" y="+std::to_string(y)+
+          " expected="+std::to_string(hit.depth)+" actual="+std::to_string(actual));
+      if(std::isinf(hit.depth))++infinite;
+      fallback_disagreements+=std::isinf(hit.depth)!=std::isinf(fallback.depth) ||
+          (std::isfinite(hit.depth) && std::isfinite(fallback.depth) && std::abs(hit.depth-fallback.depth)>0.1);
+    }
+  }
+  if(!(owner==0 ? checked+excluded==4096 && excluded>0 : checked==4096 && excluded==0))
+    throw std::runtime_error("explicit pixel accounting owner="+std::to_string(owner)+" checked="+std::to_string(checked)+" excluded="+std::to_string(excluded));
+  if(!(owner==0 ? red>20 && blue>100 && fallback_disagreements>20 : infinite>100 && fallback_disagreements>100))
+    throw std::runtime_error("selected-K coverage owner="+std::to_string(owner)+" checked="+std::to_string(checked)+" excluded="+std::to_string(excluded)+
+      " red="+std::to_string(red)+" blue="+std::to_string(blue)+" +INF="+std::to_string(infinite)+" HFOV_disagreements="+std::to_string(fallback_disagreements));
+}
+}
+int explicit_intrinsics_mode(int argc,char **argv) {
+  try {
+    pair_require(argc==3 && std::string(argv[1])=="explicit-intrinsics" &&
+        (std::string(argv[2])=="0" || std::string(argv[2])=="1"),"explicit-intrinsics RGB0/depth1");
+    const unsigned owner=std::string(argv[2])=="0" ? 0u:1u;
+    const std::string prefix=owner==0 ? "/m72/rgb/":"/m72/depth/";
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(20);
+    std::string image_wire,info_wire;
+    {
+      auto state=std::make_shared<DepthPairReceived>();gz::transport::Node node;
+      const auto image=[state,owner](const gz::msgs::Image &v) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if(!state->accepting || state->failed || state->image)return;
+        try {pair_require(v.ByteSizeLong()<=(owner==0 ? 16384u:32768u),"explicit Image cap");state->image=v;}catch(...){state->failed=true;}
+        state->changed.notify_all();
+      };
+      const auto info=[state](const gz::msgs::CameraInfo &v) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if(!state->accepting || state->failed || state->info)return;
+        try {pair_require(v.ByteSizeLong()<=16384,"explicit CameraInfo cap");state->info=v;}catch(...){state->failed=true;}
+        state->changed.notify_all();
+      };
+      pair_require(node.Subscribe(prefix+"image",std::function<void(const gz::msgs::Image &)>(image)) &&
+          node.Subscribe(prefix+"camera_info",std::function<void(const gz::msgs::CameraInfo &)>(info)),"actual explicit-K typed subscriptions");
+      std::cout<<"ready explicit intrinsics "<<owner<<std::endl;
+      pair_require(std::cout.good(),"explicit-K ready write");
+      {
+        std::unique_lock<std::mutex> lock(state->mutex);
+        pair_require(state->changed.wait_until(lock,deadline,[&]{return state->failed || (state->image && state->info);}),"explicit-K receive deadline");
+        pair_require(!state->failed,"explicit-K callback failure");state->accepting=false;
+        explicit_image(*state->image,owner);explicit_info(*state->info,owner);
+        pair_require(state->image->SerializeToString(&image_wire) && state->info->SerializeToString(&info_wire),"explicit-K complete canonical bytes");
+      }
+      pair_require(node.Unsubscribe(prefix+"image") && node.Unsubscribe(prefix+"camera_info"),"explicit-K owned subscriptions retired");
+    }
+    const std::string ready="ready explicit intrinsics "+std::to_string(owner)+"\n";
+    const std::string output="IMAGE "+pair_hex(image_wire)+"\nINFO "+pair_hex(info_wire)+"\nPASS canonical explicit intrinsics "+std::to_string(owner)+"\n";
+    pair_require(ready.size()+output.size()<=65536,"explicit-K stdout64KiB cap");
+    std::cout<<output<<std::flush;
+    pair_require(std::cout.good() && std::chrono::steady_clock::now()<deadline,"explicit-K completion deadline");return 0;
+  }catch(const std::exception &error){std::cerr<<error.what()<<std::endl;return 1;}
 }

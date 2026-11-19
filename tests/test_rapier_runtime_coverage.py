@@ -8,6 +8,7 @@ import subprocess
 from pathlib import Path
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from unittest.mock import patch
 
 SPEC = importlib.util.spec_from_file_location("qualify_rapier", Path(__file__).resolve().parents[1] / "scripts/qualify-rapier-runtime.py")
@@ -64,8 +65,8 @@ class DisabledBackendProof(unittest.TestCase):
         ])
         new_case = "cli_two_camera_path_preserves_single_and_headless_refusal"
         self.assertEqual(MODULE.RGB_TESTS[9:10], [new_case])
-        self.assertEqual(len(MODULE.RGB_TESTS), 16)
-        self.assertEqual(len(set(MODULE.RGB_TESTS)), 16)
+        self.assertEqual(len(MODULE.RGB_TESTS), 17)
+        self.assertEqual(len(set(MODULE.RGB_TESTS)), 17)
         lines = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS)
         summary = f"\ntest result: ok. {len(MODULE.RGB_TESTS)} passed; 0 failed; 0 ignored;"
         MODULE.require_rgb_tests(lines + summary)
@@ -87,7 +88,7 @@ class DisabledBackendProof(unittest.TestCase):
     def test_rgb_registry_matches_every_actual_cli_integration_case(self):
         source = (MODULE.ROOT / MODULE.RGB_SOURCES["rgb_camera"]).read_text()
         actual = re.findall(r"#\[test\]\s+(?:#\[[^\n]*\]\s+)*fn (\w+)\(", source)
-        self.assertEqual(len(actual), 16)
+        self.assertEqual(len(actual), 17)
         self.assertEqual(len(set(actual)), len(actual))
         self.assertEqual(set(MODULE.RGB_TESTS), set(actual))
 
@@ -102,9 +103,21 @@ class DisabledBackendProof(unittest.TestCase):
         ])
         old = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS[:14]) + "\n"
         full = old + "test " + case + " ... ok\n"
-        full += "test " + MODULE.RGB_TESTS[15] + " ... ok\n"
-        summary = "test result: ok. 16 passed; 0 failed; 0 ignored;\n"
+        full += "".join("test " + name + " ... ok\n" for name in MODULE.RGB_TESTS[15:])
+        summary = "test result: ok. 17 passed; 0 failed; 0 ignored;\n"
         MODULE.require_rgb_tests(full + summary)
+        complement = "\n".join("test " + name + " ... ok"
+                               for name in MODULE.RGB_TESTS if name != case) + "\n"
+        current_bad = [
+            complement + "test result: ok. 16 passed; 0 failed; 0 ignored;\n",
+            complement + summary,
+            complement + "test " + case + " ... FAILED\n"
+            + "test result: FAILED. 16 passed; 1 failed; 0 ignored;\n",
+            complement + "test " + case + " ... ignored\n"
+            + "test result: ok. 16 passed; 0 failed; 1 ignored;\n",
+            complement + "test unexpected_case ... ok\n" + summary,
+            complement + "test " + MODULE.RGB_TESTS[0] + " ... ok\n" + summary,
+        ]
         for stdout in [
             old + "test result: ok. 14 passed; 0 failed; 0 ignored;\n",
             old + summary,
@@ -114,8 +127,8 @@ class DisabledBackendProof(unittest.TestCase):
             old + "test " + case + " ... ignored\n"
             + "test result: ok. 14 passed; 0 failed; 1 ignored;\n",
             full + "test unexpected_case ... ok\n"
-            + "test result: ok. 16 passed; 0 failed; 0 ignored;\n",
-        ]:
+            + "test result: ok. 17 passed; 0 failed; 0 ignored;\n",
+        ] + current_bad:
             with self.subTest(stdout=stdout), self.assertRaises(ValueError):
                 MODULE.require_rgb_tests(stdout)
 
@@ -165,7 +178,7 @@ class DisabledBackendProof(unittest.TestCase):
                 for source in MODULE.NOISY_EXAMPLES]
             with patch.object(MODULE.subprocess, "run", side_effect=results) as run:
                 record = MODULE.run_noisy_examples(root, directory, objects, {"LLVM_PROFILE_FILE": "/owned/raw"})
-            self.assertEqual(run.call_count, 42)
+            self.assertEqual(run.call_count, 43)
             self.assertEqual([row["source"] for row in record["runs"]], list(MODULE.NOISY_EXAMPLES))
             for call, source in zip(run.call_args_list, MODULE.NOISY_EXAMPLES):
                 copied = directory / "examples" / Path(source).name
@@ -709,11 +722,11 @@ class DisabledBackendProof(unittest.TestCase):
             with self.subTest(stdout=stdout), self.assertRaises(ValueError):
                 MODULE.require_rgb_tests(stdout)
         full = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS) + "\n"
-        MODULE.require_rgb_tests(full + "test result: ok. 16 passed; 0 failed; 0 ignored;\n")
+        MODULE.require_rgb_tests(full + "test result: ok. 17 passed; 0 failed; 0 ignored;\n")
 
     def test_sphere_finite_registry_preserves_prior_37_and_exact_four_static_poses(self):
         source = "examples/m66_rgb_sphere.sdf"
-        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 42)
+        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 43)
         self.assertEqual(MODULE.NOISY_EXAMPLES[36:37], ("examples/m64_rgb_cylinder.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[37:38], (source,))
         poses = {"default::backdrop::body": (7, 0, 0),
@@ -751,11 +764,11 @@ class DisabledBackendProof(unittest.TestCase):
             with self.subTest(stdout=stdout), self.assertRaises(ValueError):
                 MODULE.require_rgb_tests(stdout)
         full = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS) + "\n"
-        MODULE.require_rgb_tests(full + "test result: ok. 16 passed; 0 failed; 0 ignored;\n")
+        MODULE.require_rgb_tests(full + "test result: ok. 17 passed; 0 failed; 0 ignored;\n")
 
     def test_ellipsoid_finite_registry_preserves_prior_38_and_exact_four_static_poses(self):
         source = "examples/m67_rgb_ellipsoid.sdf"
-        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 42)
+        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 43)
         self.assertEqual(MODULE.NOISY_EXAMPLES[37:38], ("examples/m66_rgb_sphere.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[38:39], (source,))
         poses = {"default::backdrop::body": (7, 0, 0),
@@ -794,11 +807,11 @@ class DisabledBackendProof(unittest.TestCase):
             with self.subTest(stdout=stdout), self.assertRaises(ValueError):
                 MODULE.require_rgb_tests(stdout)
         full = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS) + "\n"
-        MODULE.require_rgb_tests(full + "test result: ok. 16 passed; 0 failed; 0 ignored;\n")
+        MODULE.require_rgb_tests(full + "test result: ok. 17 passed; 0 failed; 0 ignored;\n")
 
     def test_primitive_depth_finite_registry_requires_six_exact_static_body_poses(self):
         source = "examples/m68_depth_primitives.sdf"
-        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 42)
+        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 43)
         self.assertEqual(MODULE.NOISY_EXAMPLES[38:39], ("examples/m67_rgb_ellipsoid.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[39:40], (source,))
         poses = {"default::backdrop::body": (7, 0, 0), "default::cylinder::body": (4, -1.5, 0),
@@ -833,11 +846,11 @@ class DisabledBackendProof(unittest.TestCase):
             with self.subTest(stdout=stdout), self.assertRaises(ValueError):
                 MODULE.require_rgb_tests(stdout)
         full = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS) + "\n"
-        MODULE.require_rgb_tests(full + "test result: ok. 16 passed; 0 failed; 0 ignored;\n")
+        MODULE.require_rgb_tests(full + "test result: ok. 17 passed; 0 failed; 0 ignored;\n")
 
     def test_two_depth_finite_registry_preserves_40_and_exact_five_static_poses(self):
         source = "examples/m69_two_depth_cameras.sdf"
-        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 42)
+        self.assertEqual(len(MODULE.NOISY_EXAMPLES), 43)
         self.assertEqual(MODULE.NOISY_EXAMPLES[39:40], ("examples/m68_depth_primitives.sdf",))
         self.assertEqual(MODULE.NOISY_EXAMPLES[40:41], (source,))
         poses = {"default::backdrop::body": (6, 0, 1),
@@ -869,28 +882,28 @@ class DisabledBackendProof(unittest.TestCase):
 class MixedCameraQualification(unittest.TestCase):
     def test_mixed_camera_case_cannot_be_omitted_failed_or_skipped(self):
         case = "mixed_camera_opt_in_preserves_default_refusal_and_lazy_workers"
-        self.assertEqual(MODULE.RGB_TESTS[15:], [case])
-        old = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS[:15]) + "\n"
+        self.assertEqual(MODULE.RGB_TESTS[15:16], [case])
+        old = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS if name != case) + "\n"
         full = old + "test " + case + " ... ok\n"
-        MODULE.require_rgb_tests(full + "test result: ok. 16 passed; 0 failed; 0 ignored;\n")
+        MODULE.require_rgb_tests(full + "test result: ok. 17 passed; 0 failed; 0 ignored;\n")
         for bad in [
-            old + "test result: ok. 15 passed; 0 failed; 0 ignored;\n",
             old + "test result: ok. 16 passed; 0 failed; 0 ignored;\n",
+            old + "test result: ok. 17 passed; 0 failed; 0 ignored;\n",
             full + "test unexpected_case ... ok\n"
-            + "test result: ok. 16 passed; 0 failed; 0 ignored;\n",
+            + "test result: ok. 17 passed; 0 failed; 0 ignored;\n",
             full + "test " + case + " ... ok\n"
-            + "test result: ok. 16 passed; 0 failed; 0 ignored;\n",
+            + "test result: ok. 17 passed; 0 failed; 0 ignored;\n",
             old + "test " + case + " ... ignored\n"
-            + "test result: ok. 15 passed; 0 failed; 1 ignored;\n",
+            + "test result: ok. 16 passed; 0 failed; 1 ignored;\n",
             old + "test " + case + " ... FAILED\n"
-            + "test result: FAILED. 15 passed; 1 failed; 0 ignored;\n",
+            + "test result: FAILED. 16 passed; 1 failed; 0 ignored;\n",
         ]:
             with self.subTest(stdout=bad), self.assertRaises(ValueError):
                 MODULE.require_rgb_tests(bad)
 
     def test_mixed_fixture_retains_every_static_pose_and_exact_finite_output(self):
         source = "examples/m71_mixed_cameras.sdf"
-        self.assertEqual(MODULE.NOISY_EXAMPLES[41:], (source,))
+        self.assertEqual(MODULE.NOISY_EXAMPLES[41:42], (source,))
         poses = {"default::backdrop::body": (6, 0, 1),
                  "default::occluder_a::body": (2, -2, 1),
                  "default::occluder_b::body": (3, 2, 1),
@@ -907,3 +920,59 @@ class MixedCameraQualification(unittest.TestCase):
                 with self.subTest(stdout=bad):
                     self.assertFalse(MODULE.noisy_output_matches(source, bad))
         self.assertFalse(MODULE.noisy_output_matches(source, good.replace("iterations=2", "iterations=1")))
+
+
+class ExplicitIntrinsicsQualification(unittest.TestCase):
+    def test_intrinsics_cli_case_requires_the_complete_once_only_registry(self):
+        case = "explicit_intrinsics_keep_workers_lazy_and_refuse_invalid_calibration"
+        self.assertEqual(MODULE.RGB_TESTS[16:], [case])
+        old = "\n".join("test " + name + " ... ok" for name in MODULE.RGB_TESTS[:16]) + "\n"
+        full = old + "test " + case + " ... ok\n"
+        summary = "test result: ok. 17 passed; 0 failed; 0 ignored;\n"
+        MODULE.require_rgb_tests(full + summary)
+        for bad in [
+            old + "test result: ok. 16 passed; 0 failed; 0 ignored;\n",
+            old + summary,
+            full + "test result: ok. 16 passed; 0 failed; 0 ignored;\n",
+            full + "test unexpected_case ... ok\n" + summary,
+            full + "test unexpected_case ... FAILED\n" + summary,
+            full + "test unexpected_case ... ignored\n" + summary,
+            full + "test " + case + " ... ok\n" + summary,
+            old + "test unexpected_case ... ok\n" + summary,
+            old + "test " + MODULE.RGB_TESTS[0] + " ... ok\n" + summary,
+            old + "test " + case + " ... FAILED\n" + summary,
+            old + "test " + case + " ... ignored\n" + summary,
+        ]:
+            with self.subTest(stdout=bad), self.assertRaises(ValueError):
+                MODULE.require_rgb_tests(bad)
+
+    def test_intrinsics_fixture_preserves_exact_calibration_and_finite_geometry(self):
+        source = "examples/m72_camera_intrinsics.sdf"
+        self.assertEqual(MODULE.NOISY_EXAMPLES[42:], (source,))
+        poses = {"default::backdrop::body": (6, 0, 1),
+                 "default::occluder_a::body": (2, -2, 1),
+                 "default::occluder_b::body": (3, 2, 1),
+                 "default::rig_a::body": (0, -2, 1), "default::rig_b::body": (0, 2, 1)}
+        self.assertEqual(MODULE.NOISY_LINKS[source], poses)
+        root = ET.parse(MODULE.ROOT / source).getroot()
+        for model, expected in [("rig_a", [40.0, 48.0, 20.0, 25.0, 0.0]),
+                                ("rig_b", [20.0, 24.0, 42.0, 20.0, 0.0])]:
+            lens = root.find(f"./world/model[@name='{model}']/link/sensor/camera/lens")
+            self.assertIsNotNone(lens)
+            self.assertIsNone(lens.find("projection"))
+            self.assertEqual([float(lens.findtext(f"intrinsics/{key}"))
+                              for key in ("fx", "fy", "cx", "cy", "s")], expected)
+        headline = "simulation_ns=2000000 iterations=2\n"
+        rows = [name + " " + " ".join(map(str, xyz)) for name, xyz in sorted(poses.items())]
+        good = headline + "\n".join(rows) + "\n"
+        self.assertTrue(MODULE.noisy_output_matches(source, good))
+        bad = [headline, good.rstrip("\n"), good + "\n",
+               headline + "\n".join(reversed(rows)) + "\n",
+               good.replace("iterations=2", "iterations=1")]
+        for index, row in enumerate(rows):
+            bad.extend([headline + "\n".join(rows[:index] + rows[index + 1:]) + "\n",
+                        good + row + "\n", good.replace(row, row + " 0"),
+                        good.replace(row, row.rsplit(" ", 1)[0] + " nan")])
+        for stdout in bad:
+            with self.subTest(stdout=stdout):
+                self.assertFalse(MODULE.noisy_output_matches(source, stdout))

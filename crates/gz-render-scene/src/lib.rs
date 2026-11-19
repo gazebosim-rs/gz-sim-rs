@@ -7,7 +7,7 @@
 //! shadow behavior is outside this renderer slice.
 
 use glam::{DQuat, DVec3};
-use gz_render_frame::camera::Calibration;
+use gz_render_frame::camera::{Calibration, CameraConfig};
 use gz_render_frame::{WorldPose as RenderWorldPose, to_render_pose};
 use gz_render_protocol::{Geometry, Request, ShapeVisual, Stamp, Visual};
 use gz_sim_core::{EntityId, Simulation, entity_by_id};
@@ -84,13 +84,30 @@ pub fn extract_camera(
         .get::<WorldPose>()
         .ok_or(SnapshotError::MissingCamera(sensor_id))?;
     let invalid = || SnapshotError::InvalidCamera(sensor_id);
-    let config = Calibration::from_horizontal_fov(
-        camera.image_width,
-        camera.image_height,
-        camera.horizontal_fov,
-        camera.near_clip,
-        camera.far_clip,
-    )
+    let config = if camera.lens.has_intrinsics {
+        let intrinsics = &camera.lens.intrinsics;
+        Calibration::new(CameraConfig {
+            width: camera.image_width,
+            height: camera.image_height,
+            fx: intrinsics.fx,
+            fy: intrinsics.fy,
+            cx: intrinsics.cx,
+            cy: intrinsics.cy,
+            skew: intrinsics.skew,
+            tx: 0.0,
+            ty: 0.0,
+            near: camera.near_clip,
+            far: camera.far_clip,
+        })
+    } else {
+        Calibration::from_horizontal_fov(
+            camera.image_width,
+            camera.image_height,
+            camera.horizontal_fov,
+            camera.near_clip,
+            camera.far_clip,
+        )
+    }
     .map_err(|_| invalid())?
     .config();
     gz_render_frame::camera::to_render_camera_pose(

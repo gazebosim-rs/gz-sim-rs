@@ -231,6 +231,13 @@ fn malformed_child_output_is_reported() {
 fn timeout_leaves_handle_available_for_a_later_reap() {
     let binary = PathBuf::from(env!("CARGO_BIN_EXE_stall_fixture"));
     let mut client = start(binary).unwrap();
+    // Queued startup output remains readable after shutdown; consume it first.
+    assert!(matches!(
+        wait(&client),
+        Reply::Ready {
+            version: PROTOCOL_VERSION
+        }
+    ));
     assert!(matches!(
         client.shutdown(Duration::MAX),
         Err(ClientError::InvalidTimeout)
@@ -244,7 +251,11 @@ fn timeout_leaves_handle_available_for_a_later_reap() {
         client.try_send(Request::Capture { request_id: 77 }),
         Err(SubmitError::Closed(Request::Capture { request_id: 77 }))
     ));
-    assert!(matches!(client.try_reply(), Err(ClientError::Closed)));
+    let reply = client.try_reply();
+    assert!(
+        matches!(&reply, Err(ClientError::Closed)),
+        "output after reaped shutdown: {reply:?}"
+    );
 }
 
 #[test]

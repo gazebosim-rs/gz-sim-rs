@@ -1430,3 +1430,190 @@ fn depth_primitives_keep_semantic_faults_unsupported_shapes_and_shared_128_ident
         before
     );
 }
+
+fn intrinsics_source(kind: &str, shapes: bool) -> String {
+    let source = ELLIPSOID_SCENE.replace("type=\"camera\"", &format!("type=\"{kind}\""));
+    if shapes {
+        source
+    } else {
+        source.replace(
+            "<ellipsoid><radii>0.5 1.5 0.75</radii></ellipsoid>",
+            "<box><size>1 3 1.5</size></box>",
+        )
+    }
+}
+
+fn request_camera(request: &Request) -> &gz_render_protocol::Camera {
+    match request {
+        Request::CalibratedSnapshot { camera, .. }
+        | Request::CalibratedShapeSnapshot { camera, .. }
+        | Request::CalibratedDepthSnapshot { camera, .. }
+        | Request::CalibratedDepthShapeSnapshot { camera, .. } => camera,
+        _ => panic!("calibrated camera request"),
+    }
+}
+
+#[test]
+fn explicit_intrinsics_select_rgb_depth_box_and_shape_request_calibration() {
+    let lens = "<lens><intrinsics><fx>40</fx><fy>41</fy><cx>20</cx><cy>21</cy><s>0</s></intrinsics></lens>";
+    for kind in ["camera", "depth_camera"] {
+        for shapes in [false, true] {
+            let source =
+                intrinsics_source(kind, shapes).replace("</camera>", &format!("{lens}</camera>"));
+            let (mut sim, id) = ellipsoid_source(&source);
+            sim.step_exact(1).unwrap();
+            let before = (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts());
+            let request = extract_camera(&sim, id, 7, [0.0; 3]).unwrap();
+            let stamp = match (&request, kind, shapes) {
+                (Request::CalibratedSnapshot { stamp, .. }, "camera", false)
+                | (Request::CalibratedShapeSnapshot { stamp, .. }, "camera", true)
+                | (Request::CalibratedDepthSnapshot { stamp, .. }, "depth_camera", false)
+                | (Request::CalibratedDepthShapeSnapshot { stamp, .. }, "depth_camera", true) => {
+                    stamp
+                }
+                _ => panic!("wrong calibrated request family"),
+            };
+            assert_eq!(
+                (stamp.epoch, stamp.seconds, stamp.nanoseconds),
+                (0, 0, 1_000_000)
+            );
+            assert_eq!(
+                request_camera(&request),
+                &gz_render_protocol::Camera {
+                    width: 64,
+                    height: 64,
+                    fx: 40.0,
+                    fy: 41.0,
+                    cx: 20.0,
+                    cy: 21.0,
+                    skew: 0.0,
+                    tx: 0.0,
+                    ty: 0.0,
+                    near: 0.1,
+                    far: 10.0,
+                    translation: [0.0; 3],
+                    rotation: [0.0, 0.0, 0.0, 1.0],
+                }
+            );
+            assert!(request.wire_valid());
+            let mut bytes = Vec::new();
+            gz_render_protocol::write_request(&mut bytes, &request).unwrap();
+            assert_eq!(
+                gz_render_protocol::read_request(&mut bytes.as_slice()).unwrap(),
+                Some(request)
+            );
+            assert_eq!(before.0, std::time::Duration::from_millis(1));
+            assert_eq!(
+                (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+                before
+            );
+        }
+    }
+}
+
+#[test]
+fn absent_intrinsics_ignore_dormant_lens_values_and_preserve_exact_request_bytes() {
+    for kind in ["camera", "depth_camera"] {
+        for shapes in [false, true] {
+            let (mut sim, id) = ellipsoid_source(&intrinsics_source(kind, shapes));
+            let before = (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts());
+            let original = extract_camera(&sim, id, 1, [0.0; 3]).unwrap();
+            let selected = request_camera(&original);
+            assert!((selected.fx - 32.0).abs() < 1e-12);
+            assert_eq!(selected.fx, selected.fy);
+            assert_eq!((selected.cx, selected.cy), (32.0, 32.0));
+            let entity = gz_sim_core::entity_by_id(sim.world(), id).unwrap();
+            {
+                let mut sensor = sim.world_mut().get_mut::<CameraSensor>(entity).unwrap();
+                let SensorConfig::Camera(camera) = &mut Arc::make_mut(&mut sensor.0).config else {
+                    panic!("camera metadata")
+                };
+                assert!(!camera.lens.has_intrinsics && !camera.lens.has_projection);
+                camera.lens.intrinsics.fx = f64::NAN;
+                camera.lens.intrinsics.fy = -1.0;
+                camera.lens.intrinsics.cx = f64::INFINITY;
+                camera.lens.intrinsics.cy = f64::NEG_INFINITY;
+                camera.lens.intrinsics.skew = 1.0;
+                camera.lens.projection.fx = 9.0;
+                camera.lens.projection.tx = 5.0;
+            }
+            let dormant = extract_camera(&sim, id, 1, [0.0; 3]).unwrap();
+            let (mut original_bytes, mut dormant_bytes) = (Vec::new(), Vec::new());
+            gz_render_protocol::write_request(&mut original_bytes, &original).unwrap();
+            gz_render_protocol::write_request(&mut dormant_bytes, &dormant).unwrap();
+            assert_eq!(original_bytes, dormant_bytes);
+            assert_eq!(original, dormant);
+            assert_eq!(
+                (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+                before
+            );
+        }
+    }
+}
+
+#[test]
+fn explicit_intrinsics_refuse_malformed_and_unrepresentable_calibration_without_mutation() {
+    let invalid = [
+        ([f64::NAN, 41.0, 20.0, 21.0, 0.0], false),
+        ([f64::INFINITY, 41.0, 20.0, 21.0, 0.0], false),
+        ([0.0, 41.0, 20.0, 21.0, 0.0], false),
+        ([-1.0, 41.0, 20.0, 21.0, 0.0], false),
+        ([40.0, f64::NAN, 20.0, 21.0, 0.0], false),
+        ([40.0, f64::INFINITY, 20.0, 21.0, 0.0], false),
+        ([40.0, 0.0, 20.0, 21.0, 0.0], false),
+        ([40.0, -1.0, 20.0, 21.0, 0.0], false),
+        ([40.0, 41.0, f64::NAN, 21.0, 0.0], false),
+        ([40.0, 41.0, f64::INFINITY, 21.0, 0.0], false),
+        ([40.0, 41.0, 20.0, f64::NAN, 0.0], false),
+        ([40.0, 41.0, 20.0, f64::INFINITY, 0.0], false),
+        ([40.0, 41.0, 20.0, 21.0, f64::NAN], false),
+        ([40.0, 41.0, 20.0, 21.0, 0.1], false),
+        ([f64::MAX, 41.0, 20.0, 21.0, 0.0], true),
+        ([40.0, f64::MIN_POSITIVE, 20.0, 21.0, 0.0], true),
+        ([40.0, 41.0, f64::MAX, 21.0, 0.0], true),
+        ([40.0, 41.0, 20.0, f64::MAX, 0.0], true),
+    ];
+    for kind in ["camera", "depth_camera"] {
+        for shapes in [false, true] {
+            let (mut sim, id) = ellipsoid_source(&intrinsics_source(kind, shapes));
+            let entity = gz_sim_core::entity_by_id(sim.world(), id).unwrap();
+            let original = sim.world().get::<CameraSensor>(entity).unwrap().clone();
+            let accepted = extract_camera(&sim, id, 1, [0.0; 3]).unwrap();
+            let before = (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts());
+            for (values, metadata_supported) in invalid {
+                let mut changed = original.clone();
+                let SensorConfig::Camera(camera) = &mut Arc::make_mut(&mut changed.0).config else {
+                    panic!("camera metadata")
+                };
+                camera.lens.has_intrinsics = true;
+                let intrinsics = &mut camera.lens.intrinsics;
+                let [fx, fy, cx, cy, skew] = values;
+                intrinsics.fx = fx;
+                intrinsics.fy = fy;
+                intrinsics.cx = cx;
+                intrinsics.cy = cy;
+                intrinsics.skew = skew;
+                assert_eq!(
+                    gz_sim_scene::supports_camera_sensor(&changed.0),
+                    metadata_supported
+                );
+                let rejected = Arc::clone(&changed.0);
+                sim.world_mut().entity_mut(entity).insert(changed);
+                assert_eq!(
+                    extract_camera(&sim, id, 2, [0.0; 3]),
+                    Err(SnapshotError::InvalidCamera(id))
+                );
+                assert_eq!(
+                    (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+                    before
+                );
+                assert!(Arc::ptr_eq(
+                    &sim.world().get::<CameraSensor>(entity).unwrap().0,
+                    &rejected
+                ));
+                sim.world_mut().entity_mut(entity).insert(original.clone());
+                assert_eq!(extract_camera(&sim, id, 1, [0.0; 3]).unwrap(), accepted);
+            }
+        }
+    }
+}
