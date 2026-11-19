@@ -13,7 +13,7 @@ use gz_render_protocol::{Geometry, Request, ShapeVisual, Stamp, Visual};
 use gz_sim_core::{EntityId, Simulation, entity_by_id};
 use gz_sim_scene::{
     CameraSensor, EntityKind, VisualGeometry, VisualMaterial, VisualProperties, WorldLight,
-    WorldPose, supports_camera_sensor,
+    WorldPose, supports_camera_sensor, supports_camera_visibility_bits,
 };
 
 const MAX_VISUALS: usize = 128;
@@ -130,7 +130,17 @@ pub fn extract_camera(
                 Some(sdformat::SensorType::Camera | sdformat::SensorType::DepthCamera)
             )
         });
-    let (stamp, visuals) = extract_visuals(sim, request_id, origin, calibrated_shapes)?;
+    let visibility_mask = if calibrated_shapes {
+        entity_by_id(world, sensor_id)
+            .filter(|entity| world.get::<EntityKind>(*entity) == Some(&EntityKind::Sensor))
+            .and_then(|entity| world.get::<CameraSensor>(entity))
+            .and_then(|sensor| sensor.0.camera())
+            .map(|camera| camera.visibility_mask)
+    } else {
+        None
+    };
+    let (stamp, visuals) =
+        extract_visuals(sim, request_id, origin, calibrated_shapes, visibility_mask)?;
     let entity = entity_by_id(world, sensor_id).ok_or(SnapshotError::MissingCamera(sensor_id))?;
     let entity = world.entity(entity);
     if entity.get::<EntityKind>() != Some(&EntityKind::Sensor) {
@@ -220,7 +230,7 @@ pub fn extract(
     request_id: u64,
     origin: [f64; 3],
 ) -> Result<Request, SnapshotError> {
-    let (stamp, visuals) = extract_visuals(sim, request_id, origin, false)?;
+    let (stamp, visuals) = extract_visuals(sim, request_id, origin, false, None)?;
     let request = Request::Snapshot {
         request_id,
         stamp,
@@ -254,6 +264,7 @@ fn extract_visuals(
     request_id: u64,
     origin: [f64; 3],
     calibrated_shapes: bool,
+    visibility_mask: Option<u32>,
 ) -> Result<(Stamp, Vec<ShapeVisual>), SnapshotError> {
     if sim.is_faulted() {
         return Err(SnapshotError::Faulted);
@@ -331,9 +342,13 @@ fn extract_visuals(
         };
         let material = &material.0;
         let black = [0.0, 0.0, 0.0, 1.0];
+        let unsupported_visibility = match visibility_mask {
+            Some(_) => !supports_camera_visibility_bits(properties.0.visibility_flags),
+            None => properties.0.visibility_flags != u32::MAX,
+        };
         if properties.0.transparency != 0.0
             || !properties.0.cast_shadows
-            || properties.0.visibility_flags != u32::MAX
+            || unsupported_visibility
             || material.ambient != black
             || material.specular != black
             || material.emissive != black
@@ -369,18 +384,28 @@ fn extract_visuals(
         if visuals.len() == MAX_VISUALS {
             return Err(SnapshotError::TooManyVisuals);
         }
-        visuals.push(ShapeVisual {
-            id,
-            translation: pose.translation,
-            rotation: pose.rotation,
-            geometry,
-            color: [
-                material.diffuse[0],
-                material.diffuse[1],
-                material.diffuse[2],
-            ],
-        });
+        visuals.push((
+            ShapeVisual {
+                id,
+                translation: pose.translation,
+                rotation: pose.rotation,
+                geometry,
+                color: [
+                    material.diffuse[0],
+                    material.diffuse[1],
+                    material.diffuse[2],
+                ],
+            },
+            properties.0.visibility_flags,
+        ));
     }
+    // The complete world has passed validation and the global bound before
+    // camera-specific selection; hidden data cannot bypass either admission.
+    let mut visuals: Vec<_> = visuals
+        .into_iter()
+        .filter(|(_, flags)| visibility_mask.is_none_or(|mask| *flags & mask != 0))
+        .map(|(visual, _)| visual)
+        .collect();
     visuals.sort_unstable_by_key(|visual| visual.id);
     let elapsed = sim.elapsed();
     Ok((

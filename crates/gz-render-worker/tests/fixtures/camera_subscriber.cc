@@ -32,8 +32,10 @@ int mixed_pair_mode(int argc, char **argv);
 int explicit_intrinsics_mode(int argc, char **argv);
 int explicit_projection_mode(int argc, char **argv);
 int signed_skew_mode(int argc, char **argv);
+int camera_visibility_mode(int argc, char **argv);
 
 int main(int argc, char **argv) {
+  if (argc==3 && (std::string(argv[1])=="camera-visibility" || std::string(argv[1])=="camera-visibility-hidden" || std::string(argv[1])=="camera-visibility-zero")) return camera_visibility_mode(argc, argv);
   if (argc==3 && (std::string(argv[1])=="signed-skew" || std::string(argv[1])=="signed-skew-projection")) return signed_skew_mode(argc, argv);
   if (argc==3 && std::string(argv[1])=="explicit-projection") return explicit_projection_mode(argc, argv);
   if (argc==3 && std::string(argv[1])=="explicit-intrinsics") return explicit_intrinsics_mode(argc, argv);
@@ -1038,3 +1040,84 @@ int signed_skew_mode(int argc,char **argv) {
     pair_require(std::cout.good() && std::chrono::steady_clock::now()<deadline,"signed-skew completion deadline");return 0;
   }catch(const std::exception &error){std::cerr<<error.what()<<std::endl;return 1;}
 }
+
+// M75-only native-shaped consumer. Empty RGB preserves pinned Bevy0.20
+// ClearColor::default srgb_u8(43,44,47); this NEW oracle is not prior runtimeproof.
+namespace {
+void visibility_image(const gz::msgs::Image &image,unsigned owner,const std::string &mode) {
+  if(mode=="camera-visibility"){explicit_image(image,owner);return;}
+  const bool empty=mode=="camera-visibility-zero";
+  pair_require(image.has_header(),"visibility image header");pair_header(image.header(),owner,true);
+  pair_require(image.width()==64 && image.height()==64 && image.step()==(owner==0 ? 192u:256u) && image.pixel_format_type()==(owner==0 ? gz::msgs::PixelFormatType::RGB_INT8:gz::msgs::PixelFormatType::R_FLOAT32) && image.data().size()==(owner==0 ? 12288u:16384u),"visibility image type/stride/length");
+  const auto k=explicit_k(owner);const double oy=owner==0 ? -2.0:2.0;
+  unsigned checked=0,excluded=0,background=0,infinite=0;
+  for(int y=0;y<64;++y)for(int x=0;x<64;++x){
+    // In hidden6/5 both remaining foreground boxes are outside that owner's
+    // rays; the declared backdrop is the only possible selected hit. A zero
+    // mask selects no visuals, but still requires actual worker/image output.
+    const double py=oy+5.9*(k[2]-x-0.5)/k[0],pz=5.9*(k[3]-y-0.5)/k[1];
+    const bool hit=!empty && std::abs(py)<=8 && std::abs(pz)<=8;
+    if(owner==0){bool homogeneous=empty;
+      if(!empty){const auto b=explicit_projected_bounds(owner,0,hit);homogeneous=hit ? x>b[0] && x+1<b[1] && y>b[2] && y+1<b[3] && std::abs(py)<7.97 && std::abs(pz)<7.97:
+          x+1<b[0] || x>b[1] || y+1<b[2] || y>b[3];}
+      if(!homogeneous){++excluded;continue;}++checked;
+      const std::array<unsigned char,3> expected=hit ? std::array<unsigned char,3>{0,0,255}:std::array<unsigned char,3>{43,44,47};
+      const std::array<unsigned char,3> actual{static_cast<unsigned char>(image.data()[(y*64+x)*3]),static_cast<unsigned char>(image.data()[(y*64+x)*3+1]),static_cast<unsigned char>(image.data()[(y*64+x)*3+2])};
+      if(actual!=expected)throw std::runtime_error("visibility RGB x="+std::to_string(x)+" y="+std::to_string(y)+" expected="+std::to_string(expected[0])+","+std::to_string(expected[1])+","+std::to_string(expected[2])+" actual="+std::to_string(actual[0])+","+std::to_string(actual[1])+","+std::to_string(actual[2]));
+      background+=!hit;
+    }else{++checked;const auto offset=(y*64+x)*4;const auto byte=[&](int i){return static_cast<std::uint32_t>(static_cast<unsigned char>(image.data()[offset+i]));};const std::uint32_t bits=byte(0)|(byte(1)<<8)|(byte(2)<<16)|(byte(3)<<24);float actual;std::memcpy(&actual,&bits,sizeof(actual));
+      const bool valid=hit ? std::isfinite(actual) && actual>0 && std::abs(actual-5.9)<1e-4:std::isinf(actual) && actual>0;
+      if (!valid) {
+        throw std::runtime_error("visibility depth x="+std::to_string(x)+" y="+std::to_string(y)+" expected="+(hit ? "5.9":"+INF")+" actual="+std::to_string(actual));
+      }
+      infinite += !hit;
+    }
+  }
+  if(owner==0){pair_require(checked+excluded==4096 && (empty ? checked==4096 && excluded==0 && background==4096:checked>100),"visibility complete RGB footprint accounting");const auto off=(25*64+20)*3;const std::array<unsigned char,3> expected=empty ? std::array<unsigned char,3>{43,44,47}:std::array<unsigned char,3>{0,0,255};for(unsigned c=0;c<3;++c)pair_require(static_cast<unsigned char>(image.data()[off+c])==expected[c],"actual hidden RGBforeground20,25");}
+  else pair_require(checked==4096 && excluded==0 && (empty ? infinite==4096:infinite>100 && infinite<3996),"visibility every depth word/+INF bounds");
+}
+}
+int camera_visibility_mode(int argc,char **argv) {
+  try {
+    pair_require(argc==3 && (std::string(argv[1])=="camera-visibility" || std::string(argv[1])=="camera-visibility-hidden" || std::string(argv[1])=="camera-visibility-zero") &&
+        (std::string(argv[2])=="0" || std::string(argv[2])=="1"),"camera-visibility modes require RGB0/depth1");
+    const unsigned owner=std::string(argv[2])=="0" ? 0u:1u;
+    const std::string mode=argv[1];
+    const std::string prefix=owner==0 ? "/m75/rgb/":"/m75/depth/";
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(20);
+    std::string image_wire,info_wire;
+    {
+      auto state=std::make_shared<DepthPairReceived>();gz::transport::Node node;
+      const auto image=[state,owner](const gz::msgs::Image &v) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if(!state->accepting || state->failed || state->image)return;
+        try {pair_require(v.ByteSizeLong()<=(owner==0 ? 16384u:32768u),"visibility Image cap");state->image=v;}catch(...){state->failed=true;}
+        state->changed.notify_all();
+      };
+      const auto info=[state](const gz::msgs::CameraInfo &v) noexcept {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        if(!state->accepting || state->failed || state->info)return;
+        try {pair_require(v.ByteSizeLong()<=16384,"visibility CameraInfo cap");state->info=v;}catch(...){state->failed=true;}
+        state->changed.notify_all();
+      };
+      pair_require(node.Subscribe(prefix+"image",std::function<void(const gz::msgs::Image &)>(image)) &&
+          node.Subscribe(prefix+"camera_info",std::function<void(const gz::msgs::CameraInfo &)>(info)),"actual visibility typed subscriptions");
+      std::cout<<"ready "<<mode<<" "<<owner<<std::endl;
+      pair_require(std::cout.good(),"visibility ready write");
+      {
+        std::unique_lock<std::mutex> lock(state->mutex);
+        pair_require(state->changed.wait_until(lock,deadline,[&]{return state->failed || (state->image && state->info);}),"visibility receive deadline");
+        pair_require(!state->failed,"visibility callback failure");state->accepting=false;
+        visibility_image(*state->image,owner,mode);explicit_info(*state->info,owner);
+        pair_require(state->image->SerializeToString(&image_wire) && state->info->SerializeToString(&info_wire),"visibility complete canonical bytes");
+      }
+      pair_require(node.Unsubscribe(prefix+"image") && node.Unsubscribe(prefix+"camera_info"),"visibility owned subscriptions retired");
+    }
+    const std::string ready="ready "+mode+" "+std::to_string(owner)+"\n";
+    const std::string output="IMAGE "+pair_hex(image_wire)+"\nINFO "+pair_hex(info_wire)+"\nPASS canonical "+mode+" "+std::to_string(owner)+"\n";
+    pair_require(ready.size()+output.size()<=65536,"visibility stdout64KiB cap");
+    std::cout<<output<<std::flush;
+    pair_require(std::cout.good() && std::chrono::steady_clock::now()<deadline,"visibility completion deadline");return 0;
+  }catch(const std::exception &error){std::cerr<<error.what()<<std::endl;return 1;}
+}
+

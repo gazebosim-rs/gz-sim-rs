@@ -1,3 +1,23 @@
+## M75: per-camera visibility
+
+The existing 64 by 64 RGB/depth paths select visuals by nonzero visibility-flags
+and camera-mask intersection. Low 28 bits plus the existing u32::MAX default are
+supported; other reserved-bit values are refused. All world visuals and the
+128-visual limit are validated before filtering. The generic snapshot path keeps
+its strict default-visibility and box-only contract. Empty selected images are
+real existing-background RGB [43, 44, 47]/+INF depth acquisitions under demand,
+not no-demand shortcuts. The background is pinned Bevy default Source, with actual
+whole-frame bytes still requiring qualification.
+Calibration, canonical packet fields and independent cadence are unchanged;
+camera metadata drift retires stale ownership and loaded reset restores masks
+and visual flags. Native references are pinned source/test mappings, not a new
+native renderer capture. [M75_DELIVERY.md](M75_DELIVERY.md) defines the bounded
+scope and required actual software-worker/canonical-consumer proofs. Current
+source is unqualified until the completed batch passes independent review and
+consolidated mandatory checks; no image-equivalence or release claim is made.
+
+Earlier checkpoints below retain their historical scope.
+
 ## M74: signed intrinsic skew
 
 Finite signed K skew is admitted for the existing 64 by 64 RGB/depth camera

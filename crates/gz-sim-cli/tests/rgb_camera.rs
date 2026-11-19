@@ -1552,3 +1552,62 @@ fn signed_skew_keeps_workers_lazy_and_preserves_projection_refusals() {
     assert!(refused.stdout.is_empty());
     assert!(!worker.exists());
 }
+
+#[cfg(feature = "rgb-camera")]
+#[test]
+fn visibility_masks_keep_workers_lazy_and_refuse_reserved_camera_bits() {
+    if isolation::child(
+        "visibility_masks_keep_workers_lazy_and_refuse_reserved_camera_bits",
+        60,
+    ) {
+        return;
+    }
+    let source = include_str!("../../../examples/m75_camera_visibility.sdf");
+    assert_eq!(source.matches("<visibility_mask>").count(), 2);
+    let directory = tempfile::tempdir().unwrap();
+    let worker = directory.path().join("absent-visibility-worker");
+    let args = [
+        "--server",
+        "--run",
+        "--iterations",
+        "3",
+        "--camera-mixed-pair",
+    ];
+    let expected = "simulation_ns=3000000 iterations=3\ndefault::backdrop::body 6 0 1\ndefault::occluder_a::body 2 -2 1\ndefault::occluder_b::body 3 2 1\ndefault::rig_a::body 0 -2 1\ndefault::rig_b::body 0 2 1\n";
+    let set_mask = |xml: &str, owner: usize, value: u32| {
+        let start = xml.match_indices("<visibility_mask>").nth(owner).unwrap().0
+            + "<visibility_mask>".len();
+        let end = start + xml[start..].find("</visibility_mask>").unwrap();
+        let mut result = xml.to_owned();
+        result.replace_range(start..end, &value.to_string());
+        result
+    };
+    for mask in [0, 1, 2, 3, 0x0FFF_FFFF, u32::MAX] {
+        let xml = set_mask(&set_mask(source, 0, mask), 1, mask);
+        let output = command(&xml, Some(&worker), &args);
+        assert!(output.status.success(), "{output:?}");
+        assert_eq!(String::from_utf8_lossy(&output.stdout), expected);
+        assert!(output.stderr.is_empty(), "{output:?}");
+        assert!(!worker.exists());
+    }
+    for owner in 0..2 {
+        for mask in [0x1000_0000, 0x1000_0001, 0x8000_0000, 0xFFFF_FFFE] {
+            let xml = set_mask(source, owner, mask);
+            let output = command(&xml, Some(&worker), &args);
+            assert_eq!(output.status.code(), Some(1), "{output:?}");
+            assert!(output.stdout.is_empty());
+            assert!(!worker.exists());
+        }
+    }
+    let empty = set_mask(&set_mask(source, 0, 0), 1, 0);
+    let hidden_invalid = empty.replacen(
+        "<visibility_flags>4</visibility_flags>",
+        "<visibility_flags>268435456</visibility_flags>",
+        1,
+    );
+    assert_ne!(hidden_invalid, empty);
+    let output = command(&hidden_invalid, Some(&worker), &args);
+    assert_eq!(output.status.code(), Some(1), "{output:?}");
+    assert!(output.stdout.is_empty());
+    assert!(!worker.exists());
+}

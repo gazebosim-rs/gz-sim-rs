@@ -1,3 +1,27 @@
+## Current development: M75 per-camera visibility masks
+
+[M75](M75_DELIVERY.md) selects camera masks and visual flags for existing 64 by 64 RGB/depth
+snapshots. Low 28 user bits and the original all-visible default are admitted;
+reserved high bits remain unsupported. Exact nonzero bitwise intersection selects
+visuals only after full world validation and the global 128-visual bound. Generic
+snapshots remain box-only with strict default visibility. Empty selected images
+still render under real demand; worker, packet and lifecycle paths stay unchanged.
+
+The base is locally qualified M74 `487f0eab`, now on GitHub's owner-requested
+`review/m74-signed-camera-skew` branch together with M70–M73. M74's first full
+normal/strict gate, corrected retained audit and compact consistency passed;
+the original reader failure remains preserved. Its automatic hosted run
+44627469212 was in progress at M75 selection, with no success inferred. All five
+phases remain unaccepted; final parent, exact hosted/official and Main gates are
+mandatory. M1–M69/202 slices and M65 Latest35 remain unchanged.
+
+Complete implementation, meaningful regressions, guides and independent whole
+source review before one consolidated normal/strict cycle and retained audit.
+No per-edit checks, old qualification replay, CI retry or snapshot probe is
+selected. Preserve Rapier/TPE, D33 retirement, Fuel work and frozen evidence.
+
+Earlier checkpoints below retain their historical scope.
+
 ## Current development: M74 signed pinhole camera skew
 
 [M74](M74_DELIVERY.md) adds finite, representable signed intrinsic skew to the existing

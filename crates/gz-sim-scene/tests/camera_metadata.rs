@@ -453,7 +453,7 @@ fn camera_domain_rejects_unimplemented_features_and_invalid_geometry() {
         |c| c.image_noise.kind = NoiseKind::Gaussian,
         |c| c.distortion.k1 = 0.1,
         |c| c.pose.transform.translation[0] = 1.0,
-        |c| c.visibility_mask = 0,
+        |c| c.visibility_mask = 0x1000_0000,
         |c| c.has_depth_near_clip = true,
         |c| c.has_depth_far_clip = true,
         |c| c.has_segmentation_type = true,
@@ -758,6 +758,178 @@ fn loaded_signed_skew_restores_original_metadata_and_world_pose_on_reset() {
                 assert_eq!(sim.scheduled_system_counts(), systems);
                 assert_eq!(sim.elapsed(), std::time::Duration::ZERO);
             }
+        }
+    }
+}
+
+#[test]
+fn camera_visibility_metadata_admits_user_masks_and_refuses_reserved_bits() {
+    for kind in ["camera", "depth_camera"] {
+        for mask in [0, 1, 2, 3, 0x0800_0000, 0x0FFF_FFFF, u32::MAX] {
+            let mut sensor = camera();
+            sensor.kind = kind.into();
+            {
+                let SensorConfig::Camera(config) = &mut sensor.config else {
+                    unreachable!()
+                };
+                config.visibility_mask = mask;
+            }
+            assert!(supports_camera_sensor(&sensor), "mask={mask:#x}");
+            let SensorConfig::Camera(config) = &mut sensor.config else {
+                unreachable!()
+            };
+            config.image_width = 65;
+            assert!(!supports_camera_sensor(&sensor));
+        }
+        for mask in [0x1000_0000, 0x1000_0001, 0x8000_0000, 0xFFFF_FFFE] {
+            let mut sensor = camera();
+            sensor.kind = kind.into();
+            let SensorConfig::Camera(config) = &mut sensor.config else {
+                unreachable!()
+            };
+            config.visibility_mask = mask;
+            assert!(!supports_camera_sensor(&sensor), "mask={mask:#x}");
+        }
+    }
+}
+
+#[test]
+fn parsed_visibility_masks_and_visual_flags_restore_original_ownership_on_reset() {
+    for kind in ["camera", "depth_camera"] {
+        for mask in [0, 1, 3, 0x0FFF_FFFF, u32::MAX] {
+            let source = include_str!("fixtures/camera-binding.sdf")
+                .replacen("type=\"camera\"", &format!("type=\"{kind}\""), 1)
+                .replace("</camera>", &format!("<visibility_mask>{mask}</visibility_mask></camera>"))
+                .replace("</link>", "<visual name='masked'><visibility_flags>2</visibility_flags><geometry><box><size>1 1 1</size></box></geometry></visual></link>");
+            let parsed =
+                sdformat::load_str(&source, "visibility.sdf", &sdformat::NoResources).unwrap();
+            assert_eq!(
+                parsed.worlds[0].models[0].links[0].sensors[0]
+                    .camera()
+                    .unwrap()
+                    .visibility_mask,
+                mask
+            );
+            for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+                let mut sim = load_world_with_sdf_step(
+                    &source,
+                    "visibility.sdf",
+                    "default",
+                    &sdformat::NoResources,
+                    engine,
+                )
+                .unwrap();
+                let sensor = sim
+                    .world()
+                    .iter_entities()
+                    .find(|e| e.contains::<CameraSensor>())
+                    .unwrap()
+                    .id();
+                let visual = sim
+                    .world()
+                    .iter_entities()
+                    .find(|e| e.contains::<gz_sim_scene::VisualProperties>())
+                    .unwrap()
+                    .id();
+                let sensor_id = sim.world().get::<EntityId>(sensor).unwrap().get();
+                let visual_id = sim.world().get::<EntityId>(visual).unwrap().get();
+                let original = sim.world().get::<CameraSensor>(sensor).unwrap().0.clone();
+                let flags = sim
+                    .world()
+                    .get::<gz_sim_scene::VisualProperties>(visual)
+                    .unwrap()
+                    .0
+                    .clone();
+                let systems = sim.scheduled_system_counts();
+                {
+                    let mut current = sim.world_mut().get_mut::<CameraSensor>(sensor).unwrap();
+                    let SensorConfig::Camera(camera) = &mut Arc::make_mut(&mut current.0).config
+                    else {
+                        unreachable!()
+                    };
+                    camera.visibility_mask = if mask == 1 { 2 } else { 1 };
+                }
+                {
+                    let mut current = sim
+                        .world_mut()
+                        .get_mut::<gz_sim_scene::VisualProperties>(visual)
+                        .unwrap();
+                    current.0.visibility_flags = 1;
+                }
+                assert_eq!(original.camera().unwrap().visibility_mask, mask);
+                assert_eq!(flags.visibility_flags, 2);
+                reset_loaded_world(&mut sim, |_| ()).unwrap();
+                let sensor = gz_sim_core::entity_by_id(sim.world(), sensor_id).unwrap();
+                let visual = gz_sim_core::entity_by_id(sim.world(), visual_id).unwrap();
+                assert!(Arc::ptr_eq(
+                    &original,
+                    &sim.world().get::<CameraSensor>(sensor).unwrap().0
+                ));
+                assert_eq!(
+                    flags,
+                    sim.world()
+                        .get::<gz_sim_scene::VisualProperties>(visual)
+                        .unwrap()
+                        .0
+                );
+                assert_eq!(
+                    sim.world()
+                        .get::<CameraSensor>(sensor)
+                        .unwrap()
+                        .0
+                        .camera()
+                        .unwrap()
+                        .visibility_mask,
+                    mask
+                );
+                assert_eq!(
+                    sim.world()
+                        .get::<gz_sim_scene::VisualProperties>(visual)
+                        .unwrap()
+                        .0
+                        .visibility_flags,
+                    2
+                );
+                assert_eq!(sim.scheduled_system_counts(), systems);
+                assert_eq!(sim.elapsed(), std::time::Duration::ZERO);
+            }
+        }
+    }
+}
+
+#[test]
+fn parsed_reserved_camera_visibility_masks_fail_before_world_construction() {
+    for mask in [0x1000_0000_u32, 0x1000_0001, 0x8000_0000, 0xFFFF_FFFE] {
+        let source = include_str!("fixtures/camera-binding.sdf").replace(
+            "</camera>",
+            &format!("<visibility_mask>{mask}</visibility_mask></camera>"),
+        );
+        let parsed =
+            sdformat::load_str(&source, "reserved-mask.sdf", &sdformat::NoResources).unwrap();
+        assert_eq!(
+            parsed.worlds[0].models[0].links[0].sensors[0]
+                .camera()
+                .unwrap()
+                .visibility_mask,
+            mask
+        );
+        assert!(!supports_camera_sensor(
+            &parsed.worlds[0].models[0].links[0].sensors[0]
+        ));
+        for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+            assert!(matches!(
+                load_world_with_sdf_step(
+                    &source,
+                    "reserved-mask.sdf",
+                    "default",
+                    &sdformat::NoResources,
+                    engine
+                ),
+                Err(LoadError::Unsupported {
+                    feature: "non-IMU sensors",
+                    ..
+                })
+            ));
         }
     }
 }

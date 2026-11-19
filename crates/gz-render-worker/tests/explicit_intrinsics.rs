@@ -97,7 +97,7 @@ impl Rig {
             move |world: &mut bevy_ecs::world::World| {
                 let selected = event.swap(0, Ordering::AcqRel);
                 if selected != 0 {
-                    if (3..=5).contains(&selected) {
+                    if (3..=6).contains(&selected) {
                         let entity = entity_by_id(world, ids[0]).unwrap();
                         let mut sensor =
                             world.get_mut::<gz_sim_scene::CameraSensor>(entity).unwrap();
@@ -110,9 +110,25 @@ impl Rig {
                             camera.lens.intrinsics.cx += 1.0;
                         } else if selected == 4 {
                             camera.lens.projection.cx += 1.0;
-                        } else {
+                        } else if selected == 5 {
                             camera.lens.intrinsics.skew += 1.0;
+                        } else {
+                            camera.visibility_mask = 0;
                         }
+                    } else if selected == 7 {
+                        let visual = world
+                            .iter_entities()
+                            .find(|e| {
+                                e.get::<Name>()
+                                    .is_some_and(|n| n.0 == "default::occluder_a::body::surface")
+                            })
+                            .unwrap()
+                            .id();
+                        world
+                            .get_mut::<gz_sim_scene::VisualProperties>(visual)
+                            .unwrap()
+                            .0
+                            .visibility_flags = 0;
                     } else {
                         assert!(selected <= 2);
                         assert!(
@@ -1883,6 +1899,600 @@ mod skew {
         for (owner, sub) in images.iter().enumerate() {
             publish(&mut r, owner, sub, first, 0, true);
         }
+        r.pause(true);
+        r.remove.store(1, Ordering::Release);
+        assert_eq!(r.tick(), first);
+        assert_eq!(r.app.pump_camera(ids[0]).unwrap(), None);
+        retired(&fresh[0]);
+        assert_eq!(proc_identity(fresh[1].pid).unwrap().0, fresh[1].start);
+        assert!(!fresh[1].lifetime.is_retired());
+        r.remove.store(2, Ordering::Release);
+        assert_eq!(r.tick(), first);
+        assert_eq!(r.app.pump_camera(ids[1]).unwrap(), None);
+        retired(&fresh[1]);
+        assert!(!r.app.has_camera_output());
+        assert!(!r.app.server().zenoh_session().is_closed());
+        r.app.shutdown();
+        r.observer.close().wait().unwrap();
+    }
+}
+
+// M75 keeps earlier oracles unchanged and filters these independent literal
+// box intersections with the same declared bitwise visibility predicate.
+mod visibility {
+    use super::*;
+    const XML: &str = include_str!("../../../examples/m75_camera_visibility.sdf");
+    const FLAGS: [u32; 3] = [4, 1, 2];
+    // Renderer leaves ClearColorConfig::Default unchanged. Pinned Bevy0.20.0
+    // bevy_camera/src/clear_color.rs returns srgb_u8(43,44,47). This is Source
+    // rationale for a NEW oracle, not a claim an empty frame was observed.
+    const CLEAR: [u8; 3] = [43, 44, 47];
+    const CENTERS: [[f64; 3]; 3] = [[6.0, 0.0, 1.0], [2.0, -2.0, 1.0], [3.0, 2.0, 1.0]];
+    const HALVES: [[f64; 3]; 3] = [[0.1, 8.0, 8.0], [0.2; 3], [0.2; 3]];
+    fn source(masks: [u32; 2], defaults: bool) -> String {
+        if defaults {
+            return XML
+                .replace("<visibility_mask>5</visibility_mask>", "")
+                .replace("<visibility_mask>6</visibility_mask>", "")
+                .replace("<visibility_flags>4</visibility_flags>", "")
+                .replace("<visibility_flags>1</visibility_flags>", "")
+                .replace("<visibility_flags>2</visibility_flags>", "");
+        }
+        XML.replace("<visibility_mask>5</visibility_mask>", "<m75_rgb_mask/>")
+            .replace("<visibility_mask>6</visibility_mask>", "<m75_depth_mask/>")
+            .replace(
+                "<m75_rgb_mask/>",
+                &format!("<visibility_mask>{}</visibility_mask>", masks[0]),
+            )
+            .replace(
+                "<m75_depth_mask/>",
+                &format!("<visibility_mask>{}</visibility_mask>", masks[1]),
+            )
+    }
+    fn sub(r: &Rig, owner: usize, image: bool) -> Subscriber {
+        let topic = format!(
+            "/m75/{}/{}",
+            if owner == 0 { "rgb" } else { "depth" },
+            if image { "image" } else { "camera_info" }
+        );
+        r.observer
+            .declare_subscriber(r.app.server().options().topic_key(&topic).unwrap())
+            .wait()
+            .unwrap()
+    }
+    fn hit(owner: usize, x: usize, y: usize, mask: u32, flags: [u32; 3]) -> (f64, usize, bool) {
+        let [fx, fy, cx, cy] = K[owner];
+        let origin = [0.0, if owner == 0 { -2.0 } else { 2.0 }, 1.0];
+        let ray = [1.0, (cx - x as f64 - 0.5) / fx, (cy - y as f64 - 0.5) / fy];
+        let mut best = (f64::INFINITY, 0, false);
+        for (box_id, (center, half)) in CENTERS.iter().zip(HALVES).enumerate() {
+            if flags[box_id] & mask == 0 {
+                continue;
+            }
+            let mut enter = 0.1_f64;
+            let mut leave = 10.0_f64;
+            for (((c, h), o), d) in center.iter().zip(half).zip(origin).zip(ray) {
+                let lo = c - h - o;
+                let hi = c + h - o;
+                if d == 0.0 {
+                    if lo > 0.0 || hi < 0.0 {
+                        leave = -1.0;
+                    }
+                } else {
+                    let a = lo / d;
+                    let b = hi / d;
+                    enter = enter.max(a.min(b));
+                    leave = leave.min(a.max(b));
+                }
+            }
+            if enter <= leave && enter < best.0 {
+                best = (
+                    enter,
+                    box_id,
+                    (enter - (center[0] - half[0])).abs() < 1e-10
+                        && (origin[1] + enter * ray[1] - center[1]).abs() < half[1] - 0.03
+                        && (origin[2] + enter * ray[2] - center[2]).abs() < half[2] - 0.03,
+                );
+            }
+        }
+        best
+    }
+    fn homogeneous(
+        owner: usize,
+        x: usize,
+        y: usize,
+        current: (f64, usize, bool),
+        mask: u32,
+        flags: [u32; 3],
+    ) -> bool {
+        if current.0.is_finite() {
+            if !current.2 {
+                return false;
+            }
+            let b = projected_box_bounds(owner, current.1, true);
+            if !(x as f64 > b[0]
+                && (x as f64 + 1.0) < b[1]
+                && y as f64 > b[2]
+                && (y as f64 + 1.0) < b[3])
+            {
+                return false;
+            }
+        }
+        for (box_id, front) in [5.9, 1.8, 2.8].into_iter().enumerate() {
+            if flags[box_id] & mask != 0
+                && (!current.0.is_finite() || (box_id != current.1 && front < current.0))
+            {
+                let b = projected_box_bounds(owner, box_id, false);
+                if x as f64 + 1.0 >= b[0]
+                    && x as f64 <= b[1]
+                    && y as f64 + 1.0 >= b[2]
+                    && y as f64 <= b[3]
+                {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+    fn image(
+        wire: Vec<u8>,
+        owner: usize,
+        stamp: Duration,
+        sequence: u64,
+        mask: u32,
+        flags: [u32; 3],
+    ) -> Image {
+        let v = Image::decode(wire.as_slice()).unwrap();
+        assert_eq!(v.encode_to_vec(), wire);
+        header(v.header.as_ref().unwrap(), owner, stamp, Some(sequence));
+        assert_eq!((v.width, v.height), (64, 64));
+        if owner == 0 {
+            assert_eq!(
+                (v.step, v.pixel_format_type, v.data.len()),
+                (192, PixelFormatType::RgbInt8 as i32, 12288)
+            );
+        } else {
+            assert_eq!(
+                (v.step, v.pixel_format_type, v.data.len()),
+                (256, PixelFormatType::RFloat32 as i32, 16384)
+            );
+        }
+        let mut checked = 0;
+        let mut excluded = 0;
+        let mut red = 0;
+        let mut blue = 0;
+        let mut clear = 0;
+        let mut infinite = 0;
+        let mut changed = 0;
+        for y in 0..64 {
+            for x in 0..64 {
+                let expected = hit(owner, x, y, mask, flags);
+                let all = hit(owner, x, y, u32::MAX, flags);
+                if owner == 0 {
+                    if !homogeneous(owner, x, y, expected, mask, flags) {
+                        excluded += 1;
+                        continue;
+                    }
+                    checked += 1;
+                    let color = if !expected.0.is_finite() {
+                        CLEAR
+                    } else {
+                        match expected.1 {
+                            0 => [0, 0, 255],
+                            1 => [255, 0, 0],
+                            2 => [0, 255, 0],
+                            _ => unreachable!(),
+                        }
+                    };
+                    let actual = &v.data[(y * 64 + x) * 3..(y * 64 + x) * 3 + 3];
+                    assert_eq!(
+                        actual, color,
+                        "visibility RGB mask{mask:#x} pixel{x},{y} expected{color:?} actual{actual:?}"
+                    );
+                    red += usize::from(color == [255, 0, 0]);
+                    blue += usize::from(color == [0, 0, 255]);
+                    clear += usize::from(color == CLEAR);
+                    changed += usize::from(
+                        expected.0.is_infinite() != all.0.is_infinite() || expected.1 != all.1,
+                    );
+                } else {
+                    checked += 1;
+                    let offset = (y * 64 + x) * 4;
+                    let actual = f32::from_le_bytes(v.data[offset..offset + 4].try_into().unwrap());
+                    if expected.0.is_infinite() {
+                        assert_eq!(
+                            actual,
+                            f32::INFINITY,
+                            "visibility depth mask{mask:#x} pixel{x},{y} expected+INF actual{actual}"
+                        );
+                        infinite += 1;
+                    } else {
+                        assert!(
+                            actual.is_finite()
+                                && actual > 0.0
+                                && (f64::from(actual) - expected.0).abs() < 1e-4,
+                            "visibility depth mask{mask:#x} pixel{x},{y} expected{} actual{actual}",
+                            expected.0
+                        );
+                    }
+                    changed += usize::from(
+                        expected.0.is_infinite() != all.0.is_infinite()
+                            || (expected.0.is_finite()
+                                && all.0.is_finite()
+                                && (expected.0 - all.0).abs() > 0.1),
+                    );
+                }
+            }
+        }
+        if owner == 0 {
+            assert_eq!(checked + excluded, 4096);
+            if mask == 0 {
+                assert_eq!((checked, excluded, clear), (4096, 0, 4096));
+            } else {
+                assert!(blue > 100);
+                if flags[1] & mask != 0 {
+                    assert!(red > 20);
+                } else {
+                    assert_eq!(red, 0);
+                    if flags[1] != 0 {
+                        assert!(
+                            changed > 20,
+                            "hidden foreground must change actual checked pixels"
+                        );
+                    }
+                }
+            }
+            let expected = if mask == 0 {
+                CLEAR
+            } else if flags[1] & mask != 0 {
+                [255, 0, 0]
+            } else {
+                [0, 0, 255]
+            };
+            assert_eq!(
+                &v.data[(25 * 64 + 20) * 3..(25 * 64 + 20) * 3 + 3],
+                expected,
+                "selective RGB foreground20,25"
+            );
+        } else {
+            assert_eq!((checked, excluded), (4096, 0));
+            assert!(infinite > 100);
+            if mask == 0 {
+                assert_eq!(infinite, 4096);
+            } else if flags[2] & mask == 0 && flags[2] != 0 {
+                assert!(changed > 0);
+            }
+            let offset = (20 * 64 + 42) * 4;
+            let actual = f32::from_le_bytes(v.data[offset..offset + 4].try_into().unwrap());
+            let expected = if mask == 0 {
+                f32::INFINITY
+            } else if flags[2] & mask != 0 {
+                2.8
+            } else {
+                5.9
+            };
+            if expected.is_infinite() {
+                assert_eq!(actual, expected);
+            } else {
+                assert!(
+                    (actual - expected).abs() < 1e-4,
+                    "selective axial depth42,20 expected{expected} actual{actual}"
+                );
+            }
+        }
+        v
+    }
+    fn publish(
+        r: &mut Rig,
+        owner: usize,
+        sub: &Subscriber,
+        stamp: Duration,
+        sequence: u64,
+        mask: u32,
+        flags: [u32; 3],
+    ) -> Image {
+        assert_eq!(
+            r.app.pump_camera(r.ids[owner]).unwrap(),
+            Some(Progress::ImagePublished)
+        );
+        image(
+            receive(sub, b"gz.msgs.Image"),
+            owner,
+            stamp,
+            sequence,
+            mask,
+            flags,
+        )
+    }
+    fn first(
+        r: &mut Rig,
+        masks: [u32; 2],
+        flags: [u32; 3],
+        mode: Option<&'static str>,
+    ) -> ([Subscriber; 2], [Subscriber; 2], [Worker; 2]) {
+        let peers = mode.map(|mode| {
+            let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap();
+            let peer = selected_native::NativePeer::build(root, "camera");
+            let cpp: [native::Native; 2] = std::array::from_fn(|owner| {
+                native::Native::start_mode(
+                    &r.endpoint,
+                    &r.app.server().options().partition,
+                    &peer,
+                    owner,
+                    mode,
+                )
+            });
+            assert_ne!(cpp[0].pid(), cpp[1].pid());
+            for (owner, c) in cpp.iter().enumerate() {
+                assert_eq!(c.line(), format!("ready {mode} {owner}"));
+            }
+            (peer, cpp, mode)
+        });
+        let images: [Subscriber; 2] = std::array::from_fn(|owner| sub(r, owner, true));
+        let infos: [Subscriber; 2] = std::array::from_fn(|owner| sub(r, owner, false));
+        r.matching([(true, true); 2]);
+        for id in r.ids {
+            assert!(r.app.camera_worker_diagnostics(id).is_none());
+        }
+        let stamp = r.tick();
+        assert_eq!(stamp, Duration::from_millis(1));
+        let rows = r.capture();
+        for id in r.ids {
+            assert_eq!(
+                requested(&rows, id),
+                Some(Progress::Pending),
+                "zero mask is image demand, not NoDemand"
+            );
+        }
+        let calibration: [CameraInfo; 2] = std::array::from_fn(|owner| {
+            super::info(receive(&infos[owner], b"gz.msgs.CameraInfo"), owner, stamp)
+        });
+        r.ready(&[0, 1]);
+        let workers = [worker(r, 0), worker(r, 1)];
+        assert_ne!(workers[0].pid, workers[1].pid);
+        let frames: [Image; 2] = std::array::from_fn(|owner| {
+            publish(r, owner, &images[owner], stamp, 0, masks[owner], flags)
+        });
+        if let Some((peer, mut cpp, mode)) = peers {
+            let mut sizes = [0; 2];
+            for owner in 0..2 {
+                for (kind, expected) in [
+                    ("IMAGE", frames[owner].encode_to_vec()),
+                    ("INFO", calibration[owner].encode_to_vec()),
+                ] {
+                    let line = cpp[owner].line();
+                    let (actual, raw) = line.split_once(' ').unwrap();
+                    assert_eq!(actual, kind);
+                    assert_eq!(hex(raw), expected, "complete canonical visibility bytes");
+                }
+                assert_eq!(cpp[owner].line(), format!("PASS canonical {mode} {owner}"));
+                sizes[owner] = cpp[owner].finish();
+                assert_eq!(cpp[owner].actual_exit(), Some(0));
+            }
+            let receipt=serde_json::to_vec_pretty(&serde_json::json!({"actual_consumer_exit_codes":[cpp[0].actual_exit(),cpp[1].actual_exit()],"actual_reaped":[true,true],"consumer_PIDs":[cpp[0].pid(),cpp[1].pid()],"stdout_bytes":sizes,"per_stdout_cap":65536,"per_stderr_cap":4096,"aggregate_cap":131072,"masks":masks,"visual_flags":flags,"empty_RGB_expected_clear":CLEAR,"empty_RGB_source_basis":"bevy_camera0.20 ClearColor::default; actual full frame is checked, no changed renderer policy", "worker_exit_codes":"UNKNOWN","scope":"Canonical consumer interoperability/software visibility selection; no native renderer image-equivalence claim."})).unwrap();
+            assert!(sizes.into_iter().sum::<usize>() + receipt.len() <= 131072);
+            let mut file = std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(
+                    peer.binary
+                        .parent()
+                        .unwrap()
+                        .join(format!("m75-{mode}-consumers.json")),
+                )
+                .unwrap();
+            std::io::Write::write_all(&mut file, &receipt).unwrap();
+            file.sync_all().unwrap();
+        }
+        (images, infos, workers)
+    }
+    #[test]
+    fn camera_visibility_real_workers_and_canonical_consumers_cover_disjoint_overlap_zero_and_defaults()
+     {
+        if isolation::child(
+            "visibility::camera_visibility_real_workers_and_canonical_consumers_cover_disjoint_overlap_zero_and_defaults",
+            180,
+        ) {
+            return;
+        }
+        for (masks, defaults, mode) in [
+            ([5, 6], false, Some("camera-visibility")),
+            ([6, 5], false, Some("camera-visibility-hidden")),
+            ([0, 0], false, Some("camera-visibility-zero")),
+            ([7, 7], false, None),
+            ([u32::MAX; 2], true, None),
+        ] {
+            let flags = if defaults { [u32::MAX; 3] } else { FLAGS };
+            let mut r = Rig::with_xml(true, &source(masks, defaults), "m75-camera-visibility.sdf");
+            let (images, infos, workers) = first(&mut r, masks, flags, mode);
+            if masks == [5, 6] {
+                let mut stamps: [Vec<Duration>; 2] =
+                    std::array::from_fn(|_| vec![Duration::from_millis(1)]);
+                while r.app.server().simulation().elapsed() < Duration::from_millis(200) {
+                    let stamp = r.tick();
+                    let rows = r.capture();
+                    let mut due = Vec::new();
+                    for (owner, s) in infos.iter().enumerate() {
+                        match requested(&rows, r.ids[owner]) {
+                            Some(Progress::Pending) => {
+                                super::info(receive(s, b"gz.msgs.CameraInfo"), owner, stamp);
+                                due.push(owner);
+                            }
+                            None => {}
+                            other => panic!("visibility cadence{other:?}"),
+                        }
+                    }
+                    r.ready(&due);
+                    for owner in due {
+                        publish(
+                            &mut r,
+                            owner,
+                            &images[owner],
+                            stamp,
+                            stamps[owner].len() as u64,
+                            masks[owner],
+                            flags,
+                        );
+                        stamps[owner].push(stamp);
+                    }
+                }
+                assert_eq!(stamps[0], [1, 100, 200].map(Duration::from_millis));
+                assert_eq!(stamps[1], [1, 50, 100, 150, 200].map(Duration::from_millis));
+            }
+            r.pause(true);
+            let stamp = r.app.server().simulation().elapsed();
+            for _ in 0..8 {
+                assert_eq!(r.tick(), stamp);
+                for row in r.capture() {
+                    assert!(row.result.unwrap().requested.is_none());
+                }
+            }
+            for s in images.iter().chain(&infos) {
+                assert!(s.try_recv().unwrap().is_none());
+            }
+            r.app.shutdown();
+            for w in &workers {
+                retired(w);
+            }
+            r.observer.close().wait().unwrap();
+        }
+    }
+    #[test]
+    fn camera_visibility_acquisitions_freeze_visual_flags_and_mask_drift_reset_retires_stale_frames()
+     {
+        if isolation::child(
+            "visibility::camera_visibility_acquisitions_freeze_visual_flags_and_mask_drift_reset_retires_stale_frames",
+            180,
+        ) {
+            return;
+        }
+        let mut r = Rig::with_xml(true, XML, "m75-camera-visibility.sdf");
+        let ids = r.ids;
+        assert_eq!(r.tick(), Duration::from_millis(1));
+        for row in r.capture() {
+            assert_eq!(row.result.unwrap().requested, Some(Progress::NoDemand));
+        }
+        let infos: [Subscriber; 2] = std::array::from_fn(|owner| sub(&r, owner, false));
+        r.matching([(false, true); 2]);
+        let stamp = r.tick();
+        for row in r.capture() {
+            assert_eq!(row.result.unwrap().requested, Some(Progress::InfoPublished));
+        }
+        for (owner, s) in infos.iter().enumerate() {
+            super::info(receive(s, b"gz.msgs.CameraInfo"), owner, stamp);
+            assert!(r.app.camera_worker_diagnostics(ids[owner]).is_none());
+        }
+        let rgb = sub(&r, 0, true);
+        r.matching([(true, true), (false, true)]);
+        r.advance(100);
+        let rows = r.capture();
+        assert_eq!(requested(&rows, ids[0]), Some(Progress::Pending));
+        assert_eq!(requested(&rows, ids[1]), Some(Progress::InfoPublished));
+        for (owner, s) in infos.iter().enumerate() {
+            super::info(
+                receive(s, b"gz.msgs.CameraInfo"),
+                owner,
+                Duration::from_millis(100),
+            );
+        }
+        // The admitted request already owns its visual snapshot. Hiding the red
+        // visual before any pumping cannot mutate that buffered acquisition.
+        r.pause(true);
+        r.remove.store(7, Ordering::Release);
+        assert_eq!(r.tick(), Duration::from_millis(100));
+        r.ready(&[0]);
+        let old = worker(&r, 0);
+        publish(&mut r, 0, &rgb, Duration::from_millis(100), 0, 5, FLAGS);
+        assert!(r.app.camera_worker_diagnostics(ids[1]).is_none());
+        r.pause(false);
+        r.advance(200);
+        let rows = r.capture();
+        assert_eq!(requested(&rows, ids[0]), Some(Progress::Pending));
+        assert_eq!(requested(&rows, ids[1]), Some(Progress::InfoPublished));
+        for (owner, s) in infos.iter().enumerate() {
+            super::info(
+                receive(s, b"gz.msgs.CameraInfo"),
+                owner,
+                Duration::from_millis(200),
+            );
+        }
+        r.ready(&[0]);
+        publish(&mut r, 0, &rgb, Duration::from_millis(200), 1, 5, [4, 0, 2]);
+        r.advance(300);
+        let rows = r.capture();
+        assert_eq!(requested(&rows, ids[0]), Some(Progress::Pending));
+        for (owner, s) in infos.iter().enumerate() {
+            super::info(
+                receive(s, b"gz.msgs.CameraInfo"),
+                owner,
+                Duration::from_millis(300),
+            );
+        }
+        r.ready(&[0]);
+        r.pause(true);
+        r.remove.store(6, Ordering::Release);
+        assert_eq!(r.tick(), Duration::from_millis(300));
+        assert!(matches!(
+            r.app.pump_camera(ids[0]),
+            Err(CameraServerError::Camera(
+                gz_camera_output::CameraOutputError::OwnerInvalid
+            ))
+        ));
+        retired(&old);
+        assert!(rgb.try_recv().unwrap().is_none());
+        r.reset();
+        assert_eq!(r.ids, ids);
+        let world = r.app.server().simulation().world();
+        for (owner, id) in ids.iter().copied().enumerate() {
+            let e = entity_by_id(world, id).unwrap();
+            assert_eq!(
+                world
+                    .get::<gz_sim_scene::CameraSensor>(e)
+                    .unwrap()
+                    .0
+                    .camera()
+                    .unwrap()
+                    .visibility_mask,
+                [5, 6][owner]
+            );
+        }
+        for (name, flag) in [("backdrop", 4), ("occluder_a", 1), ("occluder_b", 2)] {
+            let visual = world
+                .iter_entities()
+                .find(|e| {
+                    e.get::<Name>()
+                        .is_some_and(|n| n.0 == format!("default::{name}::body::surface"))
+                })
+                .unwrap();
+            assert_eq!(
+                visual
+                    .get::<gz_sim_scene::VisualProperties>()
+                    .unwrap()
+                    .0
+                    .visibility_flags,
+                flag
+            );
+        }
+        let depth = sub(&r, 1, true);
+        r.matching([(true, true); 2]);
+        r.pause(false);
+        let first = r.tick();
+        assert_eq!(first, Duration::from_millis(1));
+        let rows = r.capture();
+        for id in ids {
+            assert_eq!(requested(&rows, id), Some(Progress::Pending));
+        }
+        for (owner, s) in infos.iter().enumerate() {
+            super::info(receive(s, b"gz.msgs.CameraInfo"), owner, first);
+        }
+        r.ready(&[0, 1]);
+        let fresh = [worker(&r, 0), worker(&r, 1)];
+        publish(&mut r, 0, &rgb, first, 0, 5, FLAGS);
+        publish(&mut r, 1, &depth, first, 0, 6, FLAGS);
         r.pause(true);
         r.remove.store(1, Ordering::Release);
         assert_eq!(r.tick(), first);

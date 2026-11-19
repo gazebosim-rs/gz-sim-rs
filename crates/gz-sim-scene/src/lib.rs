@@ -213,7 +213,13 @@ pub struct CameraSensor(pub Arc<sdformat::Sensor>);
 #[component(immutable)]
 pub struct RenderingSensorsConfiguration;
 
-/// Whether RGB/depth metadata is in the bounded 64×64 finite-skew domain.
+/// User visibility bits supported by bounded RGB/depth snapshots, including the
+/// original all-visible default. Backend-reserved high bits remain unsupported.
+pub fn supports_camera_visibility_bits(value: u32) -> bool {
+    value == u32::MAX || value & !0x0FFF_FFFF == 0
+}
+
+/// Whether RGB/depth metadata is in the bounded 64×64 calibrated camera domain.
 /// This admits metadata only and does not schedule or publish sensor samples.
 pub fn supports_camera_sensor(sensor: &sdformat::Sensor) -> bool {
     let Some(camera) = sensor.camera() else {
@@ -235,7 +241,7 @@ pub fn supports_camera_sensor(sensor: &sdformat::Sensor) -> bool {
         && camera.image_noise == sdformat::Noise::default()
         && camera.distortion == sdformat::CameraDistortion::default()
         && camera.pose == sdformat::Pose::default()
-        && camera.visibility_mask == u32::MAX
+        && supports_camera_visibility_bits(camera.visibility_mask)
         && !camera.has_depth_near_clip
         && !camera.has_depth_far_clip
         && !camera.has_segmentation_type

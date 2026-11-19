@@ -1,3 +1,23 @@
+## M75: per-camera visibility
+
+The existing 64 by 64 RGB/depth paths select visuals by nonzero visibility-flags
+and camera-mask intersection. Low 28 bits plus the existing u32::MAX default are
+supported; other reserved-bit values are refused. All world visuals and the
+128-visual limit are validated before filtering. The generic snapshot path keeps
+its strict default-visibility and box-only contract. Empty selected images are
+real existing-background RGB [43, 44, 47]/+INF depth acquisitions under demand,
+not no-demand shortcuts. The background is pinned Bevy default Source, with actual
+whole-frame bytes still requiring qualification.
+Calibration, canonical packet fields and independent cadence are unchanged;
+camera metadata drift retires stale ownership and loaded reset restores masks
+and visual flags. Native references are pinned source/test mappings, not a new
+native renderer capture. [M75_DELIVERY.md](M75_DELIVERY.md) defines the bounded
+scope and required actual software-worker/canonical-consumer proofs. Current
+source is unqualified until the completed batch passes independent review and
+consolidated mandatory checks; no image-equivalence or release claim is made.
+
+Earlier checkpoints below retain their historical scope.
+
 ## M74: signed intrinsic skew
 
 Finite signed K skew is admitted for the existing 64 by 64 RGB/depth camera
@@ -167,7 +187,7 @@ has been run for this slice.
 | Pinned upstream test and retained assertions | Related current control and remaining work |
 | --- | --- |
 | [`gz-rendering` `CameraTest.CopyIntoExternalBuffer`](https://github.com/gazebosim/gz-rendering/blob/fb8e38cee4dad491f95f205afe6697b6a5d0f5fa/test/integration/camera.cc#L821): a 64×48 RGB green-box capture equals the caller buffer byte-for-byte; undersized or wrong-dimension buffers are rejected, and the first undersized-buffer byte stays `0xFF`; Bayer conversion matches byte-for-byte. | [`software_box_snapshot_and_cancellation`](../crates/gz-renderer/tests/software.rs) checks a 64×64 RGBA frame length and exact red and green center pixels, but has no caller-buffer, RGB or Bayer API. The native assertions remain pending. |
-| [`gz-rendering` `CameraTest.Visibility`](https://github.com/gazebosim/gz-rendering/blob/fb8e38cee4dad491f95f205afe6697b6a5d0f5fa/test/integration/camera.cc#L394): two cameras with visibility masks capture ten times; every pixel's intended green or red channel exceeds the other two, and summed absent channels equal zero while the intended sum is positive. | The software box test checks center-pixel changes on move, restoration and removal, plus projected extents for an asymmetric box and a quarter-turn. There are no camera masks or multi-camera visibility assertions. |
+| [`gz-rendering` `CameraTest.Visibility`](https://github.com/gazebosim/gz-rendering/blob/fb8e38cee4dad491f95f205afe6697b6a5d0f5fa/test/integration/camera.cc#L394): two cameras with visibility masks capture ten times; every pixel's intended green or red channel exceeds the other two, and summed absent channels equal zero while the intended sum is positive. | M75 adds bounded per-camera mask selection with disjoint/overlap/zero/default extraction, actual software RGB/depth and canonical packet controls. Complete world validation precedes filtering; generic snapshots remain strict. This is a source/test mapping, not newly executed native renderer or native image-equivalence evidence. |
 | [`gz-rendering` `CameraTest.ViewProjectionMatrix` and `RenderTexture`](https://github.com/gazebosim/gz-rendering/blob/fb8e38cee4dad491f95f205afe6697b6a5d0f5fa/test/common_test/Camera_TEST.cc#L36): camera pose, perspective/orthographic projection and projected pixel positions; HFOV and aspect checks use `1e-6`, and texture dimensions, format and memory size are checked. | [`gz-render-frame` conversion tests](../crates/gz-render-frame/tests/conversion.rs) check f64 origin subtraction and a proper basis change, including rotation-vector error below `1e-6`. Additional camera controls check an explicit optical basis, asymmetric pinhole projection and finite clipping at 64×64. They do not establish the complete native test, configurable format or variable-resolution behavior. |
 | [`gz-sensors` `CameraSensorTest.ImagesWithBuiltinSDF`](https://github.com/gazebosim/gz-sensors/blob/8ddf4c17be8a434c51b51d5be7c866fb69aaa54f/test/integration/camera.cc#L102): SDF sensor dimensions 256×257 and frame ID, image publication, active/inactive behavior and sensor removal. Its `CameraIntrinsics` and `CameraProjection` cases check published matrices, including focal length 866.23 with respective tolerances 0.3 and 1.0. | [`direct_worker_renders_a_stamped_snapshot_and_exits`](../crates/gz-render-worker/tests/direct_worker.rs) checks request ID, exact epoch/time and a red center pixel for one explicit snapshot. A separate calibrated request exercises explicit intrinsics, projection and clipping at 64×64; it does not implement SDF camera sensors, image or camera-info publication, sensor lifecycle or the original image assertions. |
 | [`gz-sim` `SensorsFixture.UpdateRate`](https://github.com/gazebosim/gz-sim/blob/71c60db31fddd5c98d2aa689e9a2cccb3548a0a3/test/integration/sensors_system_update_rate.cc#L79) checks exact sensor message counts and nonempty timestamp streams, with subsequent intervals compared to `1/rate` using `EXPECT_FLOAT_EQ`. [`ResetFixture.HandleReset`](https://github.com/gazebosim/gz-sim/blob/71c60db31fddd5c98d2aa689e9a2cccb3548a0a3/test/integration/reset_sensors.cc#L95) includes image, simulation and reset lifecycle assertions. | The software test checks epoch/time changes and cancellation of an obsolete readback. It does not schedule or publish cameras, reproduce rate/timestamp streams, or exercise simulator sensor reset. |
