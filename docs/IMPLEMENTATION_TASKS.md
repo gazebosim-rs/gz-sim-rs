@@ -1,3 +1,52 @@
+## Current M80 correction: cylinder ray precision
+
+The first completed full normal on frozen tree `ce5d01fc` failed Root/Git 1
+after 1384.4462833660073 seconds. Its only failed target was Scene
+`posed_cylinder`: the off-axis radial chord returned 3.600000000170603 against
+3.6 at the unchanged `1e-11` tolerance. All remaining headless targets completed;
+renderer and strict coverage were not reached. No resource, signal or finalization
+fault occurred. Preserve the frozen tree and all failure evidence.
+
+This isolated candidate retains exact parent `8ad64532` and the reviewed feature
+Source. Its bounded correction applies the maintained Parry analytic Capsule ray
+kernel clipped to the cylinder local AABB to every actual Rapier cylinder query
+shape, including centered, posed and restored cylinders. Collider construction,
+contact geometry, inertia, physics integration and other shape query routes stay
+unchanged. The original Scene fixture, chord oracle and tolerance remain intact.
+No custom quadratic, precision search, new dependency or fresh native campaign
+is selected. The exact old GJK termination branch and transform contribution
+remain unobserved; no universal precision bound is claimed.
+
+Complete focused finite/endpoint/tangent/inside/parallel/miss/rotation/reset and
+atomic-input regression Source, docs and independent whole Source review before
+one consolidated affected full normal/strict retry. The completed correction adds five headless-only Rust declarations. M80 now has
+23 unique/headless and nine overlapping renderer Source obligations, zero new
+Python declarations, 1776 Source files, 18 own changed paths and six production
+paths. These are reviewed declarations, not passes. Its final staged tree,
+formatter, full retry and qualified head remain unbound before Root release.
+
+Parent M78/M79 passed its own local, exact hosted run 44806268854 attempt 1 and
+independent official DATA with durable originals; it is qualified, not accepted.
+Accepted phases/slices remain 76/202, catalog 80, Source finite/CLI 47/21 and
+Latest M70 original package 41. M77 formal browser access and owner-approved
+shutdown remain required. Leave its no-expiry manual demo session 86363 running.
+
+The following selection and earlier checkpoints are historical observations;
+the current correction and its unchanged mandatory gates govern.
+
+## Historical M80 first-Source task
+
+`LOAD-M80` extends the reviewed M78 single posed-collider path to a cylinder on
+Rapier. Read [M80_DELIVERY.md](M80_DELIVERY.md) for the exact API, ownership,
+regression obligations and exclusions. Physics/Rapier and Scene Source proceed
+in parallel over locally qualified `8ad64532`; Root integrates shared contracts
+and docs, and an independent reviewer checks the complete batch before tests.
+The first final staged hook, strict coverage, exact hosted CI and independent
+local/official DATA remain mandatory. No existing evidence qualifies new code.
+M77 acceptance and Main remain held; its persistent demo stays running.
+
+## Historical Source checkpoints
+
 ## Current development: M75 per-camera visibility masks
 
 [M75](M75_DELIVERY.md) selects camera masks and visual flags for existing 64 by 64 RGB/depth

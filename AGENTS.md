@@ -1,4 +1,65 @@
-## Current development: shared M78/M79 candidate
+## Current M80 correction: cylinder ray precision
+
+The first completed full normal on frozen tree `ce5d01fc` failed Root/Git 1
+after 1384.4462833660073 seconds. Its only failed target was Scene
+`posed_cylinder`: the off-axis radial chord returned 3.600000000170603 against
+3.6 at the unchanged `1e-11` tolerance. All remaining headless targets completed;
+renderer and strict coverage were not reached. No resource, signal or finalization
+fault occurred. Preserve the frozen tree and all failure evidence.
+
+This isolated candidate retains exact parent `8ad64532` and the reviewed feature
+Source. Its bounded correction applies the maintained Parry analytic Capsule ray
+kernel clipped to the cylinder local AABB to every actual Rapier cylinder query
+shape, including centered, posed and restored cylinders. Collider construction,
+contact geometry, inertia, physics integration and other shape query routes stay
+unchanged. The original Scene fixture, chord oracle and tolerance remain intact.
+No custom quadratic, precision search, new dependency or fresh native campaign
+is selected. The exact old GJK termination branch and transform contribution
+remain unobserved; no universal precision bound is claimed.
+
+Complete focused finite/endpoint/tangent/inside/parallel/miss/rotation/reset and
+atomic-input regression Source, docs and independent whole Source review before
+one consolidated affected full normal/strict retry. The completed correction adds five headless-only Rust declarations. M80 now has
+23 unique/headless and nine overlapping renderer Source obligations, zero new
+Python declarations, 1776 Source files, 18 own changed paths and six production
+paths. These are reviewed declarations, not passes. Its final staged tree,
+formatter, full retry and qualified head remain unbound before Root release.
+
+Parent M78/M79 passed its own local, exact hosted run 44806268854 attempt 1 and
+independent official DATA with durable originals; it is qualified, not accepted.
+Accepted phases/slices remain 76/202, catalog 80, Source finite/CLI 47/21 and
+Latest M70 original package 41. M77 formal browser access and owner-approved
+shutdown remain required. Leave its no-expiry manual demo session 86363 running.
+
+The following selection and earlier checkpoints are historical observations;
+the current correction and its unchanged mandatory gates govern.
+
+## Historical M80 first-Source checkpoint
+
+[M80](docs/M80_DELIVERY.md) admits one translated/rotated cylinder collision per Rapier
+link, preserving link-centered inertia and link/visual/sensor frames. Physics/Rapier
+and Scene regression Source are integrated for independent whole Source review;
+Root owns integration and canonical records. The budget is at most five working days including review
+and mandatory gates. TPE posed geometry, compounds, offset COM, other new shapes,
+Server/viewer/package/dependency changes and DART/MuJoCo remain excluded.
+
+The development basis is locally qualified M78/M79 `8ad64532`, now published on
+`review/m78-m79-posed-box-velocity-control`. Its full normal/strict hook and
+independent DATA passed: 1,812 headless and 1,390 overlapping renderer passes,
+494 aggregate Python checks, 47 finite examples and 21 CLI cases. Both profiles
+retain two ignored controls; these are not passes. Exact hosted run 44806268854
+attempt 1 is in progress at M80 selection; no hosted or official success is
+inherited. All earlier product and reader failures remain retained.
+
+M80 implementation, regression Source, docs and independent whole Source review
+precede one consolidated verification pass. No per-edit tests, lint, formatting
+or native trials. M1–M76 and 202 slices stay accepted; catalog grows to 80.
+Accepted Main remains `dddf1f42`; Latest M70 keeps its original 41 examples.
+M77 formal browser access and owner-approved shutdown still hold predecessor
+acceptance. Keep its no-expiry demo running until explicit stop confirmation;
+M80 does not stop it, modify frozen qualification trees or touch Fuel.
+
+## Historical checkpoint: shared M78/M79 Source preparation
 
 [M78](docs/M78_DELIVERY.md) posed Rapier boxes and [M79](docs/M79_DELIVERY.md)
 VelocityControl share one D31 candidate over qualified but unaccepted M77

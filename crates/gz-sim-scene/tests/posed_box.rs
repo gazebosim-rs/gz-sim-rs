@@ -369,9 +369,16 @@ fn identity_and_old_refusal_domains_remain_separate_from_posed_boxes() {
     }
     assert!((ray(&zero_size, [1., 0., 9.], [0., 0., -1.], None).unwrap() - 3.5).abs() < 1e-11);
     assert!((ray(&canonical, [1., 0., 9.], [0., 0., -1.], None).unwrap() - 2.5).abs() < 1e-11);
+    // M80 admits the cylinder row formerly refused here; the axial cap at an
+    // off-axis point independently distinguishes Gazebo Z from Rapier's Y axis.
+    let cylinder = box_xml.replace(
+        "<box><size>1 2 3</size></box>",
+        "<cylinder><radius>0.5</radius><length>1</length></cylinder>",
+    );
+    let cylinder = load(&cylinder, PhysicsEngine::Rapier).unwrap();
+    assert!((ray(&cylinder, [1.4, 0., 9.], [0., 0., -1.], None).unwrap() - 3.5).abs() < 1e-11);
     for geometry in [
         "<sphere><radius>0.5</radius></sphere>",
-        "<cylinder><radius>0.5</radius><length>1</length></cylinder>",
         "<capsule><radius>0.5</radius><length>1</length></capsule>",
     ] {
         let other = box_xml.replace("<box><size>1 2 3</size></box>", geometry);
