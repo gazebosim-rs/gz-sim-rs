@@ -49,6 +49,8 @@ pub enum SnapshotError {
 pub struct CameraCalibrations {
     pub intrinsics: Calibration,
     pub projection: Calibration,
+    /// Native CameraInfo translations; they do not alter rendering.
+    pub projection_offsets: [f64; 2],
 }
 
 /// Select and validate both matrices without IO or simulation mutation.
@@ -96,8 +98,8 @@ pub fn camera_calibrations(
             cx: p.cx,
             cy: p.cy,
             skew: 0.0,
-            tx: p.tx,
-            ty: p.ty,
+            tx: 0.0,
+            ty: 0.0,
             ..intrinsics.config()
         })
         .map_err(|_| invalid())?
@@ -107,6 +109,11 @@ pub fn camera_calibrations(
     Ok(CameraCalibrations {
         intrinsics,
         projection,
+        projection_offsets: if camera.lens.has_projection {
+            [camera.lens.projection.tx, camera.lens.projection.ty]
+        } else {
+            [0.0, 0.0]
+        },
     })
 }
 

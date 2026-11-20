@@ -54,6 +54,25 @@ sensor implementation for later phases. The observed viewer currently needs a
 live scene/pose/control connection. No new transport framework or system plugin
 architecture is authorized. M1 acceptance must demonstrate the real browser.
 
+## Current bounded selection under D30–D32: M76
+
+The owner selected [M76](M76_DELIVERY.md) before implementation over accepted
+Main `616cc3e2105a7ef9479ac823a6b05e832a92defc`. Finite signed explicit SDF
+projection tx/ty are CameraInfo metadata only; they are published exactly at
+P[3]/P[7], while renderer Calibration keeps zero translation. Absent projection
+ignores dormant offsets. The pinned native PopulateInfo/CameraSensorUtil source
+supports this distinction; a new CPU-only capture is still required after the
+complete Source batch and independent review. It supplies no Ogre/image parity.
+Physical stereo, SetBaseline, changed rays/shaders/protocols and SDK rebuilds are
+excluded. This is a bounded compatibility increment, not a new framework or a
+weakening of the direct worker's zero-offset contract.
+
+M70–M75 individual acceptance, final Main fast-forward and M70 public Latest
+release 452158796 are recorded separately under `artifacts/m75-delivery`.
+M70 still contains 41 examples from 7094 Source. M76 has no qualification result;
+all mandatory local, hosted, official and Main gates remain. D33 retirement and
+Fuel ownership are unchanged.
+
 ## Outstanding questions and decision triggers
 
 - Baseline: main is confirmed. Freeze one complete compatible set, not a

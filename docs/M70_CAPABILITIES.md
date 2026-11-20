@@ -1,13 +1,113 @@
 <!-- Copyright (C) 2026 Open Source Robotics Foundation -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# M70 capability and evidence boundary
+# M70 current standalone capabilities and evidence limits
 
-M70 is a Source correction over
-`597ac3ddccf150cc1c45a60c3c72b838f943093a` on retained-backend Main
-`8f13dc7446be4fded424b1eba83df4c8253d0cef`. DART and MuJoCo remain retired;
-Rapier f64 and TPE remain. M1–M69 and 202 slices are accepted; M65 remains Latest
-with 35 installed examples. No qualification, frame, browser, resource-fit or
-release result is claimed for this changed Source.
+This maintained document follows the standalone CAPABILITIES.md published
+with the [M70 release](https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m70-preview)
+and supersedes the archive's historical checkpoint CAPABILITIES.md. The audited
+archive, manifest, binaries, notices and internal guides are unchanged; these
+maintained Source corrections do not modify the frozen public overlay either.
+
+## Exact generation
+
+The payload was built and qualified at Source
+`7094a31890e78bc83c65f12a056dfb3918b7401a`, tree
+`46493c4b29704cdf131670234b0044ec70f49804`. Its true Source parent is
+`2e8d9dc22ae267a7a108a76716b8aaefcabbddf2`; that parent is not relabeled accepted.
+The accepted final Main is `616cc3e2105a7ef9479ac823a6b05e832a92defc`.
+Main ancestry does not make the package a 616 build or include M71–M75 features.
+Rapier f64 and TPE remain; DART/MuJoCo product backends are retired.
+
+The package contains 41 finite examples and four release ELFs: simulator with
+its explicit rgb-camera feature, native-free drive and joint helpers, and the
+existing GPU renderer worker. Every actual Cargo role, feature, notice unit,
+ELF and dependency closure is independently bound. A fresh same-head build used
+one newly empty shared target across four serial commands; reused units within
+that target are disclosed rather than described as four cold recompilations.
+
+Six accepted c404 viewer files are unchanged, with each Wasm gzip below
+14,000,000 bytes. The package audit binds 1,666 payload files, its separate
+manifest, archive/relocation, raw package IDs and the complete notice graph.
+Published license declarations, nine canonical-definition cases, two dirty-VCS
+cases and the zero-byte license placeholder remain disclosed. Notice resolution
+is technical evidence, not a new legal or author-grant verdict.
+
+## What actually passed
+
+- Exact full normal and strict workspace/per-crate/changed-line gates, independent
+  local DATA, exact initial hosted run 44641153608 attempt 1, durable hosted
+  originals and independent official DATA for this same 7094 Source.
+- Four-role release, metadata/notice closure, package assembly/verification,
+  relocation and independent package DATA. Clean nonroot Ubuntu installation
+  without a compiler or Gazebo SDK loaded/two-stepped all 41 finite examples.
+- Paired-depth/GPU components retained complete canonical Image/CameraInfo and
+  numeric/cadence/demand/pause/reset/retirement checks. Full 64 by 64 axial-depth
+  arrays retain positive-infinity background and the existing numeric bounds.
+- Separate native-only ellipsoid RGB proof retained actual RGB_INT8/CameraInfo,
+  first 1 ms Clock/control, numeric pixels, positive worker/mapped-provider proof
+  and native simulator shutdown. Its independent audit passed. The external
+  in-process SDK interlock is QA provenance, not another shipped binary.
+- Separate default-robot browser proof retained actual Play, finite forward and
+  turn, stable Pause, Reset, three immutable checkpoints, four JPEG/four AX
+  captures, launcher0 and observed owned PID/listener retirement. Independent
+  numerical/process and qualitative visual reviews passed.
+
+These successful component proofs do not rewrite the original combined camera
+controller Root1 as zero. `original_operation_passed` and full-camera success
+remain false. The missing depth host wait ledger is Source-flow inference,
+not a newly observed exit. SDK callback quiescence and discarded grandchild
+return codes remain UNKNOWN. Container idle-stop 137 is not application exit.
+Historical browser failures and the observed queue-full 4002 toast remain
+preserved; the toast's cause is UNKNOWN. Still-image review is not continuous
+trajectory or performance measurement.
+
+## Profiles and routes
+
+The clean install and the later provisioned camera/browser runs are distinct.
+The observed camera and default-browser proofs used the same owned 8 GiB,
+512-PID, four-CPU container profile after ordinary GPU runtime provisioning.
+They do not prove a fresh 1 GiB browser fit. No ceiling is silently raised and
+no hardware device passthrough, bundled driver, SDK or compiler is supplied.
+Actual lavapipe provider/package/mapped-file identities and bounded writable
+layer are recorded in the corresponding retained proofs, not inferred from
+launcher admission or configuration alone.
+
+The default robot retains native-free behavior and is separate from optional
+`--camera-output`. Paired depth can
+use the existing launcher/web-control route; ellipsoid cannot use that web
+exporter. Its qualified route is exactly the native paused `gz-sim-rs` server
+with the packaged worker, documented in INSTALL.md. No RGB camera browser panel
+or Scene export is claimed for that proof. Camera demand selects workers;
+Info-only demand remains lazy. Existing scalar/homogeneous pair admission and
+fixed 64 by 64 calibrated scope remain strict in this package.
+
+Exclude RGBD registration, point clouds, camera noise, dynamic enrollment,
+M71 mixed pairs, M72 explicit intrinsics, M73 explicit projection, M74 signed
+skew, M75 masks, larger targets/fleets, physical GPU/native Ogre image parity,
+SDK/provider rebuilds, performance claims and broad platform portability.
+Source-only examples in later Main do not increase the installed 41 count.
+
+## Publication and acceptance
+
+M70 release 452158796 is public, non-prerelease and Latest. Its annotated
+`m70-preview` tag peels to the exact 7094 build Source; accepted Main is the
+separate 616 integration above. Root retained all seven actual asset-ID byte
+checks, anonymous public and Latest HTTP 200 readbacks, and preservation of the
+15 prior releases before final acceptance. The attached m70-acceptance.json is
+the deliberately frozen prepublication qualification snapshot with accepted=false;
+it is not the later final acceptance receipt.
+
+Actual closeout and the ordered M70–M75 individual acceptance records are retained
+under `artifacts/m75-delivery/m70-public-release-acceptance.json` and
+`artifacts/m75-delivery/ordered-phase-acceptance-index.json`. The published assets
+and old failures remain unchanged. M76 is a new unqualified Source increment;
+its planned 47 Source examples do not change this package's installed 41.
+
+## Historical Source checkpoint
+
+The following retained narrative describes the prequalification correction,
+not the current release or an instruction to repeat those failed attempts.
+Original failed trees, raw outputs and approval history remain preserved.
 
 The parent passed its local package and clean-installation checks. Its hosted
 run failed before product checks at Ubuntu snapshot HTTP 401 responses, and its
@@ -36,116 +136,3 @@ CLI camera cases passed, while the strict registry still expected 14. Clippy and
 failed tree and logs remain preserved. The bounded registry correction needs
 independent review and one consolidated full retry before fresh package proof.
 
-## One additional package generation
-
-M44/default and M60 keep their 33-entry registry and original guides. M65 keeps
-its exact 35 entries, guide trio, manifest shape and no-camera profile. The M70
-generation alone appends six camera fixtures to that unchanged 35-entry prefix:
-M63 paired RGB, M64 cylinder RGB, M66 sphere RGB, M67 ellipsoid RGB, M68 primitive
-depth and M69 paired depth. This is 41 installed examples, matching the selected
-finite Source registry; finite loading is not frame-acquisition evidence.
-
-The payload has four source-bound release ELF roles. `gz-sim-rs` is built with
-`--no-default-features --features rgb-camera`; drive/joint example targets retain
-empty features and native-free behavior. `gz-render-worker` retains its empty
-own-feature list and existing GPU renderer dependency. Only the worker graph
-admits full Bevy/wgpu. Actual Cargo target kind, source, package, features,
-release profile and terminal successful build record must match each role.
-Native-three-role and worker compiled-unit selections are independently bound
-through four actual metadata graphs: native, worker and both viewer flavors.
-No raw package IDs, feature graphs or license inputs are rewritten to close a gap.
-
-The M70-only closed `binary_roles` manifest maps all four roles to their fixed
-installed paths, including `bin/gz-render-worker`. Every payload file is still
-bound by SHA-256, size and numeric mode. Preserve the complete default robot,
-both M33 OBJ locations, six exact accepted c404 viewer bytes and both per-Wasm
-14,000,000-byte gzip limits. No viewer or renderer/protocol Source change is
-selected. The existing worker's GPU dependency must be freshly built; an old
-normal target or worker binary is not a release artifact.
-
-Each launcher invocation prints a fresh loopback viewer directory URL. Its
-relative index/startup/module/Wasm paths serve the same six verified files;
-there is no viewer rebuild or payload rewrite. Only the current token path is
-admitted, without traversal or stale-token fallback. Static GET/HEAD and error
-responses use `Cache-Control: no-store`; conditional file requests do not return
-304. Existing root static routes remain compatible, while browser evidence
-must retain and use the full URL printed by the same owned launch. CLI flags,
-origins, viewer queries, WebSocket controls and both gzip budgets stay unchanged.
-
-## Explicit runtime profiles and exclusions
-
-Default robot behavior remains the accepted profile: 1 GiB RAM, 128 PIDs, two
-CPUs and a 96 MiB writable layer. `run --camera-output` selects a separate
-M70-only opt-in profile, derives the verified worker and refuses `--lifecycle`
-before effects. Its initial planning ceiling is 8 GiB RAM, 512 PIDs, four CPUs
-and a 512 MiB writable layer plus 128 MiB margin. These ceilings are not measured
-fit or speed claims. A later default-browser demonstration may reuse that
-camera-provisioned container, with its actual 8 GiB ceiling and installed GPU
-packages explicitly recorded. Such a run must show no worker or GPU mappings
-at its observed intervals; it does not establish enforced 1 GiB live fit or
-all-time absence. Actual floors, simultaneous-worker resources, layer use,
-provider libraries and owned retirement must fit before acceptance. A fit failure
-is retained and explicitly rescoped before another affected run; never silently
-raise a limit or replace paired proof with a singleton result.
-
-The optional producer requires one reviewed ordinary Ubuntu lavapipe ICD with
-an allowed absolute `ICD.library_path` or the exact system basename
-`libvulkan_lvp.so`. Basename admission requires one canonical regular provider
-in the fixed system library directories, deduplicating usrmerge aliases.
-Missing, ambiguous or escaping providers and other relative paths are refused.
-It leaves the ICD unchanged for normal Vulkan loader resolution; admission is
-not proof of the provider actually mapped or its package ownership.
-Nonempty inherited graphics/device-selection and loader
-overrides in the closed policy are rejected before effects, not discarded and
-accepted. A private 0700 runtime directory and explicit environment are owned by
-the launcher; default robot environment behavior stays unchanged. The runtime
-is deleted only on confirmed owned retirement or when no child was spawned.
-Uncertain retirement retains and reports the directory with UNKNOWN; inspect
-owned evidence and confirm retirement before any manual cleanup. It has no compiler, checkout, SDK,
-physical GPU/device passthrough or portable bundled graphics stack. Real frames
-must retain actual OS signatures/package status, mapped provider and dynamic
-library closure; a manifest or renderer configuration is not adapter evidence.
-The separate external canonical consumer may use a qualified host SDK, and must
-be recorded separately from the SDK-free installed producer.
-
-Depth remains calibrated 64 by 64 optical-forward axial metres, not range.
-Cylinder/sphere/ellipsoid depth keeps the existing finite meshes, conservative
-near restriction and strict numeric controls inherited from M68. M69 retains two
-homogeneous independent depth owners at 10/20 Hz, fixed original identities,
-per-owner demand/slots/workers and shared-family session. Scalar/RGB-pair and
-mixed-pair refusals remain strict. The package adds no new camera implementation.
-
-## Fresh evidence required
-
-After a successful same-head full normal/strict coverage and independent local
-DATA, LOCAL PROVISIONAL distribution work may overlap that head's hosted CI.
-All actual hosted/official/Main and fresh distribution proofs still precede
-acceptance, public release or Latest. Reuse unchanged evidence only where its
-exact bindings permit it. The changed CLI, server and camera Source require a
-new source-bound release/package, fresh ordinary Ubuntu installation and fresh
-GPU profile. The old 597 package, container and failed proof remain unchanged;
-no mount rebinding or old-payload mutation transfers their qualification.
-Build all four roles and invoke the assembler from the same exact frozen Source
-root with separate build targets and complete before/after Source/mode/commit checks. Audit current raw Cargo and
-notice units, four ELFs, archive/manifest and relocation before installation.
-All existing per-file/archive/payload/notices bounds remain unchanged; actual
-sizes and notice counts are unknown until measured, and a gap fails the batch.
-
-A clean non-root supported Ubuntu installation must load all 41 examples and
-exercise actual paired-depth numeric/canonical Image and CameraInfo delivery,
-Info-only and per-owner laziness, independent cadence, pause/reset/stale refusal,
-and true owned launcher/worker/listener retirement. The RGB ellipsoid smoke is
-separate. The unchanged default robot also needs actual live browser
-forward/turn/Play/Pause/Reset/owned shutdown with fresh JPEG/AX evidence. No new
-depth panel is supplied. Finite steps, helper exit, control ACK, subscriber match
-or partial stream is not equivalent to those proofs. Discarded worker exit codes
-remain UNKNOWN; lifetime retirement alone is not OS PID absence or a true wait.
-
-Independent retained input/package/install/numeric/visual DATA and exact
-Main/tag/public seven-asset bytes/body/download/Latest readbacks close the
-release. M65 remains Latest until then. Notice resolution is technical evidence,
-not a new legal verdict. Historical failures, lost-RAM limits and unknown exits
-stay disclosed; no old producer original is silently reconstructed or relabeled.
-No RGBD registration, point clouds, noise, dynamic camera enrollment, new
-framework, physics/backend change, SDK bundle, hardware/Ogre parity, broad
-geometry/output replay, performance or physical-GPU comparison is claimed.

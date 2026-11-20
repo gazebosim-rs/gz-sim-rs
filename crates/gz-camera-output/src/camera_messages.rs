@@ -138,6 +138,28 @@ pub fn camera_info_packet_with_projection(
     intrinsics: IntrinsicValues,
     projection: IntrinsicValues,
 ) -> Result<CameraInfo, CameraMessageError> {
+    camera_info_packet_with_projection_offsets(
+        acquisition,
+        frame_id,
+        intrinsics,
+        projection,
+        0.0,
+        0.0,
+    )
+}
+
+/// Produce canonical CameraInfo with separately selected K and full P metadata.
+/// Finite tx and ty are published unchanged at P[3] and P[7]; they do not
+/// configure rendering. Published matrices keep the pinned native zero skew.
+/// No topic is advertised.
+pub fn camera_info_packet_with_projection_offsets(
+    acquisition: Duration,
+    frame_id: &str,
+    intrinsics: IntrinsicValues,
+    projection: IntrinsicValues,
+    tx: f64,
+    ty: f64,
+) -> Result<CameraInfo, CameraMessageError> {
     let IntrinsicValues { fx, fy, cx, cy } = intrinsics;
     if ![fx, fy, cx, cy].iter().all(|value| value.is_finite()) || fx <= 0.0 || fy <= 0.0 {
         return Err(CameraMessageError::InvalidIntrinsics);
@@ -149,6 +171,9 @@ pub fn camera_info_packet_with_projection(
         cy: pcy,
     } = projection;
     if ![pfx, pfy, pcx, pcy].iter().all(|value| value.is_finite()) || pfx <= 0.0 || pfy <= 0.0 {
+        return Err(CameraMessageError::InvalidProjection);
+    }
+    if !tx.is_finite() || !ty.is_finite() {
         return Err(CameraMessageError::InvalidProjection);
     }
     let stamp = stamp(acquisition)?;
@@ -164,7 +189,7 @@ pub fn camera_info_packet_with_projection(
             k: vec![fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0],
         }),
         projection: Some(Projection {
-            p: vec![pfx, 0.0, pcx, 0.0, 0.0, pfy, pcy, 0.0, 0.0, 0.0, 1.0, 0.0],
+            p: vec![pfx, 0.0, pcx, tx, 0.0, pfy, pcy, ty, 0.0, 0.0, 1.0, 0.0],
         }),
         rectification_matrix: vec![1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
     })

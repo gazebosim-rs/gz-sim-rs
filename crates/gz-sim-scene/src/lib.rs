@@ -261,8 +261,6 @@ pub fn supports_camera_sensor(sensor: &sdformat::Sensor) -> bool {
                 .all(|value| value.is_finite())
                 && p.fx > 0.0
                 && p.fy > 0.0
-                && p.tx == 0.0
-                && p.ty == 0.0
         })
         && camera.horizontal_fov.is_finite()
         && (0.001..std::f64::consts::PI).contains(&camera.horizontal_fov)

@@ -1311,21 +1311,33 @@ class M70PreviewPackage(unittest.TestCase):
             self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name +
                           '" --iterations 2 --step-ns 1000000', preview)
         self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 41)
-        for name in ('m69_two_depth_cameras.sdf', 'm67_rgb_ellipsoid.sdf'):
-            self.assertIn('run --example ' + name +
-                          ' --http-port 8082 --ws-port 9014 --camera-output', install)
+        self.assertIn('run --example m69_two_depth_cameras.sdf'
+                      ' --http-port 8082 --ws-port 9014 --camera-output', install)
+        self.assertIn('"$preview_prefix/bin/gz-sim-rs" '
+                      '"$preview_prefix/share/examples/m67_rgb_ellipsoid.sdf" '
+                      '--server --camera-worker "$preview_prefix/bin/gz-render-worker"', install)
+        self.assertNotIn('run --example m67_rgb_ellipsoid.sdf'
+                         ' --http-port 8082 --ws-port 9014 --camera-output', install)
+        self.assertIn('Do **not** launch the ellipsoid through the web route above', install)
         self.assertIn('run --http-port 8082 --ws-port 9014 --lifecycle', install)
         self.assertIn('Do not combine it with `--lifecycle`', install)
         self.assertIn('this flag takes no worker-path argument', install)
         self.assertIn('same `GZ_PARTITION`', install)
         self.assertIn('tcp/127.0.0.1:7449', install)
-        self.assertIn('M65 remains public Latest with 35 installed examples', install)
-        self.assertIn('No M70 installed,', install)
+        self.assertIn('M70 release 452158796 is public and Latest with 41 installed examples', install)
+        self.assertIn('preview_prefix="$preview_parent/'
+                      'gz-preview-m70-websocket-close-handshake-provisional"', install)
+        self.assertIn('7094a31890e78bc83c65f12a056dfb3918b7401a', install)
+        self.assertIn('616cc3e2105a7ef9479ac823a6b05e832a92defc', install)
+        self.assertIn('M71–M75 features are not added to this package', install)
         self.assertIn('native-free behavior', capabilities)
-        self.assertIn('LOCAL PROVISIONAL', capabilities)
-        self.assertIn('8 GiB RAM, 512 PIDs, four CPUs', capabilities)
-        self.assertIn('not measured', capabilities)
-        self.assertIn('No raw package IDs', capabilities)
+        self.assertIn('controller Root1 as zero', capabilities)
+        self.assertIn('`original_operation_passed` and full-camera success\nremain false', capabilities)
+        self.assertIn('Source-flow inference', capabilities)
+        self.assertIn('return codes remain UNKNOWN', capabilities)
+        self.assertIn('8 GiB,\n512-PID, four-CPU container profile', capabilities)
+        self.assertIn('They do not prove a fresh 1 GiB browser fit', capabilities)
+        self.assertIn('raw package IDs and the complete notice graph', capabilities)
         self.assertIn('no new depth browser panel', preview)
 
 if __name__ == '__main__':

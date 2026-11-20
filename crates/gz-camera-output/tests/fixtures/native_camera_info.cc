@@ -6,6 +6,7 @@
 #include <future>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <gz/msgs/camera_info.pb.h>
 #include <gz/sensors/CameraSensor.hh>
@@ -20,7 +21,10 @@ class CameraInfoProbe : public gz::sensors::CameraSensor {
 };
 
 int main(int argc, char **argv) {
-  if (argc != 2) throw std::runtime_error("expected unique topic");
+  const bool projectionOffsets = argc == 3 &&
+      std::string(argv[2]) == "--projection-offsets";
+  if (argc != 2 && !projectionOffsets)
+    throw std::runtime_error("expected unique topic and optional --projection-offsets");
   sdf::Camera camera;
   camera.SetImageWidth(64);
   camera.SetImageHeight(64);
@@ -28,12 +32,12 @@ int main(int argc, char **argv) {
   camera.SetLensIntrinsicsFy(31);
   camera.SetLensIntrinsicsCx(20);
   camera.SetLensIntrinsicsCy(21);
-  camera.SetLensProjectionFx(30);
-  camera.SetLensProjectionFy(31);
-  camera.SetLensProjectionCx(20);
-  camera.SetLensProjectionCy(21);
-  camera.SetLensProjectionTx(0);
-  camera.SetLensProjectionTy(0);
+  camera.SetLensProjectionFx(projectionOffsets ? 52 : 30);
+  camera.SetLensProjectionFy(projectionOffsets ? 36 : 31);
+  camera.SetLensProjectionCx(projectionOffsets ? 11 : 20);
+  camera.SetLensProjectionCy(projectionOffsets ? 45 : 21);
+  camera.SetLensProjectionTx(projectionOffsets ? -0.125 : 0);
+  camera.SetLensProjectionTy(projectionOffsets ? 0.25 : 0);
   CameraInfoProbe sensor;
   sensor.SetFrameId("frame");
   sensor.PopulateInfo(&camera);

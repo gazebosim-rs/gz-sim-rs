@@ -1484,8 +1484,8 @@ fn explicit_projection_keeps_workers_lazy_and_refuses_invalid_selected_matrices(
             ("p_fy", "-1"),
             ("p_cx", "nan"),
             ("p_cy", "inf"),
-            ("tx", "0.1"),
-            ("ty", "-0.1"),
+            ("tx", "nan"),
+            ("ty", "-inf"),
             ("p_fx", "1e300"),
             ("fx", "1e300"),
             ("s", "nan"),
@@ -1546,7 +1546,7 @@ fn signed_skew_keeps_workers_lazy_and_preserves_projection_refusals() {
             }
         }
     }
-    let invalid = with_p.replacen("<tx>0</tx>", "<tx>0.1</tx>", 1);
+    let invalid = with_p.replacen("<tx>0</tx>", "<tx>nan</tx>", 1);
     let refused = command(&invalid, Some(&worker), &args);
     assert_eq!(refused.status.code(), Some(1), "{refused:?}");
     assert!(refused.stdout.is_empty());
@@ -1610,4 +1610,54 @@ fn visibility_masks_keep_workers_lazy_and_refuse_reserved_camera_bits() {
     assert_eq!(output.status.code(), Some(1), "{output:?}");
     assert!(output.stdout.is_empty());
     assert!(!worker.exists());
+}
+
+#[cfg(feature = "rgb-camera")]
+#[test]
+fn projection_offsets_keep_workers_lazy_and_refuse_nonfinite_selected_offsets() {
+    if isolation::child(
+        "projection_offsets_keep_workers_lazy_and_refuse_nonfinite_selected_offsets",
+        60,
+    ) {
+        return;
+    }
+    let source = include_str!("../../../examples/m76_camera_projection_offsets.sdf");
+    let directory = tempfile::tempdir().unwrap();
+    let worker = directory.path().join("absent-projection-offset-worker");
+    let args = [
+        "--server",
+        "--run",
+        "--iterations",
+        "3",
+        "--camera-mixed-pair",
+    ];
+    let expected = "simulation_ns=3000000 iterations=3\ndefault::backdrop::body 6 0 1\ndefault::occluder_a::body 2 -2 1\ndefault::occluder_b::body 3 2 1\ndefault::rig_a::body 0 -2 1\ndefault::rig_b::body 0 2 1\n";
+    let replace = |xml: &str, owner: usize, tag: &str, value: &str| {
+        let open = format!("<{tag}>");
+        let close = format!("</{tag}>");
+        let start = xml.match_indices(&open).nth(owner).unwrap().0 + open.len();
+        let end = start + xml[start..].find(&close).unwrap();
+        let mut changed = xml.to_owned();
+        changed.replace_range(start..end, value);
+        changed
+    };
+    for owner in 0..2 {
+        for (tx, ty) in [("-0.125", "0.25"), ("1e300", "-1e300"), ("-0", "0")] {
+            let xml = replace(&replace(source, owner, "tx", tx), owner, "ty", ty);
+            let output = command(&xml, Some(&worker), &args);
+            assert!(output.status.success(), "{output:?}");
+            assert_eq!(String::from_utf8_lossy(&output.stdout), expected);
+            assert!(output.stderr.is_empty(), "{output:?}");
+            assert!(!worker.exists(), "no demand must leave workers absent");
+        }
+        for tag in ["tx", "ty"] {
+            for value in ["nan", "inf", "-inf"] {
+                let xml = replace(source, owner, tag, value);
+                let output = command(&xml, Some(&worker), &args);
+                assert_eq!(output.status.code(), Some(1), "{output:?}");
+                assert!(output.stdout.is_empty(), "{output:?}");
+                assert!(!worker.exists());
+            }
+        }
+    }
 }

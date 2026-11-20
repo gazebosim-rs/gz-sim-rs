@@ -30,6 +30,8 @@ use std::{
     time::{Duration, Instant},
 };
 use zenoh::Wait;
+#[path = "../../gz-camera-output/tests/private/projection_offsets.rs"]
+mod projection_offsets;
 const XML: &str = include_str!("../../../examples/m72_camera_intrinsics.sdf");
 type Subscriber =
     zenoh::pubsub::Subscriber<zenoh::handlers::FifoChannelHandler<zenoh::sample::Sample>>;
@@ -97,7 +99,7 @@ impl Rig {
             move |world: &mut bevy_ecs::world::World| {
                 let selected = event.swap(0, Ordering::AcqRel);
                 if selected != 0 {
-                    if (3..=6).contains(&selected) {
+                    if (3..=6).contains(&selected) || matches!(selected, 8 | 9) {
                         let entity = entity_by_id(world, ids[0]).unwrap();
                         let mut sensor =
                             world.get_mut::<gz_sim_scene::CameraSensor>(entity).unwrap();
@@ -112,8 +114,12 @@ impl Rig {
                             camera.lens.projection.cx += 1.0;
                         } else if selected == 5 {
                             camera.lens.intrinsics.skew += 1.0;
-                        } else {
+                        } else if selected == 6 {
                             camera.visibility_mask = 0;
+                        } else if selected == 8 {
+                            camera.lens.projection.tx += 1.0;
+                        } else {
+                            camera.lens.projection.ty += 1.0;
                         }
                     } else if selected == 7 {
                         let visual = world

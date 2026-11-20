@@ -182,7 +182,7 @@ class AuxiliaryRetention(unittest.TestCase):
         old = "\n".join("test " + name + " ... ok" for name in QUALIFIER.RGB_TESTS[:14]) + "\n"
         complement = "\n".join("test " + name + " ... ok"
                                for name in QUALIFIER.RGB_TESTS if name != case) + "\n"
-        summary = "test result: ok. 20 passed; 0 failed; 0 ignored;\n"
+        summary = "test result: ok. 21 passed; 0 failed; 0 ignored;\n"
         self.write("rgb-camera/stdout", (complement + "test " + case + " ... ok\n" + summary).encode())
         self.finish_manifest()
         QUALIFIER.validate_evidence(self.root, self.directory)
@@ -1073,7 +1073,7 @@ class AuxiliaryRetention(unittest.TestCase):
 class CylinderFiniteOutput(unittest.TestCase):
     def test_m64_requires_exact_sorted_four_static_poses_and_two_step_headline(self):
         source = "examples/m64_rgb_cylinder.sdf"
-        self.assertEqual(len(QUALIFIER.NOISY_EXAMPLES), 46)
+        self.assertEqual(len(QUALIFIER.NOISY_EXAMPLES), 47)
         self.assertEqual(QUALIFIER.NOISY_EXAMPLES[32:37], (
             "examples/m59_multiple_diff_drives.sdf", "examples/m61_eight_diff_drives.sdf",
             "examples/m62_eight_joint_controllers.sdf", "examples/m63_two_rgb_cameras.sdf", source))

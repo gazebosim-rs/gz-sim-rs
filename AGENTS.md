@@ -1,4 +1,60 @@
-## Current development: M75 per-camera visibility masks
+## Current development: M76 CameraInfo projection offsets
+
+[M76](docs/M76_DELIVERY.md) adds finite signed explicit SDF projection tx/ty only to
+canonical CameraInfo P[3]/P[7]. Rendering keeps zero translation and the existing
+64 by 64 projection, image bytes, worker protocol and lifetimes. Explicit P still
+selects rendering focal lengths/principal point; absent P ignores dormant values
+and publishes zero offsets. This is metadata compatibility, not physical stereo
+or a baseline inference API. Direct worker nonzero-offset requests stay refused.
+
+The base is accepted Main `616cc3e2105a7ef9479ac823a6b05e832a92defc`.
+M70–M75 have separate ordered acceptance records under
+`artifacts/m75-delivery/ordered-phase-acceptance-index.json`. M70 release
+452158796 is public Latest with 41 installed examples, built at exact
+`7094a31890e78bc83c65f12a056dfb3918b7401a`; later Main features are not in that
+frozen payload. Its standalone public guides supersede the archive's historical
+checkpoint guides. Preserve original failures, Source-flow-only depth host waits,
+UNKNOWN SDK/grandchild exits and the actual 8 GiB browser scope.
+
+M76 is unqualified Source work in its isolated successor. Complete implementation,
+regression Source, documentation and whole independent review, batch findings,
+then make one fresh CPU-only signed-offset CameraInfo capture and retain its
+actual provenance before the consolidated normal/strict qualification. Do not
+recapture the old zero-offset fixture. Exact hosted/official evidence and Main
+promotion remain mandatory. One endcycle CPU-native reference capture returned
+Root 0 with five successful command stages; its genuine 325-byte signed-offset
+fixture and provenance are retained, and independent native DATA passed. The
+full ordinary normal/strict, hosted and official gates remain pending. No M76
+product-test, lint, image or acceptance pass is claimed here.
+The first full normal returned Root/Git 1 after 100.359962 seconds at one
+workspace Clippy type-complexity error in the new test helper return type.
+This isolated correction factors that identical tuple into a named type; test
+bodies, assertions and all production code remain unchanged. Product tests and
+coverage were not reached. Preserve the failed tree and logs, reuse the unchanged
+native reference evidence, and run the full affected normal hook after Source
+review; no standalone Clippy or native retry is selected.
+
+The second full normal returned Root/Git 1 after 277.707559 seconds. Both
+lint stages passed; all 481 Python checks ran with one error and one failure.
+Two retained test fixtures still expected the prior 20-case CLI summary and
+46-example registry. This isolated batch changes those positive expectations to
+21 and 47, preserving every negative assertion and runtime/native byte. Full
+Rust profiles, coverage and the auxiliary runtime qualifier were not reached.
+Review the complete correction before the full affected hook retry; no standalone
+Python test, lint, native capture or accepted evidence replay is selected.
+
+The planned integrated Source census is 14 distinct Rust controls (H3/R14,
+overlap3), two Python declarations, 47 finite examples and 21 closed CLI cases;
+these are Source obligations, not executed or installed counts.
+
+Keep the five-working-day D30 budget, Rapier/TPE, D33 backend retirement, Fuel
+ownership and all frozen evidence. No SDK rebuild, matrix/shader/protocol change,
+new dependency/framework, broader camera domain or M70 package rebuild is selected.
+
+Earlier checkpoints below retain their historical scope. Their then-current
+pending, Main and Latest statements do not describe the current accepted base.
+
+## Historical checkpoint: M75 per-camera visibility masks
 
 [M75](docs/M75_DELIVERY.md) selects camera masks and visual flags for existing 64 by 64 RGB/depth
 snapshots. Low 28 user bits and the original all-visible default are admitted;

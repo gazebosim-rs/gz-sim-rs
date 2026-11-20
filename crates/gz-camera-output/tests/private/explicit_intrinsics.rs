@@ -92,10 +92,10 @@ fn explicit_k_unrepresentable_projection_is_rejected_before_external_io() {
                 1 => camera.lens.intrinsics.fy = 1e300,
                 2 => camera.lens.intrinsics.cx = f64::MAX,
                 3 => {
-                    // Valid zero-translation P is now supported; retain this
-                    // inherited unsupported-projection preflight refusal.
+                    // Finite P translations are metadata-only; retain this
+                    // inherited selected nonfinite-projection preflight refusal.
                     camera.lens.has_projection = true;
-                    camera.lens.projection.tx = 1.0;
+                    camera.lens.projection.tx = f64::NEG_INFINITY;
                 }
                 _ => unreachable!(),
             }

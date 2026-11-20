@@ -61,7 +61,7 @@ fn explicit_extraction_uses_live_camera_pose_and_rejects_unqualified_lens() {
         panic!("camera")
     };
     camera.lens.has_projection = true;
-    camera.lens.projection.tx = 1.0;
+    camera.lens.projection.tx = f64::NAN;
     assert_eq!(
         extract_camera(&sim, id, 8, [0.0; 3]),
         Err(SnapshotError::InvalidCamera(id))
@@ -1455,6 +1455,131 @@ fn request_camera(request: &Request) -> &gz_render_protocol::Camera {
 }
 
 #[test]
+fn projection_offsets_select_only_metadata_and_keep_all_request_family_bytes() {
+    for kind in ["camera", "depth_camera"] {
+        for shapes in [false, true] {
+            for has_k in [false, true] {
+                for has_p in [false, true] {
+                    let mut sim = load_world_with_sdf_step(
+                        &intrinsics_source(kind, shapes),
+                        "projection-offsets.sdf",
+                        "default",
+                        &NoResources,
+                        PhysicsEngine::Tpe,
+                    )
+                    .unwrap();
+                    let entity = sim
+                        .world()
+                        .iter_entities()
+                        .find(|entity| entity.contains::<CameraSensor>())
+                        .unwrap()
+                        .id();
+                    let id = sim
+                        .world()
+                        .get::<gz_sim_core::EntityId>(entity)
+                        .unwrap()
+                        .get();
+                    {
+                        let mut sensor = sim.world_mut().get_mut::<CameraSensor>(entity).unwrap();
+                        let SensorConfig::Camera(camera) = &mut Arc::make_mut(&mut sensor.0).config
+                        else {
+                            unreachable!()
+                        };
+                        camera.lens.has_intrinsics = has_k;
+                        camera.lens.has_projection = has_p;
+                        camera.lens.intrinsics.fx = 30.0;
+                        camera.lens.intrinsics.fy = 31.0;
+                        camera.lens.intrinsics.cx = 20.0;
+                        camera.lens.intrinsics.cy = 21.0;
+                        camera.lens.intrinsics.skew = 0.0;
+                        camera.lens.projection.fx = 52.0;
+                        camera.lens.projection.fy = 36.0;
+                        camera.lens.projection.cx = 11.0;
+                        camera.lens.projection.cy = 45.0;
+                        camera.lens.projection.tx = 0.0;
+                        camera.lens.projection.ty = 0.0;
+                    }
+                    let baseline = extract_camera(&sim, id, 7, [0.0; 3]).unwrap();
+                    assert!(matches!(
+                        (&baseline, kind, shapes),
+                        (Request::CalibratedSnapshot { .. }, "camera", false)
+                            | (Request::CalibratedShapeSnapshot { .. }, "camera", true)
+                            | (
+                                Request::CalibratedDepthSnapshot { .. },
+                                "depth_camera",
+                                false
+                            )
+                            | (
+                                Request::CalibratedDepthShapeSnapshot { .. },
+                                "depth_camera",
+                                true
+                            )
+                    ));
+                    let mut expected = Vec::new();
+                    gz_render_protocol::write_request(&mut expected, &baseline).unwrap();
+                    let before = (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts());
+                    for [tx, ty] in [[-0.125, 0.25], [f64::MAX, -f64::MAX], [-0.0, 0.0]] {
+                        {
+                            let mut sensor =
+                                sim.world_mut().get_mut::<CameraSensor>(entity).unwrap();
+                            let SensorConfig::Camera(camera) =
+                                &mut Arc::make_mut(&mut sensor.0).config
+                            else {
+                                unreachable!()
+                            };
+                            camera.lens.projection.tx = tx;
+                            camera.lens.projection.ty = ty;
+                        }
+                        let current = sim.world().get::<CameraSensor>(entity).unwrap();
+                        let selected =
+                            gz_render_scene::camera_calibrations(&current.0, id).unwrap();
+                        assert_eq!(
+                            selected.projection_offsets.map(f64::to_bits),
+                            (if has_p { [tx, ty] } else { [0.0, 0.0] }).map(f64::to_bits)
+                        );
+                        let config = selected.projection.config();
+                        assert_eq!(
+                            [config.tx.to_bits(), config.ty.to_bits()],
+                            [0.0_f64.to_bits(); 2]
+                        );
+                        let actual = extract_camera(&sim, id, 7, [0.0; 3]).unwrap();
+                        assert_eq!(actual, baseline);
+                        let mut bytes = Vec::new();
+                        gz_render_protocol::write_request(&mut bytes, &actual).unwrap();
+                        assert_eq!(bytes, expected);
+                        assert_eq!(
+                            (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+                            before
+                        );
+                    }
+                    if !has_p {
+                        {
+                            let mut sensor =
+                                sim.world_mut().get_mut::<CameraSensor>(entity).unwrap();
+                            let SensorConfig::Camera(camera) =
+                                &mut Arc::make_mut(&mut sensor.0).config
+                            else {
+                                unreachable!()
+                            };
+                            camera.lens.projection.tx = f64::NAN;
+                            camera.lens.projection.ty = f64::INFINITY;
+                        }
+                        let current = sim.world().get::<CameraSensor>(entity).unwrap();
+                        assert_eq!(
+                            gz_render_scene::camera_calibrations(&current.0, id)
+                                .unwrap()
+                                .projection_offsets,
+                            [0.0; 2]
+                        );
+                        assert_eq!(extract_camera(&sim, id, 7, [0.0; 3]).unwrap(), baseline);
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[test]
 fn explicit_intrinsics_select_rgb_depth_box_and_shape_request_calibration() {
     let lens = "<lens><intrinsics><fx>40</fx><fy>41</fy><cx>20</cx><cy>21</cy><s>0</s></intrinsics></lens>";
     for kind in ["camera", "depth_camera"] {
@@ -1805,8 +1930,8 @@ fn selected_k_and_p_each_reject_invalid_or_unrepresentable_values_without_scene_
                 }
             }
             for [tx, ty] in [
-                [1.0, 0.0],
-                [0.0, -1.0],
+                [f64::NEG_INFINITY, 0.0],
+                [0.0, f64::NEG_INFINITY],
                 [f64::NAN, 0.0],
                 [0.0, f64::INFINITY],
             ] {

@@ -92,8 +92,8 @@ fn explicit_projection_preflight_checks_both_selected_calibrations_before_io() {
                     0 => camera.lens.projection.fx = 1e-300,
                     1 => camera.lens.projection.fy = 1e300,
                     2 => camera.lens.projection.cx = f64::MAX,
-                    3 => camera.lens.projection.tx = 1.0,
-                    4 => camera.lens.projection.ty = -1.0,
+                    3 => camera.lens.projection.tx = f64::NEG_INFINITY,
+                    4 => camera.lens.projection.ty = f64::NAN,
                     5 => camera.lens.intrinsics.fx = 1e300,
                     _ => unreachable!(),
                 }
