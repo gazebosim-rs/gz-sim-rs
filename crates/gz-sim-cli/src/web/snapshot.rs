@@ -336,7 +336,9 @@ pub(super) fn extract_with_assets(
             .get::<VisualProperties>()
             .ok_or_else(|| invalid("gzweb visual has no properties"))?
             .0;
-        if properties.transparency != 0.0 || properties.visibility_flags != u32::MAX {
+        // The default viewer has an implicit all-bits visibility mask. Any
+        // nonzero visual flag intersects it; camera masks remain independent.
+        if properties.transparency != 0.0 || properties.visibility_flags == 0 {
             return Err(invalid(
                 "gzweb MVP supports visible opaque diffuse primitives only",
             ));

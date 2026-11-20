@@ -2,10 +2,18 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # M77 installed examples
 
-These are the 47 selected manifest-bound finite examples through M76. M77 is
-under development; the commands are the required installed checks, not retained
-execution results. The public M70 archive still contains its original 41.
-Extract and verify the complete prefix using INSTALL.md first.
+These are the 47 selected manifest-bound finite examples through M76. The
+frozen `353dc9ae` package passed their finite loads, then failed its first live
+camera startup before SDK consumers at the Scene visibility guard. The selected
+nonzero-flag correction and wrench-harness preconditions remain unqualified;
+all fresh Source/package/runtime gates still apply. These commands are required
+installed checks, not results for the correction. The public M70 archive still
+contains its original 41. Extract and verify the complete prefix using
+INSTALL.md first.
+The reviewed `95ef6ced` correction later failed its normal at a wrench-test
+FIFO EOF assumption, not an installed frame check. The current helper correction
+is unqualified; the original frozen failure and UNKNOWN original CI1 cause stay
+separate from the successful unchanged original-head CI2.
 
 ## Finite world loads
 
@@ -77,6 +85,9 @@ Use the explicit commands in INSTALL.md for `m76_camera_projection_offsets.sdf`
 and `m74_camera_skew.sdf`. Both need `--camera-output --camera-mixed-pair` in
 M77. The first combines distinct K/P, metadata offsets, visibility masks and
 independent RGB/depth rates; the second exercises signed intrinsic skew.
+The default viewer's implicit all-bits mask admits nonzero visual flags in the
+correction candidate; zero flags and opacity/material failures remain refused.
+This does not change camera masks or the archived failed operation.
 Information-only demand remains lazy. Actual installed acceptance checks complete
 canonical frames, calibration, stamps, demand, cadence, pause/reset and retirement
 against the existing fixture-specific numerical oracles.

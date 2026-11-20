@@ -141,6 +141,159 @@ fn unsupported_materials_names_and_nonrepresentable_sizes_are_rejected() {
 }
 
 #[test]
+fn camera_fixture_visual_flags_keep_exact_owned_primitive_scene() {
+    let source = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../examples/m76_camera_projection_offsets.sdf"
+    ));
+    let load = |source: &str| {
+        gz_sim_scene::load_world(
+            source,
+            "m76_camera_projection_offsets.sdf",
+            "default",
+            Duration::from_millis(1),
+            &sdformat::NoResources,
+        )
+        .unwrap()
+    };
+    let sim = load(source);
+    let expected = [
+        (
+            "default::backdrop::body::surface",
+            [6.0, 0.0, 1.0],
+            [0.2, 16.0, 16.0],
+            [0.0, 0.0, 1.0, 1.0],
+            4,
+        ),
+        (
+            "default::occluder_a::body::surface",
+            [2.0, -2.0, 1.0],
+            [0.4, 0.4, 0.4],
+            [1.0, 0.0, 0.0, 1.0],
+            1,
+        ),
+        (
+            "default::occluder_b::body::surface",
+            [3.0, 2.0, 1.0],
+            [0.4, 0.4, 0.4],
+            [0.0, 1.0, 0.0, 1.0],
+            2,
+        ),
+    ];
+    let mut rows = Vec::new();
+    for (name, translation, size, color, flags) in expected {
+        let matches: Vec<_> = sim
+            .world()
+            .iter_entities()
+            .filter(|entity| {
+                entity.get::<EntityKind>() == Some(&EntityKind::Visual)
+                    && entity.get::<Name>().is_some_and(|value| value.0 == name)
+            })
+            .collect();
+        assert_eq!(matches.len(), 1);
+        let entity = &matches[0];
+        let id = entity.get::<EntityId>().unwrap().get();
+        assert_eq!(
+            gz_sim_core::entity_by_id(sim.world(), id),
+            Some(entity.id())
+        );
+        assert_eq!(
+            entity.get::<VisualProperties>().unwrap().0.visibility_flags,
+            flags
+        );
+        rows.push(json!({
+            "id": id,
+            "name": name,
+            "translation": translation,
+            "rotation": [0.0, 0.0, 0.0, 1.0],
+            "shape": {"kind": "box", "size": size},
+            "color": color,
+        }));
+    }
+    rows.sort_unstable_by_key(|row| row["id"].as_u64().unwrap());
+    assert!(rows.windows(2).all(|pair| pair[0]["id"] != pair[1]["id"]));
+    assert_eq!(frame(&sim, 7)["visuals"], json!(rows));
+    let all_visible = source
+        .replace(
+            "<visibility_flags>4</visibility_flags>",
+            "<visibility_flags>4294967295</visibility_flags>",
+        )
+        .replace(
+            "<visibility_flags>1</visibility_flags>",
+            "<visibility_flags>4294967295</visibility_flags>",
+        )
+        .replace(
+            "<visibility_flags>2</visibility_flags>",
+            "<visibility_flags>4294967295</visibility_flags>",
+        );
+    assert_eq!(
+        snapshot::encode(&snapshot::extract(&sim, "default", 7).unwrap()).unwrap(),
+        snapshot::encode(&snapshot::extract(&load(&all_visible), "default", 7).unwrap()).unwrap()
+    );
+}
+
+#[test]
+fn nonzero_visibility_preserves_default_bytes_without_relaxing_opacity() {
+    let mut sim = simulation();
+    let visual = sim
+        .world()
+        .iter_entities()
+        .find(|entity| entity.get::<EntityKind>() == Some(&EntityKind::Visual))
+        .unwrap()
+        .id();
+    let properties = sim.world().get::<VisualProperties>(visual).unwrap().clone();
+    let material = sim.world().get::<VisualMaterial>(visual).unwrap().clone();
+    let initial = snapshot::encode(&snapshot::extract(&sim, "default", 0).unwrap()).unwrap();
+    // The viewer's implicit mask is all bits, unlike the bounded camera mask.
+    for flags in [1, 2, 4, 0x0fff_ffff, 0x1000_0000, 0x8000_0000, u32::MAX] {
+        sim.world_mut()
+            .get_mut::<VisualProperties>(visual)
+            .unwrap()
+            .0
+            .visibility_flags = flags;
+        assert_eq!(
+            snapshot::encode(&snapshot::extract(&sim, "default", 0).unwrap()).unwrap(),
+            initial
+        );
+    }
+    sim.world_mut()
+        .get_mut::<VisualProperties>(visual)
+        .unwrap()
+        .0
+        .visibility_flags = 0;
+    rejected(&sim, "visible opaque diffuse primitives only");
+    sim.world_mut()
+        .get_mut::<VisualProperties>(visual)
+        .unwrap()
+        .0
+        .visibility_flags = 1;
+    sim.world_mut()
+        .get_mut::<VisualProperties>(visual)
+        .unwrap()
+        .0
+        .transparency = 0.25;
+    rejected(&sim, "visible opaque diffuse primitives only");
+    sim.world_mut()
+        .get_mut::<VisualProperties>(visual)
+        .unwrap()
+        .0
+        .transparency = 0.0;
+    sim.world_mut()
+        .get_mut::<VisualMaterial>(visual)
+        .unwrap()
+        .0
+        .diffuse[3] = 0.5;
+    rejected(&sim, "invalid pose, name or opaque color");
+    sim.world_mut()
+        .entity_mut(visual)
+        .insert((properties, material));
+    assert_eq!(
+        snapshot::encode(&snapshot::extract(&sim, "default", 0).unwrap()).unwrap(),
+        initial
+    );
+}
+
+#[test]
 fn visual_count_and_escaped_json_size_are_independent_hard_limits() {
     let mut sim = simulation();
     let visual = sim

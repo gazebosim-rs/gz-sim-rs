@@ -54,24 +54,52 @@ sensor implementation for later phases. The observed viewer currently needs a
 live scene/pose/control connection. No new transport framework or system plugin
 architecture is authorized. M1 acceptance must demonstrate the real browser.
 
-## Current bounded selection under D30–D32: M77
+## M77 correction checkpoint: camera startup and input admission
 
-[M77](M77_DELIVERY.md) selects an additive installed camera preview with 47
-existing finite examples, the same four roles and unchanged accepted viewer.
-Its explicit mixed-pair launcher option requires camera output and is M77-only;
-finite load/two-step commands remain camera-free. Preserve every older package
-generation's behavior. No new simulator feature, native render campaign or SDK
-rebuild is selected. The full review and verification budget is at most five
-working days.
+This isolated candidate starts at frozen `353dc9ae86aac56c7653f36a933d688b43fa6fbf`.
+That Source passed local normal/DATA, the fresh four-role build, package DATA and
+clean installation/47 finite loads. The first installed camera run then failed
+once (`8d2438` to `e5ef74`, 28.31 seconds), before any SDK peer, in
+`ubuntu-install-um5894io`: the default web snapshot guard required all-visible
+flags while the unchanged M76 fixture has opaque visuals with flags 4/1/2.
+The selected product correction admits nonzero flags under the viewer's implicit
+all-bits mask; zero visibility, transparency, unsupported materials and all
+existing snapshot bounds remain refused. Camera masking, protocols, viewer/GPU
+bytes and solvers do not change.
 
-Source preparation overlapped M76 closeout under D31. M76 is now accepted at
-unchanged Main `dddf1f42` after its own exact hosted run 44681392983, independent
-official DATA and actual Main readbacks. Its immutable acceptance proof is
-retained under primary `artifacts/m76-delivery`. M77 whole Source is reviewed;
-final factual parent/binding review and Root release precede its own checks,
-build, package and installation proof. Public Latest M70 remains `7094a318` with 41 installed examples;
-M77 distribution is unqualified. See the contract for disjoint file ownership,
-fresh evidence and retained historical limits. D33 and Fuel ownership remain.
+The candidate retains the independently Source-reviewed wrench-test preconditions:
+finite Block configuration, fresh per-key presence generations, the original
+five-second deadlines and bounded polling, with every real put and assertion.
+
+The reviewed `95ef6ced` correction then ran one full normal attempt and failed
+Root/Git 1 (`29733` to `d26f30`, 1367.114675317 seconds). All available headless
+targets finished with one failure: the wrench presence query unwrapped
+`Err(Disconnected)` at line 259. Renderer checks were not reached. The frozen
+Source, full raw packet `95ef6ced...-92rp2mvd`, receipt and failure record remain
+under primary `artifacts/m77-delivery`; no success audit or qualification follows
+from that run. This failure is a demonstrated harness EOF-contract error, distinct
+from the still UNKNOWN cause of original `353dc9ae` hosted attempt 1. The unchanged
+original-head hosted attempt 2 succeeded, without accepting that old package or
+qualifying this changed successor.
+
+The current successor retains the exact reviewed web visibility correction and
+all original semantic puts/assertions. Pinned Zenoh finite-query completion drops
+the FIFO sender: drained/disconnected EOF is accepted only with a freshly open
+observer. `Ok(None)` remains absolute receive-deadline failure. Only the exact
+Source-defined `Timeout` payload with `Encoding::ZENOH_STRING` marks a 100 ms
+query incomplete; all partial tokens from every key in that attempt are discarded.
+Metadata queries may repeat only inside the same original five-second readiness
+deadline. Unexpected errors, encodings, duplicate timeout or post-timeout samples
+fail. No real command is replayed and no deadline is extended.
+
+Four new no-network FIFO/error regressions bring the correction census to nine
+Rust declarations (headless 9, renderer 2, overlap 2), zero new Python declarations,
+with the original M77's 13 Python cases retained. Finite/CLI inventories stay
+47/21. Current implementation/regression/docs require whole independent Source
+review; no current formatter, checks, package, native operation or publication has
+run. Its future qualified commit/tree/run remain unknown. Accepted M76 and public
+Latest M70 are unchanged. Old passes and failures remain bound to their own Source.
+
 
 ## Outstanding questions and decision triggers
 

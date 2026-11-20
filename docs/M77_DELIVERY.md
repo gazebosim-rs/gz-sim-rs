@@ -2,20 +2,88 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # M77: installed camera preview through M76
 
-Root selected and accepted this bounded contract on November 19, 2026.
-The complete 14-path implementation, regression, guide and planning batch has
-whole independent Source clearance. No M77 checks or qualification are claimed. Budget: at
-most five working days including independent review and mandatory verification.
-Source preparation overlapped M76 closeout under D31 in this isolated successor.
-The unchanged parent `dddf1f4284557c420e384d263a4365b2153dfde2` (tree
-`1bb91f06f162e4657ed084ce0408254a84de9f92`, true Source parent `616cc3e2`) is
-now accepted Main after exact hosted run 44681392983 attempt 1, independent
-official DATA and actual Main readbacks. Its immutable acceptance receipt is
-retained under primary `artifacts/m76-delivery/m76-acceptance.json`.
-The accepted-parent prerequisite is satisfied. Narrow factual parent/binding
-review and Root release still precede M77 checks, release builds, package
-assembly and installation proofs. Keep frozen M76 and all other owners'
-trees, evidence, packages, archives and Fuel work unchanged.
+Root selected the original bounded contract on November 19, 2026 and selected
+this concrete M77 blocker correction after the retained camera startup failure.
+The budget remains at most five working days including review and mandatory
+qualification. Current candidate implementation/regression/docs are complete;
+whole independent Source review is pending for this complete query-completion batch.
+No checks or formatter have run for the correction, and its future qualified
+commit/tree/run identities are unknown.
+
+The true correction base is locally qualified but **unaccepted** frozen M77
+`353dc9ae86aac56c7653f36a933d688b43fa6fbf`, not accepted M76 itself. Accepted
+M76 `dddf1f4284557c420e384d263a4365b2153dfde2` remains the prerequisite ancestor
+and public Main; its acceptance receipt remains under primary
+`artifacts/m76-delivery/m76-acceptance.json`. No rebase, current-head acceptance
+or unchanged immediate-parent claim is made for this correction. Public Latest
+M70 remains the original 41-example package. Preserve all frozen Source,
+packages, native references, original failures, other owners' trees and Fuel.
+
+## Preserved original evidence and selected correction
+
+Frozen `353dc9ae` passed its local normal/strict and independent local DATA,
+fresh four-role build/release DATA, input/package audits and two separate clean
+installations with all 47 plain finite loads. Review publication/readback exists
+for that exact head. Those actual passes remain bound to their original Source.
+Its hosted attempt `44693213128/1` failed the wrench canonical-input test after
+reset; the cause remains **UNKNOWN**. The one unchanged whole-CI attempt 2 later succeeded on the original head,
+without accepting its package or qualifying changed Source.
+
+The first installed camera operation failed once at startup (`8d2438` to
+`e5ef74`, 28.31 seconds; `ubuntu-install-um5894io`), before any SDK peer. The
+retained stderr is `gzweb MVP supports visible opaque diffuse primitives only`.
+The actual M76 fixture's three opaque visuals have flags 4/1/2, but the web
+snapshot guard required `u32::MAX`. The bounded product fix accepts **nonzero**
+visual flags under the default viewer's implicit all-bits mask. Zero flags,
+transparency, unsupported materials and all snapshot validation/bounds remain
+refused. This is no new shape, viewer asset, wire protocol, camera mask policy,
+GPU/solver feature or production transport change.
+
+The same candidate includes the already independently Source-reviewed wrench
+harness preconditions: finite Block configuration and original publisher
+handles, fresh per-key presence UUID generations after reset, one original
+five-second deadline beginning before each real-put phase, and bounded 1 ms
+poll backoff. Every original real put, payload, semantic/numeric/reset/shutdown
+assertion remains. Metadata readiness is not delivery or SDK-quiescence proof;
+this does not attribute the original hosted failure to congestion or routing.
+
+The reviewed `95ef6ced` correction then ran one full normal attempt and failed
+Root/Git 1 (`29733` to `d26f30`, 1367.114675317 seconds). All available headless
+targets finished with one failure: the wrench presence query unwrapped
+`Err(Disconnected)` at line 259. Renderer checks were not reached. The frozen
+Source, full raw packet `95ef6ced...-92rp2mvd`, receipt and failure record remain
+under primary `artifacts/m77-delivery`; no success audit or qualification follows
+from that run. This failure is a demonstrated harness EOF-contract error, distinct
+from the still UNKNOWN cause of original `353dc9ae` hosted attempt 1. The unchanged
+original-head hosted attempt 2 succeeded, without accepting that old package or
+qualifying this changed successor.
+
+The current successor retains the exact reviewed web visibility correction and
+all original semantic puts/assertions. Pinned Zenoh finite-query completion drops
+the FIFO sender: drained/disconnected EOF is accepted only with a freshly open
+observer. `Ok(None)` remains absolute receive-deadline failure. Only the exact
+Source-defined `Timeout` payload with `Encoding::ZENOH_STRING` marks a 100 ms
+query incomplete; all partial tokens from every key in that attempt are discarded.
+Metadata queries may repeat only inside the same original five-second readiness
+deadline. Unexpected errors, encodings, duplicate timeout or post-timeout samples
+fail. No real command is replayed and no deadline is extended.
+
+Four new no-network FIFO/error regressions bring the correction census to nine
+Rust declarations (headless 9, renderer 2, overlap 2), zero new Python declarations,
+with the original M77's 13 Python cases retained. Finite/CLI inventories stay
+47/21. Current implementation/regression/docs require whole independent Source
+review; no current formatter, checks, package, native operation or publication has
+run. Its future qualified commit/tree/run remain unknown. Accepted M76 and public
+Latest M70 are unchanged. Old passes and failures remain bound to their own Source.
+
+The current correction adds **nine Rust Source controls** (two snapshot,
+three original pure wrench helpers and four FIFO/error controls), **zero new
+Python controls**, and retains the original 13 M77 Python declarations. Its 14
+changed paths remain the same paths as the failed reviewed `95ef6ced` tree.
+The original `353dc9ae` contract/planning and reviewed `95ef6ced` contract/planning
+remain byte-exact at their Git Source refs. The current phase's
+`historical_353_scope` and `historical_95ef_scope` pin their exact hashes/lengths;
+the two actual failure histories stay separate. No old result transfers.
 
 ## Runnable result
 
@@ -61,14 +129,15 @@ box worlds. Default robot browser acceptance is a separate proof.
 | Documentation/planning lane | `docs/M77_DELIVERY.md`; `planning/delivery-phases.json`; `docs/DECISIONS.md`; `docs/DELIVERY_PLAN.md`; `docs/HANDOFF.md`; `README.md`; `AGENTS.md` | Current contract, concise commands/capabilities and real observed state. Distinguish provisional Source from accepted release and installed examples from Source runs. Preserve old generation guides and history; add no checkpoint walls. |
 | Root guides lane | New `docs/M77_INSTALL.md`, `docs/M77_CAPABILITIES.md`, `docs/M77_PREVIEW.md` | Concise current installation, finite-load/live-camera commands, capabilities, fresh-proof boundaries and actual evidence limits. |
 | Root installed-proof lane | New operational procedures, external consumer modes and evidence under primary `artifacts/m77-delivery` | Source-bound four-role build/assembly, independent input/package audits, fresh clean install, actual mixed-camera/skew and separate default-browser/shutdown proofs. Reuse existing consumers and supervision, not a new telemetry framework. |
+| Selected blocker-correction lane | `crates/gz-sim-cli/src/web/snapshot.rs`; `crates/gz-sim-cli/tests/private/web_admission.rs`; `crates/gz-sim-server/tests/apply_link_wrench.rs`; `docs/M77_WRENCH_ADMISSION_CONTINGENCY.md` | Nonzero web-visual visibility guard and exact Scene regressions; reviewed test-only wrench admission preconditions, finite-query completion/error handling and seven local helper/FIFO regressions. Preserve all old assertions; no new viewer shapes/protocol or production transport. |
 | Independent reviewer | Whole completed implementation, meaningful regression Source, docs and operational procedures; later retained DATA | Audit old-generation compatibility, flag/manifest admission, complete installed numeric/wire/lifecycle evidence, real exits and Source/package provenance. Root owns shared integration and serial heavy execution. |
 
-Root released these disjoint Source leases after contract review. Packaging and
-runtime leaves and the integrated docs/regression batch have whole independent
-Source clearance; this factual parent/binding reconciliation needs narrow
-independent review before verification release. The three new guides
-belong exclusively to Root. Expand a lease or runtime scope only through Root
-review before editing.
+Root released the original leases and this bounded blocker correction. Earlier
+packaging/runtime Source clearance remains historical; the complete current
+correction requires independent Source closure including this finite-query correction
+before one Root-released consolidated qualification cycle. Root serializes
+heavy operations. No per-edit checks, standalone camera replay or new native
+capture is selected. Expand a lease only through Root review.
 
 ## Acceptance and fresh evidence
 
@@ -78,6 +147,9 @@ review before editing.
    per-crate and changed-line gates, runtime registries, assertions, deadlines,
    resource floors and native interoperability controls. No per-edit checks or
    weakened gates; inspect real failures together before affected retries.
+   The current correction has no qualifying result yet. Retain frozen353's
+   actual passes and failures as history; fresh current-Source normal/DATA and
+   source-bound distribution/runtime evidence are required without result transfer.
 2. From the exact qualified M77 Source, build all four roles serially into one
    fresh shared release target. Retain real Cargo role/feature/input/notice/ELF
    closure and disclose reused units within that target. Assemble and independently

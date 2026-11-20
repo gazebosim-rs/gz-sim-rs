@@ -3,8 +3,17 @@
 # M77 installed camera preview
 
 M77 prepares an Ubuntu 24.04 x86_64 preview with 47 finite examples through M76.
-It is under development; no M77 archive, installation result or public release
-is claimed yet. The public M70 package remains unchanged with 41 examples.
+The earlier frozen `353dc9ae` package passed archive/install and finite-load
+checks, but its first camera startup failed at the web Scene visibility guard.
+That package and failure remain preserved. The current isolated correction is
+unqualified and requires fresh same-source distribution/runtime evidence;
+these commands do not assert its success. No M77 public release is claimed.
+The public M70 package remains unchanged with 41 examples.
+The next reviewed correction (`95ef6ced`) failed its one full normal in a
+wrench-test presence-query EOF assumption, before Renderer. Its frozen Source
+and logs remain preserved. This successor corrects the test helper's finite-query
+completion/timeout handling without extending deadlines or replaying real puts;
+new qualification and fresh same-source distribution remain pending.
 Use the package's manifest and release checksums to identify actual delivered
 bytes; a later source checkout does not update an installed package.
 
@@ -77,6 +86,12 @@ upstream Zenoh consumers use the same `GZ_PARTITION` and endpoint
 M74 uses the corresponding `/m74/` topics. These are canonical `gz.msgs.Image`
 and `gz.msgs.CameraInfo` streams. RGB is RGB_INT8 and depth is R_FLOAT32 axial
 depth. The browser scene does not include a camera image or depth panel.
+
+The default viewer uses an implicit all-bits mask, so the corrected Scene
+export accepts nonzero visual flags including the fixture's 4/1/2. Zero visual
+flags and transparent or unsupported materials are still refused. This does not
+change per-camera visibility selection or add a camera image panel. The changed
+Source has not yet supplied fresh installed-camera evidence.
 
 The M76 pair has independent 10 Hz RGB and 20 Hz depth rates, visibility masks,
 distinct intrinsic/projection matrices and signed metadata offsets. M74 instead

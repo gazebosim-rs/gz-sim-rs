@@ -4784,27 +4784,27 @@
       "depends_on": [
         "M76"
       ],
-      "scope": "Add M77 package generation with 47 existing finite examples, the same four roles and unchanged accepted viewer. Add explicit M77-only launcher --camera-mixed-pair requiring --camera-output and forwarding the fixed existing CLI boolean. Preserve all older generation behavior and defaults.",
-      "acceptance": "Complete Source, meaningful package/runtime regressions, guides and whole independent review before one consolidated required normal/strict cycle. Require accepted M76 and final parent reconciliation before M77 checks/build/package/install; fresh same-head four-role release/notices/archive/relocation, 47 plain finite installed loads, actual installed mixed RGB/depth and signed-skew full-frame/canonical/lifecycle proofs, separate default browser/shutdown, independent retained DATA, exact hosted/official/Main and public/Latest/preservation readbacks.",
-      "excluded": "No new simulator examples or CLI cases, viewer/web-shape/schema/renderer/worker/physics changes, SDK/native render campaign, telemetry framework, Fuel changes, camera noise/distortion/RGBD/count/resolution expansion or performance claim.",
+      "scope": "Add M77 package generation with 47 existing finite examples, the same four roles and unchanged accepted viewer. Add explicit M77-only launcher --camera-mixed-pair requiring --camera-output and forwarding the fixed existing CLI boolean. Preserve all older generation behavior and defaults. Selected blocker correction: default web Scene export accepts nonzero visual flags under its implicit all-bits mask while retaining zero/opacity/material/bounds refusals; add reviewed wrench-test loss-free/generation preconditions without changing production transport or semantic assertions. Correct finite-query FIFO EOF and exact100ms-timeout handling in the test helper; discard incomplete metadata snapshots under the original shared5s, without real command retries.",
+      "acceptance": "Complete the selected correction, meaningful regression Source, guides and independent whole Source review with batched findings before consolidated normal/strict qualification. Accepted M76 remains the prerequisite ancestor; true correction base353 is locally qualified but UNACCEPTED, not a transferred qualification or acceptance. Require fresh exact-qualified-head four-role release/notices/archive/relocation, 47 plain finite installed loads, actual installed mixed RGB/depth and signed-skew full-frame/canonical/lifecycle proofs, separate default browser/shutdown, independent retained DATA, exact hosted/official/Main and public/Latest/preservation readbacks.",
+      "excluded": "No new simulator examples, finite/CLI cases, viewer shapes/assets, schema/renderer/worker/physics changes, SDK/native render campaign, telemetry framework, Fuel changes, camera noise/distortion/RGBD/count/resolution expansion or performance claim. The bounded web Scene visibility guard correction and test-only wrench preconditions are selected; no product transport change.",
       "contract": "docs/M77_DELIVERY.md",
-      "source_preparation_basis_commit": "dddf1f4284557c420e384d263a4365b2153dfde2",
-      "source_preparation_basis_accepted": true,
+      "source_preparation_basis_commit": "353dc9ae86aac56c7653f36a933d688b43fa6fbf",
+      "source_preparation_basis_accepted": false,
       "source_preparation_under_D31": true,
       "accepted_predecessor_required_before_checks": true,
       "implementation_started": true,
       "implementation_complete": true,
-      "independent_source_review_complete": true,
+      "independent_source_review_complete": false,
       "checks_run": false,
       "accepted": false,
       "distribution_selected": true,
-      "qualification_state": "whole_Source_clear_parent_accepted_final_binding_review_pending_checks_unstarted",
-      "current_stage": "The complete 14-path Source batch and 13 new Python regression declarations passed independent whole Source review. M76 is now accepted at the unchanged dddf parent; no rebase or implementation change is needed. Final factual parent/binding review and Root release precede one consolidated M77 verification cycle. No M77 checks, installed proof or acceptance are claimed.",
+      "qualification_state": "query_completion_Source_complete_whole_review_pending_checks_unrun",
+      "current_stage": "New isolated query-completion successor over unaccepted353 copies all14 reviewed95ef paths. The one failed95ef normal retired Root/Git1 after1367.114675317s; all availableH completed with one real_canonical FIFO EOF259 failure, Renderer not reached. Current helper distinguishes healthy drainedEOF, absolute receive deadline and exact100ms Timeout incomplete snapshots; same5s and16realputs/assertions. Four localFIFO/error controls bring Sourcecensus9Rust(H9/R2/overlap2),0newPy+13retained,47finite21CLI. Current Source review pending; no current checks/formatter/runtime and head/tree/runsunknown. Old353CI1causeUNKNOWN, unchangedCI2success is separate; acceptedM76/publicLatestM70 unchanged.",
       "Source_finite_runs": 47,
       "Source_CLI_cases": 21,
       "new_Source_finite_examples": 0,
       "new_CLI_cases": 0,
-      "new_Python_Source_controls": 13,
+      "new_Python_Source_controls": 0,
       "target_installed_examples": 47,
       "currently_published_Latest": "M70",
       "currently_installed_accepted_examples": 41,
@@ -4835,17 +4835,161 @@
           "README.md",
           "AGENTS.md"
         ],
-        "Root_installed_proofs": "Operational artifacts/m77-delivery only; independent Source and retained DATA review remain mandatory."
+        "Root_installed_proofs": "Operational artifacts/m77-delivery only; independent Source and retained DATA review remain mandatory.",
+        "selected_blocker_correction": [
+          "crates/gz-sim-cli/src/web/snapshot.rs",
+          "crates/gz-sim-cli/tests/private/web_admission.rs",
+          "crates/gz-sim-server/tests/apply_link_wrench.rs",
+          "docs/M77_WRENCH_ADMISSION_CONTINGENCY.md"
+        ],
+        "selected_blocker_correction_scope": "Package collector lane: unchanged reviewed web visibility guard + two snapshot tests; wrench preconditions/three pure helpers plus finite-query EOF/timeout correction/four no-network FIFO/error tests; Root integrates and serially qualifies. Production transport, assertions and deadlines unchanged."
       },
       "source_publication": {
         "available": false,
-        "scope": "Local Source preparation only; no future M77 commit, branch or run is invented."
+        "scope": "Current uncommitted correction candidate only; no new head/tree/run is invented. Frozen353 review publication exists and is retained separately in historical_353_evidence."
       },
       "accepted_predecessor_commit": "dddf1f4284557c420e384d263a4365b2153dfde2",
       "actual_predecessor_acceptance": {
         "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/m76-acceptance.json",
         "sha256": "f5728d187664ade59eea645615d617ae3f32d69f184b3227dde2a76c59ed9511",
         "bytes": 3134
+      },
+      "new_Rust_Source_controls": 9,
+      "retained_original_M77_Python_Source_controls": 13,
+      "candidate_changed_paths": 14,
+      "candidate_commit": null,
+      "candidate_tree": null,
+      "candidate_normal_run": null,
+      "candidate_hosted_run": null,
+      "historical_353_scope": {
+        "scope": "Original scope and pre-check planning at frozen353, retained losslessly as historical Source references, never current qualification state.",
+        "source_commit": "353dc9ae86aac56c7653f36a933d688b43fa6fbf",
+        "original_phase_record_source": {
+          "repository_path": "planning/delivery-phases.json",
+          "git_ref": "353dc9ae86aac56c7653f36a933d688b43fa6fbf",
+          "phase": "M77",
+          "exact_phase_segment_sha256": "bc48109c6b5ed86a4b8841c3f99ee8557985fd59f4d649abffddf814bd0f811c",
+          "exact_phase_segment_bytes": 4564
+        },
+        "original_contract_source": {
+          "repository_path": "docs/M77_DELIVERY.md",
+          "git_ref": "353dc9ae86aac56c7653f36a933d688b43fa6fbf",
+          "sha256": "63ec2b4d4c2da33fe7c68d284055f6bc212625a40d06c565597f628d42a5b39e",
+          "bytes": 10739
+        },
+        "original_changed_paths": 14,
+        "original_new_Rust_Source_controls": 0,
+        "original_new_Python_Source_controls": 13,
+        "original_true_parent": "dddf1f4284557c420e384d263a4365b2153dfde2",
+        "original_accepted": false
+      },
+      "historical_353_evidence": {
+        "scope": "Actual original frozen353 operations only; no passes transfer to the correction candidate.",
+        "review_publication": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/review-publication.json",
+          "sha256": "1a4ac9f8e17894a1c26f01b86c9381d42e6317949d211bab5fa424901aafe64d",
+          "bytes": 2059
+        },
+        "local_normal": "actual Root/Git0, normal-actual-exit.json and final-staged-hook/result.json",
+        "local_DATA": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/independent-normal-audit-actual-exit.json",
+          "sha256": "55de3728f1c3a9e56a5f770a62845dd77a639df1f33a69c1aab0779c4f109910",
+          "bytes": 1829
+        },
+        "release": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/release-actual-exit.json",
+          "sha256": "c0c75b1536a5b3f2084ad3197939748020b9ddfd1d965b0ddf05bade10f6fc56",
+          "bytes": 3031
+        },
+        "release_DATA": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/release-audit-actual-exit.json",
+          "sha256": "81273c0001038d1b31cb4697731b8c8670ef695b5b4c785dd8ca817d5872f191",
+          "bytes": 1936
+        },
+        "package": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/assembly-actual-exit.json",
+          "sha256": "5806eb2bc123f7f221e76624a507213b3640bd5d0468e29993981f9f5801e6d2",
+          "bytes": 1470
+        },
+        "package_DATA": "independent-package-audit.json actual0 retained",
+        "two_clean_installs_47_loads": [
+          {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/clean-install-actual-exit.json",
+            "sha256": "49da2321097e3c5444af2a4df3d84ae56c14408917308b21d45919da550a2cba",
+            "bytes": 1495
+          },
+          {
+            "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/browser-clean-install-actual-exit.json",
+            "sha256": "8d7e662710f357037def8246c3516c51e0095b73b6d9a7be0310d755a6a4b99c",
+            "bytes": 1625
+          }
+        ],
+        "camera_startup_failure": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/installed-camera-attempt1-failure.json",
+          "sha256": "8bf0fb23865d92a50977782ab20b9415a5f967a77ec82a7fb62d7f17c71a4b5e",
+          "bytes": 2040
+        },
+        "hosted_attempt1_failure": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/hosted-attempt1-failure.json",
+          "sha256": "1a06f191b2fb9e58b7241385a9d4571ea3422e8f8da1af2984a22f37e6c4401e",
+          "bytes": 2241
+        },
+        "hosted_attempt1_cause": "UNKNOWN",
+        "unchanged_hosted_attempt2_initial": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/hosted-attempt2-initial.json",
+          "sha256": "e278dba55e8eab62d52716f0acd66682b4dfb1d549c7eb194aaeca0c7360203c",
+          "bytes": 12601
+        },
+        "unchanged_hosted_attempt2_state_at_correction_selection": "in_progress; no terminal outcome inferred",
+        "new_installed_camera_or_browser_pass_claimed": false,
+        "unchanged_hosted_attempt2_current_state": "SUCCESS observed by Root b86a7b4d/2452; no old353 acceptance and no new-head result transfer."
+      },
+      "source_preparation_worktree": "/home/nkoenig/work/gazebo/rust/gz-sim-m77-query-completion",
+      "Source_profile_control_census": {
+        "headless": 9,
+        "renderer": 2,
+        "overlap": 2
+      },
+      "historical_95ef_scope": {
+        "scope": "Reviewed but failed correction tree; no qualification transfer. Current files copied exactly before the new bounded helper/docs changes.",
+        "tree": "95ef6ceddd916c07516828ef8a3dcdd4a9b6c6a0",
+        "preserved_ref": "refs/qualification/m77-correction-attempt1-tree",
+        "true_parent": "353dc9ae86aac56c7653f36a933d688b43fa6fbf",
+        "original_contract_source": {
+          "repository_path": "docs/M77_DELIVERY.md",
+          "git_ref": "95ef6ceddd916c07516828ef8a3dcdd4a9b6c6a0",
+          "sha256": "30784591eeab7500f2d3fc2bae51b22104da21d855171eefaf6af2d54d24a433",
+          "bytes": 14160
+        },
+        "original_phase_record_source": {
+          "repository_path": "planning/delivery-phases.json",
+          "git_ref": "95ef6ceddd916c07516828ef8a3dcdd4a9b6c6a0",
+          "phase": "M77",
+          "exact_phase_segment_sha256": "48e35bd53dc960ff5cdccdd8312d44928c522d11d2c47a5ad02593c3283cbfb0",
+          "exact_phase_segment_bytes": 10748
+        },
+        "Source_controls": {
+          "Rust_unique": 5,
+          "Python": 0,
+          "headless": 5,
+          "renderer": 2,
+          "overlap": 2
+        },
+        "actual_normal_Root_exit": 1,
+        "actual_git_exit": 1,
+        "renderer_reached": false,
+        "failed_test": "real_canonical_inputs_preserve_pause_add_clear_validation_reset_and_shutdown",
+        "actual_failure": "recv_deadline unwrap Err(Disconnected) at apply_link_wrench.rs259",
+        "failure": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/corrected-normal-attempt1-failure.json",
+          "sha256": "ba307d775fb4d778c2d0251f10aa1579a0329c197cf7ab96fe352842401b717a",
+          "bytes": 3158
+        },
+        "actual": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m77-delivery/corrected-normal-attempt1-actual-exit.json",
+          "sha256": "a7183fa08baa6f03f8ce480941c504a014c187a72425367666020918305f0363",
+          "bytes": 1673
+        }
       }
     }
   ],

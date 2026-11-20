@@ -2,11 +2,27 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # M77 preview capabilities and limits
 
-M77 is an additive installed-preview refresh through M76, currently unqualified.
-Fresh same-source build, package, clean installation, installed camera/browser
-evidence and mandatory hosted/official gates remain required. Existing M76
-source qualification does not establish M77 package or installation acceptance.
-The public M70 payload remains its original 7094a318 generation with 41 examples.
+M77 remains unaccepted. Frozen Source `353dc9ae` passed its local normal/DATA,
+four-role build, package audit and clean installation with 47 finite loads. Its
+first installed camera operation failed at startup, before any SDK consumer:
+the web Scene exporter rejected the M76 fixture's opaque visual flags 4/1/2.
+Those results and the original hosted attempt-1 failure remain retained; they
+do not qualify the current correction candidate. The public M70 payload stays
+its original `7094a318` generation with 41 examples.
+
+The selected correction lets the default primitive viewer's implicit all-bits
+mask display nonzero visual flags. Zero flags, transparency and unsupported
+materials remain refused; camera masks retain their separate bounded policy.
+Viewer assets, protocols, GPU code and solvers stay unchanged. The same candidate
+includes reviewed wrench-harness admission preconditions, without attributing
+the earlier hosted failure to a proven cause. Complete Source review and fresh
+mandatory qualification precede any new package/runtime or acceptance claim.
+The reviewed `95ef6ced` correction's full normal attempt then failed in a new
+wrench-test FIFO EOF assumption; Renderer was not reached. This successor fixes
+that test-only finite-query contract and rejects incomplete/errored readiness
+snapshots under the original five-second bound. It has no qualifying check yet.
+The original `353dc9ae` unchanged hosted retry succeeded; neither that success
+nor the preserved failed normal establishes acceptance of this successor.
 
 ## Package and runtime
 

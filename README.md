@@ -1,29 +1,53 @@
 ## Current development: M77 installed camera preview
 
-The selected [M77 contract](docs/M77_DELIVERY.md) defines scope, leases and acceptance.
+The selected [M77 contract](docs/M77_DELIVERY.md) retains its 47-world/four-role scope.
 
-M77 prepares an additive installed preview with the existing 47 finite worlds,
-the same four binary roles and unchanged accepted viewer. The M77-only launcher
-`--camera-mixed-pair` requires `--camera-output`; defaults and older generations
-stay strict. Finite two-step loads remain plain commands without camera/server
-flags. Actual mixed RGB/depth and signed-skew trials use the explicit live flags.
+## M77 correction checkpoint: camera startup and input admission
 
-M76 is accepted at Main `dddf1f4284557c420e384d263a4365b2153dfde2`, the
-unchanged parent of this isolated successor. Its own normal/strict, local DATA,
-[exact hosted run 44681392983](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44681392983),
-independent official DATA and actual Main readbacks passed. The immutable
-acceptance receipt is retained under primary `artifacts/m76-delivery`.
-The complete 14-path M77 Source batch is independently reviewed. Final factual
-parent/binding review and Root release still precede M77 verification; no M77
-check, installed proof or distribution result is claimed.
+This isolated candidate starts at frozen `353dc9ae86aac56c7653f36a933d688b43fa6fbf`.
+That Source passed local normal/DATA, the fresh four-role build, package DATA and
+clean installation/47 finite loads. The first installed camera run then failed
+once (`8d2438` to `e5ef74`, 28.31 seconds), before any SDK peer, in
+`ubuntu-install-um5894io`: the default web snapshot guard required all-visible
+flags while the unchanged M76 fixture has opaque visuals with flags 4/1/2.
+The selected product correction admits nonzero flags under the viewer's implicit
+all-bits mask; zero visibility, transparency, unsupported materials and all
+existing snapshot bounds remain refused. Camera masking, protocols, viewer/GPU
+bytes and solvers do not change.
 
+The candidate retains the independently Source-reviewed wrench-test preconditions:
+finite Block configuration, fresh per-key presence generations, the original
+five-second deadlines and bounded polling, with every real put and assertion.
 
-M1–M76 and 202 slices remain accepted. Public Latest M70 still contains
-41 installed examples from `7094a318`; M77 targets 47 installed examples without
-adding Source worlds or CLI cases (47/21). Keep Rapier/TPE, D33 retirement, Fuel,
-all original failures, frozen trees, packages and archives intact.
+The reviewed `95ef6ced` correction then ran one full normal attempt and failed
+Root/Git 1 (`29733` to `d26f30`, 1367.114675317 seconds). All available headless
+targets finished with one failure: the wrench presence query unwrapped
+`Err(Disconnected)` at line 259. Renderer checks were not reached. The frozen
+Source, full raw packet `95ef6ced...-92rp2mvd`, receipt and failure record remain
+under primary `artifacts/m77-delivery`; no success audit or qualification follows
+from that run. This failure is a demonstrated harness EOF-contract error, distinct
+from the still UNKNOWN cause of original `353dc9ae` hosted attempt 1. The unchanged
+original-head hosted attempt 2 succeeded, without accepting that old package or
+qualifying this changed successor.
 
-Earlier current-state narratives are retained in the [qualified M76 Source](https://github.com/gazebosim-rs/gz-sim-rs/tree/dddf1f4284557c420e384d263a4365b2153dfde2) and immutable evidence under `artifacts/m76-delivery`; older checkpoints below remain historical.
+The current successor retains the exact reviewed web visibility correction and
+all original semantic puts/assertions. Pinned Zenoh finite-query completion drops
+the FIFO sender: drained/disconnected EOF is accepted only with a freshly open
+observer. `Ok(None)` remains absolute receive-deadline failure. Only the exact
+Source-defined `Timeout` payload with `Encoding::ZENOH_STRING` marks a 100 ms
+query incomplete; all partial tokens from every key in that attempt are discarded.
+Metadata queries may repeat only inside the same original five-second readiness
+deadline. Unexpected errors, encodings, duplicate timeout or post-timeout samples
+fail. No real command is replayed and no deadline is extended.
+
+Four new no-network FIFO/error regressions bring the correction census to nine
+Rust declarations (headless 9, renderer 2, overlap 2), zero new Python declarations,
+with the original M77's 13 Python cases retained. Finite/CLI inventories stay
+47/21. Current implementation/regression/docs require whole independent Source
+review; no current formatter, checks, package, native operation or publication has
+run. Its future qualified commit/tree/run remain unknown. Accepted M76 and public
+Latest M70 are unchanged. Old passes and failures remain bound to their own Source.
+
 
 ## Historical checkpoint: M75 per-camera visibility masks
 
