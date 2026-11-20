@@ -15,12 +15,14 @@ mod collision;
 mod initial;
 mod joints;
 mod mesh;
+mod posed_box;
 mod ray;
 
 pub use gz_physics::{
     BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId,
     JointPositionServo, JointState, JointVelocityMotor, MeshBodySpec, PhysicsBackend, PhysicsError,
-    PhysicsReset, PreparedPhysicsReset, RestoredPhysics, RotationSpec, Shape, install,
+    PhysicsReset, PosedBoxBodySpec, PreparedPhysicsReset, RestoredPhysics, RotationSpec, Shape,
+    install,
 };
 use std::any::Any;
 
@@ -212,6 +214,15 @@ impl RapierBackend {
 impl DynamicBackend for RapierBackend {
     fn engine(&self) -> &'static str {
         "rapier"
+    }
+
+    fn spawn_posed_box_link(
+        &mut self,
+        spec: PosedBoxBodySpec,
+        rotational: RotationSpec,
+        inertia: Option<Inertia>,
+    ) -> Result<BodyId, PhysicsError> {
+        posed_box::spawn(self, spec, rotational, inertia)
     }
 
     /// Creates one centered collider with optional explicit link inertia.

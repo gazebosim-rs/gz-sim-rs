@@ -29,6 +29,11 @@ pub use pose_publisher::{
     PoseFramePublication, PoseFrameValue, PosePublication, PoseSample, StaticPosePublication,
     StaticPoseSample,
 };
+mod velocity_control;
+pub use velocity_control::{
+    VelocityControlCommandError, VelocityControlConfiguration, set_velocity_control_command,
+    velocity_control_binding_matches, velocity_control_binding_matches_configuration,
+};
 mod diff_drive;
 pub use diff_drive::{
     DiffDriveCommandError, DiffDriveConfiguration, DiffDriveSample, diff_drive_binding_matches,
@@ -101,8 +106,8 @@ mod initial;
 mod joint_force_lifecycle;
 mod joint_lifecycle;
 pub use initial::{
-    InitialDiffDriveIdentity, InitialJointControllerIdentity, PendingResetRemoval, SceneResetError,
-    SceneResetInfo, initial_air_pressure_publications,
+    InitialDiffDriveIdentity, InitialJointControllerIdentity, InitialVelocityControlIdentity,
+    PendingResetRemoval, SceneResetError, SceneResetInfo, initial_air_pressure_publications,
     initial_air_pressure_publications_with_identity, initial_air_speed_publications,
     initial_air_speed_publications_with_identity, initial_altimeter_publications,
     initial_altimeter_publications_with_identity, initial_apply_link_wrench_configuration,
@@ -115,14 +120,15 @@ pub use initial::{
     initial_lidar_publications_with_identity, initial_logical_camera_identities,
     initial_logical_camera_publications, initial_magnetometer_publications,
     initial_magnetometer_publications_with_identity, initial_pose_publications,
-    initial_pose_publications_with_identity, reset_loaded_world,
+    initial_pose_publications_with_identity, initial_velocity_control_configurations,
+    initial_velocity_control_configurations_with_identity, reset_loaded_world,
 };
 
 use bevy_ecs::prelude::*;
 use glam::{DQuat, DVec3};
 use gz_physics::{
     BodyId, BodySpec, CollisionSpec, Inertia, MeshBodySpec, PhysicsBackend, PhysicsError,
-    PhysicsReset, PlaneSpec, RotationSpec, Shape,
+    PhysicsReset, PlaneSpec, PosedBoxBodySpec, RotationSpec, Shape,
 };
 use gz_physics_rapier::RapierBackend;
 use gz_sensors::{ImuInput, ImuReading, InvalidImuInput};
@@ -706,6 +712,7 @@ fn load_world_configured(
     if let Some(plan) = wrench_plan {
         apply_link_wrench::build(plan, &mut sim, world_entity)?;
     }
+    velocity_control::install(&mut sim);
     initial::capture(&mut sim);
     apply_link_wrench::install(&mut sim);
     Ok(sim)
@@ -776,6 +783,17 @@ fn build_model(
         )?;
     }
     let top_level = sim.world().get::<EntityKind>(parent.entity) == Some(&EntityKind::World);
+    let velocity_plan = velocity_control::parse(model)?;
+    if let Some(plan) = &velocity_plan {
+        plan.validate(
+            sdf,
+            model,
+            sim,
+            top_level,
+            parent.is_static || model.is_static,
+            sdf.pose_of(&model.scoped_name, context.world)?,
+        )?;
+    }
     let controller_plan = joint_controller::parse(model)?;
     if let Some(plan) = &controller_plan {
         plan.validate(
@@ -935,8 +953,10 @@ fn build_model(
             let local = sdf.resolve_pose(&collision.pose, &model.scoped_name, name, name)?;
             require(
                 identity(local)
-                    || (matches!(&collision.geometry, Geometry::Mesh(_))
-                        && backend.as_ref().is_some_and(|b| b.engine() == "rapier")),
+                    || (matches!(
+                        &collision.geometry,
+                        Geometry::Mesh(_) | Geometry::Box { .. }
+                    ) && backend.as_ref().is_some_and(|b| b.engine() == "rapier")),
                 name,
                 "offset collision pose",
             )?;
@@ -1065,7 +1085,26 @@ fn build_model(
                         orientation: inertial_pose.rotation,
                         tensor: link.inertial.inertia,
                     };
-                    let id = backend.spawn_link(spec, rotation, Some(inertia))?;
+                    let id = if let Shape::Box { half_extents } = spec.shape
+                        && !identity(Transform {
+                            translation: solids[0].position,
+                            rotation: solids[0].orientation,
+                        }) {
+                        backend.spawn_posed_box_link(
+                            PosedBoxBodySpec {
+                                half_extents,
+                                collision_position: solids[0].position,
+                                collision_orientation: solids[0].orientation,
+                                position: spec.position,
+                                velocity: spec.velocity,
+                                mass: spec.mass,
+                            },
+                            rotation,
+                            Some(inertia),
+                        )?
+                    } else {
+                        backend.spawn_link(spec, rotation, Some(inertia))?
+                    };
                     if !model.joints.is_empty() || (top_level && model.links.len() > 1) {
                         let group = sim
                             .world()
@@ -1405,6 +1444,9 @@ fn build_model(
         if let Some(plan) = &controller_plan {
             joint_controller::build(sim, model, model_entity, backend, plan)?;
         }
+    }
+    if let Some(plan) = &velocity_plan {
+        velocity_control::build(sim, model, model_entity, plan)?;
     }
     for child in &model.models {
         build_model(sdf, child, context, &parent, sim, backend)?;

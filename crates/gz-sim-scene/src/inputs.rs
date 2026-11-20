@@ -127,6 +127,11 @@ pub fn queue_link_world_velocity(
     sim.validate_steps(1)?;
     let values = (linear, angular);
     let (entity, _) = target(sim.world(), id, values)?;
+    if crate::velocity_control::owns_link(sim.world(), id) {
+        return Err(InputError::Unsupported(
+            "VelocityControl owns link velocity",
+        ));
+    }
     let mut pending = sim
         .world()
         .get::<PendingInput>(entity)
@@ -310,6 +315,22 @@ pub(super) fn install(sim: &mut Simulation) {
     sim.world_mut().insert_resource(InputsInstalled);
     sim.add_systems(Phase::PhysicsPrepare, apply);
     sim.add_systems(Phase::Reset, clear);
+}
+
+pub(super) fn apply_velocity(
+    world: &mut World,
+    entity: Entity,
+    linear: [f64; 3],
+    angular: [f64; 3],
+) -> Result<(), InputError> {
+    execute(
+        world,
+        entity,
+        PendingInput {
+            velocity: Some((linear, angular)),
+            wrench: None,
+        },
+    )
 }
 
 fn execute(world: &mut World, entity: Entity, input: PendingInput) -> Result<(), InputError> {

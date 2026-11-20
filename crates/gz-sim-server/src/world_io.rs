@@ -185,6 +185,10 @@ enum WorldWork {
     Magnetometer(u64, crate::magnetometer_io::MagnetometerJob),
     Odometry(u64, crate::diff_drive_io::Job),
     InstallDrive(crate::diff_drive_io::Setup, crate::diff_drive_io::Receipt),
+    InstallVelocity(
+        crate::velocity_control_io::Setup,
+        crate::velocity_control_io::Receipt,
+    ),
     InstallJointControllers(
         crate::joint_controller_io::Setup,
         crate::joint_controller_io::Receipt,
@@ -572,6 +576,11 @@ impl WorldIo {
                 let mut rates: Option<crate::rates::RateDeclarations> = None;
                 let mut forces: Option<crate::force_io::ForceDeclarations> = None;
                 let mut drive: Option<crate::diff_drive_io::Declarations> = None;
+                let mut velocity: Option<crate::velocity_control_io::Declaration> = None;
+                let mut velocity_install: Option<(
+                    crate::velocity_control_io::Setup,
+                    crate::velocity_control_io::Receipt,
+                )> = None;
                 let mut controllers: Option<crate::joint_controller_io::Declarations> = None;
                 let mut controller_install: Option<(
                     crate::joint_controller_io::Setup,
@@ -775,6 +784,29 @@ impl WorldIo {
                         declarations.reconcile(publication_session.is_closed())
                     }) {
                         drive = None;
+                    }
+                    if velocity.as_mut().is_some_and(|declaration| {
+                        declaration.reconcile(publication_session.is_closed())
+                    }) {
+                        velocity = None;
+                    }
+                    if velocity.is_none()
+                        && let Some((setup, receipt)) = velocity_install.take()
+                    {
+                        match crate::velocity_control_io::Declaration::new(
+                            &publication_session,
+                            setup,
+                            &publication_process,
+                            &publication_node,
+                        ) {
+                            Ok((declaration, lease)) => {
+                                let _ = receipt.try_send(Ok(lease));
+                                velocity = Some(declaration);
+                            }
+                            Err(error) => {
+                                let _ = receipt.try_send(Err(error.to_string()));
+                            }
+                        }
                     }
                     if controllers.as_mut().is_some_and(|declarations| {
                         declarations.reconcile(publication_session.is_closed())
@@ -1215,6 +1247,14 @@ impl WorldIo {
                                     receipt.try_send(Err("drive setup is already pending".into()));
                             }
                         }
+                        Ok(WorldWork::InstallVelocity(setup, receipt)) => {
+                            if velocity_install.is_none() {
+                                velocity_install = Some((setup, receipt));
+                            } else {
+                                let _ = receipt
+                                    .try_send(Err("velocity setup is already pending".into()));
+                            }
+                        }
                         Ok(WorldWork::InstallJointControllers(setup, receipt)) => {
                             if controller_install.is_none() {
                                 controller_install = Some((setup, receipt));
@@ -1279,6 +1319,9 @@ impl WorldIo {
                 if let Some(declarations) = &controllers {
                     declarations.begin_shutdown();
                 }
+                if let Some(declaration) = &velocity {
+                    declaration.begin_shutdown();
+                }
                 // Undeclaring an endpoint does not join an in-flight callback.
                 // Keep its capture witness on this IO owner until it is released.
                 loop {
@@ -1300,7 +1343,15 @@ impl WorldIo {
                     let controllers_done = controllers
                         .as_mut()
                         .is_none_or(|declarations| declarations.reconcile(true));
-                    if rates_done && forces_done && wrenches_done && drive_done && controllers_done
+                    let velocity_done = velocity
+                        .as_mut()
+                        .is_none_or(|declaration| declaration.reconcile(true));
+                    if rates_done
+                        && forces_done
+                        && wrenches_done
+                        && drive_done
+                        && controllers_done
+                        && velocity_done
                     {
                         break;
                     }
@@ -1655,6 +1706,30 @@ impl WorldIo {
     }
 
     // Initial construction can wait here. Reset needs a separate readiness phase.
+    pub(super) fn velocity_control_input(
+        &self,
+        setup: crate::velocity_control_io::Setup,
+    ) -> std::result::Result<Arc<crate::velocity_control_io::Lease>, crate::Error> {
+        if self.session.is_closed() {
+            return Err(crate::Error::WorldClosed);
+        }
+        if self.reserved_keys().contains(&setup.key) {
+            return Err(crate::Error::VelocityControlIdentity);
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let (receipt, ready) = mpsc::sync_channel(1);
+        self.incoming
+            .send_deadline(WorldWork::InstallVelocity(setup, receipt), deadline)
+            .map_err(|error| crate::Error::WorldNetwork(error.to_string()))?;
+        let result = ready.recv_timeout(deadline.saturating_duration_since(Instant::now()));
+        if self.session.is_closed() {
+            return Err(crate::Error::WorldClosed);
+        }
+        result
+            .map_err(|error| crate::Error::WorldNetwork(error.to_string()))?
+            .map_err(crate::Error::WorldNetwork)
+    }
+
     pub(super) fn diff_drive_outputs(
         &self,
         setup: crate::diff_drive_io::Setup,

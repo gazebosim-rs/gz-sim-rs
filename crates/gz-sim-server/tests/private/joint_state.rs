@@ -620,7 +620,8 @@ fn family_key(server: &Server, family: PublicationFamily) -> String {
         | PublicationFamily::GroundTruthOdometry
         | PublicationFamily::LinkWrench
         | PublicationFamily::JointController
-        | PublicationFamily::DiffDrive => {
+        | PublicationFamily::DiffDrive
+        | PublicationFamily::VelocityControl => {
             panic!("outside retained seven-family fixture")
         }
         PublicationFamily::Altimeter => server.altimeters[0].endpoint.clone(),
@@ -643,7 +644,8 @@ fn topic_mut(server: &mut Server, family: PublicationFamily, value: String) {
         | PublicationFamily::GroundTruthOdometry
         | PublicationFamily::LinkWrench
         | PublicationFamily::JointController
-        | PublicationFamily::DiffDrive => {
+        | PublicationFamily::DiffDrive
+        | PublicationFamily::VelocityControl => {
             panic!("outside retained seven-family fixture")
         }
         PublicationFamily::Altimeter => {
@@ -759,7 +761,8 @@ fn assert_family_refuses(
         | PublicationFamily::GroundTruthOdometry
         | PublicationFamily::LinkWrench
         | PublicationFamily::JointController
-        | PublicationFamily::DiffDrive => {
+        | PublicationFamily::DiffDrive
+        | PublicationFamily::VelocityControl => {
             panic!("outside retained seven-family fixture")
         }
         PublicationFamily::Altimeter => assert!(matches!(

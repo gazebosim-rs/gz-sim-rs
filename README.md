@@ -1,3 +1,26 @@
+## Current development: shared M78/M79 candidate
+
+[M78](docs/M78_DELIVERY.md) posed Rapier boxes and [M79](docs/M79_DELIVERY.md)
+VelocityControl share one D31 candidate over qualified but unaccepted M77
+`57b44de1`; accepted Main remains M76 `dddf1f42`. The standalone M78 full hook
+failed at its unchanged strict-headless timeout with Root/Git 1 and no commit.
+The cause remains UNKNOWN; its frozen tree and all partial evidence are retained.
+
+The merged Source obligations are 39 Rust declarations (39 headless, 21 also
+renderer), with zero new Python declarations. They are not passes. Complete
+merged Source review, fresh native component evidence/DATA and final adoption
+before one consolidated normal/strict/hosted/official cycle for both scopes.
+Neither phase has a standalone qualified successor or inherited acceptance;
+acceptance/Main still require M77's accepted-predecessor closeout and all gates.
+
+Accepted phases/slices stay 76/202, catalog 79, Source finite/CLI 47/21 and
+Latest M70's original package 41 examples. M77's manual demo stays running
+without expiry until owner confirms stop; it is not formal GUI acceptance.
+Preserve frozen trees, all history and Fuel work.
+
+The M77 sections below are historical Source checkpoints from the preparation
+parent; current scope, leases and gates are in the linked contract.
+
 ## Current development: M77 installed camera preview
 
 The selected [M77 contract](docs/M77_DELIVERY.md) retains its 47-world/four-role scope.

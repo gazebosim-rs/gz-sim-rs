@@ -17,7 +17,7 @@ fn local_activation_keeps_cached_packets_quiet_and_restores_on_both_resets() {
             engine,
         )
         .unwrap();
-        let mut server = Server::new(
+        let mut server = isolated_server(
             simulation,
             "default",
             config(),

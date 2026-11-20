@@ -306,7 +306,8 @@ fn rewind_validation_uses_zero_clock_and_checks_full_future_range() {
         &sdformat::NoResources,
     )
     .unwrap();
-    let mut huge = Server::new(sim, "default", config(), NonZeroUsize::new(2).unwrap()).unwrap();
+    let mut huge =
+        isolated_server(sim, "default", config(), NonZeroUsize::new(2).unwrap()).unwrap();
     assert!(huge.apply_control(rewind(
         WorldReset {
             all: true,
@@ -391,7 +392,7 @@ fn reset_stream_reconciliation_preserves_shared_publishers_and_retires_additions
         &sdformat::NoResources,
     )
     .unwrap();
-    let mut server = Server::new(sim, "default", cfg, NonZeroUsize::new(2).unwrap()).unwrap();
+    let mut server = isolated_server(sim, "default", cfg, NonZeroUsize::new(2).unwrap()).unwrap();
     let endpoint = Arc::clone(&server.imus[0].publisher);
     // A pending runtime-only stream is excluded from reconstructed instances.
     server.simulation.world_mut().spawn(ImuPublication {
@@ -627,7 +628,7 @@ fn shared_sdf_native_control_precedence_removal_and_reset_observations_match() {
                 count.0 += 1;
             },
         );
-        let mut server = Server::new(
+        let mut server = isolated_server(
             simulation,
             "default",
             cfg.clone(),

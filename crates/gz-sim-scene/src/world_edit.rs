@@ -264,6 +264,9 @@ pub fn set_model_state(
     state: ModelState,
 ) -> Result<ModelState, WorldEditError> {
     let target = binding(sim.world(), model_id)?;
+    if crate::velocity_control::owns_model(sim.world(), model_id) {
+        return Err(WorldEditError::UnsupportedModel);
+    }
     let pose = WorldPose {
         translation: state.translation,
         rotation: state.rotation,

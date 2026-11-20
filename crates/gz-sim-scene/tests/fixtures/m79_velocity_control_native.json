@@ -1,0 +1,270 @@
+{
+  "schema_version": 1,
+  "state": "M79_ORIGINAL_VELOCITY_CONTROL_COMPONENT_REFERENCE",
+  "modes": [
+    {
+      "mode": "defaults",
+      "initial_linear": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "initial_angular": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "observations": [
+        {
+          "milestone": "initial_pre",
+          "linear": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "angular": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "milestone": "a_first_pre",
+          "linear": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "angular": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "milestone": "a_effect",
+          "linear": [
+            1.25,
+            -2.5,
+            3.75
+          ],
+          "angular": [
+            -0.5,
+            1.0,
+            -1.5
+          ]
+        },
+        {
+          "milestone": "paused_held",
+          "linear": [
+            1.25,
+            -2.5,
+            3.75
+          ],
+          "angular": [
+            -0.5,
+            1.0,
+            -1.5
+          ]
+        },
+        {
+          "milestone": "first_resume_pre",
+          "linear": [
+            1.25,
+            -2.5,
+            3.75
+          ],
+          "angular": [
+            -0.5,
+            1.0,
+            -1.5
+          ]
+        },
+        {
+          "milestone": "zero_effect",
+          "linear": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "angular": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "milestone": "partial_before_post",
+          "linear": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "angular": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "milestone": "partial_effect",
+          "linear": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "angular": [
+            0.25,
+            -0.75,
+            1.5
+          ]
+        },
+        {
+          "milestone": "persistence",
+          "linear": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "angular": [
+            0.25,
+            -0.75,
+            1.5
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "explicit",
+      "initial_linear": [
+        0.25,
+        -0.5,
+        0.75
+      ],
+      "initial_angular": [
+        -0.125,
+        0.375,
+        -0.625
+      ],
+      "observations": [
+        {
+          "milestone": "initial_pre",
+          "linear": [
+            0.25,
+            -0.5,
+            0.75
+          ],
+          "angular": [
+            -0.125,
+            0.375,
+            -0.625
+          ]
+        },
+        {
+          "milestone": "a_first_pre",
+          "linear": [
+            0.25,
+            -0.5,
+            0.75
+          ],
+          "angular": [
+            -0.125,
+            0.375,
+            -0.625
+          ]
+        },
+        {
+          "milestone": "a_effect",
+          "linear": [
+            1.25,
+            -2.5,
+            3.75
+          ],
+          "angular": [
+            -0.5,
+            1.0,
+            -1.5
+          ]
+        },
+        {
+          "milestone": "paused_held",
+          "linear": [
+            1.25,
+            -2.5,
+            3.75
+          ],
+          "angular": [
+            -0.5,
+            1.0,
+            -1.5
+          ]
+        },
+        {
+          "milestone": "first_resume_pre",
+          "linear": [
+            1.25,
+            -2.5,
+            3.75
+          ],
+          "angular": [
+            -0.5,
+            1.0,
+            -1.5
+          ]
+        },
+        {
+          "milestone": "zero_effect",
+          "linear": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "angular": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "milestone": "partial_before_post",
+          "linear": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "angular": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "milestone": "partial_effect",
+          "linear": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "angular": [
+            0.25,
+            -0.75,
+            1.5
+          ]
+        },
+        {
+          "milestone": "persistence",
+          "linear": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "angular": [
+            0.25,
+            -0.75,
+            1.5
+          ]
+        }
+      ]
+    }
+  ]
+}

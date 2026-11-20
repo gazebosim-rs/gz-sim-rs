@@ -4,6 +4,31 @@ use super::*;
 use crate::Shape;
 
 #[test]
+fn default_posed_box_refuses_before_numeric_admission_without_mutation() {
+    let mut backend = Recorder::default();
+    for invalid in [false, true] {
+        let spec = PosedBoxBodySpec {
+            half_extents: if invalid { [f64::NAN; 3] } else { [0.5; 3] },
+            collision_position: [1.0, -2.0, 3.0],
+            collision_orientation: [0.0, 0.0, 0.0, 1.0],
+            position: [0.0; 3],
+            velocity: [0.0; 3],
+            mass: Some(1.0),
+        };
+        assert_eq!(
+            backend.spawn_posed_box_link(spec, RotationSpec::default(), None),
+            Err(PhysicsError::Unsupported {
+                engine: "recorder",
+                capability: "posed box link collision",
+            })
+        );
+    }
+    assert!(backend.steps.is_empty());
+    assert_eq!(backend.resets, 0);
+    assert!(!backend.fail);
+}
+
+#[test]
 fn default_body_state_edits_refuse_before_id_or_numeric_validation() {
     let mut backend = Recorder::default();
     let error = PhysicsError::Unsupported {

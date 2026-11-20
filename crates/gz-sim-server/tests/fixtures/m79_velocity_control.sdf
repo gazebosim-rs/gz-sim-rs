@@ -1,0 +1,4 @@
+<sdf version='1.12'><world name='default'><gravity>0 0 0</gravity><physics name='p' type='ignored'><max_step_size>0.001</max_step_size></physics>
+<model name='rig'><link name='body'><inertial><mass>2</mass><inertia><ixx>2</ixx><iyy>2</iyy><izz>2</izz></inertia></inertial><collision name='c'><geometry><box><size>1 1 1</size></box></geometry></collision></link>
+<plugin filename='gz-sim-velocity-control-system' name='gz::sim::systems::VelocityControl'><topic>/m79/cmd</topic><initial_linear>0.25 0 0</initial_linear><initial_angular>0 0 0</initial_angular></plugin></model>
+<model name='survivor'><pose>20 0 0 0 0 0</pose><link name='body'><collision name='c'><geometry><sphere><radius>0.25</radius></sphere></geometry></collision></link></model></world></sdf>

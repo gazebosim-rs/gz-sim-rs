@@ -34,6 +34,8 @@ mod poses;
 mod rates;
 mod removals;
 mod reset;
+mod velocity_control;
+mod velocity_control_io;
 mod world_io;
 
 pub use options::{ServerOptions, SetupError, as_valid_topic};
@@ -131,6 +133,8 @@ pub enum Error {
     DiffDriveIdentity,
     #[error("reset handler changed the prepared DiffDrive configuration")]
     ResetDiffDrive,
+    #[error("velocity control lacks its original singleton identity, configuration or endpoint")]
+    VelocityControlIdentity,
     #[error(
         "joint controller lacks its original typed joint identity, metadata or physics binding"
     )]
@@ -232,6 +236,9 @@ pub struct Counters {
     pub force_messages_rejected: u64,
     /// Successful persistent-command updates, including shared endpoint fanout.
     pub joint_forces_applied: u64,
+    pub velocity_control_messages_received: u64,
+    pub velocity_control_messages_rejected: u64,
+    pub velocity_control_commands_pending: u64,
     pub diff_drive_messages_received: u64,
     pub diff_drive_messages_rejected: u64,
     pub diff_drive_commands_applied: u64,
@@ -254,24 +261,6 @@ struct ImuStream {
 
 /// Resolve the shared world, input and service families before sensor declarations.
 /// Include loaded metadata so a removed original cannot collide when reset restores it.
-fn sensor_reserved_keys(
-    simulation: &Simulation,
-    io: &world_io::WorldIo,
-    config: &ServerOptions,
-) -> Result<BTreeSet<String>, Error> {
-    sensor_reserved_keys_with_lidars(simulation, io, config, true)
-}
-
-// Lidar admission must reserve every peer family without reserving itself.
-fn sensor_reserved_keys_with_lidars(
-    simulation: &Simulation,
-    io: &world_io::WorldIo,
-    config: &ServerOptions,
-    include_lidars: bool,
-) -> Result<BTreeSet<String>, Error> {
-    sensor_reserved_keys_with_peer_inputs(simulation, io, config, include_lidars, true)
-}
-
 fn sensor_reserved_keys_with_peer_inputs(
     simulation: &Simulation,
     io: &world_io::WorldIo,
@@ -279,7 +268,21 @@ fn sensor_reserved_keys_with_peer_inputs(
     include_lidars: bool,
     include_legacy_peer_inputs: bool,
 ) -> Result<BTreeSet<String>, Error> {
-    let mut keys = io.reserved_keys();
+    sensor_reserved_keys_from_base(
+        simulation,
+        config,
+        include_lidars,
+        include_legacy_peer_inputs,
+        io.reserved_keys(),
+    )
+}
+fn sensor_reserved_keys_from_base(
+    simulation: &Simulation,
+    config: &ServerOptions,
+    include_lidars: bool,
+    include_legacy_peer_inputs: bool,
+    mut keys: BTreeSet<String>,
+) -> Result<BTreeSet<String>, Error> {
     keys.insert(config.topic_key("/clock")?);
     let imu = |keys: &mut BTreeSet<String>, metadata: &ImuPublication| -> Result<(), Error> {
         let topic = options::as_valid_topic(&metadata.topic);
@@ -377,6 +380,7 @@ enum PublicationFamily {
     JointState,
     JointController,
     DiffDrive,
+    VelocityControl,
 }
 // Current and loaded-original roles are both reserved. Identical restored/live
 // roles may repeat, but another owner/channel/raw topic may not alias their key.
@@ -666,11 +670,19 @@ fn typed_reserved_keys(
     config: &ServerOptions,
     own: PublicationFamily,
 ) -> Result<BTreeSet<String>, Error> {
+    typed_reserved_keys_from_base(simulation, config, own, io.reserved_keys())
+}
+fn typed_reserved_keys_from_base(
+    simulation: &Simulation,
+    config: &ServerOptions,
+    own: PublicationFamily,
+    base: BTreeSet<String>,
+) -> Result<BTreeSet<String>, Error> {
     let mut keys = if own == PublicationFamily::Lidar {
-        sensor_reserved_keys_with_lidars(simulation, io, config, false)?
+        sensor_reserved_keys_from_base(simulation, config, false, true, base)?
     } else if own == PublicationFamily::JointController {
         // Exclude this input family without dropping the other legacy inputs.
-        let mut keys = sensor_reserved_keys_with_peer_inputs(simulation, io, config, true, false)?;
+        let mut keys = sensor_reserved_keys_from_base(simulation, config, true, false, base)?;
         let mut drive = |metadata: &gz_sim_scene::DiffDriveConfiguration| -> Result<(), Error> {
             keys.insert(config.topic_key(&metadata.topic)?);
             keys.insert(config.topic_key(&metadata.odom_topic)?);
@@ -695,7 +707,7 @@ fn typed_reserved_keys(
         keys
     } else if own == PublicationFamily::DiffDrive {
         // Exclude only drive channels; current and original controllers still reserve theirs.
-        let mut keys = sensor_reserved_keys_with_peer_inputs(simulation, io, config, true, false)?;
+        let mut keys = sensor_reserved_keys_from_base(simulation, config, true, false, base)?;
         for entity in simulation.world().iter_entities() {
             if !entity.contains::<gz_sim_scene::PendingResetRemoval>()
                 && let Some(metadata) = entity.get::<gz_sim_scene::JointControllerConfiguration>()
@@ -714,8 +726,11 @@ fn typed_reserved_keys(
         }
         keys
     } else {
-        sensor_reserved_keys(simulation, io, config)?
+        sensor_reserved_keys_from_base(simulation, config, true, true, base)?
     };
+    if own != PublicationFamily::VelocityControl {
+        keys.extend(velocity_control::reserved_keys(simulation, config)?);
+    }
     for entity in simulation.world().iter_entities() {
         if entity.contains::<gz_sim_scene::PendingResetRemoval>() {
             continue;
@@ -1323,6 +1338,7 @@ pub struct Server {
     rates: Option<rates::Rates>,
     forces: Option<forces::Forces>,
     diff_drive: Option<diff_drive::Drives>,
+    velocity_control: Option<velocity_control::Controller>,
     joint_controllers: Option<joint_controllers::Controllers>,
     command_budget: NonZeroUsize,
     pending_steps: u64,
@@ -1486,6 +1502,7 @@ impl Server {
         let partition = config.partition.clone();
         let namespace = config.namespace.clone();
         config.validate()?;
+        velocity_control::before_network(&simulation, &world_name, &config)?;
         let configured = simulation.world().iter_entities().any(|entity| {
             entity.get::<gz_sim_scene::EntityKind>() == Some(&gz_sim_scene::EntityKind::World)
                 && entity.contains::<gz_sim_scene::RenderingSensorsConfiguration>()
@@ -1646,6 +1663,7 @@ impl Server {
         let controller_metadata = joint_controllers::preflight(&simulation, &world_io, &config)?;
         validate_diff_drive_peer_topics(&simulation, &world_io, &config, None)?;
         let drive_metadata = diff_drive::preflight(&simulation, &world_io, &config)?;
+        velocity_control::preflight(&simulation, &world_io, &config)?;
         let mut imus = Vec::new();
         let mut imu_publishers: BTreeMap<String, Weak<world_io::ImuOutput>> = BTreeMap::new();
         for entity in simulation.world().iter_entities() {
@@ -1703,6 +1721,7 @@ impl Server {
         world_io.install_forces(force_setup)?;
         let forces = forces.into_active();
         let diff_drive = diff_drive::prepare(&simulation, &world_io, &config, &drive_metadata)?;
+        let velocity_control = velocity_control::prepare(&simulation, &world_io, &config)?;
         let joint_controllers =
             joint_controllers::prepare(&simulation, &world_io, &config, &controller_metadata)?;
         let altimeters = if simulation
@@ -1819,6 +1838,7 @@ impl Server {
             rates,
             forces,
             diff_drive,
+            velocity_control,
             joint_controllers,
             command_budget,
             pending_steps: 0,
@@ -2136,6 +2156,9 @@ impl Server {
         }
         self.reconcile_joint_controllers()?;
         self.reconcile_diff_drive()?;
+        if self.velocity_control.is_some() {
+            self.poll_velocity_control()?;
+        }
         self.simulation.validate_steps(0)?;
         if self.prepared_reset.is_none() {
             self.validate_steps(u64::from(!self.simulation.is_paused()))?;
@@ -2272,6 +2295,7 @@ impl Server {
             }
         }
         self.retire_diff_drive();
+        self.retire_velocity_control();
         if let Some(rates) = &mut self.rates {
             rates.retire(&self.simulation);
             if rates.is_empty() {
@@ -2551,6 +2575,7 @@ impl Server {
         self.magnetometers = Vec::new();
         self.joint_states = Vec::new();
         self.diff_drive = None;
+        self.velocity_control = None;
         self.joint_controllers = None;
         self.world_io.shutdown();
     }

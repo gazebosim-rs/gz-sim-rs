@@ -72,6 +72,8 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
                 .contains_resource::<crate::odometry_publisher::Installed>(),
             sim.world()
                 .contains_resource::<crate::apply_link_wrench::Installed>(),
+            sim.world()
+                .contains_resource::<crate::velocity_control::Installed>(),
         ];
         crate::imu_lifecycle::retire_if_unused(sim)?;
         crate::lidar::retire_if_unused(sim)?;
@@ -84,6 +86,7 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
         crate::pose_publisher::retire_if_unused(sim)?;
         crate::odometry_publisher::retire_if_unused(sim)?;
         crate::apply_link_wrench::retire_if_unused(sim)?;
+        crate::velocity_control::retire_if_unused(sim)?;
         crate::diff_drive::retire_if_unused(sim)?;
         crate::joint_controller::retire_if_unused(sim)?;
         crate::joint_lifecycle::retire_if_unused(sim)?;
@@ -118,6 +121,8 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
                 .contains_resource::<crate::odometry_publisher::Installed>(),
             sim.world()
                 .contains_resource::<crate::apply_link_wrench::Installed>(),
+            sim.world()
+                .contains_resource::<crate::velocity_control::Installed>(),
         ];
         if before == after {
             if sim.world().iter_entities().any(|entity| {
@@ -135,6 +140,7 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
                     || !after[11] && entity.contains::<crate::pose_publisher::Publisher>()
                     || !after[12] && entity.contains::<crate::logical_camera::LogicalCamera>()
                     || !after[13] && entity.contains::<crate::odometry_publisher::Publisher>()
+                    || !after[15] && entity.contains::<crate::velocity_control::Controller>()
             }) || !after[14] && crate::apply_link_wrench::needs_activation(sim.world())
             {
                 return Err(SystemRetirementError::AddedConsumer);
@@ -142,7 +148,7 @@ pub(super) fn retire_unused_systems(sim: &mut Simulation) -> Result<(), SystemRe
             return Ok(());
         }
         // A schedule build may remove another family's last consumer.
-        // Markers only retire here, so at most fifteen rounds can change them.
+        // Markers only retire here, so at most sixteen rounds can change them.
     }
 }
 

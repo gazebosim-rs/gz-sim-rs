@@ -53,6 +53,8 @@ struct Node {
     joint: Option<JointHandle>,
     joint_definition: Option<JointDefinition>,
     joint_force: Option<JointForceConfiguration>,
+    velocity_control: Option<crate::velocity_control::Controller>,
+    velocity_configuration: Option<VelocityControlConfiguration>,
     drive: Option<crate::diff_drive::Drive>,
     controller: Option<crate::joint_controller::Controller>,
     controller_configuration: Option<JointControllerConfiguration>,
@@ -113,6 +115,33 @@ pub(super) struct InitialScene(Arc<Blueprint>);
 impl InitialScene {
     pub(super) fn owns_backend(&self, backend: &PhysicsBackend) -> bool {
         matches!(&self.0.physics, InitialPhysics::Dynamic(initial) if backend.owns_initial_state(initial))
+    }
+
+    pub(super) fn velocity_control_identities(
+        &self,
+    ) -> impl Iterator<Item = InitialVelocityControlIdentity<'_>> {
+        self.0.nodes.iter().filter_map(|node| {
+            node.velocity_configuration.as_ref().map(|configuration| {
+                InitialVelocityControlIdentity {
+                    id: node.id.get(),
+                    kind: node.kind,
+                    name: node.name.as_str(),
+                    parent: node.parent,
+                    configuration,
+                }
+            })
+        })
+    }
+    pub(super) fn velocity_control_blueprint(
+        &self,
+        id: u64,
+    ) -> Option<&crate::velocity_control::Controller> {
+        self.0
+            .nodes
+            .iter()
+            .find(|n| n.id.get() == id)?
+            .velocity_control
+            .as_ref()
     }
 
     pub(super) fn diff_drive_identities(
@@ -242,6 +271,8 @@ pub(super) fn capture(sim: &mut Simulation) {
             joint: entity.get::<JointHandle>().copied(),
             joint_definition: entity.get::<JointDefinition>().cloned(),
             joint_force: entity.get::<JointForceConfiguration>().cloned(),
+            velocity_control: entity.get::<crate::velocity_control::Controller>().cloned(),
+            velocity_configuration: entity.get::<VelocityControlConfiguration>().cloned(),
             drive: entity.get::<crate::diff_drive::Drive>().cloned(),
             controller: entity.get::<crate::joint_controller::Controller>().cloned(),
             controller_configuration: entity.get::<JointControllerConfiguration>().cloned(),
@@ -322,6 +353,40 @@ pub fn initial_joint_force_configurations(
             .as_ref()
             .map(|configuration| (node.id.get(), configuration))
     }))
+}
+
+/// Original immutable model identity, retained after loaded owner removal.
+#[derive(Clone, Copy, Debug)]
+pub struct InitialVelocityControlIdentity<'a> {
+    pub id: u64,
+    pub kind: EntityKind,
+    pub name: &'a str,
+    pub parent: Option<u64>,
+    pub configuration: &'a VelocityControlConfiguration,
+}
+
+/// Original configurations; absence differs from missing loaded-scene state.
+pub fn initial_velocity_control_configurations(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = (u64, &VelocityControlConfiguration)>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial
+        .velocity_control_identities()
+        .map(|row| (row.id, row.configuration)))
+}
+
+/// Read original model identity and configuration, including removed owners.
+pub fn initial_velocity_control_configurations_with_identity(
+    sim: &Simulation,
+) -> Result<impl Iterator<Item = InitialVelocityControlIdentity<'_>>, SceneResetError> {
+    let initial = sim
+        .world()
+        .get_resource::<InitialScene>()
+        .ok_or(SceneResetError::MissingInitialState)?;
+    Ok(initial.velocity_control_identities())
 }
 
 /// Original loaded drive identity, borrowed from the immutable reset blueprint.
@@ -885,6 +950,12 @@ pub fn reset_loaded_world<R>(
         if let Some(configuration) = &node.controller_configuration {
             entity.insert(configuration.clone());
         }
+        if let Some(controller) = &node.velocity_control {
+            entity.insert(controller.clone());
+        }
+        if let Some(configuration) = &node.velocity_configuration {
+            entity.insert(configuration.clone());
+        }
         if let Some(drive) = &node.drive {
             entity.insert(drive.clone());
         }
@@ -1049,6 +1120,7 @@ pub fn reset_loaded_world<R>(
     crate::magnetometer::install(sim);
     crate::joint_lifecycle::install(sim);
     crate::joint_force_lifecycle::install(sim);
+    crate::velocity_control::install(sim);
     crate::diff_drive::install(sim);
     crate::joint_controller::install(sim);
     crate::joint_state_publisher::install(sim);

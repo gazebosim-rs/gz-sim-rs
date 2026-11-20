@@ -128,3 +128,24 @@ choices within scope do not require repeated approval.
 
 Do not leave a blocking product choice hidden in an agent's local notes. Record
 it here, continue independent work, and keep dependent tasks visibly blocked.
+
+## M79 execution selection (2026-11-20)
+
+Explicit owner continuation selects [M79 VelocityControl](M79_DELIVERY.md) under
+D30–D32: at most one top-level dynamic single-link model, identity link pose and
+centered inertia, using existing Rapier/TPE world-velocity APIs. Only the explicit
+upstream plugin activates this path; no pose/state setter, fabricated motion or
+shortcut for demos/DiffDrive is authorized. Preserve native model-frame and
+previous-latch timing, bounded ingress and exclusive velocity ownership.
+
+Root selected one complete M78/M79 candidate under D31 over qualified but
+unaccepted57 after M78's standalone strict-headless hook timed out with Root/Git1.
+Cause remains UNKNOWN; its frozen tree/partials stay preserved and there is no
+qualified intermediate M78 commit. The combined candidate must independently
+prove both bounded scopes with fresh Source review, native evidence and one
+unchanged full normal/strict/hosted/official chain. M77 predecessor acceptance
+and qualified Main remain mandatory before either downstream acceptance.
+Bounded native-component evidence is separate from full-manager reset or
+physics parity; unknown callback timing remains unknown. Root serially releases
+heavy operations after complete merged Source review. No result transfers;
+D33 remains in force.

@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! The contract implemented by the Rapier dynamic engine adapter.
 
-use crate::{BodySpec, BodyState, Inertia, MeshBodySpec, PlaneSpec, RotationSpec};
+use crate::{
+    BodySpec, BodyState, Inertia, MeshBodySpec, PlaneSpec, PosedBoxBodySpec, RotationSpec,
+};
 use bevy_ecs::prelude::*;
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo};
 use std::{any::Any, sync::Arc, time::Duration};
@@ -178,6 +180,21 @@ pub trait DynamicBackend: Send + Sync + 'static {
         Err(PhysicsError::Unsupported {
             engine: self.engine(),
             capability: "mesh link collision",
+        })
+    }
+
+    /// Creates one link-local translated/rotated box without shifting the link frame.
+    /// Rapier requires explicit centered inertia for dynamic boxes, and refuses any
+    /// supplied nonzero inertial center. Unsupported engines refuse before validation.
+    fn spawn_posed_box_link(
+        &mut self,
+        _spec: PosedBoxBodySpec,
+        _rotation: RotationSpec,
+        _inertia: Option<Inertia>,
+    ) -> Result<BodyId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "posed box link collision",
         })
     }
 

@@ -41,6 +41,7 @@ impl Server {
             Some(self),
         )?;
         let drive_metadata = diff_drive::prepare_reset(self)?;
+        velocity_control::preflight(&self.simulation, &self.world_io, &self.network_config)?;
         // Reserve missing endpoints before changing the scene. Live shared leases survive.
         let existing: BTreeMap<_, _> = self
             .imus
@@ -194,6 +195,7 @@ impl Server {
         )?;
         let link_wrenches = &mut self.link_wrenches;
         let drive = &mut self.diff_drive;
+        let velocity = &mut self.velocity_control;
         let controllers = &mut self.joint_controllers;
         let rates = &mut self.rates;
         let forces = &mut self.forces;
@@ -229,6 +231,9 @@ impl Server {
                 &streams,
                 Some(&lidar_publishers),
             )?;
+            // Discard the old command queue and lease before exposing restored IDs.
+            *velocity = None;
+            *velocity = velocity_control::prepare(sim, &self.world_io, &self.network_config)?;
             // Old command receivers and weak odometry jobs cannot enter the next epoch.
             *drive = None;
             *drive = diff_drive::prepare_restored(
@@ -441,6 +446,7 @@ impl Server {
                 self.rates = None;
                 self.forces = None;
                 self.diff_drive = None;
+                self.velocity_control = None;
                 self.joint_controllers = None;
                 self.removals
                     .cancel_for_reset(&self.world_io, &mut self.counters);
@@ -485,6 +491,7 @@ impl Server {
                 self.rates = None;
                 self.forces = None;
                 self.diff_drive = None;
+                self.velocity_control = None;
                 self.joint_controllers = None;
                 return Err(error);
             }

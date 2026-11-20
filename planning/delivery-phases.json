@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-20T06:27:09.054047+00:00",
+  "as_of": "2026-11-20T15:52:44.565086+00:00",
   "execution_state": "active",
-  "current_phase": "M77",
+  "current_phase": "M79",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -917,7 +917,7 @@
       "depends_on": [
         "M49"
       ],
-      "scope": "M50 complete provisional normal and independent retained local DATA passed at clean local commit 623faca6 over unaccepted M49. The normal hook took 2096.578 seconds. Actual profile passes are 1809 headless and 1075 renderer with overlap, not a distinct summed test count. All 403 aggregate Python tests, 24 finite examples and every strict workspace, per-crate and actual-parent coverage gate passed. Sixteen new headless and nine new renderer controls, 245/144 retained controls, 121 cleanup obligations, the separately strengthened existing pressure control in both profiles and two headless wrench controls were bound. Changed Scene lines are 16/16 in both profiles; Server is 110/112 headless, not 100 percent. Four fresh final raw comparisons ran once and matched byte for byte: 1813/392/38/33 profiles. The original wrench normal failure remains failed with its cause unknown; both reader-method failures are preserved, and no product/native workload was rerun for their correction. This is local qualification only. Actual accepted predecessor, exact hosted success, independent official DATA and ordinary Main/readbacks still govern publication and acceptance.  Earlier checkpoint: M50 corrected full normal completed with actual Root exit zero in 2096.578 seconds at clean local revision 623faca6, over unaccepted qualified M49. Independent retained local DATA is still pending. Its first two readers stopped before raw comparisons at historical-control binding and cross-harness test-name assertions; these are reader-method failures, not new product-test failures. The reviewed correction must preserve one actual pass per exact Cargo harness, all global test/coverage obligations and raw-last ordering. No simulator or native workload is repeated for reader corrections. The original normal failure remains failed with its timeout cause unknown. Numerical quality remains prior qualified M49 until the new DATA audit passes.  Earlier checkpoint: M50 test-only wrench diagnostic/readiness correction is reviewed and its full normal retry is running. Five-second deadlines, payloads, assertions, thread settings, production code and native/literal fixtures remain unchanged. First failed originals are retained; the precise failed wait and cause remain unknown. No M50 full-profile, strict coverage or local DATA pass is claimed before the actual result and audit.  Earlier failed checkpoint: M50 first complete normal attempt failed after 1622.437 seconds at one existing Server wrench-admission test: a generic five-second wait deadline. The precise wait and underlying cause remain unknown; no M50 causal link is established. Both lint stages, 403 aggregate Python tests and separate native-free/RGB/24-finite-example reports completed earlier; new pressure numeric42 and wire42 controls emitted ok in headless, but the full headless profile, renderer, final strict coverage and local DATA are not qualified. The failed tree and original logs are retained. The available Source batch found missing phase/counter diagnostics and incomplete post-reset three-publisher readiness coverage. A bounded test-only correction is under review; deadlines, assertions, production code, native/literal evidence and all mandatory gates remain unchanged. No automatic or separate target retry is released. Quality metrics remain actual locally qualified M49; M1–M42 accepted and M40 Latest are unchanged. Earlier checkpoint: M50 original-System capture and independent native/literal DATA passed actual Root zero: 12 configurations, 441 actual sensor WORLD-pose inputs, 42 received pressure/variance packets and 399 inputs without a matching packet. The 104 calls are summary/method attestations, not individual raw call records. Reference altitude stays zero; no initial-height subtraction, native Physics or RNG/demand equivalence is supplied. The immutable fixture/provenance are integrated; observed numeric/full-wire consumers and final complete Source/Rust/full-normal/strict coverage/local DATA remain pending. M1–M42 accepted, M40 Latest; no acceptance or hosted evidence is transferred. Earlier capture checkpoint: One fresh reviewed originalAirPressureSystem capture actuallyRoot0 in23.920s/all33childstages0,3modes12configs441WORLDposeinputs42receivedpackets/104helper-summarymethod-attestedSystemcalls. Existing349+separate2+exactpressureSensor+retainedSystemprovider guards held; no SDK/provider rebuild. Independentnative/literalDATA, observedconsumers and allRust/normal/coverage/hosted/official/Main gates pending. EarlierSourcecheckpoint follows: Complete Scene and Server/reference five/three-leaf implementation/regression/helper/peer Source plus Rootborrowedidentityquery are integrated with independentwholeSourceCLEAR. Rootfinite24/registry/bothverifierset/PythonSourceauthoredpendingfinalSourceintegrationreview; no M50 checks/execution. PressureSensor-specificDSOoutsidecurrent349requiresseparateexactidentity/alias/dependencydiagnosticreview beforecapture; no SDK/provider rebuild, inventory relaxation or native data placeholder. Earlierselection follows: Zero through eight otherwise-supported loaded Rapier pressure sensors, distinct fully resolved endpoints, independent schedules/noise/demand/lifetimes, whole-set identity/metadata/endpoint/prepared reset validation before IO. Preserve reference_altitude0 and existing M22 pressure/variance conventions. Contract/Source preparation over exact locally qualified unaccepted4ccd; no M50 execution or result.",
+      "scope": "M50 complete provisional normal and independent retained local DATA passed at clean local commit 623faca6 over unaccepted M49. The normal hook took 2096.578 seconds. Actual profile passes are 1809 headless and 1075 renderer with overlap, not a distinct summed test count. All 403 aggregate Python tests, 24 finite examples and every strict workspace, per-crate and actual-parent coverage gate passed. Sixteen new headless and nine new renderer controls, 245/144 retained controls, 121 cleanup obligations, the separately strengthened existing pressure control in both profiles and two headless wrench controls were bound. Changed Scene lines are 16/16 in both profiles; Server is 110/112 headless, not 100 percent. Four fresh final raw comparisons ran once and matched byte for byte: 1813/392/38/33 profiles. The original wrench normal failure remains failed with its cause unknown; both reader-method failures are preserved, and no product/native workload was rerun for their correction. This is local qualification only. Actual accepted predecessor, exact hosted success, independent official DATA and ordinary Main/readbacks still govern publication and acceptance.  Earlier checkpoint: M50 corrected full normal completed with actual Root exit zero in 2096.578 seconds at clean local revision 623faca6, over unaccepted qualified M49. Independent retained local DATA is still pending. Its first two readers stopped before raw comparisons at historical-control binding and cross-harness test-name assertions; these are reader-method failures, not new product-test failures. The reviewed correction must preserve one actual pass per exact Cargo harness, all global test/coverage obligations and raw-last ordering. No simulator or native workload is repeated for reader corrections. The original normal failure remains failed with its timeout cause unknown. Numerical quality remains prior qualified M49 until the new DATA audit passes.  Earlier checkpoint: M50 test-only wrench diagnostic/readiness correction is reviewed and its full normal retry is running. Five-second deadlines, payloads, assertions, thread settings, production code and native/literal fixtures remain unchanged. First failed originals are retained; the precise failed wait and cause remain unknown. No M50 full-profile, strict coverage or local DATA pass is claimed before the actual result and audit.  Earlier failed checkpoint: M50 first complete normal attempt failed after 1622.437 seconds at one existing Server wrench-admission test: a generic five-second wait deadline. The precise wait and underlying cause remain unknown; no M50 causal link is established. Both lint stages, 403 aggregate Python tests and separate native-free/RGB/24-finite-example reports completed earlier; new pressure numeric42 and wire42 controls emitted ok in headless, but the full headless profile, renderer, final strict coverage and local DATA are not qualified. The failed tree and original logs are retained. The available Source batch found missing phase/counter diagnostics and incomplete post-reset three-publisher readiness coverage. A bounded test-only correction is under review; deadlines, assertions, production code, native/literal evidence and all mandatory gates remain unchanged. No automatic or separate target retry is released. Quality metrics remain actual locally qualified M49; M1\u2013M42 accepted and M40 Latest are unchanged. Earlier checkpoint: M50 original-System capture and independent native/literal DATA passed actual Root zero: 12 configurations, 441 actual sensor WORLD-pose inputs, 42 received pressure/variance packets and 399 inputs without a matching packet. The 104 calls are summary/method attestations, not individual raw call records. Reference altitude stays zero; no initial-height subtraction, native Physics or RNG/demand equivalence is supplied. The immutable fixture/provenance are integrated; observed numeric/full-wire consumers and final complete Source/Rust/full-normal/strict coverage/local DATA remain pending. M1\u2013M42 accepted, M40 Latest; no acceptance or hosted evidence is transferred. Earlier capture checkpoint: One fresh reviewed originalAirPressureSystem capture actuallyRoot0 in23.920s/all33childstages0,3modes12configs441WORLDposeinputs42receivedpackets/104helper-summarymethod-attestedSystemcalls. Existing349+separate2+exactpressureSensor+retainedSystemprovider guards held; no SDK/provider rebuild. Independentnative/literalDATA, observedconsumers and allRust/normal/coverage/hosted/official/Main gates pending. EarlierSourcecheckpoint follows: Complete Scene and Server/reference five/three-leaf implementation/regression/helper/peer Source plus Rootborrowedidentityquery are integrated with independentwholeSourceCLEAR. Rootfinite24/registry/bothverifierset/PythonSourceauthoredpendingfinalSourceintegrationreview; no M50 checks/execution. PressureSensor-specificDSOoutsidecurrent349requiresseparateexactidentity/alias/dependencydiagnosticreview beforecapture; no SDK/provider rebuild, inventory relaxation or native data placeholder. Earlierselection follows: Zero through eight otherwise-supported loaded Rapier pressure sensors, distinct fully resolved endpoints, independent schedules/noise/demand/lifetimes, whole-set identity/metadata/endpoint/prepared reset validation before IO. Preserve reference_altitude0 and existing M22 pressure/variance conventions. Contract/Source preparation over exact locally qualified unaccepted4ccd; no M50 execution or result.",
       "acceptance": "Independently reviewed contract and complete implementation/regression/guides; one fresh original-System multiplicity reference plus actual independent native/literal DATA and observed numeric/fullwire consumers; live canonical pair/eight/motion/noise/demand/reset/removal/refusal controls;24th finite example; full unchanged normal/strict actual-parent coverage and independent local DATA. Accepted predecessor/exact hosted/official/Main before publication or acceptance.",
       "excluded": "Shared endpoints, new pressure/reference/atmosphere/geodesy/noise domains, runtime setters, new framework/dependencies/schema/backend/physics/renderer/package/browser/Fuel changes, native RNG parity, SDK/provider rebuild, CI workaround and acceptance transfer.",
       "evidence": "docs/M50_DELIVERY.md",
@@ -944,7 +944,7 @@
       "depends_on": [
         "M50"
       ],
-      "scope": "M51 full provisional normal and independent retained local DATA passed at clean local commit ea921f58 over qualified but unaccepted M50 623faca6. The normal hook took 2100.564 seconds. Actual profile passes are 1828 headless and 1085 renderer with overlap, not a summed distinct count; 403 aggregate Python tests and 25 finite examples passed. All strict workspace, per-crate and actual-parent coverage gates passed. Seventeen new headless and ten new renderer controls, 261/153 retained controls, 121 cleanup obligations, the separately strengthened existing AirSpeed control and prior pressure/altimeter controls in both profiles, and two headless wrench controls were bound. Changed Scene coverage is 18/18 in both profiles; Server is 112/114 headless, not 100 percent. Four final raw comparisons ran once and matched byte for byte: 1815/393/39/33 profiles. Three failed normal attempts remain failed and retained. No native or product workload was repeated for this audit. M52 independent magnetometer source development is running in disjoint lanes; its future integration parent still requires explicit overlap review. M1–M42 acceptance, all 175 accepted slices and M40 Latest remain unchanged. Actual accepted predecessor, exact hosted/official qualification and ordinary Main/readbacks remain mandatory; no CI retry or probe is released. Earlier scope: M51 complete normal hook passed at clean local commit ea921f58 over qualified but unaccepted M50 623faca6 in 2100.564 seconds. Independent retained local DATA is pending, so numerical quality remains the audited M50 checkpoint. All three earlier lint and format failures remain retained. M52 independent loaded magnetometers is selected for disjoint Scene and Server source preparation under its independently reviewed contract; it preserves the existing Tesla, rotation and noise model, bounds and refusals. Preparation uses qualified but unaccepted M50; the future integration parent awaits M51 independent DATA and overlap review. No M52 checks or qualification are supplied. There are 52 selected phases, 42 accepted phases and 175 accepted slices; M40 remains Latest. Hosted CI remains externally blocked with no retry or probe released. All predecessor, exact hosted, independent official and ordinary Main gates remain mandatory. Earlier scope: M51 fourth complete normal attempt is running at staged tree 4a29e5df over qualified but unaccepted M50 623faca6. Formatting has passed and lint compilation is underway; no complete lint, test, coverage or local-audit success is claimed. Three earlier attempts remain failed and retained: quarter-pi lint, indexed-loop lint, then a four-second format-only stop. The reviewed fixes preserve the exact yaw, the same offsets/order/assertions, and the formatter’s exact whitespace-only output. Both original Clippy invocations now collect as much independent target work as possible with --keep-going, while any error still stops the normal hook. All mandatory selections, -D warnings, dependency locks, two jobs and resource/coverage/release gates remain unchanged. Native and fixed-literal DATA passed and were not replayed. The retained normal-data reader is independently Source-reviewed with outcome bindings held. Quality remains actual M50; 42 phases are accepted out of 51 selected and M40 remains Latest. Earlier first-failure scope: The first M51 full normal hook stopped after 174.279 seconds at Clippy: one new Server test used a decimal approximation of the standard quarter-pi constant. Product tests and coverage were not reached. The failed tree, logs, result and qualification-history ref are retained. The independently reviewed one-expression correction uses the standard constant with the identical binary64 value; all SDF inputs, assertions, tolerances, production code and native/literal evidence are unchanged. A complete affected normal retry is being prepared under the same mandatory gates; no separate target trial or extra formatter ran. M51 native and fixed-literal DATA remain passed, but no Rust/full-normal/coverage/local-DATA qualification is supplied. Quality remains actual qualified M50; acceptance, M40 Latest and all predecessor/hosted/official/Main gates remain unchanged. Earlier running scope, now retired: M51 fresh original-System capture, independent retained native DATA and independent fixed-literal DATA passed. All 331 explicit sensor inputs and 55 captured packets are preserved; 276 inputs have no matching packet, without internal-update or draw inference. The complete implementation, 17 new Source-declared controls, numeric/full-wire consumers and guides passed independent Source review. One consolidated formatter returned zero. The exact staged tree a6dca486 over locally qualified but unaccepted M50 623faca6 is now running its single full normal hook, strict coverage and required checks with a fresh target and two jobs. No M51 normal, Rust, Python, coverage or independent local audit pass is claimed before actual outcomes. Numerical quality remains qualified M50; M1–M42 acceptance, M40 Latest and all predecessor/hosted/official/Main gates are unchanged. Earlier capture scope: M51 core implementation, regression Source, shared integration and guides passed independent Source review on locally qualified but unaccepted M50 623faca6. The bounded AirSpeed component input check passed without a rebuild. One fresh original-System capture then returned actual Root zero in 25.090 seconds, with all 36 child stages successful. It retained 12 configurations, 331 explicit sensor WORLD-pose, point-velocity and wind inputs, and 55 actual canonical AirSpeed packets. The 79 System calls are helper-summary and Source attestations, not individually captured internal updates. Negative differential pressure is valid. No SDK/provider was rebuilt, old campaign replayed or Physics/RNG/demand equivalence claimed. Independent native DATA, literal export and DATA, observed consumers and the complete M51 normal/strict coverage/local audit remain pending; no M51 Rust or Python pass is claimed. Quality metrics remain actual locally qualified M50. M1–M42 remain accepted, M40 Latest, with all predecessor/hosted/official/Main gates unchanged. Earlier Source scope: M51 reviewed Scene and Server/reference leaves plus Root identity-query Source are integrated in a new checkout on exact locally qualified, unaccepted M50 623faca6. Preparation worktrees on qualified M49 4ccd remain preserved. M50 pressure identities/controls and wrench diagnostic/readiness repairs stay intact, with additive shared-seam overlap review required. Native current provider-input closure, complete shared example/registry/guides, full Source review and all serial checks remain pending; no M51 execution or qualification is claimed.  Earlier Source preparation: M51 reviewed Source preparation covers zero through eight independent otherwise-supported loaded Rapier AirSpeed sensors, distinct resolved endpoints and complete identity/name/metadata/prepared-owner validation before publisher I/O. Preserve exact point velocity, separate WORLD-wind rotation, signed differential pressure, f32/noise/temperature arithmetic and existing bounds. Extend all three Scene count/consumer seams while preserving zero-consumer nonzero-wind refusal. Add meaningful owner motion, wind, demand/noise, reset/removal/refusal controls, a finite 25th example and fresh original-System multiplicity evidence after reviewed current input closure. Successful retained M26 System provider provenance exists; current bytes/aliases and the separate air-speed component input remain unverified. M41 component evidence is not System multiplicity proof. Source preparation uses qualified but unaccepted M49 4ccd4f06 while M50 normal retry runs. Final integrated parent remains unselected until actual M50 normal and local DATA outcomes, preserving all repairs with overlap review. No M51 execution, qualification or acceptance is claimed.",
+      "scope": "M51 full provisional normal and independent retained local DATA passed at clean local commit ea921f58 over qualified but unaccepted M50 623faca6. The normal hook took 2100.564 seconds. Actual profile passes are 1828 headless and 1085 renderer with overlap, not a summed distinct count; 403 aggregate Python tests and 25 finite examples passed. All strict workspace, per-crate and actual-parent coverage gates passed. Seventeen new headless and ten new renderer controls, 261/153 retained controls, 121 cleanup obligations, the separately strengthened existing AirSpeed control and prior pressure/altimeter controls in both profiles, and two headless wrench controls were bound. Changed Scene coverage is 18/18 in both profiles; Server is 112/114 headless, not 100 percent. Four final raw comparisons ran once and matched byte for byte: 1815/393/39/33 profiles. Three failed normal attempts remain failed and retained. No native or product workload was repeated for this audit. M52 independent magnetometer source development is running in disjoint lanes; its future integration parent still requires explicit overlap review. M1\u2013M42 acceptance, all 175 accepted slices and M40 Latest remain unchanged. Actual accepted predecessor, exact hosted/official qualification and ordinary Main/readbacks remain mandatory; no CI retry or probe is released. Earlier scope: M51 complete normal hook passed at clean local commit ea921f58 over qualified but unaccepted M50 623faca6 in 2100.564 seconds. Independent retained local DATA is pending, so numerical quality remains the audited M50 checkpoint. All three earlier lint and format failures remain retained. M52 independent loaded magnetometers is selected for disjoint Scene and Server source preparation under its independently reviewed contract; it preserves the existing Tesla, rotation and noise model, bounds and refusals. Preparation uses qualified but unaccepted M50; the future integration parent awaits M51 independent DATA and overlap review. No M52 checks or qualification are supplied. There are 52 selected phases, 42 accepted phases and 175 accepted slices; M40 remains Latest. Hosted CI remains externally blocked with no retry or probe released. All predecessor, exact hosted, independent official and ordinary Main gates remain mandatory. Earlier scope: M51 fourth complete normal attempt is running at staged tree 4a29e5df over qualified but unaccepted M50 623faca6. Formatting has passed and lint compilation is underway; no complete lint, test, coverage or local-audit success is claimed. Three earlier attempts remain failed and retained: quarter-pi lint, indexed-loop lint, then a four-second format-only stop. The reviewed fixes preserve the exact yaw, the same offsets/order/assertions, and the formatter\u2019s exact whitespace-only output. Both original Clippy invocations now collect as much independent target work as possible with --keep-going, while any error still stops the normal hook. All mandatory selections, -D warnings, dependency locks, two jobs and resource/coverage/release gates remain unchanged. Native and fixed-literal DATA passed and were not replayed. The retained normal-data reader is independently Source-reviewed with outcome bindings held. Quality remains actual M50; 42 phases are accepted out of 51 selected and M40 remains Latest. Earlier first-failure scope: The first M51 full normal hook stopped after 174.279 seconds at Clippy: one new Server test used a decimal approximation of the standard quarter-pi constant. Product tests and coverage were not reached. The failed tree, logs, result and qualification-history ref are retained. The independently reviewed one-expression correction uses the standard constant with the identical binary64 value; all SDF inputs, assertions, tolerances, production code and native/literal evidence are unchanged. A complete affected normal retry is being prepared under the same mandatory gates; no separate target trial or extra formatter ran. M51 native and fixed-literal DATA remain passed, but no Rust/full-normal/coverage/local-DATA qualification is supplied. Quality remains actual qualified M50; acceptance, M40 Latest and all predecessor/hosted/official/Main gates remain unchanged. Earlier running scope, now retired: M51 fresh original-System capture, independent retained native DATA and independent fixed-literal DATA passed. All 331 explicit sensor inputs and 55 captured packets are preserved; 276 inputs have no matching packet, without internal-update or draw inference. The complete implementation, 17 new Source-declared controls, numeric/full-wire consumers and guides passed independent Source review. One consolidated formatter returned zero. The exact staged tree a6dca486 over locally qualified but unaccepted M50 623faca6 is now running its single full normal hook, strict coverage and required checks with a fresh target and two jobs. No M51 normal, Rust, Python, coverage or independent local audit pass is claimed before actual outcomes. Numerical quality remains qualified M50; M1\u2013M42 acceptance, M40 Latest and all predecessor/hosted/official/Main gates are unchanged. Earlier capture scope: M51 core implementation, regression Source, shared integration and guides passed independent Source review on locally qualified but unaccepted M50 623faca6. The bounded AirSpeed component input check passed without a rebuild. One fresh original-System capture then returned actual Root zero in 25.090 seconds, with all 36 child stages successful. It retained 12 configurations, 331 explicit sensor WORLD-pose, point-velocity and wind inputs, and 55 actual canonical AirSpeed packets. The 79 System calls are helper-summary and Source attestations, not individually captured internal updates. Negative differential pressure is valid. No SDK/provider was rebuilt, old campaign replayed or Physics/RNG/demand equivalence claimed. Independent native DATA, literal export and DATA, observed consumers and the complete M51 normal/strict coverage/local audit remain pending; no M51 Rust or Python pass is claimed. Quality metrics remain actual locally qualified M50. M1\u2013M42 remain accepted, M40 Latest, with all predecessor/hosted/official/Main gates unchanged. Earlier Source scope: M51 reviewed Scene and Server/reference leaves plus Root identity-query Source are integrated in a new checkout on exact locally qualified, unaccepted M50 623faca6. Preparation worktrees on qualified M49 4ccd remain preserved. M50 pressure identities/controls and wrench diagnostic/readiness repairs stay intact, with additive shared-seam overlap review required. Native current provider-input closure, complete shared example/registry/guides, full Source review and all serial checks remain pending; no M51 execution or qualification is claimed.  Earlier Source preparation: M51 reviewed Source preparation covers zero through eight independent otherwise-supported loaded Rapier AirSpeed sensors, distinct resolved endpoints and complete identity/name/metadata/prepared-owner validation before publisher I/O. Preserve exact point velocity, separate WORLD-wind rotation, signed differential pressure, f32/noise/temperature arithmetic and existing bounds. Extend all three Scene count/consumer seams while preserving zero-consumer nonzero-wind refusal. Add meaningful owner motion, wind, demand/noise, reset/removal/refusal controls, a finite 25th example and fresh original-System multiplicity evidence after reviewed current input closure. Successful retained M26 System provider provenance exists; current bytes/aliases and the separate air-speed component input remain unverified. M41 component evidence is not System multiplicity proof. Source preparation uses qualified but unaccepted M49 4ccd4f06 while M50 normal retry runs. Final integrated parent remains unselected until actual M50 normal and local DATA outcomes, preserving all repairs with overlap review. No M51 execution, qualification or acceptance is claimed.",
       "acceptance": "Complete independent contract/Source/regression/guide review; new original-System multiplicity capture and independent native/literal DATA before observed consumers; real canonical pair/eight/motion/wind/demand/noise/reset/removal/refusal and finite25th example; unchanged full normal/strict actual-parent coverage and independent local DATA. Actual accepted predecessor, exact hosted/official and ordinary Main/readbacks before publication or acceptance.",
       "excluded": "New scalar/noise/wind/atmosphere/kinematic/backend domains, shared resolved endpoints, sensor editing, native RNG/individual-demand equivalence, SDK/provider rebuild, new framework/plugins/solver/teleport, renderer/Fuel/Cargo/schema/package/browser change, CI workaround or automatic acceptance transfer.",
       "evidence": "docs/M51_DELIVERY.md",
@@ -1027,7 +1027,7 @@
       "depends_on": [
         "M51"
       ],
-      "scope": "M52 complete provisional normal and independent retained local DATA passed at clean local commit 1ed59a73 over locally qualified but unaccepted M51 ea921f58. The normal hook took 2046.562 seconds. Actual profile passes are 1848 headless and 1096 renderer with overlap, not a distinct summed count; 403 aggregate Python tests and 26 finite examples passed. All strict workspace, per-crate and actual-parent coverage gates passed. Eighteen new headless and eleven new renderer controls, 278/163 retained controls, 121 cleanup obligations, the separately strengthened existing magnetometer control plus three inherited controls in both profiles, and two headless wrench controls were bound. Changed Scene coverage is 18/18 in both profiles; Server is 116/118 headless, not 100 percent. Four final raw comparisons ran once and matched byte for byte: 1817/394/40/33 profiles. The first normal compile failure and the first retained-reader path-binding failure remain failed and preserved; the complete typed-path reader correction passed without any product or native rerun. No heavy job is active. M53 independent logical-camera feasibility is read-only and unselected: the old M30 proof covers the SensorFactory component, not an original System provider. A fixed-input diagnostic plan is Source reviewed; diagnostic execution is not yet released. This is provisional local qualification only. M1–M42 acceptance, 175 accepted slices and M40 Latest remain unchanged. Actual accepted predecessor, exact hosted success, independent official DATA and ordinary Main/readbacks remain mandatory; no CI retry or probe is released. Earlier running checkpoint: M52 second complete normal attempt is running after the complete four-error test API correction passed independent Source and formatting review. The first attempt remains failed and preserved at Clippy compilation; no M52 test, coverage or local-audit pass is claimed. Only the two reviewed public test files changed. The original native and fixed-literal audits remain passed and were not replayed. All mandatory gates and hosted release holds remain unchanged. Earlier failed scope: M52 first complete normal attempt failed after 194.317 seconds in Clippy test compilation. Four errors were collected across both new public test files: a missing optional Vector3d header, comparison of EntityId wrappers instead of their public values, and two incorrect error-variant names. Product tests and coverage were not reached. The failed tree, logs, result and history ref remain retained. The complete test-only correction uses the actual generated-message and existing identity/fault/reset APIs, preserves every assertion and numerical bound, and has passed independent source review and one consolidated corrective formatter. Final retry procedure review is pending; no retry or Rust qualification is claimed. M52 original-System native and fixed-literal audits passed with 12 configurations, 501 explicit inputs, 42 captured packets and 58 genuine warning records, without rebuilding the SDK or replaying those proofs. Numerical quality remains audited M51. There are 52 selected phases, 42 accepted phases and 175 accepted slices; M40 remains Latest. Hosted CI remains externally blocked; every predecessor, exact hosted/official and ordinary Main/readback gate remains mandatory. Earlier scope: Zero through eight otherwise-supported loaded Rapier magnetometers with original constant WORLD field, inverse WORLD rotation, Tesla units and XYZ noise model. Independent identity/name/metadata validation before IO, resolved endpoints, demand, sampled caches, reset/removal and atomic refusal. Source preparation may overlap M51 retained audit; integration and acceptance dependencies remain explicit.",
+      "scope": "M52 complete provisional normal and independent retained local DATA passed at clean local commit 1ed59a73 over locally qualified but unaccepted M51 ea921f58. The normal hook took 2046.562 seconds. Actual profile passes are 1848 headless and 1096 renderer with overlap, not a distinct summed count; 403 aggregate Python tests and 26 finite examples passed. All strict workspace, per-crate and actual-parent coverage gates passed. Eighteen new headless and eleven new renderer controls, 278/163 retained controls, 121 cleanup obligations, the separately strengthened existing magnetometer control plus three inherited controls in both profiles, and two headless wrench controls were bound. Changed Scene coverage is 18/18 in both profiles; Server is 116/118 headless, not 100 percent. Four final raw comparisons ran once and matched byte for byte: 1817/394/40/33 profiles. The first normal compile failure and the first retained-reader path-binding failure remain failed and preserved; the complete typed-path reader correction passed without any product or native rerun. No heavy job is active. M53 independent logical-camera feasibility is read-only and unselected: the old M30 proof covers the SensorFactory component, not an original System provider. A fixed-input diagnostic plan is Source reviewed; diagnostic execution is not yet released. This is provisional local qualification only. M1\u2013M42 acceptance, 175 accepted slices and M40 Latest remain unchanged. Actual accepted predecessor, exact hosted success, independent official DATA and ordinary Main/readbacks remain mandatory; no CI retry or probe is released. Earlier running checkpoint: M52 second complete normal attempt is running after the complete four-error test API correction passed independent Source and formatting review. The first attempt remains failed and preserved at Clippy compilation; no M52 test, coverage or local-audit pass is claimed. Only the two reviewed public test files changed. The original native and fixed-literal audits remain passed and were not replayed. All mandatory gates and hosted release holds remain unchanged. Earlier failed scope: M52 first complete normal attempt failed after 194.317 seconds in Clippy test compilation. Four errors were collected across both new public test files: a missing optional Vector3d header, comparison of EntityId wrappers instead of their public values, and two incorrect error-variant names. Product tests and coverage were not reached. The failed tree, logs, result and history ref remain retained. The complete test-only correction uses the actual generated-message and existing identity/fault/reset APIs, preserves every assertion and numerical bound, and has passed independent source review and one consolidated corrective formatter. Final retry procedure review is pending; no retry or Rust qualification is claimed. M52 original-System native and fixed-literal audits passed with 12 configurations, 501 explicit inputs, 42 captured packets and 58 genuine warning records, without rebuilding the SDK or replaying those proofs. Numerical quality remains audited M51. There are 52 selected phases, 42 accepted phases and 175 accepted slices; M40 remains Latest. Hosted CI remains externally blocked; every predecessor, exact hosted/official and ordinary Main/readback gate remains mandatory. Earlier scope: Zero through eight otherwise-supported loaded Rapier magnetometers with original constant WORLD field, inverse WORLD rotation, Tesla units and XYZ noise model. Independent identity/name/metadata validation before IO, resolved endpoints, demand, sampled caches, reset/removal and atomic refusal. Source preparation may overlap M51 retained audit; integration and acceptance dependencies remain explicit.",
       "acceptance": "Complete independent source/regression/guide review; scoped original-System native and fixed-literal DATA before observed consumers; canonical numeric/full-wire, lifecycle/refusal and finite26th example. Full normal, strict workspace/per-crate/actual-parent coverage and independent retained DATA. Actually accepted M51 predecessor, exact hosted success, independent official DATA and ordinary Main/readbacks before publication or acceptance.",
       "excluded": "New field/geodesy/NED/Gauss/noise/backend domains, changed numerical bounds, RNG or native demand equivalence, SDK/provider rebuild, new frameworks/plugins/solver/teleport, viewer/package/launcher/Fuel changes, CI workaround or transferred acceptance.",
       "evidence": "docs/M52_DELIVERY.md",
@@ -1208,7 +1208,7 @@
       "depends_on": [
         "M53"
       ],
-      "scope": "Zero through eight independent planar CPU lidars with 2–128 beams each, at most 1,024 rays per due tick. Preserve ray math, noise, global terminal faults and exact canonical scans; add per-owner identity, demand, cadence, reset, removal and endpoint-conflict controls. Scene and Server source development runs in parallel.",
+      "scope": "Zero through eight independent planar CPU lidars with 2\u2013128 beams each, at most 1,024 rays per due tick. Preserve ray math, noise, global terminal faults and exact canonical scans; add per-owner identity, demand, cadence, reset, removal and endpoint-conflict controls. Scene and Server source development runs in parallel.",
       "acceptance": "Complete implementation, meaningful regressions and guides with independent Source review. Final integration follows successful M53 normal and independent DATA, retaining its fixes. Reviewed current component inputs, fresh component scan capture, independent native and literal DATA precede observed consumers. Full normal, unchanged strict coverage, independent local DATA, accepted predecessor, hosted success, official audit and Main readbacks precede release.",
       "excluded": "GPU/multilayer/interpolated scans, intensity or point-cloud expansion; native System/ECM/physics/demand/scheduling/RNG equivalence; new solver, backend, framework, SDK/provider build, CI workaround or transferred acceptance.",
       "evidence": "docs/M54_DELIVERY.md",
@@ -1845,7 +1845,7 @@
       "depends_on": [
         "M56"
       ],
-      "scope": "Zero through eight loaded top-level dynamic Rapier model owners, each retaining its existing single-axis revolute graph, independently selected joints/rate and one canonical Model endpoint; ≤128 selected joints/owner and≤1024 aggregate slots without expanding prior graph limits.",
+      "scope": "Zero through eight loaded top-level dynamic Rapier model owners, each retaining its existing single-axis revolute graph, independently selected joints/rate and one canonical Model endpoint; \u2264128 selected joints/owner and\u22641024 aggregate slots without expanding prior graph limits.",
       "acceptance": "Complete bounded Source/regression/docs and independent review; original fixed-input Configure/PostUpdate capture plus native/literal DATA and observed controlled-component/canonical-wire regressions; unchanged full normal, strict workspace/percrate/actual-parent coverage and independent local DATA. Accepted predecessor, exact hosted/official qualification and Main/readbacks precede acceptance/publication.",
       "excluded": "New joint/backend/axis2/force-measurement/effort/velocity-limit/controller-chain domains, per-owner global-fault isolation, body teleport, renderer/package/browser replay, dynamic plugins or new runtime/transport framework.",
       "evidence": "docs/M57_DELIVERY.md",
@@ -2848,7 +2848,7 @@
       "depends_on": [
         "M60"
       ],
-      "scope": "Opaque, positive finite Z-axis cylinder visuals in the existing calibrated 64×64 RGB snapshot and worker path. Use explicit protocol4 geometry and one cached 32-sector cylinder mesh. Preserve box APIs and pixels, mixed visual limits and box-only generic/depth extraction.",
+      "scope": "Opaque, positive finite Z-axis cylinder visuals in the existing calibrated 64\u00d764 RGB snapshot and worker path. Use explicit protocol4 geometry and one cached 32-sector cylinder mesh. Preserve box APIs and pixels, mixed visual limits and box-only generic/depth extraction.",
       "acceptance": "Complete implementation, regression Source, docs and independent review before consolidated checks. Require real software-worker silhouettes, axis/local pose/origin/occlusion, shape replacement/assets/readiness/purity/cancel/reset/stale controls and canonical Image/CameraInfo with actual owned child wait. Full unchanged normal, strict workspace/per-crate/actual-parent coverage, local DATA, exact hosted, official DATA and Main gates precede acceptance.",
       "excluded": "Cylinder physics/collisions/solver, new transport or renderer framework, material/lighting/depth geometry, tessellation API, SDK or native Ogre parity, M63 pair dependency, viewer/package refresh and broad compatibility inventory.",
       "evidence": "docs/M64_DELIVERY.md",
@@ -3377,7 +3377,7 @@
       "independent_source_review_complete": true,
       "accepted": true,
       "checks_run": true,
-      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head 7094a31890e78bc83c65f12a056dfb3918b7401a passed its own full local normal/strict/DATA, first hosted run 44641153608 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71–M75 distribution is selected. Historical failures and unknowns remain preserved.",
+      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head 7094a31890e78bc83c65f12a056dfb3918b7401a passed its own full local normal/strict/DATA, first hosted run 44641153608 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71\u2013M75 distribution is selected. Historical failures and unknowns remain preserved.",
       "installed_accepted_examples": 41,
       "source_finite_example_obligations": 41,
       "predecessor_acceptance_required_before_checks": true,
@@ -3426,7 +3426,7 @@
         "package_install_audits_passed": true,
         "installed_finite_examples": 41
       },
-      "historical_local_qualification_checkpoint": "Local unpublished 7094a31 passed normal/strict checks, fresh release/inputs/package/relocation and clean Ubuntu installation with independent audits; all 41 installed examples passed. Retained GPU/depth component DATA passed separately. Native RGB now passed its affected operation and independent retained DATA: actual Image/Info numeric and wire checks, Clock 0 → 1 ms, worker mapping/kernel-FD proof, native/launcher exit 0 and worker PID/listener retirement. The live SDK pair interlock completed within the unchanged native 20-second success boundary. Worker grandchild exit codes and SDK dispatch quiescence remain UNKNOWN. Original failed whole-camera and intermediate operations remain failed, with separate component evidence and missing original independent host-wait ledger disclosures preserved. The approved installed default robot browser demonstration completed Play, forward/turn, Pause acknowledgement with a stable clock, Reset to epoch 1/clock 0/initial pose, and clean launcher exit 0. Independent visual review of all four screenshots and retained browser DATA passed, confirming the actual eight image/accessibility captures, three checkpoints, helper motion, Pause/Reset and clean launcher/PID/listener retirement. The historical close-code 4002 cause remains UNKNOWN, and two later operator/harness failures remain preserved; no new product defect is demonstrated. All required local preview proofs passed; exact hosted qualification, official evidence and release/publication readbacks remain pending. No source publication or M70 acceptance is claimed.",
+      "historical_local_qualification_checkpoint": "Local unpublished 7094a31 passed normal/strict checks, fresh release/inputs/package/relocation and clean Ubuntu installation with independent audits; all 41 installed examples passed. Retained GPU/depth component DATA passed separately. Native RGB now passed its affected operation and independent retained DATA: actual Image/Info numeric and wire checks, Clock 0 \u2192 1 ms, worker mapping/kernel-FD proof, native/launcher exit 0 and worker PID/listener retirement. The live SDK pair interlock completed within the unchanged native 20-second success boundary. Worker grandchild exit codes and SDK dispatch quiescence remain UNKNOWN. Original failed whole-camera and intermediate operations remain failed, with separate component evidence and missing original independent host-wait ledger disclosures preserved. The approved installed default robot browser demonstration completed Play, forward/turn, Pause acknowledgement with a stable clock, Reset to epoch 1/clock 0/initial pose, and clean launcher exit 0. Independent visual review of all four screenshots and retained browser DATA passed, confirming the actual eight image/accessibility captures, three checkpoints, helper motion, Pause/Reset and clean launcher/PID/listener retirement. The historical close-code 4002 cause remains UNKNOWN, and two later operator/harness failures remain preserved; no new product defect is demonstrated. All required local preview proofs passed; exact hosted qualification, official evidence and release/publication readbacks remain pending. No source publication or M70 acceptance is claimed.",
       "independent_official_DATA_passed": true,
       "current_acceptance_gate_progress": {
         "commit": "7094a31890e78bc83c65f12a056dfb3918b7401a",
@@ -3522,7 +3522,7 @@
       "source_finite_example_obligations": 42,
       "auxiliary_camera_case_obligations": 16,
       "installed_accepted_examples": 41,
-      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head f31d7155c2569df875b393857a1339bb192caf2c passed its own full local normal/strict/DATA, first hosted run 44641153549 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71–M75 distribution is selected. Historical failures and unknowns remain preserved.",
+      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head f31d7155c2569df875b393857a1339bb192caf2c passed its own full local normal/strict/DATA, first hosted run 44641153549 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71\u2013M75 distribution is selected. Historical failures and unknowns remain preserved.",
       "predecessor_acceptance_required_before_acceptance": true,
       "source_control_declarations": {
         "Rust_unique": 15,
@@ -3664,7 +3664,7 @@
       "depends_on": [
         "M71"
       ],
-      "scope": "Finite zero-skew SDF lens intrinsics for the existing 64×64 RGB/depth domain: positive independent fx/fy and finite off-axis cx/cy selected by presence, unchanged HFOV fallback and canonical K/P=[K|0].",
+      "scope": "Finite zero-skew SDF lens intrinsics for the existing 64\u00d764 RGB/depth domain: positive independent fx/fy and finite off-axis cx/cy selected by presence, unchanged HFOV fallback and canonical K/P=[K|0].",
       "acceptance": "Complete implementation, meaningful regression Source, fixture/guides and independent whole Source review before one consolidated local normal/strict actual-parent/local DATA cycle. Existing software workers and canonical consumers verify explicitK/P, asymmetric pixel/ray/axial depth, demand/laziness, reset/removal/drift/stale frames. Final parent acceptance/reconciliation and exact hosted/official/durable/Main gates precede acceptance/publication.",
       "excluded": "Explicit P, skew, distortion, noise, lens-relative pose, RGBD, point clouds, greater sizes/counts, protocol/shader/physics/dependency/SDK/framework/viewer/package changes, native Ogre or performance parity.",
       "evidence": "docs/M72_DELIVERY.md",
@@ -3683,7 +3683,7 @@
       "source_finite_example_obligations": 43,
       "auxiliary_camera_case_obligations": 17,
       "installed_accepted_examples": 41,
-      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head 2f3e458f8257e72358a607b999bdd4e66a93872a passed its own full local normal/strict/DATA, first hosted run 44641153598 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71–M75 distribution is selected. Historical failures and unknowns remain preserved.",
+      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head 2f3e458f8257e72358a607b999bdd4e66a93872a passed its own full local normal/strict/DATA, first hosted run 44641153598 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71\u2013M75 distribution is selected. Historical failures and unknowns remain preserved.",
       "source_control_declarations": {
         "Rust_unique": 13,
         "Python": 2
@@ -3873,7 +3873,7 @@
       "depends_on": [
         "M72"
       ],
-      "scope": "Explicit finite positive zero-translation SDF projection for existing 64×64 RGB/depth cameras. Select K from present intrinsics or exact HFOV fallback; explicit P selects rendering while CameraInfo publishes separate K/P. Absent P preserves exact M72 requests and canonical bytes.",
+      "scope": "Explicit finite positive zero-translation SDF projection for existing 64\u00d764 RGB/depth cameras. Select K from present intrinsics or exact HFOV fallback; explicit P selects rendering while CameraInfo publishes separate K/P. Absent P preserves exact M72 requests and canonical bytes.",
       "acceptance": "Complete implementation, meaningful regression Source, fixture/guides and independent whole Source review before one consolidated local normal/strict gate and retained audit. Cover all K/P presence combinations, distinct K/P, all four extraction variants, pre-IO representability/refusals, exact absent-P compatibility, real software-worker P-based RGB/depth and canonical consumers, laziness/demand/rates/pause/reset/removal/drift. Final accepted-parent reconciliation and exact hosted/official/durable/Main gates precede source publication or acceptance.",
       "excluded": "Nonzero projection translations, stereo, arbitrary extrinsics, skew/distortion/noise, larger images or camera fleets, RGBD/point clouds, shader/protocol/dependency/SDK/physics/transport/framework/viewer/package changes, native image/runtime-precedence or performance parity claims.",
       "evidence": "docs/M73_DELIVERY.md",
@@ -3893,7 +3893,7 @@
       "predecessor_acceptance_required_before_acceptance": true,
       "installed_accepted_examples": 41,
       "qualification_state": "individually_accepted_at_common_Main",
-      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head 03f3fc9dfc594ca7ebccb9af46ba8968b83ca342 passed its own full local normal/strict/DATA, first hosted run 44641155601 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71–M75 distribution is selected. Historical failures and unknowns remain preserved.",
+      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head 03f3fc9dfc594ca7ebccb9af46ba8968b83ca342 passed its own full local normal/strict/DATA, first hosted run 44641155601 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71\u2013M75 distribution is selected. Historical failures and unknowns remain preserved.",
       "source_finite_example_obligations": 44,
       "source_CLI_case_obligations": 18,
       "source_control_declarations": {
@@ -4031,7 +4031,7 @@
       "depends_on": [
         "M73"
       ],
-      "scope": "Finite signed SDF intrinsic skew for existing 64×64 RGB/depth cameras, with native-compatible positive clip coupling and optical minus sign. Absent K preserves HFOV; absent P renders selected K, while explicit zero-translation P selects zero render skew. Shared sheared near/far corners enforce current representability bounds. CameraInfo retains native zero off-diagonals.",
+      "scope": "Finite signed SDF intrinsic skew for existing 64\u00d764 RGB/depth cameras, with native-compatible positive clip coupling and optical minus sign. Absent K preserves HFOV; absent P renders selected K, while explicit zero-translation P selects zero render skew. Shared sheared near/far corners enforce current representability bounds. CameraInfo retains native zero off-diagonals.",
       "acceptance": "Complete implementation, meaningful regression Source, fixture/guides and independent whole Source review before one full local normal/strict gate and retained audit. Cover signed projection/inverse rays/corners against retained native math, zero-skew compatibility, coupled overflow/pre-IO refusals, actual software RGB/depth inverse-sheared images and explicit-P override, canonical zero-off-diagonal packets, laziness/demand/cadence/pause/drift/reset/removal/retirement. Final accepted-parent reconciliation and exact hosted/official/durable/Main gates precede source publication or acceptance.",
       "excluded": "Stereo translations, arbitrary projection forms, new native sensor/image or nonzero-skew packet capture claims, shaders/protocol/schema/SDK/dependency/physics/transport/framework/viewer/package changes, larger images/fleets, noise/distortion/RGBD/point clouds and performance claims.",
       "evidence": "docs/M74_DELIVERY.md",
@@ -4051,7 +4051,7 @@
       "predecessor_acceptance_required_before_acceptance": true,
       "installed_accepted_examples": 41,
       "qualification_state": "individually_accepted_at_common_Main",
-      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head 487f0eab28b9fa505ae02becd71e74f69f54c65f passed its own full local normal/strict/DATA, first hosted run 44627469212 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71–M75 distribution is selected. Historical failures and unknowns remain preserved.",
+      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head 487f0eab28b9fa505ae02becd71e74f69f54c65f passed its own full local normal/strict/DATA, first hosted run 44627469212 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71\u2013M75 distribution is selected. Historical failures and unknowns remain preserved.",
       "source_finite_example_obligations": 45,
       "source_CLI_case_obligations": 19,
       "source_control_declarations": {
@@ -4183,7 +4183,7 @@
         "accepted": false,
         "Main_promoted": false
       },
-      "historical_local_qualification_checkpoint": "Historical local-qualification checkpoint, before subsequent hosted/official success (current gates recorded separately below): M74 local development completed provisionally on clean review-branch commit 487f0eab28b9fa505ae02becd71e74f69f54c65f (tree e025fe8101b2525f03ca794d39297a96a577d667, parent 03f3fc9dfc594ca7ebccb9af46ba8968b83ca342). The first full normal genuinely returned Root/Git 0 after 1666.884146313998 seconds. Headless 1755 and renderer 1339 passes overlap, with two retained ignored controls per profile; Python 477 is quiet aggregate evidence. All 16 distinct new M74 Rust controls, 45 finite source runs and 19 CLI cases passed. Strict workspace/per-crate line and region coverage and actual-parent changed-line gates passed. The first retained audit method genuinely failed because it assumed each profile must add executable changed lines; headless correctly has0/0 because its only production edit is a doc replacement and deletion of the skew refusal. The original reader/log/failure receipt remain preserved. A separately reviewed method2 independently proves that exact parent/current Source diff and all raw retained gates, then returned0 without product test, compiler, native or raw-merge replay. Its audit retained1693 members/673842385 bytes,1735 Source bindings,140 profile Sources,296 inputs and43 native-peer provenance records. Temporary ELF paths remain metadata rather than rehashed bytes. The owner explicitly requested all code be pushed: this exact commit and its qualified M70–M73 ancestors are now available on review/m74-signed-camera-skew. No M74 normal failure, distribution, installed-example, hosted success, acceptance, Main promotion or release publication is claimed. Every older failure remains retained. Final parent acceptance/reconciliation and exact hosted/official/durable/Main gates remain mandatory; historical snapshot HTTP401 recovery remains unproven.",
+      "historical_local_qualification_checkpoint": "Historical local-qualification checkpoint, before subsequent hosted/official success (current gates recorded separately below): M74 local development completed provisionally on clean review-branch commit 487f0eab28b9fa505ae02becd71e74f69f54c65f (tree e025fe8101b2525f03ca794d39297a96a577d667, parent 03f3fc9dfc594ca7ebccb9af46ba8968b83ca342). The first full normal genuinely returned Root/Git 0 after 1666.884146313998 seconds. Headless 1755 and renderer 1339 passes overlap, with two retained ignored controls per profile; Python 477 is quiet aggregate evidence. All 16 distinct new M74 Rust controls, 45 finite source runs and 19 CLI cases passed. Strict workspace/per-crate line and region coverage and actual-parent changed-line gates passed. The first retained audit method genuinely failed because it assumed each profile must add executable changed lines; headless correctly has0/0 because its only production edit is a doc replacement and deletion of the skew refusal. The original reader/log/failure receipt remain preserved. A separately reviewed method2 independently proves that exact parent/current Source diff and all raw retained gates, then returned0 without product test, compiler, native or raw-merge replay. Its audit retained1693 members/673842385 bytes,1735 Source bindings,140 profile Sources,296 inputs and43 native-peer provenance records. Temporary ELF paths remain metadata rather than rehashed bytes. The owner explicitly requested all code be pushed: this exact commit and its qualified M70\u2013M73 ancestors are now available on review/m74-signed-camera-skew. No M74 normal failure, distribution, installed-example, hosted success, acceptance, Main promotion or release publication is claimed. Every older failure remains retained. Final parent acceptance/reconciliation and exact hosted/official/durable/Main gates remain mandatory; historical snapshot HTTP401 recovery remains unproven.",
       "hosted_run": 44627469212,
       "hosted_attempt": 1,
       "hosted_conclusion": "success",
@@ -4251,7 +4251,7 @@
       "depends_on": [
         "M74"
       ],
-      "scope": "Camera visibility masks and visual flags in the low 28 bits plus the u32::MAX default sentinel for existing 64×64 RGB/depth paths. Select visuals by nonzero flags & mask after validating all world visuals and enforcing the global128 bound. Preserve sorted identities, exact default behavior and strict generic box-only/default-visibility semantics.",
+      "scope": "Camera visibility masks and visual flags in the low 28 bits plus the u32::MAX default sentinel for existing 64\u00d764 RGB/depth paths. Select visuals by nonzero flags & mask after validating all world visuals and enforcing the global128 bound. Preserve sorted identities, exact default behavior and strict generic box-only/default-visibility semantics.",
       "acceptance": "Complete implementation, meaningful regression Source, fixture/guides and independent whole Source review before one consolidated local normal/strict gate and retained audit. Cover disjoint/overlap/zero/default masks, all shape routes, hidden invalid data/global128 bounds, strict generic behavior, actual selective RGB occlusion/all4096 depth/+INF and empty rendering, canonical packet custody, demand/cadence/pause/drift/reset/removal/retirement. Final accepted-parent reconciliation and exact hosted/official/durable/Main gates precede acceptance or release; qualified Source may be pushed for owner-authorized review.",
       "excluded": "Reserved visibility bits outside low28 except MAX, schema/protocol/shader/renderer-algorithm/SDK/dependency/physics/transport/framework/viewer/package expansion, larger camera fleets/images, RGBD/noise/distortion/performance or new native renderer/image-equivalence claims.",
       "evidence": "docs/M75_DELIVERY.md",
@@ -4272,7 +4272,7 @@
       "predecessor_acceptance_required_before_acceptance": true,
       "installed_accepted_examples": 41,
       "qualification_state": "individually_accepted_at_common_Main",
-      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head 616cc3e2105a7ef9479ac823a6b05e832a92defc passed its own full local normal/strict/DATA, first hosted run 44644272919 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71–M75 distribution is selected. Historical failures and unknowns remain preserved.",
+      "current_stage": "Accepted at 2026-11-20T01:40:04.561575+00:00 after exact head 616cc3e2105a7ef9479ac823a6b05e832a92defc passed its own full local normal/strict/DATA, first hosted run 44644272919 attempt 1, durable originals and independent official audit. Its ordered acceptance receipt binds the predecessor and common actual Main 616cc3e, without claiming an intermediate Main ref. M70 public release and anonymous Latest readbacks passed. M70 package Source 7094a31 has 41 installed examples; no M71\u2013M75 distribution is selected. Historical failures and unknowns remain preserved.",
       "source_finite_example_obligations": 46,
       "source_CLI_case_obligations": 20,
       "source_control_declarations": {
@@ -4501,7 +4501,7 @@
           "bytes": 1612
         }
       },
-      "historical_local_qualification_checkpoint": "M75 local development completed provisionally on qualified review-branch commit 616cc3e2105a7ef9479ac823a6b05e832a92defc (tree e0287e7d948e776fe4e0f80dfe37fcebcd15f221, parent 487f0eab28b9fa505ae02becd71e74f69f54c65f). The full retry returned Root/Git 0 after 1678.8313963880064 seconds; corrected retained method2 returned 0 and independent compact consistency review cleared. Headless 1759 and renderer 1353 passes overlap, with two ignored controls per profile; Python 479 is quiet aggregate evidence. All 14 distinct new Rust controls, 46 finite Source runs and 20 CLI cases passed. Strict workspace/per-crate line and region coverage and actual-parent changed-line gates passed. The audit retained 1797 members/694864567 bytes, 1739 Source bindings, 140 profile Sources, 296 inputs and 46 native-peer provenance records (29 headless/17 renderer). Raw profiles were hashed without remerge or test/native replay; temporary ELF identities remain metadata only. The original fc66 product failure and first retained-reader wrong-result-path failure remain unchanged; corrected method2 used the genuine successful attempt2 result without product replay. The exact commit was pushed nonforced to review/m75-camera-visibility-masks and read back; automatic hosted run 44644272919 attempt1 was initially in progress, not successful. No installed distribution, acceptance, Main promotion or release is claimed. Parent M74 hosted CI and independent official method2 passed with durable ZIP originals and four once-only RAW comparisons; its original failed method remains preserved. Exact M70–M73 review refs were atomically pushed and their automatic hosted runs were initially in progress. All remaining per-head hosted/official and accepted-parent/Main gates remain mandatory.",
+      "historical_local_qualification_checkpoint": "M75 local development completed provisionally on qualified review-branch commit 616cc3e2105a7ef9479ac823a6b05e832a92defc (tree e0287e7d948e776fe4e0f80dfe37fcebcd15f221, parent 487f0eab28b9fa505ae02becd71e74f69f54c65f). The full retry returned Root/Git 0 after 1678.8313963880064 seconds; corrected retained method2 returned 0 and independent compact consistency review cleared. Headless 1759 and renderer 1353 passes overlap, with two ignored controls per profile; Python 479 is quiet aggregate evidence. All 14 distinct new Rust controls, 46 finite Source runs and 20 CLI cases passed. Strict workspace/per-crate line and region coverage and actual-parent changed-line gates passed. The audit retained 1797 members/694864567 bytes, 1739 Source bindings, 140 profile Sources, 296 inputs and 46 native-peer provenance records (29 headless/17 renderer). Raw profiles were hashed without remerge or test/native replay; temporary ELF identities remain metadata only. The original fc66 product failure and first retained-reader wrong-result-path failure remain unchanged; corrected method2 used the genuine successful attempt2 result without product replay. The exact commit was pushed nonforced to review/m75-camera-visibility-masks and read back; automatic hosted run 44644272919 attempt1 was initially in progress, not successful. No installed distribution, acceptance, Main promotion or release is claimed. Parent M74 hosted CI and independent official method2 passed with durable ZIP originals and four once-only RAW comparisons; its original failed method remains preserved. Exact M70\u2013M73 review refs were atomically pushed and their automatic hosted runs were initially in progress. All remaining per-head hosted/official and accepted-parent/Main gates remain mandatory.",
       "hosted_run": 44644272919,
       "hosted_attempt": 1,
       "hosted_conclusion": "success",
@@ -4991,6 +4991,323 @@
           "bytes": 1673
         }
       }
+    },
+    {
+      "id": "M78",
+      "title": "One posed box collision in Rapier",
+      "max_working_days": 5,
+      "depends_on": [
+        "M77"
+      ],
+      "scope": "Admit one finite translated/rotated SDF box collision per Rapier f64 link with resolved centered inertia, preserving old centered construction APIs and every other shape/count/engine restriction.",
+      "acceptance": "Complete implementation, additive regressions, docs and independent whole Source review with batched findings before Root consolidated qualification. Prove analytic composed geometry/rays, actual contacts, explicit COM/inertia, ordinary/prepared/loaded reset and removal, identity compatibility, atomic invalid refusal and unchanged unsupported domains. Require own full normal/strict coverage, exact hosted CI, retained local/official DATA and qualified Main after predecessor reconciliation.",
+      "excluded": "Compound collisions, other posed primitives, offset/automatic inertia, TPE expansion, solver/joint/renderer/camera/transport/package changes, new SDK/framework/performance claim and DART/MuJoCo.",
+      "contract": "docs/M78_DELIVERY.md",
+      "source_preparation_basis_commit": "57b44de10713dc6132c5549d769dac00dc041f56",
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": false,
+      "checks_run": false,
+      "accepted": false,
+      "distribution_selected": false,
+      "qualification_state": "shared_M78_M79_Source_integration_no_new_checks",
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "new_Rust_Source_controls": 16,
+      "new_Python_Source_controls": 0,
+      "file_ownership": {
+        "physics": [
+          "crates/gz-physics/src/lib.rs",
+          "crates/gz-physics/src/backend.rs",
+          "crates/gz-physics/tests/private/backend.rs",
+          "crates/gz-physics-rapier/src/lib.rs",
+          "crates/gz-physics-rapier/src/posed_box.rs",
+          "crates/gz-physics-rapier/tests/posed_box.rs"
+        ],
+        "Scene": [
+          "crates/gz-sim-scene/src/lib.rs",
+          "crates/gz-sim-scene/tests/posed_box.rs",
+          "crates/gz-sim-scene/tests/fixtures/m78_posed_box.sdf"
+        ],
+        "canonical_docs": [
+          "docs/M78_DELIVERY.md",
+          "planning/delivery-phases.json",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "docs/DECISIONS.md",
+          "README.md",
+          "AGENTS.md"
+        ],
+        "Root": "Shared integration, serial heavy operations and final bindings/publication; independent Source and DATA review required.",
+        "assigned_agents": {
+          "physics": "package_collector",
+          "Scene": "tracker_acceptance_closeout",
+          "canonical_docs": "m76_scope",
+          "integrator": "Root"
+        }
+      },
+      "SDF_inertial_default_policy": "Direct dynamic API callers must supply Some centered validated inertia. Scene passes resolved SDFormat values, including omitted-inertial default mass1/tensoridentity/poseidentity; no XML-presence rule or collider-derived mass/COM.",
+      "historical_initial_Source_implementation_observation": {
+        "implementation_complete": false,
+        "independent_source_review_complete": false,
+        "checks_run": false,
+        "qualification_state": "Source_implementation_started_not_complete_checks_unrun",
+        "new_Rust_Source_controls": null,
+        "new_Python_Source_controls": null
+      },
+      "checks_run_scope": "No checks on the new shared candidate; historical standalone normal actually failed.",
+      "Source_profile_declarations": {
+        "Rust_unique": 16,
+        "Python": 0,
+        "headless": 16,
+        "renderer": 7,
+        "overlap": 7,
+        "counts_are_Source_obligations_not_executed_results": true
+      },
+      "normal_qualified": false,
+      "independent_local_DATA_qualified": false,
+      "hosted_qualified": false,
+      "current_stage": "Reviewed M78 Source is integrated with M79 for a new complete D31 candidate over57; whole merged review and fresh capture/gates pending. Standalone M78 failure retained, cause UNKNOWN.",
+      "quaternion_policy": "Direct backend requires unit quaternions; loaded XML follows pinned SDFormat finite-positive normalization. The sole new-test finding was corrected with positive equivalence plus genuine zero refusal; old assertions and tolerances remain.",
+      "whole_Source_review": {
+        "sha256": "7f5509fe43849995108c7ae4e0b1fa3926a255ea8ffc4e719db1b34d29fa3a8d",
+        "bytes": 2484,
+        "mode": 436
+      },
+      "final_Source_review": {
+        "sha256": "98c661382b43ed7d3cd98e261078cf538f034e9d9949669f261066ceff5c4299",
+        "bytes": 1043,
+        "mode": 436
+      },
+      "formatter_actual": {
+        "sha256": "326972a76d9d22f006d0f59c7e37b478c16efc2a5d0ae44ea0fd72b0da3549d6",
+        "bytes": 1078570,
+        "mode": 436
+      },
+      "current_normal": null,
+      "historical_camera_reference": {
+        "sha256": "517b75b0fd0de85506a85662cabdc547ec3082223f112d733dc65515b5f5786d",
+        "bytes": 9017,
+        "mode": 436
+      },
+      "code_in_preparation_checkout": true,
+      "contract_in_preparation_checkout": true,
+      "parent_integration_pending": false,
+      "preparation_scope_note": "Root imports reviewed M78 code and contract into the new M79 checkout over57 for shared D31 qualification; this is Source integration, not a qualified successor.",
+      "historical_standalone_normal_observation": {
+        "current_normal": {
+          "state": "active_no_result",
+          "actual_launch": {
+            "sha256": "0e2bc740ade79a06d1f0289303726962f73405a693af1fed217bd401b3ed00d5",
+            "bytes": 1729,
+            "mode": 436
+          },
+          "launch_tool": "348f80",
+          "Root_solewatch_session_id": 35585,
+          "tree": "9774cd21704d985ce324af39a2ea94caea0cb6b1",
+          "source_binding_count": 1754,
+          "Source_snapshot": {
+            "sha256": "f633d85a4e888d42bcab0a8993b80f42dbeb84649b56a3f72d53ef2f911d10ed",
+            "bytes": 652239,
+            "mode": 436
+          },
+          "runner": {
+            "sha256": "ca5914e870cfb4cdda0ef3c5502e93ce13b266ef19468c03549eba47edcd4e7a",
+            "bytes": 22764,
+            "mode": 436
+          },
+          "binding": {
+            "sha256": "743b1f0ac8cae2fa7b0e3298d58acbe6b31a4d3ad5a0ce1052cd4d8415b9c174",
+            "bytes": 3880,
+            "mode": 436
+          },
+          "actual_Root_exit": null,
+          "actual_Git_exit": null,
+          "actual_commit": null,
+          "actual_result": null,
+          "normal_qualified": false,
+          "capacity_scope": "44 GiB initial reserve and 8 GiB early SSD stop; mandatory 14 GiB initial reserve and all four floors remain unchanged, with a bounded one-second ledger. This budget is not a fit guarantee.",
+          "qualification_inherited": false
+        },
+        "current_stage": "Complete implementation, 16 Rust declarations and docs passed whole independent Source review after one batched quaternion-test finding. Final formatter exited zero. Own full normal/strict qualification is active on staged tree 9774 with 1754 Source files; result, commit and Root/Git exits remain unknown. M77 formal browser acceptance remains separate.",
+        "qualification_state": "whole_Source_clear_formatter0_own_full_normal_running_no_result",
+        "checks_run": true,
+        "checks_run_scope": "One own full normal/strict hook has actually started; no result or pass inferred. Final formatter actual0 is separate.",
+        "actual_terminal": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m78-delivery/normal-actual-exit.json",
+          "sha256": "e3f94ea33b295e7495f5f360c3a99b57a757ed62d025035a0c914fcbf7f2b2ea",
+          "bytes": 5182,
+          "mode": 436
+        }
+      },
+      "shared_candidate": {
+        "phases": [
+          "M78",
+          "M79"
+        ],
+        "decision": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m79-delivery/m78-m79-shared-cohort-source-batch-decision.json",
+          "sha256": "14e3b249e17c607f514ef0828ce1ecad4129a6c9e38c9440d816527a723792fd",
+          "bytes": 4920,
+          "mode": 436
+        },
+        "true_preparation_parent": "57b44de10713dc6132c5549d769dac00dc041f56",
+        "parent_accepted": false,
+        "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+        "final_combined_Source_snapshot": null,
+        "normal_actual": null,
+        "independent_DATA_actual": null,
+        "hosted_actual": null,
+        "official_actual": null,
+        "Source_control_obligations": {
+          "Rust_unique": 39,
+          "headless": 39,
+          "renderer": 21,
+          "overlap": 21,
+          "Python_new": 0
+        },
+        "standalone_M78_pass": false,
+        "standalone_M78_failure": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m78-delivery/normal-actual-exit.json",
+          "sha256": "e3f94ea33b295e7495f5f360c3a99b57a757ed62d025035a0c914fcbf7f2b2ea",
+          "bytes": 5182,
+          "mode": 436
+        },
+        "predecessor_acceptance_required": "M77",
+        "acceptance_scope": "One genuinely qualified candidate may prove both named scopes; no intermediate Main or inherited standalone result."
+      }
+    },
+    {
+      "id": "M79",
+      "title": "One model VelocityControl system",
+      "max_working_days": 5,
+      "depends_on": [
+        "M77"
+      ],
+      "scope": "At most one explicit upstream VelocityControl plugin on a top-level dynamic unjointed single free link with identity resolved link pose/centered inertia, using existing centered primitives and Rapier/TPE world-velocity APIs. Canonical six-axis model-frame Twist, native previous-latch Pre/Post timing, persistent target and structural demand.",
+      "acceptance": "Complete implementation, additive regression Source, docs and independent whole Source review with batched findings. Prove initials/axes/frame/timing/pause/persistence, real C++ ingress, bounded invalid/pending behavior, absent/last-owner demand, exclusive velocity/state-edit ownership, loaded reset/removal/stale leases/survivors/shutdown. Fresh bounded original-object native component observation and independent DATA have explicit callback/manager-reset limits. After independent merged Source and actual true57 parent/snapshot review, require one fresh complete combined M78/M79 normal/strict coverage, exact hosted/official and qualified Main gates. No intermediate qualified M78 commit is required or claimed; M77 acceptance remains a downstream prerequisite.",
+      "excluded": "No pose/position/body-state setters, fake demo motion, DiffDrive shortcut, new backend/solver/protocol/framework/dependency/SDK, DART/MuJoCo, link_name/multi-link/nested/jointed/static/multiple controller domain, runtime plugin spawning, sensor/renderer/package/Fuel expansion or native full-manager-reset/physics parity claim.",
+      "contract": "docs/M79_DELIVERY.md",
+      "source_preparation_basis_commit": "57b44de10713dc6132c5549d769dac00dc041f56",
+      "source_preparation_basis_accepted": false,
+      "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "final_qualification_parent": null,
+      "final_parent_reconciliation_required_before_checks": true,
+      "source_preparation_under_D31": true,
+      "Source_preparation_started": true,
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": false,
+      "checks_run": false,
+      "accepted": false,
+      "distribution_selected": false,
+      "qualification_state": "shared_M78_M79_Source_integration_native_reference_absent_whole_review_pending_checks_unrun",
+      "native_capture_required": true,
+      "native_capture_execution_released": false,
+      "native_capture_actual": null,
+      "new_Rust_Source_controls": 23,
+      "new_Python_Source_controls": 0,
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "native_Source_revision": "71c60db31fddd5c98d2aa689e9a2cccb3548a0a3",
+      "native_scope": "Direct original-object Configure/Pre/Post/component observation only. Source-proven two-phase/pause contract and actual asynchronous trace remain distinct; no tap/HasConnections callback receipt or quiescence inference, full manager reset or physics parity.",
+      "file_ownership": {
+        "Scene": "package_collector: crates/gz-sim-scene/**, DTO/API agreed with Server",
+        "Server": "tracker_acceptance_closeout: crates/gz-sim-server/**; Root-extended scripts/native-peer.py, scripts/zenoh_peer.py, scripts/verify.py and positive peer-roster fixtures tests/test_selected_native_gate.py, tests/test_zenoh_peer.py",
+        "canonical_docs": [
+          "docs/M79_DELIVERY.md",
+          "planning/delivery-phases.json",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "docs/DECISIONS.md",
+          "README.md",
+          "AGENTS.md"
+        ],
+        "native_Source": "m76_scope: primary artifacts/m79-delivery held CPU component-capture Source/procedure only",
+        "Root": "Integration, independent review, final parent reconciliation, serial heavy jobs and publication."
+      },
+      "public_interface": {
+        "VelocityControlConfiguration": [
+          "model_name",
+          "link(publicID)",
+          "topic",
+          "initial_linear[3]",
+          "initial_angular[3]"
+        ],
+        "pending_setter": "set_velocity_control_command(&mut Simulation, model_id, linear[3], angular[3])",
+        "binding_checks": [
+          "velocity_control_binding_matches",
+          "velocity_control_binding_matches_configuration"
+        ]
+      },
+      "reset_scope": "Scene Simulation::reset restores surviving controller initials/pending; reset_loaded_world reconstructs original/removed config and IDs. Server all/time_only follow existing loaded-reset path with ingress/lease renewal; model_only unchanged. No blanket native rewind/fullmanager parity.",
+      "Source_control_declarations": {
+        "Rust_unique": 23,
+        "Python": 0,
+        "headless": 23,
+        "renderer": 14,
+        "overlap": 14,
+        "counts_are_Source_obligations_not_executed_results": true
+      },
+      "existing_Python_changes": "Two existing positive/profile peer-roster fixtures extended additively; no new Python declarations.",
+      "native_product_fixture": "crates/gz-sim-scene/tests/fixtures/m79_velocity_control_native.json",
+      "native_product_fixture_present": false,
+      "historical_pre_shared_final_parent_requirement": {
+        "depends_on": [
+          "M78"
+        ],
+        "final_parent_reconciliation_required_before_checks": true,
+        "qualification_state": "implementation_regression_docs_Source_complete_native_reference_absent_whole_review_pending_checks_unrun"
+      },
+      "shared_qualification_cohort": [
+        "M78",
+        "M79"
+      ],
+      "shared_candidate": {
+        "phases": [
+          "M78",
+          "M79"
+        ],
+        "decision": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m79-delivery/m78-m79-shared-cohort-source-batch-decision.json",
+          "sha256": "14e3b249e17c607f514ef0828ce1ecad4129a6c9e38c9440d816527a723792fd",
+          "bytes": 4920,
+          "mode": 436
+        },
+        "true_preparation_parent": "57b44de10713dc6132c5549d769dac00dc041f56",
+        "parent_accepted": false,
+        "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+        "final_combined_Source_snapshot": null,
+        "normal_actual": null,
+        "independent_DATA_actual": null,
+        "hosted_actual": null,
+        "official_actual": null,
+        "Source_control_obligations": {
+          "Rust_unique": 39,
+          "headless": 39,
+          "renderer": 21,
+          "overlap": 21,
+          "Python_new": 0
+        },
+        "standalone_M78_pass": false,
+        "standalone_M78_failure": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m78-delivery/normal-actual-exit.json",
+          "sha256": "e3f94ea33b295e7495f5f360c3a99b57a757ed62d025035a0c914fcbf7f2b2ea",
+          "bytes": 5182,
+          "mode": 436
+        },
+        "predecessor_acceptance_required": "M77",
+        "acceptance_scope": "One genuinely qualified candidate may prove both named scopes; no intermediate Main or inherited standalone result."
+      },
+      "historical_pre_shared_acceptance": "Complete implementation, additive regression Source, docs and independent whole Source review with batched findings. Prove initials/axes/frame/timing/pause/persistence, real C++ ingress, bounded invalid/pending behavior, absent/last-owner demand, exclusive velocity/state-edit ownership, loaded reset/removal/stale leases/survivors/shutdown. Fresh bounded original-object native component observation and independent DATA have explicit callback/manager-reset limits. After actual M78 parent reconciliation require own consolidated normal/strict coverage, exact hosted/official and qualified Main gates.",
+      "final_parent_reconciliation_scope": "Actual true57 parent, merged Source/snapshot and acceptedDDD ancestry must agree before checks; this does not require or invent a qualified standalone M78 successor."
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -5071,14 +5388,18 @@
     "M74": "complete",
     "M75": "complete",
     "M76": "complete",
-    "M77": "in_progress"
+    "M77": "in_progress",
+    "M78": "in_progress",
+    "M79": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-20T05:55:17.049086+00:00",
   "active_phases": [
-    "M77"
+    "M77",
+    "M78",
+    "M79"
   ],
-  "execution_policy": "D30–D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
+  "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
     {
       "phases": [
@@ -5240,7 +5561,7 @@
         "M46",
         "M47"
       ],
-      "integration": "Frozen M43–M46 qualification and evidence remain unchanged while M47 contract and disjoint Source leaves are prepared over exact locally qualified M46 cca6. Root owns shared seams and serial heavy operations; complete independent contract and Source review precedes new local qualification. All accepted-predecessor/hosted/official/Main release gates remain mandatory.",
+      "integration": "Frozen M43\u2013M46 qualification and evidence remain unchanged while M47 contract and disjoint Source leaves are prepared over exact locally qualified M46 cca6. Root owns shared seams and serial heavy operations; complete independent contract and Source review precedes new local qualification. All accepted-predecessor/hosted/official/Main release gates remain mandatory.",
       "max_working_days": 5
     },
     {
@@ -5252,7 +5573,7 @@
         "M47",
         "M48"
       ],
-      "integration": "Frozen M43–M47 candidates and original evidence remain unchanged while bounded M48 heading-reference Source is prepared over locally qualified M47 f27a. Disjoint Scene and Server/reference leaves share one integrator; Root alone releases serial heavy checks after complete independent review. Actual accepted predecessors and all hosted/official/Main gates remain mandatory for publication and acceptance.",
+      "integration": "Frozen M43\u2013M47 candidates and original evidence remain unchanged while bounded M48 heading-reference Source is prepared over locally qualified M47 f27a. Disjoint Scene and Server/reference leaves share one integrator; Root alone releases serial heavy checks after complete independent review. Actual accepted predecessors and all hosted/official/Main gates remain mandatory for publication and acceptance.",
       "max_working_days": 5
     },
     {
@@ -5265,7 +5586,7 @@
         "M48",
         "M49"
       ],
-      "integration": "Frozen M43–M48 and original evidence remain unchanged. M49 uses the exact locally qualified a204 parent for disjoint Scene and Server/native Source lanes, one Root integrator and serial reviewed heavy execution. Hosted closeout and all accepted-predecessor/publication/acceptance gates remain separate and mandatory.",
+      "integration": "Frozen M43\u2013M48 and original evidence remain unchanged. M49 uses the exact locally qualified a204 parent for disjoint Scene and Server/native Source lanes, one Root integrator and serial reviewed heavy execution. Hosted closeout and all accepted-predecessor/publication/acceptance gates remain separate and mandatory.",
       "max_working_days": 5
     },
     {
@@ -5279,7 +5600,7 @@
         "M49",
         "M50"
       ],
-      "integration": "Freeze M43–M49 and original evidence. Prepare M50 disjoint Scene and Server/reference Source over exact locally qualified4ccd with one integrator and serial reviewed heavy operations. Hosted closeout and every accepted-predecessor/publication/acceptance gate stay mandatory.",
+      "integration": "Freeze M43\u2013M49 and original evidence. Prepare M50 disjoint Scene and Server/reference Source over exact locally qualified4ccd with one integrator and serial reviewed heavy operations. Hosted closeout and every accepted-predecessor/publication/acceptance gate stay mandatory.",
       "max_working_days": 5
     },
     {
@@ -5401,7 +5722,7 @@
         "M64",
         "M65"
       ],
-      "integration": "M61–M64 exact192ede local normal/DATA passed; hosted/official/Main closeout stays separate while disjoint M65 package/helper Source preparation proceeds over192ede. Actual predecessor acceptance and complete independent Source review precede any M65 checks. Every feature/distribution proof remains mandatory; Root alone releases serial heavy operations, no result transfer.",
+      "integration": "M61\u2013M64 exact192ede local normal/DATA passed; hosted/official/Main closeout stays separate while disjoint M65 package/helper Source preparation proceeds over192ede. Actual predecessor acceptance and complete independent Source review precede any M65 checks. Every feature/distribution proof remains mandatory; Root alone releases serial heavy operations, no result transfer.",
       "max_working_days": 5
     },
     {
@@ -5479,40 +5800,38 @@
       "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1–M76 and 202 retained slices are accepted; 77 phases are cataloged. M76 own hosted run 44681392983 attempt 1, independent official DATA and actual Main/readbacks accepted exact dddf. M77 whole Source is reviewed and its unchanged parent is accepted; final factual binding review and Root release precede verification. M77 has no check or distribution result. Public Latest M70 remains Source 7094a31 with 41 installed examples; target M77 installed 47/Source 47/CLI 21 remain distinct.",
+  "acceptance_boundary": "D31 shared M78/M79 candidate over actual qualified unaccepted57. Standalone M78 Root/Git1 timeout/causeUNKNOWN retained; no intermediate qualified M78 commit. Independently review merged Source and actual true57 parent/snapshot, then fresh M79 native component capture/DATA/final adoption and one unchanged combined normal/strict/hosted/official gate chain proving both scopes. M77 predecessor acceptance and qualified Main remain required before either acceptance; currentaccepted76/catalog79/slices202/LatestM70original41 unchanged.",
   "current_delivery_group": [
-    "M77"
+    "M78",
+    "M79"
   ],
-  "current_development_phase": "M77",
+  "current_development_phase": "M79",
   "board": {
-    "updated_at": "2026-11-20T06:27:09.054047+00:00",
     "current": {
-      "title": "M77 source is reviewed; accepted-parent bindings are next",
+      "title": "Shared M78/M79 Source integration; standalone M78 timeout retained",
       "items": [
-        "M76 is accepted at the exact unchanged M77 parent after own hosted, independent official and Main gates.",
-        "M77 implementation, 13 new regression declarations and guides have whole Source clearance. Final factual binding review precedes Root verification release.",
-        "No M77 checks or installed proofs have run. Latest M70 retains 41 installed examples; M77 targets 47 existing worlds."
+        "39 Rust declarations H39/R21 and zero new Python declarations are Source obligations, not passes. Merged review and fresh native adoption precede one combined qualification.",
+        "Standalone M78 Root/Git1 at the unchanged strict-headless timeout; cause UNKNOWN, no commit. Frozen Source and partials are retained.",
+        "Both scopes prepare over unaccepted57; accepted76/catalog79/slices202 and Latest M70 original41 stay unchanged."
       ]
     },
     "done": [
-      "76 of 77 cataloged phases and 202 reviewed slices are accepted; public Latest M70 remains its immutable 41-example package.",
-      "M76 exact hosted 44681392983 attempt 1, official DATA and ordinary Main promotion/readbacks passed. All historical failures remain preserved."
+      "Separate bounded M78/M79 contracts and code/regression Source are prepared; Root selected shared D31 integration with all gates retained."
     ],
     "next": [
-      "Review the factual accepted-parent reconciliation and final M77 bindings, then Root releases one consolidated required verification cycle.",
-      "After qualification, obtain fresh four-role build/package/install and mixed-camera/skew/default-browser proofs before exact hosted/official/Main/release acceptance."
+      "Close batched findings and whole merged Source review; Root serially releases fresh native capture/DATA and one combined normal/strict/hosted/official cycle."
     ],
     "blocker": {
-      "text": "",
-      "url": "https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m70-preview"
+      "text": "Neither M78 nor M79 is qualified or accepted. M77 predecessor/formal GUI closeout remains separate; keep the persistent demo running.",
+      "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/57b44de10713dc6132c5549d769dac00dc041f56/docs/M77_DELIVERY.md"
     },
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M77"
+    "M79"
   ],
   "camera_integration": {
-    "scope": "Atomic M61–M64 qualification on accepted M60; no new phase",
+    "scope": "Atomic M61\u2013M64 qualification on accepted M60; no new phase",
     "basis_accepted_commit": "a1a01192661281fc4691fe5c048a65e1986aefa4",
     "donor_staged_trees": {
       "M63": "33ec6cd49c14a145a889d3ca07637bb49fb7f4f4",
@@ -5658,7 +5977,7 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "M77_FINAL_PARENT_BINDING_REVIEW_BEFORE_VERIFICATION",
+  "current_development_task": "M78_M79_SHARED_CANDIDATE_SOURCE_INTEGRATION",
   "backend_retirement_source_preparation": {
     "decision": "D33",
     "owner_directed_at": "2026-11-17",
@@ -5749,7 +6068,7 @@
     "originals_durable": true
   },
   "qualification_closeout": {
-    "state": "M1_M76_ACCEPTED_M77_SOURCE_CLEAR_FINAL_BINDING_REVIEW_PENDING",
+    "state": "M1_M76_ACCEPTED_M78_STANDALONE_FAILED_M78_M79_SHARED_SOURCE",
     "recorded_at": "2026-11-20T06:25:45.867378+00:00",
     "own_head_admission": {
       "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/final-main-own-head-admission.json",
@@ -5824,7 +6143,7 @@
       "sha256": "98e7a6c13529cbe5ea4a7cb560b0748b28a552d1008de05fa05197cc6a4693d5"
     },
     "accepted_phase_count": 76,
-    "catalog_count": 77,
+    "catalog_count": 79,
     "Latest": {
       "phase": "M70",
       "installed_examples": 41,
@@ -5833,7 +6152,7 @@
       "release_url": "https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m70-preview",
       "public_and_Latest_HTTP_status": 200
     },
-    "next_phase_selection": "M77 is selected and whole Source reviewed over now-accepted unchanged M76 dddf. Final factual parent/binding review and Root release precede its own verification; no M77 qualification transfers from the parent.",
+    "next_phase_selection": "Root selected a shared M78/M79 candidate over qualified unaccepted57 after actual M78 timeout; fresh combined gates prove both, M77 acceptance remains prerequisite.",
     "M76_acceptance_receipt": {
       "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/m76-acceptance.json",
       "sha256": "f5728d187664ade59eea645615d617ae3f32d69f184b3227dde2a76c59ed9511",
@@ -5849,7 +6168,8 @@
       "bytes": 2682,
       "sha256": "a650e9805d4daf62208c5679bf7c8becb39db0f824f9b309c5ee255f174f6726"
     },
-    "own_head_admission_scope": "Retained M70–M75 six-head admission; the separate exact M76 receipt binds this newly accepted increment."
+    "own_head_admission_scope": "Retained M70\u2013M75 six-head admission; the separate exact M76 receipt binds this newly accepted increment.",
+    "historical_pre_shared_next_selection": "M79 bounded VelocityControl selected under explicit continuation; disjoint Source over qualified unaccepted57 while M78 qualification runs. Final actual M78 parent reconciliation precedes own checks; no inherited acceptance."
   },
   "historical_held_work_before_closeout": {
     "phases": [
@@ -5861,7 +6181,7 @@
       "M75"
     ],
     "source_commit": "616cc3e2105a7ef9479ac823a6b05e832a92defc",
-    "reason": "Selected local obligations are complete provisionally and qualified Source is on GitHub for review. M74 hosted and official gates passed; M75’s automatic hosted run was initially in progress. Other exact per-head hosted/official gates and final accepted-parent/Main reconciliation remain pending.",
+    "reason": "Selected local obligations are complete provisionally and qualified Source is on GitHub for review. M74 hosted and official gates passed; M75\u2019s automatic hosted run was initially in progress. Other exact per-head hosted/official gates and final accepted-parent/Main reconciliation remain pending.",
     "accepted": false,
     "included_in_this_candidate": true
   },
@@ -6114,7 +6434,7 @@
             "M46",
             "M47"
           ],
-          "integration": "Frozen M43–M46 qualification and evidence remain unchanged while M47 contract and disjoint Source leaves are prepared over exact locally qualified M46 cca6. Root owns shared seams and serial heavy operations; complete independent contract and Source review precedes new local qualification. All accepted-predecessor/hosted/official/Main release gates remain mandatory.",
+          "integration": "Frozen M43\u2013M46 qualification and evidence remain unchanged while M47 contract and disjoint Source leaves are prepared over exact locally qualified M46 cca6. Root owns shared seams and serial heavy operations; complete independent contract and Source review precedes new local qualification. All accepted-predecessor/hosted/official/Main release gates remain mandatory.",
           "max_working_days": 5
         },
         {
@@ -6126,7 +6446,7 @@
             "M47",
             "M48"
           ],
-          "integration": "Frozen M43–M47 candidates and original evidence remain unchanged while bounded M48 heading-reference Source is prepared over locally qualified M47 f27a. Disjoint Scene and Server/reference leaves share one integrator; Root alone releases serial heavy checks after complete independent review. Actual accepted predecessors and all hosted/official/Main gates remain mandatory for publication and acceptance.",
+          "integration": "Frozen M43\u2013M47 candidates and original evidence remain unchanged while bounded M48 heading-reference Source is prepared over locally qualified M47 f27a. Disjoint Scene and Server/reference leaves share one integrator; Root alone releases serial heavy checks after complete independent review. Actual accepted predecessors and all hosted/official/Main gates remain mandatory for publication and acceptance.",
           "max_working_days": 5
         },
         {
@@ -6139,7 +6459,7 @@
             "M48",
             "M49"
           ],
-          "integration": "Frozen M43–M48 and original evidence remain unchanged. M49 uses the exact locally qualified a204 parent for disjoint Scene and Server/native Source lanes, one Root integrator and serial reviewed heavy execution. Hosted closeout and all accepted-predecessor/publication/acceptance gates remain separate and mandatory.",
+          "integration": "Frozen M43\u2013M48 and original evidence remain unchanged. M49 uses the exact locally qualified a204 parent for disjoint Scene and Server/native Source lanes, one Root integrator and serial reviewed heavy execution. Hosted closeout and all accepted-predecessor/publication/acceptance gates remain separate and mandatory.",
           "max_working_days": 5
         },
         {
@@ -6153,7 +6473,7 @@
             "M49",
             "M50"
           ],
-          "integration": "Freeze M43–M49 and original evidence. Prepare M50 disjoint Scene and Server/reference Source over exact locally qualified4ccd with one integrator and serial reviewed heavy operations. Hosted closeout and every accepted-predecessor/publication/acceptance gate stay mandatory.",
+          "integration": "Freeze M43\u2013M49 and original evidence. Prepare M50 disjoint Scene and Server/reference Source over exact locally qualified4ccd with one integrator and serial reviewed heavy operations. Hosted closeout and every accepted-predecessor/publication/acceptance gate stay mandatory.",
           "max_working_days": 5
         },
         {
@@ -6275,7 +6595,7 @@
             "M64",
             "M65"
           ],
-          "integration": "M61–M64 exact192ede local normal/DATA passed; hosted/official/Main closeout stays separate while disjoint M65 package/helper Source preparation proceeds over192ede. Actual predecessor acceptance and complete independent Source review precede any M65 checks. Every feature/distribution proof remains mandatory; Root alone releases serial heavy operations, no result transfer.",
+          "integration": "M61\u2013M64 exact192ede local normal/DATA passed; hosted/official/Main closeout stays separate while disjoint M65 package/helper Source preparation proceeds over192ede. Actual predecessor acceptance and complete independent Source review precede any M65 checks. Every feature/distribution proof remains mandatory; Root alone releases serial heavy operations, no result transfer.",
           "max_working_days": 5
         },
         {
@@ -6333,7 +6653,7 @@
           "max_working_days": 5
         }
       ],
-      "acceptance_boundary": "M1–M69/202 slices remain accepted and M65 Latest has35 installed examples. M70 distribution/runtime and M71–M74 local normal/strict/audits passed provisionally; qualified Source is on the owner-authorized GitHub review branch, with no Main promotion or release acceptance. M75 inherits no qualification. Final accepted-parent reconciliation, exact hosted success, durable official evidence and Main gates remain mandatory. Rapier/TPE remain; DART/MuJoCo are retired.",
+      "acceptance_boundary": "M1\u2013M69/202 slices remain accepted and M65 Latest has35 installed examples. M70 distribution/runtime and M71\u2013M74 local normal/strict/audits passed provisionally; qualified Source is on the owner-authorized GitHub review branch, with no Main promotion or release acceptance. M75 inherits no qualification. Final accepted-parent reconciliation, exact hosted success, durable official evidence and Main gates remain mandatory. Rapier/TPE remain; DART/MuJoCo are retired.",
       "current_delivery_group": [
         "M75"
       ],
@@ -6349,15 +6669,15 @@
           ]
         },
         "done": [
-          "M1–M69 and202 slices remain accepted; M65 Latest has35 installed examples.",
-          "M70 local distribution/runtime and M71–M74 local normal/strict qualification and independent audits passed provisionally; qualified commits are on the owner-authorized GitHub review branch, not accepted or released."
+          "M1\u2013M69 and202 slices remain accepted; M65 Latest has35 installed examples.",
+          "M70 local distribution/runtime and M71\u2013M74 local normal/strict qualification and independent audits passed provisionally; qualified commits are on the owner-authorized GitHub review branch, not accepted or released."
         ],
         "next": [
           "After complete source finding clearance, run one full M75 normal/strict cycle and one reviewed retained audit.",
           "Final accepted-parent reconciliation, exact hosted success, durable official evidence and Main gates remain mandatory for acceptance or release."
         ],
         "blocker": {
-          "text": "M74 automatic hosted run44627469212 completed signed snapshot/native setup steps1–8 successfully and was running product verification at the last observation. Whole CI success remains unproven; historical HTTP401 failures are retained, with no manual retry/probe.",
+          "text": "M74 automatic hosted run44627469212 completed signed snapshot/native setup steps1\u20138 successfully and was running product verification at the last observation. Whole CI success remains unproven; historical HTTP401 failures are retained, with no manual retry/probe.",
           "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44627469212"
         }
       },
@@ -6517,5 +6837,179 @@
         "installed_accepted_examples": 35
       }
     }
-  }
+  },
+  "historical_pre_M79_preparation_parent_current_fields": {
+    "as_of": "2026-11-20T06:27:09.054047+00:00",
+    "current_phase": "M77",
+    "active_phases": [
+      "M77"
+    ],
+    "current_delivery_group": [
+      "M77"
+    ],
+    "current_development_phase": "M77",
+    "current_development_task": "M77_FINAL_PARENT_BINDING_REVIEW_BEFORE_VERIFICATION",
+    "board": {
+      "updated_at": "2026-11-20T06:27:09.054047+00:00",
+      "current": {
+        "title": "M77 source is reviewed; accepted-parent bindings are next",
+        "items": [
+          "M76 is accepted at the exact unchanged M77 parent after own hosted, independent official and Main gates.",
+          "M77 implementation, 13 new regression declarations and guides have whole Source clearance. Final factual binding review precedes Root verification release.",
+          "No M77 checks or installed proofs have run. Latest M70 retains 41 installed examples; M77 targets 47 existing worlds."
+        ]
+      },
+      "done": [
+        "76 of 77 cataloged phases and 202 reviewed slices are accepted; public Latest M70 remains its immutable 41-example package.",
+        "M76 exact hosted 44681392983 attempt 1, official DATA and ordinary Main promotion/readbacks passed. All historical failures remain preserved."
+      ],
+      "next": [
+        "Review the factual accepted-parent reconciliation and final M77 bindings, then Root releases one consolidated required verification cycle.",
+        "After qualification, obtain fresh four-role build/package/install and mixed-camera/skew/default-browser proofs before exact hosted/official/Main/release acceptance."
+      ],
+      "blocker": {
+        "text": "",
+        "url": "https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m70-preview"
+      },
+      "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
+    },
+    "parallel_source_phases": [
+      "M77"
+    ],
+    "acceptance_boundary": "M1\u2013M76 and 202 retained slices are accepted; 77 phases are cataloged. M76 own hosted run 44681392983 attempt 1, independent official DATA and actual Main/readbacks accepted exact dddf. M77 whole Source is reviewed and its unchanged parent is accepted; final factual binding review and Root release precede verification. M77 has no check or distribution result. Public Latest M70 remains Source 7094a31 with 41 installed examples; target M77 installed 47/Source 47/CLI 21 remain distinct."
+  },
+  "historical_pre_M79_qualification_closeout": {
+    "state": "M1_M76_ACCEPTED_M77_SOURCE_CLEAR_FINAL_BINDING_REVIEW_PENDING",
+    "recorded_at": "2026-11-20T06:25:45.867378+00:00",
+    "own_head_admission": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/final-main-own-head-admission.json",
+      "bytes": 8283,
+      "sha256": "1173dca8f33e9c33a0422ea2d1b91a39ee3f5858cce98e42d3d5c92898791d4e"
+    },
+    "actual_Main_promotion": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/final-main-promotion.json",
+      "sha256": "f34263d4f78852242910dac57288a7cedb7808201f084b80a513578e1f7459c7",
+      "bytes": 3302,
+      "mode": 436
+    },
+    "Main": "dddf1f4284557c420e384d263a4365b2153dfde2",
+    "review_refs_preserved": true,
+    "M70_release_receipt": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/m70-public-release-acceptance.json",
+      "bytes": 6672,
+      "sha256": "3405e189001d74eac6fd99e182cc4202563a060d5a51a70cd47d673851c79b49"
+    },
+    "ordered_phase_acceptance_receipts": [
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/accepted-phases/m70-acceptance.json",
+        "sha256": "17dcddecfcd8b4faad90f2ef7aa604b96d04a39357125fc09d72d1c06b304091",
+        "bytes": 2383
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/accepted-phases/m71-acceptance.json",
+        "sha256": "46efa70126ca7292e10245f61a3e893a65a4b2ca0917048ae693517a0530ca42",
+        "bytes": 2384
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/accepted-phases/m72-acceptance.json",
+        "sha256": "63799db7995395a8c74f6bfa843abbc7efde30a5a84b263da8a6972c9a3e7dc9",
+        "bytes": 2384
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/accepted-phases/m73-acceptance.json",
+        "sha256": "77a3a0e17ad901a48d2e9fa85fa8b104e647e7c0ffc15d00c9af9de9b21b7778",
+        "bytes": 2384
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/accepted-phases/m74-acceptance.json",
+        "sha256": "6ae8e872057fa4abaa9d4c5fbfe1159de3ead0b589c1a70ffb2a60363e217b0a",
+        "bytes": 2369
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/accepted-phases/m75-acceptance.json",
+        "sha256": "d35fb0d0d2d82eca24bd417c56e6b5e77fa83e6236474ccab9c4ef6e8bac610d",
+        "bytes": 2380
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/m76-acceptance.json",
+        "sha256": "f5728d187664ade59eea645615d617ae3f32d69f184b3227dde2a76c59ed9511",
+        "bytes": 3134
+      }
+    ],
+    "accepted_slices_preserved": 202,
+    "new_slice_append_list": [],
+    "automatic_Main_CI": {
+      "id": 44687651179,
+      "attempt": 1,
+      "head_sha": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44687651179",
+      "scope": "Separate initial automatic Main metadata only; its result is not inferred and does not replace the successful own review run."
+    },
+    "historical_checkpoint_scope": "Frozen local_qualification, source_publication and parent progress objects retain their original observation-time flags. Current phase gate fields and current_acceptance_gate_progress record the later actual state.",
+    "ordered_phase_acceptance_index": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/ordered-phase-acceptance-index.json",
+      "bytes": 1614,
+      "sha256": "98e7a6c13529cbe5ea4a7cb560b0748b28a552d1008de05fa05197cc6a4693d5"
+    },
+    "accepted_phase_count": 76,
+    "catalog_count": 77,
+    "Latest": {
+      "phase": "M70",
+      "installed_examples": 41,
+      "package_build_Source": "7094a31890e78bc83c65f12a056dfb3918b7401a",
+      "release_id": 452158796,
+      "release_url": "https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m70-preview",
+      "public_and_Latest_HTTP_status": 200
+    },
+    "next_phase_selection": "M77 is selected and whole Source reviewed over now-accepted unchanged M76 dddf. Final factual parent/binding review and Root release precede its own verification; no M77 qualification transfers from the parent.",
+    "M76_acceptance_receipt": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/m76-acceptance.json",
+      "sha256": "f5728d187664ade59eea645615d617ae3f32d69f184b3227dde2a76c59ed9511",
+      "bytes": 3134
+    },
+    "M76_Main_promotion": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/final-main-promotion.json",
+      "sha256": "f34263d4f78852242910dac57288a7cedb7808201f084b80a513578e1f7459c7",
+      "bytes": 3302
+    },
+    "historical_M70_M75_Main_promotion": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/final-main-promotion.json",
+      "bytes": 2682,
+      "sha256": "a650e9805d4daf62208c5679bf7c8becb39db0f824f9b309c5ee255f174f6726"
+    },
+    "own_head_admission_scope": "Retained M70\u2013M75 six-head admission; the separate exact M76 receipt binds this newly accepted increment."
+  },
+  "historical_pre_shared_M78_M79_current_fields": {
+    "board": {
+      "updated_at": "2026-11-20T15:52:44.565086+00:00",
+      "current": {
+        "title": "M79 VelocityControl Source preparation; M78 qualification remains active",
+        "items": [
+          "M79 implementation and regression Source is complete: 23 Rust declarations and zero Python additions, not passes. Whole independent review and fresh native-reference adoption remain pending; no checks are released.",
+          "M78 full qualification is active with no result inferred. M79 prepares over qualified unaccepted57 and must reconcile the actual qualified M78 successor before its checks.",
+          "M77 manual demo remains running without expiry. Formal GUI acceptance is separate; accepted counts remain76/202, catalog79 and Latest M70 remains41examples."
+        ]
+      },
+      "done": [
+        "M1\u2013M76 and202slices remain accepted. M77 non-browser proofs are complete; no new phase acceptance follows from Source or a manual demo.",
+        "M79 scope and disjoint Scene/Server/docs/native Source leases are selected; no new physics, transport framework or package refresh is needed."
+      ],
+      "next": [
+        "Complete independent whole Source review and native-reference preparation; batch all findings before Root serial capture and final Source adoption.",
+        "Reconcile the actual qualified M78 parent before Root releases bounded native capture and the required consolidated M79 verification cycle. Keep the demo running."
+      ],
+      "blocker": {
+        "text": "M79 Source preparation may proceed. M78 result and final M79 parent reconciliation remain pending; M77 formal GUI acceptance is separate.",
+        "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/57b44de10713dc6132c5549d769dac00dc041f56/docs/M77_DELIVERY.md"
+      },
+      "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
+    },
+    "current_development_task": "M79_VELOCITY_CONTROL_PARALLEL_SOURCE_PREPARATION",
+    "current_delivery_group": [
+      "M79"
+    ]
+  },
+  "historical_pre_shared_acceptance_boundary": "M1\u2013M76 and202slices remain accepted;79phases are cataloged. M77 qualified57 remains unaccepted with its separate persistent manual demo; M78 own qualification is active with no result inferred. M79 parallel Source over57 must reconcile actualqualifiedM78 parent before ownchecks. AcceptedMainancestorDDD and trueSourceparent57 remain distinct; no inherited qualification. LatestM70 original41 and Source47finite/21CLI unchanged."
 }

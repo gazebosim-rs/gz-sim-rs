@@ -41,6 +41,7 @@ CLIENTS = {
     'multiple_joint_states': 'crates/gz-sim-server/tests/native_multiple_joint_states_peer.cc',
     'multiple_joint_controllers': 'crates/gz-sim-server/tests/native_multiple_joint_controllers_peer.cc',
     'multiple_diff_drives': 'crates/gz-sim-server/tests/native_multiple_diff_drives_peer.cc',
+    'velocity_control': 'crates/gz-sim-server/tests/native_velocity_control_peer.cc',
 }
 spec = importlib.util.spec_from_file_location('zenoh_runtime_probe', ROOT / 'scripts/zenoh_runtime_probe.py')
 runtime_probe = importlib.util.module_from_spec(spec)
