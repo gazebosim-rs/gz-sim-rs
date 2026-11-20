@@ -66,11 +66,11 @@ def verify_prefix(prefix):
             or not 1 <= len(manifest['files']) <= 16384):
         raise ValueError('unsupported or incomplete preview manifest')
     files = manifest['files']
-    camera_generation = manifest.get('guide_generation') == 'M70'
+    camera_generation = manifest.get('guide_generation') in ('M70', 'M77')
     if camera_generation and (manifest.get('target') != 'ubuntu-24.04-x86_64'
                               or manifest.get('profile') != M70_PROFILE
                               or manifest.get('binary_roles') != M70_BINARY_ROLES):
-        raise ValueError('M70 requires the exact four installed binary roles')
+        raise ValueError(manifest['guide_generation'] + ' requires the exact four installed binary roles')
     if 'manifest.json' in files:
         raise ValueError('manifest cannot list itself')
     required = {'bin/gz-preview', 'bin/gz-sim-rs', 'bin/gz-drive-command', 'bin/gz-joint-command',
@@ -87,7 +87,7 @@ def verify_prefix(prefix):
             entry = files.get(role['path'])
             if (not isinstance(entry, dict) or entry.get('mode') != 0o755
                     or type(entry.get('bytes')) is not int or not 0 < entry['bytes'] <= 256 * 1024**2):
-                raise ValueError('M70 requires four bounded executable binary files')
+                raise ValueError(manifest['guide_generation'] + ' requires four bounded executable binary files')
     guide_pairs = ({'INSTALL.md', 'CAPABILITIES.md'},
                    {'M12_INSTALL.md', 'M12_CAPABILITIES.md'})
     if not required <= files.keys() or not any(pair <= files.keys() for pair in guide_pairs):
@@ -236,7 +236,9 @@ def camera_environment(prefix, partition, runtime):
 
 
 def serve(prefix, http_port, ws_port, partition, *, lifecycle=False, example=None,
-          camera_output=False):
+          camera_output=False, camera_mixed_pair=False):
+    if camera_mixed_pair and not camera_output:
+        raise ValueError('mixed cameras require explicit camera output')
     if not camera_output:
         return _serve(prefix, http_port, ws_port, partition,
                       lifecycle=lifecycle, example=example)
@@ -244,8 +246,10 @@ def serve(prefix, http_port, ws_port, partition, *, lifecycle=False, example=Non
         raise ValueError('camera output cannot be combined with lifecycle editing')
     refuse_camera_overrides()
     manifest = verify_prefix(prefix)
-    if manifest.get('guide_generation') != 'M70':
-        raise ValueError('camera output requires the M70 packaged worker')
+    if manifest.get('guide_generation') not in ('M70', 'M77'):
+        raise ValueError('camera output requires a packaged camera worker')
+    if camera_mixed_pair and manifest.get('guide_generation') != 'M77':
+        raise ValueError('mixed cameras require the M77 preview')
     worker = prefix / manifest['binary_roles']['camera_worker']['path']
     runtime = Path(tempfile.mkdtemp(prefix='gz-preview-camera-', dir='/tmp'))
     identity = None
@@ -253,8 +257,9 @@ def serve(prefix, http_port, ws_port, partition, *, lifecycle=False, example=Non
     try:
         identity = runtime.lstat()
         env = camera_environment(prefix, partition, runtime)
+        options = {'camera_mixed_pair': True} if camera_mixed_pair else {}
         return _serve(prefix, http_port, ws_port, partition, example=example,
-                      worker=worker, child_environment=env, retirement=retirement)
+                      worker=worker, child_environment=env, retirement=retirement, **options)
     finally:
         primary = sys.exception()
         cleanup_error = None
@@ -357,7 +362,9 @@ class ViewerHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 
 def _serve(prefix, http_port, ws_port, partition, *, lifecycle=False, example=None,
-           worker=None, child_environment=None, retirement=None):
+           worker=None, child_environment=None, retirement=None, camera_mixed_pair=False):
+    if camera_mixed_pair and (worker is None or lifecycle):
+        raise ValueError('mixed cameras require a worker without lifecycle editing')
     world = prefix / 'share/robot.sdf'
     if example is not None:
         world = example_path(prefix, verify_prefix(prefix), example)
@@ -387,6 +394,8 @@ def _serve(prefix, http_port, ws_port, partition, *, lifecycle=False, example=No
             command.append('--web-lifecycle')
         if worker is not None:
             command.extend(['--camera-worker', str(worker)])
+        if camera_mixed_pair:
+            command.append('--camera-mixed-pair')
         # Even a constructor exception can leave spawn outcome uncertain.
         if retirement is not None:
             retirement['confirmed'] = False
@@ -455,7 +464,9 @@ def main(argv=None, prefix=None):
     run.add_argument('--http-port', type=int, choices=(8080, 8081, 8082), default=8081)
     run.add_argument('--ws-port', type=int, default=9014)
     run.add_argument('--camera-output', action='store_true',
-                     help='use the manifest-verified M70 camera worker and system lavapipe')
+                     help='use the manifest-verified camera worker and system lavapipe')
+    run.add_argument('--camera-mixed-pair', action='store_true',
+                     help='explicitly enable one RGB/depth pair in an M77 camera preview')
     run.add_argument('--lifecycle', action='store_true',
                      help='enable existing local lifecycle controls and publication credit')
     run.add_argument('--example', metavar='BASENAME',
@@ -488,11 +499,17 @@ def main(argv=None, prefix=None):
             raise ValueError('WebSocket port must be in 1024..=65535')
         if args.camera_output and args.lifecycle:
             raise ValueError('camera output cannot be combined with lifecycle editing')
+        if args.camera_mixed_pair and not args.camera_output:
+            raise ValueError('mixed cameras require explicit camera output')
         options = {}
         if args.camera_output:
-            if manifest.get('guide_generation') != 'M70':
-                raise ValueError('camera output requires the M70 packaged worker')
+            if manifest.get('guide_generation') not in ('M70', 'M77'):
+                raise ValueError('camera output requires a packaged camera worker')
             options['camera_output'] = True
+        if args.camera_mixed_pair:
+            if manifest.get('guide_generation') != 'M77':
+                raise ValueError('mixed cameras require the M77 preview')
+            options['camera_mixed_pair'] = True
         if args.lifecycle:
             options['lifecycle'] = True
         if args.example is not None:

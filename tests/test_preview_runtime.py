@@ -1012,6 +1012,172 @@ class InstalledPreview(unittest.TestCase):
 
 
 
+    def install_m77_camera_fixture(self):
+        self.install_m70_camera_fixture()
+        self.camera_manifest['guide_generation'] = 'M77'
+        self.save_m70_camera_manifest()
+
+    @isolated_camera_environment
+    def test_m77_verification_keeps_four_roles_and_rejects_changed_worker_before_io(self):
+        self.install_m77_camera_fixture()
+        self.assertEqual(preview.verify_prefix(self.prefix)['binary_roles'],
+                         self.camera_manifest['binary_roles'])
+        original = json.dumps(self.camera_manifest)
+        for fault in ('role', 'profile', 'mode', 'rehash', 'bytes'):
+            with self.subTest(fault=fault):
+                self.camera_manifest = json.loads(original)
+                worker = self.prefix / 'bin/gz-render-worker'
+                body = worker.read_bytes()
+                if fault == 'role':
+                    self.camera_manifest['binary_roles']['camera_worker']['path'] = 'bin/gz-sim-rs'
+                elif fault == 'profile':
+                    self.camera_manifest['profile'] = 'release; no-default-features; no rgb-camera'
+                elif fault == 'mode':
+                    self.camera_manifest['files']['bin/gz-render-worker']['mode'] = 0o644
+                elif fault == 'rehash':
+                    self.camera_manifest['files']['bin/gz-render-worker']['sha256'] = '0' * 64
+                else:
+                    worker.write_bytes(b'changed installed worker')
+                self.save_m70_camera_manifest()
+                with patch.object(preview, 'camera_environment') as environment, \
+                        patch.object(preview, '_serve') as child:
+                    with self.assertRaises(ValueError):
+                        preview.serve(self.prefix, 8082, 9014, 'mixed',
+                                      camera_output=True, camera_mixed_pair=True)
+                    environment.assert_not_called()
+                    child.assert_not_called()
+                worker.write_bytes(body)
+
+    @isolated_camera_environment
+    def test_m77_mixed_option_is_explicit_and_preserves_plain_and_camera_only_dispatch(self):
+        self.install_m77_camera_fixture()
+        for arguments, expected in ((['run'], {}),
+                (['run', '--camera-output'], {'camera_output': True}),
+                (['run', '--camera-output', '--camera-mixed-pair'],
+                 {'camera_output': True, 'camera_mixed_pair': True})):
+            with self.subTest(arguments=arguments), \
+                    patch.object(preview, 'serve', return_value=0) as serve:
+                self.assertEqual(preview.main(arguments, self.prefix), 0)
+                serve.assert_called_once_with(self.prefix, 8081, 9014, 'gz-preview', **expected)
+        moved = self.directory / 'relocated M77 preview'
+        shutil.move(self.prefix, moved)
+        with patch.object(preview, 'serve', return_value=0) as serve:
+            self.assertEqual(preview.main(['run', '--camera-output', '--camera-mixed-pair'], moved), 0)
+            self.assertEqual(serve.call_args.args[0], moved)
+
+    @isolated_camera_environment
+    def test_mixed_option_refuses_older_generations_and_invalid_combinations_before_effects(self):
+        self.install_m70_camera_fixture()
+        for generation in ('M70', 'M77'):
+            self.camera_manifest['guide_generation'] = generation
+            self.save_m70_camera_manifest()
+            invalid = [['run', '--camera-mixed-pair'],
+                       ['run', '--camera-output', '--camera-mixed-pair', '--lifecycle']]
+            if generation == 'M70':
+                invalid.append(['run', '--camera-output', '--camera-mixed-pair'])
+            for arguments in invalid:
+                with self.subTest(generation=generation, arguments=arguments), \
+                        patch.object(preview, 'serve') as serve, \
+                        patch.object(preview.tempfile, 'mkdtemp') as runtime, \
+                        patch.object(preview, 'check_port') as port:
+                    self.assertEqual(preview.main(arguments, self.prefix), 1)
+                    serve.assert_not_called()
+                    runtime.assert_not_called()
+                    port.assert_not_called()
+        for arguments in (['verify', '--camera-mixed-pair'],
+                          ['drive', '0', '0', '1', '--camera-mixed-pair'],
+                          ['run', '--camera-mixed-pair=/external/worker']):
+            with self.subTest(arguments=arguments), patch.object(preview, 'serve') as serve:
+                with self.assertRaises(SystemExit) as error:
+                    preview.main(arguments, self.prefix)
+                self.assertEqual(error.exception.code, 2)
+                serve.assert_not_called()
+
+    @isolated_camera_environment
+    def test_mixed_serve_admission_precedes_runtime_and_does_not_infer_from_example(self):
+        self.install_m70_camera_fixture()
+        for generation, output, lifecycle in (('M70', True, False), ('M77', False, False),
+                                               ('M77', True, True)):
+            self.camera_manifest['guide_generation'] = generation
+            self.save_m70_camera_manifest()
+            with self.subTest(generation=generation, output=output, lifecycle=lifecycle), \
+                    patch.object(preview, '_serve') as child, \
+                    patch.object(preview.tempfile, 'mkdtemp') as runtime, \
+                    patch.object(preview, 'camera_environment') as environment:
+                with self.assertRaises(ValueError):
+                    preview.serve(self.prefix, 8082, 9014, 'mixed', camera_output=output,
+                                  camera_mixed_pair=True, lifecycle=lifecycle)
+                child.assert_not_called()
+                runtime.assert_not_called()
+                environment.assert_not_called()
+        with patch.object(preview, '_serve', return_value=0) as child:
+            self.assertEqual(preview.serve(self.prefix, 8082, 9014, 'plain',
+                                          example='m76_camera_projection_offsets.sdf'), 0)
+            self.assertEqual(child.call_args.kwargs, {'lifecycle': False,
+                             'example': 'm76_camera_projection_offsets.sdf'})
+
+    @isolated_camera_environment
+    def test_m77_mixed_spawn_uses_only_packaged_worker_and_reaps_before_runtime_cleanup(self):
+        self.install_m77_camera_fixture()
+        seen = []
+        environment = {'GZ_PARTITION': 'mixed', 'PATH': '/usr/bin:/bin'}
+        def admit(_prefix, _partition, runtime):
+            seen.append(runtime)
+            return environment
+        child = Mock(pid=98765, returncode=0)
+        child.poll.return_value = 0
+        def stop(selected):
+            self.assertIs(selected, child)
+            self.assertTrue(seen[0].is_dir())
+            selected.wait(timeout=10)
+        with patch.object(preview, 'camera_environment', side_effect=admit), \
+                patch.object(preview, 'check_port'), \
+                patch.object(preview.http.server, 'ThreadingHTTPServer') as http, \
+                patch.object(preview.threading, 'Thread') as thread, \
+                patch.object(preview.subprocess, 'Popen', return_value=child) as spawn, \
+                patch.object(preview, 'stop_child', side_effect=stop), patch('builtins.print'):
+            self.assertEqual(preview.serve(self.prefix, 8082, 9014, 'mixed',
+                                          camera_output=True, camera_mixed_pair=True), 0)
+        spawn.assert_called_once_with([str(self.prefix / 'bin/gz-sim-rs'),
+            str(self.prefix / 'share/robot.sdf'), '--server', '--web-viewer', '9014',
+            '--camera-worker', str(self.prefix / 'bin/gz-render-worker'), '--camera-mixed-pair'],
+            cwd=self.prefix, env=environment, start_new_session=True)
+        child.wait.assert_called_once_with(timeout=10)
+        http.return_value.shutdown.assert_called_once_with()
+        http.return_value.server_close.assert_called_once_with()
+        thread.return_value.join.assert_called_once_with(timeout=5)
+        self.assertFalse(seen[0].exists())
+        with patch.object(preview, 'check_port') as port, \
+                patch.object(preview.http.server, 'ThreadingHTTPServer') as http:
+            with self.assertRaises(ValueError):
+                preview._serve(self.prefix, 8082, 9014, 'mixed', camera_mixed_pair=True)
+            port.assert_not_called()
+            http.assert_not_called()
+
+    @isolated_camera_environment
+    def test_m77_mixed_unknown_child_retirement_retains_runtime_and_original_failure(self):
+        self.install_m77_camera_fixture()
+        seen = []
+        def environment(_prefix, _partition, runtime):
+            seen.append(runtime)
+            self.addCleanup(shutil.rmtree, runtime)
+            return {'HOME': str(runtime)}
+        failure = OSError('mixed spawn outcome unknown')
+        with patch.object(preview, 'camera_environment', side_effect=environment), \
+                patch.object(preview, 'check_port'), \
+                patch.object(preview.http.server, 'ThreadingHTTPServer'), \
+                patch.object(preview.signal, 'signal', return_value='original'), \
+                patch.object(preview.subprocess, 'Popen', side_effect=failure), \
+                patch.object(preview, 'stop_child') as stop, patch('builtins.print'):
+            with self.assertRaises(OSError) as error:
+                preview.serve(self.prefix, 8082, 9014, 'mixed',
+                              camera_output=True, camera_mixed_pair=True)
+        self.assertIs(error.exception, failure)
+        self.assertTrue(seen[0].is_dir())
+        self.assertTrue(any('runtime retained: ' + str(seen[0]) in note
+                            for note in failure.__notes__))
+        stop.assert_not_called()
+
     def static_request(self, url, method='GET', headers=None):
         parsed = urlsplit(url)
         connection = http.client.HTTPConnection(parsed.hostname, parsed.port, timeout=2)

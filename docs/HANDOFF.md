@@ -1,58 +1,35 @@
-## Current development: M76 CameraInfo projection offsets
+## Current development: M77 installed camera preview
 
-[M76](M76_DELIVERY.md) adds finite signed explicit SDF projection tx/ty only to
-canonical CameraInfo P[3]/P[7]. Rendering keeps zero translation and the existing
-64 by 64 projection, image bytes, worker protocol and lifetimes. Explicit P still
-selects rendering focal lengths/principal point; absent P ignores dormant values
-and publishes zero offsets. This is metadata compatibility, not physical stereo
-or a baseline inference API. Direct worker nonzero-offset requests stay refused.
+The selected [M77 contract](M77_DELIVERY.md) defines scope, leases and acceptance.
 
-The base is accepted Main `616cc3e2105a7ef9479ac823a6b05e832a92defc`.
-M70–M75 have separate ordered acceptance records under
-`artifacts/m75-delivery/ordered-phase-acceptance-index.json`. M70 release
-452158796 is public Latest with 41 installed examples, built at exact
-`7094a31890e78bc83c65f12a056dfb3918b7401a`; later Main features are not in that
-frozen payload. Its standalone public guides supersede the archive's historical
-checkpoint guides. Preserve original failures, Source-flow-only depth host waits,
-UNKNOWN SDK/grandchild exits and the actual 8 GiB browser scope.
+M77 prepares an additive installed preview with the existing 47 finite worlds,
+the same four binary roles and unchanged accepted viewer. The M77-only launcher
+`--camera-mixed-pair` requires `--camera-output`; defaults and older generations
+stay strict. Finite two-step loads remain plain commands without camera/server
+flags. Actual mixed RGB/depth and signed-skew trials use the explicit live flags.
 
-M76 is unqualified Source work in its isolated successor. Complete implementation,
-regression Source, documentation and whole independent review, batch findings,
-then make one fresh CPU-only signed-offset CameraInfo capture and retain its
-actual provenance before the consolidated normal/strict qualification. Do not
-recapture the old zero-offset fixture. Exact hosted/official evidence and Main
-promotion remain mandatory. One endcycle CPU-native reference capture returned
-Root 0 with five successful command stages; its genuine 325-byte signed-offset
-fixture and provenance are retained, and independent native DATA passed. The
-full ordinary normal/strict, hosted and official gates remain pending. No M76
-product-test, lint, image or acceptance pass is claimed here.
-The first full normal returned Root/Git 1 after 100.359962 seconds at one
-workspace Clippy type-complexity error in the new test helper return type.
-This isolated correction factors that identical tuple into a named type; test
-bodies, assertions and all production code remain unchanged. Product tests and
-coverage were not reached. Preserve the failed tree and logs, reuse the unchanged
-native reference evidence, and run the full affected normal hook after Source
-review; no standalone Clippy or native retry is selected.
+M76 is accepted at Main `dddf1f4284557c420e384d263a4365b2153dfde2`, the
+unchanged parent of this isolated successor. Its own normal/strict, local DATA,
+[exact hosted run 44681392983](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44681392983),
+independent official DATA and actual Main readbacks passed. The immutable
+acceptance receipt is retained under primary `artifacts/m76-delivery`.
+The complete 14-path M77 Source batch is independently reviewed. Final factual
+parent/binding review and Root release still precede M77 verification; no M77
+check, installed proof or distribution result is claimed.
 
-The second full normal returned Root/Git 1 after 277.707559 seconds. Both
-lint stages passed; all 481 Python checks ran with one error and one failure.
-Two retained test fixtures still expected the prior 20-case CLI summary and
-46-example registry. This isolated batch changes those positive expectations to
-21 and 47, preserving every negative assertion and runtime/native byte. Full
-Rust profiles, coverage and the auxiliary runtime qualifier were not reached.
-Review the complete correction before the full affected hook retry; no standalone
-Python test, lint, native capture or accepted evidence replay is selected.
+The complete implementation, regression, guide and planning batch has whole
+independent Source clearance; final parent facts and bindings are under narrow
+review next. Root serializes all heavy execution and
+owns fresh package/install/canonical-consumer/browser procedures. Use canonical
+`/world/default/remove` or `/world/default/remove/blocking` Entity requests for
+selective removal; camera trials do not combine with launcher lifecycle mode.
 
-The planned integrated Source census is 14 distinct Rust controls (H3/R14,
-overlap3), two Python declarations, 47 finite examples and 21 closed CLI cases;
-these are Source obligations, not executed or installed counts.
+M1–M76 and 202 slices remain accepted. Public Latest M70 still contains
+41 installed examples from `7094a318`; M77 targets 47 installed examples without
+adding Source worlds or CLI cases (47/21). Keep Rapier/TPE, D33 retirement, Fuel,
+all original failures, frozen trees, packages and archives intact.
 
-Keep the five-working-day D30 budget, Rapier/TPE, D33 backend retirement, Fuel
-ownership and all frozen evidence. No SDK rebuild, matrix/shader/protocol change,
-new dependency/framework, broader camera domain or M70 package rebuild is selected.
-
-Earlier checkpoints below retain their historical scope. Their then-current
-pending, Main and Latest statements do not describe the current accepted base.
+Earlier current-state narratives are retained in the [qualified M76 Source](https://github.com/gazebosim-rs/gz-sim-rs/tree/dddf1f4284557c420e384d263a4365b2153dfde2) and immutable evidence under `artifacts/m76-delivery`; older checkpoints below remain historical.
 
 ## Historical checkpoint: M75 per-camera visibility masks
 

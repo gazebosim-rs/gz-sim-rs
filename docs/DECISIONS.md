@@ -54,24 +54,24 @@ sensor implementation for later phases. The observed viewer currently needs a
 live scene/pose/control connection. No new transport framework or system plugin
 architecture is authorized. M1 acceptance must demonstrate the real browser.
 
-## Current bounded selection under D30–D32: M76
+## Current bounded selection under D30–D32: M77
 
-The owner selected [M76](M76_DELIVERY.md) before implementation over accepted
-Main `616cc3e2105a7ef9479ac823a6b05e832a92defc`. Finite signed explicit SDF
-projection tx/ty are CameraInfo metadata only; they are published exactly at
-P[3]/P[7], while renderer Calibration keeps zero translation. Absent projection
-ignores dormant offsets. The pinned native PopulateInfo/CameraSensorUtil source
-supports this distinction; a new CPU-only capture is still required after the
-complete Source batch and independent review. It supplies no Ogre/image parity.
-Physical stereo, SetBaseline, changed rays/shaders/protocols and SDK rebuilds are
-excluded. This is a bounded compatibility increment, not a new framework or a
-weakening of the direct worker's zero-offset contract.
+[M77](M77_DELIVERY.md) selects an additive installed camera preview with 47
+existing finite examples, the same four roles and unchanged accepted viewer.
+Its explicit mixed-pair launcher option requires camera output and is M77-only;
+finite load/two-step commands remain camera-free. Preserve every older package
+generation's behavior. No new simulator feature, native render campaign or SDK
+rebuild is selected. The full review and verification budget is at most five
+working days.
 
-M70–M75 individual acceptance, final Main fast-forward and M70 public Latest
-release 452158796 are recorded separately under `artifacts/m75-delivery`.
-M70 still contains 41 examples from 7094 Source. M76 has no qualification result;
-all mandatory local, hosted, official and Main gates remain. D33 retirement and
-Fuel ownership are unchanged.
+Source preparation overlapped M76 closeout under D31. M76 is now accepted at
+unchanged Main `dddf1f42` after its own exact hosted run 44681392983, independent
+official DATA and actual Main readbacks. Its immutable acceptance proof is
+retained under primary `artifacts/m76-delivery`. M77 whole Source is reviewed;
+final factual parent/binding review and Root release precede its own checks,
+build, package and installation proof. Public Latest M70 remains `7094a318` with 41 installed examples;
+M77 distribution is unqualified. See the contract for disjoint file ownership,
+fresh evidence and retained historical limits. D33 and Fuel ownership remain.
 
 ## Outstanding questions and decision triggers
 

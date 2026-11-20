@@ -1340,5 +1340,197 @@ class M70PreviewPackage(unittest.TestCase):
         self.assertIn('raw package IDs and the complete notice graph', capabilities)
         self.assertIn('no new depth browser panel', preview)
 
+
+
+class M77PreviewPackage(unittest.TestCase):
+    """Additive installed inventory; old generation test cases keep their setup."""
+    binary_record = PreviewPackage.binary_record
+    refuse = PreviewPackage.refuse
+    refresh_m70_transcripts = M70PreviewPackage.refresh_m70_transcripts
+    metadata_record = M70PreviewPackage.metadata_record
+    write_metadata = M70PreviewPackage.write_metadata
+
+    def setUp(self):
+        M70PreviewPackage.setUp(self)
+        for kind in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+            name = 'M77_' + kind + '.md'
+            shutil.copyfile(ROOT / 'docs' / name, self.source / 'docs' / name)
+        for name in package.M77_CAMERA_EXAMPLES:
+            shutil.copyfile(ROOT / 'examples' / name, self.source / 'examples' / name)
+        self.spec['guide_generation'] = 'M77'
+
+    def test_m77_generation_adds_exact_six_worlds_without_changing_legacy_inventory(self):
+        self.assertEqual(package.M77_CAMERA_EXAMPLES,
+                         ('m71_mixed_cameras.sdf', 'm72_camera_intrinsics.sdf',
+                          'm73_camera_projection.sdf', 'm74_camera_skew.sdf',
+                          'm75_camera_visibility.sdf', 'm76_camera_projection_offsets.sdf'))
+        legacy = package.NOISY_EXAMPLES + package.M65_FLEET_EXAMPLES + package.M70_CAMERA_EXAMPLES
+        self.assertEqual(len(legacy), 41)
+        selected = legacy + package.M77_CAMERA_EXAMPLES
+        self.assertEqual(len(selected), 47)
+        self.assertEqual(len(set(selected)), 47)
+        self.spec['guide_generation'] = 'M70'
+        old_prefix = self.directory / 'preserved-m70'
+        old = package.assemble(self.spec, old_prefix)
+        self.assertEqual({name for name in old['files'] if name.endswith('.sdf') and
+                          name.startswith('share/examples/')},
+                         {'share/examples/' + name for name in legacy})
+        for kind in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+            self.assertEqual((old_prefix / (kind + '.md')).read_bytes(),
+                             (self.source / 'docs' / ('M70_' + kind + '.md')).read_bytes())
+        self.spec['guide_generation'] = 'M77'
+        manifest = package.assemble(self.spec, self.output)
+        self.assertEqual(manifest['guide_generation'], 'M77')
+        self.assertEqual(manifest['binary_roles'], old['binary_roles'])
+        self.assertEqual(manifest['profile'], old['profile'])
+        self.assertEqual(manifest['viewer_gzip_bytes'], old['viewer_gzip_bytes'])
+        self.assertEqual(manifest['repositories'], old['repositories'])
+        self.assertEqual({name for name in manifest['files'] if name.endswith('.sdf') and
+                          name.startswith('share/examples/')},
+                         {'share/examples/' + name for name in selected})
+        for name in ('share/robot.sdf', 'share/zenoh.json5'):
+            self.assertEqual((self.output / name).read_bytes(), (old_prefix / name).read_bytes())
+        for definition in package.M70_BINARY_ROLES.values():
+            name = definition['path']
+            self.assertEqual(manifest['files'][name], old['files'][name])
+            self.assertEqual((self.output / name).read_bytes(), (old_prefix / name).read_bytes())
+        for name in package.VIEWER_FILES:
+            self.assertEqual((self.output / 'web' / name).read_bytes(),
+                             (old_prefix / 'web' / name).read_bytes())
+
+    def test_m77_all_four_role_source_feature_elf_and_terminal_receipts_stay_strict(self):
+        M70PreviewPackage.test_m70_four_role_elf_features_source_and_terminal_build_receipts_are_closed(self)
+
+    def test_m77_worker_native_and_both_viewer_notice_graphs_stay_disjoint(self):
+        M70PreviewPackage.test_m70_native_worker_and_two_viewer_graphs_cannot_substitute_compiled_units(self)
+
+    def test_m77_complete_archive_and_relocated_inventory_keep_all_bytes_and_modes(self):
+        archive = self.directory / 'preview-v1.tar.gz'
+        manifest = package.assemble(self.spec, self.output, archive)
+        moved = self.directory / 'relocated M77 preview'
+        shutil.move(self.output, moved)
+        self.assertEqual(runtime.verify_prefix(moved), manifest)
+        with tarfile.open(archive, 'r:gz') as packed:
+            self.assertEqual({member.name for member in packed.getmembers() if member.isfile()},
+                             {'preview-v1/manifest.json',
+                              *{'preview-v1/' + name for name in manifest['files']}})
+            for member in packed.getmembers():
+                self.assertTrue(member.name == 'preview-v1' or member.name.startswith('preview-v1/'))
+                self.assertNotIn('..', Path(member.name).parts)
+                self.assertFalse(member.issym() or member.islnk())
+                self.assertEqual((member.uid, member.gid, member.mtime), (0, 0, 0))
+            self.assertEqual(packed.extractfile('preview-v1/manifest.json').read(),
+                             (moved / 'manifest.json').read_bytes())
+            for name, record in manifest['files'].items():
+                member = packed.getmember('preview-v1/' + name)
+                self.assertEqual(member.mode, record['mode'])
+                self.assertEqual(packed.extractfile(member).read(), (moved / name).read_bytes())
+                self.assertEqual((moved / name).stat().st_mode & 0o777, record['mode'])
+        for name in package.M77_CAMERA_EXAMPLES:
+            self.assertEqual((moved / 'share/examples' / name).read_bytes(),
+                             (self.source / 'examples' / name).read_bytes())
+        for kind in ('INSTALL', 'CAPABILITIES', 'PREVIEW'):
+            self.assertEqual((moved / (kind + '.md')).read_bytes(),
+                             (self.source / 'docs' / ('M77_' + kind + '.md')).read_bytes())
+        self.assertEqual(json.loads((moved / 'share/zenoh.json5').read_text())['listen']['endpoints'],
+                         ['tcp/127.0.0.1:7449'])
+        self.assertEqual(len(manifest['viewer_gzip_bytes']), 2)
+        self.assertTrue(all(size <= 14_000_000 for size in manifest['viewer_gzip_bytes'].values()))
+
+    def test_m77_new_examples_and_guides_refuse_missing_linked_oversized_or_linked_parents(self):
+        inputs = [self.source / 'examples' / name for name in package.M77_CAMERA_EXAMPLES]
+        inputs += [self.source / 'docs' / ('M77_' + kind + '.md')
+                   for kind in ('INSTALL', 'CAPABILITIES', 'PREVIEW')]
+        for path in inputs:
+            original = path.read_bytes()
+            for fault in ('missing', 'linked', 'oversized'):
+                with self.subTest(path=path.name, fault=fault):
+                    outside = self.directory / 'outside-m77-input'
+                    path.unlink()
+                    if fault == 'linked':
+                        outside.write_bytes(original)
+                        path.symlink_to(outside)
+                    elif fault == 'oversized':
+                        path.write_bytes(b'x' * (package.MAX_EXAMPLE + 1))
+                    try:
+                        self.refuse('regular|bound')
+                        self.assertEqual(list(self.directory.glob('.gz-preview-assembly-*')), [])
+                    finally:
+                        path.unlink(missing_ok=True)
+                        path.write_bytes(original)
+                        outside.unlink(missing_ok=True)
+        for directory in ('examples', 'docs'):
+            path = self.source / directory
+            outside = self.directory / ('external-m77-' + directory)
+            path.rename(outside)
+            path.symlink_to(outside, target_is_directory=True)
+            try:
+                self.refuse('linked directories')
+            finally:
+                path.unlink()
+                outside.rename(path)
+        for generation in ('m77', '../M77', 'M77_INSTALL.md', 'M78', 77, None):
+            self.spec['guide_generation'] = generation
+            self.refuse('guide_generation')
+
+    def test_m77_relocated_new_files_refuse_tampering_and_worker_role_substitution(self):
+        # Exercise the complete M70 worker-manifest fault set under M77 admission.
+        M70PreviewPackage.test_m70_manifest_worker_role_cannot_be_missing_swapped_or_rehashed_as_cli(self)
+        # The last legacy fault deliberately leaves a non-executable worker.
+        # Restore that exact owned fixture and its original manifest before the
+        # independent new-file mutation cases.
+        shutil.rmtree(self.output)
+        manifest = package.assemble(self.spec, self.output)
+        moved = self.directory / 'M77 installed elsewhere'
+        shutil.move(self.output, moved)
+        names = ['share/examples/' + name for name in package.M77_CAMERA_EXAMPLES]
+        names += ['INSTALL.md', 'CAPABILITIES.md', 'PREVIEW.md']
+        for name in names:
+            path = moved / name
+            original = path.read_bytes()
+            for fault in ('missing', 'edited', 'mode', 'linked'):
+                with self.subTest(name=name, fault=fault):
+                    path.unlink()
+                    outside = self.directory / 'outside-installed-m77'
+                    if fault == 'linked':
+                        outside.write_bytes(original)
+                        path.symlink_to(outside)
+                    elif fault != 'missing':
+                        path.write_bytes(original + (b'<!-- changed -->' if fault == 'edited' else b''))
+                        path.chmod(0o600 if fault == 'mode' else 0o644)
+                    try:
+                        with self.assertRaises(ValueError):
+                            runtime.verify_prefix(moved)
+                    finally:
+                        path.unlink(missing_ok=True)
+                        path.write_bytes(original)
+                        path.chmod(0o644)
+                        outside.unlink(missing_ok=True)
+        unlisted = moved / 'share/examples/unlisted-m77.sdf'
+        unlisted.write_text('<sdf version="1.12"/>')
+        try:
+            with self.assertRaises(ValueError):
+                runtime.verify_prefix(moved)
+        finally:
+            unlisted.unlink()
+        self.assertEqual(runtime.verify_prefix(moved), manifest)
+
+    def test_m77_guides_bind_all_47_finite_loads_and_explicit_mixed_camera_scope(self):
+        install = (ROOT / 'docs/M77_INSTALL.md').read_text()
+        preview = (ROOT / 'docs/M77_PREVIEW.md').read_text()
+        selected = (package.NOISY_EXAMPLES + package.M65_FLEET_EXAMPLES +
+                    package.M70_CAMERA_EXAMPLES + package.M77_CAMERA_EXAMPLES)
+        for name in selected:
+            self.assertIn('"$preview_prefix/bin/gz-sim-rs" "$preview_prefix/share/examples/' + name +
+                          '" --iterations 2 --step-ns 1000000', preview)
+        self.assertEqual(preview.count('--iterations 2 --step-ns 1000000'), 47)
+        self.assertIn('--camera-output --camera-mixed-pair', install)
+        self.assertIn('m76_camera_projection_offsets.sdf', install)
+        self.assertIn('m74_camera_skew.sdf', install)
+        self.assertIn('tcp/127.0.0.1:7449', install)
+        self.assertIn('GZ_PARTITION', install)
+        self.assertNotIn('run --example m67_rgb_ellipsoid.sdf', install)
+
+
 if __name__ == '__main__':
     unittest.main()

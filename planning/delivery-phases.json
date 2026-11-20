@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-20T02:25:48.210070+00:00",
+  "as_of": "2026-11-20T06:27:09.054047+00:00",
   "execution_state": "active",
-  "current_phase": "M76",
+  "current_phase": "M77",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -4587,15 +4587,25 @@
       "implementation_complete": true,
       "independent_source_review_complete": true,
       "checks_run": true,
-      "accepted": false,
+      "accepted": true,
       "distribution_selected": false,
-      "qualification_state": "second_normal_stale_Python_retention_fixture_batch_source_review",
-      "current_stage": "The first helper lint is corrected. The second full normal passed both lint stages, then found two stale positive Python retention fixtures in the completed481-test batch. A two-literal tests-only correction preserves all negative assertions, production code, Rust regressions and native proof. Independent Source review precedes the full affected hook retry; no standalone Python/native recheck is selected.",
+      "qualification_state": "accepted_at_exact_own_qualified_Main",
+      "current_stage": "M76 is accepted at exact Main dddf1f42 after its own normal/strict, independent local DATA, hosted run 44681392983 attempt 1, durable originals, independent official DATA and actual Main readbacks. Earlier failures, capacity stop, cleanup and native evidence remain preserved. This Source acceptance adds no package or slice increment.",
       "source_publication": {
-        "available": false,
-        "scope": "Selected contract and selection proof remain local until actual source publication."
+        "available": true,
+        "branch": "review/m76-camera-info-projection-offsets",
+        "commit": "dddf1f4284557c420e384d263a4365b2153dfde2",
+        "url": "https://github.com/gazebosim-rs/gz-sim-rs/commit/dddf1f4284557c420e384d263a4365b2153dfde2",
+        "actual_nonforced_push_exit": 0,
+        "remote_review_readback": "dddf1f4284557c420e384d263a4365b2153dfde2",
+        "Main_unchanged": "616cc3e2105a7ef9479ac823a6b05e832a92defc",
+        "receipt": {
+          "bytes": 1837,
+          "sha256": "8f6b8b805d0903c589f928d1d066d33e9c543566a441e274d555e2e56dbcd15f"
+        },
+        "scope": "Qualified Source available for review only; not Main acceptance or package distribution."
       },
-      "checks_run_scope": "Two earlier full normals failed with their logs retained; this isolated two-positive-fixture correction is unqualified and has not run.",
+      "checks_run_scope": "Own normal/strict, local DATA, exact hosted success, independent official DATA and Main readbacks are complete. No qualification transfers to M77.",
       "native_reference_capture": {
         "Root_exit_code": 0,
         "elapsed_seconds": 20.04763485600415,
@@ -4605,7 +4615,7 @@
         "product_tests_replayed": false,
         "scope": "CPU CameraInfo metadata reference; no image, normal or acceptance qualification."
       },
-      "normal_passed": false,
+      "normal_passed": true,
       "normal_attempt1_failure": {
         "tree": "f1f023932274d0a41b54ca8f3b0f107e014783c1",
         "Root_exit_code": 1,
@@ -4630,6 +4640,212 @@
         "receipt_sha256": "95247773689e710044464ad1318c25e21690359eacc4c869baed1cb5edc13fac",
         "full_Rust_profiles_reached": false,
         "coverage_reached": false
+      },
+      "historical_pre_M77_current_stage": "The first helper lint is corrected. The second full normal passed both lint stages, then found two stale positive Python retention fixtures in the completed481-test batch. A two-literal tests-only correction preserves all negative assertions, production code, Rust regressions and native proof. Independent Source review precedes the full affected hook retry; no standalone Python/native recheck is selected.",
+      "local_qualification": {
+        "commit": "dddf1f4284557c420e384d263a4365b2153dfde2",
+        "tree": "1bb91f06f162e4657ed084ce0408254a84de9f92",
+        "parent": "616cc3e2105a7ef9479ac823a6b05e832a92defc",
+        "normal_actual": {
+          "bytes": 1712,
+          "sha256": "ce92f9686f466e0febed67ba7d6cde31bb87e4d1837e25dfa6aa0963df800110"
+        },
+        "normal_result": {
+          "bytes": 2642,
+          "sha256": "e2cd00d1515e974e1ac4af9734b3e72afcf934fdd6ee60d7941fa81548783764"
+        },
+        "actual_Root_exit": 0,
+        "actual_Git_exit": 0,
+        "normal_elapsed_seconds": 1903.436398779988,
+        "independent_local_DATA_actual": {
+          "bytes": 1844,
+          "sha256": "5c081186d803fc3c043e4aacd62d7128c64b05b75e6971efea8a73f50eacbaf9"
+        },
+        "independent_local_DATA_report": {
+          "bytes": 33536,
+          "sha256": "8973e90874321549aa411cc9075c73fba6b770f881d364104664df7a290a5dfb"
+        },
+        "independent_local_DATA_actual_exit": 0,
+        "headless_passed": 1762,
+        "renderer_overlapping_passed": 1367,
+        "ignored_per_profile": 2,
+        "Python_aggregate": 481,
+        "Python_individual_quiet_results_observable": false,
+        "new_Rust_controls_observed": 14,
+        "finite_Source_runs": 47,
+        "CLI_cases": 21,
+        "headless_actual_parent_changed_lines": [
+          0,
+          0
+        ],
+        "headless_zero_basis": "Only two projection-offset refusal lines are deleted; no added headless executable Source lines.",
+        "renderer_actual_parent_changed_lines": [
+          28,
+          28
+        ],
+        "strict_workspace_per_crate_lines_regions_and_changed_line_gates_passed": true,
+        "RAWs_remerged_or_product_tests_replayed_by_auditor": false,
+        "accepted": false
+      },
+      "automatic_hosted_run": {
+        "id": 44681392983,
+        "attempt": 1,
+        "head_sha": "dddf1f4284557c420e384d263a4365b2153dfde2",
+        "status": "completed",
+        "conclusion": "success",
+        "event": "push",
+        "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44681392983",
+        "initial_API_metadata": {
+          "bytes": 12546,
+          "sha256": "707d9ac935f621e7951b9d71a01b927ae3c7f9ff51b9262ac21d172bfcff4fc8"
+        },
+        "terminal_proof": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/hosted-ci-terminal.json",
+          "sha256": "6d5c0a9c918cb00a304d8734dbb2539e1ae30ca903ad6d610e760472e022feab",
+          "bytes": 1719
+        }
+      },
+      "hosted_run": 44681392983,
+      "hosted_attempt": 1,
+      "hosted_success": true,
+      "hosted_conclusion": "success",
+      "independent_official_DATA_passed": true,
+      "Main_promoted": true,
+      "normal_qualified": true,
+      "normal_attempt3_capacity_stop": {
+        "receipt": {
+          "bytes": 1383,
+          "sha256": "20c7af971aa510720d614601e9eee6e98455f457ec3e9fd0e929502f3f8ac8ac"
+        },
+        "source_tree": "1bb91f06f162e4657ed084ce0408254a84de9f92",
+        "actual_Root_exit": 1,
+        "actual_Git_exit": null,
+        "Git_exit_scope": "UNKNOWN: interrupted profile supervisor did not return a Git exit value.",
+        "elapsed_seconds": 1474.3609476779966,
+        "session_id": 28573,
+        "terminal_tool_chunk": "b468ef",
+        "cause": "Actual SSD free space fell below the unchanged 1 GiB continuous floor; the other three resource floors held.",
+        "full_normal_qualified": false,
+        "original_tree_logs_and_partial_evidence_preserved": true
+      },
+      "capacity_recovery": {
+        "receipt": {
+          "bytes": 1741,
+          "sha256": "478f4d1bfd267be70847437fd100ef2a0be899021cfdacf492ad89a426f77451"
+        },
+        "owner_authorized": true,
+        "actual_Root_exit": 0,
+        "removed_ordinary_cache_roots": 17,
+        "actual_net_SSD_free_recovery_bytes": 70389780480,
+        "SSD_free_after_bytes": 71380209664,
+        "all_1744_frozen_Source_hashes_lengths_modes_preserved": true,
+        "current_profile_binaries_raw_evidence_and_archives_preserved": true,
+        "normal_qualified": false
+      },
+      "accepted_at": "2026-11-20T06:25:45.867378+00:00",
+      "accepted_commits": {
+        "gz-sim-rs": "dddf1f4284557c420e384d263a4365b2153dfde2"
+      },
+      "Main_commit": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "acceptance_receipt": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/m76-acceptance.json",
+        "sha256": "f5728d187664ade59eea645615d617ae3f32d69f184b3227dde2a76c59ed9511",
+        "bytes": 3134
+      },
+      "own_official_actual": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/m76-official-audit-actual-exit.json",
+        "sha256": "d5c3739dc1736cee845092561a0dce5eb8f4aac9625cfe5684322d5da37b26c8",
+        "bytes": 2173,
+        "mode": 436
+      },
+      "own_official_report": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/m76-hosted-44681392983-attempt1/audit-m76/official-audit.json",
+        "sha256": "6b0c1dd821c080f369d263e7cd9a5b148311db9aa78bedd53cf95c9ce7784c12",
+        "bytes": 92630,
+        "mode": 436
+      },
+      "own_original_collection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/m76-hosted-44681392983-attempt1/collection.json",
+        "sha256": "00b5c2aa894024d16d10af0655c15450d1d6a3073c1936e1f34c4c8423cef2b6",
+        "bytes": 27421,
+        "mode": 436
+      },
+      "Main_promotion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/final-main-promotion.json",
+        "sha256": "f34263d4f78852242910dac57288a7cedb7808201f084b80a513578e1f7459c7",
+        "bytes": 3302,
+        "mode": 436
+      }
+    },
+    {
+      "id": "M77",
+      "title": "Installed camera preview through M76",
+      "max_working_days": 5,
+      "depends_on": [
+        "M76"
+      ],
+      "scope": "Add M77 package generation with 47 existing finite examples, the same four roles and unchanged accepted viewer. Add explicit M77-only launcher --camera-mixed-pair requiring --camera-output and forwarding the fixed existing CLI boolean. Preserve all older generation behavior and defaults.",
+      "acceptance": "Complete Source, meaningful package/runtime regressions, guides and whole independent review before one consolidated required normal/strict cycle. Require accepted M76 and final parent reconciliation before M77 checks/build/package/install; fresh same-head four-role release/notices/archive/relocation, 47 plain finite installed loads, actual installed mixed RGB/depth and signed-skew full-frame/canonical/lifecycle proofs, separate default browser/shutdown, independent retained DATA, exact hosted/official/Main and public/Latest/preservation readbacks.",
+      "excluded": "No new simulator examples or CLI cases, viewer/web-shape/schema/renderer/worker/physics changes, SDK/native render campaign, telemetry framework, Fuel changes, camera noise/distortion/RGBD/count/resolution expansion or performance claim.",
+      "contract": "docs/M77_DELIVERY.md",
+      "source_preparation_basis_commit": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "source_preparation_basis_accepted": true,
+      "source_preparation_under_D31": true,
+      "accepted_predecessor_required_before_checks": true,
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": true,
+      "checks_run": false,
+      "accepted": false,
+      "distribution_selected": true,
+      "qualification_state": "whole_Source_clear_parent_accepted_final_binding_review_pending_checks_unstarted",
+      "current_stage": "The complete 14-path Source batch and 13 new Python regression declarations passed independent whole Source review. M76 is now accepted at the unchanged dddf parent; no rebase or implementation change is needed. Final factual parent/binding review and Root release precede one consolidated M77 verification cycle. No M77 checks, installed proof or acceptance are claimed.",
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "new_Python_Source_controls": 13,
+      "target_installed_examples": 47,
+      "currently_published_Latest": "M70",
+      "currently_installed_accepted_examples": 41,
+      "finite_load_command": "binary fixture --iterations 2 --step-ns 1000000",
+      "finite_load_command_scope": "All 47 loads are plain finite commands with no server, camera worker or mixed flag. Only actual live launcher camera trials use --camera-output --camera-mixed-pair.",
+      "removal_route": "Canonical gz.msgs.Entity request to /world/default/remove or /world/default/remove/blocking; no local remove_editable_model and no camera+lifecycle combination.",
+      "frame_oracle_scope": "Whole-frame finite values and any infinity mask derive from the exact fixture and admitted oracle; no universal infinity-background assumption.",
+      "file_ownership": {
+        "packaging": [
+          "scripts/package-preview.py",
+          "tests/test_preview_package.py"
+        ],
+        "Root_runtime": [
+          "scripts/preview_runtime.py",
+          "tests/test_preview_runtime.py"
+        ],
+        "Root_guides": [
+          "docs/M77_INSTALL.md",
+          "docs/M77_CAPABILITIES.md",
+          "docs/M77_PREVIEW.md"
+        ],
+        "canonical_docs": [
+          "docs/M77_DELIVERY.md",
+          "planning/delivery-phases.json",
+          "docs/DECISIONS.md",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "README.md",
+          "AGENTS.md"
+        ],
+        "Root_installed_proofs": "Operational artifacts/m77-delivery only; independent Source and retained DATA review remain mandatory."
+      },
+      "source_publication": {
+        "available": false,
+        "scope": "Local Source preparation only; no future M77 commit, branch or run is invented."
+      },
+      "accepted_predecessor_commit": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "actual_predecessor_acceptance": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/m76-acceptance.json",
+        "sha256": "f5728d187664ade59eea645615d617ae3f32d69f184b3227dde2a76c59ed9511",
+        "bytes": 3134
       }
     }
   ],
@@ -4710,12 +4926,13 @@
     "M73": "complete",
     "M74": "complete",
     "M75": "complete",
-    "M76": "in_progress"
+    "M76": "complete",
+    "M77": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-20T01:43:09.287137+00:00",
+  "phase_started_at": "2026-11-20T05:55:17.049086+00:00",
   "active_phases": [
-    "M76"
+    "M77"
   ],
   "execution_policy": "D30–D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -5118,29 +5335,28 @@
       "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M1–M75 are accepted individually with 202 retained reviewed slices; 76 phases are cataloged. Every exact M70–M75 head passed its own gates before one actual nonforced Main fast-forward to 616cc3e. M70 is public and Latest with 41 installed examples from package Source 7094a31; M75 has 46 finite source runs, with no M71–M76 distribution selected. M76 Source is complete and independently reviewed on accepted 616cc3e; the CPU reference capture and independent native DATA passed, while full normal/hosted/official/Main gates remain pending. Separate automatic Main CI was last observed in progress.",
+  "acceptance_boundary": "M1–M76 and 202 retained slices are accepted; 77 phases are cataloged. M76 own hosted run 44681392983 attempt 1, independent official DATA and actual Main/readbacks accepted exact dddf. M77 whole Source is reviewed and its unchanged parent is accepted; final factual binding review and Root release precede verification. M77 has no check or distribution result. Public Latest M70 remains Source 7094a31 with 41 installed examples; target M77 installed 47/Source 47/CLI 21 remain distinct.",
   "current_delivery_group": [
-    "M76"
+    "M77"
   ],
-  "current_development_phase": "M76",
+  "current_development_phase": "M77",
   "board": {
-    "updated_at": "2026-11-20T02:25:48.210070+00:00",
+    "updated_at": "2026-11-20T06:27:09.054047+00:00",
     "current": {
-      "title": "Qualifying M76 camera metadata offsets",
+      "title": "M77 source is reviewed; accepted-parent bindings are next",
       "items": [
-        "M76 implementation, regressions and maintained guides are complete and independently Source reviewed. Rendering and worker requests retain zero offsets.",
-        "Native capture and independent DATA passed. Both lint stages passed on the second full normal; two stale positive Python fixture counts are being corrected before the next full affected hook.",
-        "Latest M70 keeps its exact41 installed examples; M76 adds no package distribution."
+        "M76 is accepted at the exact unchanged M77 parent after own hosted, independent official and Main gates.",
+        "M77 implementation, 13 new regression declarations and guides have whole Source clearance. Final factual binding review precedes Root verification release.",
+        "No M77 checks or installed proofs have run. Latest M70 retains 41 installed examples; M77 targets 47 existing worlds."
       ]
     },
     "done": [
-      "75 of 76 cataloged phases are accepted; 202 reviewed slices are preserved with no new slice append.",
-      "M70–M75 acceptance receipts bind each own head and predecessor to the shared actual Main receipt. Earlier failures and unknowns remain preserved.",
-      "M70 public and anonymous Latest readbacks both returned the same release; the package remains built from exact Source 7094a31."
+      "76 of 77 cataloged phases and 202 reviewed slices are accepted; public Latest M70 remains its immutable 41-example package.",
+      "M76 exact hosted 44681392983 attempt 1, official DATA and ordinary Main promotion/readbacks passed. All historical failures remain preserved."
     ],
     "next": [
-      "Run one ordinary staged hook with strict coverage on the complete frozen M76 candidate.",
-      "Audit retained local evidence, then require exact hosted/official gates and Main/readbacks before acceptance."
+      "Review the factual accepted-parent reconciliation and final M77 bindings, then Root releases one consolidated required verification cycle.",
+      "After qualification, obtain fresh four-role build/package/install and mixed-camera/skew/default-browser proofs before exact hosted/official/Main/release acceptance."
     ],
     "blocker": {
       "text": "",
@@ -5149,7 +5365,7 @@
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M76"
+    "M77"
   ],
   "camera_integration": {
     "scope": "Atomic M61–M64 qualification on accepted M60; no new phase",
@@ -5298,7 +5514,7 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "M76_CAMERA_INFO_OFFSETS_FINAL_NORMAL_QUALIFICATION",
+  "current_development_task": "M77_FINAL_PARENT_BINDING_REVIEW_BEFORE_VERIFICATION",
   "backend_retirement_source_preparation": {
     "decision": "D33",
     "owner_directed_at": "2026-11-17",
@@ -5389,19 +5605,20 @@
     "originals_durable": true
   },
   "qualification_closeout": {
-    "state": "SIX_OWN_HEADS_INDIVIDUALLY_ACCEPTED_M70_PUBLIC_LATEST_VERIFIED",
-    "recorded_at": "2026-11-20T01:41:36.876336+00:00",
+    "state": "M1_M76_ACCEPTED_M77_SOURCE_CLEAR_FINAL_BINDING_REVIEW_PENDING",
+    "recorded_at": "2026-11-20T06:25:45.867378+00:00",
     "own_head_admission": {
       "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/final-main-own-head-admission.json",
       "bytes": 8283,
       "sha256": "1173dca8f33e9c33a0422ea2d1b91a39ee3f5858cce98e42d3d5c92898791d4e"
     },
     "actual_Main_promotion": {
-      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/final-main-promotion.json",
-      "bytes": 2682,
-      "sha256": "a650e9805d4daf62208c5679bf7c8becb39db0f824f9b309c5ee255f174f6726"
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/final-main-promotion.json",
+      "sha256": "f34263d4f78852242910dac57288a7cedb7808201f084b80a513578e1f7459c7",
+      "bytes": 3302,
+      "mode": 436
     },
-    "Main": "616cc3e2105a7ef9479ac823a6b05e832a92defc",
+    "Main": "dddf1f4284557c420e384d263a4365b2153dfde2",
     "review_refs_preserved": true,
     "M70_release_receipt": {
       "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/m70-public-release-acceptance.json",
@@ -5438,15 +5655,23 @@
         "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/accepted-phases/m75-acceptance.json",
         "sha256": "d35fb0d0d2d82eca24bd417c56e6b5e77fa83e6236474ccab9c4ef6e8bac610d",
         "bytes": 2380
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/m76-acceptance.json",
+        "sha256": "f5728d187664ade59eea645615d617ae3f32d69f184b3227dde2a76c59ed9511",
+        "bytes": 3134
       }
     ],
     "accepted_slices_preserved": 202,
     "new_slice_append_list": [],
     "automatic_Main_CI": {
-      "id": 44653390693,
+      "id": 44687651179,
+      "attempt": 1,
+      "head_sha": "dddf1f4284557c420e384d263a4365b2153dfde2",
       "status": "in_progress",
       "conclusion": null,
-      "scope": "Separate automatic Main run; not a replacement for the qualifying exact review runs."
+      "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44687651179",
+      "scope": "Separate initial automatic Main metadata only; its result is not inferred and does not replace the successful own review run."
     },
     "historical_checkpoint_scope": "Frozen local_qualification, source_publication and parent progress objects retain their original observation-time flags. Current phase gate fields and current_acceptance_gate_progress record the later actual state.",
     "ordered_phase_acceptance_index": {
@@ -5454,8 +5679,8 @@
       "bytes": 1614,
       "sha256": "98e7a6c13529cbe5ea4a7cb560b0748b28a552d1008de05fa05197cc6a4693d5"
     },
-    "accepted_phase_count": 75,
-    "catalog_count": 76,
+    "accepted_phase_count": 76,
+    "catalog_count": 77,
     "Latest": {
       "phase": "M70",
       "installed_examples": 41,
@@ -5464,7 +5689,23 @@
       "release_url": "https://github.com/gazebosim-rs/gz-sim-rs/releases/tag/m70-preview",
       "public_and_Latest_HTTP_status": 200
     },
-    "next_phase_selection": "M76 selected on accepted 616cc3e for complete source preparation; implementation, review and qualification remain incomplete. No M76 result transfers from accepted M75."
+    "next_phase_selection": "M77 is selected and whole Source reviewed over now-accepted unchanged M76 dddf. Final factual parent/binding review and Root release precede its own verification; no M77 qualification transfers from the parent.",
+    "M76_acceptance_receipt": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/m76-acceptance.json",
+      "sha256": "f5728d187664ade59eea645615d617ae3f32d69f184b3227dde2a76c59ed9511",
+      "bytes": 3134
+    },
+    "M76_Main_promotion": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m76-delivery/final-main-promotion.json",
+      "sha256": "f34263d4f78852242910dac57288a7cedb7808201f084b80a513578e1f7459c7",
+      "bytes": 3302
+    },
+    "historical_M70_M75_Main_promotion": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m75-delivery/final-main-promotion.json",
+      "bytes": 2682,
+      "sha256": "a650e9805d4daf62208c5679bf7c8becb39db0f824f9b309c5ee255f174f6726"
+    },
+    "own_head_admission_scope": "Retained M70–M75 six-head admission; the separate exact M76 receipt binds this newly accepted increment."
   },
   "historical_held_work_before_closeout": {
     "phases": [
