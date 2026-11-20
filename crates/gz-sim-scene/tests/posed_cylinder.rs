@@ -453,10 +453,18 @@ fn posed_cylinder_refusals_keep_tpe_compounds_com_and_other_pose_domains_closed(
         assert_ne!(source, xml);
         assert!(matches!(load(&source, PhysicsEngine::Rapier), Err(LoadError::Unsupported { feature: actual, .. }) if actual==feature));
     }
-    for geometry in [
-        "<sphere><radius>0.5</radius></sphere>",
-        "<capsule><radius>0.5</radius><length>1</length></capsule>",
-    ] {
+    // M81 explicitly replaces only the old posed-capsule refusal. Use a
+    // zero-rotation offset fixture and an independent hemispherical chord.
+    let capsule_xml = xml
+        .replace(
+            GEOMETRY,
+            "<capsule><radius>0.5</radius><length>3</length></capsule>",
+        )
+        .replace("1 0 0 0 0 0.2", "1 0 0 0 0 0");
+    let capsule = load(&capsule_xml, PhysicsEngine::Rapier).unwrap();
+    distance(&capsule, [1.3, 0., 9.], [0., 0., -1.], 2.1);
+    {
+        let geometry = "<sphere><radius>0.5</radius></sphere>";
         assert!(matches!(
             load(&xml.replace(GEOMETRY, geometry), PhysicsEngine::Rapier),
             Err(LoadError::Unsupported {

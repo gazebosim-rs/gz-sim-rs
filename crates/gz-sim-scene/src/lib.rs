@@ -128,7 +128,8 @@ use bevy_ecs::prelude::*;
 use glam::{DQuat, DVec3};
 use gz_physics::{
     BodyId, BodySpec, CollisionSpec, Inertia, MeshBodySpec, PhysicsBackend, PhysicsError,
-    PhysicsReset, PlaneSpec, PosedBoxBodySpec, PosedCylinderBodySpec, RotationSpec, Shape,
+    PhysicsReset, PlaneSpec, PosedBoxBodySpec, PosedCapsuleBodySpec, PosedCylinderBodySpec,
+    RotationSpec, Shape,
 };
 use gz_physics_rapier::RapierBackend;
 use gz_sensors::{ImuInput, ImuReading, InvalidImuInput};
@@ -955,7 +956,10 @@ fn build_model(
                 identity(local)
                     || (matches!(
                         &collision.geometry,
-                        Geometry::Mesh(_) | Geometry::Box { .. } | Geometry::Cylinder { .. }
+                        Geometry::Mesh(_)
+                            | Geometry::Box { .. }
+                            | Geometry::Cylinder { .. }
+                            | Geometry::Capsule { .. }
                     ) && backend.as_ref().is_some_and(|b| b.engine() == "rapier")),
                 name,
                 "offset collision pose",
@@ -1115,6 +1119,28 @@ fn build_model(
                             PosedCylinderBodySpec {
                                 radius,
                                 half_height,
+                                collision_position: solids[0].position,
+                                collision_orientation: solids[0].orientation,
+                                position: spec.position,
+                                velocity: spec.velocity,
+                                mass: spec.mass,
+                            },
+                            rotation,
+                            Some(inertia),
+                        )?
+                    } else if let Shape::Capsule {
+                        radius,
+                        half_length,
+                    } = spec.shape
+                        && !identity(Transform {
+                            translation: solids[0].position,
+                            rotation: solids[0].orientation,
+                        })
+                    {
+                        backend.spawn_posed_capsule_link(
+                            PosedCapsuleBodySpec {
+                                radius,
+                                half_length,
                                 collision_position: solids[0].position,
                                 collision_orientation: solids[0].orientation,
                                 position: spec.position,

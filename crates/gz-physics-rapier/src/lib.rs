@@ -16,14 +16,15 @@ mod initial;
 mod joints;
 mod mesh;
 mod posed_box;
+mod posed_capsule;
 mod posed_cylinder;
 mod ray;
 
 pub use gz_physics::{
     BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId,
     JointPositionServo, JointState, JointVelocityMotor, MeshBodySpec, PhysicsBackend, PhysicsError,
-    PhysicsReset, PosedBoxBodySpec, PosedCylinderBodySpec, PreparedPhysicsReset, RestoredPhysics,
-    RotationSpec, Shape, install,
+    PhysicsReset, PosedBoxBodySpec, PosedCapsuleBodySpec, PosedCylinderBodySpec,
+    PreparedPhysicsReset, RestoredPhysics, RotationSpec, Shape, install,
 };
 use std::any::Any;
 
@@ -224,6 +225,15 @@ impl DynamicBackend for RapierBackend {
         inertia: Option<Inertia>,
     ) -> Result<BodyId, PhysicsError> {
         posed_box::spawn(self, spec, rotational, inertia)
+    }
+
+    fn spawn_posed_capsule_link(
+        &mut self,
+        spec: PosedCapsuleBodySpec,
+        rotational: RotationSpec,
+        inertia: Option<Inertia>,
+    ) -> Result<BodyId, PhysicsError> {
+        posed_capsule::spawn(self, spec, rotational, inertia)
     }
 
     fn spawn_posed_cylinder_link(

@@ -1,38 +1,23 @@
-## Current M80 correction: cylinder ray precision
+## Current development: M81 posed capsule collision
 
-The first completed full normal on frozen tree `ce5d01fc` failed Root/Git 1
-after 1384.4462833660073 seconds. Its only failed target was Scene
-`posed_cylinder`: the off-axis radial chord returned 3.600000000170603 against
-3.6 at the unchanged `1e-11` tolerance. All remaining headless targets completed;
-renderer and strict coverage were not reached. No resource, signal or finalization
-fault occurred. Preserve the frozen tree and all failure evidence.
+[M81](M81_DELIVERY.md) adds one translated/rotated capsule collision per Rapier link,
+using existing Z-axis capsule geometry and centered resolved inertia. Its complete
+Physics/Rapier and Scene Source is integrated: 18 new Rust declarations, all
+headless and nine overlapping renderer, with zero new Python declarations.
+Source contains 1781 files, 17 own changes and five production leaves. These are
+obligations, not passes. Whole independent review is pending; final formatting,
+staged tree and all gates remain unbound. Budget is at most five working days.
 
-This isolated candidate retains exact parent `8ad64532` and the reviewed feature
-Source. Its bounded correction applies the maintained Parry analytic Capsule ray
-kernel clipped to the cylinder local AABB to every actual Rapier cylinder query
-shape, including centered, posed and restored cylinders. Collider construction,
-contact geometry, inertia, physics integration and other shape query routes stay
-unchanged. The original Scene fixture, chord oracle and tolerance remain intact.
-No custom quadratic, precision search, new dependency or fresh native campaign
-is selected. The exact old GJK termination branch and transform contribution
-remain unobserved; no universal precision bound is claimed.
+The basis is M80 `ac75646a`: local normal/strict and independent retained DATA
+passed, review published, exact hosted run 44831931346 attempt 1 active at
+selection. It is qualified locally, not accepted. All M80 query controls and
+strict tolerances remain unchanged. Complete Source, regressions, docs and whole
+independent review before one consolidated formatter/full verification cycle.
 
-Complete focused finite/endpoint/tangent/inside/parallel/miss/rotation/reset and
-atomic-input regression Source, docs and independent whole Source review before
-one consolidated affected full normal/strict retry. The completed correction adds five headless-only Rust declarations. M80 now has
-23 unique/headless and nine overlapping renderer Source obligations, zero new
-Python declarations, 1776 Source files, 18 own changed paths and six production
-paths. These are reviewed declarations, not passes. Its final staged tree,
-formatter, full retry and qualified head remain unbound before Root release.
-
-Parent M78/M79 passed its own local, exact hosted run 44806268854 attempt 1 and
-independent official DATA with durable originals; it is qualified, not accepted.
-Accepted phases/slices remain 76/202, catalog 80, Source finite/CLI 47/21 and
-Latest M70 original package 41. M77 formal browser access and owner-approved
-shutdown remain required. Leave its no-expiry manual demo session 86363 running.
-
-The following selection and earlier checkpoints are historical observations;
-the current correction and its unchanged mandatory gates govern.
+Accepted phases/slices stay 76/202; catalog 81, Source finite/CLI 47/21 and Latest
+M70 original package 41. M77 formal browser access and owner-approved shutdown
+still hold acceptance. Keep its no-expiry demo session 86363 live; do not touch
+Fuel, frozen evidence or other owners. Earlier checkpoints below are historical.
 
 ## Historical M80 first-Source task
 

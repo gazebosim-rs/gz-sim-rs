@@ -377,10 +377,16 @@ fn identity_and_old_refusal_domains_remain_separate_from_posed_boxes() {
     );
     let cylinder = load(&cylinder, PhysicsEngine::Rapier).unwrap();
     assert!((ray(&cylinder, [1.4, 0., 9.], [0., 0., -1.], None).unwrap() - 3.5).abs() < 1e-11);
-    for geometry in [
-        "<sphere><radius>0.5</radius></sphere>",
+    // M81 admits the capsule row formerly refused here. At radial offset .3,
+    // its upper hemisphere adds .4 beyond segment endpoint z=5.5.
+    let capsule = box_xml.replace(
+        "<box><size>1 2 3</size></box>",
         "<capsule><radius>0.5</radius><length>1</length></capsule>",
-    ] {
+    );
+    let capsule = load(&capsule, PhysicsEngine::Rapier).unwrap();
+    assert!((ray(&capsule, [1.3, 0., 9.], [0., 0., -1.], None).unwrap() - 3.1).abs() < 1e-11);
+    {
+        let geometry = "<sphere><radius>0.5</radius></sphere>";
         let other = box_xml.replace("<box><size>1 2 3</size></box>", geometry);
         assert!(matches!(
             load(&other, PhysicsEngine::Rapier),

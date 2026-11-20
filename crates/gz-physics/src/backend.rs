@@ -3,8 +3,8 @@
 //! The contract implemented by the Rapier dynamic engine adapter.
 
 use crate::{
-    BodySpec, BodyState, Inertia, MeshBodySpec, PlaneSpec, PosedBoxBodySpec, PosedCylinderBodySpec,
-    RotationSpec,
+    BodySpec, BodyState, Inertia, MeshBodySpec, PlaneSpec, PosedBoxBodySpec, PosedCapsuleBodySpec,
+    PosedCylinderBodySpec, RotationSpec,
 };
 use bevy_ecs::prelude::*;
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo};
@@ -211,6 +211,21 @@ pub trait DynamicBackend: Send + Sync + 'static {
         Err(PhysicsError::Unsupported {
             engine: self.engine(),
             capability: "posed cylinder link collision",
+        })
+    }
+
+    /// Creates one link-local translated/rotated Z-axis capsule without shifting
+    /// the link frame. Rapier requires explicit centered inertia for dynamic
+    /// capsules; unsupported engines refuse before validation or allocation.
+    fn spawn_posed_capsule_link(
+        &mut self,
+        _spec: PosedCapsuleBodySpec,
+        _rotation: RotationSpec,
+        _inertia: Option<Inertia>,
+    ) -> Result<BodyId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "posed capsule link collision",
         })
     }
 

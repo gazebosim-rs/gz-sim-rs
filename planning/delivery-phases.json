@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-20T21:41:24.444145+00:00",
+  "as_of": "2026-11-20T22:54:49.625633+00:00",
   "execution_state": "active",
-  "current_phase": "M80",
+  "current_phase": "M81",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -5385,11 +5385,11 @@
       "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
       "implementation_started": true,
       "implementation_complete": true,
-      "independent_source_review_complete": false,
-      "checks_run": false,
+      "independent_source_review_complete": true,
+      "checks_run": true,
       "accepted": false,
       "distribution_selected": false,
-      "qualification_state": "ray_correction_Source_complete_pending_whole_review",
+      "qualification_state": "own_local_qualified_review_published_hosted_pending",
       "new_Source_finite_examples": 0,
       "new_CLI_cases": 0,
       "Source_finite_runs": 47,
@@ -5423,11 +5423,11 @@
         ],
         "reviewer": "m76_scope"
       },
-      "normal_qualified": false,
-      "independent_local_DATA_qualified": false,
+      "normal_qualified": true,
+      "independent_local_DATA_qualified": true,
       "hosted_qualified": false,
-      "Source_publication_available": false,
-      "future_qualified_head": null,
+      "Source_publication_available": true,
+      "future_qualified_head": "ac75646aa5db9d1a1f983e47c0c86857415b9a2c",
       "retained_test_disposition": {
         "path": "crates/gz-sim-scene/tests/posed_box.rs",
         "scope": "Only the posed-cylinder row in the old unsupported geometry loop becomes a positive load plus independent analytic ray at the existing tolerance. Sphere/capsule and all other assertions remain unchanged.",
@@ -5443,7 +5443,7 @@
         "overlap": 9,
         "counts_are_Source_obligations_not_executed_results": true
       },
-      "current_stage": "The isolated cylinder query correction and five added headless-only controls are Source complete. Whole independent integration review, the two affected Rust-file formatter and one consolidated full normal/strict retry remain required; no correction qualification is claimed.",
+      "current_stage": "M80 own normal/strict and independent DATA passed; review published and exact hosted attempt1 active. All earlier failures stay preserved; phase/Main acceptance still requires predecessor and own hosted/official closeout.",
       "historical_first_feature_Source_checkpoint": {
         "id": "M80",
         "title": "One posed cylinder collision in Rapier",
@@ -5527,7 +5527,7 @@
       },
       "ray_query_correction": {
         "worktree": "gz-sim-m80-cylinder-ray-precision",
-        "state": "Source_complete_pending_whole_review",
+        "state": "own_local_qualified_hosted_pending",
         "scope": "All actual Rapier cylinder query shapes use the existing analytic Parry Capsule ray kernel restricted to the cylinder local AABB. Collider geometry, contact solver, inertia and all other shape query routes stay unchanged.",
         "original_oracle_and_tolerance_preserved": true,
         "new_Rust_declarations": [
@@ -5537,11 +5537,23 @@
           "cylinder_segment_bounds_nearest_exclusion_and_reset_preserve_owned_geometry",
           "cylinder_queries_keep_binary_distant_chords_large_admitted_shapes_and_numeric_errors"
         ],
-        "final_tree": null,
-        "final_Source_snapshot": null,
-        "checks_run": false,
-        "actual_normal_launch": null,
-        "actual_normal_outcome": null,
+        "final_tree": "80c5de328f997b367dae2fa5a84759df7627194a",
+        "final_Source_snapshot": {
+          "sha256": "378936e31a32d5bcc153d63b16f705ba7287571afbcccf73ccfc8241f0285d03",
+          "bytes": 658448,
+          "mode": 436
+        },
+        "checks_run": true,
+        "actual_normal_launch": {
+          "sha256": "4cda852550122faa6f6f0a505d9197038e72bc59f45e7386256c31eab669755a",
+          "bytes": 2429,
+          "mode": 436
+        },
+        "actual_normal_outcome": {
+          "sha256": "d86145c4b3ee587b5f96d7137f80f73f7e3a70b4f1a74e6283d5b8cd93be1577",
+          "bytes": 1491,
+          "mode": 436
+        },
         "exact_old_GJK_termination_branch_observed": false,
         "transform_contribution_observed": false,
         "universal_precision_bound_claimed": false,
@@ -5556,6 +5568,308 @@
           "overlap": 9,
           "Python_new": 0
         }
+      },
+      "historical_pre_local_qualification_Source": {
+        "id": "M80",
+        "title": "One posed cylinder collision in Rapier",
+        "max_working_days": 5,
+        "depends_on": [
+          "M78",
+          "M79"
+        ],
+        "scope": "One translated/rotated cylinder collider per Rapier link, preserving link-centered explicit inertia, link/visual/sensor frames, resets and public identity. Existing TPE/compound/offset-COM/automatic-inertia restrictions remain.",
+        "acceptance": "Complete implementation, meaningful geometry/contact/impulse/identity/atomic-refusal/reset regressions, documentation and independent whole Source review before one consolidated normal/strict pass. Require independent local DATA, exact hosted CI, official evidence and accepted predecessors before Main/acceptance.",
+        "excluded": "TPE posed cylinders, compound cylinders, offset COM, new automatic-inertia computation, other posed primitives, new controls/transport/schema/framework/backend, package/viewer/worker/dependency changes, DART/MuJoCo, Fuel",
+        "contract": "docs/M80_DELIVERY.md",
+        "source_preparation_basis_commit": "8ad64532489ffbb9bf62badb4a0835c34af81eaf",
+        "source_preparation_basis_accepted": false,
+        "source_preparation_under_D31": true,
+        "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+        "implementation_started": true,
+        "implementation_complete": true,
+        "independent_source_review_complete": false,
+        "checks_run": false,
+        "accepted": false,
+        "distribution_selected": false,
+        "qualification_state": "ray_correction_Source_complete_pending_whole_review",
+        "new_Source_finite_examples": 0,
+        "new_CLI_cases": 0,
+        "Source_finite_runs": 47,
+        "Source_CLI_cases": 21,
+        "new_Rust_Source_controls": 23,
+        "new_Python_Source_controls": 0,
+        "file_ownership": {
+          "physics": [
+            "crates/gz-physics/src/lib.rs",
+            "crates/gz-physics/src/backend.rs",
+            "crates/gz-physics/tests/private/backend.rs",
+            "crates/gz-physics-rapier/src/lib.rs",
+            "crates/gz-physics-rapier/src/posed_cylinder.rs",
+            "crates/gz-physics-rapier/tests/posed_cylinder.rs",
+            "crates/gz-physics-rapier/src/ray.rs",
+            "crates/gz-physics-rapier/tests/cylinder_ray_precision.rs"
+          ],
+          "Scene": [
+            "crates/gz-sim-scene/src/lib.rs",
+            "crates/gz-sim-scene/tests/posed_cylinder.rs",
+            "crates/gz-sim-scene/tests/fixtures/m80_posed_cylinder.sdf",
+            "crates/gz-sim-scene/tests/posed_box.rs"
+          ],
+          "Root": [
+            "AGENTS.md",
+            "docs/M80_DELIVERY.md",
+            "docs/DELIVERY_PLAN.md",
+            "docs/HANDOFF.md",
+            "planning/delivery-phases.json",
+            "docs/IMPLEMENTATION_TASKS.md"
+          ],
+          "reviewer": "m76_scope"
+        },
+        "normal_qualified": false,
+        "independent_local_DATA_qualified": false,
+        "hosted_qualified": false,
+        "Source_publication_available": false,
+        "future_qualified_head": null,
+        "retained_test_disposition": {
+          "path": "crates/gz-sim-scene/tests/posed_box.rs",
+          "scope": "Only the posed-cylinder row in the old unsupported geometry loop becomes a positive load plus independent analytic ray at the existing tolerance. Sphere/capsule and all other assertions remain unchanged.",
+          "independent_reviewer": "Root approved exact Source disposition; Scope reviews whole final test semantics before checks.",
+          "reason": "M80 intentionally admits this cylinder domain; preserve its coverage with a positive geometry oracle, plus new TPE/COM/compound negative controls."
+        },
+        "SDF_inertial_default_policy": "Direct dynamic backend callers must supply Some centered validated inertia. Scene uses existing SDFormat resolved defaults or centered automatic-inertia results; no XML-presence gate and no new mass-property computation. Resolved offset COM stays refused.",
+        "Source_profile_declarations": {
+          "Rust_unique": 23,
+          "Python": 0,
+          "headless": 23,
+          "renderer": 9,
+          "overlap": 9,
+          "counts_are_Source_obligations_not_executed_results": true
+        },
+        "current_stage": "The isolated cylinder query correction and five added headless-only controls are Source complete. Whole independent integration review, the two affected Rust-file formatter and one consolidated full normal/strict retry remain required; no correction qualification is claimed.",
+        "historical_first_feature_Source_checkpoint": {
+          "id": "M80",
+          "title": "One posed cylinder collision in Rapier",
+          "max_working_days": 5,
+          "depends_on": [
+            "M78",
+            "M79"
+          ],
+          "scope": "One translated/rotated cylinder collider per Rapier link, preserving link-centered explicit inertia, link/visual/sensor frames, resets and public identity. Existing TPE/compound/offset-COM/automatic-inertia restrictions remain.",
+          "acceptance": "Complete implementation, meaningful geometry/contact/impulse/identity/atomic-refusal/reset regressions, documentation and independent whole Source review before one consolidated normal/strict pass. Require independent local DATA, exact hosted CI, official evidence and accepted predecessors before Main/acceptance.",
+          "excluded": "TPE posed cylinders, compound cylinders, offset COM, new automatic-inertia computation, other posed primitives, new controls/transport/schema/framework/backend, package/viewer/worker/dependency changes, DART/MuJoCo, Fuel",
+          "contract": "docs/M80_DELIVERY.md",
+          "source_preparation_basis_commit": "8ad64532489ffbb9bf62badb4a0835c34af81eaf",
+          "source_preparation_basis_accepted": false,
+          "source_preparation_under_D31": true,
+          "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+          "implementation_started": true,
+          "implementation_complete": true,
+          "independent_source_review_complete": false,
+          "checks_run": false,
+          "accepted": false,
+          "distribution_selected": false,
+          "qualification_state": "implementation_and_regression_Source_complete_pending_independent_review",
+          "new_Source_finite_examples": 0,
+          "new_CLI_cases": 0,
+          "Source_finite_runs": 47,
+          "Source_CLI_cases": 21,
+          "new_Rust_Source_controls": 18,
+          "new_Python_Source_controls": 0,
+          "file_ownership": {
+            "physics": [
+              "crates/gz-physics/src/lib.rs",
+              "crates/gz-physics/src/backend.rs",
+              "crates/gz-physics/tests/private/backend.rs",
+              "crates/gz-physics-rapier/src/lib.rs",
+              "crates/gz-physics-rapier/src/posed_cylinder.rs",
+              "crates/gz-physics-rapier/tests/posed_cylinder.rs"
+            ],
+            "Scene": [
+              "crates/gz-sim-scene/src/lib.rs",
+              "crates/gz-sim-scene/tests/posed_cylinder.rs",
+              "crates/gz-sim-scene/tests/fixtures/m80_posed_cylinder.sdf",
+              "crates/gz-sim-scene/tests/posed_box.rs"
+            ],
+            "Root": [
+              "AGENTS.md",
+              "docs/M80_DELIVERY.md",
+              "docs/DELIVERY_PLAN.md",
+              "docs/HANDOFF.md",
+              "planning/delivery-phases.json",
+              "docs/IMPLEMENTATION_TASKS.md"
+            ],
+            "reviewer": "m76_scope"
+          },
+          "normal_qualified": false,
+          "independent_local_DATA_qualified": false,
+          "hosted_qualified": false,
+          "Source_publication_available": false,
+          "future_qualified_head": null,
+          "retained_test_disposition": {
+            "path": "crates/gz-sim-scene/tests/posed_box.rs",
+            "scope": "Only the posed-cylinder row in the old unsupported geometry loop becomes a positive load plus independent analytic ray at the existing tolerance. Sphere/capsule and all other assertions remain unchanged.",
+            "independent_reviewer": "Root approved exact Source disposition; Scope reviews whole final test semantics before checks.",
+            "reason": "M80 intentionally admits this cylinder domain; preserve its coverage with a positive geometry oracle, plus new TPE/COM/compound negative controls."
+          },
+          "SDF_inertial_default_policy": "Direct dynamic backend callers must supply Some centered validated inertia. Scene uses existing SDFormat resolved defaults or centered automatic-inertia results; no XML-presence gate and no new mass-property computation. Resolved offset COM stays refused.",
+          "Source_profile_declarations": {
+            "Rust_unique": 18,
+            "Python": 0,
+            "headless": 18,
+            "renderer": 9,
+            "overlap": 9,
+            "counts_are_Source_obligations_not_executed_results": true
+          },
+          "current_stage": "Physics/Rapier and Scene implementation and regression Source are integrated. Whole independent Source review is pending; no M80 tests, lint or formatter has run."
+        },
+        "first_normal_failure_actual": {
+          "sha256": "00c1adfbaaeef3183249510a4666dd14d2d566806a81ee0f090872f1df4ca511",
+          "bytes": 3698,
+          "mode": 436
+        },
+        "ray_query_correction": {
+          "worktree": "gz-sim-m80-cylinder-ray-precision",
+          "state": "Source_complete_pending_whole_review",
+          "scope": "All actual Rapier cylinder query shapes use the existing analytic Parry Capsule ray kernel restricted to the cylinder local AABB. Collider geometry, contact solver, inertia and all other shape query routes stay unchanged.",
+          "original_oracle_and_tolerance_preserved": true,
+          "new_Rust_declarations": [
+            "cylinder_local_query_refuses_unusable_derived_arithmetic",
+            "cylinder_curved_chords_keep_strict_oracles_in_centered_and_composed_frames",
+            "cylinder_queries_keep_caps_tangency_inside_parallel_and_misses_distinct",
+            "cylinder_segment_bounds_nearest_exclusion_and_reset_preserve_owned_geometry",
+            "cylinder_queries_keep_binary_distant_chords_large_admitted_shapes_and_numeric_errors"
+          ],
+          "final_tree": null,
+          "final_Source_snapshot": null,
+          "checks_run": false,
+          "actual_normal_launch": null,
+          "actual_normal_outcome": null,
+          "exact_old_GJK_termination_branch_observed": false,
+          "transform_contribution_observed": false,
+          "universal_precision_bound_claimed": false,
+          "query_numeric_boundary": "Constructors/admission unchanged. Query InvalidValue without mutation when axis\u00b2, radius\u00b2 or radius\u00b2*axis\u00b2 is zero/subnormal/overflowing, actual dot/cross squares are nonfinite, or a nonzero cross product has a non-normal squared norm. Retain admitted thin-shape refusal controls and finite1e60 positive cast; no rescaling or universal precision claim.",
+          "Source_binding_count": 1776,
+          "changed_paths_vs_basis": 18,
+          "changed_production_paths_vs_basis": 6,
+          "Source_control_declarations": {
+            "Rust_unique": 23,
+            "headless": 23,
+            "renderer": 9,
+            "overlap": 9,
+            "Python_new": 0
+          }
+        }
+      },
+      "current_local_qualification": {
+        "commit": "ac75646aa5db9d1a1f983e47c0c86857415b9a2c",
+        "tree": "80c5de328f997b367dae2fa5a84759df7627194a",
+        "parent": "8ad64532489ffbb9bf62badb4a0835c34af81eaf",
+        "accepted": false,
+        "normal_actual": {
+          "sha256": "d86145c4b3ee587b5f96d7137f80f73f7e3a70b4f1a74e6283d5b8cd93be1577",
+          "bytes": 1491,
+          "mode": 436
+        },
+        "local_DATA_actual": {
+          "sha256": "21e9f742cb9085f70dc89c90c3e7f8923260a59e95a052a846aec69be947b006",
+          "bytes": 1980,
+          "mode": 436
+        },
+        "local_DATA_report": {
+          "sha256": "78e9ba2b4470a90b371245f12eb1deca6c469886be7d1fc74a213117edb5b573",
+          "bytes": 83558,
+          "mode": 436
+        },
+        "review_publication": {
+          "sha256": "d740c226834e69d64f2349f7d29bd89e4f3b435f09dd71a0a1edf7560e3e87c6",
+          "bytes": 3894,
+          "mode": 436
+        },
+        "hosted_run": {
+          "id": 44831931346,
+          "attempt": 1,
+          "status": "in_progress",
+          "conclusion": null
+        },
+        "official_actual": null,
+        "scope": "Own M80 local normal/strict and independent DATA only; hosted active at M81 selection, no acceptance or qualification transfer."
+      },
+      "checks_run_scope": "Own corrected normal/strict and retained DATA passed at ac75646a; whole hosted attempt1 is active, official evidence and accepted predecessors remain required."
+    },
+    {
+      "id": "M81",
+      "title": "One posed capsule collision in Rapier",
+      "max_working_days": 5,
+      "depends_on": [
+        "M80"
+      ],
+      "scope": "One translated/rotated Capsule collision per Rapier link, preserving centered inertia and link/visual/sensor frames.",
+      "acceptance": "Complete implementation/regression Source/docs and independent whole review, batch findings, then one consolidated formatter/normal/strict/local DATA/exact hosted/official cycle. Accepted predecessors remain mandatory.",
+      "excluded": "TPE posed geometry, compounds, offset COM, other new shapes, new controllers, Server/IO changes, renderer/viewer/worker changes, package/dependency/workflow changes, DART, MuJoCo, Fuel and new native campaign",
+      "contract": "docs/M81_DELIVERY.md",
+      "source_preparation_basis_commit": "ac75646aa5db9d1a1f983e47c0c86857415b9a2c",
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": false,
+      "checks_run": false,
+      "normal_qualified": false,
+      "independent_local_DATA_qualified": false,
+      "hosted_qualified": false,
+      "accepted": false,
+      "distribution_selected": false,
+      "qualification_inherited": false,
+      "qualification_state": "integrated_Source_complete_pending_whole_independent_review",
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "new_Rust_Source_controls": 18,
+      "new_Python_Source_controls": 0,
+      "final_Source_count": 1781,
+      "final_tree": null,
+      "file_ownership": {
+        "package_collector": [
+          "crates/gz-physics/src/lib.rs",
+          "crates/gz-physics/src/backend.rs",
+          "crates/gz-physics/tests/private/backend.rs",
+          "crates/gz-physics-rapier/src/lib.rs",
+          "crates/gz-physics-rapier/src/posed_capsule.rs",
+          "crates/gz-physics-rapier/tests/posed_capsule.rs"
+        ],
+        "tracker_acceptance_closeout": [
+          "crates/gz-sim-scene/src/lib.rs",
+          "crates/gz-sim-scene/tests/posed_capsule.rs",
+          "crates/gz-sim-scene/tests/fixtures/m81_posed_capsule.sdf",
+          "crates/gz-sim-scene/tests/posed_box.rs",
+          "crates/gz-sim-scene/tests/posed_cylinder.rs"
+        ],
+        "m76_scope": [
+          "AGENTS.md",
+          "docs/M81_DELIVERY.md",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "docs/IMPLEMENTATION_TASKS.md",
+          "planning/delivery-phases.json"
+        ]
+      },
+      "current_stage": "Physics/Rapier and Scene implementation plus 18 new Rust declarations are integrated. Whole independent review is pending; no formatter, staged tree or M81 checks/qualification exist.",
+      "retained_test_disposition": "Replace only Capsule-refusal rows in the two Scene posed_box/posed_cylinder loops with positive geometry oracles at the same tolerances; preserve Sphere/other negative rows and all M80 strict ray controls. Independent review required.",
+      "axis_contract": "Reuse capsule_z and caller collision pose. Do not copy cylinder Y-to-Z axis correction.",
+      "reference_scope": "Retain existing capsule reference Source/commands/fixtures; no new solver-parity/native campaign claimed.",
+      "resolved_inertia_policy": "Scene uses existing resolved Some defaults and supported centered identity-auto values. Pinned SDFormat refuses nonidentity capsule automatic inertia; no parser expansion/new computation or XMLpresence gate. Direct dynamic API None and offset COM remain unsupported.",
+      "changed_paths_vs_basis": 17,
+      "new_Source_files": 5,
+      "changed_production_paths_vs_basis": 5,
+      "Source_profile_declarations": {
+        "Rust_unique": 18,
+        "headless": 18,
+        "renderer": 9,
+        "overlap": 9,
+        "Python": 0,
+        "counts_are_Source_obligations_not_executed_results": true
       }
     }
   ],
@@ -5640,7 +5954,8 @@
     "M77": "in_progress",
     "M78": "in_progress",
     "M79": "in_progress",
-    "M80": "in_progress"
+    "M80": "in_progress",
+    "M81": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
   "phase_started_at": "2026-11-20T20:14:07.661864+00:00",
@@ -5648,7 +5963,8 @@
     "M77",
     "M78",
     "M79",
-    "M80"
+    "M80",
+    "M81"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -6056,30 +6372,37 @@
       ],
       "integration": "Disjoint Physics/Rapier and Scene Source lanes with Root shared integration; M78/M79 exact hosted/official chain proceeds separately. Complete whole independent Source review before one new consolidated qualification.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M81"
+      ],
+      "integration": "D31: disjoint Physics/Rapier and Scene Source leases over locally qualified unaccepted M80 ac75646a, with Root integration and independent whole review. M80 hosted/official closeout proceeds separately; no inherited gates or acceptance. Root serializes local heavy work.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M80 isolated ray correction Source proceeds under D31 over unaccepted shared 8ad64532. That parent passed its own local normal/strict, retained DATA, exact hosted CI and independent official DATA; M77 formal browser access and owner-approved shutdown still gate predecessor acceptance. The first M80 full normal failed Root/Git 1 with one strict cylinder ray failure and renderer not reached. No M80 qualification or acceptance is inherited. Accepted phases/slices remain 76/202, accepted Main dddf1f42, catalog80 and Latest M70 original41. Complete correction Source, whole independent review and all own normal/strict/local/hosted/official gates before acceptance.",
+  "acceptance_boundary": "M81 Source preparation proceeds under D31 from locally qualified unaccepted M80 ac75646a. Its review is published and exact hosted attempt1 is active at selection; no result qualifies changed M81 code. Accepted Main remains M76 dddf1f42,76phases/202slices/catalog81/Latest M70 original41. M77 formal browser and owner-confirmed shutdown plus all predecessor/own gates remain mandatory.",
   "current_delivery_group": [
-    "M80"
+    "M81"
   ],
-  "current_development_phase": "M80",
+  "current_development_phase": "M81",
   "board": {
-    "updated_at": "2026-11-20T21:41:24.444145+00:00",
+    "updated_at": "2026-11-20T22:54:49.625633+00:00",
     "current": {
-      "title": "M80 query correction Source complete for whole review",
+      "title": "M81 capsule collision Source underway",
       "items": [
-        "The first M80 full normal failed one strict off-axis cylinder ray check. Remaining headless targets completed; renderer and strict coverage were not reached.",
-        "The isolated query correction and five added controls are Source complete, preserving the 3.6 oracle and 1e-11 tolerance. Whole independent review and affected formatting precede one consolidated full retry.",
-        "Shared M78/M79 passed local, hosted and official qualification but remains unaccepted. M77\u2019s no-expiry manual demo stays live; formal browser access and owner-approved shutdown remain required."
+        "M81 implementation and 18 Rust regression declarations are integrated: 18 headless and nine overlapping renderer. Complete whole independent Source review before formatting or checks.",
+        "M80 local normal/strict and independent DATA passed; review is published and exact hosted attempt1 is active. No acceptance is inherited.",
+        "M77\u2019s persistent manual demo stays live. Formal browser access and owner-approved shutdown still hold downstream acceptance."
       ]
     },
     "done": [
-      "M1\u2013M76 and 202 slices remain accepted; Latest M70 retains its original 41-example package. Shared M78/M79 own local, hosted and official qualification passed.",
-      "The first M80 gate and its complete failure evidence are preserved. Source finite/CLI inventories remain 47/21; no M80 qualification is claimed."
+      "M1\u2013M76 and 202 slices remain accepted; Latest M70 keeps its original 41-example package.",
+      "M80 local qualification passed with its strict ray oracle intact; all earlier failures are preserved."
     ],
     "next": [
-      "Complete whole independent correction review and affected formatting, then run one consolidated full normal/strict gate and require local DATA plus exact hosted/official qualification.",
-      "Complete M77 formal browser access, visual/DATA and owner-approved shutdown before downstream acceptance; preserve the live demo meanwhile."
+      "Complete whole independent M81 Source review; batch findings before one final affected formatter and mandatory verification.",
+      "Close predecessor and own hosted/official evidence before acceptance; preserve M77\u2019s live demo until confirmed stop."
     ],
     "blocker": {
       "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
@@ -6088,7 +6411,7 @@
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M80"
+    "M81"
   ],
   "camera_integration": {
     "scope": "Atomic M61\u2013M64 qualification on accepted M60; no new phase",
@@ -6237,7 +6560,7 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "LOAD-M80-CYLINDER-RAY-PRECISION",
+  "current_development_task": "LOAD-M81-POSED-CAPSULE",
   "backend_retirement_source_preparation": {
     "decision": "D33",
     "owner_directed_at": "2026-11-17",
@@ -7315,5 +7638,39 @@
       },
       "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
     }
+  },
+  "current_M80_parent_qualification": {
+    "commit": "ac75646aa5db9d1a1f983e47c0c86857415b9a2c",
+    "tree": "80c5de328f997b367dae2fa5a84759df7627194a",
+    "parent": "8ad64532489ffbb9bf62badb4a0835c34af81eaf",
+    "accepted": false,
+    "normal_actual": {
+      "sha256": "d86145c4b3ee587b5f96d7137f80f73f7e3a70b4f1a74e6283d5b8cd93be1577",
+      "bytes": 1491,
+      "mode": 436
+    },
+    "local_DATA_actual": {
+      "sha256": "21e9f742cb9085f70dc89c90c3e7f8923260a59e95a052a846aec69be947b006",
+      "bytes": 1980,
+      "mode": 436
+    },
+    "local_DATA_report": {
+      "sha256": "78e9ba2b4470a90b371245f12eb1deca6c469886be7d1fc74a213117edb5b573",
+      "bytes": 83558,
+      "mode": 436
+    },
+    "review_publication": {
+      "sha256": "d740c226834e69d64f2349f7d29bd89e4f3b435f09dd71a0a1edf7560e3e87c6",
+      "bytes": 3894,
+      "mode": 436
+    },
+    "hosted_run": {
+      "id": 44831931346,
+      "attempt": 1,
+      "status": "in_progress",
+      "conclusion": null
+    },
+    "official_actual": null,
+    "scope": "Own M80 local normal/strict and independent DATA only; hosted active at M81 selection, no acceptance or qualification transfer."
   }
 }
