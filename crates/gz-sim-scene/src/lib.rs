@@ -790,8 +790,8 @@ fn build_model(
             sdf,
             model,
             sim,
-            top_level,
-            parent.is_static || model.is_static,
+            backend.as_ref().map(|backend| backend.engine()),
+            (top_level, parent.is_static || model.is_static),
             sdf.pose_of(&model.scoped_name, context.world)?,
         )?;
     }

@@ -120,8 +120,8 @@ impl Plan {
         sdf: &Sdf,
         model: &Model,
         sim: &Simulation,
-        top_level: bool,
-        is_static: bool,
+        engine: Option<&str>,
+        (top_level, is_static): (bool, bool),
         pose: Transform,
     ) -> Result<(), LoadError> {
         require(
@@ -179,7 +179,7 @@ impl Plan {
             &link.scoped_name,
         )?;
         require(
-            identity(local)
+            (identity(local) || engine == Some("rapier"))
                 && matches!(
                     &collision.geometry,
                     Geometry::Box { .. }

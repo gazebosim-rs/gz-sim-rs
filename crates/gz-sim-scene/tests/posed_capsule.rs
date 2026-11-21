@@ -587,11 +587,43 @@ fn posed_capsule_coexists_with_an_unchanged_centered_velocity_controller_only() 
     distance(&sim, [0.75, 5.75, 8.], [0., 0., -1.], 3.5);
     let controlled_pose = dynamic("1 0 0 0 0 0", INERTIA)
         .replace("<link name='body'>", &format!("{PLUGIN}<link name='body'>"));
+    // M83 changes only this Rapier posed-owner disposition; TPE remains closed.
     assert!(matches!(
-        load(&controlled_pose, PhysicsEngine::Rapier),
+        load(&controlled_pose, PhysicsEngine::Tpe),
         Err(LoadError::Unsupported {
             feature: "VelocityControl centered primitive",
             ..
         })
     ));
+    let mut controlled = load(&controlled_pose, PhysicsEngine::Rapier).unwrap();
+    let owner = id(&controlled, "default::posed");
+    assert!(velocity_control_binding_matches(&controlled, owner));
+    near(
+        pose(&controlled, "default::posed::body").translation,
+        [0., 0., 5.],
+    );
+    near(
+        pose(&controlled, "default::posed::body::shape").translation,
+        [1., 0., 5.],
+    );
+    distance(&controlled, [1., 0., 9.], [0., 0., -1.], 2.);
+    // Radius .5, transverse .3 and chord root .4 give a side hit at1.6.
+    distance(&controlled, [1.3, 2., 5.], [0., -1., 0.], 1.6);
+    set_velocity_control_command(&mut controlled, owner, [0., 2., 0.], [0.; 3]).unwrap();
+    controlled.step_exact(3).unwrap();
+    assert!(velocity_control_binding_matches(&controlled, owner));
+    near(
+        state(&controlled, "default::posed::body").position,
+        [0.001, 0.004, 5.],
+    );
+    near(
+        state(&controlled, "default::posed::body").velocity,
+        [0., 2., 0.],
+    );
+    near(
+        pose(&controlled, "default::posed::body::shape").translation,
+        [1.001, 0.004, 5.],
+    );
+    distance(&controlled, [1.001, 0.004, 9.], [0., 0., -1.], 2.);
+    distance(&controlled, [1.301, 2.004, 5.], [0., -1., 0.], 1.6);
 }

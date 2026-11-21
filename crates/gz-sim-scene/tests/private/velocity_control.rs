@@ -260,7 +260,17 @@ fn velocity_control_configuration_limits_nested_jointed_mesh_and_initial_overflo
     let sim = load(PhysicsEngine::Rapier);
     let sdf = sdformat::load_str(XML, "configuration", &sdformat::NoResources).unwrap();
     let pose = sdf.pose_of(&m.scoped_name, "default").unwrap();
-    assert!(plan.validate(&sdf, &m, &sim, true, false, pose).is_err()); // already-owned singleton
+    assert!(
+        plan.validate(
+            &sdf,
+            &m,
+            &sim,
+            Some(sim.world().resource::<PhysicsBackend>().engine()),
+            (true, false),
+            pose
+        )
+        .is_err()
+    ); // already-owned singleton
     let empty = load_world_with_sdf_step(
         "<sdf version='1.12'><world name='default'/></sdf>",
         "empty",
@@ -269,8 +279,28 @@ fn velocity_control_configuration_limits_nested_jointed_mesh_and_initial_overflo
         PhysicsEngine::Rapier,
     )
     .unwrap();
-    assert!(plan.validate(&sdf, &m, &empty, false, false, pose).is_err());
-    assert!(plan.validate(&sdf, &m, &empty, true, true, pose).is_err());
+    assert!(
+        plan.validate(
+            &sdf,
+            &m,
+            &empty,
+            Some(empty.world().resource::<PhysicsBackend>().engine()),
+            (false, false),
+            pose
+        )
+        .is_err()
+    );
+    assert!(
+        plan.validate(
+            &sdf,
+            &m,
+            &empty,
+            Some(empty.world().resource::<PhysicsBackend>().engine()),
+            (true, true),
+            pose
+        )
+        .is_err()
+    );
     let mesh_xml = XML.replacen(
         "<sphere><radius>0.5</radius></sphere>",
         "<mesh><uri>not-loaded.obj</uri></mesh>",
@@ -288,7 +318,17 @@ fn velocity_control_configuration_limits_nested_jointed_mesh_and_initial_overflo
             .collisions
             .remove(0)
             .geometry;
-    assert!(plan.validate(&sdf, &m, &empty, true, false, pose).is_err());
+    assert!(
+        plan.validate(
+            &sdf,
+            &m,
+            &empty,
+            Some(empty.world().resource::<PhysicsBackend>().engine()),
+            (true, false),
+            pose
+        )
+        .is_err()
+    );
     let mut m = model();
     payload(
         &mut m,
@@ -299,8 +339,15 @@ fn velocity_control_configuration_limits_nested_jointed_mesh_and_initial_overflo
     let a = std::f64::consts::FRAC_PI_4 / 2.;
     rotated.rotation = [0., 0., a.sin(), a.cos()];
     assert!(
-        plan.validate(&sdf, &m, &empty, true, false, rotated)
-            .is_err()
+        plan.validate(
+            &sdf,
+            &m,
+            &empty,
+            Some(empty.world().resource::<PhysicsBackend>().engine()),
+            (true, false),
+            rotated
+        )
+        .is_err()
     );
 }
 

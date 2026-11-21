@@ -1,30 +1,29 @@
-## Current development: M82 sphere-refusal test correction
+## Current development: M83 world-edit regression fixture correction
 
-[M82](M82_DELIVERY.md) keeps the reviewed posed-sphere implementation unchanged.
-Its first full normal ended Root/Git 1: 1870 headless passes, two failures and two
-ignored controls. Both failures are retained Rapier offset-sphere refusal rows;
-all 19 new M82 controls passed in headless. Renderer and strict coverage were
-not reached, so no M82 qualification or commit exists. No capacity, signal or
-finalization fault occurred; preserve the failed tree and all evidence.
+[M83](M83_DELIVERY.md) composes the existing controller with one posed Rapier primitive.
+The first full normal genuinely failed: Root/Git 1, 1879 headless passes, one
+failure and two ignored; seven of eight new cases passed. Renderer and strict
+coverage were not reached. No resource, signal or finalization fault occurred.
+The failed tree and every available result remain frozen.
 
-The isolated correction covers five explicit old Sphere-row dispositions:
-three already reviewed posed-suite transitions and the two generic Scene rows.
-Preserve TPE/compound refusals, existing-simulation atomicity, all other assertions
-and every tolerance. Source remains 19 Rust declarations (19 headless, nine
-overlapping renderer), zero new Python, 1786 files, 20 own changes and five
-production leaves. These are Source obligations, not a successful full run.
-Whole correction review precedes one affected two-file formatter and full retry;
-the unchanged original 11-file formatter evidence remains retained.
+The sole correction removes the IMU only from the invalid-command case so its
+world-edit getter has the existing collision+visual domain. It retains the
+successful getter precondition and checks the exact ownership setter refusal,
+unchanged native state and binding. Production and the other seven cases stay
+byte-identical. Independent correction review, one affected-test formatter and
+full normal/strict/local DATA/exact hosted/official qualification remain pending.
+Reuse the original eight-file formatter only for the seven unchanged Rust files.
 
-The unaccepted M81 `6ef85e9f` basis passed its own local, hosted and independent
-official qualification. Accepted predecessors and every M82 gate remain required.
-Accepted phases/slices stay 76/202; catalog 82, Source finite/CLI 47/21 and Latest
-M70 original package 41. Keep M77 demo session 86363 live without expiry until
-owner-confirmed stop; formal browser access and shutdown still hold acceptance.
-No per-edit checks, native trials, production change or frozen-tree mutation.
+Source obligations remain eight Rust declarations in both profiles (overlap
+eight), zero new Python, 1788 files, 15 own paths, two new and two production
+files; finite/CLI inventories remain 47/21. These are not qualified pass counts.
+The locally qualified, unaccepted M82 `039a1e51` parent now has exact hosted
+attempt 1 success; its official audit remains pending. No evidence qualifies M83.
 
-`LOAD-M82` retains the existing `LOAD-01`/`PHY-01`/`PHY-05` mapping; this
-correction changes only two missed legacy expectation rows and current docs.
+Accepted phases/slices remain 76/202; catalog 83 and Latest M70 original
+41-example package are unchanged. Keep M77 no-expiry demo 86363 live: formal
+browser access and owner-confirmed shutdown still hold acceptance. Preserve
+frozen trees, prior failures and Fuel. The budget remains at most five working days.
 
 ## Historical M80 first-Source task
 

@@ -362,6 +362,71 @@ fn velocity_control_default_custom_topics_four_centered_shapes_and_closed_refusa
             assert_eq!(c.topic, "/custom/velocity");
         }
     }
+    // M83 admits the rotation-only sphere on Rapier; TPE keeps its old refusal.
+    let rotated_sphere = XML.replacen(
+        "<collision name=\"shape\">",
+        "<collision name=\"shape\"><pose>0 0 0 0 0 1</pose>",
+        1,
+    );
+    assert_ne!(rotated_sphere, XML);
+    assert!(
+        load_world_with_sdf_step(
+            &rotated_sphere,
+            "bad",
+            "default",
+            &NoResources,
+            PhysicsEngine::Tpe
+        )
+        .is_err()
+    );
+    let mut posed = load_xml(&rotated_sphere, PhysicsEngine::Rapier);
+    let mut centered = load(PhysicsEngine::Rapier);
+    let owner = id(&posed, "default::rig");
+    let control_owner = id(&centered, "default::rig");
+    assert!(velocity_control_binding_matches(&posed, owner));
+    let local_rotation = pose(&posed, id(&posed, "default::rig::body::shape")).rotation;
+    for (actual, expected) in local_rotation
+        .into_iter()
+        .zip([0., 0., 0.5_f64.sin(), 0.5_f64.cos()])
+    {
+        assert!((actual - expected).abs() < 1e-11);
+    }
+    for sim in [&posed, &centered] {
+        let backend = sim.world().resource::<gz_physics::PhysicsBackend>();
+        for (x, expected) in [(0., 1.5), (0.3, 1.6)] {
+            let actual = backend
+                .cast_ray([x, 0., 12.], [0., 0., -1.], 3., None)
+                .unwrap()
+                .unwrap();
+            assert!((actual - expected).abs() < 1e-11);
+        }
+    }
+    set_velocity_control_command(&mut posed, owner, [0., 2., 0.], [0.; 3]).unwrap();
+    set_velocity_control_command(&mut centered, control_owner, [0., 2., 0.], [0.; 3]).unwrap();
+    posed.step_exact(3).unwrap();
+    centered.step_exact(3).unwrap();
+    // Native-compatible old target on first step, then the latched new target.
+    near(pose(&posed, owner).translation, [0.001, 0.004, 10.]);
+    near(
+        pose(&posed, owner).translation,
+        pose(&centered, control_owner).translation,
+    );
+    assert!(velocity_control_binding_matches(&posed, owner));
+    near(
+        pose(&posed, id(&posed, "default::rig::body")).translation,
+        [0.001, 0.004, 10.],
+    );
+    near(
+        pose(&posed, id(&posed, "default::rig::body::shape")).translation,
+        [0.001, 0.004, 10.],
+    );
+    let actual = posed
+        .world()
+        .resource::<gz_physics::PhysicsBackend>()
+        .cast_ray([0.301, 0.004, 12.], [0., 0., -1.], 3., None)
+        .unwrap()
+        .unwrap();
+    assert!((actual - 1.6).abs() < 1e-11);
     let mut invalid = vec![
         XML.replace(
             "<link name=\"body\">",
@@ -372,11 +437,6 @@ fn velocity_control_default_custom_topics_four_centered_shapes_and_closed_refusa
             "<model name=\"rig\"><static>true</static>",
         ),
         XML.replacen("</link>", "</link><link name='second'/>", 1),
-        XML.replacen(
-            "<collision name=\"shape\">",
-            "<collision name=\"shape\"><pose>0 0 0 0 0 1</pose>",
-            1,
-        ),
         XML.replacen("<inertial>", "<inertial><pose>0.1 0 0 0 0 0</pose>", 1),
         XML.replacen(
             "<sphere><radius>0.5</radius></sphere>",

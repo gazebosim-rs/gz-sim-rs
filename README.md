@@ -1,25 +1,31 @@
-## Current development: shared M78/M79 candidate
+## Current development: M83 world-edit regression fixture correction
 
-[M78](docs/M78_DELIVERY.md) posed Rapier boxes and [M79](docs/M79_DELIVERY.md)
-VelocityControl share one D31 candidate over qualified but unaccepted M77
-`57b44de1`; accepted Main remains M76 `dddf1f42`. The standalone M78 full hook
-failed at its unchanged strict-headless timeout with Root/Git 1 and no commit.
-The cause remains UNKNOWN; its frozen tree and all partial evidence are retained.
+[M83](docs/M83_DELIVERY.md) composes the existing controller with one posed Rapier primitive.
+The first full normal genuinely failed: Root/Git 1, 1879 headless passes, one
+failure and two ignored; seven of eight new cases passed. Renderer and strict
+coverage were not reached. No resource, signal or finalization fault occurred.
+The failed tree and every available result remain frozen.
 
-The merged Source obligations are 39 Rust declarations (39 headless, 21 also
-renderer), with zero new Python declarations. They are not passes. Complete
-merged Source review, fresh native component evidence/DATA and final adoption
-before one consolidated normal/strict/hosted/official cycle for both scopes.
-Neither phase has a standalone qualified successor or inherited acceptance;
-acceptance/Main still require M77's accepted-predecessor closeout and all gates.
+The sole correction removes the IMU only from the invalid-command case so its
+world-edit getter has the existing collision+visual domain. It retains the
+successful getter precondition and checks the exact ownership setter refusal,
+unchanged native state and binding. Production and the other seven cases stay
+byte-identical. Independent correction review, one affected-test formatter and
+full normal/strict/local DATA/exact hosted/official qualification remain pending.
+Reuse the original eight-file formatter only for the seven unchanged Rust files.
 
-Accepted phases/slices stay 76/202, catalog 79, Source finite/CLI 47/21 and
-Latest M70's original package 41 examples. M77's manual demo stays running
-without expiry until owner confirms stop; it is not formal GUI acceptance.
-Preserve frozen trees, all history and Fuel work.
+Source obligations remain eight Rust declarations in both profiles (overlap
+eight), zero new Python, 1788 files, 15 own paths, two new and two production
+files; finite/CLI inventories remain 47/21. These are not qualified pass counts.
+The locally qualified, unaccepted M82 `039a1e51` parent now has exact hosted
+attempt 1 success; its official audit remains pending. No evidence qualifies M83.
 
-The M77 sections below are historical Source checkpoints from the preparation
-parent; current scope, leases and gates are in the linked contract.
+Accepted phases/slices remain 76/202; catalog 83 and Latest M70 original
+41-example package are unchanged. Keep M77 no-expiry demo 86363 live: formal
+browser access and owner-confirmed shutdown still hold acceptance. Preserve
+frozen trees, prior failures and Fuel. The budget remains at most five working days.
+
+The sections below retain historical Source checkpoints.
 
 ## Current development: M77 installed camera preview
 
