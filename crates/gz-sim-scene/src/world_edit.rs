@@ -39,9 +39,9 @@ struct Binding {
     attached: Vec<(Entity, WorldPose)>,
 }
 
-// Deliberately a small complete hierarchy: one world-owned model, one coincident
-// link, one collision and one visual. Sensors, nested models and joint endpoints
-// are excluded even when an actuator is currently inactive. No callbacks are run.
+// One world-owned model, one coincident link and one supported visual. Loaded
+// primitive compounds additionally require the immutable construction membership;
+// singleton/runtime-spawn admission stays separate. No callbacks are run.
 fn binding(world: &World, id: u64) -> Result<Binding, WorldEditError> {
     let unsupported = || WorldEditError::UnsupportedModel;
     let model = entity_by_id(world, id).ok_or_else(unsupported)?;
@@ -52,6 +52,10 @@ fn binding(world: &World, id: u64) -> Result<Binding, WorldEditError> {
     if world.get::<EntityKind>(model) != Some(&EntityKind::Model)
         || world.get::<EntityKind>(parent) != Some(&EntityKind::World)
     {
+        return Err(unsupported());
+    }
+    let compound = initial::original_compound_model(world, id);
+    if compound && !initial::matches_compound_world_edit(world, id) {
         return Err(unsupported());
     }
     let children = world.get::<Children>(model).ok_or_else(unsupported)?;
@@ -77,15 +81,15 @@ fn binding(world: &World, id: u64) -> Result<Binding, WorldEditError> {
         return Err(unsupported());
     }
     let descendants = world.get::<Children>(link).ok_or_else(unsupported)?;
-    if descendants.len() != 2 {
+    if !compound && descendants.len() != 2 {
         return Err(unsupported());
     }
     let mut collision = false;
     let mut visual = false;
-    let mut attached = Vec::with_capacity(2);
+    let mut attached = Vec::with_capacity(descendants.len());
     for entity in descendants.iter() {
         match world.get::<EntityKind>(entity) {
-            Some(EntityKind::Collision) if !collision => collision = true,
+            Some(EntityKind::Collision) if !collision || compound => collision = true,
             Some(EntityKind::Visual) if !visual => {
                 visual = true;
                 let geometry = world
@@ -181,6 +185,10 @@ fn binding(world: &World, id: u64) -> Result<Binding, WorldEditError> {
 
 pub(super) fn admitted_entities(world: &World, id: u64) -> Result<[Entity; 4], WorldEditError> {
     let target = binding(world, id)?;
+    // Runtime spawn/reset ownership is deliberately the original four-node API.
+    if target.attached.len() != 2 {
+        return Err(WorldEditError::UnsupportedModel);
+    }
     Ok([
         target.model,
         target.link,

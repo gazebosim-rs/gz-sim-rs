@@ -1,58 +1,53 @@
-## Current development: M85 private child-pose coverage correction
+## Current development: M86/M87 isolated chord correction Source complete
 
-Read [M85](M85_DELIVERY.md) for the unchanged feature and exact correction lease.
+Read [M86](M86_DELIVERY.md) and [M87](M87_DELIVERY.md) for the closed domains.
 
-M85's first full normal returned Root/Git 1 after 1394.356940572994 seconds.
-All headless tests passed: 1904 passed, zero failed and two ignored, including all
-seven new integration controls. The strict changed-line gate then failed at
-14/15 executable Scene lines, below the unchanged requirement of strictly greater
-than 95 percent. Renderer and strict qualification were not completed. No
-capacity, signal or finalization fault occurred; no M85 qualified commit exists.
-Freeze the original cfa8913f candidate and failure evidence.
+M86 compound state edits and M87 passive revolute composition share one bounded
+D31 cycle. The second full normal failed Root/Git 1 after 1399.021763 seconds:
+1918 headless passes, one failure and two ignored cases. Fourteen of 15 new
+cases passed, including every other M86 control, both private controls and all
+eight M87 cases. Renderer and strict qualification were not reached. Preserve
+frozen tree `2d65c793`, failure `b1619de7` and its full packet. The first failure
+`865ca8d0` at tree `ca8a0614` remains failed: 1915 headless passes, four failures,
+two ignored and 11 of 15 new cases passing. Neither run created a qualified commit.
 
-The isolated correction adds only a private parsed-DOM boundary control inside
-an existing configuration case. It first admits two valid collision children,
-then changes only the last child's relative_to to an unknown frame and requires
-the exact SDF UnknownReference diagnostic with unchanged scene/native/controller/
-pending/identity state. Public XML already validates poses before this private
-consumer, so its ordinary invalid-XML controls could not exercise the newly
-changed error-propagation line 181. Production, all seven new integration case
-bodies, every old assertion and every numeric/coverage bound stay unchanged.
+The remaining failure is a test-ray placement error. For four or sixteen children,
+the old cylinder chord ray starts inside the adjacent box, so the compound's
+correct nearest solid hit is zero. The isolated one-file correction casts along
+world Z at radial Y offset 0.3, preserving the same cylinder, distance 3.6,
+maximum 5 and tolerance 1e-11. It retains the old ray as an exact zero-hit
+countercontrol for four/sixteen children and a 3.6 control for two. The complete
+remaining case and later oracles were independently reviewed; Scope's exact
+patch review reconstructs the full frozen file by inverse. No production code,
+geometry, other case, tolerance or quality gate changes.
 
-The new control is Source-complete and independently reviewed. Inventory is
-1795 files, twelve own paths, two new, 89 cumulative and one unchanged production
-leaf. Seven new Rust declarations remain headless seven/renderer seven/overlap
-seven, with zero new Python; the strengthened existing private case adds no
-declaration. Reuse the original four-file formatter only for its four unchanged
-Rust leaves. The separately affected private-file formatter has not run. Root
-final docs review, one private formatter and the full mandatory retry remain;
-no correction result, final tree or qualified commit is inferred.
+Confirmed Source census remains 1799 files, 14 owned paths, four new paths,
+three production paths and 93 cumulative paths: 15 unique H/R Rust declarations,
+all overlapping, zero Python, finite/CLI 47/21. These are Source obligations,
+not passes. Implementation and the bounded independent Source review are complete;
+Root reviews this eight-doc checkpoint before one affected single-file formatter
+and one consolidated mandatory full retry. Reuse `b075001c` only for unchanged
+`initial.rs`, and `78be4b89` only for its four unchanged Rust copies. Keep both
+original formatter records; claim no combined formatter union. Current one-file
+formatter, tests, lint and retry are UNRUN; final tree, commit and outcomes are NULL.
 
-The actual parent is locally qualified, unaccepted M84 ba2d85ee. Its corrected
-normal and independent DATA passed; its review branch is published and own hosted
-CI 44876073592 attempt 1 passed; independent official audit remains pending at
-this Source checkpoint. M83 completed its own
-qualification but remains unaccepted. Accepted phases/slices stay 76/202, catalog
-85, finite/CLI 47/21 and Latest M70's original 41-example package are unchanged.
-Keep no-expiry M77 demo 86363 live; formal browser evidence and owner-confirmed
-shutdown still hold acceptance. Preserve all failed originals, Fuel and gates.
+The genuine parent is M85 `22cffebd`, tree `bf830127`, parent M84 `ba2d85ee`,
+own-qualified but unaccepted. Its corrected normal/DATA proved Scene 15/15 in
+both profiles; the first 14/15 failure stays preserved. Own hosted run
+44883777137 attempt 1 passed, original collection returned zero with 30
+reaped-zero requests, and independent official DATA passed (`300b40da` /
+`bab7fc31`). Four original RAW groups 442/734/57/168 were compared once; nine
+strict bases and the actual zero CI base were qualified. M84 also completed its
+own qualification. No result or acceptance transfers to this shared successor.
 
-M85 retains the existing VelocityControl for one Rapier link with two to sixteen
-primitive collisions: explicit every-child admission, identity local LINK,
-centered resolved COM, one top-level dynamic free link and one controller without
-joints, nesting or conflicts. TPE singleton behavior and compound world-edit/
-world-spawn refusal stay unchanged. No Physics, runtime, Server, transport,
-renderer, dependency or native campaign expansion is selected. DART/MuJoCo stay
-retired. Root alone releases heavy operations after complete independent review;
-no formatter, tests, lint or runtime is authorized by this document.
+All original own, predecessor, M77 browser and owner-confirmed shutdown gates
+remain mandatory. Keep no-expiry demo 86363 live; no stop or restart is selected.
+Accepted phases/slices stay 76/202, catalog 87, finite/CLI 47/21 and Latest M70's
+original 41-example package unchanged. Preserve Fuel, both failed candidates
+and all historical evidence. DART/MuJoCo stay retired. Root alone releases serial
+heavy operations. The proposed next development wave remains unselected.
 
-`SYS-CONTROL-M85` keeps its original admission/two reviewed legacy transitions.
-The only corrective Rust lease is an additive block inside the existing private
-`velocity_control_configuration_limits_nested_jointed_mesh_and_initial_overflow_without_new_scope`
-case in Scene `tests/private/velocity_control.rs`. Preserve that case identity,
-all prior assertions and the four original formatted feature files. Complete
-whole correction review before one affected formatter and consolidated full
-normal/strict/local DATA/hosted/official gates; no targeted trial or exclusion.
+`LOAD-M86` retains original-membership compound state edits; `LOAD-M87` retains passive revolute semantics. The current corrective lease is only Package's existing `tests/compound_world_edit.rs` case and Scope's eight docs. All three production leaves, the other fourteen new controls, Root's shared transitions, runtime spawning and actuator exclusions remain unchanged.
 
 ## Historical M80 first-Source task
 

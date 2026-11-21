@@ -4,8 +4,8 @@
 use gz_physics::{BodyId, BodySpec, BodyState, PhysicsBackend, RotationSpec, Shape};
 use gz_sim_core::{EntityId, Simulation};
 use gz_sim_scene::{
-    BodyHandle, CollisionDensity, EntityKind, LoadError, LocalPose, ModelState, Name,
-    PhysicsEngine, WorldEditError, WorldPose, load_world_with_sdf_step, model_state,
+    BodyHandle, CollisionDensity, EntityKind, JointHandle, JointSample, LoadError, LocalPose,
+    ModelState, Name, PhysicsEngine, WorldPose, load_world_with_sdf_step, model_state,
     queue_link_world_velocity, queue_link_world_wrench, remove_model, reset_loaded_world,
     set_model_state,
 };
@@ -582,15 +582,123 @@ fn compound_late_invalid_children_preserve_other_simulations_and_reconstructed_i
 fn compound_refusals_keep_tpe_mesh_plane_com_surfaces_joints_and_owners_closed() {
     let valid = simple(2);
     assert!(load(&valid, PhysicsEngine::Tpe).is_err());
-    for (source,feature) in [
-        (valid.replacen("<sphere><radius>0.25</radius></sphere>","<plane><normal>0 0 1</normal><size>2 2</size></plane>",1),"compound collision geometry"),
-        (valid.replacen("<sphere><radius>0.25</radius></sphere>","<mesh><uri>missing-compound-mesh.gltf</uri></mesh>",1),"compound collision geometry"),
-        (valid.replace("<inertial>","<inertial><pose>0.1 0 0 0 0 0</pose>"),"offset center of mass"),
-        (valid.replacen("</collision>","<surface><friction><ode><mu>0.3</mu></ode></friction></surface></collision>",1),"collision surface parameters"),
-        (valid.replace("</model>","<joint name='hinge' type='revolute'><parent>world</parent><child>body</child><axis><xyz>0 0 1</xyz></axis></joint></model>"),"compound model joints"),
+    for (source, feature) in [
+        (
+            valid.replacen(
+                "<sphere><radius>0.25</radius></sphere>",
+                "<plane><normal>0 0 1</normal><size>2 2</size></plane>",
+                1,
+            ),
+            "compound collision geometry",
+        ),
+        (
+            valid.replacen(
+                "<sphere><radius>0.25</radius></sphere>",
+                "<mesh><uri>missing-compound-mesh.gltf</uri></mesh>",
+                1,
+            ),
+            "compound collision geometry",
+        ),
+        (
+            valid.replace("<inertial>", "<inertial><pose>0.1 0 0 0 0 0</pose>"),
+            "offset center of mass",
+        ),
+        (
+            valid.replacen(
+                "</collision>",
+                "<surface><friction><ode><mu>0.3</mu></ode></friction></surface></collision>",
+                1,
+            ),
+            "collision surface parameters",
+        ),
     ] {
-        assert_ne!(source,valid);assert!(matches!(load(&source,PhysicsEngine::Rapier),Err(LoadError::Unsupported{feature:actual,..}) if actual==feature),"{feature}");
+        assert_ne!(source, valid);
+        assert!(
+            matches!(load(&source,PhysicsEngine::Rapier),Err(LoadError::Unsupported{feature:actual,..}) if actual==feature),
+            "{feature}"
+        );
     }
+    // M87 admits the exact former passive world-revolute refusal input.
+    let joint_source = valid.replace("</model>","<joint name='hinge' type='revolute'><parent>world</parent><child>body</child><axis><xyz>0 0 1</xyz></axis></joint></model>");
+    assert_ne!(joint_source, valid);
+    let mut joint_sim = load(&joint_source, PhysicsEngine::Rapier).unwrap();
+    let joint_id = id(&joint_sim, "default::rig::hinge");
+    let handle = entity(&joint_sim, "default::rig::hinge")
+        .get::<JointHandle>()
+        .unwrap()
+        .id();
+    assert_eq!(
+        joint_sim
+            .world()
+            .resource::<PhysicsBackend>()
+            .joint_child(handle),
+        Some(body(&joint_sim, "default::rig::body"))
+    );
+    gz_sim_scene::queue_joint_effort(&mut joint_sim, joint_id, 8.).unwrap();
+    joint_sim.step_exact(1).unwrap();
+    scalar(
+        entity(&joint_sim, "default::rig::hinge")
+            .get::<JointSample>()
+            .unwrap()
+            .state
+            .velocity,
+        0.002,
+    );
+    joint_sim.step_exact(99).unwrap();
+    let moving = state(&joint_sim, "default::rig::body");
+    near(moving.position, [0.5, 0., 5.]);
+    near(moving.angular_velocity, [0., 0., 0.002]);
+    let joint_position = entity(&joint_sim, "default::rig::hinge")
+        .get::<JointSample>()
+        .unwrap()
+        .state
+        .position;
+    assert!(joint_position > 0.0001 && joint_position < 0.001);
+    scalar(moving.orientation[0], 0.);
+    scalar(moving.orientation[1], 0.);
+    rotation(
+        moving.orientation,
+        [
+            0.,
+            0.,
+            (joint_position / 2.).sin(),
+            (joint_position / 2.).cos(),
+        ],
+    );
+    for index in 0..2 {
+        let center = add(
+            moving.position,
+            rotate(moving.orientation, [3. * index as f64, 0., 0.]),
+        );
+        near(
+            pose(&joint_sim, &format!("default::rig::body::c{index}")).translation,
+            center,
+        );
+        scalar(
+            ray(
+                &joint_sim,
+                add(center, [0., 0., 1.]),
+                [0., 0., -1.],
+                2.,
+                None,
+            )
+            .unwrap(),
+            0.75,
+        );
+    }
+    joint_sim.reset().unwrap();
+    scalar(
+        entity(&joint_sim, "default::rig::hinge")
+            .get::<JointSample>()
+            .unwrap()
+            .state
+            .position,
+        0.,
+    );
+    near(
+        state(&joint_sim, "default::rig::body").position,
+        [0.5, 0., 5.],
+    );
     let owner_domain = valid.replace("<pose>0.5 0 0 0 0 0</pose>", "<pose>0 0 0 0 0 0</pose>");
     assert_ne!(owner_domain, valid);
     assert!(load(&owner_domain, PhysicsEngine::Rapier).is_ok());
@@ -693,22 +801,44 @@ fn compound_refusals_keep_tpe_mesh_plane_com_surfaces_joints_and_owners_closed()
     let mut sim = load(&owner_domain, PhysicsEngine::Rapier).unwrap();
     let owner = id(&sim, "default::rig");
     let before = state(&sim, "default::rig::body");
-    assert!(matches!(
-        model_state(&sim, owner),
-        Err(WorldEditError::UnsupportedModel)
-    ));
-    assert!(matches!(
-        set_model_state(
-            &mut sim,
-            owner,
-            ModelState {
-                translation: before.position,
-                rotation: before.orientation,
-                linear_velocity: before.velocity,
-                angular_velocity: before.angular_velocity
-            }
-        ),
-        Err(WorldEditError::UnsupportedModel)
-    ));
+    // M86 preserves this exact passive owner input, now with read/edit/read proof.
+    let initial = ModelState {
+        translation: before.position,
+        rotation: before.orientation,
+        linear_velocity: before.velocity,
+        angular_velocity: before.angular_velocity,
+    };
+    assert_eq!(model_state(&sim, owner).unwrap(), initial);
+    let h = std::f64::consts::FRAC_1_SQRT_2;
+    let edited = ModelState {
+        translation: [4., -2., 7.],
+        rotation: [0., 0., h, h],
+        linear_velocity: [1., 2., -3.],
+        angular_velocity: [-0.4, 0.5, 0.6],
+    };
+    set_model_state(&mut sim, owner, edited).unwrap();
+    let observed = model_state(&sim, owner).unwrap();
+    near(observed.translation, edited.translation);
+    rotation(observed.rotation, edited.rotation);
+    near(observed.linear_velocity, edited.linear_velocity);
+    near(observed.angular_velocity, edited.angular_velocity);
+    for index in 0..2 {
+        let center = [4., -2. + 3. * index as f64, 7.];
+        near(
+            pose(&sim, &format!("default::rig::body::c{index}")).translation,
+            center,
+        );
+        scalar(
+            ray(&sim, add(center, [0., 0., 1.]), [0., 0., -1.], 2., None).unwrap(),
+            0.75,
+        );
+    }
+    assert_eq!(sim.elapsed(), Duration::ZERO);
+    assert_eq!(
+        model_state(&control, id(&control, "default::rig")).unwrap(),
+        initial
+    );
+    set_model_state(&mut sim, owner, initial).unwrap();
+    assert_eq!(model_state(&sim, owner).unwrap(), initial);
     near(state(&sim, "default::rig::body").position, before.position);
 }

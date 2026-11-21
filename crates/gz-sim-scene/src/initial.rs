@@ -233,6 +233,167 @@ pub(super) fn owns_loaded_body(world: &World, link_id: u64, body: BodyId) -> boo
     })
 }
 
+// Route by construction membership, never by a mutable current child count. A
+// damaged compound must not become an apparently admissible singleton.
+pub(super) fn original_compound_model(world: &World, id: u64) -> bool {
+    world.get_resource::<InitialScene>().is_some_and(|scene| {
+        let links: BTreeSet<_> = scene
+            .0
+            .nodes
+            .iter()
+            .filter(|node| node.parent == Some(id) && node.kind == EntityKind::Link)
+            .map(|node| node.id.get())
+            .collect();
+        scene
+            .0
+            .nodes
+            .iter()
+            .filter(|node| {
+                node.kind == EntityKind::Collision
+                    && node.parent.is_some_and(|parent| links.contains(&parent))
+            })
+            .count()
+            >= 2
+    })
+}
+
+pub(super) fn matches_compound_world_edit(world: &World, id: u64) -> bool {
+    let Some(scene) = world.get_resource::<InitialScene>() else {
+        return false;
+    };
+    let nodes = &scene.0.nodes;
+    let Some(model) = nodes.iter().find(|node| node.id.get() == id) else {
+        return false;
+    };
+    let children: Vec<_> = nodes
+        .iter()
+        .filter(|node| node.parent == Some(id))
+        .collect();
+    if model.kind != EntityKind::Model || children.len() != 1 {
+        return false;
+    }
+    let link = children[0];
+    let attached: Vec<_> = nodes
+        .iter()
+        .filter(|node| node.parent == Some(link.id.get()))
+        .collect();
+    let collisions = attached
+        .iter()
+        .filter(|node| node.kind == EntityKind::Collision)
+        .count();
+    if link.kind != EntityKind::Link
+        || !(2..=16).contains(&collisions)
+        || attached.len() != collisions + 1
+        || attached
+            .iter()
+            .filter(|node| node.kind == EntityKind::Visual)
+            .count()
+            != 1
+        || !identity(Transform {
+            translation: link.local.0.translation,
+            rotation: link.local.0.rotation,
+        })
+        || link.center.is_some_and(|center| center.0 != [0.; 3])
+        || link.body.is_none()
+    {
+        return false;
+    }
+    let matches = |node: &Node, pin_local: bool| {
+        let Some(entity) = entity_by_id(world, node.id.get()) else {
+            return false;
+        };
+        node.id.validate(world).is_ok()
+            && world.get::<EntityKind>(entity) == Some(&node.kind)
+            && world.get::<BodyHandle>(entity).map(BodyHandle::id) == node.body
+            && world.entity(entity).contains::<AttachedPose>() == node.attached
+            && world
+                .get::<Name>(entity)
+                .is_some_and(|name| name.0 == node.name)
+            && world
+                .get::<LocalName>(entity)
+                .is_some_and(|name| name.0 == node.local_name)
+            && world
+                .get::<ChildOf>(entity)
+                .and_then(|parent| world.get::<EntityId>(parent.parent()))
+                .map(EntityId::get)
+                == node.parent
+            && (!pin_local
+                || world.get::<LocalPose>(entity).is_some_and(|pose| {
+                    pose.0.translation == node.local.0.translation
+                        && pose.0.rotation == node.local.0.rotation
+                }))
+    };
+    let Some(parent) = model
+        .parent
+        .and_then(|id| nodes.iter().find(|node| node.id.get() == id))
+    else {
+        return false;
+    };
+    if parent.kind != EntityKind::World
+        || !matches(parent, false)
+        || !matches(model, false)
+        || !matches(link, false)
+    {
+        return false;
+    }
+    let model_entity = entity_by_id(world, id).expect("matched model identity");
+    let link_entity = entity_by_id(world, link.id.get()).expect("matched link identity");
+    // Canonical-link synchronization recomposes this identity frame in f64.
+    // Use the existing link admission domain; attached child locals stay exact.
+    if world
+        .get::<Children>(model_entity)
+        .is_none_or(|current| current.len() != 1 || current[0] != link_entity)
+        || !world.get::<LocalPose>(link_entity).is_some_and(|pose| {
+            identity(Transform {
+                translation: pose.0.translation,
+                rotation: pose.0.rotation,
+            })
+        })
+        || world.get::<BodyHandle>(link_entity).map(BodyHandle::id) != link.body
+        || world
+            .get::<LinkCenterOfMass>(link_entity)
+            .map(|center| center.0)
+            != link.center.map(|center| center.0)
+    {
+        return false;
+    }
+    let Some(current) = world.get::<Children>(link_entity) else {
+        return false;
+    };
+    if current.len() != attached.len() {
+        return false;
+    }
+    for node in attached {
+        if !matches(node, true)
+            || !node.attached
+            || nodes
+                .iter()
+                .any(|child| child.parent == Some(node.id.get()))
+        {
+            return false;
+        }
+        let entity = entity_by_id(world, node.id.get()).expect("matched child identity");
+        if !current.contains(&entity)
+            || !world.entity(entity).contains::<AttachedPose>()
+            || world
+                .get::<Children>(entity)
+                .is_some_and(|children| !children.is_empty())
+        {
+            return false;
+        }
+        if node.kind == EntityKind::Visual
+            && !node.visual_geometry.as_ref().is_some_and(|original| {
+                world
+                    .get::<VisualGeometry>(entity)
+                    .is_some_and(|current| Arc::ptr_eq(&original.0, &current.0))
+            })
+        {
+            return false;
+        }
+    }
+    true
+}
+
 pub(super) fn capture(sim: &mut Simulation) {
     let world = sim.world();
     let mut nodes = Vec::new();
@@ -1144,3 +1305,261 @@ pub fn reset_loaded_world<R>(
 #[cfg(test)]
 #[path = "../tests/private/initial.rs"]
 mod tests;
+
+#[cfg(test)]
+mod compound_edit_tests {
+    use super::*;
+    use crate::{ModelState, WorldEditError, model_state, set_model_state};
+
+    fn loaded(
+        collisions: usize,
+        sensor: bool,
+        link_pose: &str,
+        extra_link: bool,
+        controlled: bool,
+    ) -> Simulation {
+        let children: String=(0..collisions).map(|i| format!("<collision name='c{i}'><pose>{} 0 0 0 0 0</pose><geometry><sphere><radius>0.5</radius></sphere></geometry></collision>",i*2)).collect();
+        let control = if controlled {
+            "<plugin filename='gz-sim-velocity-control-system' name='gz::sim::systems::VelocityControl'/>"
+        } else {
+            ""
+        };
+        let sensor = if sensor {
+            "<sensor name='imu' type='imu'><always_on>true</always_on><update_rate>100</update_rate></sensor>"
+        } else {
+            ""
+        };
+        let extra = if extra_link {
+            "<link name='other'><collision name='c'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link>"
+        } else {
+            ""
+        };
+        let xml = format!(
+            "<sdf version='1.12'><world name='w'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.001</max_step_size></physics><model name='rig'>{control}<link name='body'><pose>{link_pose}</pose><inertial><mass>2</mass><inertia><ixx>2</ixx><iyy>3</iyy><izz>4</izz></inertia></inertial>{children}<visual name='view'><geometry><box><size>1 1 1</size></box></geometry></visual>{sensor}</link>{extra}</model></world></sdf>"
+        );
+        load_world_with_sdf_step(
+            &xml,
+            "compound-edit-private",
+            "w",
+            &sdformat::NoResources,
+            PhysicsEngine::Rapier,
+        )
+        .unwrap()
+    }
+    fn id(sim: &Simulation, name: &str) -> u64 {
+        sim.world()
+            .iter_entities()
+            .find(|e| e.get::<Name>().is_some_and(|n| n.0 == name))
+            .unwrap()
+            .get::<EntityId>()
+            .unwrap()
+            .get()
+    }
+    fn request() -> ModelState {
+        ModelState {
+            translation: [4., 5., 6.],
+            rotation: [0., 0., 0., 1.],
+            linear_velocity: [1., 2., 3.],
+            angular_velocity: [0.25, -0.5, 0.75],
+        }
+    }
+
+    #[test]
+    fn compound_edit_original_reservations_center_and_attachment_refusals_preserve_pending_state() {
+        for fault in 0..7 {
+            let mut sim = loaded(2, false, "0 0 0 0 0 0", false, true);
+            let rig = id(&sim, "w::rig");
+            let link = entity_by_id(sim.world(), id(&sim, "w::rig::body")).unwrap();
+            let child = entity_by_id(sim.world(), id(&sim, "w::rig::body::c1")).unwrap();
+            let body = sim.world().get::<BodyHandle>(link).unwrap().id();
+            assert!(original_compound_model(sim.world(), rig));
+            assert!(matches_compound_world_edit(sim.world(), rig));
+            assert!(model_state(&sim, rig).is_ok());
+            crate::set_velocity_control_command(&mut sim, rig, [2., 0., 0.], [0.; 3]).unwrap();
+            let before = sim.world().resource::<PhysicsBackend>().state(body);
+            let mut identities: Vec<_> = sim
+                .world()
+                .iter_entities()
+                .filter_map(|e| e.get::<EntityId>().map(|id| (id.get(), e.id())))
+                .collect();
+            identities.sort_unstable();
+            let original_link_local = *sim.world().get::<LocalPose>(link).unwrap();
+            let clock = (sim.elapsed(), sim.epoch());
+            let mut original = None;
+            match fault {
+                0 => {
+                    sim.world_mut().entity_mut(child).remove::<AttachedPose>();
+                }
+                1 => {
+                    assert!(sim.world().get::<LinkCenterOfMass>(link).is_none());
+                    sim.world_mut()
+                        .entity_mut(link)
+                        .insert(LinkCenterOfMass([0.25, 0., 0.]));
+                }
+                2 => {
+                    original = sim.world_mut().remove_resource::<InitialScene>();
+                }
+                3 => {
+                    let mut foreign = loaded(2, false, "0 0 0 0 0 0", false, true);
+                    let wrong = foreign
+                        .world_mut()
+                        .remove_resource::<InitialScene>()
+                        .unwrap();
+                    original = sim.world_mut().remove_resource::<InitialScene>();
+                    sim.world_mut().insert_resource(wrong);
+                }
+                4 => {
+                    let model = entity_by_id(sim.world(), rig).unwrap();
+                    sim.world_mut().entity_mut(model).insert(AttachedPose);
+                }
+                5 => {
+                    sim.world_mut().entity_mut(link).insert(AttachedPose);
+                }
+                _ => {
+                    let mut drift = original_link_local;
+                    drift.0.translation[0] = 2. * POSE_TOLERANCE;
+                    sim.world_mut().entity_mut(link).insert(drift);
+                }
+            }
+            assert!(
+                !matches_compound_world_edit(sim.world(), rig),
+                "fault {fault}"
+            );
+            assert!(model_state(&sim, rig).is_err());
+            assert!(set_model_state(&mut sim, rig, request()).is_err());
+            assert_eq!(sim.world().resource::<PhysicsBackend>().state(body), before);
+            let mut current_identities: Vec<_> = sim
+                .world()
+                .iter_entities()
+                .filter_map(|e| e.get::<EntityId>().map(|id| (id.get(), e.id())))
+                .collect();
+            current_identities.sort_unstable();
+            assert_eq!(current_identities.len(), identities.len());
+            assert_eq!(current_identities, identities);
+            assert_eq!((sim.elapsed(), sim.epoch()), clock);
+            match fault {
+                0 => {
+                    sim.world_mut().entity_mut(child).insert(AttachedPose);
+                }
+                1 => {
+                    sim.world_mut()
+                        .entity_mut(link)
+                        .remove::<LinkCenterOfMass>();
+                }
+                2 | 3 => {
+                    sim.world_mut().insert_resource(original.unwrap());
+                }
+                4 => {
+                    let model = entity_by_id(sim.world(), rig).unwrap();
+                    sim.world_mut().entity_mut(model).remove::<AttachedPose>();
+                }
+                5 => {
+                    sim.world_mut().entity_mut(link).remove::<AttachedPose>();
+                }
+                _ => {
+                    sim.world_mut().entity_mut(link).insert(original_link_local);
+                }
+            }
+            assert!(matches_compound_world_edit(sim.world(), rig));
+            assert!(crate::velocity_control_binding_matches(&sim, rig));
+            // Repairing the test's one-field drift cannot consume a pending command.
+            sim.step_exact(1).unwrap();
+            assert_eq!(
+                sim.world()
+                    .resource::<PhysicsBackend>()
+                    .state(body)
+                    .unwrap()
+                    .velocity,
+                [0.; 3]
+            );
+            sim.step_exact(1).unwrap();
+            assert_eq!(
+                sim.world()
+                    .resource::<PhysicsBackend>()
+                    .state(body)
+                    .unwrap()
+                    .velocity,
+                [2., 0., 0.]
+            );
+        }
+    }
+
+    #[test]
+    fn compound_edit_helper_original_domains_and_late_state_failures_remain_atomic() {
+        let plain = Simulation::new(Duration::from_millis(1)).unwrap();
+        assert!(!original_compound_model(plain.world(), 1));
+        assert!(!matches_compound_world_edit(plain.world(), 1));
+        for (count, sensor, pose, multilink) in [
+            (1, false, "0 0 0 0 0 0", false),
+            (2, true, "0 0 0 0 0 0", false),
+            (2, false, "0.25 0 0 0 0 0", false),
+            (2, false, "0 0 0 0 0 0", true),
+        ] {
+            let sim = loaded(count, sensor, pose, multilink, false);
+            let rig = id(&sim, "w::rig");
+            assert!(!matches_compound_world_edit(sim.world(), rig));
+            if count == 1 {
+                assert!(model_state(&sim, rig).is_ok());
+            } else {
+                assert!(model_state(&sim, rig).is_err());
+            }
+            assert!(!matches_compound_world_edit(sim.world(), u64::MAX));
+            assert!(!matches_compound_world_edit(
+                sim.world(),
+                id(&sim, "w::rig::body")
+            ));
+        }
+        // Fixed-body validation rejects finite nonzero velocities only after
+        // complete hierarchy and attached-pose preflight.
+        let xml = "<sdf version='1.12'><world name='w'><model name='rig'><static>true</static><link name='body'><collision name='a'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision><collision name='b'><pose>2 0 0 0 0 0</pose><geometry><box><size>1 1 1</size></box></geometry></collision><visual name='view'><geometry><box><size>1 1 1</size></box></geometry></visual></link></model></world></sdf>";
+        let mut fixed = load_world_with_sdf_step(
+            xml,
+            "fixed-atomic",
+            "w",
+            &sdformat::NoResources,
+            PhysicsEngine::Rapier,
+        )
+        .unwrap();
+        let rig = id(&fixed, "w::rig");
+        let before = model_state(&fixed, rig).unwrap();
+        assert!(matches!(
+            set_model_state(&mut fixed, rig, request()),
+            Err(WorldEditError::Physics(PhysicsError::InvalidValue))
+        ));
+        assert_eq!(model_state(&fixed, rig).unwrap(), before);
+        assert_eq!(fixed.elapsed(), Duration::ZERO);
+        // Original, admitted visual offset: only the requested composition
+        // overflows f32 presentation space, after the earlier children fit.
+        let late_xml = xml.replacen("<static>true</static>", "", 1).replacen(
+            "<visual name='view'>",
+            "<visual name='view'><pose>3e38 0 0 0 0 0</pose>",
+            1,
+        );
+        let mut late = load_world_with_sdf_step(
+            &late_xml,
+            "late-visual-atomic",
+            "w",
+            &sdformat::NoResources,
+            PhysicsEngine::Rapier,
+        )
+        .unwrap();
+        let rig = id(&late, "w::rig");
+        assert!(matches_compound_world_edit(late.world(), rig));
+        let before = model_state(&late, rig).unwrap();
+        let link = entity_by_id(late.world(), id(&late, "w::rig::body")).unwrap();
+        let body = late.world().get::<BodyHandle>(link).unwrap().id();
+        let native = late.world().resource::<PhysicsBackend>().state(body);
+        let mut request = request();
+        request.translation = [3e38, 0., 0.];
+        assert!(matches!(
+            set_model_state(&mut late, rig, request),
+            Err(WorldEditError::InvalidState)
+        ));
+        assert_eq!(model_state(&late, rig).unwrap(), before);
+        assert_eq!(
+            late.world().resource::<PhysicsBackend>().state(body),
+            native
+        );
+        assert_eq!(late.elapsed(), Duration::ZERO);
+    }
+}

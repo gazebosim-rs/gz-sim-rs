@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-21T07:16:44.918480+00:00",
+  "as_of": "2026-11-21T10:22:56.982527+00:00",
   "execution_state": "active",
-  "current_phase": "M85",
+  "current_phase": "M86",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -6451,6 +6451,515 @@
         "mode": 436
       },
       "retained_original_formatter_scope": "Original four-file actual0 only for four unchanged Rust copies. New private correction path is separately affected and unformatted; no combined five-file pass."
+    },
+    {
+      "id": "M86",
+      "title": "Loaded Rapier compound state edits",
+      "max_working_days": 5,
+      "depends_on": [
+        "M85"
+      ],
+      "scope": "Loaded original 2..16-primitive compound state reads and passive explicit edits, exact immutable child membership/local poses/identity/body proof, identity LINK/centered compound COM/one visual, sensorless controlled getter with immutable controller setter veto.",
+      "acceptance": "Complete both bounded implementations, meaningful regressions/docs and reciprocal+whole independent Source review, then one final affected formatter and ONE consolidated full normal/staged hook/strict workspace+per-crate/actual-parent coverage, independent local DATA, ordinary review publication, exact own hosted and independent official DATA for the shared candidate. Every own and original predecessor/M77 gate remains before acceptance/Main/release.",
+      "excluded": "New Physics/backend/public API/Server/transport/renderer/package/browser/dependency/framework/native campaign; compound runtime spawning, unselected actuator or joint domain, new geometry/automatic inertia; DART/MuJoCo/Fuel/demo operations.",
+      "contract": "docs/M86_DELIVERY.md",
+      "shared_qualification_group": [
+        "M86",
+        "M87"
+      ],
+      "source_preparation_basis_commit": "22cffebd3d1f9f0be82e7ac35e557b42d08edea9",
+      "source_preparation_basis_tree": "bf83012768dde6feb1af7e402853d3dd841e3d50",
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": true,
+      "checks_run": false,
+      "normal_qualified": false,
+      "independent_local_DATA_qualified": false,
+      "hosted_qualified": false,
+      "official_DATA_qualified": false,
+      "accepted": false,
+      "qualification_inherited": false,
+      "distribution_selected": false,
+      "Source_publication_available": false,
+      "future_qualified_head": null,
+      "qualification_state": "complete_independently_reviewed_isolated_chord_Source_pending_one_file_formatter_and_full_retry",
+      "new_Rust_Source_controls": 7,
+      "new_Python_Source_controls": 0,
+      "Source_control_declarations": {
+        "Rust_unique": 7,
+        "headless": 7,
+        "renderer": 7,
+        "overlap": 7,
+        "Python": 0,
+        "counts_are_Source_obligations_not_executed_results": true
+      },
+      "final_Source_count": 1799,
+      "changed_paths_vs_basis": 14,
+      "new_paths": 4,
+      "changed_production_paths_vs_basis": 3,
+      "final_tree": null,
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "file_ownership": {
+        "package_collector": [
+          "crates/gz-sim-scene/src/world_edit.rs",
+          "crates/gz-sim-scene/src/initial.rs",
+          "crates/gz-sim-scene/tests/compound_world_edit.rs"
+        ],
+        "Root": [
+          "crates/gz-sim-scene/tests/compound_primitives.rs: only passive compound getter/setter assertion transition"
+        ],
+        "m76_scope": [
+          "docs/M86_DELIVERY.md",
+          "docs/M87_DELIVERY.md",
+          "AGENTS.md",
+          "README.md",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "docs/IMPLEMENTATION_TASKS.md",
+          "planning/delivery-phases.json"
+        ]
+      },
+      "retained_test_disposition": "Only the old passive compound getter/setter pair in compound_primitives.rs becomes stronger same-XML positive state/geometry controls. Preserve every other negative, singleton COM/runtime spawn and fixed four-entity helper semantics.",
+      "current_stage": "Second normal Root/Git1: 1918 headless passes, one failure, two ignored; 14 of15 new cases passed, no renderer/strict qualification or qualified commit. The isolated strict chord patch is complete and independently reviewed; final eight-doc review, one-file formatter and full retry remain pending. Current formatter/tests/lint/retry UNRUN; final tree/commit/outcomes NULL.",
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "protected_manual_demo_session": 86363,
+      "stop_or_restart_authorized": false,
+      "cumulative_changed_paths_vs_accepted_ancestor": 93,
+      "combined_Source_control_declarations": {
+        "Rust_unique": 15,
+        "headless": 15,
+        "renderer": 15,
+        "overlap": 15,
+        "Python": 0
+      },
+      "current_Source_inventory_scope": "Confirmed shared Source:1799 files/14 owned/4 new/3 production/93 cumulative;15 unique H/R declarations, overlap15, zero Python; finite47/CLI21. No corrected executed result.",
+      "independent_review_scopes": {
+        "Package": "Authored only the existing-case isolated chord input and original-ray countercontrol; entire-file inverse restores frozen50808607, no new declarations.",
+        "Server": "Independent complete remaining-case geometry and later-oracle diagnosis closed with one source-proven adjacent-box interference cause; prior corrected production/domain controls unchanged.",
+        "Scope": "Independent whole remaining-case geometry and later oracles; actual f4455f28 patch exact inverse, isolated3.6/1e-11/max5 and original input countercontrol CLEAR.",
+        "Root": "Independent complete failure/math batch and selected bounded correction; final eight-doc checkpoint review pending."
+      },
+      "historical_first_candidate_Source_checkpoint": {
+        "implementation_complete": true,
+        "independent_source_review_complete": true,
+        "checks_run": false,
+        "qualification_state": "complete_reviewed_Source_pending_final_formatter_and_mandatory_checks",
+        "current_stage": "Both implementations, regression Source, reciprocal and whole joined code/test-integrity reviews complete; two batched review corrections closed. Final authored docs review precedes one affected formatter and consolidated mandatory verification. No formatter/tests/lint or executed outcome yet.",
+        "current_Source_inventory_scope": "Combined shared M86/M87 candidate:1799 files/14 owned/4 new/3 production/93 cumulative. Per-phase declaration counts are separate; all executed results/tree/commit pending.",
+        "independent_review_scopes": {
+          "Package": "Authored M86; independently reviewed complete M87 and Root three same-XML transitions CLEAR.",
+          "Server": "Independent complete M86 baseline helper/public/private Source review CLEAR; gap/Frames fixes were queued. The exact final delta and full inverse were independently closed by Scope and Root.",
+          "Scope": "Independent whole joined production/math/query/lifecycle/ownership/test-integrity and exact gap/Frames correction review CLEAR.",
+          "Root": "Independent integrated code and prior docs checkpoint CLEAR; final completed eight-doc batch awaiting independent review."
+        }
+      },
+      "historical_first_normal_failure": {
+        "actual": {
+          "sha256": "865ca8d074d1f028f4d9ea652c29f825faac510fc716468161ebbba21ae6f001",
+          "bytes": 5783,
+          "mode": 436
+        },
+        "frozen_tree": "ca8a06140d687db3d772f3e667c0686d2c2d83fd",
+        "Root_exit": 1,
+        "Git_exit": 1,
+        "elapsed_seconds": 1405.7243983649823,
+        "headless": {
+          "passed": 1915,
+          "failed": 4,
+          "ignored": 2
+        },
+        "new_cases": {
+          "passed": 11,
+          "failed": 4
+        },
+        "all_M87_and_shared_passed_headless_only": true,
+        "renderer_reached": false,
+        "strict_qualified": false,
+        "qualified_commit": null,
+        "capacity_faults": [],
+        "finalization_faults": [],
+        "terminal_signal": null
+      },
+      "correction_selection": {
+        "sha256": "785338ddf4eb00547ccf82043abb79e0bd5d6fb846cbab01c00614cde1feb9c3",
+        "bytes": 1620,
+        "mode": 436
+      },
+      "original_formatter_reused": {
+        "sha256": "78be4b899264b699681c7787d38434e620e6558c62211e78db994217187952f3",
+        "bytes": 6410,
+        "mode": 436
+      },
+      "original_formatter_scope": "Only four byte/mode-unchanged copies from original six-path78be. Previous two-pathb075 reused only for unchanged initial.rs. Current compound_world_edit.rs requires one affected formatter; no combined union claimed.",
+      "correction_formatter_actual": null,
+      "correction_Source_census_reconciliation_pending": false,
+      "correction_Source_cards": {
+        "crates/gz-sim-scene/tests/compound_world_edit.rs": {
+          "sha256": "f4455f2890d65818de525bfe92f8467acdff381c5767a5fd381022b77dfb8eb5",
+          "bytes": 25173,
+          "mode": 436
+        }
+      },
+      "correction_file_ownership": {
+        "package_collector": [
+          "crates/gz-sim-scene/tests/compound_world_edit.rs"
+        ],
+        "m76_scope": [
+          "AGENTS.md",
+          "README.md",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "docs/IMPLEMENTATION_TASKS.md",
+          "docs/M86_DELIVERY.md",
+          "docs/M87_DELIVERY.md",
+          "planning/delivery-phases.json"
+        ]
+      },
+      "historical_four_failure_correction_Source_checkpoint": {
+        "qualification_state": "complete_independently_reviewed_four_failure_correction_Source_pending_two_file_formatter_and_full_retry",
+        "current_stage": "Four-failure code/regression correction complete and independently reviewed CLEAR; final eight-doc review precedes one current two-file formatter and full consolidated retry. Current formatter/tests/lint/retry UNRUN; tree/commit/outcomesNULL. First normalRootGit1/1915-4-2/11of15/newM87+sharedHonly remains failed.",
+        "current_Source_inventory_scope": "Confirmed shared correction Source1799/14own/4new/3production/93cumulative;15uniqueH15R/overlap15/Py0;finite47CLI21. Source obligations, no executed corrected result.",
+        "independent_review_scopes": {
+          "Package": "Authored only the two-path four-failure correction; full exact nonleased/15-declaration protection.",
+          "Server": "Independent whole two-path corrected Source and old-control/math/lifecycle/domain review CLEAR.",
+          "Scope": "Independent full four-failure diagnosis and entire corrected Source CLEAR: existing LINK identity predicate, exact child/owner pins, sorted complete IDs, binary endpoints, real-motion/reset and exact tinyCOM shift.",
+          "Root": "Independent entire corrected two-Rust batch and prior eight-doc failure checkpoint CLEAR; reviews this final completed-doc/census/parent-official refresh."
+        },
+        "correction_selection": {
+          "sha256": "e8447eaa5e5dae6a99bc144cd922b32299970db82fa59270ebd0a780a893aa9d",
+          "bytes": 2881,
+          "mode": 436
+        },
+        "correction_Source_cards": {
+          "crates/gz-sim-scene/src/initial.rs": {
+            "sha256": "22eb5479ec0af5415e661e0f74eb412936c570e987d583ce7269c2cff5e0ba0f",
+            "bytes": 61227,
+            "mode": 436
+          },
+          "crates/gz-sim-scene/tests/compound_world_edit.rs": {
+            "sha256": "609dfaa19c9f4eb4dd97698d1786c6de6f70ac0363dce6ec2f4f7d9636e84617",
+            "bytes": 24208,
+            "mode": 436
+          }
+        },
+        "correction_file_ownership": {
+          "package_collector": [
+            "crates/gz-sim-scene/src/initial.rs",
+            "crates/gz-sim-scene/tests/compound_world_edit.rs"
+          ],
+          "m76_scope": [
+            "docs/M86_DELIVERY.md",
+            "docs/M87_DELIVERY.md",
+            "AGENTS.md",
+            "README.md",
+            "docs/DELIVERY_PLAN.md",
+            "docs/HANDOFF.md",
+            "docs/IMPLEMENTATION_TASKS.md",
+            "planning/delivery-phases.json"
+          ]
+        },
+        "original_formatter_scope": "Only four unchanged Rust copies from the actual six-path formatter. Current initial.rs and compound_world_edit.rs need their own affected formatter after complete Source review; no union claimed.",
+        "correction_formatter_actual": null
+      },
+      "historical_second_normal_failure": {
+        "actual": {
+          "sha256": "b1619de728d0ce629a31cebe455678572285ef241416508b34fa5fe84745a68a",
+          "bytes": 5860,
+          "mode": 436
+        },
+        "frozen_tree": "2d65c79349286e5e07b8f2866f8270eaddbef05b",
+        "Root_exit": 1,
+        "Git_exit": 1,
+        "elapsed_seconds": 1399.0217628760147,
+        "headless": {
+          "passed": 1918,
+          "failed": 1,
+          "ignored": 2
+        },
+        "new_cases": {
+          "passed": 14,
+          "failed": 1
+        },
+        "all_other_M86_private_and_M87_cases_passed_headless_only": true,
+        "renderer_reached": false,
+        "strict_qualified": false,
+        "qualified_commit": null,
+        "capacity_faults": [],
+        "finalization_faults": [],
+        "terminal_signal": null
+      },
+      "previous_corrective_formatter_reused": {
+        "sha256": "b075001cf372073110f0b54536986c5f1748a47ab1c9a42c141469ba10071528",
+        "bytes": 4771,
+        "mode": 436
+      },
+      "previous_corrective_formatter_reuse_paths": [
+        "crates/gz-sim-scene/src/initial.rs"
+      ]
+    },
+    {
+      "id": "M87",
+      "title": "Passive revolute graphs with Rapier compound links",
+      "max_working_days": 5,
+      "depends_on": [
+        "M85"
+      ],
+      "scope": "Compose existing passive Revolute graphs and 2..16-primitive Rapier links; retain existing link frames, graph/axis/limits/dynamics and exclude JointController/DiffDrive whenever any link is compound; keep VelocityControl no-joints unchanged.",
+      "acceptance": "Complete both bounded implementations, meaningful regressions/docs and reciprocal+whole independent Source review, then one final affected formatter and ONE consolidated full normal/staged hook/strict workspace+per-crate/actual-parent coverage, independent local DATA, ordinary review publication, exact own hosted and independent official DATA for the shared candidate. Every own and original predecessor/M77 gate remains before acceptance/Main/release.",
+      "excluded": "New Physics/backend/public API/Server/transport/renderer/package/browser/dependency/framework/native campaign; compound runtime spawning, unselected actuator or joint domain, new geometry/automatic inertia; DART/MuJoCo/Fuel/demo operations.",
+      "contract": "docs/M87_DELIVERY.md",
+      "shared_qualification_group": [
+        "M86",
+        "M87"
+      ],
+      "source_preparation_basis_commit": "22cffebd3d1f9f0be82e7ac35e557b42d08edea9",
+      "source_preparation_basis_tree": "bf83012768dde6feb1af7e402853d3dd841e3d50",
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": true,
+      "checks_run": false,
+      "normal_qualified": false,
+      "independent_local_DATA_qualified": false,
+      "hosted_qualified": false,
+      "official_DATA_qualified": false,
+      "accepted": false,
+      "qualification_inherited": false,
+      "distribution_selected": false,
+      "Source_publication_available": false,
+      "future_qualified_head": null,
+      "qualification_state": "complete_independently_reviewed_isolated_chord_Source_pending_one_file_formatter_and_full_retry",
+      "new_Rust_Source_controls": 8,
+      "new_Python_Source_controls": 0,
+      "Source_control_declarations": {
+        "Rust_unique": 8,
+        "headless": 8,
+        "renderer": 8,
+        "overlap": 8,
+        "Python": 0,
+        "counts_are_Source_obligations_not_executed_results": true
+      },
+      "final_Source_count": 1799,
+      "changed_paths_vs_basis": 14,
+      "new_paths": 4,
+      "changed_production_paths_vs_basis": 3,
+      "final_tree": null,
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "file_ownership": {
+        "tracker_acceptance_closeout": [
+          "crates/gz-sim-scene/src/lib.rs",
+          "crates/gz-sim-scene/tests/compound_joints.rs"
+        ],
+        "Root": [
+          "crates/gz-sim-scene/tests/compound_primitives.rs: only passive compound world-revolute refusal transition"
+        ],
+        "m76_scope": [
+          "docs/M86_DELIVERY.md",
+          "docs/M87_DELIVERY.md",
+          "AGENTS.md",
+          "README.md",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "docs/IMPLEMENTATION_TASKS.md",
+          "planning/delivery-phases.json"
+        ]
+      },
+      "retained_test_disposition": "Only the old passive compound revolute refusal row in compound_primitives.rs becomes stronger same-XML constraint/sample/geometry control. Preserve all other old graphs/types/effort, controller and world-edit exclusions.",
+      "current_stage": "Second normal Root/Git1: 1918 headless passes, one failure, two ignored; 14 of15 new cases passed, no renderer/strict qualification or qualified commit. The isolated strict chord patch is complete and independently reviewed; final eight-doc review, one-file formatter and full retry remain pending. Current formatter/tests/lint/retry UNRUN; final tree/commit/outcomes NULL.",
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "protected_manual_demo_session": 86363,
+      "stop_or_restart_authorized": false,
+      "cumulative_changed_paths_vs_accepted_ancestor": 93,
+      "combined_Source_control_declarations": {
+        "Rust_unique": 15,
+        "headless": 15,
+        "renderer": 15,
+        "overlap": 15,
+        "Python": 0
+      },
+      "current_Source_inventory_scope": "Confirmed shared Source:1799 files/14 owned/4 new/3 production/93 cumulative;15 unique H/R declarations, overlap15, zero Python; finite47/CLI21. No corrected executed result.",
+      "independent_review_scopes": {
+        "Package": "Authored only the existing-case isolated chord input and original-ray countercontrol; entire-file inverse restores frozen50808607, no new declarations.",
+        "Server": "Independent complete remaining-case geometry and later-oracle diagnosis closed with one source-proven adjacent-box interference cause; prior corrected production/domain controls unchanged.",
+        "Scope": "Independent whole remaining-case geometry and later oracles; actual f4455f28 patch exact inverse, isolated3.6/1e-11/max5 and original input countercontrol CLEAR.",
+        "Root": "Independent complete failure/math batch and selected bounded correction; final eight-doc checkpoint review pending."
+      },
+      "historical_first_candidate_Source_checkpoint": {
+        "implementation_complete": true,
+        "independent_source_review_complete": true,
+        "checks_run": false,
+        "qualification_state": "complete_reviewed_Source_pending_final_formatter_and_mandatory_checks",
+        "current_stage": "Both implementations, regression Source, reciprocal and whole joined code/test-integrity reviews complete; two batched review corrections closed. Final authored docs review precedes one affected formatter and consolidated mandatory verification. No formatter/tests/lint or executed outcome yet.",
+        "current_Source_inventory_scope": "Combined shared M86/M87 candidate:1799 files/14 owned/4 new/3 production/93 cumulative. Per-phase declaration counts are separate; all executed results/tree/commit pending.",
+        "independent_review_scopes": {
+          "Package": "Authored M86; independently reviewed complete M87 and Root three same-XML transitions CLEAR.",
+          "Server": "Independent complete M86 baseline helper/public/private Source review CLEAR; gap/Frames fixes were queued. The exact final delta and full inverse were independently closed by Scope and Root.",
+          "Scope": "Independent whole joined production/math/query/lifecycle/ownership/test-integrity and exact gap/Frames correction review CLEAR.",
+          "Root": "Independent integrated code and prior docs checkpoint CLEAR; final completed eight-doc batch awaiting independent review."
+        }
+      },
+      "historical_first_normal_failure": {
+        "actual": {
+          "sha256": "865ca8d074d1f028f4d9ea652c29f825faac510fc716468161ebbba21ae6f001",
+          "bytes": 5783,
+          "mode": 436
+        },
+        "frozen_tree": "ca8a06140d687db3d772f3e667c0686d2c2d83fd",
+        "Root_exit": 1,
+        "Git_exit": 1,
+        "elapsed_seconds": 1405.7243983649823,
+        "headless": {
+          "passed": 1915,
+          "failed": 4,
+          "ignored": 2
+        },
+        "new_cases": {
+          "passed": 11,
+          "failed": 4
+        },
+        "all_M87_and_shared_passed_headless_only": true,
+        "renderer_reached": false,
+        "strict_qualified": false,
+        "qualified_commit": null,
+        "capacity_faults": [],
+        "finalization_faults": [],
+        "terminal_signal": null
+      },
+      "correction_selection": {
+        "sha256": "785338ddf4eb00547ccf82043abb79e0bd5d6fb846cbab01c00614cde1feb9c3",
+        "bytes": 1620,
+        "mode": 436
+      },
+      "original_formatter_reused": {
+        "sha256": "78be4b899264b699681c7787d38434e620e6558c62211e78db994217187952f3",
+        "bytes": 6410,
+        "mode": 436
+      },
+      "original_formatter_scope": "Only four byte/mode-unchanged copies from original six-path78be. Previous two-pathb075 reused only for unchanged initial.rs. Current compound_world_edit.rs requires one affected formatter; no combined union claimed.",
+      "correction_formatter_actual": null,
+      "correction_Source_census_reconciliation_pending": false,
+      "correction_Source_cards": {
+        "crates/gz-sim-scene/tests/compound_world_edit.rs": {
+          "sha256": "f4455f2890d65818de525bfe92f8467acdff381c5767a5fd381022b77dfb8eb5",
+          "bytes": 25173,
+          "mode": 436
+        }
+      },
+      "correction_file_ownership": {
+        "package_collector": [
+          "crates/gz-sim-scene/tests/compound_world_edit.rs"
+        ],
+        "m76_scope": [
+          "AGENTS.md",
+          "README.md",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "docs/IMPLEMENTATION_TASKS.md",
+          "docs/M86_DELIVERY.md",
+          "docs/M87_DELIVERY.md",
+          "planning/delivery-phases.json"
+        ]
+      },
+      "historical_four_failure_correction_Source_checkpoint": {
+        "qualification_state": "complete_independently_reviewed_four_failure_correction_Source_pending_two_file_formatter_and_full_retry",
+        "current_stage": "Four-failure code/regression correction complete and independently reviewed CLEAR; final eight-doc review precedes one current two-file formatter and full consolidated retry. Current formatter/tests/lint/retry UNRUN; tree/commit/outcomesNULL. First normalRootGit1/1915-4-2/11of15/newM87+sharedHonly remains failed.",
+        "current_Source_inventory_scope": "Confirmed shared correction Source1799/14own/4new/3production/93cumulative;15uniqueH15R/overlap15/Py0;finite47CLI21. Source obligations, no executed corrected result.",
+        "independent_review_scopes": {
+          "Package": "Authored only the two-path four-failure correction; full exact nonleased/15-declaration protection.",
+          "Server": "Independent whole two-path corrected Source and old-control/math/lifecycle/domain review CLEAR.",
+          "Scope": "Independent full four-failure diagnosis and entire corrected Source CLEAR: existing LINK identity predicate, exact child/owner pins, sorted complete IDs, binary endpoints, real-motion/reset and exact tinyCOM shift.",
+          "Root": "Independent entire corrected two-Rust batch and prior eight-doc failure checkpoint CLEAR; reviews this final completed-doc/census/parent-official refresh."
+        },
+        "correction_selection": {
+          "sha256": "e8447eaa5e5dae6a99bc144cd922b32299970db82fa59270ebd0a780a893aa9d",
+          "bytes": 2881,
+          "mode": 436
+        },
+        "correction_Source_cards": {
+          "crates/gz-sim-scene/src/initial.rs": {
+            "sha256": "22eb5479ec0af5415e661e0f74eb412936c570e987d583ce7269c2cff5e0ba0f",
+            "bytes": 61227,
+            "mode": 436
+          },
+          "crates/gz-sim-scene/tests/compound_world_edit.rs": {
+            "sha256": "609dfaa19c9f4eb4dd97698d1786c6de6f70ac0363dce6ec2f4f7d9636e84617",
+            "bytes": 24208,
+            "mode": 436
+          }
+        },
+        "correction_file_ownership": {
+          "package_collector": [
+            "crates/gz-sim-scene/src/initial.rs",
+            "crates/gz-sim-scene/tests/compound_world_edit.rs"
+          ],
+          "m76_scope": [
+            "docs/M86_DELIVERY.md",
+            "docs/M87_DELIVERY.md",
+            "AGENTS.md",
+            "README.md",
+            "docs/DELIVERY_PLAN.md",
+            "docs/HANDOFF.md",
+            "docs/IMPLEMENTATION_TASKS.md",
+            "planning/delivery-phases.json"
+          ]
+        },
+        "original_formatter_scope": "Only four unchanged Rust copies from the actual six-path formatter. Current initial.rs and compound_world_edit.rs need their own affected formatter after complete Source review; no union claimed.",
+        "correction_formatter_actual": null
+      },
+      "historical_second_normal_failure": {
+        "actual": {
+          "sha256": "b1619de728d0ce629a31cebe455678572285ef241416508b34fa5fe84745a68a",
+          "bytes": 5860,
+          "mode": 436
+        },
+        "frozen_tree": "2d65c79349286e5e07b8f2866f8270eaddbef05b",
+        "Root_exit": 1,
+        "Git_exit": 1,
+        "elapsed_seconds": 1399.0217628760147,
+        "headless": {
+          "passed": 1918,
+          "failed": 1,
+          "ignored": 2
+        },
+        "new_cases": {
+          "passed": 14,
+          "failed": 1
+        },
+        "all_other_M86_private_and_M87_cases_passed_headless_only": true,
+        "renderer_reached": false,
+        "strict_qualified": false,
+        "qualified_commit": null,
+        "capacity_faults": [],
+        "finalization_faults": [],
+        "terminal_signal": null
+      },
+      "previous_corrective_formatter_reused": {
+        "sha256": "b075001cf372073110f0b54536986c5f1748a47ab1c9a42c141469ba10071528",
+        "bytes": 4771,
+        "mode": 436
+      },
+      "previous_corrective_formatter_reuse_paths": [
+        "crates/gz-sim-scene/src/initial.rs"
+      ]
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -6539,10 +7048,12 @@
     "M82": "in_progress",
     "M83": "in_progress",
     "M84": "in_progress",
-    "M85": "in_progress"
+    "M85": "in_progress",
+    "M86": "in_progress",
+    "M87": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-21T06:17:40.674075+00:00",
+  "phase_started_at": "2026-11-21T08:19:35.292760+00:00",
   "active_phases": [
     "M77",
     "M78",
@@ -6552,7 +7063,9 @@
     "M82",
     "M83",
     "M84",
-    "M85"
+    "M85",
+    "M86",
+    "M87"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -6995,30 +7508,39 @@
       ],
       "integration": "D31: disjoint Scene admission/legacy-row and new compound-controller regression Source lanes use the exact unqualified M84 corrected seed while its own full retry runs. Root integrates only after actual M84 normal/DATA qualified-parent reconciliation and independent review; no evidence or acceptance transfers.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M86",
+        "M87"
+      ],
+      "integration": "D31: disjoint Package loaded-compound world_edit/initial proof and Server passive-joint lib admission lanes over genuinely locally qualified unaccepted M85 22cffebd. Root owns shared old-test transitions, integration and serial heavy release; both complete and independently reviewed lanes share ONE full unchanged qualification cycle. No parent or cross-phase qualification/acceptance transfer.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M85 first normal returned Root/Git 1 despite 1904 headless passes, zero failures, two ignored and all seven new controls passing: strict Scene changed-line coverage was 14/15. The isolated private DOM-error control preserves production, test intent and the strictly greater than 95 percent gate. Current correction checks remain unrun; the original formatter covers only four unchanged copies. One private formatter, full retry, local audit and own hosted/official gates remain. M84 local and exact hosted qualification passed; independent official audit remains pending at this Source checkpoint. M83 is own-qualified and unaccepted. Accepted 76 phases, catalog 85, 202 slices, Latest M70 original 41-example package and M77 browser/shutdown gates remain distinct.",
+  "acceptance_boundary": "M86/M87 isolated chord correction Source is complete and independently reviewed: 1799 files/14 owned/4 new/3 production/93 cumulative, 15 H/R declarations all overlapping, zero Python, finite/CLI 47/21. Second normal Root/Git1 had 1918 headless passes/1 failure/2 ignored, 14 of15 new cases passed; no renderer/strict qualification or qualified commit. Both failed candidates and all evidence remain preserved. Current one-file formatter/full retry remain UNRUN; final tree, commit and outcomes NULL. Same 3.6/1e-11/max5 chord is isolated from an adjacent solid; original ray becomes exact inside-box countercontrol, no product/admission/tolerance/gate change. Reuse b075 only for unchanged initial.rs and original78be only four unchanged copies, no formatter union. M85 own qualification complete/unaccepted; all own/predecessor/M77 browser/shutdown gates mandatory. Accepted76/catalog87/202/Latest41 unchanged; next wave unselected.",
   "current_delivery_group": [
-    "M85"
+    "M86",
+    "M87"
   ],
-  "current_development_phase": "M85",
+  "current_development_phase": "M86",
   "board": {
-    "updated_at": "2026-11-21T07:16:44.918480+00:00",
+    "updated_at": "2026-11-21T10:22:56.982527+00:00",
     "current": {
-      "title": "M85 private pose-error coverage correction after failed gate",
+      "title": "M86/M87 remaining ray correction reviewed; full verification next",
       "items": [
-        "M85 first normal passed every headless test but failed the strict changed-line coverage gate at 14/15. A meaningful private last-child pose-error control is complete; production and all existing assertions stay unchanged.",
-        "Only the private configuration case is newly affected. Its formatter and full mandatory retry remain pending; four original formatter results apply only to unchanged feature files.",
-        "M84 local and hosted qualification passed; official audit remains pending. M83 is own-qualified but unaccepted; the M77 demo stays live while browser and owner-confirmed shutdown hold acceptance."
+        "The second gate had 1,918 headless passes, one failure and two ignored cases. Fourteen of fifteen new cases passed; renderer and strict qualification were not reached. Both failed candidates remain preserved.",
+        "The remaining ray started inside an adjacent box. The reviewed correction isolates the same strict cylinder chord and retains the original input as an inside-solid countercontrol. One-file formatting and a full retry are next.",
+        "M85 completed its own qualification and remains unaccepted. The M77 manual demo stays live; browser evidence and owner-confirmed shutdown still hold acceptance."
       ]
     },
     "done": [
-      "76 phases and 202 slices remain accepted; catalog 85 and Latest M70\u2019s original 41-example package stay unchanged.",
-      "M85 completed 1904 headless passes, zero failures and two ignored, including all seven new controls. These partial results do not qualify the failed candidate."
+      "76 phases and 202 slices remain accepted; catalog 87 and Latest M70\u2019s original 41-example package add no acceptance.",
+      "The isolated chord correction is implemented and independently reviewed. All fifteen declarations remain Source obligations, not corrected passes. M85 own qualification is complete."
     ],
     "next": [
-      "Complete whole correction Source/docs review, format only the private test file, then run the full normal/strict/local audit and remaining own qualification gates.",
-      "Preserve every original failed packet and predecessor gate. Keep the live M77 demo until owner-confirmed shutdown."
+      "Complete independent review of the eight current docs, one affected-file formatter and one full mandatory shared verification cycle. Preserve exact separate formatter reuse for one prior and four original copies.",
+      "Preserve both failure packets and every original predecessor, browser and shutdown gate. Keep the protected demo live; the next development wave remains unselected."
     ],
     "blocker": {
       "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
@@ -7027,7 +7549,8 @@
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M85"
+    "M86",
+    "M87"
   ],
   "camera_integration": {
     "scope": "Atomic M61\u2013M64 qualification on accepted M60; no new phase",
@@ -7176,7 +7699,7 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "M85_PRIVATE_CHILD_POSE_COVERAGE_CORRECTION",
+  "current_development_task": "M86_M87_ISOLATED_CHORD_SOURCE_COMPLETE_REVIEWED_PENDING_ONE_FILE_FORMATTER_AND_FULL_RETRY",
   "backend_retirement_source_preparation": {
     "decision": "D33",
     "owner_directed_at": "2026-11-17",
@@ -8333,7 +8856,7 @@
     },
     "official_qualified": true
   },
-  "phase_started_at_scope": "M85 selected Source-documentation checkpoint; not an inferred selection instant or runtime launch.",
+  "phase_started_at_scope": "Actual Root M86/M87 shared Source selection time, not a product verification launch or acceptance.",
   "current_M82_parent_qualification": {
     "commit": "039a1e5142dd48705a23acb6f817613f509408f0",
     "tree": "420197183a1ec5b71f85f9c2181b9caa1d82a4c6",
@@ -8503,7 +9026,11 @@
       "bytes": 5745,
       "mode": 436
     },
-    "official_actual": null,
+    "official_actual": {
+      "sha256": "6fc783e194fc70988afb668baa98477970f990c17157822a026bb5bbb8d3d9b3",
+      "bytes": 1560,
+      "mode": 436
+    },
     "first_normal_failure": {
       "sha256": "980d0e3cddf20774bd77587931f0e41980a920d761e257e5998e013f1517775b",
       "bytes": 6888,
@@ -8517,7 +9044,7 @@
     "Python_aggregate": 494,
     "Source_finite_runs": 47,
     "Source_CLI_cases": 21,
-    "scope": "M84 corrected local normal and independent DATA, ordinary review publication and exact hosted run 44876073592 attempt 1 passed. Independent official audit remains pending at this Source checkpoint. It remains unaccepted; no result transfers to M85, and the original failed M84 phase checkpoint remains historical.",
+    "scope": "M84 completed its own local, hosted and independent official qualification but remains unaccepted. Its first failure and original evidence stay preserved; no result or acceptance transfers to the shared M86/M87 candidate.",
     "hosted_run": {
       "id": 44876073592,
       "name": "simulator",
@@ -8532,6 +9059,141 @@
       "created_at": "2026-11-21T06:33:04Z",
       "updated_at": "2026-11-21T07:09:46Z"
     },
-    "hosted_qualified": true
-  }
+    "hosted_qualified": true,
+    "official_report": {
+      "sha256": "6304ac777a1bc3482abefb1aba9fd6fb7d00289c22ff2e702f0de90beb117836",
+      "bytes": 227827,
+      "mode": 436
+    },
+    "official_qualified": true
+  },
+  "current_M85_parent_qualification": {
+    "commit": "22cffebd3d1f9f0be82e7ac35e557b42d08edea9",
+    "tree": "bf83012768dde6feb1af7e402853d3dd841e3d50",
+    "parent": "ba2d85ee2a0989ad192d224fbf76ba6ab27a51d0",
+    "accepted": false,
+    "normal_actual": {
+      "sha256": "526c50ed5e786fae200c79782d9653c173250f1fabcda3c3b6986b2019cdde1e",
+      "bytes": 1876,
+      "mode": 436
+    },
+    "local_DATA_actual": {
+      "sha256": "8c42318c0295535c59e94bcd0bf13b1836b7b39d8b3b58172bf6650c3c817815",
+      "bytes": 1914,
+      "mode": 436
+    },
+    "local_DATA_report": {
+      "sha256": "8210fa49a1b9db81537c98b9a57efa903d259aa1fca989da7a1e6d7a30943702",
+      "bytes": 137559,
+      "mode": 436
+    },
+    "review_publication": {
+      "sha256": "effd9f7f38138a0b93cc2d087c02acc2bcd6a2fe02daab33dc202beb71067edf",
+      "bytes": 2862,
+      "mode": 436
+    },
+    "hosted_run": {
+      "id": 44883777137,
+      "name": "simulator",
+      "path": ".github/workflows/ci.yml",
+      "head_sha": "22cffebd3d1f9f0be82e7ac35e557b42d08edea9",
+      "head_branch": "review/m85-compound-velocity-control",
+      "event": "push",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44883777137",
+      "created_at": "2026-11-21T08:12:25Z",
+      "updated_at": "2026-11-21T08:56:25Z"
+    },
+    "official_actual": {
+      "sha256": "300b40daa24b241cefe66ec49030bc73cfbc358f2ecbc708fc8a4105d7987b31",
+      "bytes": 1541,
+      "mode": 436
+    },
+    "profile_passes": {
+      "headless": 1904,
+      "renderer_overlapping": 1440,
+      "ignored_each": 2,
+      "new_own_controls_both": 7,
+      "Scene_changed_lines_each": [
+        15,
+        15
+      ]
+    },
+    "Python_aggregate": 494,
+    "Source_finite_runs": 47,
+    "Source_CLI_cases": 21,
+    "strict_bases": 9,
+    "first_normal_failure": {
+      "sha256": "4aa09613d9d4fea5223dff1f83620273d30605a9b8e90a1ecc4b20725cec606e",
+      "bytes": 3483,
+      "mode": 436
+    },
+    "scope": "M85 corrected local normal/DATA, own hosted success, original collector Root0/30 requests/durable individual originals and independent official DATA0 genuinely complete. FourRAW442/734/57/168 compared once; actual zeroCIbase/nine strictbases. First14/15 failure preserved; unaccepted/noMainLatest/result transfer.",
+    "historical_hosted_running_observation": {
+      "hosted_run": {
+        "id": 44883777137,
+        "name": "simulator",
+        "path": ".github/workflows/ci.yml",
+        "head_sha": "22cffebd3d1f9f0be82e7ac35e557b42d08edea9",
+        "head_branch": "review/m85-compound-velocity-control",
+        "event": "push",
+        "run_attempt": 1,
+        "status": "in_progress",
+        "conclusion": null,
+        "html_url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44883777137",
+        "created_at": "2026-11-21T08:12:25Z"
+      },
+      "scope": "Actual corrected M85 local normal and independent DATA qualify this unaccepted parent locally; review publication completed and own hosted attempt1 is active with no outcome. Its first14/15failed gate stays historical; no result transfers to M86/M87.",
+      "official_actual": null
+    },
+    "hosted_qualified": true,
+    "hosted_actual": {
+      "sha256": "bd7e54eac6a0d3f318cb5636c76e17c42680dfb2bc024b4c526a92aba70226fb",
+      "bytes": 6110,
+      "mode": 436
+    },
+    "official_collection_actual": {
+      "sha256": "b1495abe7027f664a3204bbe406cf4ff24e2a792047e05e231a9ae5f8d17249b",
+      "bytes": 1402,
+      "mode": 436
+    },
+    "official_collection": {
+      "sha256": "10dc6f999702dcaa300d46e6c3864241380a7ac2a20cb3d6dc481fc593dc28b7",
+      "bytes": 44305,
+      "mode": 436
+    },
+    "official_qualified": true,
+    "historical_official_pending_observation": {
+      "official_qualified": false,
+      "official_actual": null,
+      "scope": "M85 corrected local normal/DATA and own hosted attempt1 genuinely passed; original collector Root0/30 requests/durable individual originals recorded. Independent official audit remains pending at this Source checkpoint. First14/15 failure preserved; parent unaccepted and no result transfers."
+    },
+    "official_report": {
+      "sha256": "bab7fc318e1fa19891de6835630bd1a9a27d04b9e870536f8e92ba92d8238286",
+      "bytes": 236771,
+      "mode": 436
+    },
+    "official_Source": {
+      "sha256": "662aeaeaf36a59e8a81fa1d1f441c0f5c2e480106affb4219801b0b8e334a8a6",
+      "bytes": 181235,
+      "mode": 436
+    },
+    "official_execution_log": {
+      "sha256": "a830c1ddb96ae0e3845f98229af8e97177dba5aa17de5b81a0d55eddfcb41583",
+      "bytes": 273,
+      "mode": 436
+    },
+    "own_qualification_complete": true,
+    "official_RAW_once_counts": [
+      442,
+      734,
+      57,
+      168
+    ],
+    "official_CI_changed_line_base": "0000000000000000000000000000000000000000",
+    "official_CI_basis_kind": "new_branch_all_source"
+  },
+  "phase_catalog_checkpoint_scope": "All M1\u2013M85 phase objects remain exact historical Source checkpoints. Current M85 parent qualification and M84 own qualification are recorded in current_M85_parent_qualification/current_M84_dependency; only M86/M87 are new Source entries."
 }
