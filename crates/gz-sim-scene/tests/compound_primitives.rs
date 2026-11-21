@@ -596,7 +596,96 @@ fn compound_refusals_keep_tpe_mesh_plane_com_surfaces_joints_and_owners_closed()
     assert!(load(&owner_domain, PhysicsEngine::Rapier).is_ok());
     let controlled=owner_domain.replace("<model name='rig'>","<model name='rig'><plugin filename='gz-sim-velocity-control-system' name='gz::sim::systems::VelocityControl'/>");
     assert_ne!(controlled, owner_domain);
-    assert!(load(&controlled, PhysicsEngine::Rapier).is_err());
+    // M85 admits this unchanged identity-link compound under one velocity owner.
+    // Pending commands still latch after the old target's real physics step.
+    assert!(load(&controlled, PhysicsEngine::Tpe).is_err());
+    let mut controlled_sim = load(&controlled, PhysicsEngine::Rapier).unwrap();
+    let controlled_owner = id(&controlled_sim, "default::rig");
+    assert!(gz_sim_scene::velocity_control_binding_matches(
+        &controlled_sim,
+        controlled_owner
+    ));
+    gz_sim_scene::set_velocity_control_command(
+        &mut controlled_sim,
+        controlled_owner,
+        [1., 0., 0.],
+        [0.; 3],
+    )
+    .unwrap();
+    for (step, (position, linear)) in [
+        ([0., 0., 5.], [0.; 3]),
+        ([0.001, 0., 5.], [1., 0., 0.]),
+        ([0.002, 0., 5.], [1., 0., 0.]),
+        ([0.002, 0.002, 5.], [0., 2., 0.]),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        if step == 2 {
+            gz_sim_scene::set_velocity_control_command(
+                &mut controlled_sim,
+                controlled_owner,
+                [0., 2., 0.],
+                [0.; 3],
+            )
+            .unwrap();
+        }
+        controlled_sim.step_exact(1).unwrap();
+        near(
+            state(&controlled_sim, "default::rig::body").position,
+            position,
+        );
+        near(
+            state(&controlled_sim, "default::rig::body").velocity,
+            linear,
+        );
+        near(
+            state(&controlled_sim, "default::rig::body").angular_velocity,
+            [0.; 3],
+        );
+        for name in [
+            "default::rig",
+            "default::rig::body",
+            "default::rig::body::view",
+        ] {
+            near(pose(&controlled_sim, name).translation, position);
+            rotation(pose(&controlled_sim, name).rotation, [0., 0., 0., 1.]);
+        }
+        for (index, name) in ["default::rig::body::c0", "default::rig::body::c1"]
+            .into_iter()
+            .enumerate()
+        {
+            let center = [position[0] + 3. * index as f64, position[1], position[2]];
+            near(pose(&controlled_sim, name).translation, center);
+            rotation(pose(&controlled_sim, name).rotation, [0., 0., 0., 1.]);
+            scalar(
+                ray(
+                    &controlled_sim,
+                    [center[0], center[1], center[2] + 1.],
+                    [0., 0., -1.],
+                    2.,
+                    None,
+                )
+                .unwrap(),
+                0.75,
+            );
+            scalar(
+                ray(
+                    &controlled_sim,
+                    [center[0] + 0.15, center[1], center[2] + 1.],
+                    [0., 0., -1.],
+                    2.,
+                    None,
+                )
+                .unwrap(),
+                0.8,
+            );
+        }
+        assert!(gz_sim_scene::velocity_control_binding_matches(
+            &controlled_sim,
+            controlled_owner
+        ));
+    }
     let singleton = owner_domain.replace(&children(2), &children(1));
     assert_ne!(singleton, owner_domain);
     let control = load(&singleton, PhysicsEngine::Rapier).unwrap();

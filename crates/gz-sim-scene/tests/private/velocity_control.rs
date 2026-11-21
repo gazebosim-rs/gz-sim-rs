@@ -349,6 +349,126 @@ fn velocity_control_configuration_limits_nested_jointed_mesh_and_initial_overflo
         )
         .is_err()
     );
+    // Public XML is checked eagerly; exercise the parsed-DOM consumer boundary
+    // with a valid first child and an independently valid second child first.
+    let mut compound_sdf =
+        sdformat::load_str(XML, "late-child-pose", &sdformat::NoResources).unwrap();
+    let compound_model = &mut compound_sdf.worlds[0].models[0];
+    assert_eq!(compound_model.links[0].collisions.len(), 1);
+    let mut late = compound_model.links[0].collisions[0].clone();
+    late.name = "late_valid_child".to_owned();
+    late.pose.transform.translation = [2., 0., 0.];
+    compound_model.links[0].collisions.push(late);
+    assert_eq!(compound_model.links[0].collisions.len(), 2);
+    let compound_plan = parse(compound_model).unwrap().unwrap();
+    let compound_pose = compound_sdf
+        .pose_of(&compound_sdf.worlds[0].models[0].scoped_name, "default")
+        .unwrap();
+    let identities = |sim: &Simulation| {
+        sim.world()
+            .iter_entities()
+            .map(|e| (e.id(), e.get::<EntityId>().map(EntityId::get)))
+            .collect::<Vec<_>>()
+    };
+    let empty_ids = identities(&empty);
+    assert!(
+        !empty
+            .world()
+            .iter_entities()
+            .any(|e| e.contains::<Controller>() || e.contains::<BodyHandle>())
+    );
+    let mut preserved = load(PhysicsEngine::Rapier);
+    let (preserved_entity, preserved_owner) = controller(&preserved);
+    set_velocity_control_command(
+        &mut preserved,
+        preserved_owner,
+        [2., 3., 4.],
+        [0.1, 0.2, 0.3],
+    )
+    .unwrap();
+    let preserved_ids = identities(&preserved);
+    let saved_controller = preserved
+        .world()
+        .get::<Controller>(preserved_entity)
+        .unwrap()
+        .clone();
+    assert!(saved_controller.pending.is_some());
+    let preserved_link =
+        gz_sim_core::entity_by_id(preserved.world(), saved_controller.configuration.link).unwrap();
+    let preserved_body = preserved
+        .world()
+        .get::<BodyHandle>(preserved_link)
+        .unwrap()
+        .id();
+    let saved_native = preserved
+        .world()
+        .resource::<PhysicsBackend>()
+        .state(preserved_body);
+    let saved_time = (preserved.elapsed(), preserved.epoch());
+    compound_plan
+        .validate(
+            &compound_sdf,
+            &compound_sdf.worlds[0].models[0],
+            &empty,
+            Some(empty.world().resource::<PhysicsBackend>().engine()),
+            (true, false),
+            compound_pose,
+        )
+        .unwrap();
+    assert_eq!(identities(&empty), empty_ids);
+    // Alter only the last child's reference, after proving both children valid.
+    let missing = "missing_m85_last_collision_frame";
+    let first_pose = compound_sdf.worlds[0].models[0].links[0].collisions[0]
+        .pose
+        .clone();
+    compound_sdf.worlds[0].models[0].links[0].collisions[1]
+        .pose
+        .relative_to = missing.to_owned();
+    assert!(matches!(
+        compound_plan.validate(
+            &compound_sdf, &compound_sdf.worlds[0].models[0], &empty,
+            Some(empty.world().resource::<PhysicsBackend>().engine()), (true, false), compound_pose,
+        ),
+        Err(LoadError::Sdf(diagnostic)) if diagnostic.code == sdformat::ErrorCode::UnknownReference
+            && diagnostic.message.contains(missing)
+    ));
+    assert_eq!(
+        compound_sdf.worlds[0].models[0].links[0].collisions[0].pose,
+        first_pose
+    );
+    assert_eq!(identities(&empty), empty_ids);
+    assert!(
+        !empty
+            .world()
+            .iter_entities()
+            .any(|e| e.contains::<Controller>() || e.contains::<BodyHandle>())
+    );
+    assert_eq!(empty.elapsed(), Duration::ZERO);
+    assert_eq!(identities(&preserved), preserved_ids);
+    assert_eq!(
+        preserved
+            .world()
+            .resource::<PhysicsBackend>()
+            .state(preserved_body),
+        saved_native
+    );
+    let current_controller = preserved
+        .world()
+        .get::<Controller>(preserved_entity)
+        .unwrap();
+    assert_eq!(current_controller.owner, saved_controller.owner);
+    assert_eq!(
+        current_controller.configuration,
+        saved_controller.configuration
+    );
+    assert_eq!(current_controller.committed, saved_controller.committed);
+    assert_eq!(current_controller.pending, saved_controller.pending);
+    assert_eq!(current_controller.center, saved_controller.center);
+    assert_eq!((preserved.elapsed(), preserved.epoch()), saved_time);
+    assert!(velocity_control_binding_matches(
+        &preserved,
+        preserved_owner
+    ));
 }
 
 #[derive(Resource, Default)]

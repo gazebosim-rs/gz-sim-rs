@@ -167,29 +167,31 @@ impl Plan {
                     .translation
                     .into_iter()
                     .all(|x| x.abs() <= POSE_TOLERANCE)
-                && link.collisions.len() == 1,
+                && (link.collisions.len() == 1
+                    || (engine == Some("rapier") && (2..=16).contains(&link.collisions.len()))),
             &model.scoped_name,
             "VelocityControl centered link",
         )?;
-        let collision = &link.collisions[0];
-        let local = sdf.resolve_pose(
-            &collision.pose,
-            &model.scoped_name,
-            &link.scoped_name,
-            &link.scoped_name,
-        )?;
-        require(
-            (identity(local) || engine == Some("rapier"))
-                && matches!(
-                    &collision.geometry,
-                    Geometry::Box { .. }
-                        | Geometry::Sphere { .. }
-                        | Geometry::Cylinder { .. }
-                        | Geometry::Capsule { .. }
-                ),
-            &model.scoped_name,
-            "VelocityControl centered primitive",
-        )?;
+        for collision in &link.collisions {
+            let local = sdf.resolve_pose(
+                &collision.pose,
+                &model.scoped_name,
+                &link.scoped_name,
+                &link.scoped_name,
+            )?;
+            require(
+                (identity(local) || engine == Some("rapier"))
+                    && matches!(
+                        &collision.geometry,
+                        Geometry::Box { .. }
+                            | Geometry::Sphere { .. }
+                            | Geometry::Cylinder { .. }
+                            | Geometry::Capsule { .. }
+                    ),
+                &model.scoped_name,
+                "VelocityControl centered primitive",
+            )?;
+        }
         require(
             world_vectors(pose.rotation, self.linear, self.angular).is_some(),
             &model.scoped_name,

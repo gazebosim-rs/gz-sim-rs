@@ -588,15 +588,88 @@ fn posed_velocity_admission_keeps_tpe_link_com_compound_and_controller_limits_cl
             )
             .is_ok()
         );
-        for invalid in [
-            xml.replace("<link name='body'>","<link name='body'><pose>0.1 0 0 0 0 0</pose>"),
-            xml.replace("<inertial>","<inertial><pose>0.1 0 0 0 0 0</pose>"),
-            xml.replacen("<model name='rig'>","<model name='rig'><static>true</static>",1),
-            xml.replacen("</link>","<collision name='extra'><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link>",1),
-            xml.replacen("</link>","</link><link name='extra'/>",1),
-            xml.replace("<initial_linear>1 0 0</initial_linear>","<initial_linear>nan 0 0</initial_linear>"),
+        // M85 admits this same two-child XML only on Rapier; model commands
+        // move the link origin while both independent child frames follow it.
+        let compound_xml = xml.replacen("</link>","<collision name='extra'><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link>",1);
+        assert_ne!(compound_xml, xml);
+        assert!(load(&compound_xml, PhysicsEngine::Tpe).is_err());
+        let mut compound = load(&compound_xml, PhysicsEngine::Rapier).unwrap();
+        let owner = id(&compound, "default::rig");
+        assert!(velocity_control_binding_matches(&compound, owner));
+        let h = std::f64::consts::FRAC_1_SQRT_2;
+        let model_q = [0., 0., h, h];
+        let child_q = product(model_q, [0., h, 0., h]);
+        set_velocity_control_command(&mut compound, owner, [0., 2., 0.], [0.; 3]).unwrap();
+        for (position, linear) in [
+            ([0., 0.001, 10.], [0., 1., 0.]),
+            ([-0.002, 0.001, 10.], [-2., 0., 0.]),
         ] {
-            assert_ne!(invalid,xml);assert!(load(&invalid,PhysicsEngine::Rapier).is_err());
+            compound.step_exact(1).unwrap();
+            near(state(&compound, "default::rig::body").position, position);
+            near(velocity(&compound, "default::rig::body").linear, linear);
+            near(velocity(&compound, "default::rig::body").angular, [0.; 3]);
+            for name in [
+                "default::rig",
+                "default::rig::body",
+                "default::rig::body::extra",
+                "default::rig::body::imu",
+            ] {
+                near(pose(&compound, name).translation, position);
+                same_rotation(pose(&compound, name).rotation, model_q);
+            }
+            near(
+                pose(&compound, "default::rig::body::view").translation,
+                [position[0], position[1], position[2] + 1.],
+            );
+            same_rotation(
+                pose(&compound, "default::rig::body::view").rotation,
+                model_q,
+            );
+            let center = [position[0] + 0.5, position[1] + 2., position[2] + 0.25];
+            near(
+                pose(&compound, "default::rig::body::shape").translation,
+                center,
+            );
+            same_rotation(
+                pose(&compound, "default::rig::body::shape").rotation,
+                child_q,
+            );
+            let face = if shape == SHAPES[0] { 1.75 } else { 1.5 };
+            distance(
+                &compound,
+                [center[0], center[1], center[2] + 2.],
+                [0., 0., -1.],
+                face,
+                None,
+            );
+            distance(
+                &compound,
+                [position[0], position[1], position[2] + 2.],
+                [0., 0., -1.],
+                1.9,
+                None,
+            );
+            assert!(velocity_control_binding_matches(&compound, owner));
+        }
+        for invalid in [
+            xml.replace(
+                "<link name='body'>",
+                "<link name='body'><pose>0.1 0 0 0 0 0</pose>",
+            ),
+            xml.replace("<inertial>", "<inertial><pose>0.1 0 0 0 0 0</pose>"),
+            xml.replacen(
+                "<model name='rig'>",
+                "<model name='rig'><static>true</static>",
+                1,
+            ),
+            xml.replacen("</link>", "</link><link name='extra'/>", 1),
+            xml.replace(
+                "<initial_linear>1 0 0</initial_linear>",
+                "<initial_linear>nan 0 0</initial_linear>",
+            ),
+        ] {
+            assert_ne!(invalid, xml);
+            assert!(load(&invalid, PhysicsEngine::Rapier).is_err());
         }
     }
 }
