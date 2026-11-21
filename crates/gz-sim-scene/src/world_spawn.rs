@@ -508,15 +508,24 @@ pub fn prepare_model_template(
         .map_err(|_| WorldEditError::InvalidScene)
     };
     let collision_pose = resolve(&collision.pose)?;
-    if matches!(collider, Collider::Primitive(_))
+    let posed_primitive = matches!(collider, Collider::Primitive(_))
         && (collision_pose.translation != [0.0; 3]
-            || collision_pose.rotation != [0.0, 0.0, 0.0, 1.0])
-    {
+            || collision_pose.rotation != [0.0, 0.0, 0.0, 1.0]);
+    // Only the newly posed route requires an actually passive source. Caller
+    // parameters may differ from loaded geometry, but stripping a controller
+    // plugin cannot authorize this new branch. Mature identity/mesh policy stays.
+    if posed_primitive && crate::velocity_control::owns_model(world, model_id) {
         return Err(unsupported());
+    }
+    if posed_primitive
+        && (!super::world_edit::representable(collision_pose)
+            || collision.density.is_some_and(|v| !v.is_finite() || v <= 0.))
+    {
+        return Err(WorldEditError::InvalidState);
     }
     let visual_pose = resolve(&visual.pose)?;
     let inertial_pose = resolve(&link.inertial.pose)?;
-    if compound
+    if (compound || posed_primitive)
         && (inertial_pose.translation != [0.; 3]
             || !super::world_edit::representable(inertial_pose))
     {
@@ -728,6 +737,71 @@ pub fn spawn_model_template(
     let body = {
         let mut backend = sim.world_mut().resource_mut::<PhysicsBackend>();
         match &template.collider {
+            Collider::Primitive(shape)
+                if template.collision_pose.translation != [0.0; 3]
+                    || template.collision_pose.rotation != [0.0, 0.0, 0.0, 1.0] =>
+            {
+                // The local collider pose never moves the link or its inertia.
+                // Cylinder's Y-to-Z adaptation is owned by its existing backend.
+                match *shape {
+                    Shape::Box { half_extents } => backend.spawn_posed_box_link(
+                        PosedBoxBodySpec {
+                            half_extents,
+                            collision_position: template.collision_pose.translation,
+                            collision_orientation: template.collision_pose.rotation,
+                            position: pose.translation,
+                            velocity: [0.; 3],
+                            mass: template.mass,
+                        },
+                        rotation,
+                        Some(template.inertia),
+                    )?,
+                    Shape::Sphere { radius } => backend.spawn_posed_sphere_link(
+                        PosedSphereBodySpec {
+                            radius,
+                            collision_position: template.collision_pose.translation,
+                            collision_orientation: template.collision_pose.rotation,
+                            position: pose.translation,
+                            velocity: [0.; 3],
+                            mass: template.mass,
+                        },
+                        rotation,
+                        Some(template.inertia),
+                    )?,
+                    Shape::Cylinder {
+                        radius,
+                        half_height,
+                    } => backend.spawn_posed_cylinder_link(
+                        PosedCylinderBodySpec {
+                            radius,
+                            half_height,
+                            collision_position: template.collision_pose.translation,
+                            collision_orientation: template.collision_pose.rotation,
+                            position: pose.translation,
+                            velocity: [0.; 3],
+                            mass: template.mass,
+                        },
+                        rotation,
+                        Some(template.inertia),
+                    )?,
+                    Shape::Capsule {
+                        radius,
+                        half_length,
+                    } => backend.spawn_posed_capsule_link(
+                        PosedCapsuleBodySpec {
+                            radius,
+                            half_length,
+                            collision_position: template.collision_pose.translation,
+                            collision_orientation: template.collision_pose.rotation,
+                            position: pose.translation,
+                            velocity: [0.; 3],
+                            mass: template.mass,
+                        },
+                        rotation,
+                        Some(template.inertia),
+                    )?,
+                }
+            }
             Collider::Primitive(shape) => backend.spawn_link(
                 BodySpec {
                     shape: *shape,

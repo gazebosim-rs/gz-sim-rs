@@ -1001,11 +1001,49 @@ fn compound_chassis_admission_preserves_singleton_wheel_parameters_and_closed_do
     let extra = "<collision name='extra'><geometry><sphere><radius>0.1</radius></sphere></geometry></collision>";
     let vc = "<plugin filename='gz-sim-velocity-control-system' name='gz::sim::systems::VelocityControl'/>";
     let joint_controller = "<plugin filename='gz-sim-joint-controller-system' name='gz::sim::systems::JointController'><joint_name>left_wheel_joint</joint_name></plugin>";
+    // Same original LEFT-wheel mutation: the smaller concentric child is an
+    // interior hub, while the outer sphere supplies the visible surface.
+    let wheel_compound = base.replacen(WHEEL, &format!("{WHEEL}{extra}"), 1);
+    assert_ne!(wheel_compound, base);
+    let text = world(&wheel_compound, "0 0 0", false);
+    let mut driven = load(&text);
+    let mut quiet = load(&text);
+    let owner = id(&driven, "w::robot");
+    assert!(diff_drive_binding_matches(&driven, owner));
+    let wheel_body = handle(&driven, "w::robot::left_wheel");
+    near(
+        ray(&driven, DVec3::new(0., 1.25, 10.), -DVec3::Y, 1., None).unwrap(),
+        0.8,
+    );
+    assert!(
+        ray(
+            &driven,
+            DVec3::new(0., 1.25, 10.),
+            -DVec3::Y,
+            1.,
+            Some(wheel_body)
+        )
+        .is_none()
+    );
+    let initial = states(&driven);
+    assert_eq!(initial, states(&quiet));
+    command(&mut driven, "robot", 0.4, 0.);
+    assert_eq!(states(&driven), initial);
+    assert_eq!(driven.elapsed(), Duration::ZERO);
+    driven.step_exact(1000).unwrap();
+    quiet.step_exact(1000).unwrap();
+    for side in ["left", "right"] {
+        let actual = wheel(&driven, "robot", side);
+        let neutral = wheel(&quiet, "robot", side);
+        assert!(actual.position.is_finite() && actual.velocity.is_finite());
+        let travel = (actual.position - neutral.position) * 0.2;
+        assert!(
+            travel > 0.01,
+            "{side}: driven={actual:?}, quiet={neutral:?}, travel={travel}"
+        );
+    }
+    assert!(diff_drive_binding_matches(&driven, owner));
     for (changed, feature) in [
-        (
-            base.replacen(WHEEL, &format!("{WHEEL}{extra}"), 1),
-            "compound joint actuators",
-        ),
         (
             robot("robot", 0, "0 0 10 0 0 0", 1000., false),
             "collision count (expected one)",

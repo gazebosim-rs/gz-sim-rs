@@ -843,13 +843,55 @@ fn compound_joint_chains_do_not_expand_joint_controllers_diff_drive_or_velocity_
             // Dedicated M91 cases compare ground, quiet and suspended controls.
             assert!(diff_drive_binding_matches(&sim, robot));
         } else {
-            assert!(matches!(
-                load(&compound, PhysicsEngine::Rapier),
-                Err(LoadError::Unsupported {
-                    feature: "compound joint actuators",
-                    ..
-                })
-            ));
+            // Same remaining M8 RIGHT-wheel input. Its eccentric extra sphere
+            // starts .05 into ground, so it is not a round-rim traction oracle.
+            let mut sim = load(&compound, PhysicsEngine::Rapier).unwrap();
+            let mut quiet = load(&compound, PhysicsEngine::Rapier).unwrap();
+            let robot = id(&sim, "default::robot");
+            assert!(diff_drive_binding_matches(&sim, robot));
+            let wheel_link = "default::robot::right_wheel";
+            let frame = pose(&sim, wheel_link);
+            let center = DVec3::from_array(frame.translation) + DQuat::from_array(frame.rotation) * DVec3::X * 2.;
+            near(pose(&sim, "default::robot::right_wheel::m87_extra").translation, center.to_array(), 1e-11);
+            close(cast(&sim, center + DVec3::Z * 2., -DVec3::Z, 2.1, None).unwrap(), 1.75, 1e-11);
+            assert!(cast(&sim, center + DVec3::Z * 2., -DVec3::Z, 2.1, Some(body(&sim, wheel_link))).is_none());
+            let measured = |sim: &Simulation| ["left_wheel_joint", "right_wheel_joint"].map(|name| {
+                let joint = named(sim, &format!("default::robot::{name}"));
+                sim.world().resource::<PhysicsBackend>().joint_state(sim.world().get::<JointHandle>(joint).unwrap().id()).unwrap()
+            });
+            let native_bodies = |sim: &Simulation| ["base_link", "left_wheel", "right_wheel"].map(|name| state(sim, &format!("default::robot::{name}")));
+            let before = measured(&sim);
+            let bodies_before = native_bodies(&sim);
+            assert_eq!(before, measured(&quiet));
+            assert_eq!(bodies_before, native_bodies(&quiet));
+            set_diff_drive_command(&mut sim, robot, -0.4, 0.).unwrap();
+            assert_eq!(measured(&sim), before);
+            assert_eq!(native_bodies(&sim), bodies_before);
+            assert_eq!(sim.elapsed(), Duration::ZERO);
+            sim.step_exact(1000).unwrap();
+            quiet.step_exact(1000).unwrap();
+            let mut causal_encoder = false;
+            for (actual, neutral) in measured(&sim).into_iter().zip(measured(&quiet)) {
+                assert!(actual.position.is_finite() && actual.velocity.is_finite() && neutral.position.is_finite() && neutral.velocity.is_finite());
+                causal_encoder |= (actual.position - neutral.position).abs() > 1e-7 || (actual.velocity - neutral.velocity).abs() > 1e-7;
+            }
+            assert!(causal_encoder, "driven={:?}, quiet={:?}", measured(&sim), measured(&quiet));
+            let mut causal_body = false;
+            for (actual, neutral) in native_bodies(&sim).into_iter().zip(native_bodies(&quiet)) {
+                assert!(actual.position.into_iter().chain(actual.orientation).chain(neutral.position).chain(neutral.orientation).all(f64::is_finite));
+                let moved = (DVec3::from_array(actual.position) - DVec3::from_array(neutral.position)).abs().max_element();
+                let aq = DQuat::from_array(actual.orientation);
+                let nq = DQuat::from_array(neutral.orientation);
+                causal_body |= moved > 1e-7 || [DVec3::X, DVec3::Y, DVec3::Z].into_iter().any(|axis| (aq * axis - nq * axis).abs().max_element() > 1e-7);
+            }
+            assert!(causal_body, "driven={:?}, quiet={:?}", native_bodies(&sim), native_bodies(&quiet));
+            let sample = sim.world().get::<DiffDriveSample>(named(&sim, "default::robot")).unwrap();
+            assert_eq!((sample.time, sample.epoch), (Duration::from_secs(1), 0));
+            assert!(sample.pose.into_iter().chain(sample.twist).all(f64::is_finite));
+            let moved = state(&sim, wheel_link);
+            let moved_center = DVec3::from_array(moved.position) + DQuat::from_array(moved.orientation) * DVec3::X * 2.;
+            near(pose(&sim, "default::robot::right_wheel::m87_extra").translation, moved_center.to_array(), 1e-10);
+            assert!(diff_drive_binding_matches(&sim, robot));
         }
     }
     let controlled = rotor(4, "0 0 1").replace("</model>", "<plugin filename='gz-sim-velocity-control-system' name='gz::sim::systems::VelocityControl'/></model>");

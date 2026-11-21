@@ -934,7 +934,15 @@ fn build_model(
         )?;
         if compound {
             require(
-                drive_plan.is_none() || model.canonical_link_and_relative_name().1 == link.name,
+                drive_plan.as_ref().is_none_or(|plan| {
+                    model.canonical_link_and_relative_name().1 == link.name
+                        || plan.names().any(|configured| {
+                            model
+                                .joints
+                                .iter()
+                                .any(|joint| joint.name == configured && joint.child == link.name)
+                        })
+                }),
                 name,
                 "compound joint actuators",
             )?;

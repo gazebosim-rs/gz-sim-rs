@@ -1,122 +1,86 @@
-## Current development: M90 runtime compounds / M91 compound drive chassis
+## Current development: M92/M93 physical-control correction
 
-Read [M90](M90_DELIVERY.md) and [M91](M91_DELIVERY.md) for the exact closed domains,
-Source leases, regression obligations and qualification boundaries. Both bounded
-implementation lanes are Source-complete under D31; each has at most five working
-days including review and mandatory checks.
+Read [M92](M92_DELIVERY.md) and [M93](M93_DELIVERY.md) for the closed feature contracts.
+The first full normal failed with Root/Git 1 after 1,607.763467844 seconds:
+1,965 headless passes, two failures and two ignored cases across 192 summaries.
+Fifteen of seventeen new controls passed in headless only. Renderer and strict
+coverage were not reached. No qualified commit exists. Failure `005bf028`, frozen
+tree `6b82b5e3` and its packet/ref remain intact; resource, signal and finalization
+guards held. Earlier Source reviews did not catch the two invalid physical
+premises. No failed-tree observation qualifies the corrected candidate.
 
-The first full normal failed compilation at six nonexistent `Simulation::step`
-uses (`f9d43298`): Root/Git 1, 99.52633646101458 seconds, no tests or coverage.
-Author, reciprocal, whole Source and Root reviews all missed those calls. The
-six-call test API repair and its two-file formatter passed Source review, but the
-second full normal also returned Root/Git 1 (`fc5dce53`) after
-1591.1281296920206 seconds: 1,942 headless passes, eight failures and two ignored
-cases. Ten of seventeen new controls passed that profile; seven new and one
-retained case failed. Renderer and strict coverage were not reached; there is no
-qualified successor. Both frozen candidates, raw packets and actual failures stay
-intact. Partial passes do not qualify the feature or transfer to a correction.
+Root selected two test-only repairs after the complete independent diagnosis.
+M92 retains the original mixed force/torque, pause, strict linear response and
+complete density twins. Default finite-step gyroscopic coupling invalidates the
+old simultaneous ideal angular vector. Three separate world-principal-axis
+controls restore both twins to the same stationary ModelState and retain the
+`1e-11` angular and linear bounds; the mixed response stays finite with positive
+`torque dot angular_velocity`. Both corrective test cases are authored and independently Source-reviewed:
+M92 `63716999` and M93 `dbf52c78`. Reciprocal, Scope and Root reviews are CLEAR.
+The M93 review also caught a named-field WorldPose access error before execution;
+its exact `.0` removal is independently closed, with LocalPose's wrapper intact.
+Root and Package independently review this final eight-doc completion checkpoint.
 
-All three test corrections are complete and integrated. Reciprocal, Scope and
-Root whole independent code, API, mathematical, lifecycle and exact inverse
-reviews are CLEAR; Root independently reviews this final eight-doc batch.
-Package reviewed the whole M91 drive file and retained row; Server reviewed the
-endpoint and retained row; Scope reviewed all three complete patches and the
-joined Source. No corrected executed result or predicted pass is claimed.
+M93 preserves the original Cylinder rim fixtures, all three commands, 1,000-step
+windows, forward/reverse native and odometry bounds greater than .01, and quiet
+and suspended controls. The original pure-turn result is a finite contact
+observation; its contact cause and masked later assertions remain unknown.
+A separate Sphere rim radius .2 with a strictly interior Cylinder hub must prove
+physical turning using the unchanged greater-than-.01 native yaw, odometry and
+opposed-encoder witnesses for 2/4/16 members. Do not tune gains, width, tolerances,
+solver or horizons to the failed measurement. Keep the independent all-child
+query matrix, strict geometry and every other fifteen new case body unchanged.
 
-The endpoint control uses a separate caller-DOM sphere with identity orientation,
-retaining the original mixed rotated template and exact max/short-bound, inside,
-exclusion and strict 1e-11 oracles. Drive tests use finite measured encoder travel
-against quiet worlds, actual two-encoder SE(2) odometry with 150 publications and
-ten-interval twist at 1e-11, equivalent latest/clamped/zero and declared-radius
-command twins, terminal-fault refusal plus healthy-before-step repair, and signed
-ground response against quiet/suspended controls. A separate airborne bumper
-witness begins with a positive .006 gap and measures motor reaction and contact
-within the unchanged 1500-step horizon, with quiet/distant controls at 1e-7.
-The same-XML retained chassis row adds paired quiet encoder travel and independent
-physical response without attributing settling solely to the motor.
+The unchanged census is 1,811 Source files, 15 owned paths, four new files,
+two production paths and 106 cumulative paths versus accepted Main. M92's eight
+and M93's nine Rust identities remain seventeen headless/seventeen overlapping
+renderer declarations and zero Python, with finite examples 47 and CLI cases 21.
+Production behavior and the three retained-row files are unchanged by this
+correction. Current two-file formatting and the full retry are UNRUN; corrected
+final tree, qualified commit and execution outcomes remain unknown. The original
+seven-file formatter `12ccb626` is reused only for five unchanged Rust copies;
+the two corrected new-test leaves require their own formatter. These are
+separate custody records, with no synthetic union or qualification transfer.
 
-These are explicit reviewed dispositions of new, never-passed invalid oracles:
-one-second setpoint convergence, ideal wheel symmetry/absolute quiet immobility,
-reset after terminal fault, and the unsupported ground-contact premise. All
-other assertions, strict geometry/tolerances, case identities, the three already-
-passing M91 bodies, old helpers and closed-domain tail remain exact. No tolerance,
-production behavior, public API, solver or mandatory gate is weakened or changed.
+Both original feature contracts stay closed: M92 copies local posed primitive
+collisions through existing passive singleton runtime APIs; valid loaded and
+owned-runtime-singleton routes remain, actual runtime compounds stay refused,
+and the actual VelocityControl veto applies only to the new posed branch.
+Identity/mesh caller-DOM policies, four nodes, visual ID model+3, Box/Sphere/Mesh
+visuals and world_edit/reset APIs stay exact. M93 admits compounds only on
+canonical/configured wheel links through the existing validated DiffDrive graph.
+All link/joint/COM/topology/radius/separation/command/motor/odometry bounds remain.
+No Physics, Server, public API, visual, TPE or native-campaign expansion.
 
-Actual joined Source is 1807 files, 16 owned paths, four new paths, three production
-paths and 102 cumulative paths. M90 retains seven public plus one inline private
-control; M91 retains nine public controls: seventeen unique H/R declarations,
-overlap seventeen, zero Python. Finite examples remain 47 and CLI cases 21. These
-are Source obligations; the old partial passes remain bound only to failed 1ddb.
-The complete correction has no executed test, coverage or qualification result.
+The unaccepted parent is `e264c6494d69ccacf41e0b21ddf3827d1f12cd40`, tree
+`19187aea`, parent `1e54399a`. Its normal `1e23ed5a`, local DATA `9948aa52` /
+report `59a9b368`, ordinary review publication `a3324402` and hosted CI
+44925640602 attempt 1 passed. Hosted receipt `6f169244` and original evidence
+collection `08d22772` / `3e53233e` record 33 successful requests and three durable
+original ZIPs. Its official audit remains pending; no acceptance or descendant
+qualification transfers. Keep parent failures `f9d43298` and `fc5dce53` and its
+distinct three/one/four formatter roles, separate from this own failure.
 
-The current affected formatter is ONLY the three test leaves
-runtime_compound_spawn.rs, compound_diff_drive.rs and compound_joints.rs, and has
-not run. Intermediate `e15f2983` formatting is reused ONLY for the unchanged
-world_spawn.rs copy, with its `53b83b86` review and `0c42c616` snapshot. Original
-`d52bee60` formatting is reused ONLY for four unchanged copies: lib.rs,
-world_edit.rs, compound_world_edit.rs and primitive_runtime_spawn.rs, with
-`ab497fbb`/`3eda5af6` custody. These are disjoint physical copies, not a formatter
-union or qualification claim. Current formatter, full retry, local DATA and hosted
-outcomes are UNRUN/NULL; final corrected tree and qualified commit remain NULL.
+The proposed next-run reserve is 36 GiB, subject to independent Source review
+and fresh actual capacity. It preserves the mandatory 14 GiB initial reserve,
+8 GiB early stop, other host floors, ledger and final guards. The prior sampled
+M90 decrease of 27,453,267,968 bytes leaves about 10.43 GiB from an exact 36 GiB
+start; this historical arithmetic is neither a peak-allocation estimate nor a
+future guarantee. No eviction or extra product job is authorized.
 
-M90 makes an admitted passive Rapier link with 2–16 primitive collisions clonable
-through existing template APIs. Private immutable membership, bounded N+3 node
-validation and the model/link/first-collision/visual prefix preserve visual ID
-model+3, singleton four-node APIs, six-axis editing and reset/removal ownership.
-Only world_spawn/world_edit and new regression Source are selected. Existing
-initial reset code, CLI, Physics and public signatures stay unchanged. The new DOM-compound
-route requires an actual original loaded passive compound and vetoes actual
-VelocityControl ownership even if its plugin is removed from caller DOM. The mature
-DOM-singleton route over actual LOADED compounds retains parent behavior, including
-pre-existing stripped-plugin parameter semantics. Actual RUNTIME-compound sources
-are newly refused independently of caller count after the getter. Caller-resolved
-parameters are not falsely equated to loaded geometry.
+Complete final independent documentation review after the batched Source fixes,
+then one affected two-file formatter and the required full consolidated
+normal/staged-hook/strict workspace, per-crate, actual-parent and retained-
+ancestor line/region coverage cycle. Every gate remains strictly greater than
+95 percent. Independent local DATA, review publication, hosted CI and official
+DATA remain mandatory, along with every predecessor and M77 browser, owner-
+shutdown and release criterion. No per-edit checks or trial runs.
 
-M91 admits a compound only on an existing validated DiffDrive canonical chassis.
-Both wheel links remain in their current singleton domain; existing graph, +Y
-axes, motors, limits, timing and odometry stay unchanged. No new wheel shape/radius
-rule or odometry-equals-body-distance assumption is selected. Actual ground
-traction/body motion must be distinguished from suspended or quiet controls.
-M90 still refuses every jointed/plugin/three-link drive model, so the product
-seams are independent: Package owns world_spawn/world_edit/new runtime tests;
-Server owns only the lib.rs compound-drive predicate/new drive tests. Root alone
-owns two runtime-template old-row dispositions and the canonical-chassis old row;
-the wheel mutation remains refused. All targets keep the same XML, case identity
-and assertion strength. Scope owns these eight current documents.
+Preserve the first 91 phase objects, prior 53 groups and all historical evidence.
+Accepted phases/slices remain 76/202, catalog 93 and Latest M70's original
+41-example package. No-expiry demo 86363 stays live; no stop or restart. Preserve
+Fuel and frozen trees. Rapier f64 and TPE remain; DART/MuJoCo stay retired.
 
-The genuine locally qualified, unaccepted parent is M88/M89
-`1e54399a4b1fbf565b64f3ddc8e35a1a8439137f`, tree `e648b4bf`, parent M86/M87
-`ee4df6c5`. Corrected normal `887048c8` and independent retained DATA
-`a7c8e550` / report `c82e1e4f` returned actual zero: 1933 headless and 1469
-overlapping renderer passes, two ignored each, all fourteen own controls in both
-profiles, 494 aggregate Python, 47 finite examples, 21 CLI cases, eleven strict
-bases and Scene changed coverage 9/9. Review publication `1a2931b5` passed;
-exact automatic simulator CI 44908259208 attempt 1 genuinely succeeded, recorded
-by `7ea4fda3` and the original three API responses. Root's collection and official audit
-passed once (`839dba87` / `bce9739a`, actual `e3402e39` / report `fb08e276`), with
-four end-only RAW comparisons covering 446/738/57/168 originals. The parent's own
-qualification is complete and unaccepted; no result transfers to M90/M91. Retain first
-failure `0361f70b` and separate original-five/reused-four/current-one formatter
-custody. Parent M86/M87 completed own official qualification `d781710d`/`6492532b`
-and remains unaccepted. No result or acceptance transfers to M90/M91.
-
-The complete three-file corrective code review is closed. Independent final-doc
-review and one affected formatter precede the mandatory full normal/staged-hook/
-strict retry. No per-comment checks or predicted passes.
-Independent local DATA, ordinary review publication, exact hosted CI and official
-DATA remain required. Root alone integrates and releases serial heavy operations.
-No per-edit tests/lint/trials, native campaign, new solver/framework, renderer/
-browser, Server/transport, visual admission or unrelated backend work is selected.
-Every refusal oracle must follow its first reachable actual Source guard.
-
-All first 89 canonical phase objects and old parallel groups retain their original
-observations. Current parent proofs are separate. Accepted phases/slices remain
-76/202, catalog91, finite47/CLI21 and Latest M70's original 41-example package.
-All predecessor and M77 browser/owner-confirmed shutdown gates remain mandatory.
-Keep no-expiry demo86363 and its ports live; no stop, restart or new demo. Preserve
-Fuel and frozen qualification trees. DART/MuJoCo remain retired; Rapier/TPE remain.
-
-`LOAD-01` gains bounded passive runtime compound templates; `SYS-CONTROL` composes the retained DiffDrive with a compound canonical chassis. Exact product/new-test leases are disjoint; Root owns the three selected old-row dispositions and one consolidated qualification cycle.
 
 ## Historical M80 first-Source task
 

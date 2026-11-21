@@ -534,9 +534,120 @@ fn runtime_primitive_template_refusals_and_foreign_worlds_stay_atomic() {
         assert_eq!(identities(&scene), source_ids);
         assert_eq!(states(&scene), source_states);
         assert_eq!(scene.elapsed(), Duration::ZERO);
+        // Preserve both original posed inputs as positive four-node witnesses.
+        for (row, posed) in [
+            base.replacen(
+                "<collision name='solid'>",
+                "<collision name='solid'><pose>0.25 0 0 0 0 0</pose>",
+                1,
+            ),
+            base.replacen(
+                "<collision name='solid'>",
+                "<collision name='solid'><pose>0 0 0 0 0 0.3</pose>",
+                1,
+            ),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            assert_ne!(posed, base);
+            let parsed = sdformat::load_str(&posed, "posed", &NoResources).unwrap();
+            let mut scene = load(&posed);
+            let original_ids = identities(&scene);
+            let original_states = states(&scene);
+            let first = next_entity_id(scene.world()).unwrap();
+            let template =
+                prepare_model_template(&scene, &parsed, &parsed.worlds[0].models[0]).unwrap();
+            let clone =
+                spawn_model_template(&mut scene, &template, pose([0., 0., 30.], [0., 0., 0., 1.]))
+                    .unwrap();
+            assert_eq!(clone, first);
+            assert_eq!(next_entity_id(scene.world()).unwrap(), first + 4);
+            assert_eq!(identities(&scene).len(), original_ids.len() + 4);
+            let handle = spawned_body(&scene, clone);
+            vector(native(&scene, handle).position, [0., 0., 30.]);
+            vector(
+                model_state(&scene, clone).unwrap().translation,
+                [0., 0., 30.],
+            );
+            let collision = entity_by_id(scene.world(), clone + 2).unwrap();
+            let offset = if row == 0 {
+                [0.25, 0., 0.]
+            } else {
+                [0., 0., 0.]
+            };
+            vector(
+                scene
+                    .world()
+                    .get::<LocalPose>(collision)
+                    .unwrap()
+                    .0
+                    .translation,
+                offset,
+            );
+            let center = [offset[0], 0., 30.];
+            vector(
+                scene
+                    .world()
+                    .get::<WorldPose>(collision)
+                    .unwrap()
+                    .translation,
+                center,
+            );
+            let expected_q = if row == 0 {
+                glam::DQuat::IDENTITY
+            } else {
+                glam::DQuat::from_rotation_z(0.3)
+            };
+            for recorded in [
+                scene
+                    .world()
+                    .get::<LocalPose>(collision)
+                    .unwrap()
+                    .0
+                    .rotation,
+                scene.world().get::<WorldPose>(collision).unwrap().rotation,
+            ] {
+                vector(
+                    (glam::DQuat::from_array(recorded) * glam::DVec3::X).to_array(),
+                    (expected_q * glam::DVec3::X).to_array(),
+                );
+            }
+            let cloned_visual = entity_by_id(scene.world(), clone + 3).unwrap();
+            assert!(Arc::ptr_eq(
+                &scene
+                    .world()
+                    .get::<VisualGeometry>(cloned_visual)
+                    .unwrap()
+                    .0,
+                &scene
+                    .world()
+                    .get::<VisualGeometry>(entity(&scene, "w::source::body::view"))
+                    .unwrap()
+                    .0
+            ));
+            // Both shapes have radius .5 in this equatorial segment. Their
+            // local yaw is not assumed binary; all other bodies are far away.
+            near(
+                ray(&scene, [center[0] + 4., 0.3, 30.], [-1., 0., 0.], 5., None).unwrap(),
+                3.6,
+            );
+            assert!(
+                ray(
+                    &scene,
+                    [center[0] + 4., 0.3, 30.],
+                    [-1., 0., 0.],
+                    5.,
+                    Some(handle)
+                )
+                .is_none()
+            );
+            remove_model(&mut scene, clone).unwrap();
+            assert_eq!(identities(&scene), original_ids);
+            assert_eq!(states(&scene), original_states);
+            assert_eq!(scene.elapsed(), Duration::ZERO);
+        }
         for closed in [
-            base.replacen("<collision name='solid'>","<collision name='solid'><pose>0.25 0 0 0 0 0</pose>",1),
-            base.replacen("<collision name='solid'>","<collision name='solid'><pose>0 0 0 0 0 0.3</pose>",1),
             base.replacen(VISUAL,&format!("{VISUAL}{imu}"),1),
             base.replacen("<link name='body'>",&format!("{CONTROL}<link name='body'>"),1),
             base.replacen("</link></model>",&format!("</link>{hinge}</model>"),1),
