@@ -89,6 +89,20 @@ pub struct PosedCapsuleBodySpec {
     pub mass: Option<f64>,
 }
 
+/// One sphere in a link-local rigid frame, in meters and XYZW rotation.
+/// Local rotation preserves the spherical geometry but is still validated.
+/// `position` and `velocity` describe the link in world axes; `None` mass is fixed.
+/// Dynamic posed spheres require explicit inertia centered on the link origin.
+#[derive(Debug, Clone, Copy)]
+pub struct PosedSphereBodySpec {
+    pub radius: f64,
+    pub collision_position: [f64; 3],
+    pub collision_orientation: [f64; 4],
+    pub position: [f64; 3],
+    pub velocity: [f64; 3],
+    pub mass: Option<f64>,
+}
+
 /// One mesh collider in a link-local rigid frame. Vertices already include
 /// glTF node transforms, axis conversion and SDF scale. Geometry is borrowed only
 /// during admission; the backend owns its validated construction shape for reset.

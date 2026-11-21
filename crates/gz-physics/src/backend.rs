@@ -4,7 +4,7 @@
 
 use crate::{
     BodySpec, BodyState, Inertia, MeshBodySpec, PlaneSpec, PosedBoxBodySpec, PosedCapsuleBodySpec,
-    PosedCylinderBodySpec, RotationSpec,
+    PosedCylinderBodySpec, PosedSphereBodySpec, RotationSpec,
 };
 use bevy_ecs::prelude::*;
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo};
@@ -226,6 +226,21 @@ pub trait DynamicBackend: Send + Sync + 'static {
         Err(PhysicsError::Unsupported {
             engine: self.engine(),
             capability: "posed capsule link collision",
+        })
+    }
+
+    /// Creates one link-local translated/rotated sphere without shifting the
+    /// link frame. Rapier requires explicit centered inertia for dynamic spheres;
+    /// unsupported engines refuse before validation or allocation.
+    fn spawn_posed_sphere_link(
+        &mut self,
+        _spec: PosedSphereBodySpec,
+        _rotation: RotationSpec,
+        _inertia: Option<Inertia>,
+    ) -> Result<BodyId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "posed sphere link collision",
         })
     }
 

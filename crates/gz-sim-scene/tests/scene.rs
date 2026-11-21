@@ -216,11 +216,6 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
             "collision geometry",
         ),
         (
-            "<collision name=\"shape\"><geometry><sphere>",
-            "<collision name=\"shape\"><pose>1 0 0 0 0 0</pose><geometry><sphere>",
-            "offset collision",
-        ),
-        (
             "<mass>2</mass>",
             "<mass>2</mass><pose>1 0 0 0 0 0</pose>",
             "offset center",
@@ -255,6 +250,39 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
         let error = load(&WORLD.replace(from, to)).err().unwrap();
         assert!(matches!(error, LoadError::Unsupported { .. }), "{error}");
         assert!(error.to_string().contains(feature), "{error}");
+    }
+    // M82 replaces only the former single offset-sphere refusal. The link and
+    // IMU stay at (0,0,5); radius .5 is centered at (1,0,5), not at the link.
+    let posed_source = WORLD.replace(
+        "<collision name=\"shape\"><geometry><sphere>",
+        "<collision name=\"shape\"><pose>1 0 0 0 0 0</pose><geometry><sphere>",
+    );
+    assert_ne!(posed_source, WORLD);
+    let posed = load(&posed_source).unwrap();
+    let backend = posed.world().resource::<gz_physics::PhysicsBackend>();
+    for (x, expected) in [(1., 3.5), (1.3, 3.6)] {
+        // The off-axis .3/.4/.5 triangle gives the independent curved chord.
+        let actual = backend
+            .cast_ray([x, 0., 9.], [0., 0., -1.], 5., None)
+            .unwrap()
+            .unwrap();
+        assert!((actual - expected).abs() < 1e-11, "{actual} != {expected}");
+    }
+    for (name, expected) in [
+        ("default::ball::body", [0., 0., 5.]),
+        ("default::ball::body::shape", [1., 0., 5.]),
+        ("default::ball::body::imu", [0., 0., 5.]),
+    ] {
+        let entity = posed
+            .world()
+            .iter_entities()
+            .find(|entity| entity.get::<Name>().is_some_and(|n| n.0 == name))
+            .unwrap();
+        let pose = entity.get::<WorldPose>().unwrap();
+        for (actual, expected) in pose.translation.into_iter().zip(expected) {
+            assert!((actual - expected).abs() < 1e-11);
+        }
+        assert_eq!(pose.rotation, [0., 0., 0., 1.]);
     }
     assert_eq!(existing.elapsed(), Duration::from_millis(3));
     let malformed = load("<bad>").err().unwrap();

@@ -18,13 +18,14 @@ mod mesh;
 mod posed_box;
 mod posed_capsule;
 mod posed_cylinder;
+mod posed_sphere;
 mod ray;
 
 pub use gz_physics::{
     BodyId, BodySpec, BodyState, DynamicBackend, Inertia, InitialPhysicsState, JointId,
     JointPositionServo, JointState, JointVelocityMotor, MeshBodySpec, PhysicsBackend, PhysicsError,
     PhysicsReset, PosedBoxBodySpec, PosedCapsuleBodySpec, PosedCylinderBodySpec,
-    PreparedPhysicsReset, RestoredPhysics, RotationSpec, Shape, install,
+    PosedSphereBodySpec, PreparedPhysicsReset, RestoredPhysics, RotationSpec, Shape, install,
 };
 use std::any::Any;
 
@@ -243,6 +244,15 @@ impl DynamicBackend for RapierBackend {
         inertia: Option<Inertia>,
     ) -> Result<BodyId, PhysicsError> {
         posed_cylinder::spawn(self, spec, rotational, inertia)
+    }
+
+    fn spawn_posed_sphere_link(
+        &mut self,
+        spec: PosedSphereBodySpec,
+        rotational: RotationSpec,
+        inertia: Option<Inertia>,
+    ) -> Result<BodyId, PhysicsError> {
+        posed_sphere::spawn(self, spec, rotational, inertia)
     }
 
     /// Creates one centered collider with optional explicit link inertia.

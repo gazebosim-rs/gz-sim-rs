@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-20T22:54:49.625633+00:00",
+  "as_of": "2026-11-21T01:40:31.543621+00:00",
   "execution_state": "active",
-  "current_phase": "M81",
+  "current_phase": "M82",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -5871,6 +5871,120 @@
         "Python": 0,
         "counts_are_Source_obligations_not_executed_results": true
       }
+    },
+    {
+      "id": "M82",
+      "title": "One posed sphere collision in Rapier",
+      "max_working_days": 5,
+      "depends_on": [
+        "M81"
+      ],
+      "scope": "One translated/rotated sphere collider per Rapier link; preserve link-centered inertia, center composition and all reported frames, with rotation-invariant sphere geometry.",
+      "acceptance": "Complete Source/regressions/docs and independent whole review, batch findings before one final affected formatter/full normal/strict/local DATA/exact own hosted/official cycle. Accurate accepted ancestry and all predecessors remain required.",
+      "excluded": "TPE posed geometry, compounds, offset COM, other new shapes, query math/precision adapters, new controllers/sensors, Server/transport, renderer/viewer/worker, package/dependency/workflow changes, new native campaign, DART/MuJoCo, Fuel",
+      "contract": "docs/M82_DELIVERY.md",
+      "source_preparation_basis_commit": "6ef85e9f2fbc0b371b2e0db3c366230ac8d9106e",
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": false,
+      "checks_run": false,
+      "normal_qualified": false,
+      "independent_local_DATA_qualified": false,
+      "hosted_qualified": false,
+      "accepted": false,
+      "distribution_selected": false,
+      "qualification_inherited": false,
+      "Source_publication_available": false,
+      "future_qualified_head": null,
+      "qualification_state": "first_normal_failed_five_row_disposition_correction_Source",
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "new_Rust_Source_controls": 19,
+      "new_Python_Source_controls": 0,
+      "final_Source_count": 1786,
+      "final_tree": null,
+      "file_ownership": {
+        "package_collector": [
+          "crates/gz-physics/src/lib.rs",
+          "crates/gz-physics/src/backend.rs",
+          "crates/gz-physics/tests/private/backend.rs",
+          "crates/gz-physics-rapier/src/lib.rs",
+          "crates/gz-physics-rapier/src/posed_sphere.rs",
+          "crates/gz-physics-rapier/tests/posed_sphere.rs"
+        ],
+        "tracker_acceptance_closeout": [
+          "crates/gz-sim-scene/src/lib.rs",
+          "crates/gz-sim-scene/tests/posed_sphere.rs",
+          "crates/gz-sim-scene/tests/fixtures/m82_posed_sphere.sdf",
+          "crates/gz-sim-scene/tests/posed_box.rs",
+          "crates/gz-sim-scene/tests/posed_cylinder.rs",
+          "crates/gz-sim-scene/tests/posed_capsule.rs",
+          "crates/gz-sim-scene/tests/compound_collisions.rs",
+          "crates/gz-sim-scene/tests/scene.rs"
+        ],
+        "m76_scope": [
+          "AGENTS.md",
+          "docs/M82_DELIVERY.md",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "docs/IMPLEMENTATION_TASKS.md",
+          "planning/delivery-phases.json"
+        ]
+      },
+      "current_stage": "The first full normal failed on two old Sphere-refusal expectations; all19 new controls passed headless. Correction Source expands the reviewed disposition inventory from three to five, with whole review/affected formatter/full retry pending and no qualified M82 commit.",
+      "retained_test_disposition": "Five intentional Sphere-refusal transitions: Scene posed_box/posed_cylinder/posed_capsule retain existing1e-11 independent geometry; compound_collisions and scene gain positive Rapier geometry while preserving compound/TPE refusal and existing-simulation atomicity. All other bodies/assertions/tolerances and M80 precision controls remain unchanged.",
+      "axis_contract": "Existing ball plus caller local Pose; no axis correction. Validate localQ but center=linkP+linkQ*localP, independent of localQ.",
+      "resolved_inertia_policy": "Direct dynamicNone/offsetCOM refused; Scene existing resolved Some defaults/auto retained. Sphere radius missing/nonpositive defaults1. Plain rotation-only auto supported; translated-auto COM and auto pose attributes/relative_to remain upstream-refused.",
+      "task_mapping": [
+        "LOAD-M82",
+        "LOAD-01",
+        "PHY-01",
+        "PHY-05"
+      ],
+      "changed_paths_vs_basis": 20,
+      "new_Source_files": 5,
+      "changed_production_paths_vs_basis": 5,
+      "Source_profile_declarations": {
+        "Rust_unique": 19,
+        "headless": 19,
+        "renderer": 9,
+        "overlap": 9,
+        "Python": 0,
+        "counts_are_Source_obligations_not_executed_results": true
+      },
+      "checks_run_scope": "False describes the unverified correction Source only. The historical first full normal actually ran and failed; no result or qualification transfers.",
+      "historical_first_normal_failure": {
+        "actual": {
+          "sha256": "96080aa22d66d3c041950b7283d4a9f7e0d6573265c135e0f476184f630451dd",
+          "bytes": 4609,
+          "mode": 436
+        },
+        "tree": "05716f7506544dace1582e76209a895605c867b3",
+        "actual_Root_exit_code": 1,
+        "actual_Git_exit_code": 1,
+        "headless": {
+          "passed": 1870,
+          "failed": 2,
+          "ignored": 2
+        },
+        "new_M82_headless_controls_passed": 19,
+        "renderer_reached": false,
+        "strict_coverage_reached": false,
+        "qualified_commit": null,
+        "capacity_signal_final_fault": false,
+        "scope": "Actual failed first normal; frozen Source and full logs preserved. Two stale expected-refusal rows are corrected without production changes."
+      },
+      "retained_original_formatter": {
+        "sha256": "f1a2adad768341e776846bd114ae9d1e1fbb38bedce90b4678a673f43de5ee20",
+        "bytes": 10098,
+        "mode": 436
+      },
+      "retained_original_formatter_scope": "Original11 Rust files remain byte/mode unchanged; new correction touches only two other legacy Rust test files. One affected two-file formatter follows whole correction Source review."
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -5955,16 +6069,18 @@
     "M78": "in_progress",
     "M79": "in_progress",
     "M80": "in_progress",
-    "M81": "in_progress"
+    "M81": "in_progress",
+    "M82": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-20T20:14:07.661864+00:00",
+  "phase_started_at": "2026-11-21T00:59:26.857389+00:00",
   "active_phases": [
     "M77",
     "M78",
     "M79",
     "M80",
-    "M81"
+    "M81",
+    "M82"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -6379,30 +6495,37 @@
       ],
       "integration": "D31: disjoint Physics/Rapier and Scene Source leases over locally qualified unaccepted M80 ac75646a, with Root integration and independent whole review. M80 hosted/official closeout proceeds separately; no inherited gates or acceptance. Root serializes local heavy work.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M82"
+      ],
+      "integration": "D31: Physics/Rapier and Scene work in disjoint Source leases over locally qualified unaccepted M81 6ef85e9f. Root integrates and serializes heavy jobs; M81 official/predecessor closeout remains separate and no qualification transfers.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M81 Source preparation proceeds under D31 from locally qualified unaccepted M80 ac75646a. Its review is published and exact hosted attempt1 is active at selection; no result qualifies changed M81 code. Accepted Main remains M76 dddf1f42,76phases/202slices/catalog81/Latest M70 original41. M77 formal browser and owner-confirmed shutdown plus all predecessor/own gates remain mandatory.",
+  "acceptance_boundary": "M82 first full normal failed Root/Git1 on two missed legacy Sphere-refusal rows; all19 new controls passed headless, renderer/strict coverage not reached. The isolated five-row disposition correction preserves all production and new control bodies; whole review and affected formatter precede the full retry. M81 own qualification passed but remains unaccepted; accepted predecessors and all M82 gates remain mandatory. Accepted Main M76/76phases/202slices/catalog82/LatestM70original41 remain unchanged.",
   "current_delivery_group": [
-    "M81"
+    "M82"
   ],
-  "current_development_phase": "M81",
+  "current_development_phase": "M82",
   "board": {
-    "updated_at": "2026-11-20T22:54:49.625633+00:00",
+    "updated_at": "2026-11-21T01:42:37.062756+00:00",
     "current": {
-      "title": "M81 capsule collision Source underway",
+      "title": "M82 first normal failed; two legacy test rows corrected",
       "items": [
-        "M81 implementation and 18 Rust regression declarations are integrated: 18 headless and nine overlapping renderer. Complete whole independent Source review before formatting or checks.",
-        "M80 local normal/strict and independent DATA passed; review is published and exact hosted attempt1 is active. No acceptance is inherited.",
-        "M77\u2019s persistent manual demo stays live. Formal browser access and owner-approved shutdown still hold downstream acceptance."
+        "The first normal ended Root/Git1: 1870 headless passes, two old Sphere-refusal failures and two ignored controls. All19 new controls passed headless; renderer and strict coverage were not reached.",
+        "Two missed generic Sphere-refusal rows join the three reviewed posed-suite dispositions. Production and19 new control bodies stay unchanged; whole correction review precedes the affected formatter and full retry.",
+        "M81 own qualification passed but remains unaccepted. M77\u2019s no-expiry manual demo stays live; formal browser access and confirmed shutdown still hold downstream acceptance."
       ]
     },
     "done": [
-      "M1\u2013M76 and 202 slices remain accepted; Latest M70 keeps its original 41-example package.",
-      "M80 local qualification passed with its strict ray oracle intact; all earlier failures are preserved."
+      "M1\u2013M76 and202 slices stay accepted; catalog82 and Latest M70 original41 remain unchanged.",
+      "M81 own local, hosted and official qualification passed. M82\u2019s failed tree, logs, original formatter and all prior evidence remain preserved."
     ],
     "next": [
-      "Complete whole independent M81 Source review; batch findings before one final affected formatter and mandatory verification.",
-      "Close predecessor and own hosted/official evidence before acceptance; preserve M77\u2019s live demo until confirmed stop."
+      "Complete whole correction Source review; then one affected two-file formatter and full mandatory M82 normal retry. No earlier result qualifies the correction.",
+      "Accepted predecessors and every own gate remain required; keep M77\u2019s live demo until owner-confirmed stop."
     ],
     "blocker": {
       "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
@@ -6411,7 +6534,7 @@
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M81"
+    "M82"
   ],
   "camera_integration": {
     "scope": "Atomic M61\u2013M64 qualification on accepted M60; no new phase",
@@ -6560,7 +6683,7 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "LOAD-M81-POSED-CAPSULE",
+  "current_development_task": "LOAD-M82-FIVE-SPHERE-ROW-DISPOSITIONS",
   "backend_retirement_source_preparation": {
     "decision": "D33",
     "owner_directed_at": "2026-11-17",
@@ -7672,5 +7795,50 @@
     },
     "official_actual": null,
     "scope": "Own M80 local normal/strict and independent DATA only; hosted active at M81 selection, no acceptance or qualification transfer."
-  }
+  },
+  "current_M81_parent_qualification": {
+    "commit": "6ef85e9f2fbc0b371b2e0db3c366230ac8d9106e",
+    "tree": "e720a2217f021f2e389d8fd5a77054036d88400a",
+    "parent": "ac75646aa5db9d1a1f983e47c0c86857415b9a2c",
+    "accepted": false,
+    "normal_actual": {
+      "sha256": "f68a0ff17b217fa9222c8443537d1f5725671845aa392ebab4094ff8df6500bf",
+      "bytes": 1452,
+      "mode": 436
+    },
+    "local_DATA_actual": {
+      "sha256": "2d5dde513d9eb72bb91f3bab4eb7fa2ddd3c36e4889de57d1944a9986fbb9da5",
+      "bytes": 1594,
+      "mode": 436
+    },
+    "review_publication": {
+      "sha256": "38cb8a6133fedaf9d9c92fb25df25758a0c363f228a62e0df20435b0d90ff4bc",
+      "bytes": 4096,
+      "mode": 436
+    },
+    "hosted_terminal": {
+      "sha256": "a115bc7645dfb85584c2b511bcd1021327a46ea760ed963f0189c112c3937f42",
+      "bytes": 2458,
+      "mode": 436
+    },
+    "hosted_run": {
+      "id": 44840183277,
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "official_actual": {
+      "sha256": "65c71031b88c1025318b78cfa80b8405315981d55ebbb273662f123bb2f065dc",
+      "bytes": 1560,
+      "mode": 436
+    },
+    "scope": "Actual M81 own local, hosted and independent official qualification passed; accepted predecessors remain pending and no result qualifies M82.",
+    "official_report": {
+      "sha256": "c8dcb198869eb52248a8309ed82ea8bf85107b4cea86e54ec8f193e903180b30",
+      "bytes": 181146,
+      "mode": 436
+    },
+    "official_qualified": true
+  },
+  "phase_started_at_scope": "M82 Source documentation checkpoint recorded by the selection-plan as_of; not an inferred earlier selection or runtime launch."
 }

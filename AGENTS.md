@@ -1,23 +1,27 @@
-## Current development: M81 posed capsule collision
+## Current development: M82 sphere-refusal test correction
 
-[M81](docs/M81_DELIVERY.md) adds one translated/rotated capsule collision per Rapier link,
-using existing Z-axis capsule geometry and centered resolved inertia. Its complete
-Physics/Rapier and Scene Source is integrated: 18 new Rust declarations, all
-headless and nine overlapping renderer, with zero new Python declarations.
-Source contains 1781 files, 17 own changes and five production leaves. These are
-obligations, not passes. Whole independent review is pending; final formatting,
-staged tree and all gates remain unbound. Budget is at most five working days.
+[M82](docs/M82_DELIVERY.md) keeps the reviewed posed-sphere implementation unchanged.
+Its first full normal ended Root/Git 1: 1870 headless passes, two failures and two
+ignored controls. Both failures are retained Rapier offset-sphere refusal rows;
+all 19 new M82 controls passed in headless. Renderer and strict coverage were
+not reached, so no M82 qualification or commit exists. No capacity, signal or
+finalization fault occurred; preserve the failed tree and all evidence.
 
-The basis is M80 `ac75646a`: local normal/strict and independent retained DATA
-passed, review published, exact hosted run 44831931346 attempt 1 active at
-selection. It is qualified locally, not accepted. All M80 query controls and
-strict tolerances remain unchanged. Complete Source, regressions, docs and whole
-independent review before one consolidated formatter/full verification cycle.
+The isolated correction covers five explicit old Sphere-row dispositions:
+three already reviewed posed-suite transitions and the two generic Scene rows.
+Preserve TPE/compound refusals, existing-simulation atomicity, all other assertions
+and every tolerance. Source remains 19 Rust declarations (19 headless, nine
+overlapping renderer), zero new Python, 1786 files, 20 own changes and five
+production leaves. These are Source obligations, not a successful full run.
+Whole correction review precedes one affected two-file formatter and full retry;
+the unchanged original 11-file formatter evidence remains retained.
 
-Accepted phases/slices stay 76/202; catalog 81, Source finite/CLI 47/21 and Latest
-M70 original package 41. M77 formal browser access and owner-approved shutdown
-still hold acceptance. Keep its no-expiry demo session 86363 live; do not touch
-Fuel, frozen evidence or other owners. Earlier checkpoints below are historical.
+The unaccepted M81 `6ef85e9f` basis passed its own local, hosted and independent
+official qualification. Accepted predecessors and every M82 gate remain required.
+Accepted phases/slices stay 76/202; catalog 82, Source finite/CLI 47/21 and Latest
+M70 original package 41. Keep M77 demo session 86363 live without expiry until
+owner-confirmed stop; formal browser access and shutdown still hold acceptance.
+No per-edit checks, native trials, production change or frozen-tree mutation.
 
 ## Historical M80 first-Source checkpoint
 

@@ -463,16 +463,15 @@ fn posed_cylinder_refusals_keep_tpe_compounds_com_and_other_pose_domains_closed(
         .replace("1 0 0 0 0 0.2", "1 0 0 0 0 0");
     let capsule = load(&capsule_xml, PhysicsEngine::Rapier).unwrap();
     distance(&capsule, [1.3, 0., 9.], [0., 0., -1.], 2.1);
-    {
-        let geometry = "<sphere><radius>0.5</radius></sphere>";
-        assert!(matches!(
-            load(&xml.replace(GEOMETRY, geometry), PhysicsEngine::Rapier),
-            Err(LoadError::Unsupported {
-                feature: "offset collision pose",
-                ..
-            })
-        ));
-    }
+    // M82 replaces only the Sphere refusal, retaining the original tolerance.
+    // Center(1,0,5) and radius .5 give axial3.5 and transverse.3 chord3.6.
+    let sphere = load(
+        &xml.replace(GEOMETRY, "<sphere><radius>0.5</radius></sphere>"),
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    distance(&sphere, [1., 0., 9.], [0., 0., -1.], 3.5);
+    distance(&sphere, [1.3, 0., 9.], [0., 0., -1.], 3.6);
     let offset_imu = FIXTURE.replace(
         "<pose relative_to=\"mount\">0.5 2 -1 0 0 0</pose>",
         "<pose>0 0 0.2 0 0 0</pose>",

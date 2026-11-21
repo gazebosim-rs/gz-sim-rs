@@ -4,6 +4,31 @@ use super::*;
 use crate::Shape;
 
 #[test]
+fn default_posed_sphere_refuses_before_numeric_admission_without_mutation() {
+    let mut backend = Recorder::default();
+    for invalid in [false, true] {
+        let spec = PosedSphereBodySpec {
+            radius: if invalid { f64::NAN } else { 0.5 },
+            collision_position: [1.0, -2.0, 3.0],
+            collision_orientation: [0.0, 0.0, 0.0, 1.0],
+            position: [0.0; 3],
+            velocity: [0.0; 3],
+            mass: Some(1.0),
+        };
+        assert_eq!(
+            backend.spawn_posed_sphere_link(spec, RotationSpec::default(), None),
+            Err(PhysicsError::Unsupported {
+                engine: "recorder",
+                capability: "posed sphere link collision",
+            })
+        );
+    }
+    assert!(backend.steps.is_empty());
+    assert_eq!(backend.resets, 0);
+    assert!(!backend.fail);
+}
+
+#[test]
 fn default_posed_capsule_refuses_before_numeric_admission_without_mutation() {
     let mut backend = Recorder::default();
     for invalid in [false, true] {

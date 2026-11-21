@@ -19,11 +19,48 @@ fn load(source: &str, engine: PhysicsEngine) -> Result<Simulation, LoadError> {
 #[test]
 fn other_engines_keep_single_centered_collision_domain() {
     for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
-        for source in [xml(FIRST), xml(&format!("{FIRST}{SECOND}"))] {
-            assert!(matches!(
-                load(&source, engine),
-                Err(LoadError::Unsupported { .. })
-            ));
+        for (case, source) in [xml(FIRST), xml(&format!("{FIRST}{SECOND}"))]
+            .into_iter()
+            .enumerate()
+        {
+            if matches!(engine, PhysicsEngine::Rapier) && case == 0 {
+                // M82 admits only this single posed sphere. Its local .5X
+                // offset moves geometry, while the reported link stays at Z10.
+                let sim = load(&source, engine).unwrap();
+                let backend = sim.world().resource::<gz_physics::PhysicsBackend>();
+                for (x, expected) in [(0.5, 0.9), (0.56, 0.92)] {
+                    // Radius .1 and transverse .06 leave the .08 chord root.
+                    let actual = backend
+                        .cast_ray([x, 0., 11.], [0., 0., -1.], 2., None)
+                        .unwrap()
+                        .unwrap();
+                    assert!((actual - expected).abs() < 1e-11, "{actual} != {expected}");
+                }
+                for (name, expected) in [
+                    ("default::body::link", [0., 0., 10.]),
+                    ("default::body::link::first", [0.5, 0., 10.]),
+                ] {
+                    let entity = sim
+                        .world()
+                        .iter_entities()
+                        .find(|entity| {
+                            entity
+                                .get::<gz_sim_scene::Name>()
+                                .is_some_and(|n| n.0 == name)
+                        })
+                        .unwrap();
+                    let pose = entity.get::<gz_sim_scene::WorldPose>().unwrap();
+                    for (actual, expected) in pose.translation.into_iter().zip(expected) {
+                        assert!((actual - expected).abs() < 1e-11);
+                    }
+                    assert_eq!(pose.rotation, [0., 0., 0., 1.]);
+                }
+            } else {
+                assert!(matches!(
+                    load(&source, engine),
+                    Err(LoadError::Unsupported { .. })
+                ));
+            }
         }
     }
 }

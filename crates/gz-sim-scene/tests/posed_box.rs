@@ -385,17 +385,15 @@ fn identity_and_old_refusal_domains_remain_separate_from_posed_boxes() {
     );
     let capsule = load(&capsule, PhysicsEngine::Rapier).unwrap();
     assert!((ray(&capsule, [1.3, 0., 9.], [0., 0., -1.], None).unwrap() - 3.1).abs() < 1e-11);
-    {
-        let geometry = "<sphere><radius>0.5</radius></sphere>";
-        let other = box_xml.replace("<box><size>1 2 3</size></box>", geometry);
-        assert!(matches!(
-            load(&other, PhysicsEngine::Rapier),
-            Err(LoadError::Unsupported {
-                feature: "offset collision pose",
-                ..
-            })
-        ));
-    }
+    // M82 replaces only the Sphere refusal: center(1,0,5), radius .5.
+    // A transverse .3 leaves the independent .4 chord root.
+    let sphere_xml = box_xml.replace(
+        "<box><size>1 2 3</size></box>",
+        "<sphere><radius>0.5</radius></sphere>",
+    );
+    let sphere = load(&sphere_xml, PhysicsEngine::Rapier).unwrap();
+    assert!((ray(&sphere, [1., 0., 9.], [0., 0., -1.], None).unwrap() - 3.5).abs() < 1e-11);
+    assert!((ray(&sphere, [1.3, 0., 9.], [0., 0., -1.], None).unwrap() - 3.6).abs() < 1e-11);
     let compound = box_xml.replace(
         "</link>",
         "<collision name='extra'><geometry><box/></geometry></collision></link>",
