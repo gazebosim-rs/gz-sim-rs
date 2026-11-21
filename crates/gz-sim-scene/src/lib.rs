@@ -933,11 +933,7 @@ fn build_model(
             "collision count (expected one)",
         )?;
         if compound {
-            require(
-                controller_plan.is_none() && drive_plan.is_none(),
-                name,
-                "compound joint actuators",
-            )?;
+            require(drive_plan.is_none(), name, "compound joint actuators")?;
             require(
                 link.collisions.iter().all(|collision| {
                     matches!(

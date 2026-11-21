@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-21T10:22:56.982527+00:00",
-  "execution_state": "active",
-  "current_phase": "M86",
+  "as_of": "2026-11-21T12:24:11.014496+00:00",
+  "execution_state": "active_Source_correction",
+  "current_phase": "M88",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -6960,6 +6960,339 @@
       "previous_corrective_formatter_reuse_paths": [
         "crates/gz-sim-scene/src/initial.rs"
       ]
+    },
+    {
+      "id": "M88",
+      "title": "Existing JointController modes on Rapier compound links",
+      "max_working_days": 5,
+      "depends_on": [
+        "M86",
+        "M87"
+      ],
+      "scope": "Existing position/velocity JointController composition on existing admitted Rapier primitive compound links",
+      "acceptance": "Complete both bounded implementations, meaningful regression Source, docs and reciprocal plus whole independent Source review; batch all findings before one affected formatter and one consolidated unchanged full normal/strict/local DATA/own hosted/official cycle. No per-edit tests/lint or native trials. Meaningful actual motor motion for both modes and mixed/compound endpoints, exact explicit-inertia controls, independently isolated child rays/contact, pending/invalid atomicity, binding ownership, pause/reset/removal/high-water and all original controls.",
+      "excluded": "Keep existing two-link/two-Revolute chain, configurations, modes, frames, limits, owners and command semantics; permit compounds on either/both links. Preserve DiffDrive compound prohibition and VC/jointed world-edit exclusions. No Physics/Server/wire/API/solver/visual/native campaign expansion.",
+      "contract": "docs/M88_DELIVERY.md",
+      "shared_qualification_group": [
+        "M88",
+        "M89"
+      ],
+      "source_preparation_basis_commit": "ee4df6c5851cc40b77a15b19c6e992434ee7bfff",
+      "source_preparation_basis_tree": "d3ffae592249a6b8c0a73ba27097504a6340c639",
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "implementation_started": true,
+      "implementation_started_scope": "Bounded feature and isolated one-case test correction Source complete; no production or other case changes.",
+      "implementation_complete": true,
+      "independent_source_review_complete": true,
+      "checks_run": false,
+      "normal_qualified": false,
+      "independent_local_DATA_qualified": false,
+      "hosted_qualified": false,
+      "official_DATA_qualified": false,
+      "accepted": false,
+      "qualification_inherited": false,
+      "distribution_selected": false,
+      "Source_publication_available": false,
+      "future_qualified_head": null,
+      "qualification_state": "test_only_tpe_refusal_correction_complete_reviewed_pending_formatter_and_full_retry",
+      "new_Rust_Source_controls": 7,
+      "new_Python_Source_controls": 0,
+      "Source_control_declarations": {
+        "Rust_unique": 7,
+        "headless": 7,
+        "renderer": 7,
+        "overlap": 7,
+        "Python": 0,
+        "counts_are_Source_obligations_not_executed_results": true
+      },
+      "final_Source_count": 1803,
+      "changed_paths_vs_basis": 13,
+      "new_paths": 4,
+      "changed_production_paths_vs_basis": 2,
+      "cumulative_changed_paths_vs_accepted_ancestor": 98,
+      "final_tree": null,
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "file_ownership": {
+        "tracker_acceptance_closeout": [
+          "crates/gz-sim-scene/src/lib.rs compound actuator predicate only",
+          "crates/gz-sim-scene/tests/compound_joint_controllers.rs (new)"
+        ],
+        "Root": [
+          "crates/gz-sim-scene/tests/compound_joints.rs exact first two M9 row dispositions and necessary imports; keep case identity and other rows/controls",
+          "integration, records, final release, serial heavy operations"
+        ],
+        "m76_scope": [
+          "AGENTS.md",
+          "README.md",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "docs/IMPLEMENTATION_TASKS.md",
+          "planning/delivery-phases.json",
+          "docs/M88_DELIVERY.md",
+          "docs/M89_DELIVERY.md"
+        ]
+      },
+      "retained_test_disposition": "ONLY the first two M9 bar-collision rows in the existing compound_joints controller/refusal case become same-XML positive geometry/real-motor controls; keep the declaration identity, both DiffDrive rows and all following negatives.",
+      "current_stage": "First normal Root/Git1:1932 headless passes/1 failure/2 ignored,13of14 own cases passed; no renderer/strict/commit. Same-input exact InvalidScene TPE refusal and Motion/IDs/clock atomicity correction complete (9ae785e3/25bf16c6); Server/Scope whole-case and Root Source reviews CLEAR. Current one-file formatter/full retry UNRUN; correction tree/commit/results NULL. Original formatter reuse only four unchanged copies; all production and other controls unchanged.",
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "protected_manual_demo_session": 86363,
+      "stop_or_restart_authorized": false,
+      "combined_Source_control_declarations": {
+        "Rust_unique": 14,
+        "Python": 0,
+        "headless": 14,
+        "renderer": 14,
+        "overlap": 14
+      },
+      "current_Source_inventory_scope": "Measured shared Source1803/13owned/4new/2production/98cumulative; combined14unique H14/R14/overlap14/Python0. Per-phase7H7R; finite47/CLI21 unchanged. Source obligations, not passes.",
+      "independent_review_scopes": {
+        "original_feature": "Reciprocal and whole code/test reviews completed; Package, Server, Scope and Root all missed the typed TPE-error premise. Earlier high-water correction remains preserved.",
+        "current_correction": "Package authored exact same-input typed InvalidScene and real two-model Motion/IDs/clock atomicity repair9ae785e3. Server and Scope independently whole-case reviewed CLEAR; Root independently read exact correction and existing API CLEAR. No executed success claimed."
+      },
+      "final_docs_review_complete": false,
+      "final_docs_review_pending": true,
+      "pre_execution_Source_correction": {
+        "kind": "M88 high-water public API misuse caught by reciprocal Source review, not executed verification failure",
+        "completion": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/m88-high-water-source-correction-completion.json",
+          "sha256": "4038ec5ff528cbf7febf8284f5ade8eb7652ad5a06a5c3ec82570ee757539d7b",
+          "bytes": 1624,
+          "mode": 436
+        },
+        "diff": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/m88-high-water-source-correction.diff",
+          "sha256": "03042492b8a008514bdb54b7227c91f74b4d6f23d2dda2a50c2b92d0d17e04a3",
+          "bytes": 797,
+          "mode": 436
+        },
+        "scope": "Only spawn_empty Entity + assign_id(&mutWorld,Entity)->u64 + direct maximum comparison; full inverse restores2255, seven identities/every other byte unchanged."
+      },
+      "integrated_Source_census": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/integrated-source-census-before-final-docs.json",
+        "sha256": "ac0b4dd0928675d4ff8c95000da0f87b443cd2d617a582b2aba75ef2a8434f1d",
+        "bytes": 1128,
+        "mode": 436
+      },
+      "historical_first_candidate_Source_checkpoint": {
+        "qualification_state": "complete_reviewed_Source_pending_final_formatter_and_mandatory_checks",
+        "implementation_started_scope": "Both Root-dispatched author lanes completed actual frozen Source; integrated measured census and corrected M88 high-water call are bound below.",
+        "independent_source_review_complete": true,
+        "checks_run": false,
+        "current_stage": "Both implementations, regression Source and reciprocal/whole independent reviews complete. Sole pre-execution high-water API finding corrected and exact successor independently closed. Final eight-doc review precedes one affected formatter and one consolidated mandatory cycle. Current formatter/tests/lint/normal UNRUN; finaltree/commit/outcomes NULL.",
+        "independent_review_scopes": {
+          "Package": "Authored M89; independently reviewed whole M88 and caught the sole high-water API misuse before execution. Other M88 scope/math/test-integrity review CLEAR.",
+          "Server": "Authored M88 and the Root-selected high-water correction; independently reviewed whole M89 and Root shared two-row patch CLEAR.",
+          "Scope": "Independently reviewed both complete lanes and Root shared dispositions. Initial M88 read missed reserve_id misuse; actual corrected3093 successor/public assign_id API and exact inverse independently CLOSED. All global ray/contact/lifecycle/old-control math CLEAR.",
+          "Root": "Independently reviewed both guides, M89 full Source/math/API, shared patch and selected exact M88 correction/public API; reviews this final completed eight-doc census/attribution batch."
+        },
+        "final_docs_review_complete": false,
+        "final_docs_review_pending": true,
+        "normal_actual": null
+      },
+      "historical_first_normal_failure": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/normal-attempt1-failure.json",
+        "sha256": "0361f70b1b1fe8f01d7d1d178c152b6e075070e1a978c004414876a50053ca31",
+        "bytes": 4962,
+        "mode": 436
+      },
+      "original_formatter_reused": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/rust-formatter-actual.json",
+        "sha256": "1457f0edf7d2f9d2f5380b9d50cf62970294f53f125c776756aa7957887b03da",
+        "bytes": 6022,
+        "mode": 436
+      },
+      "original_formatter_reuse_scope": "Original five-file formatter retained only for four unchanged Rust copies; current affected primitive_runtime_spawn.rs formatter is UNRUN and separate.",
+      "current_formatter_actual": null,
+      "corrective_normal_actual": null,
+      "correction_error_route": "prepare_model_template calls model_state; legitimate TPE link lacks BodyHandle, so binding returns InvalidScene before backend validation. Source-derived, not printed actual Err.",
+      "current_correction_source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/m89-tpe-refusal-source-correction-completion.json",
+        "sha256": "25bf16c6d7b8aee692e3305b7a1063a62a7bdf411d99287282737bd2f710a15e",
+        "bytes": 2684,
+        "mode": 436
+      },
+      "current_correction_test_Source": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-m88-m89-tpe-refusal-fix-integrated/crates/gz-sim-scene/tests/primitive_runtime_spawn.rs",
+        "sha256": "9ae785e3b44adae99c24204bed92ad854ef63ef271afa046a79e6c450e1addf8",
+        "bytes": 27631,
+        "mode": 436
+      }
+    },
+    {
+      "id": "M89",
+      "title": "Centered cylinder/capsule runtime collision templates",
+      "max_working_days": 5,
+      "depends_on": [
+        "M86",
+        "M87"
+      ],
+      "scope": "Centered singleton Cylinder/Capsule runtime COLLISION templates",
+      "acceptance": "Complete both bounded implementations, meaningful regression Source, docs and reciprocal plus whole independent Source review; batch all findings before one affected formatter and one consolidated unchanged full normal/strict/local DATA/own hosted/official cycle. No per-edit tests/lint or native trials. Static/dynamic shapes, nontrivial model poses, strict isolated cap/chord/inside/max/exclusion queries, explicit inertia/physical contact controls, spawn/read/edit/remove/ordinary and loaded reset, all IDs/aliases/survivors/atomic wrong-world/exhaustion/invalid inputs; zero old refusal dispositions selected.",
+      "excluded": "Retain existing Rapier-only four-node path and visual ID=model+3, RuntimeBodyOwner, exact collision-local identity and centered-inertia admission. One already admitted Box/Sphere/Mesh visual only. Preserve old singleton Box/Sphere/Mesh and all compound/sensor/plugin/joint/controller/TPE/128-camera refusals. No new visual/viewer, compound runtime or world_edit production change.",
+      "contract": "docs/M89_DELIVERY.md",
+      "shared_qualification_group": [
+        "M88",
+        "M89"
+      ],
+      "source_preparation_basis_commit": "ee4df6c5851cc40b77a15b19c6e992434ee7bfff",
+      "source_preparation_basis_tree": "d3ffae592249a6b8c0a73ba27097504a6340c639",
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "implementation_started": true,
+      "implementation_started_scope": "Bounded feature and isolated one-case test correction Source complete; no production or other case changes.",
+      "implementation_complete": true,
+      "independent_source_review_complete": true,
+      "checks_run": false,
+      "normal_qualified": false,
+      "independent_local_DATA_qualified": false,
+      "hosted_qualified": false,
+      "official_DATA_qualified": false,
+      "accepted": false,
+      "qualification_inherited": false,
+      "distribution_selected": false,
+      "Source_publication_available": false,
+      "future_qualified_head": null,
+      "qualification_state": "test_only_tpe_refusal_correction_complete_reviewed_pending_formatter_and_full_retry",
+      "new_Rust_Source_controls": 7,
+      "new_Python_Source_controls": 0,
+      "Source_control_declarations": {
+        "Rust_unique": 7,
+        "headless": 7,
+        "renderer": 7,
+        "overlap": 7,
+        "Python": 0,
+        "counts_are_Source_obligations_not_executed_results": true
+      },
+      "final_Source_count": 1803,
+      "changed_paths_vs_basis": 13,
+      "new_paths": 4,
+      "changed_production_paths_vs_basis": 2,
+      "cumulative_changed_paths_vs_accepted_ancestor": 98,
+      "final_tree": null,
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "file_ownership": {
+        "package_collector": [
+          "crates/gz-sim-scene/src/world_spawn.rs primitive geometry match only",
+          "crates/gz-sim-scene/tests/primitive_runtime_spawn.rs (new)"
+        ],
+        "Root": [
+          "crates/gz-sim-scene/tests/compound_joints.rs exact first two M9 row dispositions and necessary imports; keep case identity and other rows/controls",
+          "integration, records, final release, serial heavy operations"
+        ],
+        "m76_scope": [
+          "AGENTS.md",
+          "README.md",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "docs/IMPLEMENTATION_TASKS.md",
+          "planning/delivery-phases.json",
+          "docs/M88_DELIVERY.md",
+          "docs/M89_DELIVERY.md"
+        ]
+      },
+      "retained_test_disposition": "ZERO selected old refusal-row transitions. Preserve existing world_spawn tests/callers and every compound/sensor/controller/joint/TPE refusal unchanged.",
+      "current_stage": "First normal Root/Git1:1932 headless passes/1 failure/2 ignored,13of14 own cases passed; no renderer/strict/commit. Same-input exact InvalidScene TPE refusal and Motion/IDs/clock atomicity correction complete (9ae785e3/25bf16c6); Server/Scope whole-case and Root Source reviews CLEAR. Current one-file formatter/full retry UNRUN; correction tree/commit/results NULL. Original formatter reuse only four unchanged copies; all production and other controls unchanged.",
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "protected_manual_demo_session": 86363,
+      "stop_or_restart_authorized": false,
+      "exhaustion_evidence_scope": "New public tests use genuine logical-camera 128-model capacity refusal/recovery without ID consumption. Existing core/private numeric allocator exhaustion tests and path stay unchanged; no public seed API, unsafe access or extra core lease.",
+      "combined_Source_control_declarations": {
+        "Rust_unique": 14,
+        "Python": 0,
+        "headless": 14,
+        "renderer": 14,
+        "overlap": 14
+      },
+      "current_Source_inventory_scope": "Measured shared Source1803/13owned/4new/2production/98cumulative; combined14unique H14/R14/overlap14/Python0. Per-phase7H7R; finite47/CLI21 unchanged. Source obligations, not passes.",
+      "independent_review_scopes": {
+        "original_feature": "Reciprocal and whole code/test reviews completed; Package, Server, Scope and Root all missed the typed TPE-error premise. Earlier high-water correction remains preserved.",
+        "current_correction": "Package authored exact same-input typed InvalidScene and real two-model Motion/IDs/clock atomicity repair9ae785e3. Server and Scope independently whole-case reviewed CLEAR; Root independently read exact correction and existing API CLEAR. No executed success claimed."
+      },
+      "final_docs_review_complete": false,
+      "final_docs_review_pending": true,
+      "pre_execution_Source_correction": {
+        "kind": "M88 high-water public API misuse caught by reciprocal Source review, not executed verification failure",
+        "completion": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/m88-high-water-source-correction-completion.json",
+          "sha256": "4038ec5ff528cbf7febf8284f5ade8eb7652ad5a06a5c3ec82570ee757539d7b",
+          "bytes": 1624,
+          "mode": 436
+        },
+        "diff": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/m88-high-water-source-correction.diff",
+          "sha256": "03042492b8a008514bdb54b7227c91f74b4d6f23d2dda2a50c2b92d0d17e04a3",
+          "bytes": 797,
+          "mode": 436
+        },
+        "scope": "Only spawn_empty Entity + assign_id(&mutWorld,Entity)->u64 + direct maximum comparison; full inverse restores2255, seven identities/every other byte unchanged."
+      },
+      "integrated_Source_census": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/integrated-source-census-before-final-docs.json",
+        "sha256": "ac0b4dd0928675d4ff8c95000da0f87b443cd2d617a582b2aba75ef2a8434f1d",
+        "bytes": 1128,
+        "mode": 436
+      },
+      "historical_first_candidate_Source_checkpoint": {
+        "qualification_state": "complete_reviewed_Source_pending_final_formatter_and_mandatory_checks",
+        "implementation_started_scope": "Both Root-dispatched author lanes completed actual frozen Source; integrated measured census and corrected M88 high-water call are bound below.",
+        "independent_source_review_complete": true,
+        "checks_run": false,
+        "current_stage": "Both implementations, regression Source and reciprocal/whole independent reviews complete. Sole pre-execution high-water API finding corrected and exact successor independently closed. Final eight-doc review precedes one affected formatter and one consolidated mandatory cycle. Current formatter/tests/lint/normal UNRUN; finaltree/commit/outcomes NULL.",
+        "independent_review_scopes": {
+          "Package": "Authored M89; independently reviewed whole M88 and caught the sole high-water API misuse before execution. Other M88 scope/math/test-integrity review CLEAR.",
+          "Server": "Authored M88 and the Root-selected high-water correction; independently reviewed whole M89 and Root shared two-row patch CLEAR.",
+          "Scope": "Independently reviewed both complete lanes and Root shared dispositions. Initial M88 read missed reserve_id misuse; actual corrected3093 successor/public assign_id API and exact inverse independently CLOSED. All global ray/contact/lifecycle/old-control math CLEAR.",
+          "Root": "Independently reviewed both guides, M89 full Source/math/API, shared patch and selected exact M88 correction/public API; reviews this final completed eight-doc census/attribution batch."
+        },
+        "final_docs_review_complete": false,
+        "final_docs_review_pending": true,
+        "normal_actual": null
+      },
+      "historical_first_normal_failure": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/normal-attempt1-failure.json",
+        "sha256": "0361f70b1b1fe8f01d7d1d178c152b6e075070e1a978c004414876a50053ca31",
+        "bytes": 4962,
+        "mode": 436
+      },
+      "original_formatter_reused": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/rust-formatter-actual.json",
+        "sha256": "1457f0edf7d2f9d2f5380b9d50cf62970294f53f125c776756aa7957887b03da",
+        "bytes": 6022,
+        "mode": 436
+      },
+      "original_formatter_reuse_scope": "Original five-file formatter retained only for four unchanged Rust copies; current affected primitive_runtime_spawn.rs formatter is UNRUN and separate.",
+      "current_formatter_actual": null,
+      "corrective_normal_actual": null,
+      "correction_error_route": "prepare_model_template calls model_state; legitimate TPE link lacks BodyHandle, so binding returns InvalidScene before backend validation. Source-derived, not printed actual Err.",
+      "current_correction_source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m88-m89-delivery/m89-tpe-refusal-source-correction-completion.json",
+        "sha256": "25bf16c6d7b8aee692e3305b7a1063a62a7bdf411d99287282737bd2f710a15e",
+        "bytes": 2684,
+        "mode": 436
+      },
+      "current_correction_test_Source": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-m88-m89-tpe-refusal-fix-integrated/crates/gz-sim-scene/tests/primitive_runtime_spawn.rs",
+        "sha256": "9ae785e3b44adae99c24204bed92ad854ef63ef271afa046a79e6c450e1addf8",
+        "bytes": 27631,
+        "mode": 436
+      }
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -7050,10 +7383,12 @@
     "M84": "in_progress",
     "M85": "in_progress",
     "M86": "in_progress",
-    "M87": "in_progress"
+    "M87": "in_progress",
+    "M88": "in_progress",
+    "M89": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-21T08:19:35.292760+00:00",
+  "phase_started_at": "2026-11-21T11:09:44.755899+00:00",
   "active_phases": [
     "M77",
     "M78",
@@ -7065,7 +7400,9 @@
     "M84",
     "M85",
     "M86",
-    "M87"
+    "M87",
+    "M88",
+    "M89"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -7516,31 +7853,40 @@
       ],
       "integration": "D31: disjoint Package loaded-compound world_edit/initial proof and Server passive-joint lib admission lanes over genuinely locally qualified unaccepted M85 22cffebd. Root owns shared old-test transitions, integration and serial heavy release; both complete and independently reviewed lanes share ONE full unchanged qualification cycle. No parent or cross-phase qualification/acceptance transfer.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M88",
+        "M89"
+      ],
+      "integration": "D31 shared M88/M89 first normal failed one new typed TPE-refusal premise. Exact same-input test-only correction complete with whole independent Source review; one-file formatter and full retry remain unrun; production and all other cases unchanged. Original five-file formatter retained only four unchanged copies. Parent ee4 local and hosted qualification passed, official pending; no acceptance transfer.",
+      "max_working_days": 5,
+      "historical_first_candidate_integration": "D31: disjoint compound JointController admission and centered primitive collision-template geometry match are implemented with seven regression declarations each. Reciprocal and whole independent Source review complete; the sole high-water API correction is closed before execution. Root owns shared two-row dispositions, final docs/integration and serial heavy release; one candidate retains every mandatory gate over locally qualified unaccepted ee4df6. Parent own CI is running; no inherited result or acceptance."
     }
   ],
-  "acceptance_boundary": "M86/M87 isolated chord correction Source is complete and independently reviewed: 1799 files/14 owned/4 new/3 production/93 cumulative, 15 H/R declarations all overlapping, zero Python, finite/CLI 47/21. Second normal Root/Git1 had 1918 headless passes/1 failure/2 ignored, 14 of15 new cases passed; no renderer/strict qualification or qualified commit. Both failed candidates and all evidence remain preserved. Current one-file formatter/full retry remain UNRUN; final tree, commit and outcomes NULL. Same 3.6/1e-11/max5 chord is isolated from an adjacent solid; original ray becomes exact inside-box countercontrol, no product/admission/tolerance/gate change. Reuse b075 only for unchanged initial.rs and original78be only four unchanged copies, no formatter union. M85 own qualification complete/unaccepted; all own/predecessor/M77 browser/shutdown gates mandatory. Accepted76/catalog87/202/Latest41 unchanged; next wave unselected.",
+  "acceptance_boundary": "M88/M89 first normal failed at frozen895e7: Root/Git1,1932 headless passes/1 failure/2 ignored,13of14 new cases passed; no renderer/strict/qualified commit. Exact same-input TPE InvalidScene/Motion atomicity test correction complete and independently reviewed (9ae785e3/25bf16c6); current one-file formatter/full retry pending, final correction tree and outcomes NULL. Inventory1803/13own/4new/2production/98cumulative/14H14R0Python/47finite21CLI unchanged. Original five-file formatter reused only four unchanged Rust copies. Parent ee4 local normal/DATA and hosted65522 passed; collection/official pending. No qualification or acceptance transfer; all original own/predecessor/M77 browser/shutdown gates stay. Accepted76/202/catalog89/Latest41/demo86363 unchanged.",
   "current_delivery_group": [
-    "M86",
-    "M87"
+    "M88",
+    "M89"
   ],
-  "current_development_phase": "M86",
+  "current_development_phase": "M88",
   "board": {
-    "updated_at": "2026-11-21T10:22:56.982527+00:00",
+    "updated_at": "2026-11-21T12:24:11.014496+00:00",
     "current": {
-      "title": "M86/M87 remaining ray correction reviewed; full verification next",
+      "title": "Test-only correction after the first M88/M89 gate",
       "items": [
-        "The second gate had 1,918 headless passes, one failure and two ignored cases. Fourteen of fifteen new cases passed; renderer and strict qualification were not reached. Both failed candidates remain preserved.",
-        "The remaining ray started inside an adjacent box. The reviewed correction isolates the same strict cylinder chord and retains the original input as an inside-solid countercontrol. One-file formatting and a full retry are next.",
-        "M85 completed its own qualification and remains unaccepted. The M77 manual demo stays live; browser evidence and owner-confirmed shutdown still hold acceptance."
+        "The first M88/M89 gate had 1,932 headless passes, one failure and two ignored cases. The exact typed TPE-refusal and Motion atomicity repair is complete and independently reviewed; production and admission are unchanged.",
+        "M86/M87 passed local qualification and its exact hosted CI. Original collection and official audit remain pending; no parent or acceptance result transfers.",
+        "M85 remains own-qualified and unaccepted. The M77 manual demo stays live; browser evidence and owner-confirmed shutdown still hold acceptance."
       ]
     },
     "done": [
-      "76 phases and 202 slices remain accepted; catalog 87 and Latest M70\u2019s original 41-example package add no acceptance.",
-      "The isolated chord correction is implemented and independently reviewed. All fifteen declarations remain Source obligations, not corrected passes. M85 own qualification is complete."
+      "The failed run and frozen Source are retained. The one-case test correction is complete and independently Source-reviewed; thirteen of fourteen new cases passed in the original headless profile only.",
+      "Source counts remain1803 files/13 owned/4 new/2 production/98 cumulative and14 H/R declarations. Accepted76 phases/202 slices, catalog89 and Latest M70 original41 remain unchanged."
     ],
     "next": [
-      "Complete independent review of the eight current docs, one affected-file formatter and one full mandatory shared verification cycle. Preserve exact separate formatter reuse for one prior and four original copies.",
-      "Preserve both failure packets and every original predecessor, browser and shutdown gate. Keep the protected demo live; the next development wave remains unselected."
+      "Format only the affected test file after final documentation review, then run the complete mandatory retry, independent local audit and exact hosted qualification.",
+      "Keep original five-file formatter custody only for the four unchanged Rust copies; preserve every threshold, failed packet and M77 release gate."
     ],
     "blocker": {
       "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
@@ -7549,8 +7895,8 @@
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M86",
-    "M87"
+    "M88",
+    "M89"
   ],
   "camera_integration": {
     "scope": "Atomic M61\u2013M64 qualification on accepted M60; no new phase",
@@ -7699,7 +8045,7 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "M86_M87_ISOLATED_CHORD_SOURCE_COMPLETE_REVIEWED_PENDING_ONE_FILE_FORMATTER_AND_FULL_RETRY",
+  "current_development_task": "M88_M89_TEST_ONLY_TPE_REFUSAL_CORRECTION_COMPLETE_REVIEWED_PENDING_FORMATTER_AND_FULL_RETRY",
   "backend_retirement_source_preparation": {
     "decision": "D33",
     "owner_directed_at": "2026-11-17",
@@ -8856,7 +9202,7 @@
     },
     "official_qualified": true
   },
-  "phase_started_at_scope": "Actual Root M86/M87 shared Source selection time, not a product verification launch or acceptance.",
+  "phase_started_at_scope": "Actual Root M88/M89 selection time; separate from parent verification or acceptance.",
   "current_M82_parent_qualification": {
     "commit": "039a1e5142dd48705a23acb6f817613f509408f0",
     "tree": "420197183a1ec5b71f85f9c2181b9caa1d82a4c6",
@@ -9195,5 +9541,186 @@
     "official_CI_changed_line_base": "0000000000000000000000000000000000000000",
     "official_CI_basis_kind": "new_branch_all_source"
   },
-  "phase_catalog_checkpoint_scope": "All M1\u2013M85 phase objects remain exact historical Source checkpoints. Current M85 parent qualification and M84 own qualification are recorded in current_M85_parent_qualification/current_M84_dependency; only M86/M87 are new Source entries."
+  "phase_catalog_checkpoint_scope": "All M1\u2013M87 phase objects and all prior parallel groups remain exact historical Source checkpoints. Current M86/M87 parent qualification is recorded separately in current_M86_M87_parent_qualification. M88/M89 are new disjoint Source entries with own counts/results pending; no acceptance transfer.",
+  "current_M86_M87_parent_qualification": {
+    "commit": "ee4df6c5851cc40b77a15b19c6e992434ee7bfff",
+    "tree": "d3ffae592249a6b8c0a73ba27097504a6340c639",
+    "parent": "22cffebd3d1f9f0be82e7ac35e557b42d08edea9",
+    "locally_qualified": true,
+    "accepted": false,
+    "normal_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/isolated-chord-normal-actual-exit.json",
+      "sha256": "96573b2a97393b1a42a1c690f5a902a09f26c43f58b764ee2208b87e26b6c1e9",
+      "bytes": 2174,
+      "mode": 436
+    },
+    "local_DATA_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/isolated-chord-normal-retained-audit-actual-exit.json",
+      "sha256": "702d2379f41bf9345d9a9fe9db0bcd9aec9f661fd36ab5dc4bec9784385e0511",
+      "bytes": 1954,
+      "mode": 436
+    },
+    "local_DATA_report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/isolated-chord-normal-retained-audit.json",
+      "sha256": "ad37db1277306cc0f2bf958b350f49a8f9df95663f987524c6a8538792d65073",
+      "bytes": 151997,
+      "mode": 436
+    },
+    "local_DATA_Source": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/audit-normal-retained-isolated-chord-root-released.py",
+      "sha256": "d629f30e01a9f92b776bf6821f809f3cd34bf5ac7783c4139820138a13db1636",
+      "bytes": 140258,
+      "mode": 436
+    },
+    "local_DATA_execution_log": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/isolated-chord-normal-retained-audit-execution.log",
+      "sha256": "0688d1fc685ab5ab5ef4d285233de5cbd3717d4318c886d81237d6597b88cb9f",
+      "bytes": 230,
+      "mode": 436
+    },
+    "normal_and_DATA_exit_codes": 0,
+    "profile_tests": {
+      "headless": {
+        "passed": 1919,
+        "failed": 0,
+        "ignored": 2,
+        "summary_rows": 186
+      },
+      "renderer": {
+        "passed": 1455,
+        "failed": 0,
+        "ignored": 2,
+        "summary_rows": 168
+      }
+    },
+    "Python_aggregate": 494,
+    "Source_finite_runs": 47,
+    "Source_CLI_cases": 21,
+    "new_Rust_controls_observed_in_both_profiles": 15,
+    "strict_bases": 10,
+    "own_hosted_qualified": true,
+    "official_qualified": false,
+    "hosted_run": {
+      "id": 44898011406,
+      "name": "simulator",
+      "path": ".github/workflows/ci.yml",
+      "head_sha": "ee4df6c5851cc40b77a15b19c6e992434ee7bfff",
+      "head_branch": "review/m86-m87-compound-state-joints",
+      "event": "push",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44898011406",
+      "created_at": "2026-11-21T11:12:41Z"
+    },
+    "hosted_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/hosted-attempt1-actual-exit.json",
+      "sha256": "65522db171bb5379d2d45c53713387faa0232537bda45e19ca01eab8b2c8915e",
+      "bytes": 1858,
+      "mode": 436
+    },
+    "official_actual": null,
+    "historical_failed_normals": [
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/normal-attempt1-failure.json",
+        "sha256": "865ca8d074d1f028f4d9ea652c29f825faac510fc716468161ebbba21ae6f001",
+        "bytes": 5783,
+        "mode": 436
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/normal-attempt2-failure.json",
+        "sha256": "b1619de728d0ce629a31cebe455678572285ef241416508b34fa5fe84745a68a",
+        "bytes": 5860,
+        "mode": 436
+      }
+    ],
+    "formatter_custody": {
+      "original_six_file_formatter": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/rust-formatter-actual.json",
+        "sha256": "78be4b899264b699681c7787d38434e620e6558c62211e78db994217187952f3",
+        "bytes": 6410,
+        "mode": 436
+      },
+      "original_formatted_Source_review": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/final-source-review.json",
+        "sha256": "f86e71e9921727a52b1b2ed3217de95c9e3ecfc6a1c70f6f19882cbb131a5fae",
+        "bytes": 10988,
+        "mode": 436
+      },
+      "previous_two_file_formatter": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/reset-admission-rust-formatter-actual.json",
+        "sha256": "b075001cf372073110f0b54536986c5f1748a47ab1c9a42c141469ba10071528",
+        "bytes": 4771,
+        "mode": 436
+      },
+      "previous_correction_Source_review": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/reset-admission-final-source-review.json",
+        "sha256": "429e911a2e8a6178bde0df3261652782bc054e3ebdeecce6fd041cbaa17a9e1b",
+        "bytes": 12686,
+        "mode": 436
+      },
+      "current_one_file_formatter": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/isolated-chord-rust-formatter-actual.json",
+        "sha256": "d198ce2eef89dd1f33208587198a620d6db8cc27dba10b5007451fcb8b793491",
+        "bytes": 5199,
+        "mode": 436
+      },
+      "unchanged_Rust_paths_reusing_original": [
+        "crates/gz-sim-scene/src/lib.rs",
+        "crates/gz-sim-scene/src/world_edit.rs",
+        "crates/gz-sim-scene/tests/compound_joints.rs",
+        "crates/gz-sim-scene/tests/compound_primitives.rs"
+      ],
+      "unchanged_Rust_paths_reusing_previous_correction": [
+        "crates/gz-sim-scene/src/initial.rs"
+      ],
+      "current_changed_Rust_paths": [
+        "crates/gz-sim-scene/tests/compound_world_edit.rs"
+      ],
+      "original_paths_preserved": true,
+      "qualification_inherited": false
+    },
+    "qualification_inherited": false,
+    "scope": "Actual corrected normal/DATA and exact own hosted44898011406 attempt1 passed at ee4/d3ff. Ordinary review ref remains published. Original collection/official pending at this correction Source checkpoint; both old failed normals preserved. No descendant qualification or acceptance transfer.",
+    "review_publication": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m86-m87-delivery/m86-m87-review-publication.json",
+      "sha256": "d405b70b2cc7f9bbe8ad179a97f3c3dd5fb99911574f2c180b513a647d44c61c",
+      "bytes": 2982,
+      "mode": 436
+    },
+    "review_ref": "refs/heads/review/m86-m87-compound-state-joints",
+    "review_ref_published": true,
+    "hosted_watch_observation": {
+      "session_id": 69822,
+      "launch_tool": "1edd1b",
+      "terminal_tool": "85983b",
+      "status": "retired",
+      "actual_exit_code": 0,
+      "basis": "Root genuine terminal and saved three-API capture; no author query"
+    },
+    "historical_initial_hosted_observation": {
+      "hosted_run": {
+        "id": 44898011406,
+        "name": "simulator",
+        "path": ".github/workflows/ci.yml",
+        "head_sha": "ee4df6c5851cc40b77a15b19c6e992434ee7bfff",
+        "head_branch": "review/m86-m87-compound-state-joints",
+        "event": "push",
+        "run_attempt": 1,
+        "status": "in_progress",
+        "conclusion": null,
+        "html_url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44898011406",
+        "created_at": "2026-11-21T11:12:41Z"
+      },
+      "hosted_actual": null,
+      "hosted_watch_observation": {
+        "session_id": 69822,
+        "launch_tool": "1edd1b",
+        "status": "active",
+        "outcome": null,
+        "basis": "Root actual observation; no query or watch by docs author"
+      },
+      "scope": "Actual corrected normal and one retained DATA passed at ee4df6/d3ff. Ordinary nonforced review publication/readbacks passed; exact automatic simulator44898011406 attempt1 in progress, no hosted success or official DATA. First87phaseobjects retain original observations; no descendant or acceptance transfer."
+    }
+  }
 }

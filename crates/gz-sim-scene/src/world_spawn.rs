@@ -125,6 +125,14 @@ pub fn prepare_model_template(
             half_extents: size.map(|value| value * 0.5),
         }),
         Geometry::Sphere { radius } => Collider::Primitive(Shape::Sphere { radius: *radius }),
+        Geometry::Cylinder { radius, length } => Collider::Primitive(Shape::Cylinder {
+            radius: *radius,
+            half_height: *length * 0.5,
+        }),
+        Geometry::Capsule { radius, length } => Collider::Primitive(Shape::Capsule {
+            radius: *radius,
+            half_length: *length * 0.5,
+        }),
         Geometry::Mesh(mesh) => Collider::Mesh(
             gz_assets::mesh::load(mesh).map_err(|_| WorldEditError::UnsupportedModel)?,
         ),

@@ -6,10 +6,11 @@ use glam::{DQuat, DVec3, EulerRot};
 use gz_physics::{BodyId, BodySpec, BodyState, PhysicsBackend, PhysicsError, RotationSpec, Shape};
 use gz_sim_core::{EntityId, Simulation, assign_id, entity_by_id, next_entity_id};
 use gz_sim_scene::{
-    BodyHandle, InputError, JointHandle, JointSample, LoadError, LocalPose, ModelState, Name,
-    PhysicsEngine, RemoveError, WorldEditError, WorldPose, load_world_with_sdf_step, model_state,
-    queue_joint_effort, queue_link_world_velocity, queue_link_world_wrench, remove_model,
-    reset_loaded_world, set_model_state,
+    BodyHandle, InputError, JointControllerConfiguration, JointControllerMode, JointHandle,
+    JointSample, LoadError, LocalPose, ModelState, Name, PhysicsEngine, RemoveError,
+    WorldEditError, WorldPose, joint_controller_binding_matches, load_world_with_sdf_step,
+    model_state, queue_joint_effort, queue_link_world_velocity, queue_link_world_wrench,
+    remove_model, reset_loaded_world, set_joint_controller_command, set_model_state,
 };
 use sdformat::NoResources;
 use std::collections::BTreeMap;
@@ -708,7 +709,7 @@ fn compound_joint_graph_and_numeric_refusals_preserve_existing_world_and_command
 #[test]
 fn compound_joint_chains_do_not_expand_joint_controllers_diff_drive_or_velocity_control() {
     let extra = "<collision name='m87_extra'><pose>2 0 0 0 0 0</pose><geometry><sphere><radius>0.25</radius></sphere></geometry></collision>";
-    for (xml, target, occurrences) in [
+    for (row, (xml, target, occurrences)) in [
         (
             include_str!("../../../examples/m9_joint_controllers.sdf"),
             "<collision name=\"bar\"><geometry><box><size>1 0.14 0.14</size></box></geometry></collision>",
@@ -729,19 +730,60 @@ fn compound_joint_chains_do_not_expand_joint_controllers_diff_drive_or_velocity_
             "<collision name=\"wheel\"><geometry><sphere><radius>0.2</radius></sphere></geometry></collision>",
             2,
         ),
-    ] {
+    ].into_iter().enumerate() {
         assert!(load(xml, PhysicsEngine::Rapier).is_ok());
         assert_eq!(xml.matches(target).count(), occurrences);
         let at = xml.rfind(target).unwrap();
         let compound = format!("{}{target}{extra}{}", &xml[..at], &xml[at + target.len()..]);
         assert_ne!(compound, xml);
-        assert!(matches!(
-            load(&compound, PhysicsEngine::Rapier),
-            Err(LoadError::Unsupported {
-                feature: "compound joint actuators",
-                ..
-            })
-        ));
+        if row < 2 {
+            // Keep this historical case identity; only the two M9 rows widen.
+            let mut sim = load(&compound, PhysicsEngine::Rapier).unwrap();
+            let joints = [id(&sim, "default::arm::base_hinge"), id(&sim, "default::arm::tip_hinge")];
+            for (joint, mode) in joints.into_iter().zip([JointControllerMode::Position, JointControllerMode::Velocity]) {
+                assert!(joint_controller_binding_matches(&sim, joint));
+                assert_eq!(sim.world().get::<JointControllerConfiguration>(entity_by_id(sim.world(), joint).unwrap()).unwrap().mode, mode);
+            }
+            let joint_states = |sim: &Simulation| joints.map(|joint| {
+                let handle = sim.world().get::<JointHandle>(entity_by_id(sim.world(), joint).unwrap()).unwrap();
+                sim.world().resource::<PhysicsBackend>().joint_state(handle.id()).unwrap()
+            });
+            let before = joint_states(&sim);
+            let bodies = [state(&sim, "default::arm::base"), state(&sim, "default::arm::tip")];
+            set_joint_controller_command(&mut sim, joints[0], 0.3).unwrap();
+            set_joint_controller_command(&mut sim, joints[1], 0.5).unwrap();
+            assert_eq!(joint_states(&sim), before, "motor receipt must not teleport joints");
+            assert_eq!([state(&sim, "default::arm::base"), state(&sim, "default::arm::tip")], bodies);
+            assert_eq!(sim.elapsed(), Duration::ZERO);
+            // Retain the existing M9 thirty-second tracking horizon and tolerance.
+            sim.step_exact(30_000).unwrap();
+            let measured = joint_states(&sim);
+            close(measured[0].position, 0.3, 0.01);
+            close(measured[1].velocity, 0.5, 0.01);
+            assert_ne!(measured, before);
+            for (joint, actual) in joints.into_iter().zip(measured) {
+                let sample = sim.world().get::<JointSample>(entity_by_id(sim.world(), joint).unwrap()).unwrap();
+                assert_eq!(sample.state, actual);
+                assert_eq!(sample.time, sim.elapsed());
+                assert_eq!(sample.epoch, sim.epoch());
+                assert!(joint_controller_binding_matches(&sim, joint));
+            }
+            let link = if row == 0 { "default::arm::base" } else { "default::arm::tip" };
+            let frame = pose(&sim, link);
+            let center = DVec3::from_array(frame.translation) + DQuat::from_array(frame.rotation) * DVec3::X * 2.;
+            near(pose(&sim, &format!("{link}::m87_extra")).translation, center.to_array(), 1e-10);
+            // The other bars stay below this sphere's top; ground is beyond 2.1.
+            close(cast(&sim, center + DVec3::Z * 2., -DVec3::Z, 2.1, None).unwrap(), 1.75, 1e-11);
+            assert!(cast(&sim, center + DVec3::Z * 2., -DVec3::Z, 2.1, Some(body(&sim, link))).is_none());
+        } else {
+            assert!(matches!(
+                load(&compound, PhysicsEngine::Rapier),
+                Err(LoadError::Unsupported {
+                    feature: "compound joint actuators",
+                    ..
+                })
+            ));
+        }
     }
     let controlled = rotor(4, "0 0 1").replace("</model>", "<plugin filename='gz-sim-velocity-control-system' name='gz::sim::systems::VelocityControl'/></model>");
     assert!(load(&controlled, PhysicsEngine::Rapier).is_err());

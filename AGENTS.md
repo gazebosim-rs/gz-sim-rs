@@ -1,51 +1,59 @@
-## Current development: M86/M87 isolated chord correction Source complete
+## Current correction: M88/M89 typed TPE refusal premise
 
-Read [M86](docs/M86_DELIVERY.md) and [M87](docs/M87_DELIVERY.md) for the closed domains.
+Read [M88](docs/M88_DELIVERY.md) and [M89](docs/M89_DELIVERY.md) for the unchanged closed
+compound JointController and centered Cylinder/Capsule collision-template domains.
+One isolated test-only correction follows the first mandatory normal failure;
+no production, fixture, visual, public API or backend admission changes are selected.
 
-M86 compound state edits and M87 passive revolute composition share one bounded
-D31 cycle. The second full normal failed Root/Git 1 after 1399.021763 seconds:
-1918 headless passes, one failure and two ignored cases. Fourteen of 15 new
-cases passed, including every other M86 control, both private controls and all
-eight M87 cases. Renderer and strict qualification were not reached. Preserve
-frozen tree `2d65c793`, failure `b1619de7` and its full packet. The first failure
-`865ca8d0` at tree `ca8a0614` remains failed: 1915 headless passes, four failures,
-two ignored and 11 of 15 new cases passing. Neither run created a qualified commit.
+The first normal ran once at frozen tree `895e7fb5` over locally qualified,
+unaccepted M86/M87 `ee4df6c5851cc40b77a15b19c6e992434ee7bfff`. Session 22933
+returned Root/Git 1 after 1560.507536 seconds (`0361f70b`). The complete available
+headless summaries contain 1932 passes, one failure and two ignored cases. All
+seven M88 controls and six other M89 controls passed in that profile: 13 of 14
+new cases. Renderer and strict coverage were not reached; no qualified commit
+was produced. Floors and final guards held, with no resource, signal or finalization
+fault. Preserve the failed tree, packet and original Source; it is not qualified.
 
-The remaining failure is a test-ray placement error. For four or sixteen children,
-the old cylinder chord ray starts inside the adjacent box, so the compound's
-correct nearest solid hit is zero. The isolated one-file correction casts along
-world Z at radial Y offset 0.3, preserving the same cylinder, distance 3.6,
-maximum 5 and tolerance 1e-11. It retains the old ray as an exact zero-hit
-countercontrol for four/sixteen children and a 3.6 control for two. The complete
-remaining case and later oracles were independently reviewed; Scope's exact
-patch review reconstructs the full frozen file by inverse. No production code,
-geometry, other case, tolerance or quality gate changes.
+The sole failed assertion expected `UnsupportedModel` from the TPE template
+attempt. Existing preparation first calls `model_state`; its binding returns
+`InvalidScene` because TPE creates a TpeLink without a BodyHandle, before backend
+state validation. This exact error attribution is Source-derived: the retained
+panic prints the failed matches assertion, not the returned error. Package,
+Server, Scope and Root all missed this typed-error premise in the first Source
+review. The selected repair keeps the same TPE Box input and requires exact
+`InvalidScene`, with real TPE Motion, logical-ID and clock atomicity checks.
+All production, other thirteen new cases, strict oracles and retained controls stay
+unchanged. The exact repair Source is complete (`9ae785e3`, completion `25bf16c6`).
+Server and Scope independently reviewed the whole corrected case and existing
+Motion API; Root independently read the exact repair and closed the Source batch.
+No remaining Source finding is open; this does not claim an executed result.
 
-Confirmed Source census remains 1799 files, 14 owned paths, four new paths,
-three production paths and 93 cumulative paths: 15 unique H/R Rust declarations,
-all overlapping, zero Python, finite/CLI 47/21. These are Source obligations,
-not passes. Implementation and the bounded independent Source review are complete;
-Root reviews this eight-doc checkpoint before one affected single-file formatter
-and one consolidated mandatory full retry. Reuse `b075001c` only for unchanged
-`initial.rs`, and `78be4b89` only for its four unchanged Rust copies. Keep both
-original formatter records; claim no combined formatter union. Current one-file
-formatter, tests, lint and retry are UNRUN; final tree, commit and outcomes are NULL.
+The unchanged Source inventory is 1803 files, 13 owned paths, four new paths,
+two production paths and 98 cumulative paths. M88/M89 retain seven declarations
+each: 14 unique H14/R14 controls, overlap 14, zero Python, finite47/CLI21.
+These are obligations, not qualification or renderer pass counts. Original
+five-file formatter `1457f0ed` is retained only for four unchanged Rust copies;
+the affected `primitive_runtime_spawn.rs` needs its own formatter after complete
+Source review. Keep those custody scopes separate. Current correction formatter,
+full retry, local DATA and hosted/official outcomes remain UNRUN/NULL; final
+correction tree and qualified commit remain NULL. Every mandatory gate stays.
 
-The genuine parent is M85 `22cffebd`, tree `bf830127`, parent M84 `ba2d85ee`,
-own-qualified but unaccepted. Its corrected normal/DATA proved Scene 15/15 in
-both profiles; the first 14/15 failure stays preserved. Own hosted run
-44883777137 attempt 1 passed, original collection returned zero with 30
-reaped-zero requests, and independent official DATA passed (`300b40da` /
-`bab7fc31`). Four original RAW groups 442/734/57/168 were compared once; nine
-strict bases and the actual zero CI base were qualified. M84 also completed its
-own qualification. No result or acceptance transfers to this shared successor.
+Parent M86/M87 normal `96573b2a` and retained DATA `702d2379`/`ad37db12` passed;
+ordinary review publication `d405b70b` remains exact. Hosted simulator
+44898011406 attempt 1 genuinely succeeded (`65522db1`). Parent original
+collection/official DATA remain pending at this Source checkpoint. Preserve its
+two failed candidates and distinct triple formatter history; no parent result
+or acceptance qualifies this correction. M85/M84 completed their own qualification
+and remain unaccepted. Accepted phases/slices stay 76/202, catalog89, and Latest
+M70 retains its original 41-example package.
 
-All original own, predecessor, M77 browser and owner-confirmed shutdown gates
-remain mandatory. Keep no-expiry demo 86363 live; no stop or restart is selected.
-Accepted phases/slices stay 76/202, catalog 87, finite/CLI 47/21 and Latest M70's
-original 41-example package unchanged. Preserve Fuel, both failed candidates
-and all historical evidence. DART/MuJoCo stay retired. Root alone releases serial
-heavy operations. The proposed next development wave remains unselected.
+Package owns the one failing test function; Scope owns only these eight current
+documents. Whole correction review precedes one affected formatter and a complete
+mandatory retry, independent local DATA, ordinary review publication and exact
+hosted/official qualification. No per-edit checks or threshold changes. M77
+browser evidence and owner-confirmed shutdown still gate acceptance/Main/release.
+Keep no-expiry demo 86363 and its ports live, preserve Fuel and frozen trees;
+DART/MuJoCo remain retired. No next phase or runtime-compound scope is selected.
 
 ## Historical M80 first-Source checkpoint
 
