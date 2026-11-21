@@ -576,7 +576,6 @@ fn compound_controller_closed_domains_and_binding_faults_preserve_pending_physic
     let valid = world(&source);
     for bad in [
         valid.replace("<pose>0 0 4 0 0 0</pose>", "<pose>0 0 4 0.1 0 0</pose>"),
-        valid.replace("<xyz>0 0 1</xyz>", "<xyz>1 0 0</xyz>"),
         valid.replace("<effort>100</effort>", "<effort>0</effort>"),
         valid.replace("<velocity>4</velocity>", "<velocity>0</velocity>"),
         valid.replace("<parent>world</parent>", "<parent>child</parent>"),
@@ -613,6 +612,107 @@ fn compound_controller_closed_domains_and_binding_faults_preserve_pending_physic
                 PhysicsEngine::Rapier
             )
             .is_err()
+        );
+    }
+    // The identical former +X refusal is now a controlled native chain. Keep
+    // its geometry, mass, frames and plugin inputs; derive the moved frames
+    // from measured coordinates rather than an ideal motor target.
+    let positive_x = valid.replace("<xyz>0 0 1</xyz>", "<xyz>1 0 0</xyz>");
+    assert_ne!(positive_x, valid);
+    let mut driven = load(&positive_x);
+    let mut equivalent = load(&positive_x);
+    let mut quiet = load(&positive_x);
+    let initial_quiet = bodies(&quiet);
+    for sim in [&mut driven, &mut equivalent] {
+        let before = bodies(sim);
+        for (joint, target) in [("root", 0.5), ("tip", 0.25)] {
+            assert!(joint_controller_binding_matches(
+                sim,
+                id(sim, &format!("w::arm::{joint}"))
+            ));
+            command(sim, "arm", joint, target);
+        }
+        assert_eq!(bodies(sim), before);
+    }
+    // A repeated latest command before stepping has the same input effect.
+    command(&mut equivalent, "arm", "root", 0.5);
+    command(&mut equivalent, "arm", "tip", 0.25);
+    for sim in [&mut driven, &mut equivalent, &mut quiet] {
+        sim.step_exact(1000).unwrap();
+    }
+    assert_eq!(bodies(&driven), bodies(&equivalent));
+    for (key, before) in initial_quiet {
+        let after = bodies(&quiet)[&key];
+        vector(after.position, before.position);
+        vector(after.velocity, [0.; 3]);
+        vector(after.angular_velocity, [0.; 3]);
+    }
+    let root = state(&driven, "arm", "root").position;
+    let tip = state(&driven, "arm", "tip").position;
+    assert!(
+        root.is_finite() && tip.is_finite() && root > 0.01 && tip > 0.01,
+        "root={root}, tip={tip}"
+    );
+    near(state(&quiet, "arm", "root").position, 0.);
+    near(state(&quiet, "arm", "tip").position, 0.);
+    let root_q = DQuat::from_rotation_x(root);
+    for (link, expected_position, expected_q) in [
+        ("base", DVec3::ZERO, root_q),
+        (
+            "child",
+            root_q * DVec3::new(0., 0., 4.),
+            root_q * DQuat::from_rotation_x(tip),
+        ),
+    ] {
+        let name = format!("w::arm::{link}");
+        let pose = *driven
+            .world()
+            .get::<WorldPose>(named(&driven, &name))
+            .unwrap();
+        let native = driven
+            .world()
+            .resource::<PhysicsBackend>()
+            .state(body(&driven, &name))
+            .unwrap();
+        vector(pose.translation, expected_position.to_array());
+        vector(native.position, expected_position.to_array());
+        for axis in [DVec3::X, DVec3::Y, DVec3::Z] {
+            vector(
+                (DQuat::from_array(pose.rotation) * axis).to_array(),
+                (expected_q * axis).to_array(),
+            );
+            vector(
+                (DQuat::from_array(native.orientation) * axis).to_array(),
+                (expected_q * axis).to_array(),
+            );
+        }
+        let center = expected_position + expected_q * DVec3::new(2., 0., 0.);
+        let collision = *driven
+            .world()
+            .get::<WorldPose>(named(&driven, &format!("{name}::c0")))
+            .unwrap();
+        vector(collision.translation, center.to_array());
+        let shape_q = expected_q * DQuat::from_rotation_z(0.3);
+        for axis in [DVec3::X, DVec3::Y, DVec3::Z] {
+            vector(
+                (DQuat::from_array(collision.rotation) * axis).to_array(),
+                (shape_q * axis).to_array(),
+            );
+        }
+        let origin = center + shape_q * DVec3::X * 2.;
+        let direction = shape_q * -DVec3::X;
+        near(query(&driven, origin, direction, 100., None).unwrap(), 1.5);
+        let other = body(
+            &driven,
+            if link == "base" {
+                "w::arm::child"
+            } else {
+                "w::arm::base"
+            },
+        );
+        near(
+            query(&driven, origin, direction, 100., Some(other)).unwrap(),
+            1.5,
         );
     }
     assert!(

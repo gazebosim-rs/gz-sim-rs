@@ -1,85 +1,93 @@
-## Current development: M92/M93 physical-control correction
+## Current development: M94 runtime compound retemplating / M95 principal-axis controllers
 
-Read [M92](M92_DELIVERY.md) and [M93](M93_DELIVERY.md) for the closed feature contracts.
-The first full normal failed with Root/Git 1 after 1,607.763467844 seconds:
-1,965 headless passes, two failures and two ignored cases across 192 summaries.
-Fifteen of seventeen new controls passed in headless only. Renderer and strict
-coverage were not reached. No qualified commit exists. Failure `005bf028`, frozen
-tree `6b82b5e3` and its packet/ref remain intact; resource, signal and finalization
-guards held. Earlier Source reviews did not catch the two invalid physical
-premises. No failed-tree observation qualifies the corrected candidate.
+Read [M94](M94_DELIVERY.md) and [M95](M95_DELIVERY.md) for the selected closed contracts,
+exact leases and acceptance oracles. Root dispatched the two Source lanes under
+D31 after genuine parent local qualification. Each has at most five working days,
+including independent review and mandatory verification. Implementation,
+regression Source and reciprocal/joined whole-code reviews are complete and CLEAR.
+Root's joined inventory `7dc0387b` records 1,815 Source files, 13 owned paths,
+four new files, two production paths and 111 cumulative paths versus accepted
+Main. These are Source counts. Final tree, qualified commit and all own execution
+results remain unknown; no formatter, test, lint, audit or normal has run for
+this wave. External final eight-doc review is pending at this freeze.
 
-Root selected two test-only repairs after the complete independent diagnosis.
-M92 retains the original mixed force/torque, pause, strict linear response and
-complete density twins. Default finite-step gyroscopic coupling invalidates the
-old simultaneous ideal angular vector. Three separate world-principal-axis
-controls restore both twins to the same stationary ModelState and retain the
-`1e-11` angular and linear bounds; the mixed response stays finite with positive
-`torque dot angular_velocity`. Both corrective test cases are authored and independently Source-reviewed:
-M92 `63716999` and M93 `dbf52c78`. Reciprocal, Scope and Root reviews are CLEAR.
-The M93 review also caught a named-field WorldPose access error before execution;
-its exact `.0` removal is independently closed, with LocalPose's wrapper intact.
-Root and Package independently review this final eight-doc completion checkpoint.
+M94 lets an existing valid passive owned runtime compound seed another requested
+2–16-member compound template. Keep full actual-source model_state/immutable
+membership validation before route choice, actual VelocityControl-owner veto,
+caller-resolved copied parameters, N+3 model/link/C0/visual/C1.. identities and
+visual ID model+3. The actual-runtime-compound to singleton or mesh DOM route
+stays refused. Existing singleton/posed/mesh/loaded-compound policies, fixed-four
+singleton helpers, APIs and reset paths remain unchanged. No new provenance or
+claim that caller parameters equal original geometry is selected.
 
-M93 preserves the original Cylinder rim fixtures, all three commands, 1,000-step
-windows, forward/reverse native and odometry bounds greater than .01, and quiet
-and suspended controls. The original pure-turn result is a finite contact
-observation; its contact cause and masked later assertions remain unknown.
-A separate Sphere rim radius .2 with a strictly interior Cylinder hub must prove
-physical turning using the unchanged greater-than-.01 native yaw, odometry and
-opposed-encoder witnesses for 2/4/16 members. Do not tune gains, width, tolerances,
-solver or horizons to the failed measurement. Keep the independent all-child
-query matrix, strict geometry and every other fifteen new case body unchanged.
+M95 admits exactly parsed-DOM positive Cartesian +X/+Y/+Z directions independently
+in the existing two-link/two-Revolute JointController chain. Pinned SDF parsing
+normalizes lexical axis magnitudes: scaled positive X/Y are equivalent unit
+directions, not new refusals. Keep identity LINK rotations,
+existing joint frames, empty expressed_in, one world root, canonical topology,
+centered inertia, existing position/velocity modes and eight-owner/sixteen-input
+bounds. Negative/nonprincipal axes, axis2 and every other closed domain stay
+refused. Reuse resolved native axes and scalar motor/state/reset paths; no solver,
+gain, runtime-controller or public API change. Derive independent noncommuting
+pivot/rotation witnesses from measured native coordinates, not ideal motor speed.
 
-The unchanged census is 1,811 Source files, 15 owned paths, four new files,
-two production paths and 106 cumulative paths versus accepted Main. M92's eight
-and M93's nine Rust identities remain seventeen headless/seventeen overlapping
-renderer declarations and zero Python, with finite examples 47 and CLI cases 21.
-Production behavior and the three retained-row files are unchanged by this
-correction. Current two-file formatting and the full retry are UNRUN; corrected
-final tree, qualified commit and execution outcomes remain unknown. The original
-seven-file formatter `12ccb626` is reused only for five unchanged Rust copies;
-the two corrected new-test leaves require their own formatter. These are
-separate custody records, with no synthetic union or qualification transfer.
+Package owns only world_spawn.rs and a new runtime-compound retemplate test file.
+Server owns only joint_controller/config.rs and a new principal-axis test file.
+Root alone owns one retained +X XML refusal row in compound_joint_controllers.rs;
+its completed same-XML positive has real binding/native/frame/query/control
+witnesses. Package, Server, Scope and Root whole-code reviews are CLEAR. Keep the
+old runtime-compound singleton-DOM negative, private -Z/expressed_in negatives,
+every neighboring assertion and case identity. Final doc review, one affected
+formatter and one consolidated mandatory verification cycle remain next.
 
-Both original feature contracts stay closed: M92 copies local posed primitive
-collisions through existing passive singleton runtime APIs; valid loaded and
-owned-runtime-singleton routes remain, actual runtime compounds stay refused,
-and the actual VelocityControl veto applies only to the new posed branch.
-Identity/mesh caller-DOM policies, four nodes, visual ID model+3, Box/Sphere/Mesh
-visuals and world_edit/reset APIs stay exact. M93 admits compounds only on
-canonical/configured wheel links through the existing validated DiffDrive graph.
-All link/joint/COM/topology/radius/separation/command/motor/odometry bounds remain.
-No Physics, Server, public API, visual, TPE or native-campaign expansion.
+There are 17 unique new Rust controls declared in both profiles (overlap 17),
+with zero Python controls: M94 has eight public cases plus the inline private
+`world_spawn::runtime_compound_tests::runtime_compound_retemplate_requires_both_original_stamps_and_keeps_pending_input`;
+M95 has eight public cases. Sixteen public plus one private controls are authored
+obligations, not measured passes. No new finite examples or CLI cases are added.
 
-The unaccepted parent is `e264c6494d69ccacf41e0b21ddf3827d1f12cd40`, tree
-`19187aea`, parent `1e54399a`. Its normal `1e23ed5a`, local DATA `9948aa52` /
-report `59a9b368`, ordinary review publication `a3324402` and hosted CI
-44925640602 attempt 1 passed. Hosted receipt `6f169244` and original evidence
-collection `08d22772` / `3e53233e` record 33 successful requests and three durable
-original ZIPs. Its official audit remains pending; no acceptance or descendant
-qualification transfers. Keep parent failures `f9d43298` and `fc5dce53` and its
-distinct three/one/four formatter roles, separate from this own failure.
+The actual locally qualified, unaccepted parent is
+`cc83ca4a62773edb80b05992fa67a03ff1dad134`, tree `1dc85433`, parent `e264c649`.
+Normal `4a1c59a7` and independent local DATA `e33975e1` / report `59113b30`
+returned zero: H1967/R1503 with two ignored each, 494 Python, all seventeen own
+controls in both profiles and thirteen strict bases. Review publication
+`6b16995f` passed on `review/m92-m93-posed-runtime-compound-wheels`.
+Exact automatic CI 44939453527 attempt 1 is in progress under Root's sole watcher
+12097 (`f59b22`); hosted outcome and official DATA remain unknown.
 
-The proposed next-run reserve is 36 GiB, subject to independent Source review
-and fresh actual capacity. It preserves the mandatory 14 GiB initial reserve,
-8 GiB early stop, other host floors, ledger and final guards. The prior sampled
-M90 decrease of 27,453,267,968 bytes leaves about 10.43 GiB from an exact 36 GiB
-start; this historical arithmetic is neither a peak-allocation estimate nor a
-future guarantee. No eviction or extra product job is authorized.
+Preserve parent failure `005bf028` and its original seven-file formatter used
+only for five unchanged Rust copies, with the separate current two-file formatter
+`1ffb0cfd`. Keep M90/M91's inherited failures `f9d43298` / `fc5dce53` and distinct
+three/one/four formatter custody. M90/M91 own qualification completed unaccepted;
+none of these results or formatter records qualifies M94/M95 or transfers acceptance.
 
-Complete final independent documentation review after the batched Source fixes,
-then one affected two-file formatter and the required full consolidated
-normal/staged-hook/strict workspace, per-crate, actual-parent and retained-
-ancestor line/region coverage cycle. Every gate remains strictly greater than
-95 percent. Independent local DATA, review publication, hosted CI and official
-DATA remain mandatory, along with every predecessor and M77 browser, owner-
-shutdown and release criterion. No per-edit checks or trial runs.
+The independently reviewed resource proposal `cd0787da` is conditional Source
+work. Only the next fresh ordinary Cargo target may use executable `/dev/shm`;
+profile, runtime/native-free/RGB targets, TMPDIR and evidence packets stay on SSD.
+The proposed run-specific initial SSD reserve is 31 GiB, with mandatory initial
+14 GiB and early-stop 8 GiB unchanged. Add initial SHM 22 GiB and early-stop SHM
+4 GiB, preserving mandatory SHM 1 GiB, MemAvailable 8 GiB and existing runtime
+floors. The prior sampled SSD decrease and final ordinary allocation support
+conditional arithmetic only, not peak attribution or a fit guarantee. Release
+must resample all floors and mount flags, require a fresh absent nonsymlink owned
+0700 target, retain its identity/locator on every outcome, and preserve every
+normal/strict/native/profile/ledger guard. No directory, executor or release is
+created here; no eviction, cache relocation or existing-evidence change is allowed.
 
-Preserve the first 91 phase objects, prior 53 groups and all historical evidence.
-Accepted phases/slices remain 76/202, catalog 93 and Latest M70's original
-41-example package. No-expiry demo 86363 stays live; no stop or restart. Preserve
-Fuel and frozen trees. Rapier f64 and TPE remain; DART/MuJoCo stay retired.
+Bounded code and meaningful regressions have completed whole Source review;
+finish external final-doc review and batch every finding before one affected formatter and one consolidated
+full normal/staged-hook/strict workspace, per-crate, actual-parent and retained-
+ancestor line/region cycle. Keep every production gate strictly greater than
+95 percent. Independent local DATA, ordinary review publication, exact hosted
+CI and official DATA remain mandatory, with all predecessor and original M77
+browser/owner-shutdown/release criteria. No per-edit tests, lint or trial runs.
+
+Preserve all first 93 phase objects and prior 54 groups as exact historical
+observations. Accepted phases/slices stay 76/202; catalog becomes 95, finite
+examples 47, CLI cases 21 and Latest M70's original 41-example package unchanged.
+Keep no-expiry demo 86363 live: no stop, restart or new expiry. Rapier f64 and TPE
+remain; DART/MuJoCo stay retired. No unrelated backend, sensor, renderer/browser,
+Physics, Server, protocol, framework, packaging or native-reference campaign.
 
 
 ## Historical M80 first-Source task

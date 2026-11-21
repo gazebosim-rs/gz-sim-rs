@@ -13,8 +13,8 @@ enum Collider {
     },
 }
 
-/// An immutable copy of one admitted loaded model's construction parameters.
-/// Prepare at startup from the same resolved SDF used to construct the scene.
+/// An immutable copy of an admitted model's caller-resolved construction parameters.
+/// Preparation resolves copied parameters against the caller's SDF graph.
 /// The source visual ID binds the CLI's immutable resource alias; browser requests
 /// never supply a path, URI, model name, collision shape or inertial parameter.
 pub struct ModelTemplate {
@@ -365,10 +365,10 @@ pub(super) fn reset_nodes(
     Ok(result)
 }
 
-/// Prepare a clone template for a loaded, standalone one-link/one-collision/
-/// one-visual singleton or passive primitive-compound model. Existing Scene and
+/// Prepare a clone template for an admitted standalone one-link/one-visual
+/// singleton or passive loaded/owned-runtime primitive-compound model. Scene and
 /// native admission remain authoritative; supplied resolved SDF parameters are
-/// copied, not asserted equal to the loaded body's geometry/inertia.
+/// copied, not asserted equal to the actual body's geometry/inertia.
 /// This function is read-only but may decode a declared local glTF collision.
 pub fn prepare_model_template(
     sim: &Simulation,
@@ -387,11 +387,9 @@ pub fn prepare_model_template(
         .ok_or_else(unsupported)?;
     let model_id = root.get::<EntityId>().ok_or_else(unsupported)?.get();
     super::world_edit::model_state(sim, model_id)?;
-    // A runtime compound is not a loaded template source, even when a caller
-    // supplies a different, resolvable singleton DOM for the same public name.
-    if original_runtime_compound(world, model_id) {
-        return Err(unsupported());
-    }
+    // model_state already validated the actual immutable runtime membership.
+    // Caller collision count chooses copied parameters, never source ownership.
+    let runtime_compound = original_runtime_compound(world, model_id);
     if model.links.len() != 1
         || !model.joints.is_empty()
         || !model.models.is_empty()
@@ -401,6 +399,11 @@ pub fn prepare_model_template(
     }
     let link = &model.links[0];
     let compound = (2..=16).contains(&link.collisions.len());
+    // Retemplating a runtime compound is limited to the compound route. Keep
+    // its resolving singleton/mesh DOM refusal independent of caller geometry.
+    if runtime_compound && !compound {
+        return Err(unsupported());
+    }
     if (link.collisions.len() != 1 && !compound)
         || link.visuals.len() != 1
         || !link.sensors.is_empty()
@@ -409,7 +412,7 @@ pub fn prepare_model_template(
         return Err(unsupported());
     }
     if compound
-        && (!initial::original_compound_model(world, model_id)
+        && (!(initial::original_compound_model(world, model_id) || runtime_compound)
             || crate::velocity_control::owns_model(world, model_id))
     {
         return Err(unsupported());
@@ -1109,6 +1112,109 @@ mod runtime_compound_tests {
         assert!(
             (velocity[0] - 0.002).abs() < 1e-11,
             "pending wrench was lost: {velocity:?}"
+        );
+    }
+
+    #[test]
+    fn runtime_compound_retemplate_requires_both_original_stamps_and_keeps_pending_input() {
+        let xml = "<sdf version='1.12'><world name='w'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.001</max_step_size></physics><model name='source'><pose>-100 0 10 0 0 0</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>2</ixx><iyy>3</iyy><izz>4</izz></inertia></inertial><collision name='a'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision><collision name='b'><pose>4 0 0 0 0 0</pose><geometry><box><size>1 1 1</size></box></geometry></collision><visual name='view'><geometry><box><size>1 1 1</size></box></geometry></visual></link></model></world></sdf>";
+        let sdf = sdformat::load_str(xml, "stamp-retemplate", &sdformat::NoResources).unwrap();
+        let mut sim = load_world_with_sdf_step(
+            xml,
+            "stamp-retemplate",
+            "w",
+            &sdformat::NoResources,
+            PhysicsEngine::Rapier,
+        )
+        .unwrap();
+        let template = prepare_model_template(&sim, &sdf, &sdf.worlds[0].models[0]).unwrap();
+        let id = spawn_model_template(
+            &mut sim,
+            &template,
+            WorldPose {
+                translation: [10., 0., 10.],
+                rotation: [0., 0., 0., 1.],
+            },
+        )
+        .unwrap();
+        let runtime_xml = format!(
+            "<sdf version='1.12'><world name='w'><model name='runtime_{id}'><link name='body'><collision name='a'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision><collision name='b'><pose>4 0 0 0 0 0</pose><geometry><box><size>1 1 1</size></box></geometry></collision><visual name='visual'><geometry><box><size>1 1 1</size></box></geometry></visual></link></model></world></sdf>"
+        );
+        let requested =
+            sdformat::load_str(&runtime_xml, "runtime-stamp", &sdformat::NoResources).unwrap();
+        prepare_model_template(&sim, &requested, &requested.worlds[0].models[0]).unwrap();
+        let model = entity_by_id(sim.world(), id).unwrap();
+        let link = entity_by_id(sim.world(), id + 1).unwrap();
+        let handle = sim.world().get::<BodyHandle>(link).unwrap().id();
+        queue_link_world_wrench(&mut sim, id + 1, [4., 0., 0.], [0.; 3]).unwrap();
+        let observe = |sim: &Simulation| {
+            let mut pairs: Vec<_> = sim
+                .world()
+                .iter_entities()
+                .filter_map(|e| e.get::<EntityId>().map(|v| (v.get(), e.id())))
+                .collect();
+            pairs.sort_unstable();
+            let mut bodies: Vec<_> = sim
+                .world()
+                .iter_entities()
+                .filter_map(|e| {
+                    e.get::<BodyHandle>().map(|v| {
+                        (
+                            v.id(),
+                            sim.world().resource::<PhysicsBackend>().state(v.id()),
+                        )
+                    })
+                })
+                .collect();
+            bodies.sort_by_key(|v| v.0);
+            (
+                pairs,
+                bodies,
+                next_entity_id(sim.world()).unwrap(),
+                sim.world().iter_entities().count(),
+                sim.epoch(),
+                sim.elapsed(),
+            )
+        };
+        let before = observe(&sim);
+        for row in 0..2 {
+            let origin = if row == 0 {
+                sim.world_mut()
+                    .entity_mut(model)
+                    .take::<RuntimeCompoundOrigin>()
+            } else {
+                None
+            };
+            let owner = if row == 1 {
+                sim.world_mut()
+                    .entity_mut(link)
+                    .take::<RuntimeCompoundLink>()
+            } else {
+                None
+            };
+            assert!(original_runtime_compound(sim.world(), id));
+            assert!(matches!(
+                prepare_model_template(&sim, &requested, &requested.worlds[0].models[0]),
+                Err(WorldEditError::UnsupportedModel)
+            ));
+            assert_eq!(observe(&sim), before);
+            if let Some(value) = origin {
+                sim.world_mut().entity_mut(model).insert(value);
+            }
+            if let Some(value) = owner {
+                sim.world_mut().entity_mut(link).insert(value);
+            }
+            prepare_model_template(&sim, &requested, &requested.worlds[0].models[0]).unwrap();
+        }
+        sim.step_exact(1).unwrap();
+        let actual = sim
+            .world()
+            .resource::<PhysicsBackend>()
+            .state(handle)
+            .unwrap();
+        assert!(
+            (actual.velocity[0] - 0.002).abs() < 1e-11,
+            "pending wrench lost: {actual:?}"
         );
     }
 }
