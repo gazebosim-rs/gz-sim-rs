@@ -502,10 +502,41 @@ fn runtime_primitive_template_refusals_and_foreign_worlds_stay_atomic() {
         let extra_collision = "<collision name='extra'><pose>3 0 0 0 0 0</pose><geometry><sphere><radius>0.5</radius></sphere></geometry></collision>";
         let imu = "<sensor name='imu' type='imu'><always_on>true</always_on><update_rate>100</update_rate></sensor>";
         let hinge = "<joint name='hinge' type='revolute'><parent>world</parent><child>body</child><axis><xyz>0 0 1</xyz></axis></joint>";
+        // Preserve the old extra-collision input as a positive compound witness.
+        let compound = base.replacen(VISUAL, &format!("{extra_collision}{VISUAL}"), 1);
+        assert_ne!(compound, base);
+        let compound_sdf = sdformat::load_str(&compound, "compound", &NoResources).unwrap();
+        let mut scene = load(&compound);
+        let source_ids = identities(&scene);
+        let source_states = states(&scene);
+        let first = next_entity_id(scene.world()).unwrap();
+        let compound_template =
+            prepare_model_template(&scene, &compound_sdf, &compound_sdf.worlds[0].models[0])
+                .unwrap();
+        let clone = spawn_model_template(
+            &mut scene,
+            &compound_template,
+            pose([0., 0., 30.], [0., 0., 0., 1.]),
+        )
+        .unwrap();
+        assert_eq!(clone, first);
+        assert_eq!(next_entity_id(scene.world()).unwrap(), first + 5);
+        assert_eq!(identities(&scene).len(), source_ids.len() + 5);
+        let handle = spawned_body(&scene, clone);
+        // The original cylinder/capsule is centered at x=0; the sphere at x=3
+        // alone intersects this segment. Loaded source/survivor are far away.
+        near(
+            ray(&scene, [3., 0., 32.], [0., 0., -1.], 2.1, None).unwrap(),
+            1.5,
+        );
+        assert!(ray(&scene, [3., 0., 32.], [0., 0., -1.], 2.1, Some(handle)).is_none());
+        remove_model(&mut scene, clone).unwrap();
+        assert_eq!(identities(&scene), source_ids);
+        assert_eq!(states(&scene), source_states);
+        assert_eq!(scene.elapsed(), Duration::ZERO);
         for closed in [
             base.replacen("<collision name='solid'>","<collision name='solid'><pose>0.25 0 0 0 0 0</pose>",1),
             base.replacen("<collision name='solid'>","<collision name='solid'><pose>0 0 0 0 0 0.3</pose>",1),
-            base.replacen(VISUAL,&format!("{extra_collision}{VISUAL}"),1),
             base.replacen(VISUAL,&format!("{VISUAL}{imu}"),1),
             base.replacen("<link name='body'>",&format!("{CONTROL}<link name='body'>"),1),
             base.replacen("</link></model>",&format!("</link>{hinge}</model>"),1),

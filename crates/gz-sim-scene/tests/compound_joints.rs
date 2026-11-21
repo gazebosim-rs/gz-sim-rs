@@ -6,11 +6,12 @@ use glam::{DQuat, DVec3, EulerRot};
 use gz_physics::{BodyId, BodySpec, BodyState, PhysicsBackend, PhysicsError, RotationSpec, Shape};
 use gz_sim_core::{EntityId, Simulation, assign_id, entity_by_id, next_entity_id};
 use gz_sim_scene::{
-    BodyHandle, InputError, JointControllerConfiguration, JointControllerMode, JointHandle,
-    JointSample, LoadError, LocalPose, ModelState, Name, PhysicsEngine, RemoveError,
-    WorldEditError, WorldPose, joint_controller_binding_matches, load_world_with_sdf_step,
-    model_state, queue_joint_effort, queue_link_world_velocity, queue_link_world_wrench,
-    remove_model, reset_loaded_world, set_joint_controller_command, set_model_state,
+    BodyHandle, DiffDriveSample, InputError, JointControllerConfiguration, JointControllerMode,
+    JointHandle, JointSample, LoadError, LocalPose, ModelState, Name, PhysicsEngine, RemoveError,
+    WorldEditError, WorldPose, diff_drive_binding_matches, joint_controller_binding_matches,
+    load_world_with_sdf_step, model_state, queue_joint_effort, queue_link_world_velocity,
+    queue_link_world_wrench, remove_model, reset_loaded_world, set_diff_drive_command,
+    set_joint_controller_command, set_model_state,
 };
 use sdformat::NoResources;
 use std::collections::BTreeMap;
@@ -775,6 +776,72 @@ fn compound_joint_chains_do_not_expand_joint_controllers_diff_drive_or_velocity_
             // The other bars stay below this sphere's top; ground is beyond 2.1.
             close(cast(&sim, center + DVec3::Z * 2., -DVec3::Z, 2.1, None).unwrap(), 1.75, 1e-11);
             assert!(cast(&sim, center + DVec3::Z * 2., -DVec3::Z, 2.1, Some(body(&sim, link))).is_none());
+        } else if row == 2 {
+            // Only the canonical M8 chassis row widens; both wheels stay singleton.
+            let mut sim = load(&compound, PhysicsEngine::Rapier).unwrap();
+            let mut quiet = load(&compound, PhysicsEngine::Rapier).unwrap();
+            let robot = id(&sim, "default::robot");
+            assert!(diff_drive_binding_matches(&sim, robot));
+            let chassis = "default::robot::base_link";
+            let frame = pose(&sim, chassis);
+            let center = DVec3::from_array(frame.translation) + DQuat::from_array(frame.rotation) * DVec3::X * 2.;
+            near(pose(&sim, "default::robot::base_link::m87_extra").translation, center.to_array(), 1e-11);
+            // Initial chassis/wheels lie around x=0, more than 1.5m from the
+            // ray. Ground top z=0 is 2.2m below its origin, beyond max2.1.
+            close(cast(&sim, center + DVec3::Z * 2., -DVec3::Z, 2.1, None).unwrap(), 1.75, 1e-11);
+            assert!(cast(&sim, center + DVec3::Z * 2., -DVec3::Z, 2.1, Some(body(&sim, chassis))).is_none());
+            let joints = ["default::robot::left_wheel_joint", "default::robot::right_wheel_joint"];
+            let measured = |sim: &Simulation| joints.map(|name| {
+                let handle = sim.world().get::<JointHandle>(named(sim, name)).unwrap();
+                sim.world().resource::<PhysicsBackend>().joint_state(handle.id()).unwrap()
+            });
+            let before = measured(&sim);
+            let body_before = state(&sim, chassis);
+            let quiet_before = measured(&quiet);
+            assert_eq!(before, quiet_before);
+            assert_eq!(body_before, state(&quiet, chassis));
+            set_diff_drive_command(&mut sim, robot, 0.4, 0.).unwrap();
+            assert_eq!(measured(&sim), before);
+            assert_eq!(state(&sim, chassis), body_before);
+            assert_eq!(sim.elapsed(), Duration::ZERO);
+            // The retained drive horizon is one second, measured by real joints.
+            sim.step_exact(1000).unwrap();
+            quiet.step_exact(1000).unwrap();
+            assert_ne!(measured(&sim), before);
+            let mut encoder_separation = 0.;
+            for (((actual, initial), control), control_initial) in measured(&sim).into_iter().zip(before).zip(measured(&quiet)).zip(quiet_before) {
+                assert!(actual.position.is_finite() && actual.velocity.is_finite());
+                assert!(control.position.is_finite() && control.velocity.is_finite());
+                // Soft finite-force motors do not promise target-speed convergence.
+                // Compare actual encoder response against the same settling fixture.
+                let separation = (actual.position - initial.position) - (control.position - control_initial.position);
+                assert!(separation > 0., "commanded encoder separation: {separation}");
+                encoder_separation += separation;
+            }
+            // Existing M8's positive .01m encoder-travel witness, not body distance.
+            assert!(0.2 * encoder_separation / 2. > 0.01);
+            let sample = sim.world().get::<DiffDriveSample>(named(&sim, "default::robot")).unwrap();
+            assert_eq!((sample.time, sample.epoch), (Duration::from_secs(1), 0));
+            assert!(sample.pose.into_iter().chain(sample.twist).all(f64::is_finite));
+            assert!(sample.pose[0] > 0.01);
+            let moved = state(&sim, chassis);
+            let quiet_moved = state(&quiet, chassis);
+            assert!(moved.position.into_iter().chain(moved.orientation).all(f64::is_finite));
+            assert!(quiet_moved.position.into_iter().chain(quiet_moved.orientation).all(f64::is_finite));
+            assert!((moved.position, moved.orientation) != (body_before.position, body_before.orientation));
+            let translation_separation = (DVec3::from_array(moved.position) - DVec3::from_array(quiet_moved.position)).abs().max_element();
+            let driven_q = DQuat::from_array(moved.orientation);
+            let quiet_q = DQuat::from_array(quiet_moved.orientation);
+            // Basis vectors make the comparison invariant to quaternion sign.
+            let rotation_separation = [DVec3::X, DVec3::Y, DVec3::Z].into_iter().map(|axis| (driven_q * axis - quiet_q * axis).abs().max_element()).fold(0_f64, f64::max);
+            assert!(translation_separation > 1e-7 || rotation_separation > 1e-7,
+                "no driven/quiet chassis separation: translation={translation_separation}, rotation={rotation_separation}");
+            let moved_center = DVec3::from_array(moved.position) + DQuat::from_array(moved.orientation) * DVec3::X * 2.;
+            near(pose(&sim, "default::robot::base_link::m87_extra").translation, moved_center.to_array(), 1e-10);
+            // This inherited extra sphere initially penetrates ground by .05;
+            // body settling is not attributed solely to motor traction here.
+            // Dedicated M91 cases compare ground, quiet and suspended controls.
+            assert!(diff_drive_binding_matches(&sim, robot));
         } else {
             assert!(matches!(
                 load(&compound, PhysicsEngine::Rapier),

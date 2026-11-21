@@ -318,10 +318,40 @@ fn compound_state_static_anchor_both_resets_removal_and_spawn_boundary_remain_ow
         let original = model_state(&sim, rig).unwrap();
         let saved_ids: Vec<_> = ids(&sim).keys().copied().collect();
         let parsed = sdformat::load_str(&text, "compound-template", &NoResources).unwrap();
-        assert!(matches!(
-            prepare_model_template(&sim, &parsed, &parsed.worlds[0].models[0]),
-            Err(WorldEditError::UnsupportedModel)
-        ));
+        // The same loaded static/dynamic compound now supplies a passive template.
+        let template = prepare_model_template(&sim, &parsed, &parsed.worlds[0].models[0]).unwrap();
+        let clone = spawn_model_template(
+            &mut sim,
+            &template,
+            WorldPose {
+                translation: [200., 0., 20.],
+                rotation: [0., 0., 0., 1.],
+            },
+        )
+        .unwrap();
+        assert_eq!(ids(&sim).len(), saved_ids.len() + 7);
+        let clone_link = entity_by_id(sim.world(), clone + 1).unwrap();
+        let clone_body = sim.world().get::<BodyHandle>(clone_link).unwrap().id();
+        vector(native(&sim, clone_body).position, [200., 0., 20.]);
+        // C0 is a sphere at local x=-6. Every other child and loaded body is
+        // outside this vertical segment, including the cylinder at local x=-2.
+        near(
+            ray(&sim, [194., 0., 22.], [0., 0., -1.], 2.1, None).unwrap(),
+            1.5,
+        );
+        assert!(ray(&sim, [194., 0., 22.], [0., 0., -1.], 2.1, Some(clone_body)).is_none());
+        let source_visual = sim
+            .world()
+            .get::<VisualGeometry>(entity(&sim, "w::rig::body::view"))
+            .unwrap();
+        let clone_visual = sim
+            .world()
+            .get::<VisualGeometry>(entity_by_id(sim.world(), clone + 3).unwrap())
+            .unwrap();
+        assert!(Arc::ptr_eq(&source_visual.0, &clone_visual.0));
+        remove_model(&mut sim, clone).unwrap();
+        assert_eq!(ids(&sim).keys().copied().collect::<Vec<_>>(), saved_ids);
+        assert_eq!(model_state(&sim, rig).unwrap(), original);
         let mut request = target();
         if fixed {
             request.linear_velocity = [0.; 3];

@@ -54,10 +54,15 @@ fn binding(world: &World, id: u64) -> Result<Binding, WorldEditError> {
     {
         return Err(unsupported());
     }
-    let compound = initial::original_compound_model(world, id);
-    if compound && !initial::matches_compound_world_edit(world, id) {
+    let loaded_compound = initial::original_compound_model(world, id);
+    let runtime_compound =
+        !loaded_compound && super::world_spawn::original_runtime_compound(world, id);
+    if (loaded_compound && !initial::matches_compound_world_edit(world, id))
+        || (runtime_compound && super::world_spawn::compound_nodes(world, id).is_err())
+    {
         return Err(unsupported());
     }
+    let compound = loaded_compound || runtime_compound;
     let children = world.get::<Children>(model).ok_or_else(unsupported)?;
     if children.len() != 1 {
         return Err(unsupported());
@@ -147,9 +152,11 @@ fn binding(world: &World, id: u64) -> Result<Binding, WorldEditError> {
         .get();
     if entity_by_id(world, link_id) != Some(link)
         || !(initial::owns_loaded_body(world, link_id, body)
-            || world
-                .get::<super::world_spawn::RuntimeBodyOwner>(link)
-                .is_some_and(|owner| owner.matches(link_id, body)))
+            || (id.checked_add(1) == Some(link_id)
+                && world
+                    .get::<super::world_spawn::RuntimeBodyOwner>(link)
+                    .is_some_and(|owner| owner.matches(link_id, body)))
+            || runtime_compound)
     {
         return Err(WorldEditError::InvalidScene);
     }
