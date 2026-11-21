@@ -445,13 +445,52 @@ fn posed_cylinder_refusals_keep_tpe_compounds_com_and_other_pose_domains_closed(
             ..
         })
     ));
+    // M84 replaces only the old two-primitive row, at the same link origin.
+    let compound_xml = xml.replace("</link>", "<collision name='extra'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link>");
+    let compound = load(&compound_xml, PhysicsEngine::Rapier).unwrap();
+    distance(&compound, [1., 0., 9.], [0., 0., -1.], 2.5);
+    distance(&compound, [0., 0., 9.], [0., 0., -1.], 3.5);
+    near(
+        pose(&compound, "default::posed::body").translation,
+        [0., 0., 5.],
+    );
+    near(
+        pose(&compound, "default::posed::body::shape").translation,
+        [1., 0., 5.],
+    );
+    near(
+        pose(&compound, "default::posed::body::extra").translation,
+        [0., 0., 5.],
+    );
+    for (name, expected) in [
+        ("default::posed::body", [0., 0., 0., 1.]),
+        (
+            "default::posed::body::shape",
+            [0., 0., (0.1f64).sin(), (0.1f64).cos()],
+        ),
+        ("default::posed::body::extra", [0., 0., 0., 1.]),
+    ] {
+        for (actual, expected) in pose(&compound, name).rotation.into_iter().zip(expected) {
+            assert!((actual - expected).abs() < 1e-11);
+        }
+    }
     for (source, feature) in [
-        (xml.replace("</link>", "<collision name='extra'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link>"), "collision count (expected one)"),
-        (xml.replace("<inertial>", "<inertial><pose>0.1 0 0 0 0 0</pose>"), "offset center of mass"),
-        (xml.replace("</collision>", "<surface><friction><ode><mu>0.3</mu></ode></friction></surface></collision>"), "collision surface parameters"),
+        (
+            xml.replace("<inertial>", "<inertial><pose>0.1 0 0 0 0 0</pose>"),
+            "offset center of mass",
+        ),
+        (
+            xml.replace(
+                "</collision>",
+                "<surface><friction><ode><mu>0.3</mu></ode></friction></surface></collision>",
+            ),
+            "collision surface parameters",
+        ),
     ] {
         assert_ne!(source, xml);
-        assert!(matches!(load(&source, PhysicsEngine::Rapier), Err(LoadError::Unsupported { feature: actual, .. }) if actual==feature));
+        assert!(
+            matches!(load(&source, PhysicsEngine::Rapier), Err(LoadError::Unsupported { feature: actual, .. }) if actual==feature)
+        );
     }
     // M81 explicitly replaces only the old posed-capsule refusal. Use a
     // zero-rotation offset fixture and an independent hemispherical chord.

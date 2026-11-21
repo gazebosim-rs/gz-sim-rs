@@ -127,6 +127,17 @@ pub struct CollisionSpec {
     pub orientation: [f64; 4],
 }
 
+/// Two to sixteen primitive collisions sharing one link frame and body identity.
+/// Geometry is borrowed only during admission; the backend owns it for reset.
+/// `None` mass is fixed. Dynamic compounds require explicit link-centered inertia.
+#[derive(Debug, Clone, Copy)]
+pub struct CompoundBodySpec<'a> {
+    pub collisions: &'a [CollisionSpec],
+    pub position: [f64; 3],
+    pub velocity: [f64; 3],
+    pub mass: Option<f64>,
+}
+
 /// A link's inertial frame, relative to its body frame. Tensor order is xx,yy,zz,xy,xz,yz.
 #[derive(Debug, Clone, Copy)]
 pub struct Inertia {

@@ -1,7 +1,41 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
-use crate::Shape;
+use crate::{CollisionSpec, Shape};
+
+#[test]
+fn default_compound_refuses_before_count_numeric_or_allocation_validation() {
+    let mut backend = Recorder::default();
+    let children = [CollisionSpec {
+        shape: Shape::Sphere { radius: f64::NAN },
+        position: [f64::INFINITY; 3],
+        orientation: [0.0; 4],
+    }; 17];
+    for count in [0, 1, 2, 16, 17] {
+        assert_eq!(
+            backend.spawn_compound_link(
+                CompoundBodySpec {
+                    collisions: &children[..count],
+                    position: [f64::NAN; 3],
+                    velocity: [f64::INFINITY; 3],
+                    mass: Some(-1.0),
+                },
+                RotationSpec {
+                    orientation: [0.0; 4],
+                    angular_velocity: [f64::NAN; 3]
+                },
+                None
+            ),
+            Err(PhysicsError::Unsupported {
+                engine: "recorder",
+                capability: "primitive compound link collision"
+            })
+        );
+    }
+    assert!(backend.steps.is_empty());
+    assert_eq!(backend.resets, 0);
+    assert!(!backend.fail);
+}
 
 #[test]
 fn default_posed_sphere_refuses_before_numeric_admission_without_mutation() {

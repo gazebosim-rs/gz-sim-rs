@@ -3,8 +3,8 @@
 //! The contract implemented by the Rapier dynamic engine adapter.
 
 use crate::{
-    BodySpec, BodyState, Inertia, MeshBodySpec, PlaneSpec, PosedBoxBodySpec, PosedCapsuleBodySpec,
-    PosedCylinderBodySpec, PosedSphereBodySpec, RotationSpec,
+    BodySpec, BodyState, CompoundBodySpec, Inertia, MeshBodySpec, PlaneSpec, PosedBoxBodySpec,
+    PosedCapsuleBodySpec, PosedCylinderBodySpec, PosedSphereBodySpec, RotationSpec,
 };
 use bevy_ecs::prelude::*;
 use gz_sim_core::{Phase, Simulation, StepFault, UpdateInfo};
@@ -241,6 +241,22 @@ pub trait DynamicBackend: Send + Sync + 'static {
         Err(PhysicsError::Unsupported {
             engine: self.engine(),
             capability: "posed sphere link collision",
+        })
+    }
+
+    /// Constructs one body with two to sixteen link-local primitive children.
+    /// Dynamic Rapier compounds require explicit centered inertia; any supplied
+    /// static inertia must also be centered. Unsupported engines refuse before
+    /// count/numeric validation or allocation.
+    fn spawn_compound_link(
+        &mut self,
+        _spec: CompoundBodySpec<'_>,
+        _rotation: RotationSpec,
+        _inertia: Option<Inertia>,
+    ) -> Result<BodyId, PhysicsError> {
+        Err(PhysicsError::Unsupported {
+            engine: self.engine(),
+            capability: "primitive compound link collision",
         })
     }
 

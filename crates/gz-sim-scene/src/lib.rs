@@ -127,9 +127,9 @@ pub use initial::{
 use bevy_ecs::prelude::*;
 use glam::{DQuat, DVec3};
 use gz_physics::{
-    BodyId, BodySpec, CollisionSpec, Inertia, MeshBodySpec, PhysicsBackend, PhysicsError,
-    PhysicsReset, PlaneSpec, PosedBoxBodySpec, PosedCapsuleBodySpec, PosedCylinderBodySpec,
-    PosedSphereBodySpec, RotationSpec, Shape,
+    BodyId, BodySpec, CollisionSpec, CompoundBodySpec, Inertia, MeshBodySpec, PhysicsBackend,
+    PhysicsError, PhysicsReset, PlaneSpec, PosedBoxBodySpec, PosedCapsuleBodySpec,
+    PosedCylinderBodySpec, PosedSphereBodySpec, RotationSpec, Shape,
 };
 use gz_physics_rapier::RapierBackend;
 use gz_sensors::{ImuInput, ImuReading, InvalidImuInput};
@@ -925,11 +925,29 @@ fn build_model(
             name,
             "visual plugins",
         )?;
+        let compound = (2..=16).contains(&link.collisions.len());
         require(
-            link.collisions.len() == 1,
+            link.collisions.len() == 1
+                || (compound && backend.as_ref().is_some_and(|b| b.engine() == "rapier")),
             name,
             "collision count (expected one)",
         )?;
+        if compound {
+            require(model.joints.is_empty(), name, "compound model joints")?;
+            require(
+                link.collisions.iter().all(|collision| {
+                    matches!(
+                        collision.geometry,
+                        Geometry::Box { .. }
+                            | Geometry::Cylinder { .. }
+                            | Geometry::Capsule { .. }
+                            | Geometry::Sphere { .. }
+                    )
+                }),
+                name,
+                "compound collision geometry",
+            )?;
+        }
         require(
             link.inertial.fluid_added_mass.is_none(),
             name,
@@ -1090,11 +1108,23 @@ fn build_model(
                         orientation: inertial_pose.rotation,
                         tensor: link.inertial.inertia,
                     };
-                    let id = if let Shape::Box { half_extents } = spec.shape
+                    let id = if compound {
+                        backend.spawn_compound_link(
+                            CompoundBodySpec {
+                                collisions: &solids,
+                                position: spec.position,
+                                velocity: spec.velocity,
+                                mass: spec.mass,
+                            },
+                            rotation,
+                            Some(inertia),
+                        )?
+                    } else if let Shape::Box { half_extents } = spec.shape
                         && !identity(Transform {
                             translation: solids[0].position,
                             rotation: solids[0].orientation,
-                        }) {
+                        })
+                    {
                         backend.spawn_posed_box_link(
                             PosedBoxBodySpec {
                                 half_extents,

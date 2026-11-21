@@ -1,29 +1,32 @@
-## Current development: M83 world-edit regression fixture correction
+## Current development: M84 contact observation-window correction
 
-[M83](M83_DELIVERY.md) composes the existing controller with one posed Rapier primitive.
-The first full normal genuinely failed: Root/Git 1, 1879 headless passes, one
-failure and two ignored; seven of eight new cases passed. Renderer and strict
-coverage were not reached. No resource, signal or finalization fault occurred.
-The failed tree and every available result remain frozen.
+[M84](M84_DELIVERY.md) retains flat primitive compounds on one Rapier body/collider/ID.
+Its first full normal returned Root/Git 1: 1896 headless passed, one failed and
+two ignored; sixteen of seventeen new cases passed. The distinct-model contact
+case observed less than its required separation after 0.1 seconds. Renderer and
+strict coverage were not reached; no resource, signal or finalization fault occurred.
+The failed tree, original formatter and all available evidence remain frozen.
 
-The sole correction removes the IMU only from the invalid-command case so its
-world-edit getter has the existing collision+visual domain. It retains the
-successful getter precondition and checks the exact ownership setter refusal,
-unchanged native state and binding. Production and the other seven cases stay
-byte-identical. Independent correction review, one affected-test formatter and
-full normal/strict/local DATA/exact hosted/official qualification remain pending.
-Reuse the original eight-file formatter only for the seven unchanged Rust files.
+The isolated correction changes only both observation windows in that new case
+from 100 to 1500 fixed steps (1.5 seconds), matching existing compound-contact
+controls. Both original separation thresholds, equality tolerance, fixture,
+timestep, mass, solver settings and reset assertions stay unchanged. This is no
+predicted pass or confirmed solver fix. Production and the other sixteen new
+cases remain exact. The exact two-window repair is independently Source-reviewed. Final docs review
+precedes one affected-test formatter and full mandatory retry; the original formatter covers only the
+thirteen unchanged Rust leaves. No correction verification has run.
 
-Source obligations remain eight Rust declarations in both profiles (overlap
-eight), zero new Python, 1788 files, 15 own paths, two new and two production
-files; finite/CLI inventories remain 47/21. These are not qualified pass counts.
-The locally qualified, unaccepted M82 `039a1e51` parent now has exact hosted
-attempt 1 success; its official audit remains pending. No evidence qualifies M83.
+Source inventory remains 1793 files, 22 own paths, five new, six production and
+87 cumulative paths. Seventeen headless/eight overlapping renderer Rust controls,
+zero new Python and finite/CLI 47/21 remain obligations, not qualified pass counts.
+The unaccepted M83 parent completed its own corrected local qualification,
+retained audit, review publication, exact hosted CI, original collection and
+independent official audit. No parent result or acceptance transfers to M84.
 
-Accepted phases/slices remain 76/202; catalog 83 and Latest M70 original
-41-example package are unchanged. Keep M77 no-expiry demo 86363 live: formal
-browser access and owner-confirmed shutdown still hold acceptance. Preserve
-frozen trees, prior failures and Fuel. The budget remains at most five working days.
+Accepted phases/slices remain 76/202; catalog 84 and Latest M70’s original
+41-example package stay unchanged. Keep no-expiry M77 demo 86363 live: formal
+browser evidence and owner-confirmed shutdown still hold acceptance. Preserve
+frozen Source, prior failures, Fuel and retired DART/MuJoCo boundaries.
 
 ## Historical M80 first-Source checkpoint
 

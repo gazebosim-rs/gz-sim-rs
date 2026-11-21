@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-21T03:35:21.197865+00:00",
+  "as_of": "2026-11-21T05:44:06.352622+00:00",
   "execution_state": "active",
-  "current_phase": "M83",
+  "current_phase": "M84",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -6110,6 +6110,159 @@
         },
         "scope": "Seven unchanged Rust leaves only; corrected new regression file awaits one affected formatter."
       }
+    },
+    {
+      "id": "M84",
+      "title": "Bounded Rapier primitive compounds",
+      "max_working_days": 5,
+      "depends_on": [
+        "M83"
+      ],
+      "scope": "Rapier flat 2..16 primitive colliders per link, one body/collider/BodyId, existing passive link poses, centered supplied inertia, bounded child query dispatch and owned reset geometry.",
+      "acceptance": "Complete implementation/regression/docs and independent whole Source review; batch findings before one affected formatter/full normal/strict/local DATA/exact own hosted/official cycle. Preserve every own/predecessor acceptance gate.",
+      "excluded": "Plane/Mesh/nested compounds/TPE/offset COM/new automatic inertia; Scene compound joints, controller/world-edit/world-spawn expansion, new native campaign, Server/renderer/package/dependencies/sensors, DART/MuJoCo, Fuel/demo operations.",
+      "contract": "docs/M84_DELIVERY.md",
+      "source_preparation_basis_commit": "11afe37a4747cd7c4c0ad9a2f466721b86b1a156",
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "accepted_Main_ancestor": "dddf1f4284557c420e384d263a4365b2153dfde2",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "independent_source_review_complete": true,
+      "checks_run": true,
+      "normal_qualified": false,
+      "independent_local_DATA_qualified": false,
+      "hosted_qualified": false,
+      "accepted": false,
+      "distribution_selected": false,
+      "qualification_inherited": false,
+      "Source_publication_available": false,
+      "future_qualified_head": null,
+      "qualification_state": "first_normal_failed_contact_window_correction_pending_qualification",
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "new_Rust_Source_controls": 17,
+      "new_Python_Source_controls": 0,
+      "final_Source_count": 1793,
+      "final_tree": null,
+      "file_ownership": {
+        "package_collector": [
+          "crates/gz-physics/src/lib.rs",
+          "crates/gz-physics/src/backend.rs",
+          "crates/gz-physics/tests/private/backend.rs",
+          "crates/gz-physics-rapier/src/lib.rs",
+          "crates/gz-physics-rapier/src/compound.rs",
+          "crates/gz-physics-rapier/src/ray.rs",
+          "crates/gz-physics-rapier/tests/compound.rs"
+        ],
+        "tracker_acceptance_closeout": [
+          "crates/gz-sim-scene/src/lib.rs",
+          "crates/gz-sim-scene/tests/compound_primitives.rs",
+          "crates/gz-sim-scene/tests/fixtures/m84_compound_primitives.sdf",
+          "crates/gz-sim-scene/tests/compound_collisions.rs",
+          "crates/gz-sim-scene/tests/posed_box.rs",
+          "crates/gz-sim-scene/tests/posed_cylinder.rs",
+          "crates/gz-sim-scene/tests/posed_capsule.rs",
+          "crates/gz-sim-scene/tests/posed_sphere.rs"
+        ],
+        "m76_scope": [
+          "AGENTS.md",
+          "README.md",
+          "docs/M84_DELIVERY.md",
+          "docs/DELIVERY_PLAN.md",
+          "docs/HANDOFF.md",
+          "docs/IMPLEMENTATION_TASKS.md",
+          "planning/delivery-phases.json"
+        ]
+      },
+      "current_stage": "First normal Root/Git 1: 1896 headless passed, one failed and two ignored; sixteen new controls passed, renderer and strict coverage were not reached. Only both contact observation windows in one new case change to the established 1.5-second horizon. Independent correction review, one affected formatter and full retry remain required; no pass is predicted.",
+      "retained_test_disposition": "Only five same-XML Rapier compound-refusal sites in compound_collisions/posed_box/posed_cylinder/posed_capsule/posed_sphere become independent analytic positive geometry at existing1e-11; all TPE/COM/surface/zero-collision and controller negatives retained.",
+      "frame_contract": "Retain passive link world P/Q and model anchors; child local transforms compose once, including existing cylinder Y-to-Z correction. No identity local-link restriction.",
+      "query_contract": "Traverse all at most16 direct children, unchanged full maximum/no early successful return; reuse unchanged cylinder_distance and maintained other primitive kernels, finite inclusive minimum, solid-inside0, wholebody exclusion/current poses.",
+      "inertia_contract": "Requested spec.mass supplies link mass; supplied centered validated Inertia supplies COM/tensor. DynamicSome inertia required/staticNone permitted, suppliedstaticSome centered. Existing resolved Scene defaults honored; upstream compound-auto refusal and density metadata unchanged. No child mass sum/XML presence parser.",
+      "reference_scope": "Ten unchanged retained cylinder/capsule and original M79 component Source inputs, with original limitations; no new native campaign or inherited qualification.",
+      "task_mapping": [
+        "LOAD-M84",
+        "LOAD-01",
+        "PHY-01",
+        "PHY-03"
+      ],
+      "changed_paths_vs_basis": 22,
+      "new_Source_files": 5,
+      "changed_production_paths_vs_basis": 6,
+      "Source_profile_declarations": {
+        "Rust_unique": 17,
+        "headless": 17,
+        "renderer": 8,
+        "overlap": 8,
+        "Python": 0,
+        "counts_are_Source_obligations_not_executed_results": true
+      },
+      "cumulative_changed_paths_vs_accepted_ancestor": 87,
+      "Source_review_scopes": {
+        "package_collector": "Independent full Scene eight-path admission/newregression/five-disposition review CLEAR; sole shape-quaternion finding closed without scope/tolerance change.",
+        "tracker_acceptance_closeout": "Independent full Physics/Rapier seven-path API/constructor/query/regression review and held normal donor adaptation CLEAR.",
+        "m76_scope": "Independent whole integrated API/math/query/frame/atomicity/reset/test-integrity Source review plus exact single-row oracle correction closure CLEAR; Root reviews authored docs.",
+        "Root": "Independent selected contract/canonical docs and integrated Source read CLEAR; final authored census/current-state documentation review pending before formatter.",
+        "correction_scope": "All original implementation reviews remain retained. Scope independently reviewed the exact two-window repair and full-file inverse; final authored correction docs await Root review before one affected formatter and full mandatory retry."
+      },
+      "current_documentation_independent_review_pending": true,
+      "changed_production_paths": [
+        "crates/gz-physics-rapier/src/compound.rs",
+        "crates/gz-physics-rapier/src/lib.rs",
+        "crates/gz-physics-rapier/src/ray.rs",
+        "crates/gz-physics/src/backend.rs",
+        "crates/gz-physics/src/lib.rs",
+        "crates/gz-sim-scene/src/lib.rs"
+      ],
+      "correction_checks_run": false,
+      "historical_first_normal_failure": {
+        "actual": {
+          "sha256": "980d0e3cddf20774bd77587931f0e41980a920d761e257e5998e013f1517775b",
+          "bytes": 6888,
+          "mode": 436
+        },
+        "tree": "4292c9820754de4ab7117500f655b2a82e4b1200",
+        "parent": "11afe37a4747cd7c4c0ad9a2f466721b86b1a156",
+        "session_id": 78435,
+        "launch_tool": "05ff27",
+        "terminal_tool": "f5e1de",
+        "actual_exit_code": 1,
+        "actual_git_exit_code": 1,
+        "elapsed_seconds": 1389.975346346997,
+        "headless": {
+          "passed": 1896,
+          "failed": 1,
+          "ignored": 2
+        },
+        "new_cases": {
+          "passed": 16,
+          "failed": 1
+        },
+        "failed_test": "compound_links_keep_passive_model_self_exclusion_and_distinct_contacts",
+        "actual_positions": [
+          -0.06980454706543075,
+          0.6698045470654194
+        ],
+        "renderer_reached": false,
+        "strict_coverage_reached": false,
+        "capacity_faults": [],
+        "terminal_signal": null,
+        "finalization_faults": [],
+        "qualified_commit": null
+      },
+      "correction_scope": "Only the two 100-step observation windows in one new contact case become 1500 fixed steps. Every original threshold, tolerance, fixture, timestep, mass, solver and reset assertion remains unchanged, along with the other sixteen new cases and all six production leaves. No pass or solver cause is inferred.",
+      "formatter_reuse": {
+        "original_actual": {
+          "sha256": "a758a42a5465ddb3b892f7a9b29835d9e3fe0640c7ab4b83ae7d00e981ec00b8",
+          "bytes": 11789,
+          "mode": 436
+        },
+        "scope": "Thirteen byte/mode-unchanged Rust leaves only; corrected compound_primitives.rs awaits one affected formatter."
+      },
+      "checks_run_scope": "checks_run records the failed original normal only. correction_checks_run remains false until the isolated retry actually starts."
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -6196,10 +6349,11 @@
     "M80": "in_progress",
     "M81": "in_progress",
     "M82": "in_progress",
-    "M83": "in_progress"
+    "M83": "in_progress",
+    "M84": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-21T02:44:47.815870+00:00",
+  "phase_started_at": "2026-11-21T04:33:27.674240+00:00",
   "active_phases": [
     "M77",
     "M78",
@@ -6207,7 +6361,8 @@
     "M80",
     "M81",
     "M82",
-    "M83"
+    "M83",
+    "M84"
   ],
   "execution_policy": "D30\u2013D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -6636,30 +6791,37 @@
       ],
       "integration": "D31: disjoint Scene admission/retained-test and new regression Source lanes over locally qualified unaccepted M82 039a1e51. Root integrates and serializes heavy work; M82 hosted/official and predecessor closeout remain separate. No qualification transfers.",
       "max_working_days": 5
+    },
+    {
+      "phases": [
+        "M84"
+      ],
+      "integration": "D31: disjoint Physics/Rapier and Scene primitive-compound Source lanes over locally qualified unaccepted M83 11afe37a; Root integrates and serializes operations. M83 exact hosted/official and all predecessor acceptance remain separate; no result transfers.",
+      "max_working_days": 5
     }
   ],
-  "acceptance_boundary": "M83 uses locally qualified unaccepted M82 039a1e51 under D31; M82 exact hosted now passed, official pending. M83 first normal Root/Git1 is retained; only one new-test fixture is corrected. Whole correction review, one affected formatter and full normal/strict/DATA/hosted/official gates remain. Accepted76/202, catalog83, Latest M70 original 41-example package and M77 browser/shutdown acceptance hold remain unchanged.",
+  "acceptance_boundary": "M84 first full normal failed one new contact regression. Only its two observation windows change in an isolated candidate; Source counts remain known obligations, while corrected tree and outcomes are unbound. Original failed evidence is preserved. Independent correction review, one affected formatter and every mandatory own gate precede retry qualification. M83 completed its own local, hosted and independent official qualification but remains unaccepted; no result transfers to M84. Accepted phases, slices, Latest and the M77 browser/shutdown hold remain unchanged.",
   "current_delivery_group": [
-    "M83"
+    "M84"
   ],
-  "current_development_phase": "M83",
+  "current_development_phase": "M84",
   "board": {
-    "updated_at": "2026-11-21T03:35:21.197865+00:00",
+    "updated_at": "2026-11-21T05:44:06.352622+00:00",
     "current": {
-      "title": "M83 first normal failed; fixture-only correction awaits review",
+      "title": "M84 contact-window correction after one failed regression",
       "items": [
-        "First M83 normal: Root/Git 1, 1879 headless passed, one failed, two ignored. Seven new cases passed; renderer and strict coverage were not reached.",
-        "One invalid-command fixture now enters the unchanged getter domain; production and other seven cases stay exact. Correction review and full retry remain pending.",
-        "M82 exact hosted attempt 1 passed; official audit remains pending. M77 no-expiry demo stays live; browser and owner-confirmed shutdown hold acceptance."
+        "M84 first normal failed one new contact case. The isolated repair retains both separation thresholds and changes only the two observation windows; review, affected formatting and full retry remain required.",
+        "M83 completed its own local, hosted and independent official qualification. Its first failure and original evidence stay preserved; no acceptance transfers.",
+        "The M77 demo stays live without expiry. Formal browser evidence and owner-confirmed shutdown still hold acceptance."
       ]
     },
     "done": [
-      "Accepted 76 phases/202 slices, catalog83 and Latest M70 original 41-example package remain unchanged.",
-      "M83 implementation and eight Source declarations remain complete: 1788 files, 15 own paths, two new/two production files. Original Source/formatter and failed normal are preserved."
+      "76 phases and 202 slices remain accepted; catalog 84 and Latest M70\u2019s original 41-example package stay unchanged.",
+      "M84\u2019s failed run completed 1896 headless passes with one failure and two ignored; sixteen new controls passed. These partial results do not qualify the feature."
     ],
     "next": [
-      "Close whole fixture-correction Source review, format only the affected new test, then run the full mandatory normal/strict/local DATA/hosted/official gates.",
-      "Complete M82 official evidence; preserve predecessor acceptance gates and the live M77 demo until owner-confirmed stop."
+      "Close correction Source review, format only the affected new test, and complete the full required normal/strict/local audit/hosted/official qualification.",
+      "Complete every own and predecessor acceptance gate. Preserve the live M77 demo until owner-confirmed shutdown."
     ],
     "blocker": {
       "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
@@ -6668,7 +6830,7 @@
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M83"
+    "M84"
   ],
   "camera_integration": {
     "scope": "Atomic M61\u2013M64 qualification on accepted M60; no new phase",
@@ -6817,7 +6979,7 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "LOAD-M83-WORLD-EDIT-FIXTURE-CORRECTION",
+  "current_development_task": "LOAD-M84-CONTACT-OBSERVATION-WINDOW-CORRECTION",
   "backend_retirement_source_preparation": {
     "decision": "D33",
     "owner_directed_at": "2026-11-17",
@@ -7974,7 +8136,7 @@
     },
     "official_qualified": true
   },
-  "phase_started_at_scope": "M83 Source documentation checkpoint; not an inferred earlier selection or runtime launch.",
+  "phase_started_at_scope": "M84 Source documentation checkpoint after Root selection; not an inferred earlier selection or runtime launch.",
   "current_M82_parent_qualification": {
     "commit": "039a1e5142dd48705a23acb6f817613f509408f0",
     "tree": "420197183a1ec5b71f85f9c2181b9caa1d82a4c6",
@@ -8012,6 +8174,105 @@
       "sha256": "657d372ed6718e25aa0f814184292820a2d52e2e01d05f3f14eea0f5a12fcd8c",
       "bytes": 2457,
       "mode": 436
+    }
+  },
+  "current_M83_parent_qualification": {
+    "commit": "11afe37a4747cd7c4c0ad9a2f466721b86b1a156",
+    "tree": "3a22a633644bb8c0045b17a27e4a8c17d2544312",
+    "parent": "039a1e5142dd48705a23acb6f817613f509408f0",
+    "accepted": false,
+    "normal_actual": {
+      "sha256": "29d80793e0add27eb91127cb909f30fac222561c1de2f3535721a353e90e5a2b",
+      "bytes": 1906,
+      "mode": 436
+    },
+    "local_DATA_actual": {
+      "sha256": "edb1940636e5ca46218bc6b7ac57a19a5c2fbf2ea5a53fba33110b89296d0fdd",
+      "bytes": 1784,
+      "mode": 436
+    },
+    "local_DATA_report": {
+      "sha256": "540ae018fec26698a202118e41ff07dd30680aeb6127bb865043b78a6bc25b2c",
+      "bytes": 117610,
+      "mode": 436
+    },
+    "review_publication": {
+      "sha256": "f06d8b36dc8f55c7b3d87dc077333e5dd47fed4afb4c27227e21fabb96276f20",
+      "bytes": 2713,
+      "mode": 436
+    },
+    "hosted_run": {
+      "id": 44865727539,
+      "name": "simulator",
+      "path": ".github/workflows/ci.yml",
+      "head_sha": "11afe37a4747cd7c4c0ad9a2f466721b86b1a156",
+      "head_branch": "review/m83-posed-velocity-control",
+      "event": "push",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44865727539",
+      "created_at": "2026-11-21T04:21:42Z",
+      "updated_at": "2026-11-21T05:15:54Z"
+    },
+    "official_actual": {
+      "sha256": "a104d1e1dc6b2523b3e2267de38e24a625a293cbafbd49259f226dd6575d856b",
+      "bytes": 1560,
+      "mode": 436
+    },
+    "scope": "M83 completed its own corrected local qualification, independent retained audit, review publication, exact hosted CI, original collection and independent official audit. It remains unaccepted; its first failure and all predecessor gates remain preserved, with no result transfer to M84.",
+    "hosted_actual": {
+      "sha256": "be60aad218bb77a08df6ed1a170924a460d7e258999baf62b1c56b37c0606143",
+      "bytes": 2457,
+      "mode": 436
+    },
+    "historical_hosted_active_observation": {
+      "hosted_run": {
+        "id": 44865727539,
+        "name": "simulator",
+        "path": ".github/workflows/ci.yml",
+        "head_sha": "11afe37a4747cd7c4c0ad9a2f466721b86b1a156",
+        "head_branch": "review/m83-posed-velocity-control",
+        "event": "push",
+        "run_attempt": 1,
+        "status": "in_progress",
+        "conclusion": null,
+        "html_url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/44865727539",
+        "created_at": "2026-11-21T04:21:42Z"
+      },
+      "official_actual": null,
+      "scope": "Original preformat parent observation retained; current exact terminal and official cards supersede its status only."
+    },
+    "official_report": {
+      "sha256": "a15a2ee5375ff152fdbd96496992920f1cf8388f5ff7ed039b767f6e8440b32a",
+      "bytes": 210792,
+      "mode": 436
+    },
+    "official_Source": {
+      "sha256": "51a57b893e5030c001c7d02fe714284dc9bc9d00af189b44be47de08c1272368",
+      "bytes": 163651,
+      "mode": 436
+    },
+    "official_execution_log": {
+      "sha256": "c95af53c49990eabecd3673e5eff61595aa085a1e9eb7be5de955597c3558ccf",
+      "bytes": 273,
+      "mode": 436
+    },
+    "collection_actual": {
+      "sha256": "1623cfe8e549ca8ff789f9a36b9e66d7a9139a543a4d821f5fee696afb83df82",
+      "bytes": 1402,
+      "mode": 436
+    },
+    "collection": {
+      "sha256": "b2e3380c589b06f6a287eb0b9093748e1682a834e54f8ca644cf1c007f1948b6",
+      "bytes": 40637,
+      "mode": 436
+    },
+    "official_RAW_once_counts": {
+      "headless": 439,
+      "renderer": 732,
+      "nativefree": 57,
+      "rgb-camera": 168
     }
   }
 }

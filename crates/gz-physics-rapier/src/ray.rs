@@ -4,7 +4,7 @@
 use super::*;
 use rapier3d_f64::parry::{
     query::details::clip_aabb_line,
-    shape::{Capsule, Cylinder, Shape as _},
+    shape::{Capsule, Cylinder, Shape as ParryShape},
 };
 
 fn cylinder_distance(
@@ -131,16 +131,41 @@ pub(super) fn cast(
         if !pose.translation.is_finite() || !pose.rotation.is_finite() {
             return Err(PhysicsError::InvalidValue);
         }
-        let distance = if let Some(cylinder) = collider.shape().as_cylinder() {
-            cylinder_distance(cylinder, &pose, &ray, max_distance)?
-        } else {
-            collider.shape().cast_ray(&pose, &ray, max_distance, true)
-        };
-        if let Some(distance) = distance {
-            if !distance.is_finite() || !(0.0..=max_distance).contains(&distance) {
+        let mut visit = |shape: &dyn ParryShape, pose: &Pose| -> Result<(), PhysicsError> {
+            if !pose.translation.is_finite() || !pose.rotation.is_finite() {
                 return Err(PhysicsError::InvalidValue);
             }
-            closest = Some(closest.map_or(distance, |previous| previous.min(distance)));
+            let distance = if let Some(cylinder) = shape.as_cylinder() {
+                cylinder_distance(cylinder, pose, &ray, max_distance)?
+            } else {
+                shape.cast_ray(pose, &ray, max_distance, true)
+            };
+            if let Some(distance) = distance {
+                if !distance.is_finite() || !(0.0..=max_distance).contains(&distance) {
+                    return Err(PhysicsError::InvalidValue);
+                }
+                closest = Some(closest.map_or(distance, |previous| previous.min(distance)));
+            }
+            Ok(())
+        };
+        if let Some(compound) = collider.shape().as_compound() {
+            // Bounded direct dispatch keeps the cylinder's strict maintained
+            // kernel and inclusive maximum; no composite BVH ray shortcut.
+            if !(2..=16).contains(&compound.shapes().len()) {
+                return Err(PhysicsError::InvalidValue);
+            }
+            for (local, shape) in compound.shapes() {
+                if !(shape.as_ball().is_some()
+                    || shape.as_cuboid().is_some()
+                    || shape.as_capsule().is_some()
+                    || shape.as_cylinder().is_some())
+                {
+                    return Err(PhysicsError::InvalidValue);
+                }
+                visit(shape.as_ref(), &(pose * local))?;
+            }
+        } else {
+            visit(collider.shape(), &pose)?;
         }
     }
     Ok(closest)

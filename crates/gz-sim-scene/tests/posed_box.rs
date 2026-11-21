@@ -398,13 +398,37 @@ fn identity_and_old_refusal_domains_remain_separate_from_posed_boxes() {
         "</link>",
         "<collision name='extra'><geometry><box/></geometry></collision></link>",
     );
-    assert!(matches!(
-        load(&compound, PhysicsEngine::Rapier),
-        Err(LoadError::Unsupported {
-            feature: "collision count (expected one)",
-            ..
-        })
-    ));
+    // M84 replaces only this compound refusal, preserving both old XML children.
+    let compound = load(&compound, PhysicsEngine::Rapier).unwrap();
+    for (x, expected) in [(1., 2.5), (0., 3.5)] {
+        assert!(
+            (ray(&compound, [x, 0., 9.], [0., 0., -1.], None).unwrap() - expected).abs() < 1e-11
+        );
+    }
+    near(
+        pose(&compound, "default::posed::body").translation,
+        [0., 0., 5.],
+    );
+    near(
+        pose(&compound, "default::posed::body::shape").translation,
+        [1., 0., 5.],
+    );
+    near(
+        pose(&compound, "default::posed::body::extra").translation,
+        [0., 0., 5.],
+    );
+    for (name, expected) in [
+        ("default::posed::body", [0., 0., 0., 1.]),
+        (
+            "default::posed::body::shape",
+            [0., 0., (0.1f64).sin(), (0.1f64).cos()],
+        ),
+        ("default::posed::body::extra", [0., 0., 0., 1.]),
+    ] {
+        for (actual, expected) in pose(&compound, name).rotation.into_iter().zip(expected) {
+            assert!((actual - expected).abs() < 1e-11);
+        }
+    }
     let offset_com = box_xml.replace("<inertial>", "<inertial><pose>0.1 0 0 0 0 0</pose>");
     assert!(matches!(
         load(&offset_com, PhysicsEngine::Rapier),

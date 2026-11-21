@@ -1,0 +1,23 @@
+<!-- Copyright (C) 2026 Open Source Robotics Foundation -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="p" type="ode"><max_step_size>0.001</max_step_size></physics>
+    <model name="rig">
+      <pose>1 2 8 0 0 1.5707963267948966</pose>
+      <frame name="mount" attached_to="__model__"><pose>0 1 0 1.5707963267948966 0 0</pose></frame>
+      <link name="body">
+        <pose>0.5 0 0 0 1.5707963267948966 0</pose>
+        <inertial><mass>2</mass><inertia><ixx>2</ixx><iyy>3</iyy><izz>4</izz></inertia></inertial>
+        <collision name="box"><pose relative_to="mount">2 0 0 0 0 0</pose><density>7</density><geometry><box><size>1 0.5 1.5</size></box></geometry></collision>
+        <collision name="cylinder"><pose>3 0 0 1.5707963267948966 0 0</pose><density>11</density><geometry><cylinder><radius>0.5</radius><length>1.5</length></cylinder></geometry></collision>
+        <collision name="capsule"><pose>-3 0 0 0 0 1.5707963267948966</pose><density>13</density><geometry><capsule><radius>0.25</radius><length>1</length></capsule></geometry></collision>
+        <collision name="sphere"><pose>0 -3 0 0 0 0.3</pose><density>17</density><geometry><sphere><radius>0.5</radius></sphere></geometry></collision>
+        <visual name="view"><pose>0 0 1 0 0 0</pose><geometry><box><size>0.2 0.2 0.2</size></box></geometry></visual>
+        <sensor name="imu" type="imu"><always_on>true</always_on><update_rate>1000</update_rate></sensor>
+      </link>
+    </model>
+    <model name="survivor"><static>true</static><pose>20 0 0 0 0 0</pose><link name="body"><collision name="shape"><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link></model>
+  </world>
+</sdf>
