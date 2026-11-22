@@ -702,11 +702,57 @@ fn posed_runtime_actual_passive_sources_preserve_identity_and_runtime_routes() {
         [2., 0., 0.]
     );
     let before = snapshot(&sim);
-    assert!(matches!(
-        prepare_model_template(&sim, &runtime, requested),
-        Err(WorldEditError::UnsupportedModel)
-    ));
+    let singleton = prepare_model_template(&sim, &runtime, requested).unwrap();
+    assert_eq!(singleton.source_visual_id(), compound + 3);
     assert_eq!(snapshot(&sim), before);
+    let next = next_entity_id(sim.world()).unwrap();
+    let copy = spawn_model_template(&mut sim, &singleton, cycle([400., 20., 30.])).unwrap();
+    assert_eq!(copy, next);
+    assert_eq!(next_entity_id(sim.world()).unwrap(), next + 4);
+    assert_ne!(body(&sim, compound), body(&sim, copy));
+    vector(native(&sim, body(&sim, copy)).position, [400., 20., 30.]);
+    let collision = entity_by_id(sim.world(), copy + 2).unwrap();
+    let local = sim.world().get::<LocalPose>(collision).unwrap().0;
+    vector(local.translation, [2., 0., 0.]);
+    vector(
+        sim.world().get::<WorldPose>(collision).unwrap().translation,
+        [400., 22., 30.],
+    );
+    assert_eq!(
+        sim.world().get::<EntityKind>(collision),
+        Some(&EntityKind::Collision)
+    );
+    assert_eq!(
+        sim.world()
+            .get::<Children>(entity_by_id(sim.world(), copy + 1).unwrap())
+            .unwrap()
+            .len(),
+        2
+    );
+    assert!(Arc::ptr_eq(
+        &sim.world()
+            .get::<VisualGeometry>(entity_by_id(sim.world(), copy + 3).unwrap())
+            .unwrap()
+            .0,
+        &sim.world()
+            .get::<VisualGeometry>(entity_by_id(sim.world(), compound + 3).unwrap())
+            .unwrap()
+            .0,
+    ));
+    near(
+        ray(&sim, [400.3, 22., 34.], [0., 0., -1.], 5., None).unwrap(),
+        3.6,
+    );
+    assert_eq!(
+        ray(
+            &sim,
+            [400.3, 22., 34.],
+            [0., 0., -1.],
+            5.,
+            Some(body(&sim, copy))
+        ),
+        None
+    );
 }
 
 #[test]

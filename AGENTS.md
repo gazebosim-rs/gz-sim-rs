@@ -1,3 +1,306 @@
+## Current corrective checkpoint: M96/M97 typed error precedence
+
+The completed headless run of the second product normal had one failed target
+and case. Root session70400 (`6026bd` → `db6414`) returned Root/Git1 after
+2039.9047407599865 seconds. Failure `6f23bf53` and actual receipt `fe3d2f32`
+retain the failed `new_primitive_route_first_errors_and_late_native_refusals_preserve_pending_inputs`
+case, whose assertion expected InvalidState. Seventeen of the eighteen new
+controls passed in that failed headless profile; one failed. Renderer and strict
+coverage qualification were not reached, and no new commit was created. These
+partial passes belong only to frozen failed tree `d5d4b658`; they do not qualify
+the corrected Source. Resource floors held, with no capacity, signal or
+finalization fault. The failed log does not print a row or error variant: row9
+is a Source inference, not a separately measured diagnostic.
+
+Package and Server traced the complete seventeen early inputs and all three late
+native-error inputs. The selected correction `6c2ecb26` changes only the two
+incorrect expected error routes: rows9 and14 belong to InvalidScene; row8 stays
+InvalidState. `prepare_model_template` resolves collision and inertial poses
+through SDF resolve_pose, which validates finite translation and a unit
+quaternion before later representability checks. Thus row9's NaN translation
+and row14's zero quaternion fail resolution first. The exact groups are
+InvalidScene [5,7,9,14,15], InvalidState [8], and UnsupportedModel
+[0,1,2,3,4,6,10,11,12,13,16]. Row/error-only assertion diagnostics may make a
+future failure visible. No production behavior, input, atomicity assertion,
+geometry, tolerance, horizon, late-native case or case identity is changed.
+The other seventeen new controls retain their complete Source. Corrected test `8956f183` and completion `b5208636` are complete; Scope
+independently closed the complete file inverse to `a21575ac`, all eight case
+identities and the resolver/error-order trace. Complete corrective code/docs
+peer review remains pending at this author freeze. All earlier Source reviewers
+missed the two error-precedence expectations; preserve their earlier CLEAR
+checkpoints as observations, not successful verification.
+
+Keep two product failures in order: `70d2f43e` was the earlier Clippy101
+clone_on_copy failure before tests; `6f23bf53` is this later headless assertion
+failure. The prior exact Copy-value repair remains in the test. Preserve
+prehook method failure `4447773d` separately: Git, hook, checks, result and target
+creation were absent. Preserve Root release-preparation failure `15996bc6`
+separately as well. No reader/method failure is a product-normal pass or an
+independent successful audit. Own retained-reader failure history stays empty.
+
+The current correction root is distinct from both frozen earlier roots. Preserve
+failed tree `d5d4b658`, review `7652fef1`, snapshot `1312c2aa`, preformat
+`5817ef39`, one-file formatter `0bd6cbf7` and Root formatter receipt `8ff4ea94`
+in their original locations. That prior one-file formatter is historical only;
+the newly changed test needs one new affected-file formatter after complete
+Source/docs and independent review. Original nine-file formatter `8f18f6f8`
+continues to supply custody ONLY for the eight unchanged Rust copies, with
+original review `3621997f` and snapshot `f7fe0526` preserved. Distinct roots and
+receipts do not form a synthetic formatter union or inherit qualification.
+Current formatter, tests, lint, normal retry and audits are unrun. Future final
+tree, qualified commit and all corrected results remain null.
+
+Source obligations remain 1,819 files /17 owned paths /four new files /two
+production paths /116 cumulative paths versus accepted Main. Eight M96 and ten
+M97 public controls give eighteen unique H/R declarations, overlap eighteen,
+zero private or Python additions, and unchanged finite47/CLI21. Seventeen
+headless passes from the failed tree are not corrected-profile results. The
+selected features, disjoint production seams and seven retained same-input
+dispositions remain the historical closed contracts below; this correction adds
+no feature, declaration, API or backend scope.
+
+The genuine locally qualified, unaccepted parent remains ac4af1c7/tree7d050c30,
+parent cc83ca4a. Normal `ec381a89`, independent DATA `42221ccd` / report
+`3d558421`, and review publication `ab18d1ca` passed. Exact hosted run
+44950039686 attempt1 passed: receipt `602ca79a`, retired watcher74750, all
+thirteen job steps successful. Original artifact collection and official DATA
+remain pending. Parent reader3f67 and prelaunch60d29 remain separate from its
+empty own normal-failure list. M92/M93 own official method2 `57c2fe5e` / report
+`d92368a1` remains passed and unaccepted, with first methodb86 before-RAW
+failure preserved. Parent M94five, M92two+oldseven ONLYfive, and M90three/one/
+four formatter and failure histories remain distinct. No acceptance transfers.
+
+The new conditional ordinary-RAM v3 proposal `df04f3fa` has complete Root
+(`88631cc7`) and independent Package Source review. It selects only fresh
+`/dev/shm/gz-m96-m97-ordinary-target-v3`, initial SSD30GiB/SHM14GiB, with
+unchanged early SSD8GiB/SHM4GiB, mandatory initial SSD14GiB, SHM1GiB,
+MemAvailable8GiB, runtime floors, jobs4, caps and full verification gates.
+Its 499728384-byte historical margin above the prior complete-run SSD decrease
+plus early stop is not a future peak or fit guarantee. Keep ordinary-only RAM;
+profile/native-free/RGB targets, TMPDIR and evidence stay on SSD. Retain M96v1/v2,
+M94v1 and every older target, locator, cache, scratch tree and proof. No eviction,
+deletion, relocation or reuse is authorized. This is conditional Source approval,
+not a concrete normal release or target-creation observation. Fresh floors and
+mount/owned0700 identity/retained locator admission remain mandatory before
+release; no new target or job is created here. All old31/22 contracts remain
+immutable historical observations below.
+
+Finish the complete code/docs and whole independent Source reviews, batch all
+findings, then one affected-file formatter and one consolidated full mandatory
+normal/staged hook. Keep every workspace/per-crate/actual-parent/retained-ancestor
+line and region gate strictly greater than95 percent, independent local DATA,
+ordinary review publication, exact hosted CI and independent official DATA.
+All predecessor/M77 browser/owner-shutdown/release gates remain. No per-edit
+trials or extra verification rounds. Accepted76/202, catalog97, Latest M70
+original41 and live demo86363 remain fixed; no stop, restart or new expiry.
+Preserve Fuel and retired DART/MuJoCo boundaries.
+
+## Historical Copy-value correction author checkpoint
+
+Everything below is preserved verbatim from the preceding document freeze.
+Its then-current pending/unrun and single-failure statements describe that
+observation time; the current failed normal and bounded repair are above.
+
+## Current corrective checkpoint: M96/M97 Copy-value lint repair
+
+The first actual product normal failed on one new test-source Clippy diagnostic,
+not a test assertion. Root session38692 (`3795c3` → `bca7cb`) returned Root/Git1
+after104.014645 seconds; Clippy returned101 under the unchanged workspace,
+all-targets, keep-going and `-D warnings` invocation. Failure `70d2f43e` records
+the sole `clippy::clone_on_copy` diagnostic at runtime_compound_to_primitive.rs:621.
+Tests, renderer tests, coverage and a new commit were not reached. Resource
+floors held; no capacity, signal or finalization fault caused this failure.
+No current control has an executed pass or qualification from that run.
+
+The earlier attempt `4447773d` is a separate prehook method failure: an inherited
+helper read the wrong ambient release card. It returned Root1 with Git/result/
+commit null before the hook, product checks or RAM target creation. Its corrected
+method2 subsequently reached the real full hook and exposed the Copy-value lint.
+Keep both original Sources, bindings, releases, logs and receipts. A failed
+reader/method is not a product test result and never supplies a successful audit.
+
+Root selected one isolated Source correction in `0d55971c`. Only
+`v.state().clone()` becomes `*v.state()` in the TPE atomicity observation of the
+new runtime-compound-to-primitive test. Motion::state returns &BodyState and
+BodyState derives Copy; dereference preserves the same complete value. The full
+file inverse restores frozen8c1e8d50 exactly. Corrected file `a21575ac` retains
+all eight M96 case identities, all assertions, inputs, tolerances, geometry,
+commands, horizons and first-error controls. All M97 tests and both production
+files are unchanged. Original Root/Scope/Package/Server Source reviews missed
+this lint; their earlier CLEAR observations are preserved, not counted as passes.
+Root's code repair is complete and Scope's independent exact-delta/API review is
+CLEAR. The complete corrected eight-doc/Source batch still awaits whole peer
+review at this freeze; no current formatter or retry has run.
+
+The new correction worktree is distinct from the frozen failed Root and frozen
+docs-author lane. Preserve failed tree `dcc2c66f`, snapshot `f7fe0526`, review
+`3621997f`, preformat `085fd14a` and original nine-file formatter `8f18f6f8`
+in their original locations. That formatter is reused ONLY for the eight
+byte/mode-unchanged Rust copies. The one affected new test requires its own
+formatter after complete corrected Source/docs and independent review. These
+custodies have separate roots and receipts; do not invent a combined formatter
+or inherit qualification. Current final tree, commit, normal/audit/hosted results
+remain null. Own product-normal history is [70d2f43e]; separate prehook-method
+history is [4447773d]; own retained-reader failures remain empty.
+
+Source inventory remains1,819 files /17 owned paths /four new files /two
+production paths /116 cumulative paths versus accepted Main. M96eight plus
+M97ten public controls give18 unique H/R declarations (overlap18), zero private
+or Python controls and no new finite/CLI cases. Counts are authored obligations,
+not passes. The selected features, disjoint production seams and seven retained
+same-input dispositions remain exactly as the historical contracts below.
+
+The genuine locally qualified, unaccepted parent remains ac4af1c7/tree7d050c30,
+parent cc83ca4a. Normal `ec381a89`, independent method2 DATA `42221ccd` / report
+`3d558421`, and review publication `ab18d1ca` passed. Its exact hosted run
+44950039686 attempt1 now genuinely passed: receipt `602ca79a`, retired watcher
+74750 (`ba3876`), all thirteen job steps successful and artifact14726704039
+retained by the service. Original artifact collection and official DATA remain
+pending; no new download or official success is inferred. Parent reader3f67 and
+prelaunch60d29 remain separate from its empty own normal-failure list. M92/M93
+own official method2 `57c2fe5e` / report `d92368a1` remains passed and unaccepted,
+with first methodb86 before-RAW failure preserved. All inherited M92two+oldseven
+ONLYfive and M90three/one/four formatter/failure histories remain distinct.
+
+The independently Source-reviewed conditional v2 proposal `7d6e2d15` selects
+only fresh `/dev/shm/gz-m96-m97-ordinary-target-v2` for ordinary Cargo output.
+Keep failed v1 and
+every older target, cache, scratch tree and evidence; no deletion, eviction,
+relocation or reuse of v1. Only fresh ordinary Cargo output uses RAM; profiles,
+native-free/RGB targets, TMPDIR and evidence stay on SSD. Keep selected initial
+SSD31GiB/SHM22GiB, early stops SSD8GiB/SHM4GiB, mandatory initial SSD14GiB,
+SHM1GiB, MemAvailable8GiB and existing runtime floors. A concrete v2 binding,
+mount/ownership/locator contract and actual fresh floors require independent
+Source admission before release. No v2 target or new executor is created here;
+prior samples give no fit guarantee. Mandatory resource and output caps remain.
+
+Finish whole corrected Source and eight-doc peer review, batch any final findings,
+then one affected-file formatter and one consolidated full mandatory normal/
+staged hook. Keep all strict workspace, per-crate, actual-parent and retained-
+ancestor line/region coverage gates strictly greater than95 percent. Independent
+local DATA, review publication, exact hosted CI and independent official DATA
+remain mandatory, with every predecessor and original M77 browser/owner-shutdown/
+release gate. No per-edit trials, extra verification rounds or old-packet success
+audits. Accepted phases/slices remain76/202; catalog97, finite47/CLI21 and Latest
+M70 original41 stay fixed. Preserve first95 phase objects/prior55 groups and all
+old observations losslessly. Demo86363 stays live without expiry; no stop,
+restart or new expiry. Preserve Fuel and retired DART/MuJoCo boundaries.
+
+## Historical M96/M97 completed Source author observation
+
+Everything below is preserved verbatim from the original pre-execution document
+checkpoint. Its unrun/empty-history/CI-active statements describe that earlier
+freeze; the current failure, repair, custody and parent disposition are above.
+
+## Current development: M96 runtime compound to primitive / M97 signed principal axes
+
+Read [M96](docs/M96_DELIVERY.md) and [M97](docs/M97_DELIVERY.md) for the
+closed contracts, exact leases and meaningful acceptance. Root selected both
+lanes under D31 in `ca34205a`, then dispatched implementation in `4e9d654b`.
+The selection's dispatch-false field is its immutable creation-time observation.
+Implementation and regression Source for both lanes are complete. All reciprocal,
+Scope and Root whole-code reviews and the five retained-file reviews are CLEAR.
+Joined inventory `91de9291` records 1,819 Source files, 17 owned paths, four new
+files, two production paths and 116 cumulative paths versus accepted Main.
+Eighteen unique new public Rust controls are declared in both profiles (overlap
+18), with zero private or Python controls and no new finite/CLI cases. These are
+Source declarations, not executed passes. External final eight-doc review is
+pending at this freeze. Formatter, tests, lint, normal and audits are unrun;
+final tree, qualified commit and all own results remain null, with no own normal
+failure. Initial eight-doc checkpoint `3b1e254f` and all beforecopies remain
+preserved as author-time observations.
+Each lane has at most five working days including review and mandatory gates.
+
+M96 admits a valid passive owned runtime compound as the source of a requested
+single Box, Sphere, Cylinder or Capsule template, with identity or already
+supported posed collision geometry. Always validate the actual model_state and
+full immutable compound_nodes stamp/member/native/ID/Arc/local-pose domain before
+route selection. The newly admitted branch retains identity-local LINK,
+resolved exactly centered inertia and actual passive ownership, independent of
+caller-stripped plugins. Caller-resolved parameters are copied, not asserted to
+equal original geometry. Runtime-compound sources with Mesh, Plane, zero or more
+than sixteen requested collisions stay refused; reject Mesh before decoding.
+All mature loaded/singleton/posed/mesh/compound policies outside the new branch
+remain exact, including tiny nonzero-COM identity singleton conventions.
+Publication reuses four nodes M/L/C/V, visual=model+3, one native body and fixed
+admitted_entities[4]. No new immutable singleton child-stamp guarantee is claimed.
+
+M97 admits exactly six parsed-DOM signed Cartesian directions independently in
+the existing two-link/two-Revolute JointController chain. SDF normalizes lexical
+axis magnitudes; scaled signed directions are equivalence inputs, not lexical
+unit-length refusals. Keep existing topology, identity LINK rotations, joint
+poses, empty expressed_in, no axis2, dynamic Rapier, modes, finite limits and
+eight-owner/sixteen-input bounds. Nonprincipal/near-principal directions remain
+refused and zero/nonfinite inputs keep their earlier typed parser errors.
+Use measured signed coordinates and independent Rodrigues/pivot/native-basis
+references. Opposite-axis/opposite-target twins compare physical bases within
+retained tolerances and signed coordinate/velocity reversal, not bitwise native
+states or ideal motor speed. Explicitly exercise the antiparallel -X frame.
+
+Package owns world_spawn.rs and new runtime_compound_to_primitive.rs. Server owns
+joint_controller/config.rs and new joint_controller_signed_axes.rs. Root alone
+owns the five retained test files and exact three runtime-singleton plus three
+public signed-axis and one private -Z input dispositions. Preserve every case
+identity and neighboring assertion. Independently reverse each complete retained
+file to the exact qualified parent outside approved spans; production files
+must likewise invert outside the reviewed change. Private DiffDrive -Y,
+expressed_in, nonprincipal and other unselected refusals stay negative. All
+whole-code reviews are complete; external final-doc review remains pending at
+this freeze. Root's sole new signed-case oracle finding was closed in `eb72412f`
+using a case-local measured-frame/wide-cap Sphere witness, leaving every mature
+helper and neighboring body exact. No verification run found this Source issue.
+
+The genuine locally qualified, unaccepted parent is
+`ac4af1c738a9daaf3d9d899eca46c690d3aac22a`, tree
+`7d050c307e07062487ef11a99c115e695cc26e05`, parent `cc83ca4a`.
+Normal `ec381a89` and independent local DATA `42221ccd` / method2 report
+`3d558421` passed; review publication `ab18d1ca` passed. Exact automatic CI
+44950039686 attempt 1 is active under Root's sole watcher 74750; hosted and
+own official outcomes remain unknown. Its failed retained reader `3f67e112` and
+prelaunch operational failure `60d29f6d` remain distinct from own normal
+failures, which are empty. Parent fresh five-file formatter custody stays
+separate from M92/M93's two plus original seven reused only for five unchanged
+Rust copies, its original `005bf028` failure, and M90's `f9d43298`/`fc5dce53`
+with three/one/four custody. No result or formatter qualification is inherited.
+
+M92/M93 completed own local, hosted and official method2 qualification at cc83:
+actual `57c2fe5e` / report `d92368a1`, with RAW 450/742/57/168 read once and
+actual zero CI base under new_branch_all_source. First official method failure
+`b86f84d1` occurred before archive/RAW access and stays preserved. M92/M93 remains
+unaccepted; none of its results transfers acceptance to this wave.
+
+Bounded implementation/regression Source and all whole-code reviews are complete.
+Finish external final-doc review and batch final findings before one affected
+formatter and one consolidated full normal/staged-hook cycle. Retain
+strict workspace, per-crate, actual-parent and every retained-ancestor line and
+region gate, all production gates strictly greater than 95 percent, independent
+local DATA, exact hosted CI and independent official DATA. All predecessor and
+original M77 browser/owner-shutdown/release gates remain mandatory. No per-edit
+trials, tests, lint, old qualification replay or fabricated pass counts.
+
+The independently reviewed resource proposal `5a4ae1b3` is conditional Source
+work only. Only the next fresh ordinary Cargo target may use executable host
+RAM; profile/native-free/RGB targets, TMPDIR and evidence remain on SSD. Keep
+selected initial SSD31 GiB and SHM22 GiB, early-stop SSD8 GiB and SHM4 GiB,
+mandatory initial SSD14 GiB, SHM1 GiB, MemAvailable8 GiB and existing runtime
+floors. The prior samples establish neither peak attribution nor future fit.
+Before one full run, independently review the concrete binding and resample
+actual floors/mount metadata; require a fresh absent nonsymlink owned0700 target,
+retain UID/device/inode/mode and its durable locator on every outcome. No target
+or heavy job is created/released here. Preserve the previous ordinary RAM target,
+every old cache/target and evidence; no eviction, cleanup or cache relocation.
+Preserve first 95 phase objects and prior 55 parallel groups exactly. Accepted
+phases/slices remain 76/202; catalog becomes 97; finite examples 47, CLI cases 21
+and Latest M70's original 41-example package stay unchanged. Demo 86363 remains
+live without expiry: no stop, restart or new expiry. Keep Fuel ownership and
+Rapier f64/TPE; DART/MuJoCo stay retired. No new backend, framework, Physics,
+Server, visual/viewer, sensor, protocol, packaging or native-reference campaign.
+
+## Historical M94/M95 document observation
+
+All following retained content records its earlier author-time checkpoints.
+The current M96/M97 contract and later parent disposition are stated above.
+
 ## Current development: M94 runtime compound retemplating / M95 principal-axis controllers
 
 Read [M94](docs/M94_DELIVERY.md) and [M95](docs/M95_DELIVERY.md) for the selected closed contracts,

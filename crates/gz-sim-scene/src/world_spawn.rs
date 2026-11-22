@@ -399,11 +399,7 @@ pub fn prepare_model_template(
     }
     let link = &model.links[0];
     let compound = (2..=16).contains(&link.collisions.len());
-    // Retemplating a runtime compound is limited to the compound route. Keep
-    // its resolving singleton/mesh DOM refusal independent of caller geometry.
-    if runtime_compound && !compound {
-        return Err(unsupported());
-    }
+    let runtime_primitive = runtime_compound && link.collisions.len() == 1;
     if (link.collisions.len() != 1 && !compound)
         || link.visuals.len() != 1
         || !link.sensors.is_empty()
@@ -429,7 +425,21 @@ pub fn prepare_model_template(
     };
     let collision = &link.collisions[0];
     let visual = &link.visuals[0];
-    let collider = if compound {
+    // Validate the actual source above before caller geometry selects a route.
+    // This new route never decodes a mesh or changes mature singleton policy.
+    if runtime_primitive
+        && (!matches!(
+            collision.geometry,
+            Geometry::Box { .. }
+                | Geometry::Sphere { .. }
+                | Geometry::Cylinder { .. }
+                | Geometry::Capsule { .. }
+        ) || collision.surface.source.is_some()
+            || crate::velocity_control::owns_model(world, model_id))
+    {
+        return Err(unsupported());
+    }
+    if compound || runtime_primitive {
         let local_link = sdf
             .resolve_pose(
                 &link.pose,
@@ -441,6 +451,8 @@ pub fn prepare_model_template(
         if !identity(local_link) || link.inertial.fluid_added_mass.is_some() {
             return Err(unsupported());
         }
+    }
+    let collider = if compound {
         let mut collisions = Vec::with_capacity(link.collisions.len());
         let mut densities = Vec::with_capacity(link.collisions.len());
         for child in &link.collisions {
@@ -520,7 +532,7 @@ pub fn prepare_model_template(
     if posed_primitive && crate::velocity_control::owns_model(world, model_id) {
         return Err(unsupported());
     }
-    if posed_primitive
+    if (posed_primitive || runtime_primitive)
         && (!super::world_edit::representable(collision_pose)
             || collision.density.is_some_and(|v| !v.is_finite() || v <= 0.))
     {
@@ -528,7 +540,7 @@ pub fn prepare_model_template(
     }
     let visual_pose = resolve(&visual.pose)?;
     let inertial_pose = resolve(&link.inertial.pose)?;
-    if (compound || posed_primitive)
+    if (compound || posed_primitive || runtime_primitive)
         && (inertial_pose.translation != [0.; 3]
             || !super::world_edit::representable(inertial_pose))
     {

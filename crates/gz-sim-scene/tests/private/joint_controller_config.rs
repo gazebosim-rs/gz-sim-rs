@@ -400,7 +400,6 @@ fn direct_world_rooted_chain_and_native_local_frame_domain_are_explicit() {
         |m| m.joints[0].kind = JointKind::Fixed,
         |m| m.joints[0].axis = None,
         |m| m.joints[0].axis2 = m.joints[0].axis.clone(),
-        |m| m.joints[0].axis.as_mut().unwrap().xyz = [0.0, 0.0, -1.0],
         |m| m.joints[0].axis.as_mut().unwrap().expressed_in = "base".into(),
         |m| m.joints[0].pose.transform.translation[0] = 0.1,
         |m| m.joints[0].pose.transform.rotation = [0.0, 0.0, 1.0, 0.0],
@@ -410,6 +409,25 @@ fn direct_world_rooted_chain_and_native_local_frame_domain_are_explicit() {
         let mut model = model();
         mutate(&mut model);
         refused(&model, "joint controller frames");
+    }
+    // The exact former -Z refusal is now admitted without changing either
+    // controller's parsed publication, scalar limits or initial command.
+    let mut signed = model();
+    signed.joints[0].axis.as_mut().unwrap().xyz = [0.0, 0.0, -1.0];
+    let expected = parse(&model()).unwrap().unwrap();
+    let actual = parse(&signed).unwrap().unwrap();
+    assert_eq!(actual.len(), expected.len());
+    for (actual, expected) in actual.iter().zip(&expected) {
+        assert_eq!(actual.joint, expected.joint);
+        assert_eq!(actual.publication, expected.publication);
+        assert_eq!(
+            (actual.max_velocity, actual.max_force, actual.initial_target),
+            (
+                expected.max_velocity,
+                expected.max_force,
+                expected.initial_target
+            )
+        );
     }
     let mut model = model();
     model.canonical_link.clear(); // Native canonical-link fallback is the first direct link.

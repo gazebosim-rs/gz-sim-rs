@@ -188,7 +188,15 @@ fn chain(model: &Model) -> Result<(), LoadError> {
                 && model.links.iter().any(|link| link.name == joint.child)
                 && joint.pose.transform == Transform::default()
                 && (joint.pose.relative_to.is_empty() || joint.pose.relative_to == joint.child)
-                && [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]].contains(&axis.xyz)
+                && [
+                    [1.0, 0.0, 0.0],
+                    [-1.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0],
+                    [0.0, -1.0, 0.0],
+                    [0.0, 0.0, 1.0],
+                    [0.0, 0.0, -1.0],
+                ]
+                .contains(&axis.xyz)
                 && axis.expressed_in.is_empty(),
             &model.scoped_name,
             "joint controller frames",

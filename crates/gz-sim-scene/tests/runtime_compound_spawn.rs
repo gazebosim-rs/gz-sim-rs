@@ -613,8 +613,8 @@ fn runtime_compound_preparation_keeps_original_domains_and_late_input_errors_clo
         format!("w::runtime_{accepted}::body")
     );
     assert_eq!(requested.links[0].visuals[0].name, "visual");
-    // This graph really resolves every supplied pose: without the actual-source
-    // veto, the old centered singleton preparation route would accept this DOM.
+    // This exact resolving centered singleton DOM is the selected positive
+    // route; preparing it still cannot mutate the actual compound source.
     for value in [
         &requested.links[0].collisions[0].pose,
         &requested.links[0].visuals[0].pose,
@@ -632,13 +632,71 @@ fn runtime_compound_preparation_keeps_original_domains_and_late_input_errors_clo
         assert_eq!(resolved.rotation, [0., 0., 0., 1.]);
     }
     let current = snapshot(&sim, &[bodies[0], bodies[1], body(&sim, accepted)]);
-    assert!(matches!(
-        prepare_model_template(&sim, &runtime_sdf, requested),
-        Err(WorldEditError::UnsupportedModel)
-    ));
+    let singleton = prepare_model_template(&sim, &runtime_sdf, requested).unwrap();
+    assert_eq!(singleton.source_visual_id(), accepted + 3);
     assert_eq!(
         snapshot(&sim, &[bodies[0], bodies[1], body(&sim, accepted)]),
         current
+    );
+    // Keep all later rejection baselines intact by publishing the same input
+    // only in an independently loaded copy of the original world.
+    let mut positive = load(&xml);
+    let source = prepare_model_template(&positive, &sdf, &sdf.worlds[0].models[0]).unwrap();
+    assert_eq!(
+        spawn_model_template(&mut positive, &source, cycle([10., 20., 30.])).unwrap(),
+        accepted
+    );
+    let singleton = prepare_model_template(&positive, &runtime_sdf, requested).unwrap();
+    let next = next_entity_id(positive.world()).unwrap();
+    let origin = [400., 20., 30.];
+    let copy =
+        spawn_model_template(&mut positive, &singleton, pose(origin, [0., 0., 0., 1.])).unwrap();
+    assert_eq!(copy, next);
+    assert_eq!(next_entity_id(positive.world()).unwrap(), next + 4);
+    assert_eq!(model_state(&positive, copy).unwrap().translation, origin);
+    assert_ne!(body(&positive, accepted), body(&positive, copy));
+    for (offset, kind) in [
+        (0, EntityKind::Model),
+        (1, EntityKind::Link),
+        (2, EntityKind::Collision),
+        (3, EntityKind::Visual),
+    ] {
+        assert_eq!(
+            positive
+                .world()
+                .get::<EntityKind>(entity_by_id(positive.world(), copy + offset).unwrap()),
+            Some(&kind)
+        );
+    }
+    assert!(Arc::ptr_eq(
+        &positive
+            .world()
+            .get::<VisualGeometry>(entity_by_id(positive.world(), copy + 3).unwrap())
+            .unwrap()
+            .0,
+        &positive
+            .world()
+            .get::<VisualGeometry>(entity_by_id(positive.world(), accepted + 3).unwrap())
+            .unwrap()
+            .0,
+    ));
+    assert_eq!(
+        ray(&positive, [401.5, 20., 30.], [-1., 0., 0.], 1., None),
+        Some(1.)
+    );
+    assert_eq!(
+        ray(&positive, [401.5, 20., 30.], [-1., 0., 0.], 0.999, None),
+        None
+    );
+    assert_eq!(
+        ray(
+            &positive,
+            [401.5, 20., 30.],
+            [-1., 0., 0.],
+            2.,
+            Some(body(&positive, copy))
+        ),
+        None
     );
     let controlled = xml.replacen(
         "<link name='body'>",

@@ -829,13 +829,108 @@ fn principal_axis_admission_keeps_negative_nonprincipal_frames_and_owner_domains
             "expected={feature}, input={text}"
         );
     };
-    for xyz in [
-        "-1 0 0",
-        "0 -1 0",
-        "0 0 -1",
-        "0.5 0.5 0",
-        "1 0.000000000001 0",
+    // Preserve all three exact formerly refused XML inputs as positive native
+    // controls; each uses the same second axis, geometry, commands and bounds.
+    // Generic transformed curved queries use a wide cap and analytic distance;
+    // the unchanged mature helper's binary endpoint premises are not reused.
+    let check_signed = |sim: &Simulation, axes: [[f64; 3]; 2]| {
+        let expected = frames(sim, "arm", axes, DVec3::ZERO, DQuat::IDENTITY);
+        let first = state(sim, "arm", "root");
+        let root_omega = DVec3::from_array(axes[0]) * first.velocity;
+        for (index, link) in ["base", "child"].into_iter().enumerate() {
+            let name = format!("w::arm::{link}");
+            let (position, basis) = expected[index];
+            let handle = body(sim, &name);
+            let native = sim
+                .world()
+                .resource::<PhysicsBackend>()
+                .state(handle)
+                .unwrap();
+            let logical = sim.world().get::<WorldPose>(named(sim, &name)).unwrap();
+            vector(DVec3::from_array(native.position), position);
+            vector(DVec3::from_array(logical.translation), position);
+            let omega = if index == 0 {
+                root_omega
+            } else {
+                root_omega
+                    + rotate(axes[0], first.position, DVec3::from_array(axes[1]))
+                        * state(sim, "arm", "tip").velocity
+            };
+            vector(DVec3::from_array(native.angular_velocity), omega);
+            vector(
+                DVec3::from_array(native.velocity),
+                if index == 0 {
+                    DVec3::ZERO
+                } else {
+                    root_omega.cross(position)
+                },
+            );
+            for (v, wanted) in [DVec3::X, DVec3::Y, DVec3::Z].into_iter().zip(basis) {
+                vector(DQuat::from_array(native.orientation) * v, wanted);
+                vector(DQuat::from_array(logical.rotation) * v, wanted);
+            }
+            let joint = if index == 0 { "root" } else { "tip" };
+            let joint_name = format!("w::arm::{joint}");
+            assert!(joint_controller_binding_matches(sim, id(sim, &joint_name)));
+            let sample = sim
+                .world()
+                .get::<JointSample>(named(sim, &joint_name))
+                .unwrap();
+            assert_eq!(sample.state, state(sim, "arm", joint));
+            assert_eq!((sample.time, sample.epoch), (sim.elapsed(), sim.epoch()));
+            for i in 0..4 {
+                let center = position + apply(basis, DVec3::new(2., 0., 4. * i as f64));
+                let child = sim
+                    .world()
+                    .get::<WorldPose>(named(sim, &format!("{name}::c{i}")))
+                    .unwrap();
+                vector(DVec3::from_array(child.translation), center);
+                let yaw = if i == 0 { 0. } else { 0.3 };
+                for v in [DVec3::X, DVec3::Y, DVec3::Z] {
+                    vector(
+                        DQuat::from_array(child.rotation) * v,
+                        apply(basis, rotate(AXES[2], yaw, v)),
+                    );
+                }
+                if i == 0 {
+                    // Radius .5 Sphere, offset .3: sqrt(.25-.09)=.4.
+                    // Other members occupy separate four-unit Z lanes and
+                    // the other link is at its hundred-unit pivot offset.
+                    let origin = center + basis[0] * 4. + basis[1] * 0.3;
+                    near(query(sim, origin, -basis[0], 5., None).unwrap(), 3.6);
+                    assert!(query(sim, origin, -basis[0], 5., Some(handle)).is_none());
+                }
+            }
+        }
+    };
+    for (xyz, axis) in [
+        ("-1 0 0", [-1., 0., 0.]),
+        ("0 -1 0", [0., -1., 0.]),
+        ("0 0 -1", [0., 0., -1.]),
     ] {
+        let text = base.replacen("<xyz>1 0 0</xyz>", &format!("<xyz>{xyz}</xyz>"), 1);
+        let mut driven = load(&text);
+        let mut quiet = load(&text);
+        let initial = bodies(&driven);
+        let original_ids = ids(&driven);
+        let axes = [axis, AXES[1]];
+        check_signed(&driven, axes);
+        command(&mut driven, "arm", "root", 0.4);
+        command(&mut driven, "arm", "tip", 0.3);
+        assert_eq!(bodies(&driven), initial);
+        driven.step_exact(100).unwrap();
+        quiet.step_exact(100).unwrap();
+        assert_eq!(ids(&driven), original_ids);
+        for joint in ["root", "tip"] {
+            let actual = state(&driven, "arm", joint);
+            assert!(actual.position.is_finite() && actual.velocity.is_finite());
+            assert!(actual.position > 0. && actual.position < 1.);
+            assert!(state(&quiet, "arm", joint).position.abs() < 1e-11);
+        }
+        assert_ne!(bodies(&driven), bodies(&quiet));
+        check_signed(&driven, axes);
+    }
+    for xyz in ["0.5 0.5 0", "1 0.000000000001 0"] {
         refused(
             &base.replacen("<xyz>1 0 0</xyz>", &format!("<xyz>{xyz}</xyz>"), 1),
             "joint controller frames",

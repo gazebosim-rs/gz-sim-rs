@@ -526,7 +526,7 @@ fn runtime_retemplate_closed_domains_and_late_errors_preserve_both_allocators() 
     let supplied = requested(source, 2, false, 17.);
     let valid = prepare_model_template(&sim, &supplied, &supplied.worlds[0].models[0]).unwrap();
     let before = snapshot(&sim);
-    for count in [0, 1, 17] {
+    for count in [0, 17] {
         let other = requested(source, count, false, 17.);
         assert!(matches!(
             prepare_model_template(&sim, &other, &other.worlds[0].models[0]),
@@ -535,6 +535,26 @@ fn runtime_retemplate_closed_domains_and_late_errors_preserve_both_allocators() 
         assert_eq!(snapshot(&sim), before);
     }
     let singleton = requested(source, 1, false, 17.);
+    // The same formerly refused one-child DOM now prepares without touching
+    // the source. Exercise its four-node publication in a separate world so
+    // every later refusal still compares against the original allocator state.
+    let single = prepare_model_template(&sim, &singleton, &singleton.worlds[0].models[0]).unwrap();
+    assert_eq!(single.source_visual_id(), source + 3);
+    assert_eq!(snapshot(&sim), before);
+    let mut positive = load(&xml);
+    let initial = prepare_model_template(&positive, &sdf, &sdf.worlds[0].models[0]).unwrap();
+    assert_eq!(
+        spawn_model_template(&mut positive, &initial, cycle([100., 20., 30.])).unwrap(),
+        source
+    );
+    let single =
+        prepare_model_template(&positive, &singleton, &singleton.worlds[0].models[0]).unwrap();
+    let next = next_entity_id(positive.world()).unwrap();
+    let copy = spawn_model_template(&mut positive, &single, cycle([600., 20., 30.])).unwrap();
+    assert_eq!(copy, next);
+    assert_eq!(next_entity_id(positive.world()).unwrap(), next + 4);
+    assert_ne!(body(&positive, copy), body(&positive, source));
+    geometry(&positive, copy, 1, [600., 20., 30.], 17.);
     let mut mesh = singleton.worlds[0].models[0].clone();
     let mesh_source = mesh.links[0].collisions[0].source.clone();
     mesh.links[0].collisions[0].geometry = Geometry::Mesh(sdformat::Mesh {
