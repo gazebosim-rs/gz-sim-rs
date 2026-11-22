@@ -1,3 +1,59 @@
+## Current M100/M101 correction and qualification
+
+Translated primitive mass frames and local joint frames are implemented and
+independently reviewed under selection `8daad5d5`, over qualified but unaccepted
+parent `1a4bdbb5`/`e8dd98dd`. Read [M100](M100_DELIVERY.md) and
+[M101](M101_DELIVERY.md) in docs (from the repository root, use `docs/`).
+The bounded pair retains at most five working days including review and required
+checks. There are 23 new Rust declarations: 23 headless, 22 renderer, 22 shared;
+18 public and five private. The native private case is headless only; the four
+Scene private cases are shared. No new Python, finite or CLI cases are added.
+
+The first full normal failed on tree `2af214b2`: 2046 headless cases passed, two
+failed and two were ignored. Both failed cases are in M100's new public test
+module; 21 of the 23 new controls passed headless, including all 14 M101 controls
+and the native private control. Renderer and later coverage were not reached.
+No commit or qualification resulted; the failed tree, packet, logs and partial
+RAW evidence remain unchanged (`844527c5`, Root receipt `f460b14d`).
+
+Independent Source review found two test-premise errors, with no production
+finding. The corrective test source (`619aae73`, test `7195ce9b`) initializes
+Bevy schedules without callbacks before the complete paused-state baseline.
+It also witnesses the controller's committed zero on the first advancing step,
+then keeps the original target witness on the second step after PostStep latch.
+All inputs, strict comparisons, tolerances and eight case identities remain.
+No production code changed in this correction. Corrected-source verification
+is pending; the complete atomicity assertion is retained.
+
+The integrated source has 1827 files, 23 owned paths (15 Rust and eight docs),
+four new paths, 1804 protected parent paths and 124 cumulative changed paths.
+Six implementation paths are separate from four comment-only spans in the
+seventh production file. Corrected-source final review, formatting and one full
+normal retry remain required, followed by independent local DATA, exact hosted
+CI and its original-artifact audit. No new tree, commit or pass is presumed.
+
+Parent M98/M99 passed its own normal, local DATA, exact hosted attempt 1 and
+independent official audit (`6d3c3d07`, Root `1d6afe7d`). The official audit
+compared four retained RAW groups once; it replayed no tests, builds or downloads.
+Earlier watcher/API failures and both pre-I/O collector method failures remain
+historical failures. No parent acceptance or qualification transfers to this pair.
+
+The pending retry resource choice (`81b75411`) places only a fresh ordinary
+Cargo target on executable SHM: initial 31 GiB SSD, 8.875 GiB SHM and 1.75 GiB
+runtime. Mandatory 14 GiB initial SSD, 8/4 GiB SSD/SHM early stops, runtime
+1.375 GiB early stop, all operating floors, jobs4 and Mem8 GiB remain. The
+4.875 GiB sampled SHM net-free-decrease cap is not an allocation quota, continuous
+peak or fit guarantee. All old targets, locators and evidence remain; no eviction
+is authorized. Fresh Root admission and reviewed execution are still required.
+
+M77 formal browser evidence and owner-confirmed shutdown still gate acceptance.
+The no-expiry manual demo is protected; no stop, restart or expiry is authorized.
+
+---
+
+The retained qualified-parent checkpoint follows as historical context; its
+status statements describe their own recorded checkpoint.
+
 ## Current development: M98 runtime Mesh copies / M99 arbitrary joint axes
 
 Read [M98](M98_DELIVERY.md) and [M99](M99_DELIVERY.md) for the closed contracts, leases and acceptance criteria. Root selected

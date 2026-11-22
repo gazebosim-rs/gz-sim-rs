@@ -48,8 +48,9 @@ pub struct BodySpec {
 }
 
 /// One box collider in a link-local rigid frame, in meters and XYZW rotation.
-/// `position` and `velocity` describe the link in world axes; `None` mass is fixed.
-/// Dynamic posed boxes require explicit inertia centered on the link origin.
+/// `position` is the link origin and `velocity` is COM velocity, both in world axes.
+/// `None` mass is fixed; dynamic posed boxes require explicit link-frame inertia.
+/// Rapier admits bounded translated inertia centers.
 #[derive(Debug, Clone, Copy)]
 pub struct PosedBoxBodySpec {
     pub half_extents: [f64; 3],
@@ -61,8 +62,9 @@ pub struct PosedBoxBodySpec {
 }
 
 /// One Z-axis cylinder in a link-local rigid frame, in meters and XYZW rotation.
-/// `position` and `velocity` describe the link in world axes; `None` mass is fixed.
-/// Dynamic posed cylinders require explicit inertia centered on the link origin.
+/// `position` is the link origin and `velocity` is COM velocity, both in world axes.
+/// `None` mass is fixed; dynamic posed cylinders require explicit link-frame inertia.
+/// Rapier admits bounded translated inertia centers.
 #[derive(Debug, Clone, Copy)]
 pub struct PosedCylinderBodySpec {
     pub radius: f64,
@@ -76,8 +78,9 @@ pub struct PosedCylinderBodySpec {
 
 /// One Z-axis capsule in a link-local rigid frame, in meters and XYZW rotation.
 /// `half_length` is half the axial segment; each hemisphere adds `radius`.
-/// `position` and `velocity` describe the link in world axes; `None` mass is fixed.
-/// Dynamic posed capsules require explicit inertia centered on the link origin.
+/// `position` is the link origin and `velocity` is COM velocity, both in world axes.
+/// `None` mass is fixed; dynamic posed capsules require explicit link-frame inertia.
+/// Rapier admits bounded translated inertia centers.
 #[derive(Debug, Clone, Copy)]
 pub struct PosedCapsuleBodySpec {
     pub radius: f64,
@@ -91,8 +94,9 @@ pub struct PosedCapsuleBodySpec {
 
 /// One sphere in a link-local rigid frame, in meters and XYZW rotation.
 /// Local rotation preserves the spherical geometry but is still validated.
-/// `position` and `velocity` describe the link in world axes; `None` mass is fixed.
-/// Dynamic posed spheres require explicit inertia centered on the link origin.
+/// `position` is the link origin and `velocity` is COM velocity, both in world axes.
+/// `None` mass is fixed; dynamic posed spheres require explicit link-frame inertia.
+/// Rapier admits bounded translated inertia centers.
 #[derive(Debug, Clone, Copy)]
 pub struct PosedSphereBodySpec {
     pub radius: f64,

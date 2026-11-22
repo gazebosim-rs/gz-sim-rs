@@ -541,8 +541,31 @@ pub fn prepare_model_template(
     }
     let visual_pose = resolve(&visual.pose)?;
     let inertial_pose = resolve(&link.inertial.pose)?;
+    let translated_primitive = posed_primitive && inertial_pose.translation != [0.; 3];
+    if translated_primitive {
+        // `runtime_singleton` means a requested singleton from an ACTUAL compound.
+        // The new COM route instead requires an actual admitted singleton source;
+        // neither caller collision count nor stripped plugins can change ownership.
+        if runtime_compound
+            || initial::original_compound_model(world, model_id)
+            || link.inertial.fluid_added_mass.is_some()
+        {
+            return Err(unsupported());
+        }
+        let local_link = sdf
+            .resolve_pose(
+                &link.pose,
+                &model.scoped_name,
+                &model.scoped_name,
+                &model.scoped_name,
+            )
+            .map_err(|_| WorldEditError::InvalidScene)?;
+        if !identity(local_link) {
+            return Err(unsupported());
+        }
+    }
     if (compound || posed_primitive || runtime_singleton)
-        && (inertial_pose.translation != [0.; 3]
+        && ((inertial_pose.translation != [0.; 3] && !translated_primitive)
             || !super::world_edit::representable(inertial_pose))
     {
         return Err(unsupported());

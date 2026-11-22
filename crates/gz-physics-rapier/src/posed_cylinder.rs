@@ -75,10 +75,23 @@ pub(super) fn spawn(
                 return Err(PhysicsError::InvalidValue);
             }
             if value.center != [0.0; 3] {
-                return Err(PhysicsError::Unsupported {
-                    engine: "rapier",
-                    capability: "posed cylinder offset inertia",
-                });
+                // Only the newly admitted offset domain needs these extra bounds.
+                // The existing `world` is the COLLIDER pose, not the body pose.
+                let center = Vector::from(value.center);
+                let body_pose = Pose::from_parts(Vector::from(spec.position), orientation);
+                let world_center = body_pose * center;
+                let sphere = shape
+                    .shape()
+                    .compute_local_bounding_sphere()
+                    .transform_by(shape.position());
+                let extent = (sphere.center - center).length() + sphere.radius;
+                if !center.length_squared().is_finite()
+                    || !finite(world_center.to_array())
+                    || !world_center.length_squared().is_finite()
+                    || !extent.is_finite()
+                {
+                    return Err(PhysicsError::InvalidValue);
+                }
             }
             inertia_properties(value, spec.mass.unwrap_or(1.0))
         })

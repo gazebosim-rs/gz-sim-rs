@@ -4,7 +4,7 @@
 //! Field meanings and default topics follow gz-sim 71c60db3 JointController.cc
 //! and JointPositionController.cc. PID, actuator and multi-DOF modes are deferred.
 use crate::{LoadError, require};
-use sdformat::{JointKind, Model, Plugin, Transform};
+use sdformat::{JointKind, Model, Plugin};
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::{JointControllerConfiguration, JointControllerMode};
@@ -190,7 +190,10 @@ fn chain(model: &Model) -> Result<(), LoadError> {
                 && joint.kind == JointKind::Revolute
                 && joint.axis2.is_none()
                 && model.links.iter().any(|link| link.name == joint.child)
-                && joint.pose.transform == Transform::default()
+                // Local joint frames reuse the same finite f64/f32 and unit-Q
+                // rule as the existing scene state/pose boundary. Never repair
+                // the public caller DOM or normalize its quaternion here.
+                && crate::world_edit::representable(crate::WorldPose::from(joint.pose.transform))
                 && (joint.pose.relative_to.is_empty() || joint.pose.relative_to == joint.child)
                 && axis.xyz.into_iter().all(f64::is_finite)
                 && norm_squared.is_finite()
@@ -491,5 +494,217 @@ mod arbitrary_axis_dom_tests {
                 ..
             })
         ));
+    }
+}
+
+#[cfg(test)]
+mod local_joint_frame_dom_tests {
+    use super::*;
+
+    fn model() -> Model {
+        sdformat::load_str(
+            include_str!("../../../../examples/m9_joint_controllers.sdf"),
+            "local-joint-frame-dom.sdf",
+            &sdformat::NoResources,
+        )
+        .unwrap()
+        .worlds
+        .remove(0)
+        .models
+        .into_iter()
+        .find(|m| m.name == "arm")
+        .unwrap()
+    }
+    fn unchanged(caller: &Model, before: &str, bits: ([u64; 3], [u64; 4]), index: usize) {
+        assert_eq!(format!("{caller:?}"), before);
+        assert_eq!(
+            caller.joints[index]
+                .pose
+                .transform
+                .translation
+                .map(f64::to_bits),
+            bits.0
+        );
+        assert_eq!(
+            caller.joints[index]
+                .pose
+                .transform
+                .rotation
+                .map(f64::to_bits),
+            bits.1
+        );
+    }
+    fn bits(caller: &Model, index: usize) -> ([u64; 3], [u64; 4]) {
+        (
+            caller.joints[index]
+                .pose
+                .transform
+                .translation
+                .map(f64::to_bits),
+            caller.joints[index]
+                .pose
+                .transform
+                .rotation
+                .map(f64::to_bits),
+        )
+    }
+    #[test]
+    fn local_joint_dom_finite_translations_and_unit_frames_preserve_every_caller_bit() {
+        let reference = parse(&model()).unwrap().unwrap();
+        for translation in [
+            [0.1, -0.25, 0.5],
+            [-1., 2., -3.],
+            [f64::from(f32::MAX), 0., 0.],
+        ] {
+            for rotation in [
+                [0., 0., 1., 0.],
+                [0.5, 0.5, 0.5, 0.5],
+                [-0.5, 0.5, -0.5, 0.5],
+                [0., 0., 0., -1.],
+            ] {
+                for index in 0..2 {
+                    for child_relative in [false, true] {
+                        let mut caller = model();
+                        caller.joints[index].pose.transform = sdformat::Transform {
+                            translation,
+                            rotation,
+                        };
+                        caller.joints[index].pose.relative_to = if child_relative {
+                            caller.joints[index].child.clone()
+                        } else {
+                            String::new()
+                        };
+                        let before = format!("{caller:?}");
+                        let bits = bits(&caller, index);
+                        let plans = parse(&caller).unwrap().unwrap();
+                        assert_eq!(plans.len(), 2);
+                        for (actual, wanted) in plans.iter().zip(&reference) {
+                            assert_eq!(actual.publication, wanted.publication);
+                            assert_eq!(
+                                (
+                                    actual.joint.as_str(),
+                                    actual.max_velocity,
+                                    actual.max_force,
+                                    actual.initial_target
+                                ),
+                                (
+                                    wanted.joint.as_str(),
+                                    wanted.max_velocity,
+                                    wanted.max_force,
+                                    wanted.initial_target
+                                )
+                            );
+                        }
+                        unchanged(&caller, &before, bits, index);
+                    }
+                }
+            }
+        }
+    }
+    #[test]
+    fn local_joint_dom_nonfinite_overflow_and_nonunit_frames_are_never_repaired() {
+        let invalid = [
+            ([f64::NAN, 0., 0.], [0., 0., 0., 1.]),
+            ([0., f64::INFINITY, 0.], [0., 0., 0., 1.]),
+            ([0., 0., f64::NEG_INFINITY], [0., 0., 0., 1.]),
+            ([f64::from(f32::MAX) * 2., 0., 0.], [0., 0., 0., 1.]),
+            ([0.; 3], [0.; 4]),
+            ([0.; 3], [0., 0., 0., 2.]),
+            ([0.; 3], [f64::NAN, 0., 0., 1.]),
+            ([0.; 3], [0., f64::INFINITY, 0., 1.]),
+            ([0.; 3], [0., 0., f64::NEG_INFINITY, 1.]),
+            ([0.; 3], [1e300, 0., 0., 1.]),
+        ];
+        for (translation, rotation) in invalid {
+            for index in 0..2 {
+                let mut caller = model();
+                caller.joints[index].pose.transform = sdformat::Transform {
+                    translation,
+                    rotation,
+                };
+                let before = format!("{caller:?}");
+                let bits = bits(&caller, index);
+                assert!(
+                    matches!(
+                        parse(&caller),
+                        Err(LoadError::Unsupported {
+                            feature: "joint controller frames",
+                            ..
+                        })
+                    ),
+                    "joint={index}, translation={translation:?}, rotation={rotation:?}"
+                );
+                unchanged(&caller, &before, bits, index);
+            }
+        }
+    }
+    #[test]
+    fn local_joint_dom_quaternion_unit_band_checks_both_sides_without_normalization() {
+        for sign in [-1., 1.] {
+            for (delta, admitted) in [
+                (4e-13, true),
+                (-4e-13, true),
+                (6e-13, false),
+                (-6e-13, false),
+            ] {
+                for index in 0..2 {
+                    let mut caller = model();
+                    caller.joints[index].pose.transform = sdformat::Transform {
+                        translation: [0.25, -0.5, 1.],
+                        rotation: [0., 0., 0., sign * (1. + delta)],
+                    };
+                    let q = caller.joints[index].pose.transform.rotation;
+                    assert_eq!(
+                        (q.into_iter().map(|v| v * v).sum::<f64>() - 1.).abs() <= 1e-12,
+                        admitted
+                    );
+                    let before = format!("{caller:?}");
+                    let bits = bits(&caller, index);
+                    if admitted {
+                        assert_eq!(parse(&caller).unwrap().unwrap().len(), 2);
+                    } else {
+                        assert!(matches!(
+                            parse(&caller),
+                            Err(LoadError::Unsupported {
+                                feature: "joint controller frames",
+                                ..
+                            })
+                        ));
+                    }
+                    unchanged(&caller, &before, bits, index);
+                }
+            }
+        }
+    }
+    #[test]
+    fn local_joint_dom_frame_admission_does_not_authorize_other_axis_link_or_frame_domains() {
+        for mutate in [
+            (|m: &mut Model| m.links[0].pose.transform.rotation = [0., 0., 1., 0.])
+                as fn(&mut Model),
+            |m| m.links[0].pose.relative_to = "arm".into(),
+            |m| m.joints[0].pose.relative_to = m.joints[1].child.clone(),
+            |m| m.joints[0].axis.as_mut().unwrap().expressed_in = "base".into(),
+            |m| m.joints[0].axis.as_mut().unwrap().xyz = [2., 0., 0.],
+            |m| m.joints[0].axis2 = m.joints[0].axis.clone(),
+            |m| m.joints[0].kind = JointKind::Fixed,
+        ] {
+            let mut caller = model();
+            for joint in &mut caller.joints {
+                joint.pose.transform = sdformat::Transform {
+                    translation: [0.25, -0.5, 1.],
+                    rotation: [0.5; 4],
+                };
+            }
+            mutate(&mut caller);
+            let before = format!("{caller:?}");
+            assert!(matches!(
+                parse(&caller),
+                Err(LoadError::Unsupported {
+                    feature: "joint controller frames",
+                    ..
+                })
+            ));
+            assert_eq!(format!("{caller:?}"), before);
+        }
     }
 }

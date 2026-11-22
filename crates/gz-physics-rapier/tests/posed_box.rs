@@ -586,19 +586,63 @@ fn posed_box_inertia_refusals_preserve_ids_state_and_pending_wrenches() {
             capability: "dynamic posed box without explicit inertia",
         },
     );
+    // Retain the exact former offset-refusal inputs as physical positives.
+    // A principal Z torque makes a translated COM observable at the body origin.
     for mass in [None, Some(2.0)] {
-        rejected(
-            PosedBoxBodySpec { mass, ..spec() },
-            RotationSpec::default(),
-            Some(Inertia {
-                center: [-0.25, 0.0, 0.0],
-                ..inertia()
-            }),
-            PhysicsError::Unsupported {
-                engine: "rapier",
-                capability: "posed box offset inertia",
-            },
-        );
+        let mut backend = RapierBackend::new([0.0; 3]).unwrap();
+        let requested = PosedBoxBodySpec { mass, ..spec() };
+        let id = backend
+            .spawn_posed_box_link(
+                requested,
+                RotationSpec::default(),
+                Some(Inertia {
+                    center: [-0.25, 0.0, 0.0],
+                    ..inertia()
+                }),
+            )
+            .unwrap();
+        assert_eq!(id, BodyId::from_raw(0));
+        let mut control = RapierBackend::new([0.0; 3]).unwrap();
+        let centered = control
+            .spawn_posed_box_link(requested, RotationSpec::default(), Some(inertia()))
+            .unwrap();
+        let before = backend.state(id).unwrap();
+        assert_eq!(before.position, requested.position);
+        if mass.is_some() {
+            backend
+                .add_world_wrench(id, [2.0, 0.0, 0.0], [0.0, 0.0, 4.0])
+                .unwrap();
+            control
+                .add_world_wrench(centered, [2.0, 0.0, 0.0], [0.0, 0.0, 4.0])
+                .unwrap();
+            step(&mut backend, 1);
+            step(&mut control, 1);
+            let actual = backend.state(id).unwrap();
+            let reference = control.state(centered).unwrap();
+            close(actual.velocity[0], 0.001);
+            close(actual.velocity[1], 0.0);
+            close(actual.velocity[2], 0.0);
+            close(actual.angular_velocity[2], 0.001);
+            let theta = 2.0 * actual.orientation[2].atan2(actual.orientation[3]);
+            assert!(theta > 0.0 && theta < 0.01);
+            // The matched centered body observes actual substep COM motion;
+            // final velocity times the whole step is not a displacement oracle.
+            close(
+                actual.position[0],
+                reference.position[0] + 0.25 * (theta.cos() - 1.0),
+            );
+            close(
+                actual.position[1],
+                reference.position[1] + 0.25 * theta.sin(),
+            );
+            close(actual.position[2], reference.position[2]);
+            assert!(actual.position[1] > requested.position[1]);
+        } else {
+            step(&mut backend, 1);
+            same_state(backend.state(id).unwrap(), before);
+        }
+        backend.reset().unwrap();
+        same_state(backend.state(id).unwrap(), before);
     }
     for value in [
         Inertia {

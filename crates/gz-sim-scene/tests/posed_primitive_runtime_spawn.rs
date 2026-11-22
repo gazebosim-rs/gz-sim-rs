@@ -798,7 +798,7 @@ fn posed_runtime_parameter_and_first_guard_refusals_preserve_pending_inputs() {
             let error = prepare_model_template(&sim, &sdf, &requested);
             match row {
                 0 | 1 => assert!(matches!(error, Err(WorldEditError::InvalidState))),
-                2 => assert!(matches!(error, Err(WorldEditError::UnsupportedModel))),
+                2 => assert!(error.is_ok(), "exact former tiny-COM input is admitted"),
                 _ => assert!(matches!(error, Err(WorldEditError::InvalidScene))),
             }
             assert_eq!(snapshot(&sim), before);
@@ -826,9 +826,9 @@ fn posed_runtime_parameter_and_first_guard_refusals_preserve_pending_inputs() {
             [1., 2., 3.],
         );
 
-        // Identity dispatch retains its old tiny-COM semantics, while the new
-        // posed constructor is centered-only. Exact/nonzero witnesses cannot be
-        // hidden by the geometry helper's much wider 1e-11 tolerance.
+        // Both selected posed and mature identity routes preserve the same
+        // tiny COM exactly; the velocity cross term must not be hidden by the
+        // geometry helper's much wider 1e-11 tolerance.
         let mut identity = sdf.worlds[0].models[0].clone();
         identity.links[0].collisions[0].pose.transform.translation = [0.; 3];
         identity.links[0].collisions[0].pose.transform.rotation = [0., 0., 0., 1.];
@@ -850,6 +850,28 @@ fn posed_runtime_parameter_and_first_guard_refusals_preserve_pending_inputs() {
         let velocity = native(&sim, body(&sim, centered)).velocity;
         assert_eq!(velocity, [1., 2e-13, 3.]);
         assert_ne!(velocity, target.linear_velocity);
+
+        // Spawn the exact former posed-COM refusal input, not an identity copy.
+        let mut tiny_posed = sdf.worlds[0].models[0].clone();
+        tiny_posed.links[0].inertial.pose.transform.translation = [1e-13, 0., 0.];
+        let tiny_template = prepare_model_template(&sim, &sdf, &tiny_posed).unwrap();
+        let posed_copy = spawn_model_template(
+            &mut sim,
+            &tiny_template,
+            pose([80., 0., 10.], [0., 0., 0., 1.]),
+        )
+        .unwrap();
+        let posed_target = ModelState {
+            translation: [80., 0., 10.],
+            ..target
+        };
+        assert_eq!(
+            set_model_state(&mut sim, posed_copy, posed_target).unwrap(),
+            posed_target
+        );
+        let posed_velocity = native(&sim, body(&sim, posed_copy)).velocity;
+        assert_eq!(posed_velocity, [1., 2e-13, 3.]);
+        assert_ne!(posed_velocity, posed_target.linear_velocity);
 
         // Valid caller changes copy mass/tensor/shape/translation, not original
         // loaded geometry. Visual resources remain the actual source Arc.
