@@ -907,6 +907,18 @@ fn principal_axis_admission_keeps_negative_nonprincipal_frames_and_owner_domains
         ("-1 0 0", [-1., 0., 0.]),
         ("0 -1 0", [0., -1., 0.]),
         ("0 0 -1", [0., 0., -1.]),
+        // These same XML inputs used to stop at the principal-axis gate.
+        // The parser normalizes their directions; retain them as physical
+        // admission controls while the frame/topology negatives below stay.
+        (
+            "0.5 0.5 0",
+            [
+                std::f64::consts::FRAC_1_SQRT_2,
+                std::f64::consts::FRAC_1_SQRT_2,
+                0.,
+            ],
+        ),
+        ("1 0.000000000001 0", [1., 1e-12, 0.]),
     ] {
         let text = base.replacen("<xyz>1 0 0</xyz>", &format!("<xyz>{xyz}</xyz>"), 1);
         let mut driven = load(&text);
@@ -929,12 +941,6 @@ fn principal_axis_admission_keeps_negative_nonprincipal_frames_and_owner_domains
         }
         assert_ne!(bodies(&driven), bodies(&quiet));
         check_signed(&driven, axes);
-    }
-    for xyz in ["0.5 0.5 0", "1 0.000000000001 0"] {
-        refused(
-            &base.replacen("<xyz>1 0 0</xyz>", &format!("<xyz>{xyz}</xyz>"), 1),
-            "joint controller frames",
-        );
     }
     refused(
         &base.replacen("<xyz>", "<xyz expressed_in='base'>", 1),

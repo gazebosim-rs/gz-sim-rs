@@ -1069,17 +1069,52 @@ fn signed_axis_admission_keeps_nonprincipal_frames_and_owner_domains_closed() {
             "expected={feature}, input={text}"
         );
     };
-    for xyz in [
-        "0.5 0.5 0",
-        "1 0.000000000001 0",
-        "-1 0.000000000001 0",
-        "0 -1 -0.000000000001",
-        "-1 -1 0",
+    // Preserve the five former refusal inputs as measured physical positives.
+    // Expected directions are independent of the native body's pose; the XML
+    // parser already normalizes these values before controller admission.
+    for (xyz, axis) in [
+        (
+            "0.5 0.5 0",
+            [
+                std::f64::consts::FRAC_1_SQRT_2,
+                std::f64::consts::FRAC_1_SQRT_2,
+                0.,
+            ],
+        ),
+        ("1 0.000000000001 0", [1., 1e-12, 0.]),
+        ("-1 0.000000000001 0", [-1., 1e-12, 0.]),
+        ("0 -1 -0.000000000001", [0., -1., -1e-12]),
+        (
+            "-1 -1 0",
+            [
+                -std::f64::consts::FRAC_1_SQRT_2,
+                -std::f64::consts::FRAC_1_SQRT_2,
+                0.,
+            ],
+        ),
     ] {
-        refused(
-            &base.replacen("<xyz>-1 0 0</xyz>", &format!("<xyz>{xyz}</xyz>"), 1),
-            "joint controller frames",
-        );
+        let text = base.replacen("<xyz>-1 0 0</xyz>", &format!("<xyz>{xyz}</xyz>"), 1);
+        assert_ne!(text, base);
+        let mut driven = load(&text);
+        let mut quiet = load(&text);
+        let initial = bodies(&driven);
+        let original_ids = ids(&driven);
+        let axes = [axis, AXES[4]];
+        check_frames_and_queries(&driven, "arm", axes, [4, 4], DVec3::ZERO, DQuat::IDENTITY);
+        command(&mut driven, "arm", "root", 0.4);
+        command(&mut driven, "arm", "tip", 0.3);
+        assert_eq!(bodies(&driven), initial);
+        driven.step_exact(100).unwrap();
+        quiet.step_exact(100).unwrap();
+        assert_eq!(ids(&driven), original_ids);
+        for joint in ["root", "tip"] {
+            let actual = state(&driven, "arm", joint);
+            assert!(actual.position.is_finite() && actual.velocity.is_finite());
+            assert!(actual.position > 0. && actual.position < 1.);
+            assert!(state(&quiet, "arm", joint).position.abs() < 1e-11);
+        }
+        assert_ne!(bodies(&driven), bodies(&quiet));
+        check_frames_and_queries(&driven, "arm", axes, [4, 4], DVec3::ZERO, DQuat::IDENTITY);
     }
     refused(
         &base.replacen("<xyz>", "<xyz expressed_in='base'>", 1),

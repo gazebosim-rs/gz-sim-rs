@@ -556,6 +556,8 @@ fn runtime_retemplate_closed_domains_and_late_errors_preserve_both_allocators() 
     assert_ne!(body(&positive, copy), body(&positive, source));
     geometry(&positive, copy, 1, [600., 20., 30.], 17.);
     let mut mesh = singleton.worlds[0].models[0].clone();
+    // Mesh eligibility reaches the existing decoder; this unchanged invalid
+    // URI remains a refusal/atomicity control, not evidence of Mesh admission.
     let mesh_source = mesh.links[0].collisions[0].source.clone();
     mesh.links[0].collisions[0].geometry = Geometry::Mesh(sdformat::Mesh {
         uri: "must-not-be-decoded.glb".into(),

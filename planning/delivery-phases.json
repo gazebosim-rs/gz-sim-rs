@@ -3,7 +3,7 @@
   "decision": "D30",
   "as_of": "2026-11-21T22:29:12.745172+00:00",
   "execution_state": "active",
-  "current_phase": "M96",
+  "current_phase": "M98",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -11824,6 +11824,669 @@
         "bytes": 6433,
         "mode": 436
       }
+    },
+    {
+      "id": "M98",
+      "title": "Validated passive runtime-compound source to existing singleton Mesh template",
+      "max_working_days": 5,
+      "depends_on": [
+        "M96",
+        "M97"
+      ],
+      "scope": [
+        "Always run existing model_state/full immutable compound_nodes/native-owner/member/ID/Arc/local-metadata validation before caller geometry and Mesh IO. Actual source must remain passive, exactly within the existing new-route link/visual/sensor/joint/controller/COM and caller-parameter domains.",
+        "Admit only one existing supported Mesh collision through mature decode/spawn_mesh_link and unchanged singleton M/L/C/V identity, visual=model+3, four IDs and fixed admitted_entities[4]. Caller geometry/inertia may intentionally differ from original geometry; do not invent original-SDF equality or a new immutable singleton-child stamp.",
+        "Keep all mature loaded/singleton/posed/primitive/compound-to-compound policies, direct Mesh format/resource limits, tiny-COM legacy distinction and exact first-error ordering. No new mesh visual/viewer, formats/decomposition/materials, API/Server/Physics/backend/sensor/joint/controller scope."
+      ],
+      "acceptance": [
+        "Use genuinely resolving caller DOM and valid local file-backed Mesh fixtures; memory-named SDF sources or must-not-be-decoded.glb negatives do not prove Mesh admission. Cover existing dynamic/static Mesh behavior without a new native campaign.",
+        "Exercise source2/4/16, original source unchanged, copied geometry/inertia/visual alias and exact four-node/native ownership; template lifetime after source retirement and ordinary/loaded reset, removal/high-water, real capacity and pending-input/allocator atomicity.",
+        "Independent analytically clear all-body triangle-surface rays and contact/quiet controls; no primitive solid-volume or exact generic transformed-endpoint premise. Generic geometry tolerance stays1e-11 under wide cap; exact endpoint tests require separately proven representable geometry.",
+        "Corrupt source membership/owner/metadata must refuse before Mesh decode. Preserve typed invalid URI, unsupported source/resource/COM/TPE and late native failure atomicity at actual first guards."
+      ],
+      "contract": {
+        "id": "M98",
+        "name": "Validated passive runtime-compound source to existing singleton Mesh template",
+        "max_working_days_including_review_and_mandatory_verification": 5,
+        "proposed_exclusive_production_lease": [
+          "crates/gz-sim-scene/src/world_spawn.rs"
+        ],
+        "proposed_new_external_test": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+        "current_missing_behavior": "prepare_model_template refuses requested-count1 Mesh from actual runtime-compound sources at the four-primitive whitelist, despite mature loaded/singleton Mesh decode/native construction already existing.",
+        "bounded_contract": [
+          "Always run existing model_state/full immutable compound_nodes/native-owner/member/ID/Arc/local-metadata validation before caller geometry and Mesh IO. Actual source must remain passive, exactly within the existing new-route link/visual/sensor/joint/controller/COM and caller-parameter domains.",
+          "Admit only one existing supported Mesh collision through mature decode/spawn_mesh_link and unchanged singleton M/L/C/V identity, visual=model+3, four IDs and fixed admitted_entities[4]. Caller geometry/inertia may intentionally differ from original geometry; do not invent original-SDF equality or a new immutable singleton-child stamp.",
+          "Keep all mature loaded/singleton/posed/primitive/compound-to-compound policies, direct Mesh format/resource limits, tiny-COM legacy distinction and exact first-error ordering. No new mesh visual/viewer, formats/decomposition/materials, API/Server/Physics/backend/sensor/joint/controller scope."
+        ],
+        "acceptance_obligations": [
+          "Use genuinely resolving caller DOM and valid local file-backed Mesh fixtures; memory-named SDF sources or must-not-be-decoded.glb negatives do not prove Mesh admission. Cover existing dynamic/static Mesh behavior without a new native campaign.",
+          "Exercise source2/4/16, original source unchanged, copied geometry/inertia/visual alias and exact four-node/native ownership; template lifetime after source retirement and ordinary/loaded reset, removal/high-water, real capacity and pending-input/allocator atomicity.",
+          "Independent analytically clear all-body triangle-surface rays and contact/quiet controls; no primitive solid-volume or exact generic transformed-endpoint premise. Generic geometry tolerance stays1e-11 under wide cap; exact endpoint tests require separately proven representable geometry.",
+          "Corrupt source membership/owner/metadata must refuse before Mesh decode. Preserve typed invalid URI, unsupported source/resource/COM/TPE and late native failure atomicity at actual first guards."
+        ],
+        "Root_only_retained_first_guard_dispositions": [
+          {
+            "Source": "primitive_route_refusals",
+            "case": "new_primitive_route_first_errors_and_late_native_refusals_preserve_pending_inputs",
+            "lines": [
+              490,
+              502
+            ],
+            "input": "Existing row3 Mesh URI must-not-be-decoded.glb",
+            "disposition": "Keep exact input, case identity, typed UnsupportedModel and full atomicity; update only the old before-decode premise if necessary because valid Mesh is now eligible. This invalid-URI negative is not a positive. Preserve all17 early inputs/3late cases and all neighbors."
+          },
+          {
+            "Source": "retemplate_refusals",
+            "case": "runtime_retemplate_closed_domains_and_late_errors_preserve_both_allocators",
+            "lines": [
+              558,
+              573
+            ],
+            "input": "Existing Mesh URI must-not-be-decoded.glb from valid runtime source",
+            "disposition": "Keep exact input, typed refusal, allocator/physical/pending snapshots and all neighbors. Preserve case identity; explicitly distinguish a decode failure from old source-class rejection. Real valid-Mesh positives belong in the new regression module."
+          }
+        ],
+        "API_binding_reset_changes": "No public API/Physics/Server/world_edit/initial/lifecycle change expected. Reuse owned decoded-mesh/template reset construction and existing four-node binding; Root must batch any contrary Source finding before widening a lease."
+      },
+      "shared_qualification_group": "M98_M99_RUNTIME_MESH_ARBITRARY_AXES",
+      "source_preparation_basis_commit": "a578c68a3fe4daa5e83ab0bc801e641f540576ee",
+      "source_preparation_basis_tree": "ad639bd9e8e5e8fdbe8bf21ed1ea7511cc6bffb5",
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/source-selection.json",
+        "sha256": "c240ca6274e4139f1195662fad411a6c39b3adc07c1b03222f376a6f3ccf925e",
+        "bytes": 14658,
+        "mode": 436
+      },
+      "implementation_started": true,
+      "implementation_started_scope": "Root dispatch after immutable selection; author Source subsequently frozen.",
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_source_review_complete": true,
+      "final_document_Source_review_complete": false,
+      "checks_run": false,
+      "formatter_run": false,
+      "normal_qualified": false,
+      "independent_local_DATA_qualified": false,
+      "hosted_qualified": false,
+      "official_DATA_qualified": false,
+      "accepted": false,
+      "qualification_inherited": false,
+      "Source_publication_available": false,
+      "future_qualified_head": null,
+      "qualification_state": "code_and_regression_Source_reviewed_final_docs_census_pending_checks_unrun",
+      "new_Rust_Source_controls": 8,
+      "new_Python_Source_controls": 0,
+      "Source_control_declarations": {
+        "Rust_unique": 8,
+        "headless": 8,
+        "renderer": 8,
+        "overlap": 8,
+        "public": 8,
+        "private": 0,
+        "Python": 0
+      },
+      "shared_Source_control_declarations": {
+        "Rust_unique": 23,
+        "headless": 23,
+        "renderer": 23,
+        "overlap": 23,
+        "public": 19,
+        "private": 4,
+        "Python": 0
+      },
+      "actual_new_Rust_Source_controls": [
+        {
+          "path": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "name": "runtime_mesh_copies_preserve_surface_frames_four_ids_and_visual_aliases",
+          "qualified": "runtime_mesh_copies_preserve_surface_frames_four_ids_and_visual_aliases",
+          "harness_source": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "harness_target": "runtime_compound_to_mesh",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "name": "mesh_queries_choose_global_nearest_body_and_keep_triangle_surface_domains",
+          "qualified": "mesh_queries_choose_global_nearest_body_and_keep_triangle_surface_domains",
+          "harness_source": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "harness_target": "runtime_compound_to_mesh",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "name": "mesh_singletons_keep_six_axis_edits_centered_explicit_inertia_and_density_twins",
+          "qualified": "mesh_singletons_keep_six_axis_edits_centered_explicit_inertia_and_density_twins",
+          "harness_source": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "harness_target": "runtime_compound_to_mesh",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "name": "decoded_mesh_template_survives_source_retirement_and_both_reset_lifetimes",
+          "qualified": "decoded_mesh_template_survives_source_retirement_and_both_reset_lifetimes",
+          "harness_source": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "harness_target": "runtime_compound_to_mesh",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "name": "mesh_source_membership_errors_precede_caller_resolution_and_keep_pending_wrenches",
+          "qualified": "mesh_source_membership_errors_precede_caller_resolution_and_keep_pending_wrenches",
+          "harness_source": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "harness_target": "runtime_compound_to_mesh",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "name": "mesh_request_first_errors_and_native_refusals_keep_both_allocators_and_pending_inputs",
+          "qualified": "mesh_request_first_errors_and_native_refusals_keep_both_allocators_and_pending_inputs",
+          "harness_source": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "harness_target": "runtime_compound_to_mesh",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "name": "mesh_copy_camera_capacity_keeps_native_ids_and_recovers_without_losing_inputs",
+          "qualified": "mesh_copy_camera_capacity_keeps_native_ids_and_recovers_without_losing_inputs",
+          "harness_source": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "harness_target": "runtime_compound_to_mesh",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "name": "static_mesh_contact_and_dynamic_fall_use_existing_geometry_with_clear_controls",
+          "qualified": "static_mesh_contact_and_dynamic_fall_use_existing_geometry_with_clear_controls",
+          "harness_source": "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs",
+          "harness_target": "runtime_compound_to_mesh",
+          "harness_kind": "test"
+        }
+      ],
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/m98-runtime-compound-to-mesh-source-completion.json",
+        "sha256": "600d29fea303b683de67efd3cc44b5d8c7e3f041899de00b3522d6af4ef6426a",
+        "bytes": 8066,
+        "mode": 436
+      },
+      "joined_code_Source_inventory": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/integrated-code-source-completion.json",
+        "sha256": "f6e3b3d098405fcadbc177a854e139efcc3adb0df68afa220a489c340ff86200",
+        "bytes": 5255,
+        "mode": 436
+      },
+      "observed_code_Source_census": {
+        "files": 1821,
+        "owned": 8,
+        "new": 2,
+        "production": 2,
+        "protected_parent_bytes": 1813
+      },
+      "full_Source_census_after_docs_adoption": null,
+      "projected_full_Source_census_pending_Root_measurement": {
+        "files": 1823,
+        "owned": 16,
+        "new": 4,
+        "production": 2,
+        "cumulative": 120
+      },
+      "final_Source_count": null,
+      "changed_paths_vs_basis": null,
+      "new_paths": null,
+      "changed_production_paths_vs_basis": null,
+      "cumulative_changed_paths_vs_accepted_ancestor": null,
+      "final_tree": null,
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "file_ownership": [
+        "crates/gz-sim-scene/src/world_spawn.rs",
+        "crates/gz-sim-scene/tests/runtime_compound_to_mesh.rs"
+      ],
+      "Root_retained_Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/Root-retained-dispositions-source-completion.json",
+        "sha256": "9a6ab8c5b1ddc6242e0e760160eecfb18e3084972362a09f70ccf479c1cbb027",
+        "bytes": 8101,
+        "mode": 436
+      },
+      "independent_review_scopes": {
+        "Root": "WholeM98 production/regression/completion and M99 production/private/declaration context reviewed; exact integration. Final eight-doc/census review pending at author freeze.",
+        "Package": "WholeM99 config/all11public+4private Source CLEAR; no execution.",
+        "Server": "WholeM98 production/all8public Source CLEAR; no execution.",
+        "Scope": "Independent whole Rootfour retained cases/math/API/inverses CLEAR; docs author, external final doc peer pending."
+      },
+      "whole_file_inverse_required": true,
+      "current_stage": "Code/regressionSource and reciprocalwholepeer/ScopeRoot4 reviews complete.23authoredH/R public19/private4, no passes. Code1821/8owned/2new/2prod observed; fullunion1823/16/4/2/120 provisionaluntilRootadopts8docsandmeasures. Externaldocspeer/censuspending; formatter/tests/lint/normal/audits unrun; futuretreecommitresultsNULL.",
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "own_historical_normal_failures": [],
+      "prior_normal_method_failures": [],
+      "prior_reader_failures": [],
+      "resource_proposal": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-root-qualified-source-proposal.json",
+        "sha256": "1fbfd0df05ef97e2582b679410bf1f94cc177b4dcd020b27cc181caeab20eb2b",
+        "bytes": 9684,
+        "mode": 436
+      },
+      "resource_execution_released": false,
+      "protected_manual_demo_session": 86363,
+      "stop_or_restart_authorized": false,
+      "conditional_Root_resource_Source_review": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-conditional-Root-Source-review.json",
+        "sha256": "473453a75e7d5f7455d8b47d943292ac5db6a0c811864f98939cc561e97bc5af",
+        "bytes": 2030,
+        "mode": 436
+      },
+      "resource_capacity_hold": {
+        "state": "CONDITIONAL_32SSD_12SHM_FULL_NORMAL_CAPACITY_HOLD",
+        "proposal": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-root-qualified-source-proposal.json",
+          "sha256": "1fbfd0df05ef97e2582b679410bf1f94cc177b4dcd020b27cc181caeab20eb2b",
+          "bytes": 9684,
+          "mode": 436
+        },
+        "conditional_Root_Source_review": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-conditional-Root-Source-review.json",
+          "sha256": "473453a75e7d5f7455d8b47d943292ac5db6a0c811864f98939cc561e97bc5af",
+          "bytes": 2030,
+          "mode": 436
+        },
+        "authoritative_Root_observation": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-root-observation.json",
+          "sha256": "87f800ebcb63963990a56b687eabddf9fd388a6cf4560fb99f4e74cffb1a0b02",
+          "bytes": 838,
+          "mode": 436
+        },
+        "provisional_initial_SSD_bytes": 34359738368,
+        "provisional_initial_SHM_bytes": 12884901888,
+        "mandatory_initial_SSD_bytes": 15032385536,
+        "early_stop_SSD_bytes": 8589934592,
+        "early_stop_SHM_bytes": 4294967296,
+        "Root_observed_SSD_bytes": 31443066880,
+        "Root_observed_SHM_bytes": 14725849088,
+        "Root_SSD_shortfall_bytes": 2916671488,
+        "Root_SHM_margin_bytes": 1840947200,
+        "observer_namespace_is_not_admission": true,
+        "owner_response_pending": true,
+        "owner_request": "Free4GiB or prepare exact recovery proposal; no reply recorded at this freeze.",
+        "execution_released": false,
+        "target_created": false,
+        "cleanup_eviction_reuse_relocation_authorized": false,
+        "universal_fit_guarantee": false,
+        "Source_review_may_continue": true
+      }
+    },
+    {
+      "id": "M99",
+      "title": "Arbitrary finite unit parsed-DOM directions for the existing two-Revolute JointController",
+      "max_working_days": 5,
+      "depends_on": [
+        "M96",
+        "M97"
+      ],
+      "scope": [
+        "Keep exact two distinct links/two Revolute world-root serial topology, dynamic Rapier, identity LINK rotations, existing joint pose/relative_to, empty expressed_in, no axis2, existing modes/gain/limits/bindings/owner bounds and all DiffDrive/TPE domains.",
+        "Arbitrary and near-principal normalized directions become eligible; positive/negative signed Cartesian directions remain retained positives. No parser, reduced-joint algorithm, motor/servo/sample/reset, Physics/API/Server or backend change."
+      ],
+      "acceptance": [
+        "Parsed scaled/negative/mixed and noncoaxial vectors, singleton/2/4/16 child geometry, both existing modes and nontrivial model frames. Compare scaled XML equivalence to explicit setter-produced directions.",
+        "Private direct-DOM finite/unit acceptance and raw nonunit/zero/NaN/Inf/overflow/underflow refusal; explicit near-unit cases under the selected existing1e-12 rule, exact caller DOM unchanged. Preserve actual parse-versus-config first error ordering.",
+        "Independent measured Rodrigues/pivot/native-logical full bases and velocities; opposite-axis/opposite-target physical twins, quiet/equivalent/zero/latest/clamp/pause controls, reset distinctions/removal/high-water/eight-owner and healthy-repair versus terminal-Faulted controls.",
+        "Real soft-motor encoder/native and contact-aware quiet/suspended witnesses, explicit inertia/density twins without ideal-target or multi-axis finite-step gyroscopic assumptions. Generic moving rays use wide cap1e-11; isolated identity Sphere only for exact representable inclusive endpoints."
+      ],
+      "contract": {
+        "id": "M99",
+        "name": "Arbitrary finite unit parsed-DOM directions for the existing two-Revolute JointController",
+        "max_working_days_including_review_and_mandatory_verification": 5,
+        "proposed_exclusive_production_lease": [
+          "crates/gz-sim-scene/src/joint_controller/config.rs"
+        ],
+        "proposed_new_external_test": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+        "optional_bounded_inline_private_tests": "A cfg(test) module in the same leased config.rs may exercise the otherwise inaccessible programmatic DOM gate; no new seed/helper/public API. Actual declaration inventory remains unknown until implementation.",
+        "explicit_proposed_DOM_policy": {
+          "finite_components": true,
+          "finite_norm_squared": true,
+          "predicate": "abs(norm_squared - 1.0) <= 1e-12",
+          "numeric_basis": "Exact retained unit-direction allowance at existing_unit_direction_rule:100; explicitly a new controller-domain selection, not inherited parser semantics.",
+          "config_normalization_or_DOM_mutation": false,
+          "parser_and_setter_behavior": "Lexical scaled vectors and explicit Axis::try_set_xyz use the existing finite-length/>f64::from(1e-6_f32) normalizer. Direct public xyz assignment bypasses it: raw[0,3,4]/[2,0,0] is refused; setter-produced[0,.6,.8] is eligible.",
+          "runtime_behavior": "Existing resolve_axis rotates only; native joint try_normalize remains unchanged and documented separately.",
+          "forbidden_shortcuts": [
+            "No squared_norm==1.0 exactness or normalized-again fixed-point requirement; parser does not promise either.",
+            "No glam::is_normalized replacement with its looser2e-4 band.",
+            "No silent config normalization, lexical-unit-magnitude restriction, parser epsilon change, arbitrary new tolerance or change to runtime actuation."
+          ]
+        },
+        "bounded_contract": [
+          "Keep exact two distinct links/two Revolute world-root serial topology, dynamic Rapier, identity LINK rotations, existing joint pose/relative_to, empty expressed_in, no axis2, existing modes/gain/limits/bindings/owner bounds and all DiffDrive/TPE domains.",
+          "Arbitrary and near-principal normalized directions become eligible; positive/negative signed Cartesian directions remain retained positives. No parser, reduced-joint algorithm, motor/servo/sample/reset, Physics/API/Server or backend change."
+        ],
+        "acceptance_obligations": [
+          "Parsed scaled/negative/mixed and noncoaxial vectors, singleton/2/4/16 child geometry, both existing modes and nontrivial model frames. Compare scaled XML equivalence to explicit setter-produced directions.",
+          "Private direct-DOM finite/unit acceptance and raw nonunit/zero/NaN/Inf/overflow/underflow refusal; explicit near-unit cases under the selected existing1e-12 rule, exact caller DOM unchanged. Preserve actual parse-versus-config first error ordering.",
+          "Independent measured Rodrigues/pivot/native-logical full bases and velocities; opposite-axis/opposite-target physical twins, quiet/equivalent/zero/latest/clamp/pause controls, reset distinctions/removal/high-water/eight-owner and healthy-repair versus terminal-Faulted controls.",
+          "Real soft-motor encoder/native and contact-aware quiet/suspended witnesses, explicit inertia/density twins without ideal-target or multi-axis finite-step gyroscopic assumptions. Generic moving rays use wide cap1e-11; isolated identity Sphere only for exact representable inclusive endpoints."
+        ],
+        "Root_only_retained_axis_dispositions": [
+          {
+            "Source": "principal_axis_refusals",
+            "case": "principal_axis_admission_keeps_negative_nonprincipal_frames_and_owner_domains_closed",
+            "lines": [
+              933,
+              938
+            ],
+            "exact_inputs": [
+              "0.5 0.5 0",
+              "1 0.000000000001 0"
+            ]
+          },
+          {
+            "Source": "signed_axis_refusals",
+            "case": "signed_axis_admission_keeps_nonprincipal_frames_and_owner_domains_closed",
+            "lines": [
+              1072,
+              1084
+            ],
+            "exact_inputs": [
+              "0.5 0.5 0",
+              "1 0.000000000001 0",
+              "-1 0.000000000001 0",
+              "0 -1 -0.000000000001",
+              "-1 -1 0"
+            ]
+          }
+        ],
+        "Root_disposition_contract": "Exactly seven existing XML input rows become same-input native/basis/command/quiet positives while retaining old case identities, every neighboring frame/axis2/type/topology/mode/owner negative and full-file outside-delta inverse. Do not change private DiffDrive-Y or unrelated refusals."
+      },
+      "shared_qualification_group": "M98_M99_RUNTIME_MESH_ARBITRARY_AXES",
+      "source_preparation_basis_commit": "a578c68a3fe4daa5e83ab0bc801e641f540576ee",
+      "source_preparation_basis_tree": "ad639bd9e8e5e8fdbe8bf21ed1ea7511cc6bffb5",
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/source-selection.json",
+        "sha256": "c240ca6274e4139f1195662fad411a6c39b3adc07c1b03222f376a6f3ccf925e",
+        "bytes": 14658,
+        "mode": 436
+      },
+      "implementation_started": true,
+      "implementation_started_scope": "Root dispatch after immutable selection; author Source subsequently frozen.",
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_source_review_complete": true,
+      "final_document_Source_review_complete": false,
+      "checks_run": false,
+      "formatter_run": false,
+      "normal_qualified": false,
+      "independent_local_DATA_qualified": false,
+      "hosted_qualified": false,
+      "official_DATA_qualified": false,
+      "accepted": false,
+      "qualification_inherited": false,
+      "Source_publication_available": false,
+      "future_qualified_head": null,
+      "qualification_state": "code_and_regression_Source_reviewed_final_docs_census_pending_checks_unrun",
+      "new_Rust_Source_controls": 15,
+      "new_Python_Source_controls": 0,
+      "Source_control_declarations": {
+        "Rust_unique": 15,
+        "headless": 15,
+        "renderer": 15,
+        "overlap": 15,
+        "public": 11,
+        "private": 4,
+        "Python": 0
+      },
+      "shared_Source_control_declarations": {
+        "Rust_unique": 23,
+        "headless": 23,
+        "renderer": 23,
+        "overlap": 23,
+        "public": 19,
+        "private": 4,
+        "Python": 0
+      },
+      "actual_new_Rust_Source_controls": [
+        {
+          "path": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "name": "arbitrary_opposite_axes_and_commands_keep_measured_physical_equivalence",
+          "qualified": "arbitrary_opposite_axes_and_commands_keep_measured_physical_equivalence",
+          "harness_source": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "harness_target": "joint_controller_arbitrary_axes",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "name": "arbitrary_coordinates_and_samples_remain_continuous_through_reversals",
+          "qualified": "arbitrary_coordinates_and_samples_remain_continuous_through_reversals",
+          "harness_source": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "harness_target": "joint_controller_arbitrary_axes",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "name": "arbitrary_noncoaxial_chains_move_native_bases_velocities_and_all_children",
+          "qualified": "arbitrary_noncoaxial_chains_move_native_bases_velocities_and_all_children",
+          "harness_source": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "harness_target": "joint_controller_arbitrary_axes",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "name": "arbitrary_axis_binary_endpoints_remain_separate_from_advected_curved_queries",
+          "qualified": "arbitrary_axis_binary_endpoints_remain_separate_from_advected_curved_queries",
+          "harness_source": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "harness_target": "joint_controller_arbitrary_axes",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "name": "arbitrary_commands_keep_clamp_latest_zero_pause_and_invalid_equivalence",
+          "qualified": "arbitrary_commands_keep_clamp_latest_zero_pause_and_invalid_equivalence",
+          "harness_source": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "harness_target": "joint_controller_arbitrary_axes",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "name": "arbitrary_motor_effort_respects_explicit_isotropic_inertia_and_density_twins",
+          "qualified": "arbitrary_motor_effort_respects_explicit_isotropic_inertia_and_density_twins",
+          "harness_source": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "harness_target": "joint_controller_arbitrary_axes",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "name": "arbitrary_resets_preserve_geometry_targets_identities_and_survivors",
+          "qualified": "arbitrary_resets_preserve_geometry_targets_identities_and_survivors",
+          "harness_source": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "harness_target": "joint_controller_arbitrary_axes",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "name": "arbitrary_eight_owner_late_faults_keep_pending_atomicity_and_terminal_latch",
+          "qualified": "arbitrary_eight_owner_late_faults_keep_pending_atomicity_and_terminal_latch",
+          "harness_source": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "harness_target": "joint_controller_arbitrary_axes",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "name": "arbitrary_axis_motor_contact_moves_an_independent_probe_with_quiet_clear_controls",
+          "qualified": "arbitrary_axis_motor_contact_moves_an_independent_probe_with_quiet_clear_controls",
+          "harness_source": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "harness_target": "joint_controller_arbitrary_axes",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "name": "arbitrary_axis_admission_keeps_frames_topology_limits_and_other_domains_closed",
+          "qualified": "arbitrary_axis_admission_keeps_frames_topology_limits_and_other_domains_closed",
+          "harness_source": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "harness_target": "joint_controller_arbitrary_axes",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "name": "arbitrary_scaled_parser_and_explicit_setter_directions_share_physical_trajectories",
+          "qualified": "arbitrary_scaled_parser_and_explicit_setter_directions_share_physical_trajectories",
+          "harness_source": "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs",
+          "harness_target": "joint_controller_arbitrary_axes",
+          "harness_kind": "test"
+        },
+        {
+          "path": "crates/gz-sim-scene/src/joint_controller/config.rs",
+          "name": "arbitrary_direct_dom_unit_directions_preserve_the_entire_caller_model",
+          "qualified": "joint_controller::config::arbitrary_axis_dom_tests::arbitrary_direct_dom_unit_directions_preserve_the_entire_caller_model",
+          "harness_source": "crates/gz-sim-scene/src/lib.rs",
+          "harness_target": "gz_sim_scene",
+          "harness_kind": "lib"
+        },
+        {
+          "path": "crates/gz-sim-scene/src/joint_controller/config.rs",
+          "name": "arbitrary_direct_dom_nonunit_nonfinite_and_extreme_norms_are_not_repaired",
+          "qualified": "joint_controller::config::arbitrary_axis_dom_tests::arbitrary_direct_dom_nonunit_nonfinite_and_extreme_norms_are_not_repaired",
+          "harness_source": "crates/gz-sim-scene/src/lib.rs",
+          "harness_target": "gz_sim_scene",
+          "harness_kind": "lib"
+        },
+        {
+          "path": "crates/gz-sim-scene/src/joint_controller/config.rs",
+          "name": "arbitrary_direct_dom_near_unit_band_checks_both_sides_without_normalizing",
+          "qualified": "joint_controller::config::arbitrary_axis_dom_tests::arbitrary_direct_dom_near_unit_band_checks_both_sides_without_normalizing",
+          "harness_source": "crates/gz-sim-scene/src/lib.rs",
+          "harness_target": "gz_sim_scene",
+          "harness_kind": "lib"
+        },
+        {
+          "path": "crates/gz-sim-scene/src/joint_controller/config.rs",
+          "name": "arbitrary_setter_normalization_is_explicit_and_failures_preserve_its_prior_value",
+          "qualified": "joint_controller::config::arbitrary_axis_dom_tests::arbitrary_setter_normalization_is_explicit_and_failures_preserve_its_prior_value",
+          "harness_source": "crates/gz-sim-scene/src/lib.rs",
+          "harness_target": "gz_sim_scene",
+          "harness_kind": "lib"
+        }
+      ],
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/m99-arbitrary-axis-source-completion.json",
+        "sha256": "04aab3f2352f3604a789553ae04d273b75720371592fd11a296914cff35e1d6b",
+        "bytes": 18830,
+        "mode": 436
+      },
+      "joined_code_Source_inventory": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/integrated-code-source-completion.json",
+        "sha256": "f6e3b3d098405fcadbc177a854e139efcc3adb0df68afa220a489c340ff86200",
+        "bytes": 5255,
+        "mode": 436
+      },
+      "observed_code_Source_census": {
+        "files": 1821,
+        "owned": 8,
+        "new": 2,
+        "production": 2,
+        "protected_parent_bytes": 1813
+      },
+      "full_Source_census_after_docs_adoption": null,
+      "projected_full_Source_census_pending_Root_measurement": {
+        "files": 1823,
+        "owned": 16,
+        "new": 4,
+        "production": 2,
+        "cumulative": 120
+      },
+      "final_Source_count": null,
+      "changed_paths_vs_basis": null,
+      "new_paths": null,
+      "changed_production_paths_vs_basis": null,
+      "cumulative_changed_paths_vs_accepted_ancestor": null,
+      "final_tree": null,
+      "Source_finite_runs": 47,
+      "Source_CLI_cases": 21,
+      "new_Source_finite_examples": 0,
+      "new_CLI_cases": 0,
+      "file_ownership": [
+        "crates/gz-sim-scene/src/joint_controller/config.rs",
+        "crates/gz-sim-scene/tests/joint_controller_arbitrary_axes.rs"
+      ],
+      "Root_retained_Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/Root-retained-dispositions-source-completion.json",
+        "sha256": "9a6ab8c5b1ddc6242e0e760160eecfb18e3084972362a09f70ccf479c1cbb027",
+        "bytes": 8101,
+        "mode": 436
+      },
+      "independent_review_scopes": {
+        "Root": "WholeM98 production/regression/completion and M99 production/private/declaration context reviewed; exact integration. Final eight-doc/census review pending at author freeze.",
+        "Package": "WholeM99 config/all11public+4private Source CLEAR; no execution.",
+        "Server": "WholeM98 production/all8public Source CLEAR; no execution.",
+        "Scope": "Independent whole Rootfour retained cases/math/API/inverses CLEAR; docs author, external final doc peer pending."
+      },
+      "whole_file_inverse_required": true,
+      "current_stage": "Code/regressionSource and reciprocalwholepeer/ScopeRoot4 reviews complete.23authoredH/R public19/private4, no passes. Code1821/8owned/2new/2prod observed; fullunion1823/16/4/2/120 provisionaluntilRootadopts8docsandmeasures. Externaldocspeer/censuspending; formatter/tests/lint/normal/audits unrun; futuretreecommitresultsNULL.",
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "own_historical_normal_failures": [],
+      "prior_normal_method_failures": [],
+      "prior_reader_failures": [],
+      "resource_proposal": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-root-qualified-source-proposal.json",
+        "sha256": "1fbfd0df05ef97e2582b679410bf1f94cc177b4dcd020b27cc181caeab20eb2b",
+        "bytes": 9684,
+        "mode": 436
+      },
+      "resource_execution_released": false,
+      "protected_manual_demo_session": 86363,
+      "stop_or_restart_authorized": false,
+      "conditional_Root_resource_Source_review": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-conditional-Root-Source-review.json",
+        "sha256": "473453a75e7d5f7455d8b47d943292ac5db6a0c811864f98939cc561e97bc5af",
+        "bytes": 2030,
+        "mode": 436
+      },
+      "resource_capacity_hold": {
+        "state": "CONDITIONAL_32SSD_12SHM_FULL_NORMAL_CAPACITY_HOLD",
+        "proposal": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-root-qualified-source-proposal.json",
+          "sha256": "1fbfd0df05ef97e2582b679410bf1f94cc177b4dcd020b27cc181caeab20eb2b",
+          "bytes": 9684,
+          "mode": 436
+        },
+        "conditional_Root_Source_review": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-conditional-Root-Source-review.json",
+          "sha256": "473453a75e7d5f7455d8b47d943292ac5db6a0c811864f98939cc561e97bc5af",
+          "bytes": 2030,
+          "mode": 436
+        },
+        "authoritative_Root_observation": {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-root-observation.json",
+          "sha256": "87f800ebcb63963990a56b687eabddf9fd388a6cf4560fb99f4e74cffb1a0b02",
+          "bytes": 838,
+          "mode": 436
+        },
+        "provisional_initial_SSD_bytes": 34359738368,
+        "provisional_initial_SHM_bytes": 12884901888,
+        "mandatory_initial_SSD_bytes": 15032385536,
+        "early_stop_SSD_bytes": 8589934592,
+        "early_stop_SHM_bytes": 4294967296,
+        "Root_observed_SSD_bytes": 31443066880,
+        "Root_observed_SHM_bytes": 14725849088,
+        "Root_SSD_shortfall_bytes": 2916671488,
+        "Root_SHM_margin_bytes": 1840947200,
+        "observer_namespace_is_not_admission": true,
+        "owner_response_pending": true,
+        "owner_request": "Free4GiB or prepare exact recovery proposal; no reply recorded at this freeze.",
+        "execution_released": false,
+        "target_created": false,
+        "cleanup_eviction_reuse_relocation_authorized": false,
+        "universal_fit_guarantee": false,
+        "Source_review_may_continue": true
+      }
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -11924,10 +12587,12 @@
     "M94": "in_progress",
     "M95": "in_progress",
     "M96": "in_progress",
-    "M97": "in_progress"
+    "M97": "in_progress",
+    "M98": "in_progress",
+    "M99": "in_progress"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-21T21:39:10.222484+00:00",
+  "phase_started_at": "2026-11-22T01:15:19.084082+00:00",
   "active_phases": [
     "M77",
     "M78",
@@ -11949,7 +12614,9 @@
     "M94",
     "M95",
     "M96",
-    "M97"
+    "M97",
+    "M98",
+    "M99"
   ],
   "execution_policy": "D30–D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -12446,14 +13113,22 @@
       ],
       "max_working_days": 5,
       "integration": "Actual70400 Root/Git1 after2039.9047407599865s: one headless target/case failed;17of18new headless controls passed only in frozen d5d4, no renderer/strict qualification/commit. Selected test-only error expectations9/14 InvalidScene,8 InvalidState; all17early inputs/atomicity/3latecases andother17controls unchanged. Exact8956/b520 testrepair complete/Scopewholeinverse+errorrouteCLEAR; complete code/docs wholepeer pending at freeze; one new affected formatter/fullretry unrun, originalnine ONLYeight unchangedRustcopies andold0bd6 onefile historical. Futuretree/commit/results null; ownproduct[70d2,6f23], method4447, operational15996 separate. ParentM94local/DATA/CIpassedofficialpending; freshv3 contractSourcepending, no active retry/release/acceptance."
+    },
+    {
+      "phases": [
+        "M98",
+        "M99"
+      ],
+      "max_working_days": 5,
+      "integration": "Authored23H/R public19/private4/Py0 and reciprocalcode+ScopeRoot4 reviews CLEAR. Code1821/8owned/2new/2prod observed; full docsunion1823/16/4/2/120 provisionalpendingRootadoption/census. External8docpeer/formatter/mandatorychecks unrun; futuretreecommitresultsNULL. ParentM96normal/DATA/reviewpublished/ownCIrunning; M94officialcomplete; bothunaccepted/no inheritance."
     }
   ],
-  "acceptance_boundary": "Actual70400 Root/Git1 after2039.9047407599865s: one headless target/case failed;17of18new headless controls passed only in frozen d5d4, no renderer/strict qualification/commit. Selected test-only error expectations9/14 InvalidScene,8 InvalidState; all17early inputs/atomicity/3latecases andother17controls unchanged. Exact8956/b520 testrepair complete/Scopewholeinverse+errorrouteCLEAR; complete code/docs wholepeer pending at freeze; one new affected formatter/fullretry unrun, originalnine ONLYeight unchangedRustcopies andold0bd6 onefile historical. Futuretree/commit/results null; ownproduct[70d2,6f23], method4447, operational15996 separate. Parentac4af local0/DATA/review/CI602ca79 passed, officialpending/unaccepted; M92official57c2/d923passed. Freshv3 concrete resourcecontract reviewpending; preserveallpriorfloors/targets/noeviction. Accepted76/202/catalog97/Latest41/live86363 andallM77gates unchanged.",
+  "acceptance_boundary": "SelectedM98/M99Sourceonly overlocallyqualifiedunaccepted a578. Authored23H/R and reciprocalcode/ScopeRoot4 reviewsCLEAR; finaldocspeer/Rootfullphysicalcensuspending. Observedcode1821/8owned/2new/2prod; projectedfull1823/16/4/2/120 notobserved. No newformatter/tests/lint/normal/audits/treecommitresults. ParentM96normal/DATA/reviewpassed/exactCI44970670576a1activeRoot54430 unknown; M94officialpassedunaccepted. AllM77/strict/demo/Fuel/retiredbackend boundaries remain.",
   "current_delivery_group": [
-    "M96",
-    "M97"
+    "M98",
+    "M99"
   ],
-  "current_development_phase": "M96",
+  "current_development_phase": "M98",
   "board": {
     "updated_at": "2026-11-21T22:29:12.745172+00:00",
     "current": {
@@ -12479,8 +13154,8 @@
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M96",
-    "M97"
+    "M98",
+    "M99"
   ],
   "camera_integration": {
     "scope": "Atomic M61–M64 qualification on accepted M60; no new phase",
@@ -12629,7 +13304,7 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "M96_M97_TYPED_ERROR_PRECEDENCE_SOURCE_COMPLETE_PENDING_WHOLE_PEER_REVIEW_ONE_FILE_FORMATTER_AND_FULL_RETRY",
+  "current_development_task": "M98_M99_AUTHORED_SOURCE_COMPLETE_FINAL_DOC_PEER_AND_PHYSICAL_CENSUS_PENDING_CHECKS_UNRUN",
   "backend_retirement_source_preparation": {
     "decision": "D33",
     "owner_directed_at": "2026-11-17",
@@ -14125,7 +14800,7 @@
     "official_CI_changed_line_base": "0000000000000000000000000000000000000000",
     "official_CI_basis_kind": "new_branch_all_source"
   },
-  "phase_catalog_checkpoint_scope": "First95phaseobjects/prior55groups exact. CurrentM96/M97fields adopt actualsecondproductfailure6f23 andselectedtwoerrorprecedenceexpectations only; entireprecedingcurrentphaseobjects/group/topaliases retainedlosslessly. Partial17headlesspasses stayfailedtreeonly; currentformatter/retry/qualification/futuretreecommitresults notinferred.",
+  "phase_catalog_checkpoint_scope": "First97 phase objects/prior56 groups exact historical parent observations. AppendM98/M99 Sourcecomplete rows/newgroup; replacedtop/currentM94parent fields retainedlosslessly. Actualparentproofs separate fromoldauthorpendingmetadata. Catalog99/accepted76/202/Latest41 unchanged; fullnewSourceunion provisionaluntilRootphysicaladoption, no qualificationinheritance.",
   "current_M86_M87_parent_qualification": {
     "commit": "ee4df6c5851cc40b77a15b19c6e992434ee7bfff",
     "tree": "d3ffae592249a6b8c0a73ba27097504a6340c639",
@@ -15645,7 +16320,7 @@
       "artifact_id": 14726704039
     },
     "hosted_qualified": true,
-    "official_DATA_qualified": false,
+    "official_DATA_qualified": true,
     "own_normal_failures": [],
     "retained_reader_failure": {
       "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m94-m95-delivery/local-audit-attempt1-method-failure.json",
@@ -15667,14 +16342,26 @@
       "mode": 436
     },
     "official_collection_complete": false,
-    "current_stage": "Genuine parent local normal/DATA and exact hosted CI passed; original artifact collection and official DATA remain pending. Unaccepted, no inherited result.",
-    "state": "M94_M95_LOCAL_AND_HOSTED_QUALIFIED_OFFICIAL_PENDING_UNACCEPTED",
+    "current_stage": "Own local/hosted/collection/official method2 complete; first official-method1f39 and all parent histories retained; unaccepted/no transfer.",
+    "state": "M94_M95_OWN_QUALIFICATION_COMPLETE_UNACCEPTED",
     "hosted_watch_session": null,
     "hosted_watch_observation": {
       "session": 74750,
       "terminal_tool": "ba3876",
       "actual_exit_code": 0,
       "status": "retired"
+    },
+    "official_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m94-m95-delivery/official-audit-method2-actual-exit.json",
+      "sha256": "1e419757c44f7beab8a70df15347c4383b7bc7e6bc77dbfd8adb7e3ee6563dfb",
+      "bytes": 2718,
+      "mode": 436
+    },
+    "official_DATA_report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m94-m95-delivery/m94-m95-runtime-retemplate-principal-axes-hosted-44950039686-attempt1/audit-m94-m95-runtime-retemplate-principal-axes-method2/official-audit.json",
+      "sha256": "e4797dd9b727eb9dca88b82b73013938787a62cec32200b3420c0ff6a025f386",
+      "bytes": 343629,
+      "mode": 436
     }
   },
   "historical_pre_completed_M96_M97_current_fields": {
@@ -15819,5 +16506,242 @@
       "max_working_days": 5,
       "integration": "M96/M97 corrective D31 checkpoint: one actual productnormal Root/Git1/clippy101 failed before tests/renderer/coverage/commit; own70d2 distinct from prehookmethod4447. One exact test-value Copy repair a215 complete/ScopeSourceCLEAR, production and18H/R public declarations unchanged.1819/17owned/4new/2prod/116cumulative; all counts Sourceonly. Whole corrective Source/eightdocs peerreview then one newtest formatter/fullretry remain unrun; originalnineONLYeight unchangedRustcopies, separate roots/no union. Fresh RAMv2 andsame31/22initial8/4early14mandatory/allfloors conditional; retainv1/all oldevidence/noeviction. Parentac4af local+DATA+CI602ca79 passed, collection/officialpending/unaccepted; M92officialpassed. Futuretree/commit/resultsNULL, no transfer or acceptance."
     }
+  },
+  "historical_pre_M98_M99_current_fields": {
+    "current_phase": "M96",
+    "phase_started_at": "2026-11-21T21:39:10.222484+00:00",
+    "current_development_phase": "M96",
+    "current_delivery_group": [
+      "M96",
+      "M97"
+    ],
+    "parallel_source_phases": [
+      "M96",
+      "M97"
+    ],
+    "current_development_task": "M96_M97_TYPED_ERROR_PRECEDENCE_SOURCE_COMPLETE_PENDING_WHOLE_PEER_REVIEW_ONE_FILE_FORMATTER_AND_FULL_RETRY",
+    "acceptance_boundary": "Actual70400 Root/Git1 after2039.9047407599865s: one headless target/case failed;17of18new headless controls passed only in frozen d5d4, no renderer/strict qualification/commit. Selected test-only error expectations9/14 InvalidScene,8 InvalidState; all17early inputs/atomicity/3latecases andother17controls unchanged. Exact8956/b520 testrepair complete/Scopewholeinverse+errorrouteCLEAR; complete code/docs wholepeer pending at freeze; one new affected formatter/fullretry unrun, originalnine ONLYeight unchangedRustcopies andold0bd6 onefile historical. Futuretree/commit/results null; ownproduct[70d2,6f23], method4447, operational15996 separate. Parentac4af local0/DATA/review/CI602ca79 passed, officialpending/unaccepted; M92official57c2/d923passed. Freshv3 concrete resourcecontract reviewpending; preserveallpriorfloors/targets/noeviction. Accepted76/202/catalog97/Latest41/live86363 andallM77gates unchanged.",
+    "phase_catalog_checkpoint_scope": "First95phaseobjects/prior55groups exact. CurrentM96/M97fields adopt actualsecondproductfailure6f23 andselectedtwoerrorprecedenceexpectations only; entireprecedingcurrentphaseobjects/group/topaliases retainedlosslessly. Partial17headlesspasses stayfailedtreeonly; currentformatter/retry/qualification/futuretreecommitresults notinferred.",
+    "current_M94_M95_parent_qualification": {
+      "commit": "ac4af1c738a9daaf3d9d899eca46c690d3aac22a",
+      "tree": "7d050c307e07062487ef11a99c115e695cc26e05",
+      "parent": "cc83ca4a62773edb80b05992fa67a03ff1dad134",
+      "accepted": false,
+      "normal_actual": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m94-m95-delivery/normal-actual-exit.json",
+        "sha256": "ec381a892e4ee93731a63c51a335ed1fdc951e8dee43824d6c5411ccfaba79ba",
+        "bytes": 3809,
+        "mode": 436
+      },
+      "local_DATA_actual": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m94-m95-delivery/normal-retained-audit-actual-exit.json",
+        "sha256": "42221ccd68454961ee8d5e8853b43ddc11e0241d29e153ea6b08c8f68586d3e4",
+        "bytes": 4045,
+        "mode": 436
+      },
+      "local_DATA_report": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m94-m95-delivery/normal-retained-audit-method2.json",
+        "sha256": "3d5584214ea33962bddbe52395574ad9bd8627efeeaf63cc2329951d58879348",
+        "bytes": 212964,
+        "mode": 436
+      },
+      "normal_qualified": true,
+      "local_DATA_qualified": true,
+      "review_publication": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m94-m95-delivery/review-publication.json",
+        "sha256": "ab18d1ca63982353ebc28ff28a06d1a9a0004dc45ef1baef7643053786065760",
+        "bytes": 1895,
+        "mode": 436
+      },
+      "hosted_run": {
+        "run": 44950039686,
+        "attempt": 1,
+        "outcome": "success",
+        "actual_exit_code": 0,
+        "active_watch_session": null,
+        "retired_watch_session": 74750,
+        "terminal_tool": "ba3876",
+        "all_13_steps_success": true,
+        "artifact_id": 14726704039
+      },
+      "hosted_qualified": true,
+      "official_DATA_qualified": false,
+      "own_normal_failures": [],
+      "retained_reader_failure": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m94-m95-delivery/local-audit-attempt1-method-failure.json",
+        "sha256": "3f67e11282944cab47a6a2c55da699377144aabbe068e69fce0b64d3e8a2670a",
+        "bytes": 2262,
+        "mode": 436
+      },
+      "prior_operational_failure": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m94-m95-delivery/local-audit-prelaunch-operational-failure.json",
+        "sha256": "60d29f6d978b10f67b73b93065ad1a7275aec4e75496ea0fd54171f9b9a926d6",
+        "bytes": 1044,
+        "mode": 436
+      },
+      "formatter_scope": "Parent fresh five-file formatter only; M92 two+sevenONLY5 and M90 three/one/four custody remain separate. No inheritance.",
+      "hosted_actual": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m94-m95-delivery/hosted-actual-exit.json",
+        "sha256": "602ca79a5f0877a56c68d98eba5ffde7c482764c3be0124b30412a8fdbd346a7",
+        "bytes": 2539,
+        "mode": 436
+      },
+      "official_collection_complete": false,
+      "current_stage": "Genuine parent local normal/DATA and exact hosted CI passed; original artifact collection and official DATA remain pending. Unaccepted, no inherited result.",
+      "state": "M94_M95_LOCAL_AND_HOSTED_QUALIFIED_OFFICIAL_PENDING_UNACCEPTED",
+      "hosted_watch_session": null,
+      "hosted_watch_observation": {
+        "session": 74750,
+        "terminal_tool": "ba3876",
+        "actual_exit_code": 0,
+        "status": "retired"
+      }
+    }
+  },
+  "current_M96_M97_parent_qualification": {
+    "commit": "a578c68a3fe4daa5e83ab0bc801e641f540576ee",
+    "tree": "ad639bd9e8e5e8fdbe8bf21ed1ea7511cc6bffb5",
+    "parent": "ac4af1c738a9daaf3d9d899eca46c690d3aac22a",
+    "accepted": false,
+    "normal_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m96-m97-delivery/normal-error-precedence-actual-exit.json",
+      "sha256": "2699554af6ddab310da692d3f9441f6d985d469ed1a4dac6b71a3a7e0a9813e6",
+      "bytes": 3112,
+      "mode": 436
+    },
+    "local_DATA_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m96-m97-delivery/retained-normal-error-precedence-actual-exit.json",
+      "sha256": "694f443640e1dd9f54f90dcbeb0c0f2936357e5d22a1ff45bd2eb48a0f20293f",
+      "bytes": 2498,
+      "mode": 436
+    },
+    "local_DATA_report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m96-m97-delivery/normal-retained-error-precedence-audit.json",
+      "sha256": "a483e19d1ff4775f373152827bd7234576792f99b3bc97861132be30875af9d7",
+      "bytes": 229880,
+      "mode": 436
+    },
+    "normal_qualified": true,
+    "local_DATA_qualified": true,
+    "review_publication": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m96-m97-delivery/error-precedence-review-publication.json",
+      "sha256": "79df8bb6ce902b12d338bf0208b9347362a81721f9631dc89b19944761dbaed3",
+      "bytes": 3573,
+      "mode": 436
+    },
+    "hosted_run": {
+      "run": 44970670576,
+      "attempt": 1,
+      "head_sha": "a578c68a3fe4daa5e83ab0bc801e641f540576ee",
+      "status": "in_progress",
+      "conclusion": null,
+      "Root_watch_session": 54430,
+      "Root_launch_tool": "881aed"
+    },
+    "hosted_qualified": false,
+    "official_DATA_qualified": false,
+    "own_product_normal_failures": [
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m96-m97-delivery/normal-attempt1-product-clippy-failure.json",
+        "sha256": "70d2f43e128b31ed9642ff15a8f5cfe37d028ef20a138103cfb886b0b0d6861a",
+        "bytes": 6145,
+        "mode": 436
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m96-m97-delivery/normal-copy-state-product-test-failure.json",
+        "sha256": "6f23bf53583a701abed7f724090cccd42708e753363b7b189a2c7066748681a2",
+        "bytes": 8724,
+        "mode": 436
+      }
+    ],
+    "prior_normal_method_failures": [
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m96-m97-delivery/normal-attempt1-prehook-method-failure.json",
+        "sha256": "4447773da29b629de87da64096658fd36dfbc1777ed96211201210c3bb1b27ef",
+        "bytes": 3455,
+        "mode": 436
+      }
+    ],
+    "prior_operational_release_failures": [
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m96-m97-delivery/copy-state-root-release-preparation-failure.json",
+        "sha256": "15996bc6f67adbbb33b712b1eecec056990a8bc337703aff09c66537aacd4dbd",
+        "bytes": 1640,
+        "mode": 436
+      }
+    ],
+    "own_reader_failures": [],
+    "formatter_custody": {
+      "original_nine": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m96-m97-delivery/rust-formatter-actual.json",
+        "sha256": "8f18f6f8a1883db7ab3c3c75cf7a59ab32db88cf00e4a94eff83cdfb7d914b0f",
+        "bytes": 9521,
+        "mode": 436
+      },
+      "original_reused_only_eight": true,
+      "previous_one_historical": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m96-m97-delivery/copy-state-rust-formatter-actual.json",
+        "sha256": "0bd6cbf7bc9f49b15fe74004cba5a44e03e530e2aaa0335ccf88e342c39ef52b",
+        "bytes": 5215,
+        "mode": 436
+      },
+      "current_one": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m96-m97-delivery/error-precedence-rust-formatter-actual.json",
+        "sha256": "6c518f16b55ae2ca3b2e6189fac0602ce8a15b1928179cf4532faacd3d18663a",
+        "bytes": 7238,
+        "mode": 436
+      },
+      "qualification_inherited": false
+    },
+    "actual_profile_observation": {
+      "headless": 2002,
+      "renderer": 1538,
+      "ignored_each": 2,
+      "Python": 494,
+      "own_each_profile": 18,
+      "required_headless": 248,
+      "required_renderer": 194,
+      "strict_Source_bases": 15,
+      "finite": 47,
+      "CLI": 21
+    }
+  },
+  "current_M98_M99_resource_hold": {
+    "state": "CONDITIONAL_32SSD_12SHM_FULL_NORMAL_CAPACITY_HOLD",
+    "proposal": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-root-qualified-source-proposal.json",
+      "sha256": "1fbfd0df05ef97e2582b679410bf1f94cc177b4dcd020b27cc181caeab20eb2b",
+      "bytes": 9684,
+      "mode": 436
+    },
+    "conditional_Root_Source_review": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-conditional-Root-Source-review.json",
+      "sha256": "473453a75e7d5f7455d8b47d943292ac5db6a0c811864f98939cc561e97bc5af",
+      "bytes": 2030,
+      "mode": 436
+    },
+    "authoritative_Root_observation": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/full-normal-resource-root-observation.json",
+      "sha256": "87f800ebcb63963990a56b687eabddf9fd388a6cf4560fb99f4e74cffb1a0b02",
+      "bytes": 838,
+      "mode": 436
+    },
+    "provisional_initial_SSD_bytes": 34359738368,
+    "provisional_initial_SHM_bytes": 12884901888,
+    "mandatory_initial_SSD_bytes": 15032385536,
+    "early_stop_SSD_bytes": 8589934592,
+    "early_stop_SHM_bytes": 4294967296,
+    "Root_observed_SSD_bytes": 31443066880,
+    "Root_observed_SHM_bytes": 14725849088,
+    "Root_SSD_shortfall_bytes": 2916671488,
+    "Root_SHM_margin_bytes": 1840947200,
+    "observer_namespace_is_not_admission": true,
+    "owner_response_pending": true,
+    "owner_request": "Free4GiB or prepare exact recovery proposal; no reply recorded at this freeze.",
+    "execution_released": false,
+    "target_created": false,
+    "cleanup_eviction_reuse_relocation_authorized": false,
+    "universal_fit_guarantee": false,
+    "Source_review_may_continue": true
   }
 }

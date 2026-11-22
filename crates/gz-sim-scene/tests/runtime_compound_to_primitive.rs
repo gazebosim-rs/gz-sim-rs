@@ -490,6 +490,8 @@ fn new_primitive_route_first_errors_and_late_native_refusals_preserve_pending_in
                 }
             }
             3 => {
+                // The singleton Mesh route is eligible, but this unchanged
+                // invalid URI must still refuse without consuming inputs/IDs.
                 let source = model.links[0].collisions[0].source.clone();
                 model.links[0].collisions[0].geometry = Geometry::Mesh(sdformat::Mesh {
                     uri: "must-not-be-decoded.glb".into(),

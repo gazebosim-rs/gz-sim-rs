@@ -180,6 +180,10 @@ fn chain(model: &Model) -> Result<(), LoadError> {
             .axis
             .as_ref()
             .ok_or_else(|| error(model, "joint controller frames"))?;
+        // Parsed XML and Axis::try_set_xyz already normalize upstream. Direct
+        // public DOM assignment does not: admit the selected finite unit band
+        // without repairing or mutating the caller's axis.
+        let norm_squared = axis.xyz.into_iter().map(|value| value * value).sum::<f64>();
         require(
             !joint.name.is_empty()
                 && !joint.name.contains("::")
@@ -188,15 +192,9 @@ fn chain(model: &Model) -> Result<(), LoadError> {
                 && model.links.iter().any(|link| link.name == joint.child)
                 && joint.pose.transform == Transform::default()
                 && (joint.pose.relative_to.is_empty() || joint.pose.relative_to == joint.child)
-                && [
-                    [1.0, 0.0, 0.0],
-                    [-1.0, 0.0, 0.0],
-                    [0.0, 1.0, 0.0],
-                    [0.0, -1.0, 0.0],
-                    [0.0, 0.0, 1.0],
-                    [0.0, 0.0, -1.0],
-                ]
-                .contains(&axis.xyz)
+                && axis.xyz.into_iter().all(f64::is_finite)
+                && norm_squared.is_finite()
+                && (norm_squared - 1.0).abs() <= 1e-12
                 && axis.expressed_in.is_empty(),
             &model.scoped_name,
             "joint controller frames",
@@ -317,3 +315,181 @@ pub(super) fn parse(model: &Model) -> Result<Option<Vec<Parameters>>, LoadError>
 #[cfg(test)]
 #[path = "../../tests/private/joint_controller_config.rs"]
 mod tests;
+
+#[cfg(test)]
+mod arbitrary_axis_dom_tests {
+    use super::*;
+
+    fn model() -> Model {
+        sdformat::load_str(
+            include_str!("../../../../examples/m9_joint_controllers.sdf"),
+            "arbitrary-axis-dom.sdf",
+            &sdformat::NoResources,
+        )
+        .unwrap()
+        .worlds
+        .remove(0)
+        .models
+        .into_iter()
+        .find(|m| m.name == "arm")
+        .unwrap()
+    }
+
+    #[test]
+    fn arbitrary_direct_dom_unit_directions_preserve_the_entire_caller_model() {
+        for direction in [
+            [0., 0.6, 0.8],
+            [-0.6, 0.8, 0.],
+            [1. / 3., -2. / 3., 2. / 3.],
+            [1., 1e-12, 0.],
+        ] {
+            for joint in 0..2 {
+                let mut caller = model();
+                caller.joints[joint].axis.as_mut().unwrap().xyz = direction;
+                let before = format!("{caller:?}");
+                let bits = direction.map(f64::to_bits);
+                let plans = parse(&caller).unwrap().unwrap();
+                assert_eq!(plans.len(), 2);
+                assert_eq!(format!("{caller:?}"), before);
+                assert_eq!(
+                    caller.joints[joint]
+                        .axis
+                        .as_ref()
+                        .unwrap()
+                        .xyz
+                        .map(f64::to_bits),
+                    bits
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn arbitrary_direct_dom_nonunit_nonfinite_and_extreme_norms_are_not_repaired() {
+        for direction in [
+            [0., 3., 4.],
+            [2., 0., 0.],
+            [0.; 3],
+            [f64::MIN_POSITIVE, 0., 0.],
+            [1e308, 1e308, 0.],
+            [f64::NAN, 0., 1.],
+            [0., f64::INFINITY, 0.],
+            [0., 0., f64::NEG_INFINITY],
+        ] {
+            for joint in 0..2 {
+                let mut caller = model();
+                caller.joints[joint].axis.as_mut().unwrap().xyz = direction;
+                let before = format!("{caller:?}");
+                let bits = direction.map(f64::to_bits);
+                assert!(
+                    matches!(
+                        parse(&caller),
+                        Err(LoadError::Unsupported {
+                            feature: "joint controller frames",
+                            ..
+                        })
+                    ),
+                    "axis={direction:?}, joint={joint}"
+                );
+                assert_eq!(format!("{caller:?}"), before);
+                assert_eq!(
+                    caller.joints[joint]
+                        .axis
+                        .as_ref()
+                        .unwrap()
+                        .xyz
+                        .map(f64::to_bits),
+                    bits
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn arbitrary_direct_dom_near_unit_band_checks_both_sides_without_normalizing() {
+        for sign in [-1., 1.] {
+            for (delta, admitted) in [
+                (4e-13, true),
+                (-4e-13, true),
+                (6e-13, false),
+                (-6e-13, false),
+            ] {
+                let direction = [sign * (1. + delta), 0., 0.];
+                let norm_squared = direction.into_iter().map(|v| v * v).sum::<f64>();
+                assert_eq!((norm_squared - 1.).abs() <= 1e-12, admitted);
+                for joint in 0..2 {
+                    let mut caller = model();
+                    caller.joints[joint].axis.as_mut().unwrap().xyz = direction;
+                    let before = format!("{caller:?}");
+                    if admitted {
+                        assert_eq!(parse(&caller).unwrap().unwrap().len(), 2);
+                    } else {
+                        assert!(matches!(
+                            parse(&caller),
+                            Err(LoadError::Unsupported {
+                                feature: "joint controller frames",
+                                ..
+                            })
+                        ));
+                    }
+                    assert_eq!(format!("{caller:?}"), before);
+                    assert_eq!(
+                        caller.joints[joint]
+                            .axis
+                            .as_ref()
+                            .unwrap()
+                            .xyz
+                            .map(f64::to_bits),
+                        direction.map(f64::to_bits)
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn arbitrary_setter_normalization_is_explicit_and_failures_preserve_its_prior_value() {
+        let mut caller = model();
+        for joint in &mut caller.joints {
+            joint
+                .axis
+                .as_mut()
+                .unwrap()
+                .try_set_xyz([0., 3., 4.])
+                .unwrap();
+        }
+        assert!(
+            caller
+                .joints
+                .iter()
+                .all(|j| j.axis.as_ref().unwrap().xyz == [0., 0.6, 0.8])
+        );
+        let before = format!("{caller:?}");
+        assert_eq!(parse(&caller).unwrap().unwrap().len(), 2);
+        assert_eq!(format!("{caller:?}"), before);
+        for invalid in [
+            [0.; 3],
+            [1e-300, 0., 0.],
+            [f64::NAN, 0., 1.],
+            [1e308, 1e308, 0.],
+        ] {
+            assert!(
+                caller.joints[0]
+                    .axis
+                    .as_mut()
+                    .unwrap()
+                    .try_set_xyz(invalid)
+                    .is_err()
+            );
+            assert_eq!(format!("{caller:?}"), before);
+        }
+        caller.joints[0].axis.as_mut().unwrap().xyz = [0., 3., 4.];
+        assert!(matches!(
+            parse(&caller),
+            Err(LoadError::Unsupported {
+                feature: "joint controller frames",
+                ..
+            })
+        ));
+    }
+}
