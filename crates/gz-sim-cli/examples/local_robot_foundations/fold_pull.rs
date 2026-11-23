@@ -8,6 +8,9 @@ use gz_physics_xpbd::{PadSample, Particle};
 use gz_sim_scene::deformable::{set_material_force, set_material_resolution};
 use serde::Serialize;
 
+#[path = "fold_breakaway.rs"]
+pub(super) mod breakaway;
+
 const DT: f64 = 0.001;
 const STRIDE: usize = 25;
 const PERIOD: usize = 50;
@@ -238,15 +241,15 @@ fn supported(s: &Tick, weight: f64) -> bool {
         && s.min_bench_clearance_m > 0.01
 }
 
-fn pulse(tick: usize) -> (&'static str, f64) {
+fn pulse(tick: usize, peak: f64) -> (&'static str, f64) {
     if tick <= RAMP {
-        ("ramp", PULL * tick as f64 / RAMP as f64)
+        ("ramp", peak * tick as f64 / RAMP as f64)
     } else if tick <= RAMP + HOLD {
-        ("pull", PULL)
+        ("pull", peak)
     } else if tick <= 2 * RAMP + HOLD {
         (
             "unload",
-            PULL * (2 * RAMP + HOLD - tick) as f64 / RAMP as f64,
+            peak * (2 * RAMP + HOLD - tick) as f64 / RAMP as f64,
         )
     } else {
         ("recovery", 0.)
@@ -261,29 +264,43 @@ struct Outcome {
 }
 
 fn trial(columns: usize, loaded: bool, out: &Path) -> Result<Outcome> {
+    let name = format!("mesh-{columns}-{}", if loaded { "pull" } else { "sham" });
+    trial_at(
+        columns,
+        if loaded { PULL } else { 0. },
+        32,
+        24,
+        &out.join(name),
+    )
+}
+
+fn trial_at(
+    columns: usize,
+    load_n: f64,
+    substeps: u32,
+    iterations: u32,
+    dir: &Path,
+) -> Result<Outcome> {
     let scene = closing_sheet_scene::scene(columns)?;
     let mut grasp = Grasp::pickup(&scene, columns)?;
     grasp.acquire(MAX_BLOCKS)?;
     let anchor = fold_hold::snapshot(&grasp.recording.sim)?;
+    set_material_resolution(&mut grasp.recording.sim, "sheet", substeps, iterations)?;
     let baseline = grasp.trace.len() - 1;
     let frame = grasp.frames.len() - 1;
     for tick in 1..=END {
-        let (phase, load) = pulse(tick);
-        grasp.step(phase, if loaded { load } else { 0. })?;
+        let (phase, load) = pulse(tick, load_n);
+        grasp.step(phase, load)?;
         if tick.is_multiple_of(PERIOD) {
             grasp.feedback();
         }
     }
-    let dir = out.join(format!(
-        "mesh-{columns}-{}",
-        if loaded { "pull" } else { "sham" }
-    ));
     save_case(
         grasp.recording,
         grasp.frames,
         &grasp.trace,
         &scene,
-        &dir,
+        dir,
         frame,
         columns,
     )?;

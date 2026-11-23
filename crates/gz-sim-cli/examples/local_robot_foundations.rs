@@ -57,6 +57,8 @@ struct Args {
 }
 #[derive(Subcommand)]
 enum Study {
+    /// Bracket lasting motion under increasing lateral loads on two material clocks.
+    FoldBreakaway { output: PathBuf },
     /// Pull a force-controlled folded sheet sideways and compare its slip with an unloaded hold.
     FoldPull { output: PathBuf },
     /// Measure sustained pressure between folded panels as a live gripper closes.
@@ -217,6 +219,7 @@ fn write_new(output: &Path, generate: impl FnOnce(&Path) -> Result<()>) -> Resul
 }
 fn main() -> Result<()> {
     match Args::parse().study {
+        Study::FoldBreakaway { output } => write_new(&output, fold_pull::breakaway::run),
         Study::FoldPull { output } => write_new(&output, fold_pull::run),
         Study::FoldClosure { output } => write_new(&output, fold_closure::run),
         Study::FoldPatch { output } => write_new(&output, fold_patch::run),

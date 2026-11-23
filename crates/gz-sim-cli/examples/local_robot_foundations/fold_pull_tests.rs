@@ -48,13 +48,13 @@ fn feedback_preserves_the_deadband_and_only_opens_for_excess_load() {
 
 #[test]
 fn the_same_discrete_pulse_integrates_to_its_ramp_and_hold_impulse() {
-    assert_eq!(pulse(1), ("ramp", PULL / RAMP as f64));
-    assert_eq!(pulse(RAMP), ("ramp", PULL));
-    assert_eq!(pulse(RAMP + 1), ("pull", PULL));
-    assert_eq!(pulse(RAMP + HOLD), ("pull", PULL));
-    assert_eq!(pulse(2 * RAMP + HOLD), ("unload", 0.));
-    assert_eq!(pulse(END), ("recovery", 0.));
-    let impulse = (1..=END).map(|n| pulse(n).1 * DT).sum::<f64>();
+    assert_eq!(pulse(1, PULL), ("ramp", PULL / RAMP as f64));
+    assert_eq!(pulse(RAMP, PULL), ("ramp", PULL));
+    assert_eq!(pulse(RAMP + 1, PULL), ("pull", PULL));
+    assert_eq!(pulse(RAMP + HOLD, PULL), ("pull", PULL));
+    assert_eq!(pulse(2 * RAMP + HOLD, PULL), ("unload", 0.));
+    assert_eq!(pulse(END, PULL), ("recovery", 0.));
+    let impulse = (1..=END).map(|n| pulse(n, PULL).1 * DT).sum::<f64>();
     assert!((impulse - PULL * (RAMP + HOLD) as f64 * DT).abs() < 1e-14);
 }
 
@@ -84,13 +84,13 @@ fn rigid_motion_cancels_and_an_unequal_mass_grid_reports_its_true_centroid() {
     assert!((patch[0] - 1.).abs() < 1e-14 && (patch[1] - 3.).abs() < 1e-14);
 }
 
-fn series() -> Outcome {
+pub(super) fn series() -> Outcome {
     let mut trace = vec![sample(); WINDOW + END];
     for (i, row) in trace.iter_mut().enumerate() {
         row.time_ns += i as u128 * 1_000_000;
         row.jaw_frame_y_m = i as f64 * 1e-8;
         if i >= WINDOW {
-            row.phase = pulse(i + 1 - WINDOW).0;
+            row.phase = pulse(i + 1 - WINDOW, PULL).0;
         }
     }
     Outcome {
