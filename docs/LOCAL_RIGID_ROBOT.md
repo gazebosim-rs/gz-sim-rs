@@ -72,6 +72,14 @@ target/release/examples/local_robot_foundations arm-switch target/my-arm-switch
 | Rotary arm | Compare the lifted path over the obstacle with the lower path that strikes it. | `target/my-arm/clear/replay` and `target/my-arm/blocked/replay` |
 | Solver switching | Compare the arm that parks at rest with the always-dynamic arm, including both finger impulses and the parcel trajectory. | `target/my-arm-switch/switched/replay` and `target/my-arm-switch/reference/replay` |
 
+If you need to start the local frontend, build the sibling gzweb-rs checkout and serve it in a separate terminal. The frontend and replay server use different ports.
+
+```sh
+cd ../gzweb-rs
+RUSTC_WRAPPER= ./build.sh
+python3 -m http.server 8082 --bind 127.0.0.1
+```
+
 To watch any recording, pass its directory to the replay server. With gz-web-rs running on port 8082, open the viewer and press Play. You can step through individual frames around pickup or release.
 
 ```sh

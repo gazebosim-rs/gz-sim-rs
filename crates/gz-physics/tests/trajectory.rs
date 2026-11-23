@@ -114,3 +114,33 @@ fn local_acceleration_bounds_enclose_vectors_through_knots_repeat_and_held_tails
         }
     }
 }
+
+#[test]
+fn a_one_nanosecond_contact_step_recovers_deck_velocity_below_position_resolution() {
+    let time = Duration::from_secs;
+    let far = 2.0_f64.powi(52);
+    let points = [(0, 0., 0.), (1, far, 1.), (2, far, 0.)].map(|(t, x, v)| Waypoint {
+        time: time(t),
+        displacement: [x, 0., 0.],
+        velocity: [v, 0., 0.],
+    });
+    let path = TranslationSpline::new(&points, PathEnd::Hold).unwrap();
+    let at = time(1);
+    let dt = Duration::from_nanos(1);
+    // The second cubic is p(u) = far + u(1-u)^2, in metres.
+    assert_eq!(
+        path.sample(at).displacement,
+        path.sample(at + dt).displacement
+    );
+    let velocity = path.mean_velocity(at, dt).unwrap();
+    let expected = (1. - dt.as_secs_f64()).powi(2);
+    assert!((velocity[0] - expected).abs() < 3e-16);
+    assert_eq!(&velocity[1..], &[0., 0.]);
+    assert_eq!(path.mean_velocity(at, Duration::ZERO), None);
+    assert_eq!(path.mean_velocity(at - dt, 2 * dt), None);
+    assert_eq!(path.mean_velocity(time(2), dt), Some([0.; 3]));
+    assert_eq!(path.waypoints().collect::<Vec<_>>(), points);
+    assert_eq!(path.end_policy(), PathEnd::Hold);
+    assert!(path.extent()[0] >= far);
+    assert!(path.speed_bound() >= far);
+}

@@ -46,16 +46,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if id == 41 && r.contact_ticks() != 0 {
                     return Err("clear pair produced an impulse".into());
                 }
-                if let Some((t, _)) = r.contact_times() {
-                    if epoch == 0 {
-                        if impact.is_some() {
-                            return Err("unexpected repeated impact".into());
-                        }
-                        impact = Some((
-                            barrier,
-                            sim.elapsed().as_secs_f64() - sim.step_duration().as_secs_f64() + t,
-                        ));
+                if let Some((t, _)) = r.contact_times()
+                    && epoch == 0
+                {
+                    if impact.is_some() {
+                        return Err("unexpected repeated impact".into());
                     }
+                    impact = Some((
+                        barrier,
+                        sim.elapsed().as_secs_f64() - sim.step_duration().as_secs_f64() + t,
+                    ));
                 }
                 pairs.push(json!({"name":name,"id":id,"state":r.state,"impulse_on_b":r.impulse_on_b,"contact_ticks":r.contact_ticks(),"contact_times":r.contact_times()}));
             }

@@ -101,6 +101,8 @@ jobs:
           snapshot after 2>&1 | head -c 65536 | tee -a artifacts/coverage/ci-resources.log || echo "Final resource diagnostics incomplete"
           exit "$status"
         env:
+          # CI builds each candidate once. Omit incremental caches to leave space for both instrumented profiles.
+          CARGO_INCREMENTAL: '0'
           CARGO_PROFILE_DEV_DEBUG: '0'
           CARGO_PROFILE_TEST_DEBUG: '0'
           GZ_COVERAGE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}

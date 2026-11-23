@@ -334,3 +334,7 @@ mod tests {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "arm/failure_tests.rs"]
+mod failure_tests;

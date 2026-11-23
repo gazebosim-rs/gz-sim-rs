@@ -84,9 +84,8 @@ fn chain(links: usize, load: bool) -> String {
     xml.push_str("</world></sdf>");
     xml
 }
-fn scale(links: usize, load: bool) -> Result<Value> {
-    let xml = chain(links, load);
-    let mut r = Recording::new(&xml, "chain.sdf", "default")?;
+fn scale(xml: &str, links: usize, load: bool) -> Result<Value> {
+    let mut r = Recording::new(xml, "chain.sdf", "default")?;
     let body = entity_id(&r.sim, &format!("default::chain::l{}", links - 1))?;
     let support = if load {
         Some(handle(&r.sim, entity_id(&r.sim, "default::support::top")?)?)
@@ -143,13 +142,13 @@ fn probes(scene: &str) -> Result<Vec<Value>> {
         .collect()
 }
 
-fn iteration_sweep() -> Result<Vec<Value>> {
+fn iteration_sweep(arm: &str) -> Result<Vec<Value>> {
     let mut result = vec![];
     // Densely sample the first passing neighborhood; retain the failed controls.
     for passes in [
         0, 3, 7, 15, 31, 39, 40, 41, 42, 43, 45, 47, 63, 79, 91, 95, 127,
     ] {
-        let scene = SCENE.replace(
+        let scene = arm.replace(
             "<additional_pgs_iterations>41</additional_pgs_iterations>",
             &format!("<additional_pgs_iterations>{passes}</additional_pgs_iterations>"),
         );
@@ -170,22 +169,28 @@ fn iteration_sweep() -> Result<Vec<Value>> {
     Ok(result)
 }
 
+fn qualified_inertia(scene: &str) -> Result<Vec<Value>> {
+    let inertia = probes(scene)?;
+    if inertia.iter().any(|v| v["qualified"] != true) {
+        return Err(format!("arm angular impulse outside accuracy budget: {inertia:?}").into());
+    }
+    Ok(inertia)
+}
+
 pub(super) fn run(output: &Path) -> Result<()> {
     let mut rows = vec![];
     for repeat in 0..3 {
         for n in [4, 8, 16, 32] {
             for j in 0..2 {
-                rows.push(scale(n, (j + repeat) % 2 == 0)?);
+                let loaded = (j + repeat) % 2 == 0;
+                rows.push(scale(&chain(n, loaded), n, loaded)?);
             }
         }
     }
-    let inertia = probes(SCENE)?;
-    if inertia.iter().any(|v| v["qualified"] != true) {
-        return Err(format!("arm angular impulse outside accuracy budget: {inertia:?}").into());
-    }
+    let inertia = qualified_inertia(SCENE)?;
     write_json(
         &output.join("iteration-sweep.json"),
-        &json!(iteration_sweep()?),
+        &json!(iteration_sweep(SCENE)?),
     )?;
     write_json(
         &output.join("scaling.json"),
@@ -207,3 +212,7 @@ mod tests {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "scaling_failure_tests.rs"]
+mod scaling_failure_tests;
