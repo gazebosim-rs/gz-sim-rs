@@ -1,0 +1,37 @@
+{
+  "adapter": "NVIDIA GeForce RTX 5090",
+  "environment_id": 7,
+  "fine_step_ns": 62500,
+  "first_contact_s": [
+    0.05171758543182173,
+    0.05171963187547061,
+    0.051812500000000004
+  ],
+  "first_normal_impulse_ns": [
+    0.38723077275412465,
+    0.3855571346315747,
+    0.40907625627853317
+  ],
+  "joint_publication_max_error_rad": 2.220446049250313e-16,
+  "last_loaded_public_tick": [
+    314,
+    314,
+    314
+  ],
+  "max_tip_error_m": [
+    0.00007551704233732508,
+    0.0002497239752015447
+  ],
+  "reference_order": [
+    "gpu",
+    "cartesian-rk4",
+    "rapier"
+  ],
+  "step_ns": 1000000,
+  "ticks": 600,
+  "total_normal_impulse_ns": [
+    4.499317509584081,
+    4.5016342884795435,
+    4.498885127445032
+  ]
+}

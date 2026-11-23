@@ -22,11 +22,22 @@ pub struct PlanarToolLane {
     /// Impulse at the first loaded internal step in that public tick, N s.
     pub first_normal_impulse: f64,
     pub first_tangent_impulse: f64,
+    /// Signed complete turns about each initial principal-angle branch, initially zero.
+    pub turns: [f64; 2],
 }
-const WIDTH: usize = 36;
+const WIDTH: usize = 38;
 const _: () = assert!(size_of::<PlanarToolLane>() == 8 * WIDTH);
 pub type PlanarToolBatch = ResidentBatch<PlanarToolLane>;
 impl PlanarToolLane {
+    /// Continuous shoulder and relative elbow angles, including full revolutions.
+    pub fn joint_angles(&self) -> [f64; 2] {
+        std::array::from_fn(|i| {
+            let [c, s] = self.arm.angle[i];
+            // Both signed zeros use +pi at the negative X branch cut.
+            let s = if s == 0. { 0. } else { s };
+            s.atan2(c) + std::f64::consts::TAU * self.turns[i]
+        })
+    }
     pub fn gap(&self) -> f64 {
         self.arm.points()[1][1] - self.radius - self.ground_z
     }
@@ -44,6 +55,7 @@ impl PlanarToolLane {
             && self.first_contact_offset == -1.
             && self.first_normal_impulse == 0.
             && self.first_tangent_impulse == 0.
+            && self.turns == [0.; 2]
     }
 }
 impl PlanarToolBatch {
@@ -61,7 +73,7 @@ impl PlanarToolBatch {
     }
 }
 fn module() -> naga::Module {
-    kernel::build::<WIDTH, 13>(&[STEP.as_secs_f64() / 2., 0., 1., 0.5], |v, c| solve(v, c))
+    kernel::build::<WIDTH, 15>(&[STEP.as_secs_f64() / 2., 0., 1., 0.5], |v, c| solve(v, c))
 }
 fn dot<T: Scalar>(a: [T; 2], b: [T; 2]) -> T {
     a[0] * b[0] + a[1] * b[1]
@@ -89,7 +101,19 @@ fn impact<T: Scalar>([vn, vt]: [T; 2], [nn, nt, tt]: [T; 3], mu: T, z: T, one: T
         loaded.select(stick.select(t, direction * slide), z),
     ]
 }
-fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 13] {
+/// Every Cayley rotation is strictly less than half a turn. Count branch
+/// crossings after each free rotation and each independent position correction.
+fn crossing<T: Scalar>([c, s]: [T; 2], [x, y]: [T; 2], z: T, one: T) -> T {
+    let cross = c * y - s * x;
+    s.at_least(z).and(y.less(z)).and(cross.greater(z)).select(
+        one,
+        s.less(z)
+            .and(y.at_least(z))
+            .and(cross.less(z))
+            .select(z - one, z),
+    )
+}
+fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 15] {
     let [dt, z, one, half] = *constants else {
         unreachable!()
     };
@@ -111,8 +135,12 @@ fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 13] {
     };
     for offset in [z, dt] {
         let (start, _, _) = geometry(&v);
+        let before = [[v[0], v[1]], [v[2], v[3]]];
         for (i, value) in tick(&v, constants) {
             v[i] = value;
+        }
+        for (i, from) in before.into_iter().enumerate() {
+            v[36 + i] = v[36 + i] + crossing(from, [v[2 * i], v[2 * i + 1]], z, one);
         }
         let (gap, jn, jt) = geometry(&v);
         let in_contact = gap.at_most(z);
@@ -147,6 +175,7 @@ fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 13] {
             let (c, s) = (v[2 * i], v[2 * i + 1]);
             v[2 * i] = c * co - s * si;
             v[2 * i + 1] = s * co + c * si;
+            v[36 + i] = v[36 + i] + crossing([c, s], [v[2 * i], v[2 * i + 1]], z, one);
         }
     }
     [
@@ -163,6 +192,8 @@ fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 13] {
         (33, first),
         (34, first_n),
         (35, first_t),
+        (36, v[36]),
+        (37, v[37]),
     ]
 }
 

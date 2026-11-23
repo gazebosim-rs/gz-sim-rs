@@ -13,8 +13,49 @@ pub use gz_physics_gpu::{
 };
 pub mod automatic;
 mod config;
+pub mod planar_tool;
+mod planar_tool_config;
 mod resident;
 pub(super) use config::{Plan, is_plugin};
+pub(super) enum LoadedPlan {
+    Mixed(Plan),
+    Tool(planar_tool_config::Plan),
+}
+impl LoadedPlan {
+    pub(super) fn load(
+        sdf: &sdformat::Sdf,
+        w: &sdformat::World,
+        step: Duration,
+        adapter: Option<&str>,
+    ) -> Result<Self, LoadError> {
+        if let [plugin] = w.plugins.as_slice()
+            && is_plugin(plugin)
+            && let Ok(doc) = roxmltree::Document::parse(&plugin.xml)
+            && doc.root_element().children().any(|n| {
+                n.has_tag_name("environment") && n.attribute("profile") == Some("planar-tool")
+            })
+        {
+            return planar_tool_config::Plan::load(sdf, w, step, adapter, doc.root_element())
+                .map(Self::Tool);
+        }
+        Plan::load(sdf, w, step, adapter).map(Self::Mixed)
+    }
+    pub(super) fn uses_processes(&self) -> bool {
+        matches!(self,Self::Mixed(p) if p.uses_processes())
+    }
+}
+pub(super) fn install_loaded(
+    sim: &mut Simulation,
+    plan: LoadedPlan,
+    links: &BTreeMap<String, u64>,
+    worker: Option<&std::path::Path>,
+) -> Result<(), LoadError> {
+    match plan {
+        LoadedPlan::Mixed(p) => install(sim, p, links, worker),
+        LoadedPlan::Tool(p) => planar_tool::install(sim, p, links),
+    }
+}
+
 pub use gz_physics_gpu::{
     SpherePairBlockCheckpoint,
     pair_process::{PairProcessMetrics, PairProcessPool, set_width as set_resident_worker_count},
@@ -74,9 +115,11 @@ pub(crate) fn physics_owner(world: &bevy_ecs::world::World) -> Option<MixedBatch
     match (
         world.get_resource::<MixedBatch>(),
         world.get_resource::<gz_physics_gpu::SpherePairBlockBatch>(),
+        world.get_resource::<gz_physics_gpu::PlanarToolBatch>(),
     ) {
-        (Some(m), None) => Some(m.owner()),
-        (None, Some(b)) => Some(b.owner()),
+        (Some(m), None, None) => Some(m.owner()),
+        (None, Some(b), None) => Some(b.owner()),
+        (None, None, Some(b)) => Some(b.owner()),
         _ => None,
     }
 }
@@ -85,6 +128,9 @@ pub fn execution_counts(sim: &Simulation) -> Option<(usize, usize)> {
     if let Some(batch) = checked_mixed(sim) {
         let cpu = batch.cpu_environments();
         return Some((cpu, batch.environments().len() - cpu));
+    }
+    if let Some(b) = planar_tool::checked(sim) {
+        return Some((0, b.lanes().len()));
     }
     resident::batch(sim).map(|batch| (0, batch.lanes().len()))
 }
@@ -100,6 +146,9 @@ pub fn environment_placement(
 ) -> Result<ExecutionPlacement, gz_physics_gpu::GpuError> {
     if let Some(batch) = checked_mixed(sim) {
         return batch.execution_placement(id);
+    }
+    if planar_tool::checked(sim).is_some() {
+        return planar_tool::observe(sim, id).map(|_| ExecutionPlacement::Gpu);
     }
     resident_pair_observation(sim, id).map(|_| ExecutionPlacement::Gpu)
 }

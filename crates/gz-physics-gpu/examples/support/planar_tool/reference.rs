@@ -21,6 +21,7 @@ pub fn fixture(i: usize) -> Lane {
         first_contact_offset: -1.,
         first_normal_impulse: 0.,
         first_tangent_impulse: 0.,
+        turns: [0.; 2],
     }
 }
 pub fn lift(i: usize) -> [f64; 2] {

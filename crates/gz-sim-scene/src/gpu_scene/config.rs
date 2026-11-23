@@ -16,7 +16,7 @@ fn err(entity: &str, why: impl Into<String>) -> LoadError {
         reason: why.into(),
     }
 }
-fn shape(node: Node<'_, '_>, attrs: &[&str], children: bool) -> bool {
+pub(super) fn shape(node: Node<'_, '_>, attrs: &[&str], children: bool) -> bool {
     node.namespaces().next().is_none()
         && node
             .attributes()

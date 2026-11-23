@@ -448,6 +448,7 @@ pub struct ImuPublication {
 }
 
 struct SceneContext<'a> {
+    gpu_tool_scene: bool,
     sole_observers: bool,
     world: &'a str,
     engine: PhysicsEngine,
@@ -910,7 +911,7 @@ fn load_world_with_automatic_owner(
     };
     #[cfg(feature = "gpu-batch")]
     let gpu_plan = if engine == PhysicsEngine::GpuBatch {
-        let plan = gpu_scene::Plan::load(&sdf, world, step, gpu_adapter)?;
+        let plan = gpu_scene::LoadedPlan::load(&sdf, world, step, gpu_adapter)?;
         require(
             distributed_worker.is_none() || plan.uses_processes(),
             world_name,
@@ -1012,7 +1013,12 @@ fn load_world_with_automatic_owner(
             .into(),
         ),
     };
+    #[cfg(feature = "gpu-batch")]
+    let gpu_tool_scene = matches!(gpu_plan, Some(gpu_scene::LoadedPlan::Tool(_)));
+    #[cfg(not(feature = "gpu-batch"))]
+    let gpu_tool_scene = false;
     let mut context = SceneContext {
+        gpu_tool_scene,
         sole_observers: sole_plan.is_some(),
         world: world_name,
         engine,
@@ -1095,7 +1101,7 @@ fn load_world_with_automatic_owner(
     sim.world_mut().insert_resource(Gravity(world.gravity));
     #[cfg(feature = "gpu-batch")]
     if let Some(plan) = gpu_plan {
-        gpu_scene::install(&mut sim, plan, &context.links, distributed_worker)?;
+        gpu_scene::install_loaded(&mut sim, plan, &context.links, distributed_worker)?;
     }
     let mut visuals = context.visuals.into_iter();
     retain_visual_geometry(
@@ -1453,15 +1459,21 @@ fn build_model(
         &model.scoped_name,
         "conflicting joint actuator ownership",
     )?;
-    let reduced_plan = joints::validate_model(
-        sdf,
-        model,
-        context.world,
-        top_level,
-        backend.as_ref().map(|backend| backend.engine()),
-        parent.is_static || model.is_static,
-        &actuated,
-    )?;
+    // GPU tool admission validates the complete joint graph and both axes before scene construction.
+    let gpu_arm = context.gpu_tool_scene && !model.joints.is_empty();
+    let reduced_plan = if gpu_arm {
+        None
+    } else {
+        joints::validate_model(
+            sdf,
+            model,
+            context.world,
+            top_level,
+            backend.as_ref().map(|backend| backend.engine()),
+            parent.is_static || model.is_static,
+            &actuated,
+        )?
+    };
     let force_configurations = joint_forces::parse(model)?;
     require(
         force_configurations
@@ -1522,6 +1534,7 @@ fn build_model(
         )?;
         require(
             observer
+                || (gpu_arm && link.collisions.is_empty())
                 || link.collisions.len() == 1
                 || (context.engine == PhysicsEngine::MultiFidelity && !link.collisions.is_empty()),
             name,
@@ -1537,7 +1550,7 @@ fn build_model(
         let mut mesh_collision = None;
         let mut local_friction = None;
         for collision in &link.collisions {
-            if context.engine == PhysicsEngine::MultiFidelity {
+            if context.engine == PhysicsEngine::MultiFidelity || context.gpu_tool_scene {
                 let material = local_isotropic_friction(&collision.surface);
                 if !solids.is_empty() {
                     require(
@@ -1565,6 +1578,7 @@ fn build_model(
             let local = sdf.resolve_pose(&collision.pose, &model.scoped_name, name, name)?;
             require(
                 identity(local)
+                    || (gpu_arm && matches!(collision.geometry, Geometry::Sphere { .. }))
                     || (context.engine == PhysicsEngine::MultiFidelity
                         && matches!(
                             collision.geometry,
@@ -1643,6 +1657,7 @@ fn build_model(
             && mesh_collision.is_none();
         require(
             centered(inertial_pose.translation)
+                || gpu_arm
                 || ((reduced_plan.is_some() || free_mass_offset)
                     && inertial_pose.translation.into_iter().all(f64::is_finite)),
             name,

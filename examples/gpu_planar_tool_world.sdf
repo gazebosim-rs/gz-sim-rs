@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="gpu" type="ignored"><max_step_size>0.001</max_step_size><real_time_factor>1</real_time_factor></physics>
+    <plugin name="gz::sim::systems::GpuBatch" filename="gz-sim-gpu-batch-system">
+      <environment id="7" profile="planar-tool" model="arm" plane="floor::base">
+        <drive joint="shoulder" stiffness="16" damping="2.3" target="-0.84"/>
+        <drive joint="elbow" stiffness="5" damping="0.41" target="0.12"/>
+        <target tick="301" shoulder="0.34" elbow="0.47"/>
+      </environment>
+    </plugin>
+    <model name="floor">
+      <static>true</static><pose>0 0 0.65 0 0 0</pose>
+      <link name="base">
+        <collision name="plane"><geometry><plane><normal>0 0 1</normal><size>2 1</size></plane></geometry>
+          <surface><friction><ode><mu>0.30</mu><mu2>0.30</mu2></ode></friction></surface>
+        </collision>
+        <visual name="surface"><pose>0.35 0 -0.013 0 0 0</pose><geometry><box><size>0.45 0.22 0.026</size></box></geometry>
+          <material><diffuse>0.30 0.36 0.42 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="arm"><pose>0 0 0.60 0 0 0</pose>
+      <link name="upper"><pose>0 0 0 0 -0.48 0</pose>
+        <inertial><pose>0.15 0 0 0 0 0</pose><mass>0.80</mass><inertia>
+          <ixx>0.0003</ixx><iyy>0.0062</iyy><izz>0.0062</izz></inertia></inertial>
+        <visual name="shoulder_hub"><geometry><sphere><radius>0.025</radius></sphere></geometry><material><diffuse>0.24 0.28 0.31 1</diffuse></material></visual>
+        <visual name="upper_bar"><pose>0.15 0 0 0 0 0</pose><geometry><box><size>0.30 0.042 0.042</size></box></geometry><material><diffuse>0.08 0.61 0.70 1</diffuse></material></visual>
+      </link>
+      <link name="forearm"><pose relative_to="upper">0.30 0 0 0 0.62 0</pose>
+        <inertial><pose>0.12 0 0 0 0 0</pose><mass>0.40</mass><inertia>
+          <ixx>0.0002</ixx><iyy>0.0034</iyy><izz>0.0034</izz></inertia></inertial>
+        <collision name="round_tool"><pose>0.21 0 0 0 0 0</pose><geometry><sphere><radius>0.018</radius></sphere></geometry>
+          <surface><friction><ode><mu>0.30</mu><mu2>0.30</mu2></ode></friction></surface>
+        </collision>
+        <visual name="forearm_bar"><pose>0.105 0 0 0 0 0</pose><geometry><box><size>0.21 0.032 0.032</size></box></geometry><material><diffuse>0.28 0.74 0.48 1</diffuse></material></visual>
+        <visual name="tool"><pose>0.21 0 0 0 0 0</pose><geometry><sphere><radius>0.018</radius></sphere></geometry><material><diffuse>0.94 0.46 0.10 1</diffuse></material></visual>
+      </link>
+      <joint name="shoulder" type="revolute"><parent>world</parent><child>upper</child><axis><xyz>0 -1 0</xyz><limit><effort>8</effort></limit></axis></joint>
+      <joint name="elbow" type="revolute"><parent>upper</parent><child>forearm</child><axis><xyz>0 -1 0</xyz><limit><effort>2.8</effort></limit></axis></joint>
+    </model>
+  </world>
+</sdf>

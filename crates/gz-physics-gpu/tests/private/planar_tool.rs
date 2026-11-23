@@ -26,6 +26,7 @@ fn sample() -> PlanarToolLane {
         first_contact_offset: -1.,
         first_normal_impulse: 0.,
         first_tangent_impulse: 0.,
+        turns: [0.; 2],
     }
 }
 fn advance(mut v: PlanarToolLane) -> PlanarToolLane {
@@ -150,4 +151,50 @@ fn contact_target_changes_are_transactional_and_reset_restores_initial_frame() {
         bytemuck::bytes_of(&l),
         bytemuck::bytes_of(&sim.world().resource::<PlanarToolBatch>().lanes()[0])
     );
+}
+
+#[test]
+fn the_public_clock_retains_multiple_hinge_turns_in_either_direction() {
+    for speed in [-10000., 10000.] {
+        let mut v = sample();
+        v.ground_z = -4.;
+        v.arm.angle = [[1., 0.]; 2];
+        v.arm.speed = [speed, 0.];
+        let increment = 4. * (0.00025_f64 * speed).atan();
+        assert!(increment.abs() > std::f64::consts::PI);
+        for tick in 1..=25 {
+            v = advance(v);
+            assert!((v.joint_angles()[0] - f64::from(tick) * increment).abs() < 1e-11);
+        }
+    }
+}
+
+#[test]
+#[ignore = "requires GZ_GPU_ADAPTER with hardware f64 Vulkan"]
+fn device_tracks_opposite_fast_revolutions_across_public_ticks() {
+    let speeds = [-10000., 10000.];
+    let initial = speeds.map(|speed| {
+        let mut l = sample();
+        l.ground_z = -4.;
+        l.arm.angle = [[1., 0.]; 2];
+        l.arm.speed = [speed, 0.];
+        l
+    });
+    let mut sim = crate::simulation::planar_tool_simulation(
+        &std::env::var("GZ_GPU_ADAPTER").unwrap(),
+        initial.to_vec(),
+    )
+    .unwrap();
+    sim.step_exact(25).unwrap();
+    for (arm, speed) in sim
+        .world()
+        .resource::<PlanarToolBatch>()
+        .lanes()
+        .iter()
+        .zip(speeds)
+    {
+        let expected = 100. * (0.00025_f64 * speed).atan();
+        assert!((arm.joint_angles()[0] - expected).abs() < 1e-11);
+        assert_eq!(arm.joint_angles()[1], 0.);
+    }
 }

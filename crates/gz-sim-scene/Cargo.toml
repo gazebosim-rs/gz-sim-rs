@@ -72,3 +72,7 @@ required-features = ["gpu-batch"]
 [[example]]
 name = "native_staging_scene"
 required-features = ["gpu-batch"]
+
+[[example]]
+name = "gpu_sdf_tool"
+required-features = ["gpu-batch"]

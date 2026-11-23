@@ -392,7 +392,10 @@ impl Lifecycle {
         #[cfg(feature = "gpu-batch")]
         let fixed_population = sim
             .world()
-            .contains_resource::<gz_sim_scene::gpu_scene::GpuSceneBindings>();
+            .contains_resource::<gz_sim_scene::gpu_scene::GpuSceneBindings>()
+            || sim
+                .world()
+                .contains_resource::<gz_sim_scene::gpu_scene::planar_tool::ToolBindings>();
         #[cfg(not(feature = "gpu-batch"))]
         let fixed_population = false;
         let can_edit_state = !fixed_population;

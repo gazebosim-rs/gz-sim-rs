@@ -77,6 +77,23 @@ pub fn mixed_batch_simulation(
     Ok(install(super::MixedBatch::new(adapter_name, initial)?))
 }
 
+/// Attach a prepared homogeneous articulated population to a fresh one-millisecond world.
+pub fn install_planar_tool(
+    sim: &mut Simulation,
+    batch: super::PlanarToolBatch,
+) -> Result<(), GpuError> {
+    if sim.step_duration() != STEP
+        || !sim.elapsed().is_zero()
+        || sim.is_faulted()
+        || batch.tick() != 0
+        || sim.world().contains_resource::<BatchTiming>()
+    {
+        return Err(GpuError::StaleBoundary);
+    }
+    attach(sim, batch);
+    Ok(())
+}
+
 trait ScheduledBatch: Resource<Mutability = bevy_ecs::component::Mutable> {
     fn time(&self) -> std::time::Duration;
     fn advance_one(&mut self) -> Result<StepMetrics, GpuError>;
