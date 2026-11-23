@@ -5,7 +5,7 @@ use bevy::{
     camera::{CameraProjection, RenderTarget, SubCameraView},
     core_pipeline::tonemapping::Tonemapping,
     image::Image,
-    mesh::primitives::{CylinderAnchor, CylinderMeshBuilder},
+    mesh::primitives::{Capsule3dMeshBuilder, CylinderAnchor, CylinderMeshBuilder},
     pbr::{PreparedMaterial, RenderMaterialInstances},
     prelude::*,
     render::{
@@ -71,6 +71,16 @@ pub struct CylinderVisual {
     pub length: f64,
     pub color: [f32; 3],
 }
+/// A Gazebo-local Z-axis capsule. Length is the distance between cap centers;
+/// its full extent is length + twice the radius, with genuinely spherical caps.
+#[derive(Debug, Clone)]
+pub struct CapsuleVisual {
+    pub id: u64,
+    pub pose: WorldPose,
+    pub radius: f64,
+    pub length: f64,
+    pub color: [f32; 3],
+}
 /// A centered sphere, with radius in metres and a fixed 32-sector/18-stack mesh.
 #[derive(Debug, Clone)]
 pub struct SphereVisual {
@@ -91,6 +101,7 @@ pub struct EllipsoidVisual {
 pub enum PrimitiveVisual {
     Box(BoxVisual),
     Cylinder(CylinderVisual),
+    Capsule(CapsuleVisual),
     Sphere(SphereVisual),
     Ellipsoid(EllipsoidVisual),
 }
@@ -106,6 +117,7 @@ enum MeshKind {
     Box,
     Cylinder,
     Sphere,
+    Capsule(u32, u32),
 }
 
 /// One explicit directional light, independent of SDF's relative intensity scale.
@@ -320,6 +332,7 @@ pub struct Renderer {
     mesh: Handle<Mesh>,
     cylinder_mesh: Option<Handle<Mesh>>,
     sphere_mesh: Option<Handle<Mesh>>,
+    capsule_meshes: BTreeMap<(u32, u32), Handle<Mesh>>,
     visuals: BTreeMap<u64, VisualEntity>,
     light: Option<(u64, Entity)>,
     stamp: Option<(u64, Duration)>,
@@ -423,6 +436,7 @@ impl Renderer {
             mesh,
             cylinder_mesh: None,
             sphere_mesh: None,
+            capsule_meshes: BTreeMap::new(),
             visuals: BTreeMap::new(),
             light: None,
             stamp: None,
@@ -513,6 +527,24 @@ impl Renderer {
                         MeshKind::Cylinder,
                     )
                 }
+                PrimitiveVisual::Capsule(visual) => {
+                    let radius = visual.radius as f32;
+                    let length = visual.length as f32;
+                    let full = visual.length + 2.0 * visual.radius;
+                    if [visual.radius, visual.length, full]
+                        .iter()
+                        .any(|x| !x.is_finite() || !(*x as f32).is_finite() || *x as f32 <= 0.0)
+                    {
+                        return Err(RenderError::InvalidVisual);
+                    }
+                    (
+                        visual.id,
+                        visual.pose,
+                        DVec3::new(2.0 * visual.radius, 2.0 * visual.radius, full),
+                        visual.color,
+                        MeshKind::Capsule(radius.to_bits(), length.to_bits()),
+                    )
+                }
                 PrimitiveVisual::Sphere(visual) => {
                     let radius = visual.radius as f32;
                     if !visual.radius.is_finite() || !radius.is_finite() || radius <= 0.0 {
@@ -563,7 +595,11 @@ impl Renderer {
                     translation: pose.translation,
                     rotation: pose.rotation,
                     // Gazebo Z already maps to Bevy Y; no additional axis rotation.
-                    scale: Vec3::new(size.x, size.z, size.y),
+                    scale: if matches!(kind, MeshKind::Capsule(..)) {
+                        Vec3::ONE
+                    } else {
+                        Vec3::new(size.x, size.z, size.y)
+                    },
                 },
             ));
         }
@@ -602,6 +638,29 @@ impl Renderer {
                     .resource_mut::<Assets<Mesh>>()
                     .add(Sphere::new(0.5).mesh().uv(32, 18)),
             );
+        }
+        let capsule_keys: BTreeSet<_> = converted
+            .iter()
+            .filter_map(|(_, _, kind, _)| {
+                if let MeshKind::Capsule(radius, length) = kind {
+                    Some((*radius, *length))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        for key in &capsule_keys {
+            if !self.capsule_meshes.contains_key(key) {
+                let mesh =
+                    Capsule3dMeshBuilder::new(f32::from_bits(key.0), f32::from_bits(key.1), 32, 18)
+                        .build();
+                let handle = self
+                    .app
+                    .world_mut()
+                    .resource_mut::<Assets<Mesh>>()
+                    .add(mesh);
+                self.capsule_meshes.insert(*key, handle);
+            }
         }
         if self.depth_calibration.take().is_some() {
             self.app
@@ -659,6 +718,11 @@ impl Renderer {
         for (id, color, kind, transform) in converted {
             let mesh = match kind {
                 MeshKind::Box => self.mesh.clone(),
+                MeshKind::Capsule(radius, length) => self
+                    .capsule_meshes
+                    .get(&(radius, length))
+                    .expect("validated capsule mesh")
+                    .clone(),
                 MeshKind::Cylinder => self
                     .cylinder_mesh
                     .as_ref()
@@ -738,6 +802,22 @@ impl Renderer {
                     },
                 );
             }
+        }
+        let retired: Vec<_> = self
+            .capsule_meshes
+            .keys()
+            .filter(|key| !capsule_keys.contains(*key))
+            .copied()
+            .collect();
+        for key in retired {
+            let mesh = self
+                .capsule_meshes
+                .remove(&key)
+                .expect("known capsule cache key");
+            self.app
+                .world_mut()
+                .resource_mut::<Assets<Mesh>>()
+                .remove(mesh.id());
         }
         self.stamp = Some((snapshot.epoch, snapshot.time));
         self.app.world_mut().entity_mut(self.camera).insert((
@@ -847,8 +927,8 @@ impl Renderer {
     }
 
     /// Install actual primitive meshes for calibrated axial metric depth.
-    /// Admission conservatively checks every enclosing oriented-box corner;
-    /// curved surfaces do not relax the existing near-plane restriction.
+    /// Curved primitives use their tight camera-forward extrema. Actual tangent,
+    /// intersecting or behind-near geometry is still refused before any mutation.
     pub fn set_calibrated_primitive_depth_snapshot(
         &mut self,
         snapshot: &PrimitiveSnapshot,
@@ -862,37 +942,7 @@ impl Renderer {
         if snapshot.visuals.len() > MAX_OBJECTS {
             return Err(RenderError::InvalidIds);
         }
-        let bounds = Snapshot {
-            epoch: snapshot.epoch,
-            time: snapshot.time,
-            origin: snapshot.origin,
-            visuals: snapshot
-                .visuals
-                .iter()
-                .map(|visual| {
-                    let (id, pose, size, color) = match visual {
-                        PrimitiveVisual::Box(v) => (v.id, v.pose, v.size, v.color),
-                        PrimitiveVisual::Cylinder(v) => (
-                            v.id,
-                            v.pose,
-                            DVec3::new(2.0 * v.radius, 2.0 * v.radius, v.length),
-                            v.color,
-                        ),
-                        PrimitiveVisual::Sphere(v) => {
-                            (v.id, v.pose, DVec3::splat(2.0 * v.radius), v.color)
-                        }
-                        PrimitiveVisual::Ellipsoid(v) => (v.id, v.pose, 2.0 * v.radii, v.color),
-                    };
-                    BoxVisual {
-                        id,
-                        pose,
-                        size,
-                        color,
-                    }
-                })
-                .collect(),
-        };
-        depth::validate_near(&bounds, calibration, pose)?;
+        depth::validate_primitive_near(snapshot, calibration, pose)?;
         // This installer completes its own ID/color/pose/dimension/f32/busy
         // preflight before committing any assets, entities or cancellation.
         self.set_calibrated_primitive_snapshot(snapshot, calibration, pose)?;

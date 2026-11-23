@@ -36,6 +36,8 @@ pub(super) struct Drive {
     speed: [f64; 2],
     linear: [f64; 2],
     angular: [f64; 2],
+    command_limits: model::CommandLimits,
+    command_history: model::CommandHistory,
     desired: [f64; 2],
     geometry: model::Geometry,
     odometry: Option<model::Odometry>,
@@ -178,6 +180,8 @@ pub(super) fn build(
             speed: parameters.wheel_speed,
             linear: parameters.linear,
             angular: parameters.angular,
+            command_limits: parameters.command_limits,
+            command_history: model::CommandHistory::default(),
             desired: [0.0; 2],
             geometry,
             odometry: Some(odometry),
@@ -224,13 +228,13 @@ pub fn set_diff_drive_command(
     {
         return Err(DiffDriveCommandError::MissingDrive(model));
     }
-    let desired = [
+    let bounded = [
         linear.clamp(drive.linear[0], drive.linear[1]),
         angular.clamp(drive.angular[0], drive.angular[1]),
     ];
     let targets = drive
         .geometry
-        .bounded_targets(desired[0], desired[1], drive.speed)
+        .bounded_targets(bounded[0], bounded[1], drive.speed)
         .map_err(|_| DiffDriveCommandError::InvalidCommand)?;
     let backend = world
         .get_resource::<PhysicsBackend>()
@@ -247,6 +251,13 @@ pub fn set_diff_drive_command(
     if !binding_matches(world, model) {
         return Err(DiffDriveCommandError::MissingDrive(model));
     }
+    // Timed limits precede velocity bounds at the advancing step. Keep the
+    // finite raw request for that opt-in path; default commands retain M8 bits.
+    let desired = if drive.command_limits.timed() {
+        [linear, angular]
+    } else {
+        bounded
+    };
     sim.world_mut()
         .get_mut::<Drive>(entity)
         .expect("preflighted loaded drive")
@@ -422,6 +433,7 @@ fn binding_matches_configuration(world: &World, id: u64, trusted: &DiffDriveConf
         || drive.speed != blueprint.speed
         || drive.linear != blueprint.linear
         || drive.angular != blueprint.angular
+        || drive.command_limits != blueprint.command_limits
         || drive.geometry != blueprint.geometry
     {
         return false;
@@ -553,6 +565,7 @@ struct MotorPlan {
     entity: Entity,
     joints: [JointId; 2],
     motors: [JointVelocityMotor; 2],
+    next_history: Option<model::CommandHistory>,
 }
 
 fn apply(world: &mut World) {
@@ -567,9 +580,32 @@ fn apply(world: &mut World) {
             let drive = world
                 .get::<Drive>(entity)
                 .expect("preflighted original drive");
+            let (command, next_history) = if drive.command_limits.timed() {
+                let command = drive
+                    .command_limits
+                    .prepare(
+                        drive.desired,
+                        drive.command_history,
+                        [drive.linear, drive.angular],
+                        world.resource::<UpdateInfo>().dt,
+                    )
+                    .map_err(|error| DriveFault {
+                        entity,
+                        message: error.to_string(),
+                    })?;
+                (
+                    command,
+                    Some(model::CommandHistory {
+                        latest: command,
+                        older: drive.command_history.latest,
+                    }),
+                )
+            } else {
+                (drive.desired, None)
+            };
             let targets = drive
                 .geometry
-                .bounded_targets(drive.desired[0], drive.desired[1], drive.speed)
+                .bounded_targets(command[0], command[1], drive.speed)
                 .map_err(|error| DriveFault {
                     entity,
                     message: error.to_string(),
@@ -597,17 +633,29 @@ fn apply(world: &mut World) {
                 entity,
                 joints: drive.joints,
                 motors,
+                next_history,
             });
         }
-        let mut backend = world.resource_mut::<PhysicsBackend>();
+        {
+            let mut backend = world.resource_mut::<PhysicsBackend>();
+            for plan in &planned {
+                for (joint, motor) in plan.joints.into_iter().zip(plan.motors) {
+                    backend
+                        .set_joint_velocity_motor(joint, Some(motor))
+                        .map_err(|error| DriveFault {
+                            entity: plan.entity,
+                            message: error.to_string(),
+                        })?;
+                }
+            }
+        }
+        // No history changes until every owner and every native motor passed.
         for plan in planned {
-            for (joint, motor) in plan.joints.into_iter().zip(plan.motors) {
-                backend
-                    .set_joint_velocity_motor(joint, Some(motor))
-                    .map_err(|error| DriveFault {
-                        entity: plan.entity,
-                        message: error.to_string(),
-                    })?;
+            if let Some(history) = plan.next_history {
+                world
+                    .get_mut::<Drive>(plan.entity)
+                    .expect("preflighted drive")
+                    .command_history = history;
             }
         }
         Ok(())
@@ -691,6 +739,7 @@ fn reset(world: &mut World) {
         {
             let mut drive = world.get_mut::<Drive>(*entity).expect("selected drive");
             drive.desired = [0.0; 2];
+            drive.command_history = model::CommandHistory::default();
             drive.schedule.reset();
         }
         world.entity_mut(*entity).remove::<DiffDriveSample>();
@@ -760,3 +809,15 @@ mod tests;
 #[cfg(test)]
 #[path = "../tests/private/multiple_diff_drives.rs"]
 mod multiple_diff_drives_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/diff_drive_limits_support.rs"]
+mod limits_support;
+
+#[cfg(test)]
+#[path = "../tests/private/diff_drive_acceleration.rs"]
+mod acceleration_limits_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/diff_drive_jerk.rs"]
+mod jerk_limits_tests;

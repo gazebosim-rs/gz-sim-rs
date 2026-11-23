@@ -1973,26 +1973,69 @@ fn depth_shape_unsupported_geometry_fails_before_transport_and_owner_reservation
             length: 1.0,
         });
     let (session, scope, limit) = session();
-    let result = CameraOutput::new(
-        &sim,
-        &session,
-        &scope,
-        id,
-        CameraOutputConfig {
-            origin: [0.0; 3],
-            frame_id: "rig/body/camera".into(),
-            image_key: "@/m68@/image".into(),
-            info_key: "@/m68@/info".into(),
-            worker_path: "/nonexistent/worker".into(),
-            max_message_bytes: limit,
-        },
+    let target_id = sim.world().get::<EntityId>(target).unwrap().get();
+    let Request::CalibratedDepthShapeSnapshot {
+        request_id,
+        stamp,
+        origin,
+        visuals,
+        camera: snapshot_camera,
+    } = extract_camera(&sim, id, 1, [0.0; 3]).unwrap()
+    else {
+        panic!("the original valid Capsule must retain the calibrated depth-shape route")
+    };
+    assert_eq!(request_id, 1);
+    assert_eq!((stamp.epoch, stamp.seconds, stamp.nanoseconds), (0, 0, 0));
+    assert_eq!(origin, [0.0; 3]);
+    assert_eq!((snapshot_camera.width, snapshot_camera.height), (64, 64));
+    assert_eq!(visuals.len(), 5);
+    let capsule = visuals.iter().find(|row| row.id == target_id).unwrap();
+    assert_eq!(
+        capsule.geometry,
+        gz_render_protocol::Geometry::Capsule {
+            radius: 0.5,
+            length: 1.0,
+        }
     );
+    assert_eq!(capsule.translation, [4.0, 1.5, 0.0]);
+    assert_eq!(capsule.rotation, [0.0, 0.0, 0.0, 1.0]);
+    let config = || CameraOutputConfig {
+        origin: [0.0; 3],
+        frame_id: "rig/body/camera".into(),
+        image_key: "@/m68@/image".into(),
+        info_key: "@/m68@/info".into(),
+        worker_path: "/nonexistent/worker".into(),
+        max_message_bytes: limit,
+    };
+    let mut output = CameraOutput::new(&sim, &session, &scope, id, config()).unwrap();
+    assert_eq!(scope.entries.lock().unwrap().len(), 2);
+    assert!(output.client.is_none() && output.acquisition.is_none());
+    assert_eq!(output.request(&sim).unwrap(), Progress::NoDemand);
+    assert!(output.client.is_none() && output.acquisition.is_none());
+    assert_eq!(output.sequence, 0);
+    assert_eq!((sim.elapsed(), sim.epoch()), (Duration::ZERO, 0));
+    output.retire();
+    assert!(output.client.is_none() && output.acquisition.is_none());
+    // Retirement stops acquisition; the writer retains its two keys until drop.
+    assert_eq!(scope.entries.lock().unwrap().len(), 2);
+    drop(output);
+    assert!(scope.entries.lock().unwrap().is_empty());
+
+    // Plane remains unsupported in the calibrated route, before worker startup
+    // or any writer reservation. Keep the same target and all other inputs.
+    sim.world_mut().get_mut::<VisualGeometry>(target).unwrap().0 =
+        Arc::new(sdformat::Geometry::Plane {
+            normal: [0.0, 0.0, 1.0],
+            size: [1.0; 2],
+        });
+    let result = CameraOutput::new(&sim, &session, &scope, id, config());
     assert!(matches!(
         result,
         Err(CameraOutputError::Snapshot(
-            SnapshotError::UnsupportedGeometry(_)
-        ))
+            SnapshotError::UnsupportedGeometry(actual)
+        )) if actual == target_id
     ));
     assert!(scope.entries.lock().unwrap().is_empty());
+    assert!(!session.is_closed());
     assert_eq!((sim.elapsed(), sim.epoch()), (Duration::ZERO, 0));
 }

@@ -1,7 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use bevy_ecs::prelude::*;
-use gz_physics::{PhysicsBackend, PhysicsError};
+use gz_physics::DynamicBackend;
+use gz_physics::PhysicsBackend;
 use gz_sim_core::{EntityId, Simulation, StepError, entity_by_id};
 use gz_sim_scene::{
     BodyHandle, EntityKind, InputError, JointHandle, JointSample, Name, PhysicsEngine, WorldPose,
@@ -33,6 +34,148 @@ fn rate(sim: &Simulation, id: u64) -> f64 {
 fn close(actual: f64, expected: f64) {
     assert!((actual - expected).abs() < 1e-12, "{actual} != {expected}");
 }
+fn moving_parent_states(sim: &Simulation) -> [gz_physics::BodyState; 2] {
+    ["anchor", "body"].map(|link| {
+        let entity = named(sim, &format!("default::rotor::{link}"));
+        let handle = sim
+            .world()
+            .get::<gz_sim_scene::BodyHandle>(entity)
+            .unwrap()
+            .id();
+        sim.world()
+            .resource::<PhysicsBackend>()
+            .state(handle)
+            .unwrap()
+    })
+}
+fn moving_parent_native_twin() -> (
+    gz_physics_rapier::RapierBackend,
+    [gz_physics::BodyId; 2],
+    gz_physics::JointId,
+) {
+    use gz_physics::{BodySpec, Inertia, RotationSpec, Shape};
+    let mut native = gz_physics_rapier::RapierBackend::new([0.; 3]).unwrap();
+    let bodies = [(2., 0.032), (1., 0.016)].map(|(mass, moment)| {
+        let body = native
+            .spawn_link(
+                BodySpec {
+                    shape: Shape::Sphere { radius: 0.2 },
+                    position: [0.; 3],
+                    velocity: [0.; 3],
+                    mass: Some(mass),
+                },
+                RotationSpec::default(),
+                Some(Inertia {
+                    center: [0.; 3],
+                    orientation: [0., 0., 0., 1.],
+                    tensor: [moment, moment, moment, 0., 0., 0.],
+                }),
+            )
+            .unwrap();
+        native.set_self_collision_group(body, Some(7)).unwrap();
+        body
+    });
+    let joint = native
+        .add_revolute(bodies[0], bodies[1], [0.; 3], [0., 1., 0.])
+        .unwrap();
+    (native, bodies, joint)
+}
+fn check_moving_parent_response(sim: &Simulation, angular_impulse: f64) {
+    let [parent, child] = moving_parent_states(sim);
+    for (state, expected_y) in [
+        (&parent, -angular_impulse / 0.032),
+        (&child, angular_impulse / 0.016),
+    ] {
+        for (axis, expected) in [0., expected_y, 0.].into_iter().enumerate() {
+            close(state.angular_velocity[axis], expected);
+            close(state.velocity[axis], 0.);
+            close(state.position[axis], 0.);
+            close(
+                0.032 * parent.angular_velocity[axis] + 0.016 * child.angular_velocity[axis],
+                0.,
+            );
+        }
+    }
+    let joint = named(sim, "default::rotor::hinge");
+    let sample = sim.world().get::<JointSample>(joint).unwrap();
+    let handle = sim.world().get::<JointHandle>(joint).unwrap().id();
+    assert_eq!(
+        sample.state,
+        sim.world()
+            .resource::<PhysicsBackend>()
+            .joint_state(handle)
+            .unwrap()
+    );
+    assert_eq!((sample.time, sample.epoch), (sim.elapsed(), sim.epoch()));
+    close(
+        sample.state.velocity,
+        child.angular_velocity[1] - parent.angular_velocity[1],
+    );
+    if angular_impulse > 0. {
+        // Original positive unit torque has positive measured relative power;
+        // spin momenta cancel because both COMs share the stationary pivot.
+        assert!(child.angular_velocity[1] - parent.angular_velocity[1] > 0.);
+        assert!(
+            0.5 * (0.032 * parent.angular_velocity[1].powi(2)
+                + 0.016 * child.angular_velocity[1].powi(2))
+                > 0.
+        );
+    }
+    for (link, state) in ["anchor", "body"].into_iter().zip([parent, child]) {
+        for name in [
+            format!("default::rotor::{link}"),
+            format!("default::rotor::{link}::shape"),
+        ] {
+            let pose = sim
+                .world()
+                .get::<gz_sim_scene::WorldPose>(named(sim, &name))
+                .unwrap();
+            for (actual, expected) in pose.translation.into_iter().zip(state.position) {
+                close(actual, expected);
+            }
+            for (actual, expected) in pose.rotation.into_iter().zip(state.orientation) {
+                close(actual, expected);
+            }
+        }
+    }
+    assert!(sim.fault().is_none());
+}
+fn check_moving_parent_twin(
+    sim: &Simulation,
+    native: &gz_physics_rapier::RapierBackend,
+    bodies: [gz_physics::BodyId; 2],
+    joint: gz_physics::JointId,
+) {
+    for (scene, body) in moving_parent_states(sim).into_iter().zip(bodies) {
+        let direct = native.state(body).unwrap();
+        for (actual, expected) in scene
+            .position
+            .into_iter()
+            .chain(scene.velocity)
+            .chain(scene.angular_velocity)
+            .chain(scene.orientation)
+            .zip(
+                direct
+                    .position
+                    .into_iter()
+                    .chain(direct.velocity)
+                    .chain(direct.angular_velocity)
+                    .chain(direct.orientation),
+            )
+        {
+            close(actual, expected);
+        }
+    }
+    let scene_joint = sim
+        .world()
+        .get::<JointSample>(named(sim, "default::rotor::hinge"))
+        .unwrap()
+        .state;
+    let direct_joint = native.joint_state(joint).unwrap();
+    close(scene_joint.position, direct_joint.position);
+    close(scene_joint.velocity, direct_joint.velocity);
+}
+
 #[test]
 fn loaded_entity_effort_combines_and_survives_pause_then_consumes_once() {
     {
@@ -196,16 +339,97 @@ fn unsupported_moving_parent_is_an_admission_error_not_a_run_fault() {
     )
     .unwrap();
     let id = public(&sim, named(&sim, "default::rotor::hinge"));
+    sim.initialize_schedules().unwrap();
+    let baseline = sim.scheduled_system_counts();
+    let before = moving_parent_states(&sim);
+    // M106 makes the original unit effort a one-shot internal couple. Queuing
+    // remains distinct from demand-installing a persistent force callback.
+    queue_joint_effort(&mut sim, id, 1.0).unwrap();
+    for invalid in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        assert!(matches!(
+            queue_joint_effort(&mut sim, id, invalid),
+            Err(InputError::InvalidValue)
+        ));
+    }
+    assert_eq!(sim.scheduled_system_counts(), baseline);
+    assert!(
+        !sim.world()
+            .iter_entities()
+            .any(|e| e.contains::<gz_sim_scene::JointForceCommand>())
+    );
+    sim.set_paused(true);
+    for _ in 0..3 {
+        assert!(sim.tick().unwrap().dt.is_zero());
+    }
+    assert_eq!(moving_parent_states(&sim), before);
+    assert!(sim.fault().is_none());
+    close(rate(&sim, id), 0.0);
+    sim.set_paused(false);
+    let (mut native, native_bodies, native_joint) = moving_parent_native_twin();
+    native.add_joint_effort(native_joint, 1.0).unwrap();
+    native.step(std::time::Duration::from_millis(1)).unwrap();
+    sim.step_exact(1).unwrap();
+    check_moving_parent_response(&sim, 0.001);
+    check_moving_parent_twin(&sim, &native, native_bodies, native_joint);
+    native.step(std::time::Duration::from_millis(1)).unwrap();
+    sim.step_exact(1).unwrap();
+    check_moving_parent_response(&sim, 0.001);
+    check_moving_parent_twin(&sim, &native, native_bodies, native_joint);
+    // A later equal reverse impulse cancels momentum; the first was consumed.
+    queue_joint_effort(&mut sim, id, -1.0).unwrap();
+    native.add_joint_effort(native_joint, -1.0).unwrap();
+    native.step(std::time::Duration::from_millis(1)).unwrap();
+    sim.step_exact(1).unwrap();
+    check_moving_parent_response(&sim, 0.0);
+    check_moving_parent_twin(&sim, &native, native_bodies, native_joint);
+    assert_eq!(sim.scheduled_system_counts(), baseline);
+    let mut quiet = load_world_with_sdf_step(
+        &xml,
+        "moving-parent.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    quiet.step_exact(2).unwrap();
+    check_moving_parent_response(&quiet, 0.0);
+    // Compare the positive response again before resetting, not a requested rate.
+    queue_joint_effort(&mut sim, id, 1.0).unwrap();
+    sim.step_exact(1).unwrap();
+    check_moving_parent_response(&sim, 0.001);
+    assert_ne!(moving_parent_states(&sim), moving_parent_states(&quiet));
+    for loaded in [false, true] {
+        queue_joint_effort(&mut sim, id, 1.0).unwrap();
+        if loaded {
+            reset_loaded_world(&mut sim, |_| ()).unwrap();
+        } else {
+            sim.reset().unwrap();
+        }
+        sim.step_exact(1).unwrap();
+        check_moving_parent_response(&sim, 0.0);
+        assert_eq!(sim.scheduled_system_counts(), baseline);
+    }
+    queue_joint_effort(&mut sim, id, 1.0).unwrap();
+    let model = public(&sim, named(&sim, "default::rotor"));
+    remove_model(&mut sim, model).unwrap();
     assert!(matches!(
         queue_joint_effort(&mut sim, id, 1.0),
-        Err(InputError::Physics(PhysicsError::Unsupported {
-            engine: "rapier",
-            ..
-        }))
+        Err(InputError::MissingEntity(_))
     ));
-    assert!(sim.fault().is_none());
     sim.step_exact(1).unwrap();
-    close(rate(&sim, id), 0.0);
+    assert!(sim.fault().is_none());
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert_eq!(public(&sim, named(&sim, "default::rotor::hinge")), id);
+    sim.step_exact(1).unwrap();
+    check_moving_parent_response(&sim, 0.0);
+    queue_joint_effort(&mut sim, id, 1.0).unwrap();
+    sim.step_exact(1).unwrap();
+    check_moving_parent_response(&sim, 0.001);
+    assert!(
+        !sim.world()
+            .iter_entities()
+            .any(|e| e.contains::<gz_sim_scene::JointForceCommand>())
+    );
 }
 #[test]
 fn accumulated_numeric_overflow_can_be_rejected_and_cancelled_before_stepping() {

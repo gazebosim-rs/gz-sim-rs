@@ -242,6 +242,141 @@ fn isolated_world_with_capacity(capacity: usize, max_bytes: usize) -> WorldIo {
     .unwrap()
 }
 
+fn velocity_setup(
+    io: &WorldIo,
+    key: String,
+    input: mpsc::SyncSender<crate::velocity_control_io::Command>,
+) -> crate::velocity_control_io::Setup {
+    crate::velocity_control_io::Setup {
+        key,
+        input,
+        max_bytes: 512,
+        drops: Arc::clone(&io.ingress_drops),
+        epoch: Arc::clone(&io.epoch),
+    }
+}
+
+#[test]
+fn eight_velocity_inputs_deliver_independently_and_retire_without_world_traffic() {
+    use gz_sim_proto::msgs::Twist;
+    let mut io = isolated_world(1024);
+    let mut leases = Vec::new();
+    let mut receivers = Vec::new();
+    let mut publishers = Vec::new();
+    for i in 0..8 {
+        let key = format!("@/test@/velocity-{i}");
+        let (input, receiver) = mpsc::sync_channel(2);
+        leases.push(
+            io.velocity_control_input(velocity_setup(&io, key.clone(), input))
+                .unwrap(),
+        );
+        receivers.push(receiver);
+        publishers.push(io.session.declare_publisher(key).wait().unwrap());
+    }
+    for key in ["@/test@/velocity-0", "@/test@/velocity-ninth"] {
+        let (input, _) = mpsc::sync_channel(1);
+        assert!(matches!(
+            io.velocity_control_input(velocity_setup(&io, key.into(), input)),
+            Err(crate::Error::WorldNetwork(_))
+        ));
+    }
+    for (i, (publisher, receiver)) in publishers.iter().zip(&receivers).enumerate() {
+        let deadline = Instant::now() + Duration::from_secs(3);
+        while !publisher.matching_status().wait().unwrap().matching() {
+            assert!(Instant::now() < deadline);
+            thread::yield_now();
+        }
+        publisher
+            .put(
+                Twist {
+                    linear: Some(crate::vector3([i as f64 + 1., 0., 0.])),
+                    ..Default::default()
+                }
+                .encode_to_vec(),
+            )
+            .attachment(Twist::full_name())
+            .wait()
+            .unwrap();
+        assert_eq!(
+            receiver.recv_timeout(Duration::from_secs(3)).unwrap(),
+            (0, Some(([i as f64 + 1., 0., 0.], [0.; 3])))
+        );
+    }
+    let old_id = leases[0].identity();
+    drop(leases.remove(0));
+    // Matching observation does not submit any WorldWork. The IO owner must
+    // reconcile an otherwise idle velocity-only family on its own.
+    let deadline = Instant::now() + Duration::from_secs(3);
+    while publishers[0].matching_status().wait().unwrap().matching() {
+        assert!(
+            Instant::now() < deadline,
+            "idle velocity subscription did not retire"
+        );
+        thread::yield_now();
+    }
+    for (i, lease) in leases.iter().enumerate() {
+        assert!(lease.matches(lease.identity(), &format!("@/test@/velocity-{}", i + 1)));
+    }
+    let (input, replacement) = mpsc::sync_channel(2);
+    let current = io
+        .velocity_control_input(velocity_setup(&io, "@/test@/velocity-0".into(), input))
+        .unwrap();
+    assert_ne!(current.identity(), old_id);
+    let deadline = Instant::now() + Duration::from_secs(3);
+    while !publishers[0].matching_status().wait().unwrap().matching() {
+        assert!(Instant::now() < deadline);
+        thread::yield_now();
+    }
+    publishers[0]
+        .put(Twist::default().encode_to_vec())
+        .attachment(Twist::full_name())
+        .wait()
+        .unwrap();
+    assert_eq!(
+        replacement.recv_timeout(Duration::from_secs(3)).unwrap(),
+        (0, Some(([0.; 3], [0.; 3])))
+    );
+    assert!(receivers[0].try_recv().is_err());
+    io.shutdown();
+    assert!(!current.matches(current.identity(), "@/test@/velocity-0"));
+    assert!(
+        receivers
+            .iter()
+            .all(|rx| matches!(rx.try_recv(), Err(mpsc::TryRecvError::Disconnected)))
+    );
+    assert!(io.control_worker.is_none() && io.publication_worker.is_none());
+    assert!(io.session.is_closed());
+}
+
+#[test]
+fn canceled_velocity_setup_releases_callback_input_without_followup_work() {
+    let mut io = isolated_world(1024);
+    let (input, receiver) = mpsc::sync_channel(1);
+    let (receipt, ready) = mpsc::sync_channel(1);
+    drop(ready);
+    io.incoming
+        .send(WorldWork::InstallVelocity(
+            velocity_setup(&io, "@/test@/canceled-velocity".into(), input),
+            receipt,
+        ))
+        .unwrap();
+    assert!(matches!(
+        receiver.recv_timeout(Duration::from_secs(3)),
+        Err(mpsc::RecvTimeoutError::Disconnected)
+    ));
+    let (input, _) = mpsc::sync_channel(1);
+    let lease = io
+        .velocity_control_input(velocity_setup(
+            &io,
+            "@/test@/canceled-velocity".into(),
+            input,
+        ))
+        .unwrap();
+    assert!(lease.matches(lease.identity(), "@/test@/canceled-velocity"));
+    io.shutdown();
+    assert!(!lease.matches(lease.identity(), "@/test@/canceled-velocity"));
+}
+
 #[test]
 fn removal_routes_keep_queries_on_io_until_plain_replies_complete() {
     let mut io = isolated_world(1024);

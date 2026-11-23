@@ -192,16 +192,26 @@ fn frames(
     origin: DVec3,
     model_q: DQuat,
 ) -> [(DVec3, [DVec3; 3]); 2] {
+    frames_with_child_rotation(sim, name, axes, origin, model_q, DQuat::IDENTITY)
+}
+fn frames_with_child_rotation(
+    sim: &Simulation,
+    name: &str,
+    axes: [[f64; 3]; 2],
+    origin: DVec3,
+    model_q: DQuat,
+    child_q: DQuat,
+) -> [(DVec3, [DVec3; 3]); 2] {
     let first = state(sim, name, "root").position;
     let second = state(sim, name, "tip").position;
     let u0 = effective_axis(0, axes[0]);
-    let u1 = effective_axis(1, axes[1]);
+    let u1 = (child_q * DVec3::from_array(effective_axis(1, axes[1]))).to_array();
     let p0 = DVec3::from_array(PIVOTS[0]);
-    let t1 = DVec3::from_array(PIVOTS[1]);
+    let t1 = child_q * DVec3::from_array(PIVOTS[1]);
     let p1 = DVec3::Z * OFFSET + t1;
     let basis = [DVec3::X, DVec3::Y, DVec3::Z];
     let base = basis.map(|v| model_q * rotate(u0, first, v));
-    let child = basis.map(|v| model_q * rotate(u0, first, rotate(u1, second, v)));
+    let child = basis.map(|v| model_q * rotate(u0, first, rotate(u1, second, child_q * v)));
     [
         (origin + model_q * (p0 + rotate(u0, first, -p0)), base),
         (
@@ -217,8 +227,18 @@ fn anchors(
     origin: DVec3,
     model_q: DQuat,
 ) -> [DVec3; 2] {
+    anchors_with_child_rotation(sim, name, axes, origin, model_q, DQuat::IDENTITY)
+}
+fn anchors_with_child_rotation(
+    sim: &Simulation,
+    name: &str,
+    axes: [[f64; 3]; 2],
+    origin: DVec3,
+    model_q: DQuat,
+    child_q: DQuat,
+) -> [DVec3; 2] {
     let p0 = DVec3::from_array(PIVOTS[0]);
-    let p1 = DVec3::Z * OFFSET + DVec3::from_array(PIVOTS[1]);
+    let p1 = DVec3::Z * OFFSET + child_q * DVec3::from_array(PIVOTS[1]);
     [
         origin + model_q * p0,
         origin
@@ -243,7 +263,26 @@ fn check_frames_and_queries(
     origin: DVec3,
     model_q: DQuat,
 ) {
-    let expected = frames(sim, name, axes, origin, model_q);
+    check_frames_and_queries_with_child_rotation(
+        sim,
+        name,
+        axes,
+        counts,
+        origin,
+        model_q,
+        DQuat::IDENTITY,
+    );
+}
+fn check_frames_and_queries_with_child_rotation(
+    sim: &Simulation,
+    name: &str,
+    axes: [[f64; 3]; 2],
+    counts: [usize; 2],
+    origin: DVec3,
+    model_q: DQuat,
+    child_q: DQuat,
+) {
+    let expected = frames_with_child_rotation(sim, name, axes, origin, model_q, child_q);
     for (index, link) in ["base", "child"].into_iter().enumerate() {
         let link_name = format!("w::{name}::{link}");
         let (position, basis) = expected[index];
@@ -254,13 +293,17 @@ fn check_frames_and_queries(
             .unwrap();
         vector(DVec3::from_array(native.position), position);
         let first = state(sim, name, "root");
-        let joint_anchors = anchors(sim, name, axes, origin, model_q);
+        let joint_anchors = if child_q == DQuat::IDENTITY {
+            anchors(sim, name, axes, origin, model_q)
+        } else {
+            anchors_with_child_rotation(sim, name, axes, origin, model_q, child_q)
+        };
         let root_omega = model_q * DVec3::from_array(effective_axis(0, axes[0])) * first.velocity;
         let tip_omega = model_q
             * rotate(
                 effective_axis(0, axes[0]),
                 first.position,
-                DVec3::from_array(effective_axis(1, axes[1])),
+                child_q * DVec3::from_array(effective_axis(1, axes[1])),
             )
             * state(sim, name, "tip").velocity;
         let expected_omega = if index == 0 {
@@ -1149,14 +1192,138 @@ fn joint_frame_axis_admission_keeps_frames_topology_limits_and_other_domains_clo
         &base.replacen("type='revolute'", "type='fixed'", 1),
         "joint controller frames",
     );
-    refused(
-        &base.replacen(
-            "<pose>0 0 100 0 0 0</pose>",
-            "<pose>0 0 100 0.1 0 0</pose>",
-            1,
-        ),
-        "joint controller frames",
+    // M103 admits this exact former refusal. Its child LINK rotates both the
+    // initial body basis and JOINT pivot/axis. Keep both local JOINT frames.
+    let rotated = base.replacen(
+        "<pose>0 0 100 0 0 0</pose>",
+        "<pose>0 0 100 0.1 0 0</pose>",
+        1,
     );
+    assert_ne!(rotated, base);
+    let child_q = DQuat::from_rotation_x(0.1);
+    let axes = [AXES[3], AXES[4]];
+    let mut driven = load(&rotated);
+    let mut latest = load(&rotated);
+    let mut quiet = load(&rotated);
+    let initial = bodies(&quiet);
+    let keys = ids(&driven).keys().copied().collect::<Vec<_>>();
+    for sim in [&mut driven, &mut latest, &mut quiet] {
+        sim.initialize_schedules().unwrap();
+        check_frames_and_queries_with_child_rotation(
+            sim,
+            "arm",
+            axes,
+            [4, 4],
+            DVec3::ZERO,
+            DQuat::IDENTITY,
+            child_q,
+        );
+    }
+    command(&mut latest, "arm", "root", -0.4);
+    command(&mut latest, "arm", "tip", -0.3);
+    for sim in [&mut driven, &mut latest] {
+        sim.set_paused(true);
+        command(sim, "arm", "root", 0.4);
+        command(sim, "arm", "tip", 0.3);
+        let before = bodies(sim);
+        let clock = (sim.elapsed(), sim.epoch());
+        let key = id(sim, "w::arm::root");
+        assert!(matches!(
+            set_joint_controller_command(sim, key, f64::NAN),
+            Err(JointControllerCommandError::InvalidCommand)
+        ));
+        assert!(sim.tick().unwrap().dt.is_zero());
+        assert_eq!(bodies(sim), before);
+        assert_eq!((sim.elapsed(), sim.epoch()), clock);
+        sim.set_paused(false);
+    }
+    for sim in [&mut driven, &mut latest, &mut quiet] {
+        sim.step_exact(100).unwrap();
+        check_frames_and_queries_with_child_rotation(
+            sim,
+            "arm",
+            axes,
+            [4, 4],
+            DVec3::ZERO,
+            DQuat::IDENTITY,
+            child_q,
+        );
+    }
+    equivalent_physical_states(&driven, &latest);
+    for (key, before) in initial {
+        let after = bodies(&quiet)[&key];
+        vector(
+            DVec3::from_array(after.position),
+            DVec3::from_array(before.position),
+        );
+        vector(
+            DVec3::from_array(after.velocity),
+            DVec3::from_array(before.velocity),
+        );
+        vector(
+            DVec3::from_array(after.angular_velocity),
+            DVec3::from_array(before.angular_velocity),
+        );
+        for axis in [DVec3::X, DVec3::Y, DVec3::Z] {
+            vector(
+                DQuat::from_array(after.orientation) * axis,
+                DQuat::from_array(before.orientation) * axis,
+            );
+        }
+    }
+    for joint in ["root", "tip"] {
+        near(state(&quiet, "arm", joint).position, 0.);
+        near(state(&quiet, "arm", joint).velocity, 0.);
+        assert_eq!(state(&driven, "arm", joint), state(&latest, "arm", joint));
+        assert!(state(&driven, "arm", joint).position.abs() > 1e-7);
+    }
+    let expected =
+        frames_with_child_rotation(&driven, "arm", axes, DVec3::ZERO, DQuat::IDENTITY, child_q);
+    for (link, (position, basis)) in ["base", "child"].into_iter().zip(expected) {
+        let visual = driven
+            .world()
+            .get::<WorldPose>(named(&driven, &format!("w::arm::{link}::v")))
+            .unwrap();
+        vector(DVec3::from_array(visual.translation), position);
+        for (axis, wanted) in [DVec3::X, DVec3::Y, DVec3::Z].into_iter().zip(basis) {
+            vector(DQuat::from_array(visual.rotation) * axis, wanted);
+        }
+    }
+    for loaded in [false, true] {
+        // Pending commands must be cleared by either reset, with the rotated
+        // geometry, identities, bindings and initial measured frames restored.
+        command(&mut driven, "arm", "root", -0.4);
+        command(&mut driven, "arm", "tip", -0.3);
+        if loaded {
+            reset_loaded_world(&mut driven, |_| ()).unwrap();
+        } else {
+            driven.reset().unwrap();
+        }
+        assert_eq!(ids(&driven).keys().copied().collect::<Vec<_>>(), keys);
+        check_frames_and_queries_with_child_rotation(
+            &driven,
+            "arm",
+            axes,
+            [4, 4],
+            DVec3::ZERO,
+            DQuat::IDENTITY,
+            child_q,
+        );
+        driven.step_exact(100).unwrap();
+        for joint in ["root", "tip"] {
+            near(state(&driven, "arm", joint).position, 0.);
+            near(state(&driven, "arm", joint).velocity, 0.);
+        }
+        check_frames_and_queries_with_child_rotation(
+            &driven,
+            "arm",
+            axes,
+            [4, 4],
+            DVec3::ZERO,
+            DQuat::IDENTITY,
+            child_q,
+        );
+    }
     refused(
         &base.replacen(
             "canonical_link='base'>",

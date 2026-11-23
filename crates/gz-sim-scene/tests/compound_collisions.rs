@@ -16,6 +16,150 @@ fn load(source: &str, engine: PhysicsEngine) -> Result<Simulation, LoadError> {
     load_world_with_sdf_step(source, "compound.sdf", "default", &NoResources, engine)
 }
 
+fn tpe_near(actual: f64, expected: f64) {
+    assert!(
+        actual.is_finite() && expected.is_finite() && (actual - expected).abs() < 1e-11,
+        "{actual} != {expected}"
+    );
+}
+
+fn tpe_frames(sim: &Simulation, compound: bool) {
+    let mut frames = vec![
+        ("default::body", [0., 0., 0.], [0., 0., 0., 1.]),
+        ("default::body::link", [0., 0., 10.], [0., 0., 0., 1.]),
+        (
+            "default::body::link::first",
+            [0.5, 0., 10.],
+            [0., 0., 0., 1.],
+        ),
+    ];
+    if compound {
+        frames.push((
+            "default::body::link::second",
+            [-0.5, 0., 10.],
+            [
+                0.,
+                0.,
+                std::f64::consts::FRAC_1_SQRT_2,
+                std::f64::consts::FRAC_1_SQRT_2,
+            ],
+        ));
+    }
+    for (name, translation, rotation) in frames {
+        let entity = sim
+            .world()
+            .iter_entities()
+            .find(|e| e.get::<gz_sim_scene::Name>().is_some_and(|n| n.0 == name))
+            .unwrap();
+        let pose = entity.get::<gz_sim_scene::WorldPose>().unwrap();
+        for (actual, expected) in pose.translation.into_iter().zip(translation) {
+            tpe_near(actual, expected);
+        }
+        for (actual, expected) in pose.rotation.into_iter().zip(rotation) {
+            tpe_near(actual, expected);
+        }
+        if name == "default::body::link" {
+            let velocity = entity.get::<gz_sim_scene::Velocity>().unwrap();
+            assert_eq!(velocity.linear, [0.; 3]);
+            assert_eq!(velocity.angular, [0.; 3]);
+        }
+    }
+    let model = sim
+        .world()
+        .iter_entities()
+        .find(|e| {
+            e.get::<gz_sim_scene::Name>()
+                .is_some_and(|n| n.0 == "default::body")
+        })
+        .unwrap();
+    let motion = model.get::<gz_physics_tpe::Motion>().unwrap().state();
+    assert_eq!(motion.position, [0.; 3]);
+    assert_eq!(motion.orientation, [0., 0., 0., 1.]);
+    assert_eq!(motion.velocity, [0.; 3]);
+    assert_eq!(motion.angular_velocity, [0.; 3]);
+    assert!(
+        !model
+            .get::<gz_physics_tpe::ModelBounds>()
+            .unwrap()
+            .is_static()
+    );
+    assert!(
+        !sim.world()
+            .iter_entities()
+            .any(|e| e.contains::<gz_sim_scene::BodyHandle>())
+    );
+}
+
+fn tpe_selected_bounds(source: &str, compound: bool) {
+    // These are the original exact input frames: sphere center .5X/radius .1;
+    // the second box's Z90 rotation exchanges its .1/.2 planar half extents.
+    let (lo, hi): ([f64; 3], [f64; 3]) = if compound {
+        ([-0.7, -0.1, 9.7], [0.6, 0.1, 10.3])
+    } else {
+        ([0.4, -0.1, 9.9], [0.6, 0.1, 10.1])
+    };
+    let mut quiet = load(source, PhysicsEngine::Tpe).unwrap();
+    tpe_frames(&quiet, compound);
+    quiet.step_exact(1).unwrap();
+    tpe_frames(&quiet, compound);
+    assert!(
+        quiet
+            .world()
+            .resource::<gz_physics_tpe::Contacts>()
+            .as_slice()
+            .is_empty()
+    );
+    assert_eq!(
+        quiet
+            .world()
+            .iter_entities()
+            .filter(|e| e.contains::<gz_physics_tpe::Motion>()
+                && e.contains::<gz_physics_tpe::ModelBounds>())
+            .count(),
+        1
+    );
+    // TPE exposes model-envelope overlap, not shape rays or collision response.
+    // Witness both sides of every face with an independent static .5-size box.
+    for (axis, (&lower, &higher)) in lo.iter().zip(&hi).enumerate() {
+        for upper in [false, true] {
+            for gap in [-0.01, 0.01] {
+                let mut probe: [f64; 3] = std::array::from_fn(|i| (lo[i] + hi[i]) * 0.5);
+                probe[axis] = if upper {
+                    higher + 0.25 + gap
+                } else {
+                    lower - 0.25 - gap
+                };
+                let probe_xml = format!(
+                    "<model name='bounds_probe'><static>true</static><pose>{} {} {} 0 0 0</pose><link name='l'><collision name='c'><geometry><box><size>0.5 0.5 0.5</size></box></geometry></collision></link></model></world>",
+                    probe[0], probe[1], probe[2]
+                );
+                let with_probe = source.replace("</world>", &probe_xml);
+                let mut sim = load(&with_probe, PhysicsEngine::Tpe).unwrap();
+                sim.step_exact(1).unwrap();
+                tpe_frames(&sim, compound);
+                let contacts = sim
+                    .world()
+                    .resource::<gz_physics_tpe::Contacts>()
+                    .as_slice();
+                assert_eq!(
+                    contacts.len(),
+                    usize::from(gap < 0.),
+                    "axis {axis}, upper {upper}, gap {gap}"
+                );
+                if gap < 0. {
+                    for (((actual, lower), higher), center) in
+                        contacts[0].point.into_iter().zip(lo).zip(hi).zip(probe)
+                    {
+                        let overlap_lo = lower.max(center - 0.25);
+                        let overlap_hi = higher.min(center + 0.25);
+                        tpe_near(actual, (overlap_lo + overlap_hi) * 0.5);
+                    }
+                }
+            }
+        }
+    }
+}
+
 #[test]
 fn other_engines_keep_single_centered_collision_domain() {
     for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
@@ -113,10 +257,8 @@ fn other_engines_keep_single_centered_collision_domain() {
                     1
                 );
             } else {
-                assert!(matches!(
-                    load(&source, engine),
-                    Err(LoadError::Unsupported { .. })
-                ));
+                // M107 admits these same posed singleton/compound primitives.
+                tpe_selected_bounds(&source, case == 1);
             }
         }
     }

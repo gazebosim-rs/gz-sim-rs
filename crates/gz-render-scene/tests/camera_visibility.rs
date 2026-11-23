@@ -259,7 +259,16 @@ fn zero_masks_cannot_hide_invalid_visual_components_material_geometry_pose_or_li
                         radius: 0.5,
                         length: 1.0,
                     });
-                SnapshotError::UnsupportedGeometry(id)
+                // This same valid Capsule is admitted before visibility
+                // filtering; zero masks then produce an empty request.
+                let before = (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts());
+                let request = extract_camera(&sim, camera, 1, [0.0; 3]).unwrap();
+                assert!(selected(&request).is_empty());
+                assert_eq!(
+                    (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+                    before
+                );
+                continue;
             }
             6 => {
                 sim.world_mut().get_mut::<VisualGeometry>(entity).unwrap().0 =

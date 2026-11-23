@@ -188,6 +188,8 @@ fn closed_plugin_xml_rejects_unknown_repeated_namespaced_and_lexically_split_fie
         );
         refused(&model, "DiffDrive configuration");
     }
+    // These exact original six inputs now belong to the selected native-shaped
+    // temporal command domain. Keep their caller values and every other refusal.
     for field in [
         "min_acceleration",
         "max_acceleration",
@@ -195,11 +197,28 @@ fn closed_plugin_xml_rejects_unknown_repeated_namespaced_and_lexically_split_fie
         "max_jerk",
         "min_linear_acceleration",
         "max_angular_jerk",
-        "enable_topic",
-        "tf_topic",
-        "namespace",
-        "unknown",
     ] {
+        body(&mut model, &format!("{JOINTS}<{field}>1</{field}>"));
+        let original = format!("{model:?}");
+        let parameters = parse(&model).unwrap().unwrap();
+        let unlimited = [[f64::NEG_INFINITY, f64::INFINITY]; 2];
+        let (mut acceleration, mut jerk) = (unlimited, unlimited);
+        match field {
+            "min_acceleration" => acceleration = [[1.0, f64::INFINITY]; 2],
+            "max_acceleration" => acceleration = [[f64::NEG_INFINITY, 1.0]; 2],
+            "min_jerk" => jerk = [[1.0, f64::INFINITY]; 2],
+            "max_jerk" => jerk = [[f64::NEG_INFINITY, 1.0]; 2],
+            "min_linear_acceleration" => acceleration[0][0] = 1.0,
+            "max_angular_jerk" => jerk[1][1] = 1.0,
+            _ => unreachable!(),
+        }
+        assert_eq!(
+            parameters.command_limits,
+            super::super::model::CommandLimits { acceleration, jerk }
+        );
+        assert_eq!(format!("{model:?}"), original);
+    }
+    for field in ["enable_topic", "tf_topic", "namespace", "unknown"] {
         body(&mut model, &format!("{JOINTS}<{field}>1</{field}>"));
         refused(&model, "DiffDrive configuration");
     }

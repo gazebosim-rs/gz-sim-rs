@@ -89,6 +89,102 @@ pub(super) fn validate_link(spec: BodySpec, pose: Transform) -> Result<TpeLink, 
     )))
 }
 
+/// Primitive collider-local bounds for the newly posed/compound TPE domain.
+/// TPE still reports model AABB overlap; this does not add contact resolution.
+pub(super) fn validate_collisions(
+    collisions: &[CollisionSpec],
+    pose: Transform,
+) -> Result<TpeLink, LoadError> {
+    if !(1..=16).contains(&collisions.len()) {
+        return Err(PhysicsError::InvalidValue.into());
+    }
+    let legacy = |collision: &CollisionSpec| {
+        validate_link(
+            BodySpec {
+                shape: collision.shape,
+                position: pose.translation,
+                velocity: [0.0; 3],
+                mass: None,
+            },
+            pose,
+        )
+    };
+    if collisions.len() == 1
+        && identity(Transform {
+            translation: collisions[0].position,
+            rotation: collisions[0].orientation,
+        })
+    {
+        return legacy(&collisions[0]);
+    }
+    let body = Pose::from_parts(
+        Vector::from_array(pose.translation),
+        Rotation::from_xyzw(
+            pose.rotation[0],
+            pose.rotation[1],
+            pose.rotation[2],
+            pose.rotation[3],
+        ),
+    );
+    let mut aggregate: Option<Aabb> = None;
+    for collision in collisions {
+        // Reuse all existing primitive dimension and world-pose validation.
+        legacy(collision)?;
+        Motion::new(BodyState {
+            position: collision.position,
+            orientation: collision.orientation,
+            velocity: [0.0; 3],
+            angular_velocity: [0.0; 3],
+        })?;
+        let q = collision.orientation;
+        let local = Pose::from_parts(
+            Vector::from_array(collision.position),
+            Rotation::from_xyzw(q[0], q[1], q[2], q[3]),
+        );
+        // Parry cylinders are Y-axis; the retained SDF cylinder is Z-axis.
+        let (shape, shape_pose) = match collision.shape {
+            Shape::Sphere { radius } => (parry3d_f64::shape::SharedShape::ball(radius), local),
+            Shape::Box {
+                half_extents: [x, y, z],
+            } => (parry3d_f64::shape::SharedShape::cuboid(x, y, z), local),
+            Shape::Capsule {
+                radius,
+                half_length,
+            } => (
+                parry3d_f64::shape::SharedShape::capsule_z(half_length, radius),
+                local,
+            ),
+            Shape::Cylinder {
+                radius,
+                half_height,
+            } => (
+                parry3d_f64::shape::SharedShape::cylinder(half_height, radius),
+                local * Pose::from_rotation(Rotation::from_rotation_x(std::f64::consts::FRAC_PI_2)),
+            ),
+        };
+        let bounds = shape.compute_aabb(&shape_pose);
+        for checked in [bounds, bounds.transform_by(&body)] {
+            if !checked.mins.is_finite()
+                || !checked.maxs.is_finite()
+                || !(checked.maxs - checked.mins).is_finite()
+                || (checked.maxs - checked.mins)
+                    .to_array()
+                    .into_iter()
+                    .any(|v| v <= 0.0)
+            {
+                return Err(PhysicsError::InvalidValue.into());
+            }
+        }
+        match &mut aggregate {
+            Some(current) => current.merge(&bounds),
+            None => aggregate = Some(bounds),
+        }
+    }
+    Ok(TpeLink(
+        aggregate.expect("nonempty validated collision domain"),
+    ))
+}
+
 pub(super) fn add_bounds(
     sim: &mut Simulation,
     model: Entity,

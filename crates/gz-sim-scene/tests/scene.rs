@@ -15,6 +15,174 @@ fn load(xml: &str) -> Result<gz_sim_core::Simulation, LoadError> {
     )
 }
 
+fn retained_passive_imu_com_fall_positive(xml: &str) {
+    use gz_physics::PhysicsBackend;
+    use gz_sim_core::{EntityId, entity_by_id};
+    use gz_sim_scene::{
+        BodyHandle, WorldEditError, model_state, queue_link_world_velocity, reset_loaded_world,
+    };
+    let mut offset = load(xml).unwrap();
+    let mut centered = load(WORLD).unwrap();
+    let id = |sim: &gz_sim_core::Simulation, name: &str| {
+        sim.world()
+            .iter_entities()
+            .find(|e| e.get::<Name>().is_some_and(|n| n.0 == name))
+            .unwrap()
+            .get::<EntityId>()
+            .unwrap()
+            .get()
+    };
+    let ids = |sim: &gz_sim_core::Simulation| {
+        sim.world()
+            .iter_entities()
+            .filter_map(|e| Some((e.get::<Name>()?.0.clone(), e.get::<EntityId>()?.get())))
+            .collect::<std::collections::BTreeMap<_, _>>()
+    };
+    let native = |sim: &gz_sim_core::Simulation| {
+        let link = entity_by_id(sim.world(), id(sim, "default::ball::body")).unwrap();
+        sim.world()
+            .resource::<PhysicsBackend>()
+            .state(sim.world().get::<BodyHandle>(link).unwrap().id())
+            .unwrap()
+    };
+    let near = |a: f64, b: f64| {
+        assert!(
+            a.is_finite() && b.is_finite() && (a - b).abs() < 1e-11,
+            "{a} != {b}"
+        );
+    };
+    let keys = ids(&offset);
+    let ball = id(&offset, "default::ball");
+    let sensor_id = id(&offset, "default::ball::body::imu");
+    let state = native(&offset);
+    let handle = offset
+        .world()
+        .get::<BodyHandle>(
+            entity_by_id(offset.world(), id(&offset, "default::ball::body")).unwrap(),
+        )
+        .unwrap()
+        .id();
+    // The +1X COM leaves the original radius-.5 sphere and IMU at link origin.
+    let backend = offset.world().resource::<PhysicsBackend>();
+    near(
+        backend
+            .cast_ray([0.3, 0., 9.], [0., 0., -1.], 5., None)
+            .unwrap()
+            .unwrap(),
+        3.6,
+    );
+    assert!(
+        backend
+            .cast_ray([1., 0., 9.], [0., 0., -1.], 5., None)
+            .unwrap()
+            .is_none()
+    );
+    assert!(
+        backend
+            .cast_ray([0.3, 0., 9.], [0., 0., -1.], 5., Some(handle))
+            .unwrap()
+            .is_none()
+    );
+    near(state.position[0] + 1., 1.);
+    for loaded in [false, true] {
+        let initial = native(&offset);
+        let reference_initial = native(&centered);
+        offset.step_exact(100).unwrap();
+        centered.step_exact(100).unwrap();
+        let actual = native(&offset);
+        let reference = native(&centered);
+        assert!(actual.position[2] < initial.position[2]);
+        assert!((actual.velocity[2] + 0.981).abs() < 1e-10);
+        for (axis, actual_velocity) in actual.velocity.into_iter().enumerate() {
+            near(actual_velocity, reference.velocity[axis]);
+            near(actual.angular_velocity[axis], 0.);
+            // Constant COM offset cancels in the measured COM displacement.
+            let com_offset = if axis == 0 { 1. } else { 0. };
+            near(
+                (actual.position[axis] + com_offset) - (initial.position[axis] + com_offset),
+                reference.position[axis] - reference_initial.position[axis],
+            );
+        }
+        assert_eq!(actual.orientation, [0., 0., 0., 1.]);
+        for name in [
+            "default::ball::body",
+            "default::ball::body::shape",
+            "default::ball::body::imu",
+        ] {
+            let pose = offset
+                .world()
+                .get::<WorldPose>(entity_by_id(offset.world(), id(&offset, name)).unwrap())
+                .unwrap();
+            for (a, b) in pose.translation.into_iter().zip(actual.position) {
+                near(a, b);
+            }
+            assert_eq!(pose.rotation, actual.orientation);
+        }
+        let link = entity_by_id(offset.world(), id(&offset, "default::ball::body")).unwrap();
+        let velocity = offset.world().get::<Velocity>(link).unwrap();
+        for (a, b) in velocity.linear.into_iter().zip(actual.velocity) {
+            near(a, b);
+        }
+        let sensor = entity_by_id(offset.world(), sensor_id).unwrap();
+        let sample = offset.world().get::<ImuSample>(sensor).unwrap();
+        assert_eq!(
+            (sample.time, sample.epoch),
+            (offset.elapsed(), offset.epoch())
+        );
+        let reading = sample.reading.as_ref().unwrap();
+        assert!(reading.specific_force.iter().all(|v| v.abs() < 1e-10));
+        assert!(reading.angular_velocity.iter().all(|v| v.abs() < 1e-10));
+        // Passive loading does not widen the existing sensor-bearing edit domain.
+        assert!(matches!(
+            model_state(&offset, ball),
+            Err(WorldEditError::UnsupportedModel)
+        ));
+        let epoch = offset.epoch();
+        if loaded {
+            reset_loaded_world(&mut offset, |_| ()).unwrap();
+            reset_loaded_world(&mut centered, |_| ()).unwrap();
+        } else {
+            offset.reset().unwrap();
+            centered.reset().unwrap();
+        }
+        assert_eq!(offset.epoch(), epoch + 1);
+        assert_eq!(offset.elapsed(), Duration::ZERO);
+        assert_eq!(ids(&offset), keys);
+        let restored = native(&offset);
+        assert_eq!(restored, state);
+        let sensor = entity_by_id(offset.world(), sensor_id).unwrap();
+        assert!(offset.world().get::<ImuSample>(sensor).is_none());
+        // Passive loading does not widen the existing sensor-bearing edit domain.
+        assert!(matches!(
+            model_state(&offset, ball),
+            Err(WorldEditError::UnsupportedModel)
+        ));
+    }
+    // The unchanged COM=1X must also affect the existing origin-velocity API:
+    // omegaZ=.5 with zero link-origin velocity requires COM velocity +.5Y.
+    let mut rotating = load(xml).unwrap();
+    let link_id = id(&rotating, "default::ball::body");
+    queue_link_world_velocity(&mut rotating, link_id, [0.; 3], [0., 0., 0.5]).unwrap();
+    rotating.step_exact(1).unwrap();
+    let rotated = native(&rotating);
+    for (actual, expected) in rotated.velocity.into_iter().zip([0., 0.5, -0.00981]) {
+        near(actual, expected);
+    }
+    for (actual, expected) in rotated.angular_velocity.into_iter().zip([0., 0., 0.5]) {
+        near(actual, expected);
+    }
+    let omega = glam::DVec3::from_array(rotated.angular_velocity);
+    let center_arm = glam::DQuat::from_array(rotated.orientation) * glam::DVec3::X;
+    let origin_velocity = glam::DVec3::from_array(rotated.velocity) - omega.cross(center_arm);
+    let logical = rotating
+        .world()
+        .get::<Velocity>(entity_by_id(rotating.world(), link_id).unwrap())
+        .unwrap();
+    for (a, b) in logical.linear.into_iter().zip(origin_velocity.to_array()) {
+        near(a, b);
+    }
+}
+
 #[test]
 fn sdf_bevy_physics_and_imu_share_end_step_time_and_reset_epoch() {
     let mut sim = load(WORLD).unwrap();
@@ -184,6 +352,20 @@ fn former_ned_refusal_loads_actual_angular_motion_and_resets_healthy() {
 fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
     let mut existing = load(WORLD).unwrap();
     existing.step_exact(3).unwrap();
+    let original_existing = existing
+        .world()
+        .iter_entities()
+        .filter_map(|e| {
+            let handle = e.get::<gz_sim_scene::BodyHandle>()?.id();
+            Some((
+                handle,
+                existing
+                    .world()
+                    .resource::<gz_physics::PhysicsBackend>()
+                    .state(handle),
+            ))
+        })
+        .collect::<Vec<_>>();
     let changes = [
         (
             "<gravity>0 0 -9.81</gravity>",
@@ -247,6 +429,11 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
         ),
     ];
     for (from, to, feature) in changes {
+        if feature == "offset center" {
+            // Exact original COM input is selected M104 passive loading.
+            retained_passive_imu_com_fall_positive(&WORLD.replace(from, to));
+            continue;
+        }
         let error = load(&WORLD.replace(from, to)).err().unwrap();
         assert!(matches!(error, LoadError::Unsupported { .. }), "{error}");
         assert!(error.to_string().contains(feature), "{error}");
@@ -284,6 +471,23 @@ fn unsupported_features_are_errors_and_existing_simulations_are_untouched() {
         }
         assert_eq!(pose.rotation, [0., 0., 0., 1.]);
     }
+    assert_eq!(
+        existing
+            .world()
+            .iter_entities()
+            .filter_map(|e| {
+                let handle = e.get::<gz_sim_scene::BodyHandle>()?.id();
+                Some((
+                    handle,
+                    existing
+                        .world()
+                        .resource::<gz_physics::PhysicsBackend>()
+                        .state(handle),
+                ))
+            })
+            .collect::<Vec<_>>(),
+        original_existing
+    );
     assert_eq!(existing.elapsed(), Duration::from_millis(3));
     let malformed = load("<bad>").err().unwrap();
     assert!(

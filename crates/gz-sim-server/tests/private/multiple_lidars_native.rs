@@ -170,6 +170,7 @@ fn actual_native_multiple_lidars_keep_all_30_scans_and_headers_byte_exact() {
             // Existing publication metadata relation only; captured output
             // ranges and poses below never come from a geometric estimator.
             metadata.push(LidarPublication {
+                vertical: Default::default(),
                 entity_name: format!("rig::body::{}", config.name),
                 frame_id: config.frame_id.into(),
                 topic: config.topic.into(),

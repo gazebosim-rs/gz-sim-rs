@@ -395,7 +395,6 @@ fn direct_world_rooted_chain_and_native_local_frame_domain_are_explicit() {
     }
     for mutate in [
         (|m: &mut Model| m.links[0].pose.relative_to = "arm".into()) as fn(&mut Model),
-        |m| m.links[0].pose.transform.rotation = [0.0, 0.0, 1.0, 0.0],
         |m| m.links[0].pose.transform.translation[0] = f64::INFINITY,
         |m| m.joints[0].kind = JointKind::Fixed,
         |m| m.joints[0].axis = None,
@@ -408,11 +407,13 @@ fn direct_world_rooted_chain_and_native_local_frame_domain_are_explicit() {
         mutate(&mut model);
         refused(&model, "joint controller frames");
     }
-    // Preserve the two exact old local-joint-frame inputs as positives.
+    // Preserve the two old local-JOINT inputs and exact old LINK rotation
+    // as positives, keeping every neighboring frame refusal unchanged.
     // Parsing changes neither the caller model nor either scalar controller.
     for mutate in [
         (|m: &mut Model| m.joints[0].pose.transform.translation[0] = 0.1) as fn(&mut Model),
         |m| m.joints[0].pose.transform.rotation = [0.0, 0.0, 1.0, 0.0],
+        |m| m.links[0].pose.transform.rotation = [0.0, 0.0, 1.0, 0.0],
     ] {
         let mut caller = model();
         mutate(&mut caller);

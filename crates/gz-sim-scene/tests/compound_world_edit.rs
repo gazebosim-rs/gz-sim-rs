@@ -637,23 +637,22 @@ fn original_sensor_singletons_cannot_be_upgraded_and_closed_compound_domains_sta
         let mut sim=load(&text);let rig=id(&sim,"w::rig");let handle=body(&sim,"w::rig::body");let old=native(&sim,handle);
         assert!(model_state(&sim,rig).is_err());assert!(set_model_state(&mut sim,rig,target()).is_err());assert_eq!(native(&sim,handle),old);
     }
-    // The old singleton COM velocity convention is not made link-centered here.
+    // Loaded translated COM is physical; runtime/edit ownership boundaries below remain closed.
     let text = xml(1, false, false, "")
         .replacen("<pose>-6 0 0 0 0 0.3</pose>", "<pose>0 0 0 0 0 0</pose>", 1)
         .replacen("<inertial>", "<inertial><pose>0.25 0 0 0 0 0</pose>", 1);
-    assert!(matches!(
+    m104_mass_response(
         load_world_with_sdf_step(
             &text,
             "offset-com-refusal",
             "w",
             &NoResources,
-            PhysicsEngine::Rapier
-        ),
-        Err(gz_sim_scene::LoadError::Unsupported {
-            feature: "offset center of mass",
-            ..
-        })
-    ));
+            PhysicsEngine::Rapier,
+        )
+        .unwrap(),
+        &text,
+        "w::rig::body",
+    );
     let admitted = text.replacen(
         "<pose>0.25 0 0 0 0 0</pose>",
         "<pose>0.0000000000001 0 0 0 0 0</pose>",
@@ -668,4 +667,65 @@ fn original_sensor_singletons_cannot_be_upgraded_and_closed_compound_domains_sta
     assert_eq!(native.velocity, [1. + 1.25e-13, -2., 3. - 0.5e-13]);
     assert_ne!(native.velocity, target().linear_velocity);
     assert_eq!(sim.elapsed(), Duration::ZERO);
+}
+
+// M104: the exact formerly refused XML must produce a real mass-frame response.
+fn m104_mass_response(mut sim: Simulation, text: &str, link_name: &str) {
+    sim.initialize_schedules().unwrap();
+    let dom = sdformat::load_str(text, "retained-resolved-com", &sdformat::NoResources).unwrap();
+    let link = dom
+        .worlds
+        .iter()
+        .flat_map(|w| &w.models)
+        .flat_map(|m| &m.links)
+        .find(|l| l.scoped_name == link_name)
+        .unwrap();
+    let mass = link.inertial.mass;
+    assert!(mass.is_finite() && mass > 0.);
+    let entity = sim
+        .world()
+        .iter_entities()
+        .find(|e| {
+            e.get::<gz_sim_scene::Name>()
+                .is_some_and(|n| n.0 == link_name)
+        })
+        .unwrap();
+    let public = entity.get::<gz_sim_core::EntityId>().unwrap().get();
+    let native = entity.get::<gz_sim_scene::BodyHandle>().unwrap().id();
+    assert_eq!(
+        sim.world()
+            .resource::<gz_physics::PhysicsBackend>()
+            .is_dynamic(native),
+        Some(true)
+    );
+    let before = sim
+        .world()
+        .resource::<gz_physics::PhysicsBackend>()
+        .state(native)
+        .unwrap();
+    gz_sim_scene::queue_link_world_wrench(&mut sim, public, [mass, 0., 0.], [0.; 3]).unwrap();
+    sim.step_exact(1).unwrap();
+    let after = sim
+        .world()
+        .resource::<gz_physics::PhysicsBackend>()
+        .state(native)
+        .unwrap();
+    assert!(
+        (after.velocity[0] - before.velocity[0] - sim.step_duration().as_secs_f64()).abs() < 1e-11
+    );
+    assert!(
+        after
+            .position
+            .into_iter()
+            .chain(after.velocity)
+            .chain(after.angular_velocity)
+            .all(f64::is_finite)
+    );
+    for (a, b) in after
+        .angular_velocity
+        .into_iter()
+        .zip(before.angular_velocity)
+    {
+        assert!((a - b).abs() < 1e-11);
+    }
 }

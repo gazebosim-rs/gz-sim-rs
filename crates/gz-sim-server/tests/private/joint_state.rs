@@ -242,8 +242,164 @@ fn boundary(server: &Server) -> impl PartialEq + std::fmt::Debug + use<> {
         format!("{:?}", server.counters()),
     )
 }
+fn moving_parent_effort_matches_direct_native_without_motor() {
+    let load = || {
+        load_world_with_sdf_step(
+            XML,
+            "m18-effort-control",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::Rapier,
+        )
+        .unwrap()
+    };
+    let mut scene = load();
+    let mut direct = load();
+    let mut quiet = load();
+    let joint = |sim: &Simulation| {
+        let entity = sim
+            .world()
+            .iter_entities()
+            .find(|e| {
+                e.get::<gz_sim_scene::Name>()
+                    .is_some_and(|name| name.0 == "default::arm::tip_hinge")
+            })
+            .unwrap();
+        (
+            entity.get::<EntityId>().unwrap().get(),
+            entity.get::<gz_sim_scene::JointHandle>().unwrap().id(),
+        )
+    };
+    let (id, scene_joint) = joint(&scene);
+    let (_, direct_joint) = joint(&direct);
+    queue_joint_effort(&mut scene, id, 0.5).unwrap();
+    direct
+        .world_mut()
+        .resource_mut::<gz_physics::PhysicsBackend>()
+        .add_joint_effort(direct_joint, 0.5)
+        .unwrap();
+    let snapshot = |sim: &Simulation| {
+        sim.world()
+            .iter_entities()
+            .filter_map(|e| {
+                let handle = e.get::<gz_sim_scene::BodyHandle>()?;
+                Some((
+                    e.get::<gz_sim_scene::Name>().unwrap().0.clone(),
+                    sim.world()
+                        .resource::<gz_physics::PhysicsBackend>()
+                        .state(handle.id())
+                        .unwrap(),
+                ))
+            })
+            .collect::<std::collections::BTreeMap<_, _>>()
+    };
+    let before = snapshot(&scene);
+    let before_clock = (scene.elapsed(), scene.epoch());
+    scene.set_paused(true);
+    assert!(scene.tick().unwrap().dt.is_zero());
+    assert_eq!(snapshot(&scene), before);
+    assert_eq!((scene.elapsed(), scene.epoch()), before_clock);
+    scene.set_paused(false);
+    scene.step_exact(1).unwrap();
+    quiet.step_exact(1).unwrap();
+    direct
+        .world_mut()
+        .resource_mut::<gz_physics::PhysicsBackend>()
+        .step(Duration::from_millis(1))
+        .unwrap();
+    let actual = snapshot(&scene);
+    let expected = snapshot(&direct);
+    let quiet_state = snapshot(&quiet);
+    let near = |a: f64, b: f64| {
+        assert!(
+            a.is_finite() && b.is_finite() && (a - b).abs() < 1e-11,
+            "{a} != {b}"
+        );
+    };
+    let basis = |[x, y, z, w]: [f64; 4]| {
+        [
+            [
+                1. - 2. * (y * y + z * z),
+                2. * (x * y + z * w),
+                2. * (x * z - y * w),
+            ],
+            [
+                2. * (x * y - z * w),
+                1. - 2. * (x * x + z * z),
+                2. * (y * z + x * w),
+            ],
+            [
+                2. * (x * z + y * w),
+                2. * (y * z - x * w),
+                1. - 2. * (x * x + y * y),
+            ],
+        ]
+    };
+    for (name, value) in &actual {
+        let reference = expected[name];
+        for (a, b) in value
+            .position
+            .into_iter()
+            .zip(reference.position)
+            .chain(value.velocity.into_iter().zip(reference.velocity))
+            .chain(
+                value
+                    .angular_velocity
+                    .into_iter()
+                    .zip(reference.angular_velocity),
+            )
+        {
+            near(a, b);
+        }
+        for (a, b) in basis(value.orientation)
+            .into_iter()
+            .flatten()
+            .zip(basis(reference.orientation).into_iter().flatten())
+        {
+            near(a, b);
+        }
+        let undriven = quiet_state[name];
+        let initial = before[name];
+        for (a, b) in undriven
+            .position
+            .into_iter()
+            .zip(initial.position)
+            .chain(undriven.velocity.into_iter().zip(initial.velocity))
+            .chain(
+                undriven
+                    .angular_velocity
+                    .into_iter()
+                    .zip(initial.angular_velocity),
+            )
+        {
+            near(a, b);
+        }
+        for (a, b) in basis(undriven.orientation)
+            .into_iter()
+            .flatten()
+            .zip(basis(initial.orientation).into_iter().flatten())
+        {
+            near(a, b);
+        }
+    }
+    let measured = scene
+        .world()
+        .resource::<gz_physics::PhysicsBackend>()
+        .joint_state(scene_joint)
+        .unwrap();
+    let native = direct
+        .world()
+        .resource::<gz_physics::PhysicsBackend>()
+        .joint_state(direct_joint)
+        .unwrap();
+    near(measured.position, native.position);
+    near(measured.velocity, native.velocity);
+    assert!(measured.position > 0. && measured.velocity > 0.);
+    assert_ne!(actual, quiet_state);
+}
 #[test]
 fn joint_state_real_wire_motion_positive_rate_equal_time_pause_loaded_reset_and_retirement() {
+    moving_parent_effort_matches_direct_native_without_motor();
     let mut server = server(XML);
     let key = server.joint_states[0].endpoint.clone();
     // Same owned Session gives a completed local subscription, without adding a
@@ -276,17 +432,9 @@ fn joint_state_real_wire_motion_positive_rate_equal_time_pause_loaded_reset_and_
         "equal-time paused ticks publish a fresh revision"
     );
     let joint_id = server.joint_states[0].metadata.joints[1].id;
-    let before_refusal = boundary(&server);
-    assert!(matches!(
-        queue_joint_effort(&mut server.simulation, joint_id, 0.5),
-        Err(gz_sim_scene::InputError::Physics(
-            gz_physics::PhysicsError::Unsupported {
-                engine: "rapier",
-                capability: "moving-parent joint effort commands",
-            }
-        ))
-    ));
-    assert_eq!(boundary(&server), before_refusal);
+    let before_effort = boundary(&server);
+    queue_joint_effort(&mut server.simulation, joint_id, 0.5).unwrap();
+    assert_eq!(boundary(&server), before_effort);
     let joint_entity = entity_by_id(server.simulation.world(), joint_id).unwrap();
     let handle = server
         .simulation

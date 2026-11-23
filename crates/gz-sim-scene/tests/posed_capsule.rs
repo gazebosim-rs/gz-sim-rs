@@ -486,13 +486,11 @@ fn posed_capsule_links_preserve_same_model_exclusion_and_distinct_model_contacts
 #[test]
 fn posed_capsule_refusals_keep_tpe_compounds_com_and_other_pose_domains_closed() {
     let xml = dynamic("1 0 0 0 0 0.2", INERTIA);
-    assert!(matches!(
-        load(&xml, PhysicsEngine::Tpe),
-        Err(LoadError::Unsupported {
-            feature: "offset collision pose",
-            ..
-        })
-    ));
+    m107_bounds_response(
+        load(&xml, PhysicsEngine::Tpe).unwrap(),
+        &xml,
+        "default::posed::body",
+    );
     // M84 replaces only the old two-primitive row, at the same link origin.
     let compound_xml = xml.replace("</link>", "<collision name='extra'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision></link>");
     let compound = load(&compound_xml, PhysicsEngine::Rapier).unwrap();
@@ -522,19 +520,20 @@ fn posed_capsule_refusals_keep_tpe_compounds_com_and_other_pose_domains_closed()
             assert!((actual - expected).abs() < 1e-11);
         }
     }
-    for (source, feature) in [
-        (
-            xml.replace("<inertial>", "<inertial><pose>0.1 0 0 0 0 0</pose>"),
-            "offset center of mass",
-        ),
-        (
+    let offset_com = xml.replace("<inertial>", "<inertial><pose>0.1 0 0 0 0 0</pose>");
+    m104_mass_response(
+        load(&offset_com, PhysicsEngine::Rapier).unwrap(),
+        &offset_com,
+        "default::posed::body",
+    );
+    {
+        let (source, feature) = (
             xml.replace(
                 "</collision>",
                 "<surface><friction><ode><mu>0.3</mu></ode></friction></surface></collision>",
             ),
             "collision surface parameters",
-        ),
-    ] {
+        );
         assert_ne!(source, xml);
         assert!(
             matches!(load(&source, PhysicsEngine::Rapier), Err(LoadError::Unsupported { feature: actual, .. }) if actual==feature)
@@ -665,4 +664,161 @@ fn posed_capsule_coexists_with_an_unchanged_centered_velocity_controller_only() 
     );
     distance(&controlled, [1.001, 0.004, 9.], [0., 0., -1.], 2.);
     distance(&controlled, [1.301, 2.004, 5.], [0., -1., 0.], 1.6);
+}
+
+// M104: the exact formerly refused XML must produce a real mass-frame response.
+fn m104_mass_response(mut sim: Simulation, text: &str, link_name: &str) {
+    sim.initialize_schedules().unwrap();
+    let dom = sdformat::load_str(text, "retained-resolved-com", &sdformat::NoResources).unwrap();
+    let link = dom
+        .worlds
+        .iter()
+        .flat_map(|w| &w.models)
+        .flat_map(|m| &m.links)
+        .find(|l| l.scoped_name == link_name)
+        .unwrap();
+    let mass = link.inertial.mass;
+    assert!(mass.is_finite() && mass > 0.);
+    let entity = sim
+        .world()
+        .iter_entities()
+        .find(|e| {
+            e.get::<gz_sim_scene::Name>()
+                .is_some_and(|n| n.0 == link_name)
+        })
+        .unwrap();
+    let public = entity.get::<gz_sim_core::EntityId>().unwrap().get();
+    let native = entity.get::<gz_sim_scene::BodyHandle>().unwrap().id();
+    assert_eq!(
+        sim.world()
+            .resource::<gz_physics::PhysicsBackend>()
+            .is_dynamic(native),
+        Some(true)
+    );
+    let before = sim
+        .world()
+        .resource::<gz_physics::PhysicsBackend>()
+        .state(native)
+        .unwrap();
+    gz_sim_scene::queue_link_world_wrench(&mut sim, public, [mass, 0., 0.], [0.; 3]).unwrap();
+    sim.step_exact(1).unwrap();
+    let after = sim
+        .world()
+        .resource::<gz_physics::PhysicsBackend>()
+        .state(native)
+        .unwrap();
+    assert!(
+        (after.velocity[0] - before.velocity[0] - sim.step_duration().as_secs_f64()).abs() < 1e-11
+    );
+    assert!(
+        after
+            .position
+            .into_iter()
+            .chain(after.velocity)
+            .chain(after.angular_velocity)
+            .all(f64::is_finite)
+    );
+    for (a, b) in after
+        .angular_velocity
+        .into_iter()
+        .zip(before.angular_velocity)
+    {
+        assert!((a - b).abs() < 1e-11);
+    }
+}
+
+// M107: an owned probe contacts the actual posed primitive envelope, then leaves it.
+fn m107_bounds_response(mut sim: Simulation, text: &str, link_name: &str) {
+    use glam::{DQuat, DVec3};
+    use gz_physics_tpe::{Contacts, ModelBounds, Motion};
+    sim.initialize_schedules().unwrap();
+    let dom = sdformat::load_str(text, "retained-tpe-bounds", &sdformat::NoResources).unwrap();
+    let link = dom
+        .worlds
+        .iter()
+        .flat_map(|w| &w.models)
+        .flat_map(|m| &m.links)
+        .find(|l| l.scoped_name == link_name)
+        .unwrap();
+    let collision = &link.collisions[0];
+    let collision_name = format!("{}::{}", link_name, collision.name);
+    let pose = *sim
+        .world()
+        .iter_entities()
+        .find(|e| {
+            e.get::<gz_sim_scene::Name>()
+                .is_some_and(|n| n.0 == collision_name)
+        })
+        .unwrap()
+        .get::<gz_sim_scene::WorldPose>()
+        .unwrap();
+    let q = DQuat::from_array(pose.rotation);
+    let x = q * DVec3::X;
+    let y = q * DVec3::Y;
+    let z = q * DVec3::Z;
+    let extent = match &collision.geometry {
+        sdformat::Geometry::Box { size } => {
+            (x.x.abs() * size[0] + y.x.abs() * size[1] + z.x.abs() * size[2]) * 0.5
+        }
+        sdformat::Geometry::Sphere { radius } => *radius,
+        sdformat::Geometry::Cylinder { radius, length } => {
+            radius * (x.x * x.x + y.x * y.x).sqrt() + 0.5 * length * z.x.abs()
+        }
+        sdformat::Geometry::Capsule { radius, length } => radius + 0.5 * length * z.x.abs(),
+        _ => panic!("retained primitive"),
+    };
+    assert!(extent.is_finite() && extent > 0.01);
+    let center = DVec3::from_array(pose.translation) + DVec3::X * (extent - 0.01);
+    let subject_name = link_name.rsplit_once("::").unwrap().0;
+    let subject = sim
+        .world()
+        .iter_entities()
+        .find(|e| {
+            e.get::<gz_sim_scene::Name>()
+                .is_some_and(|n| n.0 == subject_name)
+        })
+        .unwrap()
+        .id();
+    let state = gz_physics::BodyState {
+        position: center.to_array(),
+        velocity: [0.; 3],
+        orientation: [0., 0., 0., 1.],
+        angular_velocity: [0.; 3],
+    };
+    let probe = sim
+        .world_mut()
+        .spawn((
+            Motion::new_fixed(state).unwrap(),
+            ModelBounds::new([-0.001; 3], [0.001; 3], true, u16::MAX).unwrap(),
+        ))
+        .id();
+    sim.step_exact(1).unwrap();
+    let points = sim
+        .world()
+        .resource::<Contacts>()
+        .as_slice()
+        .iter()
+        .filter(|c| c.models.contains(&subject) && c.models.contains(&probe))
+        .map(|c| c.point)
+        .collect::<Vec<_>>();
+    assert_eq!(points.len(), 1);
+    for (a, b) in points[0].into_iter().zip(center.to_array()) {
+        assert!((a - b).abs() < 1e-11);
+    }
+    let far = gz_physics::BodyState {
+        position: (center + DVec3::splat(1000.)).to_array(),
+        ..state
+    };
+    sim.world_mut()
+        .entity_mut(probe)
+        .insert(Motion::new_fixed(far).unwrap());
+    sim.step_exact(1).unwrap();
+    assert!(
+        !sim.world()
+            .resource::<Contacts>()
+            .as_slice()
+            .iter()
+            .any(|c| c.models.contains(&subject) && c.models.contains(&probe))
+    );
+    sim.world_mut().despawn(probe);
 }

@@ -1,3 +1,139 @@
+## Current M102–M113 headless correction batch
+
+The next complete headless cycle stopped after 2,514.713 seconds with
+2,143 passed, one failed and two ignored tests. The sole failure was the later
+TPE refusal assertion in the compound-COM boundary case. Source review traces
+its existing `InvalidScene` error to the absent native `BodyHandle`, before
+caller COM validation; the failed output did not print the actual variant.
+The correction changes only that exact expected variant and adds an error
+diagnostic. All inputs, atomicity checks and 113 case identities remain intact.
+The failed `c392f156` candidate and originals stay frozen. Renderer runtime and
+strict coverage were not reached; there is no current qualification or acceptance.
+
+The reviewed headless correction candidate then stopped in workspace Clippy
+after 28.243 seconds, before tests: two ECS lookups resolved `Name` to the
+imported protobuf trait, and one test retained an unused `PhysicsError` import.
+The complete three-diagnostic batch corrects those two type qualifications and
+removes the unused import. Production behavior, test inputs, assertions and
+113 case identities are unchanged. Preserve failed `2247e7d8` and its logs.
+The following headless totals describe the earlier `66e848be` run.
+
+The latest full staged hook exited 1 after 2,564.154 seconds. Both Clippy
+stages, documentation tests and all 494 Python tests passed. The complete
+headless run reported 2,119 passed, 22 failed and two ignored tests. Renderer
+runtime and strict coverage were not reached. The failed `66e848be` candidate,
+partial RAW data and original logs remain unchanged.
+
+The corrections preserve the exact retained inputs while replacing obsolete
+refusals inside the selected COM, LINK-frame, moving-parent effort, multi-owner
+VelocityControl and TPE domains with measured physical and atomicity witnesses.
+Loaded reset preserves public logical/native identities while rebuilding Bevy
+handles; pinned SDFormat normalizes the zero-size Box input to a unit box.
+The real M105 fault was WorldIo retaining one velocity subscription despite
+multiple requested leases. Its existing worker now owns a bounded keyed family
+of eight, with independent cancellation, callback retirement and shutdown;
+three new private regressions cover that ownership. No new runtime or deadline.
+
+All original 110 regression declarations remain; three new server declarations
+bring the Source obligations to 113 (94 headless, 97 renderer, 78 shared;
+70 public and 43 private). These counts do not claim executed passes.
+Complete the combined source review and one formatting command before the next
+consolidated full staged hook. Compiler caching grants no test or coverage pass.
+Independent retained DATA, all strict coverage comparisons, exact hosted CI and
+original-artifact audit remain required before qualification or publication.
+
+Accepted M1–M76 and 202 slices are unchanged. Preserve the no-expiry M77 demo
+until explicit owner stop confirmation, Fuel, frozen trees and all original
+failures. DART and MuJoCo remain retired. No cleanup or demo action is part of
+this correction batch.
+
+---
+
+The following prior checkpoints are historical observations.
+
+## Current M104–M113 implementation and review
+
+All ten selected features have implementation, regression Source and per-phase
+delivery guides in one candidate. Independent whole Source reviews, the retained
+same-input dispositions and all findings are closed. Product verification remains held.
+Read [the combined delivery guide](M104_M113_DELIVERY.md) for each bounded contract,
+dependencies and acceptance criteria. Each phase includes review and mandatory
+verification within a maximum five-working-day budget.
+
+The candidate uses qualified but unaccepted parent `08a0eeae` and copies the
+reviewed, formatted M102/M103 foundation `93a2d820`. That foundation remains
+unverified. The combined candidate must qualify all twelve phases itself;
+ancestor evidence grants no pass or acceptance. Regression declarations are
+Source obligations, not executed results. The final 64-file formatter passed;
+eight unchanged foundation files reuse their recorded formatting. An independent
+retained audit confirmed custody and all 110 new declarations. No product tests,
+lint, full normal, local DATA, hosted run or official audit has run for this
+candidate; its final qualification commit and outcomes remain unknown.
+
+Next, obtain fresh resource admission and let Root release the required final
+staged-hook/strict-coverage cycle, independent retained local audit, exact hosted
+CI and original-artifact audit. The reviewed forty-GiB SSD starting budget remains unmet and the owner's
+capacity decision is pending. That earlier budget is not a fit guarantee for
+this larger candidate. No allocation, eviction or cleanup is authorized here.
+
+Accepted M1–M76 and 202 slices remain unchanged. M77's persistent no-expiry demo
+stays live; formal browser evidence and owner-confirmed shutdown still gate
+acceptance. Fuel, old targets and frozen qualification evidence stay protected;
+DART and MuJoCo remain retired. No demo stop or browser retry is released.
+
+---
+
+The prior checkpoint below is preserved verbatim as historical context. Its
+current-status wording describes its own observation time, not this wave.
+
+## Current M102/M103 implementation
+
+M102 adds translated explicit centers of mass to passive runtime primitive
+compound copies. M103 admits representable rotated local LINK frames in the
+existing two-Revolute JointController. Root selected disjoint lanes under D31;
+each is bounded to five working days including review and mandatory checks.
+Read the M102 and M103 delivery guides in `docs/` for the closed contracts.
+
+The source parent is `08a0eeae97dede8daee6efe6cb2922bdb86ca722`, tree
+`9e1f92e1586846bb86c253df1d519a928b949c8c`, true parent `1a4bdbb5`.
+Its full normal passed after 4514.232 seconds and an independent retained audit
+passed without replaying tests, builds or RAW merges. Actual headless results
+were 2048 passed/two ignored; renderer 1583 passed/two ignored. All 23/22 new
+headless/renderer controls passed; Python494, finite47 and auxiliary21 remain
+separate aggregates. The original two-case failure and test-only corrections
+remain preserved. The exact review ref is published; hosted outcome is unknown
+at this checkpoint; exact automatic CI45074764720 attempt1 is in progress.
+
+Both implementations, regression Source and retained same-input dispositions
+are complete and independently reviewed. There are 26 new Rust declarations:
+26 headless, 25 renderer, 25 shared; 20 public and six private (one native
+headless-only and five Scene shared). No new Python, finite or CLI cases.
+These are Source obligations, not current passes. The integrated Source has
+1831 files, 16 owned paths (eight Rust/eight docs), four new paths,
+1815 protected parent paths and 128 cumulative paths since accepted Main.
+Only three production files change. Formatting, final tree/commit and
+verification remain to be recorded. Finish code, regressions, documentation and
+independent Source review; batch all findings before the one consolidated
+final verification cycle. Keep the full staged hook, strict coverage, hosted
+CI and independent original-artifact audit before release, Main promotion or acceptance.
+No qualification or acceptance transfers from the parent.
+
+M102 owns native `compound.rs` and Scene `world_spawn.rs`; M103 owns only
+JointController `config.rs`. Their new regression leaves are disjoint. Root
+owns retained same-input refusal-to-positive dispositions and shared docs.
+Any additional production seam requires explicit concrete rescope before edits.
+
+The persistent no-expiry M77 manual demo stays live until the owner confirms a
+stop. Formal browser evidence and shutdown still gate acceptance. Accepted
+M1–M76, 202 slices, Fuel, old targets, frozen worktrees and evidence stay intact.
+DART and MuJoCo remain retired. No cleanup or new heavy resource allocation is
+released by this document; the next final run requires a fresh reviewed budget.
+
+---
+
+The exact parent checkpoint follows as historical context. Its status statements
+describe that earlier checkpoint, not the current pair.
+
 ## Current M100/M101 correction and qualification
 
 Translated primitive mass frames and local joint frames are implemented and

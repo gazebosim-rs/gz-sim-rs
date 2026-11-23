@@ -164,7 +164,11 @@ fn chain(model: &Model) -> Result<(), LoadError> {
             !link.name.is_empty()
                 && !link.name.contains("::")
                 && link.pose.relative_to.is_empty()
-                && link.pose.transform.rotation == [0.0, 0.0, 0.0, 1.0]
+                // Preserve the legacy identity-LINK finite-translation domain.
+                // Newly rotated LINK frames use the existing representable pose
+                // boundary without normalizing or repairing the caller's DOM.
+                && (link.pose.transform.rotation == [0.0, 0.0, 0.0, 1.0]
+                    || crate::world_edit::representable(crate::WorldPose::from(link.pose.transform)))
                 && link
                     .pose
                     .transform
@@ -678,10 +682,39 @@ mod local_joint_frame_dom_tests {
     }
     #[test]
     fn local_joint_dom_frame_admission_does_not_authorize_other_axis_link_or_frame_domains() {
+        // Keep the exact former LINK-Q input, including both existing local
+        // JOINT poses, as a positive without mutating caller bits or records.
+        let mut caller = model();
+        for joint in &mut caller.joints {
+            joint.pose.transform = sdformat::Transform {
+                translation: [0.25, -0.5, 1.],
+                rotation: [0.5; 4],
+            };
+        }
+        let reference = parse(&caller).unwrap().unwrap();
+        caller.links[0].pose.transform.rotation = [0., 0., 1., 0.];
+        let before = format!("{caller:?}");
+        let plans = parse(&caller).unwrap().unwrap();
+        assert_eq!(format!("{caller:?}"), before);
+        assert_eq!(
+            caller.links[0].pose.transform.rotation.map(f64::to_bits),
+            [0.0_f64, 0.0, 1.0, 0.0].map(f64::to_bits)
+        );
+        assert_eq!(plans.len(), reference.len());
+        for (actual, expected) in plans.iter().zip(&reference) {
+            assert_eq!(actual.joint, expected.joint);
+            assert_eq!(actual.publication, expected.publication);
+            assert_eq!(
+                (actual.max_velocity, actual.max_force, actual.initial_target),
+                (
+                    expected.max_velocity,
+                    expected.max_force,
+                    expected.initial_target
+                )
+            );
+        }
         for mutate in [
-            (|m: &mut Model| m.links[0].pose.transform.rotation = [0., 0., 1., 0.])
-                as fn(&mut Model),
-            |m| m.links[0].pose.relative_to = "arm".into(),
+            (|m: &mut Model| m.links[0].pose.relative_to = "arm".into()) as fn(&mut Model),
             |m| m.joints[0].pose.relative_to = m.joints[1].child.clone(),
             |m| m.joints[0].axis.as_mut().unwrap().expressed_in = "base".into(),
             |m| m.joints[0].axis.as_mut().unwrap().xyz = [2., 0., 0.],
@@ -705,6 +738,216 @@ mod local_joint_frame_dom_tests {
                 })
             ));
             assert_eq!(format!("{caller:?}"), before);
+        }
+    }
+}
+
+#[cfg(test)]
+mod rotated_link_frame_dom_tests {
+    use super::*;
+
+    fn model() -> Model {
+        sdformat::load_str(
+            include_str!("../../../../examples/m9_joint_controllers.sdf"),
+            "rotated-link-frame-dom.sdf",
+            &sdformat::NoResources,
+        )
+        .unwrap()
+        .worlds
+        .remove(0)
+        .models
+        .into_iter()
+        .find(|m| m.name == "arm")
+        .unwrap()
+    }
+    fn bits(caller: &Model, index: usize) -> ([u64; 3], [u64; 4]) {
+        (
+            caller.links[index]
+                .pose
+                .transform
+                .translation
+                .map(f64::to_bits),
+            caller.links[index]
+                .pose
+                .transform
+                .rotation
+                .map(f64::to_bits),
+        )
+    }
+    fn unchanged(caller: &Model, before: &str, original: ([u64; 3], [u64; 4]), index: usize) {
+        assert_eq!(format!("{caller:?}"), before);
+        assert_eq!(bits(caller, index), original);
+    }
+    #[test]
+    fn rotated_link_dom_admits_finite_unit_frames_without_changing_caller_or_parameters() {
+        let reference = parse(&model()).unwrap().unwrap();
+        for translation in [
+            [0.25, -0.5, 1.],
+            [-1., 2., -3.],
+            [f64::from(f32::MAX), 0., 0.],
+        ] {
+            for rotation in [
+                [0., 0., 1., 0.],
+                [0.5; 4],
+                [-0.5, 0.5, -0.5, 0.5],
+                [0., 0., 0., -1.],
+            ] {
+                for index in 0..2 {
+                    let mut caller = model();
+                    caller.links[index].pose.transform = sdformat::Transform {
+                        translation,
+                        rotation,
+                    };
+                    let before = format!("{caller:?}");
+                    let original = bits(&caller, index);
+                    let plans = parse(&caller).unwrap().unwrap();
+                    assert_eq!(plans.len(), reference.len());
+                    for (actual, expected) in plans.iter().zip(&reference) {
+                        assert_eq!(actual.publication, expected.publication);
+                        assert_eq!(
+                            (
+                                actual.joint.as_str(),
+                                actual.max_velocity,
+                                actual.max_force,
+                                actual.initial_target
+                            ),
+                            (
+                                expected.joint.as_str(),
+                                expected.max_velocity,
+                                expected.max_force,
+                                expected.initial_target
+                            )
+                        );
+                    }
+                    unchanged(&caller, &before, original, index);
+                }
+            }
+        }
+        // The already admitted literal identity orientation still permits every
+        // finite f64 LINK translation, including values not representable as f32.
+        for translation in [[1e100, 0., 0.], [-f64::MAX, 0., 0.], [0., -0., 0.]] {
+            for index in 0..2 {
+                let mut caller = model();
+                caller.links[index].pose.transform.translation = translation;
+                let before = format!("{caller:?}");
+                let original = bits(&caller, index);
+                assert_eq!(parse(&caller).unwrap().unwrap().len(), 2);
+                unchanged(&caller, &before, original, index);
+            }
+        }
+    }
+    #[test]
+    fn rotated_link_dom_nonrepresentable_or_nonunit_frames_are_never_repaired() {
+        for (translation, rotation) in [
+            ([f64::NAN, 0., 0.], [0.5; 4]),
+            ([0., f64::INFINITY, 0.], [0.5; 4]),
+            ([0., 0., f64::NEG_INFINITY], [0.5; 4]),
+            ([f64::from(f32::MAX) * 2., 0., 0.], [0.5; 4]),
+            ([f64::from(f32::MAX) * 2., 0., 0.], [0., 0., 0., -1.]),
+            ([0.; 3], [0.; 4]),
+            ([0.; 3], [0., 0., 0., 2.]),
+            ([0.; 3], [f64::NAN, 0., 0., 1.]),
+            ([0.; 3], [0., f64::INFINITY, 0., 1.]),
+            ([0.; 3], [0., 0., f64::NEG_INFINITY, 1.]),
+            ([0.; 3], [1e300, 0., 0., 1.]),
+        ] {
+            for index in 0..2 {
+                let mut caller = model();
+                caller.links[index].pose.transform = sdformat::Transform {
+                    translation,
+                    rotation,
+                };
+                let before = format!("{caller:?}");
+                let original = bits(&caller, index);
+                assert!(
+                    matches!(
+                        parse(&caller),
+                        Err(LoadError::Unsupported {
+                            feature: "joint controller frames",
+                            ..
+                        })
+                    ),
+                    "link={index}, translation={translation:?}, rotation={rotation:?}"
+                );
+                unchanged(&caller, &before, original, index);
+            }
+        }
+    }
+    #[test]
+    fn rotated_link_dom_unit_band_is_closed_on_both_sides_without_normalization() {
+        for sign in [-1., 1.] {
+            for (delta, admitted) in [
+                (4e-13, true),
+                (-4e-13, true),
+                (6e-13, false),
+                (-6e-13, false),
+            ] {
+                for index in 0..2 {
+                    let mut caller = model();
+                    let rotation = [0., 0., 0., sign * (1. + delta)];
+                    caller.links[index].pose.transform = sdformat::Transform {
+                        translation: [0.25, -0.5, 1.],
+                        rotation,
+                    };
+                    assert_eq!(
+                        (rotation.into_iter().map(|v| v * v).sum::<f64>() - 1.).abs() <= 1e-12,
+                        admitted
+                    );
+                    let before = format!("{caller:?}");
+                    let original = bits(&caller, index);
+                    if admitted {
+                        assert_eq!(parse(&caller).unwrap().unwrap().len(), 2);
+                    } else {
+                        assert!(matches!(
+                            parse(&caller),
+                            Err(LoadError::Unsupported {
+                                feature: "joint controller frames",
+                                ..
+                            })
+                        ));
+                    }
+                    unchanged(&caller, &before, original, index);
+                }
+            }
+        }
+    }
+    #[test]
+    fn rotated_link_dom_does_not_expand_relative_frames_axes_topology_or_joint_domains() {
+        for mutate in [
+            (|m: &mut Model| m.links[0].pose.relative_to = "arm".into()) as fn(&mut Model),
+            |m| m.links[1].pose.relative_to = "base".into(),
+            |m| m.joints[0].pose.relative_to = m.joints[1].child.clone(),
+            |m| m.joints[0].pose.transform.rotation = [0.; 4],
+            |m| m.joints[0].axis.as_mut().unwrap().xyz = [2., 0., 0.],
+            |m| m.joints[0].axis.as_mut().unwrap().expressed_in = "base".into(),
+            |m| m.joints[0].axis2 = m.joints[0].axis.clone(),
+            |m| m.joints[0].kind = JointKind::Fixed,
+        ] {
+            let mut caller = model();
+            for link in &mut caller.links {
+                link.pose.transform.rotation = [0.5; 4];
+            }
+            mutate(&mut caller);
+            let before = format!("{caller:?}");
+            assert!(matches!(
+                parse(&caller),
+                Err(LoadError::Unsupported {
+                    feature: "joint controller frames",
+                    ..
+                })
+            ));
+            assert_eq!(format!("{caller:?}"), before);
+        }
+        for index in 0..2 {
+            let mut caller = model();
+            caller.links[index].pose.transform.translation[0] = f64::INFINITY;
+            assert!(matches!(
+                parse(&caller),
+                Err(LoadError::Unsupported {
+                    feature: "joint controller frames",
+                    ..
+                })
+            ));
         }
     }
 }

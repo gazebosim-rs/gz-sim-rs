@@ -118,13 +118,7 @@ fn explicit_native_zero_compliance_preserves_legacy_mode_and_applies_parent_reac
             * data.local_frame1.rotation
             * Vector::X;
         assert!((axis - Vector::Y).length() < 1e-12);
-        assert!(matches!(
-            backend.validate_joint_effort(joint, 1.0),
-            Err(PhysicsError::Unsupported {
-                capability: "moving-parent joint effort commands",
-                ..
-            })
-        ));
+        backend.validate_joint_effort(joint, 1.0).unwrap();
         backend.step(Duration::from_millis(1)).unwrap();
         let parent_velocity = Vector::from(backend.state(parent).unwrap().angular_velocity);
         let child_velocity = Vector::from(backend.state(child).unwrap().angular_velocity);

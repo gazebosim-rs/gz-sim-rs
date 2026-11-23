@@ -14,6 +14,7 @@ pub(super) struct Parameters {
     pub rate: f64,
     pub linear: [f64; 2],
     pub angular: [f64; 2],
+    pub command_limits: super::model::CommandLimits,
     pub wheel_speed: [f64; 2],
     pub wheel_force: [f64; 2],
     pub publication: super::DiffDriveConfiguration,
@@ -76,6 +77,18 @@ fn fields(plugin: &Plugin) -> Result<BTreeMap<&str, String>, ()> {
                 | "max_linear_velocity"
                 | "min_angular_velocity"
                 | "max_angular_velocity"
+                | "min_acceleration"
+                | "max_acceleration"
+                | "min_linear_acceleration"
+                | "max_linear_acceleration"
+                | "min_angular_acceleration"
+                | "max_angular_acceleration"
+                | "min_jerk"
+                | "max_jerk"
+                | "min_linear_jerk"
+                | "max_linear_jerk"
+                | "min_angular_jerk"
+                | "max_angular_jerk"
         ) {
             return Err(());
         }
@@ -111,6 +124,22 @@ fn topic(value: &str) -> bool {
         && !["~", " ", "//", "@", ":="]
             .into_iter()
             .any(|part| value.contains(part))
+}
+
+fn derivative_bounds(fields: &BTreeMap<&str, String>, kind: &str) -> Result<[[f64; 2]; 2], ()> {
+    let minimum = number(fields, &format!("min_{kind}"), f64::NEG_INFINITY)?;
+    let maximum = number(fields, &format!("max_{kind}"), f64::INFINITY)?;
+    let mut bounds = [[minimum, maximum]; 2];
+    for (range, axis) in bounds.iter_mut().zip(["linear", "angular"]) {
+        *range = [
+            number(fields, &format!("min_{axis}_{kind}"), minimum)?,
+            number(fields, &format!("max_{axis}_{kind}"), maximum)?,
+        ];
+        if range[0] > range[1] {
+            return Err(());
+        }
+    }
+    Ok(bounds)
 }
 
 pub(super) fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
@@ -268,6 +297,12 @@ pub(super) fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
         &model.scoped_name,
         "DiffDrive velocity limits",
     )?;
+    let command_limits = super::model::CommandLimits {
+        acceleration: derivative_bounds(&fields, "acceleration")
+            .map_err(|()| error(model, "DiffDrive acceleration limits"))?,
+        jerk: derivative_bounds(&fields, "jerk")
+            .map_err(|()| error(model, "DiffDrive jerk limits"))?,
+    };
     let command = fields
         .get("topic")
         .cloned()
@@ -296,6 +331,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Parameters>, LoadError> {
         rate,
         linear,
         angular,
+        command_limits,
         wheel_speed,
         wheel_force,
         publication: super::DiffDriveConfiguration {

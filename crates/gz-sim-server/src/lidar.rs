@@ -1,6 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Canonical planar scans and CPU publication handoff; never casts physics rays.
+//! Canonical bounded CPU scans and CPU publication handoff; never casts physics rays.
 use super::*;
 use gz_sim_proto::msgs::{Header, LaserScan, Pose, header::Map};
 use gz_sim_scene::{
@@ -40,7 +40,7 @@ fn valid_metadata(metadata: &LidarPublication) -> bool {
         && c.range_max > c.range_min
         && metadata.angle_step > 0.0
         && metadata.angle_step == span / (c.samples - 1) as f64;
-    if !valid {
+    if !valid || metadata.spatial_model().is_err() {
         return false;
     }
     let mut previous = None;
@@ -63,7 +63,7 @@ fn packet(metadata: &LidarPublication, sample: &LidarSample, sequence: u64) -> O
     let pose = sample.world_pose;
     let norm: f64 = pose.rotation.into_iter().map(|x| x * x).sum();
     if !valid_metadata(metadata)
-        || sample.ranges.len() != config.samples
+        || sample.ranges.len() != config.samples.checked_mul(metadata.vertical.samples)?
         || !sample.ranges.iter().all(|&range| {
             range == f64::INFINITY
                 || range.is_finite() && (config.range_min..=config.range_max).contains(&range)
@@ -77,6 +77,8 @@ fn packet(metadata: &LidarPublication, sample: &LidarSample, sequence: u64) -> O
     {
         return None;
     }
+    let spatial = metadata.spatial_model().ok()?;
+    let vertical = spatial.vertical();
     Some(LaserScan {
         header: Some(Header {
             stamp: Some(time(sample.time.as_nanos() as i128).ok()?),
@@ -103,12 +105,12 @@ fn packet(metadata: &LidarPublication, sample: &LidarSample, sequence: u64) -> O
         range_min: config.range_min,
         range_max: config.range_max,
         count: config.samples as u32,
-        vertical_angle_min: 0.0,
-        vertical_angle_max: 0.0,
-        vertical_angle_step: 0.0,
-        vertical_count: 1,
+        vertical_angle_min: vertical.angle_min,
+        vertical_angle_max: vertical.angle_max,
+        vertical_angle_step: spatial.vertical_angle_step(),
+        vertical_count: vertical.samples as u32,
         ranges: sample.ranges.clone(),
-        intensities: vec![0.0; config.samples],
+        intensities: vec![0.0; sample.ranges.len()],
     })
 }
 
@@ -482,3 +484,7 @@ mod multiple_lidars_native;
 #[cfg(test)]
 #[path = "../tests/private/lidar.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/spatial_lidar_packets.rs"]
+mod spatial_packet_tests;

@@ -182,6 +182,158 @@ fn chord(sim: &Simulation) {
     );
 }
 
+fn check_retained_two_owner_frames(sim: &Simulation) {
+    assert_eq!(
+        initial_velocity_control_configurations(sim)
+            .unwrap()
+            .count(),
+        2
+    );
+    for (owner, count, initial) in [("rig", 16, [1., 0., 0.]), ("second", 2, [0.; 3])] {
+        let model_name = format!("default::{owner}");
+        let link_name = format!("{model_name}::body");
+        let model = id(sim, &model_name);
+        let configuration = sim
+            .world()
+            .get::<VelocityControlConfiguration>(entity_by_id(sim.world(), model).unwrap())
+            .unwrap();
+        assert_eq!(configuration.model_name, model_name);
+        assert_eq!(configuration.link, id(sim, &link_name));
+        assert_eq!(configuration.topic, format!("/model/{owner}/cmd_vel"));
+        assert_eq!(configuration.initial_linear, initial);
+        assert_eq!(configuration.initial_angular, [0.; 3]);
+        assert!(velocity_control_binding_matches(sim, model));
+        let native = state(sim, &link_name);
+        near(pose(sim, &model_name).translation, native.position);
+        near(pose(sim, &link_name).translation, native.position);
+        rotation(pose(sim, &model_name).rotation, native.orientation);
+        rotation(pose(sim, &link_name).rotation, native.orientation);
+        let velocity = sim
+            .world()
+            .get::<gz_sim_scene::Velocity>(entity_by_id(sim.world(), configuration.link).unwrap())
+            .unwrap();
+        near(velocity.linear, native.velocity);
+        near(velocity.angular, native.angular_velocity);
+        near(
+            pose(sim, &format!("{link_name}::imu")).translation,
+            native.position,
+        );
+        rotation(
+            pose(sim, &format!("{link_name}::imu")).rotation,
+            native.orientation,
+        );
+        near(
+            pose(sim, &format!("{link_name}::view")).translation,
+            add(native.position, rotate(native.orientation, [0., 0.5, 1.])),
+        );
+        rotation(
+            pose(sim, &format!("{link_name}::view")).rotation,
+            product(native.orientation, [0., 0., 0.1_f64.sin(), 0.1_f64.cos()]),
+        );
+        for i in 0..count {
+            let (local, local_q) = child_frame(i);
+            let name = format!("{link_name}::c{i}");
+            let expected = add(native.position, rotate(native.orientation, local));
+            let expected_q = product(native.orientation, local_q);
+            near(pose(sim, &name).translation, expected);
+            rotation(pose(sim, &name).rotation, expected_q);
+            let attached = sim
+                .world()
+                .get::<LocalPose>(entity_by_id(sim.world(), id(sim, &name)).unwrap())
+                .unwrap()
+                .0;
+            near(attached.translation, local);
+            rotation(attached.rotation, local_q);
+            // Each member occupies a separate six-unit lane. Every primitive
+            // has transverse radius/half-width .5 along its own X direction.
+            let direction = rotate(expected_q, [-1., 0., 0.]);
+            let origin = add(expected, rotate(expected_q, [2., 0., 0.]));
+            scalar(
+                query(sim, origin, direction, 3., None).unwrap().unwrap(),
+                1.5,
+            );
+            assert!(
+                query(sim, origin, direction, 3., Some(handle(sim, &link_name)))
+                    .unwrap()
+                    .is_none()
+            );
+        }
+    }
+}
+fn step_retained_two_owners(sim: &mut Simulation, targets: [[f64; 3]; 2]) {
+    let before = [pose(sim, "default::rig"), pose(sim, "default::second")];
+    let survivor = state(sim, "default::survivor::body");
+    sim.step_exact(1).unwrap();
+    for ((owner, previous), target) in ["rig", "second"].into_iter().zip(before).zip(targets) {
+        let link = format!("default::{owner}::body");
+        let expected = rotate(previous.rotation, target);
+        near(state(sim, &link).velocity, expected);
+        near(state(sim, &link).angular_velocity, [0.; 3]);
+        near(
+            pose(sim, &format!("default::{owner}")).translation,
+            add(previous.translation, expected.map(|v| v * 0.001)),
+        );
+    }
+    same_state(state(sim, "default::survivor::body"), survivor);
+    check_retained_two_owner_frames(sim);
+}
+fn retained_two_velocity_owners_positive(xml: &str) {
+    let mut sim = load(xml, PhysicsEngine::Rapier).unwrap();
+    sim.initialize_schedules().unwrap();
+    let keys = metadata(&sim);
+    let owners = [id(&sim, "default::rig"), id(&sim, "default::second")];
+    assert_ne!(owners[0], owners[1]);
+    check_retained_two_owner_frames(&sim);
+    // The exact original first owner moves; the exact second starts quiet.
+    step_retained_two_owners(&mut sim, [[1., 0., 0.], [0.; 3]]);
+    let before = [
+        state(&sim, "default::rig::body"),
+        state(&sim, "default::second::body"),
+    ];
+    let clock = (sim.elapsed(), sim.epoch());
+    sim.set_paused(true);
+    for owner in owners {
+        set_velocity_control_command(&mut sim, owner, [8.; 3], [0.; 3]).unwrap();
+    }
+    set_velocity_control_command(&mut sim, owners[0], [0., 2., 0.], [0.; 3]).unwrap();
+    set_velocity_control_command(&mut sim, owners[1], [-1., 0., 0.], [0.; 3]).unwrap();
+    for owner in owners {
+        for invalid in [f64::NAN, f64::INFINITY] {
+            assert!(matches!(
+                set_velocity_control_command(&mut sim, owner, [invalid, 0., 0.], [0.; 3]),
+                Err(VelocityControlCommandError::InvalidCommand)
+            ));
+        }
+    }
+    for _ in 0..3 {
+        assert!(sim.tick().unwrap().dt.is_zero());
+    }
+    assert_eq!((sim.elapsed(), sim.epoch()), clock);
+    same_state(state(&sim, "default::rig::body"), before[0]);
+    same_state(state(&sim, "default::second::body"), before[1]);
+    assert_eq!(metadata(&sim), keys);
+    sim.set_paused(false);
+    // PostStep latches the latest pair only after the first resumed physics step.
+    step_retained_two_owners(&mut sim, [[1., 0., 0.], [0.; 3]]);
+    step_retained_two_owners(&mut sim, [[0., 2., 0.], [-1., 0., 0.]]);
+    set_velocity_control_command(&mut sim, owners[0], [0.; 3], [0.; 3]).unwrap();
+    step_retained_two_owners(&mut sim, [[0., 2., 0.], [-1., 0., 0.]]);
+    step_retained_two_owners(&mut sim, [[0.; 3], [-1., 0., 0.]]);
+    for loaded in [false, true] {
+        for owner in owners {
+            set_velocity_control_command(&mut sim, owner, [9.; 3], [0.; 3]).unwrap();
+        }
+        if loaded {
+            reset_loaded_world(&mut sim, |_| ()).unwrap();
+        } else {
+            sim.reset().unwrap();
+        }
+        assert_eq!(metadata(&sim), keys);
+        check_retained_two_owner_frames(&sim);
+        step_retained_two_owners(&mut sim, [[1., 0., 0.], [0.; 3]]);
+    }
+}
+
 #[test]
 fn compound_velocity_two_four_and_sixteen_members_keep_centered_six_axis_trajectories() {
     for count in [2, 4, 16] {
@@ -718,6 +870,15 @@ fn compound_velocity_closed_admission_checks_late_children_and_preserves_existin
     ));
     for (source, label) in invalid {
         assert_ne!(source, valid, "{label}");
+        if label == "second velocity owner" {
+            // M105 admits these exact original two owners; keep their independent
+            // publication/physical witness separate from the existing pending tail.
+            retained_two_velocity_owners_positive(&source);
+            same_state(state(&existing, "default::rig::body"), before);
+            assert_eq!(metadata(&existing), before_ids);
+            assert!(velocity_control_binding_matches(&existing, owner));
+            continue;
+        }
         let result = load(&source, PhysicsEngine::Rapier);
         if matches!(label, "last mesh" | "last plane") {
             assert!(

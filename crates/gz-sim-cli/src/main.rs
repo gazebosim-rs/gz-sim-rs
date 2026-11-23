@@ -66,6 +66,9 @@ struct Args {
     /// Explicitly run one RGB and one depth camera with independent outputs.
     #[arg(long, requires = "camera_worker")]
     camera_mixed_pair: bool,
+    /// Explicitly run a loaded family of three or four independent RGB cameras.
+    #[arg(long, requires = "camera_worker", conflicts_with = "camera_mixed_pair")]
+    camera_rgb_family: bool,
 }
 
 /// Accepts short names and the upstream `gz sim --physics-engine` plugin names.
@@ -178,6 +181,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
             live::CameraOptions {
                 worker: args.camera_worker,
                 mixed_pair: args.camera_mixed_pair,
+                rgb_family: args.camera_rgb_family,
             },
             live::ViewerOptions {
                 port: args.web_viewer,
@@ -224,3 +228,7 @@ fn main() -> ExitCode {
 #[cfg(test)]
 #[path = "../tests/private/recording_cli.rs"]
 mod recording_cli_tests;
+
+#[cfg(test)]
+#[path = "../tests/private/rgb_family_cli.rs"]
+mod rgb_family_cli_tests;

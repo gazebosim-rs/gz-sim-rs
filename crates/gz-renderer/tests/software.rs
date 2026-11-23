@@ -1140,7 +1140,9 @@ fn software_spheres_preserve_silhouette_occlusion_origin_and_shape_round_trip() 
         match visual {
             PrimitiveVisual::Box(v) => v.pose.translation -= origin,
             PrimitiveVisual::Sphere(v) => v.pose.translation -= origin,
-            PrimitiveVisual::Cylinder(_) | PrimitiveVisual::Ellipsoid(_) => unreachable!(),
+            PrimitiveVisual::Cylinder(_)
+            | PrimitiveVisual::Ellipsoid(_)
+            | PrimitiveVisual::Capsule(_) => unreachable!(),
         }
     }
     let local_camera = WorldPose {
@@ -1160,7 +1162,9 @@ fn software_spheres_preserve_silhouette_occlusion_origin_and_shape_round_trip() 
         let pose = match visual {
             PrimitiveVisual::Box(v) => &mut v.pose,
             PrimitiveVisual::Sphere(v) => &mut v.pose,
-            PrimitiveVisual::Cylinder(_) | PrimitiveVisual::Ellipsoid(_) => unreachable!(),
+            PrimitiveVisual::Cylinder(_)
+            | PrimitiveVisual::Ellipsoid(_)
+            | PrimitiveVisual::Capsule(_) => unreachable!(),
         };
         pose.translation = spin * pose.translation;
         pose.rotation = spin * pose.rotation;
@@ -1432,7 +1436,9 @@ fn software_ellipsoids_preserve_axis_silhouette_occlusion_and_exact_old_frames()
         match visual {
             PrimitiveVisual::Box(v) => v.pose.translation -= origin,
             PrimitiveVisual::Ellipsoid(v) => v.pose.translation -= origin,
-            PrimitiveVisual::Sphere(_) | PrimitiveVisual::Cylinder(_) => unreachable!(),
+            PrimitiveVisual::Sphere(_)
+            | PrimitiveVisual::Cylinder(_)
+            | PrimitiveVisual::Capsule(_) => unreachable!(),
         }
     }
     let local_camera = WorldPose {
@@ -1452,7 +1458,9 @@ fn software_ellipsoids_preserve_axis_silhouette_occlusion_and_exact_old_frames()
         let pose = match visual {
             PrimitiveVisual::Box(v) => &mut v.pose,
             PrimitiveVisual::Ellipsoid(v) => &mut v.pose,
-            PrimitiveVisual::Sphere(_) | PrimitiveVisual::Cylinder(_) => unreachable!(),
+            PrimitiveVisual::Sphere(_)
+            | PrimitiveVisual::Cylinder(_)
+            | PrimitiveVisual::Capsule(_) => unreachable!(),
         };
         pose.translation = spin * pose.translation;
         pose.rotation = spin * pose.rotation;
@@ -1775,6 +1783,7 @@ fn software_primitive_depth_matches_finite_meshes_and_preserves_modes_and_old_fr
             PrimitiveVisual::Cylinder(v) => &mut v.pose,
             PrimitiveVisual::Sphere(v) => &mut v.pose,
             PrimitiveVisual::Ellipsoid(v) => &mut v.pose,
+            PrimitiveVisual::Capsule(v) => &mut v.pose,
         };
         pose.translation = offset + turn * pose.translation;
         pose.rotation = turn * pose.rotation;

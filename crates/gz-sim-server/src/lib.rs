@@ -1370,6 +1370,7 @@ enum ExternalCamera {
     Pair([u64; 2]),
     DepthPair([u64; 2]),
     MixedPair([u64; 2]),
+    RgbFamily(Vec<u64>),
 }
 
 impl Server {
@@ -1481,6 +1482,26 @@ impl Server {
             Some(zenoh_config),
             command_budget,
             Some(ExternalCamera::MixedPair(camera_ids)),
+        )
+    }
+
+    /// Exactly three or four loaded RGB cameras, owned by an external application.
+    /// Existing single/pair/depth/mixed constructors retain their closed domains.
+    pub fn with_external_rgb_camera_family(
+        simulation: Simulation,
+        world_name: &str,
+        config: ServerOptions,
+        zenoh_config: zenoh::Config,
+        command_budget: NonZeroUsize,
+        camera_ids: Vec<u64>,
+    ) -> Result<Self, Error> {
+        Self::build(
+            simulation,
+            world_name,
+            config,
+            Some(zenoh_config),
+            command_budget,
+            Some(ExternalCamera::RgbFamily(camera_ids)),
         )
     }
 
@@ -1617,6 +1638,38 @@ impl Server {
                     }
                 }
                 if rgb != 1 || depth != 1 {
+                    return Err(Error::CameraIdentity);
+                }
+            }
+            (true, Some(first), Some(ExternalCamera::RgbFamily(ids))) => {
+                if !(3..=4).contains(&ids.len())
+                    || ids.contains(&0)
+                    || ids.iter().copied().collect::<BTreeSet<_>>().len() != ids.len()
+                {
+                    return Err(Error::CameraIdentity);
+                }
+                let mut actual = BTreeSet::new();
+                for camera in std::iter::once(first).chain(cameras.by_ref()) {
+                    let id = camera.get::<EntityId>().ok_or(Error::CameraIdentity)?.get();
+                    if !ids.contains(&id)
+                        || !actual.insert(id)
+                        || camera.get::<gz_sim_scene::EntityKind>()
+                            != Some(&gz_sim_scene::EntityKind::Sensor)
+                        || entity_by_id(simulation.world(), id) != Some(camera.id())
+                        || !camera
+                            .get::<gz_sim_scene::CameraSensor>()
+                            .is_some_and(|sensor| {
+                                gz_sim_scene::supports_camera_sensor(&sensor.0)
+                                    && sensor
+                                        .0
+                                        .effective_type()
+                                        .is_some_and(|kind| kind.as_str() == "camera")
+                            })
+                    {
+                        return Err(Error::CameraIdentity);
+                    }
+                }
+                if actual.len() != ids.len() {
                     return Err(Error::CameraIdentity);
                 }
             }

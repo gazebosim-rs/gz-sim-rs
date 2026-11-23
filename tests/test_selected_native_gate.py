@@ -12,6 +12,7 @@ import io
 import json
 from pathlib import Path
 import shutil
+import subprocess
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -28,7 +29,8 @@ def digest(data):
 
 
 class SelectedNativeGate(unittest.TestCase):
-    def coverage_fixture(self, mutate=False, runtime=False, runtime_mutation=None):
+    def coverage_fixture(self, mutate=False, runtime=False, runtime_mutation=None, failures=None,
+                         compiler_drift=False):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name) / 'workspace'
@@ -79,7 +81,7 @@ class SelectedNativeGate(unittest.TestCase):
             if command == ['rustc', '--print', 'sysroot']:
                 return SimpleNamespace(stdout='/not-executed/toolchain\n')
             if command == ['rustc', '-vV']:
-                return SimpleNamespace(stdout=version)
+                return SimpleNamespace(stdout=version + ('changed' if compiler_drift and profiles else ''))
             raise AssertionError('unexpected external command: ' + repr(command))
 
         profiles = []
@@ -87,8 +89,11 @@ class SelectedNativeGate(unittest.TestCase):
         def instrumentation(name, crates, command, directory, *args):
             profiles.append(name)
             directory.mkdir(parents=True)
-            for filename in ['test-output.log', 'evidence.json', 'summary.json']:
-                (directory / filename).write_text('mocked instrumentation; no coverage result\n')
+            (directory / 'test-output.log').write_text('mocked instrumentation; no coverage result\n')
+            (directory / 'tests.stdout').write_text(name + ': synthetic child stdout\n')
+            (directory / 'tests.stderr').write_text(name + ': synthetic child stderr\n')
+            (directory / 'raw').mkdir()
+            (directory / 'raw/control.profraw').write_bytes(b'synthetic RAW, never merged')
             if mutate and len(profiles) == 1:
                 # This runs after coverage() captures its inputs. No actual
                 # native fixture is modified and no compiler is called.
@@ -99,6 +104,14 @@ class SelectedNativeGate(unittest.TestCase):
                     (directory.parent / 'zenoh-runtime-probe/selection.json').write_bytes(b'changed captured proof')
                 else:
                     selection['runtime_probe'] = {**selection['runtime_probe'], 'sha256': '0' * 64}
+            if failures and name in failures:
+                error = failures[name]
+                if isinstance(error, ValueError):
+                    (directory / 'coverage.json').write_text('{"synthetic": "failed coverage gate"}\n')
+                    (directory / 'coverage.lcov').write_text('synthetic failed coverage, never qualified\n')
+                raise error
+            for filename in ['evidence.json', 'summary.json']:
+                (directory / filename).write_text('mocked instrumentation; no coverage result\n')
             return {}, frozenset()
 
         def execute():
@@ -139,19 +152,19 @@ class SelectedNativeGate(unittest.TestCase):
         _, _, profiles, execute = self.coverage_fixture(mutate=True)
         with self.assertRaisesRegex(ValueError, 'verification inputs changed between profiles'):
             execute()
-        self.assertEqual(profiles, ['headless', 'renderer'])
+        self.assertEqual(profiles, ['headless'])
 
     def test_process_helper_drift_fails_integrated_coverage(self):
         _, _, profiles, execute = self.coverage_fixture(mutate='scripts/profile_process.py')
         with self.assertRaisesRegex(ValueError, 'verification inputs changed between profiles'):
             execute()
-        self.assertEqual(profiles, ['headless', 'renderer'])
+        self.assertEqual(profiles, ['headless'])
 
     def test_runtime_selector_source_drift_fails_integrated_coverage(self):
         _, _, profiles, execute = self.coverage_fixture(mutate='scripts/zenoh_runtime_probe.py')
         with self.assertRaisesRegex(ValueError, 'verification inputs changed between profiles'):
             execute()
-        self.assertEqual(profiles, ['headless', 'renderer'])
+        self.assertEqual(profiles, ['headless'])
 
     def test_selected_runtime_proof_is_retained_once_separately_from_the_sdk(self):
         root, blob, profiles, execute = self.coverage_fixture(runtime=True)
@@ -173,7 +186,84 @@ class SelectedNativeGate(unittest.TestCase):
             expected = 'selected Zenoh reference changed' if mutation == 'selection' else 'retained runtime probe proof changed'
             with self.subTest(mutation=mutation), self.assertRaisesRegex(ValueError, expected):
                 execute()
+            self.assertEqual(profiles, ['headless'])
+
+    def test_failed_headless_tests_do_not_suppress_renderer_or_become_success(self):
+        for actual_exit in (101, 137):
+            failure = subprocess.CalledProcessError(actual_exit, ['cargo', 'test', '--no-fail-fast'])
+            root, _, profiles, execute = self.coverage_fixture(failures={'headless': failure})
+            with self.subTest(actual_exit=actual_exit), self.assertRaisesRegex(ValueError, 'headless: CalledProcessError'):
+                execute()
             self.assertEqual(profiles, ['headless', 'renderer'])
+            coverage = root / 'artifacts/coverage'
+            index = json.loads((coverage / 'profile-index.json').read_text())
+            self.assertEqual(index['profiles'], ['headless', 'renderer'])
+            self.assertFalse((coverage / index['run'] / 'headless/evidence.json').exists())
+            self.assertTrue((coverage / index['run'] / 'renderer/evidence.json').is_file())
+            self.assertFalse((coverage / 'evidence.json').exists())
+            self.assertFalse((coverage / 'summary.json').exists())
+
+    def test_both_profile_failures_are_reported_with_exact_partial_evidence(self):
+        for renderer_failure in (subprocess.CalledProcessError(101, ['cargo', 'test']),
+                                 ValueError('renderer regions 94/100 must exceed 95%')):
+            failures = {'headless': ValueError('gz-sim-server: regions 19281/20312 must exceed 95%'),
+                        'renderer': renderer_failure}
+            root, _, profiles, execute = self.coverage_fixture(failures=failures)
+            with self.subTest(renderer=type(renderer_failure).__name__), self.assertRaises(ValueError) as caught:
+                execute()
+            text = str(caught.exception)
+            self.assertIn('gz-sim-server: regions 19281/20312 must exceed 95%', text)
+            self.assertIn('renderer: ' + type(renderer_failure).__name__, text)
+            self.assertLess(text.index('headless:'), text.index('renderer:'))
+            self.assertEqual(profiles, ['headless', 'renderer'])
+            coverage = root / 'artifacts/coverage'
+            index = json.loads((coverage / 'profile-index.json').read_text())
+            # Exercise the maintained retention path with synthetic profile data;
+            # unrelated native-off qualification has no fixture in this control.
+            with patch.object(verify, 'ROOT', root), patch.object(verify, 'retain_rapier_evidence'), \
+                 redirect_stdout(io.StringIO()):
+                verify.retain_staged_evidence('a' * 40, root, 'checks_failed')
+            packets = list((root / 'artifacts/staged').iterdir())
+            self.assertEqual(len(packets), 1)
+            packet = packets[0]
+            stage = json.loads((packet / 'stage-result.json').read_text())
+            self.assertEqual(stage['checks_state'], 'checks_failed')
+            self.assertEqual(stage['evidence_state'], 'partial')
+            for profile in profiles:
+                for name in ('test-output.log', 'tests.stdout', 'tests.stderr', 'raw/control.profraw'):
+                    relative = index['run'] + '/' + profile + '/' + name
+                    source = coverage / relative
+                    self.assertEqual((packet / relative).read_bytes(), source.read_bytes())
+                    self.assertEqual(stage['artifacts_sha256'][relative], digest(source.read_bytes()))
+                self.assertIn(index['run'] + '/' + profile + '/evidence.json', stage['missing_artifacts'])
+            relative = index['run'] + '/headless/coverage.json'
+            self.assertEqual((packet / relative).read_bytes(), (coverage / relative).read_bytes())
+
+    def test_profile_runtime_failures_are_fatal_before_renderer(self):
+        failures = (verify.profile_process.CommandInterrupted(15),
+                    subprocess.CalledProcessError(-15, ['cargo', 'test']),
+                    subprocess.CalledProcessError(-9, ['cargo', 'test']),
+                    subprocess.TimeoutExpired(['cargo', 'test'], 3600),
+                    RuntimeError('profile stdout exceeded its retained output cap'),
+                    OSError('resource controller stopped the command'), KeyboardInterrupt())
+        for error in failures:
+            _, _, profiles, execute = self.coverage_fixture(failures={'headless': error})
+            with self.subTest(error=type(error).__name__), self.assertRaises(type(error)):
+                execute()
+            self.assertEqual(profiles, ['headless'])
+
+    def test_failed_profile_does_not_allow_source_or_native_custody_drift(self):
+        cases = ({'mutate': 'scripts/profile_process.py'}, {'compiler_drift': True},
+                 {'runtime': True, 'runtime_mutation': 'selection'},
+                 {'runtime': True, 'runtime_mutation': 'copy'})
+        for change in cases:
+            _, _, profiles, execute = self.coverage_fixture(
+                failures={'headless': ValueError('ordinary coverage failure')}, **change)
+            with self.subTest(change=change), self.assertRaises(ValueError) as caught:
+                execute()
+            self.assertNotIn('Required coverage profiles failed:', str(caught.exception))
+            self.assertIn('changed between profiles', str(caught.exception))
+            self.assertEqual(profiles, ['headless'])
 
     def test_runtime_capture_refuses_a_reader_detected_growth_before_profiles(self):
         _, _, profiles, execute = self.coverage_fixture(runtime=True)
@@ -260,7 +350,7 @@ class SelectedNativeGate(unittest.TestCase):
             (base / 'raw/control.profraw').write_text('not an LLVM profile')
             peers = base / 'native-peers'
             peers.mkdir()
-            expected = {'camera'} if profile == 'renderer' else {'clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world', 'imu_world_heading', 'multiple_altimeters', 'multiple_air_pressures', 'multiple_air_speeds', 'multiple_magnetometers', 'multiple_logical_cameras', 'multiple_lidars', 'multiple_pose_publishers', 'multiple_odometry_publishers', 'multiple_joint_states', 'multiple_joint_controllers', 'multiple_diff_drives', 'velocity_control'}
+            expected = {'camera'} if profile == 'renderer' else {'clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world', 'imu_world_heading', 'multiple_altimeters', 'multiple_air_pressures', 'multiple_air_speeds', 'multiple_magnetometers', 'multiple_logical_cameras', 'multiple_lidars', 'spatial_lidar', 'multiple_pose_publishers', 'multiple_odometry_publishers', 'multiple_joint_states', 'multiple_joint_controllers', 'multiple_diff_drives', 'velocity_control'}
             for client in sorted(expected):
                 output = peers / (client + '-control')
                 output.mkdir()
@@ -368,7 +458,7 @@ class SelectedNativeGate(unittest.TestCase):
             self.assertEqual((output / 'zenoh-native-reference.json').read_bytes(), (run / 'zenoh-native-reference.json').read_bytes())
             preparation = Path(run.name) / 'renderer/renderer-build-output.log'
             self.assertEqual((output / preparation).read_bytes(), (coverage / preparation).read_bytes())
-            for profile, clients in [('headless', ['clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world', 'imu_world_heading', 'multiple_altimeters', 'multiple_air_pressures', 'multiple_air_speeds', 'multiple_magnetometers', 'multiple_logical_cameras', 'multiple_lidars', 'multiple_pose_publishers', 'multiple_odometry_publishers', 'multiple_joint_states', 'multiple_joint_controllers', 'multiple_diff_drives', 'velocity_control']), ('renderer', ['camera'])]:
+            for profile, clients in [('headless', ['clock', 'rate', 'force', 'robot_sensors', 'odometry_publisher', 'apply_link_wrench', 'wrench_odometry', 'odometry_3d', 'odometry_translation_offsets', 'odometry_rotation_offsets', 'odometry_noise', 'air_speed_wind', 'joint_force_feedback', 'imu_reference_frames', 'imu_custom_world', 'imu_world_heading', 'multiple_altimeters', 'multiple_air_pressures', 'multiple_air_speeds', 'multiple_magnetometers', 'multiple_logical_cameras', 'multiple_lidars', 'spatial_lidar', 'multiple_pose_publishers', 'multiple_odometry_publishers', 'multiple_joint_states', 'multiple_joint_controllers', 'multiple_diff_drives', 'velocity_control']), ('renderer', ['camera'])]:
                 for client in clients:
                     relative = Path(run.name) / profile / 'native-peers' / (client + '-control')
                     for filename in ['source.cc', client + '-client', 'provenance.json']:
@@ -456,7 +546,7 @@ class SelectedNativeGate(unittest.TestCase):
                 verify.retain_staged_evidence('a' * 40, candidate, 'passed')
 
     def test_new_wind_and_force_peer_sources_cannot_be_missing_from_retained_inputs(self):
-        for client in ("air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states", "multiple_joint_controllers", "multiple_diff_drives", "velocity_control"):
+        for client in ("air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "spatial_lidar", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states", "multiple_joint_controllers", "multiple_diff_drives", "velocity_control"):
             root, candidate, coverage, _, index = self.staged_fixture()
             source = verify.zenoh_peer.CLIENTS[client]
             index['inputs'].pop(source)
@@ -464,6 +554,27 @@ class SelectedNativeGate(unittest.TestCase):
             with self.subTest(client=client), patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
                 with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
                     verify.retain_staged_evidence('a' * 40, candidate, 'passed')
+
+        # A complete source-input map is insufficient when the captured spatial
+        # peer is absent. Keep its index internally consistent so rejection
+        # must enforce the required peer, not merely detect a stale index.
+        root, candidate, _, run, _ = self.staged_fixture()
+        peer_index = run / 'headless/native-peers.json'
+        records = json.loads(peer_index.read_text())
+        self.assertEqual(sum(record['client'] == 'spatial_lidar' for record in records), 1)
+        shutil.rmtree(run / 'headless/native-peers/spatial_lidar-control')
+        peer_index.write_text(json.dumps([
+            record for record in records if record['client'] != 'spatial_lidar'
+        ]))
+        with self.subTest(client='spatial_lidar', missing='captured_peer'), \
+             patch.object(verify, 'ROOT', root), redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(ValueError, 'missing retained profile evidence'):
+                verify.retain_staged_evidence('a' * 40, candidate, 'passed')
+        output = next((root / 'artifacts/staged').iterdir())
+        result = json.loads((output / 'stage-result.json').read_text())
+        self.assertEqual(result['evidence_state'], 'partial')
+        self.assertIn(str(Path(run.name) / 'headless/native-peers evidence'),
+                      result['missing_artifacts'])
 
     def test_current_rgb_stage_requires_the_renderer_build_output(self):
         root, candidate, _, run, _ = self.staged_fixture()

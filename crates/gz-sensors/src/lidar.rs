@@ -96,6 +96,125 @@ impl PlanarLidar {
     }
 }
 
+/// Vertical rows for a bounded CPU scan. One row is exactly the legacy XY plane.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct VerticalLidarConfig {
+    pub samples: usize,
+    pub angle_min: f64,
+    pub angle_max: f64,
+}
+
+impl Default for VerticalLidarConfig {
+    fn default() -> Self {
+        Self {
+            samples: 1,
+            angle_min: 0.0,
+            angle_max: 0.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[error(
+    "expected a legacy planar row or ordered vertical angles within +/-pi/2, at most 128 total finite rays, and valid planar ranges"
+)]
+pub struct InvalidSpatialLidarInput;
+
+/// At most 128 rays, ordered by vertical row then horizontal column, as in
+/// CpuLidarSensor. This adds no interpolation, point cloud or acquisition work.
+#[derive(Debug, Clone)]
+pub struct SpatialLidar {
+    horizontal: PlanarLidar,
+    vertical: VerticalLidarConfig,
+    vertical_step: f64,
+    directions: Vec<[f64; 3]>,
+}
+
+impl SpatialLidar {
+    pub fn new(
+        horizontal: PlanarLidarConfig,
+        vertical: VerticalLidarConfig,
+    ) -> Result<Self, InvalidSpatialLidarInput> {
+        if vertical.samples == 0
+            || horizontal
+                .samples
+                .checked_mul(vertical.samples)
+                .is_none_or(|n| n > MAX_PLANAR_BEAMS)
+        {
+            return Err(InvalidSpatialLidarInput);
+        }
+        let horizontal = PlanarLidar::new(horizontal).map_err(|_| InvalidSpatialLidarInput)?;
+        if vertical.samples == 1 {
+            if vertical != VerticalLidarConfig::default() {
+                return Err(InvalidSpatialLidarInput);
+            }
+            // Legacy packets always wrote positive zero for all vertical fields,
+            // including an explicitly parsed negative-zero planar configuration.
+            return Ok(Self {
+                directions: horizontal.directions().to_vec(),
+                horizontal,
+                vertical: VerticalLidarConfig::default(),
+                vertical_step: 0.0,
+            });
+        }
+        let span = vertical.angle_max - vertical.angle_min;
+        let vertical_step = span / (vertical.samples - 1) as f64;
+        if !vertical.angle_min.is_finite()
+            || !vertical.angle_max.is_finite()
+            || vertical.angle_min < -std::f64::consts::FRAC_PI_2
+            || vertical.angle_max > std::f64::consts::FRAC_PI_2
+            || !span.is_finite()
+            || span <= 0.0
+            || !vertical_step.is_finite()
+            || vertical_step <= 0.0
+        {
+            return Err(InvalidSpatialLidarInput);
+        }
+        let mut directions = Vec::with_capacity(horizontal.config().samples * vertical.samples);
+        let mut previous = None;
+        for row in 0..vertical.samples {
+            let angle = if row + 1 == vertical.samples {
+                vertical.angle_max
+            } else {
+                vertical.angle_min + row as f64 * vertical_step
+            };
+            if !angle.is_finite() || previous.is_some_and(|last| angle <= last) {
+                return Err(InvalidSpatialLidarInput);
+            }
+            let (sin, cos) = angle.sin_cos();
+            for [x, y, _] in horizontal.directions() {
+                directions.push([cos * x, cos * y, sin]);
+            }
+            previous = Some(angle);
+        }
+        Ok(Self {
+            horizontal,
+            vertical,
+            vertical_step,
+            directions,
+        })
+    }
+
+    pub fn config(&self) -> &PlanarLidarConfig {
+        self.horizontal.config()
+    }
+    pub fn vertical(&self) -> VerticalLidarConfig {
+        self.vertical
+    }
+    pub fn angle_step(&self) -> f64 {
+        self.horizontal.angle_step()
+    }
+    pub fn vertical_angle_step(&self) -> f64 {
+        self.vertical_step
+    }
+    pub fn directions(&self) -> &[[f64; 3]] {
+        &self.directions
+    }
+    pub fn range(&self, hit: Option<f64>) -> Result<f64, InvalidLidarInput> {
+        self.horizontal.range(hit)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

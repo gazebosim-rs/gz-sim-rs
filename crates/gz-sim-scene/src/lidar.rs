@@ -1,8 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Loaded, demand-selected planar CPU lidar. No renderer or transport ownership.
+//! Loaded, demand-selected bounded CPU lidar. No renderer or transport ownership.
 use super::*;
-use gz_sensors::lidar::{PlanarLidar, PlanarLidarConfig};
+use gz_sensors::lidar::{PlanarLidarConfig, SpatialLidar, VerticalLidarConfig};
 use gz_sensors::{GaussianNoise, GaussianParameters, InvalidNoise, NoiseStream};
 
 #[derive(Clone)]
@@ -85,7 +85,7 @@ impl LidarNoise {
 #[derive(Component, Clone)]
 pub(super) struct Lidar {
     link: u64,
-    model: PlanarLidar,
+    model: SpatialLidar,
     schedule: SampleSchedule,
     noise: Option<Box<LidarNoise>>,
 }
@@ -107,6 +107,15 @@ pub struct LidarPublication {
     pub topic: String,
     pub config: PlanarLidarConfig,
     pub angle_step: f64,
+    pub vertical: VerticalLidarConfig,
+}
+
+impl LidarPublication {
+    pub fn spatial_model(
+        &self,
+    ) -> Result<SpatialLidar, gz_sensors::lidar::InvalidSpatialLidarInput> {
+        SpatialLidar::new(self.config, self.vertical)
+    }
 }
 
 #[derive(Resource)]
@@ -190,13 +199,9 @@ pub(super) fn spawn(
     )?;
     let config = sensor.lidar().expect("caller selected lidar configuration");
     require(
-        config.horizontal.resolution == 1.0
-            && config.vertical.samples == 1
-            && config.vertical.resolution == 1.0
-            && config.vertical.min_angle == 0.0
-            && config.vertical.max_angle == 0.0,
+        config.horizontal.resolution == 1.0 && config.vertical.resolution == 1.0,
         &name,
-        "non-planar or interpolated lidar",
+        "interpolated lidar",
     )?;
     require(
         config.range_resolution.is_finite()
@@ -210,16 +215,23 @@ pub(super) fn spawn(
         &name,
         "Gaussian CPU lidar requires zero minimum range",
     )?;
-    let ray_model = PlanarLidar::new(PlanarLidarConfig {
-        samples: config.horizontal.samples as usize,
-        angle_min: config.horizontal.min_angle,
-        angle_max: config.horizontal.max_angle,
-        range_min: config.range_min,
-        range_max: config.range_max,
-    })
+    let ray_model = SpatialLidar::new(
+        PlanarLidarConfig {
+            samples: config.horizontal.samples as usize,
+            angle_min: config.horizontal.min_angle,
+            angle_max: config.horizontal.max_angle,
+            range_min: config.range_min,
+            range_max: config.range_max,
+        },
+        VerticalLidarConfig {
+            samples: config.vertical.samples as usize,
+            angle_min: config.vertical.min_angle,
+            angle_max: config.vertical.max_angle,
+        },
+    )
     .map_err(|_| LoadError::Unsupported {
         entity: name.clone(),
-        feature: "invalid bounded planar lidar",
+        feature: "invalid bounded CPU lidar grid",
     })?;
     let schedule = SampleSchedule::new(sensor.update_rate).map_err(|_| LoadError::Unsupported {
         entity: name.clone(),
@@ -263,6 +275,7 @@ pub(super) fn spawn(
         topic,
         config: *ray_model.config(),
         angle_step: ray_model.angle_step(),
+        vertical: ray_model.vertical(),
     };
     let entity = spawn_node(
         sim,
@@ -367,7 +380,7 @@ fn sample(
             let body = bodies.get(parent).map_err(|error| error.to_string())?;
             let rotation = DQuat::from_array(pose.rotation);
             let Lidar { model, noise, .. } = &mut *sensor;
-            let mut ranges = Vec::with_capacity(model.config().samples);
+            let mut ranges = Vec::with_capacity(model.directions().len());
             for direction in model.directions() {
                 let direction = (rotation * DVec3::from_array(*direction)).to_array();
                 let hit = backend

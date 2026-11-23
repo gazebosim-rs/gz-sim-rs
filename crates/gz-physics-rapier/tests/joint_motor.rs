@@ -212,13 +212,7 @@ fn rolling_pair(reduced: bool, floor: bool) -> (RapierBackend, BodyId, [BodyId; 
         hinge(&mut b, reduced, Some(parent), child, anchor)
     });
     for id in ids {
-        assert!(matches!(
-            b.validate_joint_effort(id, 1.0),
-            Err(PhysicsError::Unsupported {
-                capability: "moving-parent joint effort commands",
-                ..
-            })
-        ));
+        b.validate_joint_effort(id, 1.0).unwrap();
         b.set_joint_velocity_motor(id, motor(4.0, 1.0)).unwrap();
     }
     (b, parent, children, ids)

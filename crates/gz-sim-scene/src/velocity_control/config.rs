@@ -134,11 +134,13 @@ impl Plan {
             "VelocityControl requires a top-level dynamic free single link",
         )?;
         require(
-            !sim.world()
+            sim.world()
                 .iter_entities()
-                .any(|e| e.contains::<Controller>()),
+                .filter(|e| e.contains::<Controller>())
+                .count()
+                < MAX_CONTROLLERS,
             &model.scoped_name,
-            "multiple VelocityControl models",
+            "at most eight VelocityControl models",
         )?;
         require(
             !model

@@ -3,7 +3,7 @@
 //! Passive revolute constraints retain the link frame and every compound member.
 use bevy_ecs::prelude::Entity;
 use glam::{DQuat, DVec3, EulerRot};
-use gz_physics::{BodyId, BodySpec, BodyState, PhysicsBackend, PhysicsError, RotationSpec, Shape};
+use gz_physics::{BodyId, BodySpec, BodyState, PhysicsBackend, RotationSpec, Shape};
 use gz_sim_core::{EntityId, Simulation, assign_id, entity_by_id, next_entity_id};
 use gz_sim_scene::{
     BodyHandle, DiffDriveSample, InputError, JointControllerConfiguration, JointControllerMode,
@@ -284,13 +284,20 @@ fn mixed_and_compound_body_endpoints_measure_relative_motion_without_self_contac
             let parent = body(&sim, "default::rig::parent");
             let child = body(&sim, "default::rig::child");
             let joint_id = id(&sim, "default::rig::hinge");
-            assert!(matches!(
-                queue_joint_effort(&mut sim, joint_id, 1.),
-                Err(InputError::Physics(PhysicsError::Unsupported {
-                    capability: "moving-parent joint effort commands",
-                    ..
-                }))
-            ));
+            let mut effort = load(&xml, PhysicsEngine::Rapier).unwrap();
+            queue_joint_effort(&mut effort, joint_id, 1.).unwrap();
+            effort.step_exact(1).unwrap();
+            assert!(
+                effort
+                    .world()
+                    .get::<JointSample>(named(&effort, "default::rig::hinge"))
+                    .unwrap()
+                    .state
+                    .velocity
+                    > 0.0
+            );
+            queue_joint_effort(&mut sim, joint_id, 1.).unwrap();
+            queue_joint_effort(&mut sim, joint_id, -1.).unwrap();
             let axis = model_q() * DVec3::Z;
             for (native, speed) in [(parent, 1.), (child, 2.)] {
                 sim.world_mut()

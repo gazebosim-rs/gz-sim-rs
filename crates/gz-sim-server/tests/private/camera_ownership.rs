@@ -578,6 +578,297 @@ fn external_mixed_pair_uses_loaded_types_and_unordered_complete_ids() {
 }
 
 #[test]
+fn external_rgb_family_preserves_complete_ids_clock_reset_and_world_edit_boundary() {
+    use gz_sim_proto::{msgs::Clock, prost::Message};
+    for count in [3, 4] {
+        for reversed in [false, true] {
+            let sim = rgb_pair_simulation(count, true);
+            let mut ids: Vec<_> = sim
+                .world()
+                .iter_entities()
+                .filter(|node| node.contains::<gz_sim_scene::CameraSensor>())
+                .map(|node| node.get::<EntityId>().unwrap().get())
+                .collect();
+            ids.sort_unstable();
+            let expected_ids: BTreeSet<_> = ids.iter().copied().collect();
+            if reversed {
+                ids.reverse();
+            }
+            let mut server = Server::with_external_rgb_camera_family(
+                sim,
+                "default",
+                options(),
+                config("tcp/127.0.0.1:0"),
+                NonZeroUsize::new(1).unwrap(),
+                ids,
+            )
+            .unwrap();
+            let camera_ids = |server: &Server| -> BTreeSet<u64> {
+                server
+                    .simulation()
+                    .world()
+                    .iter_entities()
+                    .filter(|node| node.contains::<gz_sim_scene::CameraSensor>())
+                    .map(|node| node.get::<EntityId>().unwrap().get())
+                    .collect()
+            };
+            assert_eq!(camera_ids(&server), expected_ids);
+            assert_eq!(server.simulation().elapsed(), Duration::ZERO);
+            let model = server
+                .simulation()
+                .world()
+                .iter_entities()
+                .find(|node| {
+                    node.get::<gz_sim_scene::EntityKind>() == Some(&gz_sim_scene::EntityKind::Model)
+                })
+                .unwrap()
+                .get::<EntityId>()
+                .unwrap()
+                .get();
+            let before_entities = server.simulation().world().entities().len();
+            assert!(matches!(
+                server.remove_editable_model(model),
+                Err(Error::CameraWorldEdit)
+            ));
+            assert_eq!(
+                server.simulation().world().entities().len(),
+                before_entities
+            );
+            assert_eq!(camera_ids(&server), expected_ids);
+            assert_eq!(server.simulation().elapsed(), Duration::ZERO);
+
+            // Observe the world clock through the actual shared IO owner, with
+            // no external image writer or renderer required by this boundary.
+            let session = server.zenoh_session();
+            let (send, receive) = std::sync::mpsc::sync_channel(4);
+            let key = server.options().topic_key("/world/default/clock").unwrap();
+            let subscriber = session
+                .declare_subscriber(key)
+                .allowed_origin(zenoh::sample::Locality::SessionLocal)
+                .callback(move |sample| {
+                    let _ = send.try_send(sample);
+                })
+                .wait()
+                .unwrap();
+            assert!(server.apply_local_control(WorldControl {
+                pause: false,
+                ..Default::default()
+            }));
+            let advanced = server.update().unwrap();
+            assert_eq!(advanced.sim_time, Duration::from_millis(1));
+            let clock = Clock::decode(
+                receive
+                    .recv_timeout(Duration::from_secs(3))
+                    .unwrap()
+                    .payload()
+                    .to_bytes()
+                    .as_ref(),
+            )
+            .unwrap();
+            assert_eq!(
+                clock.sim,
+                Some(gz_sim_proto::msgs::Time {
+                    sec: 0,
+                    nsec: 1_000_000
+                })
+            );
+            assert_eq!(camera_ids(&server), expected_ids);
+            assert!(server.apply_local_control(WorldControl {
+                pause: true,
+                reset: Some(gz_sim_proto::msgs::WorldReset {
+                    all: true,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }));
+            let reset = server.update().unwrap();
+            assert_eq!((reset.epoch, reset.sim_time), (1, Duration::ZERO));
+            assert_eq!(camera_ids(&server), expected_ids);
+            drop(subscriber);
+            server.shutdown();
+            assert!(server.is_shutdown());
+            assert!(matches!(server.update(), Err(Error::WorldClosed)));
+        }
+    }
+}
+
+#[test]
+fn external_rgb_family_refuses_incomplete_or_forged_membership_before_network() {
+    let occupied = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = format!("tcp/{}", occupied.local_addr().unwrap());
+    for fault in [
+        "empty",
+        "two",
+        "five",
+        "no-intent",
+        "too-few-claims",
+        "too-many-claims",
+        "zero",
+        "duplicate-claim",
+        "foreign",
+        "wrong-kind",
+        "missing-identity",
+        "moved-identity",
+        "bad-width",
+        "depth",
+        "missing-camera-config",
+    ] {
+        let count = match fault {
+            "empty" => 0,
+            "two" => 2,
+            "five" => 5,
+            _ => 4,
+        };
+        let mut sim = rgb_pair_simulation(count, fault != "no-intent");
+        let cameras: Vec<_> = sim
+            .world()
+            .iter_entities()
+            .filter(|node| node.contains::<gz_sim_scene::CameraSensor>())
+            .map(|node| (node.id(), node.get::<EntityId>().unwrap().get()))
+            .collect();
+        let mut ids: Vec<_> = cameras.iter().map(|row| row.1).collect();
+        if ids.is_empty() {
+            ids = vec![1, 2, 3];
+        }
+        match fault {
+            "too-few-claims" => {
+                ids.pop();
+            }
+            "too-many-claims" => {
+                sim.world_mut()
+                    .entity_mut(cameras[3].0)
+                    .remove::<gz_sim_scene::CameraSensor>();
+            }
+            "zero" => ids[3] = 0,
+            "duplicate-claim" => ids[3] = ids[0],
+            "foreign" => ids[3] = u64::MAX,
+            "wrong-kind" => {
+                sim.world_mut()
+                    .entity_mut(cameras[3].0)
+                    .insert(gz_sim_scene::EntityKind::Link);
+            }
+            "missing-identity" => {
+                sim.world_mut()
+                    .entity_mut(cameras[3].0)
+                    .remove::<EntityId>();
+            }
+            "moved-identity" => {
+                // Taking the immutable component retires its index entry;
+                // reinsertion alone cannot recreate its original ownership.
+                let identity = sim
+                    .world_mut()
+                    .entity_mut(cameras[3].0)
+                    .take::<EntityId>()
+                    .unwrap();
+                sim.world_mut().entity_mut(cameras[3].0).insert(identity);
+            }
+            "bad-width" | "depth" | "missing-camera-config" => {
+                let mut sensor = sim
+                    .world()
+                    .get::<gz_sim_scene::CameraSensor>(cameras[3].0)
+                    .unwrap()
+                    .0
+                    .as_ref()
+                    .clone();
+                if fault == "depth" {
+                    sensor.kind = "depth_camera".into();
+                } else if fault == "missing-camera-config" {
+                    sensor.config = sdformat::SensorConfig::Unconfigured;
+                } else if let sdformat::SensorConfig::Camera(camera) = &mut sensor.config {
+                    camera.image_width = 32;
+                } else {
+                    panic!("loaded RGB camera");
+                }
+                sim.world_mut()
+                    .entity_mut(cameras[3].0)
+                    .insert(gz_sim_scene::CameraSensor(std::sync::Arc::new(sensor)));
+            }
+            _ => {}
+        }
+        let result = Server::with_external_rgb_camera_family(
+            sim,
+            "default",
+            options(),
+            config(&address),
+            NonZeroUsize::new(1).unwrap(),
+            ids,
+        );
+        assert!(
+            matches!(&result, Err(Error::CameraIdentity)),
+            "fault={fault}, error={:?}",
+            result.err()
+        );
+    }
+}
+
+#[test]
+fn external_rgb_family_does_not_implicitly_expand_legacy_camera_constructors() {
+    let occupied = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = format!("tcp/{}", occupied.local_addr().unwrap());
+    for count in [3, 4] {
+        for mode in 0..5 {
+            let sim = rgb_pair_simulation(count, true);
+            let ids: Vec<_> = sim
+                .world()
+                .iter_entities()
+                .filter(|node| node.contains::<gz_sim_scene::CameraSensor>())
+                .map(|node| node.get::<EntityId>().unwrap().get())
+                .collect();
+            let result = match mode {
+                0 => Server::with_zenoh_config(
+                    sim,
+                    "default",
+                    options(),
+                    config(&address),
+                    NonZeroUsize::new(1).unwrap(),
+                ),
+                1 => Server::with_external_camera_output(
+                    sim,
+                    "default",
+                    options(),
+                    config(&address),
+                    NonZeroUsize::new(1).unwrap(),
+                    ids[0],
+                ),
+                2 => Server::with_external_camera_outputs(
+                    sim,
+                    "default",
+                    options(),
+                    config(&address),
+                    NonZeroUsize::new(1).unwrap(),
+                    [ids[0], ids[1]],
+                ),
+                3 => Server::with_external_depth_camera_outputs(
+                    sim,
+                    "default",
+                    options(),
+                    config(&address),
+                    NonZeroUsize::new(1).unwrap(),
+                    [ids[0], ids[1]],
+                ),
+                _ => Server::with_external_mixed_camera_outputs(
+                    sim,
+                    "default",
+                    options(),
+                    config(&address),
+                    NonZeroUsize::new(1).unwrap(),
+                    [ids[0], ids[1]],
+                ),
+            };
+            assert!(
+                if mode == 0 {
+                    matches!(&result, Err(Error::CameraOutputRequired))
+                } else {
+                    matches!(&result, Err(Error::CameraIdentity))
+                },
+                "mode={mode}, error={:?}",
+                result.err()
+            );
+        }
+    }
+}
+
+#[test]
 fn external_mixed_pair_rejects_invalid_complete_sets_before_network() {
     let occupied = TcpListener::bind("127.0.0.1:0").unwrap();
     let address = format!("tcp/{}", occupied.local_addr().unwrap());

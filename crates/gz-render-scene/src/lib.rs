@@ -327,6 +327,25 @@ fn extract_visuals(
                     [diameter, *length, diameter],
                 )
             }
+            sdformat::Geometry::Capsule { radius, length } if calibrated_shapes => {
+                let diameter = 2.0 * radius;
+                let full_length = length + diameter;
+                if [*radius, *length, diameter, full_length]
+                    .iter()
+                    .any(|value| {
+                        !value.is_finite() || !(*value as f32).is_finite() || *value as f32 <= 0.0
+                    })
+                {
+                    return Err(SnapshotError::InvalidVisual(id));
+                }
+                (
+                    Geometry::Capsule {
+                        radius: *radius,
+                        length: *length,
+                    },
+                    [diameter, diameter, full_length],
+                )
+            }
             sdformat::Geometry::Sphere { radius } if calibrated_shapes => {
                 let diameter = 2.0 * radius;
                 if [*radius, diameter].iter().any(|value| {

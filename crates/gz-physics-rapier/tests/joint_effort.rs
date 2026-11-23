@@ -64,13 +64,24 @@ fn moving_parent_effort_is_explicitly_unsupported_before_numeric_validation() {
         let id = joint(&mut b, reduced, Some(parent), child);
         let before = (b.state(parent), b.state(child), b.joint_state(id));
         for value in [0.0, 1.0, f64::NAN] {
-            assert!(matches!(
-                b.add_joint_effort(id, value),
-                Err(PhysicsError::Unsupported {
-                    engine: "rapier",
-                    capability: "moving-parent joint effort commands"
-                })
-            ));
+            if value.is_finite() {
+                b.add_joint_effort(id, value).unwrap();
+            } else {
+                assert_eq!(
+                    b.add_joint_effort(id, value),
+                    Err(PhysicsError::InvalidValue)
+                );
+            }
+            assert_eq!((b.state(parent), b.state(child), b.joint_state(id)), before);
+            tick(&mut b);
+            if value == 1.0 {
+                assert!(b.state(parent).unwrap().angular_velocity[1] < 0.0);
+                assert!(b.state(child).unwrap().angular_velocity[1] > 0.0);
+                assert!(b.joint_state(id).unwrap().velocity > 0.0);
+            } else {
+                close(b.joint_state(id).unwrap().velocity, 0.0);
+            }
+            b.reset().unwrap();
             assert_eq!((b.state(parent), b.state(child), b.joint_state(id)), before);
         }
         tick(&mut b);

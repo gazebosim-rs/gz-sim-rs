@@ -23,6 +23,7 @@ pub struct Visual {
 pub enum Geometry {
     Box { size: [f64; 3] },
     Cylinder { radius: f64, length: f64 },
+    Capsule { radius: f64, length: f64 },
     Sphere { radius: f64 },
     Ellipsoid { radii: [f64; 3] },
 }
@@ -197,7 +198,8 @@ fn valid_shape_snapshot(
                 && v.color.iter().all(|x| x.is_finite())
                 && match &v.geometry {
                     Geometry::Box { size } => size.iter().all(|x| x.is_finite()),
-                    Geometry::Cylinder { radius, length } => {
+                    Geometry::Cylinder { radius, length }
+                    | Geometry::Capsule { radius, length } => {
                         radius.is_finite() && length.is_finite()
                     }
                     Geometry::Sphere { radius } => radius.is_finite(),

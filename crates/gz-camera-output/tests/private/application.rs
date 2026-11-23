@@ -1,8 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
-#[path = "../support/isolated_camera.rs"]
-mod isolation;
+use crate::camera_test_isolation as isolation;
 use gz_sim_proto::{
     msgs::{Boolean, CameraInfo, WorldControl, WorldReset},
     prost::Message,

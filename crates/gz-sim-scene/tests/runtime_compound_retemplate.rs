@@ -613,6 +613,51 @@ fn runtime_retemplate_closed_domains_and_late_errors_preserve_both_allocators() 
         match row {
             1 => assert!(matches!(result, Err(WorldEditError::InvalidScene))),
             2 | 3 => assert!(matches!(result, Err(WorldEditError::InvalidState))),
+            4 => {
+                // The identical translated-COM request now prepares without
+                // touching this world's baseline. Publish it in the separate
+                // positive world, preserving every later atomicity witness.
+                assert_eq!(result.unwrap().source_visual_id(), source + 3);
+                let offset = prepare_model_template(&positive, &supplied, &model).unwrap();
+                let next = next_entity_id(positive.world()).unwrap();
+                let copy =
+                    spawn_model_template(&mut positive, &offset, cycle([700., 20., 30.])).unwrap();
+                assert_eq!(copy, next);
+                assert_eq!(next_entity_id(positive.world()).unwrap(), copy + 5);
+                // The cyclic quaternion maps local COM [0.25, 0, 0]
+                // to world arm [0, 0.25, 0]. Three independent angular
+                // probes witness every COM component through public state
+                // APIs, without exposing the private ECS marker or stepping.
+                let original_state = model_state(&positive, copy).unwrap();
+                assert_eq!(original_state.linear_velocity, [0.; 3]);
+                assert_eq!(original_state.angular_velocity, [0.; 3]);
+                for (angular_velocity, com_velocity) in [
+                    ([1., 0., 0.], [0., 0., 0.25]),
+                    ([0., 1., 0.], [0., 0., 0.]),
+                    ([0., 0., 1.], [-0.25, 0., 0.]),
+                ] {
+                    let state = ModelState {
+                        angular_velocity,
+                        ..original_state
+                    };
+                    assert_eq!(set_model_state(&mut positive, copy, state).unwrap(), state);
+                    let native = native(&positive, body(&positive, copy));
+                    assert_eq!(native.velocity, com_velocity);
+                    assert_eq!(native.angular_velocity, angular_velocity);
+                    assert_eq!(model_state(&positive, copy).unwrap(), state);
+                }
+                assert_eq!(
+                    set_model_state(&mut positive, copy, original_state).unwrap(),
+                    original_state
+                );
+                geometry(&positive, copy, 2, [700., 20., 30.], 17.);
+                vector(
+                    native(&positive, body(&positive, copy)).position,
+                    [700., 20., 30.],
+                );
+                assert_ne!(body(&positive, copy), body(&positive, source));
+                assert!(model_state(&positive, copy).is_ok());
+            }
             _ => assert!(matches!(result, Err(WorldEditError::UnsupportedModel))),
         }
         assert_eq!(snapshot(&sim), before);

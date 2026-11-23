@@ -161,11 +161,23 @@ fn frames(
     origin: DVec3,
     model_q: DQuat,
 ) -> [(DVec3, [DVec3; 3]); 2] {
+    frames_with_child_link(sim, name, axes, origin, model_q, DQuat::IDENTITY)
+}
+fn frames_with_child_link(
+    sim: &Simulation,
+    name: &str,
+    axes: [[f64; 3]; 2],
+    origin: DVec3,
+    model_q: DQuat,
+    child_q: DQuat,
+) -> [(DVec3, [DVec3; 3]); 2] {
     let first = state(sim, name, "root").position;
     let second = state(sim, name, "tip").position;
     let basis = [DVec3::X, DVec3::Y, DVec3::Z];
     let base = basis.map(|v| model_q * rotate(axes[0], first, v));
-    let child = basis.map(|v| model_q * rotate(axes[0], first, rotate(axes[1], second, v)));
+    let child_axis = (child_q * DVec3::from_array(axes[1])).to_array();
+    let child =
+        basis.map(|v| model_q * rotate(axes[0], first, rotate(child_axis, second, child_q * v)));
     [
         (origin, base),
         (
@@ -310,6 +322,186 @@ fn check_frames_and_queries(
         .zip(expected[0].1)
     {
         vector(DQuat::from_array(model.rotation) * v, wanted);
+    }
+}
+
+// M103's retained Rx(.1) LINK input keeps its JOINT-local inputs unchanged.
+// Reference the two measured scalar coordinates; targets never supply geometry.
+fn check_retained_child_link_rotation(sim: &Simulation, axes: [[f64; 3]; 2]) {
+    let child_q = DQuat::from_rotation_x(0.1);
+    let expected = frames_with_child_link(sim, "arm", axes, DVec3::ZERO, DQuat::IDENTITY, child_q);
+    let first = state(sim, "arm", "root");
+    let second = state(sim, "arm", "tip");
+    let root_omega = DVec3::from_array(axes[0]) * first.velocity;
+    let tip_axis = child_q * DVec3::from_array(axes[1]);
+    for (index, link) in ["base", "child"].into_iter().enumerate() {
+        let name = format!("w::arm::{link}");
+        let handle = body(sim, &name);
+        let native = sim
+            .world()
+            .resource::<PhysicsBackend>()
+            .state(handle)
+            .unwrap();
+        let logical = sim.world().get::<WorldPose>(named(sim, &name)).unwrap();
+        let velocity = sim
+            .world()
+            .get::<gz_sim_scene::Velocity>(named(sim, &name))
+            .unwrap();
+        let (position, basis) = expected[index];
+        let omega = if index == 0 {
+            root_omega
+        } else {
+            root_omega + rotate(axes[0], first.position, tip_axis) * second.velocity
+        };
+        let linear = if index == 0 {
+            DVec3::ZERO
+        } else {
+            root_omega.cross(position)
+        };
+        vector(DVec3::from_array(native.position), position);
+        vector(DVec3::from_array(logical.translation), position);
+        vector(DVec3::from_array(native.velocity), linear);
+        vector(DVec3::from_array(velocity.linear), linear);
+        vector(DVec3::from_array(native.angular_velocity), omega);
+        vector(DVec3::from_array(velocity.angular), omega);
+        for (v, wanted) in [DVec3::X, DVec3::Y, DVec3::Z].into_iter().zip(basis) {
+            vector(DQuat::from_array(native.orientation) * v, wanted);
+            vector(DQuat::from_array(logical.rotation) * v, wanted);
+        }
+        let visual = sim
+            .world()
+            .get::<WorldPose>(named(sim, &format!("{name}::v")))
+            .unwrap();
+        vector(DVec3::from_array(visual.translation), position);
+        for (v, wanted) in [DVec3::X, DVec3::Y, DVec3::Z].into_iter().zip(basis) {
+            vector(DQuat::from_array(visual.rotation) * v, wanted);
+        }
+        let joint = if index == 0 { "root" } else { "tip" };
+        let joint_name = format!("w::arm::{joint}");
+        assert!(joint_controller_binding_matches(sim, id(sim, &joint_name)));
+        let sample = sim
+            .world()
+            .get::<JointSample>(named(sim, &joint_name))
+            .unwrap();
+        assert_eq!(sample.state, state(sim, "arm", joint));
+        assert_eq!((sample.time, sample.epoch), (sim.elapsed(), sim.epoch()));
+        for i in 0..4 {
+            let local = DVec3::new(2., 0., 4. * i as f64);
+            let center = position + apply(basis, local);
+            let yaw = if i == 0 { 0. } else { 0.3 };
+            let shape =
+                [DVec3::X, DVec3::Y, DVec3::Z].map(|v| apply(basis, rotate([0., 0., 1.], yaw, v)));
+            let entity = named(sim, &format!("{name}::c{i}"));
+            let child = sim.world().get::<WorldPose>(entity).unwrap();
+            vector(DVec3::from_array(child.translation), center);
+            vector(
+                DVec3::from_array(sim.world().get::<LocalPose>(entity).unwrap().0.translation),
+                local,
+            );
+            for (v, wanted) in [DVec3::X, DVec3::Y, DVec3::Z].into_iter().zip(shape) {
+                vector(DQuat::from_array(child.rotation) * v, wanted);
+            }
+            // All four retained primitives have transverse half-width .5 in
+            // this shape-local direction. Use a wide cap, never binary endpoints.
+            let ray = center + shape[0] * 2.;
+            near(query(sim, ray, -shape[0], 3., None).unwrap(), 1.5);
+            assert!(query(sim, ray, -shape[0], 3., Some(handle)).is_none());
+            if i == 0 {
+                // Sphere .5 radius with transverse .3 has chord root .4.
+                let origin = center + basis[0] * 4. + basis[1] * 0.3;
+                near(query(sim, origin, -basis[0], 5., None).unwrap(), 3.6);
+                assert!(query(sim, origin, -basis[0], 5., Some(handle)).is_none());
+            }
+        }
+    }
+    let model = sim.world().get::<WorldPose>(named(sim, "w::arm")).unwrap();
+    vector(DVec3::from_array(model.translation), DVec3::ZERO);
+    for (v, wanted) in [DVec3::X, DVec3::Y, DVec3::Z]
+        .into_iter()
+        .zip(expected[0].1)
+    {
+        vector(DQuat::from_array(model.rotation) * v, wanted);
+    }
+}
+
+fn retained_child_link_rotation_positive(text: &str, axes: [[f64; 3]; 2]) {
+    let mut driven = load(text);
+    let mut latest = load(text);
+    let mut quiet = load(text);
+    for sim in [&mut driven, &mut latest, &mut quiet] {
+        sim.initialize_schedules().unwrap();
+        check_retained_child_link_rotation(sim, axes);
+    }
+    let original_ids = ids(&driven);
+    let initial = bodies(&driven);
+    for sim in [&mut driven, &mut latest] {
+        sim.set_paused(true);
+    }
+    command(&mut driven, "arm", "root", -0.8);
+    command(&mut driven, "arm", "tip", -0.6);
+    for sim in [&mut driven, &mut latest] {
+        command(sim, "arm", "root", 0.4);
+        command(sim, "arm", "tip", 0.3);
+    }
+    for joint in ["root", "tip"] {
+        let key = id(&driven, &format!("w::arm::{joint}"));
+        for invalid in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            assert!(matches!(
+                set_joint_controller_command(&mut driven, key, invalid),
+                Err(JointControllerCommandError::InvalidCommand)
+            ));
+        }
+    }
+    for sim in [&mut driven, &mut latest] {
+        for _ in 0..3 {
+            assert!(sim.tick().unwrap().dt.is_zero());
+        }
+        assert_eq!(sim.elapsed(), Duration::ZERO);
+        assert_eq!(bodies(sim), initial);
+        check_retained_child_link_rotation(sim, axes);
+        sim.set_paused(false);
+        sim.step_exact(100).unwrap();
+        check_retained_child_link_rotation(sim, axes);
+    }
+    quiet.step_exact(100).unwrap();
+    check_retained_child_link_rotation(&quiet, axes);
+    assert_eq!(ids(&driven), original_ids);
+    assert_eq!(bodies(&driven), bodies(&latest));
+    assert_ne!(bodies(&driven), bodies(&quiet));
+    for joint in ["root", "tip"] {
+        let actual = state(&driven, "arm", joint);
+        assert!(actual.position.is_finite() && actual.velocity.is_finite());
+        assert!(actual.position > 1e-7 && actual.position < 1.);
+        near(state(&quiet, "arm", joint).position, 0.);
+        near(state(&quiet, "arm", joint).velocity, 0.);
+        assert_eq!(actual, state(&latest, "arm", joint));
+    }
+    driven.reset().unwrap();
+    assert_eq!(
+        ids(&driven).keys().copied().collect::<Vec<_>>(),
+        original_ids.keys().copied().collect::<Vec<_>>()
+    );
+    check_retained_child_link_rotation(&driven, axes);
+    driven.step_exact(50).unwrap();
+    for joint in ["root", "tip"] {
+        near(state(&driven, "arm", joint).position, 0.);
+        near(state(&driven, "arm", joint).velocity, 0.);
+    }
+    command(&mut driven, "arm", "root", 0.4);
+    command(&mut driven, "arm", "tip", 0.3);
+    driven.step_exact(20).unwrap();
+    command(&mut driven, "arm", "root", -0.2);
+    reset_loaded_world(&mut driven, |_| ()).unwrap();
+    assert_eq!(
+        ids(&driven).keys().copied().collect::<Vec<_>>(),
+        original_ids.keys().copied().collect::<Vec<_>>()
+    );
+    check_retained_child_link_rotation(&driven, axes);
+    driven.step_exact(50).unwrap();
+    check_retained_child_link_rotation(&driven, axes);
+    for joint in ["root", "tip"] {
+        near(state(&driven, "arm", joint).position, 0.);
+        near(state(&driven, "arm", joint).velocity, 0.);
     }
 }
 
@@ -954,14 +1146,15 @@ fn principal_axis_admission_keeps_negative_nonprincipal_frames_and_owner_domains
         &base.replacen("type='revolute'", "type='fixed'", 1),
         "joint controller frames",
     );
-    refused(
-        &base.replacen(
-            "<pose>0 0 100 0 0 0</pose>",
-            "<pose>0 0 100 0.1 0 0</pose>",
-            1,
-        ),
-        "joint controller frames",
+    // Same exact formerly refused LINK input is selected by M103. The local
+    // JOINT frames, axes, geometry and one-hundred-unit offset are unchanged.
+    let rotated_child = base.replacen(
+        "<pose>0 0 100 0 0 0</pose>",
+        "<pose>0 0 100 0.1 0 0</pose>",
+        1,
     );
+    assert_ne!(rotated_child, base);
+    retained_child_link_rotation_positive(&rotated_child, [AXES[0], AXES[1]]);
     refused(
         &base.replacen(
             "canonical_link='base'>",

@@ -1372,9 +1372,28 @@ fn depth_primitives_keep_semantic_faults_unsupported_shapes_and_shared_128_ident
             radius: 0.5,
             length: 1.0,
         });
+    let before_capsule = (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts());
+    let Request::CalibratedDepthShapeSnapshot {
+        visuals: capsule_rows,
+        ..
+    } = extract_camera(&sim, id, 1, [0.0; 3]).unwrap()
+    else {
+        panic!("calibrated capsule depth shape")
+    };
+    let capsule = capsule_rows.iter().find(|row| row.id == visual_id).unwrap();
     assert_eq!(
-        extract_camera(&sim, id, 1, [0.0; 3]),
-        Err(SnapshotError::UnsupportedGeometry(visual_id))
+        capsule.geometry,
+        gz_render_protocol::Geometry::Capsule {
+            radius: 0.5,
+            length: 1.0
+        }
+    );
+    let capsule_pose = sim.world().get::<WorldPose>(visual).unwrap();
+    assert_eq!(capsule.translation, capsule_pose.translation);
+    assert_eq!(capsule.rotation, capsule_pose.rotation);
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+        before_capsule
     );
     sim.world_mut().get_mut::<VisualGeometry>(visual).unwrap().0 =
         Arc::new(sdformat::Geometry::Ellipsoid {

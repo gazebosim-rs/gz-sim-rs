@@ -138,6 +138,97 @@ fn source_bodies(sim: &Simulation) -> [BodyId; 2] {
     ]
 }
 
+fn retained_requested_compound_com_positive(xml: &str) {
+    let sdf = sdformat::load_str(xml, "compound", &NoResources).unwrap();
+    let mut sim = load(xml);
+    sim.initialize_schedules().unwrap();
+    let mut requested = sdf.worlds[0].models[0].clone();
+    requested.links[0].inertial.pose.transform.translation = [0.25, 0., 0.];
+    let t = prepare_model_template(&sim, &sdf, &requested).unwrap();
+    let centered = prepare_model_template(&sim, &sdf, &sdf.worlds[0].models[0]).unwrap();
+    let first = next_entity_id(sim.world()).unwrap();
+    let copied = spawn_model_template(&mut sim, &t, cycle([10., 20., 30.])).unwrap();
+    assert_eq!(copied, first);
+    let control = spawn_model_template(&mut sim, &centered, cycle([100., 20., 30.])).unwrap();
+    let handle = body(&sim, copied);
+    let control_handle = body(&sim, control);
+    let initial = model_state(&sim, copied).unwrap();
+    let center = |state: BodyState| {
+        glam::DVec3::from_array(state.position)
+            + glam::DQuat::from_array(state.orientation) * glam::DVec3::new(0.25, 0., 0.)
+    };
+    let start = center(native(&sim, handle));
+    let control_start = native(&sim, control_handle).position;
+    vector(start.to_array(), [10., 20.25, 30.]);
+    let alias = sim
+        .world()
+        .get::<VisualGeometry>(entity(&sim, "w::source::body::view"))
+        .unwrap()
+        .0
+        .clone();
+    assert!(Arc::ptr_eq(
+        &alias,
+        &sim.world()
+            .get::<VisualGeometry>(entity_by_id(sim.world(), copied + 3).unwrap())
+            .unwrap()
+            .0
+    ));
+    vector(
+        sim.world()
+            .get::<WorldPose>(entity_by_id(sim.world(), copied + 3).unwrap())
+            .unwrap()
+            .translation,
+        [10.75, 20.25, 29.5],
+    );
+    for (index, expected) in [[10., 22., 30.], [14., 22., 30.]].into_iter().enumerate() {
+        let key = copied + if index == 0 { 2 } else { 4 };
+        let child = entity_by_id(sim.world(), key).unwrap();
+        vector(
+            sim.world().get::<WorldPose>(child).unwrap().translation,
+            expected,
+        );
+        near(
+            sim.world().get::<CollisionDensity>(child).unwrap().0,
+            (17 + index) as f64,
+        );
+        // Sphere and Y-axis cylinder have radius .5 in this X/Z section.
+        let ray_origin = [expected[0] + 0.3, expected[1], expected[2] + 4.];
+        near(ray(&sim, ray_origin, [0., 0., -1.], 5., None).unwrap(), 3.6);
+        assert!(ray(&sim, ray_origin, [0., 0., -1.], 5., Some(handle)).is_none());
+    }
+    for model in [copied, control] {
+        // Cycle rotation maps I(2,3,4) to world(4,2,3); use only Z torque.
+        queue_link_world_wrench(&mut sim, model + 1, [2., -4., 6.], [0., 0., 3.]).unwrap();
+    }
+    sim.step_exact(1).unwrap();
+    let actual = native(&sim, handle);
+    let reference = native(&sim, control_handle);
+    vector(actual.velocity, [0.001, -0.002, 0.003]);
+    vector(actual.angular_velocity, [0., 0., 0.001]);
+    vector(actual.velocity, reference.velocity);
+    vector(actual.angular_velocity, reference.angular_velocity);
+    let delta = (center(actual) - start).to_array();
+    vector(
+        delta,
+        std::array::from_fn(|i| reference.position[i] - control_start[i]),
+    );
+    for (distance, speed) in delta.into_iter().zip(actual.velocity) {
+        assert!(distance * speed > 0. && distance.abs() <= speed.abs() * 0.001 + 1e-11);
+    }
+    sim.step_exact(1).unwrap();
+    vector(native(&sim, handle).velocity, actual.velocity);
+    sim.reset().unwrap();
+    assert_eq!(model_state(&sim, copied).unwrap(), initial);
+    vector((center(native(&sim, handle)) - start).to_array(), [0.; 3]);
+    remove_model(&mut sim, copied).unwrap();
+    assert!(
+        sim.world()
+            .resource::<PhysicsBackend>()
+            .state(handle)
+            .is_none()
+    );
+}
+
 #[test]
 fn runtime_compounds_keep_mixed_child_frames_prefix_ids_and_isolated_global_queries() {
     for count in [2, 4, 16] {
@@ -576,10 +667,16 @@ fn runtime_compound_preparation_keeps_original_domains_and_late_input_errors_clo
         match row {
             4 => assert!(matches!(result, Err(WorldEditError::InvalidScene))),
             5 | 6 => assert!(matches!(result, Err(WorldEditError::InvalidState))),
+            7 => {
+                result.unwrap();
+            } // M102 translates the requested compound mass frame.
             _ => assert!(matches!(result, Err(WorldEditError::UnsupportedModel))),
         }
         assert_eq!(snapshot(&sim, &bodies), before, "input row{row}");
     }
+    // Publish the exact row7 request only in a separate world: every original
+    // refusal and its allocator/native/pending baseline above stay untouched.
+    retained_requested_compound_com_positive(&xml);
     // Native mass/inertia rejection remains before either allocator commits.
     for row in 0..3 {
         let mut requested = sdf.worlds[0].models[0].clone();

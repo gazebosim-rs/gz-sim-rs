@@ -293,7 +293,6 @@ pub(super) fn matches_compound_world_edit(world: &World, id: u64) -> bool {
             translation: link.local.0.translation,
             rotation: link.local.0.rotation,
         })
-        || link.center.is_some_and(|center| center.0 != [0.; 3])
         || link.body.is_none()
     {
         return false;

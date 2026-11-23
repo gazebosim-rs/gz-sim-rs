@@ -1,10 +1,11 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One canonical Twist subscription on the existing world publication IO owner.
+//! One canonical Twist subscription per lease on the existing world IO owner.
 use gz_sim_proto::{
     msgs::Twist,
     prost::{Message, Name},
 };
+use std::collections::BTreeMap;
 use std::sync::{
     Arc, Weak,
     atomic::{AtomicBool, AtomicU64, Ordering},
@@ -93,6 +94,57 @@ pub(super) struct Declaration {
     subscriber: Option<Subscriber<()>>,
     presence: Option<LivelinessToken>,
 }
+
+pub(super) enum Installation {
+    Ready(Arc<Lease>),
+    Retiring(Setup),
+}
+
+/// The finite family stays on the existing world IO owner. Retiring records
+/// retain their keys and callback captures until reconciliation is complete.
+#[derive(Default)]
+pub(super) struct Declarations {
+    entries: BTreeMap<String, Declaration>,
+}
+impl Declarations {
+    pub(super) fn install(
+        &mut self,
+        session: &zenoh::Session,
+        setup: Setup,
+        process: &str,
+        node: &str,
+    ) -> Result<Installation, String> {
+        if let Some(previous) = self.entries.get(&setup.key) {
+            return if previous.is_retiring() {
+                Ok(Installation::Retiring(setup))
+            } else {
+                Err("velocity key already installed".into())
+            };
+        }
+        if self.entries.len() == 8 {
+            return Err("at most eight velocity inputs".into());
+        }
+        let key = setup.key.clone();
+        let (declaration, lease) =
+            Declaration::new(session, setup, process, node).map_err(|error| error.to_string())?;
+        self.entries.insert(key, declaration);
+        Ok(Installation::Ready(lease))
+    }
+    pub(super) fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+    pub(super) fn begin_shutdown(&self) {
+        for declaration in self.entries.values() {
+            declaration.begin_shutdown();
+        }
+    }
+    pub(super) fn reconcile(&mut self, closed: bool) -> bool {
+        self.entries
+            .retain(|_, declaration| !declaration.reconcile(closed));
+        self.is_empty()
+    }
+}
+
 impl Declaration {
     pub(super) fn new(
         session: &zenoh::Session,
@@ -143,6 +195,9 @@ impl Declaration {
     }
     pub(super) fn begin_shutdown(&self) {
         self.state.active.store(false, Ordering::Release);
+    }
+    pub(super) fn is_retiring(&self) -> bool {
+        !self.state.active.load(Ordering::Acquire)
     }
     pub(super) fn reconcile(&mut self, closed: bool) -> bool {
         if closed || self.lease.strong_count() == 0 {

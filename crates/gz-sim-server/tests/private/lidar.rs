@@ -24,6 +24,7 @@ const XML: &str = r#"<sdf version='1.12'><world name='default'>
 
 fn metadata() -> LidarPublication {
     LidarPublication {
+        vertical: Default::default(),
         entity_name: "rig::body::lidar".into(),
         frame_id: "rig/body/lidar".into(),
         topic: "/m7/scan".into(),

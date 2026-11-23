@@ -1,3 +1,89 @@
+## Current M102–M113 renderer test correction batch
+
+The frozen `7c8a5de4` full staged hook exited 1 after 4,440.450 seconds.
+Both Clippy stages, documentation and the 498-test Python aggregate passed.
+Headless completed 2,153 passed, zero failed and two ignored; its maintained
+coverage gates passed, including Server 19,357/20,312 regions and 13,035/13,446
+lines. Renderer completed 1,677 passed, four failed and two ignored. There was
+no capacity stop or qualified commit. Those results belong to the frozen
+candidate; this successor has no verification result.
+
+The complete renderer failure batch has three reviewed test-premise or driver
+classes. Preserve the original valid Capsule as a positive calibrated-depth
+snapshot and lazy ownership control, with a same-target Plane refusal before
+reservation. Advance every ready RGB camera once through ImagePublished before
+receiving; preserve all clocks, deadlines and reset/removal controls. Assert the
+established empty-scene RGBA [43, 44, 47, 255], including alpha, after complete
+visual retirement. No production correction is established by these failures.
+
+The isolated correction keeps all 122 Rust identities and harness mappings:
+103 headless, 98 renderer, 79 shared, 70 public and 52 private; Python remains
+498. The reviewed body/helper changes are explicit dispositions, not a claim
+that every original body is unchanged. Complete the full failure batch and
+independent source review before one affected formatter and one consolidated
+full staged hook. Keep every workspace, crate and changed-base coverage gate,
+independent local DATA, exact hosted CI and original-artifact audit. The genuine
+qualified parent remains `08a0eeae`; no frozen failed candidate transfers proof.
+
+Keep every previous failure and frozen tree. Accepted M1–M76 and 202 slices
+remain unchanged. Leave the no-expiry M77 demo running until explicit owner
+stop confirmation. Formal browser and shutdown evidence remain outstanding.
+No demo action, cleanup, Fuel, backend or dependency change is part of this
+correction. DART and MuJoCo remain retired.
+
+---
+
+The prior checkpoint below is preserved verbatim as historical context. Its
+current-status wording describes its own observation time, not this wave.
+
+## Current M102/M103 implementation
+
+M102 adds translated explicit centers of mass to passive runtime primitive
+compound copies. M103 admits representable rotated local LINK frames in the
+existing two-Revolute JointController. Root selected disjoint lanes under D31;
+each is bounded to five working days including review and mandatory checks.
+Read the M102 and M103 delivery guides in `docs/` for the closed contracts.
+
+The source parent is `08a0eeae97dede8daee6efe6cb2922bdb86ca722`, tree
+`9e1f92e1586846bb86c253df1d519a928b949c8c`, true parent `1a4bdbb5`.
+Its full normal passed after 4514.232 seconds and an independent retained audit
+passed without replaying tests, builds or RAW merges. Actual headless results
+were 2048 passed/two ignored; renderer 1583 passed/two ignored. All 23/22 new
+headless/renderer controls passed; Python494, finite47 and auxiliary21 remain
+separate aggregates. The original two-case failure and test-only corrections
+remain preserved. The exact review ref is published; hosted outcome is unknown
+at this checkpoint; exact automatic CI45074764720 attempt1 is in progress.
+
+Both implementations, regression Source and retained same-input dispositions
+are complete and independently reviewed. There are 26 new Rust declarations:
+26 headless, 25 renderer, 25 shared; 20 public and six private (one native
+headless-only and five Scene shared). No new Python, finite or CLI cases.
+These are Source obligations, not current passes. The integrated Source has
+1831 files, 16 owned paths (eight Rust/eight docs), four new paths,
+1815 protected parent paths and 128 cumulative paths since accepted Main.
+Only three production files change. Formatting, final tree/commit and
+verification remain to be recorded. Finish code, regressions, documentation and
+independent Source review; batch all findings before the one consolidated
+final verification cycle. Keep the full staged hook, strict coverage, hosted
+CI and independent original-artifact audit before release, Main promotion or acceptance.
+No qualification or acceptance transfers from the parent.
+
+M102 owns native `compound.rs` and Scene `world_spawn.rs`; M103 owns only
+JointController `config.rs`. Their new regression leaves are disjoint. Root
+owns retained same-input refusal-to-positive dispositions and shared docs.
+Any additional production seam requires explicit concrete rescope before edits.
+
+The persistent no-expiry M77 manual demo stays live until the owner confirms a
+stop. Formal browser evidence and shutdown still gate acceptance. Accepted
+M1–M76, 202 slices, Fuel, old targets, frozen worktrees and evidence stay intact.
+DART and MuJoCo remain retired. No cleanup or new heavy resource allocation is
+released by this document; the next final run requires a fresh reviewed budget.
+
+---
+
+The exact parent checkpoint follows as historical context. Its status statements
+describe that earlier checkpoint, not the current pair.
+
 ## Current M100/M101 correction and qualification
 
 Translated primitive mass frames and local joint frames are implemented and

@@ -576,7 +576,7 @@ impl WorldIo {
                 let mut rates: Option<crate::rates::RateDeclarations> = None;
                 let mut forces: Option<crate::force_io::ForceDeclarations> = None;
                 let mut drive: Option<crate::diff_drive_io::Declarations> = None;
-                let mut velocity: Option<crate::velocity_control_io::Declaration> = None;
+                let mut velocities = crate::velocity_control_io::Declarations::default();
                 let mut velocity_install: Option<(
                     crate::velocity_control_io::Setup,
                     crate::velocity_control_io::Receipt,
@@ -785,26 +785,24 @@ impl WorldIo {
                     }) {
                         drive = None;
                     }
-                    if velocity.as_mut().is_some_and(|declaration| {
-                        declaration.reconcile(publication_session.is_closed())
-                    }) {
-                        velocity = None;
-                    }
-                    if velocity.is_none()
-                        && let Some((setup, receipt)) = velocity_install.take()
-                    {
-                        match crate::velocity_control_io::Declaration::new(
+                    velocities.reconcile(publication_session.is_closed());
+                    if let Some((setup, receipt)) = velocity_install.take() {
+                        match velocities.install(
                             &publication_session,
                             setup,
                             &publication_process,
                             &publication_node,
                         ) {
-                            Ok((declaration, lease)) => {
+                            Ok(crate::velocity_control_io::Installation::Ready(lease)) => {
+                                // A canceled receipt drops the returned lease;
+                                // the family keeps its capture until quiescence.
                                 let _ = receipt.try_send(Ok(lease));
-                                velocity = Some(declaration);
+                            }
+                            Ok(crate::velocity_control_io::Installation::Retiring(setup)) => {
+                                velocity_install = Some((setup, receipt));
                             }
                             Err(error) => {
-                                let _ = receipt.try_send(Err(error.to_string()));
+                                let _ = receipt.try_send(Err(error));
                             }
                         }
                     }
@@ -902,6 +900,8 @@ impl WorldIo {
                         }
                     }
                     let incoming = if drive.is_some()
+                        || !velocities.is_empty()
+                        || velocity_install.is_some()
                         || controllers.is_some()
                         || controller_install.is_some()
                         || drive_install.is_some()
@@ -1319,9 +1319,7 @@ impl WorldIo {
                 if let Some(declarations) = &controllers {
                     declarations.begin_shutdown();
                 }
-                if let Some(declaration) = &velocity {
-                    declaration.begin_shutdown();
-                }
+                velocities.begin_shutdown();
                 // Undeclaring an endpoint does not join an in-flight callback.
                 // Keep its capture witness on this IO owner until it is released.
                 loop {
@@ -1343,9 +1341,7 @@ impl WorldIo {
                     let controllers_done = controllers
                         .as_mut()
                         .is_none_or(|declarations| declarations.reconcile(true));
-                    let velocity_done = velocity
-                        .as_mut()
-                        .is_none_or(|declaration| declaration.reconcile(true));
+                    let velocity_done = velocities.reconcile(true);
                     if rates_done
                         && forces_done
                         && wrenches_done

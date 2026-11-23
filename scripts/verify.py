@@ -531,7 +531,7 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                                   renderer_executables(result.stdout, env["CARGO_TARGET_DIR"]))
     contract_path = ROOT / "planning/coverage-profiles.json"
     if contract_path.is_file() and json.loads(contract_path.read_text()).get("version") == 2:
-        expected = {"camera"} if name == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "odometry_rotation_offsets", "odometry_noise", "air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states", "multiple_joint_controllers", "multiple_diff_drives", "velocity_control"}
+        expected = {"camera"} if name == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "odometry_rotation_offsets", "odometry_noise", "air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "spatial_lidar", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states", "multiple_joint_controllers", "multiple_diff_drives", "velocity_control"}
         peers = check_native_peer_evidence(directory / "native-peers", expected)
         (directory / "native-peers.json").write_text(json.dumps(peers, indent=2) + "\n")
     objects = []
@@ -789,35 +789,52 @@ def coverage(changed_file=None):
                                   "runtime_probe_files": runtime_files}}
     (out / "profile-index.json").write_text(json.dumps(index, indent=2) + "\n")
     (run_dir / "zenoh-native-reference.json").write_bytes(native_bytes)
-    reports, zero_sources = {}, {}
+    def recheck_profile_inputs():
+        # Continuation never permits a second profile on changed source, SDK,
+        # selector or captured proof identities.
+        if (selected_native_reference() != (native_root, native_selection)
+                or (native_root / "environment.json").read_bytes() != native_bytes):
+            raise ValueError("selected Zenoh reference changed between profiles")
+        if zenoh_peer.runtime_probe.proof_files(native_selection) != {
+                role: value["source"] for role, value in runtime_files.items()}:
+            raise ValueError("runtime probe proof changed between profiles")
+        for value in runtime_files.values():
+            captured = run_dir / value["file"]
+            if (captured.is_symlink() or not captured.is_file()
+                    or not captured.resolve().is_relative_to(run_dir.resolve())
+                    or captured.stat().st_size != value["source"]["bytes"]):
+                raise ValueError("retained runtime probe proof changed between profiles")
+            blob = zenoh_peer.runtime_probe.read_file(captured, 16 * 1024**2)
+            if (len(blob) != value["source"]["bytes"]
+                    or hashlib.sha256(blob).hexdigest() != value["source"]["sha256"]):
+                raise ValueError("retained runtime probe proof changed between profiles")
+        final_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+                        for paths in sources.values() for path in paths}
+        final_inputs = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+                        for path in inputs}
+        if hashes != final_hashes or input_hashes != final_inputs:
+            raise ValueError("workspace sources or verification inputs changed between profiles")
+
+    reports, zero_sources, failures = {}, {}, []
     for name, (crates, command) in plan.items():
-        reports[name], proof = profile_coverage(name, crates, command, run_dir / name,
-                                                changed, executable, llvm, version)
-        if proof:
-            zero_sources[name] = proof
+        try:
+            reports[name], proof = profile_coverage(name, crates, command, run_dir / name,
+                                                    changed, executable, llvm, version)
+            if proof:
+                zero_sources[name] = proof
+        except (subprocess.CalledProcessError, ValueError) as error:
+            if isinstance(error, subprocess.CalledProcessError) and error.returncode < 0:
+                raise  # A directly signaled child is cancellation, not a test exit.
+            # These are ordinary test/build/coverage failures. Controller signals,
+            # timeouts, output/resource bounds and other runtime failures escape.
+            if run(["rustc", "-vV"], capture_output=True, text=True).stdout != version:
+                raise ValueError("compiler changed between profiles") from error
+            failures.append(f"{name}: {type(error).__name__}: {error}")
+        recheck_profile_inputs()
+    if failures:
+        raise ValueError("Required coverage profiles failed:\n" + "\n".join(failures))
     summaries = check_profile_reports(plan, reports, zero_sources)
-    if (selected_native_reference() != (native_root, native_selection)
-            or (native_root / "environment.json").read_bytes() != native_bytes):
-        raise ValueError("selected Zenoh reference changed between profiles")
-    if zenoh_peer.runtime_probe.proof_files(native_selection) != {
-            role: value["source"] for role, value in runtime_files.items()}:
-        raise ValueError("runtime probe proof changed between profiles")
-    for value in runtime_files.values():
-        captured = run_dir / value["file"]
-        if (captured.is_symlink() or not captured.is_file()
-                or not captured.resolve().is_relative_to(run_dir.resolve())
-                or captured.stat().st_size != value["source"]["bytes"]):
-            raise ValueError("retained runtime probe proof changed between profiles")
-        blob = zenoh_peer.runtime_probe.read_file(captured, 16 * 1024**2)
-        if (len(blob) != value["source"]["bytes"]
-                or hashlib.sha256(blob).hexdigest() != value["source"]["sha256"]):
-            raise ValueError("retained runtime probe proof changed between profiles")
-    final_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
-                    for paths in sources.values() for path in paths}
-    final_inputs = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
-                    for path in inputs}
-    if hashes != final_hashes or input_hashes != final_inputs:
-        raise ValueError("workspace sources or verification inputs changed between profiles")
+    recheck_profile_inputs()
     # Keep legacy headless evidence paths intact for existing staged consumers.
     for filename in ("test-output.log", "evidence.json", "summary.json"):
         (out / filename).write_bytes((run_dir / "headless" / filename).read_bytes())
@@ -986,7 +1003,7 @@ def retain_profile_evidence(candidate, output, hashes, missing):
             else:
                 peer_index = base / "native-peers.json"
                 if peer_index.is_file() and not peer_index.is_symlink():
-                    expected = {"camera"} if profile == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "odometry_rotation_offsets", "odometry_noise", "air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states", "multiple_joint_controllers", "multiple_diff_drives", "velocity_control"}
+                    expected = {"camera"} if profile == "renderer" else {"clock", "rate", "force", "robot_sensors", "odometry_publisher", "apply_link_wrench", "wrench_odometry", "odometry_3d", "odometry_translation_offsets", "odometry_rotation_offsets", "odometry_noise", "air_speed_wind", "joint_force_feedback", "imu_reference_frames", "imu_custom_world", "imu_world_heading", "multiple_altimeters", "multiple_air_pressures", "multiple_air_speeds", "multiple_magnetometers", "multiple_logical_cameras", "multiple_lidars", "spatial_lidar", "multiple_pose_publishers", "multiple_odometry_publishers", "multiple_joint_states", "multiple_joint_controllers", "multiple_diff_drives", "velocity_control"}
                     try:
                         actual = check_native_peer_evidence(peers, expected, {
                             "reference_sha256": data["zenoh_reference"]["environment_sha256"],

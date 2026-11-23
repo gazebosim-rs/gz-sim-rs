@@ -15,6 +15,110 @@ pub(super) enum InvalidDrive {
     Time,
 }
 
+/// Command-domain bounds only. They do not constrain contact-driven body motion.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(super) struct CommandLimits {
+    pub acceleration: [[f64; 2]; 2],
+    pub jerk: [[f64; 2]; 2],
+}
+
+impl Default for CommandLimits {
+    fn default() -> Self {
+        Self {
+            acceleration: [[f64::NEG_INFINITY, f64::INFINITY]; 2],
+            jerk: [[f64::NEG_INFINITY, f64::INFINITY]; 2],
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub(super) struct CommandHistory {
+    pub latest: [f64; 2],
+    pub older: [f64; 2],
+}
+
+impl CommandLimits {
+    pub(super) fn timed(self) -> bool {
+        self.acceleration
+            .into_iter()
+            .chain(self.jerk)
+            .flatten()
+            .any(f64::is_finite)
+    }
+
+    /// Retained native SpeedLimiter order: jerk, acceleration, then velocity.
+    /// Both discrete differences use this step's dt; there is no half coefficient.
+    /// Skip disabled derivatives so legacy velocity-only arithmetic is unchanged.
+    pub(super) fn prepare(
+        self,
+        request: [f64; 2],
+        previous: CommandHistory,
+        velocity: [[f64; 2]; 2],
+        duration: Duration,
+    ) -> Result<[f64; 2], InvalidDrive> {
+        if duration.is_zero() {
+            return Err(InvalidDrive::Time);
+        }
+        let dt = duration.as_secs_f64();
+        let mut result = request;
+        if !request
+            .into_iter()
+            .chain(previous.latest)
+            .chain(previous.older)
+            .all(f64::is_finite)
+        {
+            return Err(InvalidDrive::Command);
+        }
+        for (axis, output) in result.iter_mut().enumerate() {
+            let valid_bound = |range: [f64; 2]| {
+                !range[0].is_nan()
+                    && !range[1].is_nan()
+                    && range[0] < f64::INFINITY
+                    && range[1] > f64::NEG_INFINITY
+                    && range[0] <= range[1]
+            };
+            if !valid_bound(self.jerk[axis])
+                || !valid_bound(self.acceleration[axis])
+                || !valid_bound(velocity[axis])
+            {
+                return Err(InvalidDrive::Command);
+            }
+            let mut value = request[axis];
+            if self.jerk[axis].into_iter().any(f64::is_finite) {
+                let acceleration = (value - previous.latest[axis]) / dt;
+                let prior_acceleration = (previous.latest[axis] - previous.older[axis]) / dt;
+                let jerk = (acceleration - prior_acceleration) / dt;
+                if ![acceleration, prior_acceleration, jerk]
+                    .into_iter()
+                    .all(f64::is_finite)
+                {
+                    return Err(InvalidDrive::Command);
+                }
+                let limited_jerk = jerk.clamp(self.jerk[axis][0], self.jerk[axis][1]);
+                let limited_acceleration = prior_acceleration + limited_jerk * dt;
+                value = previous.latest[axis] + limited_acceleration * dt;
+                if !limited_acceleration.is_finite() || !value.is_finite() {
+                    return Err(InvalidDrive::Command);
+                }
+            }
+            if self.acceleration[axis].into_iter().any(f64::is_finite) {
+                let acceleration = (value - previous.latest[axis]) / dt;
+                if !acceleration.is_finite() {
+                    return Err(InvalidDrive::Command);
+                }
+                value = previous.latest[axis]
+                    + acceleration.clamp(self.acceleration[axis][0], self.acceleration[axis][1])
+                        * dt;
+                if !value.is_finite() {
+                    return Err(InvalidDrive::Command);
+                }
+            }
+            *output = value.clamp(velocity[axis][0], velocity[axis][1]);
+        }
+        Ok(result)
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(super) struct Geometry {
     radius: f64,

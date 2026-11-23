@@ -42,6 +42,8 @@ pub enum CameraOutputError {
     MultipleCameras,
     #[error("pair output requires exactly two loaded RGB cameras")]
     PairCameraCount,
+    #[error("RGB family requires exactly three or four loaded RGB cameras")]
+    RgbFamilyCount,
     #[error("mixed pair requires one configured world with exactly two loaded cameras")]
     MixedCameraCount,
     #[error("mixed pair requires exactly one RGB and one depth camera")]
@@ -703,6 +705,10 @@ impl CameraOutput {
                 .is_some_and(|current| std::sync::Arc::ptr_eq(&current.0, &self.bound_sensor.0))
     }
 }
+
+#[cfg(test)]
+#[path = "../tests/support/isolated_camera.rs"]
+mod camera_test_isolation;
 
 #[cfg(test)]
 #[path = "../tests/private/camera_output.rs"]

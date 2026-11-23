@@ -51,6 +51,79 @@ pub(super) fn validate_near(
     Ok(())
 }
 
+/// Tight camera-forward support of the actual curved primitive. Actual near
+/// intersections remain refused; only the conservative enclosing-box veto goes.
+pub(super) fn validate_primitive_near(
+    snapshot: &PrimitiveSnapshot,
+    calibration: Calibration,
+    camera: WorldPose,
+) -> Result<(), RenderError> {
+    to_render_camera_pose(camera, snapshot.origin)?;
+    for visual in &snapshot.visuals {
+        if let PrimitiveVisual::Box(visual) = visual {
+            validate_near(
+                &Snapshot {
+                    epoch: snapshot.epoch,
+                    time: snapshot.time,
+                    origin: snapshot.origin,
+                    visuals: vec![visual.clone()],
+                },
+                calibration,
+                camera,
+            )?;
+            continue;
+        }
+        let (pose, radii, segment, cylindrical) = match visual {
+            PrimitiveVisual::Sphere(v) => (v.pose, DVec3::splat(v.radius), 0.0, false),
+            PrimitiveVisual::Ellipsoid(v) => (v.pose, v.radii, 0.0, false),
+            PrimitiveVisual::Cylinder(v) => (v.pose, DVec3::splat(v.radius), v.length, true),
+            PrimitiveVisual::Capsule(v) => (v.pose, DVec3::splat(v.radius), v.length, false),
+            PrimitiveVisual::Box(_) => unreachable!("box validated above"),
+        };
+        let dimensions = if segment == 0.0 {
+            2.0 * radii
+        } else if cylindrical {
+            DVec3::new(2.0 * radii.x, 2.0 * radii.y, segment)
+        } else {
+            DVec3::new(2.0 * radii.x, 2.0 * radii.y, segment + 2.0 * radii.z)
+        };
+        if !radii.is_finite()
+            || radii.min_element() <= 0.0
+            || !segment.is_finite()
+            || segment < 0.0
+            || matches!(
+                visual,
+                PrimitiveVisual::Cylinder(_) | PrimitiveVisual::Capsule(_)
+            ) && segment <= 0.0
+            || !dimensions.is_finite()
+            || !dimensions.as_vec3().is_finite()
+            || dimensions.as_vec3().min_element() <= 0.0
+        {
+            return Err(RenderError::InvalidVisual);
+        }
+        to_render_pose(pose, snapshot.origin)?;
+        let offset = camera.rotation.inverse() * (pose.translation - camera.translation);
+        let rotation = camera.rotation.inverse() * pose.rotation;
+        // The support direction is the camera +X axis expressed in shape axes.
+        let n = rotation.inverse() * DVec3::X;
+        let extent = if cylindrical {
+            radii.x * n.x.hypot(n.y) + 0.5 * segment * n.z.abs()
+        } else {
+            (radii * n).length() + 0.5 * segment * n.z.abs()
+        };
+        let nearest = offset.x - extent;
+        if !offset.is_finite()
+            || !n.is_finite()
+            || !extent.is_finite()
+            || !nearest.is_finite()
+            || nearest <= calibration.config().near
+        {
+            return Err(RenderError::DepthNearClip);
+        }
+    }
+    Ok(())
+}
+
 pub(super) fn decode(bytes: &[u8], inverse: DMat4) -> Result<Vec<f32>, RenderError> {
     if bytes.len() != (WIDTH * HEIGHT * 4) as usize || !inverse.is_finite() {
         return Err(RenderError::ReadbackFailed);

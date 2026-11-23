@@ -876,7 +876,25 @@ fn shape_tags_and_version_four_legacy_records_reject_unknown_or_missing_fields()
                 value["CalibratedShapeSnapshot"]["depth"] = serde_json::json!(true);
             }
         }
-        reject_shape_json(value);
+        if fault == 1 {
+            // The same complete Capsule record is now supported; malformed and
+            // legacy records remain refused below.
+            let data = serde_json::to_vec(&value).unwrap();
+            let mut frame = (data.len() as u32).to_le_bytes().to_vec();
+            frame.extend(data);
+            let actual = read_request(&mut frame.as_slice()).unwrap().unwrap();
+            let mut expected = shape_snapshot();
+            let Request::CalibratedShapeSnapshot { visuals, .. } = &mut expected else {
+                unreachable!()
+            };
+            visuals[1].geometry = Geometry::Capsule {
+                radius: 1.0,
+                length: 2.0,
+            };
+            assert_eq!(actual, expected);
+        } else {
+            reject_shape_json(value);
+        }
     }
     let mut legacy = serde_json::to_value(depth_snapshot()).unwrap();
     legacy["CalibratedDepthSnapshot"]["visuals"][0]["geometry"] =

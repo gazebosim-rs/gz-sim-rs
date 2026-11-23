@@ -254,6 +254,119 @@ fn check_members(
     }
 }
 
+// Reference for the exact former rotated-child refusal. Both joint anchors are
+// at their link origins, but the child LINK also rotates the local tip axis.
+fn check_rotated_child(sim: &Simulation) {
+    let root = state(sim, "arm", "root");
+    let tip = state(sim, "arm", "tip");
+    let child_q = DQuat::from_rotation_x(0.1);
+    let tip_axis = child_q * DVec3::Z;
+    let rotate = |axis: DVec3, angle: f64, value: DVec3| {
+        value * angle.cos()
+            + axis.cross(value) * angle.sin()
+            + axis * axis.dot(value) * (1. - angle.cos())
+    };
+    let root_omega = DVec3::Z * root.velocity;
+    let child_omega = root_omega + rotate(DVec3::Z, root.position, tip_axis) * tip.velocity;
+    let root_basis = [DVec3::X, DVec3::Y, DVec3::Z].map(|v| rotate(DVec3::Z, root.position, v));
+    let child_basis = [DVec3::X, DVec3::Y, DVec3::Z].map(|v| {
+        rotate(
+            DVec3::Z,
+            root.position,
+            rotate(tip_axis, tip.position, child_q * v),
+        )
+    });
+    for (link, position, basis, omega, sign) in [
+        ("base", DVec3::ZERO, root_basis, root_omega, -1.),
+        (
+            "child",
+            rotate(DVec3::Z, root.position, DVec3::Z * 4.),
+            child_basis,
+            child_omega,
+            1.,
+        ),
+    ] {
+        let link_name = format!("w::arm::{link}");
+        let handle = body(sim, &link_name);
+        let native = sim
+            .world()
+            .resource::<PhysicsBackend>()
+            .state(handle)
+            .unwrap();
+        let logical = sim
+            .world()
+            .get::<WorldPose>(named(sim, &link_name))
+            .unwrap();
+        vector(native.position, position.to_array());
+        vector(logical.translation, position.to_array());
+        vector(native.angular_velocity, omega.to_array());
+        vector(native.velocity, root_omega.cross(position).to_array());
+        let visual = sim
+            .world()
+            .get::<WorldPose>(named(sim, &format!("{link_name}::v")))
+            .unwrap();
+        vector(visual.translation, position.to_array());
+        for (axis, wanted) in [DVec3::X, DVec3::Y, DVec3::Z].into_iter().zip(basis) {
+            vector(
+                (DQuat::from_array(native.orientation) * axis).to_array(),
+                wanted.to_array(),
+            );
+            vector(
+                (DQuat::from_array(logical.rotation) * axis).to_array(),
+                wanted.to_array(),
+            );
+            vector(
+                (DQuat::from_array(visual.rotation) * axis).to_array(),
+                wanted.to_array(),
+            );
+        }
+        let apply = |v: DVec3| basis[0] * v.x + basis[1] * v.y + basis[2] * v.z;
+        for i in 0..4 {
+            let local = DVec3::new(2., 0., sign * 4. * i as f64);
+            let center = position + apply(local);
+            let shape = [DVec3::X, DVec3::Y, DVec3::Z].map(|v| apply(rotate(DVec3::Z, 0.3, v)));
+            let entity = named(sim, &format!("{link_name}::c{i}"));
+            let actual = sim.world().get::<WorldPose>(entity).unwrap();
+            let local_pose = sim.world().get::<LocalPose>(entity).unwrap().0;
+            vector(local_pose.translation, local.to_array());
+            vector(actual.translation, center.to_array());
+            for (axis, wanted) in [DVec3::X, DVec3::Y, DVec3::Z].into_iter().zip(shape) {
+                vector(
+                    (DQuat::from_array(actual.rotation) * axis).to_array(),
+                    wanted.to_array(),
+                );
+                vector(
+                    (DQuat::from_array(local_pose.rotation) * axis).to_array(),
+                    rotate(DVec3::Z, 0.3, axis).to_array(),
+                );
+            }
+            // Wide geometric caps only: no rounded endpoint/next_down premise
+            // is attached to these noncommuting rotated frames.
+            let origin = center + shape[0] * 2.;
+            near(query(sim, origin, -shape[0], 3., None).unwrap(), 1.5);
+            near(query(sim, center, shape[0], 0.125, None).unwrap(), 0.);
+            assert!(query(sim, origin, -shape[0], 3., Some(handle)).is_none());
+        }
+        let joint = if link == "base" { "root" } else { "tip" };
+        let joint_name = format!("w::arm::{joint}");
+        assert!(joint_controller_binding_matches(sim, id(sim, &joint_name)));
+        let sample = sim
+            .world()
+            .get::<JointSample>(named(sim, &joint_name))
+            .unwrap();
+        assert_eq!(sample.state, state(sim, "arm", joint));
+        assert_eq!((sample.time, sample.epoch), (sim.elapsed(), sim.epoch()));
+    }
+    let model = sim.world().get::<WorldPose>(named(sim, "w::arm")).unwrap();
+    vector(model.translation, [0.; 3]);
+    for (axis, wanted) in [DVec3::X, DVec3::Y, DVec3::Z].into_iter().zip(root_basis) {
+        vector(
+            (DQuat::from_array(model.rotation) * axis).to_array(),
+            wanted.to_array(),
+        );
+    }
+}
+
 #[test]
 fn compound_controller_modes_move_mixed_endpoints_and_all_child_query_frames() {
     for counts in [[2, 1], [1, 4], [4, 4], [16, 16]] {
@@ -575,7 +688,6 @@ fn compound_controller_closed_domains_and_binding_faults_preserve_pending_physic
     let source = model("arm", [4, 4], false, 2., 1000., "0 0 0 0 0 0");
     let valid = world(&source);
     for bad in [
-        valid.replace("<pose>0 0 4 0 0 0</pose>", "<pose>0 0 4 0.1 0 0</pose>"),
         valid.replace("<effort>100</effort>", "<effort>0</effort>"),
         valid.replace("<velocity>4</velocity>", "<velocity>0</velocity>"),
         valid.replace("<parent>world</parent>", "<parent>child</parent>"),
@@ -613,6 +725,83 @@ fn compound_controller_closed_domains_and_binding_faults_preserve_pending_physic
             )
             .is_err()
         );
+    }
+    // Preserve the exact M103 former refusal as a physical positive. Compare
+    // independent measured frames, latest-command equivalence and quiet motion.
+    let rotated = valid.replace("<pose>0 0 4 0 0 0</pose>", "<pose>0 0 4 0.1 0 0</pose>");
+    assert_ne!(rotated, valid);
+    let mut rotated_driven = load(&rotated);
+    let mut rotated_latest = load(&rotated);
+    let mut rotated_quiet = load(&rotated);
+    let initial = bodies(&rotated_quiet);
+    let keys = ids(&rotated_driven).keys().copied().collect::<Vec<_>>();
+    for sim in [&mut rotated_driven, &mut rotated_latest, &mut rotated_quiet] {
+        sim.initialize_schedules().unwrap();
+        check_rotated_child(sim);
+    }
+    command(&mut rotated_latest, "arm", "root", -0.5);
+    command(&mut rotated_latest, "arm", "tip", -0.25);
+    for sim in [&mut rotated_driven, &mut rotated_latest] {
+        sim.set_paused(true);
+        command(sim, "arm", "root", 0.5);
+        command(sim, "arm", "tip", 0.25);
+        let before = bodies(sim);
+        let clock = (sim.elapsed(), sim.epoch());
+        let key = id(sim, "w::arm::root");
+        assert!(matches!(
+            set_joint_controller_command(sim, key, f64::NAN),
+            Err(JointControllerCommandError::InvalidCommand)
+        ));
+        assert!(sim.tick().unwrap().dt.is_zero());
+        assert_eq!(bodies(sim), before);
+        assert_eq!((sim.elapsed(), sim.epoch()), clock);
+        sim.set_paused(false);
+    }
+    for sim in [&mut rotated_driven, &mut rotated_latest, &mut rotated_quiet] {
+        sim.step_exact(1000).unwrap();
+        check_rotated_child(sim);
+    }
+    assert_eq!(bodies(&rotated_driven), bodies(&rotated_latest));
+    for joint in ["root", "tip"] {
+        assert_eq!(
+            state(&rotated_driven, "arm", joint),
+            state(&rotated_latest, "arm", joint)
+        );
+        assert!(state(&rotated_driven, "arm", joint).position.abs() > 1e-7);
+        near(state(&rotated_quiet, "arm", joint).position, 0.);
+        near(state(&rotated_quiet, "arm", joint).velocity, 0.);
+    }
+    for (key, before) in initial {
+        let after = bodies(&rotated_quiet)[&key];
+        vector(after.position, before.position);
+        vector(after.velocity, before.velocity);
+        vector(after.angular_velocity, before.angular_velocity);
+        for axis in [DVec3::X, DVec3::Y, DVec3::Z] {
+            vector(
+                (DQuat::from_array(after.orientation) * axis).to_array(),
+                (DQuat::from_array(before.orientation) * axis).to_array(),
+            );
+        }
+    }
+    for loaded in [false, true] {
+        command(&mut rotated_driven, "arm", "root", -0.5);
+        command(&mut rotated_driven, "arm", "tip", -0.25);
+        if loaded {
+            reset_loaded_world(&mut rotated_driven, |_| ()).unwrap();
+        } else {
+            rotated_driven.reset().unwrap();
+        }
+        assert_eq!(
+            ids(&rotated_driven).keys().copied().collect::<Vec<_>>(),
+            keys
+        );
+        check_rotated_child(&rotated_driven);
+        rotated_driven.step_exact(100).unwrap();
+        for joint in ["root", "tip"] {
+            near(state(&rotated_driven, "arm", joint).position, 0.);
+            near(state(&rotated_driven, "arm", joint).velocity, 0.);
+        }
+        check_rotated_child(&rotated_driven);
     }
     // The identical former +X refusal is now a controlled native chain. Keep
     // its geometry, mass, frames and plugin inputs; derive the moved frames

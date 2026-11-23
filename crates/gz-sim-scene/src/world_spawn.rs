@@ -151,6 +151,7 @@ struct CompoundOrigin {
     collisions: Vec<CollisionSpec>,
     body: BodyId,
     dynamic: bool,
+    center_of_mass: Option<[f64; 3]>,
 }
 
 pub(super) fn original_runtime_compound(world: &World, id: u64) -> bool {
@@ -199,7 +200,7 @@ pub(super) fn compound_nodes(world: &World, id: u64) -> Result<Vec<Entity>, Worl
                 rotation: v.0.rotation,
             })
         })
-        || world.get::<LinkCenterOfMass>(link).is_some()
+        || world.get::<LinkCenterOfMass>(link).map(|v| v.0) != stamp.center_of_mass
         || world.get::<Velocity>(link).is_none()
         || world.get::<ModelAnchor>(model).is_none_or(|v| {
             v.link != stamp.link.id.get()
@@ -541,6 +542,12 @@ pub fn prepare_model_template(
     }
     let visual_pose = resolve(&visual.pose)?;
     let inertial_pose = resolve(&link.inertial.pose)?;
+    let translated_compound = compound && inertial_pose.translation != [0.; 3];
+    if translated_compound && inertial_pose.rotation != [0., 0., 0., 1.] {
+        // Only translation is new. Existing centered inertia-basis admission is
+        // unchanged, while an offset must retain the caller's identity basis.
+        return Err(unsupported());
+    }
     let translated_primitive = posed_primitive && inertial_pose.translation != [0.; 3];
     if translated_primitive {
         // `runtime_singleton` means a requested singleton from an ACTUAL compound.
@@ -565,7 +572,7 @@ pub fn prepare_model_template(
         }
     }
     if (compound || posed_primitive || runtime_singleton)
-        && ((inertial_pose.translation != [0.; 3] && !translated_primitive)
+        && ((inertial_pose.translation != [0.; 3] && !translated_primitive && !translated_compound)
             || !super::world_edit::representable(inertial_pose))
     {
         return Err(unsupported());
@@ -1010,6 +1017,7 @@ pub fn spawn_model_template(
             collisions: collisions.clone(),
             body,
             dynamic: template.mass.is_some(),
+            center_of_mass: world.get::<LinkCenterOfMass>(link).map(|v| v.0),
         });
         world
             .entity_mut(model)
@@ -1252,5 +1260,218 @@ mod runtime_compound_tests {
             (actual.velocity[0] - 0.002).abs() < 1e-11,
             "pending wrench lost: {actual:?}"
         );
+    }
+    #[test]
+    fn offset_compound_original_optional_center_and_dual_stamps_refuse_drift_before_inputs() {
+        let xml = "<sdf version='1.12'><world name='w'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.001</max_step_size></physics><model name='source'><pose>-100 0 10 0 0 0</pose><link name='body'><inertial><mass>2</mass><inertia><ixx>2</ixx><iyy>2</iyy><izz>2</izz></inertia></inertial><collision name='a'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision><collision name='b'><pose>4 0 0 0 0 0</pose><geometry><box><size>1 1 1</size></box></geometry></collision><visual name='view'><geometry><box><size>1 1 1</size></box></geometry></visual></link></model></world></sdf>";
+        let sdf = sdformat::load_str(xml, "offset-stamps", &sdformat::NoResources).unwrap();
+        let mut sim = load_world_with_sdf_step(
+            xml,
+            "offset-stamps",
+            "w",
+            &sdformat::NoResources,
+            PhysicsEngine::Rapier,
+        )
+        .unwrap();
+        sim.initialize_schedules().unwrap();
+        let mut requested = sdf.worlds[0].models[0].clone();
+        requested.links[0].inertial.pose.transform.translation = [0.25, -0.5, 0.75];
+        let template = prepare_model_template(&sim, &sdf, &requested).unwrap();
+        let pose = WorldPose {
+            translation: [10., 20., 30.],
+            rotation: [0.5; 4],
+        };
+        let id = spawn_model_template(&mut sim, &template, pose).unwrap();
+        let model = entity_by_id(sim.world(), id).unwrap();
+        let link = entity_by_id(sim.world(), id + 1).unwrap();
+        let handle = sim.world().get::<BodyHandle>(link).unwrap().id();
+        assert_eq!(compound_nodes(sim.world(), id).unwrap().len(), 5);
+        assert_eq!(
+            sim.world()
+                .get::<RuntimeCompoundOrigin>(model)
+                .unwrap()
+                .0
+                .center_of_mass,
+            Some([0.25, -0.5, 0.75])
+        );
+        let original = sim
+            .world()
+            .get::<RuntimeCompoundOrigin>(model)
+            .unwrap()
+            .0
+            .clone();
+        let valid_state = model_state(&sim, id).unwrap();
+        let runtime_xml = xml
+            .replace("name='source'", &format!("name='runtime_{id}'"))
+            .replace("name='view'", "name='visual'");
+        let runtime_sdf = sdformat::load_str(
+            &runtime_xml,
+            "offset-runtime-stamps",
+            &sdformat::NoResources,
+        )
+        .unwrap();
+        let mut malformed = runtime_sdf.worlds[0].models[0].clone();
+        malformed.links[0].inertial.pose.transform.rotation = [0.; 4];
+        queue_link_world_wrench(&mut sim, id + 1, [2., 0., 0.], [0.; 3]).unwrap();
+        let observe = |sim: &Simulation| {
+            let mut ids: Vec<_> = sim
+                .world()
+                .iter_entities()
+                .filter_map(|e| e.get::<EntityId>().map(|v| (v.get(), e.id())))
+                .collect();
+            ids.sort_unstable();
+            (
+                ids,
+                sim.world().iter_entities().count(),
+                next_entity_id(sim.world()).unwrap(),
+                sim.epoch(),
+                sim.elapsed(),
+                sim.world().resource::<PhysicsBackend>().state(handle),
+            )
+        };
+        for row in 0..6 {
+            let com = sim
+                .world_mut()
+                .entity_mut(link)
+                .take::<LinkCenterOfMass>()
+                .unwrap();
+            if row == 0 {
+            } else if row == 1 {
+                sim.world_mut()
+                    .entity_mut(link)
+                    .insert(LinkCenterOfMass([0.; 3]));
+            } else {
+                sim.world_mut().entity_mut(link).insert(com);
+            }
+            let origin = if row == 2 {
+                sim.world_mut()
+                    .entity_mut(model)
+                    .take::<RuntimeCompoundOrigin>()
+            } else {
+                None
+            };
+            let owner = if row == 3 {
+                sim.world_mut()
+                    .entity_mut(link)
+                    .take::<RuntimeCompoundLink>()
+            } else {
+                None
+            };
+            if row >= 4 {
+                let stamp = Arc::new(CompoundOrigin {
+                    world: CompoundMember::capture(sim.world(), original.world.entity),
+                    model: CompoundMember::capture(sim.world(), model),
+                    link: CompoundMember::capture(sim.world(), link),
+                    members: original
+                        .members
+                        .iter()
+                        .map(|member| CompoundMember::capture(sim.world(), member.entity))
+                        .collect(),
+                    collisions: original.collisions.clone(),
+                    body: handle,
+                    dynamic: true,
+                    center_of_mass: if row == 4 {
+                        Some([9., 0., 0.])
+                    } else {
+                        original.center_of_mass
+                    },
+                });
+                sim.world_mut()
+                    .entity_mut(model)
+                    .insert(RuntimeCompoundOrigin(stamp.clone()));
+                if row == 4 {
+                    sim.world_mut()
+                        .entity_mut(link)
+                        .insert(RuntimeCompoundLink(stamp));
+                }
+            }
+            let before = observe(&sim);
+            assert!(
+                matches!(model_state(&sim, id), Err(WorldEditError::UnsupportedModel)),
+                "row={row}"
+            );
+            assert!(
+                matches!(
+                    compound_nodes(sim.world(), id),
+                    Err(WorldEditError::UnsupportedModel)
+                ),
+                "row={row}"
+            );
+            assert!(
+                matches!(
+                    prepare_model_template(&sim, &runtime_sdf, &malformed),
+                    Err(WorldEditError::UnsupportedModel)
+                ),
+                "row={row}"
+            );
+            assert!(
+                matches!(
+                    set_model_state(&mut sim, id, valid_state),
+                    Err(WorldEditError::UnsupportedModel)
+                ),
+                "row={row}"
+            );
+            assert!(
+                matches!(
+                    remove_model(&mut sim, id),
+                    Err(crate::RemoveError::InvalidPhysics)
+                ),
+                "row={row}"
+            );
+            assert!(
+                matches!(
+                    reset_loaded_world(&mut sim, |_| ()),
+                    Err(SceneResetError::RuntimePhysics)
+                ),
+                "row={row}"
+            );
+            assert_eq!(observe(&sim), before);
+            sim.world_mut().entity_mut(link).insert(com);
+            if let Some(origin) = origin {
+                sim.world_mut().entity_mut(model).insert(origin);
+            }
+            if let Some(owner) = owner {
+                sim.world_mut().entity_mut(link).insert(owner);
+            }
+            if row >= 4 {
+                sim.world_mut()
+                    .entity_mut(model)
+                    .insert(RuntimeCompoundOrigin(original.clone()));
+                sim.world_mut()
+                    .entity_mut(link)
+                    .insert(RuntimeCompoundLink(original.clone()));
+            }
+            model_state(&sim, id).unwrap();
+        }
+        // A centered original's None remains distinct from an added Some(zero).
+        let centered = prepare_model_template(&sim, &sdf, &sdf.worlds[0].models[0]).unwrap();
+        let centered = spawn_model_template(
+            &mut sim,
+            &centered,
+            WorldPose {
+                translation: [100., 20., 30.],
+                ..pose
+            },
+        )
+        .unwrap();
+        let centered_link = entity_by_id(sim.world(), centered + 1).unwrap();
+        sim.world_mut()
+            .entity_mut(centered_link)
+            .insert(LinkCenterOfMass([0.; 3]));
+        assert!(matches!(
+            model_state(&sim, centered),
+            Err(WorldEditError::UnsupportedModel)
+        ));
+        sim.world_mut()
+            .entity_mut(centered_link)
+            .remove::<LinkCenterOfMass>();
+        model_state(&sim, centered).unwrap();
+        sim.step_exact(1).unwrap();
+        let actual = sim
+            .world()
+            .resource::<PhysicsBackend>()
+            .state(handle)
+            .unwrap();
+        assert!((actual.velocity[0] - 0.001).abs() < 1e-11);
     }
 }

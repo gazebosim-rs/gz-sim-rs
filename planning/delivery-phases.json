@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "decision": "D30",
-  "as_of": "2026-11-22T17:25:41.304144+00:00",
+  "as_of": "2026-11-23T22:54:30.020289+00:00",
   "execution_state": "active",
-  "current_phase": "M100",
+  "current_phase": "M104",
   "clock": "Working days after explicit implementation resume; includes review and mandatory verification. Targets, not guarantees.",
   "phases": [
     {
@@ -12500,14 +12500,14 @@
         "Only caller one currently supported primitive with nonidentity collision pose and nonzero resolved inertial COM; actual valid passive loaded or owned-runtime SINGLETON source. Exclude actual loaded/runtime compounds. Do not confuse runtime_singleton (runtime-compound source) with singleton ownership.",
         "For this newly admitted branch require resolved identity LINK, finite representable collision/inertial pose using existing rule (finite f64 and f32 components, quaternion norm_squared within1e-12), existing positive inertia/mass/density/native validation and actual velocity-controller veto even if caller removes plugins. No caller normalization.",
         "Preserve centered actual-runtime-compound/compound/Mesh domains, mature identity and tiny-COM singleton behavior, all owner/ID/Arc/source validation before native or asset work, four-node API and allocator/lifecycle/reset distinctions. No controller articulation composition.",
-        "Narrow native prerequisite: replace ONLY four nonzero-center Unsupported vetoes. For nonzero c only, before any allocator/body/world mutation require finite sum(c_i\u00b2), finite w=BODY world pose*c and finite sum(w_i\u00b2), and finite e=|sphere.center-c|+sphere.radius where sphere=shape.compute_local_bounding_sphere().transform_by(shape.position()). Existing finite-center and inertia_properties validation unchanged; centered branch unchanged, no normalization/clamp/new tolerance. Beware existing world variable includes COLLIDER local pose and must not be used as BODY pose.",
+        "Narrow native prerequisite: replace ONLY four nonzero-center Unsupported vetoes. For nonzero c only, before any allocator/body/world mutation require finite sum(c_i²), finite w=BODY world pose*c and finite sum(w_i²), and finite e=|sphere.center-c|+sphere.radius where sphere=shape.compute_local_bounding_sphere().transform_by(shape.position()). Existing finite-center and inertia_properties validation unchanged; centered branch unchanged, no normalization/clamp/new tolerance. Beware existing world variable includes COLLIDER local pose and must not be used as BODY pose.",
         "Reuse existing inertia_properties, zero-density explicit mass insertion, stored original inertia, reset construction and origin/COM velocity semantics. No common lib.rs, initial, body_state/setter, reduced solver or public API changes. This is bounded native constructor admission, not universal later-step/force safety."
       ],
       "acceptance": [
         "All four primitive kinds with nonzeroCOM/rotated model+collider; native COM versus model-origin positions/velocities, exact v_origin=v_COM-omega cross R(COM) and inverse, global child geometry/rays at retained1e-11 wide cap.",
         "Explicit inertia/density twins, principal-axis or isotropic gyro-safe torque/force at actual COM, six-axis state edits/pending inputs, source retirement/retemplate/removal/survivors, ordinary/loaded reset, high-water and real capacity, typed first failures/atomicity. No ideal multi-axis finite-step tau*dt/I premise.",
-        "Private native all4 matrix static/dynamic and model/collider rotations: actual local/world COM, explicit tensor/zero collider density/max_extent, rays, principal/isotropic gyro-safe force/torque and COM motion, state/reset/removal/pending-ID atomicity. NaN/Inf/norm\u00b2 overflow/composed-world overflow/collider-relative extent overflow/invalid inertia and exhaustion refusal before mutation, repair plus pending-input proof.",
-        "Root retains exact eight old native offset inputs (four shapes\u00d7massNone/Some2, c[-.25,0,0]) as positives and all surrounding old invalid/exhaustion assertions; Scene old tinyCOM row becomes same-input positive with actual velocity effect. No inherited reference claim or new external native campaign."
+        "Private native all4 matrix static/dynamic and model/collider rotations: actual local/world COM, explicit tensor/zero collider density/max_extent, rays, principal/isotropic gyro-safe force/torque and COM motion, state/reset/removal/pending-ID atomicity. NaN/Inf/norm² overflow/composed-world overflow/collider-relative extent overflow/invalid inertia and exhaustion refusal before mutation, repair plus pending-input proof.",
+        "Root retains exact eight old native offset inputs (four shapes×massNone/Some2, c[-.25,0,0]) as positives and all surrounding old invalid/exhaustion assertions; Scene old tinyCOM row becomes same-input positive with actual velocity effect. No inherited reference claim or new external native campaign."
       ],
       "excluded": "No common backend/lib.rs/body_state/initial/joints/Physics publicAPI/Server/native solver changes beyond four explicitly leased posed constructor veto replacements. No new framework/protocol/transport/sensor, retired DART/MuJoCo/paused dependencies/Fuel modification, demo stop/restart/expiry, gate/coverage weakening, test retirement or acceptance inheritance.",
       "contract": {
@@ -12525,14 +12525,14 @@
           "Only caller one currently supported primitive with nonidentity collision pose and nonzero resolved inertial COM; actual valid passive loaded or owned-runtime SINGLETON source. Exclude actual loaded/runtime compounds. Do not confuse runtime_singleton (runtime-compound source) with singleton ownership.",
           "For this newly admitted branch require resolved identity LINK, finite representable collision/inertial pose using existing rule (finite f64 and f32 components, quaternion norm_squared within1e-12), existing positive inertia/mass/density/native validation and actual velocity-controller veto even if caller removes plugins. No caller normalization.",
           "Preserve centered actual-runtime-compound/compound/Mesh domains, mature identity and tiny-COM singleton behavior, all owner/ID/Arc/source validation before native or asset work, four-node API and allocator/lifecycle/reset distinctions. No controller articulation composition.",
-          "Narrow native prerequisite: replace ONLY four nonzero-center Unsupported vetoes. For nonzero c only, before any allocator/body/world mutation require finite sum(c_i\u00b2), finite w=BODY world pose*c and finite sum(w_i\u00b2), and finite e=|sphere.center-c|+sphere.radius where sphere=shape.compute_local_bounding_sphere().transform_by(shape.position()). Existing finite-center and inertia_properties validation unchanged; centered branch unchanged, no normalization/clamp/new tolerance. Beware existing world variable includes COLLIDER local pose and must not be used as BODY pose.",
+          "Narrow native prerequisite: replace ONLY four nonzero-center Unsupported vetoes. For nonzero c only, before any allocator/body/world mutation require finite sum(c_i²), finite w=BODY world pose*c and finite sum(w_i²), and finite e=|sphere.center-c|+sphere.radius where sphere=shape.compute_local_bounding_sphere().transform_by(shape.position()). Existing finite-center and inertia_properties validation unchanged; centered branch unchanged, no normalization/clamp/new tolerance. Beware existing world variable includes COLLIDER local pose and must not be used as BODY pose.",
           "Reuse existing inertia_properties, zero-density explicit mass insertion, stored original inertia, reset construction and origin/COM velocity semantics. No common lib.rs, initial, body_state/setter, reduced solver or public API changes. This is bounded native constructor admission, not universal later-step/force safety."
         ],
         "controls": [
           "All four primitive kinds with nonzeroCOM/rotated model+collider; native COM versus model-origin positions/velocities, exact v_origin=v_COM-omega cross R(COM) and inverse, global child geometry/rays at retained1e-11 wide cap.",
           "Explicit inertia/density twins, principal-axis or isotropic gyro-safe torque/force at actual COM, six-axis state edits/pending inputs, source retirement/retemplate/removal/survivors, ordinary/loaded reset, high-water and real capacity, typed first failures/atomicity. No ideal multi-axis finite-step tau*dt/I premise.",
-          "Private native all4 matrix static/dynamic and model/collider rotations: actual local/world COM, explicit tensor/zero collider density/max_extent, rays, principal/isotropic gyro-safe force/torque and COM motion, state/reset/removal/pending-ID atomicity. NaN/Inf/norm\u00b2 overflow/composed-world overflow/collider-relative extent overflow/invalid inertia and exhaustion refusal before mutation, repair plus pending-input proof.",
-          "Root retains exact eight old native offset inputs (four shapes\u00d7massNone/Some2, c[-.25,0,0]) as positives and all surrounding old invalid/exhaustion assertions; Scene old tinyCOM row becomes same-input positive with actual velocity effect. No inherited reference claim or new external native campaign."
+          "Private native all4 matrix static/dynamic and model/collider rotations: actual local/world COM, explicit tensor/zero collider density/max_extent, rays, principal/isotropic gyro-safe force/torque and COM motion, state/reset/removal/pending-ID atomicity. NaN/Inf/norm² overflow/composed-world overflow/collider-relative extent overflow/invalid inertia and exhaustion refusal before mutation, repair plus pending-input proof.",
+          "Root retains exact eight old native offset inputs (four shapes×massNone/Some2, c[-.25,0,0]) as positives and all surrounding old invalid/exhaustion assertions; Scene old tinyCOM row becomes same-input positive with actual velocity effect. No inherited reference claim or new external native campaign."
         ],
         "private_native_regression_lease": "Add focused all-four-constructor matrix inside existing posed_box.rs cfg(test), preserving every existing exhaustion case body exactly."
       },
@@ -13640,6 +13640,687 @@
         "masked_remaining_tails_independently_Source_reviewed": true,
         "verification_run": false
       }
+    },
+    {
+      "id": "M102",
+      "title": "Translated explicit COM for passive runtime primitive compound copies",
+      "max_working_days": 5,
+      "depends_on": [
+        "M100",
+        "M101"
+      ],
+      "scope": "Only translated explicit inertial COM, identity LINK transform and identity inertial quaternion for the new offset domain; no caller normalization. Preserve existing centered inertia-orientation and legacy identity/tiny singleton behavior. Use existing representable inertial pose and exact primitive/count/density/mass/tensor rules.",
+      "acceptance": [
+        "2/4/16 flat children with all four primitives, static/dynamic, model+collider rotations, interior/exterior COM, exact one native body/N+3 logical identities/all child frames/visual lifetime. Wide strict rays for rotated curved geometry; binary endpoint controls use identity arithmetic only.",
+        "Independent six-axis model-origin/native-COM relation v_origin=v_COM−omega×R*c and inverse; actual state edits, pause, native advance and all child frame queries. Explicit COM forces and principal-axis/isotropic gyro-safe torques against matched centered-COM twin; use measured finite-step COM displacement, not ideal continuous integration.",
+        "Explicit inertia/mass vs density, native c/worldCOM/extent overflow guards with earlier inputs valid, unchanged centered routes and exact first typed errors. Native/public IDs, pending wrench, repair and foreign source atomicity; no mutation on rejection.",
+        "Both reset modes, runtime remove/highwater, surviving unrelated bodies, template source retirement/reuse and retemplate generations; exact stamp/presence/value/hierarchy/native-owner corruption. Callback-free schedule init before cold entity-count baseline; pending first/second-step controls follow existing latch semantics."
+      ],
+      "excluded": "Preserve the exact selection exclusions and native/API/owner boundaries; no new solver/backend/transport/sensor, DART/MuJoCo/Fuel work, demo stop/restart or inherited acceptance.",
+      "contract": {
+        "phase": "M102",
+        "title": "Translated explicit COM for passive runtime primitive compound copies",
+        "budget_working_days_maximum": 5,
+        "production_lease": [
+          "crates/gz-physics-rapier/src/compound.rs",
+          "crates/gz-sim-scene/src/world_spawn.rs"
+        ],
+        "new_test_leaf": "crates/gz-sim-scene/tests/runtime_compound_offset_com.rs",
+        "selected_source_domain": "Both mature valid loaded primitive-compound template sources and owned-runtime primitive-compound template sources. Actual source ownership is validated before copied caller parameters; both must be passive. Newly spawned outputs remain flat one-link primitive compounds with2..16 colliders and one visual.",
+        "new_admission": "Only translated explicit inertial COM, identity LINK transform and identity inertial quaternion for the new offset domain; no caller normalization. Preserve existing centered inertia-orientation and legacy identity/tiny singleton behavior. Use existing representable inertial pose and exact primitive/count/density/mass/tensor rules.",
+        "required_changes": [
+          "Replace only the native nonzero-COM refusal with selected nonzero-only safety bounds: finite c/norm²(c), finite BODY-pose world_COM/norm²(world_COM), finite actual aggregate compound bounding-sphere distance-to-COM+radius. These precede native ID reservation/insertion. Retain centered compound BVH/aggregate/mass validation and first-error ordering; explicit tensor is already about COM, so do not re-shift it or infer it from child densities.",
+          "Admit that copied translated COM on the selected Scene compound route. Capture exact Option<LinkCenterOfMass> in immutable original runtime construction custody and require matching presence/value in both original stamps. Original centered stamps still refuse added COM; legitimate offset stamps refuse changed/removed COM and missing/forged stamps. Keep model_state/world_edit/reset/retemplate original ownership integrity through the existing world_spawn seam.",
+          "Use existing explicit inertia_properties/insert and model-origin versus native-COM twist conversions. Native/Scene public signatures, initial loader, world_edit implementation, solver and reset engine remain unchanged."
+        ],
+        "exclusions": [
+          "Initial loaded nonzero COM",
+          "Mesh COM or mixed Mesh/primitive compounds",
+          "Rotated inertia basis in the new translated-COM domain",
+          "Compound-to-caller-one-collider COM route; original compound classification survives caller count1",
+          "Actual singleton-to-compound source widening",
+          "Nonidentity LINK or new relative_to/frame domains",
+          "TPE, joint/controller/articulation/DiffDrive composition, fluid added mass or plugin stripping",
+          "New Physics/Core/Server/API/common helper/initial loader seam without explicit rescope"
+        ],
+        "Root_retained_dispositions": [
+          {
+            "path": "crates/gz-physics-rapier/tests/compound.rs",
+            "source_lines": [
+              736,
+              760
+            ],
+            "exact_inputs": "COM +0.1/-0.1 X × mass None/Some2 four refusals",
+            "requirement": "Same-input positives with full inverses and unchanged declaration IDs; static geometry/immutability and dynamic physical COM/wrench/centered twin. Preserve all surrounding invalid/dynamic-missing-inertia rows."
+          },
+          {
+            "path": "crates/gz-sim-scene/tests/runtime_compound_retemplate.rs",
+            "function": "runtime_retemplate_closed_domains_and_late_errors_preserve_both_allocators",
+            "source_lines": [
+              586,
+              620
+            ],
+            "exact_input": "row4 requested inertia translation[0.25,0,0] on admitted compound source",
+            "requirement": "Same-input positive; preserve every other row/input/type/atomicity and full raw inverse."
+          },
+          {
+            "path": "crates/gz-sim-scene/src/world_spawn.rs",
+            "source_lines": [
+              1024,
+              1155
+            ],
+            "requirement": "Preserve old live-centered COM tamper refusal tests. A legitimate offset stamp is a new positive control, never authorization to alter live COM or remove immutable membership."
+          }
+        ],
+        "regression_obligations": [
+          "2/4/16 flat children with all four primitives, static/dynamic, model+collider rotations, interior/exterior COM, exact one native body/N+3 logical identities/all child frames/visual lifetime. Wide strict rays for rotated curved geometry; binary endpoint controls use identity arithmetic only.",
+          "Independent six-axis model-origin/native-COM relation v_origin=v_COM−omega×R*c and inverse; actual state edits, pause, native advance and all child frame queries. Explicit COM forces and principal-axis/isotropic gyro-safe torques against matched centered-COM twin; use measured finite-step COM displacement, not ideal continuous integration.",
+          "Explicit inertia/mass vs density, native c/worldCOM/extent overflow guards with earlier inputs valid, unchanged centered routes and exact first typed errors. Native/public IDs, pending wrench, repair and foreign source atomicity; no mutation on rejection.",
+          "Both reset modes, runtime remove/highwater, surviving unrelated bodies, template source retirement/reuse and retemplate generations; exact stamp/presence/value/hierarchy/native-owner corruption. Callback-free schedule init before cold entity-count baseline; pending first/second-step controls follow existing latch semantics."
+        ]
+      },
+      "source_preparation_basis_commit": "08a0eeae97dede8daee6efe6cb2922bdb86ca722",
+      "source_preparation_basis_tree": "9e1f92e1586846bb86c253df1d519a928b949c8c",
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m102-m103-delivery/source-selection.json",
+        "sha256": "b985af320437e5d9737eed8d517b56339f87a5f46008743f0bfdd974b7ad7824",
+        "bytes": 17277,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m102-m103-delivery/m102-reviewed-source-correction-completion.json",
+        "sha256": "fd741b9a77abae7e93e3f1a578233ae81e35d62cfde6b26cccbeb3ea5e462cc2",
+        "bytes": 10882,
+        "mode": 436
+      },
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_code_review_complete": true,
+      "Source_control_declarations": {
+        "Rust_unique": 10,
+        "headless": 10,
+        "renderer": 9,
+        "overlap": 9,
+        "public": 8,
+        "private": 2,
+        "Python": 0
+      },
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "accepted": false,
+      "Main_promoted": false
+    },
+    {
+      "id": "M103",
+      "title": "Representable rotated local LINK frames for the existing two-revolute JointController",
+      "max_working_days": 5,
+      "depends_on": [
+        "M100",
+        "M101"
+      ],
+      "scope": "Admit representable nonidentity local LINK rotations with finite f64/f32 components and abs(norm²(Q)−1)<=1e-12, empty LINK relative_to, no caller normalization/mutation. Preserve legacy identity-LINK finite-translation behavior; do not accidentally impose a new f32 translation restriction on the already admitted identity domain.",
+      "acceptance": [
+        "Independently rotated first/second/both LINKs; noncommuting model/LINK/JOINT rotations, translated origins/anchors, arbitrary signed axes and opposite-axis/opposite-command twins in both modes. Independent Rodrigues from measured coordinates and initial transforms proves full bases and both anchor locations.",
+        "Angular velocity from transported joint-axis Jacobian sums; linear velocity from anchor velocity+omega×(origin−anchor). All child frames/global nearest+exclusion for existing2/4/16compound geometry, generic wide curved rays separated from identity binary endpoints; physical bases rather than quaternion-bitwise equality.",
+        "Driven/quiet/equivalent command real encoder/native response, clamp/latest/zero/invalid/limits/effort/inertia/density, pause/time/epoch and causal contact controls. No ideal motor convergence, absolute quiet-zero, no-slip or guessed exact generic endpoint.",
+        "Both resets/lifecycle/body+joint/public IDs/owner checks/late fault/pending repair/terminal latch; directDOM finite/f32/zero/nonunit/unit-band/caller immutability. Preserve compatible initial/reset twists and reject incompatible inputs using existing native guards."
+      ],
+      "excluded": "Preserve the exact selection exclusions and native/API/owner boundaries; no new solver/backend/transport/sensor, DART/MuJoCo/Fuel work, demo stop/restart or inherited acceptance.",
+      "contract": {
+        "phase": "M103",
+        "title": "Representable rotated local LINK frames for the existing two-revolute JointController",
+        "budget_working_days_maximum": 5,
+        "production_lease": [
+          "crates/gz-sim-scene/src/joint_controller/config.rs"
+        ],
+        "new_test_leaf": "crates/gz-sim-scene/tests/joint_controller_link_frames.rs",
+        "new_admission": "Admit representable nonidentity local LINK rotations with finite f64/f32 components and abs(norm²(Q)−1)<=1e-12, empty LINK relative_to, no caller normalization/mutation. Preserve legacy identity-LINK finite-translation behavior; do not accidentally impose a new f32 translation restriction on the already admitted identity domain.",
+        "existing_mechanics": "Scene joints.rs resolves world anchor/axis from the parsed LINK/JOINT/model frames. Native joints.rs builds each local frame from inverse actual body world pose × world joint frame. Reuse those constructors unchanged; centered COM and compatible construction/reset twists remain required.",
+        "unchanged_guards": [
+          "Exactly2 distinct links/2Revolute serial world-rooted joints/canonical root child",
+          "Existing local JOINT translation/quaternion and relative_to empty/child rules",
+          "Arbitrary finite unit-axis band, empty expressed_in, no axis2",
+          "Both current scalar controller modes/gains/effort/velocity limits/topics/plugins",
+          "Existing model/static/TPE/topology/nesting/owner/backend exclusions",
+          "Centered articulation COM; no composition with M102 or other offset inertia",
+          "No joints/native/controller driver/runtime/Physics/Server/API edits"
+        ],
+        "Root_retained_dispositions": [
+          {
+            "path": "crates/gz-sim-scene/tests/private/joint_controller_config.rs",
+            "function": "direct_world_rooted_chain_and_native_local_frame_domain_are_explicit",
+            "source_lines": [
+              396,
+              410
+            ],
+            "exact_input": "links[0].pose.transform.rotation=[0,0,1,0]",
+            "requirement": "Same-input positive parse, complete caller-bit immutability and every controller parameter preserved. Keep named LINK frame, nonfinite translation, axis2/expressed_in/foreign joint frame/type/missing link rows negative; full inverse and unchanged case ID."
+          }
+        ],
+        "regression_obligations": [
+          "Independently rotated first/second/both LINKs; noncommuting model/LINK/JOINT rotations, translated origins/anchors, arbitrary signed axes and opposite-axis/opposite-command twins in both modes. Independent Rodrigues from measured coordinates and initial transforms proves full bases and both anchor locations.",
+          "Angular velocity from transported joint-axis Jacobian sums; linear velocity from anchor velocity+omega×(origin−anchor). All child frames/global nearest+exclusion for existing2/4/16compound geometry, generic wide curved rays separated from identity binary endpoints; physical bases rather than quaternion-bitwise equality.",
+          "Driven/quiet/equivalent command real encoder/native response, clamp/latest/zero/invalid/limits/effort/inertia/density, pause/time/epoch and causal contact controls. No ideal motor convergence, absolute quiet-zero, no-slip or guessed exact generic endpoint.",
+          "Both resets/lifecycle/body+joint/public IDs/owner checks/late fault/pending repair/terminal latch; directDOM finite/f32/zero/nonunit/unit-band/caller immutability. Preserve compatible initial/reset twists and reject incompatible inputs using existing native guards."
+        ]
+      },
+      "source_preparation_basis_commit": "08a0eeae97dede8daee6efe6cb2922bdb86ca722",
+      "source_preparation_basis_tree": "9e1f92e1586846bb86c253df1d519a928b949c8c",
+      "source_preparation_basis_locally_qualified": true,
+      "source_preparation_basis_accepted": false,
+      "source_preparation_under_D31": true,
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m102-m103-delivery/source-selection.json",
+        "sha256": "b985af320437e5d9737eed8d517b56339f87a5f46008743f0bfdd974b7ad7824",
+        "bytes": 17277,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m102-m103-delivery/m103-joint-link-frames-source-completion.json",
+        "sha256": "cf5586bf9da8c1b68f8d387cf8cbb0db06d800270cd62372e04adb82833a0718",
+        "bytes": 28486,
+        "mode": 436
+      },
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_code_review_complete": true,
+      "Source_control_declarations": {
+        "Rust_unique": 16,
+        "headless": 16,
+        "renderer": 16,
+        "overlap": 16,
+        "public": 12,
+        "private": 4,
+        "Python": 0
+      },
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "accepted": false,
+      "Main_promoted": false
+    },
+    {
+      "id": "M104",
+      "title": "Loaded passive primitive models with translated centers of mass",
+      "max_working_days": 5,
+      "depends_on": [
+        "M100",
+        "M102"
+      ],
+      "scope": "Consume finite valid resolved translated COM/principal inertia for passive loaded singleton and 2..16 primitive-compound links, whether explicit or produced by the pinned existing automatic primitive computation. Reuse M100 posed and M102 compound constructors, including identity collision poses, and preserve immutable optional COM stamps and the centered/tiny route. Translated inertial orientation remains identity.",
+      "acceptance": "Measured COM/origin linear/angular lever arms; matched centered-body and explicit-inertia/density twins; fall/contact, collision queries, full reset/removal/clone and malformed/overflow atomicity. Same-input retained offset refusals become physical positives only inside selected loaded passive primitive domain; controllers and Mesh negatives remain. Complete the combined candidate’s full staged hook, strict coverage, independent local audit, exact hosted CI and original-artifact audit; no inherited qualification or acceptance.",
+      "excluded": "Mesh/plane COM; new automatic-inertia computation or provenance inference; rotated-offset inertia; jointed or controlled offset-COM models.",
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+        "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+        "bytes": 17059,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/physics-three-phases-source-completion.json",
+        "sha256": "4d49244d649a4237d703221b3c013c07dc6844269fa1d9d9989c38bb77596ead",
+        "bytes": 22652,
+        "mode": 436
+      },
+      "production_lease": [
+        "crates/gz-sim-scene/src/lib.rs",
+        "crates/gz-sim-scene/src/initial.rs"
+      ],
+      "delivery_guide": "docs/M104_DELIVERY.md",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_review_complete": false,
+      "independent_Source_review_scope": "Reviews are underway; the author completion is a Source-only checkpoint, and Root must close the complete review batch.",
+      "source_foundation_tree": "93a2d820853dc7366d4706aace5bd42726a42e26",
+      "source_foundation_qualified": false,
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "Main_promoted": false,
+      "Source_prerequisite_addendum": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/concrete-prerequisite-source-scope-addendum.json",
+        "sha256": "fe798b7d8afb9b5a31822ed40741775e1405384bcfd4a98e5592c74e0c6169cd",
+        "bytes": 2398,
+        "mode": 436
+      }
+    },
+    {
+      "id": "M105",
+      "title": "Independent multi-robot VelocityControl",
+      "max_working_days": 5,
+      "depends_on": [
+        "M79",
+        "M83",
+        "M85"
+      ],
+      "scope": "Support2..8 existing eligible Rapier/TPE single-link robots with distinct canonical command topics and per-owner identities, epochs, latest-valid pending commands and retirement. Reuse current actuation/Zenoh and bounded polling; all-owner preflight and fair global queue budget; preserve single-owner semantics.",
+      "acceptance": "Actual independent movement and commands on both backends, rotated/compound existing domains, duplicate topics, paused latest/zero/invalid commands, late-owner atomicity, resets, remove/reload and no-absent endpoint/work. Complete the combined candidate’s full staged hook, strict coverage, independent local audit, exact hosted CI and original-artifact audit; no inherited qualification or acceptance.",
+      "excluded": "new message/transport framework; new body teleport path; unsupported multi-link VC.",
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+        "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+        "bytes": 17059,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/m105-m111-systems-source-completion.json",
+        "sha256": "86104a4055df9b0c466d7083b817cafcdbf029893cacb1dff9d65dd3a5a6c448",
+        "bytes": 19239,
+        "mode": 436
+      },
+      "production_lease": [
+        "crates/gz-sim-scene/src/velocity_control.rs",
+        "crates/gz-sim-scene/src/velocity_control/config.rs",
+        "crates/gz-sim-server/src/velocity_control.rs",
+        "crates/gz-sim-server/src/lib.rs"
+      ],
+      "delivery_guide": "docs/M105_DELIVERY.md",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_review_complete": false,
+      "independent_Source_review_scope": "Reviews are underway; the author completion is a Source-only checkpoint, and Root must close the complete review batch.",
+      "source_foundation_tree": "93a2d820853dc7366d4706aace5bd42726a42e26",
+      "source_foundation_qualified": false,
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "Main_promoted": false
+    },
+    {
+      "id": "M106",
+      "title": "Balanced joint effort on moving-parent revolute joints",
+      "max_working_days": 5,
+      "depends_on": [
+        "M42"
+      ],
+      "scope": "Apply actual world-axis equal/opposite internal torque couples to dynamic parent and child; preflight all accumulated body torques before consuming pending efforts. Keep native solver and existing motor/servo eligibility unchanged unless explicitly reselected with complete Source evidence.",
+      "acceptance": "Measured isolated angular momentum balance, relative positive work and moving axes; world/static parent retained; overlapping efforts, overflow, pending repair, reset/removal and Scene ApplyJointForce feedback. Complete the combined candidate’s full staged hook, strict coverage, independent local audit, exact hosted CI and original-artifact audit; no inherited qualification or acceptance.",
+      "excluded": "new solver; motor/servo domain expansion; new joint types.",
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+        "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+        "bytes": 17059,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/physics-three-phases-source-completion.json",
+        "sha256": "4d49244d649a4237d703221b3c013c07dc6844269fa1d9d9989c38bb77596ead",
+        "bytes": 22652,
+        "mode": 436
+      },
+      "production_lease": [
+        "crates/gz-physics-rapier/src/joints.rs"
+      ],
+      "delivery_guide": "docs/M106_DELIVERY.md",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_review_complete": false,
+      "independent_Source_review_scope": "Reviews are underway; the author completion is a Source-only checkpoint, and Root must close the complete review batch.",
+      "source_foundation_tree": "93a2d820853dc7366d4706aace5bd42726a42e26",
+      "source_foundation_qualified": false,
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "Main_promoted": false
+    },
+    {
+      "id": "M107",
+      "title": "Posed and compound TPE collision bounds",
+      "max_working_days": 5,
+      "depends_on": [
+        "M1"
+      ],
+      "scope": "Compute finite collision-local transformed primitive AABBs and bounded2..16 union for existing TPE loaded models. Preserve TPE kinematic velocity, filtering and contact-report semantics; no physical resolution claim.",
+      "acceptance": "Independent analytic/transformed-corner bounds with noncommuting link/collider rotations; actual contact entry/exit, motion, masks/static filtering, reset/removal and overflow refusal. Complete the combined candidate’s full staged hook, strict coverage, independent local audit, exact hosted CI and original-artifact audit; no inherited qualification or acceptance.",
+      "excluded": "Mesh/plane; dynamic force solver; new contact resolution.",
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+        "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+        "bytes": 17059,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/physics-three-phases-source-completion.json",
+        "sha256": "4d49244d649a4237d703221b3c013c07dc6844269fa1d9d9989c38bb77596ead",
+        "bytes": 22652,
+        "mode": 436
+      },
+      "production_lease": [
+        "crates/gz-sim-scene/src/tpe.rs",
+        "crates/gz-sim-scene/src/lib.rs"
+      ],
+      "delivery_guide": "docs/M107_DELIVERY.md",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_review_complete": false,
+      "independent_Source_review_scope": "Reviews are underway; the author completion is a Source-only checkpoint, and Root must close the complete review batch.",
+      "source_foundation_tree": "93a2d820853dc7366d4706aace5bd42726a42e26",
+      "source_foundation_qualified": false,
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "Main_promoted": false
+    },
+    {
+      "id": "M108",
+      "title": "Bounded three-dimensional CPU lidar",
+      "max_working_days": 5,
+      "depends_on": [
+        "M54"
+      ],
+      "scope": "Add vertical scan grids with at most128 total rays through existing canonical LaserScan vertical fields, eight-owner acquisition/noise/demand machinery. Preserve the exact planar branch and existing public PlanarLidar behavior; define finite bounded ordered horizontal/vertical angles and native row ordering explicitly.",
+      "acceptance": "Analytic elevated targets, ray order and packet fields, misses/clipping, transformed moving frames, noise/demand/reset/removal, malformed grids/underflow/overflow atomicity, retained planar equivalence. Complete the combined candidate’s full staged hook, strict coverage, independent local audit, exact hosted CI and original-artifact audit; no inherited qualification or acceptance.",
+      "excluded": "GPU lidar; new proto/pointcloud framework; per-beam motion interpolation; more than128total rays.",
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+        "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+        "bytes": 17059,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/sensing-graphics-three-phases-source-completion.json",
+        "sha256": "1039308cc0315aa31f7ef6b7fa804d949ca7e308ef4b7e7f3648264839c45ff7",
+        "bytes": 45793,
+        "mode": 436
+      },
+      "production_lease": [
+        "crates/gz-sensors/src/lidar.rs",
+        "crates/gz-sim-scene/src/lidar.rs",
+        "crates/gz-sim-server/src/lidar.rs"
+      ],
+      "delivery_guide": "docs/M108_DELIVERY.md",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_review_complete": false,
+      "independent_Source_review_scope": "Reviews are underway; the author completion is a Source-only checkpoint, and Root must close the complete review batch.",
+      "source_foundation_tree": "93a2d820853dc7366d4706aace5bd42726a42e26",
+      "source_foundation_qualified": false,
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "Main_promoted": false
+    },
+    {
+      "id": "M109",
+      "Source_review_correction": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/capsule-worker-retirement-source-correction.json",
+        "sha256": "445d0d7c1c2c381540aa9dea82983b2a9e3dc0d747352d38c84c323d5c943d43",
+        "bytes": 2302,
+        "mode": 436
+      },
+      "title": "Capsule visuals in calibrated RGB and metric depth",
+      "max_working_days": 5,
+      "depends_on": [
+        "M68"
+      ],
+      "scope": "Add explicit bounded Capsule geometry through existing render snapshot/worker paths; build actual radius/segment-length mesh with spherical caps. Reuse calibration, visibility, cancellation and existing worker/resource limits; do not anisotropically scale a fixed capsule.",
+      "acceptance": "Translated/rotated silhouettes, independent interior depth rays, occlusion, visibility masks, dimension boundaries and invalid input/retirement; software-renderer/worker controls and existing shape preservation. Complete the combined candidate’s full staged hook, strict coverage, independent local audit, exact hosted CI and original-artifact audit; no inherited qualification or acceptance.",
+      "excluded": "new renderer/protocol framework; arbitrary Mesh camera visuals; image postprocessing approximation.",
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+        "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+        "bytes": 17059,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/sensing-graphics-three-phases-source-completion.json",
+        "sha256": "1039308cc0315aa31f7ef6b7fa804d949ca7e308ef4b7e7f3648264839c45ff7",
+        "bytes": 45793,
+        "mode": 436
+      },
+      "production_lease": [
+        "crates/gz-render-protocol/src/lib.rs",
+        "crates/gz-render-scene/src/lib.rs",
+        "crates/gz-renderer/src/gpu.rs",
+        "crates/gz-render-worker/src/main.rs"
+      ],
+      "delivery_guide": "docs/M109_DELIVERY.md",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_review_complete": false,
+      "independent_Source_review_scope": "Reviews are underway; the author completion is a Source-only checkpoint, and Root must close the complete review batch.",
+      "source_foundation_tree": "93a2d820853dc7366d4706aace5bd42726a42e26",
+      "source_foundation_qualified": false,
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "Main_promoted": false
+    },
+    {
+      "id": "M110",
+      "title": "Geometry-aware curved near-plane admission",
+      "max_working_days": 5,
+      "depends_on": [
+        "M68",
+        "M109"
+      ],
+      "scope": "Use tight finite primitive extrema to admit curved shapes wholly beyond near plane when rotated enclosing boxes caused false refusals. Still strictly refuse actual tangent/intersecting/behind cases under the retained near-domain contract; include Capsule afterM109.",
+      "acceptance": "Independent shape-extremum/actual depth witnesses for sphere/ellipsoid/cylinder/capsule, rotations/translations and near boundaries; malformed/nonfinite input leaves state unchanged. Complete the combined candidate’s full staged hook, strict coverage, independent local audit, exact hosted CI and original-artifact audit; no inherited qualification or acceptance.",
+      "excluded": "native negative-infinity intersection semantics; weakened near-intersection refusal.",
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+        "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+        "bytes": 17059,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/sensing-graphics-three-phases-source-completion.json",
+        "sha256": "1039308cc0315aa31f7ef6b7fa804d949ca7e308ef4b7e7f3648264839c45ff7",
+        "bytes": 45793,
+        "mode": 436
+      },
+      "production_lease": [
+        "crates/gz-renderer/src/depth.rs",
+        "crates/gz-renderer/src/gpu.rs"
+      ],
+      "delivery_guide": "docs/M110_DELIVERY.md",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_review_complete": false,
+      "independent_Source_review_scope": "Reviews are underway; the author completion is a Source-only checkpoint, and Root must close the complete review batch.",
+      "source_foundation_tree": "93a2d820853dc7366d4706aace5bd42726a42e26",
+      "source_foundation_qualified": false,
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "Main_promoted": false
+    },
+    {
+      "id": "M111",
+      "title": "Explicit three-to-four RGB camera application family",
+      "max_working_days": 5,
+      "depends_on": [
+        "M63",
+        "M71"
+      ],
+      "scope": "Add opt-in bounded3/4 RGB camera application/output family reusing existing sessions, workers, writer scopes and outputs. Preserve current single/pair/mixed constructors, image bounds and existing external-family validation; no dynamic registration.",
+      "acceptance": "Independent rates and image/info demand, duplicate-topic all-owner preflight, partial-install cleanup, reset subsets, removal/reload and complete worker retirement for3/4; old pair/mixed semantics unchanged. Complete the combined candidate’s full staged hook, strict coverage, independent local audit, exact hosted CI and original-artifact audit; no inherited qualification or acceptance.",
+      "excluded": "dynamic registration; larger images; new transport/runtime framework.",
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+        "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+        "bytes": 17059,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/m105-m111-systems-source-completion.json",
+        "sha256": "86104a4055df9b0c466d7083b817cafcdbf029893cacb1dff9d65dd3a5a6c448",
+        "bytes": 19239,
+        "mode": 436
+      },
+      "production_lease": [
+        "crates/gz-camera-output/src/application.rs",
+        "crates/gz-camera-output/src/lib.rs",
+        "crates/gz-sim-server/src/lib.rs",
+        "crates/gz-sim-cli/src/live.rs"
+      ],
+      "delivery_guide": "docs/M111_DELIVERY.md",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_review_complete": false,
+      "independent_Source_review_scope": "Reviews are underway; the author completion is a Source-only checkpoint, and Root must close the complete review batch.",
+      "source_foundation_tree": "93a2d820853dc7366d4706aace5bd42726a42e26",
+      "source_foundation_qualified": false,
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "Main_promoted": false
+    },
+    {
+      "id": "M112",
+      "title": "DiffDrive acceleration-limited commands",
+      "max_working_days": 5,
+      "depends_on": [
+        "M61"
+      ],
+      "scope": "Admit closed finite acceleration fields with generic/specific precedence matching retained native DiffDrive/SpeedLimiter Source. Keep pre-clamp raw valid desired commands for selected timed path; apply limits only at advancing PreStep using per-owner last applied command, native order, and measured dt before wheel motor targets. Preserve existing default path bit-for-bit.",
+      "acceptance": "Independent command-ramp/deceleration/reversal/zero timing and generic/specific limits; eight-owner/late-owner preflight rollback, pause/step/full reset/removal, actual bounded-force motor movement/encoder odometry with quiet controls. Complete the combined candidate’s full staged hook, strict coverage, independent local audit, exact hosted CI and original-artifact audit; no inherited qualification or acceptance.",
+      "excluded": "ideal instantaneous body-acceleration guarantee; new solver/API; odometry reinterpretation.",
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+        "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+        "bytes": 17059,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/m112-m113-root-source-completion.json",
+        "sha256": "3b567438beb772608e67efe1485e63ff512721a7b12350d7a7e66fb01a97cbc2",
+        "bytes": 7695,
+        "mode": 436
+      },
+      "production_lease": [
+        "crates/gz-sim-scene/src/diff_drive.rs",
+        "crates/gz-sim-scene/src/diff_drive/config.rs",
+        "crates/gz-sim-scene/src/diff_drive/model.rs"
+      ],
+      "delivery_guide": "docs/M112_DELIVERY.md",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_review_complete": false,
+      "independent_Source_review_scope": "Reviews are underway; the author completion is a Source-only checkpoint, and Root must close the complete review batch.",
+      "source_foundation_tree": "93a2d820853dc7366d4706aace5bd42726a42e26",
+      "source_foundation_qualified": false,
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "Main_promoted": false
+    },
+    {
+      "id": "M113",
+      "title": "DiffDrive jerk-limited commands",
+      "max_working_days": 5,
+      "depends_on": [
+        "M112"
+      ],
+      "scope": "Add closed jerk fields and second prior applied command per owner using exact retained native limiter ordering/discrete current-dt second-difference recurrence (no half coefficient), with no altered velocity-only behavior. Sequence onM112 within same owner; preserve transactionality and reset history, finite derived value guards, motor-force domain and encoder feedback.",
+      "acceptance": "Independent staged difference/acceleration/jerk trajectories, combined limiter ordering, reversals/clamps/unequal dt and reset/pause/owner-fault repair; measured actuation distinct from requested twist. Complete the combined candidate’s full staged hook, strict coverage, independent local audit, exact hosted CI and original-artifact audit; no inherited qualification or acceptance.",
+      "excluded": "new generic math framework; body teleport; weakened old commands or tolerances.",
+      "Source_selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+        "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+        "bytes": 17059,
+        "mode": 436
+      },
+      "Source_completion": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/m112-m113-root-source-completion.json",
+        "sha256": "3b567438beb772608e67efe1485e63ff512721a7b12350d7a7e66fb01a97cbc2",
+        "bytes": 7695,
+        "mode": 436
+      },
+      "production_lease": [
+        "crates/gz-sim-scene/src/diff_drive.rs",
+        "crates/gz-sim-scene/src/diff_drive/config.rs",
+        "crates/gz-sim-scene/src/diff_drive/model.rs"
+      ],
+      "delivery_guide": "docs/M113_DELIVERY.md",
+      "implementation_started": true,
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_review_complete": false,
+      "independent_Source_review_scope": "Reviews are underway; the author completion is a Source-only checkpoint, and Root must close the complete review batch.",
+      "source_foundation_tree": "93a2d820853dc7366d4706aace5bd42726a42e26",
+      "source_foundation_qualified": false,
+      "checks_run": false,
+      "actual_new_test_passes": null,
+      "future_tree": null,
+      "future_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "Main_promoted": false
     }
   ],
   "later_work": "Continue directly to the next useful named increment after accepting a phase while retained work remains. Each is bounded to at most five working days including independent review and mandatory checks. Independent increments may share a parallel source wave with one integrator. Full rewrite compatibility remains separate from accepted phase counts.",
@@ -13741,13 +14422,25 @@
     "M95": "in_progress",
     "M96": "in_progress",
     "M97": "in_progress",
-    "M98": "in_progress",
-    "M99": "in_progress",
-    "M100": "in_progress",
-    "M101": "in_progress"
+    "M98": "own_local_hosted_official_qualified_acceptance_held",
+    "M99": "own_local_hosted_official_qualified_acceptance_held",
+    "M100": "locally_qualified_hosted_in_progress",
+    "M101": "locally_qualified_hosted_in_progress",
+    "M102": "Source_complete_reviewed_unverified",
+    "M103": "Source_complete_reviewed_unverified",
+    "M104": "regression_compilation_lint_correction_unqualified",
+    "M105": "regression_compilation_lint_correction_unqualified",
+    "M106": "regression_compilation_lint_correction_unqualified",
+    "M107": "regression_compilation_lint_correction_unqualified",
+    "M108": "regression_compilation_lint_correction_unqualified",
+    "M109": "regression_compilation_lint_correction_unqualified",
+    "M110": "regression_compilation_lint_correction_unqualified",
+    "M111": "regression_compilation_lint_correction_unqualified",
+    "M112": "regression_compilation_lint_correction_unqualified",
+    "M113": "regression_compilation_lint_correction_unqualified"
   },
   "resumed_at": "2026-11-02T22:33:50.311634Z",
-  "phase_started_at": "2026-11-22T17:17:54.400715+00:00",
+  "phase_started_at": "2026-11-22T21:54:13.267063+00:00",
   "active_phases": [
     "M77",
     "M78",
@@ -13773,7 +14466,19 @@
     "M98",
     "M99",
     "M100",
-    "M101"
+    "M101",
+    "M102",
+    "M103",
+    "M104",
+    "M105",
+    "M106",
+    "M107",
+    "M108",
+    "M109",
+    "M110",
+    "M111",
+    "M112",
+    "M113"
   ],
   "execution_policy": "D30–D32: disjoint bounded Scene and Server source work may run in parallel with independent review. Root owns shared integration and serial heavy execution. Complete implementation, regressions and guides precede consolidated checks. All accepted-predecessor, hosted, official and publication gates remain mandatory.",
   "parallel_groups": [
@@ -15010,41 +15715,149 @@
         "later_profile_coverage_reached": false,
         "qualified": false
       }
+    },
+    {
+      "phases": [
+        "M102",
+        "M103"
+      ],
+      "max_working_days": 5,
+      "production_seams_disjoint": true,
+      "Root_retained_leases": [
+        "native tests/compound.rs exact four old +/-0.1 COM inputs",
+        "runtime_compound_retemplate exact old +0.25 COM row",
+        "external private config exact old LINK Q input",
+        "M101 inline DOM exact old LINK Q input",
+        "shared docs/planning/census/procedure integration"
+      ],
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_code_reviews_complete": true,
+      "Source_declarations": {
+        "Rust_unique": 26,
+        "headless": 26,
+        "renderer": 25,
+        "overlap": 25,
+        "public": 20,
+        "private": 6,
+        "private_native_lib_headless_only": 1,
+        "private_Scene_lib_shared": 5,
+        "Python": 0,
+        "new_finite_cases": 0,
+        "new_CLI_cases": 0
+      },
+      "integration": "Both bounded implementations, regression Source and retained same-input dispositions are independently clear and integrated. Shared documentation and its review precede one final verification cycle; no current checks or outcome are inferred.",
+      "checks_run": false,
+      "accepted": false
+    },
+    {
+      "phases": [
+        "M104",
+        "M105",
+        "M106",
+        "M107",
+        "M108",
+        "M109",
+        "M110",
+        "M111",
+        "M112",
+        "M113"
+      ],
+      "max_working_days": 5,
+      "max_working_days_per_phase": 5,
+      "selection": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+        "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+        "bytes": 17059,
+        "mode": 436
+      },
+      "prerequisite_addendum": {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/concrete-prerequisite-source-scope-addendum.json",
+        "sha256": "fe798b7d8afb9b5a31822ed40741775e1405384bcfd4a98e5592c74e0c6169cd",
+        "bytes": 2398,
+        "mode": 436
+      },
+      "implementation_complete": true,
+      "regression_Source_complete": true,
+      "independent_whole_Source_reviews_complete": false,
+      "same_checkout_disjoint_file_owners": true,
+      "sequential_shared_owner_seams": [
+        "M109/M110 renderer gpu.rs",
+        "M105/M111 Server lib.rs",
+        "M112/M113 DiffDrive leaves"
+      ],
+      "integration": "One combined candidate over qualified08a0 with exact unverified M102/M103 Source foundation93a2; finish all code/regressions/docs/reviews, batch fixes, then one consolidated mandatory verification cycle. No intermediate phase passes or acceptance are inferred.",
+      "checks_run": true,
+      "final_tree": null,
+      "final_commit": null,
+      "normal_actual": null,
+      "local_DATA_actual": null,
+      "hosted_actual": null,
+      "official_actual": null,
+      "accepted": false,
+      "resource_admitted": false,
+      "capacity_hold": "SSD shortfall cleared by authorized9.02GiB cache cleanup; fresh operating-floor/identity admission remains required.",
+      "first_normal_failure": {
+        "tree": "eb4afd236f307011ec278312fc0d9372a37d3d78",
+        "elapsed_seconds": 107.43825310101965,
+        "stage": "workspace_clippy",
+        "actual_exit_code": 1,
+        "runtime_tests_reached": false,
+        "strict_coverage_reached": false,
+        "commit_created": false
+      }
     }
   ],
-  "acceptance_boundary": "M100/M101 first normal failed two M100 test-premise cases after the complete headless run. The isolated corrective source is reviewed and preserves every assertion/input/tolerance. Corrected formatting and full mandatory normal retry, independent local DATA, hosted CI and original audits remain required. Parent1a4 has its own complete local/hosted/official qualification, with no acceptance transfer. M77 owner/browser gates remain.",
+  "acceptance_boundary": "Frozen7c8a full normal exited1/4440.450s: H2153/0/2 and maintained coverage passed; R1677/4/2. Three reviewed test corrections need their own full hook, local DATA, exact hosted CI and original-artifact audit. Accepted76/202 and M77 formal browser/shutdown gates remain unchanged.",
   "current_delivery_group": [
-    "M100",
-    "M101"
+    "M104",
+    "M105",
+    "M106",
+    "M107",
+    "M108",
+    "M109",
+    "M110",
+    "M111",
+    "M112",
+    "M113"
   ],
-  "current_development_phase": "M100",
+  "current_development_phase": "M104",
   "board": {
-    "updated_at": "2026-11-22T19:57:47.971576+00:00",
+    "updated_at": "2026-11-23T22:54:30.020289+00:00",
     "current": {
-      "title": "Mass frames and joint frames: test corrections reviewed",
+      "title": "Complete renderer test correction batch ready",
       "items": [
-        "The first full normal failed two new M100 test premises. Both corrections preserve all inputs, assertions and tolerances; the corrected full verification retry is pending.",
-        "M98/M99 passed its own local and hosted checks and independent official artifact audit. Formal acceptance remains held by predecessor and owner gates.",
-        "The no-expiry manual demo remains protected. No stop, restart or expiry is authorized."
+        "Headless passed 2,153 tests and maintained coverage; renderer completed 1,677 passed, four failed and two ignored.",
+        "Three reviewed test corrections preserve Capsule admission, camera publication and the exact opaque empty background.",
+        "The no-expiry demo stays live until owner-confirmed stop; formal browser and shutdown evidence remain pending."
       ]
     },
     "done": [
-      "The failed headless run recorded 2046 passed, two failed and two ignored; all original Source and partial evidence remain.",
-      "M98/M99 completed its own independent official artifact qualification."
+      "The headless coverage correction cleared the previous Server gate: 19,357/20,312 regions and 13,035/13,446 lines.",
+      "Both Clippy stages, documentation and the 498-test Python aggregate passed in the frozen current run."
     ],
     "next": [
-      "Complete corrected-source docs/procedure review and formatting, then one consolidated full normal retry.",
-      "After an actual pass, independently audit local evidence and qualify the exact review commit through hosted CI and original artifacts."
+      "Run one affected formatter and one full staged hook for the complete reviewed correction batch.",
+      "Complete independent local DATA, exact hosted CI and original-artifact audit.",
+      "Resolve browser authority and complete formal browser and owner-confirmed shutdown proof."
     ],
     "blocker": {
-      "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
+      "text": "Release acceptance awaits strict coverage and qualification, plus formal browser and owner-confirmed shutdown evidence. The recorded browser permission denial remains unresolved.",
       "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/57b44de10713dc6132c5549d769dac00dc041f56/docs/M77_DELIVERY.md"
     },
     "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
   },
   "parallel_source_phases": [
-    "M100",
-    "M101"
+    "M104",
+    "M105",
+    "M106",
+    "M107",
+    "M108",
+    "M109",
+    "M110",
+    "M111",
+    "M112",
+    "M113"
   ],
   "camera_integration": {
     "scope": "Atomic M61–M64 qualification on accepted M60; no new phase",
@@ -15193,7 +16006,7 @@
     "hosted_attempt": 1,
     "hosted_success": true
   },
-  "current_development_task": "Complete reviewed two-oracle corrective Source and documentation, then one consolidated full normal retry; all failed originals are preserved.",
+  "current_development_task": "Verify the complete reviewed four-failure renderer test correction through one full mandatory staged hook and independent audits.",
   "backend_retirement_source_preparation": {
     "decision": "D33",
     "owner_directed_at": "2026-11-17",
@@ -16350,7 +17163,7 @@
     },
     "official_qualified": true
   },
-  "phase_started_at_scope": "Actual Root selection ca34205a followed by implementation dispatch4e9d; no verification result.",
+  "phase_started_at_scope": "Current wave implementation dispatch8446e0c3 follows reviewed selection998f0cd8 over the exact unverified93a2 foundation. This is an authoring checkpoint, not a verification timestamp.",
   "current_M82_parent_qualification": {
     "commit": "039a1e5142dd48705a23acb6f817613f509408f0",
     "tree": "420197183a1ec5b71f85f9c2181b9caa1d82a4c6",
@@ -16689,7 +17502,7 @@
     "official_CI_changed_line_base": "0000000000000000000000000000000000000000",
     "official_CI_basis_kind": "new_branch_all_source"
   },
-  "phase_catalog_checkpoint_scope": "First99 native phaseobjects/prior57 groups are exact historical Source, with native array contracts preserved. Current100/101 Source and code reviews complete,23declarations notpasses; final docs peer pending. Parent1a4 local/hosted0 unaccepted/officialpending; current formatter/results/tree/commit unknown. Accepted76/202/LatestM70original41 unchanged.",
+  "phase_catalog_checkpoint_scope": "The first103 phase objects and prior59 parallel groups are exact historical Source observations. M104–M113 append ten selected Source-only contracts and one integration group; no acceptance or verification result is inferred.",
   "current_M86_M87_parent_qualification": {
     "commit": "ee4df6c5851cc40b77a15b19c6e992434ee7bfff",
     "tree": "d3ffae592249a6b8c0a73ba27097504a6340c639",
@@ -18812,93 +19625,464 @@
     }
   },
   "current_M98_M99_parent_qualification": {
-                                            "commit": "1a4bdbb57f41b0cba3c7b71c1695fca9bc8387fc",
-                                            "tree": "e8dd98dd5050c1b6e8c93764e17742dd11e810dc",
-                                            "accepted": false,
-                                            "normal_actual": {
-                                              "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/normal-actual-exit.json",
-                                              "sha256": "17f505b99f8a46b754dccca12b1b74bb3800a6d2e1244197dd37b5c53911ba69",
-                                              "bytes": 2238,
-                                              "mode": 436
-                                            },
-                                            "local_DATA_actual": {
-                                              "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/retained-normal-actual-exit.json",
-                                              "sha256": "9ccb1a49ab2b1592092db45719e2ec6d55e86efebe512538e6aa4ba867061acb",
-                                              "bytes": 2335,
-                                              "mode": 436
-                                            },
-                                            "local_DATA_report": {
-                                              "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/normal-retained-audit.json",
-                                              "sha256": "5e859dbffbfde220d5434c9860486da1f9ad9b6c9b84ae95226f35e8bcfeff0c",
-                                              "bytes": 250111,
-                                              "mode": 436
-                                            },
-                                            "normal_qualified": true,
-                                            "local_DATA_qualified": true,
-                                            "review_publication": {
-                                              "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/review-publication.json",
-                                              "sha256": "c471321dc49561890b827e20d5212663bd065d5f5f3fffac367cb7394db27ca1",
-                                              "bytes": 2569,
-                                              "mode": 436
-                                            },
-                                            "hosted_actual": {
-                                              "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/hosted-terminal-metadata-actual-success.json",
-                                              "sha256": "ddc8cf0da98719a8d7d64a2fd90048941109891d10115f90969317ea685a4b22",
-                                              "bytes": 4940,
-                                              "mode": 436
-                                            },
-                                            "hosted_qualified": true,
-                                            "hosted_run": 45038323899,
-                                            "hosted_attempt": 1,
-                                            "hosted_all13_steps_success": true,
-                                            "official_DATA_qualified": false,
-                                            "official_actual": null,
-                                            "qualification_inherited": false,
-                                            "watcher_failure_preserved": {
-                                              "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/hosted-watch-api-rate-limit.json",
-                                              "sha256": "ee8b8d0081fd4defcb1e5c23518f52784d852bafb8c671703af696363dc1e846",
-                                              "bytes": 868,
-                                              "mode": 436
-                                            },
-                                            "later_API403_preserved": {
-                                              "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/hosted-terminal-metadata-api403-receipt.json",
-                                              "sha256": "e6fef36a9f4e4d953a33f453c6cf64d02283a8e41f8179affa669bc40f2fd18c",
-                                              "bytes": 1044,
-                                              "mode": 436
-                                            },
-                                            "prior_collector_method_failures": [
-                                              {
-                                                "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/official-collector-method1-missing-job-binding-failure.json",
-                                                "sha256": "9b899056156d4fc2d738f17f8c8469b2a3bd3ce5d1760cde60d1feb388bb818a",
-                                                "bytes": 2352,
-                                                "mode": 436
-                                              },
-                                              {
-                                                "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/official-collector-method2-parent-proof-schema-failure.json",
-                                                "sha256": "4bf08348a91f8e69bd27dc87b6d9bdd57b03c4a007da37d0e1c5201858a048fa",
-                                                "bytes": 3176,
-                                                "mode": 436
-                                              }
-                                            ],
-                                            "collector_method_attempt1_failed_before_IO": true,
-                                            "original_official_collection_started": false,
-                                            "original_archives_downloaded": false,
-                                            "historical_selected_author_Source_checkpoint": {
-                                              "prior_collector_method_failures": [
-                                                {
-                                                  "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/official-collector-method1-missing-job-binding-failure.json",
-                                                  "sha256": "9b899056156d4fc2d738f17f8c8469b2a3bd3ce5d1760cde60d1feb388bb818a",
-                                                  "bytes": 2352,
-                                                  "mode": 436
-                                                }
-                                              ],
-                                              "collector_method_attempt2_failed_before_IO": null,
-                                              "parent_official_scope": null
-                                            },
-                                            "collector_method_attempt2_failed_before_IO": true,
-                                            "parent_official_scope": "Local and exact-head hosted qualification passed; two collector methods failed before I/O/packet/archives. Official qualification pending, unaccepted; method records do not become product/CI failures."
-                                          },
+    "commit": "1a4bdbb57f41b0cba3c7b71c1695fca9bc8387fc",
+    "tree": "e8dd98dd5050c1b6e8c93764e17742dd11e810dc",
+    "accepted": false,
+    "normal_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/normal-actual-exit.json",
+      "sha256": "17f505b99f8a46b754dccca12b1b74bb3800a6d2e1244197dd37b5c53911ba69",
+      "bytes": 2238,
+      "mode": 436
+    },
+    "local_DATA_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/retained-normal-actual-exit.json",
+      "sha256": "9ccb1a49ab2b1592092db45719e2ec6d55e86efebe512538e6aa4ba867061acb",
+      "bytes": 2335,
+      "mode": 436
+    },
+    "local_DATA_report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/normal-retained-audit.json",
+      "sha256": "5e859dbffbfde220d5434c9860486da1f9ad9b6c9b84ae95226f35e8bcfeff0c",
+      "bytes": 250111,
+      "mode": 436
+    },
+    "normal_qualified": true,
+    "local_DATA_qualified": true,
+    "review_publication": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/review-publication.json",
+      "sha256": "c471321dc49561890b827e20d5212663bd065d5f5f3fffac367cb7394db27ca1",
+      "bytes": 2569,
+      "mode": 436
+    },
+    "hosted_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/hosted-terminal-metadata-actual-success.json",
+      "sha256": "ddc8cf0da98719a8d7d64a2fd90048941109891d10115f90969317ea685a4b22",
+      "bytes": 4940,
+      "mode": 436
+    },
+    "hosted_qualified": true,
+    "hosted_run": 45038323899,
+    "hosted_attempt": 1,
+    "hosted_all13_steps_success": true,
+    "official_DATA_qualified": false,
+    "official_actual": null,
+    "qualification_inherited": false,
+    "watcher_failure_preserved": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/hosted-watch-api-rate-limit.json",
+      "sha256": "ee8b8d0081fd4defcb1e5c23518f52784d852bafb8c671703af696363dc1e846",
+      "bytes": 868,
+      "mode": 436
+    },
+    "later_API403_preserved": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/hosted-terminal-metadata-api403-receipt.json",
+      "sha256": "e6fef36a9f4e4d953a33f453c6cf64d02283a8e41f8179affa669bc40f2fd18c",
+      "bytes": 1044,
+      "mode": 436
+    },
+    "prior_collector_method_failures": [
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/official-collector-method1-missing-job-binding-failure.json",
+        "sha256": "9b899056156d4fc2d738f17f8c8469b2a3bd3ce5d1760cde60d1feb388bb818a",
+        "bytes": 2352,
+        "mode": 436
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/official-collector-method2-parent-proof-schema-failure.json",
+        "sha256": "4bf08348a91f8e69bd27dc87b6d9bdd57b03c4a007da37d0e1c5201858a048fa",
+        "bytes": 3176,
+        "mode": 436
+      }
+    ],
+    "collector_method_attempt1_failed_before_IO": true,
+    "original_official_collection_started": false,
+    "original_archives_downloaded": false,
+    "historical_selected_author_Source_checkpoint": {
+      "prior_collector_method_failures": [
+        {
+          "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m98-m99-delivery/official-collector-method1-missing-job-binding-failure.json",
+          "sha256": "9b899056156d4fc2d738f17f8c8469b2a3bd3ce5d1760cde60d1feb388bb818a",
+          "bytes": 2352,
+          "mode": 436
+        }
+      ],
+      "collector_method_attempt2_failed_before_IO": null,
+      "parent_official_scope": null
+    },
+    "collector_method_attempt2_failed_before_IO": true,
+    "parent_official_scope": "Local and exact-head hosted qualification passed; two collector methods failed before I/O/packet/archives. Official qualification pending, unaccepted; method records do not become product/CI failures."
+  },
   "current_M100_M101_Source": {
+    "state": "M100_M101_LOCALLY_QUALIFIED_EXACT_REVIEW_HOSTED_IN_PROGRESS",
+    "commit": "08a0eeae97dede8daee6efe6cb2922bdb86ca722",
+    "tree": "9e1f92e1586846bb86c253df1d519a928b949c8c",
+    "parent": "1a4bdbb57f41b0cba3c7b71c1695fca9bc8387fc",
+    "normal_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m100-m101-delivery/oracle-correction-normal-actual-exit.json",
+      "sha256": "9dfa6104821631a61bdf9e4645799a22aa59e2b12ba47582bfa51c012b4c99d8",
+      "bytes": 2552,
+      "mode": 436
+    },
+    "local_DATA_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m100-m101-delivery/oracle-correction-retained-actual-exit.json",
+      "sha256": "0f4211fb908e7c1e9f7d12770e8a7af1ea0b0571b015cb97a086560d02f39a7d",
+      "bytes": 2373,
+      "mode": 436
+    },
+    "local_DATA_report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m100-m101-delivery/oracle-correction-normal-retained-audit.json",
+      "sha256": "88e129332bb397c6a61d84209b1f6d1104736a5767a1edfe5b73705bbdb5c905",
+      "bytes": 271503,
+      "mode": 436
+    },
+    "review_publication": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m100-m101-delivery/review-publication-observed-hosted.json",
+      "sha256": "db7ef2a64301a0db1d64ba136518f69cb750f3070988be23a7db45f1251d11c3",
+      "bytes": 4232,
+      "mode": 436
+    },
+    "formatter_run": true,
+    "checks_run": true,
+    "normal_qualified": true,
+    "local_DATA_qualified": true,
+    "hosted_qualified": false,
+    "official_DATA_qualified": false,
+    "parent_current_hosted_run": {
+      "id": 45074764720,
+      "attempt": 1,
+      "head": "08a0eeae97dede8daee6efe6cb2922bdb86ca722",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/45074764720"
+    },
+    "hosted_outcome": null,
+    "official_audit": null,
+    "own_historical_normal_failures": [
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m100-m101-delivery/normal-attempt1-product-test-failure.json",
+        "sha256": "844527c536a46866a40e6177ac001f18b09c77c52cfce35d28bea9f50d77a45d",
+        "bytes": 1650,
+        "mode": 436
+      }
+    ],
+    "own_method_operational_reader_failures": [],
+    "scope": "The exact corrected commit passed full normal and independent retained DATA. Its review ref is published and exact attempt1 is in progress; accepted Main and M77 gates are unchanged.",
+    "accepted": false,
+    "Main_promoted": false
+  },
+  "historical_pre_final_M100_M101_current_fields": {
+    "acceptance_boundary": "Selected bounded M100/M101 Source contracts under corrected8daad5d5. M100 adds the reviewed four-constructor COM prerequisite; author completion/counts are pending. M101 author Source is frozen with14 declarations(10public4private), independent whole review pending. Combined Source counts/tree/commit/verification are unknown; no checks or inheritance.",
+    "current_development_task": "M100_M101_SELECTED_SOURCE_CONTRACTS_NATIVE_PREREQUISITE_REVIEWED_CODE_AND_REGRESSION_SOURCE_PENDING",
+    "board": {
+      "updated_at": "2026-11-22T17:25:41.304144+00:00",
+      "current": {
+        "title": "Primitive COM offsets and local joint frames: Source preparation",
+        "items": [
+          "The next two bounded features are selected. Contracts and regression requirements are documented; implementation and independent code review remain in progress.",
+          "M98/M99 passed local verification, an independent evidence audit and hosted checks on its published review commit. Official artifact qualification is pending.",
+          "The persistent M77 demo remains live. Formal browser proof and owner-confirmed shutdown still hold acceptance."
+        ]
+      },
+      "done": [
+        "Selected the narrow native prerequisite after Source review found the initial Scene-only COM scope could not deliver the feature.",
+        "M101 authored fourteen regression declarations; they have not run. M100 and combined declaration counts remain unknown."
+      ],
+      "next": [
+        "Complete both implementations and independent whole Source reviews, then one consolidated required verification cycle.",
+        "Qualify the same reviewed commit through retained local evidence, hosted checks and original artifact audits before acceptance."
+      ],
+      "blocker": {
+        "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
+        "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/57b44de10713dc6132c5549d769dac00dc041f56/docs/M77_DELIVERY.md"
+      },
+      "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
+    },
+    "phase_catalog_checkpoint_scope": "First99 native phaseobjects/prior57 groups remain exact historical Source observations, including native array contracts. Append selected100/101 andonegroup; catalog101,accepted76/202/LatestM70original41 unchanged. Current parent1a4 local+hosted qualification is genuine but unaccepted/officialpending; current new-wave results are unknown."
+  },
+  "historical_pre_profile_projection_current_aliases": {
+    "acceptance_boundary": "Implementation and regression Source complete; Root and reciprocal whole code/retained-row plus narrow first-error reviews CLEAR.23authored H/R declarations(18public5private), no passes; observed pre-doc-refresh1827/23owned/4new/1804protected/124cumulative. Final docs peer review and Root final seal pending. Formatter/tests/lint/normal/audits unrun; futuretree/commit/results NULL. New runtime ordinary-target placement Source-only; no allocation or inherited admission.",
+    "board": {
+      "updated_at": "2026-11-22T17:57:57.378727+00:00",
+      "current": {
+        "title": "Primitive COM offsets and local joint frames: code reviews complete",
+        "items": [
+          "Both implementations and regression cases are written and reviewed. Final documentation review and the required full verification cycle are next.",
+          "M98/M99 passed local verification and hosted checks. Two artifact-collector methods failed before any download; official qualification remains pending.",
+          "The persistent M77 demo remains live. Formal browser proof and owner-confirmed shutdown still hold acceptance."
+        ]
+      },
+      "done": [
+        "Reviewed both bounded implementations and retained same-input cases, including the corrected first-error expectation.",
+        "Authored23regression declarations:18public, four private Scene-lib and one private Rapier-lib; they have not run."
+      ],
+      "next": [
+        "Finish final documentation review, seal the Source inventory, then run one reviewed formatter and consolidated full verification cycle.",
+        "Independently audit local results and qualify the same commit through hosted checks and original artifact audits before acceptance."
+      ],
+      "blocker": {
+        "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
+        "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/57b44de10713dc6132c5549d769dac00dc041f56/docs/M77_DELIVERY.md"
+      },
+      "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
+    }
+  },
+  "historical_before_oracle_correction_board_refresh": {
+    "updated_at": "2026-11-22T18:08:24.716867+00:00",
+    "current": {
+      "title": "Primitive COM offsets and local joint frames: code reviews complete",
+      "items": [
+        "Both implementations and regression cases are written and reviewed. Final documentation review and the required full verification cycle are next.",
+        "M98/M99 passed local verification and hosted checks. Two artifact-collector methods failed before any download; official qualification remains pending.",
+        "The persistent M77 demo remains live. Formal browser proof and owner-confirmed shutdown still hold acceptance."
+      ]
+    },
+    "done": [
+      "Reviewed both bounded implementations and retained same-input cases, including the corrected first-error expectation.",
+      "Authored23regression controls:23headless/22renderer;18public and four private Scene controls shared, one private native control headless-only. None has run."
+    ],
+    "next": [
+      "Finish final documentation review, seal the Source inventory, then run one reviewed formatter and consolidated full verification cycle.",
+      "Independently audit local results and qualify the same commit through hosted checks and original artifact audits before acceptance."
+    ],
+    "blocker": {
+      "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
+      "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/57b44de10713dc6132c5549d769dac00dc041f56/docs/M77_DELIVERY.md"
+    },
+    "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
+  },
+  "historical_before_M102_M103_current_fields": {
+    "current_phase": "M100",
+    "current_development_phase": "M100",
+    "current_delivery_group": [
+      "M100",
+      "M101"
+    ],
+    "parallel_source_phases": [
+      "M100",
+      "M101"
+    ],
+    "execution_state": "active",
+    "current_development_task": "Complete reviewed two-oracle corrective Source and documentation, then one consolidated full normal retry; all failed originals are preserved.",
+    "acceptance_boundary": "M100/M101 first normal failed two M100 test-premise cases after the complete headless run. The isolated corrective source is reviewed and preserves every assertion/input/tolerance. Corrected formatting and full mandatory normal retry, independent local DATA, hosted CI and original audits remain required. Parent1a4 has its own complete local/hosted/official qualification, with no acceptance transfer. M77 owner/browser gates remain.",
+    "phase_started_at": "2026-11-22T17:17:54.400715+00:00",
+    "phase_catalog_checkpoint_scope": "First99 native phaseobjects/prior57 groups are exact historical Source, with native array contracts preserved. Current100/101 Source and code reviews complete,23declarations notpasses; final docs peer pending. Parent1a4 local/hosted0 unaccepted/officialpending; current formatter/results/tree/commit unknown. Accepted76/202/LatestM70original41 unchanged.",
+    "active_phases": [
+      "M77",
+      "M78",
+      "M79",
+      "M80",
+      "M81",
+      "M82",
+      "M83",
+      "M84",
+      "M85",
+      "M86",
+      "M87",
+      "M88",
+      "M89",
+      "M90",
+      "M91",
+      "M92",
+      "M93",
+      "M94",
+      "M95",
+      "M96",
+      "M97",
+      "M98",
+      "M99",
+      "M100",
+      "M101"
+    ],
+    "status": {
+      "M1": "complete",
+      "M2": "complete",
+      "M3": "complete",
+      "M4": "complete",
+      "M5": "complete",
+      "M6": "complete",
+      "M7": "complete",
+      "M8": "complete",
+      "M9": "complete",
+      "M10": "complete",
+      "M11": "complete",
+      "M12": "complete",
+      "M13": "complete",
+      "M14": "complete",
+      "M15": "complete",
+      "M16": "complete",
+      "M17": "complete",
+      "M18": "complete",
+      "M19": "complete",
+      "M20": "complete",
+      "M21": "complete",
+      "M22": "complete",
+      "M23": "complete",
+      "M24": "complete",
+      "M25": "complete",
+      "M26": "complete",
+      "M27": "complete",
+      "M28": "complete",
+      "M29": "complete",
+      "M30": "complete",
+      "M31": "complete",
+      "M32": "complete",
+      "M33": "complete",
+      "M34": "complete",
+      "M35": "complete",
+      "M36": "complete",
+      "M37": "complete",
+      "M38": "complete",
+      "M39": "complete",
+      "M40": "complete",
+      "M41": "complete",
+      "M42": "complete",
+      "M43": "complete",
+      "M44": "complete",
+      "M45": "complete",
+      "M46": "complete",
+      "M47": "complete",
+      "M48": "complete",
+      "M49": "complete",
+      "M50": "complete",
+      "M51": "complete",
+      "M52": "complete",
+      "M53": "complete",
+      "M54": "complete",
+      "M55": "complete",
+      "M56": "complete",
+      "M57": "complete",
+      "M58": "complete",
+      "M59": "complete",
+      "M60": "complete",
+      "M61": "complete",
+      "M62": "complete",
+      "M63": "complete",
+      "M64": "complete",
+      "M65": "complete",
+      "M66": "complete",
+      "M67": "complete",
+      "M68": "complete",
+      "M69": "complete",
+      "M70": "complete",
+      "M71": "complete",
+      "M72": "complete",
+      "M73": "complete",
+      "M74": "complete",
+      "M75": "complete",
+      "M76": "complete",
+      "M77": "in_progress",
+      "M78": "in_progress",
+      "M79": "in_progress",
+      "M80": "in_progress",
+      "M81": "in_progress",
+      "M82": "in_progress",
+      "M83": "in_progress",
+      "M84": "in_progress",
+      "M85": "in_progress",
+      "M86": "in_progress",
+      "M87": "in_progress",
+      "M88": "in_progress",
+      "M89": "in_progress",
+      "M90": "in_progress",
+      "M91": "in_progress",
+      "M92": "in_progress",
+      "M93": "in_progress",
+      "M94": "in_progress",
+      "M95": "in_progress",
+      "M96": "in_progress",
+      "M97": "in_progress",
+      "M98": "in_progress",
+      "M99": "in_progress",
+      "M100": "in_progress",
+      "M101": "in_progress"
+    },
+    "board": {
+      "updated_at": "2026-11-22T19:57:47.971576+00:00",
+      "current": {
+        "title": "Mass frames and joint frames: test corrections reviewed",
+        "items": [
+          "The first full normal failed two new M100 test premises. Both corrections preserve all inputs, assertions and tolerances; the corrected full verification retry is pending.",
+          "M98/M99 passed its own local and hosted checks and independent official artifact audit. Formal acceptance remains held by predecessor and owner gates.",
+          "The no-expiry manual demo remains protected. No stop, restart or expiry is authorized."
+        ]
+      },
+      "done": [
+        "The failed headless run recorded 2046 passed, two failed and two ignored; all original Source and partial evidence remain.",
+        "M98/M99 completed its own independent official artifact qualification."
+      ],
+      "next": [
+        "Complete corrected-source docs/procedure review and formatting, then one consolidated full normal retry.",
+        "After an actual pass, independently audit local evidence and qualify the exact review commit through hosted CI and original artifacts."
+      ],
+      "blocker": {
+        "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
+        "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/57b44de10713dc6132c5549d769dac00dc041f56/docs/M77_DELIVERY.md"
+      },
+      "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
+    }
+  },
+  "current_M102_M103_Source": {
+    "selection": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m102-m103-delivery/source-selection.json",
+      "sha256": "b985af320437e5d9737eed8d517b56339f87a5f46008743f0bfdd974b7ad7824",
+      "bytes": 17277,
+      "mode": 436
+    },
+    "M102_reviewed_adoption": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m102-m103-delivery/m102-reviewed-Source-adoption.json",
+      "sha256": "a05bfb841d66a7f3431ba2651a5689a84a4646d3e817d1ba56363beff50e23b8",
+      "bytes": 2259,
+      "mode": 436
+    },
+    "M103_reviewed_adoption": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m102-m103-delivery/m103-reviewed-Source-adoption.json",
+      "sha256": "bc583774a58db920ebbb77b53bac16dffbd24786c196e1ff49333a163dd32638",
+      "bytes": 1425,
+      "mode": 436
+    },
+    "Root_retained_review": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m102-m103-delivery/Root-four-retained-dispositions-source-reviewed.json",
+      "sha256": "a59476766ea3fef8082b57f03c750d670e597f1b2caed6f6102d1398f0c62e7d",
+      "bytes": 680,
+      "mode": 436
+    },
+    "parent_normal_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m100-m101-delivery/oracle-correction-normal-actual-exit.json",
+      "sha256": "9dfa6104821631a61bdf9e4645799a22aa59e2b12ba47582bfa51c012b4c99d8",
+      "bytes": 2552,
+      "mode": 436
+    },
+    "parent_local_DATA_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m100-m101-delivery/oracle-correction-retained-actual-exit.json",
+      "sha256": "0f4211fb908e7c1e9f7d12770e8a7af1ea0b0571b015cb97a086560d02f39a7d",
+      "bytes": 2373,
+      "mode": 436
+    },
+    "parent_local_DATA_report": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m100-m101-delivery/oracle-correction-normal-retained-audit.json",
+      "sha256": "88e129332bb397c6a61d84209b1f6d1104736a5767a1edfe5b73705bbdb5c905",
+      "bytes": 271503,
+      "mode": 436
+    },
+    "Source_declarations": {
+      "Rust_unique": 26,
+      "headless": 26,
+      "renderer": 25,
+      "overlap": 25,
+      "public": 20,
+      "private": 6,
+      "private_native_lib_headless_only": 1,
+      "private_Scene_lib_shared": 5,
+      "Python": 0,
+      "new_finite_cases": 0,
+      "new_CLI_cases": 0
+    },
+    "checks_run": false,
+    "normal_actual": null,
+    "hosted_actual": null,
+    "accepted": false,
+    "qualification_inherited": false
+  },
+  "historical_M100_M101_Source_before_M102_parent_qualification": {
     "state": "M100_M101_TWO_TEST_PREMISES_CORRECTED_SOURCE_REVIEWED_VERIFICATION_PENDING",
     "selected": true,
     "selection": {
@@ -20438,26 +21622,301 @@
       "verification_run": false
     }
   },
-  "historical_pre_final_M100_M101_current_fields": {
-    "acceptance_boundary": "Selected bounded M100/M101 Source contracts under corrected8daad5d5. M100 adds the reviewed four-constructor COM prerequisite; author completion/counts are pending. M101 author Source is frozen with14 declarations(10public4private), independent whole review pending. Combined Source counts/tree/commit/verification are unknown; no checks or inheritance.",
-    "current_development_task": "M100_M101_SELECTED_SOURCE_CONTRACTS_NATIVE_PREREQUISITE_REVIEWED_CODE_AND_REGRESSION_SOURCE_PENDING",
+  "current_M104_M113_Source": {
+    "correction_batch_scope": "Three reviewed renderer test corrections: Capsule positive plus Plane refusal and lazy ownership; explicit ImagePublished pump; exact opaque empty-frame RGBA. No production change in this correction.",
+    "reviewed_sensing_retirement_correction": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/capsule-worker-retirement-source-correction.json",
+      "sha256": "445d0d7c1c2c381540aa9dea82983b2a9e3dc0d747352d38c84c323d5c943d43",
+      "bytes": 2302,
+      "mode": 436
+    },
+    "selection": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/ten-phase-reviewed-source-selection.json",
+      "sha256": "998f0cd81d60b32e2e51ba5633c02d468f15702ad5bc42a3bf06f693f36fa54b",
+      "bytes": 17059,
+      "mode": 436
+    },
+    "prerequisite_addendum": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/concrete-prerequisite-source-scope-addendum.json",
+      "sha256": "fe798b7d8afb9b5a31822ed40741775e1405384bcfd4a98e5592c74e0c6169cd",
+      "bytes": 2398,
+      "mode": 436
+    },
+    "author_completions": [
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/physics-three-phases-source-completion.json",
+        "sha256": "4d49244d649a4237d703221b3c013c07dc6844269fa1d9d9989c38bb77596ead",
+        "bytes": 22652,
+        "mode": 436
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/m105-m111-systems-source-completion.json",
+        "sha256": "86104a4055df9b0c466d7083b817cafcdbf029893cacb1dff9d65dd3a5a6c448",
+        "bytes": 19239,
+        "mode": 436
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/sensing-graphics-three-phases-source-completion.json",
+        "sha256": "1039308cc0315aa31f7ef6b7fa804d949ca7e308ef4b7e7f3648264839c45ff7",
+        "bytes": 45793,
+        "mode": 436
+      },
+      {
+        "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/m112-m113-root-source-completion.json",
+        "sha256": "3b567438beb772608e67efe1485e63ff512721a7b12350d7a7e66fb01a97cbc2",
+        "bytes": 7695,
+        "mode": 436
+      }
+    ],
+    "qualified_Git_parent": "08a0eeae97dede8daee6efe6cb2922bdb86ca722",
+    "copied_foundation_tree": "93a2d820853dc7366d4706aace5bd42726a42e26",
+    "copied_foundation_phases": [
+      "M102",
+      "M103"
+    ],
+    "foundation_qualified": false,
+    "implementation_complete": true,
+    "regression_Source_complete": true,
+    "whole_Source_reviews_complete": true,
+    "Source_declarations_scope": "The frozen4084 baseline has113 Rust controls (94 headless,97 renderer,78shared,70public,43private). This coverage correction adds9 Rust and4 Python methods; current Source obligations are122 Rust (103headless,98renderer,79shared,70public,52private) and498 expected quiet Python cases. These are declarations, not new executed passes.",
+    "original_failed_candidate_formatter_run": true,
+    "correction_formatter_run": true,
+    "tests_run": false,
+    "lint_run": false,
+    "normal_actual": null,
+    "local_DATA_actual": null,
+    "hosted_actual": null,
+    "official_actual": null,
+    "final_tree": null,
+    "final_commit": null,
+    "accepted": false,
+    "qualification_inherited": false,
+    "resource_admitted": false,
+    "capacity_hold": "Fresh exact host identity and resource admission required after retirement of current normal; no future fit claim.",
+    "prior_checkpoint_alias_scope": "Other inherited current_M*_Source objects retain their earlier author-checkpoint observations. The current ten-phase wave state is this object; the historical Markdown checkpoint suffixes remain exact.",
+    "original_failed_candidate_formatter_actual": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/final-wave-formatter-actual.json",
+      "sha256": "ceabe9c48a815dbb5f1f77a7401b1af497770cdd95d03b186a51c1c968cc4386",
+      "bytes": 25038,
+      "mode": 436
+    },
+    "original_failed_candidate_formatter_independent_retained_review": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/final-wave-formatter-independent-retained-review.json",
+      "sha256": "b2c1a8725f56a95ccbd23df73ee1235019edaf0b3052d48db16d3d883b59a91e",
+      "bytes": 61941,
+      "mode": 436
+    },
+    "independent_Source_inventory": {
+      "path": "coverage-correction-Rust-Python-Source-declarations-census.json",
+      "sha256": "cc5fa078c69c26e2ee1fc8ed2e7902de89cc391fb2068539f4ecdfa858d2cf89",
+      "bytes": 69687,
+      "mode": 436
+    },
+    "preformat_Source_snapshot": {
+      "path": "/home/nkoenig/work/gazebo/rust/gz-sim-rs/artifacts/m104-m113-delivery/complete-preformat-source-snapshot.json",
+      "sha256": "febcd5560249385fddf7a34bf4b883f2cd45e0d5f4f201eeb3a1806d533f890d",
+      "bytes": 700025,
+      "mode": 436
+    },
+    "Source_binding_count": 1862,
+    "changed_paths_vs_Git_parent": 120,
+    "new_paths_vs_Git_parent": 35,
+    "changed_production_paths": 29,
+    "Source_control_declarations": {
+      "Rust_unique": 87,
+      "headless": 68,
+      "renderer": 72,
+      "overlap": 53,
+      "public": 50,
+      "private": 37
+    },
+    "combined_Source_control_declarations": {
+      "Rust_unique": 113,
+      "headless": 94,
+      "renderer": 97,
+      "overlap": 78,
+      "public": 70,
+      "private": 43,
+      "scope": "Prior113-control baseline census only; new coverage controls await a separate completed source census."
+    },
+    "formatter_scope": "Only the three reviewed renderer correction Rust leaves; all outside source and modes remain protected.",
+    "Source_review_scope": "All three test corrections, shared factual documentation and terminal predecessor facts independently reviewed; final formatter and consolidated mandatory verification remain.",
+    "final_tree_scope": "The exact staged tree and subsequent gate results are recorded outside this source plan. No commit, passing normal, hosted result or phase acceptance is claimed by this handoff.",
+    "heavy_verification_released": false,
+    "first_normal_failure": {
+      "tree": "eb4afd236f307011ec278312fc0d9372a37d3d78",
+      "elapsed_seconds": 107.43825310101965,
+      "stage": "workspace_clippy",
+      "actual_exit_code": 1,
+      "runtime_tests_reached": false,
+      "strict_coverage_reached": false,
+      "commit_created": false
+    },
+    "python_retry_failure": {
+      "tree": "333b0d7114a70c1eb33f815fbfeea50ad9b2bcc3",
+      "actual_exit_code": 1,
+      "elapsed_seconds": 285.29778999101836,
+      "Python_tests": 494,
+      "Python_errors": 5,
+      "Python_seconds": 66.946,
+      "Rust_runtime_profiles_reached": false,
+      "strict_coverage_reached": false
+    },
+    "toolchain_component_restored": "Declared llvm-tools-preview installed successfully for pinned1.97.1; previous absence cause unknown.",
+    "current_correction_scope": "Complete four-failure renderer batch in three test-premise/driver classes; one affected formatter then full staged hook and mandatory independent audits. All original failures stay frozen.",
+    "headless_retry_failure": {
+      "tree": "66e848bec3a80067eb375fbb45ff24e5c90fa3d0",
+      "actual_exit_code": 1,
+      "elapsed_seconds": 2564.1540412869654,
+      "Python_tests": 494,
+      "Python_passed": true,
+      "headless_passed": 2119,
+      "headless_failed": 22,
+      "headless_ignored": 2,
+      "renderer_runtime_reached": false,
+      "strict_coverage_reached": false,
+      "commit_created": false
+    },
+    "prior_source_inventory_scope": "Historical110-declaration inventory, later113-control baseline census and their formatter cards retain their original identities. The coverage correction has a separate current122-control census.",
+    "affected_Rust_paths": 94,
+    "import_retry_failure": {
+      "tree": "2247e7d87e8e1cf01aa5b8bdb8298dd1ec58b384",
+      "actual_exit_code": 1,
+      "elapsed_seconds": 28.24316610599635,
+      "stage": "workspace_clippy",
+      "diagnostics": 3,
+      "targets": 2,
+      "runtime_tests_reached": false,
+      "strict_coverage_reached": false
+    },
+    "typed_TPE_retry_failure": {
+      "tree": "c392f1560d7c132b19212deb95b9712cb92c8463",
+      "actual_exit_code": 1,
+      "elapsed_seconds": 2514.712569220981,
+      "stage": "headless",
+      "passed": 2143,
+      "failed": 1,
+      "ignored": 2,
+      "failure": "offset_compound_first_errors_native_boundaries_and_pending_repair_do_not_consume_ids",
+      "actual_variant_printed": false,
+      "renderer_runtime_reached": false,
+      "strict_coverage_reached": false
+    },
+    "headless_region_coverage_failure": {
+      "tree": "4084c78a7b9f414b3a0f23c87a097bc32938ac8a",
+      "actual_exit_code": 1,
+      "elapsed_seconds": 2510.683963301999,
+      "Python_passed": 494,
+      "headless_passed": 2144,
+      "headless_failed": 0,
+      "headless_ignored": 2,
+      "Server_regions": [
+        19281,
+        20312
+      ],
+      "all18base_changed_line_gaps": [
+        "gz-sim-cli",
+        "gz-sim-server"
+      ],
+      "renderer_runtime_reached": false,
+      "commit_created": false
+    },
+    "current_Source_control_declarations": {
+      "Rust_unique": 122,
+      "headless": 103,
+      "renderer": 98,
+      "overlap": 79,
+      "public": 70,
+      "private": 52,
+      "new_Python_methods": 4,
+      "expected_quiet_Python_aggregate": 498,
+      "scope": "Current complete coverage-correction Source obligations only; no check result or inherited qualification."
+    },
+    "renderer_correction_predecessor_observation": {
+      "tree": "7c8a5de42122c838d47b5bb5559cca9ee65082b2",
+      "normal_active": false,
+      "headless": {
+        "passed": 2153,
+        "failed": 0,
+        "ignored": 2,
+        "maintained_coverage_passed": true
+      },
+      "renderer_failed_observed": 4,
+      "whole_normal_outcome": "FAILED_RENDERER_TESTS",
+      "qualification_inherited": false,
+      "actual_exit_code": 1,
+      "actual_git_exit_code": 1,
+      "elapsed_seconds": 4440.450003509002,
+      "renderer": {
+        "passed": 1677,
+        "failed": 4,
+        "ignored": 2
+      },
+      "capacity_faults": [],
+      "packet": "/home/nkoenig/work/gazebo/rust/gz-sim-m104-m113-coverage-corrections/artifacts/staged/7c8a5de42122c838d47b5bb5559cca9ee65082b2-r_q352_2"
+    }
+  },
+  "historical_before_M104_M113_current_fields": {
+    "as_of": "2026-11-22T17:25:41.304144+00:00",
+    "execution_state": "active",
+    "current_phase": "M102",
+    "parallel_source_phases": [
+      "M102",
+      "M103"
+    ],
+    "current_development_phase": "M102",
+    "current_development_task": "Finish shared documentation, independent review and exact verification preparation for translated compound mass frames and rotated LINK frames.",
+    "current_delivery_group": [
+      "M102",
+      "M103"
+    ],
+    "active_phases": [
+      "M77",
+      "M78",
+      "M79",
+      "M80",
+      "M81",
+      "M82",
+      "M83",
+      "M84",
+      "M85",
+      "M86",
+      "M87",
+      "M88",
+      "M89",
+      "M90",
+      "M91",
+      "M92",
+      "M93",
+      "M94",
+      "M95",
+      "M96",
+      "M97",
+      "M98",
+      "M99",
+      "M100",
+      "M101",
+      "M102",
+      "M103"
+    ],
+    "acceptance_boundary": "Parent08a0 passed full normal and independent local DATA and is published for exact hosted CI45074764720 attempt1, currently in progress. M102/M103 is reviewed Source only; no current test result or acceptance is inherited. M77 formal browser/shutdown gates and accepted76/202 remain.",
     "board": {
-      "updated_at": "2026-11-22T17:25:41.304144+00:00",
+      "updated_at": "2026-11-22T22:21:48.290726+00:00",
       "current": {
-        "title": "Primitive COM offsets and local joint frames: Source preparation",
+        "title": "Compound mass frames and rotated links: reviewed Source",
         "items": [
-          "The next two bounded features are selected. Contracts and regression requirements are documented; implementation and independent code review remain in progress.",
-          "M98/M99 passed local verification, an independent evidence audit and hosted checks on its published review commit. Official artifact qualification is pending.",
-          "The persistent M77 demo remains live. Formal browser proof and owner-confirmed shutdown still hold acceptance."
+          "Both bounded implementations and 26 new Source declarations are reviewed and integrated; shared documentation and final verification preparation remain.",
+          "Parent local normal and independent DATA passed; its exact hosted review run is in progress.",
+          "The persistent manual demo remains live; formal browser and shutdown still gate acceptance."
         ]
       },
       "done": [
-        "Selected the narrow native prerequisite after Source review found the initial Scene-only COM scope could not deliver the feature.",
-        "M101 authored fourteen regression declarations; they have not run. M100 and combined declaration counts remain unknown."
+        "The failed headless run recorded 2046 passed, two failed and two ignored; all original Source and partial evidence remain.",
+        "M98/M99 completed its own independent official artifact qualification."
       ],
       "next": [
-        "Complete both implementations and independent whole Source reviews, then one consolidated required verification cycle.",
-        "Qualify the same reviewed commit through retained local evidence, hosted checks and original artifact audits before acceptance."
+        "Finish shared documentation and independent Source review, then one consolidated final verification cycle.",
+        "Complete exact hosted/original-artifact qualification; preserve predecessor acceptance gates."
       ],
       "blocker": {
         "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
@@ -20465,57 +21924,112 @@
       },
       "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
     },
-    "phase_catalog_checkpoint_scope": "First99 native phaseobjects/prior57 groups remain exact historical Source observations, including native array contracts. Append selected100/101 andonegroup; catalog101,accepted76/202/LatestM70original41 unchanged. Current parent1a4 local+hosted qualification is genuine but unaccepted/officialpending; current new-wave results are unknown."
-  },
-  "historical_pre_profile_projection_current_aliases": {
-    "acceptance_boundary": "Implementation and regression Source complete; Root and reciprocal whole code/retained-row plus narrow first-error reviews CLEAR.23authored H/R declarations(18public5private), no passes; observed pre-doc-refresh1827/23owned/4new/1804protected/124cumulative. Final docs peer review and Root final seal pending. Formatter/tests/lint/normal/audits unrun; futuretree/commit/results NULL. New runtime ordinary-target placement Source-only; no allocation or inherited admission.",
-    "board": {
-      "updated_at": "2026-11-22T17:57:57.378727+00:00",
-      "current": {
-        "title": "Primitive COM offsets and local joint frames: code reviews complete",
-        "items": [
-          "Both implementations and regression cases are written and reviewed. Final documentation review and the required full verification cycle are next.",
-          "M98/M99 passed local verification and hosted checks. Two artifact-collector methods failed before any download; official qualification remains pending.",
-          "The persistent M77 demo remains live. Formal browser proof and owner-confirmed shutdown still hold acceptance."
-        ]
-      },
-      "done": [
-        "Reviewed both bounded implementations and retained same-input cases, including the corrected first-error expectation.",
-        "Authored23regression declarations:18public, four private Scene-lib and one private Rapier-lib; they have not run."
-      ],
-      "next": [
-        "Finish final documentation review, seal the Source inventory, then run one reviewed formatter and consolidated full verification cycle.",
-        "Independently audit local results and qualify the same commit through hosted checks and original artifact audits before acceptance."
-      ],
-      "blocker": {
-        "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
-        "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/57b44de10713dc6132c5549d769dac00dc041f56/docs/M77_DELIVERY.md"
-      },
-      "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
-    }
-  },
-  "historical_before_oracle_correction_board_refresh": {
-             "updated_at": "2026-11-22T18:08:24.716867+00:00",
-             "current": {
-               "title": "Primitive COM offsets and local joint frames: code reviews complete",
-               "items": [
-                 "Both implementations and regression cases are written and reviewed. Final documentation review and the required full verification cycle are next.",
-                 "M98/M99 passed local verification and hosted checks. Two artifact-collector methods failed before any download; official qualification remains pending.",
-                 "The persistent M77 demo remains live. Formal browser proof and owner-confirmed shutdown still hold acceptance."
-               ]
-             },
-             "done": [
-               "Reviewed both bounded implementations and retained same-input cases, including the corrected first-error expectation.",
-               "Authored23regression controls:23headless/22renderer;18public and four private Scene controls shared, one private native control headless-only. None has run."
-             ],
-             "next": [
-               "Finish final documentation review, seal the Source inventory, then run one reviewed formatter and consolidated full verification cycle.",
-               "Independently audit local results and qualify the same commit through hosted checks and original artifact audits before acceptance."
-             ],
-             "blocker": {
-               "text": "Formal acceptance remains blocked by M77 browser access and owner-approved shutdown. The persistent demo stays live until confirmed stop.",
-               "url": "https://github.com/gazebosim-rs/gz-sim-rs/blob/57b44de10713dc6132c5549d769dac00dc041f56/docs/M77_DELIVERY.md"
-             },
-             "history_url": "https://github.com/gazebosim-rs/rewrite-progress/blob/ec33082416ca23913ad30e8e80664bcaa0efe2f9/data/delivery.json"
-           }
+    "status": {
+      "M1": "complete",
+      "M2": "complete",
+      "M3": "complete",
+      "M4": "complete",
+      "M5": "complete",
+      "M6": "complete",
+      "M7": "complete",
+      "M8": "complete",
+      "M9": "complete",
+      "M10": "complete",
+      "M11": "complete",
+      "M12": "complete",
+      "M13": "complete",
+      "M14": "complete",
+      "M15": "complete",
+      "M16": "complete",
+      "M17": "complete",
+      "M18": "complete",
+      "M19": "complete",
+      "M20": "complete",
+      "M21": "complete",
+      "M22": "complete",
+      "M23": "complete",
+      "M24": "complete",
+      "M25": "complete",
+      "M26": "complete",
+      "M27": "complete",
+      "M28": "complete",
+      "M29": "complete",
+      "M30": "complete",
+      "M31": "complete",
+      "M32": "complete",
+      "M33": "complete",
+      "M34": "complete",
+      "M35": "complete",
+      "M36": "complete",
+      "M37": "complete",
+      "M38": "complete",
+      "M39": "complete",
+      "M40": "complete",
+      "M41": "complete",
+      "M42": "complete",
+      "M43": "complete",
+      "M44": "complete",
+      "M45": "complete",
+      "M46": "complete",
+      "M47": "complete",
+      "M48": "complete",
+      "M49": "complete",
+      "M50": "complete",
+      "M51": "complete",
+      "M52": "complete",
+      "M53": "complete",
+      "M54": "complete",
+      "M55": "complete",
+      "M56": "complete",
+      "M57": "complete",
+      "M58": "complete",
+      "M59": "complete",
+      "M60": "complete",
+      "M61": "complete",
+      "M62": "complete",
+      "M63": "complete",
+      "M64": "complete",
+      "M65": "complete",
+      "M66": "complete",
+      "M67": "complete",
+      "M68": "complete",
+      "M69": "complete",
+      "M70": "complete",
+      "M71": "complete",
+      "M72": "complete",
+      "M73": "complete",
+      "M74": "complete",
+      "M75": "complete",
+      "M76": "complete",
+      "M77": "in_progress",
+      "M78": "in_progress",
+      "M79": "in_progress",
+      "M80": "in_progress",
+      "M81": "in_progress",
+      "M82": "in_progress",
+      "M83": "in_progress",
+      "M84": "in_progress",
+      "M85": "in_progress",
+      "M86": "in_progress",
+      "M87": "in_progress",
+      "M88": "in_progress",
+      "M89": "in_progress",
+      "M90": "in_progress",
+      "M91": "in_progress",
+      "M92": "in_progress",
+      "M93": "in_progress",
+      "M94": "in_progress",
+      "M95": "in_progress",
+      "M96": "in_progress",
+      "M97": "in_progress",
+      "M98": "own_local_hosted_official_qualified_acceptance_held",
+      "M99": "own_local_hosted_official_qualified_acceptance_held",
+      "M100": "locally_qualified_hosted_in_progress",
+      "M101": "locally_qualified_hosted_in_progress",
+      "M102": "Source_complete_reviewed_unverified",
+      "M103": "Source_complete_reviewed_unverified"
+    },
+    "phase_catalog_checkpoint_scope": "First101 phase objects and prior58 parallel groups are exact historical parent observations. Current parent qualification and newly selected102/103 Source are recorded separately; no phase is accepted here.",
+    "phase_started_at_scope": "Actual Root selection ca34205a followed by implementation dispatch4e9d; no verification result."
+  }
 }

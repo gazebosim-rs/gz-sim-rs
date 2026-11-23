@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Existing world-hinge effort and unconditional JointStatePublisher together.
 use bevy_ecs::entity::Entity;
-use gz_physics::PhysicsError;
 use gz_sim_core::{EntityId, Simulation, entity_by_id};
 use gz_sim_scene::{
     InputError, JointForceCommand, JointSample, JointStatePublication, JointStateSample, Name,
@@ -230,19 +229,19 @@ fn feedback_does_not_expand_the_moving_parent_effort_domain() {
     sim.tick().unwrap();
     let before = joint(&sim, public);
     let revision = publication(&sim).unwrap().revision;
-    assert!(matches!(
-        set_joint_force(&mut sim, public, 1.5),
-        Err(InputError::Physics(PhysicsError::Unsupported {
-            engine: "rapier",
-            capability: "moving-parent joint effort commands"
-        }))
-    ));
+    set_joint_force(&mut sim, public, 1.5).unwrap();
     assert_eq!(joint(&sim, public), before);
     assert_eq!(publication(&sim).unwrap().revision, revision);
     assert_eq!(sim.elapsed(), Duration::ZERO);
-    assert!(
+    assert_eq!(
         sim.world()
             .get::<JointForceCommand>(entity_by_id(sim.world(), public).unwrap())
-            .is_none()
+            .unwrap()
+            .torque(),
+        1.5
     );
+    sim.step_exact(10).unwrap();
+    assert!(joint(&sim, public).1 > 0.0);
+    let observed = publication(&sim).unwrap();
+    matches_joint(&sim, public, &observed);
 }

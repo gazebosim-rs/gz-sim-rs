@@ -1,7 +1,8 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! One loaded model-frame velocity target; ordinary engine stepping owns motion.
+//! Bounded independent loaded model-frame targets; engine stepping owns motion.
 use super::*;
+const MAX_CONTROLLERS: usize = 8;
 mod config;
 pub(super) use config::{Plan, is_plugin, parse};
 
@@ -336,7 +337,9 @@ fn active_controllers(world: &World) -> Result<Vec<(Entity, Controller)>, InputE
         .iter_entities()
         .filter_map(|e| e.get::<Controller>().map(|c| (e.id(), c.clone())))
         .collect();
-    if rows.len() != expected.len()
+    if rows.len() > MAX_CONTROLLERS
+        || expected.len() > MAX_CONTROLLERS
+        || rows.len() != expected.len()
         || rows.iter().any(|(entity, c)| {
             !expected.contains(&c.owner)
                 || gz_sim_core::entity_by_id(world, c.owner) != Some(*entity)
@@ -361,11 +364,10 @@ fn apply(world: &mut World) {
             return;
         }
     };
-    for (entity, controller) in rows {
-        let result = (|| -> Result<(), InputError> {
-            if !binding_matches(world, controller.owner) {
-                return Err(InputError::InvalidPhysics);
-            }
+    // Validate every owner and derived target before replacing any native velocity.
+    let result = (|| -> Result<Vec<_>, InputError> {
+        let mut planned = Vec::with_capacity(rows.len());
+        for (entity, controller) in rows {
             let pose = world
                 .get::<WorldPose>(entity)
                 .ok_or(InputError::InvalidPhysics)?;
@@ -377,9 +379,45 @@ fn apply(world: &mut World) {
             .ok_or(InputError::InvalidValue)?;
             let link = gz_sim_core::entity_by_id(world, controller.configuration.link)
                 .ok_or(InputError::InvalidPhysics)?;
-            inputs::apply_velocity(world, link, linear, angular)
-        })();
-        if let Err(error) = result {
+            if let Some(backend) = world.get_resource::<PhysicsBackend>() {
+                let body = world
+                    .get::<BodyHandle>(link)
+                    .ok_or(InputError::InvalidPhysics)?;
+                let state = backend.state(body.id()).ok_or(InputError::InvalidPhysics)?;
+                let velocity = if let Some(center) = world.get::<LinkCenterOfMass>(link) {
+                    (DVec3::from_array(linear) + center.velocity_shift(state.orientation, angular))
+                        .to_array()
+                } else {
+                    linear
+                };
+                backend.validate_body_state(
+                    body.id(),
+                    gz_physics::BodyState {
+                        velocity,
+                        angular_velocity: angular,
+                        ..state
+                    },
+                )?;
+            } else {
+                let mut motion = world
+                    .get::<gz_physics_tpe::Motion>(entity)
+                    .ok_or(InputError::InvalidPhysics)?
+                    .clone();
+                motion.set_world_velocity(linear, angular)?;
+            }
+            planned.push((link, linear, angular));
+        }
+        Ok(planned)
+    })();
+    let planned = match result {
+        Ok(planned) => planned,
+        Err(error) => {
+            world.resource::<StepFault>().report(error);
+            return;
+        }
+    };
+    for (link, linear, angular) in planned {
+        if let Err(error) = inputs::apply_velocity(world, link, linear, angular) {
             world.resource::<StepFault>().report(error);
             return;
         }

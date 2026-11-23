@@ -87,6 +87,7 @@ impl Runtime {
         world: &str,
         worker: Option<PathBuf>,
         mixed_pair: bool,
+        rgb_family: bool,
     ) -> Result<Self, Box<dyn Error>> {
         let options = gz_sim_server::ServerOptions::from_env()?;
         let budget = NonZeroUsize::new(64).expect("nonzero command budget");
@@ -106,7 +107,9 @@ impl Runtime {
                 origin: [0.0; 3],
                 zenoh: config.clone(),
             };
-            let constructor = if mixed_pair {
+            let constructor = if rgb_family {
+                gz_camera_output::CameraServer::new_rgb_family_with_server_session
+            } else if mixed_pair {
                 gz_camera_output::CameraServer::new_mixed_pair_with_server_session
             } else {
                 gz_camera_output::CameraServer::new_with_server_session
@@ -125,7 +128,7 @@ impl Runtime {
         }
         #[cfg(not(feature = "rgb-camera"))]
         debug_assert!(
-            worker.is_none() && !mixed_pair,
+            worker.is_none() && !mixed_pair && !rgb_family,
             "feature checked before loading"
         );
         Ok(Self::Headless(Box::new(Server::new(
@@ -227,6 +230,7 @@ pub(super) struct ViewerOptions {
 pub(super) struct CameraOptions {
     pub worker: Option<PathBuf>,
     pub mixed_pair: bool,
+    pub rgb_family: bool,
 }
 
 pub(super) fn run(
@@ -254,7 +258,13 @@ pub(super) fn run(
         .ok_or_else(|| io::Error::other("real-time update period exceeds wall-clock range"))?;
     let termination = Termination::install()?;
     simulation.set_paused(!running);
-    let mut runtime = Runtime::new(simulation, world, camera.worker, camera.mixed_pair)?;
+    let mut runtime = Runtime::new(
+        simulation,
+        world,
+        camera.worker,
+        camera.mixed_pair,
+        camera.rgb_family,
+    )?;
     runtime.server_mut().prepare_run(Duration::from_secs(5))?;
     let mut viewer = web_viewer
         .map(|port| match lifecycle_sdf.as_ref() {
@@ -334,5 +344,123 @@ mod tests {
         ] {
             assert!(wall_period(step, factor).is_err(), "{factor}");
         }
+    }
+
+    #[cfg(feature = "rgb-camera")]
+    #[test]
+    fn explicit_rgb_family_runtime_dispatch_preserves_cardinality_and_worker_error_precedence() {
+        use gz_camera_output::{CameraOutputError, CameraServerError};
+
+        // Follow the retained exact-child test pattern, while changing only
+        // that child's environment. Parallel tests keep their globals intact.
+        const CHILD: &str = "GZ_M111_RUNTIME_FAMILY_PREFLIGHT_CHILD";
+        const TEST: &str = "live::tests::explicit_rgb_family_runtime_dispatch_preserves_cardinality_and_worker_error_precedence";
+        if let Some(selected) = std::env::var_os(CHILD) {
+            assert_eq!(selected, TEST);
+            assert!(std::env::var_os("ZENOH_CONFIG").is_none());
+            assert_eq!(
+                std::env::var("GZ_PARTITION").unwrap(),
+                "m111-runtime-family-preflight"
+            );
+        } else {
+            let output = std::process::Command::new("timeout")
+                .args(["--signal=KILL", "20s"])
+                .arg(std::env::current_exe().unwrap())
+                .args(["--exact", TEST, "--nocapture"])
+                .env(CHILD, TEST)
+                .env("GZ_PARTITION", "m111-runtime-family-preflight")
+                .env_remove("ZENOH_CONFIG")
+                .env_remove("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE")
+                .stdin(std::process::Stdio::null())
+                .output()
+                .unwrap();
+            let stdout = String::from_utf8(output.stdout).unwrap();
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            assert!(
+                output.status.success(),
+                "{}: {stdout} {stderr}",
+                output.status
+            );
+            assert!(
+                stdout.contains(&format!("test {TEST} ... ok"))
+                    && stdout
+                        .contains("test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured;")
+            );
+            return;
+        }
+
+        fn simulation(count: usize) -> Simulation {
+            let fixture = include_str!("../../gz-sim-scene/tests/fixtures/camera-binding.sdf");
+            let start = fixture.find("<model name=\"robot\">").unwrap();
+            let end = start + fixture[start..].find("</model>").unwrap() + "</model>".len();
+            let mut models = String::new();
+            for index in 0..count {
+                models += &fixture[start..end]
+                    .replace("name=\"robot\"", &format!("name=\"robot_{index}\""))
+                    .replace("/explicit-camera", &format!("/runtime_rgb_{index}/image"));
+            }
+            let xml = (fixture[..start].to_owned() + &models + &fixture[end..]).replace(
+                "<world name=\"default\">",
+                "<world name=\"default\"><plugin name='gz::sim::systems::Sensors' filename='gz-sim-sensors-system'/>",
+            );
+            gz_sim_scene::load_world_with_sdf_step(
+                &xml,
+                "runtime-family-preflight",
+                "default",
+                &sdformat::NoResources,
+                gz_sim_scene::PhysicsEngine::Tpe,
+            )
+            .unwrap()
+        }
+
+        let construct = |count, family| {
+            // An intentionally relative path is rejected by TrustedWorker's
+            // pure preflight. Neither the worker nor a Zenoh peer can start.
+            Runtime::new(
+                simulation(count),
+                "default",
+                Some(PathBuf::from("relative-worker-must-not-launch")),
+                false,
+                family,
+            )
+            .err()
+            .expect("preflight must refuse before creating runtime resources")
+        };
+        for count in [0, 1, 2, 5] {
+            let error = construct(count, true);
+            assert!(
+                matches!(
+                    error.downcast_ref::<CameraServerError>(),
+                    Some(CameraServerError::Camera(CameraOutputError::RgbFamilyCount))
+                ),
+                "family count={count}: {error}"
+            );
+        }
+        for count in [3, 4] {
+            let error = construct(count, true);
+            assert!(
+                matches!(
+                    error.downcast_ref::<CameraServerError>(),
+                    Some(CameraServerError::Camera(CameraOutputError::Client(_)))
+                ),
+                "admitted family count={count}: {error}"
+            );
+            assert_eq!(error.to_string(), "renderer client: InvalidWorkerPath");
+        }
+        // The same two-camera input still chooses the mature pair route when
+        // the new flag is false; a three-camera input is not silently widened.
+        let pair = construct(2, false);
+        assert!(matches!(
+            pair.downcast_ref::<CameraServerError>(),
+            Some(CameraServerError::Camera(CameraOutputError::Client(_)))
+        ));
+        assert_eq!(pair.to_string(), "renderer client: InvalidWorkerPath");
+        let three = construct(3, false);
+        assert!(matches!(
+            three.downcast_ref::<CameraServerError>(),
+            Some(CameraServerError::Camera(
+                CameraOutputError::MultipleCameras
+            ))
+        ));
     }
 }

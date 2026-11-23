@@ -928,7 +928,9 @@ fn build_model(
         let compound = (2..=16).contains(&link.collisions.len());
         require(
             link.collisions.len() == 1
-                || (compound && backend.as_ref().is_some_and(|b| b.engine() == "rapier")),
+                || (compound
+                    && (backend.is_none()
+                        || backend.as_ref().is_some_and(|b| b.engine() == "rapier"))),
             name,
             "collision count (expected one)",
         )?;
@@ -991,7 +993,8 @@ fn build_model(
                             | Geometry::Cylinder { .. }
                             | Geometry::Capsule { .. }
                             | Geometry::Sphere { .. }
-                    ) && backend.as_ref().is_some_and(|b| b.engine() == "rapier")),
+                    ) && (backend.is_none()
+                        || backend.as_ref().is_some_and(|b| b.engine() == "rapier"))),
                 name,
                 "offset collision pose",
             )?;
@@ -1037,11 +1040,25 @@ fn build_model(
         let pose = sdf.pose_of(name, context.world)?;
         let inertial_pose =
             sdf.resolve_pose(&link.inertial.pose, &model.scoped_name, name, name)?;
-        require(
-            centered(inertial_pose.translation),
-            name,
-            "offset center of mass",
-        )?;
+        // Preserve the mature centered/tiny-COM route. Ordinary translated COM
+        // is a passive Rapier primitive domain, using existing validated native
+        // constructors; it does not authorize Mesh, planes or actuator models.
+        let translated_com = !centered(inertial_pose.translation);
+        if translated_com {
+            require(
+                backend.as_ref().is_some_and(|b| b.engine() == "rapier")
+                    && plane.is_none()
+                    && mesh_collision.is_none()
+                    && model.joints.is_empty()
+                    && velocity_plan.is_none()
+                    && drive_plan.is_none()
+                    && controller_plan.is_none()
+                    && force_configurations.is_empty()
+                    && inertial_pose.rotation == [0.0, 0.0, 0.0, 1.0],
+                name,
+                "offset center of mass",
+            )?;
+        }
         let (id, tpe_link) = match plane {
             Some((normal, size)) => {
                 require(is_static, name, "dynamic plane collision geometry")?;
@@ -1132,10 +1149,11 @@ fn build_model(
                             Some(inertia),
                         )?
                     } else if let Shape::Box { half_extents } = spec.shape
-                        && !identity(Transform {
-                            translation: solids[0].position,
-                            rotation: solids[0].orientation,
-                        })
+                        && (translated_com
+                            || !identity(Transform {
+                                translation: solids[0].position,
+                                rotation: solids[0].orientation,
+                            }))
                     {
                         backend.spawn_posed_box_link(
                             PosedBoxBodySpec {
@@ -1153,10 +1171,11 @@ fn build_model(
                         radius,
                         half_height,
                     } = spec.shape
-                        && !identity(Transform {
-                            translation: solids[0].position,
-                            rotation: solids[0].orientation,
-                        })
+                        && (translated_com
+                            || !identity(Transform {
+                                translation: solids[0].position,
+                                rotation: solids[0].orientation,
+                            }))
                     {
                         backend.spawn_posed_cylinder_link(
                             PosedCylinderBodySpec {
@@ -1175,10 +1194,11 @@ fn build_model(
                         radius,
                         half_length,
                     } = spec.shape
-                        && !identity(Transform {
-                            translation: solids[0].position,
-                            rotation: solids[0].orientation,
-                        })
+                        && (translated_com
+                            || !identity(Transform {
+                                translation: solids[0].position,
+                                rotation: solids[0].orientation,
+                            }))
                     {
                         backend.spawn_posed_capsule_link(
                             PosedCapsuleBodySpec {
@@ -1194,10 +1214,11 @@ fn build_model(
                             Some(inertia),
                         )?
                     } else if let Shape::Sphere { radius } = spec.shape
-                        && !identity(Transform {
-                            translation: solids[0].position,
-                            rotation: solids[0].orientation,
-                        })
+                        && (translated_com
+                            || !identity(Transform {
+                                translation: solids[0].position,
+                                rotation: solids[0].orientation,
+                            }))
                     {
                         backend.spawn_posed_sphere_link(
                             PosedSphereBodySpec {
@@ -1224,7 +1245,7 @@ fn build_model(
                     }
                     (Some(id), None)
                 } else {
-                    (None, Some(tpe::validate_link(spec, pose)?))
+                    (None, Some(tpe::validate_collisions(&solids, pose)?))
                 }
             }
         };
@@ -1775,3 +1796,119 @@ fn reset_imus(mut sensors: Query<(Entity, &mut Imu)>, mut commands: Commands) {
 #[cfg(test)]
 #[path = "../tests/private/observations.rs"]
 mod observation_tests;
+
+#[cfg(test)]
+mod loaded_offset_com_ownership_tests {
+    use super::*;
+    use gz_sim_core::{entity_by_id, next_entity_id};
+
+    #[test]
+    fn loaded_translated_compound_requires_exact_original_optional_com_and_preserves_pending_repair()
+     {
+        let xml = "<sdf version='1.12'><world name='w'><gravity>0 0 0</gravity><physics name='p' type='ode'><max_step_size>0.001</max_step_size></physics><model name='body'><pose>0 0 10 0 0 0</pose><link name='link'><inertial><pose>0.25 -0.125 0.5 0 0 0</pose><mass>2</mass><inertia><ixx>2</ixx><iyy>2</iyy><izz>2</izz></inertia></inertial><collision name='a'><geometry><sphere><radius>0.5</radius></sphere></geometry></collision><collision name='b'><pose>4 0 0 0 0 0</pose><geometry><box><size>1 1 1</size></box></geometry></collision><visual name='v'><geometry><box><size>1 1 1</size></box></geometry></visual></link></model></world></sdf>";
+        let load = || {
+            let mut sim = load_world_with_sdf_step(
+                xml,
+                "loaded-stamp",
+                "w",
+                &sdformat::NoResources,
+                PhysicsEngine::Rapier,
+            )
+            .unwrap();
+            sim.initialize_schedules().unwrap();
+            sim
+        };
+        let mut sim = load();
+        let mut healthy = load();
+        let sdf = sdformat::load_str(xml, "loaded-stamp", &sdformat::NoResources).unwrap();
+        let model = sim
+            .world()
+            .iter_entities()
+            .find(|e| e.get::<Name>().is_some_and(|n| n.0 == "w::body"))
+            .unwrap()
+            .get::<EntityId>()
+            .unwrap()
+            .get();
+        let link = sim
+            .world()
+            .iter_entities()
+            .find(|e| e.get::<Name>().is_some_and(|n| n.0 == "w::body::link"))
+            .unwrap()
+            .id();
+        let link_id = sim.world().get::<EntityId>(link).unwrap().get();
+        let body = sim.world().get::<BodyHandle>(link).unwrap().id();
+        let original = *sim.world().get::<LinkCenterOfMass>(link).unwrap();
+        assert!(initial::matches_compound_world_edit(sim.world(), model));
+        let request = model_state(&sim, model).unwrap();
+        for target in [&mut sim, &mut healthy] {
+            queue_link_world_wrench(target, link_id, [2., 0., 0.], [0.; 3]).unwrap();
+        }
+        let before = sim
+            .world()
+            .resource::<PhysicsBackend>()
+            .state(body)
+            .unwrap();
+        let next = next_entity_id(sim.world()).unwrap();
+        let entities = sim.world().iter_entities().count();
+        let time = (sim.epoch(), sim.elapsed());
+        for fault in 0..3 {
+            if fault == 0 {
+                sim.world_mut()
+                    .entity_mut(link)
+                    .remove::<LinkCenterOfMass>();
+            } else {
+                let mut changed = original;
+                if fault == 1 {
+                    changed.0 = [0.; 3];
+                } else {
+                    changed.0[0] += 1e-13;
+                }
+                sim.world_mut().entity_mut(link).insert(changed);
+            }
+            assert!(!initial::matches_compound_world_edit(sim.world(), model));
+            assert!(matches!(
+                model_state(&sim, model),
+                Err(WorldEditError::UnsupportedModel)
+            ));
+            assert!(matches!(
+                set_model_state(&mut sim, model, request),
+                Err(WorldEditError::UnsupportedModel)
+            ));
+            assert!(matches!(
+                prepare_model_template(&sim, &sdf, &sdf.worlds[0].models[0]),
+                Err(WorldEditError::UnsupportedModel)
+            ));
+            assert_eq!(
+                sim.world()
+                    .resource::<PhysicsBackend>()
+                    .state(body)
+                    .unwrap(),
+                before
+            );
+            assert_eq!(next_entity_id(sim.world()).unwrap(), next);
+            assert_eq!(sim.world().iter_entities().count(), entities);
+            assert_eq!((sim.epoch(), sim.elapsed()), time);
+            assert_eq!(entity_by_id(sim.world(), link_id), Some(link));
+            sim.world_mut().entity_mut(link).insert(original);
+            assert!(initial::matches_compound_world_edit(sim.world(), model));
+        }
+        // These were read-only preflight refusals: no bad tick and no fault-resource clearing.
+        assert!(!sim.is_faulted());
+        sim.step_exact(1).unwrap();
+        healthy.step_exact(1).unwrap();
+        assert_eq!(
+            sim.world().resource::<PhysicsBackend>().state(body),
+            healthy.world().resource::<PhysicsBackend>().state(body)
+        );
+        assert!(
+            (sim.world()
+                .resource::<PhysicsBackend>()
+                .state(body)
+                .unwrap()
+                .velocity[0]
+                - 0.001)
+                .abs()
+                < 1e-11
+        );
+    }
+}

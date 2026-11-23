@@ -20,10 +20,19 @@ complete upstream parity or phase acceptance. Never treat an empty workspace as
 100% covered.
 
 Both coverage profiles use Cargo's `--no-fail-fast` so a failing test target does
-not prevent the remaining targets in that profile from running. The profile still
-fails on any test failure; coverage, assertions, thresholds and required jobs stay
-unchanged. Inspect all available failures and batch their corrections before the
-next required pass.
+not prevent the remaining targets in that profile from running. An ordinary test,
+build or coverage failure in headless also leaves the mandatory renderer profile
+scheduled once in the same verification cycle. The verifier reports both profiles'
+failures together and returns failure if either profile fails. A failed test run
+retains its partial logs and RAW files; it does not gain a coverage or success proof.
+
+Source, compiler-input, selected SDK and captured-proof custody is checked after
+each attempted profile. Drift, cancellation, timeouts, output bounds, resource
+faults and other runtime failures remain fatal and do not launch another profile.
+Both complete profile reports, every existing strict coverage gate and final
+custody must pass before success or legacy success evidence is published. Inspect
+all available failures and batch corrections before the next consolidated pass;
+this continuation does not authorize individual profile replays.
 
 ## Retained staged evidence
 

@@ -92,20 +92,9 @@ impl Joints {
         &self,
         id: JointId,
         torque: f64,
-        bodies: &BTreeMap<BodyId, BodyEntry>,
+        _bodies: &BTreeMap<BodyId, BodyEntry>,
     ) -> Result<(), PhysicsError> {
-        let joint = self.records.get(&id).ok_or(PhysicsError::MissingJoint)?;
-        // Holding a world couple does not qualify effort on a moving joint axis.
-        if joint
-            .initial
-            .parent
-            .is_some_and(|parent| bodies[&parent].1.mass.is_some())
-        {
-            return Err(PhysicsError::Unsupported {
-                engine: "rapier",
-                capability: "moving-parent joint effort commands",
-            });
-        }
+        self.records.get(&id).ok_or(PhysicsError::MissingJoint)?;
         if !torque.is_finite() {
             return Err(PhysicsError::InvalidValue);
         }
@@ -139,10 +128,20 @@ impl Joints {
                 *world.bodies[bodies[&parent].0].rotation()
             });
             let torque = rotation * joint.frame1.rotation * Vector::X * effort;
-            let next = torques.entry(joint.child).or_default();
-            *next += torque;
-            if !finite(next.to_array()) {
-                return Err(PhysicsError::InvalidValue);
+            // A dynamic parent receives the equal-and-opposite internal couple.
+            // World/static-parent behavior remains the original child-only path.
+            // This is a pure preparation map: no body or pending effort changes
+            // until every joint and both endpoints have passed accumulation.
+            let reaction = joint
+                .parent
+                .filter(|parent| bodies[parent].1.mass.is_some())
+                .map(|parent| (parent, -torque));
+            for (body, applied) in std::iter::once((joint.child, torque)).chain(reaction) {
+                let next = torques.entry(body).or_default();
+                *next += applied;
+                if !finite(next.to_array()) {
+                    return Err(PhysicsError::InvalidValue);
+                }
             }
         }
         for (&id, torque) in &torques {

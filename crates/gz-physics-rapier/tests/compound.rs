@@ -745,18 +745,78 @@ fn compound_numeric_and_centered_inertia_refusals_preserve_commands_and_identifi
                 ..inertia()
             },
         ] {
-            rejected(
-                &original,
-                [0.0; 3],
-                [0.0; 3],
-                mass,
-                RotationSpec::default(),
-                Some(value),
-                PhysicsError::Unsupported {
-                    engine: "rapier",
-                    capability: "primitive compound offset inertia",
-                },
-            );
+            // Preserve each exact former refusal input. The matched centered
+            // body starts at the same world COM; its measured finite-step
+            // trajectory is independent of the shifted body's origin frame.
+            let mut offset = RapierBackend::new([0.0; 3]).unwrap();
+            let mut centered = RapierBackend::new([0.0; 3]).unwrap();
+            let id = offset
+                .spawn_compound_link(
+                    CompoundBodySpec {
+                        mass,
+                        ..spec(&original)
+                    },
+                    RotationSpec::default(),
+                    Some(value),
+                )
+                .unwrap();
+            let twin = centered
+                .spawn_compound_link(
+                    CompoundBodySpec {
+                        position: value.center,
+                        mass,
+                        ..spec(&original)
+                    },
+                    RotationSpec::default(),
+                    Some(inertia()),
+                )
+                .unwrap();
+            assert_eq!(id, twin);
+            let initial = offset.state(id).unwrap();
+            assert_eq!(initial.position, [0.0; 3]);
+            assert_eq!(initial.velocity, [0.0; 3]);
+            assert_eq!(initial.angular_velocity, [0.0; 3]);
+            assert_eq!(initial.orientation, IDENTITY);
+            distance(&offset, [-2.0, 0.0, 0.0], [1.0, 0.0, 0.0], 1.5);
+            if mass.is_some() {
+                offset
+                    .apply_impulse(id, [2.0, 0.0, 0.0], [0.0, 0.0, 4.0])
+                    .unwrap();
+                centered
+                    .apply_impulse(twin, [2.0, 0.0, 0.0], [0.0, 0.0, 4.0])
+                    .unwrap();
+            }
+            step(&mut offset, 7);
+            step(&mut centered, 7);
+            let actual = offset.state(id).unwrap();
+            let measured = centered.state(twin).unwrap();
+            if mass.is_some() {
+                close(measured.velocity[0], 1.0);
+                close(measured.angular_velocity[2], 1.0);
+                let [x, y, z, scalar] = measured.orientation;
+                let c = value.center[0];
+                let arm = [
+                    c * (1.0 - 2.0 * (y * y + z * z)),
+                    c * 2.0 * (x * y + scalar * z),
+                    c * 2.0 * (x * z - scalar * y),
+                ];
+                let omega = measured.angular_velocity;
+                for axis in 0..3 {
+                    close(actual.position[axis], measured.position[axis] - arm[axis]);
+                    // Native velocity is COM velocity; only the reported
+                    // origin position differs between these matched bodies.
+                    close(actual.velocity[axis], measured.velocity[axis]);
+                    close(actual.angular_velocity[axis], omega[axis]);
+                }
+                for (actual, expected) in actual.orientation.into_iter().zip(measured.orientation) {
+                    close(actual, expected);
+                }
+            } else {
+                same_state(actual, initial);
+                distance(&offset, [-2.0, 0.0, 0.0], [1.0, 0.0, 0.0], 1.5);
+            }
+            offset.reset().unwrap();
+            assert_eq!(offset.state(id).unwrap(), initial);
         }
         for value in [
             Inertia {

@@ -160,17 +160,20 @@ fn target_identity_removal_reset_and_absence_do_not_retarget_commands() {
         "<inertial><mass>",
         "<inertial><pose>0.1 0 0 0 0 0</pose><mass>",
     );
-    assert!(matches!(
-        load_world_with_sdf_step(
-            &offcentre,
-            "m35-offset-com.sdf",
-            "default",
-            &sdformat::NoResources,
-            PhysicsEngine::Rapier,
-        ),
-        Err(gz_sim_scene::LoadError::Unsupported { entity, feature: "offset center of mass" })
-            if entity == "default::rig::body"
-    ));
+    let mut offset = load_world_with_sdf_step(
+        &offcentre,
+        "m35-offset-com.sdf",
+        "default",
+        &sdformat::NoResources,
+        PhysicsEngine::Rapier,
+    )
+    .unwrap();
+    let offset_body = id(&offset, "default::rig::body");
+    assert!(
+        matches!(queue_apply_link_wrench(&mut offset, offset_body, [1.0;3], [0.0;3], Once),
+        Err(ApplyLinkWrenchError::UnsupportedTarget(actual)) if actual == offset_body)
+    );
+    m104_mass_response(offset, &offcentre, "default::rig::body");
     let body = id(&sim, "default::rig::body");
     queue_link_world_wrench(&mut sim, body, [1.0; 3], [0.0; 3]).unwrap();
 }
@@ -351,4 +354,65 @@ fn topic_overrides_and_xml_entities_are_exact_and_duplicates_fail_before_load() 
         )
         .is_err()
     );
+}
+
+// M104: the exact formerly refused XML must produce a real mass-frame response.
+fn m104_mass_response(mut sim: Simulation, text: &str, link_name: &str) {
+    sim.initialize_schedules().unwrap();
+    let dom = sdformat::load_str(text, "retained-resolved-com", &sdformat::NoResources).unwrap();
+    let link = dom
+        .worlds
+        .iter()
+        .flat_map(|w| &w.models)
+        .flat_map(|m| &m.links)
+        .find(|l| l.scoped_name == link_name)
+        .unwrap();
+    let mass = link.inertial.mass;
+    assert!(mass.is_finite() && mass > 0.);
+    let entity = sim
+        .world()
+        .iter_entities()
+        .find(|e| {
+            e.get::<gz_sim_scene::Name>()
+                .is_some_and(|n| n.0 == link_name)
+        })
+        .unwrap();
+    let public = entity.get::<gz_sim_core::EntityId>().unwrap().get();
+    let native = entity.get::<gz_sim_scene::BodyHandle>().unwrap().id();
+    assert_eq!(
+        sim.world()
+            .resource::<gz_physics::PhysicsBackend>()
+            .is_dynamic(native),
+        Some(true)
+    );
+    let before = sim
+        .world()
+        .resource::<gz_physics::PhysicsBackend>()
+        .state(native)
+        .unwrap();
+    gz_sim_scene::queue_link_world_wrench(&mut sim, public, [mass, 0., 0.], [0.; 3]).unwrap();
+    sim.step_exact(1).unwrap();
+    let after = sim
+        .world()
+        .resource::<gz_physics::PhysicsBackend>()
+        .state(native)
+        .unwrap();
+    assert!(
+        (after.velocity[0] - before.velocity[0] - sim.step_duration().as_secs_f64()).abs() < 1e-11
+    );
+    assert!(
+        after
+            .position
+            .into_iter()
+            .chain(after.velocity)
+            .chain(after.angular_velocity)
+            .all(f64::is_finite)
+    );
+    for (a, b) in after
+        .angular_velocity
+        .into_iter()
+        .zip(before.angular_velocity)
+    {
+        assert!((a - b).abs() < 1e-11);
+    }
 }

@@ -257,20 +257,145 @@ fn velocity_control_configuration_limits_nested_jointed_mesh_and_initial_overflo
  {
     let mut m = model();
     let plan = parse(&m).unwrap().unwrap();
-    let sim = load(PhysicsEngine::Rapier);
+    let mut sim = load(PhysicsEngine::Rapier);
+    sim.initialize_schedules().unwrap();
     let sdf = sdformat::load_str(XML, "configuration", &sdformat::NoResources).unwrap();
     let pose = sdf.pose_of(&m.scoped_name, "default").unwrap();
-    assert!(
-        plan.validate(
-            &sdf,
-            &m,
-            &sim,
-            Some(sim.world().resource::<PhysicsBackend>().engine()),
-            (true, false),
-            pose
-        )
-        .is_err()
-    ); // already-owned singleton
+    // M105 admits another eligible metadata plan below the eight-owner limit.
+    // This preflight neither publishes a duplicate model nor changes this owner.
+    let (existing_entity, existing_owner) = controller(&sim);
+    let existing = sim
+        .world()
+        .get::<Controller>(existing_entity)
+        .unwrap()
+        .clone();
+    let existing_link =
+        gz_sim_core::entity_by_id(sim.world(), existing.configuration.link).unwrap();
+    let existing_body = sim.world().get::<BodyHandle>(existing_link).unwrap().id();
+    let before_entities = sim
+        .world()
+        .iter_entities()
+        .map(|e| (e.id(), e.get::<EntityId>().map(EntityId::get)))
+        .collect::<Vec<_>>();
+    let before_native = sim
+        .world()
+        .resource::<PhysicsBackend>()
+        .state(existing_body);
+    let before_pose = *sim.world().get::<WorldPose>(existing_entity).unwrap();
+    let before_link_pose = *sim.world().get::<WorldPose>(existing_link).unwrap();
+    let before_clock = (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts());
+    plan.validate(
+        &sdf,
+        &m,
+        &sim,
+        Some(sim.world().resource::<PhysicsBackend>().engine()),
+        (true, false),
+        pose,
+    )
+    .unwrap();
+    assert_eq!(
+        sim.world()
+            .iter_entities()
+            .map(|e| (e.id(), e.get::<EntityId>().map(EntityId::get)))
+            .collect::<Vec<_>>(),
+        before_entities
+    );
+    assert_eq!(
+        sim.world()
+            .resource::<PhysicsBackend>()
+            .state(existing_body),
+        before_native
+    );
+    let current_pose = sim.world().get::<WorldPose>(existing_entity).unwrap();
+    assert_eq!(current_pose.translation, before_pose.translation);
+    assert_eq!(current_pose.rotation, before_pose.rotation);
+    let current_link_pose = sim.world().get::<WorldPose>(existing_link).unwrap();
+    assert_eq!(current_link_pose.translation, before_link_pose.translation);
+    assert_eq!(current_link_pose.rotation, before_link_pose.rotation);
+    let current = sim.world().get::<Controller>(existing_entity).unwrap();
+    assert_eq!(current.owner, existing.owner);
+    assert_eq!(current.configuration, existing.configuration);
+    assert_eq!(current.committed, existing.committed);
+    assert_eq!(current.pending, existing.pending);
+    assert_eq!(current.center, existing.center);
+    assert_eq!(
+        (sim.elapsed(), sim.epoch(), sim.scheduled_system_counts()),
+        before_clock
+    );
+    assert!(velocity_control_binding_matches(&sim, existing_owner));
+    // A separate measured witness uses the original fixture's initial command;
+    // it does not install the metadata plan a second time.
+    let mut moving = load(PhysicsEngine::Rapier);
+    let (moving_entity, moving_owner) = controller(&moving);
+    let link_id = moving
+        .world()
+        .get::<Controller>(moving_entity)
+        .unwrap()
+        .configuration
+        .link;
+    let moving_link = gz_sim_core::entity_by_id(moving.world(), link_id).unwrap();
+    let moving_body = moving.world().get::<BodyHandle>(moving_link).unwrap().id();
+    let initial_model = *moving.world().get::<WorldPose>(moving_entity).unwrap();
+    let initial_link = *moving.world().get::<WorldPose>(moving_link).unwrap();
+    moving.step_exact(1).unwrap();
+    let native = moving
+        .world()
+        .resource::<PhysicsBackend>()
+        .state(moving_body)
+        .unwrap();
+    for (axis, speed) in [1.0, 0.0, 0.0].into_iter().enumerate() {
+        for actual in [
+            native.velocity[axis],
+            moving.world().get::<Velocity>(moving_link).unwrap().linear[axis],
+        ] {
+            assert!((actual - speed).abs() < 1e-11);
+        }
+        assert!(native.angular_velocity[axis].abs() < 1e-11);
+        assert!(moving.world().get::<Velocity>(moving_link).unwrap().angular[axis].abs() < 1e-11);
+        assert!(
+            (native.position[axis] - initial_link.translation[axis] - speed * 0.001).abs() < 1e-11
+        );
+        assert!(
+            (moving
+                .world()
+                .get::<WorldPose>(moving_entity)
+                .unwrap()
+                .translation[axis]
+                - initial_model.translation[axis]
+                - speed * 0.001)
+                .abs()
+                < 1e-11
+        );
+        assert!(
+            (moving
+                .world()
+                .get::<WorldPose>(moving_link)
+                .unwrap()
+                .translation[axis]
+                - initial_link.translation[axis]
+                - speed * 0.001)
+                .abs()
+                < 1e-11
+        );
+    }
+    assert_eq!(native.orientation, initial_link.rotation);
+    assert_eq!(
+        moving
+            .world()
+            .get::<WorldPose>(moving_entity)
+            .unwrap()
+            .rotation,
+        initial_model.rotation
+    );
+    assert_eq!(
+        moving
+            .world()
+            .get::<WorldPose>(moving_link)
+            .unwrap()
+            .rotation,
+        initial_link.rotation
+    );
+    assert!(velocity_control_binding_matches(&moving, moving_owner));
     let empty = load_world_with_sdf_step(
         "<sdf version='1.12'><world name='default'/></sdf>",
         "empty",

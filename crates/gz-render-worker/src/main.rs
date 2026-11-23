@@ -13,8 +13,9 @@ use gz_render_protocol::{
     read_request, write_reply,
 };
 use gz_renderer::{
-    BoxVisual, CylinderVisual, DepthFrame, EllipsoidVisual, Frame, PrimitiveSnapshot,
-    PrimitiveVisual, RenderError, Renderer, Snapshot, SphereVisual, UpdateStatus,
+    BoxVisual, CapsuleVisual, CylinderVisual, DepthFrame, EllipsoidVisual, Frame,
+    PrimitiveSnapshot, PrimitiveVisual, RenderError, Renderer, Snapshot, SphereVisual,
+    UpdateStatus,
 };
 use rustix::process::{Signal, getpid, getppid, set_parent_process_death_signal};
 use std::{
@@ -505,6 +506,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                                 }
                                                 Geometry::Cylinder { radius, length } => {
                                                     PrimitiveVisual::Cylinder(CylinderVisual {
+                                                        id: v.id,
+                                                        pose,
+                                                        radius,
+                                                        length,
+                                                        color: v.color,
+                                                    })
+                                                }
+                                                Geometry::Capsule { radius, length } => {
+                                                    PrimitiveVisual::Capsule(CapsuleVisual {
                                                         id: v.id,
                                                         pose,
                                                         radius,

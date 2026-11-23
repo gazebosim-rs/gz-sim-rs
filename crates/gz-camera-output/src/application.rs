@@ -159,6 +159,7 @@ pub struct CameraServer {
     runtime: Option<CameraRuntime>,
     pair: Option<CameraPair>,
     pair_ids: Option<[u64; 2]>,
+    rgb_family_ids: Option<Vec<u64>>,
     pair_sensor_kinds: Option<[CameraKind; 2]>,
     // Intent outlives the live subset; reset must rebuild the same family.
     pair_kind: PairKind,
@@ -247,6 +248,7 @@ impl CameraServer {
             return Ok(Self {
                 runtime: None,
                 pair: Some(pair),
+                rgb_family_ids: None,
                 pair_ids: Some(ids),
                 pair_sensor_kinds: Some(kinds),
                 pair_kind: kind,
@@ -282,6 +284,7 @@ impl CameraServer {
         Ok(Self {
             runtime,
             pair: None,
+            rgb_family_ids: None,
             pair_ids: None,
             pair_sensor_kinds: None,
             pair_kind: PairKind::Rgb,
@@ -321,6 +324,7 @@ impl CameraServer {
         Ok(Self {
             runtime,
             pair: None,
+            rgb_family_ids: None,
             pair_ids: None,
             pair_sensor_kinds: None,
             pair_kind: PairKind::Rgb,
@@ -355,6 +359,7 @@ impl CameraServer {
         Ok(Self {
             runtime: None,
             pair: Some(pair),
+            rgb_family_ids: None,
             pair_ids: Some(ids),
             pair_sensor_kinds: Some([CameraKind::Rgb; 2]),
             pair_kind: PairKind::Rgb,
@@ -390,6 +395,7 @@ impl CameraServer {
         Ok(Self {
             runtime: None,
             pair: Some(pair),
+            rgb_family_ids: None,
             pair_ids: Some(ids),
             pair_sensor_kinds: Some([CameraKind::Depth; 2]),
             pair_kind: PairKind::Depth,
@@ -426,6 +432,7 @@ impl CameraServer {
         Ok(Self {
             runtime: None,
             pair: Some(pair),
+            rgb_family_ids: None,
             pair_ids: Some(ids),
             pair_sensor_kinds: Some(kinds),
             pair_kind: PairKind::Mixed,
@@ -467,6 +474,7 @@ impl CameraServer {
         Ok(Self {
             runtime: None,
             pair: Some(pair),
+            rgb_family_ids: None,
             pair_ids: Some(ids),
             pair_sensor_kinds: Some(kinds),
             pair_kind: PairKind::Mixed,
@@ -476,8 +484,49 @@ impl CameraServer {
         })
     }
 
+    /// Explicit three/four RGB owners on the world's existing peer. Legacy
+    /// constructors retain their exact scalar/pair/depth/mixed admission.
+    pub fn new_rgb_family_with_server_session(
+        simulation: Simulation,
+        world: &str,
+        options: ServerOptions,
+        server_zenoh: zenoh::Config,
+        command_budget: NonZeroUsize,
+        camera_options: &CameraServerOptions,
+    ) -> Result<Self, CameraServerError> {
+        options.validate()?;
+        let prepared = prepare_rgb_family(&simulation, &options, camera_options)?;
+        let ids = prepared.iter().map(|p| p.binding.id).collect::<Vec<_>>();
+        let epoch = simulation.epoch();
+        let server = Server::with_external_rgb_camera_family(
+            simulation,
+            world,
+            options,
+            server_zenoh,
+            command_budget,
+            ids.clone(),
+        )?;
+        let pair = install_pair_with_session(
+            server.simulation(),
+            prepared,
+            server.zenoh_session(),
+            false,
+        )?;
+        Ok(Self {
+            runtime: None,
+            pair: Some(pair),
+            pair_ids: None,
+            rgb_family_ids: Some(ids),
+            pair_sensor_kinds: None,
+            pair_kind: PairKind::Rgb,
+            server,
+            prepared_epoch: epoch,
+            shared_server_session: true,
+        })
+    }
+
     fn require_scalar(&self) -> Result<(), CameraServerError> {
-        if self.pair_ids.is_some() {
+        if self.pair_ids.is_some() || self.rgb_family_ids.is_some() {
             return Err(CameraOutputError::PairMode.into());
         }
         Ok(())
@@ -488,7 +537,7 @@ impl CameraServer {
     pub fn capture_all(&mut self) -> Result<Vec<CameraCapture>, CameraServerError> {
         self.require_running()?;
         self.require_prepared()?;
-        if self.pair_ids.is_none() {
+        if self.pair_ids.is_none() && self.rgb_family_ids.is_none() {
             if !self.current_camera()? {
                 return Ok(Vec::new());
             }
@@ -537,7 +586,7 @@ impl CameraServer {
         &self,
         id: u64,
     ) -> Option<(Option<u32>, gz_render_client::ClientLifetime)> {
-        if self.pair_ids.is_some() {
+        if self.pair_ids.is_some() || self.rgb_family_ids.is_some() {
             self.pair
                 .as_ref()?
                 .outputs
@@ -556,8 +605,13 @@ impl CameraServer {
     pub fn pump_camera(&mut self, id: u64) -> Result<Option<Progress>, CameraServerError> {
         self.require_running()?;
         self.require_prepared()?;
-        if let Some(ids) = self.pair_ids {
-            if !ids.contains(&id) {
+        if self.pair_ids.is_some() || self.rgb_family_ids.is_some() {
+            if !self.pair_ids.as_ref().is_some_and(|ids| ids.contains(&id))
+                && !self
+                    .rgb_family_ids
+                    .as_ref()
+                    .is_some_and(|ids| ids.contains(&id))
+            {
                 return Err(missing(id).into());
             }
             self.current_pair()?;
@@ -591,8 +645,13 @@ impl CameraServer {
     ) -> Result<Option<(bool, bool)>, CameraServerError> {
         self.require_running()?;
         self.require_prepared()?;
-        if let Some(ids) = self.pair_ids {
-            if !ids.contains(&id) {
+        if self.pair_ids.is_some() || self.rgb_family_ids.is_some() {
+            if !self.pair_ids.as_ref().is_some_and(|ids| ids.contains(&id))
+                && !self
+                    .rgb_family_ids
+                    .as_ref()
+                    .is_some_and(|ids| ids.contains(&id))
+            {
                 return Err(missing(id).into());
             }
             self.current_pair()?;
@@ -713,7 +772,19 @@ impl CameraServer {
             self.pair = None;
             // Do not advance the epoch cache until preparation really succeeds.
             // The returned error is never converted into a repeated update here.
-            if self.pair_ids.is_some() {
+            if let Some(ids) = &self.rgb_family_ids {
+                let prepared =
+                    prepare_rgb_family(self.server.simulation(), self.server.options(), options)?;
+                if prepared.iter().map(|p| p.binding.id).collect::<Vec<_>>() != *ids {
+                    return Err(CameraOutputError::OwnerInvalid.into());
+                }
+                self.pair = Some(install_pair_with_session(
+                    self.server.simulation(),
+                    prepared,
+                    self.server.zenoh_session(),
+                    false,
+                )?);
+            } else if self.pair_ids.is_some() {
                 let prepared = match self.pair_kind {
                     PairKind::Rgb => {
                         prepare_pair(self.server.simulation(), self.server.options(), options)?
@@ -1099,6 +1170,79 @@ fn prepare_selected_camera(
     })
 }
 
+fn prepare_rgb_family(
+    sim: &Simulation,
+    options: &ServerOptions,
+    settings: &CameraServerOptions,
+) -> Result<Vec<PreparedCamera>, CameraServerError> {
+    let roots: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter(|node| {
+            node.get::<EntityKind>() == Some(&EntityKind::World)
+                && node.contains::<RenderingSensorsConfiguration>()
+        })
+        .take(2)
+        .map(|node| node.id())
+        .collect();
+    let cameras: Vec<_> = sim
+        .world()
+        .iter_entities()
+        .filter(|node| node.contains::<CameraSensor>())
+        .take(5)
+        .map(|node| node.id())
+        .collect();
+    if roots.len() != 1 || !(3..=4).contains(&cameras.len()) {
+        return Err(CameraOutputError::RgbFamilyCount.into());
+    }
+    let mut keys = BTreeSet::new();
+    let mut ids = BTreeSet::new();
+    let mut result = Vec::with_capacity(cameras.len());
+    for entity in cameras {
+        let prepared = prepare_selected_camera(sim, options, settings, entity, roots[0])?;
+        if prepared.kind != CameraKind::Rgb {
+            return Err(CameraOutputError::Snapshot(SnapshotError::InvalidCamera(
+                prepared.binding.id,
+            ))
+            .into());
+        }
+        gz_sim_scene::SensorSchedule::new(
+            sim.world()
+                .get::<CameraSensor>(entity)
+                .expect("selected camera")
+                .0
+                .update_rate,
+        )
+        .map_err(CameraOutputError::Schedule)?;
+        if !ids.insert(prepared.binding.id) {
+            return Err(CameraOutputError::OwnerInvalid.into());
+        }
+        for (key, message) in [
+            (
+                &prepared.config.image_key,
+                gz_sim_proto::msgs::Image::full_name(),
+            ),
+            (
+                &prepared.config.info_key,
+                gz_sim_proto::msgs::CameraInfo::full_name(),
+            ),
+        ] {
+            crate::publication_token(
+                key,
+                "00000000000000000000000000000001",
+                "preflight",
+                &message,
+            )?;
+            if !keys.insert(key.clone()) {
+                return Err(CameraOutputError::DuplicateTopics.into());
+            }
+        }
+        result.push(prepared);
+    }
+    result.sort_by_key(|camera| camera.binding.id);
+    Ok(result)
+}
+
 fn prepare_pair(
     sim: &Simulation,
     options: &ServerOptions,
@@ -1229,7 +1373,8 @@ fn install_pair_with_session(
         session,
         owns_session,
     };
-    let scope = CameraWriterScope::new(NonZeroUsize::new(2).expect("two cameras"));
+    let scope =
+        CameraWriterScope::new(NonZeroUsize::new(prepared.len()).expect("validated camera family"));
     for prepared in prepared {
         let id = prepared.binding.id;
         let output = ScheduledCameraOutput::prepare_selected(
@@ -1279,3 +1424,7 @@ fn install_camera_with_session(
 #[cfg(test)]
 #[path = "../tests/private/application.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/private/m111_rgb_family.rs"]
+mod rgb_family_tests;

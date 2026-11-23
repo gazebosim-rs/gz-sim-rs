@@ -145,3 +145,111 @@ fn invalid_velocity_setup_is_atomic_and_closed_session_invalidates_even_a_retain
         .is_err()
     );
 }
+
+#[test]
+fn velocity_family_keys_capacity_and_captured_retirement_preserve_other_owners() {
+    let session = session();
+    let prefix = format!("@/fleet-{}@", uuid::Uuid::new_v4());
+    let mut family = Declarations::default();
+    let mut leases = Vec::new();
+    let mut receivers = Vec::new();
+    for i in 0..8 {
+        let (input, receiver) = mpsc::sync_channel(2);
+        let key = format!("{prefix}/c{i}");
+        let Installation::Ready(lease) = family
+            .install(&session, setup(key, input), "process", "node")
+            .unwrap()
+        else {
+            panic!("fresh key cannot be retiring")
+        };
+        leases.push(lease);
+        receivers.push(receiver);
+    }
+    assert!(!family.is_empty());
+    let key = format!("{prefix}/c0");
+    let (input, _) = mpsc::sync_channel(1);
+    assert!(
+        matches!(family.install(&session, setup(key.clone(), input), "process", "node"),
+        Err(error) if error == "velocity key already installed")
+    );
+    let (input, _) = mpsc::sync_channel(1);
+    assert!(
+        matches!(family.install(&session, setup(format!("{prefix}/ninth"), input), "process", "node"),
+        Err(error) if error == "at most eight velocity inputs")
+    );
+    assert!(
+        leases
+            .iter()
+            .enumerate()
+            .all(|(i, lease)| lease.matches(lease.identity(), &format!("{prefix}/c{i}")))
+    );
+    // Keep the real callback capture after the lease dies. Reacquisition must
+    // not replace this key until the capture is released, even at capacity.
+    let captured = Arc::clone(&family.entries[&key].state);
+    let old_id = leases[0].identity();
+    drop(leases.remove(0));
+    assert!(!family.reconcile(false));
+    let (input, replacement) = mpsc::sync_channel(2);
+    let Installation::Retiring(pending) = family
+        .install(&session, setup(key.clone(), input), "process", "node")
+        .unwrap()
+    else {
+        panic!("captured old callback must keep its key")
+    };
+    assert!(!captured.active.load(Ordering::Acquire));
+    let other_key = format!("{prefix}/c1");
+    let other = session.declare_publisher(other_key).wait().unwrap();
+    wait(|| other.matching_status().wait().unwrap().matching());
+    other
+        .put(twist([2., 0., 0., 0., 0., 0.]).encode_to_vec())
+        .attachment(Twist::full_name())
+        .wait()
+        .unwrap();
+    assert_eq!(
+        receivers[1].recv_timeout(Duration::from_secs(3)).unwrap(),
+        (7, Some(([2., 0., 0.], [0.; 3])))
+    );
+    drop(captured);
+    wait(|| {
+        family.reconcile(false);
+        !family.entries.contains_key(&key)
+    });
+    let Installation::Ready(current) = family
+        .install(&session, pending, "process", "node")
+        .unwrap()
+    else {
+        panic!("quiescent key must be reusable")
+    };
+    assert_ne!(current.identity(), old_id);
+    let publisher = session.declare_publisher(key.clone()).wait().unwrap();
+    wait(|| publisher.matching_status().wait().unwrap().matching());
+    publisher
+        .put(twist([-3., 0., 0., 0., 0., 0.]).encode_to_vec())
+        .attachment(Twist::full_name())
+        .wait()
+        .unwrap();
+    assert_eq!(
+        replacement.recv_timeout(Duration::from_secs(3)).unwrap(),
+        (7, Some(([-3., 0., 0.], [0.; 3])))
+    );
+    assert!(receivers[0].try_recv().is_err());
+    family.begin_shutdown();
+    assert!(!current.matches(current.identity(), &key));
+    assert!(
+        leases
+            .iter()
+            .all(|lease| !lease.active.load(Ordering::Acquire))
+    );
+    wait(|| family.reconcile(true));
+    assert!(family.is_empty());
+    let (input, _) = mpsc::sync_channel(1);
+    let mut invalid = setup(format!("{prefix}/invalid"), input);
+    invalid.max_bytes = 0;
+    assert!(
+        family
+            .install(&session, invalid, "process", "node")
+            .is_err()
+    );
+    assert!(family.is_empty());
+    session.close().wait().unwrap();
+}

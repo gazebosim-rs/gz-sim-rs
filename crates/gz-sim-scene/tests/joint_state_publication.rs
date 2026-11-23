@@ -1,10 +1,10 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use gz_physics::{JointVelocityMotor, PhysicsBackend, PhysicsError};
+use gz_physics::{JointVelocityMotor, PhysicsBackend};
 use gz_sim_core::{EntityId, Simulation};
 use gz_sim_scene::{
-    InputError, JointHandle, JointSample, JointStatePublication, JointStateSample, Name,
-    PhysicsEngine, load_world_with_sdf_step, queue_joint_effort,
+    JointHandle, JointSample, JointStatePublication, JointStateSample, Name, PhysicsEngine,
+    load_world_with_sdf_step, queue_joint_effort,
 };
 const XML: &str = include_str!("fixtures/m18_joint_state.sdf");
 fn load(xml: &str) -> Result<Simulation, gz_sim_scene::LoadError> {
@@ -52,14 +52,31 @@ fn public_filtered_values_follow_real_joint_without_changing_physics_or_joint_or
             .joint_state(solver_joint)
             .unwrap(),
     );
-    // Generalized effort on a moving-parent Rapier joint stays unsupported.
-    assert!(matches!(
-        queue_joint_effort(&mut sim, identity, 0.5),
-        Err(InputError::Physics(PhysicsError::Unsupported {
-            engine: "rapier",
-            capability: "moving-parent joint effort commands",
-        }))
-    ));
+    // Exercise the original effort on an independent exact-input world, then
+    // cancel the main world's queued pair so its retained motor oracle is exact.
+    let mut effort = load(&filtered).unwrap();
+    queue_joint_effort(&mut effort, identity, 0.5).unwrap();
+    effort.step_exact(1).unwrap();
+    let effort_joint = effort
+        .world()
+        .iter_entities()
+        .find(|e| {
+            e.get::<Name>()
+                .is_some_and(|n| n.0 == "default::arm::tip_hinge")
+        })
+        .unwrap()
+        .id();
+    assert!(
+        effort
+            .world()
+            .get::<JointSample>(effort_joint)
+            .unwrap()
+            .state
+            .velocity
+            > 0.0
+    );
+    queue_joint_effort(&mut sim, identity, 0.5).unwrap();
+    queue_joint_effort(&mut sim, identity, -0.5).unwrap();
     assert_eq!(
         (
             sim.elapsed(),

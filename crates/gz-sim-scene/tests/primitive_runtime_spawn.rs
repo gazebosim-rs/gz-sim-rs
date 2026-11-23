@@ -114,6 +114,202 @@ fn extent(shape: &str) -> f64 {
     if shape == "cylinder" { 1. } else { 1.5 }
 }
 
+fn retained_identity_com_copy_witness(
+    sim: &mut Simulation,
+    template: &gz_sim_scene::ModelTemplate,
+    position: [f64; 3],
+) {
+    let original_ids = identities(sim);
+    let original_states = states(sim);
+    let first = next_entity_id(sim.world()).unwrap();
+    let copied = spawn_model_template(sim, template, pose(position, [0., 0., 0., 1.])).unwrap();
+    assert_eq!(copied, first);
+    assert_eq!(next_entity_id(sim.world()).unwrap(), first + 4);
+    for (offset, kind) in [
+        EntityKind::Model,
+        EntityKind::Link,
+        EntityKind::Collision,
+        EntityKind::Visual,
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        assert_eq!(
+            sim.world()
+                .get::<EntityKind>(entity_by_id(sim.world(), first + offset as u64).unwrap()),
+            Some(&kind)
+        );
+    }
+    for (key, entity) in original_ids {
+        assert_eq!(entity_by_id(sim.world(), key), Some(entity));
+    }
+    for (body, before) in original_states {
+        assert_eq!(native(sim, body), before);
+    }
+    let handle = spawned_body(sim, copied);
+    let visual = entity_by_id(sim.world(), copied + 3).unwrap();
+    assert!(Arc::ptr_eq(
+        &sim.world().get::<VisualGeometry>(visual).unwrap().0,
+        &sim.world()
+            .get::<VisualGeometry>(entity(sim, "w::source::body::view"))
+            .unwrap()
+            .0
+    ));
+    let collision = entity_by_id(sim.world(), copied + 2).unwrap();
+    vector(
+        sim.world().get::<WorldPose>(collision).unwrap().translation,
+        position,
+    );
+    near(
+        sim.world().get::<CollisionDensity>(collision).unwrap().0,
+        37.,
+    );
+    vector(
+        sim.world().get::<WorldPose>(visual).unwrap().translation,
+        [position[0] + 0.25, position[1] - 0.5, position[2] + 0.75],
+    );
+    // Existing link-origin velocity conversion is an independent COM witness:
+    // zero origin velocity with omegaZ=.5 needs COM velocity +.125Y at c=.25X.
+    queue_link_world_velocity(sim, copied + 1, [0.; 3], [0., 0., 0.5]).unwrap();
+    sim.step_exact(1).unwrap();
+    let actual = native(sim, handle);
+    vector(actual.velocity, [0., 0.125, 0.]);
+    vector(actual.angular_velocity, [0., 0., 0.5]);
+    let q = glam::DQuat::from_array(actual.orientation);
+    let origin_velocity = glam::DVec3::from_array(actual.velocity)
+        - glam::DVec3::from_array(actual.angular_velocity)
+            .cross(q * glam::DVec3::new(0.25, 0., 0.));
+    let logical = model_state(sim, copied).unwrap();
+    vector(logical.translation, actual.position);
+    vector(logical.linear_velocity, origin_velocity.to_array());
+    vector(
+        sim.world().get::<WorldPose>(collision).unwrap().translation,
+        actual.position,
+    );
+    vector(
+        sim.world().get::<WorldPose>(visual).unwrap().translation,
+        (glam::DVec3::from_array(actual.position) + q * glam::DVec3::new(0.25, -0.5, 0.75))
+            .to_array(),
+    );
+    let ray_origin =
+        (glam::DVec3::from_array(actual.position) + q * glam::DVec3::new(4., 0.3, 0.)).to_array();
+    let direction = (q * -glam::DVec3::X).to_array();
+    near(ray(sim, ray_origin, direction, 5., None).unwrap(), 3.6);
+    assert!(ray(sim, ray_origin, direction, 5., Some(handle)).is_none());
+}
+
+fn retained_loaded_primitive_com_positive(centered_xml: &str, offset_xml: &str) {
+    let parsed = sdformat::load_str(offset_xml, "closed-com", &NoResources).unwrap();
+    let mut offset = load(offset_xml);
+    offset.initialize_schedules().unwrap();
+    let keys = identities(&offset);
+    let before = states(&offset);
+    let clock = (offset.epoch(), offset.elapsed());
+    let next = next_entity_id(offset.world()).unwrap();
+    let source = id(&offset, "w::source");
+    let source_link = id(&offset, "w::source::body");
+    let handle = body(&offset, "w::source::body");
+    model_state(&offset, source).unwrap();
+    // The mature identity-collider route carries the resolved COM unchanged;
+    // its admission is distinct from the additional posed-output checks.
+    let template = prepare_model_template(&offset, &parsed, &parsed.worlds[0].models[0]).unwrap();
+    assert_eq!(identities(&offset), keys);
+    assert_eq!(states(&offset), before);
+    assert_eq!((offset.epoch(), offset.elapsed()), clock);
+    assert_eq!(next_entity_id(offset.world()).unwrap(), next);
+    for (name, expected) in [
+        ("w::source::body", [-100., 0., 10.]),
+        ("w::source::body::solid", [-100., 0., 10.]),
+        ("w::source::body::view", [-99.75, -0.5, 10.75]),
+    ] {
+        vector(
+            offset
+                .world()
+                .get::<WorldPose>(entity(&offset, name))
+                .unwrap()
+                .translation,
+            expected,
+        );
+    }
+    // COM translation does not move the radius-.5 collision equator.
+    near(
+        ray(&offset, [-96., 0.3, 10.], [-1., 0., 0.], 5., None).unwrap(),
+        3.6,
+    );
+    assert!(ray(&offset, [-96., 0.3, 10.], [-1., 0., 0.], 5., Some(handle)).is_none());
+    retained_identity_com_copy_witness(&mut offset, &template, [10., 20., 30.]);
+    let mut control = load(centered_xml);
+    let control_link = id(&control, "w::source::body");
+    let control_handle = body(&control, "w::source::body");
+    let center = |state: BodyState| {
+        glam::DVec3::from_array(state.position)
+            + glam::DQuat::from_array(state.orientation) * glam::DVec3::new(0.25, 0., 0.)
+    };
+    let initial_center = center(native(&offset, handle));
+    let initial_control = native(&control, control_handle).position;
+    for (sim, link) in [(&mut offset, source_link), (&mut control, control_link)] {
+        // Identity inertia basis, principal Z torque: no nonprincipal gyro oracle.
+        queue_link_world_wrench(sim, link, [2., -4., 6.], [0., 0., 4.]).unwrap();
+        sim.step_exact(1).unwrap();
+    }
+    let actual = native(&offset, handle);
+    let expected = native(&control, control_handle);
+    vector(actual.velocity, [0.001, -0.002, 0.003]);
+    vector(actual.angular_velocity, [0., 0., 0.001]);
+    vector(actual.velocity, expected.velocity);
+    vector(actual.angular_velocity, expected.angular_velocity);
+    let delta = (center(actual) - initial_center).to_array();
+    vector(
+        delta,
+        std::array::from_fn(|i| expected.position[i] - initial_control[i]),
+    );
+    for (distance, speed) in delta.into_iter().zip(actual.velocity) {
+        assert!(distance * speed > 0. && distance.abs() <= speed.abs() * 0.001 + 1e-11);
+    }
+    for (index, loaded) in [false, true].into_iter().enumerate() {
+        queue_link_world_wrench(&mut offset, source_link, [2., 0., 0.], [0.; 3]).unwrap();
+        if loaded {
+            reset_loaded_world(&mut offset, |_| ()).unwrap();
+        } else {
+            offset.reset().unwrap();
+        }
+        let restored = body(&offset, "w::source::body");
+        assert_eq!(id(&offset, "w::source"), source);
+        assert_eq!(id(&offset, "w::source::body"), source_link);
+        vector(
+            (center(native(&offset, restored)) - initial_center).to_array(),
+            [0.; 3],
+        );
+        offset.step_exact(1).unwrap();
+        vector(native(&offset, restored).velocity, [0.; 3]);
+        vector(native(&offset, restored).angular_velocity, [0.; 3]);
+        model_state(&offset, source).unwrap();
+        let before_prepare = (
+            identities(&offset),
+            states(&offset),
+            next_entity_id(offset.world()).unwrap(),
+            offset.epoch(),
+            offset.elapsed(),
+        );
+        let fresh = prepare_model_template(&offset, &parsed, &parsed.worlds[0].models[0]).unwrap();
+        assert_eq!(
+            (
+                identities(&offset),
+                states(&offset),
+                next_entity_id(offset.world()).unwrap(),
+                offset.epoch(),
+                offset.elapsed()
+            ),
+            before_prepare
+        );
+        retained_identity_com_copy_witness(
+            &mut offset,
+            &fresh,
+            [40. + 30. * index as f64, 20., 30.],
+        );
+    }
+}
+
 #[test]
 fn centered_runtime_primitives_keep_shape_frames_aliases_and_four_ids() {
     for shape in ["cylinder", "capsule"] {
@@ -657,12 +853,9 @@ fn runtime_primitive_template_refusals_and_foreign_worlds_stay_atomic() {
             assert!(matches!(prepare_model_template(&scene,&parsed,&parsed.worlds[0].models[0]),Err(WorldEditError::UnsupportedModel)));
             assert_eq!(identities(&scene),ids);assert_eq!(states(&scene),before_states);assert_eq!(scene.elapsed(),Duration::ZERO);
         }
-        // Unsupported nonzero COM remains a loader refusal, not new template admission.
+        // M104 admits this exact loaded COM; the mature identity route also copies it.
         let com = base.replacen("<inertial>", "<inertial><pose>0.25 0 0 0 0 0</pose>", 1);
-        assert!(
-            load_world_with_sdf_step(&com, "closed-com", "w", &NoResources, PhysicsEngine::Rapier)
-                .is_err()
-        );
+        retained_loaded_primitive_com_positive(&base, &com);
         let box_xml = base.replacen(&geometry(shape), "<box><size>1 1 1</size></box>", 1);
         let box_parsed = sdformat::load_str(&box_xml, "tpe", &NoResources).unwrap();
         let tpe = load_world_with_sdf_step(&box_xml, "tpe", "w", &NoResources, PhysicsEngine::Tpe)

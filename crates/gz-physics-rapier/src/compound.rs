@@ -161,10 +161,29 @@ pub(super) fn spawn(
                 return Err(PhysicsError::InvalidValue);
             }
             if value.center != [0.0; 3] {
-                return Err(PhysicsError::Unsupported {
-                    engine: "rapier",
-                    capability: "primitive compound offset inertia",
-                });
+                if value.orientation != [0.0, 0.0, 0.0, 1.0] {
+                    return Err(PhysicsError::Unsupported {
+                        engine: "rapier",
+                        capability: "primitive compound offset inertia orientation",
+                    });
+                }
+                // The explicit tensor is already about this COM. Bound its
+                // BODY-pose world point and the actual aggregate collider extent
+                // before reserving an ID; child densities never shift the tensor.
+                let center = Vector::from(value.center);
+                let world_center = world * center;
+                let sphere = shape
+                    .shape()
+                    .compute_local_bounding_sphere()
+                    .transform_by(shape.position());
+                let extent = (sphere.center - center).length() + sphere.radius;
+                if !center.length_squared().is_finite()
+                    || !world_center.is_finite()
+                    || !world_center.length_squared().is_finite()
+                    || !extent.is_finite()
+                {
+                    return Err(PhysicsError::InvalidValue);
+                }
             }
             inertia_properties(value, spec.mass.unwrap_or(1.0))
         })
@@ -265,5 +284,149 @@ mod tests {
         assert_eq!(backend.pending_wrenches, BTreeSet::from([existing]));
         assert_eq!(backend.state(existing), before);
         assert_eq!(backend.next_id, u64::MAX);
+    }
+    #[test]
+    fn compound_offset_mass_frame_bounds_reset_and_refusal_keep_native_pending_ownership() {
+        fn near(a: f64, b: f64) {
+            assert!(
+                a.is_finite() && b.is_finite() && (a - b).abs() < 1e-11,
+                "{a} != {b}"
+            );
+        }
+        let children = [CollisionSpec {
+            shape: Shape::Sphere { radius: 0.5 },
+            position: [2., 0., 0.],
+            orientation: [0., 0., 0., 1.],
+        }; 2];
+        for mass in [None, Some(2.)] {
+            let mut backend = RapierBackend::new([0.; 3]).unwrap();
+            let spec = CompoundBodySpec {
+                collisions: &children,
+                position: [10., 20., 30.],
+                velocity: [0.; 3],
+                mass,
+            };
+            let rotational = RotationSpec {
+                orientation: [0.5; 4],
+                angular_velocity: [0.; 3],
+            };
+            let inertia = Inertia {
+                center: [0.25, -0.5, 0.75],
+                orientation: [0., 0., 0., 1.],
+                tensor: [2., 2., 2., 0., 0., 0.],
+            };
+            let existing = backend
+                .spawn_compound_link(spec, rotational, Some(inertia))
+                .unwrap();
+            let entry = &backend.bodies[&existing];
+            let rb = &backend.world.bodies[entry.0];
+            assert_eq!(
+                rb.mass_properties().local_mprops.local_com.to_array(),
+                inertia.center
+            );
+            for (a, b) in rb
+                .mass_properties()
+                .world_com
+                .to_array()
+                .into_iter()
+                .zip([10.75, 20.25, 29.5])
+            {
+                near(a, b);
+            }
+            let collider = &backend.world.colliders[rb.colliders()[0]];
+            assert_eq!(collider.density(), 0.);
+            assert_eq!(collider.shape().as_compound().unwrap().shapes().len(), 2);
+            assert_eq!(entry.3.unwrap().center, inertia.center);
+            let before = backend.state(existing).unwrap();
+            let next = backend.next_id;
+            if mass.is_some() {
+                backend
+                    .add_world_wrench(existing, [2., 0., 0.], [0.; 3])
+                    .unwrap();
+            }
+            let pending = backend.pending_wrenches.clone();
+            assert_eq!(
+                backend.spawn_compound_link(
+                    spec,
+                    rotational,
+                    Some(Inertia {
+                        orientation: [0.5; 4],
+                        ..inertia
+                    })
+                ),
+                Err(PhysicsError::Unsupported {
+                    engine: "rapier",
+                    capability: "primitive compound offset inertia orientation"
+                })
+            );
+            assert_eq!(backend.next_id, next);
+            assert_eq!(backend.pending_wrenches, pending);
+            assert_eq!(backend.state(existing).unwrap(), before);
+            for center in [[1e200, 0., 0.], [f64::NAN, 0., 0.]] {
+                assert_eq!(
+                    backend.spawn_compound_link(
+                        spec,
+                        rotational,
+                        Some(Inertia { center, ..inertia })
+                    ),
+                    Err(PhysicsError::InvalidValue)
+                );
+                assert_eq!(backend.next_id, next);
+                assert_eq!(backend.bodies.len(), 1);
+                assert_eq!(backend.world.bodies.len(), 1);
+                assert_eq!(backend.world.colliders.len(), 1);
+                assert_eq!(backend.pending_wrenches, pending);
+                assert_eq!(backend.state(existing).unwrap(), before);
+            }
+            let repaired = backend
+                .spawn_compound_link(
+                    CompoundBodySpec {
+                        position: [100., 20., 30.],
+                        ..spec
+                    },
+                    rotational,
+                    Some(inertia),
+                )
+                .unwrap();
+            assert_eq!(repaired.raw(), next);
+            // The same rotated inertial basis remains valid on the OLD centered domain.
+            let centered = backend
+                .spawn_compound_link(
+                    CompoundBodySpec {
+                        position: [200., 20., 30.],
+                        ..spec
+                    },
+                    rotational,
+                    Some(Inertia {
+                        center: [0.; 3],
+                        orientation: [0.5; 4],
+                        ..inertia
+                    }),
+                )
+                .unwrap();
+            assert_eq!(centered.raw(), next + 1);
+            assert_eq!(backend.bodies[&centered].3.unwrap().orientation, [0.5; 4]);
+            assert_eq!(
+                backend.world.bodies[backend.bodies[&centered].0]
+                    .mass_properties()
+                    .local_mprops
+                    .local_com
+                    .to_array(),
+                [0.; 3]
+            );
+            backend.step(std::time::Duration::from_millis(1)).unwrap();
+            near(
+                backend.state(existing).unwrap().velocity[0],
+                if mass.is_some() { 0.001 } else { 0. },
+            );
+            backend.reset().unwrap();
+            assert_eq!(backend.state(existing).unwrap(), before);
+            assert_eq!(backend.bodies[&existing].3.unwrap().center, inertia.center);
+            let rb = &backend.world.bodies[backend.bodies[&existing].0];
+            assert_eq!(
+                rb.mass_properties().local_mprops.local_com.to_array(),
+                inertia.center
+            );
+        }
     }
 }

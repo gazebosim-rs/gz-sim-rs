@@ -476,10 +476,33 @@ fn velocity_control_default_custom_topics_four_centered_shapes_and_closed_refusa
         .next()
         .unwrap();
     invalid.push(XML.replace("</plugin>", &format!("</plugin>{marker}{plugin}</plugin>")));
-    invalid.push(XML.replace(
+    let fleet = XML.replace(
         "<model name=\"survivor\">",
         &format!("<model name=\"survivor\">{marker}</plugin>"),
-    ));
+    );
+    for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
+        let mut sim = load_xml(&fleet, engine);
+        assert_eq!(
+            initial_velocity_control_configurations(&sim)
+                .unwrap()
+                .count(),
+            2
+        );
+        let rig = id(&sim, "default::rig");
+        let survivor = id(&sim, "default::survivor");
+        set_velocity_control_command(&mut sim, survivor, [0.0, 2.0, 0.0], [0.0; 3]).unwrap();
+        sim.step_exact(2).unwrap();
+        near(pose(&sim, rig).translation, [0.002, 0.0, 10.0]);
+        near(pose(&sim, survivor).translation, [20.0, 0.002, 10.0]);
+        near(
+            velocity(&sim, id(&sim, "default::rig::body")).linear,
+            [1.0, 0.0, 0.0],
+        );
+        near(
+            velocity(&sim, id(&sim, "default::survivor::body")).linear,
+            [0.0, 2.0, 0.0],
+        );
+    }
     for xml in invalid {
         for engine in [PhysicsEngine::Rapier, PhysicsEngine::Tpe] {
             assert!(

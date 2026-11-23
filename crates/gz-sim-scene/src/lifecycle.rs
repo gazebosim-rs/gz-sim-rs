@@ -165,6 +165,11 @@ fn remove_model_checked(
     {
         return Err(RemoveError::NotWorldModel(id));
     }
+    if crate::world_spawn::original_runtime_compound(world, id)
+        && crate::world_spawn::compound_nodes(world, id).is_err()
+    {
+        return Err(RemoveError::InvalidPhysics);
+    }
     if !crate::joints::bindings_valid(world) {
         return Err(RemoveError::InvalidPhysics);
     }

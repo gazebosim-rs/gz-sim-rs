@@ -181,13 +181,7 @@ fn native_position_parameters_parent_reaction_and_invalid_replacement_preserve_o
         before
     );
     assert_eq!((backend.next_id, backend.joints.next), ids);
-    assert!(matches!(
-        backend.validate_joint_effort(joint, 1.0),
-        Err(PhysicsError::Unsupported {
-            capability: "moving-parent joint effort commands",
-            ..
-        })
-    ));
+    backend.validate_joint_effort(joint, 1.0).unwrap();
     backend.step(dt).unwrap();
     let a = Vector::from(backend.state(parent).unwrap().angular_velocity);
     let b = Vector::from(backend.state(child).unwrap().angular_velocity);
