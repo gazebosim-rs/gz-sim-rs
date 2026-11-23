@@ -63,8 +63,10 @@ pub(super) struct Surface {
     friction: Option<friction::Friction>,
     pub(super) impulse: crate::SelfContactImpulse,
     loads: Option<loads::Loads>,
-    // Distinguish response exhaustion from a topology, broad-phase or query budget.
-    pub(super) projection_limit: bool,
+    // A smaller interval can relieve projection or swept-distance exhaustion.
+    // Topology and broad-phase capacity failures retain their hard limits.
+    pub(super) subdivide_on_budget: bool,
+    pub(super) retry_plane: bool,
 }
 
 fn edge(a: usize, b: usize) -> [usize; 2] {
@@ -156,7 +158,8 @@ impl Surface {
             friction: None,
             impulse: crate::SelfContactImpulse::default(),
             loads: None,
-            projection_limit: false,
+            subdivide_on_budget: false,
+            retry_plane: false,
         };
         let positions = particles
             .iter()
@@ -260,45 +263,101 @@ impl Surface {
         p: &mut [Particle],
         gap: f64,
         h: f64,
+        on_plane: bool,
     ) -> Result<(), XpbdError> {
         let eps = Self::tolerance(x, p, gap)?;
         let mut candidates = 0;
         let mut queries = 0;
         let mut count = 0;
         loop {
-            let Some(hit) = self.next_hit(x, p, gap, eps, &mut candidates, &mut queries)? else {
+            let Some(hit) = self.next_hit(
+                x,
+                p,
+                gap,
+                eps,
+                (&mut candidates, &mut queries),
+                on_plane || self.retry_plane,
+            )?
+            else {
                 return Ok(());
             };
             if count == MAX_PROJECTIONS {
-                self.projection_limit = true;
+                self.subdivide_on_budget = true;
                 return Err(XpbdError::SurfaceBudget);
             }
-            if let Some(friction) = &self.friction {
-                let impulse = friction.normal(&hit, x, p, h)?;
-                let (tangent, work) = friction.apply(&hit, impulse, x, p, gap)?;
-                self.record_load(&hit, impulse);
-                self.impulse.normal += impulse;
-                self.impulse.tangent += tangent;
-                self.impulse.friction_work += work;
-                if ![
-                    self.impulse.normal,
-                    self.impulse.tangent,
-                    self.impulse.friction_work,
-                ]
-                .into_iter()
-                .all(f64::is_finite)
-                {
-                    return Err(XpbdError::Numerical);
-                }
-            } else {
-                hit.apply(x, p)?;
-            }
+            self.resolve(&hit, x, p, gap, h)?;
             count += 1;
         }
     }
+    fn resolve(
+        &mut self,
+        hit: &Hit,
+        x: &mut [DVec3],
+        p: &mut [Particle],
+        gap: f64,
+        h: f64,
+    ) -> Result<(), XpbdError> {
+        if let Some(friction) = &self.friction {
+            let impulse = friction.normal(hit, x, p, h)?;
+            let (tangent, work) = friction.apply(hit, impulse, x, p, gap)?;
+            self.record_load(hit, impulse);
+            self.impulse.normal += impulse;
+            self.impulse.tangent += tangent;
+            self.impulse.friction_work += work;
+            if ![
+                self.impulse.normal,
+                self.impulse.tangent,
+                self.impulse.friction_work,
+            ]
+            .into_iter()
+            .all(f64::is_finite)
+            {
+                return Err(XpbdError::Numerical);
+            }
+        } else {
+            hit.apply(x, p)?;
+        }
+        Ok(())
+    }
+    /// Resolve remaining closing speed at a touching shell after the support
+    /// applies its end-of-step impulse. Leave the certified path unchanged.
+    pub(super) fn finish_supported(
+        &mut self,
+        x: &mut [DVec3],
+        p: &mut [Particle],
+        gap: f64,
+        mut support: impl FnMut(&[DVec3], &mut [Particle]) -> Result<(), XpbdError>,
+    ) -> Result<(), XpbdError> {
+        let eps = Self::tolerance(x, p, gap)?;
+        let (mut candidates, mut queries) = (0, 0);
+        for _ in 0..MAX_PROJECTIONS {
+            let Some(mut hit) =
+                self.next_hit(x, p, gap, eps, (&mut candidates, &mut queries), true)?
+            else {
+                return Ok(());
+            };
+            let points = hit.stencil.ids.map(|i| x[i]);
+            let witness = if hit.stencil.vf {
+                vertex_face(&points)
+            } else {
+                edge_edge(&points)
+            };
+            if hit.speed == 0. || hit.depth > eps || (witness.delta.length() - gap).abs() > 4. * eps
+            {
+                return Err(XpbdError::UnresolvedSurface);
+            }
+            hit.depth = 0.;
+            self.resolve(&hit, x, p, gap, 0.)?;
+            support(x, p)?;
+        }
+        Err(XpbdError::UnresolvedSurface)
+    }
     pub fn verify(&mut self, x: &[DVec3], p: &[Particle], gap: f64) -> Result<(), XpbdError> {
         let eps = Self::tolerance(x, p, gap)?;
-        if self.next_hit(x, p, gap, eps, &mut 0, &mut 0)?.is_some() {
+        if self
+            .next_hit(x, p, gap, eps, (&mut 0, &mut 0), false)?
+            .is_some()
+        {
             return Err(XpbdError::UnresolvedSurface);
         }
         Ok(())
@@ -321,9 +380,17 @@ impl Surface {
         p: &[Particle],
         gap: f64,
         eps: f64,
-        candidates: &mut usize,
-        queries: &mut usize,
+        budget: (&mut usize, &mut usize),
+        terminal: bool,
     ) -> Result<Option<Hit>, XpbdError> {
+        let (candidates, queries) = budget;
+        let mode = if self.friction.is_none() {
+            SweepMode::Geometric
+        } else if terminal {
+            SweepMode::SupportedShell
+        } else {
+            SweepMode::MaterialShell
+        };
         let axis = self.bounds(Some(p), x, (gap + eps) * 0.5);
         let mut earliest: Option<Hit> = None;
         for (i, a) in self.bounds.iter().enumerate() {
@@ -341,8 +408,14 @@ impl Surface {
                 let Some(stencil) = self.candidate(a.feature, b.feature) else {
                     continue;
                 };
-                if let Some(hit) =
-                    stencil.sweep(x, p, gap, eps, queries, self.friction.is_some())?
+                let hit = stencil
+                    .sweep(x, p, gap, eps, queries, mode)
+                    .inspect_err(|error| {
+                        if *error == XpbdError::SurfaceBudget && *queries > MAX_DISTANCE_QUERIES {
+                            self.subdivide_on_budget = true;
+                        }
+                    })?;
+                if let Some(hit) = hit
                     && earliest.as_ref().is_none_or(|old| {
                         hit.time
                             .total_cmp(&old.time)
@@ -362,6 +435,7 @@ impl Surface {
 enum SweepMode {
     Geometric,
     MaterialShell,
+    SupportedShell,
     MaterialCapsule,
 }
 
@@ -387,7 +461,7 @@ impl Stencil {
         gap: f64,
         eps: f64,
         queries: &mut usize,
-        material: bool,
+        mode: SweepMode,
     ) -> Result<Option<Hit>, XpbdError> {
         self.sweep_points(
             self.ids.map(|i| DVec3::from(p[i].position)),
@@ -396,11 +470,7 @@ impl Stencil {
             gap,
             eps,
             queries,
-            if material {
-                SweepMode::MaterialShell
-            } else {
-                SweepMode::Geometric
-            },
+            mode,
         )
     }
 
@@ -455,33 +525,48 @@ impl Stencil {
         // A certified non-penetrating trajectory uses the current closest
         // material normal for its velocity condition, instead of an obsolete
         // half-space at the start of the interval.
-        if material && time == 0. {
-            let w = if self.vf {
+        if material && (time == 0. || mode == SweepMode::SupportedShell) {
+            let endpoint = if self.vf {
                 vertex_face(&end)
             } else {
                 edge_edge(&end)
             };
-            let d = w.delta.length();
-            let clear = clear_material();
-            if d > eps && w.delta.dot(n) > 0. && d <= gap + 4. * eps && (clear || d < gap - eps) {
-                let normal = w.delta / d;
-                let vn = w
-                    .weights
-                    .iter()
-                    .zip(velocities)
-                    .map(|(&w, v)| w * v.dot(normal))
-                    .sum::<f64>();
-                if d < gap - eps || vn < -128. * f64::EPSILON * scale {
-                    return Ok(Some(Hit {
-                        stencil: self,
-                        weights: w.weights,
-                        normal,
-                        time,
-                        depth: (gap - d).max(0.),
-                        speed: (-vn).max(0.),
-                    }));
+            let distance = endpoint.delta.length();
+            let touching = distance <= gap + 4. * eps;
+            let supported = mode == SweepMode::SupportedShell && speed < 0.;
+            if distance > eps && endpoint.delta.dot(n) > 0. && (touching || supported) {
+                let penetrated = distance < gap - eps;
+                let lower = inner_gap();
+                let use_endpoint = penetrated
+                    || clear_material()
+                    || (supported
+                        && lower > 0.
+                        && first_entry_mode(start, end, self.vf, lower, eps, queries, true)?
+                            .is_none());
+                if use_endpoint {
+                    // A support can change the terminal velocity without changing
+                    // the path. A detached witness then carries no endpoint load.
+                    if touching {
+                        let normal = endpoint.delta / distance;
+                        let vn = endpoint
+                            .weights
+                            .iter()
+                            .zip(velocities)
+                            .map(|(&w, v)| w * v.dot(normal))
+                            .sum::<f64>();
+                        if penetrated || vn < -128. * f64::EPSILON * scale {
+                            return Ok(Some(Hit {
+                                stencil: self,
+                                weights: endpoint.weights,
+                                normal,
+                                time,
+                                depth: (gap - distance).max(0.),
+                                speed: (-vn).max(0.),
+                            }));
+                        }
+                    }
+                    return Ok(None);
                 }
-                return Ok(None);
             }
         }
         if end_gap < gap - eps || speed < -128. * f64::EPSILON * scale {
@@ -535,7 +620,7 @@ impl Stencil {
         // For shell self-contact certify the same inner clearance with the
         // bounded continuous search. A capsule carries a separate trajectory
         // envelope and retains its existing coupled subdivision on refusal.
-        if mode == SweepMode::MaterialShell {
+        if matches!(mode, SweepMode::MaterialShell | SweepMode::SupportedShell) {
             let lower = inner_gap();
             if lower > 0.
                 && first_entry_mode(start, end, self.vf, lower, eps, queries, true)?.is_none()

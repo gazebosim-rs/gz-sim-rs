@@ -654,6 +654,7 @@ impl SoftBody {
                 &mut self.scratch,
                 2.0 * self.config.particle_radius,
                 h,
+                self.contacts.on_single_plane(boundaries),
             )?;
         } else if let Some(self_contact) = &mut self.self_contact {
             self_contact.project(
@@ -802,11 +803,26 @@ impl SoftBody {
         if !boundaries.is_empty()
             && let Some(surface) = &mut self.surface
         {
-            surface.verify(
-                &self.predicted,
-                &self.scratch,
-                2. * self.config.particle_radius,
-            )?;
+            let gap = 2. * self.config.particle_radius;
+            if self.contacts.on_single_plane(boundaries) {
+                surface.finish_supported(&mut self.predicted, &mut self.scratch, gap, |x, p| {
+                    self.contacts.finish_plane_increment(
+                        x,
+                        p,
+                        boundaries,
+                        reactions,
+                        self.config.friction,
+                        collision::Interval {
+                            t0: t1 - h,
+                            t1,
+                            h,
+                            radius: self.config.particle_radius,
+                        },
+                    )
+                })?;
+            } else {
+                surface.verify(&self.predicted, &self.scratch, gap)?;
+            }
         }
         self.contacts.verify_pad_samples(
             &self.scratch,

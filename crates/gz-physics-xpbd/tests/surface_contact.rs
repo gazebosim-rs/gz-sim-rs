@@ -413,3 +413,41 @@ fn coplanar_remote_triangle_bounds_can_overlap_without_actual_intersection() {
     b.step(Duration::from_millis(1), &[]).unwrap();
     assert_eq!(b.particles(), p);
 }
+
+#[test]
+fn a_floor_impulse_reaches_the_touching_upper_layer_and_balances_momentum() {
+    use gz_physics_xpbd::Boundary;
+    let falling = |x, y, z| particle(x, y, z, -1., 1.);
+    // A moving face and the tip above it land together. Only the face touches
+    // the floor directly. Measure the external impulse on the complete system.
+    let mut shell = surface(
+        vec![
+            falling(-1., -1., 0.011),
+            falling(1., -1., 0.011),
+            falling(0., 2., 0.011),
+            falling(0., 0., 0.031),
+            falling(0.4, 0.2, 0.4),
+            falling(-0.3, 0.45, 0.49),
+        ],
+        vec![[0, 1, 2], [3, 4, 5]],
+        1,
+    )
+    .with_self_contact_friction(0.3)
+    .unwrap();
+    let floor = Boundary::Plane {
+        point: [0.; 3],
+        normal: [0., 0., 1.],
+        velocity: [0.; 3],
+    };
+    let mut reaction = 0.;
+    for _ in 0..2 {
+        shell.step(Duration::from_millis(1), &[floor]).unwrap();
+        reaction += shell.last_boundary_impulses()[0].linear[2];
+    }
+    let p = shell.particles();
+    assert!(p[..3].iter().all(|p| p.position[2] >= 0.01 - 1e-10));
+    assert!(p[3].position[2] >= 0.03 - 1e-9);
+    assert!(p[3].velocity[2].abs() < 1e-8);
+    let momentum: f64 = p.iter().map(|p| p.velocity[2]).sum();
+    assert!((momentum + 6. + reaction).abs() < 1e-10);
+}

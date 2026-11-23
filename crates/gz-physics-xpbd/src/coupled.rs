@@ -506,7 +506,11 @@ fn solve<M: Copy + Into<RigidMobility>>(
     loop {
         for body in bodies.iter_mut() {
             if let Some(surface) = &mut body.surface {
-                surface.projection_limit = false;
+                surface.subdivide_on_budget = false;
+                surface.retry_plane = refinements != 0
+                    && boundaries
+                        .iter()
+                        .any(|b| matches!(b, Boundary::Plane { .. }));
             }
             if let Some(material) = &mut body.capsule_material {
                 material.retry_manifold = retry_material;
@@ -514,6 +518,9 @@ fn solve<M: Copy + Into<RigidMobility>>(
         }
         let result = solve_at_resolution(bodies, dt, boundaries, mobility, u128::from(steps));
         for body in bodies.iter_mut() {
+            if let Some(surface) = &mut body.surface {
+                surface.retry_plane = false;
+            }
             if let Some(material) = &mut body.capsule_material {
                 material.retry_manifold = false;
             }
@@ -530,7 +537,7 @@ fn solve<M: Copy + Into<RigidMobility>>(
                 || (matches!(result, Err(XpbdError::SurfaceBudget))
                     && bodies
                         .iter()
-                        .any(|b| b.surface.as_ref().is_some_and(|s| s.projection_limit))));
+                        .any(|b| b.surface.as_ref().is_some_and(|s| s.subdivide_on_budget))));
         if !capsule_sweep && !shell_contact {
             return result;
         }

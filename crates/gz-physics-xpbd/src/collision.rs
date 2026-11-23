@@ -466,6 +466,51 @@ pub(super) struct Contacts {
 }
 
 impl Contacts {
+    pub(super) fn on_single_plane(&self, boundaries: &[PreparedBoundary]) -> bool {
+        self.items.first().is_some_and(|first| {
+            matches!(boundaries[first.boundary].shape, Shape::Plane(_))
+                && self.items.iter().all(|c| c.boundary == first.boundary)
+        })
+    }
+
+    /// Spend only the additional normal impulse on friction. The ordinary
+    /// impact has already spent its own Coulomb budget on these contacts.
+    pub(super) fn finish_plane_increment(
+        &self,
+        x: &[DVec3],
+        p: &mut [Particle],
+        boundaries: &[PreparedBoundary],
+        reactions: &mut [BoundaryImpulse],
+        friction: f64,
+        time: Interval,
+    ) -> Result<(), XpbdError> {
+        for c in &self.items {
+            let b = &boundaries[c.boundary];
+            let point = x[c.particle];
+            let center = b.origin + time.t1 * b.velocity;
+            let separation = (point - center).dot(c.normal) - time.radius;
+            let tolerance = 1e-9 * time.radius
+                + 128. * f64::EPSILON * point.abs().max(center.abs()).max_element();
+            if separation > tolerance {
+                continue;
+            }
+            let particle = &mut p[c.particle];
+            let v = DVec3::from(particle.velocity);
+            let relative = v - b.velocity;
+            let vn = relative.dot(c.normal);
+            if vn < 0. {
+                let tangent = relative - c.normal * vn;
+                let speed = tangent.length();
+                let dv = -vn * c.normal
+                    - tangent * ((-vn * friction) / speed.max(f64::MIN_POSITIVE)).min(1.);
+                particle.velocity = (v + dv).to_array();
+                reactions[c.boundary]
+                    .react(x[c.particle] - b.origin, dv / particle.inverse_mass)?;
+            }
+        }
+        Ok(())
+    }
+
     pub fn clear(&mut self, friction: f64) {
         self.friction = friction;
         self.items.clear();
@@ -841,3 +886,7 @@ fn separate(
     p[b].velocity = (DVec3::from(p[b].velocity) - wb * impulse).to_array();
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "../tests/private/plane_impulse.rs"]
+mod plane_impulse;

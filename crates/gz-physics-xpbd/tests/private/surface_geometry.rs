@@ -93,7 +93,14 @@ fn deforming_sweeps_match_independent_native_distance_root() {
                 ids: [0, 1, 2, 3],
                 vf,
             }
-            .sweep(&at(1.), &particles, gap, 1e-11, &mut 0, false)
+            .sweep(
+                &at(1.),
+                &particles,
+                gap,
+                1e-11,
+                &mut 0,
+                SweepMode::Geometric,
+            )
             .unwrap()
             .expect("feature impact");
             worst = worst.max((hit.time - hi).abs());
@@ -386,4 +393,152 @@ fn near_parallel_folded_hems_separate_at_the_end_of_a_loaded_substep() {
         .unwrap()
         .unwrap();
     assert!(hit.depth > 0.9e-6);
+}
+
+#[path = "landing_cut.rs"]
+mod landing_cut;
+
+#[test]
+fn loaded_floor_cut_keeps_separate_material_features_free_and_balances_support() {
+    let mut p = landing_cut::PARTICLES.map(|r| Particle {
+        position: [r[0], r[1], r[2]],
+        velocity: [r[3], r[4], r[5]],
+        inverse_mass: r[6],
+    });
+    let mut x = landing_cut::PARTICLES.map(|r| DVec3::new(r[7], r[8], r[9]));
+    let mut shell = Surface::new(landing_cut::FACES.to_vec(), &p).unwrap();
+    shell.set_friction(0.3).unwrap();
+    assert_eq!(
+        shell.verify(&x, &p, 0.022),
+        Err(XpbdError::UnresolvedSurface)
+    );
+    let before = x;
+    let momentum = |p: &[Particle]| {
+        p.iter()
+            .map(|v| DVec3::from(v.velocity) / v.inverse_mass)
+            .sum::<DVec3>()
+    };
+    let initial = momentum(&p);
+    let mut impulse = DVec3::ZERO;
+    shell
+        .finish_supported(&mut x, &mut p, 0.022, |_, p| {
+            let incoming = DVec3::from(p[0].velocity);
+            if incoming.z < 0. {
+                let side = DVec3::new(incoming.x, incoming.y, 0.);
+                let delta = -incoming.z * DVec3::Z
+                    - side * ((-incoming.z * 0.7) / side.length().max(f64::MIN_POSITIVE)).min(1.);
+                p[0].velocity = (incoming + delta).to_array();
+                impulse += delta / p[0].inverse_mass;
+            }
+            Ok(())
+        })
+        .unwrap();
+    assert_eq!(x, before);
+    assert!((momentum(&p) - initial - impulse).length() < 1e-12);
+}
+
+#[test]
+fn a_rolling_edge_uses_the_incoming_material_normal_at_the_plane() {
+    let data = landing_cut::GRAZE;
+    let p = data.map(|r| Particle {
+        position: [r[0], r[1], r[2]],
+        velocity: [r[3], r[4], r[5]],
+        inverse_mass: r[6],
+    });
+    let resolved = data.map(|r| DVec3::new(r[7], r[8], r[9]));
+    let hit = Hit {
+        stencil: Stencil {
+            ids: [0, 1, 10, 15],
+            vf: false,
+        },
+        weights: [
+            0.9917476724030727,
+            0.008252327596927332,
+            -0.006446173275961642,
+            -0.9935538267240384,
+        ],
+        normal: DVec3::from_array([
+            -0.9990431000398635,
+            0.03596606913537136,
+            -0.02488626395602196,
+        ]),
+        time: 0.4510735807241938,
+        depth: 1.250371889360835e-10,
+        speed: 4.882558760632705e-07,
+    };
+    let rings = crate::material::patches(&landing_cut::FACES).unwrap();
+    let supports = [
+        rings[&[0, 1, usize::MAX]].as_slice(),
+        rings[&[10, 15, usize::MAX]].as_slice(),
+    ];
+    let mut displacement = [DVec3::ZERO; 20];
+    super::position::correct(&hit, supports, &mut displacement, &p).unwrap();
+    let mut x = std::array::from_fn::<_, 20, _>(|i| resolved[i] - displacement[i]);
+    let mut shell = Surface::new(landing_cut::FACES.to_vec(), &p).unwrap();
+    shell.set_friction(0.3).unwrap();
+    let incoming = p;
+    let mut p = p;
+    shell.resolve(&hit, &mut x, &mut p, 0.022, 9.76e-7).unwrap();
+    assert_eq!(p, incoming);
+    assert_eq!(shell.impulse.normal, 0.);
+    for (actual, expected) in x.iter().zip(resolved) {
+        assert!((*actual - expected).length() < 1e-15);
+    }
+    let eps = Surface::tolerance(&x, &p, 0.022).unwrap();
+    assert!(
+        hit.stencil
+            .sweep(&x, &p, 0.022, eps, &mut 0, SweepMode::MaterialShell)
+            .unwrap()
+            .is_none()
+    );
+
+    // A support can stop the material after an earlier incoming event.
+    // The old normal must not accelerate the resting patch.
+    let mut hit = hit;
+    hit.speed = 1e-3;
+    for particle in &mut p {
+        particle.velocity = [0.; 3];
+    }
+    let stopped = p;
+    let mut dx = [DVec3::ZERO; 20];
+    super::position::correct(&hit, supports, &mut dx, &p).unwrap();
+    let mut x = std::array::from_fn::<_, 20, _>(|i| resolved[i] - dx[i]);
+    shell.resolve(&hit, &mut x, &mut p, 0.022, 9.76e-7).unwrap();
+    assert_eq!(p, stopped);
+    assert_eq!(shell.impulse.normal, 0.);
+    for (end, expected) in x.iter().zip(resolved) {
+        assert!((*end - expected).length() < 1e-15);
+    }
+    // With no overlap left, a closing non-passive witness must be refused.
+    hit.depth = 0.;
+    assert_eq!(
+        shell.resolve(&hit, &mut x, &mut p, 0.022, 9.76e-7),
+        Err(XpbdError::UnresolvedSurface)
+    );
+}
+
+#[test]
+fn only_distance_exhaustion_requests_temporal_subdivision() {
+    let p = landing_cut::PARTICLES.map(|r| Particle {
+        position: [r[0], r[1], r[2]],
+        velocity: [r[3], r[4], r[5]],
+        inverse_mass: r[6],
+    });
+    let x = landing_cut::PARTICLES.map(|r| DVec3::new(r[7], r[8], r[9]));
+    let gap = 0.022;
+    let eps = Surface::tolerance(&x, &p, gap).unwrap();
+    let mut shell = Surface::new(landing_cut::FACES.to_vec(), &p).unwrap();
+    shell.set_friction(0.3).unwrap();
+    let mut candidates = MAX_CANDIDATES;
+    assert!(matches!(
+        shell.next_hit(&x, &p, gap, eps, (&mut candidates, &mut 0), true),
+        Err(XpbdError::SurfaceBudget)
+    ));
+    assert!(!shell.subdivide_on_budget);
+    let mut queries = MAX_DISTANCE_QUERIES;
+    assert!(matches!(
+        shell.next_hit(&x, &p, gap, eps, (&mut 0, &mut queries), true),
+        Err(XpbdError::SurfaceBudget)
+    ));
+    assert!(shell.subdivide_on_budget);
 }

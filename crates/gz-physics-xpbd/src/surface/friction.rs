@@ -137,7 +137,20 @@ impl Friction {
         let j = hit.speed / response;
         let quadratic = 0.5 * j * j * k;
         let roundoff = 128. * f64::EPSILON * (local_energy + j * v.abs() + quadratic);
-        if !local_energy.is_finite() || j * v + quadratic > roundoff {
+        if !local_energy.is_finite() {
+            return Err(XpbdError::UnresolvedSurface);
+        }
+        if j * v + quadratic > roundoff {
+            // A grazing feature may turn as its geometric overlap is removed.
+            // Do not spend energy on the pre-correction witness. Repair only
+            // its clearance at fixed velocity and let the bounded CCD search
+            // recompute the closest features before any velocity impulse.
+            if hit.depth > 0. {
+                if tau > 0. {
+                    super::position::correct(hit, supports, x, p)?;
+                }
+                return Ok(0.);
+            }
             return Err(XpbdError::UnresolvedSurface);
         }
         for (id, d) in directions {

@@ -1,0 +1,64 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+use super::*;
+
+#[test]
+fn incremental_support_ignores_departed_nodes_and_obeys_its_own_friction_budget() {
+    let plane = |normal: DVec3| {
+        PreparedBoundary::new(Boundary::Plane {
+            point: [0.; 3],
+            normal: normal.to_array(),
+            velocity: [0.5, 0., 0.1],
+        })
+        .unwrap()
+    };
+    let boundaries = [plane(DVec3::Z), plane(DVec3::X)];
+    let mut contacts = Contacts::default();
+    let projection = Projection {
+        event: None,
+        normal: DVec3::Z,
+        depth: 0.,
+        initial_overlap: 0.,
+    };
+    assert!(!contacts.on_single_plane(&boundaries));
+    for id in 0..3 {
+        contacts.record(id, 0, &projection, 0., None);
+    }
+    assert!(contacts.on_single_plane(&boundaries));
+    let x = [
+        DVec3::new(1., 2., 0.11),
+        DVec3::new(1., 2., 0.12),
+        DVec3::new(1., 2., 0.11),
+    ];
+    let mut p = x.map(|pos| Particle {
+        position: pos.to_array(),
+        velocity: [2., 0., -0.9],
+        inverse_mass: 0.5,
+    });
+    p[2].velocity[2] = 0.6;
+    let before = p;
+    let mut reactions = [BoundaryImpulse::default(); 2];
+    contacts
+        .finish_plane_increment(
+            &x,
+            &mut p,
+            &boundaries,
+            &mut reactions,
+            0.25,
+            Interval {
+                t0: 0.9,
+                t1: 1.,
+                h: 0.1,
+                radius: 0.01,
+            },
+        )
+        .unwrap();
+    assert_eq!(p[1..], before[1..]);
+    let dv = DVec3::from(p[0].velocity) - DVec3::from(before[0].velocity);
+    assert!((dv - DVec3::new(-0.25, 0., 1.)).length() < 1e-14);
+    let impulse = dv / p[0].inverse_mass;
+    assert!((DVec3::from(reactions[0].linear) + impulse).length() < 1e-14);
+    assert!((DVec3::from(reactions[0].angular) + x[0].cross(impulse)).length() < 1e-14);
+    contacts.record(0, 1, &projection, 0., None);
+    assert!(!contacts.on_single_plane(&boundaries));
+}
