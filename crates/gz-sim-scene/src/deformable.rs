@@ -9,6 +9,8 @@
 //! tick applies their sum at the link center of mass through its joint constraints.
 //! `normal_compliance` sets per-particle normal contact compliance in m/N and defaults to zero.
 mod boundary_path;
+mod force;
+pub use force::{MaterialForceError, set_material_force};
 mod particle_visual;
 mod resolution;
 pub use resolution::{MaterialResolutionError, set_material_resolution};
@@ -137,6 +139,7 @@ pub(crate) struct Deformables {
     automatic_impact: Option<articulated_impact::ScheduledImpact>,
     automatic_consumed: bool,
     impact_barriers: BTreeMap<Duration, articulated_impact::ScheduledImpact>,
+    pending_accelerations: BTreeMap<String, [f64; 3]>,
     initial: BTreeMap<String, SoftBody>,
     current: BTreeMap<String, SoftBody>,
     surfaces: Vec<Surface>,
@@ -166,6 +169,7 @@ pub struct CapsuleForcing {
 /// order. Removed surfaces contribute zero. Reset clears all prior reactions.
 #[derive(Default)]
 pub struct DeformableSample {
+    movable_mass_kg: f64,
     supports: Vec<articulated_impact::ArticulatedSupportInterval>,
     impacts_this_step: Vec<std::sync::Arc<articulated_impact::ArticulatedMaterialImpact>>,
     impact_count: u64,
@@ -315,6 +319,7 @@ pub fn material_energy(
 
 fn reset(info: Res<UpdateInfo>, mut soft: ResMut<Deformables>) {
     let soft = &mut *soft;
+    soft.pending_accelerations.clear();
     soft.current.clone_from(&soft.initial);
     soft.automatic_consumed = false;
     soft.starts.fill(None);
@@ -410,7 +415,7 @@ fn advance(
             soft.publish(info.sim_time, info.epoch);
             return;
         }
-        match soft.advance(&mut physics, info.dt) {
+        match soft.advance_with_forces(&mut physics, info.dt) {
             Ok(()) => soft.publish(info.sim_time, info.epoch),
             Err(error) => fault.report(error),
         }

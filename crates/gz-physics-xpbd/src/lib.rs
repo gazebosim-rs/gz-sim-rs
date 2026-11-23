@@ -458,6 +458,18 @@ impl SoftBody {
         self.config.iterations = iterations;
         Ok(())
     }
+    /// Set the world-frame uniform acceleration for subsequent steps, in m/s².
+    /// This also updates the gravitational field used by energy and sweep queries.
+    pub fn set_gravity(&mut self, gravity: [f64; 3]) -> Result<(), XpbdError> {
+        if !DVec3::from(gravity).is_finite() {
+            return Err(XpbdError::InvalidConfig);
+        }
+        #[cfg(feature = "one-way-checkpoint")]
+        self.one_way_identity.take();
+        self.config.gravity = gravity;
+        Ok(())
+    }
+
     pub fn config(&self) -> SolverConfig {
         self.config
     }

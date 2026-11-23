@@ -23,6 +23,8 @@ mod fold_hold;
 mod fold_mesh;
 #[path = "local_robot_foundations/fold_patch.rs"]
 mod fold_patch;
+#[path = "local_robot_foundations/fold_pull.rs"]
+mod fold_pull;
 #[path = "local_robot_foundations/gripper.rs"]
 mod gripper;
 #[path = "local_robot_foundations/inertia.rs"]
@@ -55,6 +57,8 @@ struct Args {
 }
 #[derive(Subcommand)]
 enum Study {
+    /// Pull a force-controlled folded sheet sideways and compare its slip with an unloaded hold.
+    FoldPull { output: PathBuf },
     /// Measure sustained pressure between folded panels as a live gripper closes.
     FoldClosure { output: PathBuf },
     /// Compare particle and surface-patch jaw pressure on three folded sheets.
@@ -213,6 +217,7 @@ fn write_new(output: &Path, generate: impl FnOnce(&Path) -> Result<()>) -> Resul
 }
 fn main() -> Result<()> {
     match Args::parse().study {
+        Study::FoldPull { output } => write_new(&output, fold_pull::run),
         Study::FoldClosure { output } => write_new(&output, fold_closure::run),
         Study::FoldPatch { output } => write_new(&output, fold_patch::run),
         Study::FoldHold { output } => write_new(&output, fold_hold::run),

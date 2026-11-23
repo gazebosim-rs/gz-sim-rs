@@ -807,6 +807,12 @@ fn parse(
             (
                 name.clone(),
                 DeformableSample {
+                    movable_mass_kg: body
+                        .particles()
+                        .iter()
+                        .filter(|p| p.inverse_mass > 0.)
+                        .map(|p| p.inverse_mass.recip())
+                        .sum(),
                     particles: body.particles().to_vec(),
                     ..Default::default()
                 },
@@ -848,6 +854,7 @@ fn parse(
         automatic_impact,
         automatic_consumed: false,
         impact_barriers,
+        pending_accelerations: BTreeMap::new(),
         current: initial.clone(),
         initial,
         samples,

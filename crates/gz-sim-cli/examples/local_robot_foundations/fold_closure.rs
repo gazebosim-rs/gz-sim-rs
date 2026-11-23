@@ -7,12 +7,12 @@ use glam::DQuat;
 use gz_sim_scene::deformable::set_material_resolution;
 use serde::Serialize;
 
-const APPROACH: usize = 1650;
+pub(super) const APPROACH: usize = 1650;
 const DT: f64 = 0.001;
 const PLATEAU: usize = 100;
 const WINDOW: usize = 20;
 const FORCE: f64 = 0.0001;
-const START: f64 = arm_sheet::JAW_STROKE - 0.00015;
+pub(super) const START: f64 = arm_sheet::JAW_STROKE - 0.00015;
 const INCREMENT: f64 = 0.000025;
 const FINE_INCREMENT: f64 = 0.0000025;
 const FINE_GAP: f64 = 0.6e-6;
@@ -21,12 +21,12 @@ const REFERENCE: (u32, u32) = (64, 48);
 const CLOCK: (u32, u32) = (32, 24);
 const STRIDE: usize = 25;
 
-struct Jaws {
-    ids: [u64; 2],
-    half: [DVec3; 2],
+pub(super) struct Jaws {
+    pub(super) ids: [u64; 2],
+    pub(super) half: [DVec3; 2],
 }
 impl Jaws {
-    fn new(r: &Recording) -> Result<Self> {
+    pub(super) fn new(r: &Recording) -> Result<Self> {
         Ok(Self {
             ids: [
                 entity_id(&r.sim, "default::arm::left")?,
@@ -52,20 +52,26 @@ impl Jaws {
 }
 
 #[derive(Serialize)]
-struct Sample {
+pub(super) struct Sample {
     time_ns: u128,
     stage: usize,
     command_stroke_m: f64,
-    aperture_m: f64,
-    cross_panel_n: f64,
-    panel_gap_m: f64,
-    jaw_up_n: [f64; 2],
-    jaw_squeeze_n: [f64; 2],
-    bench_up_n: f64,
-    min_bench_clearance_m: f64,
+    pub(super) aperture_m: f64,
+    pub(super) cross_panel_n: f64,
+    pub(super) panel_gap_m: f64,
+    pub(super) jaw_up_n: [f64; 2],
+    pub(super) jaw_squeeze_n: [f64; 2],
+    pub(super) bench_up_n: f64,
+    pub(super) min_bench_clearance_m: f64,
     step_ns: u64,
 }
-fn sample(r: &Recording, jaws: &Jaws, columns: usize, stage: usize, stroke: f64) -> Result<Sample> {
+pub(super) fn sample(
+    r: &Recording,
+    jaws: &Jaws,
+    columns: usize,
+    stage: usize,
+    stroke: f64,
+) -> Result<Sample> {
     let sheet = arm_sheet::cloth(&r.sim)?;
     let [left, right, bench] = sheet.last_boundary_impulses() else {
         return Err("closure needs two jaws and the bench".into());

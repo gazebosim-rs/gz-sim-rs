@@ -233,3 +233,30 @@ To redraw the comparison from a run, pass its measurements and a new SVG path to
 RUSTC_WRAPPER= cargo run --release --locked --manifest-path tools/physics-audit/numerics/Cargo.toml \
   --bin fold_closure_forces -- target/my-fold-closure/comparison.json target/my-fold-closure/forces.svg
 ```
+
+## Pull a folded sheet sideways
+
+In `fold-pull` the robot lifts a sheet and closes its fingers until the measured force between the folded layers settles near 2 mN. Each mesh faces the same 0.3 N sideways pull. A second run follows the same grasp with zero applied load. The traces report the sheet center and the same material locations under each finger, all measured relative to the moving jaws.
+
+```sh
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli \
+  --example local_robot_foundations -- fold-pull target/my-fold-pull
+```
+
+Start the seven-point pull replay and press Play in gz-web-rs. The output directory also contains `mesh-7-sham`, `mesh-5-pull` and `mesh-5-sham`. Each includes the starting SDF, native replay, material observations and the full 1 ms force trace.
+
+```sh
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli \
+  --bin gz-sim-rs -- --server --replay --web-viewer 9782 target/my-fold-pull/mesh-7-pull/replay
+```
+
+[Open your replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9782%2F) · [Recorded seven-point pull](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9792%2F) · [Matched unloaded hold](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9793%2F)
+
+The gripper motion is visible in the replay. Use the displacement chart for the much smaller motion of the sheet inside the grip. To regenerate the chart and independently compare the sheet's change in momentum with the impulses from the pull, jaws and bench, run the two Rust tools on the same study.
+
+```sh
+RUSTC_WRAPPER= cargo run --release --locked --manifest-path tools/physics-audit/numerics/Cargo.toml \
+  --bin fold_pull_response -- target/my-fold-pull target/my-fold-pull/response.svg
+RUSTC_WRAPPER= cargo run --release --locked --manifest-path tools/physics-audit/numerics/Cargo.toml \
+  --bin fold_pull_balance -- target/my-fold-pull
+```

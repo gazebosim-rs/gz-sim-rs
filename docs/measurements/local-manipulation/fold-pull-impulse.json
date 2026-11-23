@@ -1,0 +1,62 @@
+{
+  "frame": "world +Y",
+  "meshes": [
+    {
+      "balance": {
+        "after_recovery": {
+          "applied_ns": 0.045000000000000116,
+          "bench_on_sheet_ns": 0.0,
+          "jaws_on_sheet_ns": [
+            -0.022256334246262614,
+            -0.022751067937234654
+          ],
+          "sheet_momentum_change_ns": -7.402183497274248e-6,
+          "time_ns": 3550000000
+        },
+        "last_loaded_tick": {
+          "applied_ns": 0.045000000000000116,
+          "bench_on_sheet_ns": 0.0,
+          "jaws_on_sheet_ns": [
+            -0.022380039945476233,
+            -0.022629526035312143
+          ],
+          "residual_ns": -1.1102230246251565e-16,
+          "sheet_momentum_change_ns": -9.565980788370113e-6,
+          "time_ns": 3349000000
+        },
+        "max_cumulative_residual_ns": 1.3183898417423734e-16,
+        "max_residual_fraction_of_applied_impulse": 2.9297552038719334e-15
+      },
+      "columns": 5
+    },
+    {
+      "balance": {
+        "after_recovery": {
+          "applied_ns": 0.045000000000000116,
+          "bench_on_sheet_ns": 0.0,
+          "jaws_on_sheet_ns": [
+            -0.022228589546476874,
+            -0.02277881285382681
+          ],
+          "sheet_momentum_change_ns": -7.402400303693079e-6,
+          "time_ns": 3650000000
+        },
+        "last_loaded_tick": {
+          "applied_ns": 0.045000000000000116,
+          "bench_on_sheet_ns": 0.0,
+          "jaws_on_sheet_ns": [
+            -0.022367770013394087,
+            -0.022641796840863652
+          ],
+          "residual_ns": -1.3183898417423734e-16,
+          "sheet_momentum_change_ns": -9.56685425775331e-6,
+          "time_ns": 3449000000
+        },
+        "max_cumulative_residual_ns": 1.3877787807814457e-16,
+        "max_residual_fraction_of_applied_impulse": 3.0839528461809826e-15
+      },
+      "columns": 7
+    }
+  ],
+  "method": "pulled minus matched unloaded branch"
+}

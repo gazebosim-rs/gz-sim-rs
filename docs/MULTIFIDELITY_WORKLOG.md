@@ -3,7 +3,7 @@
 
 # Multi-fidelity physics worklog
 
-The arm lifts a folded sheet and measures the opening at which the layers start carrying a sustained load as its jaws close. Both material meshes respond to the actual articulated jaws. [Live gripper closure](#2026-11-23--layer-contact-in-a-live-gripper)
+The arm now closes its gripper using measured force between the folded layers. Both tested sheets stayed in the jaws under the same sideways pull. [Sideways pull](#2026-11-23--sideways-pull-on-a-force-controlled-folded-sheet)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
@@ -1902,3 +1902,18 @@ All 159 XPBD tests, 318 scene library tests, 98 scene integration tests and 54 r
 The full workspace gate runs separately. On the preceding review commit GitHub reported one failing test, the distributed two-sphere hinge trajectory checksum. The local gripper phase does not change that test. [Baseline hosted run](https://github.com/gazebosim-rs/gz-sim-rs/actions/runs/45257309567)
 
 The next local test is to close the jaws to a measured force and apply a sideways pull. Measure slip and retained load on both meshes to determine whether the same force target holds the sheet across resolutions.
+
+## 2026-11-23 — Sideways pull on a force-controlled folded sheet
+
+The same live articulated gripper lifts each calibrated sheet for 1.650 s. Every 50 ms the controller reads the most recent 20 ms of force between the layers and adjusts the finger target. The pull begins after two successive sample windows have a mean within 2.00 ± 0.25 mN, continued interlayer contact and bilateral support. The controller stays active throughout. Each loaded run has an unloaded twin with an identical robot state, material state, commands and force readings up to the pull. The public clock stays at 1 ms and the disturbed material uses 32 substeps with 24 iterations. [Run the example](LOCAL_RIGID_ROBOT.md#pull-a-folded-sheet-sideways)
+
+The scene API applies a total world-space force to one named local material for the next advancing tick. Movable particles share it in proportion to their masses across every solver substep. The force rises along +Y over 50 ms, stays at 0.3 N for 100 ms, ramps down over 50 ms and stays off for the 200 ms recovery. This tests a body load distributed across the sheet. Pinning a point on an edge and tugging it would load the cloth differently.
+
+| Points across sheet | Opening at start (mm) | Layer force before / during pull (mN) | Peak sheet-center displacement (nm) | Residual center displacement (nm) | Residual under left / right finger (nm) |
+|---:|---:|---:|---:|---:|---:|
+| 5 | 43.23407 | 1.852 / 1.823 | 27.87 | 1.74 | 2.74 / 0.13 |
+| 7 | 43.18801 | 1.822 / 2.024 | 46.65 | 16.88 | 9.65 / 17.84 |
+
+Displacements compare the pulled sheet with its unloaded twin at the same tick, relative to the moving jaws. Finger measurements follow the original eight material sites on each panel. The residual averages the final 20 ms after release. Both fingers supported the sheet on every disturbed and recovery tick, the bench carried zero load, and the layer force stayed in band throughout the 100 ms full-load plateau on both meshes. These are simulated displacements under one load. [Measured response](measurements/local-manipulation/fold-pull.json) · [Displacement and force chart](measurements/local-manipulation/fold-pull-response.svg)
+
+The pull delivered 0.045 N·s of lateral impulse on each mesh. An independent Rust audit integrated the recorded forces on each jaw and the bench, subtracted the unloaded twin, and compared the result with the change in sheet momentum at every 1 ms endpoint. The largest cumulative discrepancy was 1.39 × 10⁻¹⁶ N·s. [Impulse balance](measurements/local-manipulation/fold-pull-impulse.json)

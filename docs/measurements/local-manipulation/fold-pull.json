@@ -1,0 +1,271 @@
+{
+  "clock_iterations": 24,
+  "clock_substeps": 32,
+  "dt_ns": 1000000,
+  "feedback_period_ticks": 50,
+  "force_band_n": 0.00025,
+  "hold_ticks": 100,
+  "pull_n": 0.3,
+  "ramp_ticks": 50,
+  "recovery_ticks": 200,
+  "target_n": 0.002,
+  "trials": [
+    {
+      "baseline_time_ns": 3150000000,
+      "columns": 5,
+      "matched_prefix_ticks": 1500,
+      "peak_signed_displacement_vs_sham_m": [
+        2.7868782508030112e-8,
+        3.0787725259842635e-9,
+        1.5608468684202847e-10
+      ],
+      "pull": {
+        "baseline": {
+          "mean_aperture_m": 0.04323406988715419,
+          "mean_centroid_change_m": -7.332821677354741e-12,
+          "mean_cross_panel_n": 0.0018517223140964907,
+          "mean_jaw_side_reaction_n": [
+            -0.014242156270101109,
+            0.014242156287065927
+          ],
+          "mean_jaw_up_n": [
+            0.04163067876290766,
+            0.040773321219399326
+          ],
+          "mean_pad_change_m": [
+            -5.139064434438538e-12,
+            5.443166707252259e-12
+          ]
+        },
+        "loaded_ticks_in_band": 100,
+        "min_bench_clearance_m": 0.14961270711917318,
+        "pull": {
+          "mean_aperture_m": 0.043234088925396263,
+          "mean_centroid_change_m": 2.7853488287007825e-8,
+          "mean_cross_panel_n": 0.0018229774650023217,
+          "mean_jaw_side_reaction_n": [
+            0.13482154437219399,
+            0.16541351369591453
+          ],
+          "mean_jaw_up_n": [
+            0.041631239081805736,
+            0.04077276059075095
+          ],
+          "mean_pad_change_m": [
+            2.801392555863008e-9,
+            4.6258496816040107e-11
+          ]
+        },
+        "recovered": {
+          "mean_aperture_m": 0.04323408984000724,
+          "mean_centroid_change_m": 1.9951413187067816e-9,
+          "mean_cross_panel_n": 0.0018447913633577264,
+          "mean_jaw_side_reaction_n": [
+            -0.014449328190653685,
+            0.014352928992195377
+          ],
+          "mean_jaw_up_n": [
+            0.04163005201758948,
+            0.04077394814068873
+          ],
+          "mean_pad_change_m": [
+            2.8730310493077022e-9,
+            -5.047964333861724e-11
+          ]
+        },
+        "supported_ticks": 400
+      },
+      "residual_displacement_vs_sham_m": [
+        1.740760806034755e-9,
+        2.741974690747065e-9,
+        1.332460069364272e-10
+      ],
+      "sham": {
+        "baseline": {
+          "mean_aperture_m": 0.04323406988715419,
+          "mean_centroid_change_m": -7.332821677354741e-12,
+          "mean_cross_panel_n": 0.0018517223140964907,
+          "mean_jaw_side_reaction_n": [
+            -0.014242156270101109,
+            0.014242156287065927
+          ],
+          "mean_jaw_up_n": [
+            0.04163067876290766,
+            0.040773321219399326
+          ],
+          "mean_pad_change_m": [
+            -5.139064434438538e-12,
+            5.443166707252259e-12
+          ]
+        },
+        "loaded_ticks_in_band": 100,
+        "min_bench_clearance_m": 0.14961271225571393,
+        "pull": {
+          "mean_aperture_m": 0.04323408944393835,
+          "mean_centroid_change_m": 1.0024087197566341e-10,
+          "mean_cross_panel_n": 0.001849028971693991,
+          "mean_jaw_side_reaction_n": [
+            -0.014240349080969463,
+            0.014240349090816956
+          ],
+          "mean_jaw_up_n": [
+            0.04163048403808043,
+            0.040773515987480545
+          ],
+          "mean_pad_change_m": [
+            6.237089547093297e-11,
+            -7.372319152725745e-11
+          ]
+        },
+        "recovered": {
+          "mean_aperture_m": 0.04323409019761559,
+          "mean_centroid_change_m": 2.543805126718518e-10,
+          "mean_cross_panel_n": 0.0018459795499081832,
+          "mean_jaw_side_reaction_n": [
+            -0.014238921615741506,
+            0.014238921620990877
+          ],
+          "mean_jaw_up_n": [
+            0.04162995967190819,
+            0.04077404033282296
+          ],
+          "mean_pad_change_m": [
+            1.3105635856059497e-10,
+            -1.8372565027508678e-10
+          ]
+        },
+        "supported_ticks": 400
+      },
+      "weight_n": 0.08240400000000002
+    },
+    {
+      "baseline_time_ns": 3250000000,
+      "columns": 7,
+      "matched_prefix_ticks": 1600,
+      "peak_signed_displacement_vs_sham_m": [
+        4.665248599961082e-8,
+        1.2487870170233006e-8,
+        1.950254263811957e-8
+      ],
+      "pull": {
+        "baseline": {
+          "mean_aperture_m": 0.04318801453052347,
+          "mean_centroid_change_m": -9.28240393360212e-12,
+          "mean_cross_panel_n": 0.0018215062270982435,
+          "mean_jaw_side_reaction_n": [
+            -0.015493613327666373,
+            0.015493615771105213
+          ],
+          "mean_jaw_up_n": [
+            0.04114892640754202,
+            0.041254844587641906
+          ],
+          "mean_pad_change_m": [
+            1.9505184546515128e-10,
+            -1.7027659204508977e-10
+          ]
+        },
+        "loaded_ticks_in_band": 100,
+        "min_bench_clearance_m": 0.14962084739914017,
+        "pull": {
+          "mean_aperture_m": 0.04318804594214918,
+          "mean_centroid_change_m": 4.639715235775033e-8,
+          "mean_cross_panel_n": 0.0020240302487768225,
+          "mean_jaw_side_reaction_n": [
+            0.13344015416146024,
+            0.1667948886462343
+          ],
+          "mean_jaw_up_n": [
+            0.041153730559318716,
+            0.041250287630639634
+          ],
+          "mean_pad_change_m": [
+            8.73965285623328e-9,
+            2.1859300854479333e-8
+          ]
+        },
+        "recovered": {
+          "mean_aperture_m": 0.04318804599115936,
+          "mean_centroid_change_m": 1.7636952362978128e-8,
+          "mean_cross_panel_n": 0.0018312545028325966,
+          "mean_jaw_side_reaction_n": [
+            -0.015862666025164646,
+            0.015766261355887826
+          ],
+          "mean_jaw_up_n": [
+            0.041147326703622825,
+            0.041256669394321
+          ],
+          "mean_pad_change_m": [
+            1.4980119597898588e-9,
+            2.540945760252768e-8
+          ]
+        },
+        "supported_ticks": 400
+      },
+      "residual_displacement_vs_sham_m": [
+        1.6880457609534808e-8,
+        9.649240270345748e-9,
+        1.7840300596972532e-8
+      ],
+      "sham": {
+        "baseline": {
+          "mean_aperture_m": 0.04318801453052347,
+          "mean_centroid_change_m": -9.28240393360212e-12,
+          "mean_cross_panel_n": 0.0018215062270982435,
+          "mean_jaw_side_reaction_n": [
+            -0.015493613327666373,
+            0.015493615771105213
+          ],
+          "mean_jaw_up_n": [
+            0.04114892640754202,
+            0.041254844587641906
+          ],
+          "mean_pad_change_m": [
+            1.9505184546515128e-10,
+            -1.7027659204508977e-10
+          ]
+        },
+        "loaded_ticks_in_band": 60,
+        "min_bench_clearance_m": 0.14962090110066711,
+        "pull": {
+          "mean_aperture_m": 0.043188045242480086,
+          "mean_centroid_change_m": 2.053615300699164e-10,
+          "mean_cross_panel_n": 0.0017686253591357524,
+          "mean_jaw_side_reaction_n": [
+            -0.015533516020239183,
+            0.015533516036555242
+          ],
+          "mean_jaw_up_n": [
+            0.04114645096808658,
+            0.041257548951093216
+          ],
+          "mean_pad_change_m": [
+            -2.8776589740872122e-9,
+            2.5489922936271766e-9
+          ]
+        },
+        "recovered": {
+          "mean_aperture_m": 0.043187672851549876,
+          "mean_centroid_change_m": 7.56494753443538e-10,
+          "mean_cross_panel_n": 0.0018951865327319656,
+          "mean_jaw_side_reaction_n": [
+            -0.015599239728648009,
+            0.015599233668913049
+          ],
+          "mean_jaw_up_n": [
+            0.04114213813305762,
+            0.04126195987254598
+          ],
+          "mean_pad_change_m": [
+            -8.15122831055588e-9,
+            7.569157005555021e-9
+          ]
+        },
+        "supported_ticks": 400
+      },
+      "weight_n": 0.08240399999999999
+    }
+  ],
+  "window_ticks": 20
+}
