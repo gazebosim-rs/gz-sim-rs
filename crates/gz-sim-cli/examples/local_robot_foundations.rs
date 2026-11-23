@@ -11,8 +11,12 @@ mod arm_recovery;
 mod arm_sheet;
 #[path = "local_robot_foundations/arm_switching.rs"]
 mod arm_switching;
+#[path = "local_robot_foundations/closing_sheet_scene.rs"]
+mod closing_sheet_scene;
 #[path = "local_robot_foundations/envelope.rs"]
 mod envelope;
+#[path = "local_robot_foundations/fold_closure.rs"]
+mod fold_closure;
 #[path = "local_robot_foundations/fold_hold.rs"]
 mod fold_hold;
 #[path = "local_robot_foundations/fold_mesh.rs"]
@@ -51,6 +55,8 @@ struct Args {
 }
 #[derive(Subcommand)]
 enum Study {
+    /// Measure sustained pressure between folded panels as a live gripper closes.
+    FoldClosure { output: PathBuf },
     /// Compare particle and surface-patch jaw pressure on three folded sheets.
     FoldPatch { output: PathBuf },
     /// Compare cloth contact forces from the same loaded fold.
@@ -207,6 +213,7 @@ fn write_new(output: &Path, generate: impl FnOnce(&Path) -> Result<()>) -> Resul
 }
 fn main() -> Result<()> {
     match Args::parse().study {
+        Study::FoldClosure { output } => write_new(&output, fold_closure::run),
         Study::FoldPatch { output } => write_new(&output, fold_patch::run),
         Study::FoldHold { output } => write_new(&output, fold_hold::run),
         Study::ArmSheet { output } => write_new(&output, arm_sheet::run),

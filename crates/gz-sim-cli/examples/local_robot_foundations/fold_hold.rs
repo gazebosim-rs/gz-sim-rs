@@ -46,7 +46,7 @@ const GRIDS: [Resolution; 7] = [
 /// passed through the coupling. Each branch replays the same commands from construction so
 /// the native solver's private history and the pending pad wrench remain in the live world.
 #[allow(deprecated)]
-fn snapshot(sim: &Simulation) -> Result<Value> {
+pub(super) fn snapshot(sim: &Simulation) -> Result<Value> {
     let mut rigid = std::collections::BTreeMap::new();
     let mut joints = std::collections::BTreeMap::new();
     for e in sim.world().iter_entities() {

@@ -136,9 +136,8 @@ impl SoftBody {
         if !bend_compliance.is_finite() || bend_compliance < 0. {
             return Err(XpbdError::InvalidConstraint);
         }
-        Self::cloth_grid(
+        Self::cloth_with_material_laws(
             particles,
-            None,
             columns,
             config,
             |a, b| {
@@ -149,6 +148,25 @@ impl SoftBody {
                 }
             },
             |_| bend_compliance,
+        )
+    }
+
+    /// Construct a rectangular sheet at rest with per-edge distance compliance
+    /// and per-hinge bending compliance. Each unique constraint is visited once.
+    pub fn cloth_with_material_laws(
+        particles: Vec<Particle>,
+        columns: usize,
+        config: SolverConfig,
+        edge_compliance: impl FnMut(usize, usize) -> f64,
+        hinge_compliance: impl FnMut([usize; 4]) -> f64,
+    ) -> Result<Self, XpbdError> {
+        Self::cloth_grid(
+            particles,
+            None,
+            columns,
+            config,
+            edge_compliance,
+            hinge_compliance,
         )
     }
 
@@ -183,8 +201,8 @@ impl SoftBody {
         rest: Option<&[Particle]>,
         columns: usize,
         config: SolverConfig,
-        edge_compliance: impl Fn(usize, usize) -> f64,
-        hinge_compliance: impl Fn([usize; 4]) -> f64,
+        mut edge_compliance: impl FnMut(usize, usize) -> f64,
+        mut hinge_compliance: impl FnMut([usize; 4]) -> f64,
     ) -> Result<Self, XpbdError> {
         if columns < 2 || !particles.len().is_multiple_of(columns) || particles.len() / columns < 2
         {

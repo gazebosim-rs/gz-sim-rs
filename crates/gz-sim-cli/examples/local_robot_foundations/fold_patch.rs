@@ -70,6 +70,13 @@ impl Site {
     }
 }
 
+pub(super) fn material_samples(half_width: f64, columns: usize) -> Vec<PadSample> {
+    sites(half_width)
+        .into_iter()
+        .map(|s| s.stencil(columns))
+        .collect()
+}
+
 // All cloth vertices lie on the interior (gap) side of each flat inner jaw
 // plane. Their minimum signed distance is a conservative core clearance for
 // whole triangles, including the unsampled crown and the outer side edges.
@@ -117,10 +124,7 @@ impl Branch {
             return Err("expected two occupied coarse nodes per jaw and equal width pads".into());
         }
         let compliance = if patch {
-            let stencils = sites(anchor.half[0].y)
-                .into_iter()
-                .map(|s| s.stencil(columns))
-                .collect();
+            let stencils = material_samples(anchor.half[0].y, columns);
             body = body.with_pad_samples(stencils)?;
             [PAD_COMPLIANCE; 2]
         } else {

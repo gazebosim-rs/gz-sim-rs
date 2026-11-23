@@ -463,3 +463,90 @@ fn malformed_material_patch_is_rejected_at_scene_load() {
             .contains("unexpected <pad_sample>")
     );
 }
+
+#[test]
+fn patch_reactions_on_both_jaws_change_the_opening_under_identical_motor_efforts() {
+    use gz_sim_scene::queue_joint_effort;
+    // Two mirror-image material faces load opposite jaws. The articulated arm,
+    // gravity and both joint efforts are identical in all three worlds.
+    let mut xml = sampled_sheet(SAMPLE);
+    let begin = xml.find("<cloth ").unwrap();
+    let end = xml[begin..].find("</cloth>").unwrap() + begin + "</cloth>".len();
+    let right = xml[begin..end]
+        .replace(r#"name="sheet""#, r#"name="mirror""#)
+        .replace(".2273 ", ".4127 ")
+        .replace(r#"velocity="-1 "#, r#"velocity="1 "#);
+    xml.insert_str(end, &right);
+    xml.insert_str(begin, r#"<box link="default::arm::right" coupling="articulated_wrench" normal_compliance="0.001"/>"#);
+    let mut coupled = load(&xml);
+    let mut replayed_wrench = load(ARM);
+    let mut empty = load(ARM);
+    let named = |s: &Simulation, name: &str| {
+        s.world()
+            .iter_entities()
+            .find(|e| e.get::<Name>().is_some_and(|n| n.0 == name))
+            .unwrap()
+            .id()
+    };
+    let state = |s: &Simulation, name| {
+        let ent = named(s, name);
+        s.world()
+            .resource::<PhysicsBackend>()
+            .state(s.world().get::<BodyHandle>(ent).unwrap().id())
+            .unwrap()
+    };
+    let links = ["default::arm::left", "default::arm::right"];
+    let start = links.map(|name| state(&coupled, name));
+    let drive = |s: &mut Simulation| {
+        for name in ["default::arm::close_left", "default::arm::close_right"] {
+            let id = s.world().get::<EntityId>(named(s, name)).unwrap().get();
+            queue_joint_effort(s, id, 4.).unwrap();
+        }
+        s.step_exact(1).unwrap();
+    };
+    for s in [&mut coupled, &mut replayed_wrench, &mut empty] {
+        drive(s);
+    }
+    let end = links.map(|name| state(&coupled, name));
+    assert_eq!(end, links.map(|name| state(&empty, name)));
+    for (j, name) in links.into_iter().enumerate() {
+        let mut force = DVec3::ZERO;
+        let mut torque = DVec3::ZERO;
+        for (_, sheet) in bodies(&coupled) {
+            let reaction = sheet.last_boundary_impulses()[j];
+            let impulse = DVec3::from(reaction.linear);
+            force += impulse / 0.001;
+            torque += (DVec3::from(reaction.angular)
+                + (DVec3::from(start[j].position) - DVec3::from(end[j].position)).cross(impulse))
+                / 0.001;
+        }
+        assert!(
+            if j == 0 {
+                force.x < -0.01
+            } else {
+                force.x > 0.01
+            },
+            "{name}: {force:?}"
+        );
+        let id = replayed_wrench
+            .world()
+            .get::<EntityId>(named(&replayed_wrench, name))
+            .unwrap()
+            .get();
+        queue_link_world_wrench(
+            &mut replayed_wrench,
+            id,
+            force.to_array(),
+            torque.to_array(),
+        )
+        .unwrap();
+    }
+    for s in [&mut coupled, &mut replayed_wrench, &mut empty] {
+        drive(s);
+    }
+    let actual = links.map(|name| state(&coupled, name));
+    assert_eq!(actual, links.map(|name| state(&replayed_wrench, name)));
+    let unloaded = links.map(|name| state(&empty, name));
+    let opening = |jaws: [BodyState; 2]| jaws[1].position[0] - jaws[0].position[0] - 0.024;
+    assert!(opening(actual) > opening(unloaded) + 1e-7);
+}

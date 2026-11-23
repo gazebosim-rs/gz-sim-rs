@@ -73,6 +73,8 @@ fn pad_sample(node: Node<'_, '_>) -> Result<PadSample, String> {
     })
 }
 
+mod cloth_laws;
+
 fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<SoftBody, String> {
     let cloth = node.has_tag_name("cloth");
     let common = [
@@ -114,7 +116,7 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
     let is_sample = |n: Node<'_, '_>| cloth && n.has_tag_name("pad_sample");
     let particles = node
         .children()
-        .filter(|n| n.is_element() && !is_sample(*n))
+        .filter(|n| n.is_element() && !is_sample(*n) && !(cloth && cloth_laws::is_law(*n)))
         .map(|n| {
             if !n.has_tag_name("particle") {
                 return Err(format!("unexpected <{}>", n.tag_name().name()));
@@ -139,18 +141,18 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
     let stretch = number(node, "stretch")?;
     let bend = number(node, "bend")?;
     let body = if cloth {
-        SoftBody::cloth(
+        cloth_laws::build(
+            node,
             particles,
             number(node, "columns")?,
             stretch,
             number(node, "shear")?,
             bend,
             config,
-        )
+        )?
     } else {
-        SoftBody::cable(particles, stretch, bend, config)
-    }
-    .map_err(|e| e.to_string())?;
+        SoftBody::cable(particles, stretch, bend, config).map_err(|e| e.to_string())?
+    };
     let samples = node
         .children()
         .filter(|n| is_sample(*n))

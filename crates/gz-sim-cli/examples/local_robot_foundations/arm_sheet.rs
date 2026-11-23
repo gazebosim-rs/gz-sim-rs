@@ -11,7 +11,7 @@ const COLUMNS: usize = 3;
 const ROWS: usize = 4;
 pub(super) const COUNT: usize = COLUMNS * ROWS;
 pub(super) const RADIUS: f64 = 0.011;
-const NODE_MASS: f64 = 0.0007;
+pub(super) const NODE_MASS: f64 = 0.0007;
 pub(super) const BENCH: f64 = 0.120;
 pub(super) const PAD_COMPLIANCE: f64 = 0.001;
 const ITERATIONS: usize = 24;
@@ -98,15 +98,6 @@ pub(super) fn scene_with_marker_grid(
     self_contact_loads: bool,
     columns: usize,
 ) -> Result<String> {
-    let (arm, rest) = robot
-        .split_once("<model name=\"parcel\">")
-        .ok_or("missing arm parcel")?;
-    let (_, rest) = rest
-        .split_once("<model name=\"source\">")
-        .ok_or("missing bench")?;
-    let (source, rest) = rest.split_once("</link>").ok_or("missing bench link")?;
-    let (world, _) = rest.split_once("</world>").ok_or("missing arm world")?;
-    let mut xml = format!("{arm}<model name=\"source\">{source}");
     let mut particles = String::new();
     let mut bindings = String::new();
     for i in 0..COUNT {
@@ -128,6 +119,37 @@ pub(super) fn scene_with_marker_grid(
         )
         .unwrap();
     }
+    let witness_attr = if self_contact_loads {
+        " self_contact_loads=\"true\""
+    } else {
+        ""
+    };
+    let material = format!(
+        "<cloth name=\"sheet\" pad_loads=\"true\"{witness_attr} columns=\"{COLUMNS}\" substeps=\"{}\" iterations=\"{ITERATIONS}\" radius=\"{RADIUS}\" self_contact=\"true\" self_friction=\"0.3\" friction=\"0.7\" stretch=\"{}\" shear=\"{}\" bend=\"{}\">{particles}</cloth>",
+        c.substeps,
+        STRETCH / c.stiffness_scale,
+        SHEAR / c.stiffness_scale,
+        BEND / c.stiffness_scale
+    );
+    scene_with_material(robot, columns, flare, &material, &bindings)
+}
+
+pub(super) fn scene_with_material(
+    robot: &str,
+    columns: usize,
+    flare: f64,
+    material: &str,
+    bindings: &str,
+) -> Result<String> {
+    let (arm, rest) = robot
+        .split_once("<model name=\"parcel\">")
+        .ok_or("missing arm parcel")?;
+    let (_, rest) = rest
+        .split_once("<model name=\"source\">")
+        .ok_or("missing bench")?;
+    let (source, rest) = rest.split_once("</link>").ok_or("missing bench link")?;
+    let (world, _) = rest.split_once("</world>").ok_or("missing arm world")?;
+    let mut xml = format!("{arm}<model name=\"source\">{source}");
     for i in 0..ROWS * columns {
         let row = i / columns;
         let u = (i % columns) as f64 * (COLUMNS - 1) as f64 / (columns - 1) as f64;
@@ -141,16 +163,11 @@ pub(super) fn scene_with_marker_grid(
         };
         writeln!(xml,"<visual name=\"sheet_{i}\"><pose>{} {} {} 0 0 0</pose><geometry><sphere><radius>{RADIUS}</radius></sphere></geometry><material><diffuse>{rgb} 1</diffuse></material></visual>",p.x-0.32,p.y,p.z-0.06).unwrap();
     }
-    let witness_attr = if self_contact_loads {
-        " self_contact_loads=\"true\""
-    } else {
-        ""
-    };
     write!(xml,"</link>{world}<plugin name=\"gz::sim::systems::Deformables\" filename=\"gz-sim-deformables-system\">
         <box link=\"default::arm::left\" coupling=\"articulated_wrench\" normal_compliance=\"{PAD_COMPLIANCE}\"/>
         <box link=\"default::arm::right\" coupling=\"articulated_wrench\" normal_compliance=\"{PAD_COMPLIANCE}\"/>
         <plane point=\"0 0 {BENCH}\" normal=\"0 0 1\"/>
-        <cloth name=\"sheet\" pad_loads=\"true\"{witness_attr} columns=\"{COLUMNS}\" substeps=\"{}\" iterations=\"{ITERATIONS}\" radius=\"{RADIUS}\" self_contact=\"true\" self_friction=\"0.3\" friction=\"0.7\" stretch=\"{}\" shear=\"{}\" bend=\"{}\">{particles}</cloth>{bindings}</plugin></world></sdf>",c.substeps,STRETCH/c.stiffness_scale,SHEAR/c.stiffness_scale,BEND/c.stiffness_scale).unwrap();
+        {material}{bindings}</plugin></world></sdf>").unwrap();
     Ok(xml)
 }
 #[derive(Default, Debug, Serialize)]

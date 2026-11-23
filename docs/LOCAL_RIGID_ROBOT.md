@@ -199,3 +199,37 @@ Rebuild the chart directly from its measurements.
 RUSTC_WRAPPER= cargo run --release --locked --manifest-path tools/physics-audit/numerics/Cargo.toml \
   --bin fold_patch_forces -- target/my-fold-patch/comparison.json target/my-fold-patch/forces.svg
 ```
+
+## Measure when a live gripper presses the layers together
+
+The `fold-closure` example starts the folded sheet at rest on the bench. An articulated arm picks it up and slowly closes its fingers. The jaw motors apply forces, and each measured cloth reaction feeds back into the following rigid-body step. The example records the actual opening between the inner jaw faces. Material width, jaw command and actual opening appear separately in the measurements.
+
+```sh
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli \
+  --example local_robot_foundations -- fold-closure target/my-fold-closure
+```
+
+Both material meshes use the same mass, pad footprint and stiffness calibration as the preceding phase. To keep a cloth's material properties as its grid changes, its SDF can override the compliance of individual distance constraints or bending hinges. For example, in a two-column grid, particles 0 and 3 form the shared diagonal of the first cell.
+
+```xml
+<distance_compliance particles="0 3" value="0.00002"/>
+<hinge_compliance particles="0 3" value="0.02"/>
+```
+
+Place these elements inside the deformables plugin's `<cloth>`. Distance compliance is in m/N and hinge compliance is in rad/(N·m). Unlisted edges and hinges use the cloth's `stretch`, `shear` and `bend` values.
+
+A run writes a native replay, the exact authored `world.sdf`, and a per-tick `trace.json` for each tested case. The `mesh-5` and `mesh-7` directories contain the primary runs. The `-fine` directories use the finer material clock, and the `-fixed` directories hold the jaw target at the last level below the primary threshold. To view your own seven-point result with gz-web-rs on port 8082, start its replay server, then open the viewer and press Play.
+
+```sh
+RUSTC_WRAPPER= cargo run --locked --release --no-default-features -p gz-sim-cli \
+  --bin gz-sim-rs -- --server --replay --web-viewer 9782 target/my-fold-closure/mesh-7/replay
+```
+
+[Open your replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9782%2F) · [Recorded seven-point replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9777%2F) · [Seven-point fixed-target control](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9784%2F) · [Force versus jaw opening](measurements/local-manipulation/fold-closure-forces.svg)
+
+To redraw the comparison from a run, pass its measurements and a new SVG path to the Rust chart tool.
+
+```sh
+RUSTC_WRAPPER= cargo run --release --locked --manifest-path tools/physics-audit/numerics/Cargo.toml \
+  --bin fold_closure_forces -- target/my-fold-closure/comparison.json target/my-fold-closure/forces.svg
+```

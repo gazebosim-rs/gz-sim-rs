@@ -3,7 +3,7 @@
 
 # Multi-fidelity physics worklog
 
-The gripper can now press on material points inside cloth triangles. During the loaded fold, using a fixed contact patch substantially reduced the coarse mesh's force between layers. Both finer meshes still carried the sheet's weight through the jaws with a measurable gap between the layers. [Jaw pressure comparison](#2026-11-23--jaw-pressure-across-the-cloth-surface)
+The arm lifts a folded sheet and measures the opening at which the layers start carrying a sustained load as its jaws close. Both material meshes respond to the actual articulated jaws. [Live gripper closure](#2026-11-23--layer-contact-in-a-live-gripper)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
@@ -1877,3 +1877,24 @@ All 159 XPBD tests, 97 local scene regressions and 45 robot example tests passed
 LLVM covered 494/500 changed executable lines (98.80%) and 973/1,008 changed code regions (96.53%). Each affected crate exceeded 95% on both measures for its changes. The broader XPBD source check reached 9,142/9,511 lines (96.12%) and 18,387/19,059 regions (96.47%). The separate Rust chart and its tests covered 228/231 lines and 431/449 regions. [Coverage and viewer checks](measurements/local-manipulation/fold-patch-coverage.json)
 
 Next, use the authored patch in a freely responding gripper, advance the jaws in small increments, and measure the closure at which both finer meshes first sustain pressure between the layers.
+
+## 2026-11-23 — Layer contact in a live gripper
+
+The robot picks up a sheet from the bench, supports it with both fingers, and increases the two joint targets in small increments. The cloth's normal and friction impulses return to the live articulated joints. An independent two-jaw test applies identical motor efforts to a loaded gripper and an empty one. Replaying the measured forces and torques on the empty gripper reproduces the loaded jaw poses and velocities at the following tick. The unloaded gripper closes farther under the same efforts.
+
+Each mesh is authored at rest in SDF with 5 or 7 points across the width, the same total sheet mass and the same 16 material contact samples. Per-edge and per-hinge compliances preserve the preceding mesh calibration. Each run measures the distance between the actual inner jaw faces along their common normal. The force between the layers is the sum of normal impulses across the two panels divided by the 1 ms public step. [Run and inspect the study](LOCAL_RIGID_ROBOT.md#measure-when-a-live-gripper-presses-the-layers-together)
+
+The arm lifts for 1.650 s on an 8-substep, 24-iteration material clock. Within each mesh, both clock trials check for the same loaded robot and cloth state and previous contact reactions at that instant. The arm clock remains 1 ms. The comparison varies the material resolution between 32 substeps with 24 iterations and 64 substeps with 48 iterations. The target moves by 25 µm per finger, then by 2.5 µm once the mean closest panel gap reaches 0.6 µm. A level lasts 100 ms. The reported onset requires at least 0.1 mN on every one of the last 20 ticks, followed by a second qualifying level. Each fixed-target control repeats the primary trajectory through its last level below threshold and then keeps that command for two more levels.
+
+| Points across sheet | Substeps × iterations | Last opening below threshold (mm) | First sustained opening (mm) | Mean layer force there (mN) | p95 step there (ms) |
+|---:|---:|---:|---:|---:|---:|
+| 5 | 32 × 24 | 43.238817 | 43.237585 | 0.264 | 47.8 |
+| 7 | 32 × 24 | 43.192062 | 43.190836 | 0.522 | 55.6 |
+| 5 | 64 × 48 | 43.236342 | 43.235113 | 0.402 | 53.1 |
+| 7 | 64 × 48 | 43.192051 | 43.190818 | 0.204 | 187.4 |
+
+The seven-point mesh needed 46.75 µm more closure on the primary clock and 44.29 µm more on the finer clock. Doubling both material settings moved the first sustained opening by 2.47 µm on five points and 0.018 µm on seven. These figures bound the chosen 0.1 mN detection threshold. The forces at that threshold still depend on mesh and solver resolution. For both fixed-target controls, the net change in opening was under 0.046 µm and the layer force stayed exactly zero for all 200 additional ticks. Both fingers carried the sheet throughout the sampling windows. Their combined upward force stayed within 0.029% of its 82.4 mN weight, with zero bench reaction. The p95 values cover all 100 public steps at the first sustained setting on a shared host. Other runs reproduced the same physics with different wall times. [Recorded measurements](measurements/local-manipulation/fold-closure.json) · [Force versus jaw opening](measurements/local-manipulation/fold-closure-forces.svg)
+
+The next local test is to close the jaws to a measured force and apply a sideways pull. Measure slip and retained load on both meshes to determine whether the same force target holds the sheet across resolutions.
+
+The independent developer checkout reproduced all 23,000 closure ticks and six replay archives byte for byte after excluding wall-clock costs from trace comparison. gz-web-rs played and rewound all six recordings. The viewer checks matched 31,792 material positions and 920 independent jaw-opening measurements. Across the recorded frames, no panel midsurface crossed its partner or entered a solid jaw.
