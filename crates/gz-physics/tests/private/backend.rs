@@ -56,8 +56,8 @@ impl DynamicBackend for Recorder {
             capability: "bodies",
         })
     }
-    fn is_dynamic(&self, _: BodyId) -> Option<bool> {
-        None
+    fn is_dynamic(&self, id: BodyId) -> Option<bool> {
+        self.state(id).map(|_| true)
     }
     fn state(&self, id: BodyId) -> Option<BodyState> {
         self.sample
@@ -487,4 +487,51 @@ fn default_joint_position_servos_refuse_before_id_numeric_or_duration_validation
     assert!(backend.steps.is_empty());
     assert_eq!(backend.resets, 0);
     assert!(!backend.fail);
+}
+
+#[test]
+fn an_engine_without_prescribed_boundaries_cannot_silently_create_dynamic_contacts() {
+    let mut backend = Recorder::default();
+    let state = BodyState {
+        position: [0., 0., 0.2],
+        velocity: [0.01, 0., 0.],
+        orientation: RotationSpec::default().orientation,
+        angular_velocity: [0.; 3],
+    };
+    let payload = BodyId::from_raw(7);
+    backend.sample = Some((payload, state));
+    let moving_table = BodySpec {
+        shape: Shape::Sphere { radius: 0.2 },
+        position: [0.; 3],
+        velocity: [0.1, 0., 0.],
+        mass: Some(1.),
+    };
+    let unavailable = |capability| PhysicsError::Unsupported {
+        engine: "recorder",
+        capability,
+    };
+    assert_eq!(
+        backend.validate_kinematic_velocity(
+            moving_table.velocity,
+            [0.; 3],
+            Duration::from_millis(1)
+        ),
+        Err(unavailable("kinematic link"))
+    );
+    assert_eq!(
+        backend.spawn_kinematic_link(moving_table, RotationSpec::default(), None),
+        Err(unavailable("kinematic link"))
+    );
+    assert_eq!(
+        backend.spawn_static_plane(PlaneSpec {
+            position: [0.; 3],
+            orientation: state.orientation,
+            size: [2.; 2]
+        }),
+        Err(unavailable("static plane collider"))
+    );
+    assert_eq!(backend.is_kinematic(payload), Some(false));
+    assert_eq!(backend.is_kinematic(BodyId::from_raw(8)), None);
+    assert_eq!(backend.state(payload), Some(state));
+    assert!(backend.steps.is_empty());
 }

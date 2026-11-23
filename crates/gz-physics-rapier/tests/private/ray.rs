@@ -96,3 +96,27 @@ fn finite_cylinder_barrel_flat_caps_tangency_and_finite_ray_endpoints() {
     assert_eq!(hit([-1e8, 0., 0.3], [1., 0., 0.], 1e8), Some(1e8 - 0.4));
     assert_eq!(hit([1., 0., 0.], [1., 0., 0.], 10.), None);
 }
+
+#[path = "query_parity.rs"]
+mod query_parity;
+
+#[test]
+fn pending_support_impulse_discard_preserves_clearance_queries_and_the_pending_pair() {
+    use crate::contact_dispatcher::{DiscardPairs, NativeContacts};
+    // Include the generation: these are live, independently allocated supports.
+    let mut robot = RapierBackend::new([0.; 3]).unwrap();
+    let bodies = [0., 1.].map(|x| {
+        let id = robot
+            .spawn(BodySpec {
+                shape: Shape::Sphere { radius: 0.25 },
+                mass: Some(1.),
+                position: [x, 0., 1.],
+                velocity: [0.; 3],
+            })
+            .unwrap();
+        robot.bodies[&id].0
+    });
+    let pending = DiscardPairs::new(vec![(bodies[0], bodies[1])]);
+    query_parity::assert_native_queries(&NativeContacts(pending.clone()));
+    assert_eq!(pending.remaining(), [(bodies[0], bodies[1])]);
+}

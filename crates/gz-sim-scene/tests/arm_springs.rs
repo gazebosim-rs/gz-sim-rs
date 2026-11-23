@@ -113,3 +113,42 @@ fn precision_option_requires_world_mounted_mixed_robot() {
         "{err}"
     );
 }
+
+#[test]
+fn a_preloaded_rotary_spring_must_retain_its_restoring_direction_across_the_arm_travel() {
+    // The shoulder sweeps -0.05 .. 1.64 rad. Both preloads pull towards
+    // the lower stop, but only one keeps the error below a half-turn there
+    // and at the far stop.
+    let shoulder = |reference: f64| {
+        let dynamics = format!(
+            "<dynamics><spring_reference>{reference}</spring_reference><spring_stiffness>2</spring_stiffness></dynamics></axis>"
+        );
+        ARM.replacen("</axis>", &dynamics, 1)
+    };
+    assert!(load(&shoulder(-1.4)).is_ok());
+    assert!(matches!(
+        load(&shoulder(-1.6)),
+        Err(gz_sim_scene::LoadError::Physics(
+            gz_physics::PhysicsError::InvalidValue
+        ))
+    ));
+}
+
+#[test]
+fn a_mounted_arm_requires_an_unambiguous_lock_setting_alongside_its_solver_budget() {
+    let option = |text| {
+        ARM.replacen(
+            "</plugin>",
+            &format!("<exact_revolute_locks>{text}</exact_revolute_locks></plugin>"),
+            1,
+        )
+    };
+    assert!(load(&option("false")).is_ok());
+    assert!(matches!(
+        load(&option("sometimes")),
+        Err(gz_sim_scene::LoadError::Unsupported {
+            feature: "SwitchableArticulation configuration",
+            ..
+        })
+    ));
+}

@@ -259,3 +259,55 @@ fn constraint_refinement_validates_the_root_budget_and_construction_phase() {
     step(&mut b, 1);
     b.reset().unwrap();
 }
+
+#[test]
+fn extra_passes_on_one_mounted_arm_leave_a_separate_arms_impulse_response_unchanged() {
+    fn arms(settings: &[u8]) -> Vec<f64> {
+        let mut b = RapierBackend::new([0.; 3]).unwrap();
+        let mut joints = vec![];
+        for (i, &passes) in settings.iter().enumerate() {
+            let y = i as f64 * 4.;
+            let rotor = sphere(&mut b, [0.25, y, 0.]);
+            let distal = sphere(&mut b, [0.75, y, 0.]);
+            let shoulder = b
+                .add_robot_joint(
+                    None,
+                    rotor,
+                    [0., y, 0.],
+                    RobotJoint::Revolute {
+                        axis: [0., 0., 1.],
+                        limits: None,
+                    },
+                )
+                .unwrap();
+            b.add_robot_joint(Some(rotor), distal, [0.5, y, 0.], SLIDE)
+                .unwrap();
+            b.set_robot_root_iterations(rotor, passes).unwrap();
+            joints.push(shoulder);
+        }
+        for &j in &joints {
+            b.add_joint_effort(j, 1.).unwrap();
+        }
+        step(&mut b, 1);
+        joints
+            .into_iter()
+            .map(|j| b.joint_state(j).unwrap().velocity)
+            .collect()
+    }
+    let reference = 0.001 / (0.25_f64.powi(2) + 0.75_f64.powi(2) + 2. * 0.4 * 0.1_f64.powi(2));
+    let coarse = arms(&[0])[0];
+    let fine = arms(&[100])[0];
+    assert!(
+        (fine - reference).abs() < 0.005 * reference,
+        "{coarse} {fine} {reference}"
+    );
+    assert!((coarse - reference).abs() > 0.1 * reference);
+    for (got, wanted) in [
+        (&arms(&[0, 100])[..], [coarse, fine]),
+        (&arms(&[100, 0])[..], [fine, coarse]),
+    ] {
+        for (&v, w) in got.iter().zip(wanted) {
+            assert!((v - w).abs() < 1e-10, "{got:?} != {wanted:?}");
+        }
+    }
+}
