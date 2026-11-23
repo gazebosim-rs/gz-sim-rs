@@ -3,6 +3,7 @@
 //! Verify native replay clocks, poses, geometry and impulse indicators in Chromium.
 mod authored;
 mod gpu_arm_visuals;
+mod gpu_tool_visuals;
 mod particle_visuals;
 mod corner_preload;
 mod edge_compliance;
@@ -681,13 +682,18 @@ fn run(profile: &Path, source: &Path, index: &Path, output: &Path, port: u16, li
     sleep(400);
     if authored && chrome.oracle.index["gpu_arm_frames"].is_string() {
         // View the arms obliquely so the X-Z joint planes and the three rows are visible.
-        chrome.call("Input.dispatchMouseEvent", json!({"type":"mousePressed","button":"left","buttons":1,"x":745,"y":450,"clickCount":1}))?;
+        let (x, y, dx, dy) = if chrome.oracle.index["gpu_tool_contact"] == true {
+            (735, 150, 6, 8)
+        } else {
+            (745, 450, 22, 3)
+        };
+        chrome.call("Input.dispatchMouseEvent", json!({"type":"mousePressed","button":"left","buttons":1,"x":x,"y":y,"clickCount":1}))?;
         sleep(100);
         for n in 1..=8 {
-            chrome.call("Input.dispatchMouseEvent", json!({"type":"mouseMoved","button":"left","buttons":1,"x":745 + 22*n,"y":450 + 3*n}))?;
+            chrome.call("Input.dispatchMouseEvent", json!({"type":"mouseMoved","button":"left","buttons":1,"x":x + dx*n,"y":y + dy*n}))?;
             sleep(30);
         }
-        chrome.call("Input.dispatchMouseEvent", json!({"type":"mouseReleased","button":"left","buttons":0,"x":921,"y":474,"clickCount":1}))?;
+        chrome.call("Input.dispatchMouseEvent", json!({"type":"mouseReleased","button":"left","buttons":0,"x":x + 8*dx,"y":y + 8*dy,"clickCount":1}))?;
         sleep(220);
         chrome.key("f", "KeyF", 70, 0)?;
         sleep(400);
@@ -818,6 +824,9 @@ fn run(profile: &Path, source: &Path, index: &Path, output: &Path, port: u16, li
         result["lifecycle_catalogs_checked"] = json!(expected.len());
         if chrome.oracle.index["gpu_arm_frames"].is_string() {
             result["independent_gpu_arm_states_checked"] = json!(9 * expected.len());
+            if chrome.oracle.index["gpu_tool_contact"] == true {
+                result["gpu_tool_audit"] = chrome.oracle.trace[0]["gpu_tool_audit"].clone();
+            }
         }
         if let Some(names) = chrome.oracle.index["particle_visuals"].as_array() {
             result["independent_particle_positions_checked"] = json!(names.len() * expected.len());

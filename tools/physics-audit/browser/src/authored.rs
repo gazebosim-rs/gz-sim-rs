@@ -101,6 +101,10 @@ pub(super) fn read(source: &Path, index: &Value) -> Result<Value> {
         let file = File::open(source.join(path))?;
         let samples: Vec<Value> = serde_json::from_reader(BufReader::new(file))?;
         super::gpu_arm_visuals::verify(&frames, &samples)?;
+        if index["gpu_tool_contact"] == true {
+            let audit = super::gpu_tool_visuals::verify(&frames, &samples)?;
+            frames[0]["gpu_tool_audit"] = audit;
+        }
     }
     Ok(Value::Array(frames))
 }
