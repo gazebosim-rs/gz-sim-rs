@@ -38,6 +38,7 @@ pub use pad_loads::ParticlePadImpulse;
 /// Maximum simultaneous finite spherical pads on a triangulated shell.
 pub const MAX_SURFACE_PADS: usize = 4;
 mod surface;
+pub use surface::SelfContactLoad;
 mod tensor;
 pub use coupled::{
     ReceiverMotion, RigidMobility, SphereMobility, step_coupled, step_coupled_rigid,
@@ -428,9 +429,13 @@ impl SoftBody {
         }
         if let Some(s) = &mut self.surface {
             s.impulse = SelfContactImpulse::default();
+            s.begin_loads();
         }
     }
     fn publish_self_contact(&mut self) {
+        if let Some(s) = &mut self.surface {
+            s.publish_loads();
+        }
         if let Some(loads) = &mut self.contacts.pad_loads {
             loads.publish();
         }
@@ -438,6 +443,18 @@ impl SoftBody {
             m.publish();
         }
         self.self_impulse = self.surface.as_ref().map(|s| s.impulse).unwrap_or_default();
+    }
+    /// Change the integration settings for subsequent public steps. Committed
+    /// state, rest geometry and the previous step's observations are preserved.
+    pub fn set_resolution(&mut self, substeps: u32, iterations: u32) -> Result<(), XpbdError> {
+        if substeps == 0 || iterations == 0 {
+            return Err(XpbdError::InvalidConfig);
+        }
+        #[cfg(feature = "one-way-checkpoint")]
+        self.one_way_identity.take();
+        self.config.substeps = substeps;
+        self.config.iterations = iterations;
+        Ok(())
     }
     pub fn config(&self) -> SolverConfig {
         self.config

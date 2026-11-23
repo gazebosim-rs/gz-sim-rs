@@ -377,3 +377,66 @@ fn one_material_vertex_sliding_on_a_supported_face_matches_coulomb_impulse() {
         assert!((contacts.tangent - 0.1 * expected).abs() < 1e-11 && contacts.friction_work > 0.);
     }
 }
+
+#[test]
+fn reported_normal_footprints_balance_on_both_skins_and_survive_a_refused_step() {
+    for edge in [false, true] {
+        let mut control = pair(edge, 4, 0., DQuat::IDENTITY);
+        let momentum = |body: &SoftBody| state(&body.particles()[..3]).0;
+        let before = momentum(&control);
+        let mut loaded = control.clone().with_self_contact_loads().unwrap();
+        for body in [&mut control, &mut loaded] {
+            body.step(Duration::from_millis(4), &[]).unwrap();
+        }
+        assert_eq!(control.particles(), loaded.particles());
+        assert!(control.last_self_contact_loads().is_empty());
+        let loads = loaded.last_self_contact_loads().to_vec();
+        let total = loads.iter().map(|l| l.normal_ns).sum::<f64>();
+        assert!(total > 0.);
+        assert!((total - loaded.last_self_contact_impulse().normal).abs() < 1e-12);
+        let reported_impulse: DVec3 = loads
+            .iter()
+            .flat_map(|l| {
+                l.particles
+                    .iter()
+                    .zip(l.particle_impulse_ns)
+                    .filter(|(id, _)| **id < 3)
+                    .map(|(_, j)| DVec3::from(j))
+            })
+            .sum();
+        assert!((momentum(&loaded) - before - reported_impulse).length() < 1e-12);
+        for l in &loads {
+            let sides = l.particle_normal_ns.split_at(l.first_side_len);
+            for side in [sides.0, sides.1] {
+                assert!((side.iter().sum::<f64>() - l.normal_ns).abs() < 1e-12);
+            }
+            let net: DVec3 = l.particle_impulse_ns.into_iter().map(DVec3::from).sum();
+            assert!(net.length() < 1e-12);
+            let side = |id: usize| id < 3;
+            assert!(
+                l.particles[..l.first_side_len]
+                    .iter()
+                    .all(|&id| side(id) == side(l.particles[0]))
+            );
+            assert!(
+                l.particles[l.first_side_len..]
+                    .iter()
+                    .all(|&id| side(id) != side(l.particles[0]))
+            );
+        }
+        assert_eq!(
+            loaded.step(Duration::from_nanos(1), &[]),
+            Err(XpbdError::InvalidStep)
+        );
+        assert_eq!(loads, loaded.last_self_contact_loads());
+        loaded.set_resolution(8, 4).unwrap();
+        assert_eq!(loads, loaded.last_self_contact_loads());
+        loaded.step(Duration::from_millis(4), &[]).unwrap();
+        let next: f64 = loaded
+            .last_self_contact_loads()
+            .iter()
+            .map(|l| l.normal_ns)
+            .sum();
+        assert!((next - loaded.last_self_contact_impulse().normal).abs() < 1e-12);
+    }
+}

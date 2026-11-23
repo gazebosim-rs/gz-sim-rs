@@ -133,14 +133,65 @@ impl SoftBody {
         bend_compliance: f64,
         config: SolverConfig,
     ) -> Result<Self, XpbdError> {
-        if columns < 2
-            || !particles.len().is_multiple_of(columns)
-            || particles.len() / columns < 2
-            || !bend_compliance.is_finite()
-            || bend_compliance < 0.0
+        if !bend_compliance.is_finite() || bend_compliance < 0. {
+            return Err(XpbdError::InvalidConstraint);
+        }
+        Self::cloth_grid(
+            particles,
+            None,
+            columns,
+            config,
+            |a, b| {
+                if a / columns != b / columns && a % columns != b % columns {
+                    shear_compliance
+                } else {
+                    stretch_compliance
+                }
+            },
+            |_| bend_compliance,
+        )
+    }
+
+    /// Build cloth in a loaded pose with independently supplied rest geometry.
+    /// Only positions in `rest` are used. The live particles supply the masses,
+    /// positions and velocities. Compliance functions receive the grid's edge
+    /// or oriented dihedral indices and return metres/N or radians/(N m).
+    /// Internal contact history starts empty.
+    pub fn cloth_from_rest(
+        particles: Vec<Particle>,
+        rest: &[Particle],
+        columns: usize,
+        config: SolverConfig,
+        edge_compliance: impl Fn(usize, usize) -> f64,
+        hinge_compliance: impl Fn([usize; 4]) -> f64,
+    ) -> Result<Self, XpbdError> {
+        if rest.len() != particles.len() {
+            return Err(XpbdError::InvalidConstraint);
+        }
+        Self::cloth_grid(
+            particles,
+            Some(rest),
+            columns,
+            config,
+            edge_compliance,
+            hinge_compliance,
+        )
+    }
+
+    fn cloth_grid(
+        particles: Vec<Particle>,
+        rest: Option<&[Particle]>,
+        columns: usize,
+        config: SolverConfig,
+        edge_compliance: impl Fn(usize, usize) -> f64,
+        hinge_compliance: impl Fn([usize; 4]) -> f64,
+    ) -> Result<Self, XpbdError> {
+        if columns < 2 || !particles.len().is_multiple_of(columns) || particles.len() / columns < 2
         {
             return Err(XpbdError::InvalidConstraint);
         }
+        let posed = rest.is_some();
+        let reference = rest.unwrap_or(&particles);
         let rows = particles.len() / columns;
         if config.self_contact {
             super::surface::Surface::validate_size(
@@ -152,31 +203,48 @@ impl SoftBody {
         let mut hinges = Vec::new();
         let mut open_edges = std::collections::HashMap::new();
         let mut c = Vec::new();
-        let mut edge = |a, b, compliance| -> Result<(), XpbdError> {
-            c.push(DistanceConstraint::between(a, b, &particles, compliance)?);
+        let mut edge = |a, b| -> Result<(), XpbdError> {
+            c.push(DistanceConstraint::between(
+                a,
+                b,
+                reference,
+                edge_compliance(a, b),
+            )?);
             Ok(())
         };
         for row in 0..rows {
             for column in 0..columns {
                 let i = row * columns + column;
                 if column >= 1 {
-                    edge(i - 1, i, stretch_compliance)?;
+                    edge(i - 1, i)?;
                 }
                 if row >= 1 {
-                    edge(i - columns, i, stretch_compliance)?;
+                    edge(i - columns, i)?;
                 }
                 if row >= 1 && column >= 1 {
-                    edge(i - columns - 1, i, shear_compliance)?;
+                    edge(i - columns - 1, i)?;
                     for [a, b, c] in cell_faces(i, columns) {
                         if config.self_contact {
                             faces.push([a, b, c]);
                         }
                         for (u, v, opposite) in [(a, b, c), (b, c, a), (c, a, b)] {
                             if let Some(other) = open_edges.remove(&(v, u)) {
+                                let vertices = [u, v, opposite, other];
+                                let compliance = hinge_compliance(vertices);
+                                if !compliance.is_finite() || compliance < 0. {
+                                    return Err(XpbdError::InvalidConstraint);
+                                }
+                                if posed
+                                    && !config.self_contact
+                                    && bending::geometry(
+                                        vertices.map(|j| DVec3::from(particles[j].position)),
+                                    )
+                                    .is_none()
+                                {
+                                    return Err(XpbdError::InvalidConstraint);
+                                }
                                 hinges.push(DihedralConstraint::from_rest(
-                                    [u, v, opposite, other],
-                                    &particles,
-                                    bend_compliance,
+                                    vertices, reference, compliance,
                                 )?);
                             } else {
                                 open_edges.insert((u, v), opposite);
@@ -186,7 +254,18 @@ impl SoftBody {
                 }
             }
         }
+        let rest_directions = rest.map(|points| {
+            c.iter()
+                .map(|edge| {
+                    (DVec3::from(points[edge.a].position) - DVec3::from(points[edge.b].position))
+                        / edge.rest_length
+                })
+                .collect()
+        });
         let mut body = Self::new(particles, c, config)?;
+        if let Some(directions) = rest_directions {
+            body.rest_directions = directions;
+        }
         body.topology = MaterialTopology::Cloth(columns);
         body.bending_lambdas.resize(hinges.len(), 0.0);
         body.bending = hinges;

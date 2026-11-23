@@ -145,3 +145,25 @@ Open the viewer and press Play. Change the replay directory to `open/replay` for
 The four local recordings show the same arm command. Press Play to follow the pickup and release. [Nominal folded sheet](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9761%2F) · [Open-jaw control](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9762%2F) · [Heavier, softer sheet](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9763%2F) · [Parallel fold](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9765%2F)
 
 Both panels rose about 15 cm for every weight and stiffness in the sweep. The open-jaw control stayed on the bench. Lift height repeated within 6.18 µm across the two sweep clocks, while the force measured inside the fold varied with the material step size. [Folded-sheet measurements](measurements/local-manipulation/arm-sheet.json) · [Mass and stiffness sweep](measurements/local-manipulation/sheet-sweep.json)
+
+## Compare the force inside a loaded fold
+
+The gripper picks up a sheet with parallel layers and holds it over the bench. At 1.650 seconds each trial starts from the same measured sheet positions, velocities, joint states and jaw reactions. The arm still advances every millisecond. Only the material substeps and constraint iterations change during the next 300 milliseconds. The orange and teal markers identify the two sides.
+
+Run the study from the simulator workspace with a fresh output directory.
+
+```sh
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli \
+  --example local_robot_foundations -- fold-hold target/my-fold-hold
+```
+
+The `comparison.json` file contains the mean, first resumed load and every millisecond of force measurements for seven resolutions. The force is the summed normal contact force between the two layers in newtons. Converting it to pressure would require a contact area. The separate mesh comparison changes the spacing between particles across the width and drives each specimen along the recorded reference jaw motion.
+
+Watch the two local recordings and press Play. To serve your own result, use the replay server command in the preceding section with `target/my-fold-hold/coarse/replay` or `target/my-fold-hold/fine/replay`. [Eight material substeps](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9766%2F) · [Sixty-four material substeps](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9767%2F)
+
+The force difference is too small to see from the marker positions alone. The Rust measurement checker verifies the common replay prefix and per-tick forces before plotting the trial and mesh comparisons. [Recorded force comparison](measurements/local-manipulation/fold-hold-forces.svg) · [Numerical results](measurements/local-manipulation/fold-hold.json)
+
+```sh
+cargo run --release --locked --manifest-path tools/physics-audit/numerics/Cargo.toml \
+  --bin fold_hold_forces -- target/my-fold-hold target/my-fold-hold/forces.svg
+```

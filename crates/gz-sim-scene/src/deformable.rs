@@ -10,6 +10,8 @@
 //! `normal_compliance` sets per-particle normal contact compliance in m/N and defaults to zero.
 mod boundary_path;
 mod particle_visual;
+mod resolution;
+pub use resolution::{MaterialResolutionError, set_material_resolution};
 #[cfg(feature = "distributed-physics")]
 pub(crate) mod worker;
 use super::*;
@@ -173,6 +175,7 @@ pub struct DeformableSample {
     capsule_friction: Vec<gz_physics_xpbd::CapsuleFrictionLoad>,
     capsule_samples: Vec<gz_physics_xpbd::CapsuleContactSample>,
     pad_loads: Vec<gz_physics_xpbd::ParticlePadImpulse>,
+    self_loads: Vec<gz_physics_xpbd::SelfContactLoad>,
     applied_forcing: Vec<CapsuleForcing>,
     particles: Vec<Particle>,
     reactions: Vec<BoundaryImpulse>,
@@ -248,6 +251,10 @@ impl DeformableSample {
         &self.capsule_samples
     }
 
+    /// Barycentric normal loads on the geometric skins during the last advancing tick.
+    pub fn last_self_contact_loads(&self) -> &[gz_physics_xpbd::SelfContactLoad] {
+        &self.self_loads
+    }
     pub fn last_self_contact_impulse(&self) -> gz_physics_xpbd::SelfContactImpulse {
         self.self_impulse
     }
@@ -424,6 +431,7 @@ impl Deformables {
             sample.particles.extend_from_slice(body.particles());
             sample.reactions.clear();
             sample.pad_loads.clear();
+            sample.self_loads.clear();
             sample.capsule_loads.clear();
             sample.capsule_friction.clear();
             sample.capsule_samples.clear();
@@ -432,6 +440,9 @@ impl Deformables {
             sample.sweep_refinements = body.last_sweep_refinements();
             sample.path_substeps = body.last_path_substeps();
             if !time.is_zero() {
+                sample
+                    .self_loads
+                    .extend_from_slice(body.last_self_contact_loads());
                 sample
                     .applied_forcing
                     .extend_from_slice(&self.applied_forcing);

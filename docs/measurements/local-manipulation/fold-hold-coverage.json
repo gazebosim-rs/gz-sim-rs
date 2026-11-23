@@ -1,0 +1,306 @@
+{
+  "baseline": "27b25ee83887c356119c791bcf88730333bf2a44",
+  "scope": "Changed executable Rust production lines and regions starting on changed lines. Counts are the union of distinct LLVM source coordinates from tests and executed studies using independent profiles for each object.",
+  "phase": {
+    "lines": [
+      781,
+      794
+    ],
+    "regions": [
+      1366,
+      1422
+    ]
+  },
+  "by_crate": {
+    "gz-physics-xpbd": {
+      "lines": [
+        141,
+        142
+      ],
+      "regions": [
+        200,
+        203
+      ]
+    },
+    "gz-sim-cli": {
+      "lines": [
+        584,
+        595
+      ],
+      "regions": [
+        1087,
+        1139
+      ]
+    },
+    "gz-sim-scene": {
+      "lines": [
+        56,
+        57
+      ],
+      "regions": [
+        79,
+        80
+      ]
+    }
+  },
+  "files": {
+    "crates/gz-physics-xpbd/src/lib.rs": {
+      "lines": [
+        13,
+        13
+      ],
+      "regions": [
+        15,
+        15
+      ]
+    },
+    "crates/gz-physics-xpbd/src/surface.rs": {
+      "lines": [
+        2,
+        2
+      ],
+      "regions": [
+        4,
+        4
+      ]
+    },
+    "crates/gz-physics-xpbd/src/topology.rs": {
+      "lines": [
+        77,
+        78
+      ],
+      "regions": [
+        103,
+        106
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+      "lines": [
+        1,
+        1
+      ],
+      "regions": [
+        3,
+        3
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/arm_sheet.rs": {
+      "lines": [
+        35,
+        35
+      ],
+      "regions": [
+        53,
+        55
+      ]
+    },
+    "crates/gz-sim-scene/src/deformable.rs": {
+      "lines": [
+        7,
+        7
+      ],
+      "regions": [
+        8,
+        8
+      ]
+    },
+    "crates/gz-sim-scene/src/deformable/config.rs": {
+      "lines": [
+        7,
+        7
+      ],
+      "regions": [
+        10,
+        10
+      ]
+    },
+    "crates/gz-physics-xpbd/src/surface/loads.rs": {
+      "lines": [
+        49,
+        49
+      ],
+      "regions": [
+        78,
+        78
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/fold_hold.rs": {
+      "lines": [
+        236,
+        245
+      ],
+      "regions": [
+        464,
+        497
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/fold_mesh.rs": {
+      "lines": [
+        312,
+        314
+      ],
+      "regions": [
+        567,
+        584
+      ]
+    },
+    "crates/gz-sim-scene/src/deformable/resolution.rs": {
+      "lines": [
+        42,
+        43
+      ],
+      "regions": [
+        61,
+        62
+      ]
+    }
+  },
+  "wider_xpbd_source_coordinates": {
+    "lines": [
+      8964,
+      9358
+    ],
+    "regions": [
+      18096,
+      18809
+    ]
+  },
+  "browser_and_plot": {
+    "scope": "Executed numerical checker on matched fold trials. Region and line source coordinates count once over independent test and application profiles. Rust test code excluded. Nested SVG metrics are in newtons and read from the solver report; the plotted axis converts to millinewtons.",
+    "common_prefix_frames": 67,
+    "matched_sim_time_ns": 1650000000,
+    "checked_material_resolution_force_samples": 2100,
+    "numerical_tool_coverage": {
+      "tools/physics-audit/numerics/src/bin/fold_hold_forces.rs": {
+        "lines": [
+          278,
+          284
+        ],
+        "regions": [
+          547,
+          572
+        ]
+      },
+      "tools/physics-audit/numerics/src/fold_hold_mesh_plot.rs": {
+        "lines": [
+          71,
+          75
+        ],
+        "regions": [
+          160,
+          167
+        ]
+      }
+    },
+    "browser": {
+      "fine": {
+        "renderer": "WebGPU",
+        "body_poses_and_shapes_checked": 1975,
+        "frames": 79,
+        "coordinate_tolerance": 1e-12,
+        "independent_particle_positions_checked": 948,
+        "lifecycle_catalogs_checked": 79,
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "end": 1950.0,
+          "hold": 1800.0,
+          "matched": 1650.0,
+          "pickup": 650.0,
+          "rising": 1125.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9767%2F",
+        "geometry": {
+          "closest_jaws": [
+            {
+              "core_distance_m": 0.010425261393851436,
+              "pair_indices": [
+                0,
+                1
+              ],
+              "skin_clearance_m": -0.0005747386061485636,
+              "time_ns": 625000000
+            },
+            {
+              "core_distance_m": 0.010423965252457717,
+              "pair_indices": [
+                1,
+                7
+              ],
+              "skin_clearance_m": -0.0005760347475422829,
+              "time_ns": 625000000
+            }
+          ],
+          "closest_panels": {
+            "core_distance_m": 0.02200000001226785,
+            "pair_indices": [
+              0,
+              9
+            ],
+            "skin_clearance_m": 1.2267849930358565e-11,
+            "time_ns": 1675000000
+          },
+          "cross_panel_triangle_pairs": 1264,
+          "frames": 79,
+          "max_triangle_indentation_beyond_nearest_vertex_m": 5.647444631233858e-06,
+          "panel_midsurface_intersections": 0,
+          "triangle_box_core_intersections": 0,
+          "triangle_box_pairs": 1896
+        }
+      },
+      "coarse": {
+        "renderer": "WebGPU",
+        "body_poses_and_shapes_checked": 1975,
+        "frames": 79,
+        "coordinate_tolerance": 1e-12,
+        "independent_particle_positions_checked": 948,
+        "lifecycle_catalogs_checked": 79,
+        "reset_ms": 0.0,
+        "captured_ms": {
+          "end": 1950.0,
+          "hold": 1800.0,
+          "matched": 1650.0,
+          "pickup": 650.0,
+          "rising": 1125.0
+        },
+        "url": "http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9766%2F",
+        "geometry": {
+          "closest_jaws": [
+            {
+              "core_distance_m": 0.010425261393851436,
+              "pair_indices": [
+                0,
+                1
+              ],
+              "skin_clearance_m": -0.0005747386061485636,
+              "time_ns": 625000000
+            },
+            {
+              "core_distance_m": 0.010423965252457717,
+              "pair_indices": [
+                1,
+                7
+              ],
+              "skin_clearance_m": -0.0005760347475422829,
+              "time_ns": 625000000
+            }
+          ],
+          "closest_panels": {
+            "core_distance_m": 0.022000201067433136,
+            "pair_indices": [
+              2,
+              8
+            ],
+            "skin_clearance_m": 2.0106743313721975e-07,
+            "time_ns": 625000000
+          },
+          "cross_panel_triangle_pairs": 1264,
+          "frames": 79,
+          "max_triangle_indentation_beyond_nearest_vertex_m": 5.5139921365746775e-06,
+          "panel_midsurface_intersections": 0,
+          "triangle_box_core_intersections": 0,
+          "triangle_box_pairs": 1896
+        }
+      }
+    }
+  }
+}

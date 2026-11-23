@@ -259,3 +259,118 @@ fn measured_pad_loads_keep_authored_ids_after_boundary_removal_and_clear_on_rese
         .contains("pad_loads must be true or false")
     );
 }
+
+#[test]
+fn changing_material_resolution_preserves_live_observations_and_reset_restores_authored_clock() {
+    use gz_sim_scene::deformable::{MaterialResolutionError::*, set_material_resolution};
+    let mut sim = load(&scene(PLUGIN));
+    let mut control = load(&scene(PLUGIN));
+    for s in [&mut sim, &mut control] {
+        s.step_exact(1).unwrap();
+    }
+    let sample = |s: &Simulation| {
+        let b = bodies(s).next().unwrap().1;
+        (
+            s.elapsed(),
+            jaw(s).1,
+            b.particles().to_vec(),
+            b.last_boundary_impulses().to_vec(),
+        )
+    };
+    let initial = sample(&sim);
+    assert_eq!(
+        set_material_resolution(&mut sim, "absent", 2, 8),
+        Err(UnknownMaterial)
+    );
+    for (n, i) in [(0, 8), (2, 0), (1_000_001, 8)] {
+        assert_eq!(
+            set_material_resolution(&mut sim, "cable", n, i),
+            Err(InvalidResolution)
+        );
+    }
+    set_material_resolution(&mut sim, "cable", 4, 16).unwrap();
+    assert_eq!(sample(&sim), initial);
+    sim.step_exact(1).unwrap();
+    control.step_exact(1).unwrap();
+    assert_eq!(jaw(&sim), jaw(&control)); // the pending native wrench was identical
+    assert_ne!(sample(&sim).2, sample(&control).2);
+    for s in [&mut sim, &mut control] {
+        reset_loaded_world(s, |_| ()).unwrap();
+        s.step_exact(2).unwrap();
+    }
+    assert_eq!(sample(&sim), sample(&control));
+    let mut empty = load(ARM);
+    assert_eq!(
+        set_material_resolution(&mut empty, "cable", 2, 8),
+        Err(UnknownMaterial)
+    );
+    empty
+        .world()
+        .resource::<gz_sim_core::StepFault>()
+        .report(std::io::Error::other("simulation fault"));
+    assert_eq!(
+        set_material_resolution(&mut empty, "cable", 2, 8),
+        Err(Faulted)
+    );
+}
+
+#[test]
+fn coupled_cables_keep_the_same_clock_while_each_can_change_iterations() {
+    use gz_sim_scene::deformable::{MaterialResolutionError::SharedClock, set_material_resolution};
+    let cable = &PLUGIN[PLUGIN.find("<cable").unwrap()..PLUGIN.find("</plugin>").unwrap()];
+    let two = PLUGIN.replace(
+        "</plugin>",
+        &format!(
+            "{}</plugin>",
+            cable.replace("name=\"cable\"", "name=\"other\"")
+        ),
+    );
+    let mut sim = load(&scene(&two));
+    assert_eq!(
+        set_material_resolution(&mut sim, "other", 4, 2),
+        Err(SharedClock)
+    );
+    assert_eq!(
+        set_material_resolution(&mut sim, "missing", 4, 2),
+        Err(gz_sim_scene::deformable::MaterialResolutionError::UnknownMaterial)
+    );
+    set_material_resolution(&mut sim, "other", 2, 2).unwrap();
+    sim.step_exact(1).unwrap();
+}
+
+#[test]
+fn self_contact_observations_require_an_enabled_material_surface() {
+    let xml = include_str!("../../../examples/sliding_folded_cloth.sdf");
+    for (attr, ok) in [("false", true), ("true", true), ("bogus", false)] {
+        let src = xml.replace(
+            "<cloth name=",
+            &format!("<cloth self_contact_loads=\"{attr}\" name="),
+        );
+        let result = load_world_with_sdf_step(
+            &src,
+            "fold.sdf",
+            "default",
+            &NoResources,
+            PhysicsEngine::MultiFidelity,
+        );
+        assert_eq!(result.is_ok(), ok, "{attr} {:?}", result.err());
+    }
+    let src = xml.replace("<cloth name=", "<cloth self_contact_loads=\"true\" name=");
+    let start = src.find("self_friction=\"").unwrap();
+    let end = start
+        + "self_friction=\"".len()
+        + src[start + "self_friction=\"".len()..].find('"').unwrap()
+        + 1;
+    let mut no_friction = src;
+    no_friction.replace_range(start..end, "");
+    let err = load_world_with_sdf_step(
+        &no_friction,
+        "fold.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::MultiFidelity,
+    )
+    .err()
+    .unwrap();
+    assert!(err.to_string().contains("self_contact_loads"));
+}

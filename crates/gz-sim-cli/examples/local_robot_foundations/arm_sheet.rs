@@ -9,22 +9,22 @@ use std::fmt::Write;
 
 const COLUMNS: usize = 3;
 const ROWS: usize = 4;
-const COUNT: usize = COLUMNS * ROWS;
-const RADIUS: f64 = 0.011;
+pub(super) const COUNT: usize = COLUMNS * ROWS;
+pub(super) const RADIUS: f64 = 0.011;
 const NODE_MASS: f64 = 0.0007;
-const BENCH: f64 = 0.120;
-const PAD_COMPLIANCE: f64 = 0.001;
+pub(super) const BENCH: f64 = 0.120;
+pub(super) const PAD_COMPLIANCE: f64 = 0.001;
 const ITERATIONS: usize = 24;
 const DT: f64 = 0.001;
 const HOLD: std::ops::RangeInclusive<usize> = 1651..=1950;
 const END: usize = 3400;
 const RELEASED_TICKS: usize = 200;
-const JAW_STROKE: f64 = 0.07725;
+pub(super) const JAW_STROKE: f64 = 0.07725;
 const STRIDE: usize = 25;
 const NOMINAL_FLARE: f64 = 0.00015;
-const STRETCH: f64 = 0.00001;
-const SHEAR: f64 = 0.00002;
-const BEND: f64 = 0.02;
+pub(super) const STRETCH: f64 = 0.00001;
+pub(super) const SHEAR: f64 = 0.00002;
+pub(super) const BEND: f64 = 0.02;
 
 #[derive(Clone, Copy, Debug, Serialize)]
 pub(super) struct Case {
@@ -57,7 +57,7 @@ impl Default for Case {
 }
 // Two vertical panels joined along the crown by one row of triangulated cloth.
 // The nominal fold opens slightly at the crown and free side edges.
-fn seed(i: usize, flare: f64) -> DVec3 {
+pub(super) fn seed(i: usize, flare: f64) -> DVec3 {
     let row = i / COLUMNS;
     let col = i % COLUMNS;
     let top = usize::from(row == 1 || row == 2) as f64;
@@ -77,6 +77,15 @@ fn name(i: usize) -> String {
     format!("default::source::body::sheet_{i}")
 }
 fn scene(robot: &str, c: Case, flare: f64) -> Result<String> {
+    scene_with_loads(robot, c, flare, false)
+}
+
+pub(super) fn scene_with_loads(
+    robot: &str,
+    c: Case,
+    flare: f64,
+    self_contact_loads: bool,
+) -> Result<String> {
     let (arm, rest) = robot
         .split_once("<model name=\"parcel\">")
         .ok_or("missing arm parcel")?;
@@ -112,11 +121,16 @@ fn scene(robot: &str, c: Case, flare: f64) -> Result<String> {
         )
         .unwrap();
     }
+    let witness_attr = if self_contact_loads {
+        " self_contact_loads=\"true\""
+    } else {
+        ""
+    };
     write!(xml,"</link>{world}<plugin name=\"gz::sim::systems::Deformables\" filename=\"gz-sim-deformables-system\">
         <box link=\"default::arm::left\" coupling=\"articulated_wrench\" normal_compliance=\"{PAD_COMPLIANCE}\"/>
         <box link=\"default::arm::right\" coupling=\"articulated_wrench\" normal_compliance=\"{PAD_COMPLIANCE}\"/>
         <plane point=\"0 0 {BENCH}\" normal=\"0 0 1\"/>
-        <cloth name=\"sheet\" pad_loads=\"true\" columns=\"{COLUMNS}\" substeps=\"{}\" iterations=\"{ITERATIONS}\" radius=\"{RADIUS}\" self_contact=\"true\" self_friction=\"0.3\" friction=\"0.7\" stretch=\"{}\" shear=\"{}\" bend=\"{}\">{particles}</cloth>{bindings}</plugin></world></sdf>",c.substeps,STRETCH/c.stiffness_scale,SHEAR/c.stiffness_scale,BEND/c.stiffness_scale).unwrap();
+        <cloth name=\"sheet\" pad_loads=\"true\"{witness_attr} columns=\"{COLUMNS}\" substeps=\"{}\" iterations=\"{ITERATIONS}\" radius=\"{RADIUS}\" self_contact=\"true\" self_friction=\"0.3\" friction=\"0.7\" stretch=\"{}\" shear=\"{}\" bend=\"{}\">{particles}</cloth>{bindings}</plugin></world></sdf>",c.substeps,STRETCH/c.stiffness_scale,SHEAR/c.stiffness_scale,BEND/c.stiffness_scale).unwrap();
     Ok(xml)
 }
 #[derive(Default, Debug, Serialize)]
@@ -196,18 +210,18 @@ fn qualify_loaded_fold(m: &Metrics) -> Result<()> {
     }
     Ok(())
 }
-fn cloth(sim: &Simulation) -> Result<&DeformableSample> {
+pub(super) fn cloth(sim: &Simulation) -> Result<&DeformableSample> {
     bodies(sim)
         .find(|(n, _)| *n == "sheet")
         .map(|(_, b)| b)
         .ok_or_else(|| "missing sheet".into())
 }
 #[derive(Serialize)]
-struct Frame {
+pub(super) struct Frame {
     time_ns: u128,
     positions: Vec<[f64; 3]>,
 }
-fn capture(rec: &mut Recording, frames: &mut Vec<Frame>) -> Result<()> {
+pub(super) fn capture(rec: &mut Recording, frames: &mut Vec<Frame>) -> Result<()> {
     let b = cloth(&rec.sim)?;
     frames.push(Frame {
         time_ns: b.sim_time().as_nanos(),
@@ -387,17 +401,31 @@ fn simulate(xml: &str, case: Case, flare: f64, out: Option<&Path>) -> Result<Met
     r.costs_ns.sort_unstable();
     m.step_p95_ns = r.costs_ns[(END * 95).div_ceil(100) - 1];
     if let Some(out) = out {
-        r.save(out)?;
-        write_json(
-            &out.join("particle-frames.json"),
-            &serde_json::to_value(frames)?,
-        )?;
-        write_json(
-            &out.join("frames.json"),
-            &json!({"kind":"authored-archive-v1","camera":"right","dt_ns":1,"cloth_grid":{"rows":ROWS,"columns":COLUMNS,"skin_radius_m":RADIUS,"last_row_left":1,"first_row_right":ROWS-2},"particle_visuals":(0..COUNT).map(name).collect::<Vec<_>>(),"captures":{"pickup":26,"rising":45,"hold":72,"release":112,"settled":136}}),
+        save_archive(
+            r,
+            frames,
+            out,
+            json!({"pickup":26,"rising":45,"hold":72,"release":112,"settled":136}),
         )?;
     }
     Ok(m)
+}
+
+pub(super) fn save_archive(
+    r: Recording,
+    frames: Vec<Frame>,
+    out: &Path,
+    captures: Value,
+) -> Result<()> {
+    r.save(out)?;
+    write_json(
+        &out.join("particle-frames.json"),
+        &serde_json::to_value(frames)?,
+    )?;
+    write_json(
+        &out.join("frames.json"),
+        &json!({"kind":"authored-archive-v1","camera":"right","dt_ns":1,"cloth_grid":{"rows":ROWS,"columns":COLUMNS,"skin_radius_m":RADIUS,"last_row_left":1,"first_row_right":ROWS-2},"particle_visuals":(0..COUNT).map(name).collect::<Vec<_>>(),"captures":captures}),
+    )
 }
 pub(super) fn run(out: &Path) -> Result<()> {
     let mut rows = vec![];

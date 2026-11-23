@@ -13,6 +13,10 @@ mod arm_sheet;
 mod arm_switching;
 #[path = "local_robot_foundations/envelope.rs"]
 mod envelope;
+#[path = "local_robot_foundations/fold_hold.rs"]
+mod fold_hold;
+#[path = "local_robot_foundations/fold_mesh.rs"]
+mod fold_mesh;
 #[path = "local_robot_foundations/gripper.rs"]
 mod gripper;
 #[path = "local_robot_foundations/inertia.rs"]
@@ -45,6 +49,8 @@ struct Args {
 }
 #[derive(Subcommand)]
 enum Study {
+    /// Compare cloth contact forces from the same loaded fold.
+    FoldHold { output: PathBuf },
     /// Lift a folded sheet and measure contact on each panel.
     ArmSheet { output: PathBuf },
     /// Compare nine folded-sheet mass and stiffness combinations on two material clocks.
@@ -197,6 +203,7 @@ fn write_new(output: &Path, generate: impl FnOnce(&Path) -> Result<()>) -> Resul
 }
 fn main() -> Result<()> {
     match Args::parse().study {
+        Study::FoldHold { output } => write_new(&output, fold_hold::run),
         Study::ArmSheet { output } => write_new(&output, arm_sheet::run),
         Study::SheetSweep { output } => write_new(&output, sheet_sweep::run),
         Study::ArmCable { output } => write_new(&output, arm_cable::run),

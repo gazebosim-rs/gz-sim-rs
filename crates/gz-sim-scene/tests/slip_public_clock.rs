@@ -76,3 +76,25 @@ fn independent_publication_clocks_preserve_every_warm_native_material_state_and_
         );
     }
 }
+
+#[test]
+fn live_material_resolution_honors_the_configured_slip_transition_interval() {
+    use gz_sim_scene::deformable::{
+        MaterialResolutionError::SlipInterval, set_material_resolution,
+    };
+    let xml = transition::Run {
+        speed: -0.42,
+        mu: 0.15,
+        width: 250000,
+        transition: Some(2000),
+        yaw: 0.,
+        extra_mass: 0.,
+    }
+    .sdf();
+    let mut scene = Incline::new(&xml).unwrap();
+    assert_eq!(
+        set_material_resolution(&mut scene.sim, "material", 1001, 8),
+        Err(SlipInterval)
+    );
+    set_material_resolution(&mut scene.sim, "material", 2, 8).unwrap();
+}

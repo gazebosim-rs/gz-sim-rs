@@ -3,7 +3,7 @@
 
 # Multi-fidelity physics worklog
 
-The articulated gripper now lifts and releases both sides of a folded sheet across nine combinations of weight and stiffness. The next local task is to establish how accurately the solver predicts the force inside the fold. [Latest measurements and replays](#2026-11-23--folded-sheet-grasp)
+The articulated gripper holds a folded sheet while its material resolution changes. The two finer meshes carry the weight through the jaws and leave a micrometre-scale gap between the layers. [Latest measurements and replays](#2026-11-23--matched-fold-hold)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
@@ -1822,3 +1822,35 @@ Chromium running gz-web-rs with WebGPU matched all 6,576 independently recorded 
 The 150 XPBD package tests, 35 robot example tests, five articulated-coupling tests and 86 additional scene tests passed. The instrumented studies reproduced all four replay streams, manifests and independent observations byte for byte. The 31 sets of physical measurements also matched after excluding wall-clock timing. LLVM covered 675/684 changed production lines (98.68%) and 1,243/1,290 changed regions (96.36%). Each affected crate exceeded 95% on both measures for its changes. In a wider diagnostic combining the all-feature XPBD package tests, passing scene suites and the robot studies, 8,854/9,229 distinct XPBD source lines (95.94%) and 17,950/18,639 distinct regions (96.30%) were exercised. This wider measurement exceeded 95% for both metrics using separate profiles for each executable. The standard workspace release gate remains open. [Coverage by crate and file](measurements/local-manipulation/sheet-coverage.json)
 
 Next, repeat the parallel-fold hold from a common loaded state and vary material resolution, solver iterations and mesh spacing independently. Compare the measured force and force distribution to a refined reference before using the result to set grip pressure.
+
+## 2026-11-23 — Matched fold hold
+
+All seven arm runs reached the same loaded state at 1.650 s. They agreed on 12 sheet particles, nine native body states, four driven axes, and the previous contact reactions. Each run kept the same actuator command and 1 ms arm clock for the following 300 ms. The live material resolution can now change at a tick boundary while preserving the state and pending jaw wrench. Reset restores the authored settings. Optional contact readback reports which parts of each geometric feature carried normal load on the two sides. [Run the study and watch the replays](LOCAL_RIGID_ROBOT.md#compare-the-force-inside-a-loaded-fold) · [Measurements](measurements/local-manipulation/fold-hold.json)
+
+| Material substeps × iterations | Mean force between layers (mN) | First resumed force (mN) | Hold p95 (ms) |
+| --- | ---: | ---: | ---: |
+| 8 × 24 | 49.146 | 49.147 | 1.91 |
+| 16 × 24 | 20.223 | 22.465 | 3.53 |
+| 32 × 12 | 17.957 | 21.664 | 5.25 |
+| 32 × 24 | 17.957 | 21.664 | 8.44 |
+| 32 × 48 | 17.957 | 21.664 | 12.54 |
+| 64 × 24 | 17.993 | 23.433 | 21.44 |
+| 64 × 48 | 17.993 | 23.433 | 45.69 |
+
+On the original mesh, 32 substeps and 12 iterations reproduced the reference mean to 0.21%. The first resumed force was 1.77 mN lower. The load concentrated at the central nodes along the free hems. Each jaw still squeezed with about 0.615 N, and together the jaws carried the full 0.0824 N weight. Particle motion remained below 5 µm. The measured p95 costs cover the material and rigid hold tick on this host, with other tests running concurrently.
+
+For the mesh comparison, the solver constructed each sheet from the original rest geometry, retained the exact loaded positions and velocities at shared vertices, and interpolated the added particles. All meshes then followed the fine run's measured jaw trajectory. Total mass and linear momentum agreed to roundoff. The transfer introduces a small angular-momentum difference. Axial stiffness, simple-shear energy, hinge compliance and combined normal stiffness over the pad footprint were calibrated across widths. The rebuilt original mesh reproduced the live arm's mean layer and jaw forces to rounding precision.
+
+| Points across the width | Spacing (mm) | Points inside each jaw footprint | Mean layer force (mN) | Minimum / mean closest skin gap (µm) |
+| ---: | ---: | ---: | ---: | ---: |
+| 3 | 53.00 | 2 | 17.993 | 0.000012 / 0.000199 |
+| 5 | 26.50 | 6 | 0 | 3.104 / 3.906 |
+| 7 | 17.67 | 10 | 0 | 3.952 / 4.872 |
+
+All three started with the same closest skin separation of 2.002 µm and completed every hold tick. Finite triangle distances sampled after every millisecond show a positive gap in both finer meshes. The simulator's contact observations record zero interlayer normal impulse across all material substeps of those two runs. External grip and support remain repeatable across this range. The fine-clock result on the original mesh alone would overstate force transmission between the layers.
+
+All 154 XPBD package tests passed. The signed impulses on one triangle also matched its measured change in momentum in separate face and edge encounters. The instrumented study reproduced all 2,100 force samples and both replay streams. Chromium running gz-web-rs verified both sets of 79 frames, including 1,896 independently observed particle positions, the shared 67-frame prefix and reset to time zero. [Force chart](measurements/local-manipulation/fold-hold-forces.svg)
+
+LLVM exercised 781/794 changed simulator lines (98.36%) and 1,366/1,422 changed simulator code regions (96.06%). All three affected crates exceeded 95% for both measures on their changes. The wider XPBD check covered 8,964/9,358 distinct source lines (95.79%) and 18,096/18,809 regions (96.21%). The separate Rust plotting and verification code covered 349/359 lines and 707/739 regions. The full workspace release gate remains separate. [Coverage and browser checks](measurements/local-manipulation/fold-hold-coverage.json)
+
+Next, separate the effect of jaw contact sampled at cloth particles from the effect of material stiffness across the width. Use the same jaw path with a prescribed contact patch, compare against the existing particle pads, and measure the gap and load on both sides before setting a pressure target.

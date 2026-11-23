@@ -57,6 +57,8 @@ url = "=2.5.8"
 rustix = { version = "=1.1.5", features = ["fs"], optional = true }
 
 [dev-dependencies]
+parry3d-f64 = { version = "=0.31.1", features = ["enhanced-determinism"] }
+gz-physics-xpbd = { path = "../gz-physics-xpbd" }
 plotters = { version = "=0.3.7", default-features = false, features = ["svg_backend", "line_series"] }
 gz-physics-multifidelity = { path = "../gz-physics-multifidelity" }
 glam.workspace = true

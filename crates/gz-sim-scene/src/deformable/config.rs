@@ -75,6 +75,7 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
             "shear",
             "pad_contact",
             "self_friction",
+            "self_contact_loads",
             "capsule_contact_history",
         ]);
     }
@@ -156,6 +157,13 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
             .map_err(|e| e.to_string())?
     } else {
         body
+    };
+    let body = match node.attribute("self_contact_loads") {
+        None | Some("false") => body,
+        Some("true") => body
+            .with_self_contact_loads()
+            .map_err(|_| "self_contact_loads requires a self-friction surface")?,
+        Some(_) => return Err("self_contact_loads must be true or false".into()),
     };
     match node.attribute("pad_contact") {
         None | Some("particles") => Ok(body),

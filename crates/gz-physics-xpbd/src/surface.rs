@@ -16,6 +16,8 @@
 mod friction;
 pub(super) mod geometry;
 mod interval;
+mod loads;
+pub use loads::SelfContactLoad;
 mod position;
 use super::{Particle, XpbdError};
 use geometry::{Witness, edge_edge, vertex_face};
@@ -60,6 +62,7 @@ pub(super) struct Surface {
     bounds: Vec<Bound>,
     friction: Option<friction::Friction>,
     pub(super) impulse: crate::SelfContactImpulse,
+    loads: Option<loads::Loads>,
     // Distinguish response exhaustion from a topology, broad-phase or query budget.
     pub(super) projection_limit: bool,
 }
@@ -152,6 +155,7 @@ impl Surface {
             bounds: Vec::new(),
             friction: None,
             impulse: crate::SelfContactImpulse::default(),
+            loads: None,
             projection_limit: false,
         };
         let positions = particles
@@ -272,6 +276,7 @@ impl Surface {
             if let Some(friction) = &self.friction {
                 let impulse = friction.normal(&hit, x, p, h)?;
                 let (tangent, work) = friction.apply(&hit, impulse, x, p, gap)?;
+                self.record_load(&hit, impulse);
                 self.impulse.normal += impulse;
                 self.impulse.tangent += tangent;
                 self.impulse.friction_work += work;
