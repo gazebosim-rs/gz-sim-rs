@@ -33,13 +33,13 @@ pub(super) fn verify(path: &Path, archive: &Value) -> Result<usize> {
     let mut checked = 0;
     for frame in archive.as_array().ok_or("missing archive")? {
         let ns = frame["ns"].as_u64().ok_or("missing clock")?;
-        for lane in 0..2 {
+        for (lane, row) in rows.iter().enumerate() {
             let history = samples(lane)?;
             let s = history
                 .iter()
                 .find(|s| s["tick"].as_u64().is_some_and(|t| t * 500000 == ns))
                 .ok_or("unmatched physical tick")?;
-            let prefix = rows[lane]["name"].as_str().ok_or("missing material name")?;
+            let prefix = row["name"].as_str().ok_or("missing material name")?;
             let check = |suffix: &str, p: [f64; 3]| -> Result<()> {
                 let name = format!("default::{prefix} {suffix}::visual");
                 let vis = frame["scene"]["visuals"]
