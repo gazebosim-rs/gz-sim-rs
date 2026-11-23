@@ -1,0 +1,266 @@
+[
+  {
+    "metrics": {
+      "arm_station_impulse_ns": 0.0,
+      "blocked_route": false,
+      "carry_min_height_m": 0.327230900333444,
+      "carry_station_impulse_ns": 0.0,
+      "contact_with_obstacle_ns": 0.0,
+      "dt_us": 500,
+      "final_target_support": true,
+      "first_link_obstacle_hits_us": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "first_obstacle_contact_us": null,
+      "initial_support": true,
+      "max_final_parcel_speed_m_s": 0.0,
+      "max_radial_error_m": 0.000687920699890876,
+      "max_stop_violation": 1.585001464035618e-07,
+      "min_vertical_gap_over_obstacle_m": 0.04221212990815926,
+      "obstacle_impulses_rotor_palm_left_right_parcel_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "opposed_contact_ticks": 2201,
+      "parcel_final_m": [
+        1.4410326492421197e-06,
+        0.3199451499493859,
+        0.16997123038671874
+      ],
+      "parcel_floor_impulse_ns": 0.0,
+      "peak_parcel_height_m": 0.33003883533785,
+      "peak_shoulder_anchor_error_m": 6.03538077366216e-09,
+      "placement_error_m": 6.195397707832402e-05,
+      "self_contact_impulse_ns": 0.0,
+      "transfer_ticks": 2201
+    },
+    "step_p95_ns": 115820
+  },
+  {
+    "metrics": {
+      "arm_station_impulse_ns": 0.0,
+      "blocked_route": true,
+      "carry_min_height_m": 0.21238347260670892,
+      "carry_station_impulse_ns": 0.0,
+      "contact_with_obstacle_ns": 20.121927532720473,
+      "dt_us": 500,
+      "final_target_support": false,
+      "first_link_obstacle_hits_us": [
+        null,
+        null,
+        1858000,
+        null,
+        1820000
+      ],
+      "first_obstacle_contact_us": 1820000,
+      "initial_support": true,
+      "max_final_parcel_speed_m_s": 0.0,
+      "max_radial_error_m": 0.003189959889849159,
+      "max_stop_violation": 1.5998491937826986e-07,
+      "min_vertical_gap_over_obstacle_m": -0.07262284922707574,
+      "obstacle_impulses_rotor_palm_left_right_parcel_ns": [
+        0.0,
+        0.0,
+        11.08952003455994,
+        0.0,
+        9.032407498160502
+      ],
+      "opposed_contact_ticks": 2194,
+      "parcel_final_m": [
+        0.2818884441130412,
+        0.1533481656937318,
+        -5.738241625423856e-05
+      ],
+      "parcel_floor_impulse_ns": 5.421300893268878,
+      "peak_parcel_height_m": 0.21327108792033245,
+      "peak_shoulder_anchor_error_m": 9.822328238280548e-09,
+      "placement_error_m": 0.3689897588231727,
+      "self_contact_impulse_ns": 0.0,
+      "transfer_ticks": 2201
+    },
+    "step_p95_ns": 118461
+  },
+  {
+    "metrics": {
+      "arm_station_impulse_ns": 0.0,
+      "blocked_route": false,
+      "carry_min_height_m": 0.3272161668106491,
+      "carry_station_impulse_ns": 0.0,
+      "contact_with_obstacle_ns": 0.0,
+      "dt_us": 1000,
+      "final_target_support": true,
+      "first_link_obstacle_hits_us": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "first_obstacle_contact_us": null,
+      "initial_support": true,
+      "max_final_parcel_speed_m_s": 0.0,
+      "max_radial_error_m": 0.0006950273506641791,
+      "max_stop_violation": 7.052316875547082e-07,
+      "min_vertical_gap_over_obstacle_m": 0.04219615165309293,
+      "obstacle_impulses_rotor_palm_left_right_parcel_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "opposed_contact_ticks": 1101,
+      "parcel_final_m": [
+        3.7258610106702313e-06,
+        0.3198568797017764,
+        0.1699422410423058
+      ],
+      "parcel_floor_impulse_ns": 0.0,
+      "peak_parcel_height_m": 0.3300091738711378,
+      "peak_shoulder_anchor_error_m": 2.410805631845188e-08,
+      "placement_error_m": 0.00015438069502955474,
+      "self_contact_impulse_ns": 0.0,
+      "transfer_ticks": 1101
+    },
+    "step_p95_ns": 123410
+  },
+  {
+    "metrics": {
+      "arm_station_impulse_ns": 0.0,
+      "blocked_route": true,
+      "carry_min_height_m": 0.2122788554432597,
+      "carry_station_impulse_ns": 0.0,
+      "contact_with_obstacle_ns": 22.30947052022355,
+      "dt_us": 1000,
+      "final_target_support": false,
+      "first_link_obstacle_hits_us": [
+        null,
+        null,
+        1858000,
+        null,
+        1820000
+      ],
+      "first_obstacle_contact_us": 1820000,
+      "initial_support": true,
+      "max_final_parcel_speed_m_s": 0.0,
+      "max_radial_error_m": 0.003395493284268414,
+      "max_stop_violation": 7.128723507679458e-07,
+      "min_vertical_gap_over_obstacle_m": -0.07275314077306491,
+      "obstacle_impulses_rotor_palm_left_right_parcel_ns": [
+        0.0,
+        0.0,
+        11.967032348940378,
+        0.0,
+        10.342438171286426
+      ],
+      "opposed_contact_ticks": 1099,
+      "parcel_final_m": [
+        0.2805794461411411,
+        0.1525539422049993,
+        -3.506736007152949e-05
+      ],
+      "parcel_floor_impulse_ns": 4.4387964378825275,
+      "peak_parcel_height_m": 0.21324631722314805,
+      "peak_shoulder_anchor_error_m": 3.923992612278609e-08,
+      "placement_error_m": 0.3683407824285824,
+      "self_contact_impulse_ns": 0.0,
+      "transfer_ticks": 1101
+    },
+    "step_p95_ns": 131980
+  },
+  {
+    "metrics": {
+      "arm_station_impulse_ns": 0.0,
+      "blocked_route": false,
+      "carry_min_height_m": 0.327184157849797,
+      "carry_station_impulse_ns": 0.0,
+      "contact_with_obstacle_ns": 0.0,
+      "dt_us": 2000,
+      "final_target_support": true,
+      "first_link_obstacle_hits_us": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "first_obstacle_contact_us": null,
+      "initial_support": true,
+      "max_final_parcel_speed_m_s": 0.0,
+      "max_radial_error_m": 0.0007108138509789308,
+      "max_stop_violation": 2.3797662171247402e-07,
+      "min_vertical_gap_over_obstacle_m": 0.042179225036618584,
+      "obstacle_impulses_rotor_palm_left_right_parcel_ns": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "opposed_contact_ticks": 551,
+      "parcel_final_m": [
+        5.085023379885168e-07,
+        0.31993955681005054,
+        0.16994215129098894
+      ],
+      "parcel_floor_impulse_ns": 0.0,
+      "peak_parcel_height_m": 0.3299783894015917,
+      "peak_shoulder_anchor_error_m": 9.635040881913467e-08,
+      "placement_error_m": 8.366666552542053e-05,
+      "self_contact_impulse_ns": 0.0,
+      "transfer_ticks": 551
+    },
+    "step_p95_ns": 118801
+  },
+  {
+    "metrics": {
+      "arm_station_impulse_ns": 0.0,
+      "blocked_route": true,
+      "carry_min_height_m": 0.21229108578050032,
+      "carry_station_impulse_ns": 0.0,
+      "contact_with_obstacle_ns": 20.328039202748418,
+      "dt_us": 2000,
+      "final_target_support": false,
+      "first_link_obstacle_hits_us": [
+        null,
+        null,
+        1858000,
+        null,
+        1820000
+      ],
+      "first_obstacle_contact_us": 1820000,
+      "initial_support": true,
+      "max_final_parcel_speed_m_s": 0.0,
+      "max_radial_error_m": 0.0035079582741778803,
+      "max_stop_violation": 2.379477696892729e-07,
+      "min_vertical_gap_over_obstacle_m": -0.07277567410177313,
+      "obstacle_impulses_rotor_palm_left_right_parcel_ns": [
+        0.0,
+        0.0,
+        12.942036062696692,
+        0.0,
+        7.386003140051707
+      ],
+      "opposed_contact_ticks": 551,
+      "parcel_final_m": [
+        0.3240243195969664,
+        0.22447650132362257,
+        -0.007065405288167849
+      ],
+      "parcel_floor_impulse_ns": 5.203371253986251,
+      "peak_parcel_height_m": 0.21322551984480612,
+      "peak_shoulder_anchor_error_m": 1.5686386812256963e-07,
+      "placement_error_m": 0.38140353464475923,
+      "self_contact_impulse_ns": 0.0,
+      "transfer_ticks": 551
+    },
+    "step_p95_ns": 109361
+  }
+]

@@ -1,0 +1,258 @@
+{
+  "inertia_probes": [
+    {
+      "angular_momentum_after_pulse": 9.999999999998953e-05,
+      "applied_angular_impulse": 0.0001,
+      "dt_us": 500,
+      "first_angular_speed_rad_s": 0.000720422714867627,
+      "first_speed_relative_error": 0.0034578043935356018,
+      "moment_kg_m2": 0.13928736333333333,
+      "peak_link_speed_relative_error": 0.005299286253521163,
+      "predicted_angular_speed_rad_s": 0.0007179402180274359,
+      "settled_angular_speed_rad_s": 0.0007179402176453628,
+      "settled_speed_relative_error": 5.321794946577647e-10
+    },
+    {
+      "angular_momentum_after_pulse": 0.00019999999999993856,
+      "applied_angular_impulse": 0.0002,
+      "dt_us": 1000,
+      "first_angular_speed_rad_s": 0.0014403455103871388,
+      "first_speed_relative_error": 0.00310964215414411,
+      "moment_kg_m2": 0.13928736333333333,
+      "peak_link_speed_relative_error": 0.004769628746515653,
+      "predicted_angular_speed_rad_s": 0.0014358804360548717,
+      "settled_angular_speed_rad_s": 0.00143588042348606,
+      "settled_speed_relative_error": 8.753383181672232e-09
+    },
+    {
+      "angular_momentum_after_pulse": 0.00039999999999899697,
+      "applied_angular_impulse": 0.0004,
+      "dt_us": 2000,
+      "first_angular_speed_rad_s": 0.0028802026360128853,
+      "first_speed_relative_error": 0.0029395775898777288,
+      "moment_kg_m2": 0.13928736333333333,
+      "peak_link_speed_relative_error": 0.004509869064669325,
+      "predicted_angular_speed_rad_s": 0.0028717608721097435,
+      "settled_angular_speed_rad_s": 0.0028717604672349128,
+      "settled_speed_relative_error": 1.4098486912418005e-07
+    }
+  ],
+  "link_benchmarks": [
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.4997541911650372,
+      "links": 4,
+      "p50_ns": 18970,
+      "p95_ns": 28200,
+      "peak_support_impulse_ns": 0.002752088949588707,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.33345739615898723,
+      "links": 4,
+      "p50_ns": 11870,
+      "p95_ns": 14320,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    },
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.49975415482438174,
+      "links": 8,
+      "p50_ns": 60210,
+      "p95_ns": 70141,
+      "peak_support_impulse_ns": 0.005898317705107033,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.26252230645478636,
+      "links": 8,
+      "p50_ns": 38980,
+      "p95_ns": 47700,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    },
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.4997541549062078,
+      "links": 16,
+      "p50_ns": 177951,
+      "p95_ns": 218041,
+      "peak_support_impulse_ns": 0.012190809142573679,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.2623865248987086,
+      "links": 16,
+      "p50_ns": 104891,
+      "p95_ns": 153531,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    },
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.4997546319860908,
+      "links": 32,
+      "p50_ns": 706872,
+      "p95_ns": 866933,
+      "peak_support_impulse_ns": 0.024775982829841274,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.26236331820700276,
+      "links": 32,
+      "p50_ns": 484241,
+      "p95_ns": 547832,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.33345739615898723,
+      "links": 4,
+      "p50_ns": 11560,
+      "p95_ns": 11880,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    },
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.4997541911650372,
+      "links": 4,
+      "p50_ns": 18010,
+      "p95_ns": 18130,
+      "peak_support_impulse_ns": 0.002752088949588707,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.26252230645478636,
+      "links": 8,
+      "p50_ns": 29370,
+      "p95_ns": 39500,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    },
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.49975415482438174,
+      "links": 8,
+      "p50_ns": 50391,
+      "p95_ns": 65410,
+      "peak_support_impulse_ns": 0.005898317705107033,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.2623865248987086,
+      "links": 16,
+      "p50_ns": 101430,
+      "p95_ns": 124850,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    },
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.4997541549062078,
+      "links": 16,
+      "p50_ns": 164450,
+      "p95_ns": 194680,
+      "peak_support_impulse_ns": 0.012190809142573679,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.26236331820700276,
+      "links": 32,
+      "p50_ns": 537581,
+      "p95_ns": 678032,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    },
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.4997546319860908,
+      "links": 32,
+      "p50_ns": 782872,
+      "p95_ns": 974012,
+      "peak_support_impulse_ns": 0.024775982829841274,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.4997541911650372,
+      "links": 4,
+      "p50_ns": 22230,
+      "p95_ns": 28510,
+      "peak_support_impulse_ns": 0.002752088949588707,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.33345739615898723,
+      "links": 4,
+      "p50_ns": 14440,
+      "p95_ns": 17870,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    },
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.49975415482438174,
+      "links": 8,
+      "p50_ns": 59520,
+      "p95_ns": 77160,
+      "peak_support_impulse_ns": 0.005898317705107033,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.26252230645478636,
+      "links": 8,
+      "p50_ns": 36100,
+      "p95_ns": 55370,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    },
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.4997541549062078,
+      "links": 16,
+      "p50_ns": 194351,
+      "p95_ns": 255571,
+      "peak_support_impulse_ns": 0.012190809142573679,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.2623865248987086,
+      "links": 16,
+      "p50_ns": 117050,
+      "p95_ns": 171741,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    },
+    {
+      "contact_ticks_of_200": 200,
+      "final_tip_z_m": 0.4997546319860908,
+      "links": 32,
+      "p50_ns": 718202,
+      "p95_ns": 930243,
+      "peak_support_impulse_ns": 0.024775982829841274,
+      "table_contact": true
+    },
+    {
+      "contact_ticks_of_200": 0,
+      "final_tip_z_m": 0.26236331820700276,
+      "links": 32,
+      "p50_ns": 484181,
+      "p95_ns": 525981,
+      "peak_support_impulse_ns": -0.0,
+      "table_contact": false
+    }
+  ]
+}

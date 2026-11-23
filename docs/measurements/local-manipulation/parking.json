@@ -1,0 +1,104 @@
+{
+  "comparison": {
+    "first_jaw_impulse": [
+      [
+        [
+          1367,
+          0.039834997445658514
+        ],
+        [
+          1367,
+          0.04247209339547092
+        ]
+      ],
+      [
+        [
+          1367,
+          0.03983499743348529
+        ],
+        [
+          1367,
+          0.04247209343148588
+        ]
+      ]
+    ],
+    "full_trajectory_errors": {
+      "angular_momentum_kg_m2_s": 2.2429508523581847e-07,
+      "angular_velocity_rad_s": 1.7300029481416034e-05,
+      "jaw_normal_impulse_ns": 3.6014954907237495e-11,
+      "joint_coordinate_m_or_rad": 1.0108861014934692e-07,
+      "joint_rate_m_s_or_rad_s": 3.2169772407842046e-06,
+      "linear_momentum_kg_m_s": 1.1581106969984854e-06,
+      "mechanical_energy_j": 1.143699002170706e-08,
+      "position_m": 1.0108890791297843e-07,
+      "rotation_rad": 5.960464477539063e-08,
+      "velocity_m_s": 3.216976818457144e-06
+    },
+    "held_reference_and_switched_jaw_ns": [
+      [
+        0.005307783160996367,
+        0.005500965740613653
+      ],
+      [
+        0.005307783160998897,
+        0.005500965740612847
+      ]
+    ],
+    "instant_switch_errors": {
+      "angular_momentum_kg_m2_s": 8.612561424929038e-09,
+      "angular_velocity_rad_s": 1.6642240056529336e-08,
+      "jaw_normal_impulse_ns": 0.0,
+      "joint_coordinate_m_or_rad": 0.0,
+      "joint_rate_m_s_or_rad_s": 1.5220082923976598e-07,
+      "linear_momentum_kg_m_s": 4.836789269377975e-08,
+      "mechanical_energy_j": 3.552713678800501e-15,
+      "position_m": 0.0,
+      "rotation_rad": 0.0,
+      "velocity_m_s": 1.5198694228727072e-07
+    },
+    "park_tick": [
+      650,
+      5900
+    ],
+    "parked_steps": [
+      350,
+      600
+    ],
+    "placed_m": [
+      2.5969406995504317e-06,
+      0.31986172370836613,
+      0.16994223872955702
+    ],
+    "refused": "fidelity transition deferred: mounted robot has an external contact",
+    "wake_tick": [
+      1001,
+      6501
+    ]
+  },
+  "p95": {
+    "reference": {
+      "full": {
+        "median_ns": 79640,
+        "p95_ns": 118500,
+        "samples": 7100
+      },
+      "parked_windows": {
+        "median_ns": 64200,
+        "p95_ns": 80660,
+        "samples": 950
+      }
+    },
+    "switched": {
+      "full": {
+        "median_ns": 78340,
+        "p95_ns": 117881,
+        "samples": 7100
+      },
+      "parked_windows": {
+        "median_ns": 2380,
+        "p95_ns": 4180,
+        "samples": 950
+      }
+    }
+  }
+}

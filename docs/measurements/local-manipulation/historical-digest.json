@@ -1,0 +1,18 @@
+{
+  "old_digest": "93047933c1f21911a9e9823be018dea7fb426ad480674533800df0beaf9da853",
+  "pre_phase_digest": "0e3a13c6066bd28a763ef8855cb51356c688be53f8ac5aa971baf3f0e5db3e6c",
+  "current_digest": "0e3a13c6066bd28a763ef8855cb51356c688be53f8ac5aa971baf3f0e5db3e6c",
+  "states_compared": 1801,
+  "first_difference_tick_ms": 1,
+  "base_angular_velocity_z_rad_s": {
+    "nov19": -0.00011042777159841346,
+    "nov22": -0.0001104277715984135,
+    "nov23": -0.0001104277715984135
+  },
+  "largest_component_position_difference_m": [
+    0.002192606550637022,
+    1800,
+    ".spheres.0.position.2"
+  ],
+  "compiler": "rustc 1.97.1 (8bab26f4f 2026-07-14)\nbinary: rustc\ncommit-hash: 8bab26f4f68e0e26f0bb7960be334d5b520ea452\ncommit-date: 2026-07-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.97.1\nLLVM version: 22.1.6\n"
+}

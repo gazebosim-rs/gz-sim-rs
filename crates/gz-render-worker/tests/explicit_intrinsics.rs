@@ -2236,6 +2236,10 @@ mod visibility {
             for (owner, c) in cpp.iter().enumerate() {
                 assert_eq!(c.line(), format!("ready {mode} {owner}"));
             }
+            // Each topic has a single native subscriber until the Rust probes
+            // register. Observe all four remote subscriptions before the first
+            // capture so a local probe cannot satisfy a missing remote match.
+            r.matching([(true, true); 2]);
             (peer, cpp, mode)
         });
         let images: [Subscriber; 2] = std::array::from_fn(|owner| sub(r, owner, true));

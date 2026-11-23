@@ -1,0 +1,1226 @@
+[
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 31490,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3599587410367104,
+        2.2335831315702628e-18,
+        0.16994220262434226
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 1958,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.0002964038282725068,
+      "physics_step_p95_ns": 29071,
+      "placement_error_m": 7.101294730298321e-05,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 34730,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3599587410367104,
+        2.2335831315702628e-18,
+        0.16994220262434226
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 1958,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.0002964038282725068,
+      "physics_step_p95_ns": 32020,
+      "placement_error_m": 7.101294730298321e-05,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.35,
+      "mass_kg": 0.2,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32700,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3588293266998379,
+        1.009873060530729e-12,
+        0.16994504481231726
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": null,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.00020777061146126652,
+      "physics_step_p95_ns": 30260,
+      "placement_error_m": 0.0011719624773710144,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 30140,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3588293266998379,
+        1.009873060530729e-12,
+        0.16994504481231726
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": null,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.00020777061146126652,
+      "physics_step_p95_ns": 27730,
+      "placement_error_m": 0.0011719624773710144,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.35,
+      "mass_kg": 0.2,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 36070,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.35659591946677727,
+        -4.86588961290406e-20,
+        0.16994453942892498
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 948,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.0004350968418418144,
+      "physics_step_p95_ns": 33160,
+      "placement_error_m": 0.0034045322955745102,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 33980,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.35659591946677727,
+        -4.86588961290406e-20,
+        0.16994453942892498
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 948,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.0004350968418418144,
+      "physics_step_p95_ns": 31360,
+      "placement_error_m": 0.0034045322955745102,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.35,
+      "mass_kg": 0.2,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 35880,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3565409674747599,
+        -4.556298545540621e-11,
+        0.16994688689545595
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 948,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.00030936349936872,
+      "physics_step_p95_ns": 32980,
+      "placement_error_m": 0.0034594402744581713,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 37120,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3565409674747599,
+        -4.556298545540621e-11,
+        0.16994688689545595
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 948,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.00030936349936872,
+      "physics_step_p95_ns": 34150,
+      "placement_error_m": 0.0034594402744581713,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.35,
+      "mass_kg": 0.2,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32230,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3596831393203288,
+        -1.9424660634196819e-16,
+        0.16994222204609266
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": null,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.00010294337407129595,
+      "physics_step_p95_ns": 29700,
+      "placement_error_m": 0.00032208536489478025,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 34980,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3596831393203288,
+        -1.9424660634196819e-16,
+        0.16994222204609266
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": null,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.00010294337407129595,
+      "physics_step_p95_ns": 32121,
+      "placement_error_m": 0.00032208536489478025,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.7,
+      "mass_kg": 0.2,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 34090,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3596695620713607,
+        -1.979929151259742e-16,
+        0.16994222221762306
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": null,
+      "outcome": "carry",
+      "peak_height_loss_m": 9.209449567870731e-05,
+      "physics_step_p95_ns": 31310,
+      "placement_error_m": 0.0003354511839594919,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32850,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3596695620713607,
+        -1.979929151259742e-16,
+        0.16994222221762306
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": null,
+      "outcome": "carry",
+      "peak_height_loss_m": 9.209449567870731e-05,
+      "physics_step_p95_ns": 30280,
+      "placement_error_m": 0.0003354511839594919,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.7,
+      "mass_kg": 0.2,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32540,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.35976621477892756,
+        -7.1022236165097e-17,
+        0.16994457035379923
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": null,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.0001560798810756603,
+      "physics_step_p95_ns": 29910,
+      "placement_error_m": 0.0002402664672188493,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 34030,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.35976621477892756,
+        -7.1022236165097e-17,
+        0.16994457035379923
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": null,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.0001560798810756603,
+      "physics_step_p95_ns": 31290,
+      "placement_error_m": 0.0002402664672188493,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.7,
+      "mass_kg": 0.2,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 35951,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.35976621445734236,
+        1.3689634901206725e-17,
+        0.16994457039799832
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": null,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.00015139970695274285,
+      "physics_step_p95_ns": 32070,
+      "placement_error_m": 0.00024026676993248058,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 51270,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.35976621445734236,
+        1.3689634901206725e-17,
+        0.16994457039799832
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": null,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": null,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.00015139970695274285,
+      "physics_step_p95_ns": 46270,
+      "placement_error_m": 0.00024026676993248058,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.7,
+      "mass_kg": 0.2,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 27210,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        7.285302839189872e-05,
+        6.137263021639401e-20,
+        0.16996122378316234
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 734,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.16223840632764347,
+      "physics_step_p95_ns": 25020,
+      "placement_error_m": 0.35992714906035717,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 36350,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.0002540212238718166,
+        -5.135974049595448e-19,
+        0.1699420763930211
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 749,
+      "outcome": "safe_set_down",
+      "peak_height_loss_m": 0.0007438136310314869,
+      "physics_step_p95_ns": 33250,
+      "placement_error_m": 0.0002605416020960598,
+      "release_tick": 2753,
+      "set_down_tick": 1613,
+      "tighten_tick": 731
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.35,
+      "mass_kg": 0.45,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 31100,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        7.285302839189872e-05,
+        6.137263021639401e-20,
+        0.16996122378316234
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 734,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.16223840632764347,
+      "physics_step_p95_ns": 28560,
+      "placement_error_m": 0.35992714906035717,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 31470,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.35998830501295703,
+        -4.579180656047349e-19,
+        0.1699422020221206
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 749,
+      "outcome": "recovered_carry",
+      "peak_height_loss_m": 0.0005082558899954792,
+      "physics_step_p95_ns": 29070,
+      "placement_error_m": 5.8969305311188505e-05,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": 731
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.35,
+      "mass_kg": 0.45,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32360,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        5.374422696761971e-05,
+        3.517658646173871e-18,
+        0.16996473172008741
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 732,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 735,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.16230662505798882,
+      "physics_step_p95_ns": 29681,
+      "placement_error_m": 0.3599462575008619,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 34900,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        -0.0003602674760860899,
+        4.86829175599079e-18,
+        0.1699443259597229
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 732,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 736,
+      "outcome": "safe_set_down",
+      "peak_height_loss_m": 0.000936449409622564,
+      "physics_step_p95_ns": 32230,
+      "placement_error_m": 0.00036454389733778263,
+      "release_tick": 2751,
+      "set_down_tick": 1611,
+      "tighten_tick": 732
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.35,
+      "mass_kg": 0.45,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 31660,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        5.374422696761971e-05,
+        3.517658646173871e-18,
+        0.16996473172008741
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 732,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 735,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.16230662505798882,
+      "physics_step_p95_ns": 29170,
+      "placement_error_m": 0.3599462575008619,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 33390,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.35744296986080965,
+        5.155442492504482e-18,
+        0.1699445598373375
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 732,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 736,
+      "outcome": "recovered_carry",
+      "peak_height_loss_m": 0.0007216851697365856,
+      "physics_step_p95_ns": 30760,
+      "placement_error_m": 0.0025576310805829334,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": 732
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.35,
+      "mass_kg": 0.45,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 34320,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3602737379233313,
+        -4.386425583026234e-19,
+        0.1699418924277447
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 758,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 761,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.017878299888261395,
+      "physics_step_p95_ns": 31670,
+      "placement_error_m": 0.00027983734672687216,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 33860,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3600199843016633,
+        -1.4189769515333508e-20,
+        0.16994221060087128
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 758,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 804,
+      "outcome": "recovered_carry",
+      "peak_height_loss_m": 0.0004722948188182474,
+      "physics_step_p95_ns": 31170,
+      "placement_error_m": 6.114725639496092e-05,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": 758
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.7,
+      "mass_kg": 0.45,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32990,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.36021643478250115,
+        -1.7792564423720622e-17,
+        0.16994198749827055
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 758,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 761,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.017208647989297915,
+      "physics_step_p95_ns": 30570,
+      "placement_error_m": 0.00022407468717647718,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 33500,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3601325485158831,
+        -5.990250234209092e-17,
+        0.16994224086738785
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 758,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 804,
+      "outcome": "recovered_carry",
+      "peak_height_loss_m": 0.00043039164339575553,
+      "physics_step_p95_ns": 30910,
+      "placement_error_m": 0.00014458639791808944,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": 758
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.7,
+      "mass_kg": 0.45,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32300,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3594986374903786,
+        5.1608746844132834e-17,
+        0.16994471890673055
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 757,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 759,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.01876841594781692,
+      "physics_step_p95_ns": 29750,
+      "placement_error_m": 0.0005044009965562535,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 34760,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3599019002568357,
+        -8.822841397950754e-18,
+        0.16994452852600084
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 757,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 787,
+      "outcome": "recovered_carry",
+      "peak_height_loss_m": 0.0005477465654955549,
+      "physics_step_p95_ns": 31941,
+      "placement_error_m": 0.00011269713410968773,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": 757
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.7,
+      "mass_kg": 0.45,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32600,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.3594686928905872,
+        -1.3415348837551273e-11,
+        0.16994477171397335
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 757,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 759,
+      "outcome": "carry",
+      "peak_height_loss_m": 0.01804331117812996,
+      "physics_step_p95_ns": 30060,
+      "placement_error_m": 0.0005341698307561191,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 41481,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.36013493528077706,
+        -1.169909267408007e-17,
+        0.1699444979464739
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 757,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 787,
+      "outcome": "recovered_carry",
+      "peak_height_loss_m": 0.0004583034284108001,
+      "physics_step_p95_ns": 37680,
+      "placement_error_m": 0.000145904105302087,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": 757
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.7,
+      "mass_kg": 0.45,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32560,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        2.238181789878747e-05,
+        -6.577120128602493e-21,
+        0.16995239185582306
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 734,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.16232030855236376,
+      "physics_step_p95_ns": 29950,
+      "placement_error_m": 0.3599776213302628,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32300,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        6.112175719544422e-05,
+        -3.2291876576649707e-21,
+        0.16992755171402701
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 735,
+      "outcome": "safe_set_down",
+      "peak_height_loss_m": 0.0034279325783360404,
+      "physics_step_p95_ns": 29850,
+      "placement_error_m": 9.47872530622348e-05,
+      "release_tick": 1920,
+      "set_down_tick": 780,
+      "tighten_tick": 731
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.35,
+      "mass_kg": 0.85,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32380,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        2.238181789878747e-05,
+        -6.577120128602493e-21,
+        0.16995239185582306
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 734,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.16232030855236376,
+      "physics_step_p95_ns": 29740,
+      "placement_error_m": 0.3599776213302628,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 31121,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        6.112175719544422e-05,
+        -3.2291876576649707e-21,
+        0.16992755171402701
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 735,
+      "outcome": "safe_set_down",
+      "peak_height_loss_m": 0.0034279325783360404,
+      "physics_step_p95_ns": 28710,
+      "placement_error_m": 9.47872530622348e-05,
+      "release_tick": 1920,
+      "set_down_tick": 780,
+      "tighten_tick": 731
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.35,
+      "mass_kg": 0.85,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32010,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        2.7013534805010384e-05,
+        1.922074903187257e-21,
+        0.1699549337832621
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 734,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.1623296443520068,
+      "physics_step_p95_ns": 29380,
+      "placement_error_m": 0.3599729892861898,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32000,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        6.200064906192182e-05,
+        1.856430486311835e-21,
+        0.16992930962200425
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 734,
+      "outcome": "safe_set_down",
+      "peak_height_loss_m": 0.003433749703560557,
+      "physics_step_p95_ns": 29400,
+      "placement_error_m": 9.402770881651178e-05,
+      "release_tick": 1920,
+      "set_down_tick": 780,
+      "tighten_tick": 731
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.35,
+      "mass_kg": 0.85,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 33130,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        2.7013534805010384e-05,
+        1.922074903187257e-21,
+        0.1699549337832621
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 734,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.1623296443520068,
+      "physics_step_p95_ns": 30381,
+      "placement_error_m": 0.3599729892861898,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 36530,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        6.200064906192182e-05,
+        1.856430486311835e-21,
+        0.16992930962200425
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 731,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 734,
+      "outcome": "safe_set_down",
+      "peak_height_loss_m": 0.003433749703560557,
+      "physics_step_p95_ns": 33690,
+      "placement_error_m": 9.402770881651178e-05,
+      "release_tick": 1920,
+      "set_down_tick": 780,
+      "tighten_tick": 731
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.35,
+      "mass_kg": 0.85,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 33960,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        2.2008153042615253e-05,
+        -2.179541595461523e-21,
+        0.16996267852885139
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 742,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 745,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.16227789224095068,
+      "physics_step_p95_ns": 31030,
+      "placement_error_m": 0.3599779937816482,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 32870,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.000501281906242031,
+        -8.86743457859622e-20,
+        0.16994212124945376
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 742,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 803,
+      "outcome": "safe_set_down",
+      "peak_height_loss_m": 0.0005332825850296041,
+      "physics_step_p95_ns": 30170,
+      "placement_error_m": 0.0005046122266557153,
+      "release_tick": 2732,
+      "set_down_tick": 1592,
+      "tighten_tick": 742
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.7,
+      "mass_kg": 0.85,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 35440,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        2.2008153042615253e-05,
+        -2.179541595461523e-21,
+        0.16996267852885139
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 742,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 745,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.16227789224095068,
+      "physics_step_p95_ns": 32180,
+      "placement_error_m": 0.3599779937816482,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 35950,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.35999778183123604,
+        -4.126893136595486e-20,
+        0.16994220708155605
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 742,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 803,
+      "outcome": "recovered_carry",
+      "peak_height_loss_m": 0.00044611487596568633,
+      "physics_step_p95_ns": 33350,
+      "placement_error_m": 5.783547090614582e-05,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": 742
+    },
+    "load": {
+      "com_x_m": 0.0,
+      "friction": 0.7,
+      "mass_kg": 0.85,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 34900,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        2.967086328811014e-05,
+        -3.9784175009003255e-19,
+        0.16996669317180357
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 742,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 745,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.16226750690202876,
+      "physics_step_p95_ns": 32410,
+      "placement_error_m": 0.3599703306775956,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 34080,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        -0.000385600784889693,
+        -1.0615468909473156e-18,
+        0.1699444703360261
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 742,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 767,
+      "outcome": "safe_set_down",
+      "peak_height_loss_m": 0.0007144937771352,
+      "physics_step_p95_ns": 30990,
+      "placement_error_m": 0.0003895786299177636,
+      "release_tick": 2732,
+      "set_down_tick": 1592,
+      "tighten_tick": 742
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.7,
+      "mass_kg": 0.85,
+      "travel_s": 0.55
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 7.140495867768594
+  },
+  {
+    "fixed_pressure": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 31400,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        2.967086328811014e-05,
+        -3.9784175009003255e-19,
+        0.16996669317180357
+      ],
+      "final_station_loaded_ticks": 0,
+      "first_tactile_alarm_tick": 742,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 745,
+      "outcome": "miss",
+      "peak_height_loss_m": 0.16226750690202876,
+      "physics_step_p95_ns": 28850,
+      "placement_error_m": 0.3599703306775956,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": null
+    },
+    "guarded": {
+      "closed_loaded_ticks_of_50": 50,
+      "control_step_p95_ns": 34480,
+      "final_jaw_loaded_ticks": 0,
+      "final_m": [
+        0.35956625107744267,
+        -9.790508596587897e-19,
+        0.16994465290069594
+      ],
+      "final_station_loaded_ticks": 200,
+      "first_tactile_alarm_tick": 742,
+      "floor_contact_ticks": 0,
+      "independent_slip_tick": 767,
+      "outcome": "recovered_carry",
+      "peak_height_loss_m": 0.0006592534333114963,
+      "physics_step_p95_ns": 31790,
+      "placement_error_m": 0.0004372658564546415,
+      "release_tick": 3450,
+      "set_down_tick": null,
+      "tighten_tick": 742
+    },
+    "load": {
+      "com_x_m": 0.014,
+      "friction": 0.7,
+      "mass_kg": 0.85,
+      "travel_s": 0.95
+    },
+    "peak_requested_horizontal_acceleration_m_s2": 2.393351800554017
+  }
+]

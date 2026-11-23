@@ -87,3 +87,5 @@ target/release/gz-sim-rs --server --replay --web-viewer 9744 target/my-arm/clear
 ```
 
 [Open the rotary arm in gz-web-rs](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9744%2F)
+
+Measured results from the review run are available for the [grasp trials](measurements/local-manipulation/arm-grasp.json), [obstacle routes](measurements/local-manipulation/arm-routes.json), [inertia check](measurements/local-manipulation/arm-inertia.json), [parking comparison](measurements/local-manipulation/parking.json) and [coverage checks](measurements/local-manipulation/coverage.json).
