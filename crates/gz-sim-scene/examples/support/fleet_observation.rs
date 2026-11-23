@@ -151,11 +151,12 @@ pub fn run(count: usize) -> Result<(), Box<dyn Error>> {
         [0., 0., 9.81]
     );
     println!(
-        "loaded_sdf_decks={count} published_poses={poses} sensors=1 load_s={:.4} warmup=20 measured=100 dt_ms=10 wall_s={:.6} real_time_factor={:.4} p50_ms={:.4} p99_ms={:.4} max_pose_error_m={max_error:.3e} edited_velocity_x=-0.25 imu_specific_force_z=9.81",
+        "loaded_sdf_decks={count} published_poses={poses} sensors=1 load_s={:.4} warmup=20 measured=100 dt_ms=10 wall_s={:.6} real_time_factor={:.4} p50_ms={:.4} p95_ms={:.4} p99_ms={:.4} max_pose_error_m={max_error:.3e} edited_velocity_x=-0.25 imu_specific_force_z=9.81",
         load.as_secs_f64(),
         wall.as_secs_f64(),
         1. / wall.as_secs_f64(),
         times[49].as_secs_f64() * 1000.,
+        times[94].as_secs_f64() * 1000.,
         times[98].as_secs_f64() * 1000.
     );
     Ok(())
@@ -248,9 +249,10 @@ pub fn run_mixed(count: usize, automatic: bool) -> Result<(), Box<dyn Error>> {
         assert!(stats.is_none());
     }
     println!(
-        "automatic={automatic} decks={count} payloads={loads} poses={observed} sensors=1 load_s={load_s:.4} first_step_ms={first_ms:.3} wall_s={wall:.6} real_time_factor={:.5} p50_ms={:.4} p99_ms={:.4} max_deck_error_m={max_deck_error:.6e} imu_z=9.81 isolation={stats:?}",
+        "automatic={automatic} decks={count} payloads={loads} poses={observed} sensors=1 load_s={load_s:.4} first_step_ms={first_ms:.3} wall_s={wall:.6} real_time_factor={:.5} p50_ms={:.4} p95_ms={:.4} p99_ms={:.4} max_deck_error_m={max_deck_error:.6e} imu_z=9.81 isolation={stats:?}",
         1. / wall,
         times[49].as_secs_f64() * 1000.,
+        times[94].as_secs_f64() * 1000.,
         times[98].as_secs_f64() * 1000.
     );
     Ok(())

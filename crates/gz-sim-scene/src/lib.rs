@@ -341,6 +341,16 @@ impl From<Transform> for WorldPose {
 
 impl WorldPose {
     fn compose(self, child: Self) -> Self {
+        // Translating model, link and visual frames are common in large fleets.
+        // Their composed translation requires no quaternion arithmetic.
+        if self.rotation == [0., 0., 0., 1.] && child.rotation == [0., 0., 0., 1.] {
+            return Self {
+                translation: (DVec3::from_array(self.translation)
+                    + DVec3::from_array(child.translation))
+                .to_array(),
+                rotation: [0., 0., 0., 1.],
+            };
+        }
         let rotation = DQuat::from_array(self.rotation);
         let child_rotation = DQuat::from_array(child.rotation);
         let mut composed = rotation * child_rotation;
@@ -2357,11 +2367,18 @@ fn sync_local_poses(
     mut nodes: Query<(&ChildOf, &WorldPose, &mut LocalPose), PoseUpdateFilter>,
 ) {
     let update = |(parent, world, mut local): (&ChildOf, &WorldPose, Mut<LocalPose>)| {
-        local.0 = parents
-            .get(parent.parent())
-            .expect("scene owns hierarchy")
-            .inverse()
-            .compose(*world);
+        let parent_pose = parents.get(parent.parent()).expect("scene owns hierarchy");
+        local.0 = if parent_pose.rotation == [0., 0., 0., 1.] && world.rotation == [0., 0., 0., 1.]
+        {
+            WorldPose {
+                translation: (DVec3::from_array(world.translation)
+                    - DVec3::from_array(parent_pose.translation))
+                .to_array(),
+                rotation: [0., 0., 0., 1.],
+            }
+        } else {
+            parent_pose.inverse().compose(*world)
+        };
     };
     if parallel_pose_updates(nodes.count()) {
         nodes
