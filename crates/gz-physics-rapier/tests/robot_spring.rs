@@ -497,3 +497,130 @@ fn speed_stop_construction_is_atomic_recoverable_and_cleans_up_all_reference_bod
     assert!(b.remove(c));
     step(&mut b, 1);
 }
+
+#[test]
+fn independent_wrist_motors_react_on_a_free_parent_and_clear_one_axis_at_a_time() {
+    use gz_physics::JointId;
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let p = sphere(&mut b, [0.; 3]);
+    let child = sphere(&mut b, [0., 0.25, 0.]);
+    let j = b
+        .add_robot_joint(
+            Some(p),
+            child,
+            [0., 0.125, 0.],
+            RobotJoint::Universal {
+                axes: [[1., 0., 0.], [0., 1., 0.]],
+                limits: [None; 2],
+                effort_limits: [1., 2.],
+            },
+        )
+        .unwrap();
+    let m = JointVelocityMotor {
+        target_velocity: 0.75,
+        max_force: 1.,
+    };
+    for (id, axis, motor, err) in [
+        (
+            JointId::from_raw(100),
+            1,
+            Some(m),
+            PhysicsError::MissingJoint,
+        ),
+        (j, 2, None, PhysicsError::InvalidJoint),
+        (
+            j,
+            0,
+            Some(JointVelocityMotor {
+                max_force: 1.1,
+                ..m
+            }),
+            PhysicsError::InvalidValue,
+        ),
+        (
+            j,
+            1,
+            Some(JointVelocityMotor {
+                target_velocity: f64::NAN,
+                ..m
+            }),
+            PhysicsError::InvalidValue,
+        ),
+    ] {
+        assert_eq!(b.set_universal_motor(id, axis, motor), Err(err));
+    }
+    b.set_universal_motor(
+        j,
+        0,
+        Some(JointVelocityMotor {
+            target_velocity: 0.,
+            ..m
+        }),
+    )
+    .unwrap();
+    b.set_universal_motor(j, 1, Some(m)).unwrap();
+    step(&mut b, 300);
+    let parent = b.state(p).unwrap().angular_velocity;
+    let tip = b.state(child).unwrap().angular_velocity;
+    assert!((tip[1] - parent[1] - 0.75).abs() < 1e-6 && (tip[1] + parent[1]).abs() < 1e-6);
+    b.set_universal_motor(j, 0, None).unwrap();
+    b.set_universal_motor(
+        j,
+        1,
+        Some(JointVelocityMotor {
+            target_velocity: -0.4,
+            ..m
+        }),
+    )
+    .unwrap();
+    step(&mut b, 200);
+    assert!((b.universal_joint_state(j).unwrap().velocity[1] + 0.4).abs() < 1e-6);
+    assert!(b.remove_joint(j));
+    step(&mut b, 1);
+}
+
+#[test]
+fn wrist_motors_preserve_failed_steps_and_retire_on_endpoint_removal() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let child = sphere(&mut b, [0.; 3]);
+    let motion = RobotJoint::Universal {
+        axes: [[1., 0., 0.], [0., 1., 0.]],
+        limits: [None; 2],
+        effort_limits: [f64::INFINITY; 2],
+    };
+    let wrist = b.add_robot_joint(None, child, [0.; 3], motion).unwrap();
+    let slider = sphere(&mut b, [0., 0., 2.]);
+    let j = b
+        .add_robot_joint(None, slider, [0., 0., 2.], SLIDE)
+        .unwrap();
+    assert_eq!(
+        b.validate_universal_motor(j, 0, None),
+        Err(PhysicsError::InvalidJoint)
+    );
+    b.set_universal_motor(
+        wrist,
+        1,
+        Some(JointVelocityMotor {
+            target_velocity: f64::MAX,
+            max_force: 1.,
+        }),
+    )
+    .unwrap();
+    assert_eq!(
+        b.step(Duration::from_secs(2)),
+        Err(PhysicsError::InvalidValue)
+    );
+    b.set_universal_motor(wrist, 1, None).unwrap();
+    b.set_universal_motor(
+        wrist,
+        0,
+        Some(JointVelocityMotor {
+            target_velocity: 0.1,
+            max_force: 1.,
+        }),
+    )
+    .unwrap();
+    step(&mut b, 1);
+    assert!(b.remove(child));
+    step(&mut b, 1);
+}

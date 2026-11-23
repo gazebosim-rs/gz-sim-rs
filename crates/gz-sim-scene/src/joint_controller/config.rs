@@ -1,16 +1,17 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-//! Closed native velocity/ABS-position plugin records for one revolute chain.
+//! Native velocity/ABS-position plugin records for revolute chains, screws and wrists.
 //! Field meanings and default topics follow gz-sim 71c60db3 JointController.cc
-//! and JointPositionController.cc. PID, actuator and multi-DOF modes are deferred.
+//! and JointPositionController.cc. A wrist position plug-in selects one authored axis.
 use crate::{LoadError, require};
 use sdformat::{JointKind, Model, Plugin, Transform};
 use std::collections::{BTreeMap, BTreeSet};
 
-use super::{JointControllerConfiguration, JointControllerMode};
+use super::{Actuation, JointControllerConfiguration, JointControllerMode};
 
 #[derive(Clone)]
 pub(super) struct Parameters {
+    pub actuation: Actuation,
     pub joint: String,
     pub max_velocity: f64,
     pub max_force: f64,
@@ -208,7 +209,21 @@ pub(super) fn parse(model: &Model) -> Result<Option<Vec<Parameters>>, LoadError>
         &model.scoped_name,
         "joint controller count",
     )?;
-    chain(model)?;
+    let robot = model.joints.iter().any(|j| {
+        matches!(
+            j.kind,
+            JointKind::Universal | JointKind::Revolute2 | JointKind::Screw
+        )
+    });
+    if robot {
+        require(
+            model.raw_namespace.is_none(),
+            &model.scoped_name,
+            "joint controller model domain",
+        )?;
+    } else {
+        chain(model)?;
+    }
     let mut names = BTreeSet::new();
     let mut topics = BTreeSet::new();
     let mut result = Vec::with_capacity(1 + usize::from(second.is_some()));
@@ -233,10 +248,23 @@ pub(super) fn parse(model: &Model) -> Result<Option<Vec<Parameters>>, LoadError>
             &model.scoped_name,
             "overlapping joint controllers",
         )?;
-        let axis = joint
-            .axis
-            .as_ref()
-            .expect("chain admission requires a revolute axis");
+        let index = fields
+            .get("joint_index")
+            .map_or(Ok(0), |v| v.parse::<usize>())
+            .map_err(|_| error(model, "joint controller mode"))?;
+        let actuation = match (&joint.kind, index) {
+            (JointKind::Screw, 0) => Actuation::Screw,
+            (JointKind::Universal | JointKind::Revolute2, 0 | 1) => Actuation::Universal(index),
+            (JointKind::Revolute, 0) if !robot => Actuation::Reduced,
+            _ => return Err(error(model, "joint controller mode")),
+        };
+        let axis = (if index == 0 {
+            &joint.axis
+        } else {
+            &joint.axis2
+        })
+        .as_ref()
+        .ok_or_else(|| error(model, "joint controller frames"))?;
         require(
             [axis.effort, axis.velocity]
                 .into_iter()
@@ -266,10 +294,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Vec<Parameters>>, LoadError>
                 require(
                     fields
                         .get("use_velocity_commands")
-                        .is_some_and(|value| matches!(value.as_str(), "true" | "1"))
-                        && fields
-                            .get("joint_index")
-                            .is_none_or(|value| value.parse::<u32>() == Ok(0)),
+                        .is_some_and(|value| matches!(value.as_str(), "true" | "1")),
                     &model.scoped_name,
                     "joint controller mode",
                 )?;
@@ -278,7 +303,11 @@ pub(super) fn parse(model: &Model) -> Result<Option<Vec<Parameters>>, LoadError>
                 require(cap > 0.0, &model.scoped_name, "joint controller limits")?;
                 let initial = number(&fields, "initial_position", Some(0.0))
                     .map_err(|()| error(model, "initial joint controller target"))?;
-                (initial, cap.min(axis.velocity), "0/cmd_pos")
+                (
+                    initial,
+                    cap.min(axis.velocity),
+                    if index == 0 { "0/cmd_pos" } else { "1/cmd_pos" },
+                )
             }
         };
         let topic = fields
@@ -291,6 +320,7 @@ pub(super) fn parse(model: &Model) -> Result<Option<Vec<Parameters>>, LoadError>
             "joint controller topics",
         )?;
         result.push(Parameters {
+            actuation,
             joint: name.clone(),
             max_velocity,
             max_force: axis.effort,

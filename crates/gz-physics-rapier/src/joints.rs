@@ -24,6 +24,7 @@ mod parked_robot;
 mod robot;
 mod screw;
 mod universal;
+mod universal_motor;
 mod welded;
 pub use robot::{BallJointState, RobotJoint};
 pub use universal::UniversalJointState;
@@ -203,6 +204,7 @@ pub(super) struct Joints {
     efforts: BTreeMap<JointId, f64>,
     universal_efforts: BTreeMap<JointId, [f64; 2]>,
     universal_springs: BTreeMap<JointId, universal::SpringRows>,
+    universal_motors: BTreeMap<(JointId, usize), ImpulseJointHandle>,
     speed_caps: BTreeMap<JointId, speed::SpeedCaps>,
     wide_universal: std::collections::BTreeSet<JointId>,
     screws: BTreeMap<JointId, ImpulseJointHandle>,
@@ -219,6 +221,7 @@ impl Default for Joints {
             efforts: BTreeMap::new(),
             universal_efforts: BTreeMap::new(),
             universal_springs: BTreeMap::new(),
+            universal_motors: BTreeMap::new(),
             speed_caps: BTreeMap::new(),
             wide_universal: Default::default(),
             screws: BTreeMap::new(),
@@ -509,6 +512,7 @@ impl Joints {
                 .collect(),
             records,
             universal_springs,
+            universal_motors: BTreeMap::new(),
             speed_caps,
             screws,
             efforts: BTreeMap::new(),
@@ -544,6 +548,8 @@ impl Joints {
                 cap.remove(world);
             }
         }
+        self.universal_motors
+            .retain(|(id, _), _| self.records.contains_key(id));
         self.universal_springs
             .retain(|id, _| self.records.contains_key(id));
         self.screws.retain(|id, _| self.records.contains_key(id));
@@ -907,6 +913,11 @@ impl RapierBackend {
         if let Some(caps) = self.joints.speed_caps.remove(&id) {
             for cap in caps.into_iter().flatten() {
                 cap.remove(&mut self.world);
+            }
+        }
+        for axis in 0..2 {
+            if let Some(row) = self.joints.universal_motors.remove(&(id, axis)) {
+                self.world.remove_impulse_joint(row);
             }
         }
         if let Some(rows) = self.joints.universal_springs.remove(&id) {

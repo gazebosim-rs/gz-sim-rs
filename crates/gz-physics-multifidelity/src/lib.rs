@@ -1560,6 +1560,27 @@ impl MultiFidelityBackend {
         self.solver.universal_joint_state(id)
     }
 
+    /// Validate the target and effort bound of a selected universal axis.
+    pub fn validate_universal_motor(
+        &self,
+        id: JointId,
+        axis: usize,
+        motor: Option<JointVelocityMotor>,
+    ) -> Result<(), PhysicsError> {
+        self.solver
+            .validate_universal_motor(id, axis, motor)
+            .map_err(engine_error)
+    }
+    pub fn set_universal_motor(
+        &mut self,
+        id: JointId,
+        axis: usize,
+        motor: Option<JointVelocityMotor>,
+    ) -> Result<(), PhysicsError> {
+        self.solver
+            .set_universal_motor(id, axis, motor)
+            .map_err(engine_error)
+    }
     /// Accumulate one step of torque around each moving universal axis.
     pub fn add_universal_effort(
         &mut self,

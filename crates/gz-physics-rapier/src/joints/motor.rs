@@ -76,6 +76,21 @@ impl Joints {
         {
             return Err(PhysicsError::InvalidValue);
         }
+        for (&(_, axis), handle) in &self.universal_motors {
+            let motor = &world
+                .impulse_joints
+                .get(*handle)
+                .expect("registered wrist motor")
+                .data
+                .motors[if axis == 0 {
+                JointAxis::AngX
+            } else {
+                JointAxis::AngY
+            } as usize];
+            if !(motor.target_vel * dt).is_finite() || !(motor.max_force * dt).is_finite() {
+                return Err(PhysicsError::InvalidValue);
+            }
+        }
         for joint in self.records.values() {
             if let Some(motor) = data(world, joint.handle).motor(joint.initial.motor_axis())
                 && (!(motor.target_vel * dt).is_finite() || !(motor.max_force * dt).is_finite())

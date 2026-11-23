@@ -17,6 +17,12 @@ pub(super) struct UniversalSettings {
     effort_limits: [f64; 2],
 }
 
+impl UniversalSettings {
+    pub(super) fn effort_limit(self, axis: usize) -> Option<f64> {
+        self.effort_limits.get(axis).copied()
+    }
+}
+
 pub(super) fn configuration(
     axes: [[f64; 3]; 2],
     limits: [Option<[f64; 2]>; 2],
@@ -68,6 +74,30 @@ fn witness(mut frame: Pose, direction: Vector) -> Pose {
 pub(super) type SpringRows = [Option<(RobotSpring, ImpulseJointHandle)>; 2];
 
 impl Construction {
+    pub(super) fn universal_axis_row(
+        self,
+        parent: RigidBodyHandle,
+        child: RigidBodyHandle,
+        index: usize,
+    ) -> (
+        RigidBodyHandle,
+        RigidBodyHandle,
+        GenericJointBuilder,
+        JointAxis,
+    ) {
+        // Rapier takes each motor axis from its first body. The second
+        // universal axis follows the child through rotation about the first.
+        let (first, second, a, b, axis) = if index == 0 {
+            (parent, child, self.frame1, self.frame2, JointAxis::AngX)
+        } else {
+            (child, parent, self.frame2, self.frame1, JointAxis::AngY)
+        };
+        let row = GenericJointBuilder::new(JointAxesMask::empty())
+            .local_frame1(a)
+            .local_frame2(b)
+            .contacts_enabled(false);
+        (first, second, row, axis)
+    }
     pub(super) fn insert_universal_springs(
         self,
         world: &mut PhysicsWorld,
@@ -77,17 +107,8 @@ impl Construction {
     ) -> SpringRows {
         std::array::from_fn(|i| {
             let law = laws[i]?;
-            // Rapier takes each motor axis from its first body. The second
-            // universal axis follows the child through rotation about the first.
-            let (first, second, a, b, axis) = if i == 0 {
-                (parent, child, self.frame1, self.frame2, JointAxis::AngX)
-            } else {
-                (child, parent, self.frame2, self.frame1, JointAxis::AngY)
-            };
-            let row = GenericJointBuilder::new(JointAxesMask::empty())
-                .local_frame1(a)
-                .local_frame2(b)
-                .contacts_enabled(false)
+            let (first, second, row, axis) = self.universal_axis_row(parent, child, i);
+            let row = row
                 .motor_model(axis, MotorModel::ForceBased)
                 .motor_velocity(axis, 0., law.damping);
             Some((law, world.insert_impulse_joint(first, second, row)))

@@ -226,18 +226,17 @@ pub(super) fn validate_model(
             joint.kind,
             sdformat::JointKind::Universal | sdformat::JointKind::Revolute2
         ) {
-            require(
-                !actuated.contains(&joint.name.as_str()),
-                &name,
-                "scalar controller on universal joint",
-            )?;
             validate_axis(&joint.kind, joint.axis2.as_ref(), &name, false, true, robot)?;
         }
         bounded |= validate_axis(
             &joint.kind,
             joint.axis.as_ref(),
             &name,
-            actuated.contains(&joint.name.as_str()),
+            actuated.contains(&joint.name.as_str())
+                && !matches!(
+                    joint.kind,
+                    sdformat::JointKind::Universal | sdformat::JointKind::Revolute2
+                ),
             engine == Some("multifidelity"),
             robot
                 && matches!(
