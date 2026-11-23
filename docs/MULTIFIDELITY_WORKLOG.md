@@ -3,7 +3,7 @@
 
 # Multi-fidelity physics worklog
 
-The arm now closes its gripper using measured force between the folded layers. Both tested sheets stayed in the jaws under the same sideways pull. [Sideways pull](#2026-11-23--sideways-pull-on-a-force-controlled-folded-sheet)
+The local serial arm now lifts a free 200 g parcel, and a tactile controller can rescue a folded sheet as it slips. An ordinary SDF tabletop supports cloth and lets it fall off the edge. [Serial gripper](measurements/local-manipulation/serial-grasp.md) · [Folded-sheet recovery](measurements/local-manipulation/fold-recovery-rescue.md) · [Finite tabletop](measurements/local-manipulation/static-soft-bench.md)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
@@ -1960,3 +1960,12 @@ At 1.14 N a five-column sheet escaped the unguarded fingers at 173 ms. Sensing s
 All twelve canonical native runs passed the archive, continuous-trace and browser checks. The instrumented and ordinary runs matched for 85 files, including all replay bytes. All 70 example tests passed. Changed-line/region coverage was 252/254 and 507/523 in the example crate, and 21/21 for both in the scene supervisor. Continued integration after escape reproduces an unresolved cloth–plane impact. Separate trials are testing contact impulses at that landing and a bounded SDF bench.
 
 The serial lead screw and controlled universal wrist also ran with a moving-parent speed governor. The free joint transmitted equal and opposite reaction momentum and the loaded robot reset reproducibly, with measured pivot error below 0.10 µm. Optional moving-wrist caps increased median p95 from 28.64 to 71.74 µs. Forty-three focused tests passed, with 249/253 changed lines and 428/435 regions covered. [Moving-parent qualification and replay](measurements/local-manipulation/moving-screw-wrist.md)
+
+
+## 2026-11-23 — Serial pickup, finite support and fleet timing
+
+A lead screw and a controlled universal wrist lifted a free 200 g parcel by 126.07 mm. During the final 1,800 steps, both pads carried it and the tray carried no load. The open-jaw and zero-friction controls left the parcel on the tray. All three trials repeated after reset. The qualification passed 17 tests, covered all 11 changed production lines and 17 regions, and replayed 181 native frames per trial. [Measurements and three gz-web-rs runs](measurements/local-manipulation/serial-grasp.md)
+
+An ordinary SDF box now supports soft particles on its finite faces, rounded edges and corners. A 36 g sheet rested on the tabletop at 0.35316 N. A second sheet slid over the edge, lost its last contact at 75 ms and fell below the top. Eight focused tests passed and the changes covered 81/81 lines and 157/158 regions. Contacts entirely inside a mesh triangle without a particle touching the box remain open. [Finite support and replay](measurements/local-manipulation/static-soft-bench.md)
+
+Three instrumented 100,000-deck runs timed the native step separately from four pose publication systems and IMU sampling. The native solver was the largest individual stage, and the four pose systems together cost more than the native step in all three runs. A full-observation timing includes both. [Measured stage costs](measurements/local-manipulation/fleet-publication-stages.md)
