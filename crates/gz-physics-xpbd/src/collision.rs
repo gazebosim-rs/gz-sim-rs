@@ -407,6 +407,7 @@ struct Contact {
 
 #[derive(Clone, Default)]
 pub(super) struct Contacts {
+    pub(super) pad_samples: Vec<crate::PadSample>,
     pub(super) pad_loads: Option<Box<super::pad_loads::PadLoads>>,
     friction: f64,
     items: Vec<Contact>,
@@ -587,10 +588,20 @@ fn project_points<const SPATIAL: bool>(
                     contacts.record(i, j, &hit, normal_impulse, remaining);
                 }
             }
-            if elastic {
-                contacts.project_compliant((i, p), x, boundaries, reactions, time, &mut active)?;
+            if elastic && contacts.pad_samples.is_empty() {
+                contacts.project_compliant(
+                    (i, p, None),
+                    x,
+                    boundaries,
+                    reactions,
+                    time,
+                    &mut active,
+                )?;
             }
         }
+    }
+    if elastic {
+        contacts.project_pad_samples(x, particles, boundaries, reactions, time, &mut active)?;
     }
     Ok(())
 }
@@ -605,11 +616,11 @@ pub(super) fn finish_contacts(
     h: f64,
 ) -> Result<(), XpbdError> {
     for c in &contacts.items {
-        let p = &mut particles[c.particle];
         let b = &mut boundaries[c.boundary];
         if b.normal_compliance > 0. {
             continue;
         }
+        let p = &mut particles[c.particle];
         if b.receiver.is_some() {
             finish_receiver(c, x[c.particle], p, b, &mut reactions[c.boundary], mu, h)?;
             continue;

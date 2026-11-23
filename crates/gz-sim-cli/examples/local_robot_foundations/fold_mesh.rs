@@ -18,12 +18,12 @@ use std::time::Duration;
 const ROWS: usize = 4;
 const COARSE: usize = 3;
 const DT: f64 = 0.001;
-const SUBSTEPS: u32 = 64;
-const ITERATIONS: u32 = 48;
+pub(super) const SUBSTEPS: u32 = 64;
+pub(super) const ITERATIONS: u32 = 48;
 
 pub(super) struct Anchor {
-    loaded: Vec<Particle>,
-    half: [DVec3; 2],
+    pub(super) loaded: Vec<Particle>,
+    pub(super) half: [DVec3; 2],
 }
 impl Anchor {
     pub(super) fn capture(sim: &Simulation) -> Result<Self> {
@@ -125,7 +125,7 @@ fn hinge_law(edge: [usize; 4], columns: usize) -> f64 {
     BEND / ratio * (cross.powi(2) + along.powi(2)) / ((cross / ratio).powi(2) + along.powi(2))
 }
 
-fn mesh(anchor: &Anchor, columns: usize) -> Result<SoftBody> {
+pub(super) fn mesh(anchor: &Anchor, columns: usize) -> Result<SoftBody> {
     let loaded = resample(&anchor.loaded, columns);
     let rest = rest_grid(&anchor.loaded, columns);
     let cfg = SolverConfig {
@@ -149,7 +149,7 @@ fn mesh(anchor: &Anchor, columns: usize) -> Result<SoftBody> {
     .with_pad_loads())
 }
 
-fn face_nodes(
+pub(super) fn face_nodes(
     particles: &[Particle],
     columns: usize,
     jaws: &[BodyState; 2],
@@ -170,7 +170,7 @@ fn face_nodes(
             .count()
     })
 }
-fn advance(
+pub(super) fn advance(
     body: &mut SoftBody,
     half: [DVec3; 2],
     compliance: [f64; 2],
@@ -210,7 +210,7 @@ fn advance(
 // Closest surface-to-surface clearance between the two panel meshes,
 // excluding the two rows' shared crown strip. Triangles span each complete
 // panel, including its free edges. This is sampled at 1 ms endpoints.
-fn panel_gap(points: &[Particle], columns: usize) -> Result<f64> {
+pub(super) fn panel_gap(points: &[Particle], columns: usize) -> Result<f64> {
     let mut minimum = f64::INFINITY;
     let panel = |row: usize| {
         let mut faces = Vec::with_capacity(2 * (columns - 1));
@@ -233,17 +233,23 @@ fn panel_gap(points: &[Particle], columns: usize) -> Result<f64> {
     Ok(minimum - 2. * RADIUS)
 }
 #[derive(Serialize, Default)]
-struct Loads {
-    mean_self_contact_n: f64,
-    mean_closest_panel_skin_gap_m: f64,
-    mean_cross_panel_n: f64,
+pub(super) struct Loads {
+    pub(super) mean_self_contact_n: f64,
+    pub(super) mean_closest_panel_skin_gap_m: f64,
+    pub(super) mean_cross_panel_n: f64,
     cross_panel_width_n: [f64; 3],
-    mean_jaw_squeeze_n: [f64; 2],
-    mean_jaw_up_n: [f64; 2],
-    mean_bench_up_n: f64,
+    pub(super) mean_jaw_squeeze_n: [f64; 2],
+    pub(super) mean_jaw_up_n: [f64; 2],
+    pub(super) mean_bench_up_n: f64,
 }
 impl Loads {
-    fn add(&mut self, body: &SoftBody, columns: usize, orientations: &[BodyState; 2]) {
+    pub(super) fn add(
+        &mut self,
+        body: &SoftBody,
+        columns: usize,
+        orientations: &[BodyState; 2],
+    ) -> f64 {
+        let mut cross_impulse = 0.;
         self.mean_self_contact_n += body.last_self_contact_impulse().normal;
         for load in body.last_self_contact_loads() {
             let (side_a, side_b) = load.particles.split_at(load.first_side_len);
@@ -254,6 +260,7 @@ impl Loads {
                 continue;
             }
             self.mean_cross_panel_n += load.normal_ns;
+            cross_impulse += load.normal_ns;
             for (&i, &n) in load.particles.iter().zip(&load.particle_normal_ns) {
                 // Both incident sides carry the same contact once. Distribute
                 // the nodal shares onto the three original material columns.
@@ -272,8 +279,9 @@ impl Loads {
             self.mean_jaw_up_n[j] -= impulse.z;
         }
         self.mean_bench_up_n -= reactions[2].linear[2];
+        cross_impulse
     }
-    fn average(&mut self, seconds: f64) {
+    pub(super) fn average(&mut self, seconds: f64) {
         self.mean_self_contact_n /= seconds;
         self.mean_cross_panel_n /= seconds;
         self.mean_bench_up_n /= seconds;

@@ -73,7 +73,7 @@ pub(super) fn seed(i: usize, flare: f64) -> DVec3 {
 fn panel(i: usize) -> usize {
     usize::from(i / COLUMNS >= ROWS / 2)
 }
-fn name(i: usize) -> String {
+pub(super) fn name(i: usize) -> String {
     format!("default::source::body::sheet_{i}")
 }
 fn scene(robot: &str, c: Case, flare: f64) -> Result<String> {
@@ -85,6 +85,18 @@ pub(super) fn scene_with_loads(
     c: Case,
     flare: f64,
     self_contact_loads: bool,
+) -> Result<String> {
+    scene_with_marker_grid(robot, c, flare, self_contact_loads, COLUMNS)
+}
+
+// Extra visuals are passive. Material bindings still identify the twelve original
+// particles at their shared locations, independent of the presentation grid.
+pub(super) fn scene_with_marker_grid(
+    robot: &str,
+    c: Case,
+    flare: f64,
+    self_contact_loads: bool,
+    columns: usize,
 ) -> Result<String> {
     let (arm, rest) = robot
         .split_once("<model name=\"parcel\">")
@@ -99,11 +111,6 @@ pub(super) fn scene_with_loads(
     let mut bindings = String::new();
     for i in 0..COUNT {
         let p = seed(i, flare);
-        let rgb = if panel(i) == 0 {
-            "1 0.49 0.06"
-        } else {
-            "0.05 0.80 0.90"
-        };
         writeln!(
             particles,
             "<particle position=\"{} {} {}\" mass=\"{}\"/>",
@@ -113,13 +120,26 @@ pub(super) fn scene_with_loads(
             NODE_MASS * c.mass_scale
         )
         .unwrap();
-        writeln!(xml,"<visual name=\"sheet_{i}\"><pose>{} {} {} 0 0 0</pose><geometry><sphere><radius>{RADIUS}</radius></sphere></geometry><material><diffuse>{rgb} 1</diffuse></material></visual>",p.x-0.32,p.y,p.z-0.06).unwrap();
+
         writeln!(
             bindings,
             "<particle_visual material=\"sheet\" particle=\"{i}\" visual=\"{}\"/>",
-            name(i)
+            name((i / COLUMNS) * columns + (i % COLUMNS) * ((columns - 1) / (COLUMNS - 1)))
         )
         .unwrap();
+    }
+    for i in 0..ROWS * columns {
+        let row = i / columns;
+        let u = (i % columns) as f64 * (COLUMNS - 1) as f64 / (columns - 1) as f64;
+        let a = row * COLUMNS + u.floor() as usize;
+        let b = (a + 1).min((row + 1) * COLUMNS - 1);
+        let p = seed(a, flare).lerp(seed(b, flare), u.fract());
+        let rgb = if row < ROWS / 2 {
+            "1 0.49 0.06"
+        } else {
+            "0.05 0.80 0.90"
+        };
+        writeln!(xml,"<visual name=\"sheet_{i}\"><pose>{} {} {} 0 0 0</pose><geometry><sphere><radius>{RADIUS}</radius></sphere></geometry><material><diffuse>{rgb} 1</diffuse></material></visual>",p.x-0.32,p.y,p.z-0.06).unwrap();
     }
     let witness_attr = if self_contact_loads {
         " self_contact_loads=\"true\""

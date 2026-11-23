@@ -22,6 +22,24 @@ pub(crate) struct PadLoads {
 }
 
 impl PadLoads {
+    pub fn react_at(
+        &mut self,
+        boundary: usize,
+        index: usize,
+        sample: Option<crate::PadSample>,
+        normal: DVec3,
+        tangent: DVec3,
+    ) -> Result<(), XpbdError> {
+        if let Some(sample) = sample {
+            for (node, w) in sample.particles.into_iter().zip(sample.weights) {
+                self.react(boundary, node, w * normal, w * tangent)?;
+            }
+            Ok(())
+        } else {
+            self.react(boundary, index, normal, tangent)
+        }
+    }
+
     pub fn begin(&mut self) {
         self.pending.clear();
     }

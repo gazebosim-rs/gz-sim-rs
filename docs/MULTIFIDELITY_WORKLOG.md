@@ -3,7 +3,7 @@
 
 # Multi-fidelity physics worklog
 
-The articulated gripper holds a folded sheet while its material resolution changes. The two finer meshes carry the weight through the jaws and leave a micrometre-scale gap between the layers. [Latest measurements and replays](#2026-11-23--matched-fold-hold)
+The gripper can now press on material points inside cloth triangles. During the loaded fold, using a fixed contact patch substantially reduced the coarse mesh's force between layers. Both finer meshes still carried the sheet's weight through the jaws with a measurable gap between the layers. [Jaw pressure comparison](#2026-11-23--jaw-pressure-across-the-cloth-surface)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
@@ -1854,3 +1854,26 @@ All 154 XPBD package tests passed. The signed impulses on one triangle also matc
 LLVM exercised 781/794 changed simulator lines (98.36%) and 1,366/1,422 changed simulator code regions (96.06%). All three affected crates exceeded 95% for both measures on their changes. The wider XPBD check covered 8,964/9,358 distinct source lines (95.79%) and 18,096/18,809 regions (96.21%). The separate Rust plotting and verification code covered 349/359 lines and 707/739 regions. The full workspace release gate remains separate. [Coverage and browser checks](measurements/local-manipulation/fold-hold-coverage.json)
 
 Next, separate the effect of jaw contact sampled at cloth particles from the effect of material stiffness across the width. Use the same jaw path with a prescribed contact patch, compare against the existing particle pads, and measure the gap and load on both sides before setting a pressure target.
+
+## 2026-11-23 — Jaw pressure across the cloth surface
+
+The local XPBD solver accepts weighted points on cloth triangles for contact with compliant prescribed cuboids. It spreads the normal and friction impulses to the triangle vertices and reports the opposite jaw force and torque. Fully supported samples can carry load even when all their vertices are pinned. The Bevy scene loader accepts the same geometry through the `<pad_sample>` element. Tests cover off-vertex contact, flat-pad calibration, momentum balance, sliding on pinned cloth, refused steps, and an authored robot scene that reproduces its measured reaction after reset. [Run the comparison or author a patch](LOCAL_RIGID_ROBOT.md#compare-jaw-contact-across-the-cloth-surface)
+
+The experiment repeated the preceding 300 ms hold, starting with the same loaded sheet at 1.650 s. It compared particle pads with eight equal-area material points on each 85 × 43 mm outer panel patch. All six runs used the same 301 measured jaw poses, friction, mass, material laws, and 64 × 48 solver settings. The contacting samples had the same total flat-pad stiffness at equal indentation. Added vertices interpolate a slightly warped surface, so common material coordinates can differ by up to 0.20 µm in their initial world positions across mesh widths. The crown and shoulders are outside this prescribed flat patch. The jaw forces measured here are reactions along a prescribed trajectory.
+
+| Contact model | Points across width | Mean layer force (mN) | Ticks carrying layer force | Mean / minimum gap (µm) | Material step p95 (ms) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Particle | 3 | 17.99323 | 300/300 | 0.0001991 / 1.16453e-05 | 80.08 |
+| Patch | 3 | 0.01907 | 2/300 | 1.29386 / 0.131916 | 55.95 |
+| Particle | 5 | 0.00000 | 0/300 | 3.90619 / 3.10405 | 70.69 |
+| Patch | 5 | 0.00000 | 0/300 | 4.2124 / 3.33851 | 74.43 |
+| Particle | 7 | 0.00000 | 0/300 | 4.87238 / 3.95224 | 141.38 |
+| Patch | 7 | 0.00000 | 0/300 | 4.69481 / 3.80044 | 148.29 |
+
+On the coarse mesh, the particle pads left the two layers pressing on each other for the entire hold. The patch produced 4.147 mN on the first tick, 1.574 mN on the third, and zero for the remaining 297 ms. The two finer meshes recorded zero interlayer impulse with either contact model. Each jaw pressed on its own panel. Together the jaws supplied 82.408 mN of vertical support in all six runs, within 0.006% of the 82.404 mN gravitational load. The bench supplied zero. The measured gap is the closest distance between the panel skins at each 1 ms endpoint. It can remain positive at those endpoints while the solver records a brief contact within a tick. All cloth triangles stayed at least 10.67 mm clear of the solid jaw planes at the sampled endpoints. The timing measures one material solve under a shared host workload and excludes trajectory generation, measurement and visualization. [Measured data](measurements/local-manipulation/fold-patch.json) · [Force chart](measurements/local-manipulation/fold-patch-forces.svg)
+
+All 159 XPBD tests, 97 local scene regressions and 45 robot example tests passed. The developer checkout independently reproduced the same 1,800 force measurements and all six native replays. gz-web-rs verified 78 frames, 2,574 poses and shapes, 1,560 particle positions, and rewind to the loaded pose at 1.650 s.
+
+LLVM covered 494/500 changed executable lines (98.80%) and 973/1,008 changed code regions (96.53%). Each affected crate exceeded 95% on both measures for its changes. The broader XPBD source check reached 9,142/9,511 lines (96.12%) and 18,387/19,059 regions (96.47%). The separate Rust chart and its tests covered 228/231 lines and 431/449 regions. [Coverage and viewer checks](measurements/local-manipulation/fold-patch-coverage.json)
+
+Next, use the authored patch in a freely responding gripper, advance the jaws in small increments, and measure the closure at which both finer meshes first sustain pressure between the layers.

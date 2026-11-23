@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
-use gz_physics_xpbd::{Particle, SolverConfig};
+use gz_physics_xpbd::{PadSample, Particle, SolverConfig};
 use roxmltree::Node;
 use std::str::FromStr;
 
@@ -53,6 +53,26 @@ fn vector(value: &str) -> Result<[f64; 3], String> {
     Ok(values)
 }
 
+fn pad_sample(node: Node<'_, '_>) -> Result<PadSample, String> {
+    fields(node, &["particles", "weights", "stiffness_weight"], false)?;
+    let mut ids = attribute(node, "particles")?.split_whitespace();
+    let mut particles = [0; 3];
+    for id in &mut particles {
+        *id = ids
+            .next()
+            .and_then(|v| v.parse().ok())
+            .ok_or("pad_sample requires three unsigned particle indices")?;
+    }
+    if ids.next().is_some() {
+        return Err("pad_sample requires exactly three particle indices".into());
+    }
+    Ok(PadSample {
+        particles,
+        weights: vector(attribute(node, "weights")?)?,
+        stiffness_weight: number(node, "stiffness_weight")?,
+    })
+}
+
 fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<SoftBody, String> {
     let cloth = node.has_tag_name("cloth");
     let common = [
@@ -91,9 +111,10 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
     if u128::from(config.substeps) > dt.as_nanos() {
         return Err("soft substeps exceed public step in nanoseconds".into());
     }
+    let is_sample = |n: Node<'_, '_>| cloth && n.has_tag_name("pad_sample");
     let particles = node
         .children()
-        .filter(Node::is_element)
+        .filter(|n| n.is_element() && !is_sample(*n))
         .map(|n| {
             if !n.has_tag_name("particle") {
                 return Err(format!("unexpected <{}>", n.tag_name().name()));
@@ -130,6 +151,17 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
         SoftBody::cable(particles, stretch, bend, config)
     }
     .map_err(|e| e.to_string())?;
+    let samples = node
+        .children()
+        .filter(|n| is_sample(*n))
+        .map(pad_sample)
+        .collect::<Result<Vec<_>, _>>()?;
+    let body = if samples.is_empty() {
+        body
+    } else {
+        body.with_pad_samples(samples)
+            .map_err(|e| format!("invalid pad_sample: {e}"))?
+    };
     let body = match node.attribute("pad_loads") {
         None | Some("false") => body,
         Some("true") => body.with_pad_loads(),

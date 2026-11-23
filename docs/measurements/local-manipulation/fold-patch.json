@@ -1,0 +1,406 @@
+{
+  "drive": "Identical loaded particle states and every native jaw endpoint state checked across the three presentation grids. Both contact laws start with cold material histories and use the same prescribed jaw poses.",
+  "dt_s": 0.001,
+  "material_substeps": 64,
+  "patch_height_m": 0.04299999999999998,
+  "patch_width_m": 0.085,
+  "quadrature": "Material-attached midpoint cells on the two vertical panels over the flat jaw width and full panel height. Each panel has total stiffness weight two. Both cuboids test every point. The crown and rounded shoulders are outside the prescribed patch.",
+  "sites": [
+    {
+      "height_m": 0.010749999999999996,
+      "panel": 0,
+      "stiffness_weight": 0.25,
+      "width_m": -0.031875
+    },
+    {
+      "height_m": 0.010749999999999996,
+      "panel": 0,
+      "stiffness_weight": 0.25,
+      "width_m": -0.010625
+    },
+    {
+      "height_m": 0.010749999999999996,
+      "panel": 0,
+      "stiffness_weight": 0.25,
+      "width_m": 0.010625
+    },
+    {
+      "height_m": 0.010749999999999996,
+      "panel": 0,
+      "stiffness_weight": 0.25,
+      "width_m": 0.031875
+    },
+    {
+      "height_m": 0.03224999999999999,
+      "panel": 0,
+      "stiffness_weight": 0.25,
+      "width_m": -0.031875
+    },
+    {
+      "height_m": 0.03224999999999999,
+      "panel": 0,
+      "stiffness_weight": 0.25,
+      "width_m": -0.010625
+    },
+    {
+      "height_m": 0.03224999999999999,
+      "panel": 0,
+      "stiffness_weight": 0.25,
+      "width_m": 0.010625
+    },
+    {
+      "height_m": 0.03224999999999999,
+      "panel": 0,
+      "stiffness_weight": 0.25,
+      "width_m": 0.031875
+    },
+    {
+      "height_m": 0.010749999999999996,
+      "panel": 1,
+      "stiffness_weight": 0.25,
+      "width_m": -0.031875
+    },
+    {
+      "height_m": 0.010749999999999996,
+      "panel": 1,
+      "stiffness_weight": 0.25,
+      "width_m": -0.010625
+    },
+    {
+      "height_m": 0.010749999999999996,
+      "panel": 1,
+      "stiffness_weight": 0.25,
+      "width_m": 0.010625
+    },
+    {
+      "height_m": 0.010749999999999996,
+      "panel": 1,
+      "stiffness_weight": 0.25,
+      "width_m": 0.031875
+    },
+    {
+      "height_m": 0.03224999999999999,
+      "panel": 1,
+      "stiffness_weight": 0.25,
+      "width_m": -0.031875
+    },
+    {
+      "height_m": 0.03224999999999999,
+      "panel": 1,
+      "stiffness_weight": 0.25,
+      "width_m": -0.010625
+    },
+    {
+      "height_m": 0.03224999999999999,
+      "panel": 1,
+      "stiffness_weight": 0.25,
+      "width_m": 0.010625
+    },
+    {
+      "height_m": 0.03224999999999999,
+      "panel": 1,
+      "stiffness_weight": 0.25,
+      "width_m": 0.031875
+    }
+  ],
+  "solver_iterations": 48,
+  "start_ms": 1650,
+  "ticks": 300,
+  "trials": [
+    {
+      "columns": 3,
+      "completed_ticks": 300,
+      "cross_panel_width_n": [
+        7.70275810458728e-10,
+        0.017993226815220954,
+        6.718821295922298e-11
+      ],
+      "first_cross_panel_n": 0.023432903606531618,
+      "initial_panel_skin_gap_m": 2.001532329876099e-6,
+      "last_cross_panel_tick": 300,
+      "max_pad_attribution_residual_ns": 6.613696908057453e-18,
+      "mean_bench_up_n": 0.0,
+      "mean_closest_panel_skin_gap_m": 1.9910030722482727e-10,
+      "mean_cross_panel_n": 0.017993227652684914,
+      "mean_jaw_squeeze_n": [
+        0.6151349264254334,
+        0.6151349696373369
+      ],
+      "mean_jaw_up_n": [
+        0.04120400423956148,
+        0.041204201351295995
+      ],
+      "mean_pad_normal_by_jaw_panel_n": [
+        [
+          0.6151349264254419,
+          0.0
+        ],
+        [
+          0.0,
+          0.6151349696373485
+        ]
+      ],
+      "mean_self_contact_n": 0.017993227652684907,
+      "min_held_panel_skin_gap_m": 1.1645278491512201e-11,
+      "min_mid_surface_jaw_core_clearance_m": 0.010684118395790781,
+      "model": "particle",
+      "pad_compliance_m_per_n": [
+        0.001,
+        0.001
+      ],
+      "peak_cross_panel_n": 0.023432903606531618,
+      "refusal": null,
+      "status": "completed",
+      "step_p95_ns": 80077522,
+      "ticks_with_cross_panel_impulse": 300,
+      "trailing_mean_cross_panel_n": 0.01798217871903088,
+      "trailing_window_ticks": 100
+    },
+    {
+      "columns": 3,
+      "completed_ticks": 300,
+      "cross_panel_width_n": [
+        9.491379881273899e-11,
+        0.000019069245144043438,
+        9.901391969489206e-11
+      ],
+      "first_cross_panel_n": 0.00414686204121798,
+      "initial_panel_skin_gap_m": 2.001532329876099e-6,
+      "last_cross_panel_tick": 3,
+      "max_pad_attribution_residual_ns": 1.9843045735669505e-17,
+      "mean_bench_up_n": 0.0,
+      "mean_closest_panel_skin_gap_m": 1.2938589629164198e-6,
+      "mean_cross_panel_n": 0.000019069439071761943,
+      "mean_jaw_squeeze_n": [
+        0.6172128630668372,
+        0.617212891837659
+      ],
+      "mean_jaw_up_n": [
+        0.04119528375046495,
+        0.041212921839863005
+      ],
+      "mean_pad_normal_by_jaw_panel_n": [
+        [
+          0.6172128630668247,
+          0.0
+        ],
+        [
+          0.0,
+          0.6172128918376366
+        ]
+      ],
+      "mean_self_contact_n": 0.000019069439071761953,
+      "min_held_panel_skin_gap_m": 1.3191601875434111e-7,
+      "min_mid_surface_jaw_core_clearance_m": 0.010684881038973804,
+      "model": "patch",
+      "pad_compliance_m_per_n": [
+        0.001,
+        0.001
+      ],
+      "peak_cross_panel_n": 0.00414686204121798,
+      "refusal": null,
+      "status": "completed",
+      "step_p95_ns": 55954804,
+      "ticks_with_cross_panel_impulse": 2,
+      "trailing_mean_cross_panel_n": 0.0,
+      "trailing_window_ticks": 100
+    },
+    {
+      "columns": 5,
+      "completed_ticks": 300,
+      "cross_panel_width_n": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "first_cross_panel_n": 0.0,
+      "initial_panel_skin_gap_m": 2.00153232993161e-6,
+      "last_cross_panel_tick": null,
+      "max_pad_attribution_residual_ns": 1.249024019430229e-17,
+      "mean_bench_up_n": 0.0,
+      "mean_closest_panel_skin_gap_m": 3.906186716354799e-6,
+      "mean_cross_panel_n": 0.0,
+      "mean_jaw_squeeze_n": [
+        0.6179445219474439,
+        0.6179445570595402
+      ],
+      "mean_jaw_up_n": [
+        0.041121140193228954,
+        0.041287065381230344
+      ],
+      "mean_pad_normal_by_jaw_panel_n": [
+        [
+          0.6179445219475421,
+          0.0
+        ],
+        [
+          0.0,
+          0.6179445570596344
+        ]
+      ],
+      "mean_self_contact_n": 0.0,
+      "min_held_panel_skin_gap_m": 3.104048384217073e-6,
+      "min_mid_surface_jaw_core_clearance_m": 0.010680007236906687,
+      "model": "particle",
+      "pad_compliance_m_per_n": [
+        0.003,
+        0.003
+      ],
+      "peak_cross_panel_n": 0.0,
+      "refusal": null,
+      "status": "completed",
+      "step_p95_ns": 70689453,
+      "ticks_with_cross_panel_impulse": 0,
+      "trailing_mean_cross_panel_n": 0.0,
+      "trailing_window_ticks": 100
+    },
+    {
+      "columns": 5,
+      "completed_ticks": 300,
+      "cross_panel_width_n": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "first_cross_panel_n": 0.0,
+      "initial_panel_skin_gap_m": 2.00153232993161e-6,
+      "last_cross_panel_tick": null,
+      "max_pad_attribution_residual_ns": 7.134052394836522e-17,
+      "mean_bench_up_n": 0.0,
+      "mean_closest_panel_skin_gap_m": 4.212402767068019e-6,
+      "mean_cross_panel_n": 0.0,
+      "mean_jaw_squeeze_n": [
+        0.6182774726453815,
+        0.618277503888807
+      ],
+      "mean_jaw_up_n": [
+        0.04117921199273759,
+        0.0412289935966283
+      ],
+      "mean_pad_normal_by_jaw_panel_n": [
+        [
+          0.618277472645447,
+          0.0
+        ],
+        [
+          0.0,
+          0.6182775038888777
+        ]
+      ],
+      "mean_self_contact_n": 0.0,
+      "min_held_panel_skin_gap_m": 3.338507336973079e-6,
+      "min_mid_surface_jaw_core_clearance_m": 0.010680722646346168,
+      "model": "patch",
+      "pad_compliance_m_per_n": [
+        0.001,
+        0.001
+      ],
+      "peak_cross_panel_n": 0.0,
+      "refusal": null,
+      "status": "completed",
+      "step_p95_ns": 74426250,
+      "ticks_with_cross_panel_impulse": 0,
+      "trailing_mean_cross_panel_n": 0.0,
+      "trailing_window_ticks": 100
+    },
+    {
+      "columns": 7,
+      "completed_ticks": 300,
+      "cross_panel_width_n": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "first_cross_panel_n": 0.0,
+      "initial_panel_skin_gap_m": 2.001532329876099e-6,
+      "last_cross_panel_tick": null,
+      "max_pad_attribution_residual_ns": 1.5986212655249265e-17,
+      "mean_bench_up_n": 0.0,
+      "mean_closest_panel_skin_gap_m": 4.872383190325548e-6,
+      "mean_cross_panel_n": 0.0,
+      "mean_jaw_squeeze_n": [
+        0.6185849017700862,
+        0.6185849351851013
+      ],
+      "mean_jaw_up_n": [
+        0.04110411467882053,
+        0.04130409087553014
+      ],
+      "mean_pad_normal_by_jaw_panel_n": [
+        [
+          0.6185849017702384,
+          0.0
+        ],
+        [
+          0.0,
+          0.6185849351852533
+        ]
+      ],
+      "mean_self_contact_n": 0.0,
+      "min_held_panel_skin_gap_m": 3.952244149674211e-6,
+      "min_mid_surface_jaw_core_clearance_m": 0.010676556093286941,
+      "model": "particle",
+      "pad_compliance_m_per_n": [
+        0.005,
+        0.005
+      ],
+      "peak_cross_panel_n": 0.0,
+      "refusal": null,
+      "status": "completed",
+      "step_p95_ns": 141384400,
+      "ticks_with_cross_panel_impulse": 0,
+      "trailing_mean_cross_panel_n": 0.0,
+      "trailing_window_ticks": 100
+    },
+    {
+      "columns": 7,
+      "completed_ticks": 300,
+      "cross_panel_width_n": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "first_cross_panel_n": 0.0,
+      "initial_panel_skin_gap_m": 2.001532329876099e-6,
+      "last_cross_panel_tick": null,
+      "max_pad_attribution_residual_ns": 1.9960978231431398e-17,
+      "mean_bench_up_n": 0.0,
+      "mean_closest_panel_skin_gap_m": 4.694808913000085e-6,
+      "mean_cross_panel_n": 0.0,
+      "mean_jaw_squeeze_n": [
+        0.6184626706739119,
+        0.6184627022799082
+      ],
+      "mean_jaw_up_n": [
+        0.04118366932973009,
+        0.04122453621151583
+      ],
+      "mean_pad_normal_by_jaw_panel_n": [
+        [
+          0.6184626706740552,
+          0.0
+        ],
+        [
+          0.0,
+          0.61846270228005
+        ]
+      ],
+      "mean_self_contact_n": 0.0,
+      "min_held_panel_skin_gap_m": 3.8004410983644155e-6,
+      "min_mid_surface_jaw_core_clearance_m": 0.01067696952121296,
+      "model": "patch",
+      "pad_compliance_m_per_n": [
+        0.001,
+        0.001
+      ],
+      "peak_cross_panel_n": 0.0,
+      "refusal": null,
+      "status": "completed",
+      "step_p95_ns": 148290110,
+      "ticks_with_cross_panel_impulse": 0,
+      "trailing_mean_cross_panel_n": 0.0,
+      "trailing_window_ticks": 100
+    }
+  ],
+  "weight_n": 0.082404
+}

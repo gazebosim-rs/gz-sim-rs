@@ -374,3 +374,92 @@ fn self_contact_observations_require_an_enabled_material_surface() {
     .unwrap();
     assert!(err.to_string().contains("self_contact_loads"));
 }
+
+fn sampled_sheet(sample: &str) -> String {
+    let box_link = r#"<box link="default::arm::left" coupling="articulated_wrench" normal_compliance="0.001"/>"#;
+    let plugin = format!(
+        r#"<plugin name="gz::sim::systems::Deformables" filename="gz-sim-deformables-system">{box_link}
+        <cloth name="sheet" columns="2" stretch="0.0001" shear="0.0001" bend="0.01" substeps="2" iterations="8" radius="0.005" self_contact="false" friction="0" pad_loads="true">
+        <particle position=".2273 .015 .197" velocity="-1 0 0" mass=".004"/>
+        {sample}
+        <particle position=".2273 .03 .197" velocity="-1 0 0" mass=".004"/>
+        <particle position=".2273 .015 .210" velocity="-1 0 0" mass=".004"/>
+        <particle position=".2273 .03 .210" velocity="-1 0 0" mass=".004"/>
+        </cloth></plugin>"#
+    );
+    scene(&plugin)
+}
+const SAMPLE: &str =
+    r#"<pad_sample particles="0 1 3" weights="0.25 0.25 0.5" stiffness_weight="2"/>"#;
+
+#[test]
+fn authored_cloth_patch_transfers_the_measured_jaw_reaction_and_repeats_after_reset() {
+    let mut sim = load(&sampled_sheet(SAMPLE));
+    let measure = |sim: &mut Simulation| {
+        sim.step_exact(1).unwrap();
+        let (_, sheet) = bodies(sim).next().unwrap();
+        let loads = sheet.last_pad_loads();
+        let impulse = DVec3::from(sheet.last_boundary_impulses()[0].linear);
+        assert!(impulse.x < -1e-5, "{impulse:?}");
+        assert_eq!(loads.len(), 3);
+        for (load, (node, weight)) in loads.iter().zip([(0, 0.25), (1, 0.25), (3, 0.5)]) {
+            assert_eq!((load.boundary, load.particle), (0, node));
+            assert!(DVec3::from(load.normal).distance(impulse * weight) < 1e-12);
+        }
+        impulse
+    };
+    let first = measure(&mut sim);
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert!(bodies(&sim).next().unwrap().1.last_pad_loads().is_empty());
+    assert_eq!(measure(&mut sim), first);
+}
+
+#[test]
+fn malformed_material_patch_is_rejected_at_scene_load() {
+    for (sample, reason) in [
+        (SAMPLE.replace("0 1 3", "0 1"), "three unsigned"),
+        (SAMPLE.replace("0 1 3", "0 1 3 2"), "exactly three"),
+        (SAMPLE.replace("0 1 3", "0 -1 3"), "three unsigned"),
+        (SAMPLE.replace("0 1 3", "0 1 2"), "invalid pad_sample"),
+        (
+            SAMPLE.replace("0.25 0.25 0.5", "1 NaN 0"),
+            "finite coordinates",
+        ),
+        (
+            SAMPLE.replace("stiffness_weight", "weight"),
+            "unexpected content",
+        ),
+        (
+            SAMPLE.replace(r#" stiffness_weight="2""#, ""),
+            "missing stiffness_weight",
+        ),
+        (
+            SAMPLE.replace(r#"stiffness_weight="2""#, r#"stiffness_weight="0""#),
+            "invalid pad_sample",
+        ),
+    ] {
+        let result = load_world_with_sdf_step(
+            &sampled_sheet(&sample),
+            "sampled.sdf",
+            "default",
+            &NoResources,
+            PhysicsEngine::MultiFidelity,
+        );
+        let err = result.err().unwrap().to_string();
+        assert!(err.contains(reason), "{err}");
+    }
+    let cable = PLUGIN.replace("</cable>", &format!("{SAMPLE}</cable>"));
+    let load = load_world_with_sdf_step(
+        &scene(&cable),
+        "sampled.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::MultiFidelity,
+    );
+    assert!(
+        load.err()
+            .unwrap()
+            .to_string()
+            .contains("unexpected <pad_sample>")
+    );
+}

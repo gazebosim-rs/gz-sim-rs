@@ -28,6 +28,7 @@ impl SoftBody {
             && self.self_contact.is_none()
             && self.surface.is_none()
             && self.pads.is_none()
+            && self.contacts.pad_samples.is_empty()
             && self.capsule_material.is_none()
     }
     /// Digest only the immutable equations of motion. Public particle coordinates,

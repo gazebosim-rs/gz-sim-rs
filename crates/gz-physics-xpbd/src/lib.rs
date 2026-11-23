@@ -34,7 +34,9 @@ mod momentum;
 mod oriented;
 mod pad;
 mod pad_loads;
+mod pad_samples;
 pub use pad_loads::ParticlePadImpulse;
+pub use pad_samples::PadSample;
 /// Maximum simultaneous finite spherical pads on a triangulated shell.
 pub const MAX_SURFACE_PADS: usize = 4;
 mod surface;
@@ -788,6 +790,17 @@ impl SoftBody {
                 2. * self.config.particle_radius,
             )?;
         }
+        self.contacts.verify_pad_samples(
+            &self.scratch,
+            &self.predicted,
+            boundaries,
+            collision::Interval {
+                h,
+                t0: t1 - h,
+                t1,
+                radius: self.config.particle_radius,
+            },
+        )?;
         for (x, p) in self.predicted.iter().zip(&mut self.scratch) {
             if !x.is_finite() || !DVec3::from(p.velocity).is_finite() {
                 return Err(XpbdError::Numerical);

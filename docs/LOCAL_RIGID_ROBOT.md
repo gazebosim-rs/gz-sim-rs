@@ -167,3 +167,35 @@ The force difference is too small to see from the marker positions alone. The Ru
 cargo run --release --locked --manifest-path tools/physics-audit/numerics/Cargo.toml \
   --bin fold_hold_forces -- target/my-fold-hold target/my-fold-hold/forces.svg
 ```
+
+## Compare jaw contact across the cloth surface
+
+The `fold-patch` study holds the sheet for 300 ms starting from the loaded fold at 1.650 s. It runs particle contact and a prescribed surface patch on sheets with 3, 5 and 7 points across their width. Each pair follows the same measured jaw motion. Each patch uses eight equal-area samples per panel over the 85 mm jaw width and 43 mm panel height. The total flat-pad stiffness for uniform indentation matches the particle control. The mesh, cloth material, friction, 1 ms arm clock, 64 material substeps and 48 solver iterations stay fixed within each pair.
+
+```sh
+RUSTC_WRAPPER= cargo run --locked --release --no-default-features -p gz-sim-cli \
+  --example local_robot_foundations -- fold-patch target/my-fold-patch
+
+RUSTC_WRAPPER= cargo run --locked --release --no-default-features -p gz-sim-cli \
+  --bin gz-sim-rs -- --server --replay --web-viewer 9781 target/my-fold-patch/patch-7/replay
+```
+
+Open the viewer and press Play. The colored markers show the material positions. The force chart resolves differences too small to see at the scale of the robot. Each run writes a `comparison.json` and six native replay directories. [Open your seven-point replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9781%2F)
+
+To use material-point contact in an authored Bevy scene, put one or more `<pad_sample>` elements inside the deformables plugin's `<cloth>`. The three zero-based indices identify vertices of one cloth triangle. The weights are its barycentric coordinates and sum to one. `stiffness_weight` multiplies the reciprocal of the compliant cuboid's `normal_compliance`. A sample can share its normal and friction loads across the vertices. The normal forces from equal indentations add in proportion to the stiffness weights. For example, this sample gives half a unit of stiffness to a point inside one face of a cloth with two columns.
+
+```xml
+<pad_sample particles="0 1 3" weights="0.25 0.25 0.5" stiffness_weight="0.5"/>
+```
+
+Authored samples replace particle contacts for every compliant cuboid on that cloth. Other boundaries use their usual collision models. Set `pad_loads="true"` on the cloth to read each node's share of the jaw reaction.
+
+The recorded coarse particle run showed sustained layer pressure; its surface-patch counterpart touched on just two ticks, both in the first 3 ms. Both seven-point runs held the sheet with a gap between the layers. [Coarse particle replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9769%2F) · [Coarse patch replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9772%2F) · [Seven-point patch replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9774%2F) · [Force and timing chart](measurements/local-manipulation/fold-patch-forces.svg) · [Measurements](measurements/local-manipulation/fold-patch.json)
+
+
+Rebuild the chart directly from its measurements.
+
+```sh
+RUSTC_WRAPPER= cargo run --release --locked --manifest-path tools/physics-audit/numerics/Cargo.toml \
+  --bin fold_patch_forces -- target/my-fold-patch/comparison.json target/my-fold-patch/forces.svg
+```

@@ -171,7 +171,7 @@ struct Trial {
     samples: Vec<Sample>,
 }
 
-fn drive(r: &mut Recording, c: &Controller, tick: usize) -> Result<()> {
+pub(super) fn drive(r: &mut Recording, c: &Controller, tick: usize) -> Result<()> {
     arm_cable::lift_with_jaws(c, &mut r.sim, (tick - 1) as f64 * DT, arm_sheet::JAW_STROKE)?;
     r.advance()
 }

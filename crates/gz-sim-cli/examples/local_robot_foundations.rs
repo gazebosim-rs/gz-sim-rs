@@ -17,6 +17,8 @@ mod envelope;
 mod fold_hold;
 #[path = "local_robot_foundations/fold_mesh.rs"]
 mod fold_mesh;
+#[path = "local_robot_foundations/fold_patch.rs"]
+mod fold_patch;
 #[path = "local_robot_foundations/gripper.rs"]
 mod gripper;
 #[path = "local_robot_foundations/inertia.rs"]
@@ -49,6 +51,8 @@ struct Args {
 }
 #[derive(Subcommand)]
 enum Study {
+    /// Compare particle and surface-patch jaw pressure on three folded sheets.
+    FoldPatch { output: PathBuf },
     /// Compare cloth contact forces from the same loaded fold.
     FoldHold { output: PathBuf },
     /// Lift a folded sheet and measure contact on each panel.
@@ -203,6 +207,7 @@ fn write_new(output: &Path, generate: impl FnOnce(&Path) -> Result<()>) -> Resul
 }
 fn main() -> Result<()> {
     match Args::parse().study {
+        Study::FoldPatch { output } => write_new(&output, fold_patch::run),
         Study::FoldHold { output } => write_new(&output, fold_hold::run),
         Study::ArmSheet { output } => write_new(&output, arm_sheet::run),
         Study::SheetSweep { output } => write_new(&output, sheet_sweep::run),
