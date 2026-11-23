@@ -1505,6 +1505,16 @@ impl MultiFidelityBackend {
             .set_robot_root_iterations(root, iterations)
             .map_err(engine_error)
     }
+    pub fn set_world_joint_speed_limits(
+        &mut self,
+        id: JointId,
+        limits: [Option<f64>; 2],
+    ) -> Result<(), PhysicsError> {
+        self.solver
+            .set_world_joint_speed_limits(id, limits)
+            .map_err(engine_error)
+    }
+
     /// Install separate torsional compliance on a universal joint's two moving axes.
     pub fn add_universal_joint_with_springs(
         &mut self,

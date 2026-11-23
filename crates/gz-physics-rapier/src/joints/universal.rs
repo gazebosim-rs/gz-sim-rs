@@ -114,13 +114,14 @@ impl Construction {
         };
         std::array::from_fn(|i| {
             let range = settings.limits[i]?;
-            let (a, b, limits) = self.stop_frames(i, range, 0.);
-            Some(world.insert_impulse_joint(
-                parent,
-                child,
-                cone(JointAxesMask::empty(), a, b, limits),
-            ))
+
+            Some(world.insert_impulse_joint(parent, child, self.universal_stop(i, range)))
         })
+    }
+
+    pub(super) fn universal_stop(self, axis: usize, range: [f64; 2]) -> GenericJoint {
+        let (a, b, limits) = self.stop_frames(axis, range, 0.);
+        cone(JointAxesMask::empty(), a, b, limits)
     }
 
     /// On the constraint manifold the child Y direction depends only on q1

@@ -368,3 +368,106 @@ fn isolated_axes_follow_the_analytical_multiturn_oscillator_through_both_sdf_spe
         assert!(peak < 0.02);
     }
 }
+
+#[test]
+fn both_angular_speed_caps_hold_under_opposed_torques_and_release_on_reversal() {
+    let xml = centered()
+        .replace(
+            "<lower>-0.80</lower><upper>0.55</upper>",
+            "<velocity>0.8</velocity>",
+        )
+        .replace(
+            "<lower>-0.45</lower><upper>0.75</upper>",
+            "<velocity>1.3</velocity>",
+        );
+    let mut sim = load(&xml);
+    let joint = id(&sim, "wrist");
+    let mut replay = None;
+    for _ in 0..2 {
+        let mut peak = [0_f64; 2];
+        for sign in [1., -1.] {
+            for _ in 0..600 {
+                queue_universal_joint_effort(&mut sim, joint, [sign * 1.2, -sign * 1.5]).unwrap();
+                sim.step_exact(1).unwrap();
+                let s = sample(&sim, joint).state;
+                for (i, rate) in s.velocity.into_iter().enumerate() {
+                    peak[i] = peak[i].max(rate.abs());
+                }
+            }
+            let state = sample(&sim, joint).state;
+            eprintln!(
+                "capped wrist {sign:+} peaks {peak:?} rates {:?} q {:?}",
+                state.velocity, state.position
+            );
+            for (rate, target) in state.velocity.into_iter().zip([sign * 0.8, -sign * 1.3]) {
+                assert!((rate - target).abs() < 0.002);
+            }
+        }
+        assert!(peak[0] < 0.802 && peak[1] < 1.302);
+        let state = sample(&sim, joint).state;
+        if let Some(prev) = replay {
+            assert_eq!(state, prev);
+        }
+        replay = Some(state);
+        reset_loaded_world(&mut sim, |_| ()).unwrap();
+    }
+}
+
+#[test]
+fn a_one_tick_external_impulse_is_capped_and_the_other_axis_can_coast() {
+    for (first_cap, expected) in [(0., 0.), (0.8, 0.8)] {
+        let xml = centered()
+            .replace(
+                "<lower>-0.80</lower><upper>0.55</upper>",
+                &format!("<velocity>{first_cap}</velocity>"),
+            )
+            .replace(
+                "<lower>-0.45</lower><upper>0.75</upper>",
+                "<velocity>1.3</velocity>",
+            );
+        let mut sim = load(&xml);
+        let joint = id(&sim, "wrist");
+        let tool = id(&sim, "tool");
+        let frame = DQuat::from_array(pose(&sim, tool).rotation);
+        queue_link_world_wrench(
+            &mut sim,
+            tool,
+            [0.; 3],
+            (frame * DVec3::new(90., 9., 0.)).into(),
+        )
+        .unwrap();
+        sim.step_exact(1).unwrap();
+        let impact = sample(&sim, joint).state;
+        sim.step_exact(150).unwrap();
+        let coast = sample(&sim, joint).state;
+        eprintln!(
+            "external pulse, cap {first_cap}, impact rates {:?}, coasting rates {:?}",
+            impact.velocity, coast.velocity
+        );
+        for state in [impact, coast] {
+            assert!((state.velocity[0] - expected).abs() < 0.0005);
+            assert!((state.velocity[1] - 0.3).abs() < 0.0005);
+        }
+    }
+}
+
+#[test]
+fn a_speed_limit_on_a_moving_parent_is_rejected_before_construction() {
+    let xml=centered().replace("<model name=\"robot\">","<model name=\"robot\"><link name=\"base\"><inertial><mass>2</mass><inertia><ixx>0.1</ixx><iyy>0.1</iyy><izz>0.1</izz></inertia></inertial><collision name=\"shape\"><geometry><box><size>0.2 0.2 0.2</size></box></geometry></collision></link>")
+        .replace("<parent>world</parent><child>tool</child>","<parent>base</parent><child>tool</child>")
+        .replace("<upper>0.75</upper>","<upper>0.75</upper><velocity>0.8</velocity>");
+    let err = load_world_with_sdf_step(
+        &xml,
+        "unsupported.sdf",
+        "default",
+        &NoResources,
+        PhysicsEngine::MultiFidelity,
+    )
+    .err()
+    .unwrap();
+    assert!(
+        err.to_string()
+            .contains("angular speed limit requires a world-mounted joint"),
+        "{err}"
+    );
+}

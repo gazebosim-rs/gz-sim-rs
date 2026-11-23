@@ -432,3 +432,68 @@ fn removing_a_universal_endpoint_discards_its_passive_rows() {
     step(&mut backend, 1);
     assert!(backend.universal_joint_state(joint).is_none());
 }
+
+#[test]
+fn speed_stop_construction_is_atomic_recoverable_and_cleans_up_all_reference_bodies() {
+    use gz_physics::JointId;
+    let mut backend = RapierBackend::new([0.; 3]).unwrap();
+    let child = sphere(&mut backend, [0.; 3]);
+    let universal = RobotJoint::Universal {
+        axes: [[1., 0., 0.], [0., 1., 0.]],
+        limits: [None; 2],
+        effort_limits: [f64::INFINITY; 2],
+    };
+    assert_eq!(
+        backend.set_world_joint_speed_limits(JointId::from_raw(100), [None; 2]),
+        Err(PhysicsError::MissingJoint)
+    );
+    let wrist = backend
+        .add_robot_joint(None, child, [0.; 3], universal)
+        .unwrap();
+    backend
+        .set_world_joint_speed_limits(wrist, [None; 2])
+        .unwrap();
+    let other = sphere(&mut backend, [0., 0., 1.]);
+    let distal = backend
+        .add_robot_joint(Some(child), other, [0., 0., 0.5], universal)
+        .unwrap();
+    assert_eq!(
+        backend.set_world_joint_speed_limits(distal, [Some(1.); 2]),
+        Err(PhysicsError::InvalidJoint)
+    );
+    for invalid in [-1., f64::NAN, f64::INFINITY] {
+        assert_eq!(
+            backend.set_world_joint_speed_limits(wrist, [Some(1.), Some(invalid)]),
+            Err(PhysicsError::InvalidValue)
+        );
+    }
+    backend
+        .set_world_joint_speed_limits(wrist, [Some(0.), Some(0.8)])
+        .unwrap();
+    backend
+        .set_world_joint_speed_limits(wrist, [Some(2000.), None])
+        .unwrap();
+    let before = backend.state(child).unwrap();
+    assert_eq!(
+        backend.step(Duration::from_millis(1)),
+        Err(PhysicsError::InvalidValue)
+    );
+    assert_eq!(backend.state(child).unwrap(), before);
+    backend
+        .set_world_joint_speed_limits(wrist, [Some(0.), Some(0.8)])
+        .unwrap();
+    step(&mut backend, 1);
+    assert_eq!(
+        backend.set_world_joint_speed_limits(wrist, [None; 2]),
+        Err(PhysicsError::JointConstructionClosed)
+    );
+    assert!(backend.remove_joint(wrist));
+    step(&mut backend, 1);
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let c = sphere(&mut b, [0.; 3]);
+    let j = b.add_robot_joint(None, c, [0.; 3], universal).unwrap();
+    b.set_world_joint_speed_limits(j, [Some(0.), Some(1.)])
+        .unwrap();
+    assert!(b.remove(c));
+    step(&mut b, 1);
+}

@@ -384,3 +384,38 @@ fn an_undamped_fine_lead_spring_reverses_the_nut_after_half_a_period() {
     sim.step_exact(200).unwrap();
     assert!(sample(&sim, j, nut).1 < -1.);
 }
+
+#[test]
+fn angular_speed_limit_reacts_to_gravity_and_preserves_helical_travel() {
+    for cap in [0., 1.25] {
+        let xml = SDF.replace(
+            "<lower>-9</lower><upper>2</upper>",
+            &format!("<velocity>{cap}</velocity>"),
+        );
+        let mut sim = load(&xml);
+        let joint = id(&sim, "spindle");
+        let nut = id(&sim, "nut");
+        let mut peak = 0_f64;
+        for _ in 0..500 {
+            sim.step_exact(1).unwrap();
+            let (q, rate, x, _) = sample(&sim, joint, nut);
+            peak = peak.max(rate.abs());
+            assert!((x - LEAD * q).abs() < 1e-5);
+        }
+        let state = sample(&sim, joint, nut);
+        eprintln!("capped screw {cap:.2}, peak {peak:.6}, state {state:?}");
+        assert!(peak < cap + 0.002 && (state.1 + cap).abs() < 0.002);
+        assert!((state.0 + cap * 0.5).abs() < 0.045);
+        let mut reverse_peak = 0.0_f64;
+        for _ in 0..200 {
+            queue_joint_effort(&mut sim, joint, 1.5).unwrap();
+            sim.step_exact(1).unwrap();
+            reverse_peak = reverse_peak.max(sample(&sim, joint, nut).1.abs());
+        }
+        eprintln!(
+            "reverse capped screw {cap}, peak {reverse_peak}, end {:?}",
+            sample(&sim, joint, nut)
+        );
+        assert!(reverse_peak <= cap + 0.002 && (sample(&sim, joint, nut).1 - cap).abs() < 0.002);
+    }
+}

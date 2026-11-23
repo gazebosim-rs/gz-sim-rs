@@ -65,6 +65,17 @@ impl Joints {
         world: &PhysicsWorld,
         dt: f64,
     ) -> Result<(), PhysicsError> {
+        // The kinematic witnesses for a speed stop must remain on their
+        // angular chart over the public step, like other rotating boundaries.
+        if self
+            .speed_caps
+            .values()
+            .flatten()
+            .flatten()
+            .any(|cap| cap.limit() * dt > std::f64::consts::FRAC_PI_4)
+        {
+            return Err(PhysicsError::InvalidValue);
+        }
         for joint in self.records.values() {
             if let Some(motor) = data(world, joint.handle).motor(joint.initial.motor_axis())
                 && (!(motor.target_vel * dt).is_finite() || !(motor.max_force * dt).is_finite())

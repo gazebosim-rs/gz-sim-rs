@@ -204,6 +204,24 @@ pub(super) fn validate_model(
                 "invalid screw thread pitch",
             )?;
         }
+        if joint
+            .axis
+            .iter()
+            .chain(&joint.axis2)
+            .any(|a| a.velocity.is_finite())
+            && matches!(
+                joint.kind,
+                sdformat::JointKind::Universal
+                    | sdformat::JointKind::Revolute2
+                    | sdformat::JointKind::Screw
+            )
+        {
+            require(
+                parent == world,
+                &name,
+                "angular speed limit requires a world-mounted joint",
+            )?;
+        }
         if matches!(
             joint.kind,
             sdformat::JointKind::Universal | sdformat::JointKind::Revolute2
@@ -330,7 +348,13 @@ fn validate_axis(
                             | sdformat::JointKind::Universal
                             | sdformat::JointKind::Revolute2
                     ) && axis.effort >= 0.)
-                    && axis.velocity == f64::INFINITY
+                    && (axis.velocity == f64::INFINITY
+                        || matches!(
+                            kind,
+                            sdformat::JointKind::Universal
+                                | sdformat::JointKind::Revolute2
+                                | sdformat::JointKind::Screw
+                        ) && axis.velocity >= 0.)
             })
             && axis.stiffness == 1e8
             && axis.dissipation == 1.0,
@@ -471,7 +495,7 @@ pub(super) fn build(
                     },
                 )
             });
-            if matches!(motion, RobotJoint::Universal { .. }) {
+            let id = if matches!(motion, RobotJoint::Universal { .. }) {
                 local.add_universal_joint_with_springs(
                     parent_body,
                     body,
@@ -489,7 +513,17 @@ pub(super) fn build(
                 )?
             } else {
                 local.add_robot_joint(parent_body, body, pose.translation, motion)?
+            };
+            let limits = [joint.axis.as_ref(), joint.axis2.as_ref()]
+                .map(|axis| axis.map(|a| a.velocity).filter(|v| v.is_finite()));
+            if matches!(
+                motion,
+                RobotJoint::Universal { .. } | RobotJoint::Screw { .. }
+            ) && limits.iter().any(Option::is_some)
+            {
+                local.set_world_joint_speed_limits(id, limits)?;
             }
+            id
         } else if joint.kind == sdformat::JointKind::Fixed {
             backend
                 .downcast_mut::<MultiFidelityBackend>()

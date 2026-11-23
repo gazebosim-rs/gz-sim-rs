@@ -919,7 +919,7 @@ impl DynamicBackend for RapierBackend {
             }
             self.pending_wrenches.remove(&id);
             self.held_wrenches.remove(&id);
-            let survivors = self.joints.forget_body(id);
+            let survivors = self.joints.forget_body(id, &mut self.world);
             self.world.remove_body(handle);
             for survivor in survivors {
                 self.release_unconstrained_body(survivor);
