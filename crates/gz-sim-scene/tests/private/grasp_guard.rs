@@ -64,3 +64,67 @@ fn release_requires_uninterrupted_weight_support_in_simulation_time() {
     assert!(gate.observe(Duration::ZERO, 0., weight));
     assert!(!gate.observe(ms(1), 0., weight));
 }
+
+#[test]
+fn set_down_requires_new_continuous_receiver_load_before_opening() {
+    let mut arm = GraspRetention::default();
+    let dt = Duration::from_millis(1);
+    let good = [PadReading {
+        normal_force_n: 1.,
+        slip_speed_m_s: 0.,
+    }; 2];
+    let sliding = [PadReading {
+        normal_force_n: 1.,
+        slip_speed_m_s: 0.025,
+    }; 2];
+    let weight = 0.1;
+    let support = weight * dt.as_secs_f64();
+    for _ in 0..30 {
+        assert_eq!(
+            arm.observe(dt, good, support, weight),
+            RetentionCommand::Hold
+        );
+    }
+    for _ in 0..3 {
+        assert_eq!(
+            arm.observe(dt, sliding, support, weight),
+            RetentionCommand::Hold
+        );
+    }
+    assert_eq!(
+        arm.observe(dt, sliding, support, weight),
+        RetentionCommand::Tighten
+    );
+    for _ in 0..48 {
+        assert_eq!(
+            arm.observe(dt, sliding, support, weight),
+            RetentionCommand::Tighten
+        );
+    }
+    assert_eq!(
+        arm.observe(dt, sliding, support, weight),
+        RetentionCommand::Lower
+    );
+    for _ in 0..19 {
+        assert_eq!(
+            arm.observe(dt, good, support, weight),
+            RetentionCommand::Lower
+        );
+    }
+    assert_eq!(arm.observe(dt, good, 0., weight), RetentionCommand::Lower);
+    for _ in 0..19 {
+        assert_eq!(
+            arm.observe(dt, good, support, weight),
+            RetentionCommand::Lower
+        );
+    }
+    assert_eq!(
+        arm.observe(Duration::ZERO, good, support, weight),
+        RetentionCommand::Lower
+    );
+    assert_eq!(
+        arm.observe(dt, good, support, weight),
+        RetentionCommand::Open
+    );
+    assert_eq!(arm.observe(dt, sliding, 0., weight), RetentionCommand::Open);
+}

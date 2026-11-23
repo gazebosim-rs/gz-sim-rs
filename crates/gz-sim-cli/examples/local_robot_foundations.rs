@@ -59,6 +59,19 @@ struct Args {
 enum Study {
     /// Bracket lasting motion under increasing lateral loads on two material clocks.
     FoldBreakaway { output: PathBuf },
+    /// Detect moving cloth at the fingertips, tighten the grip and lower a failing grasp.
+    FoldRecovery {
+        output: PathBuf,
+        /// Run just this sheet width and pull pair.
+        #[arg(long, requires = "load_mn")]
+        columns: Option<usize>,
+        /// Peak transverse load in millinewtons.
+        #[arg(long, requires = "columns")]
+        load_mn: Option<u32>,
+        /// Continue through landing after the entire sheet has escaped both jaws.
+        #[arg(long)]
+        follow_dropped: bool,
+    },
     /// Pull a force-controlled folded sheet sideways and compare its slip with an unloaded hold.
     FoldPull { output: PathBuf },
     /// Measure sustained pressure between folded panels as a live gripper closes.
@@ -219,6 +232,14 @@ fn write_new(output: &Path, generate: impl FnOnce(&Path) -> Result<()>) -> Resul
 }
 fn main() -> Result<()> {
     match Args::parse().study {
+        Study::FoldRecovery {
+            output,
+            columns,
+            load_mn,
+            follow_dropped,
+        } => write_new(&output, |out| {
+            fold_pull::recovery::run(out, columns.zip(load_mn), follow_dropped)
+        }),
         Study::FoldBreakaway { output } => write_new(&output, fold_pull::breakaway::run),
         Study::FoldPull { output } => write_new(&output, fold_pull::run),
         Study::FoldClosure { output } => write_new(&output, fold_closure::run),

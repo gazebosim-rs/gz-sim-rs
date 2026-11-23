@@ -10,6 +10,8 @@ use serde::Serialize;
 
 #[path = "fold_breakaway.rs"]
 pub(super) mod breakaway;
+#[path = "fold_recovery.rs"]
+pub(super) mod recovery;
 
 const DT: f64 = 0.001;
 const STRIDE: usize = 25;
@@ -135,13 +137,12 @@ impl Grasp {
     }
 
     fn step(&mut self, phase: &'static str, force_y_n: f64) -> Result<()> {
+        self.step_at(phase, force_y_n, APPROACH as f64 * DT)
+    }
+
+    fn step_at(&mut self, phase: &'static str, force_y_n: f64, lift_time: f64) -> Result<()> {
         let r = &mut self.recording;
-        arm_cable::lift_with_jaws(
-            &self.controller,
-            &mut r.sim,
-            APPROACH as f64 * DT,
-            self.stroke,
-        )?;
+        arm_cable::lift_with_jaws(&self.controller, &mut r.sim, lift_time, self.stroke)?;
         set_material_force(&mut r.sim, "sheet", [0., force_y_n, 0.])?;
         r.advance()?;
         let s = fold_closure::sample(r, &self.jaws, self.columns, 0, self.stroke)?;

@@ -90,6 +90,59 @@ impl SupportedRelease {
     }
 }
 
+/// Command for a robot retaining a grasp above a designated receiving surface.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum RetentionCommand {
+    #[default]
+    Hold,
+    Tighten,
+    Lower,
+    Open,
+}
+
+/// Couples slip detection to a supported release. Create a fresh supervisor for
+/// each grasp. Supply only the upward impulse from the intended receiving surface.
+#[derive(Debug, Default)]
+pub struct GraspRetention {
+    guard: GraspGuard,
+    release: SupportedRelease,
+    command: RetentionCommand,
+}
+
+impl GraspRetention {
+    /// Decide the next actuator command from a committed interval. Opening is
+    /// latched only after a set-down request and sustained support. A paused
+    /// observation preserves both the command and its timers.
+    pub fn observe(
+        &mut self,
+        dt: Duration,
+        pads: [PadReading; 2],
+        support_upward_impulse_ns: f64,
+        weight_n: f64,
+    ) -> RetentionCommand {
+        if dt.is_zero() || self.command == RetentionCommand::Open {
+            return self.command;
+        }
+        self.command = match self.guard.observe(dt, pads) {
+            GraspResponse::Hold => RetentionCommand::Hold,
+            GraspResponse::Tighten => RetentionCommand::Tighten,
+            GraspResponse::SetDown => {
+                // The transition tick was integrated under the previous command.
+                if self.command == RetentionCommand::Lower
+                    && self
+                        .release
+                        .observe(dt, support_upward_impulse_ns, weight_n)
+                {
+                    RetentionCommand::Open
+                } else {
+                    RetentionCommand::Lower
+                }
+            }
+        };
+        self.command
+    }
+}
+
 #[cfg(test)]
 #[path = "../tests/private/grasp_guard.rs"]
 mod tests;

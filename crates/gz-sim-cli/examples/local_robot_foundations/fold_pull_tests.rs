@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
-fn sample() -> Tick {
+pub(super) fn sample() -> Tick {
     Tick {
         time_ns: 1_650_000_000,
         phase: "acquire",
