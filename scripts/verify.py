@@ -549,6 +549,9 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
             item = json.loads(line)
         except json.JSONDecodeError:
             continue
+        # With --nocapture, test output may also be a JSON number or array.
+        if not isinstance(item, dict):
+            continue
         if item.get("reason") == "build-script-executed":
             build_events.append(item)
         if item.get("reason") == "compiler-artifact":

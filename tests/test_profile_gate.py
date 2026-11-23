@@ -650,7 +650,9 @@ class FeatureProfiles(unittest.TestCase):
             source = root / "src/lib.rs"
             source.parent.mkdir()
             source.write_text("original")
-            result = SimpleNamespace(returncode=0, stdout=json.dumps({"reason": "compiler-artifact", "executable": "/tmp/probe"}), stderr="", args=["cargo"])
+            artifact = json.dumps({"reason": "compiler-artifact", "executable": "/tmp/probe"})
+            stdout = "\n".join(["    0.0001763786210852254", "[1, 2]", "null", artifact])
+            result = SimpleNamespace(returncode=0, stdout=stdout, stderr="", args=["cargo"])
             with patch.object(verify, "ROOT", root), patch.object(verify.profile_process, "run", return_value=result), patch.object(verify, "run", return_value=SimpleNamespace(stdout="changed rustc")):
                 with self.assertRaisesRegex(ValueError, "compiler changed"):
                     verify.profile_coverage("headless", {"crate": [source]}, ["cargo"], root / "profile", {}, root / "wrapper", root, "rustc")
