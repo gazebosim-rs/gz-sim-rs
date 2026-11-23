@@ -1759,3 +1759,20 @@ The optimized full renderer run also exposed the same first-frame subscription r
 The final local renderer suite at `50eb9a9` passed 1,921 tests with 76 ignored, including both native first-frame checks. All 19 robot-foundation and friction tests also passed on the port. The coverage collector then mistook a printed force measurement for a Cargo message. It now skips non-object JSON lines while retaining the compiler identity, source and binary checks. All 481 verification-tool tests passed, including numeric, array and null output in the parser regression. The historical two-sphere test still reproduces its original digest mismatch.
 
 With numeric output handled, the Ubuntu 24.04 renderer profile at `f8ed3fb` completed the same 1,921 passing tests and exported the full LLVM coverage report. The workspace missed its 95% requirement. The GPU physics crate reached 1,408/4,668 lines (30.16%), the CLI reached 6,248/7,854 (79.55%), and the scene crate reached 22,364/29,391 (76.09%). All nine other crates in this profile exceeded 95% on both lines and regions. Closing those inherited gaps is separate from the three local manipulation phases, whose changed production lines measured 99.10%. [Per-crate renderer measurements](measurements/local-manipulation/renderer-profile.json)
+
+## 2026-11-23 — Mid-swing grip recovery
+
+The same 200 g parcel received a 6 N downward pull for 65 ms at two points in the turn. Each comparison matched all five moving body states and both pad readings before the pull. Both jaws carried the load, both stands had zero contact impulse and the parcel footprint cleared both stands by at least 31 mm. Both undisturbed controls completed the original transfer without an alarm. The controller uses its tactile readings to decide when to tighten or set down. The applied force schedule belongs to the experiment.
+
+| First disturbed step | Stand chosen on slip | Peak drop with feedback / fixed pressure | Parcel–barrier impulse with feedback / fixed pressure | Final guarded position error |
+| --- | --- | ---: | ---: | ---: |
+| 1.860 s | Source | 24.99 / 41.16 mm | 0 / 0.299 N·s | 2.79 mm |
+| 2.020 s | Target | 25.01 / 47.59 mm | 0 / 0.224 N·s | 3.90 mm |
+
+The alarm arrived on the fourth disturbed solve in both trials, two solves before independent palm-relative motion exceeded 0.25 mm in the guarded runs. The controller chose the nearer stand at 1.912 and 2.072 s. Each guarded trial settled on that stand for the final 200 ms with open jaws and zero floor or barrier impulse. Both fixed-pressure transfers hit the barrier. The earlier one still ended on the target stand.
+
+During an emergency set-down the Rust support check permits opening only after the selected stand provides at least 80% of the known parcel weight in upward reaction for 20 continuous simulated milliseconds. The minimum measured upward reactions during those windows were 6.20 N and 4.96 N, compared with the parcel weight of 1.962 N. The controller then began opening on the next interval. [Study command and gz-web-rs replays](LOCAL_RIGID_ROBOT.md) · [Measured trials](measurements/local-manipulation/mid-swing.json)
+
+The 20 robot example tests and three grasp-guard tests passed, including equal and opposite measured vertical reactions on the stand and parcel. LLVM exercised all 274 changed executable application lines. The new study module covered 204/204 LLVM lines and 246/255 regions (96.47%). The scene grasp-guard module covered 42/42 lines and 51/51 regions. The instrumented CLI reproduced all three recorded streams, manifests and the numerical comparison byte for byte. The gz-web-rs browser checks verified 464 frames and 6,496 body poses and shapes, including reset to time zero for each replay. Formatting and strict Clippy passed for the affected crates. These are phase-level results.
+
+The next manipulation phase is to lift a flexible cable with this articulated gripper and measure both the cable's sag and the load on the jaws. The existing repository-wide coverage gaps remain open.

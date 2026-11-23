@@ -1,0 +1,193 @@
+{
+  "step_ms": 1,
+  "mass_kg": 0.2,
+  "friction": 0.35,
+  "pulse_force_n": 6,
+  "pulse_duration_ms": 65,
+  "peak_drop_window": "pulse and following 100 ms",
+  "trials": [
+    {
+      "stand": "source",
+      "first_disturbed_step": 1860,
+      "matched_incoming_body_and_contact_states": true,
+      "stand_footprint_gaps_m": [
+        0.031096536668965502,
+        0.11142891506539176
+      ],
+      "quiet": {
+        "outcome": "placed",
+        "alarm_tick": null,
+        "set_down_tick": null,
+        "release_tick": 3320,
+        "placement_error_m": 0.004833422500911456,
+        "floor_impulse_ns": 0.0,
+        "settled_source_ticks": 0,
+        "settled_target_ticks": 200,
+        "settled_jaw_ticks": 0,
+        "applied_impulse_ns": 0.0,
+        "first_slip_tick": null,
+        "peak_drop_m": 3.922041954040889e-06,
+        "parcel_obstacle_impulse_ns": 0.0,
+        "set_down_yaw_rad": null,
+        "min_support_n_before_release": null
+      },
+      "fixed": {
+        "outcome": "miss",
+        "alarm_tick": 1863,
+        "set_down_tick": null,
+        "release_tick": 3320,
+        "placement_error_m": 0.0070880720551139975,
+        "floor_impulse_ns": 0.0,
+        "settled_source_ticks": 0,
+        "settled_target_ticks": 200,
+        "settled_jaw_ticks": 0,
+        "applied_impulse_ns": 0.39000000000000024,
+        "first_slip_tick": 1864,
+        "peak_drop_m": 0.0411570166257928,
+        "parcel_obstacle_impulse_ns": 0.29861173447123945,
+        "set_down_yaw_rad": null,
+        "min_support_n_before_release": null
+      },
+      "guarded": {
+        "outcome": "set_down",
+        "alarm_tick": 1863,
+        "set_down_tick": 1912,
+        "release_tick": 3432,
+        "placement_error_m": 0.0027904465560800226,
+        "floor_impulse_ns": 0.0,
+        "settled_source_ticks": 200,
+        "settled_target_ticks": 0,
+        "settled_jaw_ticks": 0,
+        "applied_impulse_ns": 0.39000000000000024,
+        "first_slip_tick": 1865,
+        "peak_drop_m": 0.024990545201757586,
+        "parcel_obstacle_impulse_ns": 0.0,
+        "set_down_yaw_rad": 0.6958316244507317,
+        "min_support_n_before_release": 6.202798290035595
+      }
+    },
+    {
+      "stand": "target",
+      "first_disturbed_step": 2020,
+      "matched_incoming_body_and_contact_states": true,
+      "stand_footprint_gaps_m": [
+        0.11011745805197848,
+        0.035981496959679615
+      ],
+      "quiet": {
+        "outcome": "placed",
+        "alarm_tick": null,
+        "set_down_tick": null,
+        "release_tick": 3320,
+        "placement_error_m": 0.004833422500911456,
+        "floor_impulse_ns": 0.0,
+        "settled_source_ticks": 0,
+        "settled_target_ticks": 200,
+        "settled_jaw_ticks": 0,
+        "applied_impulse_ns": 0.0,
+        "first_slip_tick": null,
+        "peak_drop_m": 4.156247572273397e-06,
+        "parcel_obstacle_impulse_ns": 0.0,
+        "set_down_yaw_rad": null,
+        "min_support_n_before_release": null
+      },
+      "fixed": {
+        "outcome": "miss",
+        "alarm_tick": 2023,
+        "set_down_tick": null,
+        "release_tick": 3320,
+        "placement_error_m": 0.013359616098549774,
+        "floor_impulse_ns": 0.0,
+        "settled_source_ticks": 0,
+        "settled_target_ticks": 200,
+        "settled_jaw_ticks": 0,
+        "applied_impulse_ns": 0.39000000000000024,
+        "first_slip_tick": 2024,
+        "peak_drop_m": 0.047586717319136884,
+        "parcel_obstacle_impulse_ns": 0.2240825970050299,
+        "set_down_yaw_rad": null,
+        "min_support_n_before_release": null
+      },
+      "guarded": {
+        "outcome": "set_down",
+        "alarm_tick": 2023,
+        "set_down_tick": 2072,
+        "release_tick": 3592,
+        "placement_error_m": 0.003896620497958193,
+        "floor_impulse_ns": 0.0,
+        "settled_source_ticks": 0,
+        "settled_target_ticks": 200,
+        "settled_jaw_ticks": 0,
+        "applied_impulse_ns": 0.39000000000000024,
+        "first_slip_tick": 2025,
+        "peak_drop_m": 0.025009776901658454,
+        "parcel_obstacle_impulse_ns": 0.0,
+        "set_down_yaw_rad": 1.042484135839268,
+        "min_support_n_before_release": 4.960140539931164
+      }
+    }
+  ],
+  "replays": {
+    "source": {
+      "frames": 155,
+      "stream_sha256": "63bac14584359627536c77fcfb6b8bdab4195cc4ba5019e044574c36856918fc",
+      "visual_pose_and_shape_checks": 2170,
+      "captures_ms": {
+        "alarm": 1863.0,
+        "before_tug": 1859.0,
+        "release": 3432.0,
+        "set_down": 1912.0,
+        "settled": 6100.0,
+        "tug": 1860.0
+      }
+    },
+    "target": {
+      "frames": 155,
+      "stream_sha256": "19527e91fe941879e81a5e5a61ee97c9cff427954cc4c87c49093a313068ea80",
+      "visual_pose_and_shape_checks": 2170,
+      "captures_ms": {
+        "alarm": 2023.0,
+        "before_tug": 2019.0,
+        "release": 3592.0,
+        "set_down": 2072.0,
+        "settled": 6100.0,
+        "tug": 2020.0
+      }
+    },
+    "fixed": {
+      "frames": 154,
+      "stream_sha256": "e3400921704ef35e0897f909582d8bb9655b5ba54053df757e29506e7ed1bedb",
+      "visual_pose_and_shape_checks": 2156,
+      "captures_ms": {
+        "alarm": 1863.0,
+        "before_tug": 1859.0,
+        "release": 3320.0,
+        "settled": 6100.0,
+        "tug": 1860.0
+      }
+    }
+  },
+  "coverage": {
+    "baseline": "43c8959193164b619e3088c1e5f4e6548df3cbf3",
+    "changed_executable_application_lines": {
+      "covered": 274,
+      "total": 274
+    },
+    "new_study_llvm_lines": [
+      204,
+      204
+    ],
+    "new_study_llvm_regions": [
+      246,
+      255
+    ],
+    "scene_grasp_guard_llvm_lines": [
+      42,
+      42
+    ],
+    "scene_grasp_guard_llvm_regions": [
+      51,
+      51
+    ]
+  }
+}

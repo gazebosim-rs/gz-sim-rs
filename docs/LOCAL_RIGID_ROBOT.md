@@ -63,12 +63,14 @@ target/release/examples/local_robot_foundations grasp-envelope target/my-grasp-e
 target/release/examples/local_robot_foundations arm target/my-arm
 target/release/examples/local_robot_foundations arm-recovery target/my-arm-recovery
 target/release/examples/local_robot_foundations arm-switch target/my-arm-switch
+target/release/examples/local_robot_foundations arm-mid-swing target/my-arm-mid-swing
 ```
 
 | Study | What to inspect | Recording directory |
 | --- | --- | --- |
 | Grasp feedback | Compare tightened and fixed jaw pressure for the same load. Check the independent slip measurement and where the parcel comes to rest. | `target/my-grasp-envelope/recovery/replay` |
 | Feedback on the rotary arm | Inspect the recovered 450 g transfer, its fixed-pressure control, and the overloaded return to the source stand. | `target/my-arm-recovery/recovery/replay`, `fixed/replay` and `overload/replay` under the same output |
+| Mid-swing slip | A 6 N downward pull lasts 65 ms after a 200 g parcel clears both stands. Compare the early return, the late set-down and the early fixed-pressure control. | `target/my-arm-mid-swing/source/replay`, `target/my-arm-mid-swing/target/replay`, `target/my-arm-mid-swing/fixed/replay` |
 | Rotary arm | Compare the lifted path over the obstacle with the lower path that strikes it. | `target/my-arm/clear/replay` and `target/my-arm/blocked/replay` |
 | Solver switching | Compare the arm that parks at rest with the always-dynamic arm, including both finger impulses and the parcel trajectory. | `target/my-arm-switch/switched/replay` and `target/my-arm-switch/reference/replay` |
 
@@ -89,3 +91,8 @@ target/release/gz-sim-rs --server --replay --web-viewer 9744 target/my-arm/clear
 [Open the rotary arm in gz-web-rs](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9744%2F)
 
 Measured results from the review run are available for the [grasp trials](measurements/local-manipulation/arm-grasp.json), [obstacle routes](measurements/local-manipulation/arm-routes.json), [inertia check](measurements/local-manipulation/arm-inertia.json), [parking comparison](measurements/local-manipulation/parking.json) and [coverage checks](measurements/local-manipulation/coverage.json).
+
+
+The mid-swing command writes six trials to `comparison.json`. Each disturbance has a fixed-pressure control and an undisturbed carry from the same incoming body states. The reported drop is the parcel's downward travel relative to the palm during the pull and the next 100 ms. Only the three recorded trials have frame indices. The frame-index file identifies the alarm, the decision to turn toward the nearer stand and the first supported release. At the release frame the stand bears the load, and the next control interval starts opening the jaws.
+
+With the recording served on port 9750, open the [source-return replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9750%2F). The local review also serves the [target set-down](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9751%2F) and the [fixed-pressure control](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9752%2F). To serve a freshly generated recording yourself, use a free port in the replay server command above and point it at the corresponding replay directory.

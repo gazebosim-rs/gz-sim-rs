@@ -106,3 +106,19 @@ fn paired_campaign_writes_all_load_cases_and_replay_witnesses() -> Result<()> {
     assert!(run(&output.join("campaign.json")).is_err());
     Ok(())
 }
+
+#[test]
+fn supported_parcel_and_stand_receive_equal_and_opposite_vertical_reactions() -> Result<()> {
+    let mut r = Recording::new(crate::arm::SCENE, "arm.sdf", "default")?;
+    r.sim.step_exact(100)?;
+    let handle = |name: &str| body(&r.sim, entity_id(&r.sim, &format!("default::{name}"))?);
+    let (parcel, stand) = (handle("parcel::box")?, handle("source::body")?);
+    let jaws = [handle("arm::left")?, handle("arm::right")?];
+    let (target, floor) = (handle("target::body")?, handle("floor::body")?);
+    let upward = tactile(&r.sim, parcel, jaws, [stand, target, floor])?.station_up_ns[0];
+    let downward = tactile(&r.sim, stand, jaws, [parcel, target, floor])?.station_up_ns[0];
+    let weight_impulse = 0.2 * 9.81 * r.sim.step_duration().as_secs_f64();
+    assert!((upward - weight_impulse).abs() < 1e-6);
+    assert_eq!(downward, -upward);
+    Ok(())
+}

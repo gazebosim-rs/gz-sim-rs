@@ -6,8 +6,11 @@ use super::envelope::{tactile, with_load};
 use super::gripper::{body, ramp};
 use super::*;
 use gz_physics_multifidelity::MultiFidelityBackend;
-use gz_sim_scene::grasp_guard::{GraspGuard, GraspResponse};
+use gz_sim_scene::grasp_guard::{GraspGuard, GraspResponse, SupportedRelease};
 use serde::Serialize;
+
+#[path = "mid_swing.rs"]
+pub(super) mod mid_swing;
 
 const TURN: f64 = std::f64::consts::FRAC_PI_2;
 #[derive(Clone, Copy)]
@@ -85,6 +88,16 @@ impl Trial {
 }
 
 fn trial(mass: f64, mu: f64, feedback: bool, path: Option<&Path>) -> Result<Trial> {
+    trial_with_tug(mass, mu, feedback, path, None)
+}
+
+fn trial_with_tug(
+    mass: f64,
+    mu: f64,
+    feedback: bool,
+    path: Option<&Path>,
+    mut swing: Option<&mut mid_swing::Swing>,
+) -> Result<Trial> {
     let xml = with_load(SCENE, mass, 0., mu);
     let mut r = Recording::new(&xml, "local_manipulation_arm.sdf", "default")?;
     let c = Controller::new(&r.sim)?;
@@ -126,7 +139,7 @@ fn trial(mass: f64, mu: f64, feedback: bool, path: Option<&Path>) -> Result<Tria
     };
     let mut guard = GraspGuard::default();
     let mut stop: Option<Park> = None;
-    let mut supported = 0;
+    let mut release_gate = SupportedRelease::default();
     let mut initial_relative = 0.;
     if path.is_some() {
         r.capture()?;
@@ -147,6 +160,9 @@ fn trial(mass: f64, mu: f64, feedback: bool, path: Option<&Path>) -> Result<Tria
             .max_jaw_command_n
             .max(efforts[2].abs())
             .max(efforts[3].abs());
+        if let Some(s) = swing.as_deref_mut() {
+            s.pull(&mut r.sim, links[6], tick)?;
+        }
         r.advance()?;
         let sample = tactile(&r.sim, ids[6], [ids[0], ids[1]], [ids[2], ids[3], ids[4]])?;
         outcome.floor_impulse_ns += sample.station_ns[2];
@@ -159,11 +175,19 @@ fn trial(mass: f64, mu: f64, feedback: bool, path: Option<&Path>) -> Result<Tria
         for pair in backend.rigid_contact_observations() {
             if pair.a == ids[5] || pair.b == ids[5] {
                 outcome.obstacle_impulse_ns += pair.normal_impulse;
+                if (pair.a == ids[6] || pair.b == ids[6])
+                    && let Some(s) = swing.as_deref_mut()
+                {
+                    s.parcel_obstacle_impulse_ns += pair.normal_impulse;
+                }
             }
         }
         let p = state(&r.sim, links[6])?;
         let palm = state(&r.sim, links[7])?;
         let relative = p.position[2] - palm.position[2];
+        if let Some(s) = swing.as_deref_mut() {
+            s.observe(&r.sim, &links, tick, p, palm, &sample)?;
+        }
         if tick == 700 {
             initial_relative = relative;
         }
@@ -187,12 +211,10 @@ fn trial(mass: f64, mu: f64, feedback: bool, path: Option<&Path>) -> Result<Tria
             }
         }
         if let Some(park) = stop {
-            if tick > park.tick + 1500 && sample.station_ns[usize::from(park.goal > 0.)] > 0. {
-                supported += 1;
-            } else {
-                supported = 0;
-            }
-            if supported >= 20 {
+            let support = sample.station_up_ns[usize::from(park.goal > 0.)];
+            if tick > park.tick + 1500
+                && release_gate.observe(r.sim.step_duration(), support, mass * 9.81)
+            {
                 outcome.release_tick.get_or_insert(tick);
             }
         } else if tick >= 3320 {
@@ -209,8 +231,25 @@ fn trial(mass: f64, mu: f64, feedback: bool, path: Option<&Path>) -> Result<Tria
             outcome.settled_jaw_ticks +=
                 usize::from(sample.pads.iter().any(|s| s.normal_force_n > 0.));
         }
-        if path.is_some() && tick % 50 == 0 {
+        if let Some(s) = swing.as_deref_mut() {
+            s.record_recovery(
+                tick,
+                stop,
+                outcome.release_tick,
+                &sample,
+                r.sim.step_duration(),
+            );
+        }
+        if path.is_some()
+            && (tick % 50 == 0
+                || swing
+                    .as_ref()
+                    .is_some_and(|s| s.capture_tick(tick, &outcome)))
+        {
             r.capture()?;
+            if let Some(s) = swing.as_deref_mut() {
+                s.label_frame(tick, &outcome, r.frames.len() - 1);
+            }
         }
     }
     let source = stop.is_some_and(|park| park.goal == 0.);
@@ -240,9 +279,13 @@ fn trial(mass: f64, mu: f64, feedback: bool, path: Option<&Path>) -> Result<Tria
     if let Some(dir) = path {
         r.save(dir)?;
         write_json(&dir.join("trial.json"), &json!(outcome))?;
+        let captures = swing.as_ref().map_or_else(
+            || json!({"grip":14,"response":outcome.alarm_tick.unwrap_or(1200).div_ceil(50),"carry":38,"placed":122}),
+            |s| json!(s.captures),
+        );
         write_json(
             &dir.join("frames.json"),
-            &json!({"kind":"authored-archive-v1","camera":"perspective","dt_ns":1,"captures":{"grip":14,"response":outcome.alarm_tick.unwrap_or(1200).div_ceil(50),"carry":38,"placed":122}}),
+            &json!({"kind":"authored-archive-v1","camera":"perspective","dt_ns":1,"captures":captures}),
         )?;
     }
     Ok(outcome)

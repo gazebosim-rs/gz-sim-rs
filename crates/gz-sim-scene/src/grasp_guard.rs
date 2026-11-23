@@ -62,6 +62,34 @@ impl GraspGuard {
     }
 }
 
+/// Authorizes opening the jaws after the selected receiving surface has borne
+/// at least 80% of the known payload weight for 20 continuous simulated ms.
+/// Start a fresh check when changing the receiving support or payload.
+#[derive(Debug, Default)]
+pub struct SupportedRelease {
+    loaded: Duration,
+}
+
+impl SupportedRelease {
+    /// Supply the impulse on the parcel along world up from the selected
+    /// support in this committed interval. Side contact contributes no lift.
+    pub fn observe(&mut self, dt: Duration, upward_impulse_ns: f64, weight_n: f64) -> bool {
+        if !dt.is_zero() {
+            if weight_n.is_finite()
+                && weight_n > 0.
+                && upward_impulse_ns.is_finite()
+                && upward_impulse_ns > 0.
+                && upward_impulse_ns >= 0.8 * weight_n * dt.as_secs_f64()
+            {
+                self.loaded = self.loaded.saturating_add(dt);
+            } else {
+                self.loaded = Duration::ZERO;
+            }
+        }
+        self.loaded >= Duration::from_millis(20)
+    }
+}
+
 #[cfg(test)]
 #[path = "../tests/private/grasp_guard.rs"]
 mod tests;

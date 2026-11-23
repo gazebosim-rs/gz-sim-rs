@@ -52,6 +52,7 @@ pub(super) fn with_load(base: &str, mass_kg: f64, com_x_m: f64, friction: f64) -
 
 pub(super) struct Tactile {
     pub(super) pads: [PadReading; 2],
+    pub(super) station_up_ns: [f64; 3],
     pub(super) station_ns: [f64; 3],
 }
 
@@ -70,6 +71,7 @@ pub(super) fn tactile(
         .downcast_ref::<MultiFidelityBackend>()
         .ok_or("missing local solver")?;
     let mut pads = [PadReading::default(); 2];
+    let mut station_up_ns = [0.; 3];
     let mut station_ns = [0.; 3];
     for patch in solver.rigid_contact_patches() {
         let load_is_a = patch.a == load;
@@ -81,7 +83,14 @@ pub(super) fn tactile(
             continue;
         };
         if let Some(i) = supports.iter().position(|s| *s == peer) {
-            station_ns[i] += patch.points.iter().map(|p| p.normal_impulse).sum::<f64>();
+            let impulse = patch.points.iter().map(|p| p.normal_impulse).sum::<f64>();
+            let up = if load_is_a {
+                patch.normal_on_a[2]
+            } else {
+                -patch.normal_on_a[2]
+            };
+            station_up_ns[i] += impulse * up;
+            station_ns[i] += impulse;
             continue;
         }
         let Some(i) = jaws.iter().position(|p| *p == peer) else {
@@ -108,7 +117,11 @@ pub(super) fn tactile(
             pad.slip_speed_m_s /= pad.normal_force_n;
         }
     }
-    Ok(Tactile { pads, station_ns })
+    Ok(Tactile {
+        pads,
+        station_ns,
+        station_up_ns,
+    })
 }
 
 #[derive(Copy, Clone)]

@@ -46,3 +46,21 @@ fn invalid_readings_and_absent_pressure_are_fail_safe() {
         assert_eq!(guard.observe(ms(49), [HELD, p]), GraspResponse::SetDown);
     }
 }
+
+#[test]
+fn release_requires_uninterrupted_weight_support_in_simulation_time() {
+    let mut gate = SupportedRelease::default();
+    let weight = 2.;
+    for bad in [0., -0.5, 0.00159, f64::NAN, f64::INFINITY] {
+        assert!(!gate.observe(ms(19), 0.038, weight));
+        assert!(!gate.observe(ms(1), bad, weight));
+    }
+    for weight in [0., -1., f64::NAN, f64::INFINITY] {
+        assert!(!gate.observe(ms(20), 0.1, weight));
+    }
+    assert!(!gate.observe(ms(12), 0.024, weight));
+    assert!(!gate.observe(Duration::ZERO, 0., weight));
+    assert!(gate.observe(ms(8), 0.016, weight));
+    assert!(gate.observe(Duration::ZERO, 0., weight));
+    assert!(!gate.observe(ms(1), 0., weight));
+}

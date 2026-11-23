@@ -43,6 +43,8 @@ enum Study {
     Arm { output: PathBuf },
     /// Pick up, carry and release a free parcel using friction between two moving jaws.
     Gripper { output: PathBuf },
+    /// Disturb an airborne parcel in mid-swing and compare its recovery with fixed pressure.
+    ArmMidSwing { output: PathBuf },
     /// Check tactile grasp recovery on the rotary arm against fixed jaw pressure.
     ArmRecovery { output: PathBuf },
     /// Measure the closed-loop load and slip envelope of the four-axis gripper.
@@ -184,6 +186,7 @@ fn main() -> Result<()> {
         Study::ArmSwitch { output } => write_new(&output, arm_switching::run),
         Study::Arm { output } => write_new(&output, arm::run),
         Study::Gripper { output } => write_new(&output, gripper::run),
+        Study::ArmMidSwing { output } => write_new(&output, arm_recovery::mid_swing::run),
         Study::ArmRecovery { output } => write_new(&output, arm_recovery::run),
         Study::GraspEnvelope { output } => write_new(&output, envelope::run),
         Study::Inertia { output } => write_new(&output, inertia::run),
