@@ -10,5 +10,9 @@ With the physics study and replay under `artifacts/local-gpu-sdf/qualified`, reg
 
 ```sh
 GZ_GPU_SDF_REPLAY_AUDIT="$PWD/artifacts/local-gpu-sdf" RUSTC_WRAPPER= \
-  cargo test --release --locked -p gz-sim-scene --test gpu_planar_sdf_replay -- --include-ignored
+  cargo test --release --locked -p gz-sim-scene --test gpu_planar_sdf_replay all_displayed_arm_poses -- --ignored
 ```
+
+## Transport-controlled arm
+
+The command-driven run subscribes to the two standard joint-state streams. Independent forward kinematics from those 600 published angle pairs and the ordinary SDF reproduces the hardware tool gap at every public tick. gz-web-rs checked all 175 visual poses and shapes in 35 native frames, including loaded contact at 72 ms and lift at 321 ms. The final recorded frame is 591 ms. [Replay transport-controlled motion](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9863%2F)

@@ -204,3 +204,107 @@ fn all_displayed_arm_poses_follow_the_measured_sdf_links() -> Result<()> {
     fs::write(out.join("index.json"), serde_json::to_vec_pretty(&index)?)?;
     Ok(())
 }
+
+#[test]
+#[ignore = "requires an ordinary transport-command replay and subscribed robot joint states"]
+fn command_replay_follows_subscribed_angles_and_measured_ground_contact() -> Result<()> {
+    let root =
+        env::var_os("GZ_GPU_COMMAND_REPLAY_AUDIT").ok_or("set GZ_GPU_COMMAND_REPLAY_AUDIT")?;
+    let root = Path::new(&root);
+    let sdf = include_str!("../../../examples/gpu_commanded_tool_world.sdf");
+    let doc = roxmltree::Document::parse(sdf)?;
+    let links = visual_bindings(sdf)?;
+    let named = |tag, n| {
+        doc.descendants()
+            .find(|e| e.has_tag_name(tag) && e.attribute("name") == Some(n))
+            .ok_or("missing robot element")
+    };
+    let pose = |node: Node<'_, '_>| -> Result<Pose> {
+        let [x, y, z, r, p, h] = values(child(node, "pose")?.text().unwrap())?;
+        Ok(Pose {
+            xyz: DVec3::new(x, y, z),
+            rotation: DQuat::from_euler(EulerRot::ZYX, h, p, r),
+        })
+    };
+    let base = pose(named("model", "arm")?)?;
+    let floor = pose(named("model", "floor")?)?;
+    let shoulder = pose(named("link", "upper")?)?;
+    let elbow = pose(named("link", "forearm")?)?;
+    let axis = |name| -> Result<DVec3> {
+        Ok(DVec3::from_array(values(
+            child(child(named("joint", name)?, "axis")?, "xyz")?
+                .text()
+                .unwrap(),
+        )?)
+        .normalize())
+    };
+    let axes = [axis("shoulder")?, axis("elbow")?];
+    let trace: Vec<Value> = serde_json::from_slice(&fs::read(root.join("qualified/trace.json"))?)?;
+    assert_eq!(trace.len(), 600);
+    let mut frames = vec![];
+    let mut loaded = vec![];
+    for tick in 0..=trace.len() {
+        let mut a = [0.; 2];
+        if tick > 0 {
+            let row = &trace[tick - 1];
+            assert_eq!(row["tick_ms"], tick);
+            a = serde_json::from_value(row["position_rad"].clone())?;
+        }
+        let joint = |q, angle| Pose {
+            xyz: DVec3::ZERO,
+            rotation: DQuat::from_axis_angle(q, angle),
+        };
+        let top = base.compose(&shoulder).compose(&joint(axes[0], a[0]));
+        let lower = top.compose(&elbow).compose(&joint(axes[1], a[1]));
+        let mut poses = BTreeMap::new();
+        for (n, v) in &links {
+            let parent = match v.link.as_str() {
+                "default::arm::upper" => &top,
+                "default::arm::forearm" => &lower,
+                "default::floor::base" => &floor,
+                _ => return Err("unexpected SDF display link".into()),
+            };
+            let p = parent.compose(&v.local);
+            if n.ends_with("::tool") && tick > 0 {
+                let gap = p.xyz.z - v.shape["radius"].as_f64().unwrap() - floor.xyz.z;
+                assert!((gap - trace[tick - 1]["gap_m"].as_f64().unwrap()).abs() < 1e-12);
+            }
+            poses.insert(
+                n,
+                json!({"translation":p.xyz.to_array(),"rotation":p.rotation.to_array()}),
+            );
+        }
+        if tick > 0 && trace[tick - 1]["normal_impulse_ns"].as_f64().unwrap() > 0. {
+            loaded.push(tick);
+        }
+        frames.push(json!({"time_ns":tick*1_000_000,"poses":poses}));
+    }
+    assert_eq!((loaded.first(), loaded.last()), (Some(&65), Some(&311)));
+    let mut captures = vec![];
+    for line in fs::read_to_string(root.join("qualified/replay/frames.jsonl"))?.lines() {
+        let row: Value = serde_json::from_str(line)?;
+        if row["kind"] != "frame" {
+            continue;
+        }
+        let scene: Value = serde_json::from_str(row["scene"].as_str().unwrap())?;
+        let tick = (scene["nanoseconds"].as_u64().unwrap() / 1_000_000) as usize;
+        assert!(tick <= 600);
+        for v in scene["visuals"].as_array().unwrap() {
+            assert_eq!(v["shape"], links[v["name"].as_str().unwrap()].shape);
+        }
+        captures.push(tick);
+    }
+    let on = captures.iter().position(|t| loaded.contains(t)).unwrap();
+    let off = captures.iter().position(|t| t > &311).unwrap();
+    let out = root.join("viewer");
+    fs::create_dir_all(&out)?;
+    fs::write(out.join("expected.json"), serde_json::to_vec(&frames)?)?;
+    let names: BTreeMap<_, _> = links.keys().map(|n| (n, n)).collect();
+    fs::write(
+        out.join("index.json"),
+        serde_json::to_vec_pretty(
+            &json!({"kind":"authored-archive-v1","camera":"perspective","dt_ns":1,"source_poses":"../../viewer/expected.json","source_visual_poses":names,"captures":{"start":0,"contact":on,"lift":off,"final":captures.len()-1}}),
+        )?,
+    )?;
+    Ok(())
+}
