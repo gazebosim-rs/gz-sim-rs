@@ -3,7 +3,7 @@
 
 # Multi-fidelity physics worklog
 
-The articulated gripper now lifts and releases a flexible cable. The next local manipulation task is a folded sheet. [Latest measurements and replays](#2026-11-23--articulated-cable-lift)
+The articulated gripper now lifts and releases both sides of a folded sheet across nine combinations of weight and stiffness. The next local task is to establish how accurately the solver predicts the force inside the fold. [Latest measurements and replays](#2026-11-23--folded-sheet-grasp)
 
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
@@ -1798,3 +1798,27 @@ The cable uses eleven overlapping particle spheres, with self-contact disabled. 
 All 143 XPBD tests, the four articulated coupling tests and the 27 robot example tests passed. The instrumented study reproduced both replay streams, particle observations and the seven sets of physical measurements. LLVM exercised 606/612 changed production lines and 1046/1088 changed code regions across the physics, scene and example crates. The separate browser verifier covered 54/54 changed executable lines. Chromium/WebGPU checked 274 frames, including 3,014 cable particle positions and time-zero reset on each replay. The earlier workspace-wide coverage gaps remain open. [Phase coverage and browser measurements](measurements/local-manipulation/arm-cable-coverage.json)
 
 Next, use the articulated gripper on a folded sheet and test contact on both cloth layers. Sweeps across material stiffness and mass ratio and a full energy balance remain open for deformable manipulation.
+
+## 2026-11-23 — Folded-sheet grasp
+
+The four-axis arm grasped opposite sides of an 8.4 g folded sheet with 12 free particles and 12 triangles. Both sides rose 149.62 mm and stayed clear of the bench for the 300 ms hold. With two material substeps per 1 ms arm tick, the jaws carried 0.03442 and 0.04799 N vertically. Together they carried the sheet's 0.08240 N weight. The bench carried the full weight after release. With open jaws the sheet stayed on the bench at all three clock settings. Opt-in per-particle contact impulses identify which jaw loaded each side. [Study and viewer commands](LOCAL_RIGID_ROBOT.md#lift-a-folded-sheet-and-vary-its-material) · [Twelve measured trials](measurements/local-manipulation/arm-sheet.json)
+
+| Nominal fold, material substeps per arm tick | Mean upward load, left / right jaw (N) | Mean sheet self-contact force (N) | Held p95 cost (µs) |
+| ---: | ---: | ---: | ---: |
+| 1 | 0.02608 / 0.05633 | 0.17471 | 474.30 |
+| 2 | 0.03442 / 0.04799 | 0.13342 | 717.88 |
+| 4 | 0.03902 / 0.04338 | 0.06621 | 912.59 |
+
+An initially parallel fold exposed a contact failure on nearly parallel edges. The solver now checks the swept edges at the contact shell and can retry the material step at a finer resolution while keeping the arm clock fixed. At starting resolutions of one, two and four substeps, the parallel fold completed all 3,400 ticks and refined 55, 310 and 70 ticks respectively. At fixed starting resolutions of eight, twelve and sixteen substeps, the mean sheet self-contact force was 0.0492, 0.0249 and 0.0192 N. This measures the sum over eligible cloth contacts. Its magnitude has yet to converge. The clearance check applies only to sheet self-contact. On a separate capsule grasp, the previous and updated release builds measured the same contact-weighted slip speeds, 0.346463 mm/s with the original motion model and 0.116437 mm/s when accounting for the applied force. Step costs above are single-host measurements, including retries, with other tests running on the host.
+
+## 2026-11-23 — Sheet mass and stiffness sweep
+
+The arm lifted and released all nine combinations of 4.2, 8.4 and 16.8 g sheet masses and 0.5×, 1× and 2× nominal stiffness at both tested resolutions. The jaws each weigh 180 g. Sheet stretch, shear and bending stiffness changed together. Pad compliance, friction and arm commands stayed fixed. Switching from two to four material substeps changed either panel's mean lift by at most 6.18 µm. The share of the load carried by an individual jaw changed by up to 15.83% of the sheet's weight. The heavy, stiff sheet stayed gripped with zero measured self-contact force during the four-substep hold. An additional eight-substep run completed the heavy, soft case. [All 19 measured trials](measurements/local-manipulation/sheet-sweep.json)
+
+The material audit measures kinetic, gravitational and elastic energy and estimates signed jaw work from the two boundary wrenches. In all 19 runs the gain in material energy stayed below or equal to accumulated net jaw work. A balance for the entire robot still needs motor work, elastic pad storage and dissipative losses.
+
+Chromium running gz-web-rs with WebGPU matched all 6,576 independently recorded particle positions in the nominal lift, open control, parallel fold and heavy soft lift. Each replay covered 137 frames and reset to time zero. An independent geometry check sampled every 25 ms and found no crossings between the panel midsurfaces or between any triangle and a solid jaw. The compliant skin indented by up to 0.764 mm in those samples. [Browser and geometry measurements](measurements/local-manipulation/sheet-viewer.json)
+
+The 150 XPBD package tests, 35 robot example tests, five articulated-coupling tests and 86 additional scene tests passed. The instrumented studies reproduced all four replay streams, manifests and independent observations byte for byte. The 31 sets of physical measurements also matched after excluding wall-clock timing. LLVM covered 675/684 changed production lines (98.68%) and 1,243/1,290 changed regions (96.36%). Each affected crate exceeded 95% on both measures for its changes. In a wider diagnostic combining the all-feature XPBD package tests, passing scene suites and the robot studies, 8,854/9,229 distinct XPBD source lines (95.94%) and 17,950/18,639 distinct regions (96.30%) were exercised. This wider measurement exceeded 95% for both metrics using separate profiles for each executable. The standard workspace release gate remains open. [Coverage by crate and file](measurements/local-manipulation/sheet-coverage.json)
+
+Next, repeat the parallel-fold hold from a common loaded state and vary material resolution, solver iterations and mesh spacing independently. Compare the measured force and force distribution to a refined reference before using the result to set grip pressure.

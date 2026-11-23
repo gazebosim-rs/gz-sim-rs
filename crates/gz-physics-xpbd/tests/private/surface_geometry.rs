@@ -271,3 +271,119 @@ fn sliding_edge_and_face_interval_bounds_are_separating_in_native_geometry() {
         count[0], count[1]
     );
 }
+
+#[test]
+fn near_parallel_folded_hems_separate_at_the_end_of_a_loaded_substep() {
+    // Frozen contact at 611 ms in the 22 mm folded-shell grasp. Structural
+    // and pad corrections make the endpoint velocities differ from the chord.
+    let start = [
+        [
+            0.30895660512080986,
+            -4.750021818417992e-8,
+            0.1310012681176649,
+        ],
+        [0.30898127283281324, 0.0530000248167637, 0.131],
+        [
+            0.3310644288022167,
+            5.642826278344346e-8,
+            0.13100126812810606,
+        ],
+        [0.3310930095543092, 0.05300309676578527, 0.1310126131438334],
+    ]
+    .map(DVec3::from);
+    let end = [
+        [
+            0.30901189622393016,
+            -1.124012750539129e-6,
+            0.13100238299470862,
+        ],
+        [
+            0.30904970409640187,
+            0.052997589993278145,
+            0.13099158466088895,
+        ],
+        [
+            0.3310119600371572,
+            2.192299523782285e-6,
+            0.13100043026594277,
+        ],
+        [
+            0.33104969820383817,
+            0.05300236658980045,
+            0.13101715212111573,
+        ],
+    ]
+    .map(DVec3::from);
+    let velocities = [
+        [
+            -0.0020766626195484507,
+            0.003127726932714058,
+            0.0011543762347388665,
+        ],
+        [
+            0.013810143301156609,
+            -0.0014313303691684512,
+            -0.0013831354862747043,
+        ],
+        [
+            -0.0017010032429956438,
+            -0.002967450975537347,
+            -0.0019030273708278889,
+        ],
+        [
+            0.013834391068041456,
+            6.461373762071823e-5,
+            -0.0007030591887868124,
+        ],
+    ]
+    .map(DVec3::from);
+    let stencil = Stencil {
+        ids: [0, 1, 2, 3],
+        vf: false,
+    };
+    let gap = 0.022;
+    let eps = 2.200941093527743e-11;
+    let mut queries = 0;
+    assert!(
+        stencil
+            .sweep_points(
+                start,
+                end,
+                velocities,
+                gap,
+                eps,
+                &mut queries,
+                SweepMode::MaterialShell
+            )
+            .unwrap()
+            .is_none()
+    );
+    // The capsule sweep owns a separate trajectory envelope. It must still
+    // request coupled subdivision when the original certificate is inconclusive.
+    assert!(matches!(
+        material_sweep(start, end, velocities, false, gap, eps, &mut 0),
+        Err(XpbdError::UnresolvedSurface)
+    ));
+    for i in 0..=256 {
+        let at = std::array::from_fn(|id| start[id].lerp(end[id], f64::from(i) / 256.));
+        assert!(reference(at, false) >= gap - 4. * eps);
+    }
+    // Translate one layer a further micrometre toward the other. A real
+    // overlap at the same almost-parallel pose must still produce a response.
+    let mut penetrating = end;
+    penetrating[2].x -= 1e-6;
+    penetrating[3].x -= 1e-6;
+    let hit = stencil
+        .sweep_points(
+            start,
+            penetrating,
+            velocities,
+            gap,
+            eps,
+            &mut 0,
+            SweepMode::MaterialShell,
+        )
+        .unwrap()
+        .unwrap();
+    assert!(hit.depth > 0.9e-6);
+}

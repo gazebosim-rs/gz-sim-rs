@@ -26,11 +26,15 @@ pub use capsule_material::{
 mod collision;
 mod coupled;
 mod cuboid;
+mod energy;
+pub use energy::MaterialEnergy;
 mod impact_group;
 mod material;
 mod momentum;
 mod oriented;
 mod pad;
+mod pad_loads;
+pub use pad_loads::ParticlePadImpulse;
 /// Maximum simultaneous finite spherical pads on a triangulated shell.
 pub const MAX_SURFACE_PADS: usize = 4;
 mod surface;
@@ -415,6 +419,9 @@ impl SoftBody {
         self.path_substeps
     }
     fn begin_self_contact(&mut self) {
+        if let Some(loads) = &mut self.contacts.pad_loads {
+            loads.begin();
+        }
         self.path_substeps = 0;
         if let Some(m) = &mut self.capsule_material {
             m.begin_step();
@@ -424,6 +431,9 @@ impl SoftBody {
         }
     }
     fn publish_self_contact(&mut self) {
+        if let Some(loads) = &mut self.contacts.pad_loads {
+            loads.publish();
+        }
         if let Some(m) = &mut self.capsule_material {
             m.publish();
         }

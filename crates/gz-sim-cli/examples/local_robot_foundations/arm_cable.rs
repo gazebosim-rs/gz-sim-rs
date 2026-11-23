@@ -18,7 +18,7 @@ const WEIGHT: f64 = NODE_MASS * COUNT as f64 * 9.81;
 const PAD_COMPLIANCE: f64 = 0.001;
 const STRETCH: f64 = 0.00001;
 const CHORD: f64 = 0.003;
-const LIFT_TRAVEL: f64 = 0.15;
+pub(super) const LIFT_TRAVEL: f64 = 0.15;
 const MU: f64 = 0.7;
 const END: usize = 3400;
 const STRIDE: usize = 25;
@@ -90,13 +90,21 @@ fn sample(sim: &Simulation) -> Result<&DeformableSample> {
 }
 
 fn drive(c: &Controller, sim: &mut Simulation, t: f64, closed: bool) -> Result<()> {
+    lift_with_jaws(c, sim, t, if closed { 0.075 } else { 0. })
+}
+
+pub(super) fn lift_with_jaws(
+    c: &Controller,
+    sim: &mut Simulation,
+    t: f64,
+    stroke: f64,
+) -> Result<()> {
     // Lower the jaws before closing so a 5 mm clearance remains above the workbench.
     let (approach, va) = ramp(t, 0., 0.25);
     let (close, vc) = ramp(t, 0.10, 0.55);
     let (raise, vu) = ramp(t, 0.85, 0.55);
     let (lower, vd) = ramp(t, 2.0, 0.55);
     let (open, vo) = ramp(t, 2.65, 0.35);
-    let stroke = if closed { 0.075 } else { 0. };
     let jaw = (stroke * (close - open), stroke * (vc - vo), 0.);
     c.actuate(
         sim,
@@ -194,7 +202,7 @@ fn capture(r: &mut Recording, frames: &mut Vec<ParticleFrame>) -> Result<()> {
 }
 
 // The scene adapter already requires centered collision boxes on these links.
-fn half_size(sdf: &sdformat::Sdf, model: &str, link: &str) -> Result<DVec3> {
+pub(super) fn half_size(sdf: &sdformat::Sdf, model: &str, link: &str) -> Result<DVec3> {
     let collision = sdf
         .worlds
         .iter()

@@ -191,3 +191,71 @@ fn articulated_pads_require_a_centered_mass_and_explicitly_supported_contact_geo
         assert!(error.contains(expected), "{error}");
     }
 }
+
+#[test]
+fn measured_pad_loads_keep_authored_ids_after_boundary_removal_and_clear_on_reset() {
+    let plugin = PLUGIN
+        .replacen(
+            "<box link=",
+            "<sphere link=\"default::far::ball\" coupling=\"one_way\"/>\n<box link=",
+            1,
+        )
+        .replace(
+            "coupling=\"articulated_wrench\"",
+            "coupling=\"articulated_wrench\" normal_compliance=\"0.001\"",
+        )
+        .replace("<cable name=", "<cable pad_loads=\"true\" name=");
+    let far = r#"<model name="far"><static>true</static><pose>10 0 0 0 0 0</pose><link name="ball"><collision name="ball"><geometry><sphere><radius>0.1</radius></sphere></geometry></collision></link></model>"#;
+    let xml = scene(&plugin).replace("</world>", &format!("{far}</world>"));
+    let model = |sim: &Simulation, name: &str| {
+        sim.world()
+            .iter_entities()
+            .find(|e| e.get::<Name>().is_some_and(|n| n.0 == name))
+            .unwrap()
+            .get::<EntityId>()
+            .unwrap()
+            .get()
+    };
+    let mut sim = load(&xml);
+    let id = model(&sim, "default::far");
+    gz_sim_scene::remove_model(&mut sim, id).unwrap();
+    sim.step_exact(1).unwrap();
+    let sample = bodies(&sim).next().unwrap().1;
+    let first = sample.last_pad_loads().to_vec();
+    assert_eq!(first.len(), 2);
+    let mut total = DVec3::ZERO;
+    for (i, load) in first.iter().enumerate() {
+        assert_eq!((load.boundary, load.particle), (1, i));
+        assert!(load.normal[0] < 0.);
+        assert_eq!(load.tangent, [0.; 3]);
+        total += DVec3::from(load.normal);
+    }
+    assert!(total.distance(DVec3::from(sample.last_boundary_impulses()[1].linear)) < 1e-15);
+    sim.set_paused(true);
+    sim.tick().unwrap();
+    assert_eq!(bodies(&sim).next().unwrap().1.last_pad_loads(), first);
+
+    let id = model(&sim, "default::arm");
+    gz_sim_scene::remove_model(&mut sim, id).unwrap();
+    sim.step_exact(1).unwrap();
+    assert!(bodies(&sim).next().unwrap().1.last_pad_loads().is_empty());
+    reset_loaded_world(&mut sim, |_| ()).unwrap();
+    assert!(bodies(&sim).next().unwrap().1.last_pad_loads().is_empty());
+    sim.step_exact(1).unwrap();
+    assert_eq!(bodies(&sim).next().unwrap().1.last_pad_loads(), first);
+
+    let malformed = xml.replace("pad_loads=\"true\"", "pad_loads=\"all\"");
+    assert!(
+        load_world_with_sdf_step(
+            &malformed,
+            "bad.sdf",
+            "default",
+            &NoResources,
+            PhysicsEngine::MultiFidelity
+        )
+        .err()
+        .unwrap()
+        .to_string()
+        .contains("pad_loads must be true or false")
+    );
+}

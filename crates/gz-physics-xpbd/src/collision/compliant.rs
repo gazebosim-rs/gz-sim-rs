@@ -87,6 +87,9 @@ impl Contacts {
                 time.h,
             );
             reactions[j].react(start - b.origin, applied)?;
+            if let Some(loads) = &mut self.pad_loads {
+                loads.react(j, i, applied, DVec3::ZERO)?;
+            }
             self.record(i, j, hit, impulse, None);
         }
         if !active.is_empty() && self.friction > 0. {
@@ -142,6 +145,9 @@ impl Contacts {
                 time.h,
             );
             reactions[j].react(start - boundary.origin, applied)?;
+            if let Some(loads) = &mut self.pad_loads {
+                loads.react(j, i, DVec3::ZERO, applied)?;
+            }
         }
         Ok(())
     }

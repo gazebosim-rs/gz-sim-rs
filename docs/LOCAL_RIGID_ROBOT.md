@@ -115,3 +115,33 @@ With gz-web-rs running on port 8082, open your replay and press Play. For the co
 The SDF deformables plugin binds each centered jaw collision using `<box link="default::arm::left" coupling="articulated_wrench" normal_compliance="0.001"/>`, with a corresponding entry for the right jaw. Compliance gives the indentation in metres under one newton at a single particle contact. Zero selects hard contact. During each 1 ms arm tick, the material follows the measured jaw motion, then feeds each jaw’s force and torque into the next advancing rigid solve. The material clock can run faster while the actuator clock stays fixed.
 
 The comparison reports average height gain of the cable’s center of mass, each tip’s drop below the middle particle, vertical support and squeezing force on each side, bench load before and after release, and step cost. It repeats the grasp at three material step sizes and reverses the jaw declaration order at the middle setting. [Measured trials](measurements/local-manipulation/arm-cable.json)
+
+## Lift a folded sheet and vary its material
+
+The arm closes around opposite panels of one unpinned triangular cloth, lifts both panels, holds them for 300 ms and returns the cloth to the bench. The orange and teal particle markers identify the panels. The open-jaw control uses the same lift command. The nominal sheet has a slight outward flare. A second fold starts with parallel panels and tests sustained sheet self-contact.
+
+Run either study from the simulator workspace, choosing a fresh output directory each time.
+
+```sh
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli \
+  --example local_robot_foundations -- arm-sheet target/my-folded-sheet
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli \
+  --example local_robot_foundations -- sheet-sweep target/my-sheet-sweep
+```
+
+The sweep varies payload mass and material stiffness independently at 0.5×, 1× and 2×. A 2× stiffness scales down all three stretch, shear and bend compliances by half. Pad compliance, friction, the authored fold and the 1 ms arm command clock stay fixed. Each cell in `sweep.json` includes its two- and four-substep outcomes. An additional eight-substep trial checks the heavy, soft sheet. A solver refusal records the first failed tick. A completed trial reports each jaw’s squeeze and vertical load, both panel heights, the bench reaction after release, and p95 step cost.
+
+The energy measurements use the material's committed velocities and positions, gravity, rest lengths and signed dihedral angles. The estimated work supplied by each jaw pairs its signed reaction with its measured displacement and rotation over that tick. This resolves gains above estimated pad work during the lift. A complete robot energy balance would additionally need motor work, pad storage and every dissipative term.
+
+To serve a recording yourself, start gz-web-rs on port 8082 and the Rust server on an unused port.
+
+```sh
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli \
+  --bin gz-sim-rs -- --server --replay --web-viewer 9770 target/my-folded-sheet/held/replay
+```
+
+Open the viewer and press Play. Change the replay directory to `open/replay` for the control, or to `target/my-sheet-sweep/heavy-soft/replay` for the heavier, more flexible specimen. [Open your replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9770%2F)
+
+The four local recordings show the same arm command. Press Play to follow the pickup and release. [Nominal folded sheet](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9761%2F) · [Open-jaw control](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9762%2F) · [Heavier, softer sheet](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9763%2F) · [Parallel fold](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9765%2F)
+
+Both panels rose about 15 cm for every weight and stiffness in the sweep. The open-jaw control stayed on the bench. Lift height repeated within 6.18 µm across the two sweep clocks, while the force measured inside the fold varied with the material step size. [Folded-sheet measurements](measurements/local-manipulation/arm-sheet.json) · [Mass and stiffness sweep](measurements/local-manipulation/sheet-sweep.json)

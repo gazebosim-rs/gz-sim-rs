@@ -7,6 +7,8 @@ mod arm;
 mod arm_cable;
 #[path = "local_robot_foundations/arm_recovery.rs"]
 mod arm_recovery;
+#[path = "local_robot_foundations/arm_sheet.rs"]
+mod arm_sheet;
 #[path = "local_robot_foundations/arm_switching.rs"]
 mod arm_switching;
 #[path = "local_robot_foundations/envelope.rs"]
@@ -17,6 +19,10 @@ mod gripper;
 mod inertia;
 #[path = "local_robot_foundations/robot.rs"]
 mod robot;
+#[path = "local_robot_foundations/sheet_energy.rs"]
+mod sheet_energy;
+#[path = "local_robot_foundations/sheet_sweep.rs"]
+mod sheet_sweep;
 use clap::{Parser, Subcommand};
 use glam::DVec3;
 use gz_physics::{BodyState, PhysicsBackend};
@@ -39,6 +45,10 @@ struct Args {
 }
 #[derive(Subcommand)]
 enum Study {
+    /// Lift a folded sheet and measure contact on each panel.
+    ArmSheet { output: PathBuf },
+    /// Compare nine folded-sheet mass and stiffness combinations on two material clocks.
+    SheetSweep { output: PathBuf },
     /// Lift and release a flexible cable with the driven arm, and measure both jaw reactions.
     ArmCable { output: PathBuf },
     /// Compare a parked and always-dynamic arm across a complete loaded manipulation cycle.
@@ -187,6 +197,8 @@ fn write_new(output: &Path, generate: impl FnOnce(&Path) -> Result<()>) -> Resul
 }
 fn main() -> Result<()> {
     match Args::parse().study {
+        Study::ArmSheet { output } => write_new(&output, arm_sheet::run),
+        Study::SheetSweep { output } => write_new(&output, sheet_sweep::run),
         Study::ArmCable { output } => write_new(&output, arm_cable::run),
         Study::ArmSwitch { output } => write_new(&output, arm_switching::run),
         Study::Arm { output } => write_new(&output, arm::run),

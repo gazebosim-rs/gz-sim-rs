@@ -1,0 +1,240 @@
+{
+  "baseline": "e213ab9fdc173ef3a2274910e90387aa086050ad",
+  "scope": "Changed executable production lines and code regions beginning on changed lines. Each instrumented executable has an independent profile. Identical source coordinates count once. Test code excluded.",
+  "totals": {
+    "lines": {
+      "covered": 675,
+      "total": 684
+    },
+    "regions": {
+      "covered": 1243,
+      "total": 1290
+    }
+  },
+  "per_crate_changed": {
+    "gz-physics-xpbd": {
+      "lines": {
+        "covered": 136,
+        "total": 137
+      },
+      "regions": {
+        "covered": 222,
+        "total": 229
+      }
+    },
+    "gz-sim-cli": {
+      "lines": {
+        "covered": 510,
+        "total": 518
+      },
+      "regions": {
+        "covered": 988,
+        "total": 1027
+      }
+    },
+    "gz-sim-scene": {
+      "lines": {
+        "covered": 29,
+        "total": 29
+      },
+      "regions": {
+        "covered": 33,
+        "total": 34
+      }
+    }
+  },
+  "files": {
+    "crates/gz-physics-xpbd/src/bending.rs": {
+      "lines": [
+        1,
+        1
+      ],
+      "regions": [
+        1,
+        1
+      ]
+    },
+    "crates/gz-physics-xpbd/src/collision.rs": {
+      "lines": [
+        0,
+        0
+      ],
+      "regions": [
+        0,
+        0
+      ]
+    },
+    "crates/gz-physics-xpbd/src/collision/compliant.rs": {
+      "lines": [
+        6,
+        6
+      ],
+      "regions": [
+        16,
+        18
+      ]
+    },
+    "crates/gz-physics-xpbd/src/coupled.rs": {
+      "lines": [
+        19,
+        19
+      ],
+      "regions": [
+        43,
+        45
+      ]
+    },
+    "crates/gz-physics-xpbd/src/lib.rs": {
+      "lines": [
+        6,
+        6
+      ],
+      "regions": [
+        8,
+        8
+      ]
+    },
+    "crates/gz-physics-xpbd/src/one_way_checkpoint.rs": {
+      "lines": [
+        4,
+        4
+      ],
+      "regions": [
+        5,
+        6
+      ]
+    },
+    "crates/gz-physics-xpbd/src/surface.rs": {
+      "lines": [
+        26,
+        27
+      ],
+      "regions": [
+        39,
+        41
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+      "lines": [
+        2,
+        2
+      ],
+      "regions": [
+        6,
+        6
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/arm_cable.rs": {
+      "lines": [
+        9,
+        9
+      ],
+      "regions": [
+        10,
+        10
+      ]
+    },
+    "crates/gz-sim-scene/src/deformable.rs": {
+      "lines": [
+        24,
+        24
+      ],
+      "regions": [
+        24,
+        25
+      ]
+    },
+    "crates/gz-sim-scene/src/deformable/config.rs": {
+      "lines": [
+        5,
+        5
+      ],
+      "regions": [
+        9,
+        9
+      ]
+    },
+    "crates/gz-physics-xpbd/src/energy.rs": {
+      "lines": [
+        25,
+        25
+      ],
+      "regions": [
+        54,
+        54
+      ]
+    },
+    "crates/gz-physics-xpbd/src/pad_loads.rs": {
+      "lines": [
+        49,
+        49
+      ],
+      "regions": [
+        56,
+        56
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/arm_sheet.rs": {
+      "lines": [
+        316,
+        322
+      ],
+      "regions": [
+        634,
+        659
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/sheet_energy.rs": {
+      "lines": [
+        86,
+        86
+      ],
+      "regions": [
+        179,
+        185
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/sheet_sweep.rs": {
+      "lines": [
+        97,
+        99
+      ],
+      "regions": [
+        159,
+        167
+      ]
+    }
+  },
+  "whole_xpbd_all_features_package_tests": {
+    "tests": 150,
+    "lines": {
+      "covered": 8653,
+      "total": 9665
+    },
+    "regions": {
+      "covered": 15474,
+      "total": 17195
+    }
+  },
+  "whole_xpbd_distinct_source_coordinates": {
+    "scope": "All-feature package tests, passing selected scene suites, robot example tests and both sheet studies. Identical source coordinates count once across instruments. Failed test binaries excluded.",
+    "lines": [
+      8854,
+      9229
+    ],
+    "regions": [
+      17950,
+      18639
+    ]
+  },
+  "reproduced_non_timing_results": {
+    "arm_sheet_trials": 12,
+    "sheet_sweep_trials": 19,
+    "byte_identical_replays": [
+      "held",
+      "open",
+      "pressed",
+      "heavy-soft"
+    ]
+  }
+}

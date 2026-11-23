@@ -86,7 +86,7 @@ impl DihedralConstraint {
     }
 }
 
-fn angle_difference(angle: f64, rest: f64) -> f64 {
+pub(super) fn angle_difference(angle: f64, rest: f64) -> f64 {
     let delta = angle - rest;
     if delta > PI {
         delta - TAU

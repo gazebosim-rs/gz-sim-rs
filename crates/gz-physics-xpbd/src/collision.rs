@@ -407,6 +407,7 @@ struct Contact {
 
 #[derive(Clone, Default)]
 pub(super) struct Contacts {
+    pub(super) pad_loads: Option<Box<super::pad_loads::PadLoads>>,
     friction: f64,
     items: Vec<Contact>,
     index: HashMap<(usize, usize), usize>,

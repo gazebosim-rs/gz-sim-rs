@@ -172,6 +172,7 @@ pub struct DeformableSample {
     capsule_loads: Vec<gz_physics_xpbd::CapsuleMaterialLoad>,
     capsule_friction: Vec<gz_physics_xpbd::CapsuleFrictionLoad>,
     capsule_samples: Vec<gz_physics_xpbd::CapsuleContactSample>,
+    pad_loads: Vec<gz_physics_xpbd::ParticlePadImpulse>,
     applied_forcing: Vec<CapsuleForcing>,
     particles: Vec<Particle>,
     reactions: Vec<BoundaryImpulse>,
@@ -222,6 +223,11 @@ impl DeformableSample {
     pub fn particles(&self) -> &[Particle] {
         &self.particles
     }
+    /// World impulses on each compliant pad, indexed by original SDF boundary
+    /// and construction particle. Populated for material with `pad_loads="true"`.
+    pub fn last_pad_loads(&self) -> &[gz_physics_xpbd::ParticlePadImpulse] {
+        &self.pad_loads
+    }
     pub fn last_boundary_impulses(&self) -> &[BoundaryImpulse] {
         &self.reactions
     }
@@ -245,11 +251,11 @@ impl DeformableSample {
     pub fn last_self_contact_impulse(&self) -> gz_physics_xpbd::SelfContactImpulse {
         self.self_impulse
     }
-    /// Number of finer contact clocks attempted before publishing this tick.
     /// Number of resolved path intervals on this material during the last public step.
     pub fn last_path_substeps(&self) -> u32 {
         self.path_substeps
     }
+    /// Number of finer contact clocks attempted before publishing this tick.
     pub fn last_sweep_refinements(&self) -> u32 {
         self.sweep_refinements
     }
@@ -282,6 +288,22 @@ pub fn bodies(sim: &Simulation) -> impl Iterator<Item = (&str, &DeformableSample
                 .iter()
                 .map(|(name, body)| (name.as_str(), body))
         })
+}
+
+/// Evaluate kinetic, gravitational and elastic energy of a named material in a
+/// healthy loaded world. Values are in joules. The query does no work on other bodies.
+pub fn material_energy(
+    sim: &Simulation,
+    name: &str,
+) -> Option<Result<gz_physics_xpbd::MaterialEnergy, gz_physics_xpbd::XpbdError>> {
+    if sim.is_faulted() {
+        return None;
+    }
+    sim.world()
+        .get_resource::<Deformables>()?
+        .current
+        .get(name)
+        .map(SoftBody::mechanical_energy)
 }
 
 fn reset(info: Res<UpdateInfo>, mut soft: ResMut<Deformables>) {
@@ -401,6 +423,7 @@ impl Deformables {
             sample.particles.clear();
             sample.particles.extend_from_slice(body.particles());
             sample.reactions.clear();
+            sample.pad_loads.clear();
             sample.capsule_loads.clear();
             sample.capsule_friction.clear();
             sample.capsule_samples.clear();
@@ -444,6 +467,14 @@ impl Deformables {
                             c
                         }),
                 );
+                sample
+                    .pad_loads
+                    .extend(body.last_pad_loads().iter().map(|load| {
+                        gz_physics_xpbd::ParticlePadImpulse {
+                            boundary: self.active_slots[load.boundary],
+                            ..*load
+                        }
+                    }));
                 for value in body.last_boundary_impulses() {
                     let boundary = self.active_slots[value.boundary];
                     sample.reactions[boundary] = BoundaryImpulse { boundary, ..*value };

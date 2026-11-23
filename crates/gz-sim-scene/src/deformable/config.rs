@@ -63,6 +63,7 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
         "iterations",
         "radius",
         "self_contact",
+        "pad_loads",
         "friction",
         "stretch",
         "bend",
@@ -128,6 +129,11 @@ fn soft_body(node: Node<'_, '_>, gravity: [f64; 3], dt: Duration) -> Result<Soft
         SoftBody::cable(particles, stretch, bend, config)
     }
     .map_err(|e| e.to_string())?;
+    let body = match node.attribute("pad_loads") {
+        None | Some("false") => body,
+        Some("true") => body.with_pad_loads(),
+        Some(_) => return Err("pad_loads must be true or false".into()),
+    };
     let body = match node.attribute("conserve_angular_momentum") {
         None | Some("false") => body,
         Some("true") => body.with_angular_momentum_conservation(),

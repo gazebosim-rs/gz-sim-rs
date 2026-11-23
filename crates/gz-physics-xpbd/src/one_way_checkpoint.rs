@@ -193,6 +193,11 @@ impl SoftBody {
             p.position = x;
             p.velocity = v;
         }
+        // A one-way publication contains no articulated-pad impulses.
+        if let Some(loads) = &mut self.contacts.pad_loads {
+            loads.begin();
+            loads.publish();
+        }
         self.reactions = s.reactions;
         self.path_substeps = s.path_substeps;
         Ok(())

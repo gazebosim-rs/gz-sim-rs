@@ -60,6 +60,8 @@ pub(super) struct Surface {
     bounds: Vec<Bound>,
     friction: Option<friction::Friction>,
     pub(super) impulse: crate::SelfContactImpulse,
+    // Distinguish response exhaustion from a topology, broad-phase or query budget.
+    pub(super) projection_limit: bool,
 }
 
 fn edge(a: usize, b: usize) -> [usize; 2] {
@@ -150,6 +152,7 @@ impl Surface {
             bounds: Vec::new(),
             friction: None,
             impulse: crate::SelfContactImpulse::default(),
+            projection_limit: false,
         };
         let positions = particles
             .iter()
@@ -263,6 +266,7 @@ impl Surface {
                 return Ok(());
             };
             if count == MAX_PROJECTIONS {
+                self.projection_limit = true;
                 return Err(XpbdError::SurfaceBudget);
             }
             if let Some(friction) = &self.friction {
@@ -349,6 +353,13 @@ impl Surface {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum SweepMode {
+    Geometric,
+    MaterialShell,
+    MaterialCapsule,
+}
+
 #[derive(Clone, Copy)]
 struct Stencil {
     ids: [usize; 4],
@@ -380,7 +391,11 @@ impl Stencil {
             gap,
             eps,
             queries,
-            material,
+            if material {
+                SweepMode::MaterialShell
+            } else {
+                SweepMode::Geometric
+            },
         )
     }
 
@@ -393,8 +408,9 @@ impl Stencil {
         gap: f64,
         eps: f64,
         queries: &mut usize,
-        material: bool,
+        mode: SweepMode,
     ) -> Result<Option<Hit>, XpbdError> {
+        let material = mode != SweepMode::Geometric;
         let Some(Entry {
             weights,
             normal: n,
@@ -411,7 +427,7 @@ impl Stencil {
             .map(|i| velocities[i].dot(n) * weights[i])
             .sum::<f64>();
         let scale = velocities.iter().map(|v| v.length()).fold(1., f64::max);
-        let clear_material = || {
+        let inner_gap = || {
             let initial = if self.vf {
                 vertex_face(&start)
             } else {
@@ -419,7 +435,10 @@ impl Stencil {
             };
             // An initial overlap may resolve monotonically. Prove the curve
             // never penetrates beyond its already admitted starting depth.
-            let lower = gap.min(initial.delta.length()) - 4. * eps;
+            gap.min(initial.delta.length()) - 4. * eps
+        };
+        let clear_material = || {
+            let lower = inner_gap();
             lower > 0.
                 && if self.vf {
                     interval::clear_triangle(start, end, lower, true)
@@ -506,6 +525,19 @@ impl Stencil {
         if certified || clear_material() {
             return Ok(None);
         }
+        // Nearly parallel finite edges may graze at the very end of this
+        // interval while the whole-interval polynomial is inconclusive.
+        // For shell self-contact certify the same inner clearance with the
+        // bounded continuous search. A capsule carries a separate trajectory
+        // envelope and retains its existing coupled subdivision on refusal.
+        if mode == SweepMode::MaterialShell {
+            let lower = inner_gap();
+            if lower > 0.
+                && first_entry_mode(start, end, self.vf, lower, eps, queries, true)?.is_none()
+            {
+                return Ok(None);
+            }
+        }
         Err(XpbdError::UnresolvedSurface)
     }
 }
@@ -525,7 +557,15 @@ pub(super) fn material_sweep(
         ids: [0, 1, 2, 3],
         vf: vertex_face,
     }
-    .sweep_points(start, end, velocity, gap, eps, queries, true)
+    .sweep_points(
+        start,
+        end,
+        velocity,
+        gap,
+        eps,
+        queries,
+        SweepMode::MaterialCapsule,
+    )
 }
 
 pub(super) struct Entry {

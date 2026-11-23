@@ -179,6 +179,62 @@ fn late_edge_sliding_refuses_without_publishing_particles_or_impulses() {
     ));
     assert_eq!(body.particles(), before);
     assert_eq!(body.last_self_contact_impulse(), receipt);
+
+    use gz_physics_xpbd::{Boundary, RigidMobility, step_coupled_rigid};
+    let pad = Boundary::Cuboid {
+        center: [8., 0., 0.],
+        half_extents: [0.1; 3],
+        velocity: [0.; 3],
+        angular_velocity: [0.; 3],
+    };
+    let mobility = Some(RigidMobility::PrescribedCuboid {
+        normal_compliance: 0.001,
+        start_orientation: DQuat::IDENTITY.to_array(),
+        end_orientation: DQuat::IDENTITY.to_array(),
+        start_angular_velocity: [0.; 3],
+    });
+    // Even the finest admissible retry cannot resolve this long glancing flight.
+    assert!(matches!(
+        step_coupled_rigid(
+            &mut [&mut body],
+            Duration::from_millis(120),
+            &[pad],
+            &[mobility]
+        ),
+        Err(XpbdError::UnresolvedSurface)
+    ));
+    assert_eq!(body.particles(), before);
+    assert_eq!(body.last_self_contact_impulse(), receipt);
+    assert_eq!(body.last_sweep_refinements(), 0);
+    // From the same committed state, 6 ms requires two doublings. All
+    // particles and reactions must match one direct four-substep solve.
+    let dt = Duration::from_millis(6);
+    assert!(matches!(
+        body.step(dt, &[]),
+        Err(XpbdError::UnresolvedSurface)
+    ));
+    let mut fine = SoftBody::new(
+        before,
+        vec![],
+        SolverConfig {
+            substeps: 4,
+            ..body.config()
+        },
+    )
+    .unwrap()
+    .with_self_contact_surface(vec![[0, 1, 2], [3, 4, 5]])
+    .unwrap()
+    .with_self_contact_friction(0.5)
+    .unwrap();
+    step_coupled_rigid(&mut [&mut fine], dt, &[pad], &[mobility]).unwrap();
+    step_coupled_rigid(&mut [&mut body], dt, &[pad], &[mobility]).unwrap();
+    assert_eq!(body.last_sweep_refinements(), 2);
+    assert_eq!(fine.last_sweep_refinements(), 0);
+    assert_eq!(body.particles(), fine.particles());
+    assert_eq!(body.last_boundary_impulses(), fine.last_boundary_impulses());
+    let receipt = body.last_self_contact_impulse();
+    assert_eq!(receipt, fine.last_self_contact_impulse());
+    assert!(receipt.normal > 0. && receipt.friction_work > 0.);
 }
 
 #[test]

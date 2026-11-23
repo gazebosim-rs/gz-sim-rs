@@ -441,7 +441,9 @@ pub fn step_coupled(
 /// Advance finite centered spheres, cuboids and capsules with full principal
 /// inertia. Oriented receivers require a principal motion even for equal moments.
 /// A dynamic capsule retries an unresolved coupled sweep on a finer integer
-/// clock, up to five doublings and at most 1,024 retry substeps.
+/// clock, up to five doublings and at most 1,024 retry substeps. A finite
+/// self-contact shell pressed by compliant prescribed jaws retries unresolved
+/// surface contact on the same bounded clock.
 /// For one rotating cuboid, up to four simultaneous frictionless points on a
 /// free, initially unloaded, zero-gravity distance cable can collide between
 /// sampled poses. Normal impulses and up to twelve rigid distance rows are
@@ -481,12 +483,16 @@ fn solve<M: Copy + Into<RigidMobility>>(
             Ok(n.max(body.structural_substeps(dt)?))
         })?;
     // A reattempt starts from committed particles and fresh rigid/reaction state.
-    // Doubling only after an unresolved capsule sweep avoids copying the entire
-    // scene or charging a fine clock to uneventful intervals.
-    let refine = boundaries
+    // Replay the same prescribed jaw trajectory if a coarse shell interaction
+    // cannot satisfy both continuous separation and passive normal response.
+    let compliant_shell = bodies.iter().any(|body| body.surface.is_some())
+        && mobility.iter().any(|m| {
+            matches!(m.map(Into::into), Some(RigidMobility::PrescribedCuboid {normal_compliance, ..}) if normal_compliance > 0.)
+        });
+    let capsule = boundaries
         .iter()
         .any(|b| matches!(b, Boundary::DynamicCapsule { .. }));
-    let maximum = if refine {
+    let maximum = if capsule || compliant_shell {
         count
             .saturating_mul(if finite_material { 128 } else { 32 })
             .min(1024)
@@ -499,6 +505,9 @@ fn solve<M: Copy + Into<RigidMobility>>(
     let mut retry_material = false;
     loop {
         for body in bodies.iter_mut() {
+            if let Some(surface) = &mut body.surface {
+                surface.projection_limit = false;
+            }
             if let Some(material) = &mut body.capsule_material {
                 material.retry_manifold = retry_material;
             }
@@ -513,12 +522,20 @@ fn solve<M: Copy + Into<RigidMobility>>(
             for body in bodies.iter_mut() {
                 body.sweep_refinements = refinements;
             }
+            return result;
         }
-        if !matches!(result, Err(XpbdError::UnresolvedSweep)) {
+        let capsule_sweep = capsule && matches!(result, Err(XpbdError::UnresolvedSweep));
+        let shell_contact = compliant_shell
+            && (matches!(result, Err(XpbdError::UnresolvedSurface))
+                || (matches!(result, Err(XpbdError::SurfaceBudget))
+                    && bodies
+                        .iter()
+                        .any(|b| b.surface.as_ref().is_some_and(|s| s.projection_limit))));
+        if !capsule_sweep && !shell_contact {
             return result;
         }
         if steps >= maximum {
-            if finite_material && !retry_material {
+            if capsule_sweep && finite_material && !retry_material {
                 // The ordinary coupled sweep exhausted its grid. Reconstruct
                 // from the committed input with the same physical tolerances.
                 steps = count;
