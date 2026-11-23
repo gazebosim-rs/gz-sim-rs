@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Verify native replay clocks, poses, geometry and impulse indicators in Chromium.
 mod authored;
+mod gpu_arm_visuals;
 mod particle_visuals;
 mod corner_preload;
 mod edge_compliance;
@@ -678,6 +679,19 @@ fn run(profile: &Path, source: &Path, index: &Path, output: &Path, port: u16, li
         json!({"type":"mouseWheel","x":745,"y":470,"deltaX":0,"deltaY":if authored && matches!(chrome.oracle.index["camera"].as_str(),Some("top" | "perspective")){-80}else if chrome.oracle.index["free_landing"] == true {160} else if automatic{130}else if has_reference_gauges{-80}else{-250}}),
     )?;
     sleep(400);
+    if authored && chrome.oracle.index["gpu_arm_frames"].is_string() {
+        // View the arms obliquely so the X-Z joint planes and the three rows are visible.
+        chrome.call("Input.dispatchMouseEvent", json!({"type":"mousePressed","button":"left","buttons":1,"x":745,"y":450,"clickCount":1}))?;
+        sleep(100);
+        for n in 1..=8 {
+            chrome.call("Input.dispatchMouseEvent", json!({"type":"mouseMoved","button":"left","buttons":1,"x":745 + 22*n,"y":450 + 3*n}))?;
+            sleep(30);
+        }
+        chrome.call("Input.dispatchMouseEvent", json!({"type":"mouseReleased","button":"left","buttons":0,"x":921,"y":474,"clickCount":1}))?;
+        sleep(220);
+        chrome.key("f", "KeyF", 70, 0)?;
+        sleep(400);
+    }
     if authored && chrome.oracle.index["focus_first_visual"] == true {
         chrome.capture(&output.join("overview.jpg"))?;
         chrome.click_at(196, 200)?;
@@ -802,6 +816,9 @@ fn run(profile: &Path, source: &Path, index: &Path, output: &Path, port: u16, li
         result["source_trajectories"] = json!(1);
         result["body_poses_and_shapes_checked"] = json!(expected.iter().sum::<usize>());
         result["lifecycle_catalogs_checked"] = json!(expected.len());
+        if chrome.oracle.index["gpu_arm_frames"].is_string() {
+            result["independent_gpu_arm_states_checked"] = json!(9 * expected.len());
+        }
         if let Some(names) = chrome.oracle.index["particle_visuals"].as_array() {
             result["independent_particle_positions_checked"] = json!(names.len() * expected.len());
         }

@@ -97,6 +97,11 @@ pub(super) fn read(source: &Path, index: &Value) -> Result<Value> {
         let samples: Vec<Value> = serde_json::from_reader(BufReader::new(samples))?;
         super::particle_visuals::verify(&frames, &samples, serde_json::from_value(names.clone())?)?;
     }
+    if let Some(path) = index["gpu_arm_frames"].as_str() {
+        let file = File::open(source.join(path))?;
+        let samples: Vec<Value> = serde_json::from_reader(BufReader::new(file))?;
+        super::gpu_arm_visuals::verify(&frames, &samples)?;
+    }
     Ok(Value::Array(frames))
 }
 fn clock(scene: &Value) -> Result<u64> {
