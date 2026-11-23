@@ -1,0 +1,152 @@
+{
+  "baseline": "8046e7a8232e7e428b95b658d03abff0c9b7e80b",
+  "scope": "Changed executable production lines and code regions beginning on changed lines in the physics, scene and example crates. Each instrumented executable used an independent profile. Identical source coordinates count once.",
+  "totals": {
+    "lines": {
+      "covered": 606,
+      "total": 612
+    },
+    "regions": {
+      "covered": 1046,
+      "total": 1088
+    }
+  },
+  "files": {
+    "crates/gz-physics-xpbd/src/collision.rs": {
+      "lines": [
+        23,
+        23
+      ],
+      "regions": [
+        44,
+        44
+      ]
+    },
+    "crates/gz-physics-xpbd/src/coupled.rs": {
+      "lines": [
+        35,
+        35
+      ],
+      "regions": [
+        44,
+        44
+      ]
+    },
+    "crates/gz-physics-xpbd/src/impact_group.rs": {
+      "lines": [
+        3,
+        3
+      ],
+      "regions": [
+        3,
+        3
+      ]
+    },
+    "crates/gz-physics-xpbd/src/lib.rs": {
+      "lines": [
+        1,
+        1
+      ],
+      "regions": [
+        3,
+        3
+      ]
+    },
+    "crates/gz-physics-xpbd/src/tensor.rs": {
+      "lines": [
+        37,
+        37
+      ],
+      "regions": [
+        37,
+        37
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations.rs": {
+      "lines": [
+        1,
+        1
+      ],
+      "regions": [
+        3,
+        3
+      ]
+    },
+    "crates/gz-sim-scene/src/deformable.rs": {
+      "lines": [
+        41,
+        42
+      ],
+      "regions": [
+        82,
+        92
+      ]
+    },
+    "crates/gz-sim-scene/src/deformable/config.rs": {
+      "lines": [
+        32,
+        32
+      ],
+      "regions": [
+        47,
+        47
+      ]
+    },
+    "crates/gz-physics-xpbd/src/collision/compliant.rs": {
+      "lines": [
+        122,
+        125
+      ],
+      "regions": [
+        212,
+        221
+      ]
+    },
+    "crates/gz-sim-cli/examples/local_robot_foundations/arm_cable.rs": {
+      "lines": [
+        311,
+        313
+      ],
+      "regions": [
+        571,
+        594
+      ]
+    }
+  },
+  "source_sha256": {
+    "crates/gz-physics-xpbd/src/collision.rs": "cdf8382ee9b431dc12515694287e2e013e927b262290307c23fd8bdfbca285a5",
+    "crates/gz-physics-xpbd/src/coupled.rs": "d0d5e19beb0a394b3965911d1998022936bfab277c74b25996a486d8fd453935",
+    "crates/gz-physics-xpbd/src/impact_group.rs": "78ecddf68fe212030dbb148fd931a779cff4b9c0ca3b325c75894c63155f9a11",
+    "crates/gz-physics-xpbd/src/lib.rs": "5d326398ae6436826b1b6b9176b5a7cad121560ac0c9db457bafb9161e8de31b",
+    "crates/gz-physics-xpbd/src/tensor.rs": "2d5dd078f30fe6fcf3c5b219234e02c8424dbebe417bbdd532d1968e5d3a82a0",
+    "crates/gz-physics-xpbd/tests/cuboid_contact.rs": "11a50c491f846c74a925a554d733dcfb29a0ab35b8cd0727a757b3b22ca7218d",
+    "crates/gz-sim-cli/examples/local_robot_foundations.rs": "2162ca1114a4ea1af354e2893ec3c6f9e0a7243a3af56bd44409347e8fc987de",
+    "crates/gz-sim-scene/src/deformable.rs": "c2eb017b8cacda6f300ef589b1e529b0d12bec45377c8fb6c504e4a2569d7a4a",
+    "crates/gz-sim-scene/src/deformable/config.rs": "0ebb33e58f84efacad8536482aa688f7addba28aaf4ccf841813be061f5a0ec9",
+    "crates/gz-physics-xpbd/src/collision/compliant.rs": "4f79123b54f34a034aa97586848acbca70a7b62de4238cac55340bcfcb0a3b32",
+    "crates/gz-physics-xpbd/tests/arm_cable_calibration.rs": "30ae07ae26da2539b8af31a1e25b498bf269f172269377a4ce3f92dd2aa89bfd",
+    "crates/gz-sim-cli/examples/local_robot_foundations/arm_cable.rs": "07b16f8c7ab7ff58bc13f3a4a80451640ba9d0061d056f4607ef57a19fdb95f1",
+    "crates/gz-sim-cli/examples/local_robot_foundations/arm_cable_tests.rs": "cb66eeb23b5563e68ce526fa1b21e18ad2c0670f474ebbe4a98f8041331f7ded",
+    "crates/gz-sim-scene/tests/articulated_cable_wrench.rs": "6d5277ec068bacf80a84d39e8e765dad25cf6324996048e6624b8dbf2a13b13f"
+  },
+  "browser_oracle_changed_lines": {
+    "covered": 54,
+    "total": 54
+  },
+  "browser_verification": {
+    "held": {
+      "body_poses_and_shapes_checked": 3288,
+      "frames": 137,
+      "independent_particle_positions_checked": 1507,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0
+    },
+    "open": {
+      "body_poses_and_shapes_checked": 3288,
+      "frames": 137,
+      "independent_particle_positions_checked": 1507,
+      "renderer": "WebGPU",
+      "reset_ms": 0.0
+    }
+  }
+}

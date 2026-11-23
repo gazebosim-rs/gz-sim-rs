@@ -186,7 +186,25 @@ fn rigid_surface(
     physics: &PhysicsBackend,
     capsule_pair: &[(BodyId, SoftRigidInertia)],
 ) -> Result<Surface, String> {
-    fields(node, &["link", "coupling", "linear_trajectory"], false)?;
+    fields(
+        node,
+        &["link", "coupling", "linear_trajectory", "normal_compliance"],
+        false,
+    )?;
+    let normal_compliance = match node.attribute("normal_compliance") {
+        None => 0.,
+        Some(_)
+            if node.has_tag_name("box")
+                && node.attribute("coupling") == Some("articulated_wrench") =>
+        {
+            let compliance = number::<f64>(node, "normal_compliance")?;
+            if !compliance.is_finite() || compliance < 0. {
+                return Err("normal_compliance must be finite and nonnegative (m/N)".into());
+            }
+            compliance
+        }
+        Some(_) => return Err("normal_compliance requires an articulated_wrench box".into()),
+    };
     let forced = match node.attribute("linear_trajectory") {
         None | Some("native_chord") => false,
         Some("force_aware")
@@ -256,7 +274,24 @@ fn rigid_surface(
             .map_err(|e| format!("{name}: {e}"))?;
             None
         }
-        "one_way" => return Err("cuboid boundaries require two_way coupling".into()),
+        "one_way" => {
+            return Err("cuboid boundaries require two_way or articulated_wrench coupling".into());
+        }
+        "articulated_wrench" => {
+            if !matches!(shape, ReceiverShape::Cuboid(_))
+                || prescribed_or_static
+                || physics.is_jointed(body) != Some(true)
+                || physics.is_dynamic(body) != Some(true)
+                || ecs
+                    .get::<LinkCenterOfMass>(entity)
+                    .is_some_and(|com| !centered(com.0))
+            {
+                return Err(format!(
+                    "articulated_wrench requires a dynamic jointed cuboid with centered mass on '{name}'"
+                ));
+            }
+            Some(ReceiverMass::ArticulatedWrench { normal_compliance })
+        }
         "two_way" => {
             let backend = physics
                 .downcast_ref::<MultiFidelityBackend>()
@@ -771,6 +806,15 @@ fn parse(
         starts: vec![None; surfaces.len()],
         accelerations: vec![None; surfaces.len()],
         applied_forcing: vec![],
+        articulated_wrenches: surfaces.iter().any(|s| {
+            matches!(
+                s,
+                Surface::Rigid {
+                    mobility: Some(ReceiverMass::ArticulatedWrench { .. }),
+                    ..
+                }
+            )
+        }),
         surfaces,
         boundaries: Vec::new(),
         receivers: Vec::new(),

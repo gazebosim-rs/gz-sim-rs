@@ -39,25 +39,58 @@ pub(super) struct TensorMotion {
 impl TensorMotion {
     pub fn new(spec: PrincipalRigidMotion, final_spin: DVec3, dt: f64) -> Result<Self, XpbdError> {
         let inverse = DVec3::from(spec.inverse_principal_inertia);
-        let local_axes = DQuat::from_array(spec.principal_orientation);
-        let start = DQuat::from_array(spec.start_orientation);
-        let end = DQuat::from_array(spec.end_orientation);
-        let initial_spin = DVec3::from(spec.start_angular_velocity);
-        if !inverse.is_finite()
-            || inverse.min_element() <= 0.
-            || !inverse.recip().is_finite()
-            || !initial_spin.is_finite()
-            || dt * initial_spin.length().max(final_spin.length()) >= std::f64::consts::PI
-            || [local_axes, start, end]
-                .iter()
-                .any(|q| (q.length_squared() - 1.).abs() > 1e-10 || !q.is_finite())
-        {
+        if !inverse.is_finite() || inverse.min_element() <= 0. || !inverse.recip().is_finite() {
             return Err(XpbdError::InvalidBoundary);
         }
         let moments = inverse.recip();
         let scaled = moments / moments.max_element();
         // A physical inertia tensor obeys all three triangle inequalities.
         if scaled.element_sum() < 2. - 1e-12 {
+            return Err(XpbdError::InvalidBoundary);
+        }
+        Self::trajectory(spec, final_spin, dt)
+    }
+
+    /// The enclosing native mechanism supplies the complete path of this
+    /// receiver. Zero inverse mobility keeps XPBD impulses in its load report.
+    pub fn prescribed(
+        start: [f64; 4],
+        end: [f64; 4],
+        spin: [f64; 3],
+        final_spin: DVec3,
+        dt: f64,
+    ) -> Result<Self, XpbdError> {
+        Self::trajectory(
+            PrincipalRigidMotion {
+                inverse_mass: 0.,
+                inverse_principal_inertia: [0.; 3],
+                principal_orientation: DQuat::IDENTITY.to_array(),
+                start_orientation: start,
+                end_orientation: end,
+                start_angular_velocity: spin,
+            },
+            final_spin,
+            dt,
+        )
+    }
+
+    fn trajectory(
+        spec: PrincipalRigidMotion,
+        final_spin: DVec3,
+        dt: f64,
+    ) -> Result<Self, XpbdError> {
+        let inverse = DVec3::from(spec.inverse_principal_inertia);
+        let local_axes = DQuat::from_array(spec.principal_orientation);
+        let start = DQuat::from_array(spec.start_orientation);
+        let end = DQuat::from_array(spec.end_orientation);
+        let initial_spin = DVec3::from(spec.start_angular_velocity);
+        if !initial_spin.is_finite()
+            || !final_spin.is_finite()
+            || dt * initial_spin.length().max(final_spin.length()) >= std::f64::consts::PI
+            || [local_axes, start, end]
+                .iter()
+                .any(|q| (q.length_squared() - 1.).abs() > 1e-10 || !q.is_finite())
+        {
             return Err(XpbdError::InvalidBoundary);
         }
         Ok(Self {

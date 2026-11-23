@@ -377,3 +377,245 @@ fn swept_contact_group_refuses_friction_before_publication() {
         assert_eq!(b.particles(), before[1]);
     }
 }
+
+#[test]
+fn prescribed_pad_reports_the_equal_and_opposite_wrench_without_a_free_body_correction() {
+    let q = DQuat::from_rotation_z(0.6) * DQuat::from_rotation_x(-0.2);
+    let normal = q * -DVec3::X;
+    let point = q * DVec3::new(-0.51, 0.18, 0.1);
+    let mass = 0.3;
+    for n in [1, 2, 4] {
+        let mut material = particle(point, -2. * normal, mass, n);
+        let result = step_coupled_rigid(
+            &mut [&mut material],
+            Duration::from_micros(1),
+            &[boundary(DVec3::new(0.5, 0.25, 0.15), DVec3::ZERO)],
+            &[Some(RigidMobility::PrescribedCuboid {
+                normal_compliance: 0.,
+                start_orientation: q.to_array(),
+                end_orientation: q.to_array(),
+                start_angular_velocity: [0.; 3],
+            })],
+        )
+        .unwrap();
+        let load = material.last_boundary_impulses()[0];
+        let impulse = -2. * mass * normal;
+        assert!(result[0].is_none());
+        assert!(DVec3::from(load.linear).distance(impulse) < 1e-8);
+        assert!(DVec3::from(load.angular).distance(point.cross(impulse)) < 1e-8);
+        assert!(DVec3::from(material.particles()[0].velocity).length() < 1e-7);
+    }
+}
+
+#[test]
+fn rotating_prescribed_cuboid_sweeps_a_point_without_losing_its_prescribed_motion() {
+    let q0 = DQuat::from_rotation_z(-0.4);
+    let q1 = DQuat::from_rotation_z(0.4);
+    let spin = DVec3::Z * 80.;
+    for n in [1, 2, 4] {
+        let mut material = particle(DVec3::X * 0.8, DVec3::ZERO, 0.005, n);
+        let motion = RigidMobility::PrescribedCuboid {
+            normal_compliance: 0.,
+            start_orientation: q0.to_array(),
+            end_orientation: q1.to_array(),
+            start_angular_velocity: spin.to_array(),
+        };
+        let correction = step_coupled_rigid(
+            &mut [&mut material],
+            Duration::from_millis(10),
+            &[boundary(DVec3::new(1., 0.08, 0.14), spin)],
+            &[Some(motion)],
+        )
+        .unwrap();
+        assert!(correction[0].is_none());
+        let particle = material.particles()[0];
+        let momentum = 0.005 * DVec3::from(particle.velocity);
+        assert!(momentum.y > 0.15);
+        let load = material.last_boundary_impulses()[0];
+        assert!((momentum + DVec3::from(load.linear)).length() < 1e-10);
+        assert!(
+            (DVec3::from(particle.position).cross(momentum) + DVec3::from(load.angular)).length()
+                < 1e-10
+        );
+    }
+}
+
+#[test]
+fn prescribed_cuboid_rejects_nonbox_geometry_and_invalid_poses_before_publishing() {
+    let mut material = particle(DVec3::X, DVec3::ZERO, 1., 2);
+    let initial = material.particles().to_vec();
+    let valid = DQuat::IDENTITY.to_array();
+    let b = boundary(DVec3::ONE, DVec3::ZERO);
+    let sphere = Boundary::Sphere {
+        center: [0.; 3],
+        radius: 1.,
+        velocity: [0.; 3],
+        angular_velocity: [0.; 3],
+    };
+    for (geometry, start, end, spin) in [
+        (sphere, valid, valid, [0.; 3]),
+        (b, [0.; 4], valid, [0.; 3]),
+        (b, valid, [f64::NAN; 4], [0.; 3]),
+        (b, valid, valid, [f64::INFINITY; 3]),
+    ] {
+        let m = RigidMobility::PrescribedCuboid {
+            normal_compliance: 0.,
+            start_orientation: start,
+            end_orientation: end,
+            start_angular_velocity: spin,
+        };
+        assert!(matches!(
+            step_coupled_rigid(
+                &mut [&mut material],
+                Duration::from_millis(1),
+                &[geometry],
+                &[Some(m)]
+            ),
+            Err(XpbdError::InvalidBoundary)
+        ));
+        assert_eq!(material.particles(), initial);
+    }
+}
+
+fn compliant_pad(compliance: f64) -> RigidMobility {
+    RigidMobility::PrescribedCuboid {
+        normal_compliance: compliance,
+        start_orientation: DQuat::IDENTITY.to_array(),
+        end_orientation: DQuat::IDENTITY.to_array(),
+        start_angular_velocity: [0.; 3],
+    }
+}
+
+#[test]
+fn a_compressed_particle_supports_its_weight_at_the_hooke_law_depth() {
+    let mass = 0.02;
+    let gravity = 9.81;
+    let compliance = 0.005;
+    let top = 0.1;
+    let radius = 0.01;
+    let z = top + radius - mass * gravity * compliance;
+    for substeps in [1, 2, 4] {
+        let mut material = SoftBody::new(
+            vec![Particle {
+                position: [0., 0., z],
+                velocity: [0.; 3],
+                inverse_mass: 1. / mass,
+            }],
+            vec![],
+            SolverConfig {
+                gravity: [0., 0., -gravity],
+                substeps,
+                iterations: 8,
+                particle_radius: radius,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        for _ in 0..100 {
+            step_coupled_rigid(
+                &mut [&mut material],
+                Duration::from_millis(1),
+                &[boundary(DVec3::splat(top), DVec3::ZERO)],
+                &[Some(compliant_pad(compliance))],
+            )
+            .unwrap();
+            assert!((material.particles()[0].position[2] - z).abs() < 2e-12);
+            assert!(
+                (material.last_boundary_impulses()[0].linear[2] / 0.001 + mass * gravity).abs()
+                    < 2e-10
+            );
+        }
+    }
+}
+
+#[test]
+fn compliant_skin_refuses_invalid_compliance_core_crossings_and_unresolved_glances() {
+    let box_shape = boundary(DVec3::splat(0.1), DVec3::ZERO);
+    for (point, speed, compliance, error) in [
+        ([0.101, 0., 0.], [0.; 3], -0.1, XpbdError::InvalidBoundary),
+        (
+            [0.101, 0., 0.],
+            [0.; 3],
+            f64::NAN,
+            XpbdError::InvalidBoundary,
+        ),
+        ([0., 0., 0.], [0.; 3], 0.001, XpbdError::UnresolvedSweep),
+        (
+            [-0.2, 0., 0.],
+            [400., 0., 0.],
+            0.001,
+            XpbdError::UnresolvedSweep,
+        ),
+        (
+            [-0.2, 0.105, 0.],
+            [400., 0., 0.],
+            0.001,
+            XpbdError::UnresolvedSweep,
+        ),
+    ] {
+        let mut body = particle(point.into(), speed.into(), 0.02, 1);
+        let initial = body.particles().to_vec();
+        assert!(
+            matches!(step_coupled_rigid(&mut [&mut body],Duration::from_millis(1),
+            &[box_shape],&[Some(compliant_pad(compliance))]),Err(e) if e == error)
+        );
+        assert_eq!(body.particles(), initial);
+    }
+}
+
+#[test]
+fn opposed_pads_share_static_weight_and_slide_at_their_coulomb_limits_in_either_order() {
+    let mass = 0.02;
+    let mu = 0.2;
+    let compliance = 0.001; // 1 mm indentation gives 1 N per pad.
+    for (gravity, expected_load) in [(9.81, mass * 9.81 / 2.), (40., mu)] {
+        for substeps in [1, 2, 4] {
+            for order in [[-1., 1.], [1., -1.]] {
+                let pads = order.map(|sign| Boundary::Cuboid {
+                    center: [sign * 0.039, 0., 0.],
+                    half_extents: [0.03, 0.1, 0.1],
+                    velocity: [0.; 3],
+                    angular_velocity: [0.; 3],
+                });
+                let mut material = SoftBody::new(
+                    vec![Particle {
+                        position: [0.; 3],
+                        velocity: [0.; 3],
+                        inverse_mass: 1. / mass,
+                    }],
+                    vec![],
+                    SolverConfig {
+                        gravity: [0., 0., -gravity],
+                        friction: mu,
+                        substeps,
+                        iterations: 12,
+                        particle_radius: 0.01,
+                        self_contact: false,
+                    },
+                )
+                .unwrap();
+                for _ in 0..20 {
+                    step_coupled_rigid(
+                        &mut [&mut material],
+                        Duration::from_millis(1),
+                        &pads,
+                        &[Some(compliant_pad(compliance)); 2],
+                    )
+                    .unwrap();
+                    for (j, sign) in material.last_boundary_impulses().iter().zip(order) {
+                        let f = DVec3::from(j.linear) / 0.001;
+                        assert!(
+                            (f.x - sign).abs() < 1e-8 && (f.z + expected_load).abs() < 1e-8,
+                            "{f:?}"
+                        );
+                    }
+                }
+                let final_v = material.particles()[0].velocity[2];
+                assert!((final_v - 0.02 * (2. * expected_load / mass - gravity)).abs() < 1e-9);
+                if gravity == 9.81 {
+                    assert!(material.particles()[0].position[2].abs() < 1e-12);
+                }
+            }
+        }
+    }
+}

@@ -1,5 +1,6 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
+mod compliant;
 mod spatial;
 use super::oriented::{OrientedShape, Sweep};
 use super::{Boundary, BoundaryImpulse, Particle, XpbdError, correct};
@@ -21,6 +22,7 @@ pub(super) struct PreparedBoundary {
     pub(super) velocity: DVec3,
     pub(super) path_endpoints: Option<(DVec3, DVec3)>,
     shape: Shape,
+    pub(super) normal_compliance: f64,
 }
 
 impl PreparedBoundary {
@@ -114,6 +116,7 @@ impl PreparedBoundary {
             origin,
             velocity,
             shape,
+            normal_compliance: 0.,
         })
     }
 
@@ -169,6 +172,9 @@ impl PreparedBoundary {
                     q0,
                     q1,
                 };
+                if self.normal_compliance > 0. {
+                    return compliant::projection(&sweep);
+                }
                 let Some(hit) = sweep.impact()? else {
                     return Ok(None);
                 };
@@ -304,7 +310,12 @@ impl PreparedBoundary {
             let local = q.conjugate() * (DVec3::from(p.position) - center);
             let tolerance = 1e-8 * (geometry.extent() + radius)
                 + 64. * f64::EPSILON * center.abs().max_element();
-            if geometry.witness(local).0 < radius - tolerance {
+            let minimum = if self.normal_compliance > 0. {
+                0.
+            } else {
+                radius
+            };
+            if geometry.witness(local).0 < minimum - tolerance {
                 return Err(XpbdError::UnresolvedSweep);
             }
         }
@@ -390,17 +401,20 @@ struct Contact {
     correction: f64,
     projected_impulse: f64,
     remaining: Option<DVec3>,
+    tangent_impulse: DVec3,
     initial_overlap: f64,
 }
 
 #[derive(Clone, Default)]
 pub(super) struct Contacts {
+    friction: f64,
     items: Vec<Contact>,
     index: HashMap<(usize, usize), usize>,
 }
 
 impl Contacts {
-    pub fn clear(&mut self) {
+    pub fn clear(&mut self, friction: f64) {
+        self.friction = friction;
         self.items.clear();
         self.index.clear();
     }
@@ -408,7 +422,7 @@ impl Contacts {
         &mut self,
         particle: usize,
         boundary: usize,
-        hit: Projection,
+        hit: &Projection,
         impulse: f64,
         remaining: Option<DVec3>,
     ) {
@@ -420,6 +434,7 @@ impl Contacts {
                 correction: 0.0,
                 projected_impulse: 0.,
                 remaining,
+                tangent_impulse: DVec3::ZERO,
                 initial_overlap: hit.initial_overlap,
             });
             self.items.len() - 1
@@ -477,6 +492,8 @@ fn project_points<const SPATIAL: bool>(
     {
         return Ok(());
     }
+    let elastic = boundaries.iter().any(|b| b.normal_compliance > 0.);
+    let mut active = Vec::new();
     let field = if SPATIAL {
         spatial::Field::new(x.len(), boundaries, time)
     } else {
@@ -497,11 +514,13 @@ fn project_points<const SPATIAL: bool>(
                 continue;
             }
             let start = DVec3::from(p.position);
+
             for (j, boundary) in boundaries.iter_mut().enumerate() {
                 if skip != 0 && skip & (1u64 << j) != 0 {
                     continue;
                 }
-                if (shell_pads && boundary.sphere_radius().is_some())
+                if boundary.normal_compliance > 0.
+                    || (shell_pads && boundary.sphere_radius().is_some())
                     || (capsule_material && boundary.material_capsule())
                 {
                     continue;
@@ -564,8 +583,11 @@ fn project_points<const SPATIAL: bool>(
                     // With x1 = x0 + h*v1, a positional correction contributes
                     // x0 cross (m*dx/h) to discrete orbital angular momentum.
                     reactions[j].react(start - boundary.origin, dx / time.h / p.inverse_mass)?;
-                    contacts.record(i, j, hit, normal_impulse, remaining);
+                    contacts.record(i, j, &hit, normal_impulse, remaining);
                 }
+            }
+            if elastic {
+                contacts.project_compliant((i, p), x, boundaries, reactions, time, &mut active)?;
             }
         }
     }
@@ -584,6 +606,9 @@ pub(super) fn finish_contacts(
     for c in &contacts.items {
         let p = &mut particles[c.particle];
         let b = &mut boundaries[c.boundary];
+        if b.normal_compliance > 0. {
+            continue;
+        }
         if b.receiver.is_some() {
             finish_receiver(c, x[c.particle], p, b, &mut reactions[c.boundary], mu, h)?;
             continue;

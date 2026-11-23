@@ -21,6 +21,17 @@ pub struct SphereMobility {
 pub enum RigidMobility {
     Isotropic(SphereMobility),
     Principal(PrincipalRigidMotion),
+    /// Centered box moving between native link poses. Its contacts affect the material
+    /// and accumulate a world-frame wrench for the native owner. No free-body correction
+    /// is returned. The boundary supplies chord velocity and ending angular velocity.
+    PrescribedCuboid {
+        /// Normal indentation in metres per newton for each contacting particle.
+        /// Zero selects hard contact.
+        normal_compliance: f64,
+        start_orientation: [f64; 4],
+        end_orientation: [f64; 4],
+        start_angular_velocity: [f64; 3],
+    },
     /// A free capsule under a known constant world force. The material and
     /// native COM advance on the same integer clock when they exchange load.
     ForceAware {
@@ -119,13 +130,28 @@ impl Receiver {
                     base_rotation: DQuat::IDENTITY,
                 },
             ),
+            RigidMobility::PrescribedCuboid {
+                normal_compliance: _,
+                start_orientation,
+                end_orientation,
+                start_angular_velocity,
+            } => (
+                0.,
+                Spin::Principal(Box::new(TensorMotion::prescribed(
+                    start_orientation,
+                    end_orientation,
+                    start_angular_velocity,
+                    base,
+                    dt,
+                )?)),
+            ),
             RigidMobility::Isotropic(_) => return Err(XpbdError::InvalidBoundary),
             RigidMobility::Principal(m) | RigidMobility::ForceAware { rotation: m, .. } => (
                 m.inverse_mass,
                 Spin::Principal(Box::new(TensorMotion::new(m, base, dt)?)),
             ),
         };
-        if !positive(inverse_mass) {
+        if !matches!(mobility, RigidMobility::PrescribedCuboid { .. }) && !positive(inverse_mass) {
             return Err(XpbdError::InvalidBoundary);
         }
         Ok(Self {
@@ -298,6 +324,9 @@ impl Receiver {
         let Spin::Principal(t) = &mut self.spin else {
             return Err(XpbdError::InvalidBoundary);
         };
+        if self.inverse_mass == 0. {
+            return Ok(());
+        }
         let delta = h * t.inverse_inertia(arm.cross(impulse));
         self.angular_path += delta.length();
         if self.angular_path >= std::f64::consts::PI {
@@ -359,6 +388,9 @@ impl Receiver {
         t.rotate_projection(delta)
     }
     pub fn apply_velocity_impulse(&mut self, arm: DVec3, impulse: DVec3) {
+        if self.inverse_mass == 0. {
+            return;
+        }
         self.received_impulse |= impulse != DVec3::ZERO;
         self.linear += self.inverse_mass * impulse;
         let torque = arm.cross(impulse);
@@ -560,10 +592,26 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
                 {
                     return Err(XpbdError::InvalidBoundary);
                 }
+                if let RigidMobility::PrescribedCuboid {
+                    normal_compliance, ..
+                } = m.into()
+                {
+                    if !normal_compliance.is_finite() || normal_compliance < 0. {
+                        return Err(XpbdError::InvalidBoundary);
+                    }
+                    prepared.normal_compliance = normal_compliance;
+                }
                 let angular_velocity = match b {
                     Boundary::Sphere {
                         angular_velocity, ..
-                    } => angular_velocity,
+                    } if !matches!(m.into(), RigidMobility::PrescribedCuboid { .. }) => {
+                        angular_velocity
+                    }
+                    Boundary::Cuboid {
+                        angular_velocity, ..
+                    } if matches!(m.into(), RigidMobility::PrescribedCuboid { .. }) => {
+                        angular_velocity
+                    }
                     Boundary::Cuboid {
                         angular_velocity, ..
                     }
@@ -674,7 +722,12 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
     }
     Ok(prepared
         .iter()
-        .map(|b| b.receiver.as_ref().map(Receiver::motion))
+        .map(|b| {
+            b.receiver
+                .as_ref()
+                .filter(|r| r.inverse_mass > 0.)
+                .map(Receiver::motion)
+        })
         .collect())
 }
 

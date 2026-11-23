@@ -548,7 +548,7 @@ impl SoftBody {
         }
         self.lambdas.fill(0.0);
         self.bending_lambdas.fill(0.0);
-        self.contacts.clear();
+        self.contacts.clear(self.config.friction);
         if let Some(m) = &mut self.capsule_material {
             m.begin_substep();
         }

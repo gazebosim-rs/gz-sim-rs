@@ -3,6 +3,8 @@
 //! Run the local rigid-robot qualification scenes and export their actual Bevy visual poses.
 #[path = "local_robot_foundations/arm.rs"]
 mod arm;
+#[path = "local_robot_foundations/arm_cable.rs"]
+mod arm_cable;
 #[path = "local_robot_foundations/arm_recovery.rs"]
 mod arm_recovery;
 #[path = "local_robot_foundations/arm_switching.rs"]
@@ -37,6 +39,8 @@ struct Args {
 }
 #[derive(Subcommand)]
 enum Study {
+    /// Lift and release a flexible cable with the driven arm, and measure both jaw reactions.
+    ArmCable { output: PathBuf },
     /// Compare a parked and always-dynamic arm across a complete loaded manipulation cycle.
     ArmSwitch { output: PathBuf },
     /// Rotate a rigid arm over an obstacle, pick up a free box and place it on a second stand.
@@ -183,6 +187,7 @@ fn write_new(output: &Path, generate: impl FnOnce(&Path) -> Result<()>) -> Resul
 }
 fn main() -> Result<()> {
     match Args::parse().study {
+        Study::ArmCable { output } => write_new(&output, arm_cable::run),
         Study::ArmSwitch { output } => write_new(&output, arm_switching::run),
         Study::Arm { output } => write_new(&output, arm::run),
         Study::Gripper { output } => write_new(&output, gripper::run),

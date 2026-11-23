@@ -2,6 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //! World-space XPBD bodies and explicitly selected rigid boundaries.
 //! Read particle state after an advancing tick through [`bodies`].
+//!
+//! A centered, dynamic, jointed cuboid can opt into `coupling="articulated_wrench"`.
+//! XPBD samples the link's native motion and accumulates the force impulse and
+//! angular impulse from contacts with each material. The next advancing native
+//! tick applies their sum at the link center of mass through its joint constraints.
+//! `normal_compliance` sets per-particle normal contact compliance in m/N and defaults to zero.
 mod boundary_path;
 mod particle_visual;
 #[cfg(feature = "distributed-physics")]
@@ -49,6 +55,7 @@ enum ReceiverMass {
     Isotropic(SphereMobility),
     Principal(SoftRigidInertia),
     ForceAware(SoftRigidInertia),
+    ArticulatedWrench { normal_compliance: f64 },
 }
 
 impl ReceiverMass {
@@ -70,6 +77,12 @@ impl ReceiverMass {
     ) -> RigidMobility {
         match self {
             Self::Isotropic(mass) => RigidMobility::Isotropic(mass),
+            Self::ArticulatedWrench { normal_compliance } => RigidMobility::PrescribedCuboid {
+                normal_compliance,
+                start_orientation: start.orientation,
+                end_orientation: end.orientation,
+                start_angular_velocity: start.angular_velocity,
+            },
             Self::Principal(mass) | Self::ForceAware(mass) => {
                 let rotation = PrincipalRigidMotion {
                     inverse_mass: mass.inverse_mass,
@@ -132,6 +145,7 @@ pub(crate) struct Deformables {
     mobility: Vec<Option<RigidMobility>>,
     receivers: Vec<Option<(BodyId, BodyState)>>,
     active_slots: Vec<usize>,
+    articulated_wrenches: bool,
     samples: BTreeMap<String, DeformableSample>,
 }
 
@@ -631,24 +645,61 @@ impl Deformables {
                 backend.commit_soft_capsule_pair(both)?;
             }
             self.current = staged.expect("staged two-capsule world");
-            return Ok(());
-        }
-        if let [(id, state)] = updates.as_slice() {
+        } else if let [(id, state)] = updates.as_slice() {
             let shape = self.surfaces.iter().find_map(|surface| match surface {
                 Surface::Rigid { body, shape, .. } if body == id => Some(shape),
                 _ => None,
             });
             match shape {
                 Some(ReceiverShape::Cuboid(_)) => {
-                    return Ok(backend.commit_soft_cuboid(*id, *state)?);
+                    backend.commit_soft_cuboid(*id, *state)?;
                 }
                 Some(ReceiverShape::Capsule { .. }) => {
-                    return Ok(backend.commit_soft_capsule(*id, *state)?);
+                    backend.commit_soft_capsule(*id, *state)?;
                 }
-                _ => {}
+                _ => backend.commit_soft_spheres(&updates)?,
+            }
+        } else if !updates.is_empty() {
+            backend.commit_soft_spheres(&updates)?;
+        }
+        if self.articulated_wrenches {
+            self.queue_articulated_reactions(backend, dt)?;
+        }
+        Ok(())
+    }
+
+    /// Native has finished this tick. Apply the measured impulse over its next
+    /// solve so joint constraints distribute the load through the articulation.
+    fn queue_articulated_reactions(
+        &self,
+        backend: &mut MultiFidelityBackend,
+        dt: Duration,
+    ) -> Result<(), CouplingError> {
+        for (boundary, &slot) in self.active_slots.iter().enumerate() {
+            if !matches!(
+                self.mobility[boundary],
+                Some(RigidMobility::PrescribedCuboid { .. })
+            ) {
+                continue;
+            }
+            let (id, end) = self.receivers[boundary].ok_or(CouplingError::Binding)?;
+            let start = self.starts[slot].ok_or(CouplingError::Binding)?;
+            // XPBD records moments about the start center. Native expects
+            // a world-space moment about the COM at the next solve's start.
+            let offset = DVec3::from(start.position) - DVec3::from(end.position);
+            let mut linear = DVec3::ZERO;
+            let mut angular = DVec3::ZERO;
+            for body in self.current.values() {
+                let reaction = &body.last_boundary_impulses()[boundary];
+                linear += DVec3::from(reaction.linear);
+                angular += DVec3::from(reaction.angular);
+            }
+            if linear != DVec3::ZERO || angular != DVec3::ZERO {
+                let force = linear / dt.as_secs_f64();
+                let torque = (angular + offset.cross(linear)) / dt.as_secs_f64();
+                backend.add_world_wrench(id, force.to_array(), torque.to_array())?;
             }
         }
-        backend.commit_soft_spheres(&updates)?;
         Ok(())
     }
 }

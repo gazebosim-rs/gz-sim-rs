@@ -92,6 +92,11 @@ pub(super) fn read(source: &Path, index: &Value) -> Result<Value> {
     if frames.is_empty() || manifest["frames"].as_u64() != Some(frames.len() as u64) {
         return Err("manifest and recorded frame count differ".into());
     }
+    if let Some(names) = index.get("particle_visuals") {
+        let samples = File::open(source.join("../particle-frames.json"))?;
+        let samples: Vec<Value> = serde_json::from_reader(BufReader::new(samples))?;
+        super::particle_visuals::verify(&frames, &samples, serde_json::from_value(names.clone())?)?;
+    }
     Ok(Value::Array(frames))
 }
 fn clock(scene: &Value) -> Result<u64> {

@@ -3,6 +3,8 @@
 
 # Multi-fidelity physics worklog
 
+The articulated gripper now lifts and releases a flexible cable. The next local manipulation task is a folded sheet. [Latest measurements and replays](#2026-11-23--articulated-cable-lift)
+
 Each new development phase includes visual output from the measured simulation and directions for viewing or reproducing it.
 
 ## 2026-11-23 — Design review and implementation roadmap
@@ -1776,3 +1778,23 @@ During an emergency set-down the Rust support check permits opening only after t
 The 20 robot example tests and three grasp-guard tests passed, including equal and opposite measured vertical reactions on the stand and parcel. LLVM exercised all 274 changed executable application lines. The new study module covered 204/204 LLVM lines and 246/255 regions (96.47%). The scene grasp-guard module covered 42/42 lines and 51/51 regions. The instrumented CLI reproduced all three recorded streams, manifests and the numerical comparison byte for byte. The gz-web-rs browser checks verified 464 frames and 6,496 body poses and shapes, including reset to time zero for each replay. Formatting and strict Clippy passed for the affected crates. These are phase-level results.
 
 The next manipulation phase is to lift a flexible cable with this articulated gripper and measure both the cable's sag and the load on the jaws. The existing repository-wide coverage gaps remain open.
+
+## 2026-11-23 — Articulated cable lift
+
+The four-axis gripper picked up a free 22 g, 22 cm cable from a bench, held it for 300 ms and put it back. At two material substeps per 1 ms arm tick, the cable’s center rose 133.29 mm, its ends hung 46.89 and 47.29 mm below its middle, and the bench carried zero load during the hold. Each jaw squeezed with 1.140 N and supported 0.10771 N vertically. After release the bench carried the full 0.21582 N weight. The same arm motion with open jaws left the cable lying on the bench at all three step sizes. [Run the study and watch both gz-web-rs replays](LOCAL_RIGID_ROBOT.md#lift-a-flexible-cable) · [Measured trials](measurements/local-manipulation/arm-cable.json)
+
+| Material substeps per arm tick | Center lift (mm) | Left / right upward load (N) | Tip sag (mm) | Held p95 step cost (µs) |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 133.16 | 0.10763 / 0.10763 | 46.76 / 48.28 | 98.45 |
+| 2 | 133.29 | 0.10771 / 0.10771 | 46.89 / 47.29 | 110.59 |
+| 4 | 133.28 | 0.10805 / 0.10805 | 46.98 / 47.09 | 145.03 |
+
+Hard pads could not reach their commanded gap around the cable. Adding per-contact elastic compression made the squeeze measurable, but resolving tangential slip one jaw at a time made the reported load depend on which jaw came first. Evaluating both pads from a common particle position and bounding their individual friction by their measured squeeze fixed this. Reversing their declaration order changed either jaw’s upward load by at most 2.24 × 10⁻¹¹ N. A separate analytical test verified sticking and the sliding force limit in both orders. Peak modeled indentation stayed below 0.513 mm and the largest change in segment length was 0.306%. Timings are single-host measurements over 3,400 ticks per trial.
+
+The native robot receives each jaw’s measured linear and angular impulse on the next advancing tick. Tests compared its motion with a separately applied wrench, paused with a load pending, then reset and repeated. A hanging test of the same cable material used one clamped end and independently calculated 10.6631 µm of extension from self-weight. At eight solver iterations the one-, two- and four-substep results overshot that by 43.0650, 8.7337 and 0.7691 µm. At four substeps and 32 iterations the error fell below 0.0002 µm.
+
+The cable uses eleven overlapping particle spheres, with self-contact disabled. The bench contact uses a plane, and every measured particle stayed within the finite bench footprint.
+
+All 143 XPBD tests, the four articulated coupling tests and the 27 robot example tests passed. The instrumented study reproduced both replay streams, particle observations and the seven sets of physical measurements. LLVM exercised 606/612 changed production lines and 1046/1088 changed code regions across the physics, scene and example crates. The separate browser verifier covered 54/54 changed executable lines. Chromium/WebGPU checked 274 frames, including 3,014 cable particle positions and time-zero reset on each replay. The earlier workspace-wide coverage gaps remain open. [Phase coverage and browser measurements](measurements/local-manipulation/arm-cable-coverage.json)
+
+Next, use the articulated gripper on a folded sheet and test contact on both cloth layers. Sweeps across material stiffness and mass ratio and a full energy balance remain open for deformable manipulation.

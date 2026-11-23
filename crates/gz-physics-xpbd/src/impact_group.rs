@@ -28,6 +28,9 @@ pub(super) fn locate(
     let [boundary] = boundaries else {
         return Ok(None);
     };
+    if boundary.normal_compliance > 0. {
+        return Ok(None);
+    }
     if boundary.material_capsule() && bodies.iter().any(|b| b.uses_capsule_material_contact()) {
         return Ok(None);
     }

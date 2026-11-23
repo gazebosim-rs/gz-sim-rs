@@ -96,3 +96,22 @@ Measured results from the review run are available for the [grasp trials](measur
 The mid-swing command writes six trials to `comparison.json`. Each disturbance has a fixed-pressure control and an undisturbed carry from the same incoming body states. The reported drop is the parcel's downward travel relative to the palm during the pull and the next 100 ms. Only the three recorded trials have frame indices. The frame-index file identifies the alarm, the decision to turn toward the nearer stand and the first supported release. At the release frame the stand bears the load, and the next control interval starts opening the jaws.
 
 With the recording served on port 9750, open the [source-return replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9750%2F). The local review also serves the [target set-down](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9751%2F) and the [fixed-pressure control](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9752%2F). To serve a freshly generated recording yourself, use a free port in the replay server command above and point it at the corresponding replay directory.
+
+## Lift a flexible cable
+
+The same four-axis arm pinches the middle of a free, 22 g cable, lifts it from the bench, holds it for 300 ms, then lowers and releases it. An open-jaw control follows the same lift command. Both replays show the eleven cable particles sampled from the solver. The orange spheres overlap to represent the cable thickness.
+
+Run from the simulator workspace with a fresh output directory. The first command writes the measurements and replays. The second serves the closed-jaw replay on port 9760.
+
+```sh
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli \
+  --example local_robot_foundations -- arm-cable target/my-arm-cable
+RUSTC_WRAPPER= cargo run --release --locked --no-default-features -p gz-sim-cli \
+  --bin gz-sim-rs -- --server --replay --web-viewer 9760 target/my-arm-cable/held/replay
+```
+
+With gz-web-rs running on port 8082, open your replay and press Play. For the control, point the server at `target/my-arm-cable/open/replay`. The local review serves both recordings. [Open your replay](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9760%2F) · [Recorded cable lift](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9754%2F) · [Open-jaw control](http://127.0.0.1:8082/?backend=primitive&ui=full&quality=low&replay=1&lifecycle=1&url=ws%3A%2F%2F127.0.0.1%3A9755%2F)
+
+The SDF deformables plugin binds each centered jaw collision using `<box link="default::arm::left" coupling="articulated_wrench" normal_compliance="0.001"/>`, with a corresponding entry for the right jaw. Compliance gives the indentation in metres under one newton at a single particle contact. Zero selects hard contact. During each 1 ms arm tick, the material follows the measured jaw motion, then feeds each jaw’s force and torque into the next advancing rigid solve. The material clock can run faster while the actuator clock stays fixed.
+
+The comparison reports average height gain of the cable’s center of mass, each tip’s drop below the middle particle, vertical support and squeezing force on each side, bench load before and after release, and step cost. It repeats the grasp at three material step sizes and reverses the jaw declaration order at the middle setting. [Measured trials](measurements/local-manipulation/arm-cable.json)
