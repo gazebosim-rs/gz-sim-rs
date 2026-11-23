@@ -65,7 +65,35 @@ fn witness(mut frame: Pose, direction: Vector) -> Pose {
     frame
 }
 
+pub(super) type SpringRows = [Option<(RobotSpring, ImpulseJointHandle)>; 2];
+
 impl Construction {
+    pub(super) fn insert_universal_springs(
+        self,
+        world: &mut PhysicsWorld,
+        parent: RigidBodyHandle,
+        child: RigidBodyHandle,
+        laws: [Option<RobotSpring>; 2],
+    ) -> SpringRows {
+        std::array::from_fn(|i| {
+            let law = laws[i]?;
+            // Rapier takes each motor axis from its first body. The second
+            // universal axis follows the child through rotation about the first.
+            let (first, second, a, b, axis) = if i == 0 {
+                (parent, child, self.frame1, self.frame2, JointAxis::AngX)
+            } else {
+                (child, parent, self.frame2, self.frame1, JointAxis::AngY)
+            };
+            let row = GenericJointBuilder::new(JointAxesMask::empty())
+                .local_frame1(a)
+                .local_frame2(b)
+                .contacts_enabled(false)
+                .motor_model(axis, MotorModel::ForceBased)
+                .motor_velocity(axis, 0., law.damping);
+            Some((law, world.insert_impulse_joint(first, second, row)))
+        })
+    }
+
     pub(super) fn universal_anchor(self) -> GenericJoint {
         cone(
             JointAxesMask::LIN_AXES,
@@ -140,11 +168,33 @@ impl Construction {
 }
 
 impl Joints {
-    pub(crate) fn prepare_universal_stops(
+    pub(crate) fn prepare_universal_axes(
         &self,
         world: &mut PhysicsWorld,
         bodies: &BTreeMap<BodyId, BodyEntry>,
     ) {
+        for (id, rows) in &self.universal_springs {
+            let joint = &self.records[id];
+            let (parent, child) = joint.initial.universal_frames(world, bodies);
+            let angles = joint.measured_angles(parent.inverse() * child);
+            for (i, row) in rows.iter().enumerate() {
+                if let Some((law, handle)) = row {
+                    let (rate, damping) =
+                        law.angular_response(angles[i], world.integration_parameters.dt);
+                    let (axis, speed) = if i == 0 {
+                        (JointAxis::AngX, rate)
+                    } else {
+                        (JointAxis::AngY, -rate)
+                    };
+                    world
+                        .impulse_joints
+                        .get_mut(*handle, false)
+                        .expect("resident universal spring")
+                        .data
+                        .set_motor_velocity(axis, speed, damping);
+                }
+            }
+        }
         for id in &self.wide_universal {
             let joint = &self.records[id];
             let c = joint.initial;
@@ -194,6 +244,43 @@ impl Joint {
 }
 
 impl RapierBackend {
+    /// Add independent passive torsional springs and dampers on the parent and child axes.
+    pub fn add_universal_joint_with_springs(
+        &mut self,
+        parent: Option<BodyId>,
+        child: BodyId,
+        anchor: [f64; 3],
+        joint: RobotJoint,
+        springs: [Option<RobotSpring>; 2],
+    ) -> Result<JointId, PhysicsError> {
+        if !matches!(joint, RobotJoint::Universal { .. }) {
+            return Err(PhysicsError::InvalidJoint);
+        }
+        if springs
+            .iter()
+            .flatten()
+            .any(|spring| !spring.admissible_continuous())
+        {
+            return Err(PhysicsError::InvalidValue);
+        }
+        let id = self.add_robot_joint(parent, child, anchor, joint)?;
+        if springs.iter().any(Option::is_some) {
+            let parent = parent.map_or_else(
+                || self.joints.anchor.expect("world joint anchor"),
+                |p| self.bodies[&p].0,
+            );
+            let construction = self.joints.records[&id].initial;
+            let rows = construction.insert_universal_springs(
+                &mut self.world,
+                parent,
+                self.bodies[&child].0,
+                springs,
+            );
+            self.joints.universal_springs.insert(id, rows);
+        }
+        Ok(id)
+    }
+
     pub fn universal_joint_state(&self, id: JointId) -> Option<UniversalJointState> {
         let j = self.joints.records.get(&id)?;
         let c = j.initial;

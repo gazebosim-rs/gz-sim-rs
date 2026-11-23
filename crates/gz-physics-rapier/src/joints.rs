@@ -201,6 +201,7 @@ pub(super) struct Joints {
     records: BTreeMap<JointId, Joint>,
     efforts: BTreeMap<JointId, f64>,
     universal_efforts: BTreeMap<JointId, [f64; 2]>,
+    universal_springs: BTreeMap<JointId, universal::SpringRows>,
     wide_universal: std::collections::BTreeSet<JointId>,
     screws: BTreeMap<JointId, ImpulseJointHandle>,
     anchor: Option<RigidBodyHandle>,
@@ -215,6 +216,7 @@ impl Default for Joints {
             records: BTreeMap::new(),
             efforts: BTreeMap::new(),
             universal_efforts: BTreeMap::new(),
+            universal_springs: BTreeMap::new(),
             wide_universal: Default::default(),
             screws: BTreeMap::new(),
             anchor: None,
@@ -227,6 +229,7 @@ impl Default for Joints {
 }
 #[derive(Clone)]
 pub(super) struct InitialJoints {
+    universal_springs: BTreeMap<JointId, [Option<RobotSpring>; 2]>,
     records: BTreeMap<JointId, Construction>,
     next: u64,
 }
@@ -389,6 +392,11 @@ impl Joints {
     }
     pub(super) fn initial(&self) -> InitialJoints {
         InitialJoints {
+            universal_springs: self
+                .universal_springs
+                .iter()
+                .map(|(&id, rows)| (id, rows.map(|row| row.map(|(law, _)| law))))
+                .collect(),
             records: self
                 .records
                 .iter()
@@ -409,6 +417,7 @@ impl Joints {
             .then(|| world.insert_body(RigidBodyBuilder::fixed()));
         let mut world_roots = BTreeMap::new();
         let mut screws = BTreeMap::new();
+        let mut universal_springs = BTreeMap::new();
         let records = initial
             .records
             .iter()
@@ -441,6 +450,12 @@ impl Joints {
                     *world.bodies[parent].activation_mut() = RigidBodyActivation::cannot_sleep();
                 }
                 let handle = construction.insert(world, parent, child);
+                if let Some(&laws) = initial.universal_springs.get(&id) {
+                    universal_springs.insert(
+                        id,
+                        construction.insert_universal_springs(world, parent, child, laws),
+                    );
+                }
                 if construction.additional_pgs_iterations != 0 {
                     world.bodies[child].set_additional_pgs_iterations(usize::from(
                         construction.additional_pgs_iterations,
@@ -471,6 +486,7 @@ impl Joints {
                 .filter_map(|(&id, c)| c.wide_universal().then_some(id))
                 .collect(),
             records,
+            universal_springs,
             screws,
             efforts: BTreeMap::new(),
             universal_efforts: BTreeMap::new(),
@@ -497,6 +513,8 @@ impl Joints {
                 true
             }
         });
+        self.universal_springs
+            .retain(|id, _| self.records.contains_key(id));
         self.screws.retain(|id, _| self.records.contains_key(id));
         self.wide_universal
             .retain(|id| self.records.contains_key(id));
@@ -855,6 +873,11 @@ impl RapierBackend {
         self.joints.efforts.remove(&id);
         self.joints.universal_efforts.remove(&id);
         self.joints.wide_universal.remove(&id);
+        if let Some(rows) = self.joints.universal_springs.remove(&id) {
+            for (_, row) in rows.into_iter().flatten() {
+                self.world.remove_impulse_joint(row);
+            }
+        }
         for handle in joint
             .universal_stops
             .into_iter()

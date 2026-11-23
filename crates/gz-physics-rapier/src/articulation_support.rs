@@ -376,7 +376,7 @@ impl RapierBackend {
             );
         }
         self.joints
-            .prepare_universal_stops(&mut self.world, &self.bodies);
+            .prepare_universal_axes(&mut self.world, &self.bodies);
         self.joints.prepare_screws(&mut self.world, &self.bodies);
         self.world.step_with_events(
             &collision::SupportedGroups(

@@ -78,6 +78,16 @@ impl Joints {
                 .rem_euclid(std::f64::consts::TAU)
                 - std::f64::consts::PI;
             let position = joint.position + delta;
+            if let Some((spring, handle)) = initial.spring.zip(joint.spring) {
+                let (target_rate, damping) =
+                    spring.angular_response(position, world.integration_parameters.dt);
+                world
+                    .impulse_joints
+                    .get_mut(handle, false)
+                    .expect("registered passive spring")
+                    .data
+                    .set_motor_velocity(JointAxis::AngX, target_rate, damping);
+            }
             let (a, b) = initial.screw_frames(parent, child, position, lead);
             let row = world
                 .impulse_joints

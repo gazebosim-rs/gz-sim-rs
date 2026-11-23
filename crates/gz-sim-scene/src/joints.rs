@@ -213,7 +213,7 @@ pub(super) fn validate_model(
                 &name,
                 "scalar controller on universal joint",
             )?;
-            validate_axis(&joint.kind, joint.axis2.as_ref(), &name, false, true, false)?;
+            validate_axis(&joint.kind, joint.axis2.as_ref(), &name, false, true, robot)?;
         }
         bounded |= validate_axis(
             &joint.kind,
@@ -224,7 +224,11 @@ pub(super) fn validate_model(
             robot
                 && matches!(
                     joint.kind,
-                    sdformat::JointKind::Revolute | sdformat::JointKind::Prismatic
+                    sdformat::JointKind::Revolute
+                        | sdformat::JointKind::Prismatic
+                        | sdformat::JointKind::Screw
+                        | sdformat::JointKind::Universal
+                        | sdformat::JointKind::Revolute2
                 ),
         )?;
     }
@@ -457,22 +461,31 @@ pub(super) fn build(
             let local = backend
                 .downcast_mut::<MultiFidelityBackend>()
                 .expect("validated local robot");
-            if let Some(d) = joint
-                .axis
-                .as_ref()
-                .map(|a| &a.dynamics)
-                .filter(|d| d.damping != 0. || d.spring_stiffness != 0.)
-            {
+            let springs = [joint.axis.as_ref(), joint.axis2.as_ref()].map(|axis| {
+                let dynamics = &axis?.dynamics;
+                (dynamics.damping != 0. || dynamics.spring_stiffness != 0.).then_some(
+                    gz_physics_multifidelity::RobotSpring {
+                        stiffness: dynamics.spring_stiffness,
+                        damping: dynamics.damping,
+                        reference: dynamics.spring_reference,
+                    },
+                )
+            });
+            if matches!(motion, RobotJoint::Universal { .. }) {
+                local.add_universal_joint_with_springs(
+                    parent_body,
+                    body,
+                    pose.translation,
+                    motion,
+                    springs,
+                )?
+            } else if let Some(spring) = springs[0] {
                 local.add_robot_joint_with_spring(
                     parent_body,
                     body,
                     pose.translation,
                     motion,
-                    gz_physics_multifidelity::RobotSpring {
-                        stiffness: d.spring_stiffness,
-                        damping: d.damping,
-                        reference: d.spring_reference,
-                    },
+                    spring,
                 )?
             } else {
                 local.add_robot_joint(parent_body, body, pose.translation, motion)?

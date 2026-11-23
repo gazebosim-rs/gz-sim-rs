@@ -258,3 +258,129 @@ fn capped_velocity_drive_rotates_and_advances_the_nut() {
     assert!((omega + 1.5).abs() < 0.005 && (v - LEAD * omega).abs() < 1e-4);
     assert!(q < -0.3 && (x - LEAD * q).abs() < 1e-5);
 }
+
+fn passive_screw(pitch: f64, stiffness: f64, damping: f64, reference: f64) -> String {
+    include_str!("../../../examples/worlds/local_robot_screw_spring.sdf")
+        .replace(
+            "<screw_thread_pitch>0.4",
+            &format!("<screw_thread_pitch>{pitch}"),
+        )
+        .replace(
+            "<spring_reference>7.8",
+            &format!("<spring_reference>{reference}"),
+        )
+        .replace(
+            "<spring_stiffness>0.75",
+            &format!("<spring_stiffness>{stiffness}"),
+        )
+        .replace("<damping>0.24", &format!("<damping>{damping}"))
+}
+
+#[test]
+fn signed_threads_settle_past_a_full_turn_under_gravity_and_repeat_after_reset() {
+    let (k, d, reference) = (0.75, 0.24, 7.8);
+    for pitch in [0.4, -0.4, 0.002, 0.] {
+        let lead = pitch / TAU;
+        let xml = passive_screw(pitch, k, d, reference);
+        let mut sim = load(&xml);
+        let joint = id(&sim, "spindle");
+        let nut = id(&sim, "nut");
+        let expected = reference - 9.81 * lead / k;
+        let mut first = None;
+        for run in 0..2 {
+            let inertia: f64 = 0.020 + lead * lead;
+            let decay = d / (2. * inertia);
+            let freq = (k / inertia - decay * decay).sqrt();
+            let mut max_error: f64 = 0.;
+            for i in 1..=300 {
+                sim.step_exact(10).unwrap();
+                let t = i as f64 * 0.01;
+                let q_ref = expected
+                    * (1.
+                        - (-decay * t).exp()
+                            * ((freq * t).cos() + decay / freq * (freq * t).sin()));
+                max_error = max_error.max((sample(&sim, joint, nut).0 - q_ref).abs());
+            }
+            eprintln!("pitch {pitch}: peak transient error {max_error}");
+            assert!(max_error < 0.03);
+            let (q, omega, z, _) = sample(&sim, joint, nut);
+            eprintln!(
+                "pitch {pitch}: equilibrium {q}, expected {expected}, speed {omega}, residual {}",
+                z - lead * q
+            );
+            assert!((q - expected).abs() < 2e-4 && omega.abs() < 1e-4);
+            assert!((z - lead * q).abs() < 2e-5);
+            if run == 0 {
+                first = Some((q, z));
+                reset_loaded_world(&mut sim, |_| ()).unwrap();
+            } else {
+                assert_eq!(first, Some((q, z)));
+            }
+        }
+    }
+}
+
+#[test]
+fn viscous_screw_reaches_the_expected_loaded_speed_for_both_hands_and_zero_pitch() {
+    for pitch in [0., -0.4, 0.4] {
+        // Leave clearance for the left-handed sample to descend through its full travel.
+        let scene = passive_screw(pitch, 0., 0.15, 0.)
+            .replace("0 0 0.16 0", "0 0 -3 0")
+            .replace("<max_step_size>0.001", "<max_step_size>0.00025");
+        let mut sim = load(&scene);
+        let spindle = id(&sim, "spindle");
+        let nut = id(&sim, "nut");
+        set_joint_force(&mut sim, spindle, 1.2).unwrap();
+        sim.step_exact(9600).unwrap();
+        let (q, omega, z, dz) = sample(&sim, spindle, nut);
+        let lead = pitch / TAU;
+        let expected = (1.2 - 9.81 * lead) / 0.15;
+        eprintln!(
+            "damped pitch {pitch}: measured {omega}, expected {expected}, axial speed defect {}, lead defect {}",
+            dz - lead * omega,
+            z - lead * q
+        );
+        assert!((omega - expected).abs() < 1e-4);
+        assert!(
+            (dz - lead * omega).abs() < 1e-5,
+            "v difference {}",
+            dz - lead * omega
+        );
+        assert!((z - lead * q).abs() < 2e-5);
+    }
+}
+
+#[test]
+fn a_preloaded_screw_spring_remains_passive_at_a_physical_stop() {
+    let xml = passive_screw(0., 0.75, 0.25, 7.8).replace(
+        "<dynamics>",
+        "<limit><lower>-1</lower><upper>1</upper></limit><dynamics>",
+    );
+    let mut sim = load(&xml);
+    sim.step_exact(2200).unwrap();
+    let (q, omega, z, _) = sample(&sim, id(&sim, "spindle"), id(&sim, "nut"));
+    assert!(
+        (q - 1.).abs() < 1e-4 && omega.abs() < 1e-4,
+        "q={q} omega={omega}"
+    );
+    assert!(z.abs() < 1e-5);
+}
+
+#[test]
+fn an_undamped_fine_lead_spring_reverses_the_nut_after_half_a_period() {
+    let lead = 0.002 / TAU;
+    let k = 0.75;
+    let reference = 1.5;
+    let xml = passive_screw(0.002, k, 0., reference).replace("0 0 -9.81", "0 0 0");
+    let mut sim = load(&xml);
+    let half_period = std::f64::consts::PI * ((0.020 + lead * lead) / k).sqrt();
+    let j = id(&sim, "spindle");
+    let nut = id(&sim, "nut");
+    sim.step_exact((1000. * half_period).round() as u64)
+        .unwrap();
+    let (q, _, z, _) = sample(&sim, j, nut);
+    assert!((q - 2. * reference).abs() < 0.025, "undamped q={q}");
+    assert!((z - lead * q).abs() < 1e-5);
+    sim.step_exact(200).unwrap();
+    assert!(sample(&sim, j, nut).1 < -1.);
+}

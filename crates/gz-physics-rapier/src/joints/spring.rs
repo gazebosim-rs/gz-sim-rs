@@ -16,8 +16,33 @@ impl RobotSpring {
         self.stiffness * (self.reference - state.position) - self.damping * state.velocity
     }
 
+    fn valid_gains(self) -> bool {
+        self.reference.is_finite()
+            && self.stiffness.is_finite()
+            && self.damping.is_finite()
+            && self.stiffness >= 0.
+            && self.damping >= 0.
+            && (self.stiffness > 0. || self.damping > 0.)
+    }
+
+    pub(super) fn admissible_continuous(self) -> bool {
+        self.valid_gains() && (self.stiffness * self.reference).is_finite()
+    }
+
+    /// Implicit spring torque k*(reference-q) - (d+h*k)*omega_next.
+    /// A velocity row retains whole turns and applies torque on the physical axis.
+    pub(super) fn angular_response(self, position: f64, dt: f64) -> (f64, f64) {
+        let rate = if self.stiffness == 0. {
+            0.
+        } else {
+            (self.reference - position) / (dt + self.damping / self.stiffness)
+        };
+        (rate, self.damping + self.stiffness * dt)
+    }
+
     fn admissible(self, joint: RobotJoint) -> bool {
         let angular = match joint {
+            RobotJoint::Screw { .. } => return self.admissible_continuous(),
             RobotJoint::Prismatic { .. } => false,
             // Native angular spring position is a wrapped angle. A nonzero
             // spring needs its full physical range on a single angular chart.
@@ -36,12 +61,7 @@ impl RobotSpring {
             }
             _ => return false,
         };
-        self.reference.is_finite()
-            && self.stiffness.is_finite()
-            && self.damping.is_finite()
-            && self.stiffness >= 0.
-            && self.damping >= 0.
-            && (self.stiffness > 0. || self.damping > 0.)
+        self.valid_gains()
             && (!angular || self.stiffness == 0. || self.reference.abs() < std::f64::consts::PI)
     }
 }

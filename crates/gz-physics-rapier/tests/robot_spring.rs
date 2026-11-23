@@ -311,3 +311,124 @@ fn extra_passes_on_one_mounted_arm_leave_a_separate_arms_impulse_response_unchan
         }
     }
 }
+
+#[test]
+fn nonrepresentable_screw_preload_fails_before_insertion() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let c = sphere(&mut b, [0.; 3]);
+    let screw = RobotJoint::Screw {
+        pitch: 0.002,
+        axis: [0., 0., 1.],
+        effort_limit: 1.,
+        limits: None,
+    };
+    let invalid = RobotSpring {
+        stiffness: 1e180,
+        reference: 1e150,
+        damping: 0.,
+    };
+    assert_eq!(
+        b.add_robot_joint_with_spring(None, c, [0.; 3], screw, invalid),
+        Err(PhysicsError::InvalidValue)
+    );
+    let j = b
+        .add_robot_joint_with_spring(None, c, [0.; 3], screw, SPRING)
+        .unwrap();
+    assert_eq!(b.joint_state(j).unwrap().position, 0.);
+}
+
+#[test]
+fn free_universal_dampers_share_reaction_and_retire_all_rows_on_removal() {
+    let universal = RobotJoint::Universal {
+        axes: [[1., 0., 0.], [0., 1., 0.]],
+        limits: [None; 2],
+        effort_limits: [f64::INFINITY; 2],
+    };
+    let mut backend = RapierBackend::new([0.; 3]).unwrap();
+    let parent = sphere(&mut backend, [0.; 3]);
+    let child = sphere(&mut backend, [0., 0.25, 0.]);
+    let anchor = [0., 0.125, 0.];
+    let damper = RobotSpring {
+        stiffness: 0.,
+        reference: 0.,
+        damping: 0.15,
+    };
+    assert_eq!(
+        backend.add_universal_joint_with_springs(
+            Some(parent),
+            child,
+            anchor,
+            SLIDE,
+            [Some(damper); 2]
+        ),
+        Err(PhysicsError::InvalidJoint)
+    );
+    assert_eq!(
+        backend.add_universal_joint_with_springs(
+            Some(parent),
+            child,
+            anchor,
+            universal,
+            [
+                Some(damper),
+                Some(RobotSpring {
+                    reference: f64::INFINITY,
+                    ..damper
+                })
+            ]
+        ),
+        Err(PhysicsError::InvalidValue)
+    );
+    let joint = backend
+        .add_universal_joint_with_springs(
+            Some(parent),
+            child,
+            anchor,
+            universal,
+            [None, Some(damper)],
+        )
+        .unwrap();
+    for _ in 0..1000 {
+        backend.add_universal_effort(joint, [0., 0.3]).unwrap();
+        step(&mut backend, 1);
+    }
+    let rate = backend.universal_joint_state(joint).unwrap().velocity;
+    assert!(
+        rate[0].abs() < 1e-6 && (rate[1] - 2.).abs() < 5e-4,
+        "{rate:?}"
+    );
+    let a = backend.state(parent).unwrap();
+    let b = backend.state(child).unwrap();
+    assert!(
+        (a.angular_velocity[1] + b.angular_velocity[1]).abs() < 1e-6
+            && a.angular_velocity[1] < -0.5
+    );
+    assert!(backend.remove_joint(joint));
+    step(&mut backend, 50);
+    assert!(
+        (backend.state(parent).unwrap().angular_velocity[1] - a.angular_velocity[1]).abs() < 1e-7
+    );
+}
+
+#[test]
+fn removing_a_universal_endpoint_discards_its_passive_rows() {
+    let mut backend = RapierBackend::new([0.; 3]).unwrap();
+    let child = sphere(&mut backend, [0.; 3]);
+    let joint = backend
+        .add_universal_joint_with_springs(
+            None,
+            child,
+            [0.; 3],
+            RobotJoint::Universal {
+                axes: [[1., 0., 0.], [0., 1., 0.]],
+                limits: [None; 2],
+                effort_limits: [f64::INFINITY; 2],
+            },
+            [Some(SPRING); 2],
+        )
+        .unwrap();
+    step(&mut backend, 1);
+    assert!(backend.remove(child));
+    step(&mut backend, 1);
+    assert!(backend.universal_joint_state(joint).is_none());
+}

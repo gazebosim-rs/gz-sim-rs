@@ -1505,6 +1505,20 @@ impl MultiFidelityBackend {
             .set_robot_root_iterations(root, iterations)
             .map_err(engine_error)
     }
+    /// Install separate torsional compliance on a universal joint's two moving axes.
+    pub fn add_universal_joint_with_springs(
+        &mut self,
+        parent: Option<BodyId>,
+        child: BodyId,
+        anchor: [f64; 3],
+        joint: RobotJoint,
+        springs: [Option<RobotSpring>; 2],
+    ) -> Result<JointId, PhysicsError> {
+        self.solver
+            .add_universal_joint_with_springs(parent, child, anchor, joint, springs)
+            .map_err(engine_error)
+    }
+
     pub fn add_robot_joint_with_spring(
         &mut self,
         parent: Option<BodyId>,

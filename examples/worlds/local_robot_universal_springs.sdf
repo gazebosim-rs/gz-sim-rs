@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<sdf version="1.12">
+  <world name="default">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="local" type="ignored"><max_step_size>0.001</max_step_size></physics>
+    <model name="stand"><static>true</static>
+      <link name="support"><pose>-0.0957 -0.1348 1.12 0 0 0</pose>
+        <collision name="mount"><geometry><box><size>0.38 0.12 0.05</size></box></geometry></collision>
+        <visual name="mount"><geometry><box><size>0.38 0.12 0.05</size></box></geometry><material><diffuse>0.36 0.47 0.55 1</diffuse></material></visual>
+        <visual name="pin"><pose>0 0 -0.079 0 0 0</pose><geometry><box><size>0.04 0.04 0.158</size></box></geometry><material><diffuse>0.36 0.47 0.55 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="robot">
+      <link name="tool"><pose>0 0 0.70 0.45 -0.35 0</pose>
+        <inertial><mass>1</mass><inertia><ixx>0.03</ixx><iyy>0.03</iyy><izz>0.003</izz></inertia></inertial>
+        <collision name="tool"><geometry><box><size>0.10 0.10 0.62</size></box></geometry></collision>
+        <visual name="arm"><geometry><box><size>0.10 0.10 0.62</size></box></geometry><material><diffuse>0.95 0.56 0.14 1</diffuse></material></visual>
+        <visual name="crossbar"><pose>0 0 0.31 0 0 0</pose><geometry><box><size>0.23 0.07 0.07</size></box></geometry><material><diffuse>0.12 0.72 0.68 1</diffuse></material></visual>
+      </link>
+      <joint name="wrist" type="universal">
+        <parent>world</parent><child>tool</child><pose>0 0 0.31 0 0 0</pose>
+        <axis><xyz>1 0 0</xyz><limit><lower>-2.5</lower><upper>2.5</upper></limit><dynamics><spring_reference>1.15</spring_reference><spring_stiffness>5</spring_stiffness><damping>0.8</damping></dynamics></axis>
+        <axis2><xyz>0 1 0</xyz><limit><lower>-2</lower><upper>2</upper></limit><dynamics><spring_reference>-0.85</spring_reference><spring_stiffness>4</spring_stiffness><damping>0.6</damping></dynamics></axis2>
+      </joint>
+    </model>
+  </world>
+</sdf>

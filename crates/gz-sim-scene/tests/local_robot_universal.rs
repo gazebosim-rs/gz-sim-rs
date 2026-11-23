@@ -286,3 +286,85 @@ fn second_axis_lower_stop_and_queued_torques_follow_reset() {
     let stopped = sample(&sim, joint).state;
     assert!((stopped.position[1] + 6.5).abs() < 1e-4 && stopped.velocity[1].abs() < 1e-5);
 }
+
+const SPRINGS_XML: &str =
+    include_str!("../../../examples/worlds/local_robot_universal_springs.sdf");
+
+#[test]
+fn rotated_wrist_balances_two_springs_against_gravity_and_external_torque() {
+    // Isolate the wrist and gravity for the torque balance. Folding the arm
+    // against the drawn stand would add an external contact reaction.
+    let mut xml = SPRINGS_XML.to_owned();
+    xml.replace_range(
+        xml.find("<model name=\"stand\">").unwrap()..xml.find("<model name=\"robot\">").unwrap(),
+        "",
+    );
+    let mut sim = load(&xml);
+    let joint = id(&sim, "wrist");
+    let tool = id(&sim, "tool");
+    let initial = DQuat::from_array(pose(&sim, tool).rotation);
+    let mut final_state = None;
+    for _ in 0..2 {
+        for loads in [[0., 0.], [2.1, -1.4]] {
+            for _ in 0..5000 {
+                queue_universal_joint_effort(&mut sim, joint, loads).unwrap();
+                sim.step_exact(1).unwrap();
+            }
+            let s = sample(&sim, joint).state;
+            let frame = DQuat::from_array(pose(&sim, tool).rotation);
+            let gravity_torque = (frame * (-0.31 * DVec3::Z)).cross(-9.81 * DVec3::Z);
+            let residual = [
+                5. * (1.15 - s.position[0]) + gravity_torque.dot(initial * DVec3::X) + loads[0],
+                4. * (-0.85 - s.position[1]) + gravity_torque.dot(frame * DVec3::Y) + loads[1],
+            ];
+            eprintln!(
+                "wrist loads={loads:?} angles={:?} rates={:?} torque residuals={residual:?}",
+                s.position, s.velocity
+            );
+            assert!(s.velocity.into_iter().all(|v| v.abs() < 0.0005));
+            assert!(residual.into_iter().all(|r| r.abs() < 0.001));
+        }
+        let state = sample(&sim, joint).state;
+        if let Some(prior) = final_state {
+            assert_eq!(state, prior);
+        }
+        final_state = Some(state);
+        reset_loaded_world(&mut sim, |_| ()).unwrap();
+    }
+}
+
+#[test]
+fn isolated_axes_follow_the_analytical_multiturn_oscillator_through_both_sdf_spellings() {
+    let k: f64 = 0.7;
+    let d: f64 = 0.13;
+    let reference = -7.5;
+    let decay = d / (2. * 0.03);
+    let frequency = (k / 0.03 - decay.powi(2)).sqrt();
+    let xml = centered()
+        .replace("<limit><lower>-0.80</lower><upper>0.55</upper></limit>", "")
+        .replace("<limit><lower>-0.45</lower><upper>0.75</upper></limit>", "");
+    let law = format!(
+        "<dynamics><spring_reference>{reference}</spring_reference><spring_stiffness>{k}</spring_stiffness><damping>{d}</damping></dynamics>"
+    );
+    for (axis, element, kind) in [(0, "</axis>", "universal"), (1, "</axis2>", "revolute2")] {
+        let mut sim = load(
+            &xml.replace("type=\"universal\"", &format!("type=\"{kind}\""))
+                .replace(element, &format!("{law}{element}")),
+        );
+        let joint = id(&sim, "wrist");
+        let mut peak = 0_f64;
+        for tick in 1..=300 {
+            sim.step_exact(10).unwrap();
+            let t = tick as f64 / 100.;
+            let expected = reference
+                * (1.
+                    - (-decay * t).exp()
+                        * ((frequency * t).cos() + decay / frequency * (frequency * t).sin()));
+            let state = sample(&sim, joint).state;
+            peak = peak.max((state.position[axis] - expected).abs());
+            assert!(state.position[1 - axis].abs() < 1e-7);
+        }
+        eprintln!("wrist axis {axis} peak analytical error {peak:.7} rad");
+        assert!(peak < 0.02);
+    }
+}
