@@ -97,9 +97,6 @@ fn finite_cylinder_barrel_flat_caps_tangency_and_finite_ray_endpoints() {
     assert_eq!(hit([1., 0., 0.], [1., 0., 0.], 10.), None);
 }
 
-#[path = "query_parity.rs"]
-mod query_parity;
-
 #[test]
 fn pending_support_impulse_discard_preserves_clearance_queries_and_the_pending_pair() {
     use crate::contact_dispatcher::{DiscardPairs, NativeContacts};
@@ -117,6 +114,6 @@ fn pending_support_impulse_discard_preserves_clearance_queries_and_the_pending_p
         robot.bodies[&id].0
     });
     let pending = DiscardPairs::new(vec![(bodies[0], bodies[1])]);
-    query_parity::assert_native_queries(&NativeContacts(pending.clone()));
+    crate::query_parity::assert_native_queries(&NativeContacts(pending.clone()));
     assert_eq!(pending.remaining(), [(bodies[0], bodies[1])]);
 }

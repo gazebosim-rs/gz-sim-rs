@@ -19,6 +19,8 @@ including real C++ scenarios. Passing this implemented subset does not establish
 complete upstream parity or phase acceptance. Never treat an empty workspace as
 100% covered.
 
+The instrumented headless and renderer test profiles use Rust optimization level 1 with debug assertions and overflow checks enabled. A three-case instrumented contact and recovery suite took 399 seconds at level 0 and 46 seconds at level 1 on the local qualification machine. Each profile measures its own compiled objects and records the settings with its evidence.
+
 Both coverage profiles use Cargo's `--no-fail-fast` so a failing test target does
 not prevent the remaining targets in that profile from running. The profile still
 fails on any test failure; coverage, assertions, thresholds and required jobs stay

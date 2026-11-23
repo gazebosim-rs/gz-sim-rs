@@ -315,6 +315,9 @@ class FeatureProfiles(unittest.TestCase):
             env = run.call_args_list[1].kwargs["env"]
             self.assertEqual(env["GZ_RENDER_CLI_PATH"], artifacts[0]["executable"])
             self.assertEqual(env["GZ_RENDER_WORKER_PATH"], artifacts[1]["executable"])
+            self.assertEqual(env["CARGO_PROFILE_TEST_OPT_LEVEL"], "1")
+            self.assertEqual(env["CARGO_PROFILE_TEST_DEBUG_ASSERTIONS"], "true")
+            self.assertEqual(env["CARGO_PROFILE_TEST_OVERFLOW_CHECKS"], "true")
             self.assertEqual(json.loads(env["GZ_RENDER_EXECUTABLES_JSON"])["gz-sim-rs"]["cargo_artifact"], artifacts[0])
             self.assertTrue((root / "profile/renderer-build-output.log").is_file())
             self.assertEqual((root / "profile/test-output.log").read_text(), "actual test failure")

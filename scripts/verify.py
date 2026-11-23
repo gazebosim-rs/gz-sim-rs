@@ -493,6 +493,10 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                           if proto_inputs.PACKAGE in crates else None)
     env = os.environ.copy()
     env["CARGO_TARGET_DIR"] = str(target or ROOT / "target/coverage")
+    # Keep full numerical workloads inside the bounded coverage command.
+    env["CARGO_PROFILE_TEST_OPT_LEVEL"] = "1"
+    env["CARGO_PROFILE_TEST_DEBUG_ASSERTIONS"] = "true"
+    env["CARGO_PROFILE_TEST_OVERFLOW_CHECKS"] = "true"
     env["RUSTFLAGS"] = ""
     env.pop("CARGO_ENCODED_RUSTFLAGS", None)
     env["RUSTC_WORKSPACE_WRAPPER"] = str(wrapper)
@@ -679,6 +683,7 @@ def profile_coverage(name, crates, command, directory, changed, wrapper, llvm, v
                     "source_sha256": source_hashes[str(path.relative_to(ROOT))],
                     "auditor": str(proto_audit if path == (ROOT / proto_inputs.FACADE).resolve() else facade_audit)} for path in zero_executable},
                 "objects": object_evidence}
+    evidence["test_profile"] = {"opt_level": 1, "debug_assertions": True, "overflow_checks": True}
     if prepared_executables is not None:
         evidence["prepared_executables"] = prepared_executables
     (directory / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")

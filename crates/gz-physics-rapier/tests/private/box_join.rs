@@ -246,13 +246,10 @@ fn invalid_cross_source_overlap_or_step_is_refused_without_changing_the_inputs()
     assert!(a.join_box_solvers(&[&c]).is_err());
 }
 
-#[path = "query_parity.rs"]
-mod query_parity;
-
 #[test]
 fn warm_dispatcher_forwards_public_queries_during_first_step_of_a_join() {
     let saved = crate::contact_dispatcher::NativeContacts(RestorePairs(std::sync::Mutex::new(
         Cache::new(),
     )));
-    query_parity::assert_native_queries(&saved);
+    crate::query_parity::assert_native_queries(&saved);
 }

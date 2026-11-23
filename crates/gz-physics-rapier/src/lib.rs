@@ -1270,3 +1270,7 @@ impl DynamicBackend for RapierBackend {
 #[cfg(test)]
 #[path = "../tests/private/ids.rs"]
 mod ids;
+
+#[cfg(test)]
+#[path = "../tests/private/query_parity.rs"]
+mod query_parity;
