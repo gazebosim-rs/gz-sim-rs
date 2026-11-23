@@ -621,11 +621,13 @@ fn two_real_rgb_views_keep_pixels_stamps_sequences_and_owned_shutdown() {
         return;
     }
     let mut rig = Rig::new();
-    let images: [Subscriber; 2] = std::array::from_fn(|owner| rig.subscriber(owner, true));
-    let infos: [Subscriber; 2] = std::array::from_fn(|owner| rig.subscriber(owner, false));
     let mut native = Native::start(&rig);
     assert_eq!(native.line(), "ready pair");
+    // With only the native client subscribed, matching proves each remote
+    // subscription has reached the publisher before the first capture.
     rig.matching([(true, true); 2]);
+    let images: [Subscriber; 2] = std::array::from_fn(|owner| rig.subscriber(owner, true));
+    let infos: [Subscriber; 2] = std::array::from_fn(|owner| rig.subscriber(owner, false));
     let first = rig.tick();
     assert_eq!(first, Duration::from_millis(1));
     let rows = rig.capture();
