@@ -23,6 +23,14 @@ pub fn batch_simulation(adapter_name: &str, initial: Vec<Lane>) -> Result<Simula
     Ok(install(GpuBatch::new(adapter_name, initial)?))
 }
 
+/// Create independent fixed-base, two-revolute-joint arms on the ordinary 1 ms clock.
+pub fn planar_arm_simulation(
+    adapter_name: &str,
+    initial: Vec<super::PlanarArmLane>,
+) -> Result<Simulation, GpuError> {
+    Ok(install(super::PlanarArmBatch::new(adapter_name, initial)?))
+}
+
 /// Create a paused Bevy world of independent free sphere/plane fixtures.
 pub fn sphere_plane_simulation(
     adapter_name: &str,

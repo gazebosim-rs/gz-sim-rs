@@ -35,6 +35,8 @@ pub use supported_pair::{SupportedSpherePairBatch, SupportedSpherePairLane};
 mod sphere_plane;
 pub use sphere_block::{MAX_BLOCK_TICKS, SpherePlaneBlockBatch, SpherePlaneBlockObservation};
 pub use sphere_plane::SpherePlaneLane;
+mod planar_arm;
+pub use planar_arm::{PlanarArmBatch, PlanarArmLane};
 pub mod sampling;
 pub mod simulation;
 
@@ -159,6 +161,8 @@ pub enum GpuError {
     EmptyBatch,
     #[error("initial lane {0} violates the fixture's numeric or geometry bounds")]
     InvalidLane(usize),
+    #[error("unknown arm lane or nonfinite servo target for lane {0}")]
+    InvalidArmTarget(usize),
     #[error("Vulkan hardware adapter matching '{0}' was not found")]
     NoAdapter(String),
     #[error("more than one Vulkan hardware adapter matches '{0}'")]

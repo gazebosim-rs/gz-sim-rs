@@ -1,0 +1,82 @@
+{
+  "adapter": "NVIDIA GeForce RTX 5090",
+  "backend": "Vulkan",
+  "byte_equal_after_reset": true,
+  "dense_bevy_step": {
+    "p50_ns": 109090,
+    "p95_ns": 225561
+  },
+  "driver": "595.99.02",
+  "fine_rapier_max_tip_error_m": [
+    0.00020126054588118697,
+    0.00015332731735821176,
+    0.00014517776140829746
+  ],
+  "fine_rk4_max_tip_error_m": [
+    0.000048890749553965094,
+    0.00002401915829410804,
+    0.000019605348511567298
+  ],
+  "gpu_dispatch": {
+    "p50_ns": 10208,
+    "p95_ns": 10720
+  },
+  "host_wait_map": {
+    "p50_ns": 63410,
+    "p95_ns": 155841
+  },
+  "lanes": 2048,
+  "max_tip_travel_m": 0.3225626517661313,
+  "max_torque_nm": [
+    8.0,
+    2.8
+  ],
+  "payloads_kg": [
+    0.0,
+    0.1,
+    0.25
+  ],
+  "readback_bytes_per_tick": 458784,
+  "reference_lane_ids": [
+    0,
+    83,
+    166,
+    249,
+    332,
+    415,
+    498,
+    581,
+    664,
+    747,
+    830,
+    913,
+    996,
+    1079,
+    1162,
+    1245,
+    1328,
+    1411,
+    1494,
+    1577,
+    1660,
+    1743,
+    1826,
+    1909
+  ],
+  "reference_substeps": 8,
+  "reverse_before_tick": 301,
+  "rk4_rapier_max_tip_difference_m": [
+    0.00021235512451649107,
+    0.0001688207060446363,
+    0.00014815378979387517
+  ],
+  "same_clock_max_angle_error_rad": 2.220446049250313e-15,
+  "same_clock_max_speed_error_rad_per_s": 1.7763568394002505e-14,
+  "same_clock_max_tip_error_m": 1.247457973265988e-15,
+  "serial_cartesian_reference_step": {
+    "p50_ns": 260641,
+    "p95_ns": 336301
+  },
+  "tick_ns": 1000000,
+  "ticks": 600
+}
