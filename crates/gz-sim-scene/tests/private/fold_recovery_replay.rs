@@ -78,7 +78,15 @@ fn guarded_and_unguarded_native_traces_match_the_measured_timeline() -> Result<(
             let observed = post.len();
             let escaped = case[role]["escaped_after_tick"].as_u64();
             assert_eq!(case[role]["observed_postgrip_ticks"], observed);
-            assert_eq!(observed as u64, escaped.unwrap_or(horizon as u64));
+            let landing = if spec["stop_at_first_landing"] == true {
+                assert_eq!(spec["follow_dropped"], true);
+                let escaped = escaped.expect("landing follows geometric escape") as usize;
+                assert!(escaped < observed);
+                Some(check_first_landing(root, &name, post, escaped, dt)?)
+            } else {
+                assert_eq!(observed as u64, escaped.unwrap_or(horizon as u64));
+                None
+            };
             assert!((20..=horizon).contains(&observed));
             let margins: Vec<[f64; 2]> =
                 serde_json::from_slice(&fs::read(root.join(&name).join("escape-clearance.json"))?)?;
@@ -184,6 +192,7 @@ fn guarded_and_unguarded_native_traces_match_the_measured_timeline() -> Result<(
                 "first_complete_escape_tick": first_escape,
                 "independent_jaw_margin_checks": native_margin_checks,
                 "terminal_jaw_margins_m": margins.last(),
+                "first_landing": landing,
                 "first_250um_tick": first_slip,
                 "first_loss_in_air_tick": lost,
                 "verified_bench_support_ms_at_open": support_at_open.map(|t| t as f64 * dt as f64 * 1e-6),
@@ -216,4 +225,67 @@ fn guarded_and_unguarded_native_traces_match_the_measured_timeline() -> Result<(
         fs::write(path, serde_json::to_vec_pretty(&results)?)?;
     }
     Ok(())
+}
+
+/// Physics observations at every public tick and an independent particle mass/velocity census.
+fn check_first_landing(
+    root: &Path,
+    name: &str,
+    post: &[Value],
+    escaped: usize,
+    dt_ns: u64,
+) -> Result<Value> {
+    let last = post.len() - 1;
+    let h = dt_ns as f64 * 1e-9;
+    let (a, b) = (&post[last - 1], &post[last]);
+    assert!(
+        post[escaped - 1..last]
+            .iter()
+            .all(|t| scalar(&t["bench_up_n"]).abs() < 1e-9)
+    );
+    assert!(scalar(&b["bench_up_n"]) > 1e-9);
+    let hit = read(&root.join(name).join("landing.json"))?;
+    assert_eq!(hit["tick"], post.len());
+    near(
+        scalar(&a["min_bench_clearance_m"]),
+        scalar(&hit["incoming_clearance_m"]),
+    );
+    near(
+        scalar(&b["min_bench_clearance_m"]),
+        scalar(&hit["outgoing_clearance_m"]),
+    );
+    let material = Material::read(&fs::read_to_string(root.join(name).join("world.sdf"))?)?;
+    let momentum = |key: &str| -> Result<f64> {
+        let rows: Vec<[f64; 2]> = serde_json::from_value(hit[key].clone())?;
+        assert_eq!(rows.len(), material.mass.len());
+        Ok(rows
+            .iter()
+            .zip(&material.mass)
+            .map(|(p, &m)| {
+                near(p[0], m);
+                m * p[1]
+            })
+            .sum())
+    };
+    let before = momentum("incoming_mass_kg_vz_m_s")?;
+    let after = momentum("outgoing_mass_kg_vz_m_s")?;
+    near(before, scalar(&hit["incoming_vertical_momentum_kg_m_s"]));
+    near(after, scalar(&hit["outgoing_vertical_momentum_kg_m_s"]));
+    let weight = 9.81 * material.mass.iter().sum::<f64>();
+    let jaws = |key: &str| b[key].as_array().unwrap().iter().map(scalar).sum::<f64>();
+    let normal = h * scalar(&b["bench_up_n"]);
+    let tangent = -h * scalar(&b["bench_side_reaction_n"]);
+    let dz = after - before - h * (jaws("jaw_up_n") - weight) - normal;
+    let dy = scalar(&b["momentum_y_kg_m_s"])
+        - scalar(&a["momentum_y_kg_m_s"])
+        - h * (scalar(&b["force_y_n"]) - jaws("jaw_side_reaction_n"))
+        - tangent;
+    near(normal, scalar(&hit["bench_upward_impulse_ns"]));
+    near(tangent, scalar(&hit["bench_lateral_impulse_ns"]));
+    near(dz, scalar(&hit["vertical_balance_error_ns"]));
+    near(dy, scalar(&hit["lateral_balance_error_ns"]));
+    assert!(dz.abs() < 1e-12 && dy.abs() < 1e-12);
+    Ok(
+        json!({"time_ns":b["time_ns"],"postgrip_tick":post.len(),"normal_ns":normal,"tangent_ns":tangent,"normal_force_n":normal/h,"z_residual_ns":dz,"y_residual_ns":dy,"particles_per_state":material.mass.len()}),
+    )
 }
