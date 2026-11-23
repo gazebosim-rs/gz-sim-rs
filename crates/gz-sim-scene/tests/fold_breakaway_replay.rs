@@ -314,3 +314,6 @@ fn recovered_patch_travel_follows_rotated_jaws_and_authored_mass() {
         near(v, w);
     }
 }
+
+#[path = "private/fold_recovery_replay.rs"]
+mod recovery;
