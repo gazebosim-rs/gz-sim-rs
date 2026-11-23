@@ -450,24 +450,3 @@ fn a_one_tick_external_impulse_is_capped_and_the_other_axis_can_coast() {
         }
     }
 }
-
-#[test]
-fn a_speed_limit_on_a_moving_parent_is_rejected_before_construction() {
-    let xml=centered().replace("<model name=\"robot\">","<model name=\"robot\"><link name=\"base\"><inertial><mass>2</mass><inertia><ixx>0.1</ixx><iyy>0.1</iyy><izz>0.1</izz></inertia></inertial><collision name=\"shape\"><geometry><box><size>0.2 0.2 0.2</size></box></geometry></collision></link>")
-        .replace("<parent>world</parent><child>tool</child>","<parent>base</parent><child>tool</child>")
-        .replace("<upper>0.75</upper>","<upper>0.75</upper><velocity>0.8</velocity>");
-    let err = load_world_with_sdf_step(
-        &xml,
-        "unsupported.sdf",
-        "default",
-        &NoResources,
-        PhysicsEngine::MultiFidelity,
-    )
-    .err()
-    .unwrap();
-    assert!(
-        err.to_string()
-            .contains("angular speed limit requires a world-mounted joint"),
-        "{err}"
-    );
-}

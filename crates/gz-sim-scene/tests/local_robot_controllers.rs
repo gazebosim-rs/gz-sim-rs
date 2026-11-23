@@ -167,3 +167,52 @@ fn bad_authored_axis_and_missing_actuator_limits_are_rejected() {
         );
     }
 }
+
+#[test]
+fn serial_screw_and_wrist_reach_both_targets_under_a_moving_payload() {
+    use glam::{DQuat, DVec3};
+    use gz_sim_scene::WorldPose;
+    let xml = include_str!("../../../examples/worlds/local_robot_screw_wrist.sdf");
+    let mut sim = load(xml);
+    let root = id(&sim, "default::robot::spindle");
+    let distal = id(&sim, "default::robot::wrist");
+    let platform = id(&sim, "default::robot::nut");
+    let tool = id(&sim, "default::robot::tool");
+    for _ in 0..2 {
+        for (targets, steps) in [([4.2, 0.65], 5000), ([1.3, -0.55], 4200)] {
+            set_joint_controller_command(&mut sim, root, targets[0]).unwrap();
+            set_joint_controller_command(&mut sim, distal, targets[1]).unwrap();
+            let mut max_gap = 0_f64;
+            let mut max_lead = 0_f64;
+            let mut peak = [0_f64; 2];
+            for _ in 0..steps {
+                sim.step_exact(1).unwrap();
+                let pose = |id| {
+                    *sim.world()
+                        .get::<WorldPose>(entity_by_id(sim.world(), id).unwrap())
+                        .unwrap()
+                };
+                let a = pose(platform);
+                let b = pose(tool);
+                let pin =
+                    DVec3::from(a.translation) + DQuat::from_array(a.rotation) * DVec3::X * 0.24;
+                let tip =
+                    DVec3::from(b.translation) + DQuat::from_array(b.rotation) * DVec3::Z * 0.17;
+                max_gap = max_gap.max(pin.distance(tip));
+                let [q, v] = scalar(&sim, root);
+                max_lead =
+                    max_lead.max((a.translation[2] - 1. - q * 0.4 / std::f64::consts::TAU).abs());
+                peak[0] = peak[0].max(v.abs());
+                peak[1] = peak[1].max(wrist(&sim, distal).1[1].abs());
+            }
+            let q = [scalar(&sim, root)[0], wrist(&sim, distal).0[1]];
+            eprintln!(
+                "serial targets {targets:?}, measured {q:?}, peak rates {peak:?}, pivot gap {max_gap}, lead error {max_lead}"
+            );
+            assert!((q[0] - targets[0]).abs() < 0.002 && (q[1] - targets[1]).abs() < 0.002);
+            assert!(peak[0] < 1.12 && peak[1] < 0.9);
+            assert!(max_gap < 2e-4 && max_lead < 1e-4);
+        }
+        reset_loaded_world(&mut sim, |_| ()).unwrap();
+    }
+}

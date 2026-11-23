@@ -25,6 +25,7 @@ mod robot;
 mod screw;
 mod universal;
 mod universal_motor;
+mod universal_projection;
 mod welded;
 pub use robot::{BallJointState, RobotJoint};
 pub use universal::UniversalJointState;
@@ -55,6 +56,7 @@ pub(crate) use reduced_contact::{CornerFlight, PreparedFractional, ProjectionGeo
 pub(crate) use reduced_contact::{MaterialEndpoint, PointFollowModes};
 mod servo;
 mod speed;
+mod speed_reference;
 
 #[derive(Clone, Copy)]
 pub(crate) enum Solver {
@@ -204,6 +206,7 @@ pub(super) struct Joints {
     efforts: BTreeMap<JointId, f64>,
     universal_efforts: BTreeMap<JointId, [f64; 2]>,
     universal_springs: BTreeMap<JointId, universal::SpringRows>,
+    projected_universal: BTreeMap<JointId, ImpulseJointHandle>,
     universal_motors: BTreeMap<(JointId, usize), ImpulseJointHandle>,
     speed_caps: BTreeMap<JointId, speed::SpeedCaps>,
     wide_universal: std::collections::BTreeSet<JointId>,
@@ -221,6 +224,7 @@ impl Default for Joints {
             efforts: BTreeMap::new(),
             universal_efforts: BTreeMap::new(),
             universal_springs: BTreeMap::new(),
+            projected_universal: BTreeMap::new(),
             universal_motors: BTreeMap::new(),
             speed_caps: BTreeMap::new(),
             wide_universal: Default::default(),
@@ -469,18 +473,6 @@ impl Joints {
                     *world.bodies[parent].activation_mut() = RigidBodyActivation::cannot_sleep();
                 }
                 let handle = construction.insert(world, parent, child);
-                if let Some(&limits) = initial.speed_caps.get(&id) {
-                    speed_caps.insert(
-                        id,
-                        construction.insert_speed_caps(world, parent, child, limits),
-                    );
-                }
-                if let Some(&laws) = initial.universal_springs.get(&id) {
-                    universal_springs.insert(
-                        id,
-                        construction.insert_universal_springs(world, parent, child, laws),
-                    );
-                }
                 if construction.additional_pgs_iterations != 0 {
                     world.bodies[child].set_additional_pgs_iterations(usize::from(
                         construction.additional_pgs_iterations,
@@ -489,14 +481,30 @@ impl Joints {
                 if let Some(row) = construction.insert_screw_row(world, parent, child) {
                     screws.insert(id, row);
                 }
+                // Preserve the native insertion order from ordinary construction.
+                // Constraint coloring and its finite iteration residual depend on it.
+                let universal_stops = construction.insert_universal_stops(world, parent, child);
+                let spring = construction.insert_spring(world, parent, child);
+                if let Some(&laws) = initial.universal_springs.get(&id) {
+                    universal_springs.insert(
+                        id,
+                        construction.insert_universal_springs(world, parent, child, laws),
+                    );
+                }
+                if let Some(&limits) = initial.speed_caps.get(&id) {
+                    speed_caps.insert(
+                        id,
+                        construction.insert_speed_caps(world, parent, child, limits),
+                    );
+                }
                 (
                     id,
                     Joint {
                         handle,
                         initial: construction,
-                        spring: construction.insert_spring(world, parent, child),
+                        spring,
                         universal_angles: [0.; 2],
-                        universal_stops: construction.insert_universal_stops(world, parent, child),
+                        universal_stops,
                         previous_angle: angle(world, handle, construction, bodies),
                         position: 0.0,
                     },
@@ -512,6 +520,7 @@ impl Joints {
                 .collect(),
             records,
             universal_springs,
+            projected_universal: BTreeMap::new(),
             universal_motors: BTreeMap::new(),
             speed_caps,
             screws,
@@ -548,6 +557,8 @@ impl Joints {
                 cap.remove(world);
             }
         }
+        self.projected_universal
+            .retain(|id, _| self.records.contains_key(id));
         self.universal_motors
             .retain(|(id, _), _| self.records.contains_key(id));
         self.universal_springs
@@ -914,6 +925,9 @@ impl RapierBackend {
             for cap in caps.into_iter().flatten() {
                 cap.remove(&mut self.world);
             }
+        }
+        if let Some(row) = self.joints.projected_universal.remove(&id) {
+            self.world.remove_impulse_joint(row);
         }
         for axis in 0..2 {
             if let Some(row) = self.joints.universal_motors.remove(&(id, axis)) {

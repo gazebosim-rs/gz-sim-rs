@@ -3,6 +3,22 @@
 use super::*;
 
 impl Joints {
+    fn native_reduced_handles(&self) -> impl Iterator<Item = MultibodyJointHandle> + '_ {
+        self.records
+            .values()
+            .filter_map(|joint| match joint.handle {
+                Handle::Reduced(handle) => Some(handle),
+                Handle::Impulse(_) => None,
+            })
+            .chain(
+                self.speed_caps
+                    .values()
+                    .flatten()
+                    .flatten()
+                    .flat_map(speed::AxisCap::drive_handles),
+            )
+    }
+
     pub(crate) fn finish_velocities(&self, world: &mut PhysicsWorld, integrated: bool) {
         if world.multibody_joints.iter().next().is_none() {
             return;
@@ -11,10 +27,7 @@ impl Joints {
         // the complete tree when visiting that joint, without a deduplication
         // set or temporary per-link result buffer in the stepping hot path.
         let mut poses_changed = false;
-        for joint in self.records.values() {
-            let Handle::Reduced(handle) = joint.handle else {
-                continue;
-            };
+        for handle in self.native_reduced_handles() {
             let (tree, link_id) = world
                 .multibody_joints
                 .get_mut(handle)
@@ -57,17 +70,15 @@ impl Joints {
         }
     }
 
-    pub(crate) fn initialize_velocities(&self, world: &mut PhysicsWorld) {
+    pub(crate) fn initialize_velocities(&mut self, world: &mut PhysicsWorld) {
         if world.multibody_joints.iter().next().is_none() {
             return;
         }
+        self.prepare_projected_universal(world);
         // Construction and tree splitting create free roots with zero generalized
         // velocity; the admitted body velocities remain authoritative here.
         let mut initialized = BTreeSet::new();
-        for joint in self.records.values() {
-            let Handle::Reduced(handle) = joint.handle else {
-                continue;
-            };
+        for handle in self.native_reduced_handles() {
             let (multibody, _) = world
                 .multibody_joints
                 .get_mut(handle)

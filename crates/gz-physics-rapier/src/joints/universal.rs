@@ -18,6 +18,9 @@ pub(super) struct UniversalSettings {
 }
 
 impl UniversalSettings {
+    pub(super) fn range(self, i: usize) -> Option<[f64; 2]> {
+        self.limits[i]
+    }
     pub(super) fn effort_limit(self, axis: usize) -> Option<f64> {
         self.effort_limits.get(axis).copied()
     }
@@ -149,7 +152,12 @@ impl Construction {
     /// and the parent X direction in the child frame depends only on -q2.
     /// Keep each witness perpendicular at its reference angle so the angular
     /// Jacobian stays well conditioned, including at a zero-width lock.
-    fn stop_frames(self, axis: usize, [lo, hi]: [f64; 2], angle: f64) -> (Pose, Pose, [f64; 2]) {
+    pub(super) fn stop_frames(
+        self,
+        axis: usize,
+        [lo, hi]: [f64; 2],
+        angle: f64,
+    ) -> (Pose, Pose, [f64; 2]) {
         let center = if hi - lo <= FRAC_PI_2 {
             (lo + hi) / 2.
         } else {
@@ -240,10 +248,14 @@ impl Joints {
                         false,
                     )
                     .expect("resident stop");
-                row.data
-                    .set_local_frame1(a)
-                    .set_local_frame2(b)
-                    .set_limits(JointAxis::AngY, limits);
+                if self.projected_universal.contains_key(id) {
+                    row.data = universal_projection::projected(a, b, limits);
+                } else {
+                    row.data
+                        .set_local_frame1(a)
+                        .set_local_frame2(b)
+                        .set_limits(JointAxis::AngY, limits);
+                }
             }
         }
     }

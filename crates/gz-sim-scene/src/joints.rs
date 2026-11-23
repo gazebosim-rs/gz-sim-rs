@@ -204,24 +204,6 @@ pub(super) fn validate_model(
                 "invalid screw thread pitch",
             )?;
         }
-        if joint
-            .axis
-            .iter()
-            .chain(&joint.axis2)
-            .any(|a| a.velocity.is_finite())
-            && matches!(
-                joint.kind,
-                sdformat::JointKind::Universal
-                    | sdformat::JointKind::Revolute2
-                    | sdformat::JointKind::Screw
-            )
-        {
-            require(
-                parent == world,
-                &name,
-                "angular speed limit requires a world-mounted joint",
-            )?;
-        }
         if matches!(
             joint.kind,
             sdformat::JointKind::Universal | sdformat::JointKind::Revolute2
@@ -520,7 +502,7 @@ pub(super) fn build(
                 RobotJoint::Universal { .. } | RobotJoint::Screw { .. }
             ) && limits.iter().any(Option::is_some)
             {
-                local.set_world_joint_speed_limits(id, limits)?;
+                local.set_joint_angular_speed_limits(id, limits)?;
             }
             id
         } else if joint.kind == sdformat::JointKind::Fixed {

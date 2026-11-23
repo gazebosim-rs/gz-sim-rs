@@ -624,3 +624,42 @@ fn wrist_motors_preserve_failed_steps_and_retire_on_endpoint_removal() {
     assert!(b.remove(child));
     step(&mut b, 1);
 }
+
+#[test]
+fn moving_wrist_private_references_retire_without_stealing_parent_momentum() {
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let p = sphere(&mut b, [0.; 3]);
+    let child = sphere(&mut b, [0.25, 0., 0.]);
+    let motion = RobotJoint::Universal {
+        axes: [[1., 0., 0.], [0., 1., 0.]],
+        limits: [None; 2],
+        effort_limits: [f64::INFINITY; 2],
+    };
+    let id = b
+        .add_robot_joint(Some(p), child, [0.125, 0., 0.], motion)
+        .unwrap();
+    b.set_joint_angular_speed_limits(id, [Some(1.), Some(1.2)])
+        .unwrap();
+    b.set_joint_angular_speed_limits(id, [Some(0.5), Some(0.)])
+        .unwrap();
+    for _ in 0..160 {
+        b.add_universal_effort(id, [0.4, 0.]).unwrap();
+        step(&mut b, 1);
+    }
+    let before = b.state(p).unwrap();
+    assert!((before.angular_velocity[0] + 0.25).abs() < 0.00001);
+    assert!(b.remove_joint(id));
+    step(&mut b, 10);
+    assert!((b.state(p).unwrap().angular_velocity[0] - before.angular_velocity[0]).abs() < 1e-8);
+    let mut b = RapierBackend::new([0.; 3]).unwrap();
+    let p = sphere(&mut b, [0.; 3]);
+    let child = sphere(&mut b, [0.25, 0., 0.]);
+    let id = b
+        .add_robot_joint(Some(p), child, [0.125, 0., 0.], motion)
+        .unwrap();
+    b.set_joint_angular_speed_limits(id, [Some(1.); 2]).unwrap();
+    step(&mut b, 2);
+    assert!(b.remove(child));
+    step(&mut b, 2);
+    assert!(b.universal_joint_state(id).is_none());
+}

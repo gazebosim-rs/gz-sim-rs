@@ -2,13 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 use super::*;
 
+#[derive(Clone, Copy)]
+pub(super) struct SpeedSide {
+    reference: RigidBodyHandle,
+    row: ImpulseJointHandle,
+    drive: Option<MultibodyJointHandle>,
+}
+
 #[derive(Clone)]
 pub(super) enum AxisCap {
     Held(ImpulseJointHandle),
-    Bounded {
-        limit: f64,
-        sides: [(RigidBodyHandle, ImpulseJointHandle); 2],
-    },
+    Bounded { limit: f64, sides: [SpeedSide; 2] },
 }
 
 pub(super) type SpeedCaps = [Option<AxisCap>; 2];
@@ -17,7 +21,7 @@ impl Construction {
     pub(super) fn insert_speed_caps(
         self,
         world: &mut PhysicsWorld,
-        anchor: RigidBodyHandle,
+        parent: RigidBodyHandle,
         child: RigidBodyHandle,
         limits: [Option<f64>; 2],
     ) -> SpeedCaps {
@@ -37,15 +41,42 @@ impl Construction {
                     self.universal_stop(i, [0.; 2])
                 };
                 return Some(AxisCap::Held(
-                    world.insert_impulse_joint(anchor, child, lock),
+                    world.insert_impulse_joint(parent, child, lock),
                 ));
             }
             let sides = std::array::from_fn(|j| {
-                let reference = world.insert_body(RigidBodyBuilder::kinematic_velocity_based());
-                let (first, second, axis) = if i == 0 {
-                    (reference, child, JointAxis::AngX)
+                let sign = if j == 0 { -1. } else { 1. };
+                let (reference, drive, first, second, axis) = if !world.bodies[parent].is_fixed() {
+                    let (bearing, orientation, velocity, opposite, native_axis) = if i == 0 {
+                        (
+                            parent,
+                            self.frame1.rotation,
+                            sign * limit,
+                            child,
+                            JointAxis::AngX,
+                        )
+                    } else {
+                        // The child-side witness spins oppositely because the
+                        // row measures parent velocity relative to the witness.
+                        (
+                            child,
+                            self.frame2.rotation
+                                * Rotation::from_rotation_z(std::f64::consts::FRAC_PI_2),
+                            -sign * limit,
+                            parent,
+                            JointAxis::AngY,
+                        )
+                    };
+                    let (reference, drive) =
+                        speed_reference::moving_reference(world, bearing, orientation, velocity);
+                    (reference, Some(drive), reference, opposite, native_axis)
                 } else {
-                    (child, reference, JointAxis::AngY)
+                    let reference = world.insert_body(RigidBodyBuilder::kinematic_velocity_based());
+                    if i == 0 {
+                        (reference, None, reference, child, JointAxis::AngX)
+                    } else {
+                        (reference, None, child, reference, JointAxis::AngY)
+                    }
                 };
                 let range = if i == j {
                     [0., std::f64::consts::FRAC_PI_2]
@@ -58,7 +89,11 @@ impl Construction {
                     .softness(SpringCoefficients::new(0., 1.))
                     .limits(axis, range)
                     .contacts_enabled(false);
-                (reference, world.insert_impulse_joint(first, second, row))
+                SpeedSide {
+                    reference,
+                    drive,
+                    row: world.insert_impulse_joint(first, second, row),
+                }
             });
             Some(AxisCap::Bounded { limit, sides })
         })
@@ -74,41 +109,59 @@ impl Joints {
         for (id, caps) in &self.speed_caps {
             let joint = self.records[id].initial;
             let child = *world.bodies[bodies[&joint.child].0].rotation();
+            let parent = joint.parent.map_or(Rotation::IDENTITY, |p| {
+                *world.bodies[bodies[&p].0].rotation()
+            });
             for (axis, cap) in caps.iter().enumerate() {
                 let Some(AxisCap::Bounded { limit, sides }) = cap else {
                     continue;
                 };
                 let basis = if axis == 0 {
-                    joint.frame1.rotation
+                    parent * joint.frame1.rotation
                 } else {
                     child * joint.frame2.rotation
                 };
                 let direction = if axis == 0 { Vector::X } else { Vector::Y };
-                for (side, &(reference, row)) in sides.iter().enumerate() {
+                for (
+                    side,
+                    &SpeedSide {
+                        reference,
+                        row,
+                        drive,
+                    },
+                ) in sides.iter().enumerate()
+                {
                     let sign = if side == 0 { -1. } else { 1. };
                     // The offset keeps one sign of reaction available through
                     // all internal iterations. With zero position correction
                     // the row limits relative angular velocity alone.
-                    let rb = &mut world.bodies[reference];
-                    rb.set_rotation(
-                        basis
-                            * Rotation::from_axis_angle(
-                                direction,
-                                -sign * std::f64::consts::FRAC_PI_4,
-                            ),
-                        false,
-                    );
-                    rb.set_angvel(basis * direction * (sign * limit), false);
-                    let child_frame = Pose::from_rotation(child.inverse() * basis);
+                    let phase =
+                        Rotation::from_axis_angle(direction, -sign * std::f64::consts::FRAC_PI_4);
                     let data = &mut world
                         .impulse_joints
                         .get_mut(row, false)
                         .expect("registered speed limit")
                         .data;
-                    if axis == 0 {
-                        data.set_local_frame2(child_frame);
+                    if drive.is_some() {
+                        let (phase, opposite) = if axis == 0 {
+                            (phase, child)
+                        } else {
+                            (phase.inverse(), parent)
+                        };
+                        data.set_local_frame1(Pose::from_rotation(
+                            world.bodies[reference].rotation().inverse() * basis * phase,
+                        ))
+                        .set_local_frame2(Pose::from_rotation(opposite.inverse() * basis));
                     } else {
-                        data.set_local_frame1(child_frame);
+                        let rb = &mut world.bodies[reference];
+                        rb.set_rotation(basis * phase, false);
+                        rb.set_angvel(basis * direction * (sign * limit), false);
+                        let child_frame = Pose::from_rotation(child.inverse() * basis);
+                        if axis == 0 {
+                            data.set_local_frame2(child_frame);
+                        } else {
+                            data.set_local_frame1(child_frame);
+                        }
                     }
                 }
             }
@@ -117,6 +170,14 @@ impl Joints {
 }
 
 impl AxisCap {
+    pub(super) fn drive_handles(&self) -> impl Iterator<Item = MultibodyJointHandle> {
+        let sides: &[SpeedSide] = match self {
+            Self::Held(_) => &[],
+            Self::Bounded { sides, .. } => sides,
+        };
+        sides.iter().filter_map(|s| s.drive)
+    }
+
     pub(super) fn limit(&self) -> f64 {
         match self {
             Self::Held(_) => 0.,
@@ -129,8 +190,8 @@ impl AxisCap {
                 world.remove_impulse_joint(handle);
             }
             Self::Bounded { sides, .. } => {
-                for (reference, _) in sides {
-                    world.remove_body(reference);
+                for side in sides {
+                    world.remove_body(side.reference);
                 }
             }
         }
@@ -145,6 +206,23 @@ impl RapierBackend {
         id: JointId,
         limits: [Option<f64>; 2],
     ) -> Result<(), PhysicsError> {
+        if self
+            .joints
+            .records
+            .get(&id)
+            .is_some_and(|j| j.initial.parent.is_some())
+        {
+            return Err(PhysicsError::InvalidJoint);
+        }
+        self.set_joint_angular_speed_limits(id, limits)
+    }
+
+    /// Set or replace hard angular speed limits during robot construction.
+    pub fn set_joint_angular_speed_limits(
+        &mut self,
+        id: JointId,
+        limits: [Option<f64>; 2],
+    ) -> Result<(), PhysicsError> {
         if !self.joints.open {
             return Err(PhysicsError::JointConstructionClosed);
         }
@@ -154,9 +232,8 @@ impl RapierBackend {
             .get(&id)
             .ok_or(PhysicsError::MissingJoint)?
             .initial;
-        if joint.parent.is_some()
-            || !matches!(joint.motion, JointMotion::Universal(_))
-                && !(matches!(joint.motion, JointMotion::Screw { .. }) && limits[1].is_none())
+        if !matches!(joint.motion, JointMotion::Universal(_))
+            && !(matches!(joint.motion, JointMotion::Screw { .. }) && limits[1].is_none())
         {
             return Err(PhysicsError::InvalidJoint);
         }
@@ -171,7 +248,10 @@ impl RapierBackend {
         if limits.iter().any(Option::is_some) {
             let caps = joint.insert_speed_caps(
                 &mut self.world,
-                self.joints.anchor.expect("world speed limit anchor"),
+                joint.parent.map_or_else(
+                    || self.joints.anchor.expect("world speed limit anchor"),
+                    |p| self.bodies[&p].0,
+                ),
                 self.bodies[&joint.child].0,
                 limits,
             );
