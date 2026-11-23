@@ -12,6 +12,7 @@ enum Shape {
     Capsule(super::capsule::Capsule),
     Sphere(f64, DVec3),
     Oriented(OrientedShape),
+    StaticCuboid(DVec3, DQuat),
     Plane(DVec3),
 }
 
@@ -95,6 +96,23 @@ impl PreparedBoundary {
                     Shape::Oriented(OrientedShape::Cuboid(half)),
                 )
             }
+            Boundary::StaticCuboid {
+                center,
+                half_extents,
+                orientation,
+            } => {
+                let half = DVec3::from(half_extents);
+                let q = DQuat::from_array(orientation);
+                if !half.is_finite()
+                    || half.min_element() <= 0.
+                    || !half.length().is_finite()
+                    || !q.is_finite()
+                    || (q.length_squared() - 1.).abs() > 1e-10
+                {
+                    return Err(XpbdError::InvalidBoundary);
+                }
+                (center, [0.; 3], Shape::StaticCuboid(half, q.normalize()))
+            }
             Boundary::Plane {
                 point,
                 normal,
@@ -158,6 +176,39 @@ impl PreparedBoundary {
                 ));
             }
             Shape::Plane(n) => (n, interval.radius - b.dot(n), interval.radius - a.dot(n)),
+            Shape::StaticCuboid(half, q) => {
+                let local_a = q.conjugate() * a;
+                let local_b = q.conjugate() * b;
+                if !(local_b - local_a).length_squared().is_finite() {
+                    return Err(XpbdError::Numerical);
+                }
+                let Some(t) = super::cuboid::linear_entry(local_a, local_b, half, interval.radius)
+                else {
+                    return Ok(None);
+                };
+                let (_, n, surface) = super::cuboid::witness(local_a.lerp(local_b, t), half);
+                let depth = interval.radius - (local_b - surface).dot(n);
+                let roundoff = 64.
+                    * f64::EPSILON
+                    * (a.length() + b.length() + half.length() + interval.radius);
+                let overlap = if t == 0. {
+                    interval.radius - (local_a - surface).dot(n)
+                } else {
+                    0.
+                };
+                // A closing particle that reaches the skin exactly at the end of
+                // the tick transfers momentum now. A grazing tangent transfers none.
+                let closing = (local_a - local_b).dot(n);
+                return Ok(
+                    (depth > roundoff || (depth.abs() <= roundoff && closing > roundoff))
+                        .then_some(Projection {
+                            normal: q * n,
+                            depth: depth.max(0.),
+                            initial_overlap: overlap.max(0.),
+                            event: None,
+                        }),
+                );
+            }
             Shape::Oriented(geometry) => {
                 let (q0, q1) = self
                     .receiver
@@ -365,7 +416,7 @@ impl PreparedBoundary {
                 self.velocity + (c.axis * c.angular_speed).cross(normal * c.radius)
             }
             Shape::Sphere(r, angular) => self.velocity + angular.cross(normal * r),
-            Shape::Plane(_) => self.velocity,
+            Shape::StaticCuboid(_, _) | Shape::Plane(_) => self.velocity,
             Shape::Oriented(_) => unreachable!("oriented boundaries require a finite receiver"),
         }
     }

@@ -131,6 +131,12 @@ pub enum Boundary {
         velocity: [f64; 3],
         angular_velocity: [f64; 3],
     },
+    /// Immobile one-way box. Orientation is a world unit quaternion [x, y, z, w].
+    StaticCuboid {
+        center: [f64; 3],
+        half_extents: [f64; 3],
+        orientation: [f64; 4],
+    },
     /// COM-centered box. Its uncoupled orientation follows the shortest arc
     /// between the two world quaternions in the accompanying principal motion.
     Cuboid {

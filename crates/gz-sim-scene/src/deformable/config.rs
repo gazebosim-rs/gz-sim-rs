@@ -210,18 +210,13 @@ fn find_link<'a>(
     models: &'a [sdformat::Model],
     name: &str,
     ancestor_static: bool,
-) -> Option<(&'a sdformat::Link, bool)> {
+) -> Option<(&'a sdformat::Link, bool, bool)> {
     models.iter().find_map(|m| {
         let fixed = ancestor_static || m.is_static;
         m.links
             .iter()
             .find(|l| l.scoped_name == name)
-            .map(|l| {
-                (
-                    l,
-                    fixed || m.plugins.iter().any(prescribed_motion::is_plugin),
-                )
-            })
+            .map(|l| (l, fixed, m.plugins.iter().any(prescribed_motion::is_plugin)))
             .or_else(|| find_link(&m.models, name, fixed))
     })
 }
@@ -263,8 +258,9 @@ fn rigid_surface(
         _ => return Err("linear_trajectory=force_aware requires a finite two-way capsule".into()),
     };
     let name = attribute(node, "link")?;
-    let (sdf, prescribed_or_static) = find_link(&world.models, name, false)
+    let (sdf, fixed, prescribed) = find_link(&world.models, name, false)
         .ok_or_else(|| format!("unknown deformable boundary link '{name}'"))?;
+    let prescribed_or_static = fixed || prescribed;
     let [collision] = sdf.collisions.as_slice() else {
         return Err(format!("expected one collision on '{name}'"));
     };
@@ -281,21 +277,24 @@ fn rigid_surface(
         .get(name)
         .ok_or("missing loaded rigid boundary identity")?;
     let entity = entity_by_id(ecs, link).ok_or("missing rigid boundary entity")?;
-    // The coupling boundary uses the body's link frame to locate its primitive.
-    let centered_geometry = ecs.get::<Children>(entity).is_some_and(|children| {
-        children
-            .iter()
-            .filter(|&e| ecs.get::<EntityKind>(e) == Some(&EntityKind::Collision))
-            .any(|e| {
-                ecs.get::<LocalPose>(e).is_some_and(|p| {
-                    identity(Transform {
-                        translation: p.0.translation,
-                        rotation: p.0.rotation,
-                    })
+    let collision_pose = ecs
+        .get::<Children>(entity)
+        .and_then(|children| {
+            children
+                .iter()
+                .find(|&e| ecs.get::<EntityKind>(e) == Some(&EntityKind::Collision))
+                .and_then(|e| ecs.get::<LocalPose>(e))
+                .map(|p| Transform {
+                    translation: p.0.translation,
+                    rotation: p.0.rotation,
                 })
-            })
-    });
-    if !centered_geometry {
+        })
+        .ok_or("missing loaded boundary collision pose")?;
+    let static_box = matches!(shape, ReceiverShape::Cuboid(_))
+        && node.attribute("coupling") == Some("one_way")
+        && fixed
+        && !prescribed;
+    if !static_box && !identity(collision_pose) {
         return Err(format!("expected centered geometry on '{name}'"));
     }
     let body = ecs
@@ -303,7 +302,7 @@ fn rigid_surface(
         .ok_or("missing rigid body")?
         .id();
     let mobility = match attribute(node, "coupling")? {
-        "one_way" if matches!(shape, ReceiverShape::Sphere(_)) => None,
+        "one_way" if static_box || matches!(shape, ReceiverShape::Sphere(_)) => None,
         "one_way" if matches!(shape, ReceiverShape::Capsule { .. }) => {
             if !prescribed_or_static
                 || ecs
@@ -323,7 +322,7 @@ fn rigid_surface(
             None
         }
         "one_way" => {
-            return Err("cuboid boundaries require two_way or articulated_wrench coupling".into());
+            return Err("one-way cuboid boundaries require a static SDF link".into());
         }
         "articulated_wrench" => {
             if !matches!(shape, ReceiverShape::Cuboid(_))
@@ -377,6 +376,7 @@ fn rigid_surface(
         body,
         shape,
         mobility,
+        static_box_pose: static_box.then_some(collision_pose),
     })
 }
 
@@ -504,7 +504,7 @@ fn parse(
                     .rsplit_once("::")
                     .ok_or("particle visual requires a qualified link and visual")?;
                 let sphere = find_link(&world.models, link, false)
-                    .and_then(|(l, _)| l.visuals.iter().find(|v| v.name == leaf))
+                    .and_then(|(l, _, _)| l.visuals.iter().find(|v| v.name == leaf))
                     .is_some_and(|v| matches!(v.geometry, Some(Geometry::Sphere { .. })));
                 if !sphere {
                     return Err("a particle visual requires an authored sphere".into());
@@ -733,7 +733,11 @@ fn parse(
         let mut pads = 0;
         for s in &surfaces {
             match s {
-                Surface::Plane { .. } => {}
+                Surface::Plane { .. }
+                | Surface::Rigid {
+                    static_box_pose: Some(_),
+                    ..
+                } => {}
                 Surface::Rigid {
                     shape: ReceiverShape::Sphere(_),
                     mobility: Some(ReceiverMass::Isotropic(_)),

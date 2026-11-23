@@ -44,6 +44,7 @@ enum Surface {
         body: BodyId,
         shape: ReceiverShape,
         mobility: Option<ReceiverMass>,
+        static_box_pose: Option<Transform>,
     },
 }
 
@@ -523,6 +524,7 @@ impl Deformables {
                     body,
                     shape,
                     mobility,
+                    static_box_pose,
                     ..
                 } => {
                     let Some(start) = start else {
@@ -585,6 +587,19 @@ impl Deformables {
                                 velocity: velocity.to_array(),
                                 angular_velocity: end.angular_velocity,
                             },
+                            ReceiverShape::Cuboid(half_extents)
+                                if let Some(local) = static_box_pose =>
+                            {
+                                let rotation = DQuat::from_array(start.orientation);
+                                Boundary::StaticCuboid {
+                                    center: (DVec3::from_array(center)
+                                        + rotation * DVec3::from_array(local.translation))
+                                    .to_array(),
+                                    half_extents,
+                                    orientation: (rotation * DQuat::from_array(local.rotation))
+                                        .to_array(),
+                                }
+                            }
                             ReceiverShape::Cuboid(half_extents) => Boundary::Cuboid {
                                 center,
                                 half_extents,

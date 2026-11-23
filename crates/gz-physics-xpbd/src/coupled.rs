@@ -586,7 +586,7 @@ fn solve_at_resolution<M: Copy + Into<RigidMobility>>(
             Boundary::Cuboid { .. }
             | Boundary::Capsule { .. }
             | Boundary::DynamicCapsule { .. } => true,
-            Boundary::Plane { .. } => false,
+            Boundary::StaticCuboid { .. } | Boundary::Plane { .. } => false,
         }) {
             return Err(XpbdError::InvalidBoundary);
         }
