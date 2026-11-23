@@ -5,8 +5,8 @@ use gz_physics_gpu::PlanarArmLane as Lane;
 use rapier3d_f64::prelude::*;
 
 pub struct Native {
-    world: PhysicsWorld,
-    links: [RigidBodyHandle; 2],
+    pub(super) world: PhysicsWorld,
+    pub(super) links: [RigidBodyHandle; 2],
 }
 impl Native {
     pub fn new(l: &Lane) -> Self {
@@ -77,19 +77,22 @@ impl Native {
     }
     pub fn step(&mut self, l: &Lane) {
         for _ in 0..8 {
-            let abs = self.links.map(|id| {
-                let x = *self.world.bodies[id].rotation() * Vector::X;
-                x.z.atan2(x.x)
-            });
-            let rate = self.links.map(|id| -self.world.bodies[id].angvel().y);
-            let [a, b] = servo(l, [abs[0], abs[1] - abs[0]], [rate[0], rate[1] - rate[0]]);
-            for (id, t) in self.links.into_iter().zip([a - b, b]) {
-                let rb = &mut self.world.bodies[id];
-                rb.reset_torques(true);
-                rb.add_torque(-Vector::Y * t, true);
-            }
-            self.world.step();
+            self.step_once(l);
         }
+    }
+    pub fn step_once(&mut self, l: &Lane) {
+        let abs = self.links.map(|id| {
+            let x = *self.world.bodies[id].rotation() * Vector::X;
+            x.z.atan2(x.x)
+        });
+        let rate = self.links.map(|id| -self.world.bodies[id].angvel().y);
+        let [a, b] = servo(l, [abs[0], abs[1] - abs[0]], [rate[0], rate[1] - rate[0]]);
+        for (id, t) in self.links.into_iter().zip([a - b, b]) {
+            let rb = &mut self.world.bodies[id];
+            rb.reset_torques(true);
+            rb.add_torque(-Vector::Y * t, true);
+        }
+        self.world.step();
     }
     pub fn tip(&self, l: &Lane) -> [f64; 2] {
         let link = &self.world.bodies[self.links[1]];

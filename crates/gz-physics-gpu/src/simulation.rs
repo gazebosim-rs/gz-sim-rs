@@ -31,6 +31,14 @@ pub fn planar_arm_simulation(
     Ok(install(super::PlanarArmBatch::new(adapter_name, initial)?))
 }
 
+/// Create independent two-joint arms with a round tool and a stationary floor.
+pub fn planar_tool_simulation(
+    adapter_name: &str,
+    initial: Vec<super::PlanarToolLane>,
+) -> Result<Simulation, GpuError> {
+    Ok(install(super::PlanarToolBatch::new(adapter_name, initial)?))
+}
+
 /// Create a paused Bevy world of independent free sphere/plane fixtures.
 pub fn sphere_plane_simulation(
     adapter_name: &str,

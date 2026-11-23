@@ -1,0 +1,492 @@
+{
+  "adapter": "NVIDIA GeForce RTX 5090",
+  "all_ticks_reset_sha256": "3159cb3158fa0cc7207ea4feca326e5b8c6dd2fd39eb6fafa48573575e8ffb33",
+  "cases": [
+    {
+      "cartesian": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.30770886920322243,
+        "first_10_ticks_tangent_ns": 0.0,
+        "first_impact_normal_ns": 0.13565732284803164,
+        "first_impact_tangent_ns": -0.0,
+        "first_loaded_public_tick_normal_ns": 0.14594180296348622,
+        "last_loaded_tick_end_s": 0.307,
+        "minimum_gap_m": -1.9452495170213524e-13,
+        "onset_s": 0.03741402822258756,
+        "prelift_20ms_normal_ns": 0.3442509239633565,
+        "total_normal_ns": 4.65269689264058,
+        "total_tangent_ns": 0.0
+      },
+      "friction": 0.0,
+      "gpu": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.3066499365113833,
+        "first_10_ticks_tangent_ns": 0.0,
+        "first_impact_normal_ns": 0.1357877087289099,
+        "first_impact_tangent_ns": -0.0,
+        "first_loaded_public_tick_normal_ns": 0.14491763209527467,
+        "last_loaded_tick_end_s": 0.307,
+        "minimum_gap_m": -8.082738506276499e-10,
+        "onset_s": 0.03741186075691818,
+        "prelift_20ms_normal_ns": 0.34463973066542464,
+        "total_normal_ns": 4.652337308945735,
+        "total_tangent_ns": 0.0
+      },
+      "lane_id": 0,
+      "max_tip_error_m": [
+        0.00044593659886630656,
+        0.0008329359065015255
+      ],
+      "payload_kg": 0.0,
+      "rapier": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.30703530277476365,
+        "first_10_ticks_tangent_ns": 0.0,
+        "first_impact_normal_ns": 0.13590620908833242,
+        "first_impact_tangent_ns": -0.0,
+        "first_loaded_public_tick_normal_ns": 0.1450922589474844,
+        "last_loaded_tick_end_s": 0.307,
+        "minimum_gap_m": -0.0007459903964687903,
+        "onset_s": 0.0375,
+        "prelift_20ms_normal_ns": 0.3436202247624458,
+        "total_normal_ns": 4.64845271057821,
+        "total_tangent_ns": 0.0
+      }
+    },
+    {
+      "cartesian": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.45260084916383264,
+        "first_10_ticks_tangent_ns": 0.0,
+        "first_impact_normal_ns": 0.29907949726398814,
+        "first_impact_tangent_ns": -0.0,
+        "first_loaded_public_tick_normal_ns": 0.3100060241495544,
+        "last_loaded_tick_end_s": 0.312,
+        "minimum_gap_m": -2.3217539002473586e-14,
+        "onset_s": 0.046310250791257,
+        "prelift_20ms_normal_ns": 0.3151242069170663,
+        "total_normal_ns": 4.31378943643191,
+        "total_tangent_ns": 0.0
+      },
+      "friction": 0.0,
+      "gpu": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.45069037621709646,
+        "first_10_ticks_tangent_ns": 0.0,
+        "first_impact_normal_ns": 0.300092205043736,
+        "first_impact_tangent_ns": -0.0,
+        "first_loaded_public_tick_normal_ns": 0.3080150142298076,
+        "last_loaded_tick_end_s": 0.312,
+        "minimum_gap_m": -9.541359369258373e-11,
+        "onset_s": 0.04630863179483504,
+        "prelift_20ms_normal_ns": 0.31522905055081396,
+        "total_normal_ns": 4.312412111058784,
+        "total_tangent_ns": 0.0
+      },
+      "lane_id": 1,
+      "max_tip_error_m": [
+        0.00015438965788068995,
+        0.00032500377708284033
+      ],
+      "payload_kg": 0.1,
+      "rapier": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.4522363384900395,
+        "first_10_ticks_tangent_ns": 0.0,
+        "first_impact_normal_ns": 0.29959085060612817,
+        "first_impact_tangent_ns": -0.0,
+        "first_loaded_public_tick_normal_ns": 0.3095580803668718,
+        "last_loaded_tick_end_s": 0.312,
+        "minimum_gap_m": -0.0002842081625191728,
+        "onset_s": 0.046375,
+        "prelift_20ms_normal_ns": 0.3148051827430942,
+        "total_normal_ns": 4.311709678826281,
+        "total_tangent_ns": 0.0
+      }
+    },
+    {
+      "cartesian": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.6453717508747371,
+        "first_10_ticks_tangent_ns": 0.0,
+        "first_impact_normal_ns": 0.49762898478198575,
+        "first_impact_tangent_ns": -0.0,
+        "first_loaded_public_tick_normal_ns": 0.5072042699663962,
+        "last_loaded_tick_end_s": 0.324,
+        "minimum_gap_m": -5.065392549852277e-15,
+        "onset_s": 0.05632376746087779,
+        "prelift_20ms_normal_ns": 0.3090747464565015,
+        "total_normal_ns": 4.3323750321504955,
+        "total_tangent_ns": 0.0
+      },
+      "friction": 0.0,
+      "gpu": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.6445926165519837,
+        "first_10_ticks_tangent_ns": 0.0,
+        "first_impact_normal_ns": 0.4987283868965394,
+        "first_impact_tangent_ns": -0.0,
+        "first_loaded_public_tick_normal_ns": 0.5063853088987018,
+        "last_loaded_tick_end_s": 0.324,
+        "minimum_gap_m": -2.0750789975210182e-11,
+        "onset_s": 0.05632247762504547,
+        "prelift_20ms_normal_ns": 0.3091065276401551,
+        "total_normal_ns": 4.331805475570512,
+        "total_tangent_ns": 0.0
+      },
+      "lane_id": 2,
+      "max_tip_error_m": [
+        0.00004539610461455077,
+        0.00022246980696042916
+      ],
+      "payload_kg": 0.25,
+      "rapier": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.6451534877218486,
+        "first_10_ticks_tangent_ns": 0.0,
+        "first_impact_normal_ns": 0.49832503399584377,
+        "first_impact_tangent_ns": -0.0,
+        "first_loaded_public_tick_normal_ns": 0.5069563155219353,
+        "last_loaded_tick_end_s": 0.324,
+        "minimum_gap_m": -0.00020346001678905878,
+        "onset_s": 0.0564375,
+        "prelift_20ms_normal_ns": 0.30884931366723917,
+        "total_normal_ns": 4.330870157379994,
+        "total_tangent_ns": 0.0
+      }
+    },
+    {
+      "cartesian": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.320391909218122,
+        "first_10_ticks_tangent_ns": -0.0640783818436244,
+        "first_impact_normal_ns": 0.15913448902614538,
+        "first_impact_tangent_ns": -0.03182689780522908,
+        "first_loaded_public_tick_normal_ns": 0.17280703629445499,
+        "last_loaded_tick_end_s": 0.31,
+        "minimum_gap_m": -1.703914787043459e-13,
+        "onset_s": 0.04013259983161628,
+        "prelift_20ms_normal_ns": 0.34012944681639107,
+        "total_normal_ns": 4.361047876647925,
+        "total_tangent_ns": 0.10613924045811503
+      },
+      "friction": 0.2,
+      "gpu": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.3162165532886911,
+        "first_10_ticks_tangent_ns": -0.06324331065773822,
+        "first_impact_normal_ns": 0.15997826903664156,
+        "first_impact_tangent_ns": -0.031995653807328314,
+        "first_loaded_public_tick_normal_ns": 0.168388576417382,
+        "last_loaded_tick_end_s": 0.31,
+        "minimum_gap_m": -8.26236676298997e-10,
+        "onset_s": 0.0401306655292283,
+        "prelift_20ms_normal_ns": 0.34073195693473257,
+        "total_normal_ns": 4.361718409652009,
+        "total_tangent_ns": 0.11738430585113192
+      },
+      "lane_id": 3,
+      "max_tip_error_m": [
+        0.0003565042526532434,
+        0.000757237264904401
+      ],
+      "payload_kg": 0.0,
+      "rapier": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.32069717397725,
+        "first_10_ticks_tangent_ns": -0.06413943479544991,
+        "first_impact_normal_ns": 0.16502378079595745,
+        "first_impact_tangent_ns": -0.03300475615919146,
+        "first_loaded_public_tick_normal_ns": 0.17295897200274749,
+        "last_loaded_tick_end_s": 0.31,
+        "minimum_gap_m": -0.000624254088158499,
+        "onset_s": 0.0401875,
+        "prelift_20ms_normal_ns": 0.33902508107436446,
+        "total_normal_ns": 4.354244863236511,
+        "total_tangent_ns": 0.10013533120057456
+      }
+    },
+    {
+      "cartesian": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.44641508327872975,
+        "first_10_ticks_tangent_ns": -0.08928301665574594,
+        "first_impact_normal_ns": 0.3074665699961793,
+        "first_impact_tangent_ns": -0.061493313999235855,
+        "first_loaded_public_tick_normal_ns": 0.3139798688315802,
+        "last_loaded_tick_end_s": 0.321,
+        "minimum_gap_m": -2.0247692411601292e-14,
+        "onset_s": 0.04553938573650844,
+        "prelift_20ms_normal_ns": 0.33072836127254984,
+        "total_normal_ns": 4.301159204427809,
+        "total_tangent_ns": 0.23441698177661327
+      },
+      "friction": 0.2,
+      "gpu": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.4430614953813695,
+        "first_10_ticks_tangent_ns": -0.08861229907627394,
+        "first_impact_normal_ns": 0.3103241055791822,
+        "first_impact_tangent_ns": -0.062064821115836444,
+        "first_loaded_public_tick_normal_ns": 0.3103241055791822,
+        "last_loaded_tick_end_s": 0.32,
+        "minimum_gap_m": -3.438226713059489e-8,
+        "onset_s": 0.045538394751023406,
+        "prelift_20ms_normal_ns": 0.33087804154706907,
+        "total_normal_ns": 4.299640929264491,
+        "total_tangent_ns": 0.23721566575512976
+      },
+      "lane_id": 4,
+      "max_tip_error_m": [
+        0.00008399976602342056,
+        0.0003397615837031259
+      ],
+      "payload_kg": 0.1,
+      "rapier": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.44611816619088684,
+        "first_10_ticks_tangent_ns": -0.08922363323817728,
+        "first_impact_normal_ns": 0.31373725995324736,
+        "first_impact_tangent_ns": -0.06274745199064939,
+        "first_loaded_public_tick_normal_ns": 0.31373725995324736,
+        "last_loaded_tick_end_s": 0.32,
+        "minimum_gap_m": -0.00029839943847308203,
+        "onset_s": 0.045625,
+        "prelift_20ms_normal_ns": 0.3300784895143255,
+        "total_normal_ns": 4.296269439763156,
+        "total_tangent_ns": 0.23224876730178598
+      }
+    },
+    {
+      "cartesian": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.7020848468637092,
+        "first_10_ticks_tangent_ns": -0.14041696937274184,
+        "first_impact_normal_ns": 0.5181807776175278,
+        "first_impact_tangent_ns": -0.10363615552350557,
+        "first_loaded_public_tick_normal_ns": 0.5323840681539075,
+        "last_loaded_tick_end_s": 0.319,
+        "minimum_gap_m": -1.0297318553398327e-14,
+        "onset_s": 0.05123435021233178,
+        "prelift_20ms_normal_ns": 0.4089350473319433,
+        "total_normal_ns": 5.409617231118901,
+        "total_tangent_ns": 0.16551055902866982
+      },
+      "friction": 0.2,
+      "gpu": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.6998292256555985,
+        "first_10_ticks_tangent_ns": -0.1399658451311197,
+        "first_impact_normal_ns": 0.5205615931525406,
+        "first_impact_tangent_ns": -0.10411231863050813,
+        "first_loaded_public_tick_normal_ns": 0.530036965077741,
+        "last_loaded_tick_end_s": 0.319,
+        "minimum_gap_m": -4.22036572356177e-11,
+        "onset_s": 0.05123294830628631,
+        "prelift_20ms_normal_ns": 0.4090272950811093,
+        "total_normal_ns": 5.4091133147779695,
+        "total_tangent_ns": 0.17155489978351446
+      },
+      "lane_id": 5,
+      "max_tip_error_m": [
+        0.000041029860013096514,
+        0.00020915059626606947
+      ],
+      "payload_kg": 0.25,
+      "rapier": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.7017698329485068,
+        "first_10_ticks_tangent_ns": -0.1403539665897013,
+        "first_impact_normal_ns": 0.5326244873744717,
+        "first_impact_tangent_ns": -0.10652489747489427,
+        "first_loaded_public_tick_normal_ns": 0.5326244873744717,
+        "last_loaded_tick_end_s": 0.319,
+        "minimum_gap_m": -0.00019396172824320823,
+        "onset_s": 0.051312500000000004,
+        "prelift_20ms_normal_ns": 0.4084122909613541,
+        "total_normal_ns": 5.405405293291316,
+        "total_tangent_ns": 0.1586023039670737
+      }
+    },
+    {
+      "cartesian": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.31605886298357294,
+        "first_10_ticks_tangent_ns": -0.14222648834260782,
+        "first_impact_normal_ns": 0.168481941235013,
+        "first_impact_tangent_ns": -0.07581687355575585,
+        "first_loaded_public_tick_normal_ns": 0.18280051902779407,
+        "last_loaded_tick_end_s": 0.313,
+        "minimum_gap_m": -1.2055634268648419e-13,
+        "onset_s": 0.03903625771387031,
+        "prelift_20ms_normal_ns": 0.3418699337533852,
+        "total_normal_ns": 4.21622318009965,
+        "total_tangent_ns": 0.5367758258683728
+      },
+      "friction": 0.45,
+      "gpu": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.31123931769570945,
+        "first_10_ticks_tangent_ns": -0.14005769296306925,
+        "first_impact_normal_ns": 0.17002368794643602,
+        "first_impact_tangent_ns": -0.07651065957589621,
+        "first_loaded_public_tick_normal_ns": 0.17767774700351968,
+        "last_loaded_tick_end_s": 0.313,
+        "minimum_gap_m": -5.583042084200684e-10,
+        "onset_s": 0.03903499155088437,
+        "prelift_20ms_normal_ns": 0.3425050588640201,
+        "total_normal_ns": 4.219944065387002,
+        "total_tangent_ns": 0.5632766176966172
+      },
+      "lane_id": 6,
+      "max_tip_error_m": [
+        0.0002677507269102929,
+        0.0006975825644292437
+      ],
+      "payload_kg": 0.0,
+      "rapier": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.31573730712914283,
+        "first_10_ticks_tangent_ns": -0.14208178820811418,
+        "first_impact_normal_ns": 0.17803034688843697,
+        "first_impact_tangent_ns": -0.08011365609979658,
+        "first_loaded_public_tick_normal_ns": 0.1821939045417721,
+        "last_loaded_tick_end_s": 0.313,
+        "minimum_gap_m": -0.0006047391483651604,
+        "onset_s": 0.039125,
+        "prelift_20ms_normal_ns": 0.3405616811748467,
+        "total_normal_ns": 4.203103053600317,
+        "total_tangent_ns": 0.5084472179905879
+      }
+    },
+    {
+      "cartesian": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.5347581119919682,
+        "first_10_ticks_tangent_ns": -0.2406411503963857,
+        "first_impact_normal_ns": 0.35858847251632425,
+        "first_impact_tangent_ns": -0.16136481263234592,
+        "first_loaded_public_tick_normal_ns": 0.3610225854841492,
+        "last_loaded_tick_end_s": 0.312,
+        "minimum_gap_m": -3.366751322175787e-14,
+        "onset_s": 0.04982933447148386,
+        "prelift_20ms_normal_ns": 0.40272715594599445,
+        "total_normal_ns": 4.9996669442968615,
+        "total_tangent_ns": -0.4087682807693767
+      },
+      "friction": 0.45,
+      "gpu": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.5330352043605958,
+        "first_10_ticks_tangent_ns": -0.23986584196226812,
+        "first_impact_normal_ns": 0.3593938244773229,
+        "first_impact_tangent_ns": -0.1617272210147953,
+        "first_loaded_public_tick_normal_ns": 0.3593938244773229,
+        "last_loaded_tick_end_s": 0.312,
+        "minimum_gap_m": -1.381780245779396e-10,
+        "onset_s": 0.04982796716457276,
+        "prelift_20ms_normal_ns": 0.4031667980012721,
+        "total_normal_ns": 5.00155385448337,
+        "total_tangent_ns": -0.38623564532993954
+      },
+      "lane_id": 7,
+      "max_tip_error_m": [
+        0.0001547539206890773,
+        0.00032468527784215717
+      ],
+      "payload_kg": 0.1,
+      "rapier": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.5343965888744224,
+        "first_10_ticks_tangent_ns": -0.24047846499348974,
+        "first_impact_normal_ns": 0.38951469795523314,
+        "first_impact_tangent_ns": -0.17528161407985468,
+        "first_loaded_public_tick_normal_ns": 0.38951469795523314,
+        "last_loaded_tick_end_s": 0.312,
+        "minimum_gap_m": -0.00029284856010271254,
+        "onset_s": 0.0499375,
+        "prelift_20ms_normal_ns": 0.40179818735098904,
+        "total_normal_ns": 4.993858140922031,
+        "total_tangent_ns": -0.43153656761764814
+      }
+    },
+    {
+      "cartesian": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.6875141032278714,
+        "first_10_ticks_tangent_ns": -0.3093813464525422,
+        "first_impact_normal_ns": 0.5220825397656362,
+        "first_impact_tangent_ns": -0.23493714289453632,
+        "first_loaded_public_tick_normal_ns": 0.530868371417542,
+        "last_loaded_tick_end_s": 0.32,
+        "minimum_gap_m": -7.230327447871332e-15,
+        "onset_s": 0.05346642007220204,
+        "prelift_20ms_normal_ns": 0.3977737182471122,
+        "total_normal_ns": 5.004074850677334,
+        "total_tangent_ns": 0.037644685801439294
+      },
+      "friction": 0.45,
+      "gpu": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.6874739849512921,
+        "first_10_ticks_tangent_ns": -0.3093632932280814,
+        "first_impact_normal_ns": 0.5220889943723763,
+        "first_impact_tangent_ns": -0.23494004746756936,
+        "first_loaded_public_tick_normal_ns": 0.5308723453887768,
+        "last_loaded_tick_end_s": 0.32,
+        "minimum_gap_m": -2.955038991281356e-11,
+        "onset_s": 0.05346559822553918,
+        "prelift_20ms_normal_ns": 0.3979088997194057,
+        "total_normal_ns": 5.005902874705483,
+        "total_tangent_ns": 0.04751222969671279
+      },
+      "lane_id": 8,
+      "max_tip_error_m": [
+        0.000044190526553351684,
+        0.00016689673670721241
+      ],
+      "payload_kg": 0.25,
+      "rapier": {
+        "final_20ms_normal_ns": 0.0,
+        "first_10_ticks_normal_ns": 0.6873405006553365,
+        "first_10_ticks_tangent_ns": -0.30930322529490106,
+        "first_impact_normal_ns": 0.5541514673548185,
+        "first_impact_tangent_ns": -0.24936816030966813,
+        "first_loaded_public_tick_normal_ns": 0.5541514673548185,
+        "last_loaded_tick_end_s": 0.32,
+        "minimum_gap_m": -0.0001559861362648851,
+        "onset_s": 0.0535625,
+        "prelift_20ms_normal_ns": 0.3971155810202873,
+        "total_normal_ns": 5.000359555590235,
+        "total_tangent_ns": 0.029870344387069
+      }
+    }
+  ],
+  "dense_bevy_p95_ns": 134341,
+  "gpu_dispatch_p95_ns": 29152,
+  "gpu_internal_dt_s": 0.0005,
+  "lanes": 2048,
+  "lift_before_tick": 301,
+  "lowered_floor_lane": 2047,
+  "lowered_floor_minimum_gap_m": 1.5101346188637481,
+  "max_discrepancy_order": [
+    "onset_s",
+    "first_normal_fraction",
+    "first_10_ticks_normal_fraction",
+    "release_s"
+  ],
+  "reference_dt_s": 0.0000625,
+  "ticks": 600,
+  "worst_cartesian": [
+    2.1674656693823624e-6,
+    0.009293809024631283,
+    0.015248885104399035,
+    0.0010000000000000009
+  ],
+  "worst_rapier": [
+    0.00011502237495453205,
+    0.07732923465027253,
+    0.01424598655867304,
+    0.0
+  ]
+}

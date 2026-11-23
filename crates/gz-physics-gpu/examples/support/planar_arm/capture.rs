@@ -1,6 +1,19 @@
 // Copyright (C) 2026 Open Source Robotics Foundation
 // SPDX-License-Identifier: Apache-2.0
-use gz_physics_gpu::PlanarArmLane;
+use gz_physics_gpu::{PlanarArmLane, PlanarToolLane};
+pub trait DisplayLane {
+    fn display(&self) -> (&PlanarArmLane, Option<&PlanarToolLane>);
+}
+impl DisplayLane for PlanarArmLane {
+    fn display(&self) -> (&PlanarArmLane, Option<&PlanarToolLane>) {
+        (self, None)
+    }
+}
+impl DisplayLane for PlanarToolLane {
+    fn display(&self) -> (&PlanarArmLane, Option<&PlanarToolLane>) {
+        (&self.arm, Some(self))
+    }
+}
 use serde_json::{Value, json};
 use std::{fs, io, path::Path};
 
@@ -10,16 +23,17 @@ pub struct Capture {
     points: Vec<Value>,
 }
 impl Capture {
-    pub fn sample(&mut self, time_ns: u64, lanes: &[PlanarArmLane]) {
+    pub fn sample(&mut self, time_ns: u64, lanes: &[impl DisplayLane]) {
         let mut visuals = vec![];
         let mut models = vec![];
         let mut arms = vec![];
-        for (i, l) in lanes[..9].iter().enumerate() {
+        for (i, lane) in lanes[..9].iter().enumerate() {
+            let (l, contact) = lane.display();
             let base = [(i % 3) as f64 * 1.6 - 1.6, (i / 3) as f64 * 1.2 - 1.2, 0.8];
             let [elbow, tip] = l.points().map(|[x, z]| [base[0] + x, base[1], base[2] + z]);
             let [a, b] = l.angle.map(|p| p[1].atan2(p[0]));
             let name = format!("default::arm_{i}");
-            let model_id = 2 + i * 5;
+            let model_id = 2 + i * if contact.is_some() { 7 } else { 5 };
             let mut ids = vec![];
             let mut add = |part: &str,
                            translation: [f64; 3],
@@ -57,11 +71,42 @@ impl Capture {
                 "tool",
                 tip,
                 0.,
-                json!({"kind":"sphere","radius":0.024+l.tip_mass*0.080}),
+                json!({"kind":"sphere","radius":contact.map_or(0.024+l.tip_mass*0.080, |c|c.radius)}),
                 [0.94, 0.46, 0.10, 1.],
             );
+            if let Some(c) = contact {
+                let height = if c.normal_impulse > 0. {
+                    tip[2] + c.radius + 0.013
+                } else {
+                    base[2] + c.ground_z - 0.020
+                };
+                add(
+                    "contact_marker",
+                    [tip[0], tip[1], height],
+                    0.,
+                    json!({"kind":"sphere","radius":0.008}),
+                    [1., 0.16, 0.08, 1.],
+                );
+                add(
+                    "ground",
+                    [base[0], base[1], base[2] + c.ground_z - 0.020],
+                    0.,
+                    json!({"kind":"box","size":[1.5,0.8,0.04]}),
+                    [0.30, 0.36, 0.42, 1.],
+                );
+            }
             models.push(json!({"model_id":model_id,"name":name,"visual_ids":ids,"can_remove":false,"can_set_state":false}));
-            arms.push(json!({"lane_id":i,"base":base,"elbow":elbow,"tip":tip,"angles":l.angle,"length":l.length,"tip_mass_kg":l.tip_mass}));
+            let mut observation = json!({"lane_id":i,"base":base,"elbow":elbow,"tip":tip,"angles":l.angle,"length":l.length,"tip_mass_kg":l.tip_mass});
+            if let Some(c) = contact {
+                observation["ground_z_m"] = json!(c.ground_z);
+                observation["tool_radius_m"] = json!(c.radius);
+                observation["friction_mu"] = json!(c.friction);
+                observation["normal_impulse_ns"] = json!(c.normal_impulse);
+                observation["tangent_impulse_ns"] = json!(c.tangent_impulse);
+                observation["surface_gap_m"] = json!(c.gap());
+                observation["first_contact_offset_s"] = json!(c.first_contact_offset);
+            }
+            arms.push(observation);
         }
         let seq = self.frames.len() + 1;
         self.frames.push((

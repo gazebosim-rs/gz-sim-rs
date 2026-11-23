@@ -1,0 +1,171 @@
+// Copyright (C) 2026 Open Source Robotics Foundation
+// SPDX-License-Identifier: Apache-2.0
+//! An inelastic round tool on a planar articulated arm, touching a horizontal floor.
+use crate::arithmetic::{Condition, Scalar};
+use crate::planar_arm::{ArmInertia, tick};
+use crate::{GpuError, PlanarArmLane, ResidentBatch, STEP, kernel};
+use bytemuck::{Pod, Zeroable};
+
+#[derive(Clone, Copy, Debug, Pod, Zeroable)]
+#[repr(C)]
+pub struct PlanarToolLane {
+    pub arm: PlanarArmLane,
+    /// Plane altitude relative to the fixed shoulder, m.
+    pub ground_z: f64,
+    pub radius: f64,
+    pub friction: f64,
+    /// Sum of impulses on the tool in the committed public tick, along +Z and +X (N s).
+    pub normal_impulse: f64,
+    pub tangent_impulse: f64,
+    /// Estimated first geometric contact time in the public tick, s; -1 if unloaded.
+    pub first_contact_offset: f64,
+    /// Impulse at the first loaded internal step in that public tick, N s.
+    pub first_normal_impulse: f64,
+    pub first_tangent_impulse: f64,
+}
+const WIDTH: usize = 36;
+const _: () = assert!(size_of::<PlanarToolLane>() == 8 * WIDTH);
+pub type PlanarToolBatch = ResidentBatch<PlanarToolLane>;
+impl PlanarToolLane {
+    pub fn gap(&self) -> f64 {
+        self.arm.points()[1][1] - self.radius - self.ground_z
+    }
+    fn valid(self) -> bool {
+        self.arm.valid()
+            && self.radius.is_finite()
+            && self.radius > 0.
+            && self.ground_z.is_finite()
+            && self.gap().is_finite()
+            && self.gap() >= 0.
+            && self.friction.is_finite()
+            && self.friction >= 0.
+            && self.normal_impulse == 0.
+            && self.tangent_impulse == 0.
+            && self.first_contact_offset == -1.
+            && self.first_normal_impulse == 0.
+            && self.first_tangent_impulse == 0.
+    }
+}
+impl PlanarToolBatch {
+    pub fn new(adapter_name: &str, initial: Vec<PlanarToolLane>) -> Result<Self, GpuError> {
+        Self::new_profile(adapter_name, initial, PlanarToolLane::valid, module, None)
+    }
+    pub fn set_target_angles(&mut self, lane: usize, radians: [f64; 2]) -> Result<(), GpuError> {
+        crate::planar_arm::set_target(
+            lane,
+            self.committed.get_mut(lane).map(|l| &mut l.arm),
+            radians,
+        )?;
+        self.upload_needed = true;
+        Ok(())
+    }
+}
+fn module() -> naga::Module {
+    kernel::build::<WIDTH, 13>(&[STEP.as_secs_f64() / 2., 0., 1., 0.5], |v, c| solve(v, c))
+}
+fn dot<T: Scalar>(a: [T; 2], b: [T; 2]) -> T {
+    a[0] * b[0] + a[1] * b[1]
+}
+/// Project velocities in contact coordinates. Try sticking, then solve on the sliding cone edge.
+fn impact<T: Scalar>([vn, vt]: [T; 2], [nn, nt, tt]: [T; 3], mu: T, z: T, one: T) -> [T; 2] {
+    let determinant = nn * tt - nt * nt;
+    let regular = determinant.greater(z);
+    let denom = regular.select(determinant, one);
+    let n = (nt * vt - tt * vn) / denom;
+    let t = (nt * vn - nn * vt) / denom;
+    let stick = regular
+        .and(n.at_least(z))
+        .and(t.at_least(z - mu * n))
+        .and(t.at_most(mu * n));
+    let residual = vt * nn - nt * vn;
+    let direction = residual
+        .greater(z)
+        .select(z - mu, residual.less(z).select(mu, z));
+    let effective = nn + nt * direction;
+    let slide = (z - vn) / effective.greater(z).select(effective, one);
+    let loaded = vn.less(z).and(nn.greater(z));
+    [
+        loaded.select(stick.select(n, slide), z),
+        loaded.select(stick.select(t, direction * slide), z),
+    ]
+}
+fn solve<T: Scalar>(mut v: [T; WIDTH], constants: &[T]) -> [(usize, T); 13] {
+    let [dt, z, one, half] = *constants else {
+        unreachable!()
+    };
+    let mass = ArmInertia::from_lane(&v);
+    let (floor, radius, mu) = (v[28], v[29], v[30]);
+    let mut normal = z;
+    let mut tangent = z;
+    let mut first = z - one;
+    let mut first_n = z;
+    let mut first_t = z;
+    let geometry = |v: &[T; WIDTH]| {
+        let (c, s, d, t) = (v[0], v[1], v[2], v[3]);
+        let x2 = v[7] * (c * d - s * t);
+        let z2 = v[7] * (s * d + c * t);
+        let x = v[6] * c + x2;
+        let h = v[6] * s + z2;
+        // A sphere rigidly welded to link two also rolls with omega1+omega2.
+        (h - radius - floor, [x, x2], [radius - h, radius - z2])
+    };
+    for offset in [z, dt] {
+        let (start, _, _) = geometry(&v);
+        for (i, value) in tick(&v, constants) {
+            v[i] = value;
+        }
+        let (gap, jn, jt) = geometry(&v);
+        let in_contact = gap.at_most(z);
+        let an = mass.inverse(v[2], v[3], jn);
+        let at = mass.inverse(v[2], v[3], jt);
+        let (nn, nt, tt) = (dot(jn, an), dot(jn, at), dot(jt, at));
+        let w = [v[4], v[5]];
+        let [n, t] = impact([dot(jn, w), dot(jt, w)], [nn, nt, tt], mu, z, one);
+        let n = in_contact.select(n, z);
+        let t = in_contact.select(t, z);
+        for i in 0..2 {
+            v[4 + i] = w[i] + an[i] * n + at[i] * t;
+        }
+        let travel = start - gap;
+        let fraction = (start / travel.greater(z).select(travel, one))
+            .maximum(z)
+            .minimum(one);
+        let onset = first.less(z).and(n.greater(z));
+        first = onset.select(offset + dt * fraction, first);
+        first_n = onset.select(n, first_n);
+        first_t = onset.select(t, first_t);
+        normal = normal + n;
+        tangent = tangent + t;
+        // Split position correction in the inverse-mass normal direction. It adds no velocity.
+        let correction = in_contact
+            .and(nn.greater(z))
+            .select((z - gap) / nn.greater(z).select(nn, one), z);
+        for (i, a) in an.into_iter().enumerate() {
+            let h = half * correction * a;
+            let co = (one - h * h) / (one + h * h);
+            let si = (h + h) / (one + h * h);
+            let (c, s) = (v[2 * i], v[2 * i + 1]);
+            v[2 * i] = c * co - s * si;
+            v[2 * i + 1] = s * co + c * si;
+        }
+    }
+    [
+        (0, v[0]),
+        (1, v[1]),
+        (2, v[2]),
+        (3, v[3]),
+        (4, v[4]),
+        (5, v[5]),
+        (26, v[26]),
+        (27, v[27]),
+        (31, normal),
+        (32, tangent),
+        (33, first),
+        (34, first_n),
+        (35, first_t),
+    ]
+}
+
+#[cfg(test)]
+#[path = "../tests/private/planar_tool.rs"]
+mod tests;

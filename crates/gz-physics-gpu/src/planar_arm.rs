@@ -38,17 +38,7 @@ impl PlanarArmBatch {
     /// coordinates in radians. The next tick uploads the current frame, while
     /// a world reset restores the construction targets and initial pose.
     pub fn set_target_angles(&mut self, lane: usize, radians: [f64; 2]) -> Result<(), GpuError> {
-        if !radians.iter().all(|v| v.is_finite()) {
-            return Err(GpuError::InvalidArmTarget(lane));
-        }
-        let arm = self
-            .committed
-            .get_mut(lane)
-            .ok_or(GpuError::InvalidArmTarget(lane))?;
-        arm.target = radians.map(|q| {
-            let (sin, cos) = q.sin_cos();
-            [cos, sin]
-        });
+        set_target(lane, self.committed.get_mut(lane), radians)?;
         self.upload_needed = true;
         Ok(())
     }
@@ -57,8 +47,22 @@ impl PlanarArmBatch {
     }
 }
 
+pub(super) fn set_target(
+    lane: usize,
+    arm: Option<&mut PlanarArmLane>,
+    radians: [f64; 2],
+) -> Result<(), GpuError> {
+    if !radians.iter().all(|v| v.is_finite()) {
+        return Err(GpuError::InvalidArmTarget(lane));
+    }
+    arm.ok_or(GpuError::InvalidArmTarget(lane))?.target = radians.map(|q| {
+        let (s, c) = q.sin_cos();
+        [c, s]
+    });
+    Ok(())
+}
 impl PlanarArmLane {
-    fn valid(self) -> bool {
+    pub(super) fn valid(self) -> bool {
         let words = bytemuck::cast_ref::<Self, [f64; WIDTH]>(&self);
         if !words.iter().all(|v| v.is_finite()) {
             return false;
@@ -110,7 +114,8 @@ fn module() -> naga::Module {
 }
 
 // Configuration-independent coefficients of the symmetric 2 × 2 mass matrix.
-struct ArmInertia<T> {
+#[derive(Clone, Copy)]
+pub(super) struct ArmInertia<T> {
     a: T,
     b: T,
     k: T,
@@ -120,7 +125,17 @@ struct ArmInertia<T> {
     distal_weight: T,
 }
 impl<T: Scalar> ArmInertia<T> {
-    fn from_lane(v: &[T]) -> Self {
+    /// Generalized velocity produced by a unit spatial impulse with this joint Jacobian.
+    pub(super) fn inverse(&self, c: T, s: T, j: [T; 2]) -> [T; 2] {
+        let m12 = self.b + self.k * c;
+        let m11 = self.a + self.b + self.k * c + self.k * c;
+        let det = self.det0 + self.det_s * s * s;
+        [
+            (self.b * j[0] - m12 * j[1]) / det,
+            (m11 * j[1] - m12 * j[0]) / det,
+        ]
+    }
+    pub(super) fn from_lane(v: &[T]) -> Self {
         let (l1, l2, r1, r2, m1, m2, i1, i2, p, g) = (
             v[6], v[7], v[8], v[9], v[10], v[11], v[12], v[13], v[14], v[15],
         );
@@ -145,7 +160,7 @@ impl<T: Scalar> ArmInertia<T> {
         }
     }
 }
-fn tick<T: Scalar>(v: &[T], constants: &[T]) -> [(usize, T); 8] {
+pub(super) fn tick<T: Scalar>(v: &[T], constants: &[T]) -> [(usize, T); 8] {
     let [dt, zero, one, half] = *constants else {
         unreachable!()
     };
@@ -157,30 +172,16 @@ fn tick<T: Scalar>(v: &[T], constants: &[T]) -> [(usize, T); 8] {
             .maximum(zero - v[24 + i])
             .minimum(v[24 + i])
     };
-    let ArmInertia {
-        a,
-        b,
-        k,
-        det0,
-        det_s,
-        shoulder_weight,
-        distal_weight,
-    } = ArmInertia::from_lane(v);
+    let mass = ArmInertia::from_lane(v);
+    let k = mass.k;
     let solve = |[c1, s1]: [T; 2], [c2, s2]: [T; 2], w1: T, w2: T| {
         let u1 = torque(0, c1, s1, w1);
         let u2 = torque(1, c2, s2, w2);
-        let m12 = b + k * c2;
-        let m11 = a + b + k * c2 + k * c2;
-        let det = det0 + det_s * s2 * s2;
-        let g2 = distal_weight * (c1 * c2 - s1 * s2);
-        let f1 = u1 + k * s2 * w2 * (w1 + w1 + w2) - shoulder_weight * c1 - g2;
+        let g2 = mass.distal_weight * (c1 * c2 - s1 * s2);
+        let f1 = u1 + k * s2 * w2 * (w1 + w1 + w2) - mass.shoulder_weight * c1 - g2;
         let f2 = u2 - k * s2 * w1 * w1 - g2;
-        [
-            (b * f1 - m12 * f2) / det,
-            (m11 * f2 - m12 * f1) / det,
-            u1,
-            u2,
-        ]
+        let [a, b] = mass.inverse(c2, s2, [f1, f2]);
+        [a, b, u1, u2]
     };
     let rotate = |c: T, s: T, w: T| {
         let t = half * dt * w;

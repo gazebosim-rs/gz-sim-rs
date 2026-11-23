@@ -103,17 +103,19 @@ impl State {
         }
     }
     pub fn fine(&mut self, l: &Lane) {
-        let h = 0.001 / 8.;
         for _ in 0..8 {
-            let a = self.derivative(l);
-            let b = self.offset(a, h * 0.5).derivative(l);
-            let c = self.offset(b, h * 0.5).derivative(l);
-            let d = self.offset(c, h).derivative(l);
-            *self = self
-                .offset(a, h / 6.)
-                .offset(b, h / 3.)
-                .offset(c, h / 3.)
-                .offset(d, h / 6.);
+            self.rk4(l, 0.001 / 8.);
         }
+    }
+    pub fn rk4(&mut self, l: &Lane, h: f64) {
+        let a = self.derivative(l);
+        let b = self.offset(a, h * 0.5).derivative(l);
+        let c = self.offset(b, h * 0.5).derivative(l);
+        let d = self.offset(c, h).derivative(l);
+        *self = self
+            .offset(a, h / 6.)
+            .offset(b, h / 3.)
+            .offset(c, h / 3.)
+            .offset(d, h / 6.);
     }
 }

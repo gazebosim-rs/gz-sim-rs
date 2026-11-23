@@ -36,7 +36,9 @@ mod sphere_plane;
 pub use sphere_block::{MAX_BLOCK_TICKS, SpherePlaneBlockBatch, SpherePlaneBlockObservation};
 pub use sphere_plane::SpherePlaneLane;
 mod planar_arm;
+mod planar_tool;
 pub use planar_arm::{PlanarArmBatch, PlanarArmLane};
+pub use planar_tool::{PlanarToolBatch, PlanarToolLane};
 pub mod sampling;
 pub mod simulation;
 
