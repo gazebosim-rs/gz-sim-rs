@@ -8,6 +8,8 @@ use gz_physics_xpbd::{PadSample, Particle};
 use gz_sim_scene::deformable::{set_material_force, set_material_resolution};
 use serde::Serialize;
 
+#[path = "fold_bench.rs"]
+pub(super) mod bench;
 #[path = "fold_breakaway.rs"]
 pub(super) mod breakaway;
 #[path = "fold_recovery.rs"]
@@ -165,7 +167,11 @@ impl Grasp {
                 .iter()
                 .map(|p| p.velocity[1] / p.inverse_mass)
                 .sum(),
-            bench_side_reaction_n: sheet.last_boundary_impulses()[2].linear[1] / DT,
+            bench_side_reaction_n: sheet.last_boundary_impulses()[2..]
+                .iter()
+                .map(|j| j.linear[1])
+                .sum::<f64>()
+                / DT,
             command_stroke_m: self.stroke,
             cross_panel_n: s.cross_panel_n,
             panel_gap_m: s.panel_gap_m,
@@ -322,6 +328,27 @@ fn save_case(
     frame: usize,
     columns: usize,
 ) -> Result<()> {
+    let captures = json!({"approach":0,"held":APPROACH/STRIDE,"baseline":frame,"peak":frame+(RAMP+HOLD)/STRIDE,"released":frame+(2*RAMP+HOLD)/STRIDE,"recovered":frame+END/STRIDE});
+    save_with_captures(
+        recording,
+        frames,
+        trace,
+        scene,
+        dir,
+        columns,
+        ("right", captures),
+    )
+}
+
+fn save_with_captures(
+    recording: Recording,
+    frames: Vec<arm_sheet::Frame>,
+    trace: &[Tick],
+    scene: &str,
+    dir: &Path,
+    columns: usize,
+    (camera, captures): (&str, Value),
+) -> Result<()> {
     recording.save(dir)?;
     fs::write(dir.join("world.sdf"), scene)?;
     write_json(&dir.join("trace.json"), &serde_json::to_value(trace)?)?;
@@ -329,10 +356,9 @@ fn save_case(
         &dir.join("particle-frames.json"),
         &serde_json::to_value(frames)?,
     )?;
-    let captures = json!({"approach":0,"held":APPROACH/STRIDE,"baseline":frame,"peak":frame+(RAMP+HOLD)/STRIDE,"released":frame+(2*RAMP+HOLD)/STRIDE,"recovered":frame+END/STRIDE});
     write_json(
         &dir.join("frames.json"),
-        &json!({"kind":"authored-archive-v1","camera":"right","dt_ns":1,"source_public_dt_ns":1_000_000,"capture_stride_ticks":STRIDE,"captures":captures,"particle_visuals":(0..4*columns).map(arm_sheet::name).collect::<Vec<_>>(),"jaw_visuals":["default::arm::left::left","default::arm::right::right"],"cloth_grid":{"rows":4,"columns":columns,"skin_radius_m":arm_sheet::RADIUS,"last_row_left":1,"first_row_right":2}}),
+        &json!({"kind":"authored-archive-v1","camera":camera,"dt_ns":1,"source_public_dt_ns":1_000_000,"capture_stride_ticks":STRIDE,"captures":captures,"particle_visuals":(0..4*columns).map(arm_sheet::name).collect::<Vec<_>>(),"jaw_visuals":["default::arm::left::left","default::arm::right::right"],"cloth_grid":{"rows":4,"columns":columns,"skin_radius_m":arm_sheet::RADIUS,"last_row_left":1,"first_row_right":2}}),
     )?;
     Ok(())
 }

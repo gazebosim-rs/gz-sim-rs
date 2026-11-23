@@ -77,6 +77,8 @@ enum Study {
     },
     /// Pull a force-controlled folded sheet sideways and compare its slip with an unloaded hold.
     FoldPull { output: PathBuf },
+    /// Compare a finite receiving bench with a missed bench and a reference plane.
+    FoldBench { output: PathBuf },
     /// Measure sustained pressure between folded panels as a live gripper closes.
     FoldClosure { output: PathBuf },
     /// Compare particle and surface-patch jaw pressure on three folded sheets.
@@ -253,6 +255,7 @@ fn main() -> Result<()> {
             fold_pull::recovery::run(out, columns.zip(load_mn), end)
         }),
         Study::FoldBreakaway { output } => write_new(&output, fold_pull::breakaway::run),
+        Study::FoldBench { output } => write_new(&output, fold_pull::bench::run),
         Study::FoldPull { output } => write_new(&output, fold_pull::run),
         Study::FoldClosure { output } => write_new(&output, fold_closure::run),
         Study::FoldPatch { output } => write_new(&output, fold_patch::run),

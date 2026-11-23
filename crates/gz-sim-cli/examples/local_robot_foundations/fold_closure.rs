@@ -73,7 +73,7 @@ pub(super) fn sample(
     stroke: f64,
 ) -> Result<Sample> {
     let sheet = arm_sheet::cloth(&r.sim)?;
-    let [left, right, bench] = sheet.last_boundary_impulses() else {
+    let [left, right, bench, other_benches @ ..] = sheet.last_boundary_impulses() else {
         return Err("closure needs two jaws and the bench".into());
     };
     let mut squeeze = [0.; 2];
@@ -103,7 +103,8 @@ pub(super) fn sample(
         panel_gap_m: fold_mesh::panel_gap(sheet.particles(), columns)?,
         jaw_up_n: [-left.linear[2] / DT, -right.linear[2] / DT],
         jaw_squeeze_n: squeeze,
-        bench_up_n: -bench.linear[2] / DT,
+        bench_up_n: -(bench.linear[2] + other_benches.iter().map(|j| j.linear[2]).sum::<f64>())
+            / DT,
         min_bench_clearance_m: sheet
             .particles()
             .iter()
