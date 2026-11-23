@@ -431,23 +431,42 @@ fn input_error(error: PhysicsError) -> InputError {
 /// Paused ticks retain the latest value; zero stops future forcing. Individual
 /// admission errors preserve the prior value. Combined inputs are checked at stepping.
 pub fn set_joint_force(sim: &mut Simulation, id: u64, torque: f64) -> Result<(), InputError> {
-    let (entity, joint) = joint_target(sim, id, torque)?;
-    let backend = sim.world().resource::<PhysicsBackend>();
-    #[cfg(feature = "distributed-physics")]
-    if backend.engine() == "distributed-hinge" {
-        return Err(input_error(PhysicsError::Unsupported {
-            engine: backend.engine(),
-            capability: "persistent joint effort",
-        }));
+    JointForceCommand::set_batch(sim, [(id, torque)])
+}
+
+impl JointForceCommand {
+    /// Set persistent generalized efforts on a group of loaded joints together.
+    /// Each input is (public joint entity ID, torque in N·m or slider force in N).
+    /// Validation completes before any command changes. For repeated joint IDs
+    /// the last supplied value takes effect.
+    pub fn set_batch<const N: usize>(
+        sim: &mut Simulation,
+        commands: [(u64, f64); N],
+    ) -> Result<(), InputError> {
+        let mut entities = [Entity::PLACEHOLDER; N];
+        for (slot, (id, effort)) in entities.iter_mut().zip(commands) {
+            let (entity, joint) = joint_target(sim, id, effort)?;
+            let backend = sim.world().resource::<PhysicsBackend>();
+            #[cfg(feature = "distributed-physics")]
+            if backend.engine() == "distributed-hinge" {
+                return Err(input_error(PhysicsError::Unsupported {
+                    engine: backend.engine(),
+                    capability: "persistent joint effort",
+                }));
+            }
+            backend
+                .validate_joint_effort(joint, effort)
+                .map_err(input_error)?;
+            *slot = entity;
+        }
+        for (entity, (_, effort)) in entities.into_iter().zip(commands) {
+            sim.world_mut().entity_mut(entity).insert(Self(effort));
+        }
+        if N != 0 {
+            crate::joint_force_lifecycle::install(sim);
+        }
+        Ok(())
     }
-    backend
-        .validate_joint_effort(joint, torque)
-        .map_err(input_error)?;
-    sim.world_mut()
-        .entity_mut(entity)
-        .insert(JointForceCommand(torque));
-    crate::joint_force_lifecycle::install(sim);
-    Ok(())
 }
 
 /// Accumulates a one-step torque (N·m) on a hinge or force (N) on a slider by public ID.

@@ -9,10 +9,13 @@ use gz_physics::{BodyId, PhysicsBackend};
 use gz_physics_multifidelity::MultiFidelityBackend;
 use gz_sim_core::{EntityId, Simulation};
 use gz_sim_scene::{
-    BodyHandle, JointSample, Name, PhysicsEngine, Velocity, WorldPose, load_world_with_sdf_step,
-    set_joint_controller_command, set_joint_force,
+    BodyHandle, JointForceCommand, JointSample, Name, PhysicsEngine, Velocity, WorldPose,
+    load_world_with_sdf_step, set_joint_controller_command,
 };
 use serde::Serialize;
+
+#[path = "serial_place/withdrawal.rs"]
+mod withdrawal;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 const WEIGHT_N: f64 = 0.2 * 9.81;
@@ -39,6 +42,8 @@ enum Trial {
     Supported,
     Early,
     MissingShelf,
+    Withdrawal,
+    OpenLoop,
 }
 #[derive(Parser)]
 struct Args {
@@ -46,11 +51,19 @@ struct Args {
     trial: Trial,
     /// New native recording directory.
     output: PathBuf,
+    /// Reaction time after the contact sensor detects shelf withdrawal.
+    #[arg(long,default_value_t=0,value_parser=clap::value_parser!(u16).range(0..=500))]
+    delay_ms: u16,
 }
 
 fn scene(trial: Trial) -> String {
     let shelf = if trial == Trial::MissingShelf {
         SHELF.replace("-0.30 0 0", "0 0 0")
+    } else if matches!(trial, Trial::Withdrawal | Trial::OpenLoop) {
+        SHELF.replace(
+            "</trajectory>",
+            &format!("{}</trajectory>", withdrawal::PATH),
+        )
     } else {
         SHELF.to_owned()
     };
@@ -107,6 +120,8 @@ impl SupportWindow {
 #[derive(Debug, Default, PartialEq, Serialize)]
 struct Outcome {
     open_tick: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    recovery: Option<withdrawal::Receipt>,
     lift_mm: f64,
     release_z_m: f64,
     shelf_force_at_open_n: f64,
@@ -171,11 +186,23 @@ fn contacts(
     Ok((normal, top))
 }
 
+#[cfg(test)]
 fn run(
     sim: &mut Simulation,
     trial: Trial,
+    capture: impl FnMut(&Simulation, usize) -> Result<()>,
+) -> Result<Outcome> {
+    run_with_delay(sim, trial, 0, capture)
+}
+fn run_with_delay(
+    sim: &mut Simulation,
+    trial: Trial,
+    delay_ms: usize,
     mut capture: impl FnMut(&Simulation, usize) -> Result<()>,
 ) -> Result<Outcome> {
+    let mut recovery = matches!(trial, Trial::Withdrawal | Trial::OpenLoop)
+        .then(|| withdrawal::Recovery::new(trial, delay_ms));
+    let steps = if recovery.is_some() { 20_000 } else { STEPS };
     let parcel = part(sim, "parcel::box")?;
     let palm = part(sim, "gripper::palm")?;
     let spindle = part(sim, "gripper::spindle")?;
@@ -185,9 +212,10 @@ fn run(
         part(sim, "gripper::close_right")?.id,
     ];
     let load = body(sim, &parcel)?;
+    let shelf = part(sim, "receiver::shelf")?;
     let id = |name| part(sim, name).and_then(|p| body(sim, &p));
     let peers = [
-        id("receiver::shelf")?,
+        body(sim, &shelf)?,
         id("stand::post")?,
         id("gripper::left")?,
         id("gripper::right")?,
@@ -203,7 +231,7 @@ fn run(
         .translation[2];
     let dt = sim.step_duration().as_secs_f64();
     capture(sim, 0)?;
-    for tick in 1..=STEPS {
+    for tick in 1..=steps {
         if tick == 3660 {
             set_joint_controller_command(sim, wrist.id, 0.)?;
         }
@@ -225,14 +253,19 @@ fn run(
             out.lift_mm = (pose.translation[2] - start_z) * 1000.;
         }
         let z = pose.translation[2];
+        let parcel_orientation = pose.rotation;
         let shelf_n = normal[0] / dt;
         let force_n = (normal[0] + normal[1]) / dt;
         if tick >= DESCENT_START {
             out.peak_wrong_tray_n = out.peak_wrong_tray_n.max(normal[1] / dt);
         }
+        let may_open = out.open_tick.is_none()
+            || recovery
+                .as_ref()
+                .is_some_and(withdrawal::Recovery::retrying);
         if tick >= DESCENT_START
             && trial != Trial::Early
-            && out.open_tick.is_none()
+            && may_open
             && (top[0] || top[1] || contact_hold.is_some())
         {
             let q = sim
@@ -250,13 +283,14 @@ fn run(
         let supported = window.observe(top[0], shelf_n, vz);
         out.qualified_wrong_tray_ticks +=
             usize::from(tray_window.observe(top[1], normal[1] / dt, vz).is_some());
-        if out.open_tick.is_none()
-            && ((trial == Trial::Early && tick == 4450) || supported.is_some())
-        {
-            out.open_tick = Some(tick);
-            out.release_z_m = z;
-            out.shelf_force_at_open_n = shelf_n;
-            out.shelf_mean_before_open_n = supported;
+        if may_open && ((trial == Trial::Early && tick == 4450) || supported.is_some()) {
+            let retry = out.open_tick.is_some();
+            if !retry {
+                out.open_tick = Some(tick);
+                out.release_z_m = z;
+                out.shelf_force_at_open_n = shelf_n;
+                out.shelf_mean_before_open_n = supported;
+            }
             let q = sim
                 .world()
                 .get::<JointSample>(spindle.entity)
@@ -264,12 +298,44 @@ fn run(
                 .state
                 .position;
             set_joint_controller_command(sim, spindle.id, q)?;
-            for jaw in jaw_joints {
-                set_joint_force(sim, jaw, -20.)?;
+            if recovery.is_none() || retry {
+                JointForceCommand::set_batch(sim, jaw_joints.map(|jaw| (jaw, -20.)))?;
             }
+            if retry {
+                recovery.as_mut().unwrap().receipt.final_open_tick = Some(tick);
+            }
+            contact_hold = None;
         }
         if let Some(at) = out.open_tick {
-            if tick == at + 350 {
+            if let Some(controller) = &mut recovery {
+                let shelf_pose = sim
+                    .world()
+                    .get::<WorldPose>(shelf.entity)
+                    .ok_or("missing receiver pose")?
+                    .translation;
+                let shelf_velocity = sim
+                    .world()
+                    .get::<Velocity>(shelf.entity)
+                    .ok_or("missing receiver velocity")?
+                    .linear;
+                let local_up =
+                    glam::DQuat::from_array(parcel_orientation).inverse() * glam::DVec3::Z;
+                let bottom_z = z - local_up.abs().dot(glam::DVec3::new(0.030, 0.0275, 0.035));
+                let sample = withdrawal::GraspSample {
+                    drop_mm: (out.release_z_m - z) * 1000.,
+                    vertical_speed: vz,
+                    bottom_z,
+                    normal,
+                    spindle_rad: sim
+                        .world()
+                        .get::<JointSample>(spindle.entity)
+                        .ok_or("missing spindle state")?
+                        .state
+                        .position,
+                };
+                controller.observe(tick, at, &sample, (shelf_pose, shelf_velocity));
+                controller.commands(sim, tick, at, jaw_joints, spindle.id, &sample)?;
+            } else if tick == at + 350 {
                 set_joint_controller_command(sim, spindle.id, 1.6)?;
             }
             if tick > at {
@@ -280,11 +346,10 @@ fn run(
                 out.downward_travel_after_open_mm = out
                     .downward_travel_after_open_mm
                     .max((out.release_z_m - z) * 1000.);
-                out.flight_after_open_ms +=
-                    usize::from(normal[0] == 0. && normal[2] + normal[3] == 0.);
+                out.flight_after_open_ms += usize::from(normal.iter().all(|&j| j == 0.));
             }
         }
-        if tick > STEPS - FINAL_SAMPLES {
+        if tick > steps - FINAL_SAMPLES {
             out.final_shelf_load_n += shelf_n / FINAL_SAMPLES as f64;
             out.final_tray_load_n += normal[1] / (FINAL_SAMPLES as f64 * dt);
             out.final_pad_load_n += (normal[2] + normal[3]) / (FINAL_SAMPLES as f64 * dt);
@@ -299,6 +364,7 @@ fn run(
             capture(sim, tick)?;
         }
     }
+    out.recovery = recovery.map(|r| r.receipt);
     Ok(out)
 }
 fn main() -> Result<()> {
@@ -313,15 +379,20 @@ fn main() -> Result<()> {
         PhysicsEngine::MultiFidelity,
     )?;
     let mut frames = Vec::new();
-    let outcome = run(&mut sim, args.trial, |sim, _| {
-        frames.push(gz_sim_cli::primitive_frame(
-            sim,
-            &sdf,
-            "default",
-            frames.len() as u64 + 1,
-        )?);
-        Ok(())
-    })?;
+    let outcome = run_with_delay(
+        &mut sim,
+        args.trial,
+        usize::from(args.delay_ms),
+        |sim, _| {
+            frames.push(gz_sim_cli::primitive_frame(
+                sim,
+                &sdf,
+                "default",
+                frames.len() as u64 + 1,
+            )?);
+            Ok(())
+        },
+    )?;
     gz_sim_cli::export_archive(&args.output, Default::default(), frames)?;
     println!("{}", serde_json::to_string_pretty(&outcome)?);
     Ok(())
@@ -350,6 +421,126 @@ mod tests {
             window.observe(true, WEIGHT_N, 0.);
         }
         assert!((window.observe(true, WEIGHT_N, 0.).unwrap() - WEIGHT_N).abs() < 1e-14);
+    }
+
+    fn withdrawal_run(trial: Trial, delay: usize, repeat: bool) -> Outcome {
+        let mut sim = load_world_with_sdf_step(
+            &scene(trial),
+            "withdrawal.sdf",
+            "default",
+            &sdformat::NoResources,
+            PhysicsEngine::MultiFidelity,
+        )
+        .unwrap();
+        let outcome = run_with_delay(&mut sim, trial, delay, |_, _| Ok(())).unwrap();
+        if repeat {
+            gz_sim_scene::reset_loaded_world(&mut sim, |_| ()).unwrap();
+            assert_eq!(
+                run_with_delay(&mut sim, trial, delay, |_, _| Ok(())).unwrap(),
+                outcome
+            );
+        }
+        outcome
+    }
+
+    #[test]
+    fn withdrawal_response_controls_whether_the_parcel_stays_gripped_and_reaches_the_receiving_shelf()
+     {
+        std::thread::scope(|scope| {
+            for (trial, delay) in [
+                (Trial::Withdrawal, 0),
+                (Trial::Withdrawal, 50),
+                (Trial::OpenLoop, 0),
+            ] {
+                scope.spawn(move || {
+                    let outcome = withdrawal_run(trial, delay, true);
+                    let r = outcome.recovery.unwrap();
+                    assert_eq!(outcome.open_tick, Some(9216));
+                    assert_eq!(r.loss_tick, Some(9226));
+                    assert_eq!(r.shelf_return_tick, Some(10900));
+                    if trial == Trial::OpenLoop {
+                        assert!(r.close_tick.is_none() && r.final_open_tick.is_none());
+                        assert!(
+                            r.max_drop_before_return_mm > 85.
+                                && r.unsupported_before_return_ms > 200
+                        );
+                        assert!(
+                            outcome.final_shelf_load_n == 0.
+                                && (outcome.final_tray_load_n - WEIGHT_N).abs() < 0.002
+                        );
+                    } else {
+                        assert_eq!(r.close_tick, Some(9226 + delay));
+                        assert_eq!(r.retry_tick, r.shelf_return_tick);
+                        assert!(r.held_clear_at_return && r.suspended_on_pads_ms > 900);
+                        assert!(r.final_open_tick.is_some_and(|t| t > 10900));
+                        assert!(
+                            outcome.final_pad_load_n == 0.
+                                && (outcome.final_shelf_load_n - WEIGHT_N).abs() < 0.002
+                        );
+                        if delay == 0 {
+                            assert!(
+                                r.max_drop_before_return_mm < 0.1
+                                    && r.unsupported_before_return_ms == 0
+                            );
+                        } else {
+                            assert!(
+                                (5.2..5.5).contains(&r.max_drop_before_return_mm)
+                                    && r.unsupported_before_return_ms == 25
+                            );
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    #[test]
+    fn adjacent_response_delays_bound_continuity_sag_and_clearance_for_this_fixture() {
+        std::thread::scope(|scope| {
+            for delays in [[27, 28], [35, 36], [237, 238]] {
+                scope.spawn(move || {
+                    let [a, b] = delays.map(|d| withdrawal_run(Trial::Withdrawal, d, false));
+                    let (ra, rb) = (a.recovery.unwrap(), b.recovery.unwrap());
+                    match delays[0] {
+                        27 => {
+                            assert_eq!(ra.unsupported_before_return_ms, 0);
+                            assert_eq!(rb.unsupported_before_return_ms, 1);
+                        }
+                        35 => {
+                            assert!(
+                                ra.max_drop_before_return_mm < 1.
+                                    && rb.max_drop_before_return_mm > 1.
+                            );
+                        }
+                        _ => {
+                            assert!(ra.held_clear_at_return && ra.final_open_tick.is_some());
+                            assert!(ra.suspended_on_pads_ms > 900 && rb.suspended_on_pads_ms > 900);
+                            assert!(!rb.held_clear_at_return && rb.final_open_tick.is_none());
+                            assert!(b.final_pad_load_n > 10.);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    #[test]
+    #[ignore = "sampled release timing qualification"]
+    fn withdrawal_timing_sweep() {
+        let delays = [
+            0, 20, 26, 27, 28, 34, 35, 36, 50, 70, 72, 73, 100, 150, 220, 224, 227, 228, 232, 235,
+            236, 237, 238, 256, 257, 258, 259, 260, 300,
+        ];
+        std::thread::scope(|scope| {
+            for batch in delays.chunks(6) {
+                scope.spawn(move || {
+                    for &delay in batch {
+                        let r = withdrawal_run(Trial::Withdrawal, delay, false);
+                        println!("delay_ms={delay} {}", serde_json::to_string(&r).unwrap());
+                    }
+                });
+            }
+        });
     }
 
     fn robot() -> Simulation {
@@ -449,6 +640,7 @@ mod tests {
             eprintln!("{trial:?} {outcome:?}");
             assert!((outcome.lift_mm - 126.).abs() < 1.);
             match trial {
+                Trial::Withdrawal | Trial::OpenLoop => unreachable!(),
                 Trial::Supported => {
                     assert!(
                         outcome

@@ -323,3 +323,26 @@ fn swapped_joint_handles_cannot_redirect_persistent_force_after_admission() {
         assert_eq!(sim.elapsed(), std::time::Duration::ZERO);
     }
 }
+
+#[test]
+fn a_joint_effort_batch_preserves_prior_commands_when_any_target_is_invalid() {
+    let mut sim = load(PhysicsEngine::MultiFidelity);
+    let joint = named(&sim, "default::rotor::hinge");
+    let id = public(&sim, joint);
+    let part = public(&sim, named(&sim, "default::rotor::body"));
+    JointForceCommand::set_batch(&mut sim, []).unwrap();
+    assert!(sim.world().get::<JointForceCommand>(joint).is_none());
+    JointForceCommand::set_batch(&mut sim, [(id, 1.0), (id, 2.0)]).unwrap();
+    for bad in [(part, -4.), (u64::MAX, -4.), (id, f64::NAN)] {
+        assert!(JointForceCommand::set_batch(&mut sim, [(id, -3.), bad]).is_err());
+        assert_eq!(
+            sim.world()
+                .get::<JointForceCommand>(joint)
+                .unwrap()
+                .torque(),
+            2.
+        );
+    }
+    sim.step_exact(1).unwrap();
+    close(rate(&sim, id), 0.125);
+}
