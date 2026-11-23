@@ -3,6 +3,13 @@
 use super::*;
 
 impl Joints {
+    fn speed_drives(&self) -> impl Iterator<Item = MultibodyJointHandle> + '_ {
+        self.speed_caps
+            .values()
+            .flatten()
+            .flatten()
+            .flat_map(speed::AxisCap::drive_handles)
+    }
     fn native_reduced_handles(&self) -> impl Iterator<Item = MultibodyJointHandle> + '_ {
         self.records
             .values()
@@ -10,13 +17,7 @@ impl Joints {
                 Handle::Reduced(handle) => Some(handle),
                 Handle::Impulse(_) => None,
             })
-            .chain(
-                self.speed_caps
-                    .values()
-                    .flatten()
-                    .flatten()
-                    .flat_map(speed::AxisCap::drive_handles),
-            )
+            .chain(self.speed_drives())
     }
 
     pub(crate) fn finish_velocities(&self, world: &mut PhysicsWorld, integrated: bool) {
@@ -189,7 +190,12 @@ impl RapierBackend {
             let mixed = if reduced {
                 self.world.impulse_joints_with(*handle).next().is_some()
             } else {
-                self.world.multibody_joints_with(*handle).next().is_some()
+                // A moving speed stop owns massless private rotor links. They
+                // transmit reactions for ordinary impulse joints and may share
+                // a bearing with later joints on a serial or branched robot.
+                self.world
+                    .multibody_joints_with(*handle)
+                    .any(|(_, _, joint)| !self.joints.speed_drives().any(|drive| drive == joint))
             };
             if mixed {
                 return Err(PhysicsError::Unsupported {
